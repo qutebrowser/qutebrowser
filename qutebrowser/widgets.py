@@ -1,24 +1,33 @@
-from PyQt5.QtWidgets import QLineEdit, QHBoxLayout, QLabel
+from PyQt5.QtWidgets import QLineEdit, QHBoxLayout, QLabel, QWidget
 
-class StatusBar(QHBoxLayout):
+class StatusBar(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
+        self.bg_color("black")
+        self.hbox = QHBoxLayout(self)
+        self.hbox.setObjectName("status_hbox")
+        self.hbox.setContentsMargins(0, 0, 0, 0)
+        self.hbox.setSpacing(0)
 
-        self.cmd = StatusCommand(parent)
-        self.addWidget(self.cmd)
+        self.cmd = StatusCommand(self)
+        self.hbox.addWidget(self.cmd)
 
-        self.lbl = StatusText(parent)
-        self.addWidget(self.lbl)
+        self.lbl = StatusText(self)
+        self.hbox.addWidget(self.lbl)
+
+    def bg_color(self, color):
+        self.setStyleSheet("""* {{ background: {}; color: white; font-family:
+                Monospace; }}""".format(color))
 
 class StatusText(QLabel):
     def __init__(self, parent):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
-        self.setStyleSheet('QLabel { background: yellow }')
+        self.setStyleSheet("padding-right: 1px")
 
 class StatusCommand(QLineEdit):
     def __init__(self, parent):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
-        self.setStyleSheet('QLineEdit { background: yellow }')
+        self.setStyleSheet("border: 0px; padding-left: 1px")

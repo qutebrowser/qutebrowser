@@ -10,10 +10,12 @@ class TestWindow(QMainWindow):
 
         self.cwidget = QWidget(self)
         self.cwidget.setObjectName("cwidget")
+        self.setCentralWidget(self.cwidget)
 
         self.vbox = QVBoxLayout(self.cwidget)
         self.vbox.setObjectName("vbox")
-        self.setCentralWidget(self.cwidget)
+        self.vbox.setContentsMargins(0, 0, 0, 0)
+        self.vbox.setSpacing(0)
 
         self.tabs = QTabWidget(self.cwidget)
         self.tabs.setObjectName("tabs")
@@ -24,7 +26,7 @@ class TestWindow(QMainWindow):
 
         self.status = StatusBar(self.cwidget)
         self.status.lbl.setText("Hello World")
-        self.vbox.addLayout(self.status)
+        self.vbox.addWidget(self.status)
 
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
