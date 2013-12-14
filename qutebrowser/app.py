@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QVBoxLayout,
     QTabWidget, QWidget)
-from qutebrowser.widgets import StatusBar
+from qutebrowser.widgets import StatusBar, TabWidget
 
 class TestWindow(QMainWindow):
     def __init__(self):
@@ -17,11 +17,14 @@ class TestWindow(QMainWindow):
         self.vbox.setContentsMargins(0, 0, 0, 0)
         self.vbox.setSpacing(0)
 
-        self.tabs = QTabWidget(self.cwidget)
+        self.tabs = TabWidget(self.cwidget)
         self.tabs.setObjectName("tabs")
         self.tab = QWidget()
+        self.tab2 = QWidget()
         self.tab.setObjectName("tab")
+        self.tab2.setObjectName("tab2")
         self.tabs.addTab(self.tab, "test")
+        self.tabs.addTab(self.tab2, "test2")
         self.vbox.addWidget(self.tabs)
 
         self.status = StatusBar(self.cwidget)
