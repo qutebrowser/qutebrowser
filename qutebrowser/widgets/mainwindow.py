@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QWidget)
 from qutebrowser.widgets.statusbar import StatusBar
-from qutebrowser.widgets.tabbar import TabWidget
+from qutebrowser.browser import TabbedBrowser
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -16,7 +16,7 @@ class MainWindow(QMainWindow):
         self.vbox.setContentsMargins(0, 0, 0, 0)
         self.vbox.setSpacing(0)
 
-        self.tabs = TabWidget(self.cwidget)
+        self.tabs = TabbedBrowser(self)
         self.tabs.setObjectName("tabs")
         self.vbox.addWidget(self.tabs)
 
