@@ -4,14 +4,8 @@ from qutebrowser.widgets.mainwindow import MainWindow
 
 def main():
     app = QApplication(sys.argv)
-    mw = MainWindow()
 
-    tab = QWidget()
-    tab2 = QWidget()
-    tab.setObjectName("tab")
-    tab2.setObjectName("tab2")
-    mw.tabs.addTab(tab, "test")
-    mw.tabs.addTab(tab2, "test2")
+    mw = MainWindow()
     mw.show()
 
     sys.exit(app.exec_())
