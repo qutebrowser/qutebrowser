@@ -55,3 +55,4 @@ class TabWidget(QTabWidget):
                 background-color: black;
             }
         """)
+        self.setDocumentMode(True)
