@@ -1,7 +1,7 @@
 import sys
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QVBoxLayout,
-    QTabWidget, QWidget)
-from qutebrowser.widgets import StatusBar, TabWidget
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QWidget)
+from qutebrowser.widgets.statusbar import StatusBar
+from qutebrowser.widgets.tabbar import TabWidget
 
 class TestWindow(QMainWindow):
     def __init__(self):
