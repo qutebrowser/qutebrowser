@@ -42,6 +42,10 @@ class TabWidget(QTabWidget):
                 top: 0px;
             }
 
+            QTabBar {
+                font-family: Monospace;
+            }
+
             QTabBar::tab {
                 background-color: grey;
                 color: white;
