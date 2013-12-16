@@ -16,6 +16,11 @@ class TabbedBrowser(TabWidget):
         self.tabs.append(tab)
         self.addTab(tab, url)
 
+    @pyqtSlot(str)
+    def openurl(self, url):
+        tab = self.tabs[self.currentIndex()]
+        tab.openurl(url)
+
 class BrowserTab(QWebView):
     def __init__(self, parent):
         super().__init__(parent)
