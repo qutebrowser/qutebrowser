@@ -15,6 +15,7 @@ class TabbedBrowser(TabWidget):
         tab.openurl(url)
         self.tabs.append(tab)
         self.addTab(tab, url)
+        self.setCurrentWidget(tab)
 
     @pyqtSlot(str)
     def openurl(self, url):

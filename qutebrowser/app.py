@@ -8,8 +8,9 @@ def main():
 
     mw = MainWindow()
     cp = CommandParser()
-    mw.status.cmd.editingFinished.connect(lambda: cp.parse(mw.status.cmd.text()))
+    mw.status.cmd.returnPressed.connect(lambda: cp.parse(mw.status.cmd.text()))
     cp.openurl.connect(mw.tabs.openurl)
+    cp.tabopen.connect(mw.tabs.tabopen)
     mw.show()
 
     sys.exit(app.exec_())
