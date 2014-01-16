@@ -12,7 +12,7 @@ def register_all():
         cls.bind()
 
 class CommandParser(QObject):
-    def parse(self, test):
+    def parse(self, text):
         parts = text.strip().split()
         cmd = parts[0]
         args = parts[1:]
