@@ -31,7 +31,15 @@ class StatusText(QLabel):
         self.setStyleSheet("padding-right: 1px")
 
 class StatusCommand(QLineEdit):
+    got_cmd = pyqtSignal(str)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
         self.setStyleSheet("border: 0px; padding-left: 1px")
+        self.returnPressed.connect(self.process_cmd)
+
+    def process_cmd(self):
+        text = self.text().lstrip(':')
+        self.setText('')
+        self.got_cmd.emit(text)
