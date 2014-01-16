@@ -15,14 +15,14 @@ class CommandParser(QObject):
     def parse(self, text):
         parts = text.strip().split()
         cmd = parts[0]
-        args = parts[1:]
+        argv = parts[1:]
         obj = cmd_dict[cmd]
         try:
-            obj.check(args)
+            obj.check(argv)
         except TypeError:
             # TODO
             raise
-        obj.run(args)
+        obj.run(argv)
 
 class Command(QObject):
     nargs = 0
@@ -34,26 +34,32 @@ class Command(QObject):
         if cls.name:
             cmd_dict[cls.name] = cls()
 
-    def check(self, *args):
-        if ((isinstance(self.nargs, int) and len(args) != self.nargs) or
-                      (self.nargs == '?' and len(args) > 1) or
-                      (self.nargs == '+' and len(args) < 1)):
+    def check(self, argv):
+        if ((isinstance(self.nargs, int) and len(argv) != self.nargs) or
+                      (self.nargs == '?' and len(argv) > 1) or
+                      (self.nargs == '+' and len(argv) < 1)):
             raise TypeError("Invalid argument count!")
 
-    def run(self, *args):
+    def run(self, argv):
         if not self.signal:
             raise NotImplementedError
-        self.signal.emit(*args)
+        self.signal.emit()
 
 class OpenCmd(Command):
     nargs = 1
     name = 'open'
     signal = pyqtSignal(str)
 
+    def run(self, argv):
+        self.signal.emit(argv[0])
+
 class TabOpenCmd(Command):
     nargs = 1
     name = 'tabopen'
     signal = pyqtSignal(str)
+
+    def run(self, argv):
+        self.signal.emit(argv[0])
 
 class QuitCmd(Command):
     nargs = 0
