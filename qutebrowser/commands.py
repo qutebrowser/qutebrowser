@@ -16,7 +16,7 @@ class CommandParser(QObject):
         parts = text.strip().split()
         cmd = parts[0]
         args = parts[1:]
-        obj = cmd_dict[cmd]()
+        obj = cmd_dict[cmd]
         try:
             obj.check(args)
         except TypeError:
@@ -32,7 +32,7 @@ class Command(QObject):
     @classmethod
     def bind(cls):
         if cls.name:
-            cmd_dict[cls.name] = cls
+            cmd_dict[cls.name] = cls()
 
     def check(self, *args):
         if ((isinstance(self.nargs, int) and len(args) != self.nargs) or
