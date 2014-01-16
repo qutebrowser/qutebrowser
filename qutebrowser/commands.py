@@ -55,4 +55,9 @@ class TabOpenCmd(Command):
     name = 'tabopen'
     signal = pyqtSignal(str)
 
+class QuitCmd(Command):
+    nargs = 0
+    name = 'quit'
+    signal = pyqtSignal()
+
 register_all()

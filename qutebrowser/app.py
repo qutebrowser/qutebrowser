@@ -11,6 +11,7 @@ def main():
     mw.status.cmd.returnPressed.connect(lambda: cp.parse(mw.status.cmd.text()))
     cmds.cmd_dict['openurl'].connect(mw.tabs.openurl)
     cmds.cmd_dict['tabopen'].connect(mw.tabs.tabopen)
+    cmds.cmd_dict['quit'].connect(QApplication.closeAllWindows) # FIXME
     mw.show()
 
     sys.exit(app.exec_())
