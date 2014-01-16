@@ -9,9 +9,9 @@ def main():
     mw = MainWindow()
     cp = cmds.CommandParser()
     mw.status.cmd.got_cmd.connect(cp.parse)
-    cmds.cmd_dict['openurl'].connect(mw.tabs.openurl)
-    cmds.cmd_dict['tabopen'].connect(mw.tabs.tabopen)
-    cmds.cmd_dict['quit'].connect(QApplication.closeAllWindows) # FIXME
+    cmds.cmd_dict['open'].signal.connect(mw.tabs.openurl)
+    cmds.cmd_dict['tabopen'].signal.connect(mw.tabs.tabopen)
+    cmds.cmd_dict['quit'].signal.connect(QApplication.closeAllWindows) # FIXME
     mw.show()
 
     sys.exit(app.exec_())
