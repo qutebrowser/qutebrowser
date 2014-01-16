@@ -1,4 +1,5 @@
 from PyQt5.QtWidgets import QLineEdit, QHBoxLayout, QLabel, QWidget
+from PyQt5.QtCore import pyqtSignal
 
 class StatusBar(QWidget):
     def __init__(self, parent):
