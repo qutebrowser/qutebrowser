@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QLineEdit, QHBoxLayout, QLabel, QWidget
 from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtGui import QValidator
 
 class StatusBar(QWidget):
     def __init__(self, parent):
@@ -38,9 +39,17 @@ class StatusCommand(QLineEdit):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
         self.setStyleSheet("border: 0px; padding-left: 1px")
+        self.setValidator(CmdValidator())
         self.returnPressed.connect(self.process_cmd)
 
     def process_cmd(self):
         text = self.text().lstrip(':')
         self.setText('')
         self.got_cmd.emit(text)
+
+class CmdValidator(QValidator):
+    def validate(self, string, pos):
+        if string.startswith(':'):
+            return (QValidator.Acceptable, string, pos)
+        else:
+            return (QValidator.Invalid, string, pos)
