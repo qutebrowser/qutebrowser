@@ -16,7 +16,13 @@ class CommandParser(QObject):
         parts = text.lstrip(':').strip().split()
         cmd = parts[0]
         args = parts[1:]
-        cmd_dict[cmd]().run(args)
+        obj = cmd_dict[cmd]()
+        try:
+            obj.check(args)
+        except TypeError:
+            # TODO
+            raise
+        obj.run(args)
 
 class Command(QObject):
     nargs = 0
@@ -28,7 +34,15 @@ class Command(QObject):
         if cls.name:
             cmd_dict[cls.name] = cls
 
+    def check(self, *args):
+        if ((isinstance(self.nargs, int) and len(args) != self.nargs) or
+                      (self.nargs == '?' and len(args) > 1) or
+                      (self.nargs == '+' and len(args) < 1)):
+            raise TypeError("Invalid argument count!")
+
     def run(self, *args):
+        if not self.signal:
+            raise NotImplementedError
         self.signal.emit(*args)
 
 class OpenCmd(Command):
