@@ -81,6 +81,18 @@ class TabCloseCmd(Command):
     key = 'd'
     signal = pyqtSignal()
 
+class TabNextCmd(Command):
+    nargs = 0
+    name = 'tabnext'
+    key = 'Shift+j'
+    signal = pyqtSignal()
+
+class TabPrevCmd(Command):
+    nargs = 0
+    name = 'tabprev'
+    key = 'Shift+k'
+    signal = pyqtSignal()
+
 class QuitCmd(Command):
     nargs = 0
     name = 'quit'

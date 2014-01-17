@@ -32,6 +32,25 @@ class TabbedBrowser(TabWidget):
             # FIXME
             pass
 
+    @pyqtSlot()
+    def switch_prev(self):
+        idx = self.currentIndex()
+        if idx > 0:
+            self.setCurrentIndex(idx - 1)
+        else:
+            # FIXME
+            pass
+
+    @pyqtSlot()
+    def switch_next(self):
+        idx = self.currentIndex()
+        if idx < self.count() - 1:
+            self.setCurrentIndex(idx + 1)
+        else:
+            # FIXME
+            pass
+
+
 class BrowserTab(QWebView):
     def __init__(self, parent):
         super().__init__(parent)
