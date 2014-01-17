@@ -57,11 +57,16 @@ class TabbedBrowser(TabWidget):
 
     @pyqtSlot(int)
     def progress_changed(self, prog):
+        self.filter_signals(self.cur_progress, prog)
+
+    def filter_signals(self, signal, *args):
+        dbgstr = "{} ({})".format(
+            signal.signal, ','.join([str(e) for e in args]))
         if self.currentWidget() == self.sender():
-            logging.debug("progress = {}, current".format(prog))
-            self.cur_progress.emit(prog)
+            logging.debug('{} - emitting'.format(dbgstr))
+            signal.emit(*args)
         else:
-            logging.debug("progress = {}, non-current".format(prog))
+            logging.debug('{} - ignoring'.format(dbgstr))
 
     @pyqtSlot(int)
     def index_changed(self, idx):
