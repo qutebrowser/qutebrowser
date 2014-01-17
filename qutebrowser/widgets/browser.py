@@ -1,6 +1,7 @@
 from PyQt5.QtCore import QObject, pyqtSlot, QUrl, pyqtSignal
 from PyQt5.QtWebKitWidgets import QWebView
 from qutebrowser.widgets.tabbar import TabWidget
+import logging
 
 class TabbedBrowser(TabWidget):
     tabs = []
@@ -57,7 +58,10 @@ class TabbedBrowser(TabWidget):
     @pyqtSlot(int)
     def progress_changed(self, prog):
         if self.currentWidget() == self.sender():
+            logging.debug("progress = {}, current".format(prog))
             self.cur_progress.emit(prog)
+        else:
+            logging.debug("progress = {}, non-current".format(prog))
 
     @pyqtSlot(int)
     def index_changed(self, idx):
