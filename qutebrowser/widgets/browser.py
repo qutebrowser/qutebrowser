@@ -60,7 +60,6 @@ class TabbedBrowser(TabWidget):
 
     @pyqtSlot(int)
     def index_changed(self, idx):
-        print("changed index")
         tab = self.widget(idx)
         self.cur_progress.emit(tab.progress)
 
