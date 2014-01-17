@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QWidget, QApplication
 from qutebrowser.widgets.mainwindow import MainWindow
-from qutebrowser.keys import KeyParser
+from qutebrowser.commands.keys import KeyParser
 import qutebrowser.commands.utils as cmdutils
 
 def main():
