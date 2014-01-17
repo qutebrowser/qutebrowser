@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QLineEdit, QHBoxLayout, QLabel, QWidget, QShortcut
 from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtGui import QValidator
+from PyQt5.QtGui import QValidator, QKeySequence
 
 class StatusBar(QWidget):
     def __init__(self, parent):
@@ -49,9 +49,9 @@ class StatusCommand(QLineEdit):
         self.setValidator(CmdValidator())
         self.returnPressed.connect(self.process_cmd)
 
-        # FIXME this does not work
+        # FIXME this only works with real esc key, not with xmodmapped
         self.esc = QShortcut(self)
-        self.esc.setKey(Qt.Key_Escape)
+        self.esc.setKey(QKeySequence(Qt.Key_Escape))
         self.esc.setContext(Qt.WidgetWithChildrenShortcut)
         self.esc.activated.connect(parent.setFocus)
 
