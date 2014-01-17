@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QLineEdit, QHBoxLayout, QLabel, QWidget
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtWidgets import QLineEdit, QHBoxLayout, QLabel, QWidget, QShortcut
+from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QValidator
 
 class StatusBar(QWidget):
@@ -46,6 +46,12 @@ class StatusCommand(QLineEdit):
         self.setValidator(CmdValidator())
         self.returnPressed.connect(self.process_cmd)
 
+        # FIXME this does not work
+        self.esc = QShortcut(self)
+        self.esc.setKey(Qt.Key_Escape)
+        self.esc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.esc.activated.connect(parent.setFocus)
+
     def process_cmd(self):
         text = self.text().lstrip(':')
         self.setText('')
@@ -54,6 +60,10 @@ class StatusCommand(QLineEdit):
     def set_cmd(self, text):
         self.setText(text)
         self.setFocus()
+
+    def focusOutEvent(self, event):
+        self.setText('')
+        super().focusOutEvent(event)
 
 class CmdValidator(QValidator):
     def validate(self, string, pos):
