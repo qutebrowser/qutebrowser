@@ -47,7 +47,7 @@ class Command(QObject):
                       (self.nargs == '+' and len(argv) < 1)):
             raise TypeError("Invalid argument count!")
 
-    def run(self, argv):
+    def run(self, argv=None):
         if not self.signal:
             raise NotImplementedError
         self.signal.emit()

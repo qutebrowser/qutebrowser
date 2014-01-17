@@ -21,4 +21,4 @@ class KeyParser(QObject):
         if cmd.nargs and cmd.nargs != 0:
             self.set_cmd_text.emit(':{} '.format(cmd.name))
         else:
-            cmd.run([])
+            cmd.run()
