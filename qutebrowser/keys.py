@@ -18,7 +18,7 @@ class KeyParser(QObject):
 
     def handle(self):
         cmd = self.id_to_cmd[self.sender().id()]
-        text = ':' + cmd.name
         if cmd.nargs and cmd.nargs != 0:
-            text += ' '
-        self.set_cmd_text.emit(text)
+            self.set_cmd_text.emit(':{} '.format(cmd.name))
+        else:
+            cmd.run([])
