@@ -1,6 +1,7 @@
 from PyQt5.QtCore import QObject, Qt, pyqtSignal
 from PyQt5.QtWidgets import QShortcut
 from PyQt5.QtGui import QKeySequence
+import logging
 
 class KeyParser(QObject):
     keyparent = None
@@ -18,7 +19,7 @@ class KeyParser(QObject):
     def from_cmd_dict(self, d):
         for cmd in d.values():
             if cmd.key is not None:
-                print('reg: {} -> {}'.format(cmd.name, cmd.key))
+                logging.debug('registered: {} -> {}'.format(cmd.name, cmd.key))
                 sc = QShortcut(self.keyparent)
                 sc.setKey(QKeySequence(cmd.key))
                 sc.setContext(Qt.WidgetWithChildrenShortcut)

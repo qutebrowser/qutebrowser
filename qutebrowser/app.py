@@ -1,10 +1,36 @@
 import sys
+import argparse
+import logging
 from PyQt5.QtWidgets import QWidget, QApplication
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.commands.keys import KeyParser
 import qutebrowser.commands.utils as cmdutils
 
+def parseopts():
+    parser = argparse.ArgumentParser("usage: %(prog)s [options]")
+    parser.add_argument('-l', '--log', dest='loglevel', help='Set loglevel',
+                        default=0)
+    args = parser.parse_args()
+    return args
+
+def initlog(args):
+    """ Initialisation of the log """
+    if (args.loglevel):
+        loglevel = args.loglevel
+    else:
+        loglevel = 'info'
+    numeric_level = getattr(logging, loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % loglevel)
+    logging.basicConfig(
+        level=numeric_level,
+        format='%(asctime)s [%(levelname)s] [%(module)s:%(funcName)s:%(lineno)s] %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S')
+
 def main():
+    args = parseopts()
+    initlog(args)
+
     app = QApplication(sys.argv)
 
     mw = MainWindow()
