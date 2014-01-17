@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QWidget)
 from qutebrowser.widgets.statusbar import StatusBar
-from qutebrowser.browser import TabbedBrowser
+from qutebrowser.widgets.browser import TabbedBrowser
 
 class MainWindow(QMainWindow):
     def __init__(self):
