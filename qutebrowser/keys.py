@@ -9,6 +9,7 @@ class KeyParser(QObject):
     def from_cmd_dict(self, d, parent):
         for cmd in d.values():
             if cmd.key is not None:
+                print('reg: {} -> {}'.format(cmd.name, cmd.key))
                 sc = QShortcut(parent)
                 sc.setKey(QKeySequence(cmd.key))
                 sc.setContext(Qt.WidgetWithChildrenShortcut)

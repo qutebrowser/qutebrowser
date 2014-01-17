@@ -26,13 +26,13 @@ class CommandParser(QObject):
 
 class Command(QObject):
     nargs = 0
-    name = ''
+    name = None
     key = None
     signal = None
 
     @classmethod
     def bind(cls):
-        if cls.name:
+        if cls.name is not None:
             cmd_dict[cls.name] = cls()
 
     def check(self, argv):
@@ -45,6 +45,11 @@ class Command(QObject):
         if not self.signal:
             raise NotImplementedError
         self.signal.emit()
+
+class EmptyCmd(Command):
+    nargs = 0
+    name = ''
+    key = ':'
 
 class OpenCmd(Command):
     nargs = 1
