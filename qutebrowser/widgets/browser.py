@@ -5,7 +5,6 @@ from qutebrowser.widgets.tabbar import TabWidget
 import logging
 
 class TabbedBrowser(TabWidget):
-    tabs = []
     cur_progress = pyqtSignal(int)
     url_stack = []
 
@@ -18,7 +17,6 @@ class TabbedBrowser(TabWidget):
     def tabopen(self, url):
         tab = BrowserTab(self)
         tab.openurl(url)
-        self.tabs.append(tab)
         self.addTab(tab, url)
         self.setCurrentWidget(tab)
         self.progress_changed(tab.progress)
@@ -27,7 +25,7 @@ class TabbedBrowser(TabWidget):
 
     @pyqtSlot(str)
     def openurl(self, url):
-        tab = self.tabs[self.currentIndex()]
+        tab = self.currentWidget()
         tab.openurl(url)
 
     @pyqtSlot()
@@ -37,12 +35,12 @@ class TabbedBrowser(TabWidget):
 
     @pyqtSlot()
     def close_act(self):
-        if len(self.tabs) > 1:
+        if self.count() > 1:
             idx = self.currentIndex()
+            tab = self.currentWidget()
             # FIXME maybe we should add the QUrl object here and deal with QUrls everywhere
             # FIXME maybe we actually should store the webview objects here
-            self.url_stack.append(self.tabs[idx].url().url())
-            self.tabs.pop(idx)
+            self.url_stack.append(tab.url().url())
             self.removeTab(idx)
         else:
             # FIXME
