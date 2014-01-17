@@ -22,6 +22,12 @@ class TabbedBrowser(TabWidget):
         tab = self.tabs[self.currentIndex()]
         tab.openurl(url)
 
+    @pyqtSlot()
+    def close_act(self):
+        idx = self.currentIndex()
+        self.tabs.pop(idx)
+        self.removeTab(idx)
+
 class BrowserTab(QWebView):
     def __init__(self, parent):
         super().__init__(parent)

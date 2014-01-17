@@ -75,6 +75,12 @@ class TabOpenCmd(Command):
     def run(self, argv):
         self.signal.emit(argv[0])
 
+class TabCloseCmd(Command):
+    nargs = 0
+    name = 'tabclose'
+    key = 'd'
+    signal = pyqtSignal()
+
 class QuitCmd(Command):
     nargs = 0
     name = 'quit'

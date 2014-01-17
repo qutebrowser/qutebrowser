@@ -17,6 +17,7 @@ def main():
     cmds.cmd_dict['open'].signal.connect(mw.tabs.openurl)
     cmds.cmd_dict['tabopen'].signal.connect(mw.tabs.tabopen)
     cmds.cmd_dict['quit'].signal.connect(QApplication.closeAllWindows) # FIXME
+    cmds.cmd_dict['tabclose'].signal.connect(mw.tabs.close_act)
     kp.from_cmd_dict(cmds.cmd_dict, mw)
     mw.show()
 
