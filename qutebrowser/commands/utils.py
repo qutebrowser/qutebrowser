@@ -13,7 +13,7 @@ def register_all():
                                           is_cmd):
         if cls.bind:
             if cls.name is None:
-                name = cls.__name__.tolower()
+                name = cls.__name__.lower()
             else:
                 name = cls.name
             cmd_dict[name] = cls()
