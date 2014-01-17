@@ -23,7 +23,7 @@ class MainWindow(QMainWindow):
         self.status = StatusBar(self.cwidget)
         self.vbox.addWidget(self.status)
 
-        self.tabs.cur_progress.connect(self.status.lbl.set_progress)
+        self.tabs.cur_progress.connect(self.status.prog.set_progress)
 
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
