@@ -18,6 +18,7 @@ class TabbedBrowser(TabWidget):
         self.tabs.append(tab)
         self.addTab(tab, url)
         self.setCurrentWidget(tab)
+        self.progress_changed(tab.progress)
         tab.loadProgress.connect(self.progress_changed)
 
     @pyqtSlot(str)
