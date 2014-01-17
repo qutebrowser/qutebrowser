@@ -10,7 +10,12 @@ def register_all():
                 obj.__module__ == 'qutebrowser.commands.commands')
 
     for (name, cls) in inspect.getmembers(commands, is_cmd):
-        cls.bind()
+        if cls.bind:
+            if cls.name is None:
+                name = cls.__name__.tolower()
+            else:
+                name = cls.name
+            cmd_dict[name] = cls()
 
 class CommandParser(QObject):
     error = pyqtSignal(str)
@@ -36,11 +41,7 @@ class Command(QObject):
     name = None
     key = None
     signal = None
-
-    @classmethod
-    def bind(cls):
-        if cls.name is not None:
-            cmd_dict[cls.name] = cls()
+    bind = True
 
     def check(self, argv):
         if ((isinstance(self.nargs, int) and len(argv) != self.nargs) or
