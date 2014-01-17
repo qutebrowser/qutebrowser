@@ -49,6 +49,11 @@ def main():
     cmds['tabclose'].signal.connect(mw.tabs.close_act)
     cmds['tabprev'].signal.connect(mw.tabs.switch_prev)
     cmds['tabnext'].signal.connect(mw.tabs.switch_next)
+    cmds['reload'].signal.connect(mw.tabs.reload_act)
+    cmds['stop'].signal.connect(mw.tabs.stop_act)
+    cmds['back'].signal.connect(mw.tabs.back_act)
+    cmds['forward'].signal.connect(mw.tabs.forward_act)
+    cmds['print'].signal.connect(mw.tabs.print_act)
     kp.from_cmd_dict(cmds)
 
     mw.show()

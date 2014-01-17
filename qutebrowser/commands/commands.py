@@ -29,3 +29,26 @@ class TabPrev(Command):
 class Quit(Command):
     nargs = 0
     signal = pyqtSignal()
+
+class Reload(Command):
+    nargs = 0
+    key = 'r'
+    signal = pyqtSignal()
+
+class Stop(Command):
+    nargs = 0
+    signal = pyqtSignal()
+
+class Back(Command):
+    nargs = 0
+    key = 'Shift+H'
+    signal = pyqtSignal()
+
+class Forward(Command):
+    nargs = 0
+    key = 'Shift+L'
+    signal = pyqtSignal()
+
+class Print(Command):
+    nargs = 0
+    signal = pyqtSignal()

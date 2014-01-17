@@ -1,4 +1,5 @@
 from PyQt5.QtCore import QObject, pyqtSlot, QUrl, pyqtSignal
+from PyQt5.QtPrintSupport import QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebView
 from qutebrowser.widgets.tabbar import TabWidget
 import logging
@@ -36,6 +37,31 @@ class TabbedBrowser(TabWidget):
         else:
             # FIXME
             pass
+
+    @pyqtSlot()
+    def reload_act(self):
+        self.currentWidget().reload()
+
+    @pyqtSlot()
+    def stop_act(self):
+        self.currentWidget().stop()
+
+    @pyqtSlot()
+    def print_act(self):
+        # FIXME that does not what I expect
+        preview = QPrintPreviewDialog()
+        preview.paintRequested.connect(self.currentWidget().print)
+        preview.exec_()
+
+    @pyqtSlot()
+    def back_act(self):
+        # FIXME display warning if beginning of history
+        self.currentWidget().back()
+
+    @pyqtSlot()
+    def forward_act(self):
+        # FIXME display warning if end of history
+        self.currentWidget().forward()
 
     @pyqtSlot()
     def switch_prev(self):
