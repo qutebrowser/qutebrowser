@@ -1,11 +1,6 @@
 from PyQt5.QtCore import pyqtSignal
 from qutebrowser.commands.utils import Command
 
-class Empty(Command):
-    nargs = 0
-    name = ''
-    key = ':'
-
 class Open(Command):
     nargs = 1
     key = 'o'

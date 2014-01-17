@@ -3,14 +3,23 @@ from PyQt5.QtWidgets import QShortcut
 from PyQt5.QtGui import QKeySequence
 
 class KeyParser(QObject):
+    keyparent = None
     set_cmd_text = pyqtSignal(str)
     id_to_cmd = {}
 
-    def from_cmd_dict(self, d, parent):
+    def __init__(self, keyparent):
+        super().__init__()
+        self.keyparent = keyparent
+        sc = QShortcut(keyparent)
+        sc.setKey(QKeySequence(':'))
+        sc.setContext(Qt.WidgetWithChildrenShortcut)
+        sc.activated.connect(self.handle_empty)
+
+    def from_cmd_dict(self, d):
         for cmd in d.values():
             if cmd.key is not None:
                 print('reg: {} -> {}'.format(cmd.name, cmd.key))
-                sc = QShortcut(parent)
+                sc = QShortcut(self.keyparent)
                 sc.setKey(QKeySequence(cmd.key))
                 sc.setContext(Qt.WidgetWithChildrenShortcut)
                 sc.activated.connect(self.handle)
@@ -22,3 +31,6 @@ class KeyParser(QObject):
             self.set_cmd_text.emit(':{} '.format(cmd.name))
         else:
             cmd.run()
+
+    def handle_empty(self):
+        self.set_cmd_text.emit(':')

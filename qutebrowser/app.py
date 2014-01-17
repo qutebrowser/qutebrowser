@@ -9,7 +9,7 @@ def main():
 
     mw = MainWindow()
     cp = cmdutils.CommandParser()
-    kp = KeyParser()
+    kp = KeyParser(mw)
     kp.set_cmd_text.connect(mw.status.cmd.set_cmd)
     mw.status.cmd.got_cmd.connect(cp.parse)
     mw.status.cmd.got_cmd.connect(mw.setFocus)
@@ -23,7 +23,7 @@ def main():
     cmds['tabclose'].signal.connect(mw.tabs.close_act)
     cmds['tabprev'].signal.connect(mw.tabs.switch_prev)
     cmds['tabnext'].signal.connect(mw.tabs.switch_next)
-    kp.from_cmd_dict(cmds, mw)
+    kp.from_cmd_dict(cmds)
 
     mw.show()
     sys.exit(app.exec_())
