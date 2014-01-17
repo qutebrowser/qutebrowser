@@ -24,9 +24,13 @@ class TabbedBrowser(TabWidget):
 
     @pyqtSlot()
     def close_act(self):
-        idx = self.currentIndex()
-        self.tabs.pop(idx)
-        self.removeTab(idx)
+        if len(self.tabs) > 1:
+            idx = self.currentIndex()
+            self.tabs.pop(idx)
+            self.removeTab(idx)
+        else:
+            # FIXME
+            pass
 
 class BrowserTab(QWebView):
     def __init__(self, parent):
