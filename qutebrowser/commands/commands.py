@@ -52,3 +52,15 @@ class Forward(Command):
 class Print(Command):
     nargs = 0
     signal = pyqtSignal()
+
+# FIXME implement count
+class ScrollDown(Command):
+    nargs = 0
+    key = 'j'
+    signal = pyqtSignal()
+
+# FIXME implement count
+class ScrollUp(Command):
+    nargs = 0
+    key = 'k'
+    signal = pyqtSignal()

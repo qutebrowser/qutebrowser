@@ -64,6 +64,16 @@ class TabbedBrowser(TabWidget):
         self.currentWidget().forward()
 
     @pyqtSlot()
+    @pyqtSlot(int)
+    def scroll_down_act(self, count=50):
+        self.currentWidget().page().mainFrame().scroll(0, count)
+
+    @pyqtSlot()
+    @pyqtSlot(int)
+    def scroll_up_act(self, count=50):
+        self.currentWidget().page().mainFrame().scroll(0, -count)
+
+    @pyqtSlot()
     def switch_prev(self):
         idx = self.currentIndex()
         if idx > 0:

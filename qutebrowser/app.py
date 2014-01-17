@@ -54,6 +54,8 @@ def main():
     cmds['back'].signal.connect(mw.tabs.back_act)
     cmds['forward'].signal.connect(mw.tabs.forward_act)
     cmds['print'].signal.connect(mw.tabs.print_act)
+    cmds['scrolldown'].signal.connect(mw.tabs.scroll_down_act)
+    cmds['scrollup'].signal.connect(mw.tabs.scroll_up_act)
     kp.from_cmd_dict(cmds)
 
     mw.show()
