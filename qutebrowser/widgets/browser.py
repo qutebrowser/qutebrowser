@@ -22,6 +22,7 @@ class TabbedBrowser(TabWidget):
         self.setCurrentWidget(tab)
         self.progress_changed(tab.progress)
         tab.loadProgress.connect(self.progress_changed)
+        tab.titleChanged.connect(self.update_title)
 
     @pyqtSlot(str)
     def openurl(self, url):
@@ -94,6 +95,11 @@ class TabbedBrowser(TabWidget):
     @pyqtSlot(int)
     def progress_changed(self, prog):
         self.filter_signals(self.cur_progress, prog)
+
+    @pyqtSlot(str)
+    def update_title(self, text):
+        if text:
+            self.setTabText(self.indexOf(self.sender()), text)
 
     def filter_signals(self, signal, *args):
         dbgstr = "{} ({})".format(
