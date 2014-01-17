@@ -23,7 +23,7 @@ class StatusBar(QWidget):
             * {
                 background: """ + bg + """;
                 color: """ + fg + """;
-                font-family: Monospace;
+                font-family: Monospace, Courier;
             }""")
 
     def disp_error(self, text):
