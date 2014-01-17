@@ -13,6 +13,7 @@ def main():
     kp.set_cmd_text.connect(mw.status.cmd.set_cmd)
     mw.status.cmd.got_cmd.connect(cp.parse)
     mw.status.cmd.got_cmd.connect(mw.setFocus)
+    cp.error.connect(mw.status.disp_error)
     cmds.cmd_dict['open'].signal.connect(mw.tabs.openurl)
     cmds.cmd_dict['tabopen'].signal.connect(mw.tabs.tabopen)
     cmds.cmd_dict['quit'].signal.connect(QApplication.closeAllWindows) # FIXME

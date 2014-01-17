@@ -12,11 +12,17 @@ def register_all():
         cls.bind()
 
 class CommandParser(QObject):
+    error = pyqtSignal(str)
+
     def parse(self, text):
         parts = text.strip().split()
         cmd = parts[0]
         argv = parts[1:]
-        obj = cmd_dict[cmd]
+        try:
+            obj = cmd_dict[cmd]
+        except KeyError:
+            self.error.emit("{}: no such command".format(cmd))
+            return
         try:
             obj.check(argv)
         except TypeError:

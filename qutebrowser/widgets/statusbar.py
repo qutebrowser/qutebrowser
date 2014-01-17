@@ -6,7 +6,7 @@ class StatusBar(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
-        self.bg_color("black")
+        self.bg_color("white", "black")
         self.hbox = QHBoxLayout(self)
         self.hbox.setObjectName("status_hbox")
         self.hbox.setContentsMargins(0, 0, 0, 0)
@@ -18,13 +18,17 @@ class StatusBar(QWidget):
         self.lbl = StatusText(self)
         self.hbox.addWidget(self.lbl)
 
-    def bg_color(self, color):
+    def bg_color(self, fg, bg):
         self.setStyleSheet("""
             * {
-                background: """ + color + """;
-                color: white;
+                background: """ + bg + """;
+                color: """ + fg + """;
                 font-family: Monospace;
             }""")
+
+    def disp_error(self, text):
+        self.bg_color('white', 'red')
+        self.lbl.setText('Error: {}'.format(text))
 
 class StatusText(QLabel):
     def __init__(self, parent):
