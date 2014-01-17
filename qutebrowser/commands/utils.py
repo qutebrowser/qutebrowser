@@ -1,14 +1,15 @@
 from PyQt5.QtCore import QObject, pyqtSignal
 import inspect, sys
+import qutebrowser.commands.commands
 
 cmd_dict = {}
 
 def register_all():
     def is_cmd(obj):
-        return (inspect.isclass(obj) and obj.__module__ == __name__ and
-                obj.__name__.endswith('Cmd'))
+        return (inspect.isclass(obj) and
+                obj.__module__ == 'qutebrowser.commands.commands')
 
-    for (name, cls) in inspect.getmembers(sys.modules[__name__], is_cmd):
+    for (name, cls) in inspect.getmembers(commands, is_cmd):
         cls.bind()
 
 class CommandParser(QObject):
@@ -57,45 +58,3 @@ class Command(QObject):
             self.signal.emit(argv[0])
         else:
             raise NotImplementedError
-
-class EmptyCmd(Command):
-    nargs = 0
-    name = ''
-    key = ':'
-
-class OpenCmd(Command):
-    nargs = 1
-    name = 'open'
-    key = 'o'
-    signal = pyqtSignal(str)
-
-class TabOpenCmd(Command):
-    nargs = 1
-    name = 'tabopen'
-    key = 'Shift+o'
-    signal = pyqtSignal(str)
-
-class TabCloseCmd(Command):
-    nargs = 0
-    name = 'tabclose'
-    key = 'd'
-    signal = pyqtSignal()
-
-class TabNextCmd(Command):
-    nargs = 0
-    name = 'tabnext'
-    key = 'Shift+j'
-    signal = pyqtSignal()
-
-class TabPrevCmd(Command):
-    nargs = 0
-    name = 'tabprev'
-    key = 'Shift+k'
-    signal = pyqtSignal()
-
-class QuitCmd(Command):
-    nargs = 0
-    name = 'quit'
-    signal = pyqtSignal()
-
-register_all()
