@@ -17,6 +17,7 @@ class TabbedBrowser(TabWidget):
         self.tabs.append(tab)
         self.addTab(tab, url)
         self.setCurrentWidget(tab)
+        tab.loadProgress.connect(self.progress_changed)
 
     @pyqtSlot(str)
     def openurl(self, url):
@@ -51,21 +52,19 @@ class TabbedBrowser(TabWidget):
             # FIXME
             pass
 
+    @pyqtSlot(int)
+    def progress_changed(self, prog):
+        if self.currentWidget() == self.sender():
+            self.cur_progress.emit(prog)
 
 class BrowserTab(QWebView):
     parent = None
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.parent = parent
-        self.loadProgress.connect(self.progress_changed)
         self.show()
 
     def openurl(self, url):
         if not url.startswith('http://'):
             url = 'http://' + url
         super().load(QUrl(url))
-
-    def progress_changed(self, prog):
-        if self.parent.currentWidget() == self:
-            self.parent.cur_progress.emit(prog)
