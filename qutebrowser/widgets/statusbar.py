@@ -36,6 +36,9 @@ class StatusText(QLabel):
         self.setObjectName(self.__class__.__name__)
         self.setStyleSheet("padding-right: 1px")
 
+    def set_progress(self, prog):
+        self.setText('{}%'.format(prog))
+
 class StatusCommand(QLineEdit):
     got_cmd = pyqtSignal(str)
 

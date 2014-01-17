@@ -21,8 +21,11 @@ class MainWindow(QMainWindow):
         self.vbox.addWidget(self.tabs)
 
         self.status = StatusBar(self.cwidget)
-        self.status.lbl.setText("Hello World")
         self.vbox.addWidget(self.status)
+
+
+        # FIXME: cur_progress also should be set on tab switch
+        self.tabs.cur_progress.connect(self.status.lbl.set_progress)
 
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
