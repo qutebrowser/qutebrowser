@@ -1,10 +1,10 @@
 from PyQt5.QtCore import QObject, pyqtSignal
 import inspect, sys
-import qutebrowser.commands.commands
 
 cmd_dict = {}
 
 def register_all():
+    import qutebrowser.commands.commands
     def is_cmd(obj):
         return (inspect.isclass(obj) and
                 obj.__module__ == 'qutebrowser.commands.commands')
