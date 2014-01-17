@@ -26,8 +26,8 @@ class CommandParser(QObject):
         try:
             obj.check(argv)
         except TypeError:
-            # TODO
-            raise
+            self.error.emit("{}: invalid argument count".format(cmd))
+            return
         obj.run(argv)
 
 class Command(QObject):
