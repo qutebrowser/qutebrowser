@@ -27,6 +27,7 @@ class CommandParser(QObject):
 class Command(QObject):
     nargs = 0
     name = ''
+    key = None
     signal = None
 
     @classmethod
@@ -48,6 +49,7 @@ class Command(QObject):
 class OpenCmd(Command):
     nargs = 1
     name = 'open'
+    key = 'o'
     signal = pyqtSignal(str)
 
     def run(self, argv):
@@ -56,6 +58,7 @@ class OpenCmd(Command):
 class TabOpenCmd(Command):
     nargs = 1
     name = 'tabopen'
+    key = 'Shift+o'
     signal = pyqtSignal(str)
 
     def run(self, argv):

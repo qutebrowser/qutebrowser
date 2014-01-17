@@ -47,6 +47,10 @@ class StatusCommand(QLineEdit):
         self.setText('')
         self.got_cmd.emit(text)
 
+    def set_cmd(self, text):
+        self.setText(text)
+        self.setFocus()
+
 class CmdValidator(QValidator):
     def validate(self, string, pos):
         if string.startswith(':'):
