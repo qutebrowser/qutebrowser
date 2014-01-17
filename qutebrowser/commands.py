@@ -50,7 +50,13 @@ class Command(QObject):
     def run(self, argv=None):
         if not self.signal:
             raise NotImplementedError
-        self.signal.emit()
+        # some sane defaults
+        if self.nargs == 0:
+            self.signal.emit()
+        elif self.nargs == 1:
+            self.signal.emit(argv[0])
+        else:
+            raise NotImplementedError
 
 class EmptyCmd(Command):
     nargs = 0
@@ -63,17 +69,11 @@ class OpenCmd(Command):
     key = 'o'
     signal = pyqtSignal(str)
 
-    def run(self, argv):
-        self.signal.emit(argv[0])
-
 class TabOpenCmd(Command):
     nargs = 1
     name = 'tabopen'
     key = 'Shift+o'
     signal = pyqtSignal(str)
-
-    def run(self, argv):
-        self.signal.emit(argv[0])
 
 class TabCloseCmd(Command):
     nargs = 0
