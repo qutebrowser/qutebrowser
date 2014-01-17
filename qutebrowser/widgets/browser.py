@@ -7,6 +7,7 @@ import logging
 class TabbedBrowser(TabWidget):
     tabs = []
     cur_progress = pyqtSignal(int)
+    url_stack = []
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -30,9 +31,17 @@ class TabbedBrowser(TabWidget):
         tab.openurl(url)
 
     @pyqtSlot()
+    def undo_close(self):
+        if self.url_stack:
+            self.tabopen(self.url_stack.pop())
+
+    @pyqtSlot()
     def close_act(self):
         if len(self.tabs) > 1:
             idx = self.currentIndex()
+            # FIXME maybe we should add the QUrl object here and deal with QUrls everywhere
+            # FIXME maybe we actually should store the webview objects here
+            self.url_stack.append(self.tabs[idx].url().url())
             self.tabs.pop(idx)
             self.removeTab(idx)
         else:

@@ -64,3 +64,8 @@ class ScrollUp(Command):
     nargs = 0
     key = 'k'
     signal = pyqtSignal()
+
+class Undo(Command):
+    nargs = 0
+    key = 'u'
+    signal = pyqtSignal()
