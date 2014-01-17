@@ -9,7 +9,8 @@ def register_all():
         return (inspect.isclass(obj) and
                 obj.__module__ == 'qutebrowser.commands.commands')
 
-    for (name, cls) in inspect.getmembers(commands, is_cmd):
+    for (name, cls) in inspect.getmembers(qutebrowser.commands.commands,
+                                          is_cmd):
         if cls.bind:
             if cls.name is None:
                 name = cls.__name__.tolower()
