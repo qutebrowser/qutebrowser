@@ -75,3 +75,7 @@ class ScrollStart(Command):
 class ScrollEnd(Command):
     nargs = 0
     key = 'G'
+
+class PyEval(Command):
+    nargs = 1
+    split_args = False

@@ -77,6 +77,7 @@ class QuteBrowser(QApplication):
             'scrollstart': self.mainwindow.tabs.scroll_start_act,
             'scrollend': self.mainwindow.tabs.scroll_end_act,
             'undo': self.mainwindow.tabs.undo_close,
+            'pyeval': self.pyeval
         }
 
         handler = handlers[cmd]
@@ -86,3 +87,14 @@ class QuteBrowser(QApplication):
             handler(*args, count=count)
         else:
             handler(*args)
+
+    def pyeval(self, s):
+        try:
+            r = eval(s)
+            out = repr(r)
+        except Exception as e:
+            out = ': '.join([e.__class__.__name__, str(e)])
+
+        tab = self.mainwindow.tabs.currentWidget()
+        tab.setContent(out.encode('UTF-8'), 'text/plain')
+
