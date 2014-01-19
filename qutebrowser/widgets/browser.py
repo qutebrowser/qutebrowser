@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QObject, pyqtSlot, QUrl, pyqtSignal, Qt
+from PyQt5.QtCore import QObject, pyqtSlot, QUrl, pyqtSignal, Qt, QPoint
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebView
 from qutebrowser.widgets.tabbar import TabWidget
@@ -92,6 +92,19 @@ class TabbedBrowser(TabWidget):
     @pyqtSlot(int)
     def scroll_right_act(self, count=50):
         self.currentWidget().page().mainFrame().scroll(count, 0)
+
+    @pyqtSlot()
+    def scroll_start_act(self):
+        frame = self.currentWidget().page().mainFrame()
+        cur_pos = frame.scrollPosition()
+        frame.setScrollPosition(QPoint(cur_pos.x(), 0))
+
+    @pyqtSlot()
+    def scroll_end_act(self):
+        frame = self.currentWidget().page().mainFrame()
+        cur_pos = frame.scrollPosition()
+        size = frame.contentsSize()
+        frame.setScrollPosition(QPoint(cur_pos.x(), size.height()))
 
     @pyqtSlot()
     def switch_prev(self):

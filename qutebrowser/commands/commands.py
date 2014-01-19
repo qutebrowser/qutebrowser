@@ -81,3 +81,13 @@ class Undo(Command):
     nargs = 0
     key = 'u'
     signal = pyqtSignal()
+
+class ScrollStart(Command):
+    nargs = 0
+    key = 'g, g'
+    signal = pyqtSignal()
+
+class ScrollEnd(Command):
+    nargs = 0
+    key = 'Shift+g'
+    signal = pyqtSignal()

@@ -64,5 +64,9 @@ class QuteBrowser(QApplication):
         cmds['scrollleft'].signal.connect(self.mainwindow.tabs.scroll_left_act)
         cmds['scrollright'].signal.connect(
                 self.mainwindow.tabs.scroll_right_act)
+        cmds['scrollstart'].signal.connect(
+                self.mainwindow.tabs.scroll_start_act)
+        cmds['scrollend'].signal.connect(
+                self.mainwindow.tabs.scroll_end_act)
         cmds['undo'].signal.connect(self.mainwindow.tabs.undo_close)
         self.keyparser.from_cmd_dict(cmdutils.cmd_dict)
