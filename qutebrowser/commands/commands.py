@@ -8,7 +8,7 @@ class Open(Command):
 
 class TabOpen(Command):
     nargs = 1
-    key = 'Shift+o'
+    key = 'O'
     signal = pyqtSignal(str)
 
 class TabClose(Command):
@@ -18,12 +18,12 @@ class TabClose(Command):
 
 class TabNext(Command):
     nargs = 0
-    key = 'Shift+j'
+    key = 'J'
     signal = pyqtSignal()
 
 class TabPrev(Command):
     nargs = 0
-    key = 'Shift+k'
+    key = 'K'
     signal = pyqtSignal()
 
 class Quit(Command):
@@ -41,12 +41,12 @@ class Stop(Command):
 
 class Back(Command):
     nargs = 0
-    key = 'Shift+H'
+    key = 'H'
     signal = pyqtSignal()
 
 class Forward(Command):
     nargs = 0
-    key = 'Shift+L'
+    key = 'L'
     signal = pyqtSignal()
 
 class Print(Command):
@@ -84,10 +84,10 @@ class Undo(Command):
 
 class ScrollStart(Command):
     nargs = 0
-    key = 'g, g'
+    key = 'gg'
     signal = pyqtSignal()
 
 class ScrollEnd(Command):
     nargs = 0
-    key = 'Shift+g'
+    key = 'G'
     signal = pyqtSignal()
