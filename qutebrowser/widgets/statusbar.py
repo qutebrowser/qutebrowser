@@ -3,11 +3,13 @@ from PyQt5.QtCore import pyqtSignal, Qt, QSize
 from PyQt5.QtGui import QValidator, QKeySequence
 
 class StatusBar(QWidget):
+    has_error = False
+
     # TODO: the statusbar should be a bit smaller
     def __init__(self, parent):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
-        self.bg_color("white", "black")
+        self.set_color("white", "black")
         self.hbox = QHBoxLayout(self)
         self.hbox.setObjectName("status_hbox")
         self.hbox.setContentsMargins(0, 0, 0, 0)
@@ -22,7 +24,7 @@ class StatusBar(QWidget):
         self.prog = StatusProgress(self)
         self.hbox.addWidget(self.prog)
 
-    def bg_color(self, fg, bg):
+    def set_color(self, fg, bg):
         self.setStyleSheet("""
             * {
                 background: """ + bg + """;
@@ -31,8 +33,15 @@ class StatusBar(QWidget):
             }""")
 
     def disp_error(self, text):
-        self.bg_color('white', 'red')
-        self.lbl.setText('Error: {}'.format(text))
+        self.has_error = True
+        self.set_color('white', 'red')
+        self.lbl.disp_error(text)
+
+    def clear_error(self):
+        if self.has_error:
+            self.has_error = False
+            self.set_color('white', 'black')
+            self.lbl.clear_error()
 
 class StatusProgress(QProgressBar):
     parent = None
@@ -72,16 +81,29 @@ class StatusProgress(QProgressBar):
         self.hide()
 
 class StatusText(QLabel):
+    pre_error_text = None
+
     def __init__(self, parent):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
         self.setStyleSheet("padding-right: 1px")
 
+    def disp_error(self, text):
+        txt = self.text()
+        self.pre_error_text = self.text()
+        self.setText('Error: {}'.format(text))
+
+    def clear_error(self):
+        if self.pre_error_text is not None:
+            self.setText(self.pre_error_text)
+
 class StatusCommand(QLineEdit):
     got_cmd = pyqtSignal(str)
+    parent = None
 
     def __init__(self, parent):
         super().__init__(parent)
+        self.parent = parent
         self.setObjectName(self.__class__.__name__)
         self.setStyleSheet("border: 0px; padding-left: 1px")
         self.setValidator(CmdValidator())
@@ -105,6 +127,10 @@ class StatusCommand(QLineEdit):
     def focusOutEvent(self, event):
         self.setText('')
         super().focusOutEvent(event)
+
+    def focusInEvent(self, event):
+        self.parent.clear_error()
+        super().focusInEvent(event)
 
 class CmdValidator(QValidator):
     def validate(self, string, pos):
