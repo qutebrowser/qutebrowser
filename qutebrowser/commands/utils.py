@@ -23,18 +23,18 @@ class CommandParser(QObject):
     def parse(self, text):
         parts = text.strip().split()
         cmd = parts[0]
-        argv = parts[1:]
+        args = parts[1:]
         try:
             obj = cmd_dict[cmd]
         except KeyError:
             self.error.emit("{}: no such command".format(cmd))
             return
         try:
-            obj.check(argv)
+            obj.check(args)
         except TypeError:
             self.error.emit("{}: invalid argument count".format(cmd))
             return
-        obj.run(argv)
+        obj.run(args)
 
 class Command(QObject):
     nargs = 0
@@ -43,33 +43,25 @@ class Command(QObject):
     signal = None
     count = False
     bind = True
+    signal = pyqtSignal(tuple)
 
     def __init__(self):
         super().__init__()
         if self.name is None:
             self.name = self.__class__.__name__.lower()
 
-    def check(self, argv):
-        if ((isinstance(self.nargs, int) and len(argv) != self.nargs) or
-                      (self.nargs == '?' and len(argv) > 1) or
-                      (self.nargs == '+' and len(argv) < 1)):
+    def check(self, args):
+        if ((isinstance(self.nargs, int) and len(args) != self.nargs) or
+                      (self.nargs == '?' and len(args) > 1) or
+                      (self.nargs == '+' and len(args) < 1)):
             raise TypeError("Invalid argument count!")
 
-    def run(self, argv=None, count=None):
-        logging.debug("Cmd called: {}({})".format(self.__class__.__name__,
-                      ", ".join(argv) if argv else ''))
-        if not self.signal:
-            raise NotImplementedError
-        # some sane defaults
-        if self.nargs == 0:
-            if count is not None:
-                self.signal.emit(count)
-            else:
-                self.signal.emit()
-        elif self.nargs == 1:
-            if count is not None:
-                self.signal.emit(count, argv[0])
-            else:
-                self.signal.emit(argv[0])
-        else:
-            raise NotImplementedError
+    def run(self, args=None, count=None):
+        countstr = ' * {}'.format(count) if count is not None else ''
+        argstr = ", ".join(args) if args else ''
+        logging.debug("Cmd called: {}({}){}".format(self.name, argstr,
+                                                    countstr))
+        argv = [self.name]
+        if args is not None:
+            argv += args
+        self.signal.emit((count, argv))

@@ -42,6 +42,7 @@ class KeyParser(QObject):
                     for needle in self.key_to_cmd]):
                 logging.debug('No match for "{}" (added {})'.format(
                     self.keystring, txt))
+                return
             else:
                 logging.debug('Giving up with "{}", no matches'.format(
                     self.keystring))
@@ -55,8 +56,7 @@ class KeyParser(QObject):
             logging.debug('Filling statusbar with partial command {}'.format(
                 cmd.name))
             self.set_cmd_text.emit(':{} '.format(cmd.name))
+        elif count is not None:
+            cmd.run(count=count)
         else:
-            if count is not None:
-                cmd.run(count=count)
-            else:
-                cmd.run()
+            cmd.run()
