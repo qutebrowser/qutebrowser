@@ -42,7 +42,18 @@ class StatusProgress(QProgressBar):
         self.setObjectName(self.__class__.__name__)
 
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        #self.setStyleSheet("padding-right: 1px")
+        self.setTextVisible(False)
+        self.setStyleSheet("""
+            QProgressBar {
+                border-radius: 0px;
+                border: 2px solid transparent;
+                margin-left: 1px;
+            }
+
+            QProgressBar::chunk {
+                background-color: white;
+            }
+        """)
         self.hide()
 
     def minimumSizeHint(self):
