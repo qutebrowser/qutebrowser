@@ -3,6 +3,7 @@ from PyQt5.QtCore import pyqtSignal, Qt, QSize
 from PyQt5.QtGui import QValidator, QKeySequence
 
 class StatusBar(QWidget):
+    # TODO: the statusbar should be a bit smaller
     def __init__(self, parent):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
