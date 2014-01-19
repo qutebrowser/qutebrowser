@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QLineEdit, QHBoxLayout, QLabel, QWidget, QShortcut, QProgressBar, QSizePolicy
-from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtCore import pyqtSignal, Qt, QSize
 from PyQt5.QtGui import QValidator, QKeySequence
 
 class StatusBar(QWidget):
@@ -34,23 +34,23 @@ class StatusBar(QWidget):
         self.lbl.setText('Error: {}'.format(text))
 
 class StatusProgress(QProgressBar):
+    parent = None
+
     def __init__(self, parent):
+        self.parent = parent
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
 
-        #self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         #self.setStyleSheet("padding-right: 1px")
         self.hide()
 
-    # FIXME this size foo doesn't work right.
-    # Maybe here we should just reimplement the drawing part.
-
     def minimumSizeHint(self):
-        status_size = parent.size()
-        return QSize(20, status_size.height())
+        status_size = self.parent.size()
+        return QSize(100, status_size.height())
 
     def sizeHint(self):
-        return minimumSizeHint()
+        return self.minimumSizeHint()
 
     def set_progress(self, prog):
         self.show()
