@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QObject, pyqtSlot, QUrl, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSlot, QUrl, pyqtSignal, Qt
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebView
 from qutebrowser.widgets.tabbar import TabWidget
@@ -134,6 +134,9 @@ class BrowserTab(QWebView):
 
     def __init__(self, parent):
         super().__init__(parent)
+        frame = self.page().mainFrame()
+        frame.setScrollBarPolicy(Qt.Horizontal, Qt.ScrollBarAlwaysOff)
+        frame.setScrollBarPolicy(Qt.Vertical, Qt.ScrollBarAlwaysOff)
         self.loadProgress.connect(self.set_progress)
         self.show()
 
