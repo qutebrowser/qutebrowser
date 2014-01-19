@@ -115,7 +115,6 @@ class StatusCommand(QLineEdit):
         self.setValidator(CmdValidator())
         self.returnPressed.connect(self.process_cmd)
 
-        # FIXME this only works with real esc key, not with xmodmapped
         self.esc = QShortcut(self)
         self.esc.setKey(QKeySequence(Qt.Key_Escape))
         self.esc.setContext(Qt.WidgetWithChildrenShortcut)
