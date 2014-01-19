@@ -4,10 +4,12 @@ from qutebrowser.commands.utils import Command
 class Open(Command):
     nargs = 1
     key = 'o'
+    split_args = False
 
 class TabOpen(Command):
     nargs = 1
     key = 'O'
+    split_args = False
 
 class TabClose(Command):
     nargs = 0

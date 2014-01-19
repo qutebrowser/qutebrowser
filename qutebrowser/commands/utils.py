@@ -21,14 +21,20 @@ class CommandParser(QObject):
     error = pyqtSignal(str)
 
     def parse(self, text):
-        parts = text.strip().split()
+        parts = text.strip().split(maxsplit=1)
+
         cmd = parts[0]
-        args = parts[1:]
         try:
             obj = cmd_dict[cmd]
         except KeyError:
             self.error.emit("{}: no such command".format(cmd))
             return
+
+        if obj.split_args:
+            args = shlex.split(parts[1])
+        else:
+            args = [parts[1]]
+
         try:
             obj.check(args)
         except TypeError:
@@ -43,6 +49,7 @@ class Command(QObject):
     signal = None
     count = False
     bind = True
+    split_args = True
     signal = pyqtSignal(tuple)
 
     def __init__(self):
