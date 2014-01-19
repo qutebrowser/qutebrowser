@@ -41,6 +41,7 @@ class Command(QObject):
     name = None
     key = None
     signal = None
+    count = False
     bind = True
 
     def __init__(self):
@@ -54,15 +55,21 @@ class Command(QObject):
                       (self.nargs == '+' and len(argv) < 1)):
             raise TypeError("Invalid argument count!")
 
-    def run(self, argv=None):
+    def run(self, argv=None, count=None):
         logging.debug("Cmd called: {}({})".format(self.__class__.__name__,
                       ", ".join(argv) if argv else ''))
         if not self.signal:
             raise NotImplementedError
         # some sane defaults
         if self.nargs == 0:
-            self.signal.emit()
+            if count is not None:
+                self.signal.emit(count)
+            else:
+                self.signal.emit()
         elif self.nargs == 1:
-            self.signal.emit(argv[0])
+            if count is not None:
+                self.signal.emit(count, argv[0])
+            else:
+                self.signal.emit(argv[0])
         else:
             raise NotImplementedError

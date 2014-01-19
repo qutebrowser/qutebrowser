@@ -2,6 +2,7 @@ from PyQt5.QtCore import QObject, Qt, pyqtSignal
 from PyQt5.QtWidgets import QShortcut
 from PyQt5.QtGui import QKeySequence
 import logging
+import re
 
 class KeyParser(QObject):
     keystring = ''
@@ -16,28 +17,46 @@ class KeyParser(QObject):
 
     def handle(self, e):
         logging.debug('Got key: {} / text: "{}"'.format(e.key(), e.text()))
-        if not e.text().strip():
+        txt = e.text().strip()
+        if not txt:
             logging.debug('Ignoring, no text')
             return
-        self.keystring += e.text()
+
+        self.keystring += txt
+
         if self.keystring == ':':
             self.set_cmd_text.emit(':')
             self.keystring = ''
             return
+
+        (countstr, cmdstr) = re.match('^(\d*)(.*)', self.keystring).groups()
+
+        if not cmdstr:
+            return
+
         try:
-            cmd = self.key_to_cmd[self.keystring]
+            cmd = self.key_to_cmd[cmdstr]
         except KeyError:
-            pos = len(self.keystring)
-            if any([self.keystring[-1] == needle[pos-1]
+            pos = len(cmdstr)
+            if any([cmdstr[-1] == needle[pos-1]
                     for needle in self.key_to_cmd]):
-                logging.debug('No match for "{}" (added {})'.format(self.keystring, e.text()))
+                logging.debug('No match for "{}" (added {})'.format(
+                    self.keystring, txt))
             else:
-                logging.debug('Giving up with "{}", no matches'.format(self.keystring))
+                logging.debug('Giving up with "{}", no matches'.format(
+                    self.keystring))
                 self.keystring = ''
+                return
+
+        self.keystring = ''
+        count = int(countstr) if countstr else None
+
+        if cmd.nargs and cmd.nargs != 0:
+            logging.debug('Filling statusbar with partial command {}'.format(
+                cmd.name))
+            self.set_cmd_text.emit(':{} '.format(cmd.name))
         else:
-            self.keystring = ''
-            if cmd.nargs and cmd.nargs != 0:
-                logging.debug('Filling statusbar with partial command {}'.format(cmd.name))
-                self.set_cmd_text.emit(':{} '.format(cmd.name))
+            if count is not None:
+                cmd.run(count=count)
             else:
                 cmd.run()
