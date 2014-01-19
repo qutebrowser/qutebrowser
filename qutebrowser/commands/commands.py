@@ -54,6 +54,12 @@ class Print(Command):
     signal = pyqtSignal()
 
 # FIXME implement count
+class ScrollLeft(Command):
+    nargs = 0
+    key = 'h'
+    signal = pyqtSignal()
+
+# FIXME implement count
 class ScrollDown(Command):
     nargs = 0
     key = 'j'
@@ -63,6 +69,12 @@ class ScrollDown(Command):
 class ScrollUp(Command):
     nargs = 0
     key = 'k'
+    signal = pyqtSignal()
+
+# FIXME implement count
+class ScrollRight(Command):
+    nargs = 0
+    key = 'l'
     signal = pyqtSignal()
 
 class Undo(Command):
