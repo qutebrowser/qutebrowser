@@ -74,8 +74,12 @@ class StatusProgress(QProgressBar):
         return self.minimumSizeHint()
 
     def set_progress(self, prog):
-        self.show()
-        self.setValue(prog)
+        if prog == 100:
+            self.setValue(prog)
+            self.hide()
+        else:
+            self.setValue(prog)
+            self.show()
 
     def load_finished(self, ok):
         self.hide()
