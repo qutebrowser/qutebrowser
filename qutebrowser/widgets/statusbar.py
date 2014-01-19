@@ -130,9 +130,11 @@ class StatusCommand(QLineEdit):
         self.setText(text)
         self.setFocus()
 
-    def focusOutEvent(self, event):
-        self.setText('')
-        super().focusOutEvent(event)
+    def focusOutEvent(self, e):
+        if e.reason() in [Qt.MouseFocusReason, Qt.TabFocusReason,
+                Qt.BacktabFocusReason, Qt.OtherFocusReason]:
+            self.setText('')
+        super().focusOutEvent(e)
 
     def focusInEvent(self, event):
         self.parent.clear_error()
