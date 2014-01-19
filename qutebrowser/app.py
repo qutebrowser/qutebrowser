@@ -58,39 +58,31 @@ class QuteBrowser(QApplication):
         cmd = argv[0]
         args = argv[1:]
 
-        if cmd == 'open':
-            self.mainwindow.tabs.openurl(*args)
-        elif cmd == 'tabopen':
-            self.mainwindow.tabs.tabopen(*args)
-        elif cmd == 'quit':
-            QApplication.closeAllWindows() # FIXME
-        elif cmd == 'tabclose':
-            self.mainwindow.tabs.close_act()
-        elif cmd == 'tabprev':
-            self.mainwindow.tabs.switch_prev()
-        elif cmd == 'tabnext':
-            self.mainwindow.tabs.switch_next()
-        elif cmd == 'reload':
-            self.mainwindow.tabs.reload_act()
-        elif cmd == 'stop':
-            self.mainwindow.tabs.stop_act()
-        elif cmd == 'back':
-            self.mainwindow.tabs.back_act()
-        elif cmd == 'forward':
-            self.mainwindow.tabs.forward_act()
-        elif cmd == 'print':
-            self.mainwindow.tabs.print_act()
-        elif cmd == 'scrolldown':
-            self.mainwindow.tabs.scroll_down_act(count=count)
-        elif cmd == 'scrollup':
-            self.mainwindow.tabs.scroll_up_act(count=count)
-        elif cmd == 'scrollleft':
-            self.mainwindow.tabs.scroll_left_act(count=count)
-        elif cmd == 'scrollright':
-            self.mainwindow.tabs.scroll_right_act(count=count)
-        elif cmd == 'scrollstart':
-            self.mainwindow.tabs.scroll_start_act()
-        elif cmd == 'scrollend':
-            self.mainwindow.tabs.scroll_end_act()
-        elif cmd == 'undo':
-            self.mainwindow.tabs.undo_close()
+        handlers = {
+            'open': self.mainwindow.tabs.openurl,
+            'tabopen': self.mainwindow.tabs.tabopen,
+            'quit': QApplication.closeAllWindows, # FIXME
+            'tabclose': self.mainwindow.tabs.close_act,
+            'tabprev': self.mainwindow.tabs.switch_prev,
+            'tabnext': self.mainwindow.tabs.switch_next,
+            'reload': self.mainwindow.tabs.reload_act,
+            'stop': self.mainwindow.tabs.stop_act,
+            'back': self.mainwindow.tabs.back_act,
+            'forward': self.mainwindow.tabs.forward_act,
+            'print': self.mainwindow.tabs.print_act,
+            'scrolldown': self.mainwindow.tabs.scroll_down_act,
+            'scrollup': self.mainwindow.tabs.scroll_up_act,
+            'scrollleft': self.mainwindow.tabs.scroll_left_act,
+            'scrollright': self.mainwindow.tabs.scroll_right_act,
+            'scrollstart': self.mainwindow.tabs.scroll_start_act,
+            'scrollend': self.mainwindow.tabs.scroll_end_act,
+            'undo': self.mainwindow.tabs.undo_close,
+        }
+
+        handler = handlers[cmd]
+        sender = self.sender()
+
+        if sender.count:
+            handler(*args, count=count)
+        else:
+            handler(*args)
