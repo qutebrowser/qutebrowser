@@ -67,6 +67,9 @@ class StatusProgress(QProgressBar):
         self.show()
         self.setValue(prog)
 
+    def load_finished(self, ok):
+        self.hide()
+
 class StatusText(QLabel):
     def __init__(self, parent):
         super().__init__(parent)

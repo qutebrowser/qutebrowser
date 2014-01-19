@@ -6,6 +6,7 @@ import logging
 
 class TabbedBrowser(TabWidget):
     cur_progress = pyqtSignal(int)
+    cur_load_finished = pyqtSignal(bool)
     url_stack = []
 
     def __init__(self, parent):
@@ -21,6 +22,7 @@ class TabbedBrowser(TabWidget):
         self.setCurrentWidget(tab)
         self.progress_changed(tab.progress)
         tab.loadProgress.connect(self.progress_changed)
+        tab.loadFinished.connect(self.load_finished)
         tab.titleChanged.connect(self.update_title)
 
     @pyqtSlot(str)
@@ -102,6 +104,10 @@ class TabbedBrowser(TabWidget):
     @pyqtSlot(int)
     def progress_changed(self, prog):
         self.filter_signals(self.cur_progress, prog)
+
+    @pyqtSlot(bool)
+    def load_finished(self, ok):
+        self.filter_signals(self.cur_load_finished, ok)
 
     @pyqtSlot(str)
     def update_title(self, text):

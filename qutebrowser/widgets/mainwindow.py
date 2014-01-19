@@ -24,6 +24,7 @@ class MainWindow(QMainWindow):
         self.vbox.addWidget(self.status)
 
         self.tabs.cur_progress.connect(self.status.prog.set_progress)
+        self.tabs.cur_load_finished.connect(self.status.prog.load_finished)
 
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
