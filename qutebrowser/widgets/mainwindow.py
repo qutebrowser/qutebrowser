@@ -25,6 +25,7 @@ class MainWindow(QMainWindow):
 
         self.tabs.cur_progress.connect(self.status.prog.set_progress)
         self.tabs.cur_load_finished.connect(self.status.prog.load_finished)
+        self.status.cmd.esc_pressed.connect(self.tabs.setFocus)
 
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)

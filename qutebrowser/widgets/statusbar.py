@@ -106,6 +106,7 @@ class StatusText(QLabel):
 class StatusCommand(QLineEdit):
     got_cmd = pyqtSignal(str)
     parent = None
+    esc_pressed = pyqtSignal()
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -118,8 +119,7 @@ class StatusCommand(QLineEdit):
         self.esc = QShortcut(self)
         self.esc.setKey(QKeySequence(Qt.Key_Escape))
         self.esc.setContext(Qt.WidgetWithChildrenShortcut)
-        # FIXME this is fugly and doesn't clear the keystring
-        self.esc.activated.connect(parent.parent.tabs.setFocus)
+        self.esc.activated.connect(self.esc_pressed)
 
     def process_cmd(self):
         text = self.text().lstrip(':')
