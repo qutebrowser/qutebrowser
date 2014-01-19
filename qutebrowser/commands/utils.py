@@ -1,5 +1,7 @@
+import inspect
+import sys
+import logging
 from PyQt5.QtCore import QObject, pyqtSignal
-import inspect, sys
 
 cmd_dict = {}
 
@@ -53,6 +55,8 @@ class Command(QObject):
             raise TypeError("Invalid argument count!")
 
     def run(self, argv=None):
+        logging.debug("Cmd called: {}({})".format(self.__class__.__name__,
+                      ", ".join(argv) if argv else ''))
         if not self.signal:
             raise NotImplementedError
         # some sane defaults
