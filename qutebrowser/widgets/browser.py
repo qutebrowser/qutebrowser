@@ -7,6 +7,7 @@ import logging
 class TabbedBrowser(TabWidget):
     cur_progress = pyqtSignal(int)
     cur_load_finished = pyqtSignal(bool)
+    keypress = pyqtSignal('QKeyEvent')
     url_stack = []
 
     def __init__(self, parent):
@@ -125,6 +126,10 @@ class TabbedBrowser(TabWidget):
     def index_changed(self, idx):
         tab = self.widget(idx)
         self.cur_progress.emit(tab.progress)
+
+    def keyPressEvent(self, e):
+        self.keypress.emit(e)
+        super().keyPressEvent(e)
 
 class BrowserTab(QWebView):
     parent = None

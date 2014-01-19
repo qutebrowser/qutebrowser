@@ -20,7 +20,7 @@ class MainWindow(QMainWindow):
         self.tabs.setObjectName("tabs")
         self.vbox.addWidget(self.tabs)
 
-        self.status = StatusBar(self.cwidget)
+        self.status = StatusBar(self)
         self.vbox.addWidget(self.status)
 
         self.tabs.cur_progress.connect(self.status.prog.set_progress)

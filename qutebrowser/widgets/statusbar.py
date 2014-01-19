@@ -4,10 +4,12 @@ from PyQt5.QtGui import QValidator, QKeySequence
 
 class StatusBar(QWidget):
     has_error = False
+    parent = None
 
     # TODO: the statusbar should be a bit smaller
     def __init__(self, parent):
         super().__init__(parent)
+        self.parent = parent
         self.setObjectName(self.__class__.__name__)
         self.set_color("white", "black")
         self.hbox = QHBoxLayout(self)
@@ -117,7 +119,8 @@ class StatusCommand(QLineEdit):
         self.esc = QShortcut(self)
         self.esc.setKey(QKeySequence(Qt.Key_Escape))
         self.esc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.esc.activated.connect(parent.setFocus)
+        # FIXME this is fugly and doesn't clear the keystring
+        self.esc.activated.connect(parent.parent.tabs.setFocus)
 
     def process_cmd(self):
         text = self.text().lstrip(':')
