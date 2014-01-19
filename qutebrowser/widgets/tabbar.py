@@ -1,4 +1,5 @@
 from PyQt5.QtWidgets import QTabWidget
+from PyQt5.QtCore import Qt
 
 class TabWidget(QTabWidget):
     def __init__(self, parent):
@@ -28,3 +29,4 @@ class TabWidget(QTabWidget):
             }
         """)
         self.setDocumentMode(True)
+        self.setElideMode(Qt.ElideRight)
