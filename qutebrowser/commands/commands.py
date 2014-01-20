@@ -59,11 +59,13 @@ class Scroll(Command):
 class Undo(Command):
     nargs = 0
 
-class ScrollStart(Command):
-    nargs = 0
+class ScrollPercentX(Command):
+    nargs = '?'
+    count = True
 
-class ScrollEnd(Command):
-    nargs = 0
+class ScrollPercentY(Command):
+    nargs = '?'
+    count = True
 
 class PyEval(Command):
     nargs = 1

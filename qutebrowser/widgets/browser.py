@@ -92,18 +92,33 @@ class TabbedBrowser(TabWidget):
         dy = int(count) * int(dy)
         self.currentWidget().page().mainFrame().scroll(dx, dy)
 
-    def cur_scroll_start(self):
-        """Scrolls the current tab to the beginning"""
-        frame = self.currentWidget().page().mainFrame()
-        cur_pos = frame.scrollPosition()
-        frame.setScrollPosition(QPoint(cur_pos.x(), 0))
-
-    def cur_scroll_end(self):
-        """Scrolls the current tab to the end"""
+    def cur_scroll_percent_x(self, perc=None, count=None):
+        """Scrolls the current tab to a specific percent of the page.
+        Accepts percentage either as argument, or as count.
+        """
+        if perc is None and count is None:
+            perc = 0
+        elif perc is None:
+            perc = count
         frame = self.currentWidget().page().mainFrame()
         cur_pos = frame.scrollPosition()
         size = frame.contentsSize()
-        frame.setScrollPosition(QPoint(cur_pos.x(), size.height()))
+        x = size.width() / 100 * int(perc)
+        frame.setScrollPosition(QPoint(x, cur_pos.y()))
+
+    def cur_scroll_percent_y(self, perc=None, count=None):
+        """Scrolls the current tab to a specific percent of the page
+        Accepts percentage either as argument, or as count.
+        """
+        if perc is None and count is None:
+            perc = 100
+        elif perc is None:
+            perc = count
+        frame = self.currentWidget().page().mainFrame()
+        cur_pos = frame.scrollPosition()
+        size = frame.contentsSize()
+        y = size.height() / 100 * int(perc)
+        frame.setScrollPosition(QPoint(cur_pos.x(), y))
 
     def switch_prev(self):
         """Switches to the previous tab"""
