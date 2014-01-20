@@ -24,6 +24,8 @@ class CommandParser(QObject):
     def parse(self, text):
         parts = text.strip().split(maxsplit=1)
 
+        # FIXME maybe we should handle unambigious shorthands for commands here?
+        # Or at least we should add :q for :quit.
         cmd = parts[0]
         try:
             obj = cmd_dict[cmd]
