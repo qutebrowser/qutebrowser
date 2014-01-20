@@ -3,7 +3,7 @@ import re
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
-from qutebrowser.commands.utils import ArgumentCountError
+from qutebrowser.commands.utils import CommandParser, ArgumentCountError
 
 class KeyParser(QObject):
     """Parser for vim-like key sequences"""
@@ -14,15 +14,15 @@ class KeyParser(QObject):
     keystring_updated = pyqtSignal(str)
     # Keybindings
     bindings = {}
-    cmdparser = None
+    commandparser = None
 
     MATCH_PARTIAL = 0
     MATCH_DEFINITIVE = 1
     MATCH_NONE = 2
 
-    def __init__(self, mainwindow, commandparser):
+    def __init__(self, mainwindow):
         super().__init__(mainwindow)
-        self.cmdparser = commandparser
+        self.commandparser = CommandParser()
 
     def from_config_sect(self, sect):
         """Loads keybindings from a ConfigParser section, in the config format
@@ -88,15 +88,15 @@ class KeyParser(QObject):
         # If we get a ValueError (invalid cmd) here, something is very wrong,
         # so we don't catch it
 
-        (cmd, args) = self.cmdparser.parse(cmdstr_hay)
+        self.commandparser.parse(cmdstr_hay)
         try:
-            self.cmdparser.check(cmd, args)
+            self.commandparser.check()
         except ArgumentCountError:
             logging.debug('Filling statusbar with partial command {}'.format(
                 cmdstr_hay))
             self.set_cmd_text.emit(':{} '.format(cmdstr_hay))
             return
-        self.cmdparser.run(cmd, args, count=count)
+        self.commandparser.run(count=count)
 
     def _match_key(self, cmdstr_needle):
         """Tries to match a given cmdstr with any defined command"""

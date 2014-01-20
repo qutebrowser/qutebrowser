@@ -33,7 +33,7 @@ class QuteBrowser(QApplication):
 
         self.mainwindow = MainWindow()
         self.commandparser = cmdutils.CommandParser()
-        self.keyparser = KeyParser(self.mainwindow, self.commandparser)
+        self.keyparser = KeyParser(self.mainwindow)
 
         self.aboutToQuit.connect(self.config.save)
         self.mainwindow.tabs.keypress.connect(self.keyparser.handle)
@@ -43,6 +43,8 @@ class QuteBrowser(QApplication):
         self.mainwindow.status.cmd.got_cmd.connect(
             self.mainwindow.tabs.setFocus)
         self.commandparser.error.connect(self.mainwindow.status.disp_error)
+        self.keyparser.commandparser.error.connect(
+            self.mainwindow.status.disp_error)
         self.keyparser.keystring_updated.connect(
             self.mainwindow.status.txt.set_keystring)
 

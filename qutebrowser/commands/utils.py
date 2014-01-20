@@ -23,16 +23,16 @@ def register_all():
         cmd_dict[obj.name] = obj
 
 class CommandParser(QObject):
-    # FIXME
-    #
-    # this should work differently somehow, e.g. more than one instance, and
-    # remember args/cmd in between.
     """Parser for qutebrowser commandline commands"""
+    text = ''
+    cmd = ''
+    args = []
     error = pyqtSignal(str) # Emitted if there's an error
 
     def parse(self, text):
         """Parses a command and runs its handler"""
-        parts = text.strip().split(maxsplit=1)
+        self.text = text
+        parts = self.text.strip().split(maxsplit=1)
 
         # FIXME maybe we should handle unambigious shorthands for commands
         # here? Or at least we should add :q for :quit.
@@ -49,28 +49,29 @@ class CommandParser(QObject):
             args = shlex.split(parts[1])
         else:
             args = [parts[1]]
-        return (cmd, args)
+        self.cmd = cmd
+        self.args = args
 
-    def check(self, cmd, args):
+    def check(self):
         try:
-            cmd.check(args)
+            self.cmd.check(self.args)
         except ArgumentCountError:
-            self.error.emit("{}: invalid argument count".format(cmd))
+            self.error.emit("{}: invalid argument count".format(self.cmd))
             raise
+
+    def run(self, count=None):
+        if count is not None:
+            self.cmd.run(self.args, count=count)
+        else:
+            self.cmd.run(self.args)
 
     def parse_check_run(self, text, count=None):
         try:
-            (cmd, args) = self.parse(text)
-            self.check(cmd, args)
+            self.parse(text)
+            self.check()
         except (ArgumentCountError, ValueError):
             return
-        self.run(cmd, args)
-
-    def run(self, cmd, args, count=None):
-        if count is not None:
-            cmd.run(args, count=count)
-        else:
-            cmd.run(args)
+        self.run()
 
 class Command(QObject):
     """Base skeleton for a command. See the module help for
