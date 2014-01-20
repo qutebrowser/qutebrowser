@@ -50,7 +50,6 @@ class CommandParser(QObject):
 class Command(QObject):
     nargs = 0
     name = None
-    key = None
     signal = None
     count = False
     bind = True

@@ -5,13 +5,18 @@ from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtCore import QUrl
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.commands.keys import KeyParser
+from qutebrowser.utils.config import Config
 import qutebrowser.commands.utils as cmdutils
+from qutebrowser.utils.appdirs import AppDirs
 
 class QuteBrowser(QApplication):
     def __init__(self):
         super().__init__(sys.argv)
         args = self.parseopts()
         self.initlog()
+
+        self.dirs = AppDirs('qutebrowser')
+        self.config = Config(self.dirs.user_data_dir)
 
         self.mainwindow = MainWindow()
         self.commandparser = cmdutils.CommandParser()
@@ -54,7 +59,7 @@ class QuteBrowser(QApplication):
         cmds = cmdutils.cmd_dict
         for cmd in cmds.values():
             cmd.signal.connect(self.cmd_handler)
-        self.keyparser.from_cmd_dict(cmdutils.cmd_dict)
+        self.keyparser.from_config_sect(self.config['keybind'])
 
     def cmd_handler(self, tpl):
         (count, argv) = tpl
@@ -64,7 +69,7 @@ class QuteBrowser(QApplication):
         handlers = {
             'open': self.mainwindow.tabs.openurl,
             'tabopen': self.mainwindow.tabs.tabopen,
-            'quit': QApplication.closeAllWindows, # FIXME
+            'quit': self.exit,
             'tabclose': self.mainwindow.tabs.close_act,
             'tabprev': self.mainwindow.tabs.switch_prev,
             'tabnext': self.mainwindow.tabs.switch_next,
@@ -103,3 +108,7 @@ class QuteBrowser(QApplication):
         tab.setUrl(QUrl('about:pyeval'))
         tab.setContent(out.encode('UTF-8'), 'text/plain')
 
+    def exit(self, status=0):
+        self.config.save()
+        QApplication.closeAllWindows()
+        # FIXME do this right

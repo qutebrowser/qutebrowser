@@ -1,6 +1,7 @@
 from PyQt5.QtCore import QObject, Qt, pyqtSignal
 from PyQt5.QtWidgets import QShortcut
 from PyQt5.QtGui import QKeySequence
+import qutebrowser.commands.utils as cmdutils
 import logging
 import re
 
@@ -10,11 +11,10 @@ class KeyParser(QObject):
     keystring_updated = pyqtSignal(str)
     key_to_cmd = {}
 
-    def from_cmd_dict(self, d):
-        for cmd in d.values():
-            if cmd.key is not None:
-                logging.debug('registered: {} -> {}'.format(cmd.name, cmd.key))
-                self.key_to_cmd[cmd.key] = cmd
+    def from_config_sect(self, sect):
+        for (key, cmd) in sect.items():
+            logging.debug('registered: {} -> {}'.format(key, cmd))
+            self.key_to_cmd[key] = cmdutils.cmd_dict[cmd]
 
     def handle(self, e):
         self._handle(e)
