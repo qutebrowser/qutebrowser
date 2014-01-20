@@ -1,6 +1,7 @@
 import inspect
 import sys
 import logging
+import shlex
 from PyQt5.QtCore import QObject, pyqtSignal
 
 cmd_dict = {}
