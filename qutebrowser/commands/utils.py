@@ -31,7 +31,9 @@ class CommandParser(QObject):
             self.error.emit("{}: no such command".format(cmd))
             return
 
-        if obj.split_args:
+        if len(parts) == 1:
+            args = []
+        elif obj.split_args:
             args = shlex.split(parts[1])
         else:
             args = [parts[1]]
