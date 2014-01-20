@@ -3,10 +3,10 @@
 Provide interface for persistent portable editable user settings
 """
 import os
-import ConfigParser
+import configparser
 import ast
 
-import appdirs
+import qutebrowser.utils.appdirs as appdirs
 
 
 class Settings(dict):
@@ -38,13 +38,13 @@ class Settings(dict):
     def load_settings(self):
         """ Set default values and parse stored settings file """
         # Set the defaults
-        for key, value in self._settings_defaults.items():
+        for key, value in list(self._settings_defaults.items()):
             if key not in self._settings_types:
                 self._settings_types[key] = str
             super(Settings, self).__setitem__(key, value)
 
         # Load the stored values
-        parser = ConfigParser.RawConfigParser()
+        parser = configparser.RawConfigParser()
         try:
             with open(self.settings_file, 'r') as settings_fp:
                 parser.readfp(settings_fp)
@@ -75,10 +75,10 @@ class Settings(dict):
     def save_settings(self):
         """ Write the settings data to disk """
         if not os.path.exists(self.settings_directory):
-            os.makedirs(self.settings_directory, 0755)
-        parser = ConfigParser.RawConfigParser()
+            os.makedirs(self.settings_directory, 0o755)
+        parser = configparser.RawConfigParser()
         parser.add_section('settings')
-        for key, value in self.items():
+        for key, value in list(self.items()):
             parser.set('settings', key, value)
         with open(self.settings_file, 'wb') as settings_fp:
             parser.write(settings_fp)
