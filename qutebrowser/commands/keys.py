@@ -39,6 +39,11 @@ class KeyParser(QObject):
         if not cmdstr:
             return
 
+        # FIXME this doesn't handle ambigious keys correctly.
+        #
+        # If a keychain is ambigious, we probably should set up a QTimer with a
+        # configurable timeout, which triggers cmd.run() when expiring. Then
+        # when we enter _handle() again in time we stop the timer.
         try:
             cmd = self.key_to_cmd[cmdstr]
         except KeyError:
