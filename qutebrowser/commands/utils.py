@@ -76,6 +76,11 @@ class Command(QObject):
     """Base skeleton for a command. See the module help for
     qutebrowser.commands.commands for details.
     """
+
+    # FIXME:
+    # we should probably have some kind of typing / argument casting for args
+    # this might be combined with help texts or so as well
+
     nargs = 0
     name = None
     signal = None
