@@ -3,7 +3,7 @@ import re
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
-import qutebrowser.commands.utils as cmdutils
+from qutebrowser.commands.utils import ArgumentCountError
 
 class KeyParser(QObject):
     """Parser for vim-like key sequences"""
@@ -13,11 +13,16 @@ class KeyParser(QObject):
     # Signal emitted when the keystring is updated
     keystring_updated = pyqtSignal(str)
     # Keybindings
-    key_to_cmd = {}
+    bindings = {}
+    cmdparser = None
 
     MATCH_PARTIAL = 0
     MATCH_DEFINITIVE = 1
     MATCH_NONE = 2
+
+    def __init__(self, mainwindow, commandparser):
+        super().__init__(mainwindow)
+        self.cmdparser = commandparser
 
     def from_config_sect(self, sect):
         """Loads keybindings from a ConfigParser section, in the config format
@@ -26,7 +31,7 @@ class KeyParser(QObject):
         """
         for (key, cmd) in sect.items():
             logging.debug('registered key: {} -> {}'.format(key, cmd))
-            self.key_to_cmd[key] = cmdutils.cmd_dict[cmd]
+            self.bindings[key] = cmd
 
     def handle(self, e):
         """Wrapper for _handle to emit keystring_updated after _handle"""
@@ -51,9 +56,10 @@ class KeyParser(QObject):
             self.keystring = ''
             return
 
-        (countstr, cmdstr) = re.match('^(\d*)(.*)', self.keystring).groups()
+        (countstr, cmdstr_needle) = re.match('^(\d*)(.*)',
+                                             self.keystring).groups()
 
-        if not cmdstr:
+        if not cmdstr_needle:
             return
 
         # FIXME this doesn't handle ambigious keys correctly.
@@ -62,7 +68,7 @@ class KeyParser(QObject):
         # configurable timeout, which triggers cmd.run() when expiring. Then
         # when we enter _handle() again in time we stop the timer.
 
-        (match, cmd) = self._match_key(cmdstr)
+        (match, cmdstr_hay) = self._match_key(cmdstr_needle)
 
         if match == self.MATCH_DEFINITIVE:
             pass
@@ -79,28 +85,33 @@ class KeyParser(QObject):
         self.keystring = ''
         count = int(countstr) if countstr else None
 
-        if cmd.nargs and cmd.nargs != 0:
-            logging.debug('Filling statusbar with partial command {}'.format(
-                cmd.name))
-            self.set_cmd_text.emit(':{} '.format(cmd.name))
-        elif count is not None:
-            cmd.run(count=count)
-        else:
-            cmd.run()
+        # If we get a ValueError (invalid cmd) here, something is very wrong,
+        # so we don't catch it
 
-    def _match_key(self, cmdstr):
+        (cmd, args) = self.cmdparser.parse(cmdstr_hay)
+        try:
+            self.cmdparser.check(cmd, args)
+        except ArgumentCountError:
+            logging.debug('Filling statusbar with partial command {}'.format(
+                cmdstr_hay))
+            self.set_cmd_text.emit(':{} '.format(cmdstr_hay))
+            return
+        self.cmdparser.run(cmd, args, count=count)
+
+    def _match_key(self, cmdstr_needle):
         """Tries to match a given cmdstr with any defined command"""
         try:
-            cmd = self.key_to_cmd[cmdstr]
-            return (self.MATCH_DEFINITIVE, cmd)
+            cmdstr_hay = self.bindings[cmdstr_needle]
+            return (self.MATCH_DEFINITIVE, cmdstr_hay)
         except KeyError:
             # No definitive match, check if there's a chance of a partial match
-            for cmd in self.key_to_cmd:
+            for hay in self.bindings:
                 try:
-                    if cmdstr[-1] == cmd[len(cmdstr) - 1]:
+                    if cmdstr_needle[-1] == hay[len(cmdstr_needle) - 1]:
                         return (self.MATCH_PARTIAL, None)
                 except IndexError:
-                    # current cmd is shorter than our cmdstr, so it won't match
+                    # current cmd is shorter than our cmdstr_needle, so it
+                    # won't match
                     continue
             # no definitive and no partial matches if we arrived here
             return (self.MATCH_NONE, None)

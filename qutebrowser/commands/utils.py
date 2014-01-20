@@ -23,6 +23,10 @@ def register_all():
         cmd_dict[obj.name] = obj
 
 class CommandParser(QObject):
+    # FIXME
+    #
+    # this should work differently somehow, e.g. more than one instance, and
+    # remember args/cmd in between.
     """Parser for qutebrowser commandline commands"""
     error = pyqtSignal(str) # Emitted if there's an error
 
@@ -32,26 +36,41 @@ class CommandParser(QObject):
 
         # FIXME maybe we should handle unambigious shorthands for commands
         # here? Or at least we should add :q for :quit.
-        cmd = parts[0]
+        cmdstr = parts[0]
         try:
-            obj = cmd_dict[cmd]
+            cmd = cmd_dict[cmdstr]
         except KeyError:
-            self.error.emit("{}: no such command".format(cmd))
-            return
+            self.error.emit("{}: no such command".format(cmdstr))
+            raise ValueError
 
         if len(parts) == 1:
             args = []
-        elif obj.split_args:
+        elif cmd.split_args:
             args = shlex.split(parts[1])
         else:
             args = [parts[1]]
+        return (cmd, args)
 
+    def check(self, cmd, args):
         try:
-            obj.check(args)
+            cmd.check(args)
         except ArgumentCountError:
             self.error.emit("{}: invalid argument count".format(cmd))
+            raise
+
+    def parse_check_run(self, text, count=None):
+        try:
+            (cmd, args) = self.parse(text)
+            self.check(cmd, args)
+        except (ArgumentCountError, ValueError):
             return
-        obj.run(args)
+        self.run(cmd, args)
+
+    def run(self, cmd, args, count=None):
+        if count is not None:
+            cmd.run(args, count=count)
+        else:
+            cmd.run(args)
 
 class Command(QObject):
     """Base skeleton for a command. See the module help for
@@ -89,7 +108,7 @@ class Command(QObject):
         if args:
             dbgout += args
         if count is not None:
-            dbgout.append("* {}".format(count))
+            dbgout.append("(count={})".format(count))
         logging.debug(' '.join(dbgout))
 
         argv = [self.name]
