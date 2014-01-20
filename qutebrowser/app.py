@@ -1,8 +1,9 @@
 import sys
 import argparse
 import logging
+import signal
 from PyQt5.QtWidgets import QWidget, QApplication
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QTimer
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.commands.keys import KeyParser
 from qutebrowser.utils.config import Config
@@ -34,6 +35,29 @@ class QuteBrowser(QApplication):
 
         self.init_cmds()
         self.mainwindow.show()
+
+        self.python_hacks()
+
+    def python_hacks(self):
+        qapp = super(QApplication, self)
+
+        ### Make python exceptions work
+        sys._excepthook = sys.excepthook
+        def exception_hook(exctype, value, traceback):
+            sys._excepthook(exctype, value, traceback)
+            # FIXME save open tabs here
+            qapp.exit(1)
+        sys.excepthook = exception_hook
+
+        ### Quit on SIGINT
+        signal.signal(signal.SIGINT, lambda *args:
+                      qapp.exit(128 + signal.SIGINT))
+
+        ### hack to make Ctrl+C work by passing control to the Python
+        ### interpreter once all 500ms (lambda to ignore args)
+        self.timer = QTimer()
+        self.timer.start(500)
+        self.timer.timeout.connect(lambda: None)
 
     def parseopts(self):
         parser = argparse.ArgumentParser("usage: %(prog)s [options]")
