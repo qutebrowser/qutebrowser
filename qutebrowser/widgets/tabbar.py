@@ -2,9 +2,9 @@ from PyQt5.QtWidgets import QTabWidget
 from PyQt5.QtCore import Qt
 
 class TabWidget(QTabWidget):
+    """The tabwidget used for TabbedBrowser"""
     def __init__(self, parent):
         super().__init__(parent)
-        self.setObjectName(self.__class__.__name__)
         self.setStyleSheet("""
             QTabWidget::pane {
                 position: absolute;

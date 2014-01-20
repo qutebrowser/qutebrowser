@@ -1,31 +1,37 @@
+"""Various command utils and the Command base class"""
+
 import inspect
-import sys
 import logging
 import shlex
+
 from PyQt5.QtCore import QObject, pyqtSignal
 
 cmd_dict = {}
 
-def register_all():
-    import qutebrowser.commands.commands
-    def is_cmd(obj):
-        return (inspect.isclass(obj) and
-                obj.__module__ == 'qutebrowser.commands.commands')
+class ArgumentCountError(TypeError):
+    pass
 
-    for (name, cls) in inspect.getmembers(qutebrowser.commands.commands,
-                                          is_cmd):
-        if cls.bind:
-            obj = cls()
-            cmd_dict[obj.name] = obj
+def register_all():
+    """Register and initialize all commands."""
+    # We do this here to avoid a circular import, since commands.commands
+    # imports Command from this module.
+    import qutebrowser.commands.commands
+    for (name, cls) in inspect.getmembers(
+            qutebrowser.commands.commands, (lambda o: inspect.isclass(o) and
+            o.__module__ == 'qutebrowser.commands.commands')):
+        obj = cls()
+        cmd_dict[obj.name] = obj
 
 class CommandParser(QObject):
-    error = pyqtSignal(str)
+    """Parser for qutebrowser commandline commands"""
+    error = pyqtSignal(str) # Emitted if there's an error
 
     def parse(self, text):
+        """Parses a command and runs its handler"""
         parts = text.strip().split(maxsplit=1)
 
-        # FIXME maybe we should handle unambigious shorthands for commands here?
-        # Or at least we should add :q for :quit.
+        # FIXME maybe we should handle unambigious shorthands for commands
+        # here? Or at least we should add :q for :quit.
         cmd = parts[0]
         try:
             obj = cmd_dict[cmd]
@@ -42,17 +48,19 @@ class CommandParser(QObject):
 
         try:
             obj.check(args)
-        except TypeError:
+        except ArgumentCountError:
             self.error.emit("{}: invalid argument count".format(cmd))
             return
         obj.run(args)
 
 class Command(QObject):
+    """Base skeleton for a command. See the module help for
+    qutebrowser.commands.commands for details.
+    """
     nargs = 0
     name = None
     signal = None
     count = False
-    bind = True
     split_args = True
     signal = pyqtSignal(tuple)
 
@@ -62,16 +70,28 @@ class Command(QObject):
             self.name = self.__class__.__name__.lower()
 
     def check(self, args):
+        """Check if the argument count is valid. Raise ArgumentCountError if
+        not.
+        """
         if ((isinstance(self.nargs, int) and len(args) != self.nargs) or
                       (self.nargs == '?' and len(args) > 1) or
                       (self.nargs == '+' and len(args) < 1)):
-            raise TypeError("Invalid argument count!")
+            # for nargs == '*', anything is okay
+            raise ArgumentCountError
 
     def run(self, args=None, count=None):
-        countstr = ' * {}'.format(count) if count is not None else ''
-        argstr = ", ".join(args) if args else ''
-        logging.debug("Cmd called: {}({}){}".format(self.name, argstr,
-                                                    countstr))
+        """Runs the command.
+
+        args -- Arguments to the command.
+        count -- Command repetition count.
+        """
+        dbgout = ["command called:", self.name]
+        if args:
+            dbgout += args
+        if count is not None:
+            dbgout.append("* {}".format(count))
+        logging.debug(' '.join(dbgout))
+
         argv = [self.name]
         if args is not None:
             argv += args
