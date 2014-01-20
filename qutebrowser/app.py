@@ -2,6 +2,7 @@ import sys
 import argparse
 import logging
 from PyQt5.QtWidgets import QWidget, QApplication
+from PyQt5.QtCore import QUrl
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.commands.keys import KeyParser
 import qutebrowser.commands.utils as cmdutils
@@ -97,6 +98,8 @@ class QuteBrowser(QApplication):
         except Exception as e:
             out = ': '.join([e.__class__.__name__, str(e)])
 
+        # FIXME we probably want some nicer interface to display these about: pages
         tab = self.mainwindow.tabs.currentWidget()
+        tab.setUrl(QUrl('about:pyeval'))
         tab.setContent(out.encode('UTF-8'), 'text/plain')
 

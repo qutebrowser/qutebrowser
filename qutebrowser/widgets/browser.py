@@ -23,6 +23,10 @@ class TabbedBrowser(TabWidget):
         self.progress_changed(tab.progress)
         tab.loadProgress.connect(self.progress_changed)
         tab.loadFinished.connect(self.load_finished)
+        # FIXME should we really bind this to loadStarted? Sometimes the URL
+        # isn't set correctly at this point, e.g. when doing
+        # setContent(..., baseUrl=QUrl('foo'))
+        tab.loadStarted.connect(self.init_title)
         tab.titleChanged.connect(self.update_title)
 
     def openurl(self, url):
@@ -121,6 +125,10 @@ class TabbedBrowser(TabWidget):
     def update_title(self, text):
         if text:
             self.setTabText(self.indexOf(self.sender()), text)
+
+    def init_title(self):
+        s = self.sender()
+        self.setTabText(self.indexOf(s), s.url().toString())
 
     def filter_signals(self, signal, *args):
         dbgstr = "{} ({})".format(

@@ -4,7 +4,6 @@ autostart
 show partial commands
 statusbar with widgets
 scrolling simplifying
-set tab titles correctly (e.g. pyeval)
 
 bugs:
 
