@@ -85,10 +85,10 @@ class KeyParser(QObject):
         self.keystring = ''
         count = int(countstr) if countstr else None
 
-        # If we get a ValueError (invalid cmd) here, something is very wrong,
-        # so we don't catch it
-
-        self.commandparser.parse(cmdstr_hay)
+        try:
+            self.commandparser.parse(cmdstr_hay)
+        except ValueError:
+            return
         try:
             self.commandparser.check()
         except ArgumentCountError:
