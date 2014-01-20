@@ -8,6 +8,8 @@ A command class can set the following properties:
     nargs -- Number of arguments. Either a number, '?' (0 or 1), '+' (1 or
     more), or '*' (any). Default: 0
 
+    name -- The name of the command, or a list of aliases
+
     split_args -- If arguments should be split or not. Default: True
 
     count -- If the command supports a count. Default: False
@@ -32,6 +34,7 @@ class TabPrev(Command):
     nargs = 0
 
 class Quit(Command):
+    name = ['quit', 'q']
     nargs = 0
 
 class Reload(Command):

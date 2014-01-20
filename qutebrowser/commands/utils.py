@@ -20,7 +20,12 @@ def register_all():
             qutebrowser.commands.commands, (lambda o: inspect.isclass(o) and
             o.__module__ == 'qutebrowser.commands.commands')):
         obj = cls()
-        cmd_dict[obj.name] = obj
+        if isinstance(obj.name, str):
+            names = [obj.name]
+        else:
+            names = obj.name
+        for n in names:
+            cmd_dict[n] = obj
 
 class CommandParser(QObject):
     """Parser for qutebrowser commandline commands"""
@@ -33,9 +38,6 @@ class CommandParser(QObject):
         """Parses a command and runs its handler"""
         self.text = text
         parts = self.text.strip().split(maxsplit=1)
-
-        # FIXME maybe we should handle unambigious shorthands for commands
-        # here? Or at least we should add :q for :quit.
         cmdstr = parts[0]
         try:
             cmd = cmd_dict[cmdstr]
@@ -110,14 +112,18 @@ class Command(QObject):
         args -- Arguments to the command.
         count -- Command repetition count.
         """
-        dbgout = ["command called:", self.name]
+        if isinstance(self.name, str):
+            name = self.name
+        else:
+            name = self.name[0]
+        dbgout = ["command called:", name]
         if args:
             dbgout += args
         if count is not None:
             dbgout.append("(count={})".format(count))
         logging.debug(' '.join(dbgout))
 
-        argv = [self.name]
+        argv = [name]
         if args is not None:
             argv += args
         self.signal.emit((count, argv))
