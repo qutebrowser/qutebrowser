@@ -12,6 +12,7 @@ from qutebrowser.utils.appdirs import AppDirs
 class QuteBrowser(QApplication):
     def __init__(self):
         super().__init__(sys.argv)
+
         args = self.parseopts()
         self.initlog()
 
@@ -22,6 +23,7 @@ class QuteBrowser(QApplication):
         self.commandparser = cmdutils.CommandParser()
         self.keyparser = KeyParser(self.mainwindow)
 
+        super().aboutToQuit.connect(self.config.save)
         self.mainwindow.tabs.keypress.connect(self.keyparser.handle)
         self.keyparser.set_cmd_text.connect(self.mainwindow.status.cmd.set_cmd)
         self.mainwindow.status.cmd.got_cmd.connect(self.commandparser.parse)
@@ -69,7 +71,7 @@ class QuteBrowser(QApplication):
         handlers = {
             'open': self.mainwindow.tabs.openurl,
             'tabopen': self.mainwindow.tabs.tabopen,
-            'quit': self.exit,
+            'quit': super().quit,
             'tabclose': self.mainwindow.tabs.close_act,
             'tabprev': self.mainwindow.tabs.switch_prev,
             'tabnext': self.mainwindow.tabs.switch_next,
@@ -107,8 +109,3 @@ class QuteBrowser(QApplication):
         tab = self.mainwindow.tabs.currentWidget()
         tab.setUrl(QUrl('about:pyeval'))
         tab.setContent(out.encode('UTF-8'), 'text/plain')
-
-    def exit(self, status=0):
-        self.config.save()
-        QApplication.closeAllWindows()
-        # FIXME do this right
