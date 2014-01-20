@@ -21,6 +21,8 @@ class QuteBrowser(QApplication):
         self.mainwindow.status.cmd.got_cmd.connect(self.commandparser.parse)
         self.mainwindow.status.cmd.got_cmd.connect(self.mainwindow.tabs.setFocus)
         self.commandparser.error.connect(self.mainwindow.status.disp_error)
+        self.keyparser.keystring_updated.connect(
+                self.mainwindow.status.txt.set_keystring)
 
         self.init_cmds()
         self.mainwindow.show()

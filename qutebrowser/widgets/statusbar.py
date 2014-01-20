@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QLineEdit, QHBoxLayout, QLabel, QWidget, QShortcut, QProgressBar, QSizePolicy
 from PyQt5.QtCore import pyqtSignal, Qt, QSize
 from PyQt5.QtGui import QValidator, QKeySequence
+import logging
 
 class StatusBar(QWidget):
     has_error = False
@@ -101,9 +102,12 @@ class StatusText(QLabel):
         super().__setattr__(name, value)
         self.update()
 
+    def set_keystring(self, s):
+        self.keystring = s
+
     def update(self):
-        self.setText(''.join([self.keystring, self.error, self.text,
-                              self.scrollperc]))
+        super().setText(' '.join([self.keystring, self.error, self.text,
+                                  self.scrollperc]))
 
 class StatusCommand(QLineEdit):
     got_cmd = pyqtSignal(str)

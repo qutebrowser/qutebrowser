@@ -7,6 +7,7 @@ import re
 class KeyParser(QObject):
     keystring = ''
     set_cmd_text = pyqtSignal(str)
+    keystring_updated = pyqtSignal(str)
     key_to_cmd = {}
 
     def from_cmd_dict(self, d):
@@ -16,6 +17,10 @@ class KeyParser(QObject):
                 self.key_to_cmd[cmd.key] = cmd
 
     def handle(self, e):
+        self._handle(e)
+        self.keystring_updated.emit(self.keystring)
+
+    def _handle(self, e):
         logging.debug('Got key: {} / text: "{}"'.format(e.key(), e.text()))
         txt = e.text().strip()
         if not txt:
