@@ -84,29 +84,13 @@ class TabbedBrowser(TabWidget):
         # FIXME display warning if end of history
         self.currentWidget().forward()
 
-    def cur_scroll_down(self, count=None):
-        """Scrolls the current tab down"""
+    def cur_scroll(self, dx, dy, count=None):
+        """Scrolls the current tab by count * dx/dy"""
         if count is None:
-            count = 50
-        self.currentWidget().page().mainFrame().scroll(0, count)
-
-    def cur_scroll_up(self, count=None):
-        """Scrolls the current tab up"""
-        if count is None:
-            count = 50
-        self.currentWidget().page().mainFrame().scroll(0, -count)
-
-    def cur_scroll_left(self, count=None):
-        """Scrolls the current tab left"""
-        if count is None:
-            count = 50
-        self.currentWidget().page().mainFrame().scroll(-count, 0)
-
-    def cur_scroll_right(self, count=None):
-        """Scrolls the current tab right"""
-        if count is None:
-            count = 50
-        self.currentWidget().page().mainFrame().scroll(count, 0)
+            count = 1
+        dx = int(count) * int(dx)
+        dy = int(count) * int(dy)
+        self.currentWidget().page().mainFrame().scroll(dx, dy)
 
     def cur_scroll_start(self):
         """Scrolls the current tab to the beginning"""

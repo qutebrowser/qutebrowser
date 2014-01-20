@@ -49,20 +49,8 @@ class Forward(Command):
 class Print(Command):
     nargs = 0
 
-class ScrollLeft(Command):
-    nargs = 0
-    count = True
-
-class ScrollDown(Command):
-    nargs = 0
-    count = True
-
-class ScrollUp(Command):
-    nargs = 0
-    count = True
-
-class ScrollRight(Command):
-    nargs = 0
+class Scroll(Command):
+    nargs = 2
     count = True
 
 class Undo(Command):
