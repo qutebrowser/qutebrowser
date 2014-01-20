@@ -1,9 +1,7 @@
 go-percent
 :bind
-autostart
-show partial commands
+autostart/config
 statusbar with widgets
-scrolling simplifying
 
 bugs:
 
