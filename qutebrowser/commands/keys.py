@@ -47,10 +47,7 @@ class KeyParser(QObject):
         try:
             cmd = self.key_to_cmd[cmdstr]
         except KeyError:
-            pos = len(cmdstr)
-            # FIXME we get an IndexError here sometimes (e.g. with 'go')
-            if any([cmdstr[-1] == needle[pos-1]
-                    for needle in self.key_to_cmd]):
+            if self._partial_match(cmdstr, txt):
                 logging.debug('No match for "{}" (added {})'.format(
                     self.keystring, txt))
                 return
@@ -71,3 +68,14 @@ class KeyParser(QObject):
             cmd.run(count=count)
         else:
             cmd.run()
+
+    def _partial_match(self, cmdstr, txt):
+        pos = len(cmdstr)
+        for cmd in self.key_to_cmd:
+            try:
+                if cmdstr[-1] == cmd[pos-1]:
+                    return True
+            except IndexError:
+                continue
+        else:
+            return False
