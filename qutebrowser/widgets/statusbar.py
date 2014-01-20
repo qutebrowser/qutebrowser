@@ -20,8 +20,8 @@ class StatusBar(QWidget):
         self.cmd = StatusCommand(self)
         self.hbox.addWidget(self.cmd)
 
-        self.lbl = StatusText(self)
-        self.hbox.addWidget(self.lbl)
+        self.txt = StatusText(self)
+        self.hbox.addWidget(self.txt)
 
         self.prog = StatusProgress(self)
         self.hbox.addWidget(self.prog)
@@ -37,13 +37,13 @@ class StatusBar(QWidget):
     def disp_error(self, text):
         self.has_error = True
         self.set_color('white', 'red')
-        self.lbl.disp_error(text)
+        self.txt.error = text
 
     def clear_error(self):
         if self.has_error:
             self.has_error = False
             self.set_color('white', 'black')
-            self.lbl.clear_error()
+            self.txt.error = ''
 
 class StatusProgress(QProgressBar):
     parent = None
@@ -87,21 +87,23 @@ class StatusProgress(QProgressBar):
         self.hide()
 
 class StatusText(QLabel):
-    pre_error_text = None
+    keystring = ''
+    error = ''
+    text = ''
+    scrollperc = ''
 
     def __init__(self, parent):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
         self.setStyleSheet("padding-right: 1px")
 
-    def disp_error(self, text):
-        txt = self.text()
-        self.pre_error_text = self.text()
-        self.setText('Error: {}'.format(text))
+    def __setattr__(self, name, value):
+        super().__setattr__(name, value)
+        self.update()
 
-    def clear_error(self):
-        if self.pre_error_text is not None:
-            self.setText(self.pre_error_text)
+    def update(self):
+        self.setText(''.join([self.keystring, self.error, self.text,
+                              self.scrollperc]))
 
 class StatusCommand(QLineEdit):
     got_cmd = pyqtSignal(str)
