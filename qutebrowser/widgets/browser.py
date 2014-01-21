@@ -99,29 +99,26 @@ class TabbedBrowser(TabWidget):
         """Scrolls the current tab to a specific percent of the page.
         Accepts percentage either as argument, or as count.
         """
-        if perc is None and count is None:
-            perc = 0
-        elif perc is None:
-            perc = count
-        frame = self.currentWidget().page().mainFrame()
-        cur_pos = frame.scrollPosition()
-        size = frame.contentsSize()
-        x = size.width() / 100 * int(perc)
-        frame.setScrollPosition(QPoint(x, cur_pos.y()))
+        self._cur_scroll_percent(perc, count, Qt.Horizontal)
 
     def cur_scroll_percent_y(self, perc=None, count=None):
         """Scrolls the current tab to a specific percent of the page
         Accepts percentage either as argument, or as count.
         """
+        self._cur_scroll_percent(perc, count, Qt.Vertical)
+
+    def _cur_scroll_percent(self, perc=None, count=None, orientation=None):
         if perc is None and count is None:
             perc = 100
         elif perc is None:
-            perc = count
+            perc = int(count)
+        else:
+            perc = int(perc)
         frame = self.currentWidget().page().mainFrame()
-        cur_pos = frame.scrollPosition()
-        size = frame.contentsSize()
-        y = size.height() / 100 * int(perc)
-        frame.setScrollPosition(QPoint(cur_pos.x(), y))
+        m = frame.scrollBarMaximum(orientation)
+        if m == 0:
+            return
+        frame.setScrollBarValue(orientation, int(m * perc / 100))
 
     def switch_prev(self):
         """Switches to the previous tab"""
@@ -169,32 +166,31 @@ class TabbedBrowser(TabWidget):
         tab = self.widget(idx)
         self.cur_progress.emit(tab.progress)
 
-    def _scroll_pos_changed_handler(self, point):
-        """Gets a QPoint() of the new position from a BrowserTab. If it's the
-        current tab, it calculates the percentage and emits
-        cur_scroll_perc_changed.
+    def _scroll_pos_changed_handler(self, x, y):
+        """Gets the new position from a BrowserTab. If it's the current tab, it
+        calculates the percentage and emits cur_scroll_perc_changed.
         """
         sender = self.sender()
         if sender != self.currentWidget():
             return
-        size = sender.page().mainFrame().contentsSize()
-        perc_x = 100 / size.width() * point.x()
-        perc_y = 100 / size.height() * point.y()
-        self.cur_scroll_perc_changed.emit(perc_x, perc_y)
+        frame = sender.page().mainFrame()
+        m = (frame.scrollBarMaximum(Qt.Horizontal),
+             frame.scrollBarMaximum(Qt.Vertical))
+        perc = (round(100 * x / m[0]) if m[0] != 0 else 0,
+                round(100 * y / m[1]) if m[1] != 0 else 0)
+        self.cur_scroll_perc_changed.emit(*perc)
 
 class BrowserTab(QWebView):
     """One browser tab in TabbedBrowser"""
     progress = 0
-    scroll_pos_changed = pyqtSignal('QPoint')
-    _scroll_pos = QPoint(-1, -1)
+    scroll_pos_changed = pyqtSignal(int, int)
+    _scroll_pos = (-1, -1)
 
     def __init__(self, parent):
         super().__init__(parent)
-        frame = self.page().mainFrame()
-        frame.setScrollBarPolicy(Qt.Horizontal, Qt.ScrollBarAlwaysOff)
-        frame.setScrollBarPolicy(Qt.Vertical, Qt.ScrollBarAlwaysOff)
         self.loadProgress.connect(self.set_progress)
         self.installEventFilter(self)
+        # FIXME find some way to hide scrollbars without setScrollBarPolicy
         self.show()
 
     def openurl(self, url):
@@ -214,9 +210,11 @@ class BrowserTab(QWebView):
         changed, we emit a signal.
         """
         if watched == self and e.type() == QEvent.Paint:
-            new_pos = self.page().mainFrame().scrollPosition()
+            frame = self.page().mainFrame()
+            new_pos = (frame.scrollBarValue(Qt.Horizontal),
+                       frame.scrollBarValue(Qt.Vertical))
             if self._scroll_pos != new_pos:
                 logging.debug("Updating scroll position")
-                self.scroll_pos_changed.emit(new_pos)
+                self.scroll_pos_changed.emit(*new_pos)
             self._scroll_pos = new_pos
         return super().eventFilter(watched, e)

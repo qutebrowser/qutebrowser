@@ -119,9 +119,9 @@ class StatusText(QLabel):
     def set_perc(self, x, y):
         """Setter to be used as a Qt slot"""
         if y == 0:
-            # FIXME  we currently get the _top_ of the frame position, so this
-            # will never happen
             self.scrollperc = '[top]'
+        elif y == 100:
+            self.scrollperc = '[bot]'
         else:
             self.scrollperc = '[{}%]'.format(y)
 
