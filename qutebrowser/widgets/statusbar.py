@@ -1,7 +1,7 @@
 import logging
 
 from PyQt5.QtWidgets import (QLineEdit, QHBoxLayout, QLabel, QWidget,
-                             QShortcut, QProgressBar, QSizePolicy)
+                             QShortcut, QProgressBar, QSizePolicy, QCompleter)
 from PyQt5.QtCore import pyqtSignal, Qt, QSize
 from PyQt5.QtGui import QValidator, QKeySequence
 
@@ -135,13 +135,6 @@ class StatusText(QLabel):
 
 class StatusCommand(QLineEdit):
     """The commandline part of the statusbar"""
-    class CmdValidator(QValidator):
-        """Validator to prevent the : from getting deleted"""
-        def validate(self, string, pos):
-            if string.startswith(':'):
-                return (QValidator.Acceptable, string, pos)
-            else:
-                return (QValidator.Invalid, string, pos)
 
     got_cmd = pyqtSignal(str) # Emitted when a command is triggered by the user
     bar = None # The status bar object
@@ -154,7 +147,8 @@ class StatusCommand(QLineEdit):
         super().__init__(bar)
         self.bar = bar
         self.setStyleSheet("border: 0px; padding-left: 1px")
-        self.setValidator(self.CmdValidator())
+        self.setValidator(CmdValidator())
+        self.setCompleter(CmdCompleter())
         self.returnPressed.connect(self.process_cmd)
         self.textEdited.connect(self._histbrowse_stop)
 
@@ -235,3 +229,15 @@ class StatusCommand(QLineEdit):
     def key_tab_handler(self):
         # TODO implement tab completion
         logging.debug('tab pressed')
+
+class CmdValidator(QValidator):
+    """Validator to prevent the : from getting deleted"""
+    def validate(self, string, pos):
+        if string.startswith(':'):
+            return (QValidator.Acceptable, string, pos)
+        else:
+            return (QValidator.Invalid, string, pos)
+
+class CmdCompleter(QCompleter):
+    def __init__(self):
+        super().__init__([':foo', ':bar', 'baz'])
