@@ -7,16 +7,31 @@ from PyQt5.QtGui import QValidator, QKeySequence
 
 class StatusBar(QWidget):
     """The statusbar at the bottom of the mainwindow"""
-    has_error = False # Statusbar is currently in error mode
     hbox = None
     cmd = None
     txt = None
     prog = None
+    fgcolor = 'white'
+    bgcolor = 'black'
+    font = 'Monospace, Courier'
+    _stylesheet = """
+        * {{
+            background: {self.bgcolor};
+            color: {self.fgcolor};
+            font-family: {self.font};
+        }}
+    """
+
+    def __setattr__(self, name, value):
+        """Update the stylesheet if relevant attributes have been changed"""
+        super().__setattr__(name, value)
+        if name in ['fgcolor', 'bgcolor', 'font']:
+            self.setStyleSheet(self._stylesheet.strip().format(self=self))
 
     # TODO: the statusbar should be a bit smaller
     def __init__(self, parent):
         super().__init__(parent)
-        self.set_color("white", "black")
+        self.setStyleSheet(self._stylesheet.strip().format(self=self))
         self.hbox = QHBoxLayout(self)
         self.hbox.setContentsMargins(0, 0, 0, 0)
         self.hbox.setSpacing(0)
@@ -30,33 +45,30 @@ class StatusBar(QWidget):
         self.prog = StatusProgress(self)
         self.hbox.addWidget(self.prog)
 
-    def set_color(self, fg, bg):
-        """Sets background and foreground color of the statusbar"""
-        # FIXME maybe this would be easier with setColor()?
-
-        self.setStyleSheet("""
-            * {
-                background: """ + bg + """;
-                color: """ + fg + """;
-                font-family: Monospace, Courier;
-            }""")
-
     def disp_error(self, text):
         """Displays an error in the statusbar"""
-        self.has_error = True
-        self.set_color('white', 'red')
+        self.bgcolor = 'red'
         self.txt.error = text
 
     def clear_error(self):
         """Clears a displayed error from the status bar"""
-        if self.has_error:
-            self.has_error = False
-            self.set_color('white', 'black')
-            self.txt.error = ''
+        self.bgcolor = 'black'
+        self.txt.error = ''
 
 class StatusProgress(QProgressBar):
     """ The progress bar part of the status bar"""
     bar = None
+    _stylesheet = """
+        QProgressBar {
+            border-radius: 0px;
+            border: 2px solid transparent;
+            margin-left: 1px;
+        }
+
+        QProgressBar::chunk {
+            background-color: white;
+        }
+    """
 
     def __init__(self, bar):
         self.bar = bar
@@ -64,17 +76,7 @@ class StatusProgress(QProgressBar):
 
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.setTextVisible(False)
-        self.setStyleSheet("""
-            QProgressBar {
-                border-radius: 0px;
-                border: 2px solid transparent;
-                margin-left: 1px;
-            }
-
-            QProgressBar::chunk {
-                background-color: white;
-            }
-        """)
+        self.setStyleSheet(self._stylesheet.strip())
         self.hide()
 
     def minimumSizeHint(self):
