@@ -1,6 +1,6 @@
 import logging
 
-from PyQt5.QtCore import QUrl, pyqtSignal, Qt, QPoint
+from PyQt5.QtCore import QUrl, pyqtSignal, Qt, QPoint, QEvent
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebView
 
@@ -11,6 +11,8 @@ class TabbedBrowser(TabWidget):
 
     cur_progress = pyqtSignal(int) # Progress of the current tab changed
     cur_load_finished = pyqtSignal(bool) # Current tab finished loading
+    # Current tab changed scroll position
+    cur_scroll_perc_changed = pyqtSignal(int, int)
     keypress = pyqtSignal('QKeyEvent')
     _url_stack = [] # Stack of URLs of closed tabs
 
@@ -30,6 +32,7 @@ class TabbedBrowser(TabWidget):
             lambda *args: self._filter_signals(self.cur_progress, *args))
         tab.loadFinished.connect(
             lambda *args: self._filter_signals(self.cur_load_finished, *args))
+        tab.scroll_pos_changed.connect(self._scroll_pos_changed_handler)
         # FIXME should we really bind this to loadStarted? Sometimes the URL
         # isn't set correctly at this point, e.g. when doing
         # setContent(..., baseUrl=QUrl('foo'))
@@ -166,9 +169,24 @@ class TabbedBrowser(TabWidget):
         tab = self.widget(idx)
         self.cur_progress.emit(tab.progress)
 
+    def _scroll_pos_changed_handler(self, point):
+        """Gets a QPoint() of the new position from a BrowserTab. If it's the
+        current tab, it calculates the percentage and emits
+        cur_scroll_perc_changed.
+        """
+        sender = self.sender()
+        if sender != self.currentWidget():
+            return
+        size = sender.page().mainFrame().contentsSize()
+        perc_x = 100 / size.width() * point.x()
+        perc_y = 100 / size.height() * point.y()
+        self.cur_scroll_perc_changed.emit(perc_x, perc_y)
+
 class BrowserTab(QWebView):
     """One browser tab in TabbedBrowser"""
     progress = 0
+    scroll_pos_changed = pyqtSignal('QPoint')
+    _scroll_pos = QPoint(-1, -1)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -176,6 +194,7 @@ class BrowserTab(QWebView):
         frame.setScrollBarPolicy(Qt.Horizontal, Qt.ScrollBarAlwaysOff)
         frame.setScrollBarPolicy(Qt.Vertical, Qt.ScrollBarAlwaysOff)
         self.loadProgress.connect(self.set_progress)
+        self.installEventFilter(self)
         self.show()
 
     def openurl(self, url):
@@ -186,3 +205,18 @@ class BrowserTab(QWebView):
 
     def set_progress(self, prog):
         self.progress = prog
+
+    def eventFilter(self, watched, e):
+        """Dirty hack to emit a signal if the scroll position changed.
+
+        We listen to repaint requests here, in the hope a repaint will always
+        be requested when scrolling, and if the scroll position actually
+        changed, we emit a signal.
+        """
+        if watched == self and e.type() == QEvent.Paint:
+            new_pos = self.page().mainFrame().scrollPosition()
+            if self._scroll_pos != new_pos:
+                logging.debug("Updating scroll position")
+                self.scroll_pos_changed.emit(new_pos)
+            self._scroll_pos = new_pos
+        return super().eventFilter(watched, e)

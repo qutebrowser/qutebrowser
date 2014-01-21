@@ -116,6 +116,13 @@ class StatusText(QLabel):
         """Setter to be used as a Qt slot"""
         self.keystring = s
 
+    def set_perc(self, x, y):
+        """Setter to be used as a Qt slot"""
+        if y == 0:
+            self.scrollperc = '[top]'
+        else:
+            self.scrollperc = '[{}%]'.format(y)
+
     def update(self):
         """Update the text displayed"""
         self.setText(' '.join([self.keystring, self.error, self.text,
