@@ -147,6 +147,7 @@ class StatusCommand(QLineEdit):
     bar = None # The status bar object
     esc_pressed = pyqtSignal() # Emitted when escape is pressed
     history = [] # The command history, with newer commands at the bottom
+    _tmphist = []
     _histpos = None
 
     def __init__(self, bar):
@@ -167,7 +168,7 @@ class StatusCommand(QLineEdit):
 
     def process_cmd(self):
         """Handle the command in the status bar"""
-        self._histpos = None
+        self._histbrowse_stop()
         text = self.text().lstrip(':')
         if not self.history or text != self.history[-1]:
             self.history.append(text)
@@ -184,6 +185,7 @@ class StatusCommand(QLineEdit):
         if e.reason() in [Qt.MouseFocusReason, Qt.TabFocusReason,
                           Qt.BacktabFocusReason, Qt.OtherFocusReason]:
             self.setText('')
+            self._histbrowse_stop()
         super().focusOutEvent(e)
 
     def focusInEvent(self, e):
@@ -191,26 +193,41 @@ class StatusCommand(QLineEdit):
         self.bar.clear_error()
         super().focusInEvent(e)
 
+    def _histbrowse_start(self):
+        pre = self.text().strip().lstrip(':')
+        logging.debug('Preset text: "{}"'.format(pre))
+        if pre:
+            self._tmphist = [e for e in self.history if e.startswith(pre)]
+        else:
+            self._tmphist = self.history
+        self._histpos = len(self._tmphist) - 1
+
+    def _histbrowse_stop(self):
+        self._histpos = None
+
     def key_up_handler(self):
-        logging.debug("history up: {} / len {} / pos {}".format(
-            self.history, len(self.history), self._histpos))
-        if self._histpos == 0 or not self.history:
+        logging.debug("history up [pre]: pos {}".format(self._histpos))
+        if self._histpos is None:
+            self._histbrowse_start()
+        elif self._histpos <= 0 or not self._tmphist:
             return
-        elif self._histpos is None:
-            self._histpos = len(self.history) - 1
         else:
             self._histpos -= 1
-        self.setText(':' + self.history[self._histpos])
+        logging.debug("history up: {} / len {} / pos {}".format(
+            self._tmphist, len(self._tmphist), self._histpos))
+        self.set_cmd(':' + self._tmphist[self._histpos])
 
     def key_down_handler(self):
-        logging.debug("history down: {} / len {} / pos {}".format(
-            self.history, len(self.history), self._histpos))
+        logging.debug("history up [pre]: pos {}".format(self._histpos,
+            self._tmphist, len(self._tmphist), self._histpos))
         if (self._histpos is None or
-                self._histpos >= len(self.history) - 1 or
-                not self.history):
+                self._histpos >= len(self._tmphist) - 1 or
+                not self._tmphist):
             return
         self._histpos += 1
-        self.setText(':' + self.history[self._histpos])
+        logging.debug("history up: {} / len {} / pos {}".format(
+            self._tmphist, len(self._tmphist), self._histpos))
+        self.set_cmd(':' + self._tmphist[self._histpos])
 
     def key_tab_handler(self):
         # TODO implement tab completion
