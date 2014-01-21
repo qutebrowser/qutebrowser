@@ -98,7 +98,7 @@ class StatusProgress(QProgressBar):
         self.hide()
 
 class StatusText(QLabel):
-    """The text part of the status bar, composedof several 'widgets'"""
+    """The text part of the status bar, composed of several 'widgets'"""
     keystring = ''
     error = ''
     text = ''
