@@ -146,6 +146,8 @@ class StatusCommand(QLineEdit):
     got_cmd = pyqtSignal(str) # Emitted when a command is triggered by the user
     bar = None # The status bar object
     esc_pressed = pyqtSignal() # Emitted when escape is pressed
+    history = [] # The command history, with newer commands at the bottom
+    _histpos = None
 
     def __init__(self, bar):
         super().__init__(bar)
@@ -165,7 +167,10 @@ class StatusCommand(QLineEdit):
 
     def process_cmd(self):
         """Handle the command in the status bar"""
+        self._histpos = None
         text = self.text().lstrip(':')
+        if not self.history or text != self.history[-1]:
+            self.history.append(text)
         self.setText('')
         self.got_cmd.emit(text)
 
@@ -187,10 +192,26 @@ class StatusCommand(QLineEdit):
         super().focusInEvent(e)
 
     def key_up_handler(self):
-        logging.debug('up pressed')
+        logging.debug("history up: {} / len {} / pos {}".format(
+            self.history, len(self.history), self._histpos))
+        if self._histpos == 0 or not self.history:
+            return
+        elif self._histpos is None:
+            self._histpos = len(self.history) - 1
+        else:
+            self._histpos -= 1
+        self.setText(':' + self.history[self._histpos])
 
     def key_down_handler(self):
-        logging.debug('down pressed')
+        logging.debug("history down: {} / len {} / pos {}".format(
+            self.history, len(self.history), self._histpos))
+        if (self._histpos is None or
+                self._histpos >= len(self.history) - 1 or
+                not self.history):
+            return
+        self._histpos += 1
+        self.setText(':' + self.history[self._histpos])
 
     def key_tab_handler(self):
+        # TODO implement tab completion
         logging.debug('tab pressed')
