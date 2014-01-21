@@ -11,6 +11,9 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
+
+        self.setWindowTitle('qutebrowser')
+
         self.cwidget = QWidget(self)
         self.setCentralWidget(self.cwidget)
 
