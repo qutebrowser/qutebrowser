@@ -52,7 +52,7 @@ class KeyParser(QObject):
         self.keystring += txt
 
         if self.keystring == ':':
-            self.set_cmd_text.emit(':')
+            self.set_cmd_text.emit('')
             self.keystring = ''
             return
 
@@ -94,7 +94,7 @@ class KeyParser(QObject):
         except ArgumentCountError:
             logging.debug('Filling statusbar with partial command {}'.format(
                 cmdstr_hay))
-            self.set_cmd_text.emit(':{} '.format(cmdstr_hay))
+            self.set_cmd_text.emit(cmdstr_hay + ' ')
             return
         self.commandparser.run(count=count)
 

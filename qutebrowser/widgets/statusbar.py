@@ -177,7 +177,7 @@ class StatusCommand(QLineEdit):
 
     def set_cmd(self, text):
         """Preset the statusbar to some text"""
-        self.setText(text)
+        self.setText(':' + text)
         self.setFocus()
 
     def focusOutEvent(self, e):
@@ -215,7 +215,7 @@ class StatusCommand(QLineEdit):
             self._histpos -= 1
         logging.debug("history up: {} / len {} / pos {}".format(
             self._tmphist, len(self._tmphist), self._histpos))
-        self.set_cmd(':' + self._tmphist[self._histpos])
+        self.set_cmd(self._tmphist[self._histpos])
 
     def key_down_handler(self):
         logging.debug("history up [pre]: pos {}".format(self._histpos,
@@ -227,7 +227,7 @@ class StatusCommand(QLineEdit):
         self._histpos += 1
         logging.debug("history up: {} / len {} / pos {}".format(
             self._tmphist, len(self._tmphist), self._histpos))
-        self.set_cmd(':' + self._tmphist[self._histpos])
+        self.set_cmd(self._tmphist[self._histpos])
 
     def key_tab_handler(self):
         # TODO implement tab completion
