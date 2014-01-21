@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QLabel, QCompleter
+from PyQt5.QtWidgets import QLabel
 
 class Text(QLabel):
     """The text part of the status bar, composed of several 'widgets'"""
