@@ -15,10 +15,10 @@ def register_all():
     """Register and initialize all commands."""
     # We do this here to avoid a circular import, since commands.commands
     # imports Command from this module.
-    import qutebrowser.commands.commands
+    import qutebrowser.commands
     for (name, cls) in inspect.getmembers(
-            qutebrowser.commands.commands, (lambda o: inspect.isclass(o) and
-            o.__module__ == 'qutebrowser.commands.commands')):
+            qutebrowser.commands, (lambda o: inspect.isclass(o) and
+            o.__module__ == 'qutebrowser.commands')):
         obj = cls()
         if isinstance(obj.name, str):
             names = [obj.name]
