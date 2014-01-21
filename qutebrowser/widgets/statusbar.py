@@ -146,7 +146,6 @@ class StatusCommand(QLineEdit):
     got_cmd = pyqtSignal(str) # Emitted when a command is triggered by the user
     bar = None # The status bar object
     esc_pressed = pyqtSignal() # Emitted when escape is pressed
-    esc = None # The esc QShortcut object
 
     def __init__(self, bar):
         super().__init__(bar)
@@ -155,10 +154,14 @@ class StatusCommand(QLineEdit):
         self.setValidator(self.CmdValidator())
         self.returnPressed.connect(self.process_cmd)
 
-        self.esc = QShortcut(self)
-        self.esc.setKey(QKeySequence(Qt.Key_Escape))
-        self.esc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.esc.activated.connect(self.esc_pressed)
+        for (key, handler) in [(Qt.Key_Escape, self.esc_pressed),
+                               (Qt.Key_Up, self.key_up_handler),
+                               (Qt.Key_Down, self.key_down_handler),
+                               (Qt.Key_Tab, self.key_tab_handler)]:
+            sc = QShortcut(self)
+            sc.setKey(QKeySequence(key))
+            sc.setContext(Qt.WidgetWithChildrenShortcut)
+            sc.activated.connect(handler)
 
     def process_cmd(self):
         """Handle the command in the status bar"""
@@ -183,3 +186,11 @@ class StatusCommand(QLineEdit):
         self.bar.clear_error()
         super().focusInEvent(e)
 
+    def key_up_handler(self):
+        logging.debug('up pressed')
+
+    def key_down_handler(self):
+        logging.debug('down pressed')
+
+    def key_tab_handler(self):
+        logging.debug('tab pressed')
