@@ -156,6 +156,7 @@ class StatusCommand(QLineEdit):
         self.setStyleSheet("border: 0px; padding-left: 1px")
         self.setValidator(self.CmdValidator())
         self.returnPressed.connect(self.process_cmd)
+        self.textEdited.connect(self._histbrowse_stop)
 
         for (key, handler) in [(Qt.Key_Escape, self.esc_pressed),
                                (Qt.Key_Up, self.key_up_handler),
@@ -209,10 +210,12 @@ class StatusCommand(QLineEdit):
         logging.debug("history up [pre]: pos {}".format(self._histpos))
         if self._histpos is None:
             self._histbrowse_start()
-        elif self._histpos <= 0 or not self._tmphist:
+        elif self._histpos <= 0:
             return
         else:
             self._histpos -= 1
+        if not self._tmphist:
+            return
         logging.debug("history up: {} / len {} / pos {}".format(
             self._tmphist, len(self._tmphist), self._histpos))
         self.set_cmd(self._tmphist[self._histpos])
