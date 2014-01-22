@@ -45,11 +45,12 @@ class Config(ConfigParser):
 
     def init_config(self):
         logging.info("Initializing default config.")
+        if self.configdir is None:
+            self.read_dict(default_config)
+            return
         cp = ConfigParser()
         cp.optionxform = lambda opt: opt # be case-insensitive
         cp.read_dict(default_config)
-        if self.configdir is None:
-            return
         if not os.path.exists(self.configdir):
             os.makedirs(self.configdir, 0o755)
         with open(self.configfile, 'w') as f:
