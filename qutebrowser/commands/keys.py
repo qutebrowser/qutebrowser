@@ -87,8 +87,7 @@ class KeyParser(QObject):
         count = int(countstr) if countstr else None
 
         try:
-            self.commandparser.parse_check_run(cmdstr_hay, count=count,
-                                               ignore_exc=False)
+            self.commandparser.run(cmdstr_hay, count=count, ignore_exc=False)
         except NoSuchCommandError:
             return
         except ArgumentCountError:

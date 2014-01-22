@@ -37,8 +37,8 @@ class CommandParser(QObject):
     args = []
     error = pyqtSignal(str) # Emitted if there's an error
 
-    def parse(self, text):
-        """Parses a command and runs its handler"""
+    def _parse(self, text):
+        """Parses a command"""
         self.text = text
         parts = self.text.strip().split(maxsplit=1)
         cmdstr = parts[0]
@@ -57,29 +57,29 @@ class CommandParser(QObject):
         self.cmd = cmd
         self.args = args
 
-    def check(self):
+    def _check(self):
         try:
             self.cmd.check(self.args)
         except ArgumentCountError:
             self.error.emit("{}: invalid argument count".format(self.cmd))
             raise
 
-    def run(self, count=None):
+    def _run(self, count=None):
         if count is not None:
             self.cmd.run(self.args, count=count)
         else:
             self.cmd.run(self.args)
 
-    def parse_check_run(self, text, count=None, ignore_exc=True):
+    def run(self, text, count=None, ignore_exc=True):
         try:
-            self.parse(text)
-            self.check()
+            self._parse(text)
+            self._check()
         except (ArgumentCountError, NoSuchCommandError):
             if ignore_exc:
                 return
             else:
                 raise
-        self.run(count=count)
+        self._run(count=count)
 
 class Command(QObject):
     """Base skeleton for a command. See the module help for
