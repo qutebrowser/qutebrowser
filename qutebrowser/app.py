@@ -96,7 +96,10 @@ class QuteBrowser(QApplication):
         cmdutils.register_all()
         for cmd in cmdutils.cmd_dict.values():
             cmd.signal.connect(self.cmd_handler)
-        self.keyparser.from_config_sect(self.config['keybind'])
+        try:
+            self.keyparser.from_config_sect(self.config['keybind'])
+        except KeyError:
+            pass
 
     def cmd_handler(self, tpl):
         """Handler which gets called from all commands and delegates the
