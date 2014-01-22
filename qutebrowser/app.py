@@ -29,7 +29,13 @@ class QuteBrowser(QApplication):
         self.initlog()
 
         self.dirs = AppDirs('qutebrowser')
-        self.config = Config(self.dirs.user_data_dir)
+        if self.args.confdir is None:
+            confdir = self.dirs.user_data_dir
+        elif self.args.confdir == '':
+            confdir = None
+        else:
+            confdir = self.args.confdir
+        self.config = Config(confdir)
 
         self.mainwindow = MainWindow()
         self.commandparser = cmdutils.CommandParser()
@@ -77,6 +83,8 @@ class QuteBrowser(QApplication):
         parser = ArgumentParser("usage: %(prog)s [options]")
         parser.add_argument('-l', '--log', dest='loglevel',
                             help='Set loglevel', default='info')
+        parser.add_argument('-c', '--confdir', help='Set config directory '
+                            '(empty for no config storage)')
         self.args = parser.parse_args()
 
     def initlog(self):

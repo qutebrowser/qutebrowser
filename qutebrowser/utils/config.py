@@ -34,6 +34,9 @@ class Config(ConfigParser):
         super().__init__()
         self.optionxform = lambda opt: opt # be case-insensitive
         self.configdir = configdir
+        if self.configdir is None:
+            self.init_config()
+            return
         self.configfile = os.path.join(self.configdir, self.FNAME)
         if not os.path.isfile(self.configfile):
             self.init_config()
@@ -42,15 +45,19 @@ class Config(ConfigParser):
 
     def init_config(self):
         logging.info("Initializing default config.")
-        if not os.path.exists(self.configdir):
-            os.makedirs(self.configdir, 0o755)
         cp = ConfigParser()
         cp.optionxform = lambda opt: opt # be case-insensitive
         cp.read_dict(default_config)
+        if self.configdir is None:
+            return
+        if not os.path.exists(self.configdir):
+            os.makedirs(self.configdir, 0o755)
         with open(self.configfile, 'w') as f:
             cp.write(f)
 
     def save(self):
+        if self.configdir is None:
+            return
         if not os.path.exists(self.configdir):
             os.makedirs(self.configdir, 0o755)
         logging.debug("Saving config to {}".format(self.configfile))
