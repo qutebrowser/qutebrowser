@@ -33,16 +33,26 @@ class Config(ConfigParser):
         """configdir: directory to store the config in"""
         super().__init__()
         self.optionxform = lambda opt: opt # be case-insensitive
-        self.read_dict(default_config)
         self.configdir = configdir
         self.configfile = os.path.join(self.configdir, self.FNAME)
+        if not os.path.isfile(self.configfile):
+            self.init_config()
         logging.debug("Reading config from {}".format(self.configfile))
         self.read(self.configfile)
+
+    def init_config(self):
+        logging.info("Initializing default config.")
+        if not os.path.exists(self.configdir):
+            os.makedirs(self.configdir, 0o755)
+        cp = ConfigParser()
+        cp.optionxform = lambda opt: opt # be case-insensitive
+        cp.read_dict(default_config)
+        with open(self.configfile, 'w') as f:
+            cp.write(f)
 
     def save(self):
         if not os.path.exists(self.configdir):
             os.makedirs(self.configdir, 0o755)
-            logging.debug("Config directory does not exist, created.")
         logging.debug("Saving config to {}".format(self.configfile))
         with open(self.configfile, 'w') as f:
             self.write(f)
