@@ -80,9 +80,6 @@ Enter normal mode.
 ga
 Add a new blank tab (command: tab_new).
 
-d
-Close current tab (command: close_tab, aliases: close).
-
 [n]gc
 Clear tab n or of current tab, clears the history of the tab and loads about:blank. (command clear_tab, aliases: clear).
 
@@ -92,17 +89,8 @@ Close all tabs except for the current one (command only).
 C-q
 Quit (command quit, aliases: q).
 
-u
-Undo closing last tab (command undo, aliases: u).
-
 C-h
 Open the default startpage (command start_page, aliases: home).
-
-H
-Go back (command history_back, aliases: back, ba).
-
-L
-Go forward (command history_forward, aliases: forward, fo).
 
 th
 Go back in a new tab (command tab_hist_back, aliases: tabback, tba).
