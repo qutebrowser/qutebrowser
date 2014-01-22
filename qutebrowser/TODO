@@ -1,7 +1,426 @@
-:bind
-autostart/config
-statusbar with widgets
+Major features
+==============
 
-bugs:
+After Blink
+-----------
+
+Plugin architecture
+Adblock
+RequestPolicy/Ghostery/Disconnect
+NoScript
+Certificate Patrol
+Insert mode
+Extern editor
+Hints
+Downloads
+
+Before Blink
+------------
+
+Command completion
+about:... pages
+searchengines
+session handling / saving
+IPC, like dwb -x
+Mode handling?
+Bookmarks
+
+Minor features/bugs
+===================
+
+Hiding scrollbars
+Space to scroll
+Middle-click on links for new tab
+copypaste
+All kind of FIXMEs
+Working config parsing, handling default items, etc.
+:bind
+
+Other stuff
+===========
 
 make sure webview.page() and page.mainFrame() never change
+
+Keybinding stuff (from dwb)
+===========================
+
+[n]C-f
+Scroll [n] pages down (command: scroll_page_down, aliases: pagedown).
+
+[n]C-b
+Scroll [n] pages up (command: scroll_page_up, aliases: pageup).
+
+[n]C-d
+Scroll [n] half pages down (command: scroll_halfpage_down, aliases: halfdown).
+
+[n]C-u
+Scroll [n] half pages up (command: scroll_halfpage_up, aliases: halfup).
+
+go
+Open url in the focused tab, set current url in the navigation bar (command: open_url).
+
+gO
+Open url in a new tab, set current url in the navigation bar (command tabopen_url).
+
+xo
+Open url in a new tab in background, the argument $URI will be repaced with the current uri (command: backopen, aliases: bopen ).
+
+xO
+Open url in a new tab in background, set current url in the navigation bar (command: backopen_url).
+
+wo
+Open url in a new instance (command: winopen, aliases: wopen, w).
+
+i
+Enter insert mode (command: insert_mode, aliases: i, insert).
+
+C-n
+Enter normal mode.
+
+ga
+Add a new blank tab (command: tab_new).
+
+d
+Close current tab (command: close_tab, aliases: close).
+
+[n]gc
+Clear tab n or of current tab, clears the history of the tab and loads about:blank. (command clear_tab, aliases: clear).
+
+co
+Close all tabs except for the current one (command only).
+
+C-q
+Quit (command quit, aliases: q).
+
+u
+Undo closing last tab (command undo, aliases: u).
+
+C-h
+Open the default startpage (command start_page, aliases: home).
+
+H
+Go back (command history_back, aliases: back, ba).
+
+L
+Go forward (command history_forward, aliases: forward, fo).
+
+th
+Go back in a new tab (command tab_hist_back, aliases: tabback, tba).
+
+tl
+Go forward in a new tab (command tab_hist_forward, aliases: tabforward, tfo).
+
+wh
+Go back in a new window (command win_hist_back, aliases: winback, wba).
+
+wl
+Go forward in a new window (command win_hist_forward, aliases: winforward, wfo).
+
+/
+Find forward (command find_forward, alias: ffind).
+
+?
+Find backward (command find_backward, alias bfind).
+
+c/
+Find forward, ignore case (command find_forward_ic, alias: iffind).
+
+c?
+Find backward, ignore case (command find_backward_ic, alias ibfind).
+
+M
+Add a bookmark (command bookmark, aliases: bmark, bma).
+
+gb
+Show Bookmarks (command bookmarks, aliases: bmarks, bmas).
+
+gB
+Show Bookmarks, open bookmark in a new tab (command tab_bookmarks, aliases: tabmarks).
+
+wB
+Show Bookmarks, open bookmark in a new window (command win_bookmarks, aliases: winmarks).
+
+m
+Add a quickmark (command save_quickmark, aliases: quickmark, qmark).
+
+b
+Open quickmark (command quickmark, aliases: qmarks).
+
+B
+Open quickmark in a new tab (command tab_quickmark, aliases: tabqmarks).
+
+wb[:graph:]
+Open quickmark in a new window (command win_quickmark, aliases: winqmarks).
+
+[n]r
+Reload tab n or current tab if n is omitted (command reload, aliases: re).
+
+[n]R
+Reload tab n or current tab if n is omitted without using any cached data (command reload_bypass_cache, aliases: refull).
+
+[n]C-s
+Stop loading of tab n or of current tab is [n] is omitted (command stop_loading, aliases: stop, st).
+
+[n]+
+Zoom in [n times] (command zoom_in, aliases: zi).
+
+[n]-
+Zoom out [n times] (command zoom_out, aliases: zo).
+
+[n]=
+Zoom to n percent or to 100% if n is omitted(command zoom, aliases: z).
+
+sf
+Save all configuration files (command save).
+
+ZZ
+Save current session and exit (command save_session, aliases: wq).
+
+gZZ
+Save current session with name and exit (command save_named_session, aliases: wqn).
+
+[n]J
+Cycle focus [n tab] forwards. (command focus_next, aliases: tabnext).
+
+[n]K
+Cycle focus [n tab] backwards. (command focus_prev, aliases: tabprev).
+
+[n]T
+Focus nth tab, first tab if n is omitted or last tab if n is 0. (command focus_tab, aliases: tab).
+
+C-Tab
+Toggle between current and last focused tab (command toggle_tab, aliases: ttab)
+
+[n]gm
+Move current tab to position [n] or to first position if n is omitted. (command tab_move, aliases: tabm).
+
+[n]gl
+Move current tab [n] positions left. (command tab_move_left, aliases: tabl).
+
+[n]gr
+Move current tab [n] positions right. (command tab_move_right, aliases: tabr).
+
+gt
+Show all open tabs. (command buffers, aliases: bu).
+
+[n]C-P
+Protect tab [n]. Closing this tab must be confirmed (command protect, aliases: prot).
+
+[n]xd
+Lock tab [n]. Locking a tab will lock this tab to the current domain, it’s not possible to navigate to another domain until unlocked. lock_domain, aliases: dlock).
+
+[n]xu
+Lock tab [n]. Locking a tab will lock this tab to the current uri, it’s not possible to navigate to another uri until unlocked. lock_uri, aliases: ulock).
+
+f
+Show hints (command hints, aliases: hints, hi).
+
+F
+Show hints, open link in a new foreground tab. (command hints_tab, aliases: tabhints, thi).
+
+;b
+Show hints, open link in a new background tab. (command hints_background, aliases: backhints, bhi).
+
+wf
+Show hints, open link in a new tab. (command hints_win, aliases: winhints, whi).
+
+;i
+Follow image (command hints_images, aliases: ihints, ihi).
+
+;I
+Follow image in a new tab (command hints_images_tab, aliases: itabhints, ithi).
+
+.i
+Follow image in a background tab (command hints_images_background, aliases: ibackhints).
+
+;e
+Focus editable elements via hints (command hints_editable, aliases: ehints, ehi).
+
+;o
+Set hint’s url in commandline (command hints_url, aliases: uhints, uhi).
+
+;O
+Set hint’s url in commandline, open in a new tab (command hints_url_tab, aliases: utabhints, uthi).
+
+.o
+Set hint’s url in commandline, open in a background tab (command hints_url_background, aliases: ubackhints).
+
+;d
+Download via hints (command hints_download, aliases: dhints).
+
+;y
+Save link location to clipboard (command hints_clipboard, aliases: chints, chi).
+
+;Y
+Save link location to primary selection (command hints_primary, aliases: phints, phi).
+
+;r
+Rapid hint mode, each matching hint opens a new tab in background. (command hints_rapid, aliases: rhints, rhi).
+
+;R
+Rapid hint mode, each matching hint opens a new window. (command hints_rapid_win, aliases: wrhints, wrhi).
+
+gf
+Toggle "view source" (command view_source, aliases: source, so).
+
+CC
+Allow persistent cookie for the current website. The domain will be saved in cookies.allow. Cookies that are allowed by the cookies.allow whitelist are stored in $XDG_CONFIG_HOME/dwb/$profilename/cookies. (command allow_cookie, aliases: cookie).
+
+CS
+Allow session cookie for the current website. The domain will be saved in cookies_session.allow. This is only useful if cookies-store-policy is set to never, see cookies-store-policy for details. (command allow_session_cookie, aliases: scookie).
+
+CT
+Allow session cookies for the current website temporarily. Only first party cookies are allowed. The domain is not saved to a whitelist and the cookies will not be saved persitently. (command allow_session_cookie_tmp, aliases: tcookie).
+
+[n]yy
+Yank the url of tab n or of current tab if n is omitted to clipboard (command yank).
+
+yY
+Yank the url of tab n or of current tab if n is omitted to primary selection (command yank_primary, aliases: pyank).
+
+yt
+Yank the title of tab n or of current tab if n is omitted to clipboard (command yank_title, aliases: tyank).
+
+yT
+Yank the title of tab n or of current tab if n is omitted to primary selection (command yank_title_primary, aliases: tpyank).
+
+pp
+Paste from clipboard (command paste).
+
+pP
+Paste from primary selection (command paste_primary, aliases: ppaste).
+
+Pp
+Paste from clipboard and load in a new tab (command tab_paste, aliases: tpaste).
+
+PP
+Paste from primary selection and load in a new tab (command tab_paste_primary, aliases: tppaste).
+
+wp
+Paste from clipboard and load in a new window (command paste_nw, aliases: winpaste).
+
+wP
+Paste from primary selection and load in a new window (command paste_primary_nw, aliases: winppaste).
+
+[n]ad
+Cancel the download with number n or the first download in the lists of running downloads if n is omitted. (command cancel_download).
+
+gs
+Add a searchengine. Textfields can be chosen with tab and a keyword must be specified. The first defined searchengine will be the default searchengine. The keyword can be used in all open commands, e.g. :open <keyword> <searchterm> (command save_search_field, aliases: search).
+
+gd
+Download the current site. (command download).
+
+Sb
+Show bookmarks (command show_bookmarks, aliases: sbookmarks).
+
+Sq
+Show quickmarks (command show_quickmarks, aliases: squickmarks).
+
+Sh
+Show history (command show_history, aliases: shistory).
+
+Sd
+Show download (command show_downloads, aliases: sdownloads).
+
+Sk
+Show keys (command show_keys, aliases: skeys).
+
+Ss
+Show settings (command show_settings, aliases: ssettings).
+
+ss
+Set setting, the interactive version of the command set, for changing settings in scripts use set instead (command set_setting).
+
+sl
+Set local setting, changes a setting but doesn’t save the setting to configuration file. The interactive version of the command local_set, for changing settings locally in scripts use local_set instead (command set_local_setting).
+
+sk
+Set keyboard shortcut (command set_key, aliases: keys).
+
+C-p
+Toggle proxy (command proxy).
+
+tsh
+Toggle scripts for current host permanently (command toggle_scripts_host, aliases: hscript).
+
+tsu
+Toggle scripts for current url permanently (command toggle_scripts_uri, aliases: uscript).
+
+tth
+Toggle scripts for current host temporarily (command toggle_scripts_host_tmp, aliases: thscript).
+
+ttu
+Toggle scripts for current url temporarily (command toggle_scripts_uri_tmp, aliases: tuscript).
+
+ph
+Toggle plugins for current host permanently (command toggle_plugins_host, aliases: hplugin).
+
+pu
+Toggle plugins for current url permanently (command toggle_plugins_uri, aliases: uplugin).
+
+pth
+Toggle plugins for current host temporarily (command toggle_plugins_host_tmp, aliases: thplugin).
+
+ptu
+Toggle plugins for current url temporarily (command toggle_plugins_uri_tmp, aliases: tuplugin).
+
+V
+Next navigation action will be opened in a new tab (command new_tab).
+
+W
+Next navigation action will be opened in a new window (command new_win).
+
+eu
+Show and execute userscripts (command execute_userscript).
+
+[n]wi
+Show the webinspector of tab n or of current tab if n is omitted. Note that enable-developer-extras has to be set. (commmand web_inspector, aliases: inspect, insp).
+
+C-e
+Open external editor for current input/textarea (command open_editor, aliases: editor).
+
+g.
+Toggle hidden files when browsing local filesystem. (command open_editor, aliases: editor).
+
+F11
+Toggle fullscreen (command fullscreen, aliases: fs).
+
+F12
+Toggle presentation mode. (command presentation_mode, aliases: present).
+
+xx
+Toggle visibility of tabbar and statusbar. (command toggle_bars, aliases: bars).
+
+xt
+Toggle visibility of tabbar. (command toggle_tabbar, aliases: tbar).
+
+xb
+Toggle visibility of statusbar. (command toggle_statusbar, aliases: sbar).
+
+xv
+Toggle visibility of a tab. (command visible, aliases: vis).
+
+[n]C-M-p
+Print focused frame of tab n or of current tab if n is omitted. (command print, aliases: ha).
+
+unbound
+Execute a javascript snippet (command execute_javascript, aliases: exja, js).
+
+unbound
+Set a setting from commandline (command set).
+
+unbound
+Toggle a boolean setting from commandline (command toggle_setting, aliases: toggle, tog).
+
+unbound
+Load a html string. This command is mainly intended for use in userscripts (command load_html).
+
+unbound
+Load a html string in a new tab. This command is mainly intended for use in userscripts (command load_html_tab).
+
+unbound
+Execute a javascript snippet that uses the the internal javascript api. This command only works if the javascript interface is enabled, i.e. if there are scripts in $XDG_CONFIG_HOME/dwb/userscripts that use the api or if dwb is started with -S/--enable-scripts (command eval).
+
+Tab (S-Tab)
+In normal mode Tab shows the next (previous) shortcut, that matches the currently entered keysequence. When opening a url, the next (previous) item in command history, bookmarks or history will be completed. In hint mode the next (previous) hint will get focus. Tab also completes settings and shortcut-settings. When initiating a download, full paths (downloads and spawning programs) and binaries (spawning programs) in PATH will be completed. In command mode tab will complete builtin commands and urls if the command accepts an url.
