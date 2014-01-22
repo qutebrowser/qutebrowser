@@ -3,7 +3,8 @@ import re
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
-from qutebrowser.commands.utils import CommandParser, ArgumentCountError
+from qutebrowser.commands.utils import (CommandParser, ArgumentCountError,
+                                        NoSuchCommandError)
 
 class KeyParser(QObject):
     """Parser for vim-like key sequences"""
@@ -86,17 +87,15 @@ class KeyParser(QObject):
         count = int(countstr) if countstr else None
 
         try:
-            self.commandparser.parse(cmdstr_hay)
-        except ValueError:
+            self.commandparser.parse_check_run(cmdstr_hay, count=count,
+                                               ignore_exc=False)
+        except NoSuchCommandError:
             return
-        try:
-            self.commandparser.check()
         except ArgumentCountError:
             logging.debug('Filling statusbar with partial command {}'.format(
                 cmdstr_hay))
             self.set_cmd_text.emit(cmdstr_hay + ' ')
             return
-        self.commandparser.run(count=count)
 
     def _match_key(self, cmdstr_needle):
         """Tries to match a given cmdstr with any defined command"""

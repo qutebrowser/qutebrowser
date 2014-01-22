@@ -11,6 +11,9 @@ cmd_dict = {}
 class ArgumentCountError(TypeError):
     pass
 
+class NoSuchCommandError(ValueError):
+    pass
+
 def register_all():
     """Register and initialize all commands."""
     # We do this here to avoid a circular import, since commands.commands
@@ -43,7 +46,7 @@ class CommandParser(QObject):
             cmd = cmd_dict[cmdstr]
         except KeyError:
             self.error.emit("{}: no such command".format(cmdstr))
-            raise ValueError
+            raise NoSuchCommandError
 
         if len(parts) == 1:
             args = []
@@ -67,13 +70,16 @@ class CommandParser(QObject):
         else:
             self.cmd.run(self.args)
 
-    def parse_check_run(self, text, count=None):
+    def parse_check_run(self, text, count=None, ignore_exc=True):
         try:
             self.parse(text)
             self.check()
-        except (ArgumentCountError, ValueError):
-            return
-        self.run()
+        except (ArgumentCountError, NoSuchCommandError):
+            if ignore_exc:
+                return
+            else:
+                raise
+        self.run(count=count)
 
 class Command(QObject):
     """Base skeleton for a command. See the module help for
