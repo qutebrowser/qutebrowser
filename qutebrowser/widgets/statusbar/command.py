@@ -14,6 +14,10 @@ class Command(QLineEdit):
     _tmphist = []
     _histpos = None
 
+    # FIXME won't the tab key switch to the next widget?
+    # See http://www.saltycrane.com/blog/2008/01/how-to-capture-tab-key-press-event-with/
+    # for a possible fix.
+
     def __init__(self, bar):
         super().__init__(bar)
         self.bar = bar
