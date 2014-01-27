@@ -2,7 +2,7 @@ import logging
 
 from PyQt5.QtCore import QUrl, pyqtSignal, Qt, QPoint, QEvent
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
-from PyQt5.QtWebKitWidgets import QWebView
+from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 from qutebrowser.widgets.tabbar import TabWidget
 
@@ -38,6 +38,8 @@ class TabbedBrowser(TabWidget):
         # setContent(..., baseUrl=QUrl('foo'))
         tab.loadStarted.connect(self._loadStarted_handler)
         tab.titleChanged.connect(self._titleChanged_handler)
+        # FIXME sometimes this doesn't load
+        tab.open_tab.connect(self.tabopen)
 
     def openurl(self, url):
         """Opens an url in the current tab"""
@@ -185,19 +187,31 @@ class BrowserTab(QWebView):
     progress = 0
     scroll_pos_changed = pyqtSignal(int, int)
     _scroll_pos = (-1, -1)
+    midbutton = False # if the middle button was pressed
+    open_tab = pyqtSignal(str)
 
     def __init__(self, parent):
         super().__init__(parent)
         self.loadProgress.connect(self.set_progress)
+        self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.installEventFilter(self)
+        self.linkClicked.connect(self.link_handler)
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
         self.show()
 
     def openurl(self, url):
         """Opens an URL in the browser"""
+        if isinstance(url, QUrl):
+            return self.load(url)
         if not url.startswith('http://'):
             url = 'http://' + url
-        self.load(QUrl(url))
+        return self.load(QUrl(url))
+
+    def link_handler(self, url):
+        if self.midbutton:
+            self.open_tab.emit(url.url())
+        else:
+            self.openurl(url)
 
     def set_progress(self, prog):
         self.progress = prog
@@ -218,3 +232,11 @@ class BrowserTab(QWebView):
                 self.scroll_pos_changed.emit(*new_pos)
             self._scroll_pos = new_pos
         return super().eventFilter(watched, e)
+
+    def event(self, e):
+        """Another hack to see when a link was pressed with the middle
+        button
+        """
+        if e.type() in [QEvent.MouseButtonPress, QEvent.MouseButtonDblClick]:
+            self.midbutton = (e.button() == Qt.MidButton)
+        return super().event(e)
