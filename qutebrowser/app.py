@@ -37,9 +37,10 @@ class QuteBrowser(QApplication):
             confdir = self.args.confdir
         self.config = Config(confdir)
 
-        self.mainwindow = MainWindow()
         self.commandparser = cmdutils.CommandParser()
         self.keyparser = KeyParser(self.mainwindow)
+        self.init_cmds()
+        self.mainwindow = MainWindow()
 
         self.aboutToQuit.connect(self.config.save)
         self.mainwindow.tabs.keypress.connect(self.keyparser.handle)
@@ -53,7 +54,6 @@ class QuteBrowser(QApplication):
         self.keyparser.keystring_updated.connect(
             self.mainwindow.status.txt.set_keystring)
 
-        self.init_cmds()
         self.mainwindow.show()
 
         self.python_hacks()

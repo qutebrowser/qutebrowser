@@ -1,8 +1,10 @@
 import logging
 
-from PyQt5.QtWidgets import QLineEdit, QShortcut, QCompleter
+from PyQt5.QtWidgets import QLineEdit, QShortcut
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QValidator, QKeySequence
+
+from qutebrowser.commands.utils import CommandCompletionModel
 
 class Command(QLineEdit):
     """The commandline part of the statusbar"""
@@ -10,6 +12,8 @@ class Command(QLineEdit):
     got_cmd = pyqtSignal(str) # Emitted when a command is triggered by the user
     bar = None # The status bar object
     esc_pressed = pyqtSignal() # Emitted when escape is pressed
+    tab_pressed = pyqtSignal(bool) # Emitted when tab is pressed (arg: shift)
+    hide_completion = pyqtSignal() # Hide completion window
     history = [] # The command history, with newer commands at the bottom
     _tmphist = []
     _histpos = None
@@ -20,16 +24,17 @@ class Command(QLineEdit):
 
     def __init__(self, bar):
         super().__init__(bar)
+        # FIXME
         self.bar = bar
         self.setStyleSheet("border: 0px; padding-left: 1px")
         self.setValidator(Validator())
-        self.setCompleter(Completer())
         self.returnPressed.connect(self.process_cmd)
         self.textEdited.connect(self._histbrowse_stop)
 
         for (key, handler) in [(Qt.Key_Escape, self.esc_pressed),
                                (Qt.Key_Up, self.key_up_handler),
                                (Qt.Key_Down, self.key_down_handler),
+                               (Qt.Key_Tab | Qt.SHIFT, self.key_stab_handler),
                                (Qt.Key_Tab, self.key_tab_handler)]:
             sc = QShortcut(self)
             sc.setKey(QKeySequence(key))
@@ -50,12 +55,19 @@ class Command(QLineEdit):
         self.setText(':' + text)
         self.setFocus()
 
+    def append_cmd(self, text):
+        """Append text to the commandline"""
+        # FIXME do the right thing here
+        self.setText(':' + text)
+        self.setFocus()
+
     def focusOutEvent(self, e):
         """Clear the statusbar text if it's explicitely unfocused"""
         if e.reason() in [Qt.MouseFocusReason, Qt.TabFocusReason,
                           Qt.BacktabFocusReason, Qt.OtherFocusReason]:
             self.setText('')
             self._histbrowse_stop()
+        self.hide_completion.emit()
         super().focusOutEvent(e)
 
     def focusInEvent(self, e):
@@ -102,8 +114,10 @@ class Command(QLineEdit):
         self.set_cmd(self._tmphist[self._histpos])
 
     def key_tab_handler(self):
-        # TODO implement tab completion
-        logging.debug('tab pressed')
+        self.tab_pressed.emit(False)
+
+    def key_stab_handler(self):
+        self.tab_pressed.emit(True)
 
 class Validator(QValidator):
     """Validator to prevent the : from getting deleted"""
@@ -113,6 +127,3 @@ class Validator(QValidator):
         else:
             return (QValidator.Invalid, string, pos)
 
-class Completer(QCompleter):
-    def __init__(self):
-        super().__init__([':foo', ':bar', 'baz'])

@@ -1,5 +1,6 @@
 import logging
 
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QHBoxLayout, QWidget
 
 from qutebrowser.widgets.statusbar.command import Command
@@ -12,6 +13,7 @@ class StatusBar(QWidget):
     cmd = None
     txt = None
     prog = None
+    resized = pyqtSignal('QRect')
     fgcolor = 'white'
     bgcolor = 'black'
     font = 'Monospace, Courier'
@@ -30,8 +32,8 @@ class StatusBar(QWidget):
             self.setStyleSheet(self._stylesheet.strip().format(self=self))
 
     # TODO: the statusbar should be a bit smaller
-    def __init__(self, parent):
-        super().__init__(parent)
+    def __init__(self, mainwindow):
+        super().__init__(mainwindow)
         self.setStyleSheet(self._stylesheet.strip().format(self=self))
         self.hbox = QHBoxLayout(self)
         self.hbox.setContentsMargins(0, 0, 0, 0)
@@ -56,4 +58,6 @@ class StatusBar(QWidget):
         self.bgcolor = 'black'
         self.txt.error = ''
 
-
+    def resizeEvent(self, e):
+        super().resizeEvent(e)
+        self.resized.emit(self.geometry())

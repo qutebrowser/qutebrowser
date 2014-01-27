@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget
 
 from qutebrowser.widgets.statusbar import StatusBar
 from qutebrowser.widgets.browser import TabbedBrowser
+from qutebrowser.widgets.completion import CompletionView
 
 class MainWindow(QMainWindow):
     """The main window of QuteBrowser"""
@@ -25,14 +26,22 @@ class MainWindow(QMainWindow):
         self.tabs = TabbedBrowser(self)
         self.vbox.addWidget(self.tabs)
 
+        self.completion = CompletionView(self)
+
         self.status = StatusBar(self)
         self.vbox.addWidget(self.status)
 
+        self.status.resized.connect(self.completion.resize_to_bar)
         self.tabs.cur_progress.connect(self.status.prog.set_progress)
         self.tabs.cur_load_finished.connect(self.status.prog.load_finished)
         self.tabs.cur_scroll_perc_changed.connect(self.status.txt.set_perc)
         self.status.cmd.esc_pressed.connect(self.tabs.setFocus)
+        self.status.cmd.hide_completion.connect(self.completion.hide)
+        self.status.cmd.textChanged.connect(self.completion.cmd_text_changed)
+        self.status.cmd.tab_pressed.connect(self.completion.tab_handler)
+        self.completion.append_cmd_text.connect(self.status.cmd.append_cmd)
 
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
+

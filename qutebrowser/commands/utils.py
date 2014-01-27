@@ -6,6 +6,8 @@ import shlex
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
+from qutebrowser.utils.completion import CompletionModel
+
 cmd_dict = {}
 
 class ArgumentCountError(TypeError):
@@ -81,6 +83,16 @@ class CommandParser(QObject):
                 raise
         self._run(count=count)
 
+class CommandCompletionModel(CompletionModel):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        assert(cmd_dict)
+        cmdlist = []
+        for obj in set(cmd_dict.values()):
+            cmdlist.append([obj.mainname, obj.desc])
+        self._data['Commands'] = sorted(cmdlist)
+        self.init_data()
+
 class Command(QObject):
     """Base skeleton for a command. See the module help for
     qutebrowser.commands.commands for details.
@@ -92,15 +104,21 @@ class Command(QObject):
 
     nargs = 0
     name = None
+    mainname = None
     signal = None
     count = False
     split_args = True
     signal = pyqtSignal(tuple)
+    desc = "" # FIXME add descriptions everywhere
 
     def __init__(self):
         super().__init__()
         if self.name is None:
             self.name = self.__class__.__name__.lower()
+        if isinstance(self.name, str):
+            self.mainname = self.name
+        else:
+            self.mainname = self.name[0]
 
     def check(self, args):
         """Check if the argument count is valid. Raise ArgumentCountError if
@@ -118,18 +136,14 @@ class Command(QObject):
         args -- Arguments to the command.
         count -- Command repetition count.
         """
-        if isinstance(self.name, str):
-            name = self.name
-        else:
-            name = self.name[0]
-        dbgout = ["command called:", name]
+        dbgout = ["command called:", self.mainname]
         if args:
             dbgout += args
         if count is not None:
             dbgout.append("(count={})".format(count))
         logging.debug(' '.join(dbgout))
 
-        argv = [name]
+        argv = [self.mainname]
         if args is not None:
             argv += args
         self.signal.emit((count, argv))
