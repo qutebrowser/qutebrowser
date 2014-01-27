@@ -4,6 +4,7 @@ from PyQt5.QtCore import QUrl, pyqtSignal, Qt, QPoint, QEvent
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
+import qutebrowser.utils as utils
 from qutebrowser.widgets.tabbar import TabWidget
 
 class TabbedBrowser(TabWidget):
@@ -19,13 +20,14 @@ class TabbedBrowser(TabWidget):
     def __init__(self, parent):
         super().__init__(parent)
         self.currentChanged.connect(self._currentChanged_handler)
-        self.tabopen("http://ddg.gg/")
+        self.tabopen(QUrl("http://ddg.gg/"))
 
     def tabopen(self, url):
         """Opens a new tab with a given url"""
+        url = utils.qurl(url)
         tab = BrowserTab(self)
         tab.openurl(url)
-        self.addTab(tab, url)
+        self.addTab(tab, url.url())
         self.setCurrentWidget(tab)
         self.cur_progress.emit(tab.progress)
         tab.loadProgress.connect(
@@ -43,8 +45,7 @@ class TabbedBrowser(TabWidget):
 
     def openurl(self, url):
         """Opens an url in the current tab"""
-        tab = self.currentWidget()
-        tab.openurl(url)
+        self.currentWidget().openurl(url)
 
     def undo_close(self):
         """Undos closing a tab"""
@@ -56,9 +57,8 @@ class TabbedBrowser(TabWidget):
         if self.count() > 1:
             idx = self.currentIndex()
             tab = self.currentWidget()
-            # FIXME maybe we should add the QUrl object here and deal with QUrls everywhere
             # FIXME maybe we actually should store the webview objects here
-            self._url_stack.append(tab.url().url())
+            self._url_stack.append(tab.url())
             self.removeTab(idx)
         else:
             # FIXME
@@ -188,7 +188,7 @@ class BrowserTab(QWebView):
     scroll_pos_changed = pyqtSignal(int, int)
     _scroll_pos = (-1, -1)
     midbutton = False # if the middle button was pressed
-    open_tab = pyqtSignal(str)
+    open_tab = pyqtSignal('QUrl')
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -201,15 +201,11 @@ class BrowserTab(QWebView):
 
     def openurl(self, url):
         """Opens an URL in the browser"""
-        if isinstance(url, QUrl):
-            return self.load(url)
-        if not url.startswith('http://'):
-            url = 'http://' + url
-        return self.load(QUrl(url))
+        return self.load(utils.qurl(url))
 
     def link_handler(self, url):
         if self.midbutton:
-            self.open_tab.emit(url.url())
+            self.open_tab.emit(url)
         else:
             self.openurl(url)
 
