@@ -4,6 +4,9 @@ from PyQt5.QtCore import Qt
 class TabWidget(QTabWidget):
     """The tabwidget used for TabbedBrowser"""
 
+    # FIXME there is still some ugly 1px white stripe from somewhere if we do
+    # background-color: grey for QTabBar...
+
     _stylesheet = """
         QTabWidget::pane {
             position: absolute;
@@ -22,6 +25,10 @@ class TabWidget(QTabWidget):
             padding-right: 5px;
             padding-top: 0px;
             padding-bottom: 0px;
+        }
+
+        QTabBar::tab:first, QTabBar::tab:middle {
+            border-right: 1px solid white;
         }
 
         QTabBar::tab:selected {
