@@ -99,6 +99,9 @@ class CompletionModel(QAbstractItemModel):
 
         return len(pitem.children)
 
+    def sort(self, column, order=Qt.AscendingOrder):
+        raise NotImplementedError
+
     def init_data(self):
         for (cat, items) in self._data.items():
             newcat = CompletionItem([cat], self.root)
@@ -145,7 +148,7 @@ class CompletionItem():
 
 class CompletionFilterModel(QSortFilterProxyModel):
     _pattern = None
-    # FIXME sort in a way strings starting with pattern are first
+    pattern_changed = pyqtSignal(str)
 
     @property
     def pattern(self):
@@ -154,7 +157,8 @@ class CompletionFilterModel(QSortFilterProxyModel):
     @pattern.setter
     def pattern(self, val):
         self._pattern = val
-        self.invalidateFilter()
+        self.invalidate()
+        self.pattern_changed.emit(val)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -169,3 +173,19 @@ class CompletionFilterModel(QSortFilterProxyModel):
         if not self.pattern:
             return True
         return self.pattern in data
+
+    def lessThan(self, lindex, rindex):
+        left = self.sourceModel().data(lindex).value()
+        right = self.sourceModel().data(rindex).value()
+
+        leftstart = left.startswith(self.pattern)
+        rightstart = right.startswith(self.pattern)
+
+        if leftstart and rightstart:
+            return left < right
+        elif leftstart:
+            return True
+        elif rightstart:
+            return False
+        else:
+            return left < right

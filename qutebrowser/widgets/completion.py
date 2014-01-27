@@ -51,6 +51,7 @@ class CompletionView(QTreeView):
         self.model = CompletionFilterModel()
         self.setModel(self.model)
         self.model.setSourceModel(self.completion_models['command'])
+        self.model.pattern_changed.connect(self.resort)
         self.setItemDelegate(CompletionItemDelegate())
         self.setStyleSheet(self._stylesheet.strip())
         self.expandAll()
@@ -70,6 +71,12 @@ class CompletionView(QTreeView):
         self.model.setSourceModel(self.completion_models[model])
         self.model.pattern = ''
         self.expandAll()
+
+    def resort(self, pattern):
+        try:
+            self.model.sourceModel().sort(0)
+        except NotImplementedError:
+            self.model.sort(0)
 
     def resize_to_bar(self, geom):
         bottomleft = geom.topLeft()
