@@ -63,7 +63,7 @@ class CommandParser(QObject):
         try:
             self.cmd.check(self.args)
         except ArgumentCountError:
-            self.error.emit("{}: invalid argument count".format(self.cmd))
+            self.error.emit("{}: invalid argument count".format(self.cmd.mainname))
             raise
 
     def _run(self, count=None):
