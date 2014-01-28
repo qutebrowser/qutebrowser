@@ -3,6 +3,7 @@ import os
 import logging
 
 from configparser import ConfigParser
+# pylint: disable=abstract-class-little-used
 
 config = None
 colordict = {}
@@ -32,7 +33,8 @@ default_config = {
     'colors': {
         'completion.fg': '#333333',
         'completion.item.bg': 'white',
-        'completion.category.bg': 'qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #e4e4e4, stop:1 #dbdbdb)',
+        'completion.category.bg': ('qlineargradient(x1:0, y1:0, x2:0, y2:1, '
+                                   'stop:0 #e4e4e4, stop:1 #dbdbdb)'),
         'completion.category.border.top': '#808080',
         'completion.category.border.bottom': '#bbbbbb',
         'completion.item.selected.fg': '#333333',
@@ -67,7 +69,6 @@ def init(confdir):
         colordict = ColorDict()
 
 def get_stylesheet(template):
-    global colordict
     return template.strip().format(color=colordict, monospace=MONOSPACE)
 
 class ColorDict(dict):

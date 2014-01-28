@@ -1,5 +1,3 @@
-from qutebrowser.commands.utils import Command
-
 """All command classes. These are automatically propagated from commands.utils
 via inspect.
 
@@ -19,6 +17,7 @@ A command class can set the following properties:
     desc -- Description of the command
 """
 
+from qutebrowser.commands.utils import Command
 
 class Open(Command):
     nargs = 1

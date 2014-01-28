@@ -57,7 +57,7 @@ class KeyParser(QObject):
             self.keystring = ''
             return
 
-        (countstr, cmdstr_needle) = re.match('^(\d*)(.*)',
+        (countstr, cmdstr_needle) = re.match(r'^(\d*)(.*)',
                                              self.keystring).groups()
 
         if not cmdstr_needle:

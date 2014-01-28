@@ -21,7 +21,7 @@ def register_all():
     # We do this here to avoid a circular import, since commands.commands
     # imports Command from this module.
     import qutebrowser.commands
-    for (name, cls) in inspect.getmembers(
+    for (name, cls) in inspect.getmembers( # pylint: disable=unused-variable
             qutebrowser.commands, (lambda o: inspect.isclass(o) and
             o.__module__ == 'qutebrowser.commands')):
         obj = cls()
@@ -85,9 +85,10 @@ class CommandParser(QObject):
         self._run(count=count)
 
 class CommandCompletionModel(CompletionModel):
+    # pylint: disable=abstract-method
     def __init__(self, parent=None):
         super().__init__(parent)
-        assert(cmd_dict)
+        assert cmd_dict
         cmdlist = []
         for obj in set(cmd_dict.values()):
             if not obj.hide:

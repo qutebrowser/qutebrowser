@@ -31,7 +31,7 @@ class QuteBrowser(QApplication):
         # Handle segfaults
         faulthandler.enable()
 
-        args = self.parseopts()
+        self.parseopts()
         self.initlog()
 
         self.dirs = AppDirs('qutebrowser')
@@ -70,6 +70,7 @@ class QuteBrowser(QApplication):
 
     def exception_hook(self, exctype, value, traceback):
         """Try very hard to write open tabs to a file and exit gracefully"""
+        # pylint: disable=broad-except
         sys.__excepthook__(exctype, value, traceback)
         try:
             for tabidx in range(self.mainwindow.tabs.count()):
@@ -152,7 +153,7 @@ class QuteBrowser(QApplication):
             'forward':       self.mainwindow.tabs.cur_forward,
             'print':         self.mainwindow.tabs.cur_print,
             'scroll':        self.mainwindow.tabs.cur_scroll,
-            'scroll_perc_y': self.mainwindow.tabs.cur_scroll_percent_x,
+            'scroll_perc_x': self.mainwindow.tabs.cur_scroll_percent_x,
             'scroll_perc_y': self.mainwindow.tabs.cur_scroll_percent_y,
             'undo':          self.mainwindow.tabs.undo_close,
             'pyeval':        self.pyeval,
@@ -170,7 +171,7 @@ class QuteBrowser(QApplication):
         try:
             r = eval(s)
             out = repr(r)
-        except Exception as e:
+        except Exception as e: # pylint: disable=broad-except
             out = ': '.join([e.__class__.__name__, str(e)])
 
         # FIXME we probably want some nicer interface to display these about:

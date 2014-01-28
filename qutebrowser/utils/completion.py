@@ -1,4 +1,3 @@
-import logging
 from collections import OrderedDict
 
 from PyQt5.QtCore import (QAbstractItemModel, Qt, QModelIndex, QVariant,
@@ -12,10 +11,10 @@ class CompletionModel(QAbstractItemModel):
         self.root = CompletionItem([""] * 2)
 
     def removeRows(self, position=0, count=1, parent=QModelIndex()):
-       node = self.node(parent)
-       self.beginRemoveRows(parent, position, position + count - 1)
-       node.childItems.pop(position)
-       self.endRemoveRows()
+        node = self.node(parent)
+        self.beginRemoveRows(parent, position, position + count - 1)
+        node.children.pop(position)
+        self.endRemoveRows()
 
     def node(self, index):
         if index.isValid():
@@ -24,6 +23,7 @@ class CompletionModel(QAbstractItemModel):
             return self.root
 
     def columnCount(self, parent=QModelIndex()):
+        # pylint: disable=unused-argument
         return self.root.column_count()
 
     def data(self, index, role=Qt.DisplayRole):
@@ -167,7 +167,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
     def filterAcceptsRow(self, row, parent):
         if parent == QModelIndex():
             return True
-        idx = self.sourceModel().index(row, 0, parent);
+        idx = self.sourceModel().index(row, 0, parent)
         data = self.sourceModel().data(idx).value()
         # TODO more sophisticated filtering
         if not self.pattern:
