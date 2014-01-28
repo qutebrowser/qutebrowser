@@ -133,23 +133,25 @@ class CompletionView(QTreeView):
     def tab_handler(self, shift):
         if self.isHidden():
             return
-        selmodel = self.selectionModel()
-        cur = selmodel.currentIndex()
-        if not cur.isValid():
-            idx = self.first_item()
-        elif shift:
-            idx = self.indexAbove(cur)
-            if not idx.isValid():
-                idx = self.last_item()
-            cur = idx
-        else:
-            idx = self.indexBelow(cur)
-            if not idx.isValid():
-                idx = self.first_item()
-            cur = idx
+        idx = self._next_idx(shift)
         self.ignore_next = True
-        selmodel.setCurrentIndex(idx, QItemSelectionModel.ClearAndSelect)
+        self.selectionModel().setCurrentIndex(
+            idx, QItemSelectionModel.ClearAndSelect)
         self.append_cmd_text.emit(self.model.data(idx) + ' ')
+
+    def _next_idx(self, shift):
+        idx = self.selectionModel().currentIndex()
+        if not idx.isValid():
+            # No item selected yet
+            return self.first_item()
+        while True:
+            idx = self.indexAbove(idx) if shift else self.indexBelow(idx)
+            if not idx.isValid():
+                # wrap around if we arrived at beginning/end
+                return self.last_item() if shift else self.first_item()
+            if idx.parent().isValid():
+                # Item is a real item, not a category header -> success
+                return idx
 
 class CompletionItemDelegate(QStyledItemDelegate):
     opt = None
