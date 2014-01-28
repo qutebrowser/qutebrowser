@@ -1,3 +1,4 @@
+import logging
 from PyQt5.QtWidgets import QLabel
 
 class Text(QLabel):
@@ -27,6 +28,10 @@ class Text(QLabel):
             self.scrollperc = '[bot]'
         else:
             self.scrollperc = '[{}%]'.format(y)
+
+    def set_text(self, text):
+        logging.debug('Setting text to "{}"'.format(text))
+        self.text = text
 
     def update(self):
         """Update the text displayed"""

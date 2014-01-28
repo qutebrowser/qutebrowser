@@ -13,6 +13,8 @@ class TabbedBrowser(TabWidget):
     cur_progress = pyqtSignal(int) # Progress of the current tab changed
     cur_load_started = pyqtSignal() # Current tab started loading
     cur_load_finished = pyqtSignal(bool) # Current tab finished loading
+    cur_statusbar_message = pyqtSignal(str) # Status bar message
+    # FIXME we need to store this in our browser object
     # Current tab changed scroll position
     cur_scroll_perc_changed = pyqtSignal(int, int)
     keypress = pyqtSignal('QKeyEvent')
@@ -37,6 +39,8 @@ class TabbedBrowser(TabWidget):
             lambda *args: self._filter_signals(self.cur_load_finished, *args))
         tab.loadStarted.connect(
             lambda *args: self._filter_signals(self.cur_load_started, *args))
+        tab.statusBarMessage.connect(
+            lambda *args: self._filter_signals(self.cur_statusbar_message, *args))
         tab.scroll_pos_changed.connect(self._scroll_pos_changed_handler)
         # FIXME should we really bind this to loadStarted? Sometimes the URL
         # isn't set correctly at this point, e.g. when doing

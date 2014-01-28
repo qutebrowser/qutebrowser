@@ -36,6 +36,7 @@ class MainWindow(QMainWindow):
         self.tabs.cur_load_finished.connect(self.status.prog.load_finished)
         self.tabs.cur_load_started.connect(lambda: self.status.prog.set_progress(0))
         self.tabs.cur_scroll_perc_changed.connect(self.status.txt.set_perc)
+        self.tabs.cur_statusbar_message.connect(self.status.txt.set_text)
         self.status.cmd.esc_pressed.connect(self.tabs.setFocus)
         self.status.cmd.hide_completion.connect(self.completion.hide)
         self.status.cmd.textChanged.connect(self.completion.cmd_text_changed)
