@@ -63,12 +63,12 @@ class QuteBrowser(QApplication):
         self.mainwindow.show()
         self.python_hacks()
 
-    def tmp_exception_hook(exctype, value, traceback):
+    def tmp_exception_hook(self, exctype, value, traceback):
         """Exception hook while initializing, simply exit"""
         sys.__excepthook__(exctype, value, traceback)
         self.exit(1)
 
-    def exception_hook(exctype, value, traceback):
+    def exception_hook(self, exctype, value, traceback):
         """Try very hard to write open tabs to a file and exit gracefully"""
         sys.__excepthook__(exctype, value, traceback)
         try:
