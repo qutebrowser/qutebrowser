@@ -11,6 +11,7 @@ class TabbedBrowser(TabWidget):
     """A TabWidget with QWebViews inside"""
 
     cur_progress = pyqtSignal(int) # Progress of the current tab changed
+    cur_load_started = pyqtSignal() # Current tab started loading
     cur_load_finished = pyqtSignal(bool) # Current tab finished loading
     # Current tab changed scroll position
     cur_scroll_perc_changed = pyqtSignal(int, int)
@@ -34,6 +35,8 @@ class TabbedBrowser(TabWidget):
             lambda *args: self._filter_signals(self.cur_progress, *args))
         tab.loadFinished.connect(
             lambda *args: self._filter_signals(self.cur_load_finished, *args))
+        tab.loadStarted.connect(
+            lambda *args: self._filter_signals(self.cur_load_started, *args))
         tab.scroll_pos_changed.connect(self._scroll_pos_changed_handler)
         # FIXME should we really bind this to loadStarted? Sometimes the URL
         # isn't set correctly at this point, e.g. when doing
