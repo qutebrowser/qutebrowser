@@ -10,6 +10,7 @@ colordict = {}
 default_config = {
     'general': {
         'show_completion': 'true',
+        'space_scroll': '200',
     },
     'keybind': {
         'o': 'open',

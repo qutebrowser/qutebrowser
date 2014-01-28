@@ -1,10 +1,12 @@
 import logging
 
+from PyQt5.QtWidgets import QShortcut
 from PyQt5.QtCore import QUrl, pyqtSignal, Qt, QPoint, QEvent
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 import qutebrowser.utils as utils
+import qutebrowser.utils.config as config
 from qutebrowser.widgets.tabbar import TabWidget
 
 class TabbedBrowser(TabWidget):
@@ -24,6 +26,10 @@ class TabbedBrowser(TabWidget):
         super().__init__(parent)
         self.currentChanged.connect(self._currentChanged_handler)
         self.tabopen(QUrl("http://ddg.gg/"))
+        space = QShortcut(self)
+        space.setKey(Qt.Key_Space)
+        space.setContext(Qt.WidgetWithChildrenShortcut)
+        space.activated.connect(self.space_scroll)
 
     def tabopen(self, url):
         """Opens a new tab with a given url"""
@@ -129,6 +135,13 @@ class TabbedBrowser(TabWidget):
         if m == 0:
             return
         frame.setScrollBarValue(orientation, int(m * perc / 100))
+
+    def space_scroll(self):
+        try:
+            amount = config.config['general']['space_scroll']
+        except KeyError:
+            amount = 200
+        self.cur_scroll(0, amount)
 
     def switch_prev(self):
         """Switches to the previous tab"""
