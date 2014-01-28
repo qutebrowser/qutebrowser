@@ -27,8 +27,15 @@ def run(name, args=None):
         status[name] = None
     print()
 
+pylint_disable = [
+    'import-error', 'no-name-in-module', # import seems unreliable
+    'invalid-name',                      # short variable names can be nice
+    'star-args',                         # we want to use this
+    'fixme',                             # I'll decide myself when to fix them
+]
+
 run('pylint', ['--ignore=appdirs.py', '--output-format=colorized',
-               '--reports=no'])
+               '--reports=no', '--disable=' + ','.join(pylint_disable)])
 run('flake8', ['--max-complexity=10', '--exclude=appdirs.py'])
 
 print('Exit status values:')
