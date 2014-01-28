@@ -51,6 +51,12 @@ default_config = {
     },
 }
 
+_MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas', 'Monaco',
+              'Bitstream Vera Sans Mono', 'Andale Mono', 'Liberation Mono',
+              'Courier New', 'Courier', 'monospace', 'Fixed', 'Terminal']
+
+MONOSPACE = ', '.join(_MONOSPACE)
+
 def init(confdir):
     global config, colordict
     config = Config(confdir)
@@ -61,7 +67,7 @@ def init(confdir):
 
 def get_stylesheet(template):
     global colordict
-    return template.strip().format(color=colordict)
+    return template.strip().format(color=colordict, monospace=MONOSPACE)
 
 class ColorDict(dict):
     def __getitem__(self, key):

@@ -15,7 +15,7 @@ from qutebrowser.commands.utils import CommandCompletionModel
 class CompletionView(QTreeView):
     _stylesheet = """
         QTreeView {{
-            font-family: Monospace, Courier;
+            font-family: {monospace};
             {color[completion.fg]}
             {color[completion.bg]}
             outline: 0;

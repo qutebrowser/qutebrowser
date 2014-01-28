@@ -16,7 +16,7 @@ class TabWidget(QTabWidget):
         }}
 
         QTabBar {{
-            font-family: Monospace, Courier;
+            font-family: {monospace};
             font-size: 8pt;
         }}
 
