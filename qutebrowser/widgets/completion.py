@@ -29,11 +29,13 @@ class CompletionView(QTreeView):
             {color[completion.category.fg]}
             {color[completion.category.bg]}
             border-top: 1px solid {color[completion.category.border.top]};
-            border-bottom: 1px solid {color[completion.category.border.bottom]};
+            border-bottom: 1px solid
+                {color[completion.category.border.bottom]};
         }}
         QTreeView::item:selected {{
             border-top: 1px solid {color[completion.item.selected.border.top]};
-            border-bottom: 1px solid {color[completion.item.selected.border.bottom]};
+            border-bottom: 1px solid
+                {color[completion.item.selected.border.bottom]};
             {color[completion.item.selected.bg]}
             {color[completion.item.selected.fg]}
         }}
