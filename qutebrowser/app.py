@@ -1,5 +1,6 @@
 import sys
 import logging
+import faulthandler
 from signal import signal, SIGINT
 from argparse import ArgumentParser
 
@@ -24,6 +25,11 @@ class QuteBrowser(QApplication):
 
     def __init__(self):
         super().__init__(sys.argv)
+        # Exit on exceptions
+        sys.excepthook = self.tmp_exception_hook
+
+        # Handle segfaults
+        faulthandler.enable()
 
         args = self.parseopts()
         self.initlog()
@@ -55,18 +61,31 @@ class QuteBrowser(QApplication):
             self.mainwindow.status.txt.set_keystring)
 
         self.mainwindow.show()
-
         self.python_hacks()
+
+    def tmp_exception_hook(exctype, value, traceback):
+        """Exception hook while initializing, simply exit"""
+        sys.__excepthook__(exctype, value, traceback)
+        self.exit(1)
+
+    def exception_hook(exctype, value, traceback):
+        """Try very hard to write open tabs to a file and exit gracefully"""
+        sys.__excepthook__(exctype, value, traceback)
+        try:
+            for tabidx in range(self.mainwindow.tabs.count()):
+                try:
+                    # FIXME write to some file
+                    print(self.mainwindow.tabs.widget(tabidx).url().url())
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        self.exit(1)
 
     def python_hacks(self):
         """Gets around some PyQt-oddities by evil hacks"""
         ## Make python exceptions work
-        sys._excepthook = sys.excepthook
-        def exception_hook(exctype, value, traceback):
-            sys._excepthook(exctype, value, traceback)
-            # FIXME save open tabs here
-            self.exit(1)
-        sys.excepthook = exception_hook
+        sys.excepthook = self.exception_hook
 
         ## Quit on SIGINT
         signal(SIGINT, lambda *args: self.exit(128 + SIGINT))
