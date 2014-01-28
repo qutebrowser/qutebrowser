@@ -148,7 +148,9 @@ class CompletionView(QTreeView):
         self.ignore_next = True
         self.selectionModel().setCurrentIndex(
             idx, QItemSelectionModel.ClearAndSelect)
-        self.append_cmd_text.emit(self.model.data(idx) + ' ')
+        data = self.model.data(idx)
+        if data is not None:
+            self.append_cmd_text.emit(self.model.data(idx) + ' ')
 
     def _next_idx(self, shift):
         idx = self.selectionModel().currentIndex()
