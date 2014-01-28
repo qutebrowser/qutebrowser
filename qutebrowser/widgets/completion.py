@@ -32,9 +32,9 @@ class CompletionView(QTreeView):
             border-bottom: 1px solid {color[completion.category.border.bottom]};
         }}
         QTreeView::item:selected {{
-            border-top: 1px solid {color[completon.item.selected.border.top]};
+            border-top: 1px solid {color[completion.item.selected.border.top]};
             border-bottom: 1px solid {color[completion.item.selected.border.bottom]};
-            background-color: {color[completion.item.selected.bg]};
+            {color[completion.item.selected.bg]};
             {color[completion.item.selected.fg]}
         }}
     """
@@ -59,7 +59,9 @@ class CompletionView(QTreeView):
         self.model.setSourceModel(self.completion_models['command'])
         self.model.pattern_changed.connect(self.resort)
         self.setItemDelegate(CompletionItemDelegate())
-        self.setStyleSheet(config.get_stylesheet(self._stylesheet))
+        ss = config.get_stylesheet(self._stylesheet)
+        logging.debug(ss)
+        self.setStyleSheet(ss)
         self.expandAll()
         self.setHeaderHidden(True)
         self.setIndentation(0)
