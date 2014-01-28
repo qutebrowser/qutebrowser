@@ -34,7 +34,7 @@ class CompletionView(QTreeView):
         QTreeView::item:selected {{
             border-top: 1px solid {color[completion.item.selected.border.top]};
             border-bottom: 1px solid {color[completion.item.selected.border.bottom]};
-            {color[completion.item.selected.bg]};
+            {color[completion.item.selected.bg]}
             {color[completion.item.selected.fg]}
         }}
     """
