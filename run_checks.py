@@ -23,7 +23,7 @@ def run(name, args=None):
             print('{}: {}'.format(e.__class__.__name__, e))
             status[name] = None
     except Exception as e:
-        print(e)
+        print('{}: {}'.format(e.__class__.__name__, e))
         status[name] = None
     print()
 
