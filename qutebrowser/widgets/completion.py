@@ -255,7 +255,6 @@ class CompletionItemDelegate(QStyledItemDelegate):
                 cur.setPosition(mark[1], QTextCursor.KeepAnchor)
                 txt = cur.selectedText()
                 cur.removeSelectedText()
-                # FIXME escape html in txt
                 cur.insertHtml('<span class="highlight">{}</span>'.format(
                     html.escape(txt)))
         doc.drawContents(self.painter, clip)
