@@ -1,5 +1,7 @@
 import sys
 import subprocess
+import os
+import os.path
 from pkg_resources import load_entry_point, DistributionNotFound
 from collections import OrderedDict
 
@@ -28,6 +30,29 @@ def run(name, args=None):
         status[name] = None
     print()
 
+def check_crlf():
+    print("====== CRLF ======")
+    ret = []
+    try:
+        for (dirpath, dirnames, filenames) in os.walk(testmodule):
+            for name in [e for e in filenames if e.endswith('.py')]:
+                fn = os.path.join(dirpath, name)
+                ret.append(_check_crlf(fn))
+        status['crlf'] = all(ret)
+    except Exception as e:
+        print('{}: {}'.format(e.__class__.__name__, e))
+        status['crlf'] = None
+    print()
+
+def _check_crlf(fn):
+    with open(fn, 'rb') as f:
+        for line in f:
+            if b'\r\n' in line:
+                print('Found CRLF in {}'.format(fn))
+                return False
+    return True
+
+
 pylint_disable = [
     'import-error',            # import seems unreliable
     'no-name-in-module',
@@ -44,6 +69,7 @@ pylint_disable = [
 run('pylint', ['--ignore=appdirs.py', '--output-format=colorized',
                '--reports=no', '--disable=' + ','.join(pylint_disable)])
 run('flake8', ['--max-complexity=10', '--exclude=appdirs.py'])
+check_crlf()
 
 print('Exit status values:')
 for (k, v) in status.items():
