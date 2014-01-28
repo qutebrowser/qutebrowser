@@ -121,22 +121,22 @@ class QuteBrowser(QApplication):
         args = argv[1:]
 
         handlers = {
-            'open':           self.mainwindow.tabs.openurl,
-            'tabopen':        self.mainwindow.tabs.tabopen,
-            'quit':           self.quit,
-            'tabclose':       self.mainwindow.tabs.cur_close,
-            'tabprev':        self.mainwindow.tabs.switch_prev,
-            'tabnext':        self.mainwindow.tabs.switch_next,
-            'reload':         self.mainwindow.tabs.cur_reload,
-            'stop':           self.mainwindow.tabs.cur_stop,
-            'back':           self.mainwindow.tabs.cur_back,
-            'forward':        self.mainwindow.tabs.cur_forward,
-            'print':          self.mainwindow.tabs.cur_print,
-            'scroll':         self.mainwindow.tabs.cur_scroll,
-            'scrollpercentx': self.mainwindow.tabs.cur_scroll_percent_x,
-            'scrollpercenty': self.mainwindow.tabs.cur_scroll_percent_y,
-            'undo':           self.mainwindow.tabs.undo_close,
-            'pyeval':         self.pyeval,
+            'open':          self.mainwindow.tabs.openurl,
+            'tabopen':       self.mainwindow.tabs.tabopen,
+            'quit':          self.quit,
+            'tabclose':      self.mainwindow.tabs.cur_close,
+            'tabprev':       self.mainwindow.tabs.switch_prev,
+            'tabnext':       self.mainwindow.tabs.switch_next,
+            'reload':        self.mainwindow.tabs.cur_reload,
+            'stop':          self.mainwindow.tabs.cur_stop,
+            'back':          self.mainwindow.tabs.cur_back,
+            'forward':       self.mainwindow.tabs.cur_forward,
+            'print':         self.mainwindow.tabs.cur_print,
+            'scroll':        self.mainwindow.tabs.cur_scroll,
+            'scroll_perc_y': self.mainwindow.tabs.cur_scroll_percent_x,
+            'scroll_perc_y': self.mainwindow.tabs.cur_scroll_percent_y,
+            'undo':          self.mainwindow.tabs.undo_close,
+            'pyeval':        self.pyeval,
         }
 
         handler = handlers[cmd]

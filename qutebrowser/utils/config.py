@@ -19,8 +19,8 @@ default_config = {
         'k': 'scroll 0 -50',
         'l': 'scroll 50 0',
         'u': 'undo',
-        'gg': 'scrollpercenty 0',
-        'G': 'scrollpercenty',
+        'gg': 'scroll_perc_y 0',
+        'G': 'scroll_perc_y',
     }
 }
 

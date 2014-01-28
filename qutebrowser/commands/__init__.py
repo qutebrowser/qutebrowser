@@ -81,15 +81,17 @@ class Undo(Command):
     nargs = 0
     desc = 'Undo closing a tab'
 
-class ScrollPercentX(Command):
+class ScrollPercX(Command):
     nargs = '?'
     count = True
     hide = True
+    name = 'scroll_perc_x'
 
-class ScrollPercentY(Command):
+class ScrollPercY(Command):
     nargs = '?'
     count = True
     hide = True
+    name = 'scroll_perc_y'
 
 class PyEval(Command):
     nargs = 1
