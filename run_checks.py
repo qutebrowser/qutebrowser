@@ -29,8 +29,6 @@ def run(name, args=None):
 
 run('pylint')
 run('flake8', ['--max-complexity', '10'])
-# FIXME what about PyChecker?
-
 
 print('Exit status values:')
 for (k, v) in status.items():
