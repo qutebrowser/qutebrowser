@@ -1,8 +1,9 @@
 import sys
 import subprocess
 from pkg_resources import load_entry_point, DistributionNotFound
+from collections import OrderedDict
 
-status = {}
+status = OrderedDict()
 
 def run(name, args=None):
     sys.argv = [name, 'qutebrowser']
