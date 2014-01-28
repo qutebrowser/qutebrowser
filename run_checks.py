@@ -27,8 +27,9 @@ def run(name, args=None):
         status[name] = None
     print()
 
-run('pylint')
-run('flake8', ['--max-complexity', '10'])
+run('pylint', ['--ignore=appdirs.py', '--output-format=colorized',
+               '--reports=no'])
+run('flake8', ['--max-complexity=10', '--exclude=appdirs.py'])
 
 print('Exit status values:')
 for (k, v) in status.items():
