@@ -39,6 +39,7 @@ class TabbedBrowser(TabWidget):
             lambda *args: self._filter_signals(self.cur_load_finished, *args))
         tab.loadStarted.connect(
             lambda *args: self._filter_signals(self.cur_load_started, *args))
+        # FIXME does QtWebView even do something sensible with that signal?
         tab.statusBarMessage.connect(
             lambda *args: self._filter_signals(self.cur_statusbar_message, *args))
         tab.scroll_pos_changed.connect(self._scroll_pos_changed_handler)
