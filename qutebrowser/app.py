@@ -30,7 +30,7 @@ class QuteBrowser(QApplication):
 
         self.dirs = AppDirs('qutebrowser')
         if self.args.confdir is None:
-            confdir = self.dirs.user_data_dir
+            confdir = self.dirs.user_config_dir
         elif self.args.confdir == '':
             confdir = None
         else:
