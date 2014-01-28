@@ -66,9 +66,14 @@ pylint_disable = [
     'global-statement',        # Sometimes necessary
 ]
 
+flake8_disable = [
+    'E241', # Multiple spaces after ,
+]
+
 run('pylint', ['--ignore=appdirs.py', '--output-format=colorized',
                '--reports=no', '--disable=' + ','.join(pylint_disable)])
-run('flake8', ['--max-complexity=10', '--exclude=appdirs.py'])
+run('flake8', ['--max-complexity=10', '--exclude=appdirs.py',
+               '--ignore=' + ''.join(flake8_disable)])
 check_crlf()
 
 print('Exit status values:')
