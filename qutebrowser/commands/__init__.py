@@ -13,6 +13,10 @@ A command class can set the following properties:
     split_args -- If arguments should be split or not. Default: True
 
     count -- If the command supports a count. Default: False
+
+    hide -- If the command should be hidden in tab completion. Default: False
+
+    desc -- Description of the command
 """
 
 
