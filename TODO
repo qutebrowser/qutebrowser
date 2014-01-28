@@ -34,6 +34,9 @@ All kind of FIXMEs
 :bind
 docstrings
 completion code cleanup
+Weird font rendering
+    https://bugreports.qt-project.org/browse/QTBUG-20973
+    https://bugreports.qt-project.org/browse/QTBUG-21036
 
 Other stuff
 ===========
