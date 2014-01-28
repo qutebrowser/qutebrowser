@@ -19,38 +19,54 @@ A command class can set the following properties:
 class Open(Command):
     nargs = 1
     split_args = False
+    desc = 'Open a page'
 
 class TabOpen(Command):
     nargs = 1
     split_args = False
+    desc = 'Open a page in a new tab'
 
 class TabClose(Command):
     nargs = 0
+    desc = 'Close the current tab'
+    # FIXME also close [count]th tab
 
 class TabNext(Command):
     nargs = 0
+    desc = 'Switch to the next tab'
+    # FIXME also support [count]
 
 class TabPrev(Command):
     nargs = 0
+    desc = 'Switch to the previous tab'
+    # FIXME also support [count]
 
 class Quit(Command):
     name = ['quit', 'q']
     nargs = 0
+    desc = 'Quit qutebrowser'
 
 class Reload(Command):
     nargs = 0
+    desc = 'Reload the current page'
 
 class Stop(Command):
     nargs = 0
+    desc = 'Stop loading the current page'
 
 class Back(Command):
     nargs = 0
+    desc = 'Go back one page in the history'
+    # FIXME also support [count]
 
 class Forward(Command):
     nargs = 0
+    desc = 'Go forward one page in the history'
+    # FIXME also support [count]
 
 class Print(Command):
     nargs = 0
+    desc = 'Print the current page'
 
 class Scroll(Command):
     nargs = 2
@@ -59,6 +75,7 @@ class Scroll(Command):
 
 class Undo(Command):
     nargs = 0
+    desc = 'Undo closing a tab'
 
 class ScrollPercentX(Command):
     nargs = '?'
@@ -73,3 +90,4 @@ class ScrollPercentY(Command):
 class PyEval(Command):
     nargs = 1
     split_args = False
+    desc = 'Evaluate python code'
