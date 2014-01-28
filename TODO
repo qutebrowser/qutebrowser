@@ -5,10 +5,11 @@ After Blink
 -----------
 
 Plugin architecture
-Adblock
-RequestPolicy/Ghostery/Disconnect
-NoScript
-Certificate Patrol
+    Adblock?
+    RequestPolicy
+    Ghostery/Disconnect?
+    NoScript
+    Certificate Patrol
 Insert mode
 Extern editor
 Hints
@@ -17,23 +18,26 @@ Downloads
 Before Blink
 ------------
 
-Command completion
 about:... pages
 searchengines
 session handling / saving
 IPC, like dwb -x
 Mode handling?
 Bookmarks
+sensible crash handling (exceptions, segfaults [windows?])
+more configuration (colors, hide completion)
 
 Minor features/bugs
 ===================
 
 Hiding scrollbars
 Space to scroll
-Middle-click on links for new tab
 copypaste
 All kind of FIXMEs
 :bind
+docstrings
+ctrl+click for new tab
+completion code cleanup
 
 Other stuff
 ===========
