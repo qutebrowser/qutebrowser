@@ -1,5 +1,6 @@
 import sys
-from pkg_resources import load_entry_point
+import subprocess
+from pkg_resources import load_entry_point, DistributionNotFound
 
 status = {}
 
@@ -12,6 +13,15 @@ def run(name, args=None):
         load_entry_point(name, 'console_scripts', name)()
     except SystemExit as e:
         status[name] = e
+    except DistributionNotFound:
+        if args is None:
+            args = []
+        try:
+            print('exc {}'.format([name, 'qutebrowser'] + args))
+            status[name] = subprocess.call([name] + args)
+        except FileNotFoundError as e:
+            print('{}: {}'.format(e.__class__.__name__, e))
+            status[name] = None
     except Exception as e:
         print(e)
         status[name] = None
