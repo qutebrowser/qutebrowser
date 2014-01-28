@@ -24,7 +24,6 @@ session handling / saving
 IPC, like dwb -x
 Mode handling?
 Bookmarks
-sensible crash handling (exceptions, segfaults [windows?])
 
 Minor features/bugs
 ===================
