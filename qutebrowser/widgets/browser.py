@@ -195,7 +195,7 @@ class BrowserTab(QWebView):
     progress = 0
     scroll_pos_changed = pyqtSignal(int, int)
     _scroll_pos = (-1, -1)
-    midbutton = False # if the middle button was pressed
+    open_new_tab = False # open new tab for the next action
     open_tab = pyqtSignal('QUrl')
 
     def __init__(self, parent):
@@ -212,7 +212,7 @@ class BrowserTab(QWebView):
         return self.load(utils.qurl(url))
 
     def link_handler(self, url):
-        if self.midbutton:
+        if self.open_new_tab:
             self.open_tab.emit(url)
         else:
             self.openurl(url)
@@ -242,5 +242,6 @@ class BrowserTab(QWebView):
         button
         """
         if e.type() in [QEvent.MouseButtonPress, QEvent.MouseButtonDblClick]:
-            self.midbutton = (e.button() == Qt.MidButton)
+            self.open_new_tab = (e.button() == Qt.MidButton or
+                                 e.modifiers() & Qt.ControlModifier)
         return super().event(e)
