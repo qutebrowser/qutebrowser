@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import QTabWidget
 from PyQt5.QtCore import Qt
 
+import qutebrowser.utils.config as config
+
 class TabWidget(QTabWidget):
     """The tabwidget used for TabbedBrowser"""
 
@@ -8,36 +10,36 @@ class TabWidget(QTabWidget):
     # background-color: grey for QTabBar...
 
     _stylesheet = """
-        QTabWidget::pane {
+        QTabWidget::pane {{
             position: absolute;
             top: 0px;
-        }
+        }}
 
-        QTabBar {
+        QTabBar {{
             font-family: Monospace, Courier;
             font-size: 8pt;
-        }
+        }}
 
-        QTabBar::tab {
-            background-color: grey;
-            color: white;
+        QTabBar::tab {{
+            {color[tab.bg]}
+            {color[tab.fg]}
             padding-left: 5px;
             padding-right: 5px;
             padding-top: 0px;
             padding-bottom: 0px;
-        }
+        }}
 
-        QTabBar::tab:first, QTabBar::tab:middle {
-            border-right: 1px solid white;
-        }
+        QTabBar::tab:first, QTabBar::tab:middle {{
+            border-right: 1px solid {color[tab.seperator]};
+        }}
 
-        QTabBar::tab:selected {
-            background-color: black;
-        }
+        QTabBar::tab:selected {{
+            {color[tab.bg.selected]}
+        }}
     """
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.setStyleSheet(self._stylesheet.strip())
+        self.setStyleSheet(config.get_stylesheet(self._stylesheet))
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)

@@ -1,10 +1,12 @@
+import qutebrowser.utils.config as config
+
 from PyQt5.QtWidgets import QProgressBar, QSizePolicy
 from PyQt5.QtCore import QSize
 
 class Progress(QProgressBar):
     """ The progress bar part of the status bar"""
     bar = None
-    color = 'white'
+    color = None
     _stylesheet = """
         QProgressBar {{
             border-radius: 0px;
@@ -13,7 +15,7 @@ class Progress(QProgressBar):
         }}
 
         QProgressBar::chunk {{
-            background-color: {self.color};
+            {color[statusbar.progress.bg.__cur__]}
         }}
     """
 
@@ -23,14 +25,15 @@ class Progress(QProgressBar):
 
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.setTextVisible(False)
-        self.setStyleSheet(self._stylesheet.strip().format(self=self))
+        self.color = config.colordict.getraw('statusbar.progress.bg')
         self.hide()
 
     def __setattr__(self, name, value):
         """Update the stylesheet if relevant attributes have been changed"""
         super().__setattr__(name, value)
-        if name == 'color':
-            self.setStyleSheet(self._stylesheet.strip().format(self=self))
+        if name == 'color' and value is not None:
+            config.colordict['statusbar.progress.bg.__cur__'] = value
+            self.setStyleSheet(config.get_stylesheet(self._stylesheet))
 
     def minimumSizeHint(self):
         status_size = self.bar.size()
@@ -45,8 +48,9 @@ class Progress(QProgressBar):
         if prog == 100:
             self.setValue(prog)
         else:
-            if self.color != 'white':
-                self.color = 'white'
+            color = config.colordict.getraw('status.progress.bg')
+            if self.color != color:
+                self.color = color
             self.setValue(prog)
             self.show()
 
@@ -54,4 +58,5 @@ class Progress(QProgressBar):
         if ok:
             self.hide()
         else:
-            self.color = 'red'
+            self.color = config.colordict.getraw('statusbar.progress.bg.error')
+

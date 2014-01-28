@@ -4,6 +4,9 @@ import logging
 
 from configparser import ConfigParser
 
+config = None
+colordict = {}
+
 default_config = {
     'keybind': {
         'o': 'open',
@@ -21,8 +24,60 @@ default_config = {
         'u': 'undo',
         'gg': 'scroll_perc_y 0',
         'G': 'scroll_perc_y',
-    }
+    },
+    'colors': {
+        'completion.fg': '#333333',
+        'completion.item.bg': 'white',
+        'completion.category.bg': 'qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #e4e4e4, stop:1 #dbdbdb)',
+        'completion.category.border.top': '#808080',
+        'completion.category.border.bottom': '#bbbbbb',
+        'completion.item.selected.fg': '#333333',
+        'completion.item.selected.bg': '#ffec8b',
+        'completion.item.selected.border.top': '#f2f2c0',
+        'completion.item.selected.border.bottom': '#e6e680',
+        'completion.match.fg': 'red',
+        'statusbar.progress.bg': 'white',
+        'statusbar.progress.bg.error': 'red',
+        'statusbar.bg': 'black',
+        'statusbar.fg': 'white',
+        'statusbar.bg.error': 'red',
+        'tab.bg': 'grey',
+        'tab.bg.selected': 'black',
+        'tab.fg': 'white',
+        'tab.seperator': 'white',
+    },
 }
+
+def init(confdir):
+    global config, colordict
+    config = Config(confdir)
+    try:
+        colordict = ColorDict(config['colors'])
+    except KeyError:
+        colordict = ColorDict()
+
+def get_stylesheet(template):
+    global colordict
+    return template.strip().format(color=colordict)
+
+class ColorDict(dict):
+    def __getitem__(self, key):
+        try:
+            val = super().__getitem__(key)
+        except KeyError:
+            return ''
+        if 'fg' in key.split('.'):
+            return 'color: {};'.format(val)
+        elif 'bg' in key.split('.'):
+            return 'background-color: {};'.format(val)
+        else:
+            return val
+
+    def getraw(self, key):
+        try:
+            return super().__getitem__(key)
+        except KeyError:
+            return None
 
 class Config(ConfigParser):
     """Our own ConfigParser"""

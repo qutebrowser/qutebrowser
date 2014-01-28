@@ -3,6 +3,7 @@ import logging
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QHBoxLayout, QWidget
 
+import qutebrowser.utils.config as config
 from qutebrowser.widgets.statusbar.command import Command
 from qutebrowser.widgets.statusbar.text import Text
 from qutebrowser.widgets.statusbar.progress import Progress
@@ -14,27 +15,33 @@ class StatusBar(QWidget):
     txt = None
     prog = None
     resized = pyqtSignal('QRect')
-    fgcolor = 'white'
-    bgcolor = 'black'
-    font = 'Monospace, Courier'
+    fgcolor = None
+    bgcolor = None
     _stylesheet = """
         * {{
-            background: {self.bgcolor};
-            color: {self.fgcolor};
-            font-family: {self.font};
+            {color[statusbar.bg.__cur__]}
+            {color[statusbar.fg.__cur__]}
+            font-family: Monospace, Courier;
         }}
     """
 
     def __setattr__(self, name, value):
         """Update the stylesheet if relevant attributes have been changed"""
         super().__setattr__(name, value)
-        if name in ['fgcolor', 'bgcolor', 'font']:
-            self.setStyleSheet(self._stylesheet.strip().format(self=self))
+        if name == 'fgcolor' and value is not None:
+            config.colordict['statusbar.fg.__cur__'] = value
+            self.setStyleSheet(config.get_stylesheet(self._stylesheet))
+        elif name == 'bgcolor' and value is not None:
+            config.colordict['statusbar.bg.__cur__'] = value
+            self.setStyleSheet(config.get_stylesheet(self._stylesheet))
 
     # TODO: the statusbar should be a bit smaller
     def __init__(self, mainwindow):
         super().__init__(mainwindow)
-        self.setStyleSheet(self._stylesheet.strip().format(self=self))
+        self.fgcolor = config.colordict.getraw('statusbar.fg')
+        self.bgcolor = config.colordict.getraw('statusbar.bg')
+        self.setStyleSheet(config.get_stylesheet(self._stylesheet))
+
         self.hbox = QHBoxLayout(self)
         self.hbox.setContentsMargins(0, 0, 0, 0)
         self.hbox.setSpacing(0)
@@ -50,12 +57,14 @@ class StatusBar(QWidget):
 
     def disp_error(self, text):
         """Displays an error in the statusbar"""
-        self.bgcolor = 'red'
+        self.bgcolor = config.colordict.getraw('statusbar.bg.error')
+        self.fgcolor = config.colordict.getraw('statusbar.fg.error')
         self.txt.error = text
 
     def clear_error(self):
         """Clears a displayed error from the status bar"""
-        self.bgcolor = 'black'
+        self.bgcolor = config.colordict.getraw('statusbar.bg')
+        self.fgcolor = config.colordict.getraw('statusbar.fg')
         self.txt.error = ''
 
     def resizeEvent(self, e):

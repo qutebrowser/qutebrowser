@@ -7,9 +7,9 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QUrl, QTimer
 
 import qutebrowser.commands.utils as cmdutils
+import qutebrowser.utils.config as config
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.commands.keys import KeyParser
-from qutebrowser.utils.config import Config
 from qutebrowser.utils.appdirs import AppDirs
 
 class QuteBrowser(QApplication):
@@ -35,14 +35,14 @@ class QuteBrowser(QApplication):
             confdir = None
         else:
             confdir = self.args.confdir
-        self.config = Config(confdir)
+        config.init(confdir)
 
         self.commandparser = cmdutils.CommandParser()
         self.keyparser = KeyParser(self.mainwindow)
         self.init_cmds()
         self.mainwindow = MainWindow()
 
-        self.aboutToQuit.connect(self.config.save)
+        self.aboutToQuit.connect(config.config.save)
         self.mainwindow.tabs.keypress.connect(self.keyparser.handle)
         self.keyparser.set_cmd_text.connect(self.mainwindow.status.cmd.set_cmd)
         self.mainwindow.status.cmd.got_cmd.connect(self.commandparser.run)
@@ -104,7 +104,7 @@ class QuteBrowser(QApplication):
         for cmd in cmdutils.cmd_dict.values():
             cmd.signal.connect(self.cmd_handler)
         try:
-            self.keyparser.from_config_sect(self.config['keybind'])
+            self.keyparser.from_config_sect(config.config['keybind'])
         except KeyError:
             pass
 

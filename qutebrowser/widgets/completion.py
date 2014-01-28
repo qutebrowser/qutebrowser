@@ -8,33 +8,35 @@ from PyQt5.QtCore import (QRectF, QRect, QPoint, pyqtSignal, Qt,
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QTextCursor)
 
+import qutebrowser.utils.config as config
 from qutebrowser.utils.completion import CompletionFilterModel
 from qutebrowser.commands.utils import CommandCompletionModel
 
 class CompletionView(QTreeView):
     _stylesheet = """
-        QTreeView {
+        QTreeView {{
             font-family: Monospace, Courier;
-            color: #333333;
+            {color[completion.fg]}
+            {color[completion.bg]}
             outline: 0;
-        }
-        QTreeView::item {
-            background: white;
-        }
-        QTreeView::item:has-children {
+        }}
+        QTreeView::item {{
+            {color[completion.item.fg]}
+            {color[completion.item.bg]}
+        }}
+        QTreeView::item:has-children {{
             font-weight: bold;
-
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #e4e4e4,
-                                        stop:1 #dbdbdb);
-            border-top: 1px solid #808080;
-            border-bottom: 1px solid #bbbbbb;
-        }
-        QTreeView::item:selected {
-            border-top: 1px solid #f2f2c0;
-            border-bottom: 1px solid #e6e680;
-            background-color: #ffec8b;
-            color: #333333;
-        }
+            {color[completion.category.fg]}
+            {color[completion.category.bg]}
+            border-top: 1px solid {color[completion.category.border.top]};
+            border-bottom: 1px solid {color[completion.category.border.bottom]};
+        }}
+        QTreeView::item:selected {{
+            border-top: 1px solid {color[completon.item.selected.border.top]};
+            border-bottom: 1px solid {color[completion.item.selected.border.bottom]};
+            background-color: {color[completion.item.selected.bg]};
+            {color[completion.item.selected.fg]}
+        }}
     """
     # FIXME because we use :has-children, if a category is empty, it won't look
     # like one anymore
@@ -53,7 +55,7 @@ class CompletionView(QTreeView):
         self.model.setSourceModel(self.completion_models['command'])
         self.model.pattern_changed.connect(self.resort)
         self.setItemDelegate(CompletionItemDelegate())
-        self.setStyleSheet(self._stylesheet.strip())
+        self.setStyleSheet(config.get_stylesheet(self._stylesheet))
         self.expandAll()
         self.setHeaderHidden(True)
         self.setIndentation(0)
@@ -242,11 +244,11 @@ class CompletionItemDelegate(QStyledItemDelegate):
             doc.setHtml('<b>{}</b>'.format(html.escape(self.opt.text)))
         doc.setDefaultFont(self.opt.font)
         doc.setDefaultTextOption(text_option)
-        doc.setDefaultStyleSheet("""
-            .highlight {
-                color: red;
-            }
-        """)
+        doc.setDefaultStyleSheet(config.get_stylesheet("""
+            .highlight {{
+                {color[completion.match.fg]}
+            }}
+        """))
         doc.setDocumentMargin(0)
 
         if index.column() == 0:
