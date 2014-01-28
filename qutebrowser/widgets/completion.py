@@ -247,16 +247,17 @@ class CompletionItemDelegate(QStyledItemDelegate):
         """)
         doc.setDocumentMargin(0)
 
-        marks = index.data(Qt.UserRole)
-        for mark in marks:
-            cur = QTextCursor(doc)
-            cur.setPosition(mark[0])
-            cur.setPosition(mark[1], QTextCursor.KeepAnchor)
-            txt = cur.selectedText()
-            cur.removeSelectedText()
-            # FIXME escape html in txt
-            cur.insertHtml('<span class="highlight">{}</span>'.format(
-                html.escape(txt)))
+        if index.column() == 0:
+            marks = index.data(Qt.UserRole)
+            for mark in marks:
+                cur = QTextCursor(doc)
+                cur.setPosition(mark[0])
+                cur.setPosition(mark[1], QTextCursor.KeepAnchor)
+                txt = cur.selectedText()
+                cur.removeSelectedText()
+                # FIXME escape html in txt
+                cur.insertHtml('<span class="highlight">{}</span>'.format(
+                    html.escape(txt)))
         doc.drawContents(self.painter, clip)
 
         # FIXME we probably should do eliding here. See
