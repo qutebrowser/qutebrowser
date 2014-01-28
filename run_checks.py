@@ -4,9 +4,10 @@ from pkg_resources import load_entry_point, DistributionNotFound
 from collections import OrderedDict
 
 status = OrderedDict()
+testmodule = 'qutebrowser'
 
 def run(name, args=None):
-    sys.argv = [name, 'qutebrowser']
+    sys.argv = [name, testmodule]
     if args is not None:
         sys.argv += args
     print("====== {} ======".format(name))
@@ -18,7 +19,6 @@ def run(name, args=None):
         if args is None:
             args = []
         try:
-            print('exc {}'.format([name, 'qutebrowser'] + args))
             status[name] = subprocess.call([name] + args)
         except FileNotFoundError as e:
             print('{}: {}'.format(e.__class__.__name__, e))
