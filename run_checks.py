@@ -29,10 +29,16 @@ def run(name, args=None):
     print()
 
 pylint_disable = [
-    'import-error', 'no-name-in-module', # import seems unreliable
-    'invalid-name',                      # short variable names can be nice
-    'star-args',                         # we want to use this
-    'fixme',                             # I'll decide myself when to fix them
+    'import-error',            # import seems unreliable
+    'no-name-in-module',
+    'invalid-name',            # short variable names can be nice
+    'star-args',               # we want to use this
+    'fixme',                   # I'll decide myself when to fix them
+    'too-many-public-methods', # Basically unavoidable with Qt
+    'no-self-use',             # I'll decide that myself, thanks
+    'super-on-old-class',      # These don't even exist in python3
+    'old-style-class',
+    'global-statement',        # Sometimes necessary
 ]
 
 run('pylint', ['--ignore=appdirs.py', '--output-format=colorized',
