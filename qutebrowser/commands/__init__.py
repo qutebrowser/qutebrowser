@@ -55,6 +55,7 @@ class Print(Command):
 class Scroll(Command):
     nargs = 2
     count = True
+    hide = True
 
 class Undo(Command):
     nargs = 0
@@ -62,10 +63,12 @@ class Undo(Command):
 class ScrollPercentX(Command):
     nargs = '?'
     count = True
+    hide = True
 
 class ScrollPercentY(Command):
     nargs = '?'
     count = True
+    hide = True
 
 class PyEval(Command):
     nargs = 1

@@ -89,7 +89,8 @@ class CommandCompletionModel(CompletionModel):
         assert(cmd_dict)
         cmdlist = []
         for obj in set(cmd_dict.values()):
-            cmdlist.append([obj.mainname, obj.desc])
+            if not obj.hide:
+                cmdlist.append([obj.mainname, obj.desc])
         self._data['Commands'] = sorted(cmdlist)
         self.init_data()
 
@@ -109,6 +110,7 @@ class Command(QObject):
     count = False
     split_args = True
     signal = pyqtSignal(tuple)
+    hide = False
     desc = "" # FIXME add descriptions everywhere
 
     def __init__(self):
