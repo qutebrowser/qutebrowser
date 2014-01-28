@@ -45,9 +45,13 @@ class CompletionView(QTreeView):
     completion_models = {}
     append_cmd_text = pyqtSignal(str)
     ignore_next = False
+    enabled = True
+    completing = False
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.enabled = config.config.getboolean('general', 'show_completion',
+                                                fallback=True)
         self.completion_models[''] = None
         self.completion_models['command'] = CommandCompletionModel()
         self.model = CompletionFilterModel()
@@ -94,13 +98,16 @@ class CompletionView(QTreeView):
         # FIXME more sophisticated completions
         if ' ' in text or not text.startswith(':'):
             self.hide()
+            self.completing = False
             return
 
+        self.completing = True
         self.setmodel('command')
         text = text.lstrip(':')
         self.model.pattern = text
         self.mark_all_items(text)
-        self.show()
+        if self.enabled:
+            self.show()
 
     def first_item(self):
         cat = self.model.index(0, 0)
@@ -133,7 +140,7 @@ class CompletionView(QTreeView):
         return marks
 
     def tab_handler(self, shift):
-        if self.isHidden():
+        if not self.completing:
             return
         idx = self._next_idx(shift)
         self.ignore_next = True

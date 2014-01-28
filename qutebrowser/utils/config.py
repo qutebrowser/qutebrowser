@@ -8,6 +8,9 @@ config = None
 colordict = {}
 
 default_config = {
+    'general': {
+        'show_completion': 'true',
+    },
     'keybind': {
         'o': 'open',
         'O': 'tabopen',

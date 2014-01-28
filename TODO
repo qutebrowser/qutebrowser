@@ -25,7 +25,6 @@ IPC, like dwb -x
 Mode handling?
 Bookmarks
 sensible crash handling (exceptions, segfaults [windows?])
-more configuration (hide completion)
 
 Minor features/bugs
 ===================
