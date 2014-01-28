@@ -242,7 +242,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         doc.setDefaultTextOption(text_option)
         doc.setDefaultStyleSheet("""
             .highlight {
-                color: blue;
+                color: red;
             }
         """)
         doc.setDocumentMargin(0)
