@@ -1,5 +1,3 @@
-import logging
-
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QHBoxLayout, QWidget
 
@@ -7,6 +5,7 @@ import qutebrowser.utils.config as config
 from qutebrowser.widgets.statusbar.command import Command
 from qutebrowser.widgets.statusbar.text import Text
 from qutebrowser.widgets.statusbar.progress import Progress
+
 
 class StatusBar(QWidget):
     """The statusbar at the bottom of the mainwindow"""

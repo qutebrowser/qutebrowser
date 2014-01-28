@@ -60,6 +60,7 @@ _MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas', 'Monaco',
 
 MONOSPACE = ', '.join(_MONOSPACE)
 
+
 def init(confdir):
     global config, colordict
     config = Config(confdir)
@@ -68,8 +69,10 @@ def init(confdir):
     except KeyError:
         colordict = ColorDict()
 
+
 def get_stylesheet(template):
     return template.strip().format(color=colordict, monospace=MONOSPACE)
+
 
 class ColorDict(dict):
     def __getitem__(self, key):
@@ -90,6 +93,7 @@ class ColorDict(dict):
         except KeyError:
             return None
 
+
 class Config(ConfigParser):
     """Our own ConfigParser"""
     configdir = None
@@ -98,7 +102,7 @@ class Config(ConfigParser):
     def __init__(self, configdir):
         """configdir: directory to store the config in"""
         super().__init__()
-        self.optionxform = lambda opt: opt # be case-insensitive
+        self.optionxform = lambda opt: opt  # be case-insensitive
         self.configdir = configdir
         if self.configdir is None:
             self.init_config()
@@ -115,7 +119,7 @@ class Config(ConfigParser):
             self.read_dict(default_config)
             return
         cp = ConfigParser()
-        cp.optionxform = lambda opt: opt # be case-insensitive
+        cp.optionxform = lambda opt: opt  # be case-insensitive
         cp.read_dict(default_config)
         if not os.path.exists(self.configdir):
             os.makedirs(self.configdir, 0o755)

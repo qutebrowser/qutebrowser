@@ -1,6 +1,7 @@
 import logging
 from PyQt5.QtWidgets import QLabel
 
+
 class Text(QLabel):
     """The text part of the status bar, composed of several 'widgets'"""
     keystring = ''
@@ -37,4 +38,3 @@ class Text(QLabel):
         """Update the text displayed"""
         self.setText(' '.join([self.keystring, self.error, self.text,
                                self.scrollperc]))
-

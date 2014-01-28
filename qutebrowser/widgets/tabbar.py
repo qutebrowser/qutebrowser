@@ -3,6 +3,7 @@ from PyQt5.QtCore import Qt
 
 import qutebrowser.utils.config as config
 
+
 class TabWidget(QTabWidget):
     """The tabwidget used for TabbedBrowser"""
 

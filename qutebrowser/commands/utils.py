@@ -10,20 +10,23 @@ from qutebrowser.utils.completion import CompletionModel
 
 cmd_dict = {}
 
+
 class ArgumentCountError(TypeError):
     pass
 
+
 class NoSuchCommandError(ValueError):
     pass
+
 
 def register_all():
     """Register and initialize all commands."""
     # We do this here to avoid a circular import, since commands.commands
     # imports Command from this module.
     import qutebrowser.commands
-    for (name, cls) in inspect.getmembers( # pylint: disable=unused-variable
+    for (name, cls) in inspect.getmembers(  # pylint: disable=unused-variable
             qutebrowser.commands, (lambda o: inspect.isclass(o) and
-            o.__module__ == 'qutebrowser.commands')):
+                                   o.__module__ == 'qutebrowser.commands')):
         obj = cls()
         if isinstance(obj.name, str):
             names = [obj.name]
@@ -32,12 +35,13 @@ def register_all():
         for n in names:
             cmd_dict[n] = obj
 
+
 class CommandParser(QObject):
     """Parser for qutebrowser commandline commands"""
     text = ''
     cmd = ''
     args = []
-    error = pyqtSignal(str) # Emitted if there's an error
+    error = pyqtSignal(str)  # Emitted if there's an error
 
     def _parse(self, text):
         """Parses a command"""
@@ -84,6 +88,7 @@ class CommandParser(QObject):
                 raise
         self._run(count=count)
 
+
 class CommandCompletionModel(CompletionModel):
     # pylint: disable=abstract-method
     def __init__(self, parent=None):
@@ -95,6 +100,7 @@ class CommandCompletionModel(CompletionModel):
                 cmdlist.append([obj.mainname, obj.desc])
         self._data['Commands'] = sorted(cmdlist)
         self.init_data()
+
 
 class Command(QObject):
     """Base skeleton for a command. See the module help for
@@ -113,7 +119,7 @@ class Command(QObject):
     split_args = True
     signal = pyqtSignal(tuple)
     hide = False
-    desc = "" # FIXME add descriptions everywhere
+    desc = ""  # FIXME add descriptions everywhere
 
     def __init__(self):
         super().__init__()
@@ -129,8 +135,8 @@ class Command(QObject):
         not.
         """
         if ((isinstance(self.nargs, int) and len(args) != self.nargs) or
-                      (self.nargs == '?' and len(args) > 1) or
-                      (self.nargs == '+' and len(args) < 1)):
+                (self.nargs == '?' and len(args) > 1) or
+                (self.nargs == '+' and len(args) < 1)):
             # for nargs == '*', anything is okay
             raise ArgumentCountError
 

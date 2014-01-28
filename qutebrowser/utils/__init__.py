@@ -1,5 +1,6 @@
 from PyQt5.QtCore import QUrl
 
+
 def qurl(url):
     if isinstance(url, QUrl):
         return url

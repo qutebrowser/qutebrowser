@@ -1,7 +1,7 @@
 import logging
 
 from PyQt5.QtWidgets import QShortcut
-from PyQt5.QtCore import QUrl, pyqtSignal, Qt, QPoint, QEvent
+from PyQt5.QtCore import QUrl, pyqtSignal, Qt, QEvent
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
@@ -9,18 +9,19 @@ import qutebrowser.utils as utils
 import qutebrowser.utils.config as config
 from qutebrowser.widgets.tabbar import TabWidget
 
+
 class TabbedBrowser(TabWidget):
     """A TabWidget with QWebViews inside"""
 
-    cur_progress = pyqtSignal(int) # Progress of the current tab changed
-    cur_load_started = pyqtSignal() # Current tab started loading
-    cur_load_finished = pyqtSignal(bool) # Current tab finished loading
-    cur_statusbar_message = pyqtSignal(str) # Status bar message
+    cur_progress = pyqtSignal(int)  # Progress of the current tab changed
+    cur_load_started = pyqtSignal()  # Current tab started loading
+    cur_load_finished = pyqtSignal(bool)  # Current tab finished loading
+    cur_statusbar_message = pyqtSignal(str)  # Status bar message
     # FIXME we need to store this in our browser object
     # Current tab changed scroll position
     cur_scroll_perc_changed = pyqtSignal(int, int)
     keypress = pyqtSignal('QKeyEvent')
-    _url_stack = [] # Stack of URLs of closed tabs
+    _url_stack = []  # Stack of URLs of closed tabs
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -204,12 +205,13 @@ class TabbedBrowser(TabWidget):
                 round(100 * y / m[1]) if m[1] != 0 else 0)
         self.cur_scroll_perc_changed.emit(*perc)
 
+
 class BrowserTab(QWebView):
     """One browser tab in TabbedBrowser"""
     progress = 0
     scroll_pos_changed = pyqtSignal(int, int)
     _scroll_pos = (-1, -1)
-    open_new_tab = False # open new tab for the next action
+    open_new_tab = False  # open new tab for the next action
     open_tab = pyqtSignal('QUrl')
 
     def __init__(self, parent):

@@ -4,6 +4,7 @@ from qutebrowser.widgets.statusbar import StatusBar
 from qutebrowser.widgets.browser import TabbedBrowser
 from qutebrowser.widgets.completion import CompletionView
 
+
 class MainWindow(QMainWindow):
     """The main window of QuteBrowser"""
     cwidget = None
@@ -35,7 +36,7 @@ class MainWindow(QMainWindow):
         self.tabs.cur_progress.connect(self.status.prog.set_progress)
         self.tabs.cur_load_finished.connect(self.status.prog.load_finished)
         self.tabs.cur_load_started.connect(lambda:
-            self.status.prog.set_progress(0))
+                                           self.status.prog.set_progress(0))
         self.tabs.cur_scroll_perc_changed.connect(self.status.txt.set_perc)
         self.tabs.cur_statusbar_message.connect(self.status.txt.set_text)
         self.status.cmd.esc_pressed.connect(self.tabs.setFocus)
@@ -47,4 +48,3 @@ class MainWindow(QMainWindow):
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
-

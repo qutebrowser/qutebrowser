@@ -6,9 +6,10 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from qutebrowser.commands.utils import (CommandParser, ArgumentCountError,
                                         NoSuchCommandError)
 
+
 class KeyParser(QObject):
     """Parser for vim-like key sequences"""
-    keystring = '' # The currently entered key sequence
+    keystring = ''  # The currently entered key sequence
     # Signal emitted when the statusbar should set a partial command
     set_cmd_text = pyqtSignal(str)
     # Signal emitted when the keystring is updated

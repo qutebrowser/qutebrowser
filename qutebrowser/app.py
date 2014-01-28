@@ -13,15 +13,16 @@ from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.commands.keys import KeyParser
 from qutebrowser.utils.appdirs import AppDirs
 
+
 class QuteBrowser(QApplication):
     """Main object for QuteBrowser"""
-    dirs = None # AppDirs - config/cache directories
-    config = None # Config(Parser) object
+    dirs = None  # AppDirs - config/cache directories
+    config = None  # Config(Parser) object
     mainwindow = None
     commandparser = None
     keyparser = None
-    args = None # ArgumentParser
-    timer = None # QTimer for python hacks
+    args = None  # ArgumentParser
+    timer = None  # QTimer for python hacks
 
     def __init__(self):
         super().__init__(sys.argv)
@@ -171,7 +172,7 @@ class QuteBrowser(QApplication):
         try:
             r = eval(s)
             out = repr(r)
-        except Exception as e: # pylint: disable=broad-except
+        except Exception as e:  # pylint: disable=broad-except
             out = ': '.join([e.__class__.__name__, str(e)])
 
         # FIXME we probably want some nicer interface to display these about:

@@ -3,6 +3,7 @@ from collections import OrderedDict
 from PyQt5.QtCore import (QAbstractItemModel, Qt, QModelIndex, QVariant,
                           QSortFilterProxyModel, pyqtSignal)
 
+
 class CompletionModel(QAbstractItemModel):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -110,6 +111,7 @@ class CompletionModel(QAbstractItemModel):
                 newitem = CompletionItem(item, newcat)
                 newcat.children.append(newitem)
 
+
 class CompletionItem():
     parent = None
     _data = None
@@ -145,6 +147,7 @@ class CompletionItem():
         if self.parent:
             return self.parent.children.index(self)
         return 0
+
 
 class CompletionFilterModel(QSortFilterProxyModel):
     _pattern = None

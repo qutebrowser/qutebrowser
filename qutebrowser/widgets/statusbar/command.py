@@ -4,22 +4,22 @@ from PyQt5.QtWidgets import QLineEdit, QShortcut
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QValidator, QKeySequence
 
-from qutebrowser.commands.utils import CommandCompletionModel
 
 class Command(QLineEdit):
     """The commandline part of the statusbar"""
-
-    got_cmd = pyqtSignal(str) # Emitted when a command is triggered by the user
-    bar = None # The status bar object
-    esc_pressed = pyqtSignal() # Emitted when escape is pressed
-    tab_pressed = pyqtSignal(bool) # Emitted when tab is pressed (arg: shift)
-    hide_completion = pyqtSignal() # Hide completion window
-    history = [] # The command history, with newer commands at the bottom
+    # Emitted when a command is triggered by the user
+    got_cmd = pyqtSignal(str)
+    bar = None  # The status bar object
+    esc_pressed = pyqtSignal()  # Emitted when escape is pressed
+    tab_pressed = pyqtSignal(bool)  # Emitted when tab is pressed (arg: shift)
+    hide_completion = pyqtSignal()  # Hide completion window
+    history = []  # The command history, with newer commands at the bottom
     _tmphist = []
     _histpos = None
 
     # FIXME won't the tab key switch to the next widget?
-    # See http://www.saltycrane.com/blog/2008/01/how-to-capture-tab-key-press-event-with/
+    # See
+    # noqa http://www.saltycrane.com/blog/2008/01/how-to-capture-tab-key-press-event-with/
     # for a possible fix.
 
     def __init__(self, bar):
@@ -103,7 +103,7 @@ class Command(QLineEdit):
 
     def key_down_handler(self):
         logging.debug("history up [pre]: pos {}".format(self._histpos,
-            self._tmphist, len(self._tmphist), self._histpos))
+                      self._tmphist, len(self._tmphist), self._histpos))
         if (self._histpos is None or
                 self._histpos >= len(self._tmphist) - 1 or
                 not self._tmphist):
@@ -119,6 +119,7 @@ class Command(QLineEdit):
     def key_stab_handler(self):
         self.tab_pressed.emit(True)
 
+
 class Validator(QValidator):
     """Validator to prevent the : from getting deleted"""
     def validate(self, string, pos):
@@ -126,4 +127,3 @@ class Validator(QValidator):
             return (QValidator.Acceptable, string, pos)
         else:
             return (QValidator.Invalid, string, pos)
-

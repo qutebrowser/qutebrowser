@@ -1,4 +1,3 @@
-import logging
 import html
 
 from PyQt5.QtWidgets import (QTreeView, QStyledItemDelegate, QStyle,
@@ -11,6 +10,7 @@ from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
 import qutebrowser.utils.config as config
 from qutebrowser.utils.completion import CompletionFilterModel
 from qutebrowser.commands.utils import CommandCompletionModel
+
 
 class CompletionView(QTreeView):
     _stylesheet = """
@@ -72,7 +72,7 @@ class CompletionView(QTreeView):
     def resizeEvent(self, e):
         width = e.size().width()
         for i in range(self.model.columnCount()):
-            self.setColumnWidth(i, width/2)
+            self.setColumnWidth(i, width / 2)
         super().resizeEvent(e)
 
     def setmodel(self, model):
@@ -166,6 +166,7 @@ class CompletionView(QTreeView):
                 # Item is a real item, not a category header -> success
                 return idx
 
+
 class CompletionItemDelegate(QStyledItemDelegate):
     opt = None
     style = None
@@ -202,7 +203,6 @@ class CompletionItemDelegate(QStyledItemDelegate):
         state = QIcon.On if self.opt.state & QStyle.State_Open else QIcon.Off
         self.opt.icon.paint(self.painter, icon_rect,
                             self.opt.decorationAlignment, mode, state)
-
 
     def _draw_text(self, index):
         if not self.opt.text:

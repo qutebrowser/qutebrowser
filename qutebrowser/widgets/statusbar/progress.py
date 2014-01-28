@@ -3,6 +3,7 @@ import qutebrowser.utils.config as config
 from PyQt5.QtWidgets import QProgressBar, QSizePolicy
 from PyQt5.QtCore import QSize
 
+
 class Progress(QProgressBar):
     """ The progress bar part of the status bar"""
     bar = None
@@ -59,4 +60,3 @@ class Progress(QProgressBar):
             self.hide()
         else:
             self.color = config.colordict.getraw('statusbar.progress.bg.error')
-
