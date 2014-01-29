@@ -26,6 +26,12 @@ Mode handling?
 Bookmarks
 Internationalization
 License
+Searching
+Marks
+yanking url/...
+pasting
+open with preset url (go)
+
 
 Minor features/bugs
 ===================
@@ -39,6 +45,7 @@ completion code cleanup
 Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-20973
     https://bugreports.qt-project.org/browse/QTBUG-21036
+^ and $ for scrolling
 
 Other stuff
 ===========
