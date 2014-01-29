@@ -44,15 +44,13 @@ class CommandParser(QObject):
     error = pyqtSignal(str)  # Emitted if there's an error
 
     def _parse(self, text):
-        """Parses a command"""
         self.text = text
         parts = self.text.strip().split(maxsplit=1)
         cmdstr = parts[0]
         try:
             cmd = cmd_dict[cmdstr]
         except KeyError:
-            self.error.emit("{}: no such command".format(cmdstr))
-            raise NoSuchCommandError
+            raise NoSuchCommandError(cmdstr)
 
         if len(parts) == 1:
             args = []
@@ -64,12 +62,7 @@ class CommandParser(QObject):
         self.args = args
 
     def _check(self):
-        try:
-            self.cmd.check(self.args)
-        except ArgumentCountError:
-            self.error.emit("{}: invalid argument count".format(
-                self.cmd.mainname))
-            raise
+        self.cmd.check(self.args)
 
     def _run(self, count=None):
         if count is not None:
@@ -78,12 +71,27 @@ class CommandParser(QObject):
             self.cmd.run(self.args)
 
     def run(self, text, count=None, ignore_exc=True):
+        """Parses a command from a line of text.
+        If ignore_exc is True, ignores exceptions and returns True/False
+        instead.
+        Raises NoSuchCommandError if a command wasn't found, and
+        ArgumentCountError if a command was called with the wrong count of
+        arguments.
+        """
         try:
             self._parse(text)
             self._check()
-        except (ArgumentCountError, NoSuchCommandError):
+        except ArgumentCountError:
             if ignore_exc:
-                return
+                self.error.emit("{}: invalid argument count".format(
+                    self.cmd.mainname))
+                return False
+            else:
+                raise
+        except NoSuchCommandError as e:
+            if ignore_exc:
+                self.error.emit("{}: no such command".format(e))
+                return False
             else:
                 raise
         self._run(count=count)
