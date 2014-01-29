@@ -237,6 +237,12 @@ class CompletionItemDelegate(QStyledItemDelegate):
             self.painter.drawRect(text_rect_.adjusted(0, 0, -1, -1))
 
         self.painter.translate(text_rect.left(), text_rect.top())
+        self._draw_textdoc(index, text_rect)
+        self.painter.restore()
+
+    def _draw_textdoc(self, index, text_rect):
+        # FIXME we probably should do eliding here. See
+        # qcommonstyle.cpp:viewItemDrawText
         clip = QRectF(0, 0, text_rect.width(), text_rect.height())
 
         text_option = QTextOption()
@@ -273,11 +279,6 @@ class CompletionItemDelegate(QStyledItemDelegate):
                 cur.insertHtml('<span class="highlight">{}</span>'.format(
                     html.escape(txt)))
         doc.drawContents(self.painter, clip)
-
-        # FIXME we probably should do eliding here. See
-        # qcommonstyle.cpp:viewItemDrawText
-
-        self.painter.restore()
 
     def _draw_focus_rect(self):
         state = self.opt.state
