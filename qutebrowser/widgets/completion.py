@@ -92,8 +92,9 @@ class CompletionView(QTreeView):
         e -- The QResizeEvent.
         """
         width = e.size().width()
-        for i in range(self.model.columnCount()):
-            self.setColumnWidth(i, width / 2)
+        cols = self.model.columnCount()
+        for i in range(cols):
+            self.setColumnWidth(i, width / cols)
         super().resizeEvent(e)
 
     def setmodel(self, model):
@@ -113,10 +114,11 @@ class CompletionView(QTreeView):
         If the current completion model overrides sort(), it is used.
         If not, the default implementation in QCompletionFilterModel is called.
         """
+        sortcol = 0
         try:
-            self.model.sourceModel().sort(0)
+            self.model.sourceModel().sort(sortcol)
         except NotImplementedError:
-            self.model.sort(0)
+            self.model.sort(sortcol)
 
     def resize_to_bar(self, geom):
         """Resize the completion area to the statusbar geometry.
