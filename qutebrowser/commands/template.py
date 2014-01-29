@@ -22,7 +22,6 @@ class Command(QObject):
     split_args = True
     signal = pyqtSignal(tuple)
     hide = False
-    desc = ""  # FIXME add descriptions everywhere
 
     def __init__(self):
         super().__init__()
