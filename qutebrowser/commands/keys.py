@@ -9,6 +9,9 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from qutebrowser.commands.utils import (CommandParser, ArgumentCountError,
                                         NoSuchCommandError)
 
+# Possible chars for starting a commandline input
+startchars = ":/?"
+
 
 class KeyParser(QObject):
     """Parser for vim-like key sequences."""
@@ -61,8 +64,8 @@ class KeyParser(QObject):
 
         self.keystring += txt
 
-        if self.keystring == ':':
-            self.set_cmd_text.emit('')
+        if any(self.keystring == c for c in startchars):
+            self.set_cmd_text.emit(self.keystring)
             self.keystring = ''
             return
 
@@ -102,7 +105,7 @@ class KeyParser(QObject):
         except ArgumentCountError:
             logging.debug('Filling statusbar with partial command {}'.format(
                 cmdstr_hay))
-            self.set_cmd_text.emit(cmdstr_hay + ' ')
+            self.set_cmd_text.emit(':{} '.format(cmdstr_hay))
         return
 
     def _match_key(self, cmdstr_needle):

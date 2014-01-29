@@ -61,7 +61,7 @@ class QuteBrowser(QApplication):
         self.mainwindow.tabs.keypress.connect(self.keyparser.handle)
         self.keyparser.set_cmd_text.connect(self.mainwindow.status.cmd.set_cmd)
         self.mainwindow.status.cmd.got_cmd.connect(self.commandparser.run)
-        self.mainwindow.status.cmd.got_cmd.connect(
+        self.mainwindow.status.cmd.returnPressed.connect(
             self.mainwindow.tabs.setFocus)
         self.commandparser.error.connect(self.mainwindow.status.disp_error)
         self.keyparser.commandparser.error.connect(

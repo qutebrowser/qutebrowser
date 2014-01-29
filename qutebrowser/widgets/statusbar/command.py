@@ -5,6 +5,8 @@ from PyQt5.QtWidgets import QLineEdit, QShortcut
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QValidator, QKeySequence
 
+import qutebrowser.commands.keys as keys
+
 
 class Command(QLineEdit):
     """The commandline part of the statusbar."""
@@ -28,7 +30,7 @@ class Command(QLineEdit):
         self.statusbar = statusbar
         self.setStyleSheet("border: 0px; padding-left: 1px")
         self.setValidator(Validator())
-        self.returnPressed.connect(self.process_cmd)
+        self.returnPressed.connect(self.process_cmdline)
         self.textEdited.connect(self._histbrowse_stop)
 
         for (key, handler) in [
@@ -43,18 +45,19 @@ class Command(QLineEdit):
             sc.setContext(Qt.WidgetWithChildrenShortcut)
             sc.activated.connect(handler)
 
-    def process_cmd(self):
+    def process_cmdline(self):
         """Handle the command in the status bar."""
         self._histbrowse_stop()
-        text = self.text().lstrip(':')
+        text = self.text()
         if not self.history or text != self.history[-1]:
             self.history.append(text)
         self.setText('')
-        self.got_cmd.emit(text)
+        if text[0] == ':':
+            self.got_cmd.emit(text.lstrip(':'))
 
     def set_cmd(self, text):
         """Preset the statusbar to some text."""
-        self.setText(':' + text)
+        self.setText(text)
         self.setFocus()
 
     def append_cmd(self, text):
@@ -85,7 +88,7 @@ class Command(QLineEdit):
         history already.
         """
 
-        pre = self.text().strip().lstrip(':')
+        pre = self.text().strip()
         logging.debug('Preset text: "{}"'.format(pre))
         if pre:
             self._tmphist = [e for e in self.history if e.startswith(pre)]
@@ -138,8 +141,7 @@ class Validator(QValidator):
 
         Returns a tuple (status, string, pos) as a QValidator should.\
         """
-
-        if string.startswith(':'):
+        if any(string.startswith(c) for c in keys.startchars):
             return (QValidator.Acceptable, string, pos)
         else:
             return (QValidator.Invalid, string, pos)
