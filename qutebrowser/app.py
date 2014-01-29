@@ -185,6 +185,10 @@ class QuteBrowser(QApplication):
             'undo':          self.mainwindow.tabs.undo_close,
             'pyeval':        self.pyeval,
             'nextsearch':    self.searchparser.nextsearch,
+            'yank':          self.mainwindow.tabs.cur_yank,
+            'yanktitle':     self.mainwindow.tabs.cur_yank_title,
+            'paste':         self.mainwindow.tabs.paste,
+            'tabpaste':      self.mainwindow.tabs.tabpaste,
         }
 
         handler = handlers[cmd]

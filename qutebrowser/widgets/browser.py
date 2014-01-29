@@ -7,8 +7,9 @@ containing BrowserTabs).
 
 import logging
 
-from PyQt5.QtWidgets import QShortcut
+from PyQt5.QtWidgets import QShortcut, QApplication
 from PyQt5.QtCore import QUrl, pyqtSignal, Qt, QEvent
+from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
@@ -228,6 +229,52 @@ class TabbedBrowser(TabWidget):
         except KeyError:
             amount = 200
         self.cur_scroll(0, amount)
+
+    def cur_yank(self, sel=False):
+        """Yank the current url to the clipboard or primary selection.
+
+        Command handler for :yank.
+        """
+        clip = QApplication.clipboard()
+        url = self.currentWidget().url().toString()
+        mode = QClipboard.Selection if sel else QClipboard.Clipboard
+        clip.setText(url, mode)
+        # FIXME provide visual feedback
+
+    def cur_yank_title(self, sel=False):
+        """Yank the current title to the clipboard or primary selection.
+
+        Command handler for :yanktitle.
+        """
+        clip = QApplication.clipboard()
+        title = self.tabText(self.currentIndex())
+        mode = QClipboard.Selection if sel else QClipboard.Clipboard
+        clip.setText(title, mode)
+        # FIXME provide visual feedbac
+
+    def paste(self, sel=False):
+        """Open a page from the clipboard.
+
+        Command handler for :paste.
+        """
+        # FIXME what happens for invalid URLs?
+        clip = QApplication.clipboard()
+        mode = QClipboard.Selection if sel else QClipboard.Clipboard
+        url = clip.text(mode)
+        logging.debug("Clipboard contained: '{}'".format(url))
+        self.openurl(url)
+
+    def tabpaste(self, sel=False):
+        """Open a page from the clipboard in a new tab.
+
+        Command handler for :paste.
+        """
+        # FIXME what happens for invalid URLs?
+        clip = QApplication.clipboard()
+        mode = QClipboard.Selection if sel else QClipboard.Clipboard
+        url = clip.text(mode)
+        logging.debug("Clipboard contained: '{}'".format(url))
+        self.tabopen(url)
 
     def keyPressEvent(self, e):
         """Extend TabWidget (QWidget)'s keyPressEvent to emit a signal."""

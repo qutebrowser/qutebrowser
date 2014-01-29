@@ -33,6 +33,8 @@ pasting
 open with preset url (go)
 show infos in statusline, temporary/longer
 set settings/colors/bindings via commandline
+sane default config handling (default always loaded, userconfig overrides, provide unbind)
+write default config with comments
 
 Minor features/bugs
 ===================

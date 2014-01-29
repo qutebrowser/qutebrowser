@@ -152,3 +152,39 @@ class NextSearch(Command):
 
     nargs = 0
     hide = True
+
+
+class Yank(Command):
+    """Yank the URL of the current tab to the clipboard.
+
+    optional arg: If 'sel', yank to the primary selection.
+    """
+
+    nargs = '?'
+
+
+class YankTitle(Command):
+    """Yank the title of the current tab to the clipboard.
+
+    optional arg: If 'sel', yank to the primary selection.
+    """
+
+    nargs = '?'
+
+
+class Paste(Command):
+    """Open an URL from the clipboard.
+
+    optional arg: If 'sel', paste from the primary selection.
+    """
+
+    nargs = '?'
+
+
+class TabPaste(Command):
+    """Open an URL from the clipboard in a new tab.
+
+    optional arg: If 'sel', paste from the primary selection.
+    """
+
+    nargs = '?'
