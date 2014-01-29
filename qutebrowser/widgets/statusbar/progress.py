@@ -72,6 +72,7 @@ class Progress(QProgressBar):
         """
 
         if ok:
+            self.color = config.colordict.getraw('status.progress.bg')
             self.hide()
         else:
             self.color = config.colordict.getraw('statusbar.progress.bg.error')
