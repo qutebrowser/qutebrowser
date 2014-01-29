@@ -111,6 +111,28 @@ class CompletionModel(QAbstractItemModel):
                 newitem = CompletionItem(item, newcat)
                 newcat.children.append(newitem)
 
+    def mark_all_items(self, needle):
+        for i in range(self.rowCount()):
+            cat = self.index(i, 0)
+            for k in range(self.rowCount(cat)):
+                idx = self.index(k, 0, cat)
+                old = self.data(idx).value()
+                marks = self._get_marks(needle, old)
+                self.setData(idx, marks, Qt.UserRole)
+
+    def _get_marks(self, needle, haystack):
+        pos1 = pos2 = 0
+        marks = []
+        if not needle:
+            return marks
+        while True:
+            pos1 = haystack.find(needle, pos2)
+            if pos1 == -1:
+                break
+            pos2 = pos1 + len(needle)
+            marks.append((pos1, pos2))
+        return marks
+
 
 class CompletionItem():
     parent = None
@@ -192,3 +214,11 @@ class CompletionFilterModel(QSortFilterProxyModel):
             return False
         else:
             return left < right
+
+    def first_item(self):
+        cat = self.index(0, 0)
+        return self.index(0, 0, cat)
+
+    def last_item(self):
+        cat = self.index(self.rowCount() - 1, 0)
+        return self.index(self.rowCount(cat) - 1, 0, cat)

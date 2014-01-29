@@ -152,39 +152,9 @@ class CompletionView(QTreeView):
         self.setmodel('command')
         text = text.lstrip(':')
         self.model.pattern = text
-        self.mark_all_items(text)
+        self.model.sourceModel().mark_all_items(text)
         if self.enabled:
             self.show()
-
-    def first_item(self):
-        cat = self.model.index(0, 0)
-        return self.model.index(0, 0, cat)
-
-    def last_item(self):
-        cat = self.model.index(self.model.rowCount() - 1, 0)
-        return self.model.index(self.model.rowCount(cat) - 1, 0, cat)
-
-    def mark_all_items(self, needle):
-        for i in range(self.model.rowCount()):
-            cat = self.model.index(i, 0)
-            for k in range(self.model.rowCount(cat)):
-                idx = self.model.index(k, 0, cat)
-                old = self.model.data(idx)
-                marks = self.get_marks(needle, old)
-                self.model.setData(idx, marks, Qt.UserRole)
-
-    def get_marks(self, needle, haystack):
-        pos1 = pos2 = 0
-        marks = []
-        if not needle:
-            return marks
-        while True:
-            pos1 = haystack.find(needle, pos2)
-            if pos1 == -1:
-                break
-            pos2 = pos1 + len(needle)
-            marks.append((pos1, pos2))
-        return marks
 
     def tab_handler(self, shift):
         if not self.completing:
@@ -201,13 +171,15 @@ class CompletionView(QTreeView):
         idx = self.selectionModel().currentIndex()
         if not idx.isValid():
             # No item selected yet
-            return self.first_item()
+            return self.model.first_item()
         while True:
             idx = self.indexAbove(idx) if shift else self.indexBelow(idx)
-            if not idx.isValid():
-                # wrap around if we arrived at beginning/end
-                return self.last_item() if shift else self.first_item()
-            if idx.parent().isValid():
+            # wrap around if we arrived at beginning/end
+            if not idx.isValid() and shift:
+                return self.model.last_item()
+            elif not idx.isValid() and not shift:
+                return self.model.first_item()
+            elif idx.parent().isValid():
                 # Item is a real item, not a category header -> success
                 return idx
 
