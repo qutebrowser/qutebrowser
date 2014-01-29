@@ -14,6 +14,7 @@ Insert mode
 Extern editor
 Hints
 Downloads
+webinterface for settings/colors/bindings
 
 Before Blink
 ------------
@@ -30,7 +31,8 @@ Marks
 yanking url/...
 pasting
 open with preset url (go)
-
+show infos in statusline, temporary/longer
+set settings/colors/bindings via commandline
 
 Minor features/bugs
 ===================
