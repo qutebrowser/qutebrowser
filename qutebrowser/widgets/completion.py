@@ -1,3 +1,10 @@
+"""Completion view which appears when something is typed in the statusbar
+command section.
+
+Defines a CompletionView which uses CompletionFiterModel and CompletionModel
+subclasses to provide completions.
+"""
+
 import html
 
 from PyQt5.QtWidgets import (QTreeView, QStyledItemDelegate, QStyle,
@@ -13,6 +20,14 @@ from qutebrowser.commands.utils import CommandCompletionModel
 
 
 class CompletionView(QTreeView):
+    """The view showing available completions.
+
+    Based on QTreeView but heavily customized so root elements show as category
+    headers, and children show as flat list.
+
+    Highlights completions based on marks in the UserRole.
+    """
+
     _stylesheet = """
         QTreeView {{
             font-family: {monospace};
@@ -70,23 +85,45 @@ class CompletionView(QTreeView):
         # FIXME set elidemode
 
     def resizeEvent(self, e):
+        """Extends resizeEvent of QTreeView.
+
+        Always adjusts the column width to the new window width.
+
+        e -- The QResizeEvent.
+        """
         width = e.size().width()
         for i in range(self.model.columnCount()):
             self.setColumnWidth(i, width / 2)
         super().resizeEvent(e)
 
     def setmodel(self, model):
+        """Switch completion to a new model.
+
+        Called from cmd_text_changed().
+
+        model -- A QAbstractItemModel with available completions.
+        """
         self.model.setSourceModel(self.completion_models[model])
         self.model.pattern = ''
         self.expandAll()
 
     def resort(self, pattern):  # pylint: disable=unused-argument
+        """Sort the available completions.
+
+        If the current completion model overrides sort(), it is used.
+        If not, the default implementation in QCompletionFilterModel is called.
+        """
         try:
             self.model.sourceModel().sort(0)
         except NotImplementedError:
             self.model.sort(0)
 
     def resize_to_bar(self, geom):
+        """Resize the completion area to the statusbar geometry.
+
+        Slot for the resized signal of the statusbar.
+        geom -- A QRect containing the statusbar geometry.
+        """
         bottomleft = geom.topLeft()
         bottomright = geom.topRight()
         delta = QPoint(0, 200)
@@ -94,7 +131,13 @@ class CompletionView(QTreeView):
         self.setGeometry(QRect(topleft, bottomright))
 
     def cmd_text_changed(self, text):
+        """Check if completions are available and activate them.
+
+        Slot for the textChanged signal of the statusbar command widget.
+        text -- The new text
+        """
         if self.ignore_next:
+            # Text changed by a completion, so we don't have to complete again.
             self.ignore_next = False
             return
         # FIXME more sophisticated completions
