@@ -6,7 +6,7 @@ from PyQt5.QtCore import QSize
 
 class Progress(QProgressBar):
     """ The progress bar part of the status bar"""
-    bar = None
+    statusbar = None
     color = None
     _stylesheet = """
         QProgressBar {{
@@ -20,9 +20,9 @@ class Progress(QProgressBar):
         }}
     """
 
-    def __init__(self, bar):
-        self.bar = bar
-        super().__init__(bar)
+    def __init__(self, statusbar):
+        self.statusbar = statusbar
+        super().__init__(statusbar)
 
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.setTextVisible(False)
@@ -37,7 +37,7 @@ class Progress(QProgressBar):
             self.setStyleSheet(config.get_stylesheet(self._stylesheet))
 
     def minimumSizeHint(self):
-        status_size = self.bar.size()
+        status_size = self.statusbar.size()
         return QSize(100, status_size.height())
 
     def sizeHint(self):

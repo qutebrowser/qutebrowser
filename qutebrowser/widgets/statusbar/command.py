@@ -9,7 +9,7 @@ class Command(QLineEdit):
     """The commandline part of the statusbar"""
     # Emitted when a command is triggered by the user
     got_cmd = pyqtSignal(str)
-    bar = None  # The status bar object
+    statusbar = None  # The status bar object
     esc_pressed = pyqtSignal()  # Emitted when escape is pressed
     tab_pressed = pyqtSignal(bool)  # Emitted when tab is pressed (arg: shift)
     hide_completion = pyqtSignal()  # Hide completion window
@@ -18,14 +18,13 @@ class Command(QLineEdit):
     _histpos = None
 
     # FIXME won't the tab key switch to the next widget?
-    # See
-    # noqa http://www.saltycrane.com/blog/2008/01/how-to-capture-tab-key-press-event-with/
-    # for a possible fix.
+    # See [0] for a possible fix.
+    # [0] http://www.saltycrane.com/blog/2008/01/how-to-capture-tab-key-press-event-with/ # noqa # pylint: disable=line-too-long
 
-    def __init__(self, bar):
-        super().__init__(bar)
+    def __init__(self, statusbar):
+        super().__init__(statusbar)
         # FIXME
-        self.bar = bar
+        self.statusbar = statusbar
         self.setStyleSheet("border: 0px; padding-left: 1px")
         self.setValidator(Validator())
         self.returnPressed.connect(self.process_cmd)
@@ -72,7 +71,7 @@ class Command(QLineEdit):
 
     def focusInEvent(self, e):
         """Clear error message when the statusbar is focused"""
-        self.bar.clear_error()
+        self.statusbar.clear_error()
         super().focusInEvent(e)
 
     def _histbrowse_start(self):

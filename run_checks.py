@@ -66,16 +66,17 @@ def _check_crlf(fn):
 
 
 pylint_disable = [
-    'import-error',            # import seems unreliable
+    'import-error',               # import seems unreliable
     'no-name-in-module',
-    'invalid-name',            # short variable names can be nice
-    'star-args',               # we want to use this
-    'fixme',                   # I'll decide myself when to fix them
-    'too-many-public-methods', # Basically unavoidable with Qt
-    'no-self-use',             # I'll decide that myself, thanks
-    'super-on-old-class',      # These don't even exist in python3
+    'invalid-name',               # short variable names can be nice
+    'star-args',                  # we want to use this
+    'fixme',                      # I'll decide myself when to fix them
+    'too-many-public-methods',    # Basically unavoidable with Qt
+    'no-self-use',                # I'll decide that myself, thanks
+    'super-on-old-class',         # These don't even exist in python3
     'old-style-class',
-    'global-statement',        # Sometimes necessary
+    'global-statement',           # Sometimes necessary
+    'abstract-class-little-used', # False-positives
 ]
 
 flake8_disable = [

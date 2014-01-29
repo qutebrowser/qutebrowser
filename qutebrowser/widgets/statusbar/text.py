@@ -23,6 +23,7 @@ class Text(QLabel):
 
     def set_perc(self, x, y):
         """Setter to be used as a Qt slot"""
+        # pylint: disable=unused-argument
         if y == 0:
             self.scrollperc = '[top]'
         elif y == 100:

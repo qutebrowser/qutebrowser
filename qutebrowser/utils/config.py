@@ -3,7 +3,6 @@ import os
 import logging
 
 from configparser import ConfigParser
-# pylint: disable=abstract-class-little-used
 
 config = None
 colordict = {}

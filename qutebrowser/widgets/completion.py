@@ -80,7 +80,7 @@ class CompletionView(QTreeView):
         self.model.pattern = ''
         self.expandAll()
 
-    def resort(self, pattern): # pylint: disable=unused-argument
+    def resort(self, pattern):  # pylint: disable=unused-argument
         try:
             self.model.sourceModel().sort(0)
         except NotImplementedError:
@@ -216,7 +216,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         text_rect = text_rect_.adjusted(margin, 0, -margin, 0)
         self.painter.save()
         state = self.opt.state
-        if (state & QStyle.State_Enabled and state & QStyle.State_Active):
+        if state & QStyle.State_Enabled and state & QStyle.State_Active:
             cg = QPalette.Normal
         elif state & QStyle.State_Enabled:
             cg = QPalette.Inactive
