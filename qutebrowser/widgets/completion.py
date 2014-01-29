@@ -80,7 +80,7 @@ class CompletionView(QTreeView):
         self.model.pattern = ''
         self.expandAll()
 
-    def resort(self, pattern):
+    def resort(self, pattern): # pylint: disable=unused-argument
         try:
             self.model.sourceModel().sort(0)
         except NotImplementedError:
