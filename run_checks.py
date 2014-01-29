@@ -1,14 +1,25 @@
+""" Run different codecheckers over a codebase.
+
+Runs flake8, pylint and a CRLF-checker by default.
+"""
+
 import sys
 import subprocess
 import os
 import os.path
-from pkg_resources import load_entry_point, DistributionNotFound
 from collections import OrderedDict
+
+from pkg_resources import load_entry_point, DistributionNotFound
 
 status = OrderedDict()
 testmodule = 'qutebrowser'
 
 def run(name, args=None):
+    """ Run a checker with optional args.
+
+    name -- Name of the checker/binary
+    args -- Option list of arguments to pass
+    """
     sys.argv = [name, testmodule]
     if args is not None:
         sys.argv += args
@@ -31,6 +42,7 @@ def run(name, args=None):
     print()
 
 def check_crlf():
+    """Checks a filetree for CRLFs"""
     print("====== CRLF ======")
     ret = []
     try:

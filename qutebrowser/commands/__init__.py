@@ -1,4 +1,6 @@
-"""All command classes. These are automatically propagated from commands.utils
+"""All command classes.
+
+These are automatically propagated from commands.utils
 via inspect.
 
 A command class can set the following properties:
