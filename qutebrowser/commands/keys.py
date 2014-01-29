@@ -90,12 +90,12 @@ class KeyParser(QObject):
         try:
             self.commandparser.run(cmdstr_hay, count=count, ignore_exc=False)
         except NoSuchCommandError:
-            return
+            pass
         except ArgumentCountError:
             logging.debug('Filling statusbar with partial command {}'.format(
                 cmdstr_hay))
             self.set_cmd_text.emit(cmdstr_hay + ' ')
-            return
+        return
 
     def _match_key(self, cmdstr_needle):
         """Tries to match a given cmdstr with any defined command"""

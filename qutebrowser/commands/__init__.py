@@ -17,7 +17,7 @@ A command class can set the following properties:
     desc -- Description of the command
 """
 
-from qutebrowser.commands.utils import Command
+from qutebrowser.commands.template import Command
 
 
 class Open(Command):
