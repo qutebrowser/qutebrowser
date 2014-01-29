@@ -1,3 +1,10 @@
+"""The main browser widget.
+
+Defines BrowserTab (our own QWebView subclass) and TabbedBrowser (a TabWidget
+containing BrowserTabs).
+"""
+
+
 import logging
 
 from PyQt5.QtWidgets import QShortcut
@@ -11,7 +18,12 @@ from qutebrowser.widgets.tabbar import TabWidget
 
 
 class TabbedBrowser(TabWidget):
-    """A TabWidget with QWebViews inside"""
+    """A TabWidget with QWebViews inside.
+
+    Provides methods to manage tabs, convenience methods to interact with the
+    current tab (cur_*) and filters signals to re-emit them when they occured
+    in the currently visible tab.
+    """
 
     cur_progress = pyqtSignal(int)  # Progress of the current tab changed
     cur_load_started = pyqtSignal()  # Current tab started loading
@@ -33,7 +45,10 @@ class TabbedBrowser(TabWidget):
         space.activated.connect(self.space_scroll)
 
     def tabopen(self, url):
-        """Opens a new tab with a given url"""
+        """Open a new tab with a given url.
+
+        Also connect all the signals we need to _filter_signals.
+        """
         url = utils.qurl(url)
         tab = BrowserTab(self)
         tab.openurl(url)
@@ -60,16 +75,26 @@ class TabbedBrowser(TabWidget):
         tab.open_tab.connect(self.tabopen)
 
     def openurl(self, url):
-        """Opens an url in the current tab"""
+        """Open an url in the current tab.
+
+        Command handler for :open.
+        url -- The URL to open.
+        """
         self.currentWidget().openurl(url)
 
     def undo_close(self):
-        """Undos closing a tab"""
+        """Undo closing a tab.
+
+        Command handler for :undo.
+        """
         if self._url_stack:
             self.tabopen(self._url_stack.pop())
 
     def cur_close(self):
-        """Closes the current tab"""
+        """Close the current tab.
+
+        Command handler for :close.
+        """
         if self.count() > 1:
             idx = self.currentIndex()
             tab = self.currentWidget()
@@ -81,32 +106,50 @@ class TabbedBrowser(TabWidget):
             pass
 
     def cur_reload(self):
-        """Reloads the current tab"""
+        """Reload the current tab.
+
+        Command handler for :reload.
+        """
         self.currentWidget().reload()
 
     def cur_stop(self):
-        """Stops loading in the current tab"""
+        """Stop loading in the current tab.
+
+        Command handler for :stop.
+        """
         self.currentWidget().stop()
 
     def cur_print(self):
-        """Prints the current tab"""
+        """Print the current tab.
+
+        Command handler for :print.
+        """
         # FIXME that does not what I expect
         preview = QPrintPreviewDialog()
         preview.paintRequested.connect(self.currentWidget().print)
         preview.exec_()
 
     def cur_back(self):
-        """Goes back in the history of the current tab"""
+        """Go back in the history of the current tab.
+
+        Command handler for :back.
+        """
         # FIXME display warning if beginning of history
         self.currentWidget().back()
 
     def cur_forward(self):
-        """Goes forward in the history of the current tab"""
+        """Go forward in the history of the current tab.
+
+        Command handler for :forward.
+        """
         # FIXME display warning if end of history
         self.currentWidget().forward()
 
     def cur_scroll(self, dx, dy, count=None):
-        """Scrolls the current tab by count * dx/dy"""
+        """Scroll the current tab by count * dx/dy
+
+        Command handler for :scroll.
+        """
         if count is None:
             count = 1
         dx = int(count) * int(dx)
@@ -114,18 +157,23 @@ class TabbedBrowser(TabWidget):
         self.currentWidget().page().mainFrame().scroll(dx, dy)
 
     def cur_scroll_percent_x(self, perc=None, count=None):
-        """Scrolls the current tab to a specific percent of the page.
+        """Scroll the current tab to a specific percent of the page.
         Accepts percentage either as argument, or as count.
+
+        Command handler for :scroll_perc_x.
         """
         self._cur_scroll_percent(perc, count, Qt.Horizontal)
 
     def cur_scroll_percent_y(self, perc=None, count=None):
-        """Scrolls the current tab to a specific percent of the page
+        """Scroll the current tab to a specific percent of the page
         Accepts percentage either as argument, or as count.
+
+        Command handler for :scroll_perc_y
         """
         self._cur_scroll_percent(perc, count, Qt.Vertical)
 
     def _cur_scroll_percent(self, perc=None, count=None, orientation=None):
+        """Inner logic for cur_scroll_percent_(x|y)."""
         if perc is None and count is None:
             perc = 100
         elif perc is None:
@@ -138,15 +186,11 @@ class TabbedBrowser(TabWidget):
             return
         frame.setScrollBarValue(orientation, int(m * perc / 100))
 
-    def space_scroll(self):
-        try:
-            amount = config.config['general']['space_scroll']
-        except KeyError:
-            amount = 200
-        self.cur_scroll(0, amount)
-
     def switch_prev(self):
-        """Switches to the previous tab"""
+        """Switch to the previous tab.
+
+        Command handler for :tabprev.
+        """
         idx = self.currentIndex()
         if idx > 0:
             self.setCurrentIndex(idx - 1)
@@ -155,7 +199,10 @@ class TabbedBrowser(TabWidget):
             pass
 
     def switch_next(self):
-        """Switches to the next tab"""
+        """Switch to the next tab.
+
+        Command handler for :tabnext.
+        """
         idx = self.currentIndex()
         if idx < self.count() - 1:
             self.setCurrentIndex(idx + 1)
@@ -163,37 +210,69 @@ class TabbedBrowser(TabWidget):
             # FIXME
             pass
 
+    def space_scroll(self):
+        """Scroll when space is pressed.
+
+        This gets called from the space QShortcut in __init__.
+        """
+        try:
+            amount = config.config['general']['space_scroll']
+        except KeyError:
+            amount = 200
+        self.cur_scroll(0, amount)
+
     def keyPressEvent(self, e):
+        """Extend TabWidget (QWidget)'s keyPressEvent to emit a signal."""
         self.keypress.emit(e)
         super().keyPressEvent(e)
 
     def _titleChanged_handler(self, text):
+        """Set the title of a tab.
+
+        Slot for the titleChanged signal of any tab.
+        """
         if text:
             self.setTabText(self.indexOf(self.sender()), text)
 
     def _loadStarted_handler(self):
+        """Set url as the title of a tab after it loaded.
+
+        Slot for the loadStarted signal of any tab.
+        """
         s = self.sender()
         self.setTabText(self.indexOf(s), s.url().toString())
 
     def _filter_signals(self, signal, *args):
-        """Filters signals, and triggers TabbedBrowser signals if the signal
+        """Filter signals and trigger TabbedBrowser signals if the signal
         was sent from the _current_ tab and not from any other one.
+
+        The original signal does not matter, since we get the new signal and
+        all args.
+
+        signal -- The signal to emit if the sender was the current widget.
+        *args -- The args to pass to the signal.
         """
         dbgstr = "{} ({})".format(
             signal.signal, ','.join([str(e) for e in args]))
         if self.currentWidget() == self.sender():
             logging.debug('{} - emitting'.format(dbgstr))
-            signal.emit(*args)
+            return signal.emit(*args)
         else:
             logging.debug('{} - ignoring'.format(dbgstr))
 
     def _currentChanged_handler(self, idx):
+        """Update status bar values when a tab was changed.
+
+        Slot for the currentChanged signal of any tab.
+        """
         tab = self.widget(idx)
         self.cur_progress.emit(tab.progress)
 
     def _scroll_pos_changed_handler(self, x, y):
-        """Gets the new position from a BrowserTab. If it's the current tab, it
-        calculates the percentage and emits cur_scroll_perc_changed.
+        """Get the new position from a BrowserTab. If it's the current tab,
+        calculate the percentage and emits cur_scroll_perc_changed.
+
+        Slot for the scroll_pos_changed signal of any tab.
         """
         sender = self.sender()
         if sender != self.currentWidget():
@@ -207,12 +286,15 @@ class TabbedBrowser(TabWidget):
 
 
 class BrowserTab(QWebView):
-    """One browser tab in TabbedBrowser"""
+    """One browser tab in TabbedBrowser.
+
+    Our own subclass of a QWebView with some added bells and whistles.
+    """
     progress = 0
     scroll_pos_changed = pyqtSignal(int, int)
-    _scroll_pos = (-1, -1)
-    open_new_tab = False  # open new tab for the next action
     open_tab = pyqtSignal('QUrl')
+    _scroll_pos = (-1, -1)
+    _open_new_tab = False  # open new tab for the next action
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -224,16 +306,32 @@ class BrowserTab(QWebView):
         self.show()
 
     def openurl(self, url):
-        """Opens an URL in the browser"""
+        """Open an URL in the browser.
+
+        url -- The URL to load, as string or QUrl.
+        """
         return self.load(utils.qurl(url))
 
     def link_handler(self, url):
-        if self.open_new_tab:
+        """Handle a link.
+
+        Called from the linkClicked signal. Checks if it should open it in a
+        tab (middle-click or control) or not, and does so.
+
+        url -- The url to handle, as string or QUrl.
+        """
+        if self._open_new_tab:
             self.open_tab.emit(url)
         else:
             self.openurl(url)
 
     def set_progress(self, prog):
+        """Update the progress property if the loading progress changed.
+
+        Slot for the loadProgress signal.
+
+        prog -- New progress.
+        """
         self.progress = prog
 
     def eventFilter(self, watched, e):
@@ -242,6 +340,9 @@ class BrowserTab(QWebView):
         We listen to repaint requests here, in the hope a repaint will always
         be requested when scrolling, and if the scroll position actually
         changed, we emit a signal.
+
+        watched -- The watched Qt object.
+        e -- The new event.
         """
         if watched == self and e.type() == QEvent.Paint:
             frame = self.page().mainFrame()
@@ -254,10 +355,16 @@ class BrowserTab(QWebView):
         return super().eventFilter(watched, e)
 
     def event(self, e):
-        """Another hack to see when a link was pressed with the middle
-        button
+        """Check if a link was clicked with the middle button or Ctrl.
+
+        Extends the superclass event().
+
+        This also is a bit of a hack, but it seems it's the only possible way.
+        Set the _open_new_tab attribute accordingly.
+
+        e -- The arrived event
         """
         if e.type() in [QEvent.MouseButtonPress, QEvent.MouseButtonDblClick]:
-            self.open_new_tab = (e.button() == Qt.MidButton or
-                                 e.modifiers() & Qt.ControlModifier)
+            self._open_new_tab = (e.button() == Qt.MidButton or
+                                  e.modifiers() & Qt.ControlModifier)
         return super().event(e)

@@ -1,3 +1,11 @@
+"""Configuration storage and config-related utilities.
+
+config         -- The main Config object.
+colordict      -- All configured colors.
+default_config -- The default config as dict.
+MONOSPACE      -- A list of suitable monospace fonts.
+"""
+
 import os.path
 import os
 import logging
@@ -61,6 +69,7 @@ MONOSPACE = ', '.join(_MONOSPACE)
 
 
 def init(confdir):
+    """Initialize the global objects based on the config in configdir."""
     global config, colordict
     config = Config(confdir)
     try:
@@ -70,11 +79,26 @@ def init(confdir):
 
 
 def get_stylesheet(template):
+    """Return a formatted stylesheet based on a template."""
     return template.strip().format(color=colordict, monospace=MONOSPACE)
 
 
 class ColorDict(dict):
+    """A dict aimed at Qt stylesheet colors."""
+
     def __getitem__(self, key):
+
+        """Override dict __getitem__.
+
+        If a value wasn't found, return an empty string.
+        (Color not defined, so no output in the stylesheet)
+
+        If the key has a .fg. element in it, return  color: X;.
+        If the key has a .bg. element in it, return  background-color: X;.
+
+        In all other cases, return the plain value.
+        """
+
         try:
             val = super().__getitem__(key)
         except KeyError:
@@ -87,6 +111,10 @@ class ColorDict(dict):
             return val
 
     def getraw(self, key):
+        """Get a value without the transformations done in __getitem__.
+
+        Returns a value, or None if the value wasn't found.
+        """
         try:
             return super().__getitem__(key)
         except KeyError:
@@ -94,12 +122,16 @@ class ColorDict(dict):
 
 
 class Config(ConfigParser):
-    """Our own ConfigParser"""
+    """Our own ConfigParser subclass."""
+
     configdir = None
     FNAME = 'config'
 
     def __init__(self, configdir):
-        """configdir: directory to store the config in"""
+        """Config constructor.
+
+        configdir -- directory to store the config in.
+        """
         super().__init__()
         self.optionxform = lambda opt: opt  # be case-insensitive
         self.configdir = configdir
@@ -113,6 +145,7 @@ class Config(ConfigParser):
         self.read(self.configfile)
 
     def init_config(self):
+        """Initialize Config from default_config and save it."""
         logging.info("Initializing default config.")
         if self.configdir is None:
             self.read_dict(default_config)
@@ -126,6 +159,7 @@ class Config(ConfigParser):
             cp.write(f)
 
     def save(self):
+        """Save the config file."""
         if self.configdir is None:
             return
         if not os.path.exists(self.configdir):

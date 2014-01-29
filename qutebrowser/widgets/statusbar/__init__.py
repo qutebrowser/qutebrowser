@@ -69,5 +69,9 @@ class StatusBar(QWidget):
         self.txt.error = ''
 
     def resizeEvent(self, e):
+        """Override resizeEvent of QWidget to emit a resized signal afterwards.
+
+        e -- The QResizeEvent.
+        """
         super().resizeEvent(e)
         self.resized.emit(self.geometry())

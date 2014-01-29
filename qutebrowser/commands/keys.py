@@ -1,3 +1,6 @@
+"""Parse keypresses/keychains in the main window."""
+
+
 import logging
 import re
 
@@ -8,7 +11,7 @@ from qutebrowser.commands.utils import (CommandParser, ArgumentCountError,
 
 
 class KeyParser(QObject):
-    """Parser for vim-like key sequences"""
+    """Parser for vim-like key sequences."""
     keystring = ''  # The currently entered key sequence
     # Signal emitted when the statusbar should set a partial command
     set_cmd_text = pyqtSignal(str)
@@ -27,8 +30,9 @@ class KeyParser(QObject):
         self.commandparser = CommandParser()
 
     def from_config_sect(self, sect):
-        """Loads keybindings from a ConfigParser section, in the config format
-        key = command, e.g.
+        """Load keybindings from a ConfigParser section.
+
+        Config format: key = command, e.g.:
         gg = scrollstart
         """
         for (key, cmd) in sect.items():
@@ -36,12 +40,16 @@ class KeyParser(QObject):
             self.bindings[key] = cmd
 
     def handle(self, e):
-        """Wrapper for _handle to emit keystring_updated after _handle"""
+        """Wrap _handle to emit keystring_updated after _handle."""
         self._handle(e)
         self.keystring_updated.emit(self.keystring)
 
     def _handle(self, e):
         """Handle a new keypress.
+
+        Separates the keypress into count/command, then checks if it matches
+        any possible command, and either runs the command, ignores it, or
+        displays an error.
 
         e -- the KeyPressEvent from Qt
         """
@@ -98,7 +106,10 @@ class KeyParser(QObject):
         return
 
     def _match_key(self, cmdstr_needle):
-        """Tries to match a given cmdstr with any defined command"""
+        """Try to match a given keystring with any bound keychain.
+
+        cmdstr_needle: The command string to find.
+        """
         try:
             cmdstr_hay = self.bindings[cmdstr_needle]
             return (self.MATCH_DEFINITIVE, cmdstr_hay)

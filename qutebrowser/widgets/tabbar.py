@@ -1,3 +1,5 @@
+"""The tab widget used for TabbedBrowser from browser.py."""
+
 from PyQt5.QtWidgets import QTabWidget
 from PyQt5.QtCore import Qt
 
@@ -5,7 +7,7 @@ import qutebrowser.utils.config as config
 
 
 class TabWidget(QTabWidget):
-    """The tabwidget used for TabbedBrowser"""
+    """The tabwidget used for TabbedBrowser."""
 
     # FIXME there is still some ugly 1px white stripe from somewhere if we do
     # background-color: grey for QTabBar...

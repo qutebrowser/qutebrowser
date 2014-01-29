@@ -1,3 +1,5 @@
+""" Initialization of qutebrowser and application-wide things """
+
 import sys
 import logging
 import faulthandler
@@ -15,7 +17,13 @@ from qutebrowser.utils.appdirs import AppDirs
 
 
 class QuteBrowser(QApplication):
-    """Main object for QuteBrowser"""
+    """Main object for qutebrowser.
+
+    Can be used like this:
+
+    >>> app = QuteBrowser()
+    >>> sys.exit(app.exec_())
+    """
     dirs = None  # AppDirs - config/cache directories
     config = None  # Config(Parser) object
     mainwindow = None
@@ -27,13 +35,13 @@ class QuteBrowser(QApplication):
     def __init__(self):
         super().__init__(sys.argv)
         # Exit on exceptions
-        sys.excepthook = self.tmp_exception_hook
+        sys.excepthook = self._tmp_exception_hook
 
         # Handle segfaults
         faulthandler.enable()
 
-        self.parseopts()
-        self.initlog()
+        self._parseopts()
+        self._initlog()
 
         self.dirs = AppDirs('qutebrowser')
         if self.args.confdir is None:
@@ -46,7 +54,7 @@ class QuteBrowser(QApplication):
 
         self.commandparser = cmdutils.CommandParser()
         self.keyparser = KeyParser(self.mainwindow)
-        self.init_cmds()
+        self._init_cmds()
         self.mainwindow = MainWindow()
 
         self.aboutToQuit.connect(config.config.save)
@@ -62,15 +70,23 @@ class QuteBrowser(QApplication):
             self.mainwindow.status.txt.set_keystring)
 
         self.mainwindow.show()
-        self.python_hacks()
+        self._python_hacks()
 
-    def tmp_exception_hook(self, exctype, value, traceback):
-        """Exception hook while initializing, simply exit"""
+    def _tmp_exception_hook(self, exctype, value, traceback):
+        """Handle exceptions while initializing by simply exiting.
+
+        This is only temporary and will get replaced by exception_hook later.
+        It's necessary because PyQt seems to ignore exceptions by default.
+        """
         sys.__excepthook__(exctype, value, traceback)
         self.exit(1)
 
-    def exception_hook(self, exctype, value, traceback):
-        """Try very hard to write open tabs to a file and exit gracefully"""
+    def _exception_hook(self, exctype, value, traceback):
+        """Handle uncaught python exceptions.
+
+        It'll try very hard to write all open tabs to a file, and then exit
+        gracefully.
+        """
         # pylint: disable=broad-except
         sys.__excepthook__(exctype, value, traceback)
         try:
@@ -84,22 +100,21 @@ class QuteBrowser(QApplication):
             pass
         self.exit(1)
 
-    def python_hacks(self):
-        """Gets around some PyQt-oddities by evil hacks"""
-        ## Make python exceptions work
-        sys.excepthook = self.exception_hook
+    def _python_hacks(self):
+        """Get around some PyQt-oddities by evil hacks.
 
-        ## Quit on SIGINT
+        This sets up the uncaught exception hook, quits with an appropriate
+        exit status, and handles Ctrl+C properly by passing control to the
+        Python interpreter once all 500ms.
+        """
+        sys.excepthook = self._exception_hook
         signal(SIGINT, lambda *args: self.exit(128 + SIGINT))
-
-        ## hack to make Ctrl+C work by passing control to the Python
-        ## interpreter once all 500ms (lambda to ignore args)
         self.timer = QTimer()
         self.timer.start(500)
         self.timer.timeout.connect(lambda: None)
 
-    def parseopts(self):
-        """Parse command line options"""
+    def _parseopts(self):
+        """Parse command line options."""
         parser = ArgumentParser("usage: %(prog)s [options]")
         parser.add_argument('-l', '--log', dest='loglevel',
                             help='Set loglevel', default='info')
@@ -107,8 +122,8 @@ class QuteBrowser(QApplication):
                             '(empty for no config storage)')
         self.args = parser.parse_args()
 
-    def initlog(self):
-        """Initialisation of the log"""
+    def _initlog(self):
+        """Initialisation of the logging output."""
         loglevel = self.args.loglevel
         numeric_level = getattr(logging, loglevel.upper(), None)
         if not isinstance(numeric_level, int):
@@ -119,8 +134,11 @@ class QuteBrowser(QApplication):
                    '[%(module)s:%(funcName)s:%(lineno)s] %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S')
 
-    def init_cmds(self):
-        """Initialisation of the qutebrowser commands"""
+    def _init_cmds(self):
+        """Initialisation of the qutebrowser commands.
+
+        Registers all commands, connects its signals, and sets up keyparser.
+        """
         cmdutils.register_all()
         for cmd in cmdutils.cmd_dict.values():
             cmd.signal.connect(self.cmd_handler)
@@ -130,8 +148,10 @@ class QuteBrowser(QApplication):
             pass
 
     def cmd_handler(self, tpl):
-        """Handler which gets called from all commands and delegates the
-        specific actions.
+        """Handle commands and delegate the specific actions.
+
+        This gets called as a slot from all commands, and then calls the
+        appropriate command handler.
 
         tpl -- A tuple in the form (count, argv) where argv is [cmd, arg, ...]
 
@@ -163,12 +183,17 @@ class QuteBrowser(QApplication):
         handler = handlers[cmd]
 
         if self.sender().count:
-            handler(*args, count=count)
+            return handler(*args, count=count)
         else:
-            handler(*args)
+            return handler(*args)
 
     def pyeval(self, s):
-        """Evaluates a python string, handler for the pyeval command"""
+        """Evaluate a python string and display the results as a webpage.
+
+        s -- The string to evaluate.
+
+        :pyeval command handler.
+        """
         try:
             r = eval(s)
             out = repr(r)

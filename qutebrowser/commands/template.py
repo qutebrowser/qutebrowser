@@ -1,3 +1,6 @@
+"""Contains the Command class, a skeleton for a command."""
+
+
 import logging
 
 from PyQt5.QtCore import QObject, pyqtSignal
@@ -6,8 +9,9 @@ from qutebrowser.commands.exceptions import ArgumentCountError
 
 
 class Command(QObject):
-    """Base skeleton for a command. See the module help for
-    qutebrowser.commands.commands for details.
+    """Base skeleton for a command.
+
+    See the module documentation for qutebrowser.commands.commands for details.
     """
 
     # FIXME:

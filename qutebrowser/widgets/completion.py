@@ -157,27 +157,41 @@ class CompletionView(QTreeView):
             self.show()
 
     def tab_handler(self, shift):
+        """Handle a tab press for the CompletionView.
+
+        Selects the previous/next item and writes the new text to the
+        statusbar. Called by key_(s)tab_handler in statusbar.command.
+
+        shift -- Whether shift is pressed or not.
+        """
         if not self.completing:
+            # No completion running at the moment, ignore keypress
             return
         idx = self._next_idx(shift)
-        self.ignore_next = True
         self.selectionModel().setCurrentIndex(
             idx, QItemSelectionModel.ClearAndSelect)
         data = self.model.data(idx)
         if data is not None:
+            self.ignore_next = True
             self.append_cmd_text.emit(self.model.data(idx) + ' ')
 
-    def _next_idx(self, shift):
+    def _next_idx(self, upwards):
+        """Get the previous/next QModelIndex displayed in the view.
+
+        Used by tab_handler.
+
+        upwards -- Get previous item, not next.
+        """
         idx = self.selectionModel().currentIndex()
         if not idx.isValid():
             # No item selected yet
             return self.model.first_item()
         while True:
-            idx = self.indexAbove(idx) if shift else self.indexBelow(idx)
+            idx = self.indexAbove(idx) if upwards else self.indexBelow(idx)
             # wrap around if we arrived at beginning/end
-            if not idx.isValid() and shift:
+            if not idx.isValid() and upwards:
                 return self.model.last_item()
-            elif not idx.isValid() and not shift:
+            elif not idx.isValid() and not upwards:
                 return self.model.first_item()
             elif idx.parent().isValid():
                 # Item is a real item, not a category header -> success
@@ -185,11 +199,21 @@ class CompletionView(QTreeView):
 
 
 class CompletionItemDelegate(QStyledItemDelegate):
+    """Delegate used by CompletionView to draw individual items.
+
+    Mainly a cleaned up port of Qt's way to draw a TreeView item, except it
+    uses a QTextDocument to draw the text and add marking.
+
+    Original implementation:
+        qt/src/gui/styles/qcommonstyle.cpp:drawControl:2153
+    """
+
     opt = None
     style = None
     painter = None
 
     def paint(self, painter, option, index):
+        """Overrides the QStyledItemDelegate paint function."""
         painter.save()
 
         self.painter = painter
@@ -205,10 +229,12 @@ class CompletionItemDelegate(QStyledItemDelegate):
         painter.restore()
 
     def _draw_background(self):
+        """Draw the background of an ItemViewItem"""
         self.style.drawPrimitive(self.style.PE_PanelItemViewItem, self.opt,
                                  self.painter, self.opt.widget)
 
     def _draw_icon(self):
+        """Draw the icon of an ItemViewItem"""
         icon_rect = self.style.subElementRect(
             self.style.SE_ItemViewItemDecoration, self.opt, self.opt.widget)
 
@@ -222,6 +248,13 @@ class CompletionItemDelegate(QStyledItemDelegate):
                             self.opt.decorationAlignment, mode, state)
 
     def _draw_text(self, index):
+        """Draw the text of an ItemViewItem.
+
+        This is the main part where we differ from the original implementation
+        in Qt: We use a QTextDocument to draw text.
+
+        index -- The QModelIndex of the item to draw.
+        """
         if not self.opt.text:
             return
 
@@ -258,6 +291,11 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self.painter.restore()
 
     def _draw_textdoc(self, index, text_rect):
+        """Draw the QTextDocument of an item.
+
+        index -- The QModelIndex of the item to draw.
+        text_rect -- The QRect to clip the drawing to.
+        """
         # FIXME we probably should do eliding here. See
         # qcommonstyle.cpp:viewItemDrawText
         clip = QRectF(0, 0, text_rect.width(), text_rect.height())
@@ -298,6 +336,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         doc.drawContents(self.painter, clip)
 
     def _draw_focus_rect(self):
+        """Draws the focus rectangle of an ItemViewItem"""
         state = self.opt.state
         if not state & QStyle.State_HasFocus:
             return

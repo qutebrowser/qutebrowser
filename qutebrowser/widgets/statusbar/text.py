@@ -1,9 +1,16 @@
+"""The text part of the statusbar."""
+
 import logging
 from PyQt5.QtWidgets import QLabel
 
 
 class Text(QLabel):
-    """The text part of the status bar, composed of several 'widgets'"""
+
+    """The text part of the status bar.
+
+    Contains several parts (keystring, error, text, scrollperc) which are later
+    joined and displayed."""
+
     keystring = ''
     error = ''
     text = ''
@@ -18,11 +25,11 @@ class Text(QLabel):
         self.update()
 
     def set_keystring(self, s):
-        """Setter to be used as a Qt slot"""
+        """Setter to be used as a Qt slot."""
         self.keystring = s
 
     def set_perc(self, x, y):
-        """Setter to be used as a Qt slot"""
+        """Setter to be used as a Qt slot."""
         # pylint: disable=unused-argument
         if y == 0:
             self.scrollperc = '[top]'
@@ -32,10 +39,11 @@ class Text(QLabel):
             self.scrollperc = '[{}%]'.format(y)
 
     def set_text(self, text):
+        """Setter to be used as a Qt slot."""
         logging.debug('Setting text to "{}"'.format(text))
         self.text = text
 
     def update(self):
-        """Update the text displayed"""
+        """Update the text displayed."""
         self.setText(' '.join([self.keystring, self.error, self.text,
                                self.scrollperc]))

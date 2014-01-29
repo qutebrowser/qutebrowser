@@ -1,3 +1,12 @@
+"""The base data models for completion in the commandline.
+
+Contains:
+    CompletionModel       -- A simple tree model based on Python data.
+    CompletionItem        -- One item in the CompletionModel.
+    CompletionFilterModel -- A QSortFilterProxyModel subclass for completions.
+"""
+
+
 from collections import OrderedDict
 
 from PyQt5.QtCore import (QAbstractItemModel, Qt, QModelIndex, QVariant,
@@ -5,6 +14,12 @@ from PyQt5.QtCore import (QAbstractItemModel, Qt, QModelIndex, QVariant,
 
 
 class CompletionModel(QAbstractItemModel):
+
+    """A simple tree model based on Python OrderdDict containing tuples.
+
+    Used for showing completions later in the CompletionView.
+    """
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._data = OrderedDict()
@@ -12,22 +27,40 @@ class CompletionModel(QAbstractItemModel):
         self.root = CompletionItem([""] * 2)
 
     def removeRows(self, position=0, count=1, parent=QModelIndex()):
-        node = self.node(parent)
+        """Remove rows from the model.
+
+        Overrides QAbstractItemModel::removeRows.
+        """
+        node = self._node(parent)
         self.beginRemoveRows(parent, position, position + count - 1)
         node.children.pop(position)
         self.endRemoveRows()
 
-    def node(self, index):
+    def _node(self, index):
+        """Return the interal data representation for index.
+
+        Returns the CompletionItem for index, or the root CompletionItem if the
+        index was invalid.
+        """
         if index.isValid():
             return index.internalPointer()
         else:
             return self.root
 
     def columnCount(self, parent=QModelIndex()):
+        """Return the column count in the model.
+
+        Overrides QAbstractItemModel::columnCount.
+        """
         # pylint: disable=unused-argument
         return self.root.column_count()
 
     def data(self, index, role=Qt.DisplayRole):
+        """Return the data for role/index as QVariant.
+
+        Returns an invalid QVariant on error.
+        Overrides QAbstractItemModel::data.
+        """
         if not index.isValid():
             return QVariant()
         item = index.internalPointer()
@@ -37,6 +70,11 @@ class CompletionModel(QAbstractItemModel):
             return QVariant()
 
     def flags(self, index):
+        """Return the item flags for index.
+
+        Returns Qt.NoItemFlags on error.
+        Overrides QAbstractItemModel::flags.
+        """
         # FIXME categories are not selectable, but moving via arrow keys still
         # tries to select them
         if not index.isValid():
@@ -48,11 +86,21 @@ class CompletionModel(QAbstractItemModel):
             return flags | Qt.ItemIsSelectable
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
+        """Return the header data for role/index as QVariant.
+
+        Returns an invalid QVariant on error.
+        Overrides QAbstractItemModel::headerData.
+        """
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             return QVariant(self.root.data(section))
-        return None
+        return QVariant()
 
     def setData(self, index, value, role=Qt.EditRole):
+        """Set the data for role/index to value.
+
+        Returns True on success, False on failure.
+        Overrides QAbstractItemModel::setData.
+        """
         if not index.isValid():
             return False
         item = index.internalPointer()
@@ -64,6 +112,11 @@ class CompletionModel(QAbstractItemModel):
         return True
 
     def index(self, row, column, parent=QModelIndex()):
+        """Return the QModelIndex for row/column/parent.
+
+        Returns an invalid QModelIndex on failure.
+        Overrides QAbstractItemModel::index.
+        """
         if (0 <= row < self.rowCount(parent) and
                 0 <= column < self.columnCount(parent)):
             pass
@@ -82,6 +135,11 @@ class CompletionModel(QAbstractItemModel):
             return QModelIndex()
 
     def parent(self, index):
+        """Return the QModelIndex of the parent of the object behind index.
+
+        Returns an invalid QModelIndex on failure.
+        Overrides QAbstractItemModel::parent.
+        """
         if not index.isValid():
             return QModelIndex()
         item = index.internalPointer().parent
@@ -90,6 +148,11 @@ class CompletionModel(QAbstractItemModel):
         return self.createIndex(item.row(), 0, item)
 
     def rowCount(self, parent=QModelIndex()):
+        """Return the rowCount (children count) for a parent.
+
+        Uses the root frame if parent is invalid.
+        Overrides QAbstractItemModel::data.
+        """
         if parent.column() > 0:
             return 0
 
@@ -101,9 +164,15 @@ class CompletionModel(QAbstractItemModel):
         return len(pitem.children)
 
     def sort(self, column, order=Qt.AscendingOrder):
+        """Sort the data in column according to order.
+
+        Raises NotImplementedError, should be overwritten in a superclass.
+        Overrides QAbstractItemModel::sort.
+        """
         raise NotImplementedError
 
     def init_data(self):
+        """Initialize the Qt model based on the data in self._data."""
         for (cat, items) in self._data.items():
             newcat = CompletionItem([cat], self.root)
             self.root.children.append(newcat)
@@ -112,6 +181,10 @@ class CompletionModel(QAbstractItemModel):
                 newcat.children.append(newitem)
 
     def mark_all_items(self, needle):
+        """Mark a string in all items (children of root-children).
+
+        needle -- The string to mark.
+        """
         for i in range(self.rowCount()):
             cat = self.index(i, 0)
             for k in range(self.rowCount(cat)):
@@ -121,6 +194,7 @@ class CompletionModel(QAbstractItemModel):
                 self.setData(idx, marks, Qt.UserRole)
 
     def _get_marks(self, needle, haystack):
+        """Return the marks for needle in haystack."""
         pos1 = pos2 = 0
         marks = []
         if not needle:
@@ -135,18 +209,29 @@ class CompletionModel(QAbstractItemModel):
 
 
 class CompletionItem():
+    """An item (row) in a CompletionModel."""
+
     parent = None
-    _data = None
     children = None
+    _data = None
     _marks = None
 
     def __init__(self, data, parent=None):
+        """Constructor for CompletionItem.
+
+        data   -- The data for the model, as tuple (columns).
+        parent -- An optional parent item.
+        """
         self.parent = parent
         self._data = data
         self.children = []
         self._marks = []
 
     def data(self, column, role=Qt.DisplayRole):
+        """Get the data for role/column.
+
+        Raise ValueError if the role is invalid.
+        """
         if role == Qt.DisplayRole:
             return self._data[column]
         elif role == Qt.UserRole:
@@ -155,6 +240,10 @@ class CompletionItem():
             raise ValueError
 
     def setdata(self, column, value, role=Qt.DisplayRole):
+        """Set the data for column/role to value.
+
+        Raise ValueError if the role is invalid.
+        """
         if role == Qt.DisplayRole:
             self._data[column] = value
         elif role == Qt.UserRole:
@@ -163,33 +252,53 @@ class CompletionItem():
             raise ValueError
 
     def column_count(self):
+        """Return the column count in the item."""
         return len(self._data)
 
     def row(self):
+        """Return the row index (int) of the item, or 0 if it's a root item."""
         if self.parent:
             return self.parent.children.index(self)
         return 0
 
 
 class CompletionFilterModel(QSortFilterProxyModel):
-    _pattern = None
+
+    """Subclass of QSortFilterProxyModel with custom sorting/filtering."""
+
     pattern_changed = pyqtSignal(str)
-
-    @property
-    def pattern(self):
-        return self._pattern
-
-    @pattern.setter
-    def pattern(self, val):
-        self._pattern = val
-        self.invalidate()
-        self.pattern_changed.emit(val)
+    _pattern = None
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.pattern = ''
 
+    @property
+    def pattern(self):
+        """Getter for pattern."""
+        return self._pattern
+
+    @pattern.setter
+    def pattern(self, val):
+        """Setter for pattern.
+
+        Invalidates the filter and emits pattern_changed.
+        """
+        self._pattern = val
+        self.invalidate()
+        self.pattern_changed.emit(val)
+
     def filterAcceptsRow(self, row, parent):
+        """Custom filter implementation.
+
+        Overrides QSortFilterProxyModel::filterAcceptsRow.
+
+        row    -- The row of the item.
+        parent -- The parent item QModelIndex.
+
+        Returns True if self.pattern is contained in item, or if it's a root
+        item (category). Else returns False.
+        """
         if parent == QModelIndex():
             return True
         idx = self.sourceModel().index(row, 0, parent)
@@ -200,6 +309,14 @@ class CompletionFilterModel(QSortFilterProxyModel):
         return self.pattern in data
 
     def lessThan(self, lindex, rindex):
+        """Custom sorting implementation.
+
+        lindex -- The QModelIndex of the left item (*left* < right)
+        rindex -- The QModelIndex of the right item (left < *right*)
+
+        Prefers all items which start with self.pattern. Other than that, uses
+        normal Python string sorting.
+        """
         left = self.sourceModel().data(lindex).value()
         right = self.sourceModel().data(rindex).value()
 
@@ -216,9 +333,11 @@ class CompletionFilterModel(QSortFilterProxyModel):
             return left < right
 
     def first_item(self):
+        """Returns the first item in the model."""
         cat = self.index(0, 0)
         return self.index(0, 0, cat)
 
     def last_item(self):
+        """Returns the last item in the model."""
         cat = self.index(self.rowCount() - 1, 0)
         return self.index(self.rowCount(cat) - 1, 0, cat)

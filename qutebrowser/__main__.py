@@ -1,3 +1,5 @@
+"""Entry point for qutebrowser. Simply execute qutebrowser."""
+
 from qutebrowser.app import QuteBrowser
 import sys
 

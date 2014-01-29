@@ -1,4 +1,5 @@
-"""Various command utils and the Command base class"""
+"""Contains various command utils, and the CommandParser."""
+
 
 import inspect
 import shlex
@@ -10,6 +11,7 @@ from qutebrowser.commands.exceptions import (ArgumentCountError,
                                              NoSuchCommandError)
 from qutebrowser.utils.completion import CompletionModel
 
+# A mapping from command-strings to command objects.
 cmd_dict = {}
 
 
@@ -28,13 +30,17 @@ def register_all():
 
 
 class CommandParser(QObject):
-    """Parser for qutebrowser commandline commands"""
+    """Parse qutebrowser commandline commands."""
     text = ''
     cmd = ''
     args = []
     error = pyqtSignal(str)  # Emitted if there's an error
 
     def _parse(self, text):
+        """Split the commandline text into command and arguments.
+
+        Raise NoSuchCommandError if a command wasn't found.
+        """
         self.text = text
         parts = self.text.strip().split(maxsplit=1)
         cmdstr = parts[0]
@@ -53,19 +59,22 @@ class CommandParser(QObject):
         self.args = args
 
     def _check(self):
+        """Check if the argument count for the command is correct."""
         self.cmd.check(self.args)
 
     def _run(self, count=None):
+        """Run a command with an optional count."""
         if count is not None:
             self.cmd.run(self.args, count=count)
         else:
             self.cmd.run(self.args)
 
     def run(self, text, count=None, ignore_exc=True):
-        """Parses a command from a line of text.
-        If ignore_exc is True, ignores exceptions and returns True/False
-        instead.
-        Raises NoSuchCommandError if a command wasn't found, and
+        """Parse a command from a line of text.
+
+        If ignore_exc is True, ignore exceptions and return True/False.
+
+        Raise NoSuchCommandError if a command wasn't found, and
         ArgumentCountError if a command was called with the wrong count of
         arguments.
         """
@@ -89,7 +98,11 @@ class CommandParser(QObject):
 
 
 class CommandCompletionModel(CompletionModel):
+
+    """A CompletionModel filled with all commands and descriptions."""
+
     # pylint: disable=abstract-method
+
     def __init__(self, parent=None):
         super().__init__(parent)
         assert cmd_dict

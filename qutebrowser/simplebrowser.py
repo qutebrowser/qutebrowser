@@ -1,4 +1,4 @@
-"""Simple browser for testing purposes"""
+"""Very simple browser for testing purposes."""
 
 import sys
 
