@@ -145,3 +145,10 @@ class PyEval(Command):
 
     nargs = 1
     split_args = False
+
+
+class NextSearch(Command):
+    """Jump to the next search term."""
+
+    nargs = 0
+    hide = True

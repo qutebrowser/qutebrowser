@@ -36,6 +36,7 @@ default_config = {
         'u': 'undo',
         'gg': 'scroll_perc_y 0',
         'G': 'scroll_perc_y',
+        'n': 'nextsearch',
     },
     'colors': {
         'completion.fg': '#333333',

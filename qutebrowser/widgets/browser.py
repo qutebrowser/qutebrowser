@@ -145,6 +145,14 @@ class TabbedBrowser(TabWidget):
         # FIXME display warning if end of history
         self.currentWidget().forward()
 
+    def cur_search(self, text, flags):
+        """Search for text in the current page.
+
+        text  -- The text to search for.
+        flags -- The QWebPage::FindFlags.
+        """
+        self.currentWidget().findText(text, flags)
+
     def cur_scroll(self, dx, dy, count=None):
         """Scroll the current tab by count * dx/dy
 

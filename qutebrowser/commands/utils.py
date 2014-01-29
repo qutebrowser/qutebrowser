@@ -5,6 +5,7 @@ import inspect
 import shlex
 
 from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.commands
 from qutebrowser.commands.exceptions import (ArgumentCountError,
@@ -27,6 +28,43 @@ def register_all():
             names = obj.name
         for n in names:
             cmd_dict[n] = obj
+
+
+class SearchParser(QObject):
+    """Parse qutebrowser searches."""
+    text = None
+    flags = 0
+    do_search = pyqtSignal(str, 'QWebPage::FindFlags')
+
+    def search(self, text):
+        """Search for a text on a website.
+
+        text -- The text to search for.
+        """
+        self._search(text)
+
+    def search_rev(self, text):
+        """Search for a text on a website in reverse direction.
+
+        text -- The text to search for.
+        """
+        self._search(text, rev=True)
+
+    def _search(self, text, rev=False):
+        """Search for a text on the current page.
+
+        text -- The text to search for.
+        rev -- Search direction.
+        """
+        self.text = text
+        if rev:
+            self.flags = QWebPage.FindBackward
+        self.do_search.emit(self.text, self.flags)
+
+    def nextsearch(self):
+        """Continue the search to the next term."""
+        if self.text is not None:
+            self.do_search.emit(self.text, self.flags)
 
 
 class CommandParser(QObject):

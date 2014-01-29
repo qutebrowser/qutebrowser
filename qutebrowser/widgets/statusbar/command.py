@@ -12,6 +12,9 @@ class Command(QLineEdit):
     """The commandline part of the statusbar."""
     # Emitted when a command is triggered by the user
     got_cmd = pyqtSignal(str)
+    # Emitted for searches triggered by the user
+    got_search = pyqtSignal(str)
+    got_search_rev = pyqtSignal(str)
     statusbar = None  # The status bar object
     esc_pressed = pyqtSignal()  # Emitted when escape is pressed
     tab_pressed = pyqtSignal(bool)  # Emitted when tab is pressed (arg: shift)
@@ -47,13 +50,18 @@ class Command(QLineEdit):
 
     def process_cmdline(self):
         """Handle the command in the status bar."""
+        signals = {
+            ':': self.got_cmd,
+            '/': self.got_search,
+            '?': self.got_search_rev,
+        }
         self._histbrowse_stop()
         text = self.text()
         if not self.history or text != self.history[-1]:
             self.history.append(text)
         self.setText('')
-        if text[0] == ':':
-            self.got_cmd.emit(text.lstrip(':'))
+        if text[0] in signals:
+            signals[text[0]].emit(text.lstrip(text[0]))
 
     def set_cmd(self, text):
         """Preset the statusbar to some text."""

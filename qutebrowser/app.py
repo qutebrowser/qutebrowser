@@ -53,6 +53,7 @@ class QuteBrowser(QApplication):
         config.init(confdir)
 
         self.commandparser = cmdutils.CommandParser()
+        self.searchparser = cmdutils.SearchParser()
         self.keyparser = KeyParser(self.mainwindow)
         self._init_cmds()
         self.mainwindow = MainWindow()
@@ -61,9 +62,14 @@ class QuteBrowser(QApplication):
         self.mainwindow.tabs.keypress.connect(self.keyparser.handle)
         self.keyparser.set_cmd_text.connect(self.mainwindow.status.cmd.set_cmd)
         self.mainwindow.status.cmd.got_cmd.connect(self.commandparser.run)
+        self.mainwindow.status.cmd.got_search.connect(self.searchparser.search)
+        self.mainwindow.status.cmd.got_search_rev.connect(
+            self.searchparser.search_rev)
         self.mainwindow.status.cmd.returnPressed.connect(
             self.mainwindow.tabs.setFocus)
         self.commandparser.error.connect(self.mainwindow.status.disp_error)
+        self.searchparser.do_search.connect(
+            self.mainwindow.tabs.cur_search)
         self.keyparser.commandparser.error.connect(
             self.mainwindow.status.disp_error)
         self.keyparser.keystring_updated.connect(
@@ -178,6 +184,7 @@ class QuteBrowser(QApplication):
             'scroll_perc_y': self.mainwindow.tabs.cur_scroll_percent_y,
             'undo':          self.mainwindow.tabs.undo_close,
             'pyeval':        self.pyeval,
+            'nextsearch':    self.searchparser.nextsearch,
         }
 
         handler = handlers[cmd]
