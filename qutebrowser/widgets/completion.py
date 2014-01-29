@@ -93,6 +93,8 @@ class CompletionView(QTreeView):
         """
         width = e.size().width()
         cols = self.model.columnCount()
+        assert cols >= 1
+        assert width / cols > 1
         for i in range(cols):
             self.setColumnWidth(i, width / cols)
         super().resizeEvent(e)
@@ -130,6 +132,8 @@ class CompletionView(QTreeView):
         bottomright = geom.topRight()
         delta = QPoint(0, 200)
         topleft = bottomleft - delta
+        assert topleft.x() < bottomright.x()
+        assert topleft.y() < bottomright.y()
         self.setGeometry(QRect(topleft, bottomright))
 
     def cmd_text_changed(self, text):
