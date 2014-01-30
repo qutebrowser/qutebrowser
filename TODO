@@ -32,7 +32,6 @@ open with preset url (go)
 show infos in statusline, temporary/longer
 set settings/colors/bindings via commandline
 write default config with comments
-proper exception handling with saving pages
 
 Minor features/bugs
 ===================
@@ -40,11 +39,8 @@ Minor features/bugs
 progress bar is often red
 titles are still weird (and not attached to tab obj)
 Hiding scrollbars
-copypaste
 All kind of FIXMEs
 :bind
-docstrings
-completion code cleanup
 Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-20973
     https://bugreports.qt-project.org/browse/QTBUG-21036
@@ -118,12 +114,6 @@ Go back in a new window (command win_hist_back, aliases: winback, wba).
 wl
 Go forward in a new window (command win_hist_forward, aliases: winforward, wfo).
 
-/
-Find forward (command find_forward, alias: ffind).
-
-?
-Find backward (command find_backward, alias bfind).
-
 c/
 Find forward, ignore case (command find_forward_ic, alias: iffind).
 
@@ -154,9 +144,6 @@ Open quickmark in a new tab (command tab_quickmark, aliases: tabqmarks).
 wb[:graph:]
 Open quickmark in a new window (command win_quickmark, aliases: winqmarks).
 
-[n]r
-Reload tab n or current tab if n is omitted (command reload, aliases: re).
-
 [n]R
 Reload tab n or current tab if n is omitted without using any cached data (command reload_bypass_cache, aliases: refull).
 
@@ -180,12 +167,6 @@ Save current session and exit (command save_session, aliases: wq).
 
 gZZ
 Save current session with name and exit (command save_named_session, aliases: wqn).
-
-[n]J
-Cycle focus [n tab] forwards. (command focus_next, aliases: tabnext).
-
-[n]K
-Cycle focus [n tab] backwards. (command focus_prev, aliases: tabprev).
 
 [n]T
 Focus nth tab, first tab if n is omitted or last tab if n is 0. (command focus_tab, aliases: tab).
@@ -273,30 +254,6 @@ Allow session cookie for the current website. The domain will be saved in cookie
 
 CT
 Allow session cookies for the current website temporarily. Only first party cookies are allowed. The domain is not saved to a whitelist and the cookies will not be saved persitently. (command allow_session_cookie_tmp, aliases: tcookie).
-
-[n]yy
-Yank the url of tab n or of current tab if n is omitted to clipboard (command yank).
-
-yY
-Yank the url of tab n or of current tab if n is omitted to primary selection (command yank_primary, aliases: pyank).
-
-yt
-Yank the title of tab n or of current tab if n is omitted to clipboard (command yank_title, aliases: tyank).
-
-yT
-Yank the title of tab n or of current tab if n is omitted to primary selection (command yank_title_primary, aliases: tpyank).
-
-pp
-Paste from clipboard (command paste).
-
-pP
-Paste from primary selection (command paste_primary, aliases: ppaste).
-
-Pp
-Paste from clipboard and load in a new tab (command tab_paste, aliases: tpaste).
-
-PP
-Paste from primary selection and load in a new tab (command tab_paste_primary, aliases: tppaste).
 
 wp
 Paste from clipboard and load in a new window (command paste_nw, aliases: winpaste).
