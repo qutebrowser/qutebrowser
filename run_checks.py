@@ -85,6 +85,7 @@ flake8_disable = [
 
 run('pylint', ['--ignore=appdirs.py', '--output-format=colorized',
                '--reports=no', '--disable=' + ','.join(pylint_disable)])
+# FIXME what the hell is the flake8 exit status?
 run('flake8', ['--max-complexity=10', '--exclude=appdirs.py',
                '--ignore=' + ''.join(flake8_disable)])
 check_crlf()
@@ -92,3 +93,8 @@ check_crlf()
 print('Exit status values:')
 for (k, v) in status.items():
     print('  {} - {}'.format(k, v))
+
+if all([val in [True, 0] for val in status]):
+    sys.exit(0)
+else:
+    sys.exit(1)
