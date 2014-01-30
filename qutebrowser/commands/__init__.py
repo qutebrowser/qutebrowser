@@ -193,3 +193,9 @@ class TabPaste(Command):
     """
 
     nargs = '?'
+
+
+class Crash(Command):
+    """Simply raise an exception for debugging."""
+    nargs = 0
+    hide = True

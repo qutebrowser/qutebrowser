@@ -195,6 +195,7 @@ class QuteBrowser(QApplication):
             'yanktitle':     self.mainwindow.tabs.cur_yank_title,
             'paste':         self.mainwindow.tabs.paste,
             'tabpaste':      self.mainwindow.tabs.tabpaste,
+            'crash':         self.crash,
         }
 
         handler = handlers[cmd]
@@ -222,3 +223,10 @@ class QuteBrowser(QApplication):
         tab = self.mainwindow.tabs.currentWidget()
         tab.setUrl(QUrl('about:pyeval'))
         tab.setContent(out.encode('UTF-8'), 'text/plain')
+
+    def crash(self):
+        """Crash for debugging purposes.
+
+        :crash command handler.
+        """
+        raise Exception
