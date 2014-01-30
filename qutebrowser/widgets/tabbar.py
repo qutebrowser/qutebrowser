@@ -43,6 +43,8 @@ class TabWidget(QTabWidget):
     """
 
     def __init__(self, parent):
+        # FIXME export some settings (TabPosition, tabsClosable,
+        # usesScrollButtons)
         super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setStyleSheet(config.get_stylesheet(self._stylesheet))
