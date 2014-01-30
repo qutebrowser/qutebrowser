@@ -6,6 +6,12 @@ import faulthandler
 from signal import signal, SIGINT
 from argparse import ArgumentParser
 
+# This is a really old place to do this, but we have to do this before
+# importing PyQt or it won't work.
+# See https://bugreports.qt-project.org/browse/QTBUG-36099
+import qutebrowser.utils.harfbuzz as harfbuzz
+harfbuzz.fix()
+
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QUrl, QTimer
 
