@@ -61,10 +61,13 @@ class SearchParser(QObject):
             self.flags = QWebPage.FindBackward
         self.do_search.emit(self.text, self.flags)
 
-    def nextsearch(self):
-        """Continue the search to the next term."""
+    def nextsearch(self, count=None):
+        """Continue the search to the ([count]th) next term."""
+        if count is None:
+            count = 1
         if self.text is not None:
-            self.do_search.emit(self.text, self.flags)
+            for i in range(count):  # pylint: disable=unused-variable
+                self.do_search.emit(self.text, self.flags)
 
 
 class CommandParser(QObject):

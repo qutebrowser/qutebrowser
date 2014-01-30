@@ -75,13 +75,15 @@ class TabbedBrowser(TabWidget):
         # FIXME sometimes this doesn't load
         tab.open_tab.connect(self.tabopen)
 
-    def openurl(self, url):
-        """Open an url in the current tab.
+    def openurl(self, url, count=None):
+        """Open an url in the current/[count]th tab.
 
         Command handler for :open.
         url -- The URL to open.
         """
-        self.currentWidget().openurl(url)
+        tab = self._widget(count)
+        if tab is not None:
+            tab.openurl(url)
 
     def undo_close(self):
         """Undo closing a tab.
@@ -91,60 +93,75 @@ class TabbedBrowser(TabWidget):
         if self._url_stack:
             self.tabopen(self._url_stack.pop())
 
-    def cur_close(self):
-        """Close the current tab.
+    def cur_close(self, count=None):
+        """Close the current/[count]th tab.
 
         Command handler for :close.
         """
         if self.count() > 1:
-            idx = self.currentIndex()
-            tab = self.currentWidget()
-            # FIXME maybe we actually should store the webview objects here
-            self._url_stack.append(tab.url())
-            self.removeTab(idx)
+            idx = self.currentIndex() if count is None else count - 1
+            tab = self._widget(count)
+            if tab is not None:
+                # FIXME maybe we actually should store the webview objects here
+                self._url_stack.append(tab.url())
+                self.removeTab(idx)
         else:
             # FIXME
             pass
 
-    def cur_reload(self):
-        """Reload the current tab.
+    def cur_reload(self, count=None):
+        """Reload the current/[count]th tab.
 
         Command handler for :reload.
         """
-        self.currentWidget().reload()
+        tab = self._widget(count)
+        if tab is not None:
+            tab.reload()
 
-    def cur_stop(self):
-        """Stop loading in the current tab.
+    def cur_stop(self, count=None):
+        """Stop loading in the current/[count]th tab.
 
         Command handler for :stop.
         """
-        self.currentWidget().stop()
+        tab = self._widget(count)
+        if tab is not None:
+            tab.stop()
 
-    def cur_print(self):
-        """Print the current tab.
+    def cur_print(self, count=None):
+        """Print the current/[count]th tab.
 
         Command handler for :print.
         """
         # FIXME that does not what I expect
-        preview = QPrintPreviewDialog()
-        preview.paintRequested.connect(self.currentWidget().print)
-        preview.exec_()
+        tab = self._widget(count)
+        if tab is not None:
+            preview = QPrintPreviewDialog()
+            preview.paintRequested.connect(tab.print)
+            preview.exec_()
 
-    def cur_back(self):
+    def cur_back(self, count=None):
         """Go back in the history of the current tab.
 
+        Go back for 1 page if count is unset, else go back [count] pages.
         Command handler for :back.
         """
         # FIXME display warning if beginning of history
-        self.currentWidget().back()
+        if count is None:
+            count = 1
+        for i in range(count):  # pylint: disable=unused-variable
+            self.currentWidget().back()
 
-    def cur_forward(self):
+    def cur_forward(self, count=None):
         """Go forward in the history of the current tab.
 
+        Go forward for 1 page if count is unset, else go forward [count] pages.
         Command handler for :forward.
         """
         # FIXME display warning if end of history
-        self.currentWidget().forward()
+        if count is None:
+            count = 1
+        for i in range(count):  # pylint: disable=unused-variable
+            self.currentWidget().forward()
 
     def cur_search(self, text, flags):
         """Search for text in the current page.
@@ -195,26 +212,30 @@ class TabbedBrowser(TabWidget):
             return
         frame.setScrollBarValue(orientation, int(m * perc / 100))
 
-    def switch_prev(self):
-        """Switch to the previous tab.
+    def switch_prev(self, count=None):
+        """Switch to the ([count]th) previous tab.
 
         Command handler for :tabprev.
         """
+        if count is None:
+            count = 1
         idx = self.currentIndex()
-        if idx > 0:
-            self.setCurrentIndex(idx - 1)
+        if idx - count >= 0:
+            self.setCurrentIndex(idx - count)
         else:
             # FIXME
             pass
 
-    def switch_next(self):
-        """Switch to the next tab.
+    def switch_next(self, count=None):
+        """Switch to the ([count]th) next tab.
 
         Command handler for :tabnext.
         """
+        if count is None:
+            count = 1
         idx = self.currentIndex()
-        if idx < self.count() - 1:
-            self.setCurrentIndex(idx + 1)
+        if idx + count < self.count():
+            self.setCurrentIndex(idx + count)
         else:
             # FIXME
             pass
@@ -280,6 +301,18 @@ class TabbedBrowser(TabWidget):
         """Extend TabWidget (QWidget)'s keyPressEvent to emit a signal."""
         self.keypress.emit(e)
         super().keyPressEvent(e)
+
+    def _widget(self, count=None):
+        """Return a widget based on a count/idx.
+
+        If count is None, return the current widget.
+        """
+        if count is None:
+            return self.currentWidget()
+        elif 1 <= count <= self.count():
+            return self.widget(count - 1)
+        else:
+            return None
 
     def _titleChanged_handler(self, text):
         """Set the title of a tab.

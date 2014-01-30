@@ -23,13 +23,14 @@ from qutebrowser.commands.template import Command
 
 
 class Open(Command):
-    """Open a page.
+    """Open a page in the current or [count]th tab.
 
     arg: The URL to open.
     """
 
     nargs = 1
     split_args = False
+    count = True
 
 
 class TabOpen(Command):
@@ -43,21 +44,21 @@ class TabOpen(Command):
 
 
 class TabClose(Command):
-    """Close the current tab."""
+    """Close the current tab, or tab [count]."""
     nargs = 0
-    # FIXME also close [count]th tab
+    count = True
 
 
 class TabNext(Command):
-    """Switch to the next tab."""
+    """Switch to the next tab, or skip [count] tabs."""
     nargs = 0
-    # FIXME also support [count]
+    count = True
 
 
 class TabPrev(Command):
-    """Switch to the previous tab."""
+    """Switch to the previous tab, or skip [count] tabs."""
     nargs = 0
-    # FIXME also support [count]
+    count = True
 
 
 class Quit(Command):
@@ -67,30 +68,33 @@ class Quit(Command):
 
 
 class Reload(Command):
-    """Reload the current page."""
+    """Reload the current page, or the page in tab [count]."""
     nargs = 0
+    count = True
 
 
 class Stop(Command):
-    """Stop loading the current page."""
+    """Stop loading the current page, or the page in tab [count]."""
     nargs = 0
+    count = True
 
 
 class Back(Command):
-    """Go back one page in the history."""
+    """Go back one/[count] page(s) in the history."""
     nargs = 0
-    # FIXME also support [count]
+    count = True
 
 
 class Forward(Command):
-    """Go forward one page in the history."""
+    """Go forward one/[count] page(s) in the history."""
     nargs = 0
-    # FIXME also support [count]
+    count = True
 
 
 class Print(Command):
-    """Print the current page."""
+    """Print the current page, or the page in tab [count]."""
     nargs = 0
+    count = True
 
 
 class Scroll(Command):
@@ -148,10 +152,11 @@ class PyEval(Command):
 
 
 class NextSearch(Command):
-    """Jump to the next search term."""
+    """Jump to the next or [count]th next search term."""
 
     nargs = 0
     hide = True
+    count = True
 
 
 class Yank(Command):
