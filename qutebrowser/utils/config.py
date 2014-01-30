@@ -9,66 +9,64 @@ MONOSPACE      -- A list of suitable monospace fonts.
 import os.path
 import os
 import logging
-
 from configparser import ConfigParser
 
 config = None
 colordict = {}
 
-default_config = {
-    'general': {
-        'show_completion': 'true',
-        'space_scroll': '200',
-    },
-    'keybind': {
-        'o': 'open',
-        'O': 'tabopen',
-        'd': 'tabclose',
-        'J': 'tabnext',
-        'K': 'tabprev',
-        'r': 'reload',
-        'H': 'back',
-        'L': 'forward',
-        'h': 'scroll -50 0',
-        'j': 'scroll 0 50',
-        'k': 'scroll 0 -50',
-        'l': 'scroll 50 0',
-        'u': 'undo',
-        'gg': 'scroll_perc_y 0',
-        'G': 'scroll_perc_y',
-        'n': 'nextsearch',
-        'yy': 'yank',
-        'yY': 'yank sel',
-        'yt': 'yanktitle',
-        'yT': 'yanktitle sel',
-        'pp': 'paste',
-        'pP': 'paste sel',
-        'Pp': 'tabpaste',
-        'PP': 'tabpaste sel',
-    },
-    'colors': {
-        'completion.fg': '#333333',
-        'completion.item.bg': 'white',
-        'completion.category.bg': ('qlineargradient(x1:0, y1:0, x2:0, y2:1, '
-                                   'stop:0 #e4e4e4, stop:1 #dbdbdb)'),
-        'completion.category.border.top': '#808080',
-        'completion.category.border.bottom': '#bbbbbb',
-        'completion.item.selected.fg': '#333333',
-        'completion.item.selected.bg': '#ffec8b',
-        'completion.item.selected.border.top': '#f2f2c0',
-        'completion.item.selected.border.bottom': '#e6e680',
-        'completion.match.fg': 'red',
-        'statusbar.progress.bg': 'white',
-        'statusbar.progress.bg.error': 'red',
-        'statusbar.bg': 'black',
-        'statusbar.fg': 'white',
-        'statusbar.bg.error': 'red',
-        'tab.bg': 'grey',
-        'tab.bg.selected': 'black',
-        'tab.fg': 'white',
-        'tab.seperator': 'white',
-    },
-}
+default_config = """
+    [general]
+    show_completion = true
+    space_scroll = 200
+
+    [keybind]
+    o = open
+    O = tabopen
+    d = tabclose
+    J = tabnext
+    K = tabprev
+    r = reload
+    H = back
+    L = forward
+    h = scroll -50 0
+    j = scroll 0 50
+    k = scroll 0 -50
+    l = scroll 50 0
+    u = undo
+    gg = scroll_perc_y 0
+    G = scroll_perc_y
+    n = nextsearch
+    yy = yank
+    yY = yank sel
+    yt = yanktitle
+    yT = yanktitle sel
+    pp = paste
+    pP = paste sel
+    Pp = tabpaste
+    PP = tabpaste sel
+
+    [colors]
+    completion.fg = #333333
+    completion.item.bg = white
+    completion.category.bg = qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                             stop:0 #e4e4e4, stop:1 #dbdbdb)
+    completion.category.border.top = #808080
+    completion.category.border.bottom = #bbbbbb
+    completion.item.selected.fg = #333333
+    completion.item.selected.bg = #ffec8b
+    completion.item.selected.border.top = #f2f2c0
+    completion.item.selected.border.bottom = #e6e680
+    completion.match.fg = red
+    statusbar.progress.bg = white
+    statusbar.progress.bg.error = red
+    statusbar.bg = black
+    statusbar.fg = white
+    statusbar.bg.error = red
+    tab.bg = grey
+    tab.bg.selected = black
+    tab.fg = white
+    tab.seperator = white
+"""
 
 _MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas', 'Monaco',
               'Bitstream Vera Sans Mono', 'Andale Mono', 'Liberation Mono',
@@ -157,11 +155,11 @@ class Config(ConfigParser):
         """Initialize Config from default_config and save it."""
         logging.info("Initializing default config.")
         if self.configdir is None:
-            self.read_dict(default_config)
+            self.read_string(default_config)
             return
         cp = ConfigParser()
         cp.optionxform = lambda opt: opt  # be case-insensitive
-        cp.read_dict(default_config)
+        cp.read_string(default_config)
         if not os.path.exists(self.configdir):
             os.makedirs(self.configdir, 0o755)
         with open(self.configfile, 'w') as f:
