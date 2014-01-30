@@ -19,20 +19,20 @@ class CrashDialog(QDialog):
 
         vbox = QVBoxLayout()
         lbl = QLabel(self)
-        #lbl.setGeometry(5, 5, 395, 295)
         lbl.setText(
             'Argh! qutebrowser crashed unexpectedly.<br/>'
             'Please review the info below to remove sensitive data and then '
             'submit it to '
-            '<a href="mailto:me@the-compiler.org">me@the-compiler.org</a>.'
-            '<br/><br/>You can click "Restore tabs" to attempt to reopen your '
-            'open pages.'
+            '<a href="mailto:qutebrowser@the-compiler.org">'
+            'qutebrowser@the-compiler.org</a>.<br/><br/>'
+            'You can click "Restore tabs" to attempt to reopen your '
+            'open tabs.'
         )
+        lbl.setWordWrap(True)
         vbox.addWidget(lbl)
 
         txt = QTextEdit(self)
         txt.setReadOnly(True)
-        #txt.setGeometry(5, 400, 395, 295)
         txt.setText(
             '==== Version info ====\n{}\n\n'.format(utils.version()) +
             '==== Exception ====\n{}\n'.format(
