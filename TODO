@@ -32,6 +32,8 @@ open with preset url (go)
 show infos in statusline, temporary/longer
 set settings/colors/bindings via commandline
 sane default config handling (default always loaded, userconfig overrides, provide unbind)
+    check if settings fallbacks/KeyError catching is needed (default always
+    should be there)
 write default config with comments
 proper exception handling with saving pages
 
