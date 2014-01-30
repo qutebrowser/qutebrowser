@@ -7,7 +7,7 @@ containing BrowserTabs).
 
 import logging
 
-from PyQt5.QtWidgets import QShortcut, QApplication
+from PyQt5.QtWidgets import QShortcut, QApplication, QSizePolicy
 from PyQt5.QtCore import pyqtSignal, Qt, QEvent
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
@@ -43,6 +43,7 @@ class TabbedBrowser(TabWidget):
         space.setKey(Qt.Key_Space)
         space.setContext(Qt.WidgetWithChildrenShortcut)
         space.activated.connect(self.space_scroll)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
     def tabopen(self, url):
         """Open a new tab with a given url.

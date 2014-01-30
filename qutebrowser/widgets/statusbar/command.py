@@ -1,7 +1,7 @@
 """The commandline part of the statusbar."""
 import logging
 
-from PyQt5.QtWidgets import QLineEdit, QShortcut
+from PyQt5.QtWidgets import QLineEdit, QShortcut, QSizePolicy
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QValidator, QKeySequence
 
@@ -35,6 +35,7 @@ class Command(QLineEdit):
         self.setValidator(Validator())
         self.returnPressed.connect(self.process_cmdline)
         self.textEdited.connect(self._histbrowse_stop)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         for (key, handler) in [
                 (Qt.Key_Escape, self.esc_pressed),

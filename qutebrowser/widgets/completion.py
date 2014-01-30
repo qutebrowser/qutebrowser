@@ -8,7 +8,7 @@ subclasses to provide completions.
 import html
 
 from PyQt5.QtWidgets import (QTreeView, QStyledItemDelegate, QStyle,
-                             QStyleOptionViewItem)
+                             QStyleOptionViewItem, QSizePolicy)
 from PyQt5.QtCore import (QRectF, QRect, QPoint, pyqtSignal, Qt,
                           QItemSelectionModel)
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
@@ -77,6 +77,7 @@ class CompletionView(QTreeView):
         self.model.pattern_changed.connect(self.resort)
         self.setItemDelegate(CompletionItemDelegate())
         self.setStyleSheet(config.get_stylesheet(self._stylesheet))
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.expandAll()
         self.setHeaderHidden(True)
         self.setIndentation(0)

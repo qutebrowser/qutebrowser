@@ -1,6 +1,6 @@
 """The tab widget used for TabbedBrowser from browser.py."""
 
-from PyQt5.QtWidgets import QTabWidget
+from PyQt5.QtWidgets import QTabWidget, QSizePolicy
 from PyQt5.QtCore import Qt
 
 import qutebrowser.utils.config as config
@@ -21,6 +21,7 @@ class TabWidget(QTabWidget):
         QTabBar {{
             font-family: {monospace};
             font-size: 8pt;
+            height: 13px;
         }}
 
         QTabBar::tab {{
@@ -43,6 +44,7 @@ class TabWidget(QTabWidget):
 
     def __init__(self, parent):
         super().__init__(parent)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setStyleSheet(config.get_stylesheet(self._stylesheet))
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)

@@ -19,7 +19,7 @@ class Text(QLabel):
     def __init__(self, bar):
         super().__init__(bar)
         self.setStyleSheet("padding-right: 1px;")
-        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Ignored)
+        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
 
     def __setattr__(self, name, value):
         super().__setattr__(name, value)
