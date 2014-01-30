@@ -49,4 +49,5 @@ class TabWidget(QTabWidget):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setStyleSheet(config.get_stylesheet(self._stylesheet))
         self.setDocumentMode(True)
+        self.setMovable(True)
         self.setElideMode(Qt.ElideRight)
