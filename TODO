@@ -28,17 +28,19 @@ Bookmarks
 Internationalization
 License
 Marks
-yanking url/...
-pasting
 open with preset url (go)
 show infos in statusline, temporary/longer
 set settings/colors/bindings via commandline
 sane default config handling (default always loaded, userconfig overrides, provide unbind)
 write default config with comments
+proper exception handling with saving pages
 
 Minor features/bugs
 ===================
 
+Mayhaps set QT_HARFBUZZ=old -- this doesn't seem to be possible the easy way (os.environ)
+progress bar is often red
+titles are still weird (and not attached to tab obj)
 Hiding scrollbars
 copypaste
 All kind of FIXMEs
