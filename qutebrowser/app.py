@@ -1,7 +1,9 @@
 """ Initialization of qutebrowser and application-wide things """
 
+import os
 import sys
 import logging
+import traceback
 import faulthandler
 from signal import signal, SIGINT
 from argparse import ArgumentParser
@@ -12,12 +14,13 @@ from argparse import ArgumentParser
 import qutebrowser.utils.harfbuzz as harfbuzz
 harfbuzz.fix()
 
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QDialog
 from PyQt5.QtCore import QUrl, QTimer
 
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.config as config
 from qutebrowser.widgets.mainwindow import MainWindow
+from qutebrowser.widgets import CrashDialog
 from qutebrowser.commands.keys import KeyParser
 from qutebrowser.utils.appdirs import AppDirs
 
@@ -107,32 +110,57 @@ class QuteBrowser(QApplication):
                                          fallback='http://ddg.gg/').split(','):
                 self.mainwindow.tabs.tabopen(url)
 
-    def _tmp_exception_hook(self, exctype, value, traceback):
+    def _tmp_exception_hook(self, exctype, excvalue, tb):
         """Handle exceptions while initializing by simply exiting.
 
         This is only temporary and will get replaced by exception_hook later.
         It's necessary because PyQt seems to ignore exceptions by default.
         """
-        sys.__excepthook__(exctype, value, traceback)
+        sys.__excepthook__(exctype, excvalue, tb)
         self.exit(1)
 
-    def _exception_hook(self, exctype, value, traceback):
+    def _exception_hook(self, exctype, excvalue, tb):
         """Handle uncaught python exceptions.
 
         It'll try very hard to write all open tabs to a file, and then exit
         gracefully.
         """
         # pylint: disable=broad-except
-        sys.__excepthook__(exctype, value, traceback)
+
+        exc = (exctype, excvalue, tb)
+        traceback.print_exception(*exc)
+
+        pages = []
         try:
             for tabidx in range(self.mainwindow.tabs.count()):
                 try:
-                    # FIXME write to some file
-                    print(self.mainwindow.tabs.widget(tabidx).url().url())
+                    url = self.mainwindow.tabs.widget(tabidx).url().toString()
+                    url = url.strip()
+                    if url:
+                        pages.append(url)
                 except Exception:
                     pass
         except Exception:
             pass
+
+        try:
+            history = self.mainwindow.status.cmd.history[-5:]
+        except Exception:
+            history = []
+
+        dlg = CrashDialog(pages, history, exc)
+        ret = dlg.exec_()
+        if ret == QDialog.Accepted:  # restore
+            os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
+            # FIXME we might want to use argparse's features to not open pages
+            # again if they were opened via cmdline
+            argv = [sys.executable] + sys.argv + pages
+            logging.debug('Running {} with args {}'.format(sys.executable,
+                                                           argv))
+            sys.stdout.flush()
+            # FIXME this seems broken on Windows, execv() splits on whitespace
+            # in arguments?!?
+            os.execv(sys.executable, argv)
         self.exit(1)
 
     def _python_hacks(self):
