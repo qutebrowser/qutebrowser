@@ -1,7 +1,7 @@
 """Several widgets in the statusbar."""
 
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QHBoxLayout, QWidget
+from PyQt5.QtWidgets import QHBoxLayout, QWidget, QSizePolicy
 
 import qutebrowser.utils.config as config
 from qutebrowser.widgets.statusbar.command import Command
@@ -23,6 +23,8 @@ class StatusBar(QWidget):
             {color[statusbar.bg.__cur__]}
             {color[statusbar.fg.__cur__]}
             font-family: {monospace};
+            font-size: 8pt;
+            height: 13px;
         }}
     """
 
@@ -42,6 +44,8 @@ class StatusBar(QWidget):
         self.fgcolor = config.colordict.getraw('statusbar.fg')
         self.bgcolor = config.colordict.getraw('statusbar.bg')
         self.setStyleSheet(config.get_stylesheet(self._stylesheet))
+
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         self.hbox = QHBoxLayout(self)
         self.hbox.setContentsMargins(0, 0, 0, 0)
@@ -69,7 +73,7 @@ class StatusBar(QWidget):
         self.txt.error = ''
 
     def resizeEvent(self, e):
-        """Override resizeEvent of QWidget to emit a resized signal afterwards.
+        """Extend resizeEvent of QWidget to emit a resized signal afterwards.
 
         e -- The QResizeEvent.
         """

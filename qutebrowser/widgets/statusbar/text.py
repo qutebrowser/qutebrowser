@@ -1,7 +1,7 @@
 """The text part of the statusbar."""
 
 import logging
-from PyQt5.QtWidgets import QLabel
+from PyQt5.QtWidgets import QLabel, QSizePolicy
 
 
 class Text(QLabel):
@@ -18,7 +18,8 @@ class Text(QLabel):
 
     def __init__(self, bar):
         super().__init__(bar)
-        self.setStyleSheet("padding-right: 1px")
+        self.setStyleSheet("padding-right: 1px;")
+        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Ignored)
 
     def __setattr__(self, name, value):
         super().__setattr__(name, value)

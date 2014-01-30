@@ -31,7 +31,7 @@ class Command(QLineEdit):
         super().__init__(statusbar)
         # FIXME
         self.statusbar = statusbar
-        self.setStyleSheet("border: 0px; padding-left: 1px")
+        self.setStyleSheet("border: 0px; padding-left: 1px;")
         self.setValidator(Validator())
         self.returnPressed.connect(self.process_cmdline)
         self.textEdited.connect(self._histbrowse_stop)

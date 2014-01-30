@@ -3,7 +3,6 @@
 import qutebrowser.utils.config as config
 
 from PyQt5.QtWidgets import QProgressBar, QSizePolicy
-from PyQt5.QtCore import QSize
 
 
 class Progress(QProgressBar):
@@ -26,7 +25,7 @@ class Progress(QProgressBar):
         self.statusbar = statusbar
         super().__init__(statusbar)
 
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Ignored)
         self.setTextVisible(False)
         self.color = config.colordict.getraw('statusbar.progress.bg')
         self.hide()
@@ -37,20 +36,6 @@ class Progress(QProgressBar):
         if name == 'color' and value is not None:
             config.colordict['statusbar.progress.bg.__cur__'] = value
             self.setStyleSheet(config.get_stylesheet(self._stylesheet))
-
-    def minimumSizeHint(self):
-        """Return the size of the progress widget."""
-        status_size = self.statusbar.size()
-        return QSize(100, status_size.height())
-
-    def sizeHint(self):
-
-        """Return the size of the progress widget.
-
-        Simply copied from minimumSizeHint because the SizePolicy is fixed.
-        """
-
-        return self.minimumSizeHint()
 
     def set_progress(self, prog):
         """Set the progress of the bar and show/hide it if necessary."""
