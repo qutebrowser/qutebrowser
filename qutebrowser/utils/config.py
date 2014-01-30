@@ -18,6 +18,8 @@ default_config = """
     [general]
     show_completion = true
     space_scroll = 200
+    ignorecase = true
+    wrapsearch = true
 
     [keybind]
     o = open

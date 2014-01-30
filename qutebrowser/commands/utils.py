@@ -8,6 +8,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.commands
+import qutebrowser.utils.config as config
 from qutebrowser.commands.exceptions import (ArgumentCountError,
                                              NoSuchCommandError)
 from qutebrowser.utils.completion import CompletionModel
@@ -59,8 +60,13 @@ class SearchParser(QObject):
         if self.text != text:
             self.do_search.emit('', 0)
         self.text = text
+        self.flags = 0
+        if config.config.getboolean('general', 'ignorecase', fallback=True):
+            self.flags |= QWebPage.FindCaseSensitively
+        if config.config.getboolean('general', 'wrapsearch', fallback=True):
+            self.flags |= QWebPage.FindWrapsAroundDocument
         if rev:
-            self.flags = QWebPage.FindBackward
+            self.flags |= QWebPage.FindBackward
         self.do_search.emit(self.text, self.flags)
 
     def nextsearch(self, count=1):
