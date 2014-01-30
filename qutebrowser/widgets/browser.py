@@ -139,27 +139,23 @@ class TabbedBrowser(TabWidget):
             preview.paintRequested.connect(tab.print)
             preview.exec_()
 
-    def cur_back(self, count=None):
+    def cur_back(self, count=1):
         """Go back in the history of the current tab.
 
         Go back for 1 page if count is unset, else go back [count] pages.
         Command handler for :back.
         """
         # FIXME display warning if beginning of history
-        if count is None:
-            count = 1
         for i in range(count):  # pylint: disable=unused-variable
             self.currentWidget().back()
 
-    def cur_forward(self, count=None):
+    def cur_forward(self, count=1):
         """Go forward in the history of the current tab.
 
         Go forward for 1 page if count is unset, else go forward [count] pages.
         Command handler for :forward.
         """
         # FIXME display warning if end of history
-        if count is None:
-            count = 1
         for i in range(count):  # pylint: disable=unused-variable
             self.currentWidget().forward()
 
@@ -171,13 +167,11 @@ class TabbedBrowser(TabWidget):
         """
         self.currentWidget().findText(text, flags)
 
-    def cur_scroll(self, dx, dy, count=None):
+    def cur_scroll(self, dx, dy, count=1):
         """Scroll the current tab by count * dx/dy
 
         Command handler for :scroll.
         """
-        if count is None:
-            count = 1
         dx = int(count) * int(dx)
         dy = int(count) * int(dy)
         self.currentWidget().page().mainFrame().scroll(dx, dy)
@@ -212,13 +206,11 @@ class TabbedBrowser(TabWidget):
             return
         frame.setScrollBarValue(orientation, int(m * perc / 100))
 
-    def switch_prev(self, count=None):
+    def switch_prev(self, count=1):
         """Switch to the ([count]th) previous tab.
 
         Command handler for :tabprev.
         """
-        if count is None:
-            count = 1
         idx = self.currentIndex()
         if idx - count >= 0:
             self.setCurrentIndex(idx - count)
@@ -226,13 +218,11 @@ class TabbedBrowser(TabWidget):
             # FIXME
             pass
 
-    def switch_next(self, count=None):
+    def switch_next(self, count=1):
         """Switch to the ([count]th) next tab.
 
         Command handler for :tabnext.
         """
-        if count is None:
-            count = 1
         idx = self.currentIndex()
         if idx + count < self.count():
             self.setCurrentIndex(idx + count)

@@ -193,7 +193,7 @@ class QuteBrowser(QApplication):
 
         handler = handlers[cmd]
 
-        if self.sender().count:
+        if count is not None and self.sender().count:
             return handler(*args, count=count)
         else:
             return handler(*args)
