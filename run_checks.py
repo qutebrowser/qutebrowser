@@ -70,13 +70,15 @@ pylint_disable = [
     'no-name-in-module',
     'invalid-name',               # short variable names can be nice
     'star-args',                  # we want to use this
-    'fixme',                      # I'll decide myself when to fix them
+    'fixme',
     'too-many-public-methods',    # Basically unavoidable with Qt
-    'no-self-use',                # I'll decide that myself, thanks
+    'no-self-use',
     'super-on-old-class',         # These don't even exist in python3
     'old-style-class',
-    'global-statement',           # Sometimes necessary
+    'global-statement',
     'abstract-class-little-used', # False-positives
+    'bad-builtin',                # map/filter can be nicer than comprehensions
+    'too-many-arguments',
 ]
 
 flake8_disable = [
