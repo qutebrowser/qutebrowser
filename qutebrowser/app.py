@@ -83,6 +83,29 @@ class QuteBrowser(QApplication):
 
         self.mainwindow.show()
         self._python_hacks()
+        self._process_init_args()
+
+    def _process_init_args(self):
+        """Process initial positional args.
+
+        URLs to open have no prefix, commands to execute begin with a colon.
+        """
+        opened_urls = False
+
+        for e in self.args.command:
+            if e.startswith(':'):
+                logging.debug('Startup cmd {}'.format(e))
+                self.commandparser.run(e.lstrip(':'))
+            else:
+                logging.debug('Startup url {}'.format(e))
+                opened_urls = True
+                self.mainwindow.tabs.tabopen(e)
+
+        if not opened_urls:
+            logging.debug('Opening startpage')
+            for url in config.config.get('general', 'startpage',
+                                         fallback='http://ddg.gg/').split(','):
+                self.mainwindow.tabs.tabopen(url)
 
     def _tmp_exception_hook(self, exctype, value, traceback):
         """Handle exceptions while initializing by simply exiting.
@@ -132,6 +155,10 @@ class QuteBrowser(QApplication):
                             help='Set loglevel', default='info')
         parser.add_argument('-c', '--confdir', help='Set config directory '
                             '(empty for no config storage)')
+        parser.add_argument('command', nargs='*', help='Commands to execute '
+                            'on startup.', metavar=':command')
+        # URLs will actually be in command
+        parser.add_argument('url', nargs='*', help='URLs to open on startup.')
         self.args = parser.parse_args()
 
     def _initlog(self):

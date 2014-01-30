@@ -8,7 +8,7 @@ containing BrowserTabs).
 import logging
 
 from PyQt5.QtWidgets import QShortcut, QApplication
-from PyQt5.QtCore import QUrl, pyqtSignal, Qt, QEvent
+from PyQt5.QtCore import pyqtSignal, Qt, QEvent
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
@@ -39,7 +39,6 @@ class TabbedBrowser(TabWidget):
     def __init__(self, parent):
         super().__init__(parent)
         self.currentChanged.connect(self._currentChanged_handler)
-        self.tabopen(QUrl("http://ddg.gg/"))
         space = QShortcut(self)
         space.setKey(Qt.Key_Space)
         space.setContext(Qt.WidgetWithChildrenShortcut)

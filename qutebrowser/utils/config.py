@@ -20,6 +20,7 @@ default_config = """
     space_scroll = 200
     ignorecase = true
     wrapsearch = true
+    startpage = http://www.duckduckgo.com/
 
     [keybind]
     o = open
