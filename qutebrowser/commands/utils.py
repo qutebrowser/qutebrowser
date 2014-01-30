@@ -82,6 +82,8 @@ class CommandParser(QObject):
         """
         self.text = text
         parts = self.text.strip().split(maxsplit=1)
+        if not parts:
+            raise NoSuchCommandError
         cmdstr = parts[0]
         try:
             cmd = cmd_dict[cmdstr]
