@@ -106,8 +106,8 @@ class QuteBrowser(QApplication):
 
         if not opened_urls:
             logging.debug('Opening startpage')
-            for url in config.config.get('general', 'startpage',
-                                         fallback='http://ddg.gg/').split(','):
+            # pylint: disable=maybe-no-member
+            for url in config.config.get('general', 'startpage').split(','):
                 self.mainwindow.tabs.tabopen(url)
 
     def _tmp_exception_hook(self, exctype, excvalue, tb):

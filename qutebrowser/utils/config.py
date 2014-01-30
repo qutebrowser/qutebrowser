@@ -136,6 +136,8 @@ class Config(ConfigParser):
 
     configdir = None
     FNAME = 'config'
+    default_cp = None
+    config_loaded = False
 
     def __init__(self, configdir):
         """Config constructor.
@@ -143,34 +145,41 @@ class Config(ConfigParser):
         configdir -- directory to store the config in.
         """
         super().__init__()
+        self.default_cp = ConfigParser()
+        self.default_cp.optionxform = lambda opt: opt  # be case-insensitive
+        self.default_cp.read_string(default_config)
         self.optionxform = lambda opt: opt  # be case-insensitive
         self.configdir = configdir
-        if self.configdir is None:
-            self.init_config()
-            return
         self.configfile = os.path.join(self.configdir, self.FNAME)
         if not os.path.isfile(self.configfile):
-            self.init_config()
+            return
         logging.debug("Reading config from {}".format(self.configfile))
         self.read(self.configfile)
+        self.config_loaded = True
 
-    def init_config(self):
-        """Initialize Config from default_config and save it."""
-        logging.info("Initializing default config.")
-        if self.configdir is None:
-            self.read_string(default_config)
-            return
-        cp = ConfigParser()
-        cp.optionxform = lambda opt: opt  # be case-insensitive
-        cp.read_string(default_config)
-        if not os.path.exists(self.configdir):
-            os.makedirs(self.configdir, 0o755)
-        with open(self.configfile, 'w') as f:
-            cp.write(f)
+    def __getitem__(self, key):
+        """Get an item from the configparser or default dict.
+
+        Extends ConfigParser's __getitem__.
+        """
+        try:
+            return super().__getitem__(key)
+        except KeyError:
+            return self.default_cp[key]
+
+    def get(self, *args, **kwargs):
+        """Get an item from the configparser or default dict.
+
+        Extends ConfigParser's get().
+        """
+        if 'fallback' in kwargs:
+            del kwargs['fallback']
+        fallback = self.default_cp.get(*args, **kwargs)
+        return super().get(*args, fallback=fallback, **kwargs)
 
     def save(self):
         """Save the config file."""
-        if self.configdir is None:
+        if self.configdir is None or not self.config_loaded:
             return
         if not os.path.exists(self.configdir):
             os.makedirs(self.configdir, 0o755)
