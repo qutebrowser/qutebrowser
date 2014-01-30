@@ -56,6 +56,8 @@ class SearchParser(QObject):
         text -- The text to search for.
         rev -- Search direction.
         """
+        if self.text != text:
+            self.do_search.emit('', 0)
         self.text = text
         if rev:
             self.flags = QWebPage.FindBackward
