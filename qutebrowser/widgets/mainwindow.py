@@ -22,6 +22,8 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle('qutebrowser')
+        # FIXME maybe store window position/size on exit
+        self.resize(800, 600)
 
         self.cwidget = QWidget(self)
         self.setCentralWidget(self.cwidget)
