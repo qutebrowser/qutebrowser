@@ -7,6 +7,7 @@ import platform
 import subprocess
 
 from PyQt5.QtCore import QUrl, QT_VERSION_STR, PYQT_VERSION_STR, qVersion
+from PyQt5.QtWebKit import qWebKitVersion
 
 import qutebrowser
 
@@ -37,7 +38,8 @@ def version():
         'qutebrowser v{}\n\n'.format(qutebrowser.__version__),
         'Python {}\n'.format(platform.python_version()),
         'Qt {}, runtime {}\n'.format(QT_VERSION_STR, qVersion()),
-        'PyQt {}\n\n'.format(PYQT_VERSION_STR),
+        'PyQt {}\n'.format(PYQT_VERSION_STR),
+        'Webkit {}\n\n'.format(qWebKitVersion()),
         'Platform: {}, {}\n'.format(platform.platform(),
                                     platform.architecture()[0]),
         'OS Version: {}\n'.format(osver),
