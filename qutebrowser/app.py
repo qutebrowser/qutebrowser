@@ -157,6 +157,7 @@ class QuteBrowser(QApplication):
             argv = [sys.executable] + sys.argv + pages
             logging.debug('Running {} with args {}'.format(sys.executable,
                                                            argv))
+            config.config.save()
             sys.stdout.flush()
             # FIXME this seems broken on Windows, execv() splits on whitespace
             # in arguments?!?

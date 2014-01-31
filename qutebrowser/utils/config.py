@@ -187,6 +187,8 @@ class Config(ConfigParser):
         logging.debug("Saving config to {}".format(self.configfile))
         with open(self.configfile, 'w') as f:
             self.write(f)
+            f.flush()
+            os.fsync(f.fileno())
 
     def dump_userconfig(self):
         """Returns the part of the config which was changed by the user as a
