@@ -32,17 +32,20 @@ class CrashDialog(QDialog):
 
         txt = QTextEdit(self)
         txt.setReadOnly(True)
-        txt.setText(
-            '==== Version info ====\n{}\n\n'.format(utils.version()) +
-            '==== Exception ====\n{}\n'.format(
-                ''.join(traceback.format_exception(*exc))) +
-            '==== Open pages ====\n{}\n\n'.format('\n'.join(pages)) +
-            '==== Command history ====\n{}\n\n'.format('\n'.join(cmdhist)) +
-            '==== Commandline args ====\n{}\n\n'.format(
-                ' '.join(sys.argv[1:])) +
-            '==== Config ====\n{}'.format(
-                utils.config.config.dump_userconfig())
-        )
+        outputs = [
+            ('Version info', utils.version()),
+            ('Exception', ''.join(traceback.format_exception(*exc))),
+            ('Open Pages', '\n'.join(pages)),
+            ('Command history', '\n'.join(cmdhist)),
+            ('Commandline args', ' '.join(sys.argv[1:])),
+            ('Config', utils.config.config.dump_userconfig()),
+        ]
+        chunks = []
+        for (header, body) in outputs:
+            h = '==== {} ===='.format(header)
+            chunks.append('\n'.join([h, body]))
+
+        txt.setText('\n\n'.join(chunks))
         vbox.addWidget(txt)
         self.setLayout(vbox)
 
