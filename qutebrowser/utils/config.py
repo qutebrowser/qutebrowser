@@ -8,6 +8,7 @@ MONOSPACE      -- A list of suitable monospace fonts.
 
 import os.path
 import os
+import io
 import logging
 from configparser import ConfigParser
 
@@ -186,3 +187,11 @@ class Config(ConfigParser):
         logging.debug("Saving config to {}".format(self.configfile))
         with open(self.configfile, 'w') as f:
             self.write(f)
+
+    def dump_userconfig(self):
+        """Returns the part of the config which was changed by the user as a
+        string.
+        """
+        with io.StringIO() as f:
+            self.write(f)
+            return f.getvalue()

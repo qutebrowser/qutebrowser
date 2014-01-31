@@ -22,9 +22,8 @@ class CrashDialog(QDialog):
         lbl.setText(
             'Argh! qutebrowser crashed unexpectedly.<br/>'
             'Please review the info below to remove sensitive data and then '
-            'submit it to '
-            '<a href="mailto:qutebrowser@the-compiler.org">'
-            'qutebrowser@the-compiler.org</a>.<br/><br/>'
+            'submit it to <a href="mailto:crash@qutebrowser.org">'
+            'crash@qutebrowser.org</a>.<br/><br/>'
             'You can click "Restore tabs" to attempt to reopen your '
             'open tabs.'
         )
@@ -39,7 +38,10 @@ class CrashDialog(QDialog):
                 ''.join(traceback.format_exception(*exc))) +
             '==== Open pages ====\n{}\n\n'.format('\n'.join(pages)) +
             '==== Command history ====\n{}\n\n'.format('\n'.join(cmdhist)) +
-            '==== Commandline args ====\n{}'.format(' '.join(sys.argv[1:]))
+            '==== Commandline args ====\n{}\n\n'.format(
+                ' '.join(sys.argv[1:])) +
+            '==== Config ====\n{}'.format(
+                utils.config.config.dump_userconfig())
         )
         vbox.addWidget(txt)
         self.setLayout(vbox)
