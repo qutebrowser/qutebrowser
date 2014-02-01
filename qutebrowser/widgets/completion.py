@@ -92,6 +92,7 @@ class CompletionView(QTreeView):
 
         e -- The QResizeEvent.
         """
+        super().resizeEvent(e)
         width = e.size().width()
         cols = self.model.columnCount()
         colwidth = int(width / cols)
@@ -101,7 +102,6 @@ class CompletionView(QTreeView):
         assert colwidth > 1
         for i in range(cols):
             self.setColumnWidth(i, colwidth)
-        super().resizeEvent(e)
 
     def setmodel(self, model):
         """Switch completion to a new model.
