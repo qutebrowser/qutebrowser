@@ -80,6 +80,12 @@ class CompletionView(QTreeView):
         self.setHeaderHidden(True)
         self.setIndentation(0)
         self.setItemsExpandable(False)
+        # FIXME This is a workaround for weird race conditions with invalid
+        # item indexes leading to segfaults in Qt.
+        #
+        # Some background: http://bugs.quassel-irc.org/issues/663
+        # The proposed fix there was later reverted because it didn't help.
+        self.setUniformRowHeights(True)
         self.hide()
         # FIXME set elidemode
 

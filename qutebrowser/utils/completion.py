@@ -314,10 +314,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
                 srcmodel.sort(sortcol)
             except NotImplementedError:
                 self.sort(sortcol)
-            # FIXME  we should call self.invalidate() here so sorting actually works.
-            # However, this seems to provoke a lot of weird problems, like
-            # random race condition segfaults :(
-            # self.invalidate()
+            self.invalidate()
 
     def filterAcceptsRow(self, row, parent):
         """Custom filter implementation.
