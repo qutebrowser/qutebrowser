@@ -1,6 +1,6 @@
 """ Run different codecheckers over a codebase.
 
-Runs flake8, pylint and a CRLF-checker by default.
+Runs flake8, pylint and a CRLF/whitespace/conflict-checker by default.
 """
 
 import sys
@@ -41,26 +41,36 @@ def run(name, args=None):
         status[name] = None
     print()
 
-def check_crlf():
-    """Checks a filetree for CRLFs"""
-    print("====== CRLF ======")
+def check_line():
+    """Checks a filetree for CRLFs, conflict markers and weird whitespace"""
+    print("====== line ======")
     ret = []
     try:
         for (dirpath, dirnames, filenames) in os.walk(testmodule):
             for name in [e for e in filenames if e.endswith('.py')]:
                 fn = os.path.join(dirpath, name)
-                ret.append(_check_crlf(fn))
-        status['crlf'] = all(ret)
+                ret.append(_check_line(fn))
+        status['line'] = all(ret)
     except Exception as e:
         print('{}: {}'.format(e.__class__.__name__, e))
-        status['crlf'] = None
+        status['line'] = None
     print()
 
-def _check_crlf(fn):
+def _check_line(fn):
     with open(fn, 'rb') as f:
         for line in f:
             if b'\r\n' in line:
                 print('Found CRLF in {}'.format(fn))
+                return False
+            elif any([line.decode('UTF-8').startswith(c * 7) for c in "<>=|"]):
+                print('Found conflict marker in {}'.format(fn))
+                return False
+            elif any([line.decode('UTF-8').rstrip('\r\n').endswith(c)
+                      for c in " \t"]):
+                print('Found whitespace at line ending in {}'.format(fn))
+                return False
+            elif b' \t' in line or b'\t ' in line:
+                print('Found tab-space mix in {}'.format(fn))
                 return False
     return True
 
@@ -90,7 +100,7 @@ run('pylint', ['--ignore=appdirs.py', '--output-format=colorized',
 # FIXME what the hell is the flake8 exit status?
 run('flake8', ['--max-complexity=10', '--exclude=appdirs.py',
                '--ignore=' + ''.join(flake8_disable)])
-check_crlf()
+check_line()
 
 print('Exit status values:')
 for (k, v) in status.items():
