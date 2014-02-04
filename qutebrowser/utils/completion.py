@@ -10,7 +10,7 @@ Contains:
 from collections import OrderedDict
 
 from PyQt5.QtCore import (QAbstractItemModel, Qt, QModelIndex, QVariant,
-                          QSortFilterProxyModel, pyqtSignal)
+                          QSortFilterProxyModel)
 
 
 class CompletionModel(QAbstractItemModel):
@@ -135,7 +135,7 @@ class CompletionModel(QAbstractItemModel):
 
         child_item = parent_item.children[row]
         if child_item:
-            index  = self.createIndex(row, column, id(child_item))
+            index = self.createIndex(row, column, id(child_item))
             self.id_map.setdefault(index.internalId(), child_item)
             return index
         else:
@@ -288,6 +288,10 @@ class CompletionFilterModel(QSortFilterProxyModel):
         return self._pattern
 
     def setsrc(self, model):
+        """Set a new source model and clear the pattern.
+
+        model -- The new source model.
+        """
         self.setSourceModel(model)
         self.srcmodel = model
         self.pattern = ''
