@@ -296,7 +296,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
         If not, the default implementation in QCompletionFilterModel is called.
         """
         self._pattern = val
-        self.invalidate()
+        self.invalidateFilter()
         sortcol = 0
         srcmodel = self.sourceModel()
         if srcmodel is not None:
