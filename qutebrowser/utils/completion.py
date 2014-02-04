@@ -275,7 +275,6 @@ class CompletionFilterModel(QSortFilterProxyModel):
 
     """Subclass of QSortFilterProxyModel with custom sorting/filtering."""
 
-    pattern_changed = pyqtSignal(str)
     _pattern = None
 
     def __init__(self, parent=None):
@@ -291,11 +290,20 @@ class CompletionFilterModel(QSortFilterProxyModel):
     def pattern(self, val):
         """Setter for pattern.
 
-        Invalidates the filter and emits pattern_changed.
+        Invalidates the filter and re-sorts the model.
+
+        If the current completion model overrides sort(), it is used.
+        If not, the default implementation in QCompletionFilterModel is called.
         """
         self._pattern = val
         self.invalidate()
-        self.pattern_changed.emit(val)
+        sortcol = 0
+        srcmodel = self.sourceModel()
+        if srcmodel is not None:
+            try:
+                srcmodel.sort(sortcol)
+            except NotImplementedError:
+                self.sort(sortcol)
 
     def filterAcceptsRow(self, row, parent):
         """Custom filter implementation.

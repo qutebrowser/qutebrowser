@@ -74,7 +74,6 @@ class CompletionView(QTreeView):
         self.model = CompletionFilterModel()
         self.setModel(self.model)
         self.model.setSourceModel(self.completion_models['command'])
-        self.model.pattern_changed.connect(self.resort)
         self.setItemDelegate(CompletionItemDelegate())
         self.setStyleSheet(config.get_stylesheet(self._stylesheet))
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
@@ -113,18 +112,6 @@ class CompletionView(QTreeView):
         self.model.setSourceModel(self.completion_models[model])
         self.model.pattern = ''
         self.expandAll()
-
-    def resort(self, pattern):  # pylint: disable=unused-argument
-        """Sort the available completions.
-
-        If the current completion model overrides sort(), it is used.
-        If not, the default implementation in QCompletionFilterModel is called.
-        """
-        sortcol = 0
-        try:
-            self.model.sourceModel().sort(sortcol)
-        except NotImplementedError:
-            self.model.sort(sortcol)
 
     def resize_to_bar(self, geom):
         """Resize the completion area to the statusbar geometry.
