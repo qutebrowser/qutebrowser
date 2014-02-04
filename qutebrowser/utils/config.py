@@ -149,6 +149,8 @@ class Config(ConfigParser):
         self.default_cp = ConfigParser()
         self.default_cp.optionxform = lambda opt: opt  # be case-insensitive
         self.default_cp.read_string(default_config)
+        if not self.configdir:
+            return
         self.optionxform = lambda opt: opt  # be case-insensitive
         self.configdir = configdir
         self.configfile = os.path.join(self.configdir, self.FNAME)

@@ -6,6 +6,7 @@ subclasses to provide completions.
 """
 
 import html
+import logging
 
 from PyQt5.QtWidgets import (QTreeView, QStyledItemDelegate, QStyle,
                              QStyleOptionViewItem, QSizePolicy)
@@ -91,13 +92,16 @@ class CompletionView(QTreeView):
 
         e -- The QResizeEvent.
         """
+        super().resizeEvent(e)
         width = e.size().width()
         cols = self.model.columnCount()
+        colwidth = int(width / cols)
+        logging.debug('width {}, {} columns -> colwidth {}'.format(width, cols,
+                                                                   colwidth))
         assert cols >= 1
-        assert width / cols > 1
+        assert colwidth > 1
         for i in range(cols):
-            self.setColumnWidth(i, width / cols)
-        super().resizeEvent(e)
+            self.setColumnWidth(i, colwidth)
 
     def setmodel(self, model):
         """Switch completion to a new model.
