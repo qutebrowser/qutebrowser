@@ -73,11 +73,10 @@ class CompletionView(QTreeView):
         self.completion_models['command'] = CommandCompletionModel()
         self.model = CompletionFilterModel()
         self.setModel(self.model)
-        self.model.setSourceModel(self.completion_models['command'])
+        self.setmodel('command')
         self.setItemDelegate(CompletionItemDelegate())
         self.setStyleSheet(config.get_stylesheet(self._stylesheet))
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
-        self.expandAll()
         self.setHeaderHidden(True)
         self.setIndentation(0)
         self.setItemsExpandable(False)
@@ -109,8 +108,7 @@ class CompletionView(QTreeView):
 
         model -- A QAbstractItemModel with available completions.
         """
-        self.model.setSourceModel(self.completion_models[model])
-        self.model.pattern = ''
+        self.model.setsrc(self.completion_models[model])
         self.expandAll()
 
     def resize_to_bar(self, geom):
@@ -147,7 +145,7 @@ class CompletionView(QTreeView):
         self.setmodel('command')
         text = text.lstrip(':')
         self.model.pattern = text
-        self.model.sourceModel().mark_all_items(text)
+        self.model.srcmodel.mark_all_items(text)
         if self.enabled:
             self.show()
 

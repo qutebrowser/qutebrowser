@@ -276,6 +276,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
     """Subclass of QSortFilterProxyModel with custom sorting/filtering."""
 
     _pattern = None
+    srcmodel = None
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -285,6 +286,11 @@ class CompletionFilterModel(QSortFilterProxyModel):
     def pattern(self):
         """Getter for pattern."""
         return self._pattern
+
+    def setsrc(self, model):
+        self.setSourceModel(model)
+        self.srcmodel = model
+        self.pattern = ''
 
     @pattern.setter
     def pattern(self, val):
@@ -318,8 +324,8 @@ class CompletionFilterModel(QSortFilterProxyModel):
         """
         if parent == QModelIndex():
             return True
-        idx = self.sourceModel().index(row, 0, parent)
-        data = self.sourceModel().data(idx).value()
+        idx = self.srcmodel.index(row, 0, parent)
+        data = self.srcmodel.data(idx).value()
         # TODO more sophisticated filtering
         if not self.pattern:
             return True
@@ -334,8 +340,8 @@ class CompletionFilterModel(QSortFilterProxyModel):
         Prefers all items which start with self.pattern. Other than that, uses
         normal Python string sorting.
         """
-        left = self.sourceModel().data(lindex).value()
-        right = self.sourceModel().data(rindex).value()
+        left = self.srcmodel.data(lindex).value()
+        right = self.srcmodel.data(rindex).value()
 
         leftstart = left.startswith(self.pattern)
         rightstart = right.startswith(self.pattern)
