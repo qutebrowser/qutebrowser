@@ -24,7 +24,9 @@ class CompletionModel(QAbstractItemModel):
         super().__init__(parent)
         self._data = OrderedDict()
         self.parents = []
+        self.id_map = {}
         self.root = CompletionItem([""] * 2)
+        self.id_map[id(self.root)] = self.root
 
     def removeRows(self, position=0, count=1, parent=QModelIndex()):
         """Remove rows from the model.
@@ -43,7 +45,7 @@ class CompletionModel(QAbstractItemModel):
         index was invalid.
         """
         if index.isValid():
-            return index.internalPointer()
+            return self.id_map[index.internalId()]
         else:
             return self.root
 
@@ -63,7 +65,10 @@ class CompletionModel(QAbstractItemModel):
         """
         if not index.isValid():
             return QVariant()
-        item = index.internalPointer()
+        try:
+            item = self.id_map[index.internalId()]
+        except KeyError:
+            return QVariant()
         try:
             return QVariant(item.data(index.column(), role))
         except (IndexError, ValueError):
@@ -80,7 +85,7 @@ class CompletionModel(QAbstractItemModel):
         if not index.isValid():
             return Qt.NoItemFlags
         flags = Qt.ItemIsEnabled
-        if len(index.internalPointer().children) > 0:
+        if len(self.id_map[index.internalId()].children) > 0:
             return flags
         else:
             return flags | Qt.ItemIsSelectable
@@ -103,7 +108,7 @@ class CompletionModel(QAbstractItemModel):
         """
         if not index.isValid():
             return False
-        item = index.internalPointer()
+        item = self.id_map[index.internalId()]
         try:
             item.setdata(index.column(), value, role)
         except (IndexError, ValueError):
@@ -126,11 +131,13 @@ class CompletionModel(QAbstractItemModel):
         if not parent.isValid():
             parent_item = self.root
         else:
-            parent_item = parent.internalPointer()
+            parent_item = self.id_map[parent.internalId()]
 
         child_item = parent_item.children[row]
         if child_item:
-            return self.createIndex(row, column, child_item)
+            index  = self.createIndex(row, column, id(child_item))
+            self.id_map.setdefault(index.internalId(), child_item)
+            return index
         else:
             return QModelIndex()
 
@@ -142,10 +149,10 @@ class CompletionModel(QAbstractItemModel):
         """
         if not index.isValid():
             return QModelIndex()
-        item = index.internalPointer().parent
+        item = self.id_map[index.internalId()].parent
         if item == self.root or item is None:
             return QModelIndex()
-        return self.createIndex(item.row(), 0, item)
+        return self.createIndex(item.row(), 0, id(item))
 
     def rowCount(self, parent=QModelIndex()):
         """Return the rowCount (children count) for a parent.
@@ -159,7 +166,7 @@ class CompletionModel(QAbstractItemModel):
         if not parent.isValid():
             pitem = self.root
         else:
-            pitem = parent.internalPointer()
+            pitem = self.id_map[parent.internalId()]
 
         return len(pitem.children)
 
@@ -175,9 +182,11 @@ class CompletionModel(QAbstractItemModel):
         """Initialize the Qt model based on the data in self._data."""
         for (cat, items) in self._data.items():
             newcat = CompletionItem([cat], self.root)
+            self.id_map[id(newcat)] = newcat
             self.root.children.append(newcat)
             for item in items:
                 newitem = CompletionItem(item, newcat)
+                self.id_map[id(newitem)] = newitem
                 newcat.children.append(newitem)
 
     def mark_all_items(self, needle):
