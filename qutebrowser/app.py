@@ -52,6 +52,7 @@ class QuteBrowser(QApplication):
 
         self._parseopts()
         self._initlog()
+        self._initmisc()
 
         self.dirs = AppDirs('qutebrowser')
         if self.args.confdir is None:
@@ -182,6 +183,8 @@ class QuteBrowser(QApplication):
                             help='Set loglevel', default='info')
         parser.add_argument('-c', '--confdir', help='Set config directory '
                             '(empty for no config storage)')
+        parser.add_argument('-d', '--debug', help='Turn on debugging options.',
+                            action='store_true')
         parser.add_argument('command', nargs='*', help='Commands to execute '
                             'on startup.', metavar=':command')
         # URLs will actually be in command
@@ -190,7 +193,7 @@ class QuteBrowser(QApplication):
 
     def _initlog(self):
         """Initialisation of the logging output."""
-        loglevel = self.args.loglevel
+        loglevel = 'debug' if self.args.debug else self.args.loglevel
         numeric_level = getattr(logging, loglevel.upper(), None)
         if not isinstance(numeric_level, int):
             raise ValueError('Invalid log level: {}'.format(loglevel))
@@ -199,6 +202,11 @@ class QuteBrowser(QApplication):
             format='%(asctime)s [%(levelname)s] '
                    '[%(module)s:%(funcName)s:%(lineno)s] %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S')
+
+    def _initmisc(self):
+        """Initialize misc things based on arguments."""
+        if self.args.debug:
+            os.environ['QT_FATAL_WARNINGS'] = '1'
 
     def _init_cmds(self):
         """Initialisation of the qutebrowser commands.
