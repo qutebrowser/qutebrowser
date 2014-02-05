@@ -331,6 +331,12 @@ class TabbedBrowser(TabWidget):
         signal -- The signal to emit if the sender was the current widget.
         *args -- The args to pass to the signal.
         """
+        # FIXME BUG the signal cache ordering seems to be weird sometimes.
+        # How to reproduce:
+        #   - Open tab
+        #   - While loading, open another tab
+        #   - Switch back to #1 when loading finished
+        #   - It seems loadingStarted is before loadingFinished
         dbgstr = "{} ({})".format(
             signal.signal, ','.join([str(e) for e in args]))
         sender = self.sender()
@@ -339,7 +345,11 @@ class TabbedBrowser(TabWidget):
             logging.warn('Got signal "{}" by {} which is no tab!'.format(
                          dbgstr, sender))
             return
-        sender.signal_cache[signal.signal] = (signal, args)
+        if signal.signal in sender.signal_cache:
+            sender.signal_cache[signal.signal] = (signal, args)
+            sender.signal_cache.move_to_end(signal.signal)
+        else:
+            sender.signal_cache[signal.signal] = (signal, args)
         if self.currentWidget() == sender:
             if not signal.signal.startswith('2cur_progress'):
                 logging.debug('{} - emitting'.format(dbgstr))
