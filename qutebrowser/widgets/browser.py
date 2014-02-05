@@ -428,6 +428,7 @@ class BrowserTab(QWebView):
             new_pos = (frame.scrollBarValue(Qt.Horizontal),
                        frame.scrollBarValue(Qt.Vertical))
             if self._scroll_pos != new_pos:
+                self._scroll_pos = new_pos
                 logging.debug("Updating scroll position")
                 frame = self.page().mainFrame()
                 m = (frame.scrollBarMaximum(Qt.Horizontal),
@@ -435,6 +436,8 @@ class BrowserTab(QWebView):
                 perc = (round(100 * new_pos[0] / m[0]) if m[0] != 0 else 0,
                         round(100 * new_pos[1] / m[1]) if m[1] != 0 else 0)
                 self.scroll_pos_changed.emit(*perc)
+        # we're not actually filtering something, let superclass handle the
+        # event
         return super().eventFilter(watched, e)
 
     def event(self, e):
