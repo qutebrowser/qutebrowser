@@ -16,6 +16,7 @@ class CrashDialog(QDialog):
         super().__init__()
         self.setFixedSize(500, 350)
         self.setWindowTitle('Whoops!')
+        self.setModal(True)
 
         vbox = QVBoxLayout()
         lbl = QLabel(self)

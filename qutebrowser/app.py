@@ -4,6 +4,7 @@ import os
 import sys
 import logging
 import traceback
+import subprocess
 import faulthandler
 from signal import signal, SIGINT
 from argparse import ArgumentParser
@@ -148,6 +149,7 @@ class QuteBrowser(QApplication):
         except Exception:
             history = []
 
+        QApplication.closeAllWindows()
         dlg = CrashDialog(pages, history, exc)
         ret = dlg.exec_()
         if ret == QDialog.Accepted:  # restore
@@ -157,11 +159,7 @@ class QuteBrowser(QApplication):
             argv = [sys.executable] + sys.argv + pages
             logging.debug('Running {} with args {}'.format(sys.executable,
                                                            argv))
-            config.config.save()
-            sys.stdout.flush()
-            # FIXME this seems broken on Windows, execv() splits on whitespace
-            # in arguments?!?
-            os.execv(sys.executable, argv)
+            subprocess.Popen(argv)
         self.exit(1)
 
     def _python_hacks(self):
