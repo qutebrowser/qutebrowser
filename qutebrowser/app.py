@@ -284,6 +284,7 @@ class QuteBrowser(QApplication):
         # pages
         tab = self.mainwindow.tabs.currentWidget()
         tab.setUrl(QUrl('about:pyeval'))
+        tab.titleChanged.emit('about:pyeval')
         tab.setContent(out.encode('UTF-8'), 'text/plain')
 
     def crash(self):

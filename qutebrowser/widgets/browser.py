@@ -57,6 +57,7 @@ class TabbedBrowser(TabWidget):
 
         Also connect all the signals we need to _filter_signals.
         """
+        logging.debug("Opening {}".format(url))
         url = utils.qurl(url)
         tab = BrowserTab(self)
         tab.openurl(url)
@@ -70,10 +71,6 @@ class TabbedBrowser(TabWidget):
                 self._filter_factory(self.cur_statusbar_message))
         tab.scroll_pos_changed.connect(
                 self._filter_factory(self.cur_scroll_perc_changed))
-        # FIXME should we really bind this to loadStarted? Sometimes the URL
-        # isn't set correctly at this point, e.g. when doing
-        # setContent(..., baseUrl=QUrl('foo'))
-        tab.loadStarted.connect(self._loadStarted_handler)
         tab.titleChanged.connect(self._titleChanged_handler)
         # FIXME sometimes this doesn't load
         tab.open_tab.connect(self.tabopen)
@@ -312,16 +309,11 @@ class TabbedBrowser(TabWidget):
 
         Slot for the titleChanged signal of any tab.
         """
+        logging.debug('title changed to "{}"'.format(text))
         if text:
             self.setTabText(self.indexOf(self.sender()), text)
-
-    def _loadStarted_handler(self):
-        """Set url as the title of a tab after it loaded.
-
-        Slot for the loadStarted signal of any tab.
-        """
-        s = self.sender()
-        self.setTabText(self.indexOf(s), s.url().toString())
+        else:
+            logging.debug('ignoring title change')
 
     def _filter_factory(self, signal):
         """Returns a partial functon calling _filter_signals with a signal."""
@@ -394,7 +386,10 @@ class BrowserTab(QWebView):
 
         url -- The URL to load, as string or QUrl.
         """
-        return self.load(utils.qurl(url))
+        qurl = utils.qurl(url)
+        logging.debug('New title: {}'.format(qurl.url()))
+        self.titleChanged.emit(qurl.url())
+        return self.load(qurl)
 
     def link_handler(self, url):
         """Handle a link.
