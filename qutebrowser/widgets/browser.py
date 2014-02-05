@@ -6,6 +6,7 @@ containing BrowserTabs).
 
 
 import logging
+from collections import OrderedDict
 
 from PyQt5.QtWidgets import QShortcut, QApplication, QSizePolicy
 from PyQt5.QtCore import pyqtSignal, Qt, QEvent
@@ -24,13 +25,18 @@ class TabbedBrowser(TabWidget):
     Provides methods to manage tabs, convenience methods to interact with the
     current tab (cur_*) and filters signals to re-emit them when they occured
     in the currently visible tab.
+
+    For all tab-specific signals (cur_*) emitted by a tab, this happens:
+       - the signal gets added to a signal_cache of the tab, so it can be
+         emitted again if the current tab changes.
+       - the signal gets filtered with _filter_signals and self.cur_* gets
+         emitted if the signal occured in the current tab.
     """
 
     cur_progress = pyqtSignal(int)  # Progress of the current tab changed
     cur_load_started = pyqtSignal()  # Current tab started loading
     cur_load_finished = pyqtSignal(bool)  # Current tab finished loading
     cur_statusbar_message = pyqtSignal(str)  # Status bar message
-    # FIXME we need to store this in our browser object
     # Current tab changed scroll position
     cur_scroll_perc_changed = pyqtSignal(int, int)
     keypress = pyqtSignal('QKeyEvent')
@@ -55,7 +61,6 @@ class TabbedBrowser(TabWidget):
         tab.openurl(url)
         self.addTab(tab, url.url())
         self.setCurrentWidget(tab)
-        self.cur_progress.emit(tab.progress)
         tab.loadProgress.connect(
             lambda *args: self._filter_signals(self.cur_progress, *args))
         tab.loadFinished.connect(
@@ -66,7 +71,9 @@ class TabbedBrowser(TabWidget):
         tab.statusBarMessage.connect(
             lambda *args: self._filter_signals(self.cur_statusbar_message,
                                                *args))
-        tab.scroll_pos_changed.connect(self._scroll_pos_changed_handler)
+        tab.scroll_pos_changed.connect(
+            lambda *args: self._filter_signals(self.cur_scroll_perc_changed,
+                                               *args))
         # FIXME should we really bind this to loadStarted? Sometimes the URL
         # isn't set correctly at this point, e.g. when doing
         # setContent(..., baseUrl=QUrl('foo'))
@@ -327,12 +334,21 @@ class TabbedBrowser(TabWidget):
         The original signal does not matter, since we get the new signal and
         all args.
 
+        The current value of the signal is also stored in tab.signal_cache so
+        it can be emitted later when the tab changes to the current tab.
+
         signal -- The signal to emit if the sender was the current widget.
         *args -- The args to pass to the signal.
         """
         dbgstr = "{} ({})".format(
             signal.signal, ','.join([str(e) for e in args]))
-        if self.currentWidget() == self.sender():
+        sender = self.sender()
+        if type(sender) != type(self.currentWidget()):
+            # FIXME why does this happen?
+            logging.warn('Got a signal to _filter_signals not by a tab!')
+            return
+        sender.signal_cache[signal.signal] = (signal, args)
+        if self.currentWidget() == sender:
             logging.debug('{} - emitting'.format(dbgstr))
             return signal.emit(*args)
         else:
@@ -341,26 +357,14 @@ class TabbedBrowser(TabWidget):
     def _currentChanged_handler(self, idx):
         """Update status bar values when a tab was changed.
 
-        Slot for the currentChanged signal of any tab.
-        """
-        tab = self.widget(idx)
-        self.cur_progress.emit(tab.progress)
+        Populates all signals from the signal cache.
 
-    def _scroll_pos_changed_handler(self, x, y):
-        """Get the new position from a BrowserTab. If it's the current tab,
-        calculate the percentage and emits cur_scroll_perc_changed.
-
-        Slot for the scroll_pos_changed signal of any tab.
+        Slot for the currentChanged signal.
         """
-        sender = self.sender()
-        if sender != self.currentWidget():
-            return
-        frame = sender.page().mainFrame()
-        m = (frame.scrollBarMaximum(Qt.Horizontal),
-             frame.scrollBarMaximum(Qt.Vertical))
-        perc = (round(100 * x / m[0]) if m[0] != 0 else 0,
-                round(100 * y / m[1]) if m[1] != 0 else 0)
-        self.cur_scroll_perc_changed.emit(*perc)
+        for (sigstr, (signal, args)) in self.widget(idx).signal_cache.items():
+            dbgstr = "{} ({})".format(sigstr, ','.join([str(e) for e in args]))
+            logging.debug('signal cache: emitting {}'.format(dbgstr))
+            signal.emit(*args)
 
 
 class BrowserTab(QWebView):
@@ -373,6 +377,8 @@ class BrowserTab(QWebView):
     open_tab = pyqtSignal('QUrl')
     _scroll_pos = (-1, -1)
     _open_new_tab = False  # open new tab for the next action
+    # dict of tab specific signals, and the values we last got from them.
+    signal_cache = OrderedDict()
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -428,8 +434,12 @@ class BrowserTab(QWebView):
                        frame.scrollBarValue(Qt.Vertical))
             if self._scroll_pos != new_pos:
                 logging.debug("Updating scroll position")
-                self.scroll_pos_changed.emit(*new_pos)
-            self._scroll_pos = new_pos
+                frame = self.page().mainFrame()
+                m = (frame.scrollBarMaximum(Qt.Horizontal),
+                     frame.scrollBarMaximum(Qt.Vertical))
+                perc = (round(100 * new_pos[0] / m[0]) if m[0] != 0 else 0,
+                        round(100 * new_pos[1] / m[1]) if m[1] != 0 else 0)
+                self.scroll_pos_changed.emit(*perc)
         return super().eventFilter(watched, e)
 
     def event(self, e):
