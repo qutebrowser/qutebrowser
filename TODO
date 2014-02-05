@@ -16,6 +16,7 @@ Extern editor
 Hints
 Downloads
 webinterface for settings/colors/bindings
+[[/]] for backforward
 
 Before Blink
 ------------
@@ -33,6 +34,7 @@ open with preset url (go)
 show infos in statusline, temporary/longer
 set settings/colors/bindings via commandline
 write default config with comments
+Ctrl+A/X to increase/decrease last number in URL
 
 Minor features/bugs
 ===================
