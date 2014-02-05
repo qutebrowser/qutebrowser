@@ -66,7 +66,6 @@ class TabbedBrowser(TabWidget):
         tab.loadProgress.connect(self._filter_factory(self.cur_progress))
         tab.loadFinished.connect(self._filter_factory(self.cur_load_finished))
         tab.loadStarted.connect(self._filter_factory(self.cur_load_started))
-        # FIXME does QtWebView even do something sensible with that signal?
         tab.statusBarMessage.connect(
                 self._filter_factory(self.cur_statusbar_message))
         tab.scroll_pos_changed.connect(
