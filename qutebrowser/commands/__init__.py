@@ -15,8 +15,6 @@ A command class can set the following properties:
     count -- If the command supports a count. Default: False
 
     hide -- If the command should be hidden in tab completion. Default: False
-
-    desc -- Description of the command.
 """
 
 from qutebrowser.commands.template import Command
