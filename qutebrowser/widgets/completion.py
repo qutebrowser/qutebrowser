@@ -98,6 +98,9 @@ class CompletionView(QTreeView):
         """
         super().resizeEvent(e)
         width = e.size().width()
+        bar = self.verticalScrollBar()
+        if not bar.isVisible():
+            width -= bar.sizeHint().width()
         cols = self.model.columnCount()
         colwidth = int(width / cols)
         logging.debug('width {}, {} columns -> colwidth {}'.format(width, cols,
