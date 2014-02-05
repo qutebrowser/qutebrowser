@@ -16,7 +16,7 @@ Extern editor
 Hints
 Downloads
 webinterface for settings/colors/bindings
-[[/]] for backforward
+[[/]] for back/forward links
 
 Before Blink
 ------------
@@ -34,7 +34,6 @@ open with preset url (go)
 show infos in statusline, temporary/longer
 set settings/colors/bindings via commandline
 write default config with comments
-Ctrl+A/X to increase/decrease last number in URL
 
 Minor features/bugs
 ===================
@@ -48,6 +47,8 @@ Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-20973
     https://bugreports.qt-project.org/browse/QTBUG-21036
 ^ and $ for scrolling
+Ctrl+A/X to increase/decrease last number in URL
+make font configurable
 
 Other stuff
 ===========
