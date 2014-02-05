@@ -91,15 +91,7 @@ class KeyParser(QObject):
         except KeyError:
             logging.debug('No binding found for {}.'.format(modstr + keystr))
             return True
-        # FIXME use a common function for this
-        try:
-            self.commandparser.run(cmdstr, ignore_exc=False)
-        except NoSuchCommandError:
-            pass
-        except ArgumentCountError:
-            logging.debug('Filling statusbar with partial command {}'.format(
-                cmdstr))
-            self.set_cmd_text.emit(':{} '.format(cmdstr))
+        self._run_or_fill(cmdstr, ignore_exc=False)
         return True
 
     def _handle_single_key(self, e):
@@ -152,15 +144,7 @@ class KeyParser(QObject):
 
         self.keystring = ''
         count = int(countstr) if countstr else None
-
-        try:
-            self.commandparser.run(cmdstr_hay, count=count, ignore_exc=False)
-        except NoSuchCommandError:
-            pass
-        except ArgumentCountError:
-            logging.debug('Filling statusbar with partial command {}'.format(
-                cmdstr_hay))
-            self.set_cmd_text.emit(':{} '.format(cmdstr_hay))
+        self._run_or_fill(cmdstr_hay, count=count, ignore_exc=False)
         return
 
     def _match_key(self, cmdstr_needle):
@@ -201,3 +185,20 @@ class KeyParser(QObject):
             keystr = keystr.replace(mod + '-', mod + '+')
         keystr = QKeySequence(keystr).toString()
         return keystr
+
+    def _run_or_fill(self, cmdstr, count=None, ignore_exc=True):
+        """Runs the command in cmdstr or fills the statusbar if args missing.
+
+        cmdstr -- The command string.
+        count -- Optional command count.
+        ignore_exc -- Ignore exceptions.
+        """
+        try:
+            self.commandparser.run(cmdstr, count=count, ignore_exc=ignore_exc)
+        except NoSuchCommandError:
+            pass
+        except ArgumentCountError:
+            logging.debug('Filling statusbar with partial command {}'.format(
+                cmdstr))
+            self.set_cmd_text.emit(':{} '.format(cmdstr))
+        return
