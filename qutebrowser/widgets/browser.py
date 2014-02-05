@@ -65,6 +65,7 @@ class TabbedBrowser(TabWidget):
         self.setCurrentWidget(tab)
         tab.loadProgress.connect(self._filter_factory(self.cur_progress))
         tab.loadFinished.connect(self._filter_factory(self.cur_load_finished))
+        tab.loadStarted.connect(self._clear_signal_cache)
         tab.loadStarted.connect(self._filter_factory(self.cur_load_started))
         tab.statusBarMessage.connect(
                 self._filter_factory(self.cur_statusbar_message))
@@ -317,6 +318,9 @@ class TabbedBrowser(TabWidget):
     def _filter_factory(self, signal):
         """Returns a partial functon calling _filter_signals with a signal."""
         return functools.partial(self._filter_signals, signal)
+
+    def _clear_signal_cache(self, *args):
+        self.sender().signal_cache = OrderedDict()
 
     def _filter_signals(self, signal, *args):
         """Filter signals and trigger TabbedBrowser signals if the signal
