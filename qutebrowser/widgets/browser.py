@@ -336,7 +336,8 @@ class TabbedBrowser(TabWidget):
         sender = self.sender()
         if type(sender) != type(self.currentWidget()):
             # FIXME why does this happen?
-            logging.warn('Got a signal to _filter_signals not by a tab!')
+            logging.warn('Got signal "{}" by {} which is no tab!'.format(
+                         dbgstr, sender))
             return
         sender.signal_cache[signal.signal] = (signal, args)
         if self.currentWidget() == sender:
