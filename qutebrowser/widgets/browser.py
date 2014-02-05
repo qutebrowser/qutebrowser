@@ -6,6 +6,7 @@ containing BrowserTabs).
 
 
 import logging
+import functools
 from collections import OrderedDict
 
 from PyQt5.QtWidgets import QShortcut, QApplication, QSizePolicy
@@ -61,19 +62,14 @@ class TabbedBrowser(TabWidget):
         tab.openurl(url)
         self.addTab(tab, url.url())
         self.setCurrentWidget(tab)
-        tab.loadProgress.connect(
-            lambda *args: self._filter_signals(self.cur_progress, *args))
-        tab.loadFinished.connect(
-            lambda *args: self._filter_signals(self.cur_load_finished, *args))
-        tab.loadStarted.connect(
-            lambda *args: self._filter_signals(self.cur_load_started, *args))
+        tab.loadProgress.connect(self._filter_factory(self.cur_progress))
+        tab.loadFinished.connect(self._filter_factory(self.cur_load_finished))
+        tab.loadStarted.connect(self._filter_factory(self.cur_load_started))
         # FIXME does QtWebView even do something sensible with that signal?
         tab.statusBarMessage.connect(
-            lambda *args: self._filter_signals(self.cur_statusbar_message,
-                                               *args))
+                self._filter_factory(self.cur_statusbar_message))
         tab.scroll_pos_changed.connect(
-            lambda *args: self._filter_signals(self.cur_scroll_perc_changed,
-                                               *args))
+                self._filter_factory(self.cur_scroll_perc_changed))
         # FIXME should we really bind this to loadStarted? Sometimes the URL
         # isn't set correctly at this point, e.g. when doing
         # setContent(..., baseUrl=QUrl('foo'))
@@ -326,6 +322,10 @@ class TabbedBrowser(TabWidget):
         """
         s = self.sender()
         self.setTabText(self.indexOf(s), s.url().toString())
+
+    def _filter_factory(self, signal):
+        """Returns a partial functon calling _filter_signals with a signal."""
+        return functools.partial(self._filter_signals, signal)
 
     def _filter_signals(self, signal, *args):
         """Filter signals and trigger TabbedBrowser signals if the signal
