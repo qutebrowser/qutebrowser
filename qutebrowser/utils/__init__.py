@@ -4,6 +4,7 @@ import re
 import sys
 import os.path
 import platform
+import logging
 import subprocess
 
 from PyQt5.QtCore import QUrl, QT_VERSION_STR, PYQT_VERSION_STR, qVersion
@@ -15,10 +16,14 @@ import qutebrowser
 def qurl(url):
     """Get a QUrl from an url string."""
     if isinstance(url, QUrl):
+        logging.debug("url is already a qurl")
         return url
-    if not re.match(r'^\w+://', url):
+    if not (re.match(r'^\w+://', url) or url.startswith('about:')):
+        logging.debug("adding http:// to {}".format(url))
         url = 'http://' + url
-    return QUrl(url)
+    qurl = QUrl(url)
+    logging.debug('Converting {} to qurl -> {}'.format(url, qurl.url()))
+    return qurl
 
 
 def version():
