@@ -4,7 +4,8 @@
 import logging
 import re
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, Qt
+from PyQt5.QtGui import QKeySequence
 
 from qutebrowser.commands.utils import (CommandParser, ArgumentCountError,
                                         NoSuchCommandError)
@@ -22,6 +23,7 @@ class KeyParser(QObject):
     keystring_updated = pyqtSignal(str)
     # Keybindings
     bindings = {}
+    modifier_bindings = {}
     commandparser = None
 
     MATCH_PARTIAL = 0
@@ -39,16 +41,69 @@ class KeyParser(QObject):
         gg = scrollstart
         """
         for (key, cmd) in sect.items():
-            logging.debug('registered key: {} -> {}'.format(key, cmd))
-            self.bindings[key] = cmd
+            if key.startswith('@') and key.endswith('@'):
+                # normalize keystring
+                keystr = self._normalize_keystr(key.strip('@'))
+                logging.debug('registered mod key: {} -> {}'.format(keystr,
+                                                                    cmd))
+                self.modifier_bindings[keystr] = cmd
+            else:
+                logging.debug('registered key: {} -> {}'.format(key, cmd))
+                self.bindings[key] = cmd
 
     def handle(self, e):
-        """Wrap _handle to emit keystring_updated after _handle."""
-        self._handle(e)
-        self.keystring_updated.emit(self.keystring)
+        """Handle a new keypress and call the respective handlers.
 
-    def _handle(self, e):
-        """Handle a new keypress.
+        e -- the KeyPressEvent from Qt
+        """
+        handled = self._handle_modifier_key(e)
+        if not handled:
+            self._handle_single_key(e)
+            self.keystring_updated.emit(self.keystring)
+
+    def _handle_modifier_key(self, e):
+        """Handle a new keypress with modifiers.
+
+        Returns True if the keypress has been handled, and False if not.
+
+        e -- the KeyPressEvent from Qt
+        """
+        MODMASK2STR = {
+            Qt.ControlModifier: 'Ctrl',
+            Qt.AltModifier: 'Alt',
+            Qt.MetaModifier: 'Meta',
+            Qt.ShiftModifier: 'Shift'
+        }
+        if e.key() in [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta]:
+            # Only modifier pressed
+            return False
+        mod = e.modifiers()
+        modstr = ''
+        if not mod & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier):
+            # won't be a shortcut with modifiers
+            return False
+        for (mask, s) in MODMASK2STR.items():
+            if mod & mask:
+                modstr += s + '+'
+        keystr = QKeySequence(e.key()).toString()
+        try:
+            cmdstr = self.modifier_bindings[modstr + keystr]
+        except KeyError:
+            logging.debug('No binding found for {}.'.format(modstr + keystr))
+            return True
+        # FIXME use a common function for this
+        try:
+            self.commandparser.run(cmdstr, ignore_exc=False)
+        except NoSuchCommandError:
+            pass
+        except ArgumentCountError:
+            logging.debug('Filling statusbar with partial command {}'.format(
+                cmdstr))
+            self.set_cmd_text.emit(':{} '.format(cmdstr))
+        return True
+
+    def _handle_single_key(self, e):
+        """Handle a new keypress with a single key (no modifiers).
 
         Separates the keypress into count/command, then checks if it matches
         any possible command, and either runs the command, ignores it, or
@@ -128,3 +183,21 @@ class KeyParser(QObject):
                     continue
             # no definitive and no partial matches if we arrived here
             return (self.MATCH_NONE, None)
+
+    def _normalize_keystr(self, keystr):
+        """Normalizes a keystring like Ctrl-Q to a keystring like Ctrl+Q.
+
+        keystr -- The key combination as a string.
+        """
+        replacements = [
+            ('Control', 'Ctrl'),
+            ('Windows', 'Meta'),
+            ('Mod1', 'Alt'),
+            ('Mod4', 'Meta'),
+        ]
+        for (orig, repl) in replacements:
+            keystr = keystr.replace(orig, repl)
+        for mod in ['Ctrl', 'Meta', 'Alt', 'Shift']:
+            keystr = keystr.replace(mod + '-', mod + '+')
+        keystr = QKeySequence(keystr).toString()
+        return keystr

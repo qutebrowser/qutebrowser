@@ -48,6 +48,10 @@ default_config = """
     pP = paste sel
     Pp = tabpaste
     PP = tabpaste sel
+    @Ctrl-Q@ = quit
+    @Ctrl-Shift-T@ = undo
+    @Ctrl-W@ = tabclose
+    @Ctrl-T@ = tabopen about:blank
 
     [colors]
     completion.fg = #333333
