@@ -341,10 +341,12 @@ class TabbedBrowser(TabWidget):
             return
         sender.signal_cache[signal.signal] = (signal, args)
         if self.currentWidget() == sender:
-            logging.debug('{} - emitting'.format(dbgstr))
+            if not signal.signal.startswith('2cur_progress'):
+                logging.debug('{} - emitting'.format(dbgstr))
             return signal.emit(*args)
         else:
-            logging.debug('{} - ignoring'.format(dbgstr))
+            if not signal.signal.startswith('2cur_progress'):
+                logging.debug('{} - ignoring'.format(dbgstr))
 
     def _currentChanged_handler(self, idx):
         """Update status bar values when a tab was changed.
