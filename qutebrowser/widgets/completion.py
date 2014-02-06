@@ -11,7 +11,7 @@ import logging
 from PyQt5.QtWidgets import (QTreeView, QStyledItemDelegate, QStyle,
                              QStyleOptionViewItem, QSizePolicy)
 from PyQt5.QtCore import (QRectF, QRect, QPoint, pyqtSignal, Qt,
-                          QItemSelectionModel, QSize)
+                          QItemSelectionModel)
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QTextCursor)
 
@@ -195,7 +195,12 @@ class CompletionItemDelegate(QStyledItemDelegate):
     painter = None
 
     def sizeHint(self, option, index):
-        value = index.data(Qt.SizeHintRole);
+        """Overrides sizeHint of QStyledItemDelegate.
+
+        Returns the cell size based on the QTextDocument size, but might not
+        work correctly yet.
+        """
+        value = index.data(Qt.SizeHintRole)
         if value is not None:
             return value
         self.opt = QStyleOptionViewItem(option)

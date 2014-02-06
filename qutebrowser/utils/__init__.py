@@ -21,9 +21,9 @@ def qurl(url):
     if not (re.match(r'^\w+://', url) or url.startswith('about:')):
         logging.debug("adding http:// to {}".format(url))
         url = 'http://' + url
-    qurl = QUrl(url)
-    logging.debug('Converting {} to qurl -> {}'.format(url, qurl.url()))
-    return qurl
+    newurl = QUrl(url)
+    logging.debug('Converting {} to qurl -> {}'.format(url, newurl.url()))
+    return newurl
 
 
 def version():

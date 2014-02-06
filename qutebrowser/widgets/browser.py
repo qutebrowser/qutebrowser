@@ -65,12 +65,13 @@ class TabbedBrowser(TabWidget):
         self.setCurrentWidget(tab)
         tab.loadProgress.connect(self._filter_factory(self.cur_progress))
         tab.loadFinished.connect(self._filter_factory(self.cur_load_finished))
-        tab.loadStarted.connect(self._clear_signal_cache)
+        tab.loadStarted.connect(lambda args:
+                                self.sender().signal_cache.clear())
         tab.loadStarted.connect(self._filter_factory(self.cur_load_started))
         tab.statusBarMessage.connect(
-                self._filter_factory(self.cur_statusbar_message))
+            self._filter_factory(self.cur_statusbar_message))
         tab.scroll_pos_changed.connect(
-                self._filter_factory(self.cur_scroll_perc_changed))
+            self._filter_factory(self.cur_scroll_perc_changed))
         tab.titleChanged.connect(self._titleChanged_handler)
         # FIXME sometimes this doesn't load
         tab.open_tab.connect(self.tabopen)
@@ -319,9 +320,6 @@ class TabbedBrowser(TabWidget):
         """Returns a partial functon calling _filter_signals with a signal."""
         return functools.partial(self._filter_signals, signal)
 
-    def _clear_signal_cache(self, *args):
-        self.sender().signal_cache = OrderedDict()
-
     def _filter_signals(self, signal, *args):
         """Filter signals and trigger TabbedBrowser signals if the signal
         was sent from the _current_ tab and not from any other one.
@@ -344,7 +342,7 @@ class TabbedBrowser(TabWidget):
         dbgstr = "{} ({})".format(
             signal.signal, ','.join([str(e) for e in args]))
         sender = self.sender()
-        if type(sender) != type(self.currentWidget()):
+        if not isinstance(sender, BrowserTab):
             # FIXME why does this happen?
             logging.warn('Got signal "{}" by {} which is no tab!'.format(
                          dbgstr, sender))
