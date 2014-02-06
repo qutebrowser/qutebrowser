@@ -3,7 +3,6 @@
 import os
 import sys
 import logging
-import traceback
 import subprocess
 import faulthandler
 from signal import signal, SIGINT

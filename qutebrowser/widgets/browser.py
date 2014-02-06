@@ -66,7 +66,8 @@ class TabbedBrowser(TabWidget):
         self.setCurrentWidget(tab)
         tab.loadProgress.connect(self._filter_factory(self.cur_progress))
         tab.loadFinished.connect(self._filter_factory(self.cur_load_finished))
-        tab.loadStarted.connect(lambda: self.sender().signal_cache.clear())
+        tab.loadStarted.connect(lambda:  # pylint: disable=unnecessary-lambda
+                                self.sender().signal_cache.clear())
         tab.loadStarted.connect(self._filter_factory(self.cur_load_started))
         tab.statusBarMessage.connect(
             self._filter_factory(self.cur_statusbar_message))
