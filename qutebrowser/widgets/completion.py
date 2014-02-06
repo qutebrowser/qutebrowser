@@ -6,12 +6,11 @@ subclasses to provide completions.
 """
 
 import html
-import logging
 
 from PyQt5.QtWidgets import (QTreeView, QStyledItemDelegate, QStyle,
                              QStyleOptionViewItem, QSizePolicy)
 from PyQt5.QtCore import (QRectF, QRect, QPoint, pyqtSignal, Qt,
-                          QItemSelectionModel)
+                          QItemSelectionModel, QSize)
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QTextCursor)
 
@@ -97,8 +96,8 @@ class CompletionView(QTreeView):
         model -- A QAbstractItemModel with available completions.
         """
         self.model.setsrc(self.completion_models[model])
-        self.resizeColumnToContents(0)
         self.expandAll()
+        self.resizeColumnToContents(0)
 
     def resize_to_bar(self, geom):
         """Resize the completion area to the statusbar geometry.
@@ -207,9 +206,9 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self.initStyleOption(self.opt, index)
         style = self.opt.widget.style()
         doc = self._get_textdoc(index)
-        logging.debug('sizehint')
+        docsize = doc.size().toSize()
         return style.sizeFromContents(QStyle.CT_ItemViewItem, self.opt,
-                                      doc.size().toSize(), self.opt.widget)
+                                      docsize, self.opt.widget) + QSize(10, 0)
 
     def paint(self, painter, option, index):
         """Overrides the QStyledItemDelegate paint function."""
@@ -327,7 +326,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
                 {color[completion.match.fg]}
             }}
         """))
-        doc.setDocumentMargin(0)
+        doc.setDocumentMargin(2)
 
         if index.column() == 0:
             marks = index.data(Qt.UserRole)
