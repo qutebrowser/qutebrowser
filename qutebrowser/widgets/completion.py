@@ -11,7 +11,7 @@ import logging
 from PyQt5.QtWidgets import (QTreeView, QStyledItemDelegate, QStyle,
                              QStyleOptionViewItem, QSizePolicy)
 from PyQt5.QtCore import (QRectF, QRect, QPoint, pyqtSignal, Qt,
-                          QItemSelectionModel)
+                          QItemSelectionModel, QSize)
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QTextCursor)
 
@@ -89,27 +89,6 @@ class CompletionView(QTreeView):
         self.hide()
         # FIXME set elidemode
 
-    def resizeEvent(self, e):
-        """Extends resizeEvent of QTreeView.
-
-        Always adjusts the column width to the new window width.
-
-        e -- The QResizeEvent.
-        """
-        super().resizeEvent(e)
-        width = e.size().width()
-        bar = self.verticalScrollBar()
-        if not bar.isVisible():
-            width -= bar.sizeHint().width()
-        cols = self.model.columnCount()
-        colwidth = int(width / cols)
-        logging.debug('width {}, {} columns -> colwidth {}'.format(width, cols,
-                                                                   colwidth))
-        assert cols >= 1
-        assert colwidth > 1
-        for i in range(cols):
-            self.setColumnWidth(i, colwidth)
-
     def setmodel(self, model):
         """Switch completion to a new model.
 
@@ -118,6 +97,7 @@ class CompletionView(QTreeView):
         model -- A QAbstractItemModel with available completions.
         """
         self.model.setsrc(self.completion_models[model])
+        self.resizeColumnToContents(0)
         self.expandAll()
 
     def resize_to_bar(self, geom):
@@ -214,6 +194,18 @@ class CompletionItemDelegate(QStyledItemDelegate):
     style = None
     painter = None
 
+    def sizeHint(self, option, index):
+        value = index.data(Qt.SizeHintRole);
+        if value is not None:
+            return value
+        self.opt = QStyleOptionViewItem(option)
+        self.initStyleOption(self.opt, index)
+        style = self.opt.widget.style()
+        doc = self._get_textdoc(index)
+        logging.debug('sizehint')
+        return style.sizeFromContents(QStyle.CT_ItemViewItem, self.opt,
+                                      doc.size().toSize(), self.opt.widget)
+
     def paint(self, painter, option, index):
         """Overrides the QStyledItemDelegate paint function."""
         painter.save()
@@ -255,7 +247,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         This is the main part where we differ from the original implementation
         in Qt: We use a QTextDocument to draw text.
 
-        index -- The QModelIndex of the item to draw.
+        index of the item of the item -- The QModelIndex of the item to draw.
         """
         if not self.opt.text:
             return
@@ -289,19 +281,26 @@ class CompletionItemDelegate(QStyledItemDelegate):
             self.painter.drawRect(text_rect_.adjusted(0, 0, -1, -1))
 
         self.painter.translate(text_rect.left(), text_rect.top())
-        self._draw_textdoc(index, text_rect)
+        doc = self._get_textdoc(index)
+        self._draw_textdoc(doc, text_rect)
         self.painter.restore()
 
-    def _draw_textdoc(self, index, text_rect):
+    def _draw_textdoc(self, doc, text_rect):
         """Draw the QTextDocument of an item.
 
-        index -- The QModelIndex of the item to draw.
+        doc -- The QTextDocument to draw.
         text_rect -- The QRect to clip the drawing to.
+        """
+        clip = QRectF(0, 0, text_rect.width(), text_rect.height())
+        doc.drawContents(self.painter, clip)
+
+    def _get_textdoc(self, index):
+        """Return the QTextDocument of an item.
+
+        index -- The QModelIndex of the item to draw.
         """
         # FIXME we probably should do eliding here. See
         # qcommonstyle.cpp:viewItemDrawText
-        clip = QRectF(0, 0, text_rect.width(), text_rect.height())
-
         text_option = QTextOption()
         if self.opt.features & QStyleOptionViewItem.WrapText:
             text_option.setWrapMode(QTextOption.WordWrap)
@@ -335,7 +334,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
                 cur.removeSelectedText()
                 cur.insertHtml('<span class="highlight">{}</span>'.format(
                     html.escape(txt)))
-        doc.drawContents(self.painter, clip)
+        return doc
 
     def _draw_focus_rect(self):
         """Draws the focus rectangle of an ItemViewItem"""
