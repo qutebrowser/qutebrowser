@@ -44,8 +44,7 @@ class QuteBrowser(QApplication):
 
     def __init__(self):
         super().__init__(sys.argv)
-        # Exit on exceptions
-        sys.excepthook = self._tmp_exception_hook
+        sys.excepthook = self._exception_hook
 
         # Handle segfaults
         faulthandler.enable()
@@ -112,15 +111,6 @@ class QuteBrowser(QApplication):
             for url in config.config.get('general', 'startpage').split(','):
                 self.mainwindow.tabs.tabopen(url)
 
-    def _tmp_exception_hook(self, exctype, excvalue, tb):
-        """Handle exceptions while initializing by simply exiting.
-
-        This is only temporary and will get replaced by exception_hook later.
-        It's necessary because PyQt seems to ignore exceptions by default.
-        """
-        sys.__excepthook__(exctype, excvalue, tb)
-        self.exit(1)
-
     def _exception_hook(self, exctype, excvalue, tb):
         """Handle uncaught python exceptions.
 
@@ -130,7 +120,7 @@ class QuteBrowser(QApplication):
         # pylint: disable=broad-except
 
         exc = (exctype, excvalue, tb)
-        traceback.print_exception(*exc)
+        sys.__excepthook__(*exc)
 
         pages = []
         try:
@@ -161,7 +151,7 @@ class QuteBrowser(QApplication):
             logging.debug('Running {} with args {}'.format(sys.executable,
                                                            argv))
             subprocess.Popen(argv)
-        self.exit(1)
+        sys.exit(1)
 
     def _python_hacks(self):
         """Get around some PyQt-oddities by evil hacks.
@@ -170,7 +160,6 @@ class QuteBrowser(QApplication):
         exit status, and handles Ctrl+C properly by passing control to the
         Python interpreter once all 500ms.
         """
-        sys.excepthook = self._exception_hook
         signal(SIGINT, lambda *args: self.exit(128 + SIGINT))
         self.timer = QTimer()
         self.timer.start(500)

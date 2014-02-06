@@ -20,14 +20,14 @@ class CrashDialog(QDialog):
 
         vbox = QVBoxLayout()
         lbl = QLabel(self)
-        lbl.setText(
-            'Argh! qutebrowser crashed unexpectedly.<br/>'
-            'Please review the info below to remove sensitive data and then '
-            'submit it to <a href="mailto:crash@qutebrowser.org">'
-            'crash@qutebrowser.org</a>.<br/><br/>'
-            'You can click "Restore tabs" to attempt to reopen your '
-            'open tabs.'
-        )
+        text = ('Argh! qutebrowser crashed unexpectedly.<br/>'
+                'Please review the info below to remove sensitive data and '
+                'then submit it to <a href="mailto:crash@qutebrowser.org">'
+                'crash@qutebrowser.org</a>.<br/><br/>')
+        if pages:
+            text += ('You can click "Restore tabs" to attempt to reopen your '
+                     'open tabs.')
+        lbl.setText(text)
         lbl.setWordWrap(True)
         vbox.addWidget(lbl)
 
@@ -55,11 +55,12 @@ class CrashDialog(QDialog):
         btn_quit.setText('Quit')
         btn_quit.clicked.connect(self.reject)
         hbox.addWidget(btn_quit)
-        btn_restore = QPushButton(self)
-        btn_restore.setText('Restore tabs')
-        btn_restore.clicked.connect(self.accept)
-        btn_restore.setDefault(True)
-        hbox.addWidget(btn_restore)
+        if pages:
+            btn_restore = QPushButton(self)
+            btn_restore.setText('Restore tabs')
+            btn_restore.clicked.connect(self.accept)
+            btn_restore.setDefault(True)
+            hbox.addWidget(btn_restore)
 
         vbox.addLayout(hbox)
         self.show()
