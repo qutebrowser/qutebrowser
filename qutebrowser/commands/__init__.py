@@ -31,6 +31,12 @@ class Open(Command):
     count = True
 
 
+class OpenCur(Command):
+    """Fill the statusbar with :open and the current url."""
+    nargs = 0
+    hide = True
+
+
 class TabOpen(Command):
     """Open a page in a new tab.
 
@@ -39,6 +45,12 @@ class TabOpen(Command):
 
     nargs = 1
     split_args = False
+
+
+class TabOpenCur(Command):
+    """Fill the statusbar with :tabopen and the current url."""
+    nargs = 0
+    hide = True
 
 
 class TabClose(Command):

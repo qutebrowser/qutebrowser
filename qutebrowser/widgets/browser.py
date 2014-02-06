@@ -40,6 +40,7 @@ class TabbedBrowser(TabWidget):
     cur_statusbar_message = pyqtSignal(str)  # Status bar message
     # Current tab changed scroll position
     cur_scroll_perc_changed = pyqtSignal(int, int)
+    set_cmd_text = pyqtSignal(str)  # Set commandline to a given text
     keypress = pyqtSignal('QKeyEvent')
     _url_stack = []  # Stack of URLs of closed tabs
 
@@ -76,6 +77,11 @@ class TabbedBrowser(TabWidget):
         # FIXME sometimes this doesn't load
         tab.open_tab.connect(self.tabopen)
 
+    def tabopencur(self):
+        """Set the statusbar to :tabopen and the current URL."""
+        url = self.currentWidget().url().toString()
+        self.set_cmd_text.emit(':tabopen ' + url)
+
     def openurl(self, url, count=None):
         """Open an url in the current/[count]th tab.
 
@@ -85,6 +91,11 @@ class TabbedBrowser(TabWidget):
         tab = self._widget(count)
         if tab is not None:
             tab.openurl(url)
+
+    def opencur(self):
+        """Set the statusbar to :open and the current URL."""
+        url = self.currentWidget().url().toString()
+        self.set_cmd_text.emit(':open ' + url)
 
     def undo_close(self):
         """Undo closing a tab.

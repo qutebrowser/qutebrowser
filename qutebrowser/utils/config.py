@@ -25,7 +25,9 @@ default_config = """
 
     [keybind]
     o = open
+    go = opencur
     O = tabopen
+    gO = tabopencur
     d = tabclose
     J = tabnext
     K = tabprev

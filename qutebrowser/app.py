@@ -71,6 +71,8 @@ class QuteBrowser(QApplication):
         self.aboutToQuit.connect(config.config.save)
         self.mainwindow.tabs.keypress.connect(self.keyparser.handle)
         self.keyparser.set_cmd_text.connect(self.mainwindow.status.cmd.set_cmd)
+        self.mainwindow.tabs.set_cmd_text.connect(
+            self.mainwindow.status.cmd.set_cmd)
         self.mainwindow.status.cmd.got_cmd.connect(self.commandparser.run)
         self.mainwindow.status.cmd.got_search.connect(self.searchparser.search)
         self.mainwindow.status.cmd.got_search_rev.connect(
@@ -226,7 +228,9 @@ class QuteBrowser(QApplication):
 
         handlers = {
             'open':          self.mainwindow.tabs.openurl,
+            'opencur':       self.mainwindow.tabs.opencur,
             'tabopen':       self.mainwindow.tabs.tabopen,
+            'tabopencur':    self.mainwindow.tabs.tabopencur,
             'quit':          self.quit,
             'tabclose':      self.mainwindow.tabs.cur_close,
             'tabprev':       self.mainwindow.tabs.switch_prev,
