@@ -30,7 +30,6 @@ Bookmarks
 Internationalization
 License
 Marks
-open with preset url (go)
 show infos in statusline, temporary/longer
 set settings/colors/bindings via commandline
 write default config with comments
@@ -69,12 +68,6 @@ Scroll [n] half pages down (command: scroll_halfpage_down, aliases: halfdown).
 
 [n]C-u
 Scroll [n] half pages up (command: scroll_halfpage_up, aliases: halfup).
-
-go
-Open url in the focused tab, set current url in the navigation bar (command: open_url).
-
-gO
-Open url in a new tab, set current url in the navigation bar (command tabopen_url).
 
 xo
 Open url in a new tab in background, the argument $URI will be repaced with the current uri (command: backopen, aliases: bopen ).
