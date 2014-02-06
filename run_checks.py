@@ -89,6 +89,7 @@ pylint_disable = [
     'abstract-class-little-used', # False-positives
     'bad-builtin',                # map/filter can be nicer than comprehensions
     'too-many-arguments',
+    'too-many-locals',
 ]
 
 flake8_disable = [
