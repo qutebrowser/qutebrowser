@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
 import sys
 import os.path
 import platform
@@ -35,10 +34,7 @@ def qurl(url):
     if isinstance(url, QUrl):
         logging.debug("url is already a qurl")
         return url
-    if not (re.match(r'^\w+://', url) or url.startswith('about:')):
-        logging.debug("adding http:// to {}".format(url))
-        url = 'http://' + url
-    newurl = QUrl(url)
+    newurl = QUrl.fromUserInput(url)
     logging.debug('Converting {} to qurl -> {}'.format(url, newurl.url()))
     return newurl
 
