@@ -32,6 +32,7 @@ from PyQt5.QtPrintSupport import QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 import qutebrowser.utils as utils
+import qutebrowser.utils.about as about
 import qutebrowser.utils.config as config
 from qutebrowser.widgets.tabbar import TabWidget
 
@@ -430,7 +431,13 @@ class BrowserTab(QWebView):
         qurl = utils.qurl(url)
         logging.debug('New title: {}'.format(qurl.url()))
         self.titleChanged.emit(qurl.url())
-        return self.load(qurl)
+        if utils.is_about_url(qurl):
+            content = about.handle(qurl.toString())
+            self.setUrl(qurl)
+            self.setContent(content, 'text/html')
+            return
+        else:
+            return self.load(qurl)
 
     def link_handler(self, url):
         """Handle a link.

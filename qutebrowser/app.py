@@ -36,6 +36,7 @@ from PyQt5.QtCore import QUrl, QTimer
 
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.config as config
+import qutebrowser.utils.about as about
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets import CrashDialog
 from qutebrowser.commands.keys import KeyParser
@@ -288,13 +289,8 @@ class QuteBrowser(QApplication):
             out = repr(r)
         except Exception as e:  # pylint: disable=broad-except
             out = ': '.join([e.__class__.__name__, str(e)])
-
-        # FIXME we probably want some nicer interface to display these about:
-        # pages
-        tab = self.mainwindow.tabs.currentWidget()
-        tab.setUrl(QUrl('about:pyeval'))
-        tab.titleChanged.emit('about:pyeval')
-        tab.setContent(out.encode('UTF-8'), 'text/plain')
+        about.pyeval_output = out
+        self.mainwindow.tabs.openurl('about:pyeval')
 
     def crash(self):
         """Crash for debugging purposes.
