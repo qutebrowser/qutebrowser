@@ -432,9 +432,14 @@ class BrowserTab(QWebView):
         logging.debug('New title: {}'.format(qurl.url()))
         self.titleChanged.emit(qurl.url())
         if utils.is_about_url(qurl):
-            content = about.handle(qurl.toString())
-            self.setUrl(qurl)
-            self.setContent(content, 'text/html')
+            try:
+                content = about.handle(qurl.toString())
+            except AttributeError:
+                # FIXME progress bar should be visible and red...
+                self.loadFinished.emit(False)
+            else:
+                self.setUrl(qurl)
+                self.setContent(content, 'text/html')
             return
         else:
             return self.load(qurl)
