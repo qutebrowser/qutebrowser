@@ -428,19 +428,19 @@ class BrowserTab(QWebView):
 
         url -- The URL to load, as string or QUrl.
         """
-        qurl = utils.qurl(url)
-        logging.debug('New title: {}'.format(qurl.url()))
-        self.titleChanged.emit(qurl.url())
-        if utils.is_about_url(qurl):
+        u = utils.fuzzy_url(url)
+        logging.debug('New title: {}'.format(u.url()))
+        self.titleChanged.emit(u.url())
+        if utils.is_about_url(u):
             try:
-                content = about.handle(qurl.toString())
+                content = about.handle(u.toString())
             except AttributeError:
-                return self.load(qurl)
+                return self.load(u)
             else:
-                self.setUrl(qurl)
+                self.setUrl(u)
                 self.setContent(content, 'text/html')
         else:
-            return self.load(qurl)
+            return self.load(u)
 
     def link_handler(self, url):
         """Handle a link.

@@ -39,6 +39,7 @@ default_config = """
     ignorecase = true
     wrapsearch = true
     startpage = http://www.duckduckgo.com/
+    addressbar_dns_lookup = false
 
     [searchengines]
     duckduckgo = https://duckduckgo.com/?q={}
