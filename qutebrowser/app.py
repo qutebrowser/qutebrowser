@@ -32,7 +32,7 @@ import qutebrowser.utils.harfbuzz as harfbuzz
 harfbuzz.fix()
 
 from PyQt5.QtWidgets import QApplication, QDialog
-from PyQt5.QtCore import QUrl, QTimer
+from PyQt5.QtCore import QTimer
 
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.config as config

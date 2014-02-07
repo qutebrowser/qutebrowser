@@ -49,6 +49,7 @@ def handle(url):
 
 
 def _transform_url(url):
+    """Transform a special URL to an AboutHandlers method name."""
     return url.replace('http://', '').replace('about:', 'about_')
 
 

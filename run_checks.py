@@ -55,6 +55,7 @@ options = {
             'too-many-arguments',
             'too-many-locals',
             'global-statement',
+            'no-init',
         ],
         'flake8': [
             'E241', # Multiple spaces after ,
