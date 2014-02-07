@@ -27,7 +27,9 @@ import qutebrowser.commands.keys as keys
 
 
 class Command(QLineEdit):
+
     """The commandline part of the statusbar."""
+
     # Emitted when a command is triggered by the user
     got_cmd = pyqtSignal(str)
     # Emitted for searches triggered by the user
@@ -108,13 +110,12 @@ class Command(QLineEdit):
         super().focusInEvent(e)
 
     def _histbrowse_start(self):
-
         """Start browsing to the history.
 
         Called when the user presses the up/down key and wasn't browsing the
         history already.
-        """
 
+        """
         pre = self.text().strip()
         logging.debug('Preset text: "{}"'.format(pre))
         if pre:
@@ -157,16 +158,17 @@ class Command(QLineEdit):
 
 
 class Validator(QValidator):
-    """Validator to prevent the : from getting deleted"""
+
+    """Validator to prevent the : from getting deleted."""
 
     def validate(self, string, pos):
-
-        """Overrides QValidator::validate.
+        """Override QValidator::validate.
 
         string -- The string to validate.
         pos -- The current curser position.
 
-        Returns a tuple (status, string, pos) as a QValidator should.\
+        Returns a tuple (status, string, pos) as a QValidator should.
+
         """
         if any(string.startswith(c) for c in keys.startchars):
             return (QValidator.Acceptable, string, pos)

@@ -23,7 +23,9 @@ from PyQt5.QtWidgets import QProgressBar, QSizePolicy
 
 
 class Progress(QProgressBar):
+
     """The progress bar part of the status bar."""
+
     statusbar = None
     color = None
     _stylesheet = """
@@ -67,12 +69,11 @@ class Progress(QProgressBar):
             self.show()
 
     def load_finished(self, ok):
-
         """Hide the progress bar or color it red, depending on ok.
 
         Slot for the loadFinished signal of a QWebView.
-        """
 
+        """
         if ok:
             self.color = config.colordict.getraw('status.progress.bg')
             self.hide()

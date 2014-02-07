@@ -25,9 +25,11 @@ from qutebrowser.commands.exceptions import ArgumentCountError
 
 
 class Command(QObject):
+
     """Base skeleton for a command.
 
     See the module documentation for qutebrowser.commands.commands for details.
+
     """
 
     # FIXME:
@@ -53,8 +55,10 @@ class Command(QObject):
             self.mainname = self.name[0]
 
     def check(self, args):
-        """Check if the argument count is valid. Raise ArgumentCountError if
-        not.
+        """Check if the argument count is valid.
+
+        Raise ArgumentCountError if not.
+
         """
         if ((isinstance(self.nargs, int) and len(args) != self.nargs) or
                 (self.nargs == '?' and len(args) > 1) or
@@ -63,10 +67,11 @@ class Command(QObject):
             raise ArgumentCountError
 
     def run(self, args=None, count=None):
-        """Runs the command.
+        """Run the command.
 
         args -- Arguments to the command.
         count -- Command repetition count.
+
         """
         dbgout = ["command called:", self.mainname]
         if args:

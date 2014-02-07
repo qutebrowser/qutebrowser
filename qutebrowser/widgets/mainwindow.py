@@ -25,11 +25,14 @@ from qutebrowser.widgets.completion import CompletionView
 
 
 class MainWindow(QMainWindow):
+
     """The main window of QuteBrowser.
 
     Adds all needed components to a vbox, initializes subwidgets and connects
     signals.
+
     """
+
     cwidget = None
     vbox = None
     tabs = None

@@ -48,7 +48,9 @@ def register_all():
 
 
 class SearchParser(QObject):
+
     """Parse qutebrowser searches."""
+
     text = None
     flags = 0
     do_search = pyqtSignal(str, 'QWebPage::FindFlags')
@@ -57,6 +59,7 @@ class SearchParser(QObject):
         """Search for a text on a website.
 
         text -- The text to search for.
+
         """
         self._search(text)
 
@@ -64,6 +67,7 @@ class SearchParser(QObject):
         """Search for a text on a website in reverse direction.
 
         text -- The text to search for.
+
         """
         self._search(text, rev=True)
 
@@ -72,6 +76,7 @@ class SearchParser(QObject):
 
         text -- The text to search for.
         rev -- Search direction.
+
         """
         if self.text != text:
             self.do_search.emit('', 0)
@@ -93,7 +98,9 @@ class SearchParser(QObject):
 
 
 class CommandParser(QObject):
+
     """Parse qutebrowser commandline commands."""
+
     text = ''
     cmd = ''
     args = []
@@ -103,6 +110,7 @@ class CommandParser(QObject):
         """Split the commandline text into command and arguments.
 
         Raise NoSuchCommandError if a command wasn't found.
+
         """
         self.text = text
         parts = self.text.strip().split(maxsplit=1)
@@ -142,6 +150,7 @@ class CommandParser(QObject):
         Raise NoSuchCommandError if a command wasn't found, and
         ArgumentCountError if a command was called with the wrong count of
         arguments.
+
         """
         try:
             self._parse(text)

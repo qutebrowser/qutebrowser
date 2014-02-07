@@ -27,6 +27,7 @@ import qutebrowser.utils as utils
 
 
 class CrashDialog(QDialog):
+
     """Dialog which gets shown after there was a crash."""
 
     def __init__(self, pages, cmdhist, exc):

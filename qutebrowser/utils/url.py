@@ -19,6 +19,7 @@ def urlstring(url):
     """Return an QUrl as string.
 
     qurl -- URL as string or QUrl.
+
     """
     return url.url() if isinstance(url, QUrl) else url
 
@@ -27,6 +28,7 @@ def fuzzy_url(url):
     """Return a QUrl based on an user input which is URL or search term.
 
     url -- URL to load as QUrl or string.
+
     """
     u = qurl(url)
     urlstr = urlstring(url)

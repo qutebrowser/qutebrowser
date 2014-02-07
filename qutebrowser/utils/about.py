@@ -42,6 +42,7 @@ def handle(url):
     """Handle about page with an url.
 
     Returns HTML content.
+
     """
     if not is_about_url(url):
         raise ValueError
@@ -59,11 +60,13 @@ def _get_html(title, snippet):
 
     title -- The title the page should have.
     snippet -- The html snippet.
+
     """
     return _html_template.format(title=title, body=snippet).encode('UTF-8')
 
 
 class AboutHandlers:
+
     """Handlers for about:... pages."""
 
     @classmethod

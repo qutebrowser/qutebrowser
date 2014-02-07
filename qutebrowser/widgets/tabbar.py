@@ -24,6 +24,7 @@ import qutebrowser.utils.config as config
 
 
 class TabWidget(QTabWidget):
+
     """The tabwidget used for TabbedBrowser."""
 
     # FIXME there is still some ugly 1px white stripe from somewhere if we do

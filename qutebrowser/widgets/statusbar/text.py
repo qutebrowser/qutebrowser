@@ -26,7 +26,9 @@ class Text(QLabel):
     """The text part of the status bar.
 
     Contains several parts (keystring, error, text, scrollperc) which are later
-    joined and displayed."""
+    joined and displayed.
+
+    """
 
     keystring = ''
     error = ''

@@ -4,6 +4,7 @@ config         -- The main Config object.
 colordict      -- All configured colors.
 default_config -- The default config as dict.
 MONOSPACE      -- A list of suitable monospace fonts.
+
 """
 
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
@@ -128,10 +129,10 @@ def get_stylesheet(template):
 
 
 class ColorDict(dict):
+
     """A dict aimed at Qt stylesheet colors."""
 
     def __getitem__(self, key):
-
         """Override dict __getitem__.
 
         If a value wasn't found, return an empty string.
@@ -141,8 +142,8 @@ class ColorDict(dict):
         If the key has a .bg. element in it, return  background-color: X;.
 
         In all other cases, return the plain value.
-        """
 
+        """
         try:
             val = super().__getitem__(key)
         except KeyError:
@@ -158,6 +159,7 @@ class ColorDict(dict):
         """Get a value without the transformations done in __getitem__.
 
         Returns a value, or None if the value wasn't found.
+
         """
         try:
             return super().__getitem__(key)
@@ -166,6 +168,7 @@ class ColorDict(dict):
 
 
 class Config(ConfigParser):
+
     """Our own ConfigParser subclass."""
 
     configdir = None
@@ -177,6 +180,7 @@ class Config(ConfigParser):
         """Config constructor.
 
         configdir -- directory to store the config in.
+
         """
         super().__init__(interpolation=ExtendedInterpolation())
         self.default_cp = ConfigParser(interpolation=ExtendedInterpolation())
@@ -197,6 +201,7 @@ class Config(ConfigParser):
         """Get an item from the configparser or default dict.
 
         Extends ConfigParser's __getitem__.
+
         """
         try:
             return super().__getitem__(key)
@@ -207,6 +212,7 @@ class Config(ConfigParser):
         """Get an item from the configparser or default dict.
 
         Extends ConfigParser's get().
+
         """
         if 'fallback' in kwargs:
             del kwargs['fallback']
@@ -226,9 +232,7 @@ class Config(ConfigParser):
             os.fsync(f.fileno())
 
     def dump_userconfig(self):
-        """Returns the part of the config which was changed by the user as a
-        string.
-        """
+        """Return the part of the config which was changed by the user."""
         with io.StringIO() as f:
             self.write(f)
             return f.getvalue()

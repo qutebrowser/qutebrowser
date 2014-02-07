@@ -31,7 +31,9 @@ startchars = ":/?"
 
 
 class KeyParser(QObject):
+
     """Parser for vim-like key sequences."""
+
     keystring = ''  # The currently entered key sequence
     # Signal emitted when the statusbar should set a partial command
     set_cmd_text = pyqtSignal(str)
@@ -55,6 +57,7 @@ class KeyParser(QObject):
 
         Config format: key = command, e.g.:
         gg = scrollstart
+
         """
         for (key, cmd) in sect.items():
             if key.startswith('@') and key.endswith('@'):
@@ -71,6 +74,7 @@ class KeyParser(QObject):
         """Handle a new keypress and call the respective handlers.
 
         e -- the KeyPressEvent from Qt
+
         """
         handled = self._handle_modifier_key(e)
         if not handled:
@@ -83,6 +87,7 @@ class KeyParser(QObject):
         Returns True if the keypress has been handled, and False if not.
 
         e -- the KeyPressEvent from Qt
+
         """
         MODMASK2STR = {
             Qt.ControlModifier: 'Ctrl',
@@ -118,6 +123,7 @@ class KeyParser(QObject):
         displays an error.
 
         e -- the KeyPressEvent from Qt
+
         """
         # FIXME maybe we can do this in an easier way by using QKeySeqyence
         # which has a matches method.
@@ -169,6 +175,7 @@ class KeyParser(QObject):
         """Try to match a given keystring with any bound keychain.
 
         cmdstr_needle: The command string to find.
+
         """
         try:
             cmdstr_hay = self.bindings[cmdstr_needle]
@@ -187,9 +194,10 @@ class KeyParser(QObject):
             return (self.MATCH_NONE, None)
 
     def _normalize_keystr(self, keystr):
-        """Normalizes a keystring like Ctrl-Q to a keystring like Ctrl+Q.
+        """Normalize a keystring like Ctrl-Q to a keystring like Ctrl+Q.
 
         keystr -- The key combination as a string.
+
         """
         replacements = [
             ('Control', 'Ctrl'),
@@ -205,11 +213,12 @@ class KeyParser(QObject):
         return keystr
 
     def _run_or_fill(self, cmdstr, count=None, ignore_exc=True):
-        """Runs the command in cmdstr or fills the statusbar if args missing.
+        """Run the command in cmdstr or fill the statusbar if args missing.
 
         cmdstr -- The command string.
         count -- Optional command count.
         ignore_exc -- Ignore exceptions.
+
         """
         try:
             self.commandparser.run(cmdstr, count=count, ignore_exc=ignore_exc)

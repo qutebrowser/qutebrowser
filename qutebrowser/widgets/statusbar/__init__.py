@@ -27,7 +27,9 @@ from qutebrowser.widgets.statusbar.progress import Progress
 
 
 class StatusBar(QWidget):
-    """The statusbar at the bottom of the mainwindow"""
+
+    """The statusbar at the bottom of the mainwindow."""
+
     hbox = None
     cmd = None
     txt = None
@@ -46,7 +48,7 @@ class StatusBar(QWidget):
     """
 
     def __setattr__(self, name, value):
-        """Update the stylesheet if relevant attributes have been changed"""
+        """Update the stylesheet if relevant attributes have been changed."""
         super().__setattr__(name, value)
         if name == 'fgcolor' and value is not None:
             config.colordict['statusbar.fg.__cur__'] = value
@@ -78,13 +80,13 @@ class StatusBar(QWidget):
         self.hbox.addWidget(self.prog)
 
     def disp_error(self, text):
-        """Displays an error in the statusbar"""
+        """Displaysan error in the statusbar."""
         self.bgcolor = config.colordict.getraw('statusbar.bg.error')
         self.fgcolor = config.colordict.getraw('statusbar.fg.error')
         self.txt.error = text
 
     def clear_error(self):
-        """Clears a displayed error from the status bar"""
+        """Clear a displayed error from the status bar."""
         self.bgcolor = config.colordict.getraw('statusbar.bg')
         self.fgcolor = config.colordict.getraw('statusbar.fg')
         self.txt.error = ''
@@ -93,6 +95,7 @@ class StatusBar(QWidget):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
 
         e -- The QResizeEvent.
+
         """
         super().resizeEvent(e)
         self.resized.emit(self.geometry())

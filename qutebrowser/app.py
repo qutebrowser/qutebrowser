@@ -1,4 +1,4 @@
-""" Initialization of qutebrowser and application-wide things """
+"""Initialization of qutebrowser and application-wide things."""
 
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
@@ -44,13 +44,16 @@ from qutebrowser.utils.appdirs import AppDirs
 
 
 class QuteBrowser(QApplication):
+
     """Main object for qutebrowser.
 
     Can be used like this:
 
     >>> app = QuteBrowser()
     >>> sys.exit(app.exec_())
+
     """
+
     dirs = None  # AppDirs - config/cache directories
     config = None  # Config(Parser) object
     mainwindow = None
@@ -112,6 +115,7 @@ class QuteBrowser(QApplication):
         """Process initial positional args.
 
         URLs to open have no prefix, commands to execute begin with a colon.
+
         """
         opened_urls = False
 
@@ -135,6 +139,7 @@ class QuteBrowser(QApplication):
 
         It'll try very hard to write all open tabs to a file, and then exit
         gracefully.
+
         """
         # pylint: disable=broad-except
 
@@ -178,6 +183,7 @@ class QuteBrowser(QApplication):
         This sets up the uncaught exception hook, quits with an appropriate
         exit status, and handles Ctrl+C properly by passing control to the
         Python interpreter once all 500ms.
+
         """
         signal(SIGINT, lambda *args: self.exit(128 + SIGINT))
         self.timer = QTimer()
@@ -220,6 +226,7 @@ class QuteBrowser(QApplication):
         """Initialisation of the qutebrowser commands.
 
         Registers all commands, connects its signals, and sets up keyparser.
+
         """
         cmdutils.register_all()
         for cmd in cmdutils.cmd_dict.values():
@@ -238,6 +245,7 @@ class QuteBrowser(QApplication):
         tpl -- A tuple in the form (count, argv) where argv is [cmd, arg, ...]
 
         All handlers supporting a count should have a keyword argument count.
+
         """
         (count, argv) = tpl
         cmd = argv[0]
@@ -283,6 +291,7 @@ class QuteBrowser(QApplication):
         s -- The string to evaluate.
 
         :pyeval command handler.
+
         """
         try:
             r = eval(s)
@@ -296,5 +305,6 @@ class QuteBrowser(QApplication):
         """Crash for debugging purposes.
 
         :crash command handler.
+
         """
         raise Exception

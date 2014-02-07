@@ -1,8 +1,8 @@
-"""Completion view which appears when something is typed in the statusbar
-command section.
+"""Completion view for statusbar command section.
 
 Defines a CompletionView which uses CompletionFiterModel and CompletionModel
 subclasses to provide completions.
+
 """
 
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
@@ -37,12 +37,14 @@ from qutebrowser.commands.utils import CommandCompletionModel
 
 
 class CompletionView(QTreeView):
+
     """The view showing available completions.
 
     Based on QTreeView but heavily customized so root elements show as category
     headers, and children show as flat list.
 
     Highlights completions based on marks in the UserRole.
+
     """
 
     _stylesheet = """
@@ -111,6 +113,7 @@ class CompletionView(QTreeView):
         Called from cmd_text_changed().
 
         model -- A QAbstractItemModel with available completions.
+
         """
         self.model.setsrc(self.completion_models[model])
         self.expandAll()
@@ -121,6 +124,7 @@ class CompletionView(QTreeView):
 
         Slot for the resized signal of the statusbar.
         geom -- A QRect containing the statusbar geometry.
+
         """
         bottomleft = geom.topLeft()
         bottomright = geom.topRight()
@@ -135,6 +139,7 @@ class CompletionView(QTreeView):
 
         Slot for the textChanged signal of the statusbar command widget.
         text -- The new text
+
         """
         if self.ignore_next:
             # Text changed by a completion, so we don't have to complete again.
@@ -161,6 +166,7 @@ class CompletionView(QTreeView):
         statusbar. Called by key_(s)tab_handler in statusbar.command.
 
         shift -- Whether shift is pressed or not.
+
         """
         if not self.completing:
             # No completion running at the moment, ignore keypress
@@ -179,6 +185,7 @@ class CompletionView(QTreeView):
         Used by tab_handler.
 
         upwards -- Get previous item, not next.
+
         """
         idx = self.selectionModel().currentIndex()
         if not idx.isValid():
@@ -197,6 +204,7 @@ class CompletionView(QTreeView):
 
 
 class CompletionItemDelegate(QStyledItemDelegate):
+
     """Delegate used by CompletionView to draw individual items.
 
     Mainly a cleaned up port of Qt's way to draw a TreeView item, except it
@@ -204,6 +212,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
 
     Original implementation:
         qt/src/gui/styles/qcommonstyle.cpp:drawControl:2153
+
     """
 
     opt = None
@@ -211,10 +220,11 @@ class CompletionItemDelegate(QStyledItemDelegate):
     painter = None
 
     def sizeHint(self, option, index):
-        """Overrides sizeHint of QStyledItemDelegate.
+        """Override sizeHint of QStyledItemDelegate.
 
         Returns the cell size based on the QTextDocument size, but might not
         work correctly yet.
+
         """
         value = index.data(Qt.SizeHintRole)
         if value is not None:
@@ -228,7 +238,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
                                       docsize, self.opt.widget) + QSize(10, 0)
 
     def paint(self, painter, option, index):
-        """Overrides the QStyledItemDelegate paint function."""
+        """Override the QStyledItemDelegate paint function."""
         painter.save()
 
         self.painter = painter
@@ -244,12 +254,12 @@ class CompletionItemDelegate(QStyledItemDelegate):
         painter.restore()
 
     def _draw_background(self):
-        """Draw the background of an ItemViewItem"""
+        """Draw the background of an ItemViewItem."""
         self.style.drawPrimitive(self.style.PE_PanelItemViewItem, self.opt,
                                  self.painter, self.opt.widget)
 
     def _draw_icon(self):
-        """Draw the icon of an ItemViewItem"""
+        """Draw the icon of an ItemViewItem."""
         icon_rect = self.style.subElementRect(
             self.style.SE_ItemViewItemDecoration, self.opt, self.opt.widget)
 
@@ -269,6 +279,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         in Qt: We use a QTextDocument to draw text.
 
         index of the item of the item -- The QModelIndex of the item to draw.
+
         """
         if not self.opt.text:
             return
@@ -311,6 +322,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
 
         doc -- The QTextDocument to draw.
         text_rect -- The QRect to clip the drawing to.
+
         """
         clip = QRectF(0, 0, text_rect.width(), text_rect.height())
         doc.drawContents(self.painter, clip)
@@ -319,6 +331,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         """Return the QTextDocument of an item.
 
         index -- The QModelIndex of the item to draw.
+
         """
         # FIXME we probably should do eliding here. See
         # qcommonstyle.cpp:viewItemDrawText
@@ -358,7 +371,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         return doc
 
     def _draw_focus_rect(self):
-        """Draws the focus rectangle of an ItemViewItem"""
+        """Draw the focus rectangle of an ItemViewItem."""
         state = self.opt.state
         if not state & QStyle.State_HasFocus:
             return

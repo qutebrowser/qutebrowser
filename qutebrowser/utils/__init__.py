@@ -1,4 +1,4 @@
-"""Utility functions"""
+"""Misc utility functions."""
 
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
@@ -62,6 +62,7 @@ def _git_str():
     """Try to find out git version and return a string if possible.
 
     Return None if there was an error or we're not in a git repo.
+
     """
     # FIXME this runs in PWD, not the qutebrowser dir?!
     if not os.path.isdir(".git"):
