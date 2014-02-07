@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import qutebrowser.utils as utils
+from qutebrowser.utils import version
+from qutebrowser.utils.url import is_about_url
 
 
 _html_template = """
@@ -42,7 +43,7 @@ def handle(url):
 
     Returns HTML content.
     """
-    if not utils.is_about_url(url):
+    if not is_about_url(url):
         raise ValueError
     handler = getattr(AboutHandlers, _transform_url(url))
     return handler()
@@ -73,4 +74,4 @@ class AboutHandlers:
     @classmethod
     def about_version(cls):
         """Handler for about:version."""
-        return _get_html('Version', '<pre>{}</pre>'.format(utils.version()))
+        return _get_html('Version', '<pre>{}</pre>'.format(version()))

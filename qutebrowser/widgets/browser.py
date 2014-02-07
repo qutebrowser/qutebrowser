@@ -31,9 +31,9 @@ from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
-import qutebrowser.utils as utils
 import qutebrowser.utils.about as about
 import qutebrowser.utils.config as config
+import qutebrowser.utils.url as urlutils
 from qutebrowser.widgets.tabbar import TabWidget
 
 
@@ -76,7 +76,7 @@ class TabbedBrowser(TabWidget):
         Also connect all the signals we need to _filter_signals.
         """
         logging.debug("Opening {}".format(url))
-        url = utils.qurl(url)
+        url = urlutils.qurl(url)
         tab = BrowserTab(self)
         tab.openurl(url)
         self.addTab(tab, url.url())
@@ -428,10 +428,10 @@ class BrowserTab(QWebView):
 
         url -- The URL to load, as string or QUrl.
         """
-        u = utils.fuzzy_url(url)
+        u = urlutils.fuzzy_url(url)
         logging.debug('New title: {}'.format(u.url()))
         self.titleChanged.emit(u.url())
-        if utils.is_about_url(u):
+        if urlutils.is_about_url(u):
             try:
                 content = about.handle(u.toString())
             except AttributeError:
