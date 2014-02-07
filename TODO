@@ -21,7 +21,6 @@ webinterface for settings/colors/bindings
 Before Blink
 ------------
 
-searchengines
 session handling / saving
 IPC, like dwb -x
 Mode handling?

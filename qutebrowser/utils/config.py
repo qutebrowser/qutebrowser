@@ -40,6 +40,15 @@ default_config = """
     wrapsearch = true
     startpage = http://www.duckduckgo.com/
 
+    [searchengines]
+    duckduckgo = https://duckduckgo.com/?q={}
+    ddg = ${duckduckgo}
+    google = https://encrypted.google.com/search?q={}
+    g = ${google}
+    wikipedia = http://en.wikipedia.org/w/index.php?title=Special:Search&search={}
+    wiki = ${wikipedia}
+    __default__ = ${duckduckgo}
+
     [keybind]
     o = open
     go = opencur

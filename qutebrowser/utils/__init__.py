@@ -17,11 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
 import sys
 import os.path
 import platform
 import logging
 import subprocess
+import urllib.parse
 
 from PyQt5.QtCore import QUrl, QT_VERSION_STR, PYQT_VERSION_STR, qVersion
 from PyQt5.QtWebKit import qWebKitVersion
@@ -34,9 +36,40 @@ def qurl(url):
     if isinstance(url, QUrl):
         logging.debug("url is already a qurl")
         return url
-    newurl = QUrl.fromUserInput(url)
+    elif '.' in url or is_about_url(url):  # probably an address
+        logging.debug("url is a fuzzy address")
+        newurl = QUrl.fromUserInput(url)
+    else:  # probably a search term
+        logging.debug("url is a fuzzy search term")
+        try:
+            newurl = QUrl.fromUserInput(_get_search_url(url))
+        except ValueError:
+            newurl = QUrl.fromUserInput(url)
     logging.debug('Converting {} to qurl -> {}'.format(url, newurl.url()))
     return newurl
+
+
+def _get_search_url(txt):
+    """Get a search engine URL for a text."""
+    # FIXME Importing this here fixes some weird dependency problems.
+    import qutebrowser.utils.config as config
+    logging.debug('Finding search engine for "{}"'.format(txt))
+    r = re.compile(r'(^|\s+)!(\w+)($|\s+)')
+    m = r.search(txt)
+    if m:
+        engine = m.group(2)
+        # FIXME why doesn't fallback work?!
+        template = config.config.get('searchengines', engine, fallback=None)
+        term = r.sub('', txt)
+        logging.debug('engine {}, term "{}"'.format(engine, term))
+    else:
+        template = config.config.get('searchengines', '__default__',
+                                     fallback=None)
+        term = txt
+        logging.debug('engine: default, term "{}"'.format(txt))
+    if template is None or not term:
+        raise ValueError
+    return template.format(urllib.parse.quote(term))
 
 
 def version():
