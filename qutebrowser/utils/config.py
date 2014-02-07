@@ -34,76 +34,76 @@ config = None
 colordict = {}
 
 default_config = """
-    [general]
-    show_completion = true
-    space_scroll = 200
-    ignorecase = true
-    wrapsearch = true
-    startpage = http://www.duckduckgo.com/
-    addressbar_dns_lookup = false
+[general]
+show_completion = true
+space_scroll = 200
+ignorecase = true
+wrapsearch = true
+startpage = http://www.duckduckgo.com/
+addressbar_dns_lookup = false
 
-    [searchengines]
-    duckduckgo = https://duckduckgo.com/?q={}
-    ddg = ${duckduckgo}
-    google = https://encrypted.google.com/search?q={}
-    g = ${google}
-    wikipedia = http://en.wikipedia.org/w/index.php?title=Special:Search&search={}
-    wiki = ${wikipedia}
-    __default__ = ${duckduckgo}
+[searchengines]
+duckduckgo = https://duckduckgo.com/?q={}
+ddg = ${duckduckgo}
+google = https://encrypted.google.com/search?q={}
+g = ${google}
+wikipedia = http://en.wikipedia.org/w/index.php?title=Special:Search&search={}
+wiki = ${wikipedia}
+__default__ = ${duckduckgo}
 
-    [keybind]
-    o = open
-    go = opencur
-    O = tabopen
-    gO = tabopencur
-    d = tabclose
-    J = tabnext
-    K = tabprev
-    r = reload
-    H = back
-    L = forward
-    h = scroll -50 0
-    j = scroll 0 50
-    k = scroll 0 -50
-    l = scroll 50 0
-    u = undo
-    gg = scroll_perc_y 0
-    G = scroll_perc_y
-    n = nextsearch
-    yy = yank
-    yY = yank sel
-    yt = yanktitle
-    yT = yanktitle sel
-    pp = paste
-    pP = paste sel
-    Pp = tabpaste
-    PP = tabpaste sel
-    @Ctrl-Q@ = quit
-    @Ctrl-Shift-T@ = undo
-    @Ctrl-W@ = tabclose
-    @Ctrl-T@ = tabopen about:blank
+[keybind]
+o = open
+go = opencur
+O = tabopen
+gO = tabopencur
+d = tabclose
+J = tabnext
+K = tabprev
+r = reload
+H = back
+L = forward
+h = scroll -50 0
+j = scroll 0 50
+k = scroll 0 -50
+l = scroll 50 0
+u = undo
+gg = scroll_perc_y 0
+G = scroll_perc_y
+n = nextsearch
+yy = yank
+yY = yank sel
+yt = yanktitle
+yT = yanktitle sel
+pp = paste
+pP = paste sel
+Pp = tabpaste
+PP = tabpaste sel
+@Ctrl-Q@ = quit
+@Ctrl-Shift-T@ = undo
+@Ctrl-W@ = tabclose
+@Ctrl-T@ = tabopen about:blank
 
-    [colors]
-    completion.fg = #333333
-    completion.item.bg = white
-    completion.category.bg = qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                             stop:0 #e4e4e4, stop:1 #dbdbdb)
-    completion.category.border.top = #808080
-    completion.category.border.bottom = #bbbbbb
-    completion.item.selected.fg = #333333
-    completion.item.selected.bg = #ffec8b
-    completion.item.selected.border.top = #f2f2c0
-    completion.item.selected.border.bottom = #e6e680
-    completion.match.fg = red
-    statusbar.progress.bg = white
-    statusbar.progress.bg.error = red
-    statusbar.bg = black
-    statusbar.fg = white
-    statusbar.bg.error = red
-    tab.bg = grey
-    tab.bg.selected = black
-    tab.fg = white
-    tab.seperator = white
+[colors]
+completion.fg = #333333
+completion.item.bg = white
+completion.category.bg = qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                         stop:0 #e4e4e4, stop:1 #dbdbdb)
+completion.category.border.top = #808080
+completion.category.border.bottom = #bbbbbb
+completion.item.selected.fg = #333333
+completion.item.selected.bg = #ffec8b
+completion.item.selected.border.top = #f2f2c0
+completion.item.selected.border.bottom = #e6e680
+completion.match.fg = red
+statusbar.progress.bg = white
+statusbar.progress.bg.error = red
+statusbar.bg = black
+statusbar.fg = white
+statusbar.bg.error = red
+tab.bg = grey
+tab.bg.selected = black
+tab.fg = white
+tab.seperator = white
 """
 
 _MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas', 'Monaco',
