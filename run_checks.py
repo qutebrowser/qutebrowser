@@ -128,25 +128,27 @@ def _check_line(fn):
                 return False
     return True
 
-args = []
-if options['disable']['pylint']:
-    args += ['--disable=' + ','.join(options['disable']['pylint'])]
-if options['exclude']:
-    args += ['--ignore=' + ','.join(options['exclude'])]
-if options['other']['pylint']:
-    args += options['other']['pylint']
-run('pylint', args)
+def _get_args(checker):
+    args = []
+    if checker == 'pylint':
+        try:
+            args += ['--disable=' + ','.join(options['disable']['pylint'])]
+            args += ['--ignore=' + ','.join(options['exclude'])]
+            args += options['other']['pylint']
+        except KeyError:
+            pass
+    elif checker == 'flake8':
+        try:
+            args += ['--ignore=' + ','.join(options['disable']['flake8'])]
+            args += ['--exclude=' + ','.join(options['exclude'])]
+            args += options['other']['flake8']
+        except KeyError:
+            pass
+    return args
 
-# FIXME what the hell is the flake8 exit status?
-args = []
-if options['disable']['flake8']:
-    args += ['--ignore=' + ','.join(options['disable']['flake8'])]
-if options['exclude']:
-    args += ['--exclude=' + ','.join(options['exclude'])]
-if options['other']['flake8']:
-    args += options['other']['flake8']
-run('flake8', args)
-
+for checker in ['pylint', 'flake8']:
+    # FIXME what the hell is the flake8 exit status?
+    run(checker, _get_args(checker))
 check_line()
 
 print('Exit status values:')
