@@ -50,6 +50,7 @@ Other stuff
 ===========
 
 make sure webview.page() and page.mainFrame() never change
+http://agateau.com/article-series/pyqtwebkit-experiments/
 
 Keybinding stuff (from dwb)
 ===========================
