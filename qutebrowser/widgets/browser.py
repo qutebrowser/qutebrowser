@@ -435,12 +435,10 @@ class BrowserTab(QWebView):
             try:
                 content = about.handle(qurl.toString())
             except AttributeError:
-                # FIXME progress bar should be visible and red...
-                self.loadFinished.emit(False)
+                return self.load(qurl)
             else:
                 self.setUrl(qurl)
                 self.setContent(content, 'text/html')
-            return
         else:
             return self.load(qurl)
 
