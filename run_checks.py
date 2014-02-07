@@ -29,7 +29,43 @@ from collections import OrderedDict
 from pkg_resources import load_entry_point, DistributionNotFound
 
 status = OrderedDict()
-testmodule = 'qutebrowser'
+
+options = {
+    'target': 'qutebrowser',
+    'disable': {
+        'pylint': [
+            # import seems unreliable
+            'import-error',
+            'no-name-in-module',
+            # short variable names can be nice
+            'invalid-name',
+            # Basically unavoidable with Qt
+            'too-many-public-methods',
+            'no-self-use',
+            # These don't even exist in python3
+            'super-on-old-class',
+            'old-style-class',
+            # False-positives
+            'abstract-class-little-used',
+            # map/filter can be nicer than comprehensions
+            'bad-builtin',
+            # I disagree with these
+            'star-args',
+            'fixme',
+            'too-many-arguments',
+            'too-many-locals',
+            'global-statement',
+        ],
+        'flake8': [
+            'E241', # Multiple spaces after ,
+        ],
+    },
+    'exclude': [ 'appdirs.py' ],
+    'other': {
+        'pylint': ['--output-format=colorized', '--reports=no'],
+        'flake8': ['--max-complexity=10'],
+    },
+}
 
 def run(name, args=None):
     """ Run a checker with optional args.
@@ -37,7 +73,7 @@ def run(name, args=None):
     name -- Name of the checker/binary
     args -- Option list of arguments to pass
     """
-    sys.argv = [name, testmodule]
+    sys.argv = [name, options['target']]
     if args is not None:
         sys.argv += args
     print("====== {} ======".format(name))
@@ -63,7 +99,7 @@ def check_line():
     print("====== line ======")
     ret = []
     try:
-        for (dirpath, dirnames, filenames) in os.walk(testmodule):
+        for (dirpath, dirnames, filenames) in os.walk(options['target']):
             for name in [e for e in filenames if e.endswith('.py')]:
                 fn = os.path.join(dirpath, name)
                 ret.append(_check_line(fn))
@@ -91,33 +127,25 @@ def _check_line(fn):
                 return False
     return True
 
+args = []
+if options['disable']['pylint']:
+    args += ['--disable=' + ','.join(options['disable']['pylint'])]
+if options['exclude']:
+    args += ['--ignore=' + ','.join(options['exclude'])]
+if options['other']['pylint']:
+    args += options['other']['pylint']
+run('pylint', args)
 
-pylint_disable = [
-    'import-error',               # import seems unreliable
-    'no-name-in-module',
-    'invalid-name',               # short variable names can be nice
-    'star-args',                  # we want to use this
-    'fixme',
-    'too-many-public-methods',    # Basically unavoidable with Qt
-    'no-self-use',
-    'super-on-old-class',         # These don't even exist in python3
-    'old-style-class',
-    'global-statement',
-    'abstract-class-little-used', # False-positives
-    'bad-builtin',                # map/filter can be nicer than comprehensions
-    'too-many-arguments',
-    'too-many-locals',
-]
-
-flake8_disable = [
-    'E241', # Multiple spaces after ,
-]
-
-run('pylint', ['--ignore=appdirs.py', '--output-format=colorized',
-               '--reports=no', '--disable=' + ','.join(pylint_disable)])
 # FIXME what the hell is the flake8 exit status?
-run('flake8', ['--max-complexity=10', '--exclude=appdirs.py',
-               '--ignore=' + ''.join(flake8_disable)])
+args = []
+if options['disable']['flake8']:
+    args += ['--ignore=' + ','.join(options['disable']['flake8'])]
+if options['exclude']:
+    args += ['--exclude=' + ','.join(options['exclude'])]
+if options['other']['flake8']:
+    args += options['other']['flake8']
+run('flake8', args)
+
 check_line()
 
 print('Exit status values:')
