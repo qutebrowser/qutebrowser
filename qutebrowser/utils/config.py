@@ -27,7 +27,7 @@ import os.path
 import os
 import io
 import logging
-from configparser import ConfigParser
+from configparser import ConfigParser, ExtendedInterpolation
 
 config = None
 colordict = {}
@@ -168,8 +168,8 @@ class Config(ConfigParser):
 
         configdir -- directory to store the config in.
         """
-        super().__init__()
-        self.default_cp = ConfigParser()
+        super().__init__(interpolation=ExtendedInterpolation())
+        self.default_cp = ConfigParser(interpolation=ExtendedInterpolation())
         self.default_cp.optionxform = lambda opt: opt  # be case-insensitive
         self.default_cp.read_string(default_config)
         if not self.configdir:
