@@ -71,8 +71,9 @@ def version():
 
 def is_about_url(url):
     """Return True if url is an about:... or other special URL."""
-    url = qurl(url)
-    return url.toString().replace('http://', '').startswith('about:')
+    if isinstance(url, QUrl):
+        url = url.toString()
+    return url.replace('http://', '').startswith('about:')
 
 
 def _git_str():
