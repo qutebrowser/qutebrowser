@@ -1,6 +1,6 @@
 """ Run different codecheckers over a codebase.
 
-Runs flake8, pylint and a CRLF/whitespace/conflict-checker by default.
+Runs flake8, pylint, pep257 and a CRLF/whitespace/conflict-checker by default.
 """
 
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
@@ -26,6 +26,7 @@ import os
 import os.path
 from collections import OrderedDict
 
+import pep257
 from pkg_resources import load_entry_point, DistributionNotFound
 
 status = OrderedDict()
@@ -60,6 +61,9 @@ options = {
         'flake8': [
             'E241', # Multiple spaces after ,
         ],
+        'pep257': [
+            'D102', # Docstring missing, will be handled by others
+        ],
     },
     'exclude': [ 'appdirs.py' ],
     'other': {
@@ -69,7 +73,7 @@ options = {
 }
 
 def run(name, args=None):
-    """ Run a checker with optional args.
+    """ Run a checker via distutils with optional args.
 
     name -- Name of the checker/binary
     args -- Option list of arguments to pass
@@ -90,6 +94,18 @@ def run(name, args=None):
         except FileNotFoundError as e:
             print('{}: {}'.format(e.__class__.__name__, e))
             status[name] = None
+    except Exception as e:
+        print('{}: {}'.format(e.__class__.__name__, e))
+        status[name] = None
+    print()
+
+def check_pep257(args=None):
+    sys.argv = ['pep257', options['target']]
+    if args is not None:
+        sys.argv += args
+    print("====== pep257 ======")
+    try:
+        status['pep257'] = pep257.main(*pep257.parse_options())
     except Exception as e:
         print('{}: {}'.format(e.__class__.__name__, e))
         status[name] = None
@@ -144,8 +160,17 @@ def _get_args(checker):
             args += options['other']['flake8']
         except KeyError:
             pass
+    elif checker == 'pep257':
+        args = []
+        try:
+            args += ['--ignore=' + ','.join(options['disable']['pep257'])]
+            args += ['--match=(?!{}).*\.py'.format('|'.join(options['exclude']))]
+            args += options['other']['pep257']
+        except KeyError:
+            pass
     return args
 
+check_pep257(_get_args('pep257'))
 for checker in ['pylint', 'flake8']:
     # FIXME what the hell is the flake8 exit status?
     run(checker, _get_args(checker))
