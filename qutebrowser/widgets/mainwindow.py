@@ -61,6 +61,7 @@ class MainWindow(QMainWindow):
         self.vbox.addWidget(self.status)
 
         self.status.resized.connect(self.completion.resize_to_bar)
+        self.status.moved.connect(self.completion.move_to_bar)
         self.tabs.cur_progress.connect(self.status.prog.set_progress)
         self.tabs.cur_load_finished.connect(self.status.prog.load_finished)
         self.tabs.cur_load_started.connect(lambda:

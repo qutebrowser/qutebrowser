@@ -35,6 +35,7 @@ class StatusBar(QWidget):
     txt = None
     prog = None
     resized = pyqtSignal('QRect')
+    moved = pyqtSignal('QPoint')
     fgcolor = None
     bgcolor = None
     _stylesheet = """
@@ -98,3 +99,12 @@ class StatusBar(QWidget):
         """
         super().resizeEvent(e)
         self.resized.emit(self.geometry())
+
+    def moveEvent(self, e):
+        """Extend moveEvent of QWidget to emit a moved signal afterwards.
+
+        e -- The QMoveEvent.
+
+        """
+        super().moveEvent(e)
+        self.moved.emit(e.pos())

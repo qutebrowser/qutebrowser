@@ -83,6 +83,7 @@ class CompletionView(QTreeView):
     ignore_next = False
     enabled = True
     completing = False
+    height = QPoint(0, 200)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -128,11 +129,19 @@ class CompletionView(QTreeView):
         """
         bottomleft = geom.topLeft()
         bottomright = geom.topRight()
-        delta = QPoint(0, 200)
-        topleft = bottomleft - delta
+        topleft = bottomleft - self.height
         assert topleft.x() < bottomright.x()
         assert topleft.y() < bottomright.y()
         self.setGeometry(QRect(topleft, bottomright))
+
+    def move_to_bar(self, pos):
+        """Move the completion area to the statusbar geometry.
+
+        Slot for the moved signal of the statusbar.
+        pos -- A QPoint containing the statusbar position.
+
+        """
+        self.move(pos - self.height)
 
     def cmd_text_changed(self, text):
         """Check if completions are available and activate them.
