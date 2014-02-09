@@ -41,6 +41,7 @@ ignorecase = true
 wrapsearch = true
 startpage = http://www.duckduckgo.com/
 addressbar_dns_lookup = false
+auto_search = true
 
 [searchengines]
 duckduckgo = https://duckduckgo.com/?q={}

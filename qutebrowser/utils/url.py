@@ -32,7 +32,7 @@ def fuzzy_url(url):
     """
     u = qurl(url)
     urlstr = urlstring(url)
-    if is_url(u):
+    if (not config.config.getboolean('general', 'auto_search')) or is_url(u):
         # probably an address
         logging.debug("url is a fuzzy address")
         newurl = QUrl.fromUserInput(urlstr)
