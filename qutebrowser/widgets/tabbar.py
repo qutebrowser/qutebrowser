@@ -39,7 +39,6 @@ class TabWidget(QTabWidget):
         QTabBar {{
             font-family: {monospace};
             font-size: 8pt;
-            height: 13px;
         }}
 
         QTabBar::tab {{
