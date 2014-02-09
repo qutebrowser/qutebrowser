@@ -235,7 +235,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         doc = self._get_textdoc(index)
         docsize = doc.size().toSize()
         return style.sizeFromContents(QStyle.CT_ItemViewItem, self.opt,
-                                      docsize, self.opt.widget) + QSize(10, 0)
+                                      docsize, self.opt.widget) + QSize(10, 1)
 
     def paint(self, painter, option, index):
         """Override the QStyledItemDelegate paint function."""
@@ -290,6 +290,11 @@ class CompletionItemDelegate(QStyledItemDelegate):
                                         self.opt.widget) + 1
         # remove width padding
         text_rect = text_rect_.adjusted(margin, 0, -margin, 0)
+        # move text upwards a bit
+        if index.parent().isValid():
+            text_rect.adjust(0, -1, 0, -1)
+        else:
+            text_rect.adjust(0, -2, 0, -2)
         self.painter.save()
         state = self.opt.state
         if state & QStyle.State_Enabled and state & QStyle.State_Active:
