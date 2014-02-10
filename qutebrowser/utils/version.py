@@ -75,7 +75,7 @@ def _git_str():
         return None
     try:
         return subprocess.check_output(
-            ['git', '-C', gitpath, 'describe', '--tags', '--dirty',
-             '--always']).decode('UTF-8').strip()
+            ['git', 'describe', '--tags', '--dirty', '--always'],
+            cwd=gitpath).decode('UTF-8').strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None
