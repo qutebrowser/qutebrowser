@@ -26,6 +26,7 @@ from PyQt5.QtGui import QValidator, QKeySequence
 
 import qutebrowser.utils.config as config
 import qutebrowser.commands.keys as keys
+from qutebrowser.utils.url import urlstring
 
 
 class StatusBar(QWidget):
@@ -333,6 +334,9 @@ class Text(QLabel):
     error = ''
     text = ''
     scrollperc = ''
+    url = ''
+
+    fields = ['keystring', 'url', 'error', 'text', 'scrollperc']
 
     def __init__(self, bar):
         super().__init__(bar)
@@ -341,11 +345,16 @@ class Text(QLabel):
 
     def __setattr__(self, name, value):
         super().__setattr__(name, value)
-        self.update()
+        if name in self.fields:
+            self.update()
 
     def set_keystring(self, s):
         """Setter to be used as a Qt slot."""
         self.keystring = s
+
+    def set_url(self, s):
+        """Setter to be used as a Qt slot."""
+        self.url = urlstring(s)
 
     def set_perc(self, x, y):
         """Setter to be used as a Qt slot."""
@@ -364,5 +373,4 @@ class Text(QLabel):
 
     def update(self):
         """Update the text displayed."""
-        self.setText(' '.join([self.keystring, self.error, self.text,
-                               self.scrollperc]))
+        self.setText(' '.join(getattr(self, name) for name in self.fields))

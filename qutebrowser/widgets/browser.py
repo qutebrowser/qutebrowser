@@ -59,6 +59,7 @@ class TabbedBrowser(TabWidget):
     cur_load_started = pyqtSignal()  # Current tab started loading
     cur_load_finished = pyqtSignal(bool)  # Current tab finished loading
     cur_statusbar_message = pyqtSignal(str)  # Status bar message
+    cur_url_changed = pyqtSignal('QUrl')  # Current URL changed
     # Current tab changed scroll position
     cur_scroll_perc_changed = pyqtSignal(int, int)
     set_cmd_text = pyqtSignal(str)  # Set commandline to a given text
@@ -94,6 +95,7 @@ class TabbedBrowser(TabWidget):
             self._filter_factory(self.cur_statusbar_message))
         tab.scroll_pos_changed.connect(
             self._filter_factory(self.cur_scroll_perc_changed))
+        tab.urlChanged.connect(self._filter_factory(self.cur_url_changed))
         tab.titleChanged.connect(self._titleChanged_handler)
         # FIXME sometimes this doesn't load
         tab.open_tab.connect(self.tabopen)
