@@ -398,7 +398,7 @@ class TabbedBrowser(TabWidget):
         #   - Switch back to #1 when loading finished
         #   - It seems loadingStarted is before loadingFinished
         dbgstr = "{} ({})".format(
-            signal.signal, ','.join([str(e) for e in args]))
+            signal.signal, ','.join(str(e) for e in args))
         sender = self.sender()
         if not isinstance(sender, BrowserTab):
             # FIXME why does this happen?
@@ -427,7 +427,7 @@ class TabbedBrowser(TabWidget):
 
         """
         for (sigstr, (signal, args)) in self.widget(idx).signal_cache.items():
-            dbgstr = "{} ({})".format(sigstr, ','.join([str(e) for e in args]))
+            dbgstr = "{} ({})".format(sigstr, ','.join(str(e) for e in args))
             logging.debug('signal cache: emitting {}'.format(dbgstr))
             signal.emit(*args)
 

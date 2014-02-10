@@ -92,7 +92,7 @@ def _is_url_naive(url):
     """Naive check if given url (QUrl) is really an url."""
     PROTOCOLS = ['http://', 'https://']
     u = urlstring(url)
-    return (any([u.startswith(proto) for proto in PROTOCOLS]) or '.' in u or
+    return (any(u.startswith(proto) for proto in PROTOCOLS) or '.' in u or
             is_about_url(url) or u == 'localhost')
 
 

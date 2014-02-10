@@ -119,7 +119,7 @@ def check_line():
     ret = []
     try:
         for (dirpath, dirnames, filenames) in os.walk(options['target']):
-            for name in [e for e in filenames if e.endswith('.py')]:
+            for name in (e for e in filenames if e.endswith('.py')):
                 fn = os.path.join(dirpath, name)
                 ret.append(_check_line(fn))
         status['line'] = all(ret)
@@ -134,7 +134,7 @@ def _check_line(fn):
             if b'\r\n' in line:
                 print('Found CRLF in {}'.format(fn))
                 return False
-            elif any([line.decode('UTF-8').startswith(c * 7) for c in "<>=|"]):
+            elif any(line.decode('UTF-8').startswith(c * 7) for c in "<>=|"):
                 print('Found conflict marker in {}'.format(fn))
                 return False
             elif any([line.decode('UTF-8').rstrip('\r\n').endswith(c)
@@ -182,7 +182,7 @@ print('Exit status values:')
 for (k, v) in status.items():
     print('  {} - {}'.format(k, v))
 
-if all([val in [True, 0] for val in status]):
+if all(val in [True, 0] for val in status):
     sys.exit(0)
 else:
     sys.exit(1)
