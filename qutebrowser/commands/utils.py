@@ -23,7 +23,7 @@ import shlex
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWebKitWidgets import QWebPage
 
-import qutebrowser.commands
+import qutebrowser.commands.commands
 import qutebrowser.utils.config as config
 from qutebrowser.commands.exceptions import (ArgumentCountError,
                                              NoSuchCommandError)
@@ -36,8 +36,9 @@ cmd_dict = {}
 def register_all():
     """Register and initialize all commands."""
     for (name, cls) in inspect.getmembers(  # pylint: disable=unused-variable
-            qutebrowser.commands, (lambda o: inspect.isclass(o) and
-                                   o.__module__ == 'qutebrowser.commands')):
+            qutebrowser.commands.commands,
+            (lambda o: inspect.isclass(o) and o.__module__ ==
+             'qutebrowser.commands.commands')):
         obj = cls()
         if isinstance(obj.name, str):
             names = [obj.name]

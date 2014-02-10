@@ -38,7 +38,7 @@ import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.config as config
 import qutebrowser.utils.about as about
 from qutebrowser.widgets.mainwindow import MainWindow
-from qutebrowser.widgets import CrashDialog
+from qutebrowser.widgets.crash import CrashDialog
 from qutebrowser.commands.keys import KeyParser
 from qutebrowser.utils.appdirs import AppDirs
 
