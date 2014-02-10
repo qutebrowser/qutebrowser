@@ -44,13 +44,13 @@ addressbar_dns_lookup = false
 auto_search = true
 
 [searchengines]
+DEFAULT = ${duckduckgo}
 duckduckgo = https://duckduckgo.com/?q={}
 ddg = ${duckduckgo}
 google = https://encrypted.google.com/search?q={}
 g = ${google}
 wikipedia = http://en.wikipedia.org/w/index.php?title=Special:Search&search={}
 wiki = ${wikipedia}
-__default__ = ${duckduckgo}
 
 [keybind]
 o = open

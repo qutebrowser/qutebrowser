@@ -59,7 +59,7 @@ def _get_search_url(txt):
         term = r.sub('', txt)
         logging.debug('engine {}, term "{}"'.format(engine, term))
     else:
-        template = config.config.get('searchengines', '__default__',
+        template = config.config.get('searchengines', 'DEFAULT',
                                      fallback=None)
         term = txt
         logging.debug('engine: default, term "{}"'.format(txt))
