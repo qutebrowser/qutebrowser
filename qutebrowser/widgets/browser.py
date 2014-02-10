@@ -84,7 +84,7 @@ class TabbedBrowser(TabWidget):
         url = urlutils.qurl(url)
         tab = BrowserTab(self)
         tab.openurl(url)
-        self.addTab(tab, url.url())
+        self.addTab(tab, urlutils.urlstring(url))
         self.setCurrentWidget(tab)
         tab.loadProgress.connect(self._filter_factory(self.cur_progress))
         tab.loadFinished.connect(self._filter_factory(self.cur_load_finished))
@@ -100,7 +100,7 @@ class TabbedBrowser(TabWidget):
 
     def tabopencur(self):
         """Set the statusbar to :tabopen and the current URL."""
-        url = self.currentWidget().url().toString()
+        url = urlutils.urlstring(self.currentWidget().url())
         self.set_cmd_text.emit(':tabopen ' + url)
 
     def openurl(self, url, count=None):
@@ -116,7 +116,7 @@ class TabbedBrowser(TabWidget):
 
     def opencur(self):
         """Set the statusbar to :open and the current URL."""
-        url = self.currentWidget().url().toString()
+        url = urlutils.urlstring(self.currentWidget().url())
         self.set_cmd_text.emit(':open ' + url)
 
     def undo_close(self):
@@ -298,7 +298,7 @@ class TabbedBrowser(TabWidget):
 
         """
         clip = QApplication.clipboard()
-        url = self.currentWidget().url().toString()
+        url = urlutils.urlstring(self.currentWidget().url())
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         clip.setText(url, mode)
         # FIXME provide visual feedback
@@ -478,11 +478,11 @@ class BrowserTab(QWebView):
 
         """
         u = urlutils.fuzzy_url(url)
-        logging.debug('New title: {}'.format(u.url()))
-        self.titleChanged.emit(u.url())
+        logging.debug('New title: {}'.format(urlutils.urlstring(u)))
+        self.titleChanged.emit(urlutils.urlstring(u))
         if urlutils.is_about_url(u):
             try:
-                content = about.handle(u.toString())
+                content = about.handle(urlutils.urlstring(u))
             except AttributeError:
                 return self.load(u)
             else:

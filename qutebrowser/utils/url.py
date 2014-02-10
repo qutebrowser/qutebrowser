@@ -21,7 +21,7 @@ def urlstring(url):
     qurl -- URL as string or QUrl.
 
     """
-    return url.url() if isinstance(url, QUrl) else url
+    return url.toString() if isinstance(url, QUrl) else url
 
 
 def fuzzy_url(url):
@@ -42,8 +42,8 @@ def fuzzy_url(url):
             newurl = _get_search_url(urlstr)
         except ValueError:  # invalid search engine
             newurl = QUrl.fromUserInput(urlstr)
-    logging.debug('Converting fuzzy term {} to url -> {}'.format(urlstr,
-                                                                 newurl.url()))
+    logging.debug('Converting fuzzy term {} to url -> {}'.format(
+        urlstr, urlstring(newurl)))
     return newurl
 
 
@@ -75,14 +75,15 @@ def is_about_url(url):
 
 def is_url(url):
     """Return True if url (QUrl) seems to be a valid URL."""
-    logging.debug('Checking if "{}" is an URL'.format(url.url()))
-    if ' ' in urlstring(url):
+    urlstr = urlstring(url)
+    logging.debug('Checking if "{}" is an URL'.format(urlstr))
+    if ' ' in urlstr:
         # An URL will never contain a space
         logging.debug('Contains space -> no url')
         return False
     elif config.config.getboolean('general', 'addressbar_dns_lookup'):
         logging.debug('Checking via DNS')
-        return _is_url_dns(QUrl.fromUserInput(urlstring(url)))
+        return _is_url_dns(QUrl.fromUserInput(urlstr))
     else:
         logging.debug('Checking via naive check')
         return _is_url_naive(url)
