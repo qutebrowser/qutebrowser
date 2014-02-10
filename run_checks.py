@@ -57,6 +57,8 @@ options = {
             'too-many-locals',
             'global-statement',
             'no-init',
+            # visual noise
+            'locally-disabled',
         ],
         'flake8': [
             'E241', # Multiple spaces after ,
