@@ -21,9 +21,17 @@ import os
 import sys
 import logging
 import subprocess
-import faulthandler
 from signal import signal, SIGINT
 from argparse import ArgumentParser
+
+# Print a nice traceback on segfault -- only available on Python 3.3+, but if
+# it's unavailable, it doesn't matter much.
+try:
+    import faulthandler
+except ImportError:
+    pass
+else:
+    faulthandler.enable()
 
 # This is a really old place to do this, but we have to do this before
 # importing PyQt or it won't work.
@@ -65,9 +73,6 @@ class QuteBrowser(QApplication):
     def __init__(self):
         super().__init__(sys.argv)
         sys.excepthook = self._exception_hook
-
-        # Handle segfaults
-        faulthandler.enable()
 
         self._parseopts()
         self._initlog()
