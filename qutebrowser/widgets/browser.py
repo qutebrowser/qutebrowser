@@ -36,6 +36,7 @@ import qutebrowser.utils.about as about
 import qutebrowser.utils.config as config
 import qutebrowser.utils.url as urlutils
 from qutebrowser.widgets.tabbar import TabWidget
+from qutebrowser.utils.misc import dbg_signal
 
 
 class TabbedBrowser(TabWidget):
@@ -87,8 +88,7 @@ class TabbedBrowser(TabWidget):
         self.setCurrentWidget(tab)
         tab.loadProgress.connect(self._filter_factory(self.cur_progress))
         tab.loadFinished.connect(self._filter_factory(self.cur_load_finished))
-        tab.loadStarted.connect(lambda:  # pylint: disable=unnecessary-lambda
-                                self.sender().signal_cache.clear())
+        tab.loadStarted.connect(self._clear_signal_cache)
         tab.loadStarted.connect(self._filter_factory(self.cur_load_started))
         tab.statusBarMessage.connect(
             self._filter_factory(self.cur_statusbar_message))
@@ -397,26 +397,32 @@ class TabbedBrowser(TabWidget):
         #   - While loading, open another tab
         #   - Switch back to #1 when loading finished
         #   - It seems loadingStarted is before loadingFinished
-        dbgstr = "{} ({})".format(
-            signal.signal, ','.join(str(e) for e in args))
         sender = self.sender()
+        log_signal = not signal.signal.startswith('2cur_progress')
+        if log_signal:
+            logging.debug('signal {} (tab {})'.format(dbg_signal(signal, args),
+                                                      self.indexOf(sender)))
         if not isinstance(sender, BrowserTab):
             # FIXME why does this happen?
-            logging.warn('Got signal "{}" by {} which is no tab!'.format(
-                         dbgstr, sender))
+            logging.warn('Got signal {} by {} which is no tab!'.format(
+                dbg_signal(signal, args), sender))
             return
         if signal.signal in sender.signal_cache:
+            if log_signal:
+                logging.debug("  Moving to the end of signal cache")
             sender.signal_cache[signal.signal] = (signal, args)
             sender.signal_cache.move_to_end(signal.signal)
         else:
+            if log_signal:
+                logging.debug("  Adding to signal cache")
             sender.signal_cache[signal.signal] = (signal, args)
         if self.currentWidget() == sender:
-            if not signal.signal.startswith('2cur_progress'):
-                logging.debug('{} - emitting'.format(dbgstr))
+            if log_signal:
+                logging.debug('  emitting')
             return signal.emit(*args)
         else:
-            if not signal.signal.startswith('2cur_progress'):
-                logging.debug('{} - ignoring'.format(dbgstr))
+            if log_signal:
+                logging.debug('  ignoring')
 
     def _currentChanged_handler(self, idx):
         """Update status bar values when a tab was changed.
@@ -426,10 +432,17 @@ class TabbedBrowser(TabWidget):
         Slot for the currentChanged signal.
 
         """
-        for (sigstr, (signal, args)) in self.widget(idx).signal_cache.items():
-            dbgstr = "{} ({})".format(sigstr, ','.join(str(e) for e in args))
-            logging.debug('signal cache: emitting {}'.format(dbgstr))
+        for (signal, args) in self.widget(idx).signal_cache.values():
+            logging.debug('signal cache: emitting {} for tab {}'.format(
+                dbg_signal(signal, args), idx))
             signal.emit(*args)
+
+    def _clear_signal_cache(self):
+        """Clear the signal cache of the sender of the signal."""
+        sender = self.sender()
+        logging.debug("Clearing signal cache of tab {}".format(self.indexOf(
+            sender)))
+        sender.signal_cache.clear()
 
 
 class BrowserTab(QWebView):
@@ -446,10 +459,11 @@ class BrowserTab(QWebView):
     _scroll_pos = (-1, -1)
     _open_new_tab = False  # open new tab for the next action
     # dict of tab specific signals, and the values we last got from them.
-    signal_cache = OrderedDict()
+    signal_cache = None
 
     def __init__(self, parent):
         super().__init__(parent)
+        self.signal_cache = OrderedDict()
         self.loadProgress.connect(self.set_progress)
         self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.installEventFilter(self)
