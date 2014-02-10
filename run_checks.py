@@ -26,7 +26,12 @@ import os
 import os.path
 from collections import OrderedDict
 
-import pep257
+try:
+    import pep257
+except ImportError:
+    do_check_257 = False
+else:
+    do_check_257 = True
 from pkg_resources import load_entry_point, DistributionNotFound
 
 status = OrderedDict()
@@ -61,18 +66,19 @@ options = {
             'locally-disabled',
         ],
         'flake8': [
-            'E241', # Multiple spaces after ,
+            'E241',  # Multiple spaces after ,
         ],
         'pep257': [
-            'D102', # Docstring missing, will be handled by others
+            'D102',  # Docstring missing, will be handled by others
         ],
     },
-    'exclude': [ 'appdirs.py' ],
+    'exclude': ['appdirs.py'],
     'other': {
         'pylint': ['--output-format=colorized', '--reports=no'],
         'flake8': ['--max-complexity=10'],
     },
 }
+
 
 def run(name, args=None):
     """ Run a checker via distutils with optional args.
@@ -101,6 +107,7 @@ def run(name, args=None):
         status[name] = None
     print()
 
+
 def check_pep257(args=None):
     sys.argv = ['pep257', options['target']]
     if args is not None:
@@ -110,8 +117,9 @@ def check_pep257(args=None):
         status['pep257'] = pep257.main(*pep257.parse_options())
     except Exception as e:
         print('{}: {}'.format(e.__class__.__name__, e))
-        status[name] = None
+        status['pep257'] = None
     print()
+
 
 def check_line():
     """Checks a filetree for CRLFs, conflict markers and weird whitespace"""
@@ -127,6 +135,7 @@ def check_line():
         print('{}: {}'.format(e.__class__.__name__, e))
         status['line'] = None
     print()
+
 
 def _check_line(fn):
     with open(fn, 'rb') as f:
@@ -145,6 +154,7 @@ def _check_line(fn):
                 print('Found tab-space mix in {}'.format(fn))
                 return False
     return True
+
 
 def _get_args(checker):
     args = []
@@ -166,13 +176,15 @@ def _get_args(checker):
         args = []
         try:
             args += ['--ignore=' + ','.join(options['disable']['pep257'])]
-            args += ['--match=(?!{}).*\.py'.format('|'.join(options['exclude']))]
+            args += ['--match=(?!{}).*\.py'.format('|'.join(
+                options['exclude']))]
             args += options['other']['pep257']
         except KeyError:
             pass
     return args
 
-check_pep257(_get_args('pep257'))
+if do_check_257:
+    check_pep257(_get_args('pep257'))
 for checker in ['pylint', 'flake8']:
     # FIXME what the hell is the flake8 exit status?
     run(checker, _get_args(checker))
