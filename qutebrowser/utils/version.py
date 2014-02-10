@@ -64,11 +64,18 @@ def _git_str():
     Return None if there was an error or we're not in a git repo.
 
     """
-    # FIXME this runs in PWD, not the qutebrowser dir?!
-    if not os.path.isdir(".git"):
+    if hasattr(sys, "frozen"):
         return None
     try:
-        return subprocess.check_output(['git', 'describe', '--tags', '--dirty',
-                                        '--always']).decode('UTF-8').strip()
+        gitpath = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                               os.path.pardir, os.path.pardir)
+    except NameError:
+        return None
+    if not os.path.isdir(os.path.join(gitpath, ".git")):
+        return None
+    try:
+        return subprocess.check_output(
+            ['git', '-C', gitpath, 'describe', '--tags', '--dirty',
+             '--always']).decode('UTF-8').strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None
