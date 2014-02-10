@@ -37,8 +37,7 @@ class TabWidget(QTabWidget):
         }}
 
         QTabBar {{
-            font-family: {monospace};
-            font-size: 8pt;
+            {font[tabbar]}
         }}
 
         QTabBar::tab {{

@@ -42,8 +42,7 @@ class StatusBar(QWidget):
         * {{
             {color[statusbar.bg.__cur__]}
             {color[statusbar.fg.__cur__]}
-            font-family: {monospace};
-            font-size: 8pt;
+            {font[statusbar]}
         }}
     """
 

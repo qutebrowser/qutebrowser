@@ -105,28 +105,31 @@ tab.bg = grey
 tab.bg.selected = black
 tab.fg = white
 tab.seperator = white
+
+[fonts]
+_monospace = Monospace, "DejaVu Sans Mono", Consolas, Monaco,
+             "Bitstream Vera Sans Mono", "Andale Mono", "Liberation Mono",
+             "Courier New", Courier, monospace, Fixed, Terminal
+completion = 8pt ${_monospace}
+tabbar = 8pt ${_monospace}
+statusbar = 8pt ${_monospace}
 """
-
-_MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas', 'Monaco',
-              'Bitstream Vera Sans Mono', 'Andale Mono', 'Liberation Mono',
-              'Courier New', 'Courier', 'monospace', 'Fixed', 'Terminal']
-
-MONOSPACE = ', '.join(_MONOSPACE)
 
 
 def init(confdir):
     """Initialize the global objects based on the config in configdir."""
-    global config, colordict
+    global config, colordict, fontdict
     config = Config(confdir)
     try:
         colordict = ColorDict(config['colors'])
     except KeyError:
         colordict = ColorDict()
+    fontdict = FontDict(config['fonts'])
 
 
 def get_stylesheet(template):
     """Return a formatted stylesheet based on a template."""
-    return template.strip().format(color=colordict, monospace=MONOSPACE)
+    return template.strip().format(color=colordict, font=fontdict)
 
 
 class ColorDict(dict):
@@ -155,6 +158,38 @@ class ColorDict(dict):
             return 'background-color: {};'.format(val)
         else:
             return val
+
+    def getraw(self, key):
+        """Get a value without the transformations done in __getitem__.
+
+        Returns a value, or None if the value wasn't found.
+
+        """
+        try:
+            return super().__getitem__(key)
+        except KeyError:
+            return None
+
+
+class FontDict(dict):
+
+    """A dict aimed at Qt stylesheet fonts."""
+
+    def __getitem__(self, key):
+        """Override dict __getitem__.
+
+        If a value wasn't found, return an empty string.
+        (Color not defined, so no output in the stylesheet)
+
+        In all other cases, return font: <value>.
+
+        """
+        try:
+            val = super().__getitem__(key)
+        except KeyError:
+            return ''
+        else:
+            return 'font: {};'.format(val)
 
     def getraw(self, key):
         """Get a value without the transformations done in __getitem__.

@@ -49,7 +49,7 @@ class CompletionView(QTreeView):
 
     _stylesheet = """
         QTreeView {{
-            font-family: {monospace};
+            {font[completion]}
             {color[completion.fg]}
             {color[completion.bg]}
             outline: 0;
@@ -59,7 +59,6 @@ class CompletionView(QTreeView):
             {color[completion.item.bg]}
         }}
         QTreeView::item:has-children {{
-            font-weight: bold;
             {color[completion.category.fg]}
             {color[completion.category.bg]}
             border-top: 1px solid {color[completion.category.border.top]};
