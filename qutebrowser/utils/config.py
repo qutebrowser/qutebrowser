@@ -32,6 +32,7 @@ from configparser import ConfigParser, ExtendedInterpolation
 
 config = None
 colordict = {}
+fontdict = {}
 
 default_config = """
 [general]
