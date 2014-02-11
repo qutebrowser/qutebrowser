@@ -19,6 +19,13 @@
 
 import re
 
+from PyQt5.QtCore import pyqtRemoveInputHook
+
+try:
+    from ipdb import set_trace as pdb_set_trace
+except ImportError:
+    from pdb import set_trace as pdb_set_trace
+
 
 def dbg_signal(sig, args):
     """Return a string representation of a signal for debugging.
@@ -30,3 +37,18 @@ def dbg_signal(sig, args):
     m = re.match(r'[0-9]+(.*)\(.*\)', sig.signal)
     signame = m.group(1)
     return '{}({})'.format(signame, ', '.join(map(str, args)))
+
+
+def set_trace():
+    """
+    Set a tracepoint in the Python debugger that works with Qt.
+
+    Based on http://stackoverflow.com/a/1745965/2085149
+
+    """
+    print()
+    print("When done debugging, remember to execute:")
+    print("  from PyQt5 import QtCore; QtCore.pyqtRestoreInputHook()")
+    print("before executing c(ontinue).")
+    pyqtRemoveInputHook()
+    return pdb_set_trace()
