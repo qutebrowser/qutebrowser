@@ -410,15 +410,19 @@ class TabbedBrowser(TabWidget):
             logging.warn('Got signal {} by {} which is no tab!'.format(
                 dbg_signal(signal, args), sender))
             return
-        if signal.signal in sender.signal_cache:
+        if (signal.signal in sender.signal_cache and
+                self._signal_needs_caching(signal)):
             if log_signal:
                 logging.debug("  Moving to the end of signal cache")
             sender.signal_cache[signal.signal] = (signal, args)
             sender.signal_cache.move_to_end(signal.signal)
-        else:
+        elif self._signal_needs_caching(signal):
             if log_signal:
                 logging.debug("  Adding to signal cache")
             sender.signal_cache[signal.signal] = (signal, args)
+        else:
+            if log_signal:
+                logging.debug("  Ignoring for signal cache")
         if self.currentWidget() == sender:
             if log_signal:
                 logging.debug('  emitting')
@@ -446,6 +450,11 @@ class TabbedBrowser(TabWidget):
         logging.debug("Clearing signal cache of tab {}".format(self.indexOf(
             sender)))
         sender.signal_cache.clear()
+
+    def _signal_needs_caching(self, signal):
+        """Return True if a signal should be cached, false otherwise."""
+        ignore_signals = []
+        return not signal_name(signal) in ignore_signals
 
 
 class BrowserTab(QWebView):
