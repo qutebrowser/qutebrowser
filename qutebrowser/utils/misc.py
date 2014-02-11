@@ -27,6 +27,12 @@ except ImportError:
     from pdb import set_trace as pdb_set_trace
 
 
+def signal_name(sig):
+    """Return a cleaned up name of a signal."""
+    m = re.match(r'[0-9]+(.*)\(.*\)', sig.signal)
+    return m.group(1)
+
+
 def dbg_signal(sig, args):
     """Return a string representation of a signal for debugging.
 
@@ -34,9 +40,7 @@ def dbg_signal(sig, args):
     args -- The arguments as list of strings.
 
     """
-    m = re.match(r'[0-9]+(.*)\(.*\)', sig.signal)
-    signame = m.group(1)
-    return '{}({})'.format(signame, ', '.join(map(str, args)))
+    return '{}({})'.format(signal_name(sig), ', '.join(map(str, args)))
 
 
 def set_trace():
