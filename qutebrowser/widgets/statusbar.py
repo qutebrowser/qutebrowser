@@ -21,8 +21,9 @@ import logging
 
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import (QLineEdit, QShortcut, QHBoxLayout, QWidget,
-                             QSizePolicy, QProgressBar, QLabel)
-from PyQt5.QtGui import QValidator, QKeySequence
+                             QSizePolicy, QProgressBar, QLabel, QStyle,
+                             QStyleOption)
+from PyQt5.QtGui import QValidator, QKeySequence, QPainter
 
 import qutebrowser.utils.config as config
 import qutebrowser.commands.keys as keys
@@ -33,9 +34,11 @@ class StatusBar(QWidget):
 
     """The statusbar at the bottom of the mainwindow."""
 
-    hbox = None
     cmd = None
     txt = None
+    keystring = None
+    percentage = None
+    url = None
     prog = None
     resized = pyqtSignal('QRect')
     moved = pyqtSignal('QPoint')
@@ -68,30 +71,48 @@ class StatusBar(QWidget):
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
-        self.hbox = QHBoxLayout(self)
-        self.hbox.setContentsMargins(0, 0, 0, 0)
-        self.hbox.setSpacing(0)
+        hbox = QHBoxLayout(self)
+        hbox.setContentsMargins(0, 0, 0, 0)
+        hbox.setSpacing(5)
 
         self.cmd = Command(self)
-        self.hbox.addWidget(self.cmd)
+        hbox.addWidget(self.cmd)
 
         self.txt = Text(self)
-        self.hbox.addWidget(self.txt)
+        hbox.addWidget(self.txt)
+        hbox.addStretch()
+
+        self.keystring = KeyString(self)
+        hbox.addWidget(self.keystring)
+
+        self.url = Url(self)
+        hbox.addWidget(self.url)
+
+        self.percentage = Percentage(self)
+        hbox.addWidget(self.percentage)
 
         self.prog = Progress(self)
-        self.hbox.addWidget(self.prog)
+        hbox.addWidget(self.prog)
+
+    def paintEvent(self, e):
+        """Override QWIidget.paintEvent to handle stylesheets."""
+        # pylint: disable=unused-argument
+        option = QStyleOption()
+        option.initFrom(self)
+        painter = QPainter(self)
+        self.style().drawPrimitive(QStyle.PE_Widget, option, painter, self)
 
     def disp_error(self, text):
         """Displaysan error in the statusbar."""
         self.bgcolor = config.colordict.getraw('statusbar.bg.error')
         self.fgcolor = config.colordict.getraw('statusbar.fg.error')
-        self.txt.error = text
+        self.txt.set_error(text)
 
     def clear_error(self):
         """Clear a displayed error from the status bar."""
         self.bgcolor = config.colordict.getraw('statusbar.bg')
         self.fgcolor = config.colordict.getraw('statusbar.fg')
-        self.txt.error = ''
+        self.txt.clear_error()
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
@@ -268,6 +289,7 @@ class Progress(QProgressBar):
 
     statusbar = None
     color = None
+    # FIXME for some reason, margin-left is not shown
     _stylesheet = """
         QProgressBar {{
             border-radius: 0px;
@@ -321,41 +343,62 @@ class Progress(QProgressBar):
             self.color = config.colordict.getraw('statusbar.progress.bg.error')
 
 
-class Text(QLabel):
+class TextBase(QLabel):
 
-    """The text part of the status bar.
-
-    Contains several parts (keystring, error, text, scrollperc) which are later
-    joined and displayed.
-
-    """
-
-    keystring = ''
-    error = ''
-    text = ''
-    scrollperc = ''
-    url = ''
-    old_url = ''
-
-    fields = ['keystring', 'url', 'error', 'text', 'scrollperc']
+    """A text in the statusbar."""
 
     def __init__(self, bar):
         super().__init__(bar)
-        self.setStyleSheet("padding-right: 1px;")
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
 
-    def __setattr__(self, name, value):
-        super().__setattr__(name, value)
-        if name in self.fields:
-            self.update()
 
-    def set_keystring(self, s):
+class Text(TextBase):
+
+    """Text displayed in the statusbar."""
+
+    old_text = ''
+
+    def set_error(self, text):
+        """Display an error message and save current text in old_text."""
+        self.old_text = self.text()
+        self.setText(text)
+
+    def clear_error(self):
+        """Clear a displayed error message."""
+        self.setText(self.old_text)
+
+
+class KeyString(TextBase):
+
+    """Keychain string displayed in the statusbar."""
+
+    pass
+
+
+class Percentage(TextBase):
+
+    """Reading percentage displayed in the statusbar."""
+
+    def set_perc(self, x, y):
         """Setter to be used as a Qt slot."""
-        self.keystring = s
+        # pylint: disable=unused-argument
+        if y == 0:
+            self.setText('[top]')
+        elif y == 100:
+            self.setText('[bot]')
+        else:
+            self.setText('[{:2}%]'.format(y))
+
+
+class Url(TextBase):
+
+    """URL displayed in the statusbar."""
+
+    old_url = ''
 
     def set_url(self, s):
         """Setter to be used as a Qt slot."""
-        self.url = urlstring(s)
+        self.setText(urlstring(s))
 
     def set_hover_url(self, link, title, text):
         """Setter to be used as a Qt slot.
@@ -366,26 +409,7 @@ class Text(QLabel):
         """
         # pylint: disable=unused-argument
         if link:
-            self.old_url = self.url
-            self.url = link
+            self.old_url = self.text()
+            self.setText(link)
         else:
-            self.url = self.old_url
-
-    def set_perc(self, x, y):
-        """Setter to be used as a Qt slot."""
-        # pylint: disable=unused-argument
-        if y == 0:
-            self.scrollperc = '[top]'
-        elif y == 100:
-            self.scrollperc = '[bot]'
-        else:
-            self.scrollperc = '[{:2}%]'.format(y)
-
-    def set_text(self, text):
-        """Setter to be used as a Qt slot."""
-        logging.debug('Setting text to "{}"'.format(text))
-        self.text = text
-
-    def update(self):
-        """Update the text displayed."""
-        self.setText(' '.join(getattr(self, name) for name in self.fields))
+            self.setText(self.old_url)

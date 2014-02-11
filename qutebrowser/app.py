@@ -110,7 +110,7 @@ class QuteBrowser(QApplication):
         self.keyparser.commandparser.error.connect(
             self.mainwindow.status.disp_error)
         self.keyparser.keystring_updated.connect(
-            self.mainwindow.status.txt.set_keystring)
+            self.mainwindow.status.keystring.setText)
 
         self.mainwindow.show()
         self._python_hacks()
