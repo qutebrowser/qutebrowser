@@ -1,6 +1,7 @@
 """Qt style to remove Ubuntu focus rectangle uglyness.
 
 We might also use this to do more in the future.
+
 """
 
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
@@ -20,8 +21,10 @@ We might also use this to do more in the future.
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import functools
+
 from PyQt5.QtWidgets import QCommonStyle, QStyle
-from PyQt5.QtGui import QPalette
+
 
 class Style(QCommonStyle):
 
@@ -33,66 +36,34 @@ class Style(QCommonStyle):
     Based on:
 
     http://stackoverflow.com/a/17294081
-    https://code.google.com/p/makehuman/source/browse/trunk/makehuman/lib/qtgui.py
+    https://code.google.com/p/makehuman/source/browse/trunk/makehuman/lib/qtgui.py # noqa # pylint: disable=line-too-long
+
     """
 
-    def __init__(self, parent):
-        self.__parent = parent
+    def __init__(self, style):
+        """Initialize all functions we're not overriding.
+
+        This simply calls the corresponding function in self._style.
+
+        """
+        self._style = style
+        for method in ['drawComplexControl', 'drawControl', 'drawItemPixmap',
+                       'drawItemText', 'generatedIconPixmap',
+                       'hitTestComplexControl', 'itemPixmapRect',
+                       'itemTextRect', 'pixelMetric', 'polish', 'styleHint',
+                       'subControlRect', 'subElementRect', 'unpolish',
+                       'sizeFromContents']:
+            target = getattr(self._style, method)
+            setattr(self, method, functools.partial(target))
         super().__init__()
 
-    def drawComplexControl(self, control, option, painter, widget=None):
-        return self.__parent.drawComplexControl(control, option, painter,
-                                                widget)
-
-    def drawControl(self, element, option, painter, widget=None):
-        return self.__parent.drawControl(element, option, painter, widget)
-
-    def drawItemPixmap(self, painter, rectangle, alignment, pixmap):
-        return self.__parent.drawItemPixmap(painter, rectangle, alignment,
-                                            pixmap)
-
-    def drawItemText(self, painter, rectangle, alignment, palette, enabled,
-                     text, textRole=QPalette.NoRole):
-        return self.__parent.drawItemText(painter, rectangle, alignment,
-                                          palette, enabled, text, textRole)
-
     def drawPrimitive(self, element, option, painter, widget=None):
-        if (element == QStyle.PE_FrameFocusRect):
+        """Override QCommonStyle.drawPrimitive.
+
+        Call the genuine drawPrimitive of self._style, except when a focus
+        rectangle should be drawn.
+
+        """
+        if element == QStyle.PE_FrameFocusRect:
             return
-        return self.__parent.drawPrimitive(element, option, painter, widget)
-
-    def generatedIconPixmap(self, iconMode, pixmap, option):
-        return self.__parent.generatedIconPixmap(iconMode, pixmap, option)
-
-    def hitTestComplexControl(self, control, option, position, widget=None):
-        return self.__parent.hitTestComplexControl(control, option, position,
-                                                   widget)
-
-    def itemPixmapRect(self, rectangle, alignment, pixmap):
-        return self.__parent.itemPixmapRect(rectangle, alignment, pixmap)
-
-    def itemTextRect(self, metrics, rectangle, alignment, enabled, text):
-        return self.__parent.itemTextRect(metrics, rectangle, alignment,
-                                          enabled, text)
-
-    def pixelMetric(self, metric, option=None, widget=None):
-        return self.__parent.pixelMetric(metric, option, widget)
-
-    def polish(self, *args, **kwargs):
-        return self.__parent.polish(*args, **kwargs)
-
-    def styleHint(self, hint, option=None, widget=None, returnData=None):
-        return self.__parent.styleHint(hint, option, widget, returnData)
-
-    def subControlRect(self, control, option, subControl, widget=None):
-        return self.__parent.subControlRect(control, option, subControl,
-                                            widget)
-
-    def subElementRect(self, element, option, widget=None):
-        return self.__parent.subElementRect(element, option, widget)
-
-    def unpolish(self, *args, **kwargs):
-        return self.__parent.unpolish(*args, **kwargs)
-
-    def sizeFromContents(self, ct, opt, contentsSize, widget=None):
-        return self.__parent.sizeFromContents(ct, opt, contentsSize, widget)
+        return self._style.drawPrimitive(element, option, painter, widget)
