@@ -73,8 +73,6 @@ class TabbedBrowser(TabWidget):
         space.setContext(Qt.WidgetWithChildrenShortcut)
         space.activated.connect(self.space_scroll)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.tabCloseRequested.connect(lambda idx:
-                                       self.widget(idx).deleteLater())
 
     def tabopen(self, url):
         """Open a new tab with a given url.
@@ -143,8 +141,6 @@ class TabbedBrowser(TabWidget):
                 # FIXME maybe we actually should store the webview objects here
                 self._url_stack.append(tab.url())
                 self.removeTab(idx)
-                # Mark the QWebView to be deleted later in the main Qt loop.
-                tab.deleteLater()
         else:
             # FIXME
             pass
