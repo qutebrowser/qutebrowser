@@ -21,6 +21,7 @@ from PyQt5.QtWidgets import QTabWidget, QSizePolicy
 from PyQt5.QtCore import Qt
 
 import qutebrowser.utils.config as config
+from qutebrowser.utils.style import Style
 
 
 class TabWidget(QTabWidget):
@@ -63,6 +64,7 @@ class TabWidget(QTabWidget):
         # usesScrollButtons)
         super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setStyle(Style(self.style()))
         self.setStyleSheet(config.get_stylesheet(self._stylesheet))
         self.setDocumentMode(True)
         self.setMovable(True)
