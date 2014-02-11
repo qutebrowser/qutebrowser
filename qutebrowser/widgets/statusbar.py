@@ -364,7 +364,7 @@ class Text(QLabel):
         elif y == 100:
             self.scrollperc = '[bot]'
         else:
-            self.scrollperc = '[{}%]'.format(y)
+            self.scrollperc = '[{:2}%]'.format(y)
 
     def set_text(self, text):
         """Setter to be used as a Qt slot."""
