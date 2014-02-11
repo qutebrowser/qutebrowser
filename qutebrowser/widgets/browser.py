@@ -85,6 +85,7 @@ class TabbedBrowser(TabWidget):
         url = urlutils.qurl(url)
         tab = BrowserTab(self)
         tab.openurl(url)
+        self.cur_url_changed.emit(url)
         self.addTab(tab, urlutils.urlstring(url))
         self.setCurrentWidget(tab)
         tab.loadProgress.connect(self._filter_factory(self.cur_progress))
