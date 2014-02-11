@@ -24,7 +24,6 @@ containing BrowserTabs).
 
 import logging
 import functools
-from collections import OrderedDict
 
 from PyQt5.QtWidgets import QShortcut, QApplication, QSizePolicy
 from PyQt5.QtCore import pyqtSignal, Qt, QEvent
@@ -36,7 +35,7 @@ import qutebrowser.utils.about as about
 import qutebrowser.utils.config as config
 import qutebrowser.utils.url as urlutils
 from qutebrowser.widgets.tabbar import TabWidget
-from qutebrowser.utils.misc import dbg_signal, signal_name
+from qutebrowser.utils.signals import dbg_signal, SignalCache
 
 
 class TabbedBrowser(TabWidget):
@@ -69,7 +68,8 @@ class TabbedBrowser(TabWidget):
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.currentChanged.connect(self._currentChanged_handler)
+        self.currentChanged.connect(lambda idx:
+                                    self.widget(idx).signal_cache.replay())
         space = QShortcut(self)
         space.setKey(Qt.Key_Space)
         space.setContext(Qt.WidgetWithChildrenShortcut)
@@ -92,7 +92,8 @@ class TabbedBrowser(TabWidget):
         tab.linkHovered.connect(self._filter_factory(self.cur_link_hovered))
         tab.loadProgress.connect(self._filter_factory(self.cur_progress))
         tab.loadFinished.connect(self._filter_factory(self.cur_load_finished))
-        tab.loadStarted.connect(self._clear_signal_cache)
+        tab.loadStarted.connect(lambda:  # pylint: disable=unnecessary-lambda
+                                self.sender().signal_cache.clear())
         tab.loadStarted.connect(self._filter_factory(self.cur_load_started))
         tab.statusBarMessage.connect(
             self._filter_factory(self.cur_statusbar_message))
@@ -412,19 +413,7 @@ class TabbedBrowser(TabWidget):
             logging.warn('Got signal {} by {} which is no tab!'.format(
                 dbg_signal(signal, args), sender))
             return
-        if (signal.signal in sender.signal_cache and
-                self._signal_needs_caching(signal)):
-            if log_signal:
-                logging.debug("  Moving to the end of signal cache")
-            sender.signal_cache[signal.signal] = (signal, args)
-            sender.signal_cache.move_to_end(signal.signal)
-        elif self._signal_needs_caching(signal):
-            if log_signal:
-                logging.debug("  Adding to signal cache")
-            sender.signal_cache[signal.signal] = (signal, args)
-        else:
-            if log_signal:
-                logging.debug("  Ignoring for signal cache")
+        sender.signal_cache.add(signal, args)
         if self.currentWidget() == sender:
             if log_signal:
                 logging.debug('  emitting')
@@ -432,31 +421,6 @@ class TabbedBrowser(TabWidget):
         else:
             if log_signal:
                 logging.debug('  ignoring')
-
-    def _currentChanged_handler(self, idx):
-        """Update status bar values when a tab was changed.
-
-        Populates all signals from the signal cache.
-
-        Slot for the currentChanged signal.
-
-        """
-        for (signal, args) in self.widget(idx).signal_cache.values():
-            logging.debug('signal cache: emitting {} for tab {}'.format(
-                dbg_signal(signal, args), idx))
-            signal.emit(*args)
-
-    def _clear_signal_cache(self):
-        """Clear the signal cache of the sender of the signal."""
-        sender = self.sender()
-        logging.debug("Clearing signal cache of tab {}".format(self.indexOf(
-            sender)))
-        sender.signal_cache.clear()
-
-    def _signal_needs_caching(self, signal):
-        """Return True if a signal should be cached, false otherwise."""
-        ignore_signals = ['linkHovered']
-        return not signal_name(signal) in ignore_signals
 
 
 class BrowserTab(QWebView):
@@ -478,7 +442,7 @@ class BrowserTab(QWebView):
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.signal_cache = OrderedDict()
+        self.signal_cache = SignalCache(uncached=['linkHovered'])
         self.loadProgress.connect(self.set_progress)
         self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.page().linkHovered.connect(self.linkHovered)

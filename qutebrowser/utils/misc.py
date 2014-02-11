@@ -17,30 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
-
 from PyQt5.QtCore import pyqtRemoveInputHook
 
 try:
     from ipdb import set_trace as pdb_set_trace
 except ImportError:
     from pdb import set_trace as pdb_set_trace
-
-
-def signal_name(sig):
-    """Return a cleaned up name of a signal."""
-    m = re.match(r'[0-9]+(.*)\(.*\)', sig.signal)
-    return m.group(1)
-
-
-def dbg_signal(sig, args):
-    """Return a string representation of a signal for debugging.
-
-    sig -- A pyqtSignal.
-    args -- The arguments as list of strings.
-
-    """
-    return '{}({})'.format(signal_name(sig), ', '.join(map(str, args)))
 
 
 def set_trace():
