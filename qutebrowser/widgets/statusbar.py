@@ -335,6 +335,7 @@ class Text(QLabel):
     text = ''
     scrollperc = ''
     url = ''
+    old_url = ''
 
     fields = ['keystring', 'url', 'error', 'text', 'scrollperc']
 
@@ -355,6 +356,20 @@ class Text(QLabel):
     def set_url(self, s):
         """Setter to be used as a Qt slot."""
         self.url = urlstring(s)
+
+    def set_hover_url(self, link, title, text):
+        """Setter to be used as a Qt slot.
+
+        Saves old shown URL in self.old_url and restores it later if a link is
+        "un-hovered" when it gets called with empty parameters.
+
+        """
+        # pylint: disable=unused-argument
+        if link:
+            self.old_url = self.url
+            self.url = link
+        else:
+            self.url = self.old_url
 
     def set_perc(self, x, y):
         """Setter to be used as a Qt slot."""

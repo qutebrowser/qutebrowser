@@ -36,7 +36,7 @@ import qutebrowser.utils.about as about
 import qutebrowser.utils.config as config
 import qutebrowser.utils.url as urlutils
 from qutebrowser.widgets.tabbar import TabWidget
-from qutebrowser.utils.misc import dbg_signal
+from qutebrowser.utils.misc import dbg_signal, signal_name
 
 
 class TabbedBrowser(TabWidget):
@@ -60,6 +60,7 @@ class TabbedBrowser(TabWidget):
     cur_load_finished = pyqtSignal(bool)  # Current tab finished loading
     cur_statusbar_message = pyqtSignal(str)  # Status bar message
     cur_url_changed = pyqtSignal('QUrl')  # Current URL changed
+    cur_link_hovered = pyqtSignal(str, str, str)  # Link hovered in cur tab
     # Current tab changed scroll position
     cur_scroll_perc_changed = pyqtSignal(int, int)
     set_cmd_text = pyqtSignal(str)  # Set commandline to a given text
@@ -88,6 +89,7 @@ class TabbedBrowser(TabWidget):
         self.cur_url_changed.emit(url)
         self.addTab(tab, urlutils.urlstring(url))
         self.setCurrentWidget(tab)
+        tab.linkHovered.connect(self._filter_factory(self.cur_link_hovered))
         tab.loadProgress.connect(self._filter_factory(self.cur_progress))
         tab.loadFinished.connect(self._filter_factory(self.cur_load_finished))
         tab.loadStarted.connect(self._clear_signal_cache)
@@ -453,7 +455,7 @@ class TabbedBrowser(TabWidget):
 
     def _signal_needs_caching(self, signal):
         """Return True if a signal should be cached, false otherwise."""
-        ignore_signals = []
+        ignore_signals = ['linkHovered']
         return not signal_name(signal) in ignore_signals
 
 
@@ -468,6 +470,7 @@ class BrowserTab(QWebView):
     progress = 0
     scroll_pos_changed = pyqtSignal(int, int)
     open_tab = pyqtSignal('QUrl')
+    linkHovered = pyqtSignal(str, str, str)
     _scroll_pos = (-1, -1)
     _open_new_tab = False  # open new tab for the next action
     # dict of tab specific signals, and the values we last got from them.
@@ -478,6 +481,7 @@ class BrowserTab(QWebView):
         self.signal_cache = OrderedDict()
         self.loadProgress.connect(self.set_progress)
         self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
+        self.page().linkHovered.connect(self.linkHovered)
         self.installEventFilter(self)
         self.linkClicked.connect(self.link_handler)
         # FIXME find some way to hide scrollbars without setScrollBarPolicy

@@ -69,6 +69,7 @@ class MainWindow(QMainWindow):
         self.tabs.cur_scroll_perc_changed.connect(self.status.txt.set_perc)
         self.tabs.cur_statusbar_message.connect(self.status.txt.set_text)
         self.tabs.cur_url_changed.connect(self.status.txt.set_url)
+        self.tabs.cur_link_hovered.connect(self.status.txt.set_hover_url)
         self.status.cmd.esc_pressed.connect(self.tabs.setFocus)
         self.status.cmd.hide_completion.connect(self.completion.hide)
         self.status.cmd.textChanged.connect(self.completion.cmd_text_changed)
