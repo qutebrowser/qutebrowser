@@ -1,3 +1,15 @@
+Bugs
+====
+
+progress bar is often red
+All kind of FIXMEs
+Weird font rendering
+    https://bugreports.qt-project.org/browse/QTBUG-20973
+    https://bugreports.qt-project.org/browse/QTBUG-21036
+segfaults when using :quit
+:quit doesn't work with init-commands
+Moving mouse on heise.de on Windows -> really weird window resizing
+
 Major features
 ==============
 
@@ -31,17 +43,13 @@ show infos in statusline, temporary/longer
 set settings/colors/bindings via commandline
 write default config with comments
 
-Minor features/bugs
-===================
+Minor features
+==============
 
-progress bar is often red
-titles are still weird
+refactor status.txt so it uses independent QLabels
+show site status (ok=green, SSL-problem=yellow, error=red) in URL color
 Hiding scrollbars
-All kind of FIXMEs
 :bind
-Weird font rendering
-    https://bugreports.qt-project.org/browse/QTBUG-20973
-    https://bugreports.qt-project.org/browse/QTBUG-21036
 ^ and $ for scrolling
 Ctrl+A/X to increase/decrease last number in URL
 make font configurable
