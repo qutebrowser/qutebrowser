@@ -60,6 +60,7 @@ options = {
             'fixme',
             'too-many-arguments',
             'too-many-locals',
+            'too-many-instance-attributes',
             'global-statement',
             'no-init',
             # visual noise
