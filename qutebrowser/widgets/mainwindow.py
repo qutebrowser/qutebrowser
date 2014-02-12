@@ -17,14 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QVBoxLayout, QWidget
 
 from qutebrowser.widgets.statusbar import StatusBar
 from qutebrowser.widgets.browser import TabbedBrowser
 from qutebrowser.widgets.completion import CompletionView
 
 
-class MainWindow(QMainWindow):
+class MainWindow(QWidget):
 
     """The main window of QuteBrowser.
 
@@ -33,7 +33,6 @@ class MainWindow(QMainWindow):
 
     """
 
-    cwidget = None
     vbox = None
     tabs = None
     status = None
@@ -45,19 +44,16 @@ class MainWindow(QMainWindow):
         # FIXME maybe store window position/size on exit
         self.resize(800, 600)
 
-        self.cwidget = QWidget(self)
-        self.setCentralWidget(self.cwidget)
-
-        self.vbox = QVBoxLayout(self.cwidget)
+        self.vbox = QVBoxLayout(self)
         self.vbox.setContentsMargins(0, 0, 0, 0)
         self.vbox.setSpacing(0)
 
-        self.tabs = TabbedBrowser(self)
+        self.tabs = TabbedBrowser()
         self.vbox.addWidget(self.tabs)
 
         self.completion = CompletionView(self)
 
-        self.status = StatusBar(self)
+        self.status = StatusBar()
         self.vbox.addWidget(self.status)
 
         self.status.resized.connect(self.completion.resize_to_bar)

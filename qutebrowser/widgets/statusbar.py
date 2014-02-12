@@ -59,8 +59,8 @@ class StatusBar(QWidget):
     """
 
     # TODO: the statusbar should be a bit smaller
-    def __init__(self, mainwindow):
-        super().__init__(mainwindow)
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
         self.setStyleSheet(config.get_stylesheet(self._stylesheet))
 

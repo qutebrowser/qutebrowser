@@ -66,7 +66,7 @@ class TabbedBrowser(TabWidget):
     keypress = pyqtSignal('QKeyEvent')
     _url_stack = []  # Stack of URLs of closed tabs
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.currentChanged.connect(lambda idx:
                                     self.widget(idx).signal_cache.replay())
@@ -440,7 +440,7 @@ class BrowserTab(QWebView):
     # dict of tab specific signals, and the values we last got from them.
     signal_cache = None
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.signal_cache = SignalCache(uncached=['linkHovered'])
         self.loadProgress.connect(self.set_progress)
