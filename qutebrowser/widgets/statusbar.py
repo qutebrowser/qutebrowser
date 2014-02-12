@@ -59,8 +59,6 @@ class StatusBar(QWidget):
     """
 
     # TODO: the statusbar should be a bit smaller
-    # FIXME In general, texts should be elided instead of cut off.
-    # See http://gedgedev.blogspot.ch/2010/12/elided-labels-in-qt.html
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
@@ -369,11 +367,51 @@ class Progress(QProgressBar):
 
 class TextBase(QLabel):
 
-    """A text in the statusbar."""
+    """A text in the statusbar.
 
-    def __init__(self, bar):
+    Unlike QLabel, the text will get elided.
+
+    Eliding is loosly based on
+    http://gedgedev.blogspot.ch/2010/12/elided-labels-in-qt.html
+
+    """
+
+    elidemode = None
+    _elided_text = None
+
+    def __init__(self, bar, elidemode=Qt.ElideRight):
         super().__init__(bar)
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+        self.elidemode = elidemode
+
+    def setText(self, txt):
+        """Extend QLabel::setText to update the elided text afterwards."""
+        super().setText(txt)
+        self._update_elided_text(self.geometry().width())
+
+    def resizeEvent(self, e):
+        """Extend QLabel::resizeEvent to update the elided text afterwards."""
+        super().resizeEvent(e)
+        self._update_elided_text(e.size().width())
+
+    def _update_elided_text(self, width):
+        """Update the elided text when necessary.
+
+        width -- The maximal width the text should take.
+
+        """
+        self._elided_text = self.fontMetrics().elidedText(
+            self.text(), self.elidemode, width, Qt.TextShowMnemonic)
+
+    def paintEvent(self, e):
+        """Override QLabel::paintEvent to draw elided text."""
+        if self.elidemode == Qt.ElideNone:
+            super().paintEvent(e)
+        else:
+            painter = QPainter(self)
+            geom = self.geometry()
+            painter.drawText(0, 0, geom.width(), geom.height(),
+                             self.alignment(), self._elided_text)
 
 
 class Text(TextBase):
@@ -419,6 +457,10 @@ class Url(TextBase):
     """URL displayed in the statusbar."""
 
     old_url = ''
+
+    def __init__(self, bar, elidemode=Qt.ElideMiddle):
+        """Override TextBase::__init__ to elide in the middle by default."""
+        super().__init__(bar, elidemode)
 
     def set_url(self, s):
         """Setter to be used as a Qt slot."""
