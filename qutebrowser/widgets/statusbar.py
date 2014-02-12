@@ -19,7 +19,7 @@
 
 import logging
 
-from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtCore import pyqtSignal, Qt, pyqtProperty
 from PyQt5.QtWidgets import (QLineEdit, QShortcut, QHBoxLayout, QWidget,
                              QSizePolicy, QProgressBar, QLabel, QStyle,
                              QStyleOption)
@@ -42,31 +42,26 @@ class StatusBar(QWidget):
     prog = None
     resized = pyqtSignal('QRect')
     moved = pyqtSignal('QPoint')
-    fgcolor = None
-    bgcolor = None
+    _error = False
     _stylesheet = """
-        * {{
-            {color[statusbar.bg.__cur__]}
-            {color[statusbar.fg.__cur__]}
+        QWidget#StatusBar[error="false"] {{
+            {color[statusbar.bg]}
+        }}
+
+        QWidget#StatusBar[error="true"] {{
+            {color[statusbar.bg.error]}
+        }}
+
+        QWidget {{
+            {color[statusbar.fg]}
             {font[statusbar]}
         }}
     """
 
-    def __setattr__(self, name, value):
-        """Update the stylesheet if relevant attributes have been changed."""
-        super().__setattr__(name, value)
-        if name == 'fgcolor' and value is not None:
-            config.colordict['statusbar.fg.__cur__'] = value
-            self.setStyleSheet(config.get_stylesheet(self._stylesheet))
-        elif name == 'bgcolor' and value is not None:
-            config.colordict['statusbar.bg.__cur__'] = value
-            self.setStyleSheet(config.get_stylesheet(self._stylesheet))
-
     # TODO: the statusbar should be a bit smaller
     def __init__(self, mainwindow):
         super().__init__(mainwindow)
-        self.fgcolor = config.colordict.getraw('statusbar.fg')
-        self.bgcolor = config.colordict.getraw('statusbar.bg')
+        self.setObjectName(self.__class__.__name__)
         self.setStyleSheet(config.get_stylesheet(self._stylesheet))
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -94,6 +89,23 @@ class StatusBar(QWidget):
         self.prog = Progress(self)
         hbox.addWidget(self.prog)
 
+    @pyqtProperty(bool)
+    def error(self):
+        """Getter for self.error, so it can be used as Qt property."""
+        # pylint: disable=method-hidden
+        return self._error
+
+    @error.setter
+    def error(self, val):
+        """Setter for self.error, so it can be used as Qt property.
+
+        Re-sets the stylesheet after setting the value, so everything gets
+        updated by Qt properly.
+
+        """
+        self._error = val
+        self.setStyleSheet(config.get_stylesheet(self._stylesheet))
+
     def paintEvent(self, e):
         """Override QWIidget.paintEvent to handle stylesheets."""
         # pylint: disable=unused-argument
@@ -104,14 +116,12 @@ class StatusBar(QWidget):
 
     def disp_error(self, text):
         """Displaysan error in the statusbar."""
-        self.bgcolor = config.colordict.getraw('statusbar.bg.error')
-        self.fgcolor = config.colordict.getraw('statusbar.fg.error')
+        self.error = True
         self.txt.set_error(text)
 
     def clear_error(self):
         """Clear a displayed error from the status bar."""
-        self.bgcolor = config.colordict.getraw('statusbar.bg')
-        self.fgcolor = config.colordict.getraw('statusbar.fg')
+        self.error = False
         self.txt.clear_error()
 
     def resizeEvent(self, e):
@@ -158,7 +168,13 @@ class Command(QLineEdit):
         super().__init__(statusbar)
         # FIXME
         self.statusbar = statusbar
-        self.setStyleSheet("border: 0px; padding-left: 1px;")
+        self.setStyleSheet("""
+            QLineEdit {
+                border: 0px;
+                padding-left: 1px;
+                background-color: transparent;
+            }
+        """)
         self.setValidator(CommandValidator())
         self.returnPressed.connect(self.process_cmdline)
         self.textEdited.connect(self._histbrowse_stop)
@@ -288,46 +304,55 @@ class Progress(QProgressBar):
     """The progress bar part of the status bar."""
 
     statusbar = None
-    color = None
+    _error = False
     # FIXME for some reason, margin-left is not shown
     _stylesheet = """
         QProgressBar {{
             border-radius: 0px;
             border: 2px solid transparent;
             margin-left: 1px;
+            background-color: transparent;
         }}
 
-        QProgressBar::chunk {{
-            {color[statusbar.progress.bg.__cur__]}
+        QProgressBar[error="false"]::chunk {{
+            {color[statusbar.progress.bg]}
+        }}
+
+        QProgressBar[error="true"]::chunk {{
+            {color[statusbar.progress.bg.error]}
         }}
     """
 
     def __init__(self, statusbar):
-        self.statusbar = statusbar
         super().__init__(statusbar)
-
+        self.statusbar = statusbar
+        self.setStyleSheet(config.get_stylesheet(self._stylesheet))
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Ignored)
         self.setTextVisible(False)
-        self.color = config.colordict.getraw('statusbar.progress.bg')
         self.hide()
 
-    def __setattr__(self, name, value):
-        """Update the stylesheet if relevant attributes have been changed."""
-        super().__setattr__(name, value)
-        if name == 'color' and value is not None:
-            config.colordict['statusbar.progress.bg.__cur__'] = value
-            self.setStyleSheet(config.get_stylesheet(self._stylesheet))
+    @pyqtProperty(bool)
+    def error(self):
+        """Getter for self.error, so it can be used as Qt property."""
+        # pylint: disable=method-hidden
+        return self._error
+
+    @error.setter
+    def error(self, val):
+        """Setter for self.error, so it can be used as Qt property.
+
+        Re-sets the stylesheet after setting the value, so everything gets
+        updated by Qt properly.
+
+        """
+        self._error = val
+        self.setStyleSheet(config.get_stylesheet(self._stylesheet))
 
     def set_progress(self, prog):
         """Set the progress of the bar and show/hide it if necessary."""
-        # TODO display failed loading in some meaningful way?
-        if prog == 100:
-            self.setValue(prog)
-        else:
-            color = config.colordict.getraw('status.progress.bg')
-            if self.color != color:
-                self.color = color
-            self.setValue(prog)
+        self.setValue(prog)
+        if prog != 100:
+            self.error = False
             self.show()
 
     def load_finished(self, ok):
@@ -336,11 +361,9 @@ class Progress(QProgressBar):
         Slot for the loadFinished signal of a QWebView.
 
         """
+        self.error = not ok
         if ok:
-            self.color = config.colordict.getraw('status.progress.bg')
             self.hide()
-        else:
-            self.color = config.colordict.getraw('statusbar.progress.bg.error')
 
 
 class TextBase(QLabel):
