@@ -137,6 +137,10 @@ class ColorDict(dict):
 
     """A dict aimed at Qt stylesheet colors."""
 
+    # FIXME we should validate colors in __setitem__ based on:
+    # http://qt-project.org/doc/qt-4.8/stylesheet-reference.html#brush
+    # http://www.w3.org/TR/CSS21/syndata.html#color-units
+
     def __getitem__(self, key):
         """Override dict __getitem__.
 
