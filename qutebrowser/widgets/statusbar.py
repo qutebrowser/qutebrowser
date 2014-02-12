@@ -348,12 +348,11 @@ class Progress(QProgressBar):
         self._error = val
         self.setStyleSheet(config.get_stylesheet(self._stylesheet))
 
-    def set_progress(self, prog):
-        """Set the progress of the bar and show/hide it if necessary."""
-        self.setValue(prog)
-        if prog != 100:
-            self.error = False
-            self.show()
+    def on_load_started(self):
+        """Clear old error and show progress, used as slot to loadStarted."""
+        self.setValue(0)
+        self.error = False
+        self.show()
 
     def load_finished(self, ok):
         """Hide the progress bar or color it red, depending on ok.

@@ -62,10 +62,9 @@ class MainWindow(QMainWindow):
 
         self.status.resized.connect(self.completion.resize_to_bar)
         self.status.moved.connect(self.completion.move_to_bar)
-        self.tabs.cur_progress.connect(self.status.prog.set_progress)
+        self.tabs.cur_progress.connect(self.status.prog.setValue)
         self.tabs.cur_load_finished.connect(self.status.prog.load_finished)
-        self.tabs.cur_load_started.connect(lambda:
-                                           self.status.prog.set_progress(0))
+        self.tabs.cur_load_started.connect(self.status.prog.on_load_started)
         self.tabs.cur_scroll_perc_changed.connect(
             self.status.percentage.set_perc)
         self.tabs.cur_statusbar_message.connect(self.status.txt.setText)
