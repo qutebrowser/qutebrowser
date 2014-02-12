@@ -59,12 +59,14 @@ class StatusBar(QWidget):
     """
 
     # TODO: the statusbar should be a bit smaller
+    # FIXME In general, texts should be elided instead of cut off.
+    # See http://gedgedev.blogspot.ch/2010/12/elided-labels-in-qt.html
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
         self.setStyleSheet(config.get_stylesheet(self._stylesheet))
 
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
 
         hbox = QHBoxLayout(self)
         hbox.setContentsMargins(0, 0, 0, 0)
