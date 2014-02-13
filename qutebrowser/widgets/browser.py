@@ -85,7 +85,6 @@ class TabbedBrowser(TabWidget):
         logging.debug("Opening {}".format(url))
         url = urlutils.qurl(url)
         tab = BrowserTab(self)
-        self.cur_url_changed.emit(url)
         self.addTab(tab, urlutils.urlstring(url))
         self.setCurrentWidget(tab)
         tab.linkHovered.connect(self._filter_factory(self.cur_link_hovered))
@@ -460,6 +459,7 @@ class BrowserTab(QWebView):
         u = urlutils.fuzzy_url(url)
         logging.debug('New title: {}'.format(urlutils.urlstring(u)))
         self.titleChanged.emit(urlutils.urlstring(u))
+        self.urlChanged.emit(urlutils.qurl(u))
         if urlutils.is_about_url(u):
             try:
                 content = about.handle(urlutils.urlstring(u))
