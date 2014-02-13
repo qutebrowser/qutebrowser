@@ -75,9 +75,6 @@ Enter insert mode (command: insert_mode, aliases: i, insert).
 C-n
 Enter normal mode.
 
-ga
-Add a new blank tab (command: tab_new).
-
 [n]gc
 Clear tab n or of current tab, clears the history of the tab and loads about:blank. (command clear_tab, aliases: clear).
 

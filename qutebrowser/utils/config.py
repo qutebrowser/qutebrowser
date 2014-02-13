@@ -66,6 +66,7 @@ o = open
 go = opencur
 O = tabopen
 gO = tabopencur
+ga = tabopen about:blank
 d = tabclose
 J = tabnext
 K = tabprev
