@@ -178,7 +178,7 @@ class Command(QLineEdit):
         self.setValidator(CommandValidator())
         self.returnPressed.connect(self.process_cmdline)
         self.textEdited.connect(self._histbrowse_stop)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Ignored)
+        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
 
         for (key, handler) in [
                 (Qt.Key_Escape, self.esc_pressed),
