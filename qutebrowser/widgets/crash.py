@@ -52,20 +52,7 @@ class CrashDialog(QDialog):
 
         txt = QTextEdit(self)
         txt.setReadOnly(True)
-        outputs = [
-            ('Version info', version()),
-            ('Exception', ''.join(traceback.format_exception(*exc))),
-            ('Open Pages', '\n'.join(pages)),
-            ('Command history', '\n'.join(cmdhist)),
-            ('Commandline args', ' '.join(sys.argv[1:])),
-            ('Config', config.config.dump_userconfig()),
-        ]
-        chunks = []
-        for (header, body) in outputs:
-            h = '==== {} ===='.format(header)
-            chunks.append('\n'.join([h, body]))
-
-        txt.setText('\n\n'.join(chunks))
+        txt.setText(self._crash_info(pages, cmdhist, exc))
         vbox.addWidget(txt)
         self.setLayout(vbox)
 
@@ -83,3 +70,20 @@ class CrashDialog(QDialog):
 
         vbox.addLayout(hbox)
         self.show()
+
+    def _crash_info(self, pages, cmdhist, exc):
+        """Gather crash information to display."""
+        outputs = [
+            ('Version info', version()),
+            ('Exception', ''.join(traceback.format_exception(*exc))),
+            ('Open Pages', '\n'.join(pages)),
+            ('Command history', '\n'.join(cmdhist)),
+            ('Commandline args', ' '.join(sys.argv[1:])),
+            ('Config', config.config.dump_userconfig()),
+        ]
+        chunks = []
+        for (header, body) in outputs:
+            h = '==== {} ===='.format(header)
+            chunks.append('\n'.join([h, body]))
+
+        return '\n\n'.join(chunks)

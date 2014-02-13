@@ -40,9 +40,6 @@ options = {
     'target': 'qutebrowser',
     'disable': {
         'pylint': [
-            # import seems unreliable
-            'import-error',
-            'no-name-in-module',
             # short variable names can be nice
             'invalid-name',
             # Basically unavoidable with Qt
@@ -58,8 +55,6 @@ options = {
             # I disagree with these
             'star-args',
             'fixme',
-            'too-many-arguments',
-            'too-many-locals',
             'too-many-instance-attributes',
             'global-statement',
             'no-init',

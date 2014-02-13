@@ -20,6 +20,7 @@
 from PyQt5.QtCore import pyqtRemoveInputHook
 
 try:
+    # pylint: disable=import-error
     from ipdb import set_trace as pdb_set_trace
 except ImportError:
     from pdb import set_trace as pdb_set_trace
