@@ -99,6 +99,7 @@ class TabbedBrowser(TabWidget):
         tab.urlChanged.connect(self._filter_factory(self.cur_url_changed))
         tab.titleChanged.connect(self._titleChanged_handler)
         # FIXME sometimes this doesn't load
+        tab.show()
         tab.open_tab.connect(self.tabopen)
         tab.openurl(url)
 
@@ -443,7 +444,6 @@ class BrowserTab(QWebView):
         self.installEventFilter(self)
         self.linkClicked.connect(self.link_handler)
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
-        self.show()
 
     def openurl(self, url):
         """Open an URL in the browser.

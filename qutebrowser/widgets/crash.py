@@ -69,7 +69,6 @@ class CrashDialog(QDialog):
             hbox.addWidget(btn_restore)
 
         vbox.addLayout(hbox)
-        self.show()
 
     def _crash_info(self, pages, cmdhist, exc):
         """Gather crash information to display."""
