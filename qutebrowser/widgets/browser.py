@@ -85,7 +85,6 @@ class TabbedBrowser(TabWidget):
         logging.debug("Opening {}".format(url))
         url = urlutils.qurl(url)
         tab = BrowserTab(self)
-        tab.openurl(url)
         self.cur_url_changed.emit(url)
         self.addTab(tab, urlutils.urlstring(url))
         self.setCurrentWidget(tab)
@@ -103,6 +102,7 @@ class TabbedBrowser(TabWidget):
         tab.titleChanged.connect(self._titleChanged_handler)
         # FIXME sometimes this doesn't load
         tab.open_tab.connect(self.tabopen)
+        tab.openurl(url)
 
     def tabopencur(self):
         """Set the statusbar to :tabopen and the current URL."""
