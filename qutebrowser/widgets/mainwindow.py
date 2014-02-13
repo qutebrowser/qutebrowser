@@ -59,7 +59,8 @@ class MainWindow(QWidget):
         self.status.resized.connect(self.completion.resize_to_bar)
         self.status.moved.connect(self.completion.move_to_bar)
         self.tabs.cur_progress.connect(self.status.prog.setValue)
-        self.tabs.cur_load_finished.connect(self.status.prog.load_finished)
+        self.tabs.cur_load_finished.connect(lambda *args:
+                                            self.status.prog.hide())
         self.tabs.cur_load_finished.connect(
             self.status.url.on_loading_finished)
         self.tabs.cur_load_started.connect(self.status.prog.on_load_started)

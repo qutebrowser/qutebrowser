@@ -98,7 +98,6 @@ completion.item.selected.border.top = #f2f2c0
 completion.item.selected.border.bottom = #e6e680
 completion.match.fg = red
 statusbar.progress.bg = white
-statusbar.progress.bg.error = red
 statusbar.bg = black
 statusbar.fg = white
 statusbar.bg.error = red

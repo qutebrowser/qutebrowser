@@ -304,7 +304,6 @@ class Progress(QProgressBar):
     """The progress bar part of the status bar."""
 
     statusbar = None
-    _error = False
     # FIXME for some reason, margin-left is not shown
     _stylesheet = """
         QProgressBar {{
@@ -314,12 +313,8 @@ class Progress(QProgressBar):
             background-color: transparent;
         }}
 
-        QProgressBar[error="false"]::chunk {{
+        QProgressBar::chunk {{
             {color[statusbar.progress.bg]}
-        }}
-
-        QProgressBar[error="true"]::chunk {{
-            {color[statusbar.progress.bg.error]}
         }}
     """
 
@@ -331,38 +326,10 @@ class Progress(QProgressBar):
         self.setTextVisible(False)
         self.hide()
 
-    @pyqtProperty(bool)
-    def error(self):
-        """Getter for self.error, so it can be used as Qt property."""
-        # pylint: disable=method-hidden
-        return self._error
-
-    @error.setter
-    def error(self, val):
-        """Setter for self.error, so it can be used as Qt property.
-
-        Re-sets the stylesheet after setting the value, so everything gets
-        updated by Qt properly.
-
-        """
-        self._error = val
-        self.setStyleSheet(config.get_stylesheet(self._stylesheet))
-
     def on_load_started(self):
         """Clear old error and show progress, used as slot to loadStarted."""
         self.setValue(0)
-        self.error = False
         self.show()
-
-    def load_finished(self, ok):
-        """Hide the progress bar or color it red, depending on ok.
-
-        Slot for the loadFinished signal of a QWebView.
-
-        """
-        self.error = not ok
-        if ok:
-            self.hide()
 
 
 class TextBase(QLabel):
