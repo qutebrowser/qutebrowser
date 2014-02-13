@@ -456,26 +456,77 @@ class Url(TextBase):
 
     """URL displayed in the statusbar."""
 
-    old_url = ''
+    _old_url = None
+    _old_urltype = None
+    _urltype = None  # 'normal', 'ok', 'error', 'warn, 'hover'
+
+    _stylesheet = """
+        QLabel#Url[urltype="normal"] {{
+            {color[statusbar.url.fg]}
+        }}
+
+        QLabel#Url[urltype="success"] {{
+            {color[statusbar.url.fg.success]}
+        }}
+
+        QLabel#Url[urltype="error"] {{
+            {color[statusbar.url.fg.error]}
+        }}
+
+        QLabel#Url[urltype="warn"] {{
+            {color[statusbar.url.fg.warn]}
+        }}
+
+        QLabel#Url[urltype="hover"] {{
+            {color[statusbar.url.fg.hover]}
+        }}
+    """
 
     def __init__(self, bar, elidemode=Qt.ElideMiddle):
         """Override TextBase::__init__ to elide in the middle by default."""
         super().__init__(bar, elidemode)
+        self.setObjectName(self.__class__.__name__)
+        self.setStyleSheet(config.get_stylesheet(self._stylesheet))
+
+    @pyqtProperty(str)
+    def urltype(self):
+        """Getter for self.urltype, so it can be used as Qt property."""
+        # pylint: disable=method-hidden
+        return self._urltype
+
+    @urltype.setter
+    def urltype(self, val):
+        """Setter for self.urltype, so it can be used as Qt property."""
+        self._urltype = val
+        self.setStyleSheet(config.get_stylesheet(self._stylesheet))
+
+    def on_loading_finished(self, ok):
+        """Slot for cur_loading_finished. Colors the URL according to ok."""
+        # FIXME: set color to warn if there was an SSL error
+        self.urltype = 'success' if ok else 'error'
 
     def set_url(self, s):
         """Setter to be used as a Qt slot."""
         self.setText(urlstring(s))
+        self.urltype = 'normal'
 
     def set_hover_url(self, link, title, text):
         """Setter to be used as a Qt slot.
 
-        Saves old shown URL in self.old_url and restores it later if a link is
+        Saves old shown URL in self._old_url and restores it later if a link is
         "un-hovered" when it gets called with empty parameters.
 
         """
         # pylint: disable=unused-argument
         if link:
-            self.old_url = self.text()
+            if self._old_url is None:
+                self._old_url = self.text()
+            if self._old_urltype is None:
+                self._old_urltype = self._urltype
+            self.urltype = 'hover'
             self.setText(link)
         else:
-            self.setText(self.old_url)
+            self.setText(self._old_url)
+            self.urltype = self._old_urltype
+            self._old_url = None
+            self._old_urltype = None
