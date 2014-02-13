@@ -290,7 +290,7 @@ class CommandValidator(QValidator):
         string -- The string to validate.
         pos -- The current curser position.
 
-        Returns a tuple (status, string, pos) as a QValidator should.
+        Return a tuple (status, string, pos) as a QValidator should.
 
         """
         if any(string.startswith(c) for c in keys.startchars):

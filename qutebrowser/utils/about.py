@@ -41,7 +41,7 @@ pyeval_output = None
 def handle(url):
     """Handle about page with an url.
 
-    Returns HTML content.
+    Return HTML content.
 
     """
     if not is_about_url(url):

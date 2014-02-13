@@ -521,7 +521,7 @@ class BrowserTab(QWebView):
     def event(self, e):
         """Check if a link was clicked with the middle button or Ctrl.
 
-        Extends the superclass event().
+        Extend the superclass event().
 
         This also is a bit of a hack, but it seems it's the only possible way.
         Set the _open_new_tab attribute accordingly.

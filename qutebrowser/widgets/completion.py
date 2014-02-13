@@ -170,7 +170,7 @@ class CompletionView(QTreeView):
     def tab_handler(self, shift):
         """Handle a tab press for the CompletionView.
 
-        Selects the previous/next item and writes the new text to the
+        Select the previous/next item and write the new text to the
         statusbar. Called by key_(s)tab_handler in statusbar.command.
 
         shift -- Whether shift is pressed or not.
@@ -230,7 +230,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
     def sizeHint(self, option, index):
         """Override sizeHint of QStyledItemDelegate.
 
-        Returns the cell size based on the QTextDocument size, but might not
+        Return the cell size based on the QTextDocument size, but might not
         work correctly yet.
 
         """

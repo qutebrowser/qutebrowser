@@ -184,7 +184,7 @@ class ColorDict(dict):
     def getraw(self, key):
         """Get a value without the transformations done in __getitem__.
 
-        Returns a value, or None if the value wasn't found.
+        Return a value, or None if the value wasn't found.
 
         """
         try:
@@ -216,7 +216,7 @@ class FontDict(dict):
     def getraw(self, key):
         """Get a value without the transformations done in __getitem__.
 
-        Returns a value, or None if the value wasn't found.
+        Return a value, or None if the value wasn't found.
 
         """
         try:
@@ -258,7 +258,7 @@ class Config(ConfigParser):
     def __getitem__(self, key):
         """Get an item from the configparser or default dict.
 
-        Extends ConfigParser's __getitem__.
+        Extend ConfigParser's __getitem__.
 
         """
         try:
@@ -269,7 +269,7 @@ class Config(ConfigParser):
     def get(self, *args, **kwargs):
         """Get an item from the configparser or default dict.
 
-        Extends ConfigParser's get().
+        Extend ConfigParser's get().
 
         """
         if 'fallback' in kwargs:

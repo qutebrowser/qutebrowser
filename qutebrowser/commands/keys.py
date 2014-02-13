@@ -84,7 +84,7 @@ class KeyParser(QObject):
     def _handle_modifier_key(self, e):
         """Handle a new keypress with modifiers.
 
-        Returns True if the keypress has been handled, and False if not.
+        Return True if the keypress has been handled, and False if not.
 
         e -- the KeyPressEvent from Qt
 
@@ -118,11 +118,11 @@ class KeyParser(QObject):
     def _handle_single_key(self, e):
         """Handle a new keypress with a single key (no modifiers).
 
-        Separates the keypress into count/command, then checks if it matches
-        any possible command, and either runs the command, ignores it, or
-        displays an error.
+        Separate the keypress into count/command, then check if it matches
+        any possible command, and either run the command, ignore it, or
+        display an error.
 
-        e -- the KeyPressEvent from Qt
+        e -- the KeyPressEvent from Qt.
 
         """
         # FIXME maybe we can do this in an easier way by using QKeySeqyence

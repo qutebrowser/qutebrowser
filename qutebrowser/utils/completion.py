@@ -49,7 +49,7 @@ class CompletionModel(QAbstractItemModel):
     def removeRows(self, position=0, count=1, parent=QModelIndex()):
         """Remove rows from the model.
 
-        Overrides QAbstractItemModel::removeRows.
+        Override QAbstractItemModel::removeRows.
 
         """
         node = self._node(parent)
@@ -60,7 +60,7 @@ class CompletionModel(QAbstractItemModel):
     def _node(self, index):
         """Return the interal data representation for index.
 
-        Returns the CompletionItem for index, or the root CompletionItem if the
+        Return the CompletionItem for index, or the root CompletionItem if the
         index was invalid.
 
         """
@@ -72,7 +72,7 @@ class CompletionModel(QAbstractItemModel):
     def columnCount(self, parent=QModelIndex()):
         """Return the column count in the model.
 
-        Overrides QAbstractItemModel::columnCount.
+        Override QAbstractItemModel::columnCount.
 
         """
         # pylint: disable=unused-argument
@@ -81,8 +81,8 @@ class CompletionModel(QAbstractItemModel):
     def data(self, index, role=Qt.DisplayRole):
         """Return the data for role/index as QVariant.
 
-        Returns an invalid QVariant on error.
-        Overrides QAbstractItemModel::data.
+        Return an invalid QVariant on error.
+        Override QAbstractItemModel::data.
 
         """
         if not index.isValid():
@@ -99,8 +99,8 @@ class CompletionModel(QAbstractItemModel):
     def flags(self, index):
         """Return the item flags for index.
 
-        Returns Qt.NoItemFlags on error.
-        Overrides QAbstractItemModel::flags.
+        Return Qt.NoItemFlags on error.
+        Override QAbstractItemModel::flags.
 
         """
         # FIXME categories are not selectable, but moving via arrow keys still
@@ -116,8 +116,8 @@ class CompletionModel(QAbstractItemModel):
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Return the header data for role/index as QVariant.
 
-        Returns an invalid QVariant on error.
-        Overrides QAbstractItemModel::headerData.
+        Return an invalid QVariant on error.
+        Override QAbstractItemModel::headerData.
 
         """
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
@@ -127,8 +127,8 @@ class CompletionModel(QAbstractItemModel):
     def setData(self, index, value, role=Qt.EditRole):
         """Set the data for role/index to value.
 
-        Returns True on success, False on failure.
-        Overrides QAbstractItemModel::setData.
+        Return True on success, False on failure.
+        Override QAbstractItemModel::setData.
 
         """
         if not index.isValid():
@@ -144,8 +144,8 @@ class CompletionModel(QAbstractItemModel):
     def index(self, row, column, parent=QModelIndex()):
         """Return the QModelIndex for row/column/parent.
 
-        Returns an invalid QModelIndex on failure.
-        Overrides QAbstractItemModel::index.
+        Return an invalid QModelIndex on failure.
+        Override QAbstractItemModel::index.
 
         """
         if (0 <= row < self.rowCount(parent) and
@@ -170,8 +170,8 @@ class CompletionModel(QAbstractItemModel):
     def parent(self, index):
         """Return the QModelIndex of the parent of the object behind index.
 
-        Returns an invalid QModelIndex on failure.
-        Overrides QAbstractItemModel::parent.
+        Return an invalid QModelIndex on failure.
+        Override QAbstractItemModel::parent.
 
         """
         if not index.isValid():
@@ -184,8 +184,8 @@ class CompletionModel(QAbstractItemModel):
     def rowCount(self, parent=QModelIndex()):
         """Return the children count of an item.
 
-        Uses the root frame if parent is invalid.
-        Overrides QAbstractItemModel::data.
+        Use the root frame if parent is invalid.
+        Override QAbstractItemModel::rowCount.
 
         """
         if parent.column() > 0:
@@ -201,8 +201,8 @@ class CompletionModel(QAbstractItemModel):
     def sort(self, column, order=Qt.AscendingOrder):
         """Sort the data in column according to order.
 
-        Raises NotImplementedError, should be overwritten in a superclass.
-        Overrides QAbstractItemModel::sort.
+        Raise NotImplementedError, should be overwritten in a superclass.
+        Override QAbstractItemModel::sort.
 
         """
         raise NotImplementedError
@@ -355,12 +355,12 @@ class CompletionFilterModel(QSortFilterProxyModel):
     def filterAcceptsRow(self, row, parent):
         """Custom filter implementation.
 
-        Overrides QSortFilterProxyModel::filterAcceptsRow.
+        Override QSortFilterProxyModel::filterAcceptsRow.
 
         row    -- The row of the item.
         parent -- The parent item QModelIndex.
 
-        Returns True if self.pattern is contained in item, or if it's a root
+        Return True if self.pattern is contained in item, or if it's a root
         item (category). Else returns False.
 
         """
