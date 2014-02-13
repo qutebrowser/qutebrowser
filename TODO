@@ -7,7 +7,6 @@ Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-21036
 segfaults when using :quit
 :quit doesn't work with init-commands
-Moving mouse on heise.de on Windows -> really weird window resizing
 
 Major features
 ==============
@@ -41,17 +40,15 @@ Marks
 show infos in statusline, temporary/longer
 set settings/colors/bindings via commandline
 write default config with comments
+more completions (URLs, ...)
 
 Minor features
 ==============
 
-refactor status.txt so it uses independent QLabels
-show site status (ok=green, SSL-problem=yellow, error=red) in URL color
 Hiding scrollbars
 :bind
 ^ and $ for scrolling
 Ctrl+A/X to increase/decrease last number in URL
-make font configurable
 
 Other stuff
 ===========
