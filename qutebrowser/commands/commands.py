@@ -162,6 +162,22 @@ class Scroll(Command):
     hide = True
 
 
+class ScrollPage(Command):
+
+    """Scroll N pages up/down.
+
+    arg 1: pages in x-direction
+    arg 2: pages in y-direction
+    count: multiplicator
+
+    """
+
+    nargs = 2
+    count = True
+    hide = True
+    name = 'scroll_page'
+
+
 class Undo(Command):
 
     """Undo closing a tab."""

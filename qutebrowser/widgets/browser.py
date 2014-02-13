@@ -32,7 +32,6 @@ from PyQt5.QtPrintSupport import QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 import qutebrowser.utils.about as about
-import qutebrowser.utils.config as config
 import qutebrowser.utils.url as urlutils
 from qutebrowser.widgets.tabbar import TabWidget
 from qutebrowser.utils.signals import dbg_signal, SignalCache
@@ -73,7 +72,7 @@ class TabbedBrowser(TabWidget):
         space = QShortcut(self)
         space.setKey(Qt.Key_Space)
         space.setContext(Qt.WidgetWithChildrenShortcut)
-        space.activated.connect(self.space_scroll)
+        space.activated.connect(lambda: self.cur_scroll_page(0, 1))
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
     def tabopen(self, url):
@@ -258,6 +257,14 @@ class TabbedBrowser(TabWidget):
             return
         frame.setScrollBarValue(orientation, int(m * perc / 100))
 
+    def cur_scroll_page(self, mx, my, count=1):
+        """Scroll the frame mx pages to the right and my pages down."""
+        # FIXME this might not work with HTML frames
+        page = self.currentWidget().page()
+        size = page.viewportSize()
+        page.mainFrame().scroll(int(count) * float(mx) * size.width(),
+                                int(count) * float(my) * size.height())
+
     def switch_prev(self, count=1):
         """Switch to the ([count]th) previous tab.
 
@@ -283,18 +290,6 @@ class TabbedBrowser(TabWidget):
         else:
             # FIXME
             pass
-
-    def space_scroll(self):
-        """Scroll when space is pressed.
-
-        This gets called from the space QShortcut in __init__.
-
-        """
-        try:
-            amount = config.config['general']['space_scroll']
-        except KeyError:
-            amount = 200
-        self.cur_scroll(0, amount)
 
     def cur_yank(self, sel=False):
         """Yank the current url to the clipboard or primary selection.

@@ -271,6 +271,7 @@ class QuteBrowser(QApplication):
             'forward':       self.mainwindow.tabs.cur_forward,
             'print':         self.mainwindow.tabs.cur_print,
             'scroll':        self.mainwindow.tabs.cur_scroll,
+            'scroll_page':   self.mainwindow.tabs.cur_scroll_page,
             'scroll_perc_x': self.mainwindow.tabs.cur_scroll_percent_x,
             'scroll_perc_y': self.mainwindow.tabs.cur_scroll_percent_y,
             'undo':          self.mainwindow.tabs.undo_close,

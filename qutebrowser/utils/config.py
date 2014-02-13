@@ -37,7 +37,6 @@ fontdict = {}
 default_config = """
 [general]
 show_completion = true
-space_scroll = 200
 ignorecase = true
 wrapsearch = true
 startpage = http://www.duckduckgo.com/
@@ -93,6 +92,10 @@ PP = tabpaste sel
 @Ctrl-Shift-T@ = undo
 @Ctrl-W@ = tabclose
 @Ctrl-T@ = tabopen about:blank
+@Ctrl-F@ = scroll_page 0 1
+@Ctrl-B@ = scroll_page 0 -1
+@Ctrl-D@ = scroll_page 0 0.5
+@Ctrl-U@ = scroll_page 0 -0.5
 
 [colors]
 completion.fg = #333333

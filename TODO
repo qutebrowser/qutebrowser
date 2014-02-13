@@ -60,18 +60,6 @@ https://code.google.com/p/devicenzo/source/browse/trunk/devicenzo.py
 Keybinding stuff (from dwb)
 ===========================
 
-[n]C-f
-Scroll [n] pages down (command: scroll_page_down, aliases: pagedown).
-
-[n]C-b
-Scroll [n] pages up (command: scroll_page_up, aliases: pageup).
-
-[n]C-d
-Scroll [n] half pages down (command: scroll_halfpage_down, aliases: halfdown).
-
-[n]C-u
-Scroll [n] half pages up (command: scroll_halfpage_up, aliases: halfup).
-
 xo
 Open url in a new tab in background, the argument $URI will be repaced with the current uri (command: backopen, aliases: bopen ).
 
