@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt5.QtWidgets import QTabWidget, QSizePolicy
+from PyQt5.QtWidgets import QTabWidget, QTabBar, QSizePolicy
 from PyQt5.QtCore import Qt
 
 import qutebrowser.utils.config as config
@@ -60,12 +60,36 @@ class TabWidget(QTabWidget):
     """
 
     def __init__(self, parent):
-        # FIXME export some settings (TabPosition, tabsClosable,
-        # usesScrollButtons)
         super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setStyle(Style(self.style()))
         self.setStyleSheet(config.get_stylesheet(self._stylesheet))
         self.setDocumentMode(True)
-        self.setMovable(True)
         self.setElideMode(Qt.ElideRight)
+        self._init_config()
+
+    def _init_config(self):
+        """Initialize attributes based on the config."""
+        position_conv = {
+            'north': QTabWidget.North,
+            'south': QTabWidget.South,
+            'west': QTabWidget.West,
+            'east': QTabWidget.East,
+        }
+        select_conv = {
+            'left': QTabBar.SelectLeftTab,
+            'right': QTabBar.SelectRightTab,
+            'previous': QTabBar.SelectPreviousTab,
+        }
+        self.setMovable(config.config.getboolean('tabbar', 'movable'))
+        self.setTabsClosable(config.config.getboolean('tabbar',
+                                                      'closebuttons'))
+        self.setUsesScrollButtons(config.config.getboolean('tabbar',
+                                                           'scrollbuttons'))
+        posstr = config.config.get('tabbar', 'position').lower()
+        selstr = config.config.get('tabbar', 'select_on_remove').lower()
+        try:
+            self.setTabPosition(position_conv[posstr])
+            self.tabBar().setSelectionBehaviorOnRemove(select_conv[selstr])
+        except KeyError:
+            pass

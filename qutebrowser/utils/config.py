@@ -44,6 +44,15 @@ startpage = http://www.duckduckgo.com/
 addressbar_dns_lookup = false
 auto_search = true
 
+[tabbar]
+movable = true
+closebuttons = false
+scrollbuttons = false
+# north, south, east, west
+position = north
+# previous, left, right
+select_on_remove = previous
+
 [searchengines]
 DEFAULT = ${duckduckgo}
 duckduckgo = https://duckduckgo.com/?q={}
