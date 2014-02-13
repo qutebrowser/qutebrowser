@@ -219,8 +219,8 @@ class TabbedBrowser(TabWidget):
         Command handler for :scroll.
 
         """
-        dx = int(count) * int(dx)
-        dy = int(count) * int(dy)
+        dx = int(count) * float(dx)
+        dy = int(count) * float(dy)
         self.currentWidget().page().mainFrame().scroll(dx, dy)
 
     def cur_scroll_percent_x(self, perc=None, count=None):
@@ -250,7 +250,7 @@ class TabbedBrowser(TabWidget):
         elif perc is None:
             perc = int(count)
         else:
-            perc = int(perc)
+            perc = float(perc)
         frame = self.currentWidget().page().mainFrame()
         m = frame.scrollBarMaximum(orientation)
         if m == 0:
