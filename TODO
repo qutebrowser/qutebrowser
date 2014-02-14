@@ -41,13 +41,6 @@ show infos in statusline, temporary/longer
 set settings/colors/bindings via commandline
 write default config with comments
 more completions (URLs, ...)
-error pages
-    see: https://stackoverflow.com/questions/9279684/override-http-error-page-in-qtwebkit
-         https://stackoverflow.com/questions/14528038/handling-errors-in-qwebview-qwebpage
-
-        porti │ QWebPage has a class ErrorPageExtensionOption and a class ErrorPageExtensionReturn, the first is holds information about the type of error, the second is the errorpage that will be shown
-        The-Compiler │ porti: ok, and then I have to override ::extension() and ::supportsExtension() it seems. Sounds promising.
-        http://qt-project.org/doc/qt-5.0/qtwebkit/qwebpage.html
 
 
 Minor features
@@ -55,7 +48,6 @@ Minor features
 
 Hiding scrollbars
 :bind
-^ and $ for scrolling
 Ctrl+A/X to increase/decrease last number in URL
 
 Other stuff
