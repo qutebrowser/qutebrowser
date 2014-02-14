@@ -32,8 +32,8 @@ from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QTextCursor)
 
 import qutebrowser.utils.config as config
-from qutebrowser.utils.completion import CompletionFilterModel
-from qutebrowser.commands.utils import CommandCompletionModel
+from qutebrowser.models.completionfilter import CompletionFilterModel
+from qutebrowser.models.commandcompletion import CommandCompletionModel
 
 
 class CompletionView(QTreeView):

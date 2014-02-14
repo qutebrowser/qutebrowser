@@ -27,7 +27,6 @@ import qutebrowser.commands.commands
 import qutebrowser.utils.config as config
 from qutebrowser.commands.exceptions import (ArgumentCountError,
                                              NoSuchCommandError)
-from qutebrowser.utils.completion import CompletionModel
 
 # A mapping from command-strings to command objects.
 cmd_dict = {}
@@ -170,21 +169,3 @@ class CommandParser(QObject):
             else:
                 raise
         self._run(count=count)
-
-
-class CommandCompletionModel(CompletionModel):
-
-    """A CompletionModel filled with all commands and descriptions."""
-
-    # pylint: disable=abstract-method
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        assert cmd_dict
-        cmdlist = []
-        for obj in set(cmd_dict.values()):
-            if not obj.hide:
-                doc = obj.__doc__.splitlines()[0].strip().rstrip('.')
-                cmdlist.append([obj.mainname, doc])
-        self._data['Commands'] = sorted(cmdlist)
-        self.init_data()
