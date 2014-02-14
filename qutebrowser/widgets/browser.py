@@ -579,5 +579,5 @@ class BrowserPage(QWebPage):
         urlstr = urlutils.urlstring(info.url)
         title = "Error loading page: {}".format(urlstr)
         errpage.content = read_file('html/error.html').format(
-            title=title, url=urlstr, error=info.errorString)
+            title=title, url=urlstr, error=info.errorString, icon='')
         return True
