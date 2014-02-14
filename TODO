@@ -64,6 +64,8 @@ Other stuff
 make sure webview.page() and page.mainFrame() never change
 http://agateau.com/article-series/pyqtwebkit-experiments/
 https://code.google.com/p/devicenzo/source/browse/trunk/devicenzo.py
+http://die-offenbachs.homelinux.org:48888/hg/eric5/file/5d937eb378dd/Helpviewer
+
 
 Keybinding stuff (from dwb)
 ===========================

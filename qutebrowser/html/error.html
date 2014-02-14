@@ -1,0 +1,63 @@
+<!-- Based on html/error.html from dwb -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>{title}</title>
+        <!--<link rel='icon' type='image/png' href="{icon}">-->
+        <style type="text/css">
+            body {{
+                background-color: #fff;
+                margin: 0;
+                padding: 0;
+            }}
+
+            #errorContainer {{
+                background: #fff;
+                min-width: 35em;
+                max-width: 35em;
+                position: absolute;
+                top: 2em;
+                left: 1em;
+                padding: 10px;
+                border: 2px solid #eee;
+                -webkit-border-radius: 5px;
+            }}
+
+            #errorTitleText {{
+                font-size: 118%;
+                font-weight: bold;
+            }}
+
+            #errorMessageText {{
+                font-size: 80%;
+            }}
+        </style>
+        <script type="text/javascript">
+            function tryagain()
+            {{
+                location.reload();
+            }}
+            function searchFor(uri) {{
+                location.href = uri;
+            }}
+        </script>
+    </head>
+    <body>
+        <div id="errorContainer">
+            <div id="errorTitle">
+                <p id="errorTitleText">Unable to load page</p>
+            </div>
+            <div id="errorMessage">
+                <p>Problem occurred while loading the URL {url}</p>
+                <p id="errorMessageText">{error}</a>
+            </p>
+            </div>
+
+            <form name="bl">
+                <input type="button" value="Try again" onclick="javascript:tryagain()" />
+                <!--<input type="button" value="Search" style="visibility:%s" onclick="javascript:searchFor('%s')" />-->
+            </form>
+        </div>
+    </body>
+</html>

@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import os.path
+
 from PyQt5.QtCore import pyqtRemoveInputHook
 
 try:
@@ -39,3 +41,12 @@ def set_trace():
     print("before executing c(ontinue).")
     pyqtRemoveInputHook()
     return pdb_set_trace()
+
+
+def read_file(filename):
+    """Return the contents of a file contained with qutebrowser."""
+    fn = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                      os.path.pardir, filename)
+    with open(fn, 'r') as f:
+        # FIXME is there a nicer way?
+        return '\n'.join(f.readlines())

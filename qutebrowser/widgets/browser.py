@@ -25,16 +25,19 @@ containing BrowserTabs).
 import logging
 import functools
 
+import sip
 from PyQt5.QtWidgets import QShortcut, QApplication, QSizePolicy
 from PyQt5.QtCore import pyqtSignal, Qt, QEvent
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
+from PyQt5.QtNetwork import QNetworkReply
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 import qutebrowser.utils.about as about
 import qutebrowser.utils.url as urlutils
 from qutebrowser.widgets.tabbar import TabWidget
 from qutebrowser.utils.signals import dbg_signal, SignalCache
+from qutebrowser.utils.misc import read_file
 
 
 class TabbedBrowser(TabWidget):
@@ -437,6 +440,7 @@ class BrowserTab(QWebView):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setPage(BrowserPage())
         self.signal_cache = SignalCache(uncached=['linkHovered'])
         self.loadProgress.connect(self.set_progress)
         self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
@@ -533,3 +537,47 @@ class BrowserTab(QWebView):
             self._open_new_tab = (e.button() == Qt.MidButton or
                                   e.modifiers() & Qt.ControlModifier)
         return super().event(e)
+
+
+class BrowserPage(QWebPage):
+
+    """Our own QWebPage with advanced features."""
+
+    _extension_handlers = None
+
+    def __init__(self):
+        super().__init__()
+        self._extension_handlers = {
+            QWebPage.ErrorPageExtension: self._handle_errorpage,
+        }
+
+    def supportsExtension(self, ext):
+        """Override QWebPage::supportsExtension to provide error pages."""
+        return ext in self._extension_handlers
+
+    def extension(self, ext, opt, out):
+        """Override QWebPage::extension to provide error pages."""
+        try:
+            handler = self._extension_handlers[ext]
+        except KeyError:
+            return super().extension(ext, opt, out)
+        return handler(opt, out)
+
+    def _handle_errorpage(self, opt, out):
+        """Display an error page if needed.
+
+        Loosly based on Helpviewer/HelpBrowserWV.py from eric5
+        (line 260 @ 5d937eb378dd)
+
+        """
+        info = sip.cast(opt, QWebPage.ErrorPageExtensionOption)
+        errpage = sip.cast(out, QWebPage.ErrorPageExtensionReturn)
+        errpage.baseUrl = info.url
+        if (info.domain == QWebPage.QtNetwork and
+                info.error == QNetworkReply.OperationCanceledError):
+            return False
+        urlstr = urlutils.urlstring(info.url)
+        title = "Error loading page: {}".format(urlstr)
+        errpage.content = read_file('html/error.html').format(
+            title=title, url=urlstr, error=info.errorString)
+        return True
