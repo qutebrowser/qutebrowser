@@ -31,5 +31,9 @@ Subpackages:
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import os.path
+
 __version_info__ = (0, 0, 0)
 __version__ = '.'.join(map(str, __version_info__))
+
+basedir = os.path.dirname(os.path.realpath(__file__))

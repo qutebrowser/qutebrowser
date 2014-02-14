@@ -27,6 +27,8 @@ try:
 except ImportError:
     from pdb import set_trace as pdb_set_trace
 
+import qutebrowser
+
 
 def set_trace():
     """
@@ -45,8 +47,6 @@ def set_trace():
 
 def read_file(filename):
     """Return the contents of a file contained with qutebrowser."""
-    fn = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                      os.path.pardir, filename)
-    with open(fn, 'r') as f:
-        # FIXME is there a nicer way?
-        return '\n'.join(f.readlines())
+    fn = os.path.join(qutebrowser.basedir, filename)
+    with open(fn, 'r', encoding='UTF-8') as f:
+        return f.read()
