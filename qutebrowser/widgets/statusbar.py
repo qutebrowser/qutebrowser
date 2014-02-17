@@ -45,7 +45,6 @@ class StatusBar(QWidget):
     moved = pyqtSignal('QPoint')
     _error = False
     _option = None
-    _painter = None
     _stylesheet = """
         QWidget#StatusBar[error="false"] {{
             {color[statusbar.bg]}
@@ -114,9 +113,9 @@ class StatusBar(QWidget):
         # pylint: disable=unused-argument
         self._option = QStyleOption()
         self._option.initFrom(self)
-        self._painter = QPainter(self)
+        painter = QPainter(self)
         self.style().drawPrimitive(QStyle.PE_Widget, self._option,
-                                   self._painter, self)
+                                   painter, self)
 
     def disp_error(self, text):
         """Displaysan error in the statusbar."""
@@ -351,7 +350,6 @@ class TextBase(QLabel):
 
     elidemode = None
     _elided_text = None
-    _painter = None
 
     def __init__(self, bar, elidemode=Qt.ElideRight):
         super().__init__(bar)
@@ -382,10 +380,10 @@ class TextBase(QLabel):
         if self.elidemode == Qt.ElideNone:
             super().paintEvent(e)
         else:
-            self._painter = QPainter(self)
-            self._painter.drawText(0, 0, self.geometry().width(),
-                                   self.geometry().height(), self.alignment(),
-                                   self._elided_text)
+            painter = QPainter(self)
+            painter.drawText(0, 0, self.geometry().width(),
+                             self.geometry().height(), self.alignment(),
+                             self._elided_text)
 
 
 class Text(TextBase):
