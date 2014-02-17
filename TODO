@@ -5,8 +5,6 @@ All kind of FIXMEs
 Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-20973
     https://bugreports.qt-project.org/browse/QTBUG-21036
-segfaults when using :quit
-:quit doesn't work with init-commands
 
 Major features
 ==============
@@ -53,10 +51,10 @@ Ctrl+A/X to increase/decrease last number in URL
 Other stuff
 ===========
 
-make sure webview.page() and page.mainFrame() never change
 http://agateau.com/article-series/pyqtwebkit-experiments/
 https://code.google.com/p/devicenzo/source/browse/trunk/devicenzo.py
 http://die-offenbachs.homelinux.org:48888/hg/eric5/file/5d937eb378dd/Helpviewer
+https://github.com/integricho/path-of-a-pyqter
 
 
 Keybinding stuff (from dwb)
