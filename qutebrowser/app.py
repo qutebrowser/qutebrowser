@@ -40,7 +40,7 @@ import qutebrowser.utils.harfbuzz as harfbuzz
 harfbuzz.fix()
 
 from PyQt5.QtWidgets import QApplication, QDialog
-from PyQt5.QtCore import pyqtSlot, QTimer
+from PyQt5.QtCore import pyqtSlot, QTimer, QEventLoop
 
 import qutebrowser
 import qutebrowser.commands.utils as cmdutils
@@ -128,6 +128,10 @@ class QuteBrowser(QApplication):
         URLs to open have no prefix, commands to execute begin with a colon.
 
         """
+        # QNetworkAccessManager::createRequest will hang for over a second, so
+        # we make sure the GUI is refreshed here, so the start seems faster.
+        self.processEvents(QEventLoop.ExcludeUserInputEvents |
+                           QEventLoop.ExcludeSocketNotifiers)
         opened_urls = False
 
         for e in self.args.command:
