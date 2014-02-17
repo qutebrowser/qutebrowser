@@ -94,7 +94,7 @@ class QuteBrowser(QApplication):
         self._init_cmds()
         self.mainwindow = MainWindow()
 
-        self.aboutToQuit.connect(config.config.save)
+        self.aboutToQuit.connect(self._shutdown)
         self.mainwindow.tabs.keypress.connect(self.keyparser.handle)
         self.keyparser.set_cmd_text.connect(self.mainwindow.status.cmd.set_cmd)
         self.mainwindow.tabs.set_cmd_text.connect(
@@ -243,6 +243,11 @@ class QuteBrowser(QApplication):
             self.keyparser.from_config_sect(config.config['keybind'])
         except KeyError:
             pass
+
+    def _shutdown(self):
+        """Try to shutdown everything cleanly."""
+        config.config.save()
+        self.mainwindow.tabs.shutdown()
 
     def cmd_handler(self, tpl):
         """Handle commands and delegate the specific actions.

@@ -30,7 +30,8 @@ from PyQt5.QtWidgets import QShortcut, QApplication, QSizePolicy
 from PyQt5.QtCore import pyqtSignal, Qt, QEvent
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
-from PyQt5.QtNetwork import QNetworkReply
+from PyQt5.QtNetwork import QNetworkReply, QNetworkAccessManager
+from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 import qutebrowser.utils.about as about
@@ -157,6 +158,7 @@ class TabbedBrowser(TabWidget):
                     self._tabs.remove(tab)
                 except ValueError:
                     pass
+                tab.shutdown()
         else:
             # FIXME
             pass
@@ -428,6 +430,11 @@ class TabbedBrowser(TabWidget):
             if log_signal:
                 logging.debug('  ignoring')
 
+    def shutdown(self):
+        """Try to shut down all tabs cleanly."""
+        self.currentChanged.disconnect()
+        for tabidx in range(self.count()):
+            self.widget(tabidx).shutdown()
 
 class BrowserTab(QWebView):
 
@@ -502,6 +509,21 @@ class BrowserTab(QWebView):
         """
         self.progress = prog
 
+    def shutdown(self):
+        """Shut down the tab cleanly and remove it.
+
+        Inspired by [1].
+
+        [1] https://github.com/integricho/path-of-a-pyqter/tree/master/qttut08
+        """
+        self.stop()
+        self.close()
+        self.settings().setAttribute(QWebSettings.JavascriptEnabled, False)
+        self.page().deleteLater()
+        self.deleteLater()
+        self.page().networkAccessManager().abort_requests()
+        self.page().networkAccessManager().deleteLater()
+
     def eventFilter(self, watched, e):
         """Dirty hack to emit a signal if the scroll position changed.
 
@@ -552,12 +574,15 @@ class BrowserPage(QWebPage):
     """Our own QWebPage with advanced features."""
 
     _extension_handlers = None
+    _network_access_manager = None
 
     def __init__(self):
         super().__init__()
         self._extension_handlers = {
             QWebPage.ErrorPageExtension: self._handle_errorpage,
         }
+        self._network_access_manager = NetworkManager()
+        self.setNetworkAccessManager(self._network_access_manager)
 
     def supportsExtension(self, ext):
         """Override QWebPage::supportsExtension to provide error pages."""
@@ -589,3 +614,31 @@ class BrowserPage(QWebPage):
         errpage.content = read_file('html/error.html').format(
             title=title, url=urlstr, error=info.errorString, icon='')
         return True
+
+
+class NetworkManager(QNetworkAccessManager):
+
+    """Our own QNetworkAccessManager."""
+
+    _requests = None
+
+    def __init__(self, parent=None):
+        self._requests = {}
+        super().__init__(parent)
+
+    def abort_requests(self):
+        """Abort all running requests."""
+        for request in self._requests.values():
+            request.abort()
+
+    def createRequest(self, op, req, outgoing_data):
+        """Return a new QNetworkReply object.
+
+        Extend QNetworkAccessManager::createRequest to save requests in
+        self._requests.
+
+        """
+        reply = super().createRequest(op, req, outgoing_data)
+        self._requests[id(reply)] = reply
+        reply.destroyed.connect(lambda obj: self._requests.pop(id(obj)))
+        return reply
