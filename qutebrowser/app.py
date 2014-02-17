@@ -33,7 +33,7 @@ except ImportError:
 else:
     faulthandler.enable()
 
-# This is a really old place to do this, but we have to do this before
+# This is a really odd place to do this, but we have to do this before
 # importing PyQt or it won't work.
 # See https://bugreports.qt-project.org/browse/QTBUG-36099
 import qutebrowser.utils.harfbuzz as harfbuzz
