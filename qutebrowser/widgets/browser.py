@@ -288,10 +288,10 @@ class TabbedBrowser(TabWidget):
     def cur_scroll_page(self, mx, my, count=1):
         """Scroll the frame mx pages to the right and my pages down."""
         # FIXME this might not work with HTML frames
-        size = self.page_.viewportSize()
-        self.currentWidget().page_.mainFrame().scroll(
-            int(count) * float(mx) * size.width(),
-            int(count) * float(my) * size.height())
+        page = self.currentWidget().page_
+        size = page.viewportSize()
+        page.mainFrame().scroll(int(count) * float(mx) * size.width(),
+                                int(count) * float(my) * size.height())
 
     def switch_prev(self, count=1):
         """Switch to the ([count]th) previous tab.
