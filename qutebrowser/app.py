@@ -69,7 +69,7 @@ class QuteBrowser(QApplication):
     commandparser = None
     keyparser = None
     args = None  # ArgumentParser
-    timer = None  # QTimer for python hacks
+    timers = None
     shutting_down = False
 
     def __init__(self):
@@ -118,7 +118,8 @@ class QuteBrowser(QApplication):
 
         self.mainwindow.show()
         self._python_hacks()
-        self._process_init_args()
+        timer = QTimer.singleShot(0, self._process_init_args)
+        self.timers.append(timer)
 
     def _process_init_args(self):
         """Process initial positional args.
@@ -207,9 +208,10 @@ class QuteBrowser(QApplication):
 
         """
         signal(SIGINT, lambda *args: self.exit(128 + SIGINT))
-        self.timer = QTimer()
-        self.timer.start(500)
-        self.timer.timeout.connect(lambda: None)
+        timer = QTimer()
+        timer.start(500)
+        timer.timeout.connect(lambda: None)
+        self.timers.append(timer)
 
     def _parseopts(self):
         """Parse command line options."""
@@ -244,6 +246,7 @@ class QuteBrowser(QApplication):
             os.environ['QT_FATAL_WARNINGS'] = '1'
         self.setApplicationName("qutebrowser")
         self.setApplicationVersion(qutebrowser.__version__)
+        self.timers = []
 
     def _init_cmds(self):
         """Initialisation of the qutebrowser commands.
