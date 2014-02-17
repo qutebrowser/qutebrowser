@@ -67,6 +67,7 @@ class TabbedBrowser(TabWidget):
     cur_scroll_perc_changed = pyqtSignal(int, int)
     set_cmd_text = pyqtSignal(str)  # Set commandline to a given text
     keypress = pyqtSignal('QKeyEvent')
+    shutdown_complete = pyqtSignal()  # All tabs have been shut down.
     _url_stack = []  # Stack of URLs of closed tabs
     _space = None  # Space QShortcut
     _tabs = None
@@ -154,14 +155,21 @@ class TabbedBrowser(TabWidget):
                 # FIXME maybe we actually should store the webview objects here
                 self._url_stack.append(tab.url())
                 self.removeTab(idx)
-                try:
-                    self._tabs.remove(tab)
-                except ValueError:
-                    pass
-                tab.shutdown()
+                tab.shutdown(callback=functools.partial(self._cb_tab_shutdown,
+                                                        tab))
         else:
             # FIXME
             pass
+
+    def _cb_tab_shutdown(self, tab):
+        """Called after a tab has been shut down completely."""
+        try:
+            self._tabs.remove(tab)
+        except ValueError:
+            logging.error("tab {} could not be removed from tabs {}.".format(
+                tab, self._tabs))
+        if not self._tabs:  # all tabs shut down
+            self.shutdown_complete.emit()
 
     def cur_reload(self, count=None):
         """Reload the current/[count]th tab.
@@ -433,9 +441,14 @@ class TabbedBrowser(TabWidget):
 
     def shutdown(self):
         """Try to shut down all tabs cleanly."""
-        self.currentChanged.disconnect()
+        try:
+            self.currentChanged.disconnect()
+        except TypeError:
+            pass
         for tabidx in range(self.count()):
-            self.widget(tabidx).shutdown()
+            tab = self.widget(tabidx)
+            tab.shutdown(callback=functools.partial(self._cb_tab_shutdown,
+                                                    tab))
 
 
 class BrowserTab(QWebView):
@@ -451,12 +464,15 @@ class BrowserTab(QWebView):
     open_tab = pyqtSignal('QUrl')
     linkHovered = pyqtSignal(str, str, str)
     _scroll_pos = (-1, -1)
+    _shutdown_callback = None  # callback to be called after shutdown
     _open_new_tab = False  # open new tab for the next action
+    _destroyed = None  # Dict of all items to be destroyed.
     # dict of tab specific signals, and the values we last got from them.
     signal_cache = None
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._destroyed = {}
         self.setPage(BrowserPage())
         self.signal_cache = SignalCache(uncached=['linkHovered'])
         self.loadProgress.connect(self.on_load_progress)
@@ -513,7 +529,7 @@ class BrowserTab(QWebView):
         """
         self.progress = prog
 
-    def shutdown(self):
+    def shutdown(self, callback=None):
         """Shut down the tab cleanly and remove it.
 
         Inspired by [1].
@@ -521,13 +537,37 @@ class BrowserTab(QWebView):
         [1] https://github.com/integricho/path-of-a-pyqter/tree/master/qttut08
 
         """
+        page = self.page()
+        netman = page.networkAccessManager()
+        self._shutdown_callback = callback
+        try:
+            # Avoid loading finished signal when stopping
+            self.loadFinished.disconnect()
+        except TypeError:
+            logging.exception("This should never happen.")
         self.stop()
         self.close()
         self.settings().setAttribute(QWebSettings.JavascriptEnabled, False)
-        self.page().deleteLater()
+
+        self._destroyed[page] = False
+        page.destroyed.connect(functools.partial(self.on_destroyed, page))
+        page.deleteLater()
+
+        self._destroyed[self] = False
+        self.destroyed.connect(functools.partial(self.on_destroyed, self))
         self.deleteLater()
-        self.page().networkAccessManager().abort_requests()
-        self.page().networkAccessManager().deleteLater()
+
+        self._destroyed[netman] = False
+        netman.abort_requests()
+        netman.destroyed.connect(functools.partial(self.on_destroyed, netman))
+        netman.deleteLater()
+
+    def on_destroyed(self, sender):
+        """Called when a subsystem has been destroyed during shutdown."""
+        self._destroyed[sender] = True
+        if all(self._destroyed.values()):
+            if self._shutdown_callback is not None:
+                self._shutdown_callback()
 
     def eventFilter(self, watched, e):
         """Dirty hack to emit a signal if the scroll position changed.

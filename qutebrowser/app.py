@@ -70,6 +70,7 @@ class QuteBrowser(QApplication):
     keyparser = None
     args = None  # ArgumentParser
     timer = None  # QTimer for python hacks
+    shutting_down = False
 
     def __init__(self):
         super().__init__(sys.argv)
@@ -94,7 +95,8 @@ class QuteBrowser(QApplication):
         self._init_cmds()
         self.mainwindow = MainWindow()
 
-        self.aboutToQuit.connect(self._shutdown)
+        self.setQuitOnLastWindowClosed(False)
+        self.lastWindowClosed.connect(self.shutdown)
         self.mainwindow.tabs.keypress.connect(self.keyparser.handle)
         self.keyparser.set_cmd_text.connect(
             self.mainwindow.status.cmd.on_set_cmd_text)
@@ -171,6 +173,15 @@ class QuteBrowser(QApplication):
         except Exception:
             history = []
 
+        # Try to shutdown gracefully
+        try:
+            self.shutdown(do_quit=False)
+        except Exception:
+            pass
+        try:
+            self.lastWindowClosed.disconnect(self.shutdown)
+        except TypeError:
+            logging.exception("Preventing shutdown failed.")
         QApplication.closeAllWindows()
         dlg = CrashDialog(pages, history, exc)
         ret = dlg.exec_()
@@ -182,7 +193,10 @@ class QuteBrowser(QApplication):
             logging.debug('Running {} with args {}'.format(sys.executable,
                                                            argv))
             subprocess.Popen(argv)
-        sys.exit(1)
+        try:
+            self.quit()
+        except Exception:
+            sys.exit(1)
 
     def _python_hacks(self):
         """Get around some PyQt-oddities by evil hacks.
@@ -246,10 +260,24 @@ class QuteBrowser(QApplication):
             pass
 
     @pyqtSlot()
-    def _shutdown(self):
-        """Try to shutdown everything cleanly."""
+    def shutdown(self, do_quit=True):
+        """Try to shutdown everything cleanly.
+
+        For some reason lastWindowClosing sometimes seem to get emitted twice,
+        so we make sure we only run once here.
+
+        quit -- Whether to quit after shutting down.
+
+        """
+        if self.shutting_down:
+            return
+        self.shutting_down = True
+        logging.debug("Shutting down...")
         config.config.save()
+        self.mainwindow.tabs.shutdown_complete.connect(self.quit)
         self.mainwindow.tabs.shutdown()
+        if do_quit:
+            self.quit()
 
     @pyqtSlot(tuple)
     def cmd_handler(self, tpl):
@@ -272,7 +300,7 @@ class QuteBrowser(QApplication):
             'opencur':       self.mainwindow.tabs.opencur,
             'tabopen':       self.mainwindow.tabs.tabopen,
             'tabopencur':    self.mainwindow.tabs.tabopencur,
-            'quit':          self.quit,
+            'quit':          self.shutdown,
             'tabclose':      self.mainwindow.tabs.cur_close,
             'tabprev':       self.mainwindow.tabs.switch_prev,
             'tabnext':       self.mainwindow.tabs.switch_next,
