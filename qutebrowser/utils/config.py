@@ -51,6 +51,8 @@ scrollbuttons = false
 position = north
 # previous, left, right
 select_on_remove = previous
+# ignore, blank, quit
+last_close = quit
 
 [searchengines]
 DEFAULT = ${duckduckgo}

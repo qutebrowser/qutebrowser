@@ -36,6 +36,7 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 import qutebrowser.utils.about as about
 import qutebrowser.utils.url as urlutils
+import qutebrowser.utils.config as config
 from qutebrowser.widgets.tabbar import TabWidget
 from qutebrowser.utils.signals import SignalCache, dbg_signal
 from qutebrowser.utils.misc import read_file
@@ -68,6 +69,7 @@ class TabbedBrowser(TabWidget):
     set_cmd_text = pyqtSignal(str)  # Set commandline to a given text
     keypress = pyqtSignal('QKeyEvent')
     shutdown_complete = pyqtSignal()  # All tabs have been shut down.
+    quit = pyqtSignal()  # Last tab closed, quit application.
     _url_stack = []  # Stack of URLs of closed tabs
     _space = None  # Space QShortcut
     _tabs = None
@@ -148,18 +150,21 @@ class TabbedBrowser(TabWidget):
         Command handler for :close.
 
         """
+        idx = self.currentIndex() if count is None else count - 1
+        tab = self._widget(count)
+        if tab is None:
+            return
+        last_close = config.config.get('tabbar', 'last_close')
         if self.count() > 1:
-            idx = self.currentIndex() if count is None else count - 1
-            tab = self._widget(count)
-            if tab is not None:
-                # FIXME maybe we actually should store the webview objects here
-                self._url_stack.append(tab.url())
-                self.removeTab(idx)
-                tab.shutdown(callback=functools.partial(self._cb_tab_shutdown,
-                                                        tab))
-        else:
-            # FIXME
-            pass
+            # FIXME maybe we actually should store the webview objects here
+            self._url_stack.append(tab.url())
+            self.removeTab(idx)
+            tab.shutdown(callback=functools.partial(self._cb_tab_shutdown,
+                                                    tab))
+        elif last_close == 'quit':
+            self.quit.emit()
+        elif last_close == 'blank':
+            tab.openurl('about:blank')
 
     def _cb_tab_shutdown(self, tab):
         """Called after a tab has been shut down completely."""
