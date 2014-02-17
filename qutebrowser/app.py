@@ -40,7 +40,7 @@ import qutebrowser.utils.harfbuzz as harfbuzz
 harfbuzz.fix()
 
 from PyQt5.QtWidgets import QApplication, QDialog
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import pyqtSlot, QTimer
 
 import qutebrowser
 import qutebrowser.commands.utils as cmdutils
@@ -96,9 +96,10 @@ class QuteBrowser(QApplication):
 
         self.aboutToQuit.connect(self._shutdown)
         self.mainwindow.tabs.keypress.connect(self.keyparser.handle)
-        self.keyparser.set_cmd_text.connect(self.mainwindow.status.cmd.set_cmd)
+        self.keyparser.set_cmd_text.connect(
+            self.mainwindow.status.cmd.on_set_cmd_text)
         self.mainwindow.tabs.set_cmd_text.connect(
-            self.mainwindow.status.cmd.set_cmd)
+            self.mainwindow.status.cmd.on_set_cmd_text)
         self.mainwindow.status.cmd.got_cmd.connect(self.commandparser.run)
         self.mainwindow.status.cmd.got_search.connect(self.searchparser.search)
         self.mainwindow.status.cmd.got_search_rev.connect(
@@ -244,11 +245,13 @@ class QuteBrowser(QApplication):
         except KeyError:
             pass
 
+    @pyqtSlot()
     def _shutdown(self):
         """Try to shutdown everything cleanly."""
         config.config.save()
         self.mainwindow.tabs.shutdown()
 
+    @pyqtSlot(tuple)
     def cmd_handler(self, tpl):
         """Handle commands and delegate the specific actions.
 

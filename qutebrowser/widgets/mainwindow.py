@@ -71,9 +71,11 @@ class MainWindow(QWidget):
         self.tabs.cur_link_hovered.connect(self.status.url.set_hover_url)
         self.status.cmd.esc_pressed.connect(self.tabs.setFocus)
         self.status.cmd.hide_completion.connect(self.completion.hide)
-        self.status.cmd.textChanged.connect(self.completion.cmd_text_changed)
-        self.status.cmd.tab_pressed.connect(self.completion.tab_handler)
-        self.completion.append_cmd_text.connect(self.status.cmd.append_cmd)
+        self.status.cmd.textChanged.connect(
+            self.completion.on_cmd_text_changed)
+        self.status.cmd.tab_pressed.connect(self.completion.on_tab_pressed)
+        self.completion.append_cmd_text.connect(
+            self.status.cmd.on_append_cmd_text)
 
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)

@@ -27,7 +27,7 @@ import functools
 
 import sip
 from PyQt5.QtWidgets import QShortcut, QApplication, QSizePolicy
-from PyQt5.QtCore import pyqtSignal, Qt, QEvent
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QEvent
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
 from PyQt5.QtNetwork import QNetworkReply, QNetworkAccessManager
@@ -218,6 +218,7 @@ class TabbedBrowser(TabWidget):
         for i in range(count):  # pylint: disable=unused-variable
             self.currentWidget().forward()
 
+    @pyqtSlot(str, int)
     def cur_search(self, text, flags):
         """Search for text in the current page.
 
@@ -436,6 +437,7 @@ class TabbedBrowser(TabWidget):
         for tabidx in range(self.count()):
             self.widget(tabidx).shutdown()
 
+
 class BrowserTab(QWebView):
 
     """One browser tab in TabbedBrowser.
@@ -457,11 +459,11 @@ class BrowserTab(QWebView):
         super().__init__(parent)
         self.setPage(BrowserPage())
         self.signal_cache = SignalCache(uncached=['linkHovered'])
-        self.loadProgress.connect(self.set_progress)
+        self.loadProgress.connect(self.on_load_progress)
         self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.page().linkHovered.connect(self.linkHovered)
         self.installEventFilter(self)
-        self.linkClicked.connect(self.link_handler)
+        self.linkClicked.connect(self.on_link_clicked)
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
 
     def openurl(self, url):
@@ -485,7 +487,8 @@ class BrowserTab(QWebView):
         else:
             return self.load(u)
 
-    def link_handler(self, url):
+    @pyqtSlot(str)
+    def on_link_clicked(self, url):
         """Handle a link.
 
         Called from the linkClicked signal. Checks if it should open it in a
@@ -499,7 +502,8 @@ class BrowserTab(QWebView):
         else:
             self.openurl(url)
 
-    def set_progress(self, prog):
+    @pyqtSlot(int)
+    def on_load_progress(self, prog):
         """Update the progress property if the loading progress changed.
 
         Slot for the loadProgress signal.
@@ -515,6 +519,7 @@ class BrowserTab(QWebView):
         Inspired by [1].
 
         [1] https://github.com/integricho/path-of-a-pyqter/tree/master/qttut08
+
         """
         self.stop()
         self.close()

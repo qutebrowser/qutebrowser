@@ -26,7 +26,7 @@ import html
 
 from PyQt5.QtWidgets import (QTreeView, QStyledItemDelegate, QStyle,
                              QStyleOptionViewItem, QSizePolicy)
-from PyQt5.QtCore import (QRectF, QRect, QPoint, pyqtSignal, Qt,
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QRectF, QRect, QPoint, Qt,
                           QItemSelectionModel, QSize)
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QTextCursor)
@@ -119,6 +119,7 @@ class CompletionView(QTreeView):
         self.expandAll()
         self.resizeColumnToContents(0)
 
+    @pyqtSlot('QRect')
     def resize_to_bar(self, geom):
         """Resize the completion area to the statusbar geometry.
 
@@ -133,6 +134,7 @@ class CompletionView(QTreeView):
         assert topleft.y() < bottomright.y()
         self.setGeometry(QRect(topleft, bottomright))
 
+    @pyqtSlot('QPoint')
     def move_to_bar(self, pos):
         """Move the completion area to the statusbar geometry.
 
@@ -142,7 +144,8 @@ class CompletionView(QTreeView):
         """
         self.move(pos - self.height)
 
-    def cmd_text_changed(self, text):
+    @pyqtSlot(str)
+    def on_cmd_text_changed(self, text):
         """Check if completions are available and activate them.
 
         Slot for the textChanged signal of the statusbar command widget.
@@ -167,7 +170,8 @@ class CompletionView(QTreeView):
         if self.enabled:
             self.show()
 
-    def tab_handler(self, shift):
+    @pyqtSlot(bool)
+    def on_tab_pressed(self, shift):
         """Handle a tab press for the CompletionView.
 
         Select the previous/next item and write the new text to the

@@ -19,7 +19,7 @@
 
 import logging
 
-from PyQt5.QtCore import pyqtSignal, Qt, pyqtProperty
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt
 from PyQt5.QtWidgets import (QLineEdit, QShortcut, QHBoxLayout, QWidget,
                              QSizePolicy, QProgressBar, QLabel, QStyle,
                              QStyleOption)
@@ -117,6 +117,7 @@ class StatusBar(QWidget):
         self.style().drawPrimitive(QStyle.PE_Widget, self._option,
                                    painter, self)
 
+    @pyqtSlot(str)
     def disp_error(self, text):
         """Displaysan error in the statusbar."""
         self.error = True
@@ -180,14 +181,14 @@ class Command(QLineEdit):
             }
         """)
         self.setValidator(CommandValidator())
-        self.returnPressed.connect(self.process_cmdline)
+        self.returnPressed.connect(self.on_return_pressed)
         self.textEdited.connect(self._histbrowse_stop)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
 
         for (key, handler) in [
                 (Qt.Key_Escape, self.esc_pressed),
-                (Qt.Key_Up, self.key_up_handler),
-                (Qt.Key_Down, self.key_down_handler),
+                (Qt.Key_Up, self.on_key_up_pressed),
+                (Qt.Key_Down, self.on_key_down_pressed),
                 (Qt.Key_Tab | Qt.SHIFT, lambda: self.tab_pressed.emit(True)),
                 (Qt.Key_Tab, lambda: self.tab_pressed.emit(False))
         ]:
@@ -197,7 +198,8 @@ class Command(QLineEdit):
             sc.activated.connect(handler)
             self._shortcuts.append(sc)
 
-    def process_cmdline(self):
+    @pyqtSlot()
+    def on_return_pressed(self):
         """Handle the command in the status bar."""
         signals = {
             ':': self.got_cmd,
@@ -212,12 +214,14 @@ class Command(QLineEdit):
         if text[0] in signals:
             signals[text[0]].emit(text.lstrip(text[0]))
 
-    def set_cmd(self, text):
+    @pyqtSlot(str)
+    def on_set_cmd_text(self, text):
         """Preset the statusbar to some text."""
         self.setText(text)
         self.setFocus()
 
-    def append_cmd(self, text):
+    @pyqtSlot(str)
+    def on_append_cmd_text(self, text):
         """Append text to the commandline."""
         # FIXME do the right thing here
         self.setText(':' + text)
@@ -252,11 +256,13 @@ class Command(QLineEdit):
             self._tmphist = self.history
         self._histpos = len(self._tmphist) - 1
 
+    @pyqtSlot()
     def _histbrowse_stop(self):
         """Stop browsing the history."""
         self._histpos = None
 
-    def key_up_handler(self):
+    @pyqtSlot()
+    def on_key_up_pressed(self):
         """Handle Up presses (go back in history)."""
         logging.debug("history up [pre]: pos {}".format(self._histpos))
         if self._histpos is None:
@@ -271,7 +277,8 @@ class Command(QLineEdit):
             self._tmphist, len(self._tmphist), self._histpos))
         self.set_cmd(self._tmphist[self._histpos])
 
-    def key_down_handler(self):
+    @pyqtSlot()
+    def on_key_down_pressed(self):
         """Handle Down presses (go forward in history)."""
         logging.debug("history up [pre]: pos {}".format(self._histpos,
                       self._tmphist, len(self._tmphist), self._histpos))
@@ -331,6 +338,7 @@ class Progress(QProgressBar):
         self.setTextVisible(False)
         self.hide()
 
+    @pyqtSlot()
     def on_load_started(self):
         """Clear old error and show progress, used as slot to loadStarted."""
         self.setValue(0)
@@ -413,9 +421,9 @@ class Percentage(TextBase):
 
     """Reading percentage displayed in the statusbar."""
 
-    def set_perc(self, x, y):
+    @pyqtSlot(int, int)
+    def set_perc(self, _, y):
         """Setter to be used as a Qt slot."""
-        # pylint: disable=unused-argument
         if y == 0:
             self.setText('[top]')
         elif y == 100:
@@ -472,16 +480,20 @@ class Url(TextBase):
         self._urltype = val
         self.setStyleSheet(config.get_stylesheet(self._stylesheet))
 
+    @pyqtSlot(bool)
     def on_loading_finished(self, ok):
         """Slot for cur_loading_finished. Colors the URL according to ok."""
         # FIXME: set color to warn if there was an SSL error
         self.urltype = 'success' if ok else 'error'
 
+    @pyqtSlot(str)
     def set_url(self, s):
         """Setter to be used as a Qt slot."""
         self.setText(urlstring(s))
         self.urltype = 'normal'
 
+    # pylint: disable=unused-argument
+    @pyqtSlot(str, str, str)
     def set_hover_url(self, link, title, text):
         """Setter to be used as a Qt slot.
 
@@ -489,7 +501,6 @@ class Url(TextBase):
         "un-hovered" when it gets called with empty parameters.
 
         """
-        # pylint: disable=unused-argument
         if link:
             if self._old_url is None:
                 self._old_url = self.text()

@@ -20,7 +20,7 @@
 import inspect
 import shlex
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSlot, pyqtSignal
 from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.commands.commands
@@ -55,6 +55,7 @@ class SearchParser(QObject):
     flags = 0
     do_search = pyqtSignal(str, 'QWebPage::FindFlags')
 
+    @pyqtSlot(str)
     def search(self, text):
         """Search for a text on a website.
 
@@ -63,6 +64,7 @@ class SearchParser(QObject):
         """
         self._search(text)
 
+    @pyqtSlot(str)
     def search_rev(self, text):
         """Search for a text on a website in reverse direction.
 
@@ -142,6 +144,7 @@ class CommandParser(QObject):
         else:
             self.cmd.run(self.args)
 
+    @pyqtSlot(str, int, bool)
     def run(self, text, count=None, ignore_exc=True):
         """Parse a command from a line of text.
 
