@@ -83,6 +83,7 @@ class CompletionView(QTreeView):
     enabled = True
     completing = False
     height = QPoint(0, 200)
+    _delegate = None
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -92,7 +93,8 @@ class CompletionView(QTreeView):
         self.model = CompletionFilterModel()
         self.setModel(self.model)
         self.setmodel('command')
-        self.setItemDelegate(CompletionItemDelegate())
+        self._delegate = CompletionItemDelegate(self)
+        self.setItemDelegate(self._delegate)
         self.setStyleSheet(config.get_stylesheet(self._stylesheet))
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.setHeaderHidden(True)

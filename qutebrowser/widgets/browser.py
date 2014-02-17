@@ -244,7 +244,7 @@ class TabbedBrowser(TabWidget):
         """
         dx = int(count) * float(dx)
         dy = int(count) * float(dy)
-        self.currentWidget().page().mainFrame().scroll(dx, dy)
+        self.currentWidget().page_.mainFrame().scroll(dx, dy)
 
     def cur_scroll_percent_x(self, perc=None, count=None):
         """Scroll the current tab to a specific percent of the page.
@@ -274,7 +274,7 @@ class TabbedBrowser(TabWidget):
             perc = int(count)
         else:
             perc = float(perc)
-        frame = self.currentWidget().page().mainFrame()
+        frame = self.currentWidget().page_.mainFrame()
         m = frame.scrollBarMaximum(orientation)
         if m == 0:
             return
@@ -283,10 +283,10 @@ class TabbedBrowser(TabWidget):
     def cur_scroll_page(self, mx, my, count=1):
         """Scroll the frame mx pages to the right and my pages down."""
         # FIXME this might not work with HTML frames
-        page = self.currentWidget().page()
-        size = page.viewportSize()
-        page.mainFrame().scroll(int(count) * float(mx) * size.width(),
-                                int(count) * float(my) * size.height())
+        size = self.page_.viewportSize()
+        self.currentWidget().page_.mainFrame().scroll(
+            int(count) * float(mx) * size.width(),
+            int(count) * float(my) * size.height())
 
     def switch_prev(self, count=1):
         """Switch to the ([count]th) previous tab.
@@ -467,17 +467,19 @@ class BrowserTab(QWebView):
     _shutdown_callback = None  # callback to be called after shutdown
     _open_new_tab = False  # open new tab for the next action
     _destroyed = None  # Dict of all items to be destroyed.
+    page_ = None  # QWebPage
     # dict of tab specific signals, and the values we last got from them.
     signal_cache = None
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._destroyed = {}
-        self.setPage(BrowserPage())
+        self.page_ = BrowserPage(self)
+        self.setPage(self.page_)
         self.signal_cache = SignalCache(uncached=['linkHovered'])
         self.loadProgress.connect(self.on_load_progress)
-        self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
-        self.page().linkHovered.connect(self.linkHovered)
+        self.page_.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
+        self.page_.linkHovered.connect(self.linkHovered)
         self.installEventFilter(self)
         self.linkClicked.connect(self.on_link_clicked)
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
@@ -537,8 +539,6 @@ class BrowserTab(QWebView):
         [1] https://github.com/integricho/path-of-a-pyqter/tree/master/qttut08
 
         """
-        page = self.page()
-        netman = page.networkAccessManager()
         self._shutdown_callback = callback
         try:
             # Avoid loading finished signal when stopping
@@ -549,14 +549,16 @@ class BrowserTab(QWebView):
         self.close()
         self.settings().setAttribute(QWebSettings.JavascriptEnabled, False)
 
-        self._destroyed[page] = False
-        page.destroyed.connect(functools.partial(self.on_destroyed, page))
-        page.deleteLater()
+        self._destroyed[self.page_] = False
+        self.page_.destroyed.connect(functools.partial(self.on_destroyed,
+                                                       self.page_))
+        self.page_.deleteLater()
 
         self._destroyed[self] = False
         self.destroyed.connect(functools.partial(self.on_destroyed, self))
         self.deleteLater()
 
+        netman = self.page_.network_access_manager
         self._destroyed[netman] = False
         netman.abort_requests()
         netman.destroyed.connect(functools.partial(self.on_destroyed, netman))
@@ -581,13 +583,13 @@ class BrowserTab(QWebView):
 
         """
         if watched == self and e.type() == QEvent.Paint:
-            frame = self.page().mainFrame()
+            frame = self.page_.mainFrame()
             new_pos = (frame.scrollBarValue(Qt.Horizontal),
                        frame.scrollBarValue(Qt.Vertical))
             if self._scroll_pos != new_pos:
                 self._scroll_pos = new_pos
                 logging.debug("Updating scroll position")
-                frame = self.page().mainFrame()
+                frame = self.page_.mainFrame()
                 m = (frame.scrollBarMaximum(Qt.Horizontal),
                      frame.scrollBarMaximum(Qt.Vertical))
                 perc = (round(100 * new_pos[0] / m[0]) if m[0] != 0 else 0,
@@ -619,15 +621,15 @@ class BrowserPage(QWebPage):
     """Our own QWebPage with advanced features."""
 
     _extension_handlers = None
-    _network_access_manager = None
+    network_access_manager = None
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self._extension_handlers = {
             QWebPage.ErrorPageExtension: self._handle_errorpage,
         }
-        self._network_access_manager = NetworkManager()
-        self.setNetworkAccessManager(self._network_access_manager)
+        self.network_access_manager = NetworkManager(self)
+        self.setNetworkAccessManager(self.network_access_manager)
 
     def supportsExtension(self, ext):
         """Override QWebPage::supportsExtension to provide error pages."""

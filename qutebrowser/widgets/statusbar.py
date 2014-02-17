@@ -164,6 +164,7 @@ class Command(QLineEdit):
     _shortcuts = []
     _tmphist = []
     _histpos = None
+    _validator = None  # CommandValidator
 
     # FIXME won't the tab key switch to the next widget?
     # See [0] for a possible fix.
@@ -180,7 +181,8 @@ class Command(QLineEdit):
                 background-color: transparent;
             }
         """)
-        self.setValidator(CommandValidator())
+        self._validator = CommandValidator(self)
+        self.setValidator(self._validator)
         self.returnPressed.connect(self.on_return_pressed)
         self.textEdited.connect(self._histbrowse_stop)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)

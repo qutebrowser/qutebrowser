@@ -64,10 +64,9 @@ class CompletionFilterModel(QSortFilterProxyModel):
         self._pattern = val
         self.invalidateFilter()
         sortcol = 0
-        srcmodel = self.sourceModel()
-        if srcmodel is not None:
+        if self.srcmodel is not None:
             try:
-                srcmodel.sort(sortcol)
+                self.srcmodel.sort(sortcol)
             except NotImplementedError:
                 self.sort(sortcol)
             self.invalidate()
