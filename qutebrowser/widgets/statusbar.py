@@ -34,6 +34,7 @@ class StatusBar(QWidget):
 
     """The statusbar at the bottom of the mainwindow."""
 
+    hbox = None
     cmd = None
     txt = None
     keystring = None
@@ -43,6 +44,8 @@ class StatusBar(QWidget):
     resized = pyqtSignal('QRect')
     moved = pyqtSignal('QPoint')
     _error = False
+    _option = None
+    _painter = None
     _stylesheet = """
         QWidget#StatusBar[error="false"] {{
             {color[statusbar.bg]}
@@ -66,28 +69,28 @@ class StatusBar(QWidget):
 
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
 
-        hbox = QHBoxLayout(self)
-        hbox.setContentsMargins(0, 0, 0, 0)
-        hbox.setSpacing(5)
+        self.hbox = QHBoxLayout(self)
+        self.hbox.setContentsMargins(0, 0, 0, 0)
+        self.hbox.setSpacing(5)
 
         self.cmd = Command(self)
-        hbox.addWidget(self.cmd)
+        self.hbox.addWidget(self.cmd)
 
         self.txt = Text(self)
-        hbox.addWidget(self.txt)
-        hbox.addStretch()
+        self.hbox.addWidget(self.txt)
+        self.hbox.addStretch()
 
         self.keystring = KeyString(self)
-        hbox.addWidget(self.keystring)
+        self.hbox.addWidget(self.keystring)
 
         self.url = Url(self)
-        hbox.addWidget(self.url)
+        self.hbox.addWidget(self.url)
 
         self.percentage = Percentage(self)
-        hbox.addWidget(self.percentage)
+        self.hbox.addWidget(self.percentage)
 
         self.prog = Progress(self)
-        hbox.addWidget(self.prog)
+        self.hbox.addWidget(self.prog)
 
     @pyqtProperty(bool)
     def error(self):
@@ -109,10 +112,11 @@ class StatusBar(QWidget):
     def paintEvent(self, e):
         """Override QWIidget.paintEvent to handle stylesheets."""
         # pylint: disable=unused-argument
-        option = QStyleOption()
-        option.initFrom(self)
-        painter = QPainter(self)
-        self.style().drawPrimitive(QStyle.PE_Widget, option, painter, self)
+        self._option = QStyleOption()
+        self._option.initFrom(self)
+        self._painter = QPainter(self)
+        self.style().drawPrimitive(QStyle.PE_Widget, self._option,
+                                   self._painter, self)
 
     def disp_error(self, text):
         """Displaysan error in the statusbar."""
@@ -157,6 +161,7 @@ class Command(QLineEdit):
     tab_pressed = pyqtSignal(bool)  # Emitted when tab is pressed (arg: shift)
     hide_completion = pyqtSignal()  # Hide completion window
     history = []  # The command history, with newer commands at the bottom
+    _shortcuts = []
     _tmphist = []
     _histpos = None
 
@@ -191,6 +196,7 @@ class Command(QLineEdit):
             sc.setKey(QKeySequence(key))
             sc.setContext(Qt.WidgetWithChildrenShortcut)
             sc.activated.connect(handler)
+            self._shortcuts.append(sc)
 
     def process_cmdline(self):
         """Handle the command in the status bar."""
@@ -345,6 +351,7 @@ class TextBase(QLabel):
 
     elidemode = None
     _elided_text = None
+    _painter = None
 
     def __init__(self, bar, elidemode=Qt.ElideRight):
         super().__init__(bar)
@@ -375,10 +382,10 @@ class TextBase(QLabel):
         if self.elidemode == Qt.ElideNone:
             super().paintEvent(e)
         else:
-            painter = QPainter(self)
-            geom = self.geometry()
-            painter.drawText(0, 0, geom.width(), geom.height(),
-                             self.alignment(), self._elided_text)
+            self._painter = QPainter(self)
+            self._painter.drawText(0, 0, self.geometry().width(),
+                                   self.geometry().height(), self.alignment(),
+                                   self._elided_text)
 
 
 class Text(TextBase):

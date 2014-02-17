@@ -226,6 +226,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
     opt = None
     style = None
     painter = None
+    doc = None
 
     def sizeHint(self, option, index):
         """Override sizeHint of QStyledItemDelegate.
@@ -239,11 +240,12 @@ class CompletionItemDelegate(QStyledItemDelegate):
             return value
         self.opt = QStyleOptionViewItem(option)
         self.initStyleOption(self.opt, index)
-        style = self.opt.widget.style()
-        doc = self._get_textdoc(index)
-        docsize = doc.size().toSize()
-        return style.sizeFromContents(QStyle.CT_ItemViewItem, self.opt,
-                                      docsize, self.opt.widget) + QSize(10, 1)
+        self.style = self.opt.widget.style()
+        self._get_textdoc(index)
+        docsize = self.doc.size().toSize()
+        size = self.style.sizeFromContents(QStyle.CT_ItemViewItem, self.opt,
+                                           docsize, self.opt.widget)
+        return size + QSize(10, 1)
 
     def paint(self, painter, option, index):
         """Override the QStyledItemDelegate paint function."""
@@ -326,22 +328,21 @@ class CompletionItemDelegate(QStyledItemDelegate):
             self.painter.drawRect(text_rect_.adjusted(0, 0, -1, -1))
 
         self.painter.translate(text_rect.left(), text_rect.top())
-        doc = self._get_textdoc(index)
-        self._draw_textdoc(doc, text_rect)
+        self._get_textdoc(index)
+        self._draw_textdoc(text_rect)
         self.painter.restore()
 
-    def _draw_textdoc(self, doc, text_rect):
+    def _draw_textdoc(self, text_rect):
         """Draw the QTextDocument of an item.
 
-        doc -- The QTextDocument to draw.
         text_rect -- The QRect to clip the drawing to.
 
         """
         clip = QRectF(0, 0, text_rect.width(), text_rect.height())
-        doc.drawContents(self.painter, clip)
+        self.doc.drawContents(self.painter, clip)
 
     def _get_textdoc(self, index):
-        """Return the QTextDocument of an item.
+        """Create the QTextDocument of an item.
 
         index -- The QModelIndex of the item to draw.
 
@@ -357,31 +358,30 @@ class CompletionItemDelegate(QStyledItemDelegate):
         text_option.setAlignment(QStyle.visualAlignment(
             self.opt.direction, self.opt.displayAlignment))
 
-        doc = QTextDocument()
+        self.doc = QTextDocument()
         if index.parent().isValid():
-            doc.setPlainText(self.opt.text)
+            self.doc.setPlainText(self.opt.text)
         else:
-            doc.setHtml('<b>{}</b>'.format(html.escape(self.opt.text)))
-        doc.setDefaultFont(self.opt.font)
-        doc.setDefaultTextOption(text_option)
-        doc.setDefaultStyleSheet(config.get_stylesheet("""
+            self.doc.setHtml('<b>{}</b>'.format(html.escape(self.opt.text)))
+        self.doc.setDefaultFont(self.opt.font)
+        self.doc.setDefaultTextOption(text_option)
+        self.doc.setDefaultStyleSheet(config.get_stylesheet("""
             .highlight {{
                 {color[completion.match.fg]}
             }}
         """))
-        doc.setDocumentMargin(2)
+        self.doc.setDocumentMargin(2)
 
         if index.column() == 0:
             marks = index.data(Qt.UserRole)
             for mark in marks:
-                cur = QTextCursor(doc)
+                cur = QTextCursor(self.doc)
                 cur.setPosition(mark[0])
                 cur.setPosition(mark[1], QTextCursor.KeepAnchor)
                 txt = cur.selectedText()
                 cur.removeSelectedText()
                 cur.insertHtml('<span class="highlight">{}</span>'.format(
                     html.escape(txt)))
-        return doc
 
     def _draw_focus_rect(self):
         """Draw the focus rectangle of an ItemViewItem."""

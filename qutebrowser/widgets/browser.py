@@ -67,16 +67,19 @@ class TabbedBrowser(TabWidget):
     set_cmd_text = pyqtSignal(str)  # Set commandline to a given text
     keypress = pyqtSignal('QKeyEvent')
     _url_stack = []  # Stack of URLs of closed tabs
+    _space = None  # Space QShortcut
+    _tabs = None
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.currentChanged.connect(lambda idx:
                                     self.widget(idx).signal_cache.replay())
-        space = QShortcut(self)
-        space.setKey(Qt.Key_Space)
-        space.setContext(Qt.WidgetWithChildrenShortcut)
-        space.activated.connect(lambda: self.cur_scroll_page(0, 1))
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self._tabs = []
+        self._space = QShortcut(self)
+        self._space.setKey(Qt.Key_Space)
+        self._space.setContext(Qt.WidgetWithChildrenShortcut)
+        self._space.activated.connect(lambda: self.cur_scroll_page(0, 1))
 
     def tabopen(self, url):
         """Open a new tab with a given url.
@@ -87,6 +90,7 @@ class TabbedBrowser(TabWidget):
         logging.debug("Opening {}".format(url))
         url = urlutils.qurl(url)
         tab = BrowserTab(self)
+        self._tabs.append(tab)
         self.addTab(tab, urlutils.urlstring(url))
         self.setCurrentWidget(tab)
         tab.linkHovered.connect(self._filter_factory(self.cur_link_hovered))
@@ -149,6 +153,10 @@ class TabbedBrowser(TabWidget):
                 # FIXME maybe we actually should store the webview objects here
                 self._url_stack.append(tab.url())
                 self.removeTab(idx)
+                try:
+                    self._tabs.remove(tab)
+                except ValueError:
+                    pass
         else:
             # FIXME
             pass
