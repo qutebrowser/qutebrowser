@@ -1,9 +1,3 @@
-"""Qt style to remove Ubuntu focus rectangle uglyness.
-
-We might also use this to do more in the future.
-
-"""
-
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -20,6 +14,12 @@ We might also use this to do more in the future.
 #
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Qt style to remove Ubuntu focus rectangle uglyness.
+
+We might also use this to do more in the future.
+
+"""
 
 import functools
 

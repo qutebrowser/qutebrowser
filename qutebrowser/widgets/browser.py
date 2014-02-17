@@ -1,10 +1,3 @@
-"""The main browser widget.
-
-Defines BrowserTab (our own QWebView subclass) and TabbedBrowser (a TabWidget
-containing BrowserTabs).
-
-"""
-
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -22,22 +15,29 @@ containing BrowserTabs).
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+"""The main browser widget.
+
+Defines BrowserTab (our own QWebView subclass) and TabbedBrowser (a TabWidget
+containing BrowserTabs).
+
+"""
+
 import logging
 import functools
 
 import sip
-from PyQt5.QtWidgets import QShortcut, QApplication, QSizePolicy
+from PyQt5.QtWidgets import QApplication, QShortcut, QSizePolicy
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QEvent
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
-from PyQt5.QtNetwork import QNetworkReply, QNetworkAccessManager
+from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 import qutebrowser.utils.about as about
 import qutebrowser.utils.url as urlutils
 from qutebrowser.widgets.tabbar import TabWidget
-from qutebrowser.utils.signals import dbg_signal, SignalCache
+from qutebrowser.utils.signals import SignalCache, dbg_signal
 from qutebrowser.utils.misc import read_file
 
 

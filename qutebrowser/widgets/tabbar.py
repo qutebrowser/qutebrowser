@@ -1,5 +1,3 @@
-"""The tab widget used for TabbedBrowser from browser.py."""
-
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -17,8 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt5.QtWidgets import QTabWidget, QTabBar, QSizePolicy
+"""The tab widget used for TabbedBrowser from browser.py."""
+
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QTabWidget, QTabBar, QSizePolicy
 
 import qutebrowser.utils.config as config
 from qutebrowser.utils.style import Style

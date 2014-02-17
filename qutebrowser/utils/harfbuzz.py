@@ -1,10 +1,3 @@
-"""Fixer to set QT_HARFBUZZ variable.
-
-In its own file so it doesn't include any Qt stuff, because if it did, it
-wouldn't work.
-
-"""
-
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -21,6 +14,13 @@ wouldn't work.
 #
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Fixer to set QT_HARFBUZZ variable.
+
+In its own file so it doesn't include any Qt stuff, because if it did, it
+wouldn't work.
+
+"""
 
 import os
 import sys

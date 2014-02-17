@@ -1,5 +1,3 @@
-"""A CompletionModel filled with all commands and descriptions."""
-
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -16,6 +14,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+"""A CompletionModel filled with all commands and descriptions."""
 
 from qutebrowser.commands.utils import cmd_dict
 from qutebrowser.models.completion import CompletionModel

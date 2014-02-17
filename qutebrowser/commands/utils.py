@@ -1,5 +1,3 @@
-"""Contains various command utils, and the CommandParser."""
-
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -17,10 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import inspect
-import shlex
+"""Contains various command utils, and the CommandParser."""
 
-from PyQt5.QtCore import QObject, pyqtSlot, pyqtSignal
+import shlex
+import inspect
+
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.commands.commands

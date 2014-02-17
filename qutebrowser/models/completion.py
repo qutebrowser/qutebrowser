@@ -1,11 +1,3 @@
-"""The base completion model for completion in the command line.
-
-Contains:
-    CompletionModel       -- A simple tree model based on Python data.
-    CompletionItem        -- One item in the CompletionModel.
-
-"""
-
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -23,9 +15,17 @@ Contains:
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+"""The base completion model for completion in the command line.
+
+Contains:
+    CompletionModel       -- A simple tree model based on Python data.
+    CompletionItem        -- One item in the CompletionModel.
+
+"""
+
 from collections import OrderedDict
 
-from PyQt5.QtCore import QAbstractItemModel, Qt, QModelIndex, QVariant
+from PyQt5.QtCore import Qt, QVariant, QAbstractItemModel, QModelIndex
 
 
 class CompletionModel(QAbstractItemModel):

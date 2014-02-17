@@ -1,10 +1,3 @@
-"""A filtering/sorting base model for completions.
-
-Contains:
-    CompletionFilterModel -- A QSortFilterProxyModel subclass for completions.
-
-"""
-
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -22,7 +15,14 @@ Contains:
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt5.QtCore import QModelIndex, QSortFilterProxyModel
+"""A filtering/sorting base model for completions.
+
+Contains:
+    CompletionFilterModel -- A QSortFilterProxyModel subclass for completions.
+
+"""
+
+from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex
 
 
 class CompletionFilterModel(QSortFilterProxyModel):

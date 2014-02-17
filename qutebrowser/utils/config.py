@@ -1,12 +1,3 @@
-"""Configuration storage and config-related utilities.
-
-config         -- The main Config object.
-colordict      -- All configured colors.
-default_config -- The default config as dict.
-MONOSPACE      -- A list of suitable monospace fonts.
-
-"""
-
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -24,9 +15,18 @@ MONOSPACE      -- A list of suitable monospace fonts.
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import os.path
+"""Configuration storage and config-related utilities.
+
+config         -- The main Config object.
+colordict      -- All configured colors.
+default_config -- The default config as dict.
+MONOSPACE      -- A list of suitable monospace fonts.
+
+"""
+
 import os
 import io
+import os.path
 import logging
 from configparser import ConfigParser, ExtendedInterpolation
 

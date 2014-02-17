@@ -1,5 +1,3 @@
-"""Contains the Command class, a skeleton for a command."""
-
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -17,9 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Contains the Command class, a skeleton for a command."""
+
 import logging
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QObject
 
 from qutebrowser.commands.exceptions import ArgumentCountError
 

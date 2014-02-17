@@ -1,10 +1,3 @@
-"""Completion view for statusbar command section.
-
-Defines a CompletionView which uses CompletionFiterModel and CompletionModel
-subclasses to provide completions.
-
-"""
-
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -22,12 +15,19 @@ subclasses to provide completions.
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Completion view for statusbar command section.
+
+Defines a CompletionView which uses CompletionFiterModel and CompletionModel
+subclasses to provide completions.
+
+"""
+
 import html
 
-from PyQt5.QtWidgets import (QTreeView, QStyledItemDelegate, QStyle,
-                             QStyleOptionViewItem, QSizePolicy)
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QRectF, QRect, QPoint, Qt,
-                          QItemSelectionModel, QSize)
+from PyQt5.QtWidgets import (QStyle, QStyleOptionViewItem, QTreeView,
+                             QStyledItemDelegate, QSizePolicy)
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QRect, QRectF, QPoint,
+                          QSize, QItemSelectionModel)
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QTextCursor)
 

@@ -1,4 +1,4 @@
-"""Very simple browser for testing purposes."""
+#!/usr/bin/python
 
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
@@ -16,6 +16,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Very simple browser for testing purposes."""
 
 import sys
 

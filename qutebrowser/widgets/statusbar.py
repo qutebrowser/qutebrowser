@@ -20,10 +20,10 @@
 import logging
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt
-from PyQt5.QtWidgets import (QLineEdit, QShortcut, QHBoxLayout, QWidget,
-                             QSizePolicy, QProgressBar, QLabel, QStyle,
+from PyQt5.QtWidgets import (QWidget, QLineEdit, QProgressBar, QLabel,
+                             QHBoxLayout, QSizePolicy, QShortcut, QStyle,
                              QStyleOption)
-from PyQt5.QtGui import QValidator, QKeySequence, QPainter
+from PyQt5.QtGui import QPainter, QKeySequence, QValidator
 
 import qutebrowser.utils.config as config
 import qutebrowser.commands.keys as keys

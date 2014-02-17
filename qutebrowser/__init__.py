@@ -1,19 +1,3 @@
-"""A vim like browser based on Qt.
-
-Files:
-    __init__.py      - This file.
-    __main__.py      - Entry point for qutebrowser, to use
-                       'python -m qutebrowser'.
-    app.py           - Main qutebrowser application>
-    simplebrowser.py - Simple browser for testing purposes.
-
-Subpackages:
-    commands - Handling of commands and key parsing.
-    utils    - Misc utility code.
-    widgets  - Qt widgets displayed on the screen.
-
-"""
-
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -30,6 +14,22 @@ Subpackages:
 #
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+"""A vim like browser based on Qt.
+
+Files:
+    __init__.py      - This file.
+    __main__.py      - Entry point for qutebrowser, to use
+                       'python -m qutebrowser'.
+    app.py           - Main qutebrowser application>
+    simplebrowser.py - Simple browser for testing purposes.
+
+Subpackages:
+    commands - Handling of commands and key parsing.
+    utils    - Misc utility code.
+    widgets  - Qt widgets displayed on the screen.
+
+"""
 
 import os.path
 

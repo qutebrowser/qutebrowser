@@ -1,5 +1,3 @@
-"""Handler functions for different about:... pages."""
-
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -16,6 +14,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Handler functions for different about:... pages."""
 
 from qutebrowser.utils.version import version
 from qutebrowser.utils.url import is_about_url
