@@ -450,7 +450,13 @@ class TabbedBrowser(TabWidget):
             self.currentChanged.disconnect()
         except TypeError:
             pass
-        for tabidx in range(self.count()):
+        tabcount = self.count()
+        logging.debug("Shutting down {} tabs...".format(tabcount))
+        if tabcount == 0:
+            self.shutdown_complete.emit()
+            return
+        for tabidx in range(tabcount):
+            logging.debug("shutdown {}".format(tabidx))
             tab = self.widget(tabidx)
             tab.shutdown(callback=functools.partial(self._cb_tab_shutdown,
                                                     tab))
@@ -568,6 +574,7 @@ class BrowserTab(QWebView):
         netman.abort_requests()
         netman.destroyed.connect(functools.partial(self.on_destroyed, netman))
         netman.deleteLater()
+        logging.debug("Shutdown scheduled")
 
     def on_destroyed(self, sender):
         """Called when a subsystem has been destroyed during shutdown."""

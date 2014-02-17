@@ -149,6 +149,27 @@ class QuteBrowser(QApplication):
             for url in config.config.get('general', 'startpage').split(','):
                 self.mainwindow.tabs.tabopen(url)
 
+    def _recover_pages(self):
+        """Try to recover all open pages.
+
+        Return a list of open pages, or an empty list.
+        Called from _exception_hook, so as forgiving as possible.
+
+        """
+        pages = []
+        if self.mainwindow is None:
+            return pages
+        if self.mainwindow.tabs is None:
+            return pages
+        for tabidx in range(self.mainwindow.tabs.count()):
+            try:
+                url = self.mainwindow.tabs.widget(tabidx).url().toString()
+                if url:
+                    pages.append(url)
+            except Exception:  # pylint: disable=broad-except
+                pass
+        return pages
+
     def _exception_hook(self, exctype, excvalue, tb):
         """Handle uncaught python exceptions.
 
@@ -161,18 +182,17 @@ class QuteBrowser(QApplication):
         exc = (exctype, excvalue, tb)
         sys.__excepthook__(*exc)
 
-        pages = []
+        if not (isinstance(exctype, Exception) or exctype is Exception):
+            # probably a KeyboardInterrupt
+            try:
+                self.shutdown()
+                return
+            except Exception:
+                self.quit()
         try:
-            for tabidx in range(self.mainwindow.tabs.count()):
-                try:
-                    url = self.mainwindow.tabs.widget(tabidx).url().toString()
-                    url = url.strip()
-                    if url:
-                        pages.append(url)
-                except Exception:
-                    pass
+            pages = self._recover_pages()
         except Exception:
-            pass
+            pages = []
 
         try:
             history = self.mainwindow.status.cmd.history[-5:]
@@ -280,12 +300,17 @@ class QuteBrowser(QApplication):
         if self.shutting_down:
             return
         self.shutting_down = True
-        logging.debug("Shutting down...")
-        config.config.save()
-        self.mainwindow.tabs.shutdown_complete.connect(self.quit)
-        self.mainwindow.tabs.shutdown()
-        if do_quit:
-            self.quit()
+        logging.debug("Shutting down... (do_quit={})".format(do_quit))
+        if config.config is not None:
+            config.config.save()
+        try:
+            if do_quit:
+                self.mainwindow.tabs.shutdown_complete.connect(self.quit)
+            self.mainwindow.tabs.shutdown()
+        except AttributeError:  # mainwindow or tabs could still be None
+            logging.debug("No mainwindow/tabs to shut down.")
+            if do_quit:
+                self.quit()
 
     @pyqtSlot(tuple)
     def cmd_handler(self, tpl):
