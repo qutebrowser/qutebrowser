@@ -42,6 +42,7 @@ harfbuzz.fix()
 from PyQt5.QtWidgets import QApplication, QDialog
 from PyQt5.QtCore import QTimer
 
+import qutebrowser
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.config as config
 import qutebrowser.utils.about as about
@@ -223,9 +224,11 @@ class QuteBrowser(QApplication):
             datefmt='%Y-%m-%d %H:%M:%S')
 
     def _initmisc(self):
-        """Initialize misc things based on arguments."""
+        """Initialize misc things."""
         if self.args.debug:
             os.environ['QT_FATAL_WARNINGS'] = '1'
+        self.setApplicationName("qutebrowser")
+        self.setApplicationVersion(qutebrowser.__version__)
 
     def _init_cmds(self):
         """Initialisation of the qutebrowser commands.
