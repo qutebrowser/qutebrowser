@@ -20,6 +20,7 @@
 import os
 import sys
 import logging
+import functools
 import subprocess
 from signal import signal, SIGINT
 from argparse import ArgumentParser
@@ -71,9 +72,11 @@ class QuteBrowser(QApplication):
     args = None  # ArgumentParser
     timers = None
     shutting_down = False
+    _quit_status = None
 
     def __init__(self):
         super().__init__(sys.argv)
+        self._quit_status = {}
         sys.excepthook = self._exception_hook
 
         self._parseopts()
@@ -189,6 +192,8 @@ class QuteBrowser(QApplication):
                 return
             except Exception:
                 self.quit()
+        self._quit_status['crash'] = False
+        self._quit_status['shutdown'] = False
         try:
             pages = self._recover_pages()
         except Exception:
@@ -219,10 +224,18 @@ class QuteBrowser(QApplication):
             logging.debug('Running {} with args {}'.format(sys.executable,
                                                            argv))
             subprocess.Popen(argv)
-        try:
+        self._maybe_quit('crash')
+
+    def _maybe_quit(self, sender):
+        """Maybe quit qutebrowser.
+
+        This only quits if both the CrashDialog was ready to quit AND the
+        shutdown is complete.
+        """
+        self._quit_status[sender] = True
+        logging.debug("maybe_quit called from {}, quit status {}".format(sender, self._quit_status))
+        if all(self._quit_status.values()):
             self.quit()
-        except Exception:
-            sys.exit(1)
 
     def _python_hacks(self):
         """Get around some PyQt-oddities by evil hacks.
@@ -306,6 +319,9 @@ class QuteBrowser(QApplication):
         try:
             if do_quit:
                 self.mainwindow.tabs.shutdown_complete.connect(self.quit)
+            else:
+                self.mainwindow.tabs.shutdown_complete.connect(
+                    functools.partial(self._maybe_quit, 'shutdown'))
             self.mainwindow.tabs.shutdown()
         except AttributeError:  # mainwindow or tabs could still be None
             logging.debug("No mainwindow/tabs to shut down.")
