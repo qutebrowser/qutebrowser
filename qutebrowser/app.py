@@ -231,9 +231,11 @@ class QuteBrowser(QApplication):
 
         This only quits if both the CrashDialog was ready to quit AND the
         shutdown is complete.
+
         """
         self._quit_status[sender] = True
-        logging.debug("maybe_quit called from {}, quit status {}".format(sender, self._quit_status))
+        logging.debug("maybe_quit called from {}, quit status {}".format(
+            sender, self._quit_status))
         if all(self._quit_status.values()):
             self.quit()
 
