@@ -21,8 +21,7 @@ import logging
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt
 from PyQt5.QtWidgets import (QWidget, QLineEdit, QProgressBar, QLabel,
-                             QHBoxLayout, QSizePolicy, QShortcut, QStyle,
-                             QStyleOption)
+                             QHBoxLayout, QSizePolicy, QShortcut)
 from PyQt5.QtGui import QPainter, QKeySequence, QValidator
 
 import qutebrowser.utils.config as config
@@ -76,6 +75,7 @@ class StatusBar(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
+        self.setAttribute(Qt.WA_StyledBackground)
         self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
 
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
@@ -122,14 +122,6 @@ class StatusBar(QWidget):
         """
         self._error = val
         self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
-
-    def paintEvent(self, e):
-        """Override QWIidget.paintEvent to handle stylesheets."""
-        # pylint: disable=unused-argument
-        option = QStyleOption()
-        option.initFrom(self)
-        painter = QPainter(self)
-        self.style().drawPrimitive(QStyle.PE_Widget, option, painter, self)
 
     @pyqtSlot(str)
     def disp_error(self, text):
