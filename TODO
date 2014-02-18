@@ -37,7 +37,6 @@ Internationalization
 Marks
 show infos in statusline, temporary/longer
 set settings/colors/bindings via commandline
-write default config with comments
 more completions (URLs, ...)
 
 
@@ -47,6 +46,9 @@ Minor features
 Hiding scrollbars
 :bind
 Ctrl+A/X to increase/decrease last number in URL
+unify dns/autosearch
+position remembering
+multiple commands with ;
 
 Other stuff
 ===========
