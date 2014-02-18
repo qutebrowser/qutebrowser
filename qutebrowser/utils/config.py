@@ -173,15 +173,30 @@ class Config(ConfigParser):
 
         Extend ConfigParser's get().
 
+        This is a bit of a hack, but it (hopefully) works like this:
+            - Get value from original configparser.
+            - If that's not available, try the default_cp configparser
+            - If that's not available, try the fallback given as kwarg
+            - If that's not available, we're doomed.
+
         """
         if 'fallback' in kwargs:
+            orig_fallback = kwargs['fallback']
             del kwargs['fallback']
-        fallback = self.default_cp.get(*args, **kwargs)
+        else:
+            orig_fallback = configparser._UNSET
+        try:
+            fallback = self.default_cp.get(*args, **kwargs)
+        except configparser.NoSectionError:  # FIXME other errors?
+            fallback = orig_fallback
         return super().get(*args, fallback=fallback, **kwargs)
 
     def save(self):
         """Save the config file."""
-        if self.configdir is None or not self.config_loaded:
+        if self.configdir is None or (not self.config_loaded and
+                                      not self.always_save):
+            logging.error("Not saving config (dir {}, loaded {})".format(
+                self.configdir, self.config_loaded))
             return
         if not os.path.exists(self.configdir):
             os.makedirs(self.configdir, 0o755)
