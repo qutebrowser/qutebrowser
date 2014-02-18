@@ -47,7 +47,6 @@ Hiding scrollbars
 :bind
 Ctrl+A/X to increase/decrease last number in URL
 position remembering
-multiple commands with ;
 
 Other stuff
 ===========

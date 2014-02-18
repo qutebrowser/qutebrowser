@@ -155,6 +155,10 @@ class CommandParser(QObject):
         arguments.
 
         """
+        if ';;' in text:
+            for sub in text.split(';;'):
+                self.run(sub, count, ignore_exc)
+            return
         try:
             self._parse(text)
             self._check()
