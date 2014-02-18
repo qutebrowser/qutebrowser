@@ -82,6 +82,7 @@ def _get_search_url(txt):
         logging.debug('engine: default, term "{}"'.format(txt))
     if template is None or not term:
         raise ValueError
+    # pylint: disable=maybe-no-member
     return QUrl.fromUserInput(template.format(urllib.parse.quote(term)))
 
 

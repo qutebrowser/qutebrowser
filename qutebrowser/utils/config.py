@@ -27,8 +27,8 @@ import os
 import io
 import os.path
 import logging
-import configparser
-from configparser import ConfigParser, ExtendedInterpolation
+from configparser import (ConfigParser, ExtendedInterpolation, NoSectionError,
+                          NoOptionError)
 
 from qutebrowser.utils.misc import read_file
 
@@ -36,6 +36,9 @@ config = None
 state = None
 colordict = {}
 fontdict = {}
+
+# Special value for an unset fallback, so None can be passed as fallback.
+_UNSET = object()
 
 
 def init(confdir):
@@ -179,7 +182,7 @@ class Config(ConfigParser):
         except KeyError:
             return self.default_cp[key]
 
-    def get(self, *args, **kwargs):
+    def get(self, *args, raw=False, vars=None, fallback=_UNSET):
         """Get an item from the configparser or default dict.
 
         Extend ConfigParser's get().
@@ -191,16 +194,18 @@ class Config(ConfigParser):
             - If that's not available, we're doomed.
 
         """
-        if 'fallback' in kwargs:
-            orig_fallback = kwargs['fallback']
-            del kwargs['fallback']
-        else:
-            orig_fallback = configparser._UNSET
+        # pylint: disable=redefined-builtin
         try:
-            fallback = self.default_cp.get(*args, **kwargs)
-        except configparser.NoSectionError:  # FIXME other errors?
-            fallback = orig_fallback
-        return super().get(*args, fallback=fallback, **kwargs)
+            return super().get(*args, raw=raw, vars=vars)
+        except (NoSectionError, NoOptionError):
+            pass
+        try:
+            return self.default_cp.get(*args, raw=raw, vars=vars)
+        except (NoSectionError, NoOptionError):
+            if fallback is _UNSET:
+                raise
+            else:
+                return fallback
 
     def save(self):
         """Save the config file."""
