@@ -56,23 +56,40 @@ class TabbedBrowser(TabWidget):
        - the signal gets filtered with _filter_signals and self.cur_* gets
          emitted if the signal occured in the current tab.
 
+    Attributes:
+        _url_stack: Stack of URLs of closed tabs.
+        _space: Space QShortcut to avoid garbage collection
+        _tabs: A list of open tabs.
+
+    Signals:
+        cur_progress: Progress of the current tab changed (loadProgress).
+        cur_load_started: Current tab started loading (loadStarted)
+        cur_load_finished: Current tab finished loading (loadFinished)
+        cur_statusbar_message: Current tab got a statusbar message
+                               (statusBarMessage)
+        cur_url_changed: Current URL changed (urlChanged)
+        cur_link_hovered: Link hovered in current tab (linkHovered)
+        cur_scroll_perc_changed: Scroll percentage of current tab changed.
+                                 arg 1: x-position in %.
+                                 arg 2: y-position in %.
+        keypress: A key was pressed.
+                  arg: The QKeyEvent leading to the keypress.
+        shutdown_complete: The shuttdown is completed.
+        quit: The last tab was closed, quit application.
+
     """
 
-    cur_progress = pyqtSignal(int)  # Progress of the current tab changed
-    cur_load_started = pyqtSignal()  # Current tab started loading
-    cur_load_finished = pyqtSignal(bool)  # Current tab finished loading
-    cur_statusbar_message = pyqtSignal(str)  # Status bar message
-    cur_url_changed = pyqtSignal('QUrl')  # Current URL changed
-    cur_link_hovered = pyqtSignal(str, str, str)  # Link hovered in cur tab
-    # Current tab changed scroll position
+    cur_progress = pyqtSignal(int)
+    cur_load_started = pyqtSignal()
+    cur_load_finished = pyqtSignal(bool)
+    cur_statusbar_message = pyqtSignal(str)
+    cur_url_changed = pyqtSignal('QUrl')
+    cur_link_hovered = pyqtSignal(str, str, str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
-    set_cmd_text = pyqtSignal(str)  # Set commandline to a given text
+    set_cmd_text = pyqtSignal(str)
     keypress = pyqtSignal('QKeyEvent')
-    shutdown_complete = pyqtSignal()  # All tabs have been shut down.
-    quit = pyqtSignal()  # Last tab closed, quit application.
-    _url_stack = []  # Stack of URLs of closed tabs
-    _space = None  # Space QShortcut
-    _tabs = None
+    shutdown_complete = pyqtSignal()
+    quit = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -469,27 +486,37 @@ class BrowserTab(QWebView):
 
     Our own subclass of a QWebView with some added bells and whistles.
 
+    Attributes:
+        page_: The QWebPage behind the view
+        signal_cache: The signal cache associated with the view.
+        _scroll_pos: The old scroll position.
+        _shutdown_callback: Callback to be called after shutdown.
+        _open_new_tab: Whether to open a new tab for the next action.
+        _shutdown_callback: The callback to call after shutting down.
+        _destroyed: Dict of all items to be destroyed on shtudown.
+    Signals:
+        scroll_pos_changed: Scroll percentage of current tab changed.
+                            arg 1: x-position in %.
+                            arg 2: y-position in %.
+        open_tab: A new tab should be opened.
+                  arg: The address to open
+        linkHovered: QWebPages linkHovered signal exposed.
+
     """
 
-    progress = 0
     scroll_pos_changed = pyqtSignal(int, int)
     open_tab = pyqtSignal('QUrl')
     linkHovered = pyqtSignal(str, str, str)
-    _scroll_pos = (-1, -1)
-    _shutdown_callback = None  # callback to be called after shutdown
-    _open_new_tab = False  # open new tab for the next action
-    _destroyed = None  # Dict of all items to be destroyed.
-    page_ = None  # QWebPage
-    # dict of tab specific signals, and the values we last got from them.
-    signal_cache = None
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._scroll_pos = (-1, -1)
+        self._shutdown_callback = None
+        self._open_new_tab = False
         self._destroyed = {}
         self.page_ = BrowserPage(self)
         self.setPage(self.page_)
         self.signal_cache = SignalCache(uncached=['linkHovered'])
-        self.loadProgress.connect(self.on_load_progress)
         self.page_.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.page_.linkHovered.connect(self.linkHovered)
         self.installEventFilter(self)
@@ -532,17 +559,6 @@ class BrowserTab(QWebView):
         else:
             self.openurl(url)
 
-    @pyqtSlot(int)
-    def on_load_progress(self, prog):
-        """Update the progress property if the loading progress changed.
-
-        Slot for the loadProgress signal.
-
-        prog -- New progress.
-
-        """
-        self.progress = prog
-
     def shutdown(self, callback=None):
         """Shut down the tab cleanly and remove it.
 
@@ -562,22 +578,22 @@ class BrowserTab(QWebView):
         self.settings().setAttribute(QWebSettings.JavascriptEnabled, False)
 
         self._destroyed[self.page_] = False
-        self.page_.destroyed.connect(functools.partial(self.on_destroyed,
+        self.page_.destroyed.connect(functools.partial(self._on_destroyed,
                                                        self.page_))
         self.page_.deleteLater()
 
         self._destroyed[self] = False
-        self.destroyed.connect(functools.partial(self.on_destroyed, self))
+        self.destroyed.connect(functools.partial(self._on_destroyed, self))
         self.deleteLater()
 
         netman = self.page_.network_access_manager
         self._destroyed[netman] = False
         netman.abort_requests()
-        netman.destroyed.connect(functools.partial(self.on_destroyed, netman))
+        netman.destroyed.connect(functools.partial(self._on_destroyed, netman))
         netman.deleteLater()
         logging.debug("Tab shutdown scheduled")
 
-    def on_destroyed(self, sender):
+    def _on_destroyed(self, sender):
         """Called when a subsystem has been destroyed during shutdown."""
         self._destroyed[sender] = True
         dbgout = '\n'.join(['{}: {}'.format(k.__class__.__name__, v)
@@ -636,10 +652,13 @@ class BrowserTab(QWebView):
 
 class BrowserPage(QWebPage):
 
-    """Our own QWebPage with advanced features."""
+    """Our own QWebPage with advanced features.
 
-    _extension_handlers = None
-    network_access_manager = None
+    Attributes:
+        _extension_handlers: Mapping of QWebPage extensions to their handlers.
+        network_access_manager: The QNetworkAccessManager used.
+
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -683,9 +702,12 @@ class BrowserPage(QWebPage):
 
 class NetworkManager(QNetworkAccessManager):
 
-    """Our own QNetworkAccessManager."""
+    """Our own QNetworkAccessManager.
 
-    _requests = None
+    Attributes:
+        _requests: Pending requests.
+
+    """
 
     def __init__(self, parent=None):
         self._requests = {}

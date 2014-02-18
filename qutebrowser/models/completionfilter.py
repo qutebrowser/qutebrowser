@@ -27,29 +27,23 @@ from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex
 
 class CompletionFilterModel(QSortFilterProxyModel):
 
-    """Subclass of QSortFilterProxyModel with custom sorting/filtering."""
+    """Subclass of QSortFilterProxyModel with custom sorting/filtering.
 
-    _pattern = None
-    srcmodel = None
+    Attributes:
+        _pattern: The pattern to filter with, used in pattern property.
+        srcmodel: The source model.
+
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.srcmodel = None
         self._pattern = ''
 
     @property
     def pattern(self):
         """Getter for pattern."""
         return self._pattern
-
-    def setsrc(self, model):
-        """Set a new source model and clear the pattern.
-
-        model -- The new source model.
-
-        """
-        self.setSourceModel(model)
-        self.srcmodel = model
-        self.pattern = ''
 
     @pattern.setter
     def pattern(self, val):
@@ -70,6 +64,16 @@ class CompletionFilterModel(QSortFilterProxyModel):
             except NotImplementedError:
                 self.sort(sortcol)
             self.invalidate()
+
+    def setsrc(self, model):
+        """Set a new source model and clear the pattern.
+
+        model -- The new source model.
+
+        """
+        self.setSourceModel(model)
+        self.srcmodel = model
+        self.pattern = ''
 
     def filterAcceptsRow(self, row, parent):
         """Custom filter implementation.

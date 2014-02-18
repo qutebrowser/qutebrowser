@@ -32,17 +32,24 @@ startchars = ":/?"
 
 class KeyParser(QObject):
 
-    """Parser for vim-like key sequences."""
+    """Parser for vim-like key sequences.
 
-    keystring = ''  # The currently entered key sequence
-    # Signal emitted when the statusbar should set a partial command
+    Attributes:
+        commandparser: Commandparser instance.
+        _keystring: The currently entered key sequence
+        _bindings: Bound keybindings
+        _modifier_bindings: Bound modifier bindings.
+
+    Signals:
+        set_cmd_text: Emitted when the statusbar should set a partial command.
+                      arg: Text to set.
+        keystring_updated: Emitted when the keystring is updated.
+                           arg: New keystring.
+
+    """
+
     set_cmd_text = pyqtSignal(str)
-    # Signal emitted when the keystring is updated
     keystring_updated = pyqtSignal(str)
-    # Keybindings
-    bindings = {}
-    modifier_bindings = {}
-    commandparser = None
 
     MATCH_PARTIAL = 0
     MATCH_DEFINITIVE = 1
@@ -51,6 +58,9 @@ class KeyParser(QObject):
     def __init__(self, mainwindow):
         super().__init__(mainwindow)
         self.commandparser = CommandParser()
+        self._keystring = ''
+        self._bindings = {}
+        self._modifier_bindings = {}
 
     def from_config_sect(self, sect):
         """Load keybindings from a ConfigParser section.
@@ -65,10 +75,10 @@ class KeyParser(QObject):
                 keystr = self._normalize_keystr(key.strip('@'))
                 logging.debug('registered mod key: {} -> {}'.format(keystr,
                                                                     cmd))
-                self.modifier_bindings[keystr] = cmd
+                self._modifier_bindings[keystr] = cmd
             else:
                 logging.debug('registered key: {} -> {}'.format(key, cmd))
-                self.bindings[key] = cmd
+                self._bindings[key] = cmd
 
     def handle(self, e):
         """Handle a new keypress and call the respective handlers.
@@ -79,7 +89,7 @@ class KeyParser(QObject):
         handled = self._handle_modifier_key(e)
         if not handled:
             self._handle_single_key(e)
-            self.keystring_updated.emit(self.keystring)
+            self.keystring_updated.emit(self._keystring)
 
     def _handle_modifier_key(self, e):
         """Handle a new keypress with modifiers.
@@ -108,7 +118,7 @@ class KeyParser(QObject):
                 modstr += s + '+'
         keystr = QKeySequence(e.key()).toString()
         try:
-            cmdstr = self.modifier_bindings[modstr + keystr]
+            cmdstr = self._modifier_bindings[modstr + keystr]
         except KeyError:
             logging.debug('No binding found for {}.'.format(modstr + keystr))
             return True
@@ -133,15 +143,15 @@ class KeyParser(QObject):
             logging.debug('Ignoring, no text')
             return
 
-        self.keystring += txt
+        self._keystring += txt
 
-        if any(self.keystring == c for c in startchars):
-            self.set_cmd_text.emit(self.keystring)
-            self.keystring = ''
+        if any(self._keystring == c for c in startchars):
+            self.set_cmd_text.emit(self._keystring)
+            self._keystring = ''
             return
 
         (countstr, cmdstr_needle) = re.match(r'^(\d*)(.*)',
-                                             self.keystring).groups()
+                                             self._keystring).groups()
 
         if not cmdstr_needle:
             return
@@ -157,16 +167,16 @@ class KeyParser(QObject):
         if match == self.MATCH_DEFINITIVE:
             pass
         elif match == self.MATCH_PARTIAL:
-            logging.debug('No match for "{}" (added {})'.format(self.keystring,
-                                                                txt))
+            logging.debug('No match for "{}" (added {})'.format(
+                self._keystring, txt))
             return
         elif match == self.MATCH_NONE:
             logging.debug('Giving up with "{}", no matches'.format(
-                self.keystring))
-            self.keystring = ''
+                self._keystring))
+            self._keystring = ''
             return
 
-        self.keystring = ''
+        self._keystring = ''
         count = int(countstr) if countstr else None
         self._run_or_fill(cmdstr_hay, count=count, ignore_exc=False)
         return
@@ -178,11 +188,11 @@ class KeyParser(QObject):
 
         """
         try:
-            cmdstr_hay = self.bindings[cmdstr_needle]
+            cmdstr_hay = self._bindings[cmdstr_needle]
             return (self.MATCH_DEFINITIVE, cmdstr_hay)
         except KeyError:
             # No definitive match, check if there's a chance of a partial match
-            for hay in self.bindings:
+            for hay in self._bindings:
                 try:
                     if cmdstr_needle[-1] == hay[len(cmdstr_needle) - 1]:
                         return (self.MATCH_PARTIAL, None)

@@ -36,11 +36,12 @@ class MainWindow(QWidget):
     Adds all needed components to a vbox, initializes subwidgets and connects
     signals.
 
-    """
+    Attributes:
+        tabs: The TabbedBrowser widget.
+        status: The StatusBar widget.
+        _vbox: The main QVBoxLayout.
 
-    vbox = None
-    tabs = None
-    status = None
+    """
 
     def __init__(self):
         super().__init__()
@@ -59,17 +60,17 @@ class MainWindow(QWidget):
             if not ok:
                 self._set_default_geometry()
 
-        self.vbox = QVBoxLayout(self)
-        self.vbox.setContentsMargins(0, 0, 0, 0)
-        self.vbox.setSpacing(0)
+        self._vbox = QVBoxLayout(self)
+        self._vbox.setContentsMargins(0, 0, 0, 0)
+        self._vbox.setSpacing(0)
 
         self.tabs = TabbedBrowser()
-        self.vbox.addWidget(self.tabs)
+        self._vbox.addWidget(self.tabs)
 
         self.completion = CompletionView(self)
 
         self.status = StatusBar()
-        self.vbox.addWidget(self.status)
+        self._vbox.addWidget(self.status)
 
         self.status.resized.connect(self.completion.resize_to_bar)
         self.status.moved.connect(self.completion.move_to_bar)

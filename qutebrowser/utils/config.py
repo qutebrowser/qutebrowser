@@ -130,11 +130,14 @@ class FontDict(dict):
 
 class Config(ConfigParser):
 
-    """Our own ConfigParser subclass."""
+    """Our own ConfigParser subclass.
 
-    configdir = None
-    default_cp = None
-    config_loaded = False
+    Attributes:
+        _configdir: The dictionary to save the config in.
+        _default_cp: The ConfigParser instance supplying the default values.
+        _config_loaded: Whether the config was loaded successfully.
+
+    """
 
     def __init__(self, configdir, fname, default_config=None,
                  always_save=False):
@@ -148,22 +151,23 @@ class Config(ConfigParser):
 
         """
         super().__init__(interpolation=ExtendedInterpolation())
+        self._config_loaded = False
         self.always_save = always_save
-        self.configdir = configdir
-        self.default_cp = ConfigParser(interpolation=ExtendedInterpolation())
-        self.default_cp.optionxform = lambda opt: opt  # be case-insensitive
+        self._configdir = configdir
+        self._default_cp = ConfigParser(interpolation=ExtendedInterpolation())
+        self._default_cp.optionxform = lambda opt: opt  # be case-insensitive
         if default_config is not None:
-            self.default_cp.read_string(default_config)
-        if not self.configdir:
+            self._default_cp.read_string(default_config)
+        if not self._configdir:
             return
         self.optionxform = lambda opt: opt  # be case-insensitive
-        self.configdir = configdir
-        self.configfile = os.path.join(self.configdir, fname)
+        self._configdir = configdir
+        self.configfile = os.path.join(self._configdir, fname)
         if not os.path.isfile(self.configfile):
             return
         logging.debug("Reading config from {}".format(self.configfile))
         self.read(self.configfile)
-        self.config_loaded = True
+        self._config_loaded = True
 
     def __getitem__(self, key):
         """Get an item from the configparser or default dict.
@@ -174,7 +178,7 @@ class Config(ConfigParser):
         try:
             return super().__getitem__(key)
         except KeyError:
-            return self.default_cp[key]
+            return self._default_cp[key]
 
     def get(self, *args, raw=False, vars=None, fallback=_UNSET):
         """Get an item from the configparser or default dict.
@@ -194,7 +198,7 @@ class Config(ConfigParser):
         except (NoSectionError, NoOptionError):
             pass
         try:
-            return self.default_cp.get(*args, raw=raw, vars=vars)
+            return self._default_cp.get(*args, raw=raw, vars=vars)
         except (NoSectionError, NoOptionError):
             if fallback is _UNSET:
                 raise
@@ -203,13 +207,13 @@ class Config(ConfigParser):
 
     def save(self):
         """Save the config file."""
-        if self.configdir is None or (not self.config_loaded and
-                                      not self.always_save):
+        if self._configdir is None or (not self._config_loaded and
+                                       not self.always_save):
             logging.error("Not saving config (dir {}, loaded {})".format(
-                self.configdir, self.config_loaded))
+                self._configdir, self._config_loaded))
             return
-        if not os.path.exists(self.configdir):
-            os.makedirs(self.configdir, 0o755)
+        if not os.path.exists(self._configdir):
+            os.makedirs(self._configdir, 0o755)
         logging.debug("Saving config to {}".format(self.configfile))
         with open(self.configfile, 'w') as f:
             self.write(f)

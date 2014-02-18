@@ -17,6 +17,8 @@
 
 """A CompletionModel filled with all commands and descriptions."""
 
+from collections import OrderedDict
+
 from qutebrowser.commands.utils import cmd_dict
 from qutebrowser.models.completion import CompletionModel
 
@@ -35,5 +37,6 @@ class CommandCompletionModel(CompletionModel):
             if not obj.hide:
                 doc = obj.__doc__.splitlines()[0].strip().rstrip('.')
                 cmdlist.append([obj.mainname, doc])
-        self._data['Commands'] = sorted(cmdlist)
-        self.init_data()
+        data = OrderedDict()
+        data['Commands'] = sorted(cmdlist)
+        self.init_data(data)

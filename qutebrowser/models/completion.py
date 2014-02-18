@@ -15,15 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""The base completion model for completion in the command line.
-
-Contains:
-    CompletionModel       -- A simple tree model based on Python data.
-    CompletionItem        -- One item in the CompletionModel.
-
-"""
-
-from collections import OrderedDict
+"""The base completion model for completion in the command line."""
 
 from PyQt5.QtCore import Qt, QVariant, QAbstractItemModel, QModelIndex
 
@@ -34,15 +26,18 @@ class CompletionModel(QAbstractItemModel):
 
     Used for showing completions later in the CompletionView.
 
+    Attributes:
+        _id_map: A mapping from Python object IDs (from id()) to objects, to be
+                 used as internalIndex for the model.
+        _root: The root item.
+
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._data = OrderedDict()
-        self.parents = []
-        self.id_map = {}
-        self.root = CompletionItem([""] * 2)
-        self.id_map[id(self.root)] = self.root
+        self._id_map = {}
+        self._root = CompletionItem([""] * 2)
+        self._id_map[id(self._root)] = self._root
 
     def removeRows(self, position=0, count=1, parent=QModelIndex()):
         """Remove rows from the model.
@@ -63,9 +58,9 @@ class CompletionModel(QAbstractItemModel):
 
         """
         if index.isValid():
-            return self.id_map[index.internalId()]
+            return self._id_map[index.internalId()]
         else:
-            return self.root
+            return self._root
 
     def columnCount(self, parent=QModelIndex()):
         """Return the column count in the model.
@@ -74,7 +69,7 @@ class CompletionModel(QAbstractItemModel):
 
         """
         # pylint: disable=unused-argument
-        return self.root.column_count()
+        return self._root.column_count()
 
     def data(self, index, role=Qt.DisplayRole):
         """Return the data for role/index as QVariant.
@@ -86,7 +81,7 @@ class CompletionModel(QAbstractItemModel):
         if not index.isValid():
             return QVariant()
         try:
-            item = self.id_map[index.internalId()]
+            item = self._id_map[index.internalId()]
         except KeyError:
             return QVariant()
         try:
@@ -106,7 +101,7 @@ class CompletionModel(QAbstractItemModel):
         if not index.isValid():
             return Qt.NoItemFlags
         flags = Qt.ItemIsEnabled
-        if len(self.id_map[index.internalId()].children) > 0:
+        if len(self._id_map[index.internalId()].children) > 0:
             return flags
         else:
             return flags | Qt.ItemIsSelectable
@@ -119,7 +114,7 @@ class CompletionModel(QAbstractItemModel):
 
         """
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return QVariant(self.root.data(section))
+            return QVariant(self._root.data(section))
         return QVariant()
 
     def setData(self, index, value, role=Qt.EditRole):
@@ -131,7 +126,7 @@ class CompletionModel(QAbstractItemModel):
         """
         if not index.isValid():
             return False
-        item = self.id_map[index.internalId()]
+        item = self._id_map[index.internalId()]
         try:
             item.setdata(index.column(), value, role)
         except (IndexError, ValueError):
@@ -153,14 +148,14 @@ class CompletionModel(QAbstractItemModel):
             return QModelIndex()
 
         if not parent.isValid():
-            parent_item = self.root
+            parent_item = self._root
         else:
-            parent_item = self.id_map[parent.internalId()]
+            parent_item = self._id_map[parent.internalId()]
 
         child_item = parent_item.children[row]
         if child_item:
             index = self.createIndex(row, column, id(child_item))
-            self.id_map.setdefault(index.internalId(), child_item)
+            self._id_map.setdefault(index.internalId(), child_item)
             return index
         else:
             return QModelIndex()
@@ -174,8 +169,8 @@ class CompletionModel(QAbstractItemModel):
         """
         if not index.isValid():
             return QModelIndex()
-        item = self.id_map[index.internalId()].parent
-        if item == self.root or item is None:
+        item = self._id_map[index.internalId()].parent
+        if item == self._root or item is None:
             return QModelIndex()
         return self.createIndex(item.row(), 0, id(item))
 
@@ -190,9 +185,9 @@ class CompletionModel(QAbstractItemModel):
             return 0
 
         if not parent.isValid():
-            pitem = self.root
+            pitem = self._root
         else:
-            pitem = self.id_map[parent.internalId()]
+            pitem = self._id_map[parent.internalId()]
 
         return len(pitem.children)
 
@@ -205,15 +200,19 @@ class CompletionModel(QAbstractItemModel):
         """
         raise NotImplementedError
 
-    def init_data(self):
-        """Initialize the Qt model based on the data in self._data."""
-        for (cat, items) in self._data.items():
-            newcat = CompletionItem([cat], self.root)
-            self.id_map[id(newcat)] = newcat
-            self.root.children.append(newcat)
+    def init_data(self, data):
+        """Initialize the Qt model based on the data given.
+
+        data -- dict of data to process.
+
+        """
+        for (cat, items) in data.items():
+            newcat = CompletionItem([cat], self._root)
+            self._id_map[id(newcat)] = newcat
+            self._root.children.append(newcat)
             for item in items:
                 newitem = CompletionItem(item, newcat)
-                self.id_map[id(newitem)] = newitem
+                self._id_map[id(newitem)] = newitem
                 newcat.children.append(newitem)
 
     def mark_all_items(self, needle):
@@ -247,12 +246,15 @@ class CompletionModel(QAbstractItemModel):
 
 class CompletionItem():
 
-    """An item (row) in a CompletionModel."""
+    """An item (row) in a CompletionModel.
 
-    parent = None
-    children = None
-    _data = None
-    _marks = None
+    Attributes:
+        parent: The parent of this item.
+        children: The children of this item.
+        _data: The data of this item.
+        _marks: The marks of this item.
+
+    """
 
     def __init__(self, data, parent=None):
         """Constructor for CompletionItem.
@@ -262,8 +264,8 @@ class CompletionItem():
 
         """
         self.parent = parent
-        self._data = data
         self.children = []
+        self._data = data
         self._marks = []
 
     def data(self, column, role=Qt.DisplayRole):
