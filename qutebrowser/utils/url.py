@@ -113,6 +113,10 @@ def is_url(url):
         # An URL will never contain a space
         logging.debug('Contains space -> no url')
         return False
+    elif is_about_url(url):
+        # About URLs are always URLs, even with autosearch=False
+        logging.debug('Is an about URL.')
+        return True
     elif autosearch == 'dns':
         logging.debug('Checking via DNS')
         return _is_url_dns(QUrl.fromUserInput(urlstr))
@@ -126,7 +130,7 @@ def _is_url_naive(url):
     PROTOCOLS = ['http://', 'https://']
     u = urlstring(url)
     return (any(u.startswith(proto) for proto in PROTOCOLS) or '.' in u or
-            is_about_url(url) or u == 'localhost')
+            u == 'localhost')
 
 
 def _is_url_dns(url):
