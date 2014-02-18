@@ -50,7 +50,7 @@ class MainWindow(QWidget):
         try:
             geom = b64decode(config.state['geometry']['mainwindow'],
                              validate=True)
-        except binascii.Error:
+        except (KeyError, binascii.Error):
             self._set_default_geometry()
         else:
             try:
