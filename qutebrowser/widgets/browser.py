@@ -171,9 +171,10 @@ class TabbedBrowser(TabWidget):
         try:
             self._tabs.remove(tab)
         except ValueError:
-            logging.error("tab {} could not be removed from tabs {}.".format(
-                tab, self._tabs))
+            logging.exception("tab {} could not be removed".format(tab))
+        logging.debug("Tabs after removing: {}".format(self._tabs))
         if not self._tabs:  # all tabs shut down
+            logging.debug("Tab shutdown complete.")
             self.shutdown_complete.emit()
 
     def cur_reload(self, count=None):
@@ -451,12 +452,12 @@ class TabbedBrowser(TabWidget):
         except TypeError:
             pass
         tabcount = self.count()
-        logging.debug("Shutting down {} tabs...".format(tabcount))
         if tabcount == 0:
+            logging.debug("No tabs -> shutdown complete")
             self.shutdown_complete.emit()
             return
         for tabidx in range(tabcount):
-            logging.debug("shutdown {}".format(tabidx))
+            logging.debug("Shutting down tab {}/{}".format(tabidx, tabcount))
             tab = self.widget(tabidx)
             tab.shutdown(callback=functools.partial(self._cb_tab_shutdown,
                                                     tab))
@@ -574,13 +575,18 @@ class BrowserTab(QWebView):
         netman.abort_requests()
         netman.destroyed.connect(functools.partial(self.on_destroyed, netman))
         netman.deleteLater()
-        logging.debug("Shutdown scheduled")
+        logging.debug("Tab shutdown scheduled")
 
     def on_destroyed(self, sender):
         """Called when a subsystem has been destroyed during shutdown."""
         self._destroyed[sender] = True
+        dbgout = '\n'.join(['{}: {}'.format(k.__class__.__name__, v)
+                           for (k, v) in self._destroyed.items()])
+        logging.debug("{} has been destroyed, new status:\n{}".format(
+            sender.__class__.__name__, dbgout))
         if all(self._destroyed.values()):
             if self._shutdown_callback is not None:
+                logging.debug("Everything destroyed, calling callback")
                 self._shutdown_callback()
 
     def eventFilter(self, watched, e):

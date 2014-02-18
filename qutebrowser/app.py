@@ -238,6 +238,7 @@ class QuteBrowser(QApplication):
         logging.debug("maybe_quit called from {}, quit status {}".format(
             sender, self._quit_status))
         if all(self._quit_status.values()):
+            logging.debug("maybe_quit quitting.")
             self.quit()
 
     def _python_hacks(self):
@@ -328,7 +329,8 @@ class QuteBrowser(QApplication):
             logging.exception("Could not save window geometry.")
         try:
             if do_quit:
-                self.mainwindow.tabs.shutdown_complete.connect(self.quit)
+                self.mainwindow.tabs.shutdown_complete.connect(
+                    self._on_tab_shutdown_complete)
             else:
                 self.mainwindow.tabs.shutdown_complete.connect(
                     functools.partial(self._maybe_quit, 'shutdown'))
@@ -349,6 +351,16 @@ class QuteBrowser(QApplication):
         config.state['mainwindow']['y'] = str(rect.y())
         config.state['mainwindow']['w'] = str(rect.width())
         config.state['mainwindow']['h'] = str(rect.height())
+
+    @pyqtSlot()
+    def _on_tab_shutdown_complete(self):
+        """Quit application after a shutdown.
+
+        Gets called when all tabs finished shutting down after shutdown().
+
+        """
+        logging.debug("Shutdown complete, quitting.")
+        self.quit()
 
     @pyqtSlot(tuple)
     def cmd_handler(self, tpl):
