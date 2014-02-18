@@ -519,7 +519,6 @@ class BrowserTab(QWebView):
         self.signal_cache = SignalCache(uncached=['linkHovered'])
         self.page_.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.page_.linkHovered.connect(self.linkHovered)
-        self.installEventFilter(self)
         self.linkClicked.connect(self.on_link_clicked)
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
 
@@ -605,33 +604,30 @@ class BrowserTab(QWebView):
                 logging.debug("Everything destroyed, calling callback")
                 self._shutdown_callback()
 
-    def eventFilter(self, watched, e):
-        """Dirty hack to emit a signal if the scroll position changed.
+    def paintEvent(self, e):
+        """Extend paintEvent to emit a signal if the scroll position changed.
 
-        We listen to repaint requests here, in the hope a repaint will always
-        be requested when scrolling, and if the scroll position actually
-        changed, we emit a signal.
+        This is a bit of a hack: We listen to repaint requests here, in the
+        hope a repaint will always be requested when scrolling, and if the
+        scroll position actually changed, we emit a signal.
 
-        watched -- The watched Qt object.
-        e -- The new event.
+        e -- The QPaintEvent.
 
         """
-        if watched == self and e.type() == QEvent.Paint:
+        frame = self.page_.mainFrame()
+        new_pos = (frame.scrollBarValue(Qt.Horizontal),
+                   frame.scrollBarValue(Qt.Vertical))
+        if self._scroll_pos != new_pos:
+            self._scroll_pos = new_pos
+            logging.debug("Updating scroll position")
             frame = self.page_.mainFrame()
-            new_pos = (frame.scrollBarValue(Qt.Horizontal),
-                       frame.scrollBarValue(Qt.Vertical))
-            if self._scroll_pos != new_pos:
-                self._scroll_pos = new_pos
-                logging.debug("Updating scroll position")
-                frame = self.page_.mainFrame()
-                m = (frame.scrollBarMaximum(Qt.Horizontal),
-                     frame.scrollBarMaximum(Qt.Vertical))
-                perc = (round(100 * new_pos[0] / m[0]) if m[0] != 0 else 0,
-                        round(100 * new_pos[1] / m[1]) if m[1] != 0 else 0)
-                self.scroll_pos_changed.emit(*perc)
-        # we're not actually filtering something, let superclass handle the
-        # event
-        return super().eventFilter(watched, e)
+            m = (frame.scrollBarMaximum(Qt.Horizontal),
+                 frame.scrollBarMaximum(Qt.Vertical))
+            perc = (round(100 * new_pos[0] / m[0]) if m[0] != 0 else 0,
+                    round(100 * new_pos[1] / m[1]) if m[1] != 0 else 0)
+            self.scroll_pos_changed.emit(*perc)
+        # Let superclass handle the event
+        return super().paintEvent(e)
 
     def event(self, e):
         """Check if a link was clicked with the middle button or Ctrl.
