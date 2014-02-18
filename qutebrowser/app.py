@@ -202,7 +202,6 @@ class QuteBrowser(QApplication):
 
         if not opened_urls:
             logging.debug('Opening startpage')
-            # pylint: disable=maybe-no-member
             for url in config.config.get('general', 'startpage').split(','):
                 self.mainwindow.tabs.tabopen(url)
 

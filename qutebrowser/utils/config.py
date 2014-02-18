@@ -193,12 +193,16 @@ class Config(ConfigParser):
 
         """
         # pylint: disable=redefined-builtin
+        # The arguments returned by the ConfigParsers actually are strings
+        # already, but we add an explicit str() here to trick pylint into
+        # thinking a string is returned (rather than an object) to avoid
+        # maybe-no-member errors.
         try:
-            return super().get(*args, raw=raw, vars=vars)
+            return str(super().get(*args, raw=raw, vars=vars))
         except (NoSectionError, NoOptionError):
             pass
         try:
-            return self._default_cp.get(*args, raw=raw, vars=vars)
+            return str(self._default_cp.get(*args, raw=raw, vars=vars))
         except (NoSectionError, NoOptionError):
             if fallback is _UNSET:
                 raise

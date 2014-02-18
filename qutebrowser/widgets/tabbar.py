@@ -86,7 +86,6 @@ class TabWidget(QTabWidget):
             'right': QTabBar.SelectRightTab,
             'previous': QTabBar.SelectPreviousTab,
         }
-        # pylint: disable=maybe-no-member
         self.setMovable(config.config.getboolean('tabbar', 'movable'))
         self.setTabsClosable(config.config.getboolean('tabbar',
                                                       'closebuttons'))
