@@ -46,8 +46,6 @@ Minor features
 Hiding scrollbars
 :bind
 Ctrl+A/X to increase/decrease last number in URL
-remove unneeded class attributes
-shutdown timeout
 
 Other stuff
 ===========
