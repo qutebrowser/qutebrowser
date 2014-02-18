@@ -102,9 +102,9 @@ class QuteBrowser(QApplication):
         self.lastWindowClosed.connect(self.shutdown)
         self.mainwindow.tabs.keypress.connect(self.keyparser.handle)
         self.keyparser.set_cmd_text.connect(
-            self.mainwindow.status.cmd.on_set_cmd_text)
+            self.mainwindow.status.cmd.set_cmd_text)
         self.mainwindow.tabs.set_cmd_text.connect(
-            self.mainwindow.status.cmd.on_set_cmd_text)
+            self.mainwindow.status.cmd.set_cmd_text)
         self.mainwindow.tabs.quit.connect(self.shutdown)
         self.mainwindow.status.cmd.got_cmd.connect(self.commandparser.run)
         self.mainwindow.status.cmd.got_search.connect(self.searchparser.search)

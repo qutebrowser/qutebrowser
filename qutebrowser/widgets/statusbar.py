@@ -217,7 +217,7 @@ class Command(QLineEdit):
             signals[text[0]].emit(text.lstrip(text[0]))
 
     @pyqtSlot(str)
-    def on_set_cmd_text(self, text):
+    def set_cmd_text(self, text):
         """Preset the statusbar to some text."""
         self.setText(text)
         self.setFocus()
@@ -277,7 +277,7 @@ class Command(QLineEdit):
             return
         logging.debug("history up: {} / len {} / pos {}".format(
             self._tmphist, len(self._tmphist), self._histpos))
-        self.set_cmd(self._tmphist[self._histpos])
+        self.set_cmd_text(self._tmphist[self._histpos])
 
     @pyqtSlot()
     def on_key_down_pressed(self):
@@ -291,7 +291,7 @@ class Command(QLineEdit):
         self._histpos += 1
         logging.debug("history up: {} / len {} / pos {}".format(
             self._tmphist, len(self._tmphist), self._histpos))
-        self.set_cmd(self._tmphist[self._histpos])
+        self.set_cmd_text(self._tmphist[self._histpos])
 
 
 class CommandValidator(QValidator):
