@@ -94,7 +94,8 @@ class CompletionView(QTreeView):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._height = QPoint(0, 200)  # FIXME make that configurable
+        height = int(config.config.get('general', 'completion_height'))
+        self._height = QPoint(0, height)
         self._enabled = config.config.getboolean('general', 'show_completion')
         self._completion_models = {}
         self._completion_models[''] = None
