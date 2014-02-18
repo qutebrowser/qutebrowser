@@ -205,7 +205,7 @@ class TabbedBrowser(TabWidget):
         # FIXME that does not what I expect
         tab = self._widget(count)
         if tab is not None:
-            preview = QPrintPreviewDialog()
+            preview = QPrintPreviewDialog(self)
             preview.paintRequested.connect(tab.print)
             preview.exec_()
 

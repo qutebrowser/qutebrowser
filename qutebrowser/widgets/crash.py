@@ -44,8 +44,8 @@ class CrashDialog(QDialog):
         self.setWindowTitle('Whoops!')
         self.setModal(True)
 
-        self.vbox = QVBoxLayout()
-        self.lbl = QLabel(self)
+        self.vbox = QVBoxLayout(self)
+        self.lbl = QLabel()
         text = ('Argh! qutebrowser crashed unexpectedly.<br/>'
                 'Please review the info below to remove sensitive data and '
                 'then submit it to <a href="mailto:crash@qutebrowser.org">'
@@ -57,19 +57,19 @@ class CrashDialog(QDialog):
         self.lbl.setWordWrap(True)
         self.vbox.addWidget(self.lbl)
 
-        self.txt = QTextEdit(self)
+        self.txt = QTextEdit()
         self.txt.setReadOnly(True)
         self.txt.setText(self._crash_info(pages, cmdhist, exc))
         self.vbox.addWidget(self.txt)
         self.setLayout(self.vbox)
 
-        self.hbox = QHBoxLayout()
-        self.btn_quit = QPushButton(self)
+        self.hbox = QHBoxLayout(self)
+        self.btn_quit = QPushButton()
         self.btn_quit.setText('Quit')
         self.btn_quit.clicked.connect(self.reject)
         self.hbox.addWidget(self.btn_quit)
         if pages:
-            self.btn_restore = QPushButton(self)
+            self.btn_restore = QPushButton()
             self.btn_restore.setText('Restore tabs')
             self.btn_restore.clicked.connect(self.accept)
             self.btn_restore.setDefault(True)

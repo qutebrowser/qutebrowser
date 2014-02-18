@@ -364,7 +364,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         text_option.setAlignment(QStyle.visualAlignment(
             self.opt.direction, self.opt.displayAlignment))
 
-        self.doc = QTextDocument()
+        self.doc = QTextDocument(self)
         if index.parent().isValid():
             self.doc.setPlainText(self.opt.text)
         else:
