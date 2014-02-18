@@ -19,7 +19,6 @@
 
 config         -- The main Config object.
 colordict      -- All configured colors.
-default_config -- The default config as dict.
 MONOSPACE      -- A list of suitable monospace fonts.
 
 """
@@ -30,110 +29,11 @@ import os.path
 import logging
 from configparser import ConfigParser, ExtendedInterpolation
 
+from qutebrowser.utils.misc import read_file
+
 config = None
 colordict = {}
 fontdict = {}
-
-default_config = """
-[general]
-show_completion = true
-ignorecase = true
-wrapsearch = true
-startpage = http://www.duckduckgo.com/
-addressbar_dns_lookup = false
-auto_search = true
-
-[tabbar]
-movable = true
-closebuttons = false
-scrollbuttons = false
-# north, south, east, west
-position = north
-# previous, left, right
-select_on_remove = previous
-# ignore, blank, quit
-last_close = quit
-
-[searchengines]
-DEFAULT = ${duckduckgo}
-duckduckgo = https://duckduckgo.com/?q={}
-ddg = ${duckduckgo}
-google = https://encrypted.google.com/search?q={}
-g = ${google}
-wikipedia = http://en.wikipedia.org/w/index.php?title=Special:Search&search={}
-wiki = ${wikipedia}
-
-[keybind]
-o = open
-go = opencur
-O = tabopen
-gO = tabopencur
-ga = tabopen about:blank
-d = tabclose
-J = tabnext
-K = tabprev
-r = reload
-H = back
-L = forward
-h = scroll -50 0
-j = scroll 0 50
-k = scroll 0 -50
-l = scroll 50 0
-u = undo
-gg = scroll_perc_y 0
-G = scroll_perc_y
-n = nextsearch
-yy = yank
-yY = yank sel
-yt = yanktitle
-yT = yanktitle sel
-pp = paste
-pP = paste sel
-Pp = tabpaste
-PP = tabpaste sel
-@Ctrl-Q@ = quit
-@Ctrl-Shift-T@ = undo
-@Ctrl-W@ = tabclose
-@Ctrl-T@ = tabopen about:blank
-@Ctrl-F@ = scroll_page 0 1
-@Ctrl-B@ = scroll_page 0 -1
-@Ctrl-D@ = scroll_page 0 0.5
-@Ctrl-U@ = scroll_page 0 -0.5
-
-[colors]
-completion.fg = #333333
-completion.item.bg = white
-completion.category.bg = qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                         stop:0 #e4e4e4, stop:1 #dbdbdb)
-completion.category.border.top = #808080
-completion.category.border.bottom = #bbbbbb
-completion.item.selected.fg = #333333
-completion.item.selected.bg = #ffec8b
-completion.item.selected.border.top = #f2f2c0
-completion.item.selected.border.bottom = #e6e680
-completion.match.fg = red
-statusbar.progress.bg = white
-statusbar.bg = black
-statusbar.fg = white
-statusbar.bg.error = red
-statusbar.url.fg = ${statusbar.fg}
-statusbar.url.fg.success = lime
-statusbar.url.fg.error = orange
-statusbar.url.fg.warn = yellow
-statusbar.url.fg.hover = aqua
-tab.bg = grey
-tab.bg.selected = black
-tab.fg = white
-tab.seperator = white
-
-[fonts]
-_monospace = Monospace, "DejaVu Sans Mono", Consolas, Monaco,
-             "Bitstream Vera Sans Mono", "Andale Mono", "Liberation Mono",
-             "Courier New", Courier, monospace, Fixed, Terminal
-completion = 8pt ${_monospace}
-tabbar = 8pt ${_monospace}
-statusbar = 8pt ${_monospace}
-"""
 
 
 def init(confdir):
@@ -245,7 +145,7 @@ class Config(ConfigParser):
         super().__init__(interpolation=ExtendedInterpolation())
         self.default_cp = ConfigParser(interpolation=ExtendedInterpolation())
         self.default_cp.optionxform = lambda opt: opt  # be case-insensitive
-        self.default_cp.read_string(default_config)
+        self.default_cp.read_string(read_file('qutebrowser.conf'))
         if not self.configdir:
             return
         self.optionxform = lambda opt: opt  # be case-insensitive
