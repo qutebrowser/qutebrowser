@@ -76,6 +76,9 @@ class TabbedBrowser(TabWidget):
                   arg: The QKeyEvent leading to the keypress.
         shutdown_complete: The shuttdown is completed.
         quit: The last tab was closed, quit application.
+        resized: Emitted when the browser window has resized, so the completion
+                 widget can adjust its size to it.
+                 arg: The new size.
 
     """
 
@@ -90,6 +93,7 @@ class TabbedBrowser(TabWidget):
     keypress = pyqtSignal('QKeyEvent')
     shutdown_complete = pyqtSignal()
     quit = pyqtSignal()
+    resized = pyqtSignal('QRect')
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -478,6 +482,15 @@ class TabbedBrowser(TabWidget):
         """Extend TabWidget (QWidget)'s keyPressEvent to emit a signal."""
         self.keypress.emit(e)
         super().keyPressEvent(e)
+
+    def resizeEvent(self, e):
+        """Extend resizeEvent of QWidget to emit a resized signal afterwards.
+
+        e -- The QResizeEvent.
+
+        """
+        super().resizeEvent(e)
+        self.resized.emit(self.geometry())
 
 
 class BrowserTab(QWebView):

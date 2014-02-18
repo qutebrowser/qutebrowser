@@ -52,6 +52,7 @@ class CompletionView(QTreeView):
         _enabled: Whether showing the CompletionView is enabled.
         _completing: Whether we're currently completing something.
         _height: The height to use for the CompletionView.
+        _height_perc: Either None or a percentage if height should be relative.
         _delegate: The item delegate used.
 
     Signals:
@@ -94,8 +95,13 @@ class CompletionView(QTreeView):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        height = int(config.config.get('general', 'completion_height'))
-        self._height = QPoint(0, height)
+        height = config.config.get('general', 'completion_height')
+        if height.endswith('%'):
+            self._height = QPoint(0, 200)  # just a temporary sane value
+            self._height_perc = int(height.rstrip('%'))
+        else:
+            self._height = QPoint(0, int(height))
+            self._height_perc = None
         self._enabled = config.config.getboolean('general', 'show_completion')
         self._completion_models = {}
         self._completion_models[''] = None
@@ -171,6 +177,20 @@ class CompletionView(QTreeView):
         assert topleft.x() < bottomright.x()
         assert topleft.y() < bottomright.y()
         self.setGeometry(QRect(topleft, bottomright))
+
+    @pyqtSlot('QRect')
+    def on_browser_resized(self, geom):
+        """Slot for the resized signal of the browser window.
+
+        Adjust the height of the completion if it was configured as a
+        percentage.
+
+        """
+        if self._height_perc is None:
+            return
+        else:
+            height = int(geom.height() * self._height_perc / 100)
+            self._height = QPoint(0, height)
 
     @pyqtSlot('QPoint')
     def move_to_bar(self, pos):
