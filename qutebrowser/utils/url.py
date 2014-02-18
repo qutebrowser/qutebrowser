@@ -93,7 +93,6 @@ def is_about_url(url):
 def is_url(url):
     """Return True if url (QUrl) seems to be a valid URL."""
     urlstr = urlstring(url)
-    logging.debug('Checking if "{}" is an URL'.format(urlstr))
 
     try:
         autosearch = config.config.getboolean('general', 'auto_search')
@@ -104,6 +103,9 @@ def is_url(url):
             autosearch = 'naive'
         else:
             autosearch = None
+
+    logging.debug('Checking if "{}" is an URL (autosearch={}).'.format(
+        urlstr, autosearch))
 
     if autosearch is None:
         # no autosearch, so everything is an URL.
@@ -123,6 +125,8 @@ def is_url(url):
     elif autosearch == 'naive':
         logging.debug('Checking via naive check')
         return _is_url_naive(url)
+    else:
+        raise ValueError("Invalid autosearch value")
 
 
 def _is_url_naive(url):
