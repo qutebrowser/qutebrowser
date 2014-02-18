@@ -69,24 +69,6 @@ class SearchParser(QObject):
         self._flags = 0
         super().__init__(parent)
 
-    @pyqtSlot(str)
-    def search(self, text):
-        """Search for a text on a website.
-
-        text -- The text to search for.
-
-        """
-        self._search(text)
-
-    @pyqtSlot(str)
-    def search_rev(self, text):
-        """Search for a text on a website in reverse direction.
-
-        text -- The text to search for.
-
-        """
-        self._search(text, rev=True)
-
     def _search(self, text, rev=False):
         """Search for a text on the current page.
 
@@ -105,6 +87,24 @@ class SearchParser(QObject):
         if rev:
             self._flags |= QWebPage.FindBackward
         self.do_search.emit(self._text, self._flags)
+
+    @pyqtSlot(str)
+    def search(self, text):
+        """Search for a text on a website.
+
+        text -- The text to search for.
+
+        """
+        self._search(text)
+
+    @pyqtSlot(str)
+    def search_rev(self, text):
+        """Search for a text on a website in reverse direction.
+
+        text -- The text to search for.
+
+        """
+        self._search(text, rev=True)
 
     def nextsearch(self, count=1):
         """Continue the search to the ([count]th) next term."""

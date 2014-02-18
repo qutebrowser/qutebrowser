@@ -28,6 +28,29 @@ from PyQt5.QtWebKit import qWebKitVersion
 import qutebrowser
 
 
+def _git_str():
+    """Try to find out git version and return a string if possible.
+
+    Return None if there was an error or we're not in a git repo.
+
+    """
+    if hasattr(sys, "frozen"):
+        return None
+    try:
+        gitpath = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                               os.path.pardir, os.path.pardir)
+    except NameError:
+        return None
+    if not os.path.isdir(os.path.join(gitpath, ".git")):
+        return None
+    try:
+        return subprocess.check_output(
+            ['git', 'describe', '--tags', '--dirty', '--always'],
+            cwd=gitpath).decode('UTF-8').strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
 def version():
     """Return a string with various version informations."""
     if sys.platform == 'linux':
@@ -56,26 +79,3 @@ def version():
         lines.append('\nGit commit: {}'.format(gitver))
 
     return ''.join(lines)
-
-
-def _git_str():
-    """Try to find out git version and return a string if possible.
-
-    Return None if there was an error or we're not in a git repo.
-
-    """
-    if hasattr(sys, "frozen"):
-        return None
-    try:
-        gitpath = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                               os.path.pardir, os.path.pardir)
-    except NameError:
-        return None
-    if not os.path.isdir(os.path.join(gitpath, ".git")):
-        return None
-    try:
-        return subprocess.check_output(
-            ['git', 'describe', '--tags', '--dirty', '--always'],
-            cwd=gitpath).decode('UTF-8').strip()
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return None

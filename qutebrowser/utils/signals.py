@@ -64,6 +64,10 @@ class SignalCache(QObject):
             self._uncached = uncached
         self._signal_dict = OrderedDict()
 
+    def _signal_needs_caching(self, signal):
+        """Return True if a signal should be cached, false otherwise."""
+        return not signal_name(signal) in self._uncached
+
     def add(self, sig, args):
         """Add a new signal to the signal cache.
 
@@ -88,7 +92,3 @@ class SignalCache(QObject):
         for (signal, args) in self._signal_dict.values():
             logging.debug('emitting {}'.format(dbg_signal(signal, args)))
             signal.emit(*args)
-
-    def _signal_needs_caching(self, signal):
-        """Return True if a signal should be cached, false otherwise."""
-        return not signal_name(signal) in self._uncached

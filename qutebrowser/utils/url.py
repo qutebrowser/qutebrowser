@@ -27,6 +27,52 @@ from PyQt5.QtCore import QUrl
 import qutebrowser.utils.config as config
 
 
+def _get_search_url(txt):
+    """Return a search engine URL (QUrl) for a text."""
+    logging.debug('Finding search engine for "{}"'.format(txt))
+    r = re.compile(r'(^|\s+)!(\w+)($|\s+)')
+    m = r.search(txt)
+    if m:
+        engine = m.group(2)
+        # FIXME why doesn't fallback work?!
+        template = config.config.get('searchengines', engine, fallback=None)
+        term = r.sub('', txt)
+        logging.debug('engine {}, term "{}"'.format(engine, term))
+    else:
+        template = config.config.get('searchengines', 'DEFAULT',
+                                     fallback=None)
+        term = txt
+        logging.debug('engine: default, term "{}"'.format(txt))
+    if template is None or not term:
+        raise ValueError
+    # pylint: disable=maybe-no-member
+    return QUrl.fromUserInput(template.format(urllib.parse.quote(term)))
+
+
+def _is_url_naive(url):
+    """Naive check if given url (QUrl) is really an url."""
+    PROTOCOLS = ['http://', 'https://']
+    u = urlstring(url)
+    return (any(u.startswith(proto) for proto in PROTOCOLS) or '.' in u or
+            u == 'localhost')
+
+
+def _is_url_dns(url):
+    """Check if an url (QUrl) is really an url via DNS."""
+    # FIXME we could probably solve this in a nicer way by attempting to open
+    # the page in the webview, and then open the search if that fails.
+    host = url.host()
+    logging.debug("DNS request for {}".format(host))
+    if not host:
+        return False
+    try:
+        socket.gethostbyname(host)
+    except socket.gaierror:
+        return False
+    else:
+        return True
+
+
 def qurl(url):
     """Get a QUrl from an url string."""
     return url if isinstance(url, QUrl) else QUrl(url)
@@ -62,28 +108,6 @@ def fuzzy_url(url):
     logging.debug('Converting fuzzy term {} to url -> {}'.format(
         urlstr, urlstring(newurl)))
     return newurl
-
-
-def _get_search_url(txt):
-    """Return a search engine URL (QUrl) for a text."""
-    logging.debug('Finding search engine for "{}"'.format(txt))
-    r = re.compile(r'(^|\s+)!(\w+)($|\s+)')
-    m = r.search(txt)
-    if m:
-        engine = m.group(2)
-        # FIXME why doesn't fallback work?!
-        template = config.config.get('searchengines', engine, fallback=None)
-        term = r.sub('', txt)
-        logging.debug('engine {}, term "{}"'.format(engine, term))
-    else:
-        template = config.config.get('searchengines', 'DEFAULT',
-                                     fallback=None)
-        term = txt
-        logging.debug('engine: default, term "{}"'.format(txt))
-    if template is None or not term:
-        raise ValueError
-    # pylint: disable=maybe-no-member
-    return QUrl.fromUserInput(template.format(urllib.parse.quote(term)))
 
 
 def is_about_url(url):
@@ -128,27 +152,3 @@ def is_url(url):
         return _is_url_naive(url)
     else:
         raise ValueError("Invalid autosearch value")
-
-
-def _is_url_naive(url):
-    """Naive check if given url (QUrl) is really an url."""
-    PROTOCOLS = ['http://', 'https://']
-    u = urlstring(url)
-    return (any(u.startswith(proto) for proto in PROTOCOLS) or '.' in u or
-            u == 'localhost')
-
-
-def _is_url_dns(url):
-    """Check if an url (QUrl) is really an url via DNS."""
-    # FIXME we could probably solve this in a nicer way by attempting to open
-    # the page in the webview, and then open the search if that fails.
-    host = url.host()
-    logging.debug("DNS request for {}".format(host))
-    if not host:
-        return False
-    try:
-        socket.gethostbyname(host)
-    except socket.gaierror:
-        return False
-    else:
-        return True

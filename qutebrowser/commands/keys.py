@@ -62,35 +62,6 @@ class KeyParser(QObject):
         self._bindings = {}
         self._modifier_bindings = {}
 
-    def from_config_sect(self, sect):
-        """Load keybindings from a ConfigParser section.
-
-        Config format: key = command, e.g.:
-        gg = scrollstart
-
-        """
-        for (key, cmd) in sect.items():
-            if key.startswith('@') and key.endswith('@'):
-                # normalize keystring
-                keystr = self._normalize_keystr(key.strip('@'))
-                logging.debug('registered mod key: {} -> {}'.format(keystr,
-                                                                    cmd))
-                self._modifier_bindings[keystr] = cmd
-            else:
-                logging.debug('registered key: {} -> {}'.format(key, cmd))
-                self._bindings[key] = cmd
-
-    def handle(self, e):
-        """Handle a new keypress and call the respective handlers.
-
-        e -- the KeyPressEvent from Qt
-
-        """
-        handled = self._handle_modifier_key(e)
-        if not handled:
-            self._handle_single_key(e)
-            self.keystring_updated.emit(self._keystring)
-
     def _handle_modifier_key(self, e):
         """Handle a new keypress with modifiers.
 
@@ -239,3 +210,32 @@ class KeyParser(QObject):
                 cmdstr))
             self.set_cmd_text.emit(':{} '.format(cmdstr))
         return
+
+    def from_config_sect(self, sect):
+        """Load keybindings from a ConfigParser section.
+
+        Config format: key = command, e.g.:
+        gg = scrollstart
+
+        """
+        for (key, cmd) in sect.items():
+            if key.startswith('@') and key.endswith('@'):
+                # normalize keystring
+                keystr = self._normalize_keystr(key.strip('@'))
+                logging.debug('registered mod key: {} -> {}'.format(keystr,
+                                                                    cmd))
+                self._modifier_bindings[keystr] = cmd
+            else:
+                logging.debug('registered key: {} -> {}'.format(key, cmd))
+                self._bindings[key] = cmd
+
+    def handle(self, e):
+        """Handle a new keypress and call the respective handlers.
+
+        e -- the KeyPressEvent from Qt
+
+        """
+        handled = self._handle_modifier_key(e)
+        if not handled:
+            self._handle_single_key(e)
+            self.keystring_updated.emit(self._keystring)

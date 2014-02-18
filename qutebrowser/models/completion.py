@@ -39,17 +39,6 @@ class CompletionModel(QAbstractItemModel):
         self._root = CompletionItem([""] * 2)
         self._id_map[id(self._root)] = self._root
 
-    def removeRows(self, position=0, count=1, parent=QModelIndex()):
-        """Remove rows from the model.
-
-        Override QAbstractItemModel::removeRows.
-
-        """
-        node = self._node(parent)
-        self.beginRemoveRows(parent, position, position + count - 1)
-        node.children.pop(position)
-        self.endRemoveRows()
-
     def _node(self, index):
         """Return the interal data representation for index.
 
@@ -62,6 +51,60 @@ class CompletionModel(QAbstractItemModel):
         else:
             return self._root
 
+    def _get_marks(self, needle, haystack):
+        """Return the marks for needle in haystack."""
+        pos1 = pos2 = 0
+        marks = []
+        if not needle:
+            return marks
+        while True:
+            pos1 = haystack.find(needle, pos2)
+            if pos1 == -1:
+                break
+            pos2 = pos1 + len(needle)
+            marks.append((pos1, pos2))
+        return marks
+
+    def mark_all_items(self, needle):
+        """Mark a string in all items (children of root-children).
+
+        needle -- The string to mark.
+
+        """
+        for i in range(self.rowCount()):
+            cat = self.index(i, 0)
+            for k in range(self.rowCount(cat)):
+                idx = self.index(k, 0, cat)
+                old = self.data(idx).value()
+                marks = self._get_marks(needle, old)
+                self.setData(idx, marks, Qt.UserRole)
+
+    def init_data(self, data):
+        """Initialize the Qt model based on the data given.
+
+        data -- dict of data to process.
+
+        """
+        for (cat, items) in data.items():
+            newcat = CompletionItem([cat], self._root)
+            self._id_map[id(newcat)] = newcat
+            self._root.children.append(newcat)
+            for item in items:
+                newitem = CompletionItem(item, newcat)
+                self._id_map[id(newitem)] = newitem
+                newcat.children.append(newitem)
+
+    def removeRows(self, position=0, count=1, parent=QModelIndex()):
+        """Remove rows from the model.
+
+        Override QAbstractItemModel::removeRows.
+
+        """
+        node = self._node(parent)
+        self.beginRemoveRows(parent, position, position + count - 1)
+        node.children.pop(position)
+        self.endRemoveRows()
+
     def columnCount(self, parent=QModelIndex()):
         """Return the column count in the model.
 
@@ -70,6 +113,23 @@ class CompletionModel(QAbstractItemModel):
         """
         # pylint: disable=unused-argument
         return self._root.column_count()
+
+    def rowCount(self, parent=QModelIndex()):
+        """Return the children count of an item.
+
+        Use the root frame if parent is invalid.
+        Override QAbstractItemModel::rowCount.
+
+        """
+        if parent.column() > 0:
+            return 0
+
+        if not parent.isValid():
+            pitem = self._root
+        else:
+            pitem = self._id_map[parent.internalId()]
+
+        return len(pitem.children)
 
     def data(self, index, role=Qt.DisplayRole):
         """Return the data for role/index as QVariant.
@@ -88,23 +148,6 @@ class CompletionModel(QAbstractItemModel):
             return QVariant(item.data(index.column(), role))
         except (IndexError, ValueError):
             return QVariant()
-
-    def flags(self, index):
-        """Return the item flags for index.
-
-        Return Qt.NoItemFlags on error.
-        Override QAbstractItemModel::flags.
-
-        """
-        # FIXME categories are not selectable, but moving via arrow keys still
-        # tries to select them
-        if not index.isValid():
-            return Qt.NoItemFlags
-        flags = Qt.ItemIsEnabled
-        if len(self._id_map[index.internalId()].children) > 0:
-            return flags
-        else:
-            return flags | Qt.ItemIsSelectable
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Return the header data for role/index as QVariant.
@@ -133,6 +176,23 @@ class CompletionModel(QAbstractItemModel):
             return False
         self.dataChanged.emit(index, index)
         return True
+
+    def flags(self, index):
+        """Return the item flags for index.
+
+        Return Qt.NoItemFlags on error.
+        Override QAbstractItemModel::flags.
+
+        """
+        # FIXME categories are not selectable, but moving via arrow keys still
+        # tries to select them
+        if not index.isValid():
+            return Qt.NoItemFlags
+        flags = Qt.ItemIsEnabled
+        if len(self._id_map[index.internalId()].children) > 0:
+            return flags
+        else:
+            return flags | Qt.ItemIsSelectable
 
     def index(self, row, column, parent=QModelIndex()):
         """Return the QModelIndex for row/column/parent.
@@ -174,23 +234,6 @@ class CompletionModel(QAbstractItemModel):
             return QModelIndex()
         return self.createIndex(item.row(), 0, id(item))
 
-    def rowCount(self, parent=QModelIndex()):
-        """Return the children count of an item.
-
-        Use the root frame if parent is invalid.
-        Override QAbstractItemModel::rowCount.
-
-        """
-        if parent.column() > 0:
-            return 0
-
-        if not parent.isValid():
-            pitem = self._root
-        else:
-            pitem = self._id_map[parent.internalId()]
-
-        return len(pitem.children)
-
     def sort(self, column, order=Qt.AscendingOrder):
         """Sort the data in column according to order.
 
@@ -199,49 +242,6 @@ class CompletionModel(QAbstractItemModel):
 
         """
         raise NotImplementedError
-
-    def init_data(self, data):
-        """Initialize the Qt model based on the data given.
-
-        data -- dict of data to process.
-
-        """
-        for (cat, items) in data.items():
-            newcat = CompletionItem([cat], self._root)
-            self._id_map[id(newcat)] = newcat
-            self._root.children.append(newcat)
-            for item in items:
-                newitem = CompletionItem(item, newcat)
-                self._id_map[id(newitem)] = newitem
-                newcat.children.append(newitem)
-
-    def mark_all_items(self, needle):
-        """Mark a string in all items (children of root-children).
-
-        needle -- The string to mark.
-
-        """
-        for i in range(self.rowCount()):
-            cat = self.index(i, 0)
-            for k in range(self.rowCount(cat)):
-                idx = self.index(k, 0, cat)
-                old = self.data(idx).value()
-                marks = self._get_marks(needle, old)
-                self.setData(idx, marks, Qt.UserRole)
-
-    def _get_marks(self, needle, haystack):
-        """Return the marks for needle in haystack."""
-        pos1 = pos2 = 0
-        marks = []
-        if not needle:
-            return marks
-        while True:
-            pos1 = haystack.find(needle, pos2)
-            if pos1 == -1:
-                break
-            pos2 = pos1 + len(needle)
-            marks.append((pos1, pos2))
-        return marks
 
 
 class CompletionItem():

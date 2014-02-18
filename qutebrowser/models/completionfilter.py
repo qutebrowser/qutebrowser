@@ -71,9 +71,20 @@ class CompletionFilterModel(QSortFilterProxyModel):
         model -- The new source model.
 
         """
+        # FIXME change this to a property
         self.setSourceModel(model)
         self.srcmodel = model
         self.pattern = ''
+
+    def first_item(self):
+        """Return the first item in the model."""
+        cat = self.index(0, 0)
+        return self.index(0, 0, cat)
+
+    def last_item(self):
+        """Return the last item in the model."""
+        cat = self.index(self.rowCount() - 1, 0)
+        return self.index(self.rowCount(cat) - 1, 0, cat)
 
     def filterAcceptsRow(self, row, parent):
         """Custom filter implementation.
@@ -120,13 +131,3 @@ class CompletionFilterModel(QSortFilterProxyModel):
             return False
         else:
             return left < right
-
-    def first_item(self):
-        """Return the first item in the model."""
-        cat = self.index(0, 0)
-        return self.index(0, 0, cat)
-
-    def last_item(self):
-        """Return the last item in the model."""
-        cat = self.index(self.rowCount() - 1, 0)
-        return self.index(self.rowCount(cat) - 1, 0, cat)
