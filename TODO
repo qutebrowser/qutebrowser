@@ -46,7 +46,6 @@ Minor features
 Hiding scrollbars
 :bind
 Ctrl+A/X to increase/decrease last number in URL
-unify dns/autosearch
 position remembering
 multiple commands with ;
 

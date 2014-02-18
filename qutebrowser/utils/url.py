@@ -49,7 +49,7 @@ def fuzzy_url(url):
     """
     u = qurl(url)
     urlstr = urlstring(url)
-    if (not config.config.getboolean('general', 'auto_search')) or is_url(u):
+    if is_url(u):
         # probably an address
         logging.debug("url is a fuzzy address")
         newurl = QUrl.fromUserInput(urlstr)
@@ -94,14 +94,29 @@ def is_url(url):
     """Return True if url (QUrl) seems to be a valid URL."""
     urlstr = urlstring(url)
     logging.debug('Checking if "{}" is an URL'.format(urlstr))
+
+    try:
+        autosearch = config.config.getboolean('general', 'auto_search')
+    except ValueError:
+        autosearch = config.config.get('general', 'auto_search')
+    else:
+        if autosearch:
+            autosearch = 'naive'
+        else:
+            autosearch = None
+
+    if autosearch is None:
+        # no autosearch, so everything is an URL.
+        return True
+
     if ' ' in urlstr:
         # An URL will never contain a space
         logging.debug('Contains space -> no url')
         return False
-    elif config.config.getboolean('general', 'addressbar_dns_lookup'):
+    elif autosearch == 'dns':
         logging.debug('Checking via DNS')
         return _is_url_dns(QUrl.fromUserInput(urlstr))
-    else:
+    elif autosearch == 'naive':
         logging.debug('Checking via naive check')
         return _is_url_naive(url)
 
