@@ -121,6 +121,29 @@ class CompletionView(QTreeView):
         self.hide()
         # FIXME set elidemode
 
+    def _next_idx(self, upwards):
+        """Get the previous/next QModelIndex displayed in the view.
+
+        Used by tab_handler.
+
+        upwards -- Get previous item, not next.
+
+        """
+        idx = self.selectionModel().currentIndex()
+        if not idx.isValid():
+            # No item selected yet
+            return self.model.first_item()
+        while True:
+            idx = self.indexAbove(idx) if upwards else self.indexBelow(idx)
+            # wrap around if we arrived at beginning/end
+            if not idx.isValid() and upwards:
+                return self.model.last_item()
+            elif not idx.isValid() and not upwards:
+                return self.model.first_item()
+            elif idx.parent().isValid():
+                # Item is a real item, not a category header -> success
+                return idx
+
     def setmodel(self, model):
         """Switch completion to a new model.
 
@@ -205,29 +228,6 @@ class CompletionView(QTreeView):
             self._ignore_next = True
             self.append_cmd_text.emit(self.model.data(idx) + ' ')
 
-    def _next_idx(self, upwards):
-        """Get the previous/next QModelIndex displayed in the view.
-
-        Used by tab_handler.
-
-        upwards -- Get previous item, not next.
-
-        """
-        idx = self.selectionModel().currentIndex()
-        if not idx.isValid():
-            # No item selected yet
-            return self.model.first_item()
-        while True:
-            idx = self.indexAbove(idx) if upwards else self.indexBelow(idx)
-            # wrap around if we arrived at beginning/end
-            if not idx.isValid() and upwards:
-                return self.model.last_item()
-            elif not idx.isValid() and not upwards:
-                return self.model.first_item()
-            elif idx.parent().isValid():
-                # Item is a real item, not a category header -> success
-                return idx
-
 
 class _CompletionItemDelegate(QStyledItemDelegate):
 
@@ -253,40 +253,6 @@ class _CompletionItemDelegate(QStyledItemDelegate):
         self._doc = None
         self._style = None
         super().__init__(parent)
-
-    def sizeHint(self, option, index):
-        """Override sizeHint of QStyledItemDelegate.
-
-        Return the cell size based on the QTextDocument size, but might not
-        work correctly yet.
-
-        """
-        value = index.data(Qt.SizeHintRole)
-        if value is not None:
-            return value
-        self._opt = QStyleOptionViewItem(option)
-        self.initStyleOption(self._opt, index)
-        self._style = self._opt.widget.style()
-        self._get_textdoc(index)
-        docsize = self._doc.size().toSize()
-        size = self._style.sizeFromContents(QStyle.CT_ItemViewItem, self._opt,
-                                            docsize, self._opt.widget)
-        return size + QSize(10, 1)
-
-    def paint(self, painter, option, index):
-        """Override the QStyledItemDelegate paint function."""
-        self._painter = painter
-        self._painter.save()
-        self._opt = QStyleOptionViewItem(option)
-        self.initStyleOption(self._opt, index)
-        self._style = self._opt.widget.style()
-
-        self._draw_background()
-        self._draw_icon()
-        self._draw_text(index)
-        self._draw_focus_rect()
-
-        self._painter.restore()
 
     def _draw_background(self):
         """Draw the background of an ItemViewItem."""
@@ -428,3 +394,37 @@ class _CompletionItemDelegate(QStyledItemDelegate):
         o.backgroundColor = self._opt.palette.color(cg, role)
         self._style.drawPrimitive(QStyle.PE_FrameFocusRect, o, self._painter,
                                   self._opt.widget)
+
+    def sizeHint(self, option, index):
+        """Override sizeHint of QStyledItemDelegate.
+
+        Return the cell size based on the QTextDocument size, but might not
+        work correctly yet.
+
+        """
+        value = index.data(Qt.SizeHintRole)
+        if value is not None:
+            return value
+        self._opt = QStyleOptionViewItem(option)
+        self.initStyleOption(self._opt, index)
+        self._style = self._opt.widget.style()
+        self._get_textdoc(index)
+        docsize = self._doc.size().toSize()
+        size = self._style.sizeFromContents(QStyle.CT_ItemViewItem, self._opt,
+                                            docsize, self._opt.widget)
+        return size + QSize(10, 1)
+
+    def paint(self, painter, option, index):
+        """Override the QStyledItemDelegate paint function."""
+        self._painter = painter
+        self._painter.save()
+        self._opt = QStyleOptionViewItem(option)
+        self.initStyleOption(self._opt, index)
+        self._style = self._opt.widget.style()
+
+        self._draw_background()
+        self._draw_icon()
+        self._draw_text(index)
+        self._draw_focus_rect()
+
+        self._painter.restore()

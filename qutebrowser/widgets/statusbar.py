@@ -226,49 +226,6 @@ class _Command(QLineEdit):
             sc.activated.connect(handler)
             self._shortcuts.append(sc)
 
-    @pyqtSlot()
-    def _on_return_pressed(self):
-        """Handle the command in the status bar."""
-        signals = {
-            ':': self.got_cmd,
-            '/': self.got_search,
-            '?': self.got_search_rev,
-        }
-        self._histbrowse_stop()
-        text = self.text()
-        if not self.history or text != self.history[-1]:
-            self.history.append(text)
-        self.setText('')
-        if text[0] in signals:
-            signals[text[0]].emit(text.lstrip(text[0]))
-
-    @pyqtSlot(str)
-    def set_cmd_text(self, text):
-        """Preset the statusbar to some text."""
-        self.setText(text)
-        self.setFocus()
-
-    @pyqtSlot(str)
-    def on_append_cmd_text(self, text):
-        """Append text to the commandline."""
-        # FIXME do the right thing here
-        self.setText(':' + text)
-        self.setFocus()
-
-    def focusOutEvent(self, e):
-        """Clear the statusbar text if it's explicitely unfocused."""
-        if e.reason() in [Qt.MouseFocusReason, Qt.TabFocusReason,
-                          Qt.BacktabFocusReason, Qt.OtherFocusReason]:
-            self.setText('')
-            self._histbrowse_stop()
-        self.hide_completion.emit()
-        super().focusOutEvent(e)
-
-    def focusInEvent(self, e):
-        """Clear error message when the statusbar is focused."""
-        self._statusbar.clear_error()
-        super().focusInEvent(e)
-
     def _histbrowse_start(self):
         """Start browsing to the history.
 
@@ -318,6 +275,49 @@ class _Command(QLineEdit):
         logging.debug("history up: {} / len {} / pos {}".format(
             self._tmphist, len(self._tmphist), self._histpos))
         self.set_cmd_text(self._tmphist[self._histpos])
+
+    @pyqtSlot()
+    def _on_return_pressed(self):
+        """Handle the command in the status bar."""
+        signals = {
+            ':': self.got_cmd,
+            '/': self.got_search,
+            '?': self.got_search_rev,
+        }
+        self._histbrowse_stop()
+        text = self.text()
+        if not self.history or text != self.history[-1]:
+            self.history.append(text)
+        self.setText('')
+        if text[0] in signals:
+            signals[text[0]].emit(text.lstrip(text[0]))
+
+    @pyqtSlot(str)
+    def set_cmd_text(self, text):
+        """Preset the statusbar to some text."""
+        self.setText(text)
+        self.setFocus()
+
+    @pyqtSlot(str)
+    def on_append_cmd_text(self, text):
+        """Append text to the commandline."""
+        # FIXME do the right thing here
+        self.setText(':' + text)
+        self.setFocus()
+
+    def focusOutEvent(self, e):
+        """Clear the statusbar text if it's explicitely unfocused."""
+        if e.reason() in [Qt.MouseFocusReason, Qt.TabFocusReason,
+                          Qt.BacktabFocusReason, Qt.OtherFocusReason]:
+            self.setText('')
+            self._histbrowse_stop()
+        self.hide_completion.emit()
+        super().focusOutEvent(e)
+
+    def focusInEvent(self, e):
+        """Clear error message when the statusbar is focused."""
+        self._statusbar.clear_error()
+        super().focusInEvent(e)
 
 
 class _CommandValidator(QValidator):
@@ -397,6 +397,15 @@ class TextBase(QLabel):
         self._elidemode = elidemode
         self._elided_text = ''
 
+    def _update_elided_text(self, width):
+        """Update the elided text when necessary.
+
+        width -- The maximal width the text should take.
+
+        """
+        self._elided_text = self.fontMetrics().elidedText(
+            self.text(), self._elidemode, width, Qt.TextShowMnemonic)
+
     def setText(self, txt):
         """Extend QLabel::setText to update the elided text afterwards."""
         super().setText(txt)
@@ -406,15 +415,6 @@ class TextBase(QLabel):
         """Extend QLabel::resizeEvent to update the elided text afterwards."""
         super().resizeEvent(e)
         self._update_elided_text(e.size().width())
-
-    def _update_elided_text(self, width):
-        """Update the elided text when necessary.
-
-        width -- The maximal width the text should take.
-
-        """
-        self._elided_text = self.fontMetrics().elidedText(
-            self.text(), self._elidemode, width, Qt.TextShowMnemonic)
 
     def paintEvent(self, e):
         """Override QLabel::paintEvent to draw elided text."""

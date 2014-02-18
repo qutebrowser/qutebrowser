@@ -102,6 +102,118 @@ class TabbedBrowser(TabWidget):
         self._space.setContext(Qt.WidgetWithChildrenShortcut)
         self._space.activated.connect(lambda: self.cur_scroll_page(0, 1))
 
+    def _cb_tab_shutdown(self, tab):
+        """Called after a tab has been shut down completely."""
+        try:
+            self._tabs.remove(tab)
+        except ValueError:
+            logging.exception("tab {} could not be removed".format(tab))
+        logging.debug("Tabs after removing: {}".format(self._tabs))
+        if not self._tabs:  # all tabs shut down
+            logging.debug("Tab shutdown complete.")
+            self.shutdown_complete.emit()
+
+    def _cur_scroll_percent(self, perc=None, count=None, orientation=None):
+        """Inner logic for cur_scroll_percent_(x|y)."""
+        if perc is None and count is None:
+            perc = 100
+        elif perc is None:
+            perc = int(count)
+        else:
+            perc = float(perc)
+        frame = self.currentWidget().page_.mainFrame()
+        m = frame.scrollBarMaximum(orientation)
+        if m == 0:
+            return
+        frame.setScrollBarValue(orientation, int(m * perc / 100))
+
+    def _widget(self, count=None):
+        """Return a widget based on a count/idx.
+
+        If count is None, return the current widget.
+
+        """
+        if count is None:
+            return self.currentWidget()
+        elif 1 <= count <= self.count():
+            return self.widget(count - 1)
+        else:
+            return None
+
+    def _titleChanged_handler(self, text):
+        """Set the title of a tab.
+
+        Slot for the titleChanged signal of any tab.
+
+        """
+        logging.debug('title changed to "{}"'.format(text))
+        if text:
+            self.setTabText(self.indexOf(self.sender()), text)
+        else:
+            logging.debug('ignoring title change')
+
+    def _filter_factory(self, signal):
+        """Return a partial functon calling _filter_signals with a signal."""
+        return functools.partial(self._filter_signals, signal)
+
+    def _filter_signals(self, signal, *args):
+        """Filter signals and trigger TabbedBrowser signals if needed.
+
+        Triggers signal if the original signal was sent from the _current_ tab
+        and not from any other one.
+
+        The original signal does not matter, since we get the new signal and
+        all args.
+
+        The current value of the signal is also stored in tab.signal_cache so
+        it can be emitted later when the tab changes to the current tab.
+
+        signal -- The signal to emit if the sender was the current widget.
+        *args -- The args to pass to the signal.
+
+        """
+        # FIXME BUG the signal cache ordering seems to be weird sometimes.
+        # How to reproduce:
+        #   - Open tab
+        #   - While loading, open another tab
+        #   - Switch back to #1 when loading finished
+        #   - It seems loadingStarted is before loadingFinished
+        sender = self.sender()
+        log_signal = not signal.signal.startswith('2cur_progress')
+        if log_signal:
+            logging.debug('signal {} (tab {})'.format(dbg_signal(signal, args),
+                                                      self.indexOf(sender)))
+        if not isinstance(sender, BrowserTab):
+            # FIXME why does this happen?
+            logging.warn('Got signal {} by {} which is no tab!'.format(
+                dbg_signal(signal, args), sender))
+            return
+        sender.signal_cache.add(signal, args)
+        if self.currentWidget() == sender:
+            if log_signal:
+                logging.debug('  emitting')
+            return signal.emit(*args)
+        else:
+            if log_signal:
+                logging.debug('  ignoring')
+
+    def shutdown(self):
+        """Try to shut down all tabs cleanly."""
+        try:
+            self.currentChanged.disconnect()
+        except TypeError:
+            pass
+        tabcount = self.count()
+        if tabcount == 0:
+            logging.debug("No tabs -> shutdown complete")
+            self.shutdown_complete.emit()
+            return
+        for tabidx in range(tabcount):
+            logging.debug("Shutting down tab {}/{}".format(tabidx, tabcount))
+            tab = self.widget(tabidx)
+            tab.shutdown(callback=functools.partial(self._cb_tab_shutdown,
+                                                    tab))
+
     def tabopen(self, url):
         """Open a new tab with a given url.
 
@@ -135,17 +247,6 @@ class TabbedBrowser(TabWidget):
         """Set the statusbar to :tabopen and the current URL."""
         url = urlutils.urlstring(self.currentWidget().url())
         self.set_cmd_text.emit(':tabopen ' + url)
-
-    def openurl(self, url, count=None):
-        """Open an url in the current/[count]th tab.
-
-        Command handler for :open.
-        url -- The URL to open.
-
-        """
-        tab = self._widget(count)
-        if tab is not None:
-            tab.openurl(url)
 
     def opencur(self):
         """Set the statusbar to :open and the current URL."""
@@ -183,16 +284,16 @@ class TabbedBrowser(TabWidget):
         elif last_close == 'blank':
             tab.openurl('about:blank')
 
-    def _cb_tab_shutdown(self, tab):
-        """Called after a tab has been shut down completely."""
-        try:
-            self._tabs.remove(tab)
-        except ValueError:
-            logging.exception("tab {} could not be removed".format(tab))
-        logging.debug("Tabs after removing: {}".format(self._tabs))
-        if not self._tabs:  # all tabs shut down
-            logging.debug("Tab shutdown complete.")
-            self.shutdown_complete.emit()
+    def openurl(self, url, count=None):
+        """Open an url in the current/[count]th tab.
+
+        Command handler for :open.
+        url -- The URL to open.
+
+        """
+        tab = self._widget(count)
+        if tab is not None:
+            tab.openurl(url)
 
     def cur_reload(self, count=None):
         """Reload the current/[count]th tab.
@@ -289,20 +390,6 @@ class TabbedBrowser(TabWidget):
         """
         self._cur_scroll_percent(perc, count, Qt.Vertical)
 
-    def _cur_scroll_percent(self, perc=None, count=None, orientation=None):
-        """Inner logic for cur_scroll_percent_(x|y)."""
-        if perc is None and count is None:
-            perc = 100
-        elif perc is None:
-            perc = int(count)
-        else:
-            perc = float(perc)
-        frame = self.currentWidget().page_.mainFrame()
-        m = frame.scrollBarMaximum(orientation)
-        if m == 0:
-            return
-        frame.setScrollBarValue(orientation, int(m * perc / 100))
-
     def cur_scroll_page(self, mx, my, count=1):
         """Scroll the frame mx pages to the right and my pages down."""
         # FIXME this might not work with HTML frames
@@ -310,6 +397,30 @@ class TabbedBrowser(TabWidget):
         size = page.viewportSize()
         page.mainFrame().scroll(int(count) * float(mx) * size.width(),
                                 int(count) * float(my) * size.height())
+
+    def cur_yank(self, sel=False):
+        """Yank the current url to the clipboard or primary selection.
+
+        Command handler for :yank.
+
+        """
+        clip = QApplication.clipboard()
+        url = urlutils.urlstring(self.currentWidget().url())
+        mode = QClipboard.Selection if sel else QClipboard.Clipboard
+        clip.setText(url, mode)
+        # FIXME provide visual feedback
+
+    def cur_yank_title(self, sel=False):
+        """Yank the current title to the clipboard or primary selection.
+
+        Command handler for :yanktitle.
+
+        """
+        clip = QApplication.clipboard()
+        title = self.tabText(self.currentIndex())
+        mode = QClipboard.Selection if sel else QClipboard.Clipboard
+        clip.setText(title, mode)
+        # FIXME provide visual feedbac
 
     def switch_prev(self, count=1):
         """Switch to the ([count]th) previous tab.
@@ -336,30 +447,6 @@ class TabbedBrowser(TabWidget):
         else:
             # FIXME
             pass
-
-    def cur_yank(self, sel=False):
-        """Yank the current url to the clipboard or primary selection.
-
-        Command handler for :yank.
-
-        """
-        clip = QApplication.clipboard()
-        url = urlutils.urlstring(self.currentWidget().url())
-        mode = QClipboard.Selection if sel else QClipboard.Clipboard
-        clip.setText(url, mode)
-        # FIXME provide visual feedback
-
-    def cur_yank_title(self, sel=False):
-        """Yank the current title to the clipboard or primary selection.
-
-        Command handler for :yanktitle.
-
-        """
-        clip = QApplication.clipboard()
-        title = self.tabText(self.currentIndex())
-        mode = QClipboard.Selection if sel else QClipboard.Clipboard
-        clip.setText(title, mode)
-        # FIXME provide visual feedbac
 
     def paste(self, sel=False):
         """Open a page from the clipboard.
@@ -391,93 +478,6 @@ class TabbedBrowser(TabWidget):
         """Extend TabWidget (QWidget)'s keyPressEvent to emit a signal."""
         self.keypress.emit(e)
         super().keyPressEvent(e)
-
-    def _widget(self, count=None):
-        """Return a widget based on a count/idx.
-
-        If count is None, return the current widget.
-
-        """
-        if count is None:
-            return self.currentWidget()
-        elif 1 <= count <= self.count():
-            return self.widget(count - 1)
-        else:
-            return None
-
-    def _titleChanged_handler(self, text):
-        """Set the title of a tab.
-
-        Slot for the titleChanged signal of any tab.
-
-        """
-        logging.debug('title changed to "{}"'.format(text))
-        if text:
-            self.setTabText(self.indexOf(self.sender()), text)
-        else:
-            logging.debug('ignoring title change')
-
-    def _filter_factory(self, signal):
-        """Return a partial functon calling _filter_signals with a signal."""
-        return functools.partial(self._filter_signals, signal)
-
-    def _filter_signals(self, signal, *args):
-        """Filter signals and trigger TabbedBrowser signals if needed.
-
-        Triggers signal if the original signal was sent from the _current_ tab
-        and not from any other one.
-
-        The original signal does not matter, since we get the new signal and
-        all args.
-
-        The current value of the signal is also stored in tab.signal_cache so
-        it can be emitted later when the tab changes to the current tab.
-
-        signal -- The signal to emit if the sender was the current widget.
-        *args -- The args to pass to the signal.
-
-        """
-        # FIXME BUG the signal cache ordering seems to be weird sometimes.
-        # How to reproduce:
-        #   - Open tab
-        #   - While loading, open another tab
-        #   - Switch back to #1 when loading finished
-        #   - It seems loadingStarted is before loadingFinished
-        sender = self.sender()
-        log_signal = not signal.signal.startswith('2cur_progress')
-        if log_signal:
-            logging.debug('signal {} (tab {})'.format(dbg_signal(signal, args),
-                                                      self.indexOf(sender)))
-        if not isinstance(sender, BrowserTab):
-            # FIXME why does this happen?
-            logging.warn('Got signal {} by {} which is no tab!'.format(
-                dbg_signal(signal, args), sender))
-            return
-        sender.signal_cache.add(signal, args)
-        if self.currentWidget() == sender:
-            if log_signal:
-                logging.debug('  emitting')
-            return signal.emit(*args)
-        else:
-            if log_signal:
-                logging.debug('  ignoring')
-
-    def shutdown(self):
-        """Try to shut down all tabs cleanly."""
-        try:
-            self.currentChanged.disconnect()
-        except TypeError:
-            pass
-        tabcount = self.count()
-        if tabcount == 0:
-            logging.debug("No tabs -> shutdown complete")
-            self.shutdown_complete.emit()
-            return
-        for tabidx in range(tabcount):
-            logging.debug("Shutting down tab {}/{}".format(tabidx, tabcount))
-            tab = self.widget(tabidx)
-            tab.shutdown(callback=functools.partial(self._cb_tab_shutdown,
-                                                    tab))
 
 
 class BrowserTab(QWebView):
@@ -664,18 +664,6 @@ class BrowserPage(QWebPage):
         self.network_access_manager = NetworkManager(self)
         self.setNetworkAccessManager(self.network_access_manager)
 
-    def supportsExtension(self, ext):
-        """Override QWebPage::supportsExtension to provide error pages."""
-        return ext in self._extension_handlers
-
-    def extension(self, ext, opt, out):
-        """Override QWebPage::extension to provide error pages."""
-        try:
-            handler = self._extension_handlers[ext]
-        except KeyError:
-            return super().extension(ext, opt, out)
-        return handler(opt, out)
-
     def _handle_errorpage(self, opt, out):
         """Display an error page if needed.
 
@@ -694,6 +682,18 @@ class BrowserPage(QWebPage):
         errpage.content = read_file('html/error.html').format(
             title=title, url=urlstr, error=info.errorString, icon='')
         return True
+
+    def supportsExtension(self, ext):
+        """Override QWebPage::supportsExtension to provide error pages."""
+        return ext in self._extension_handlers
+
+    def extension(self, ext, opt, out):
+        """Override QWebPage::extension to provide error pages."""
+        try:
+            handler = self._extension_handlers[ext]
+        except KeyError:
+            return super().extension(ext, opt, out)
+        return handler(opt, out)
 
 
 class NetworkManager(QNetworkAccessManager):
