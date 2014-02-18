@@ -129,7 +129,7 @@ class CompletionView(QTreeView):
         model -- A QAbstractItemModel with available completions.
 
         """
-        self.model.setsrc(self._completion_models[model])
+        self.model.srcmodel = self._completion_models[model]
         self.expandAll()
         self.resizeColumnToContents(0)
 

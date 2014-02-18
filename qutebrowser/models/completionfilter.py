@@ -31,13 +31,13 @@ class CompletionFilterModel(QSortFilterProxyModel):
 
     Attributes:
         _pattern: The pattern to filter with, used in pattern property.
-        srcmodel: The source model.
+        _srcmodel: The source model, accessed via the srcmodel property.
 
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.srcmodel = None
+        self._srcmodel = None
         self._pattern = ''
 
     @property
@@ -65,7 +65,13 @@ class CompletionFilterModel(QSortFilterProxyModel):
                 self.sort(sortcol)
             self.invalidate()
 
-    def setsrc(self, model):
+    @property
+    def srcmodel(self):
+        """Getter for srcmodel."""
+        return self._srcmodel
+
+    @srcmodel.setter
+    def srcmodel(self, model):
         """Set a new source model and clear the pattern.
 
         model -- The new source model.
@@ -73,7 +79,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
         """
         # FIXME change this to a property
         self.setSourceModel(model)
-        self.srcmodel = model
+        self._srcmodel = model
         self.pattern = ''
 
     def first_item(self):
