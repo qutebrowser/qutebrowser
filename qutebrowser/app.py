@@ -25,6 +25,7 @@ import subprocess
 import configparser
 from signal import signal, SIGINT
 from argparse import ArgumentParser
+from base64 import b64encode
 
 # Print a nice traceback on segfault -- only available on Python 3.3+, but if
 # it's unavailable, it doesn't matter much.
@@ -342,15 +343,12 @@ class QuteBrowser(QApplication):
 
     def _save_geometry(self):
         """Save the window geometry to the state config."""
-        rect = self.mainwindow.geometry()
+        geom = b64encode(bytes(self.mainwindow.saveGeometry())).decode('ASCII')
         try:
-            config.state.add_section('mainwindow')
+            config.state.add_section('geometry')
         except configparser.DuplicateSectionError:
             pass
-        config.state['mainwindow']['x'] = str(rect.x())
-        config.state['mainwindow']['y'] = str(rect.y())
-        config.state['mainwindow']['w'] = str(rect.width())
-        config.state['mainwindow']['h'] = str(rect.height())
+        config.state['geometry']['mainwindow'] = geom
 
     @pyqtSlot()
     def _on_tab_shutdown_complete(self):

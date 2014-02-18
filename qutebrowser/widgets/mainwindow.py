@@ -17,6 +17,9 @@
 
 """The main window of QuteBrowser."""
 
+import binascii
+from base64 import b64decode
+
 from PyQt5.QtCore import QRect
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
@@ -43,19 +46,17 @@ class MainWindow(QWidget):
 
         self.setWindowTitle('qutebrowser')
         try:
-            x = int(config.state['mainwindow']['x'])
-            y = int(config.state['mainwindow']['y'])
-            w = int(config.state['mainwindow']['w'])
-            h = int(config.state['mainwindow']['h'])
-        except KeyError:
-            rect = QRect()
+            geom = b64decode(config.state['geometry']['mainwindow'],
+                             validate=True)
+        except binascii.Error:
+            self._set_default_geometry()
         else:
-            rect = QRect(x, y, w, h)
-        if not rect.isValid():
-            rect = QRect(50, 50, 800, 600)
-        # FIXME there is no setFrameGeometry, but this seems to do the wrong
-        # thing.
-        self.setGeometry(rect)
+            try:
+                ok = self.restoreGeometry(geom)
+            except KeyError:
+                self._set_default_geometry()
+            if not ok:
+                self._set_default_geometry()
 
         self.vbox = QVBoxLayout(self)
         self.vbox.setContentsMargins(0, 0, 0, 0)
@@ -93,3 +94,7 @@ class MainWindow(QWidget):
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+    def _set_default_geometry(self):
+        """Set some sensible default geometry."""
+        self.setGeometry(QRect(50, 50, 800, 600))
