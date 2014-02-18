@@ -15,13 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Configuration storage and config-related utilities.
-
-config         -- The main Config object.
-colordict      -- All configured colors.
-MONOSPACE      -- A list of suitable monospace fonts.
-
-"""
+"""Configuration storage and config-related utilities."""
 
 import os
 import io
