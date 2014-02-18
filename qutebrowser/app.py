@@ -22,6 +22,7 @@ import sys
 import logging
 import functools
 import subprocess
+import configparser
 from signal import signal, SIGINT
 from argparse import ArgumentParser
 
@@ -316,8 +317,15 @@ class QuteBrowser(QApplication):
             return
         self.shutting_down = True
         logging.debug("Shutting down... (do_quit={})".format(do_quit))
-        if config.config is not None:
+        try:
             config.config.save()
+        except AttributeError:
+            logging.exception("Could not save config.")
+        try:
+            self._save_geometry()
+            config.state.save()
+        except AttributeError:
+            logging.exception("Could not save window geometry.")
         try:
             if do_quit:
                 self.mainwindow.tabs.shutdown_complete.connect(self.quit)
@@ -329,6 +337,18 @@ class QuteBrowser(QApplication):
             logging.exception("No mainwindow/tabs to shut down.")
             if do_quit:
                 self.quit()
+
+    def _save_geometry(self):
+        """Save the window geometry to the state config."""
+        rect = self.mainwindow.geometry()
+        try:
+            config.state.add_section('mainwindow')
+        except configparser.DuplicateSectionError:
+            pass
+        config.state['mainwindow']['x'] = str(rect.x())
+        config.state['mainwindow']['y'] = str(rect.y())
+        config.state['mainwindow']['w'] = str(rect.width())
+        config.state['mainwindow']['h'] = str(rect.height())
 
     @pyqtSlot(tuple)
     def cmd_handler(self, tpl):

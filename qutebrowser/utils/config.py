@@ -27,19 +27,23 @@ import os
 import io
 import os.path
 import logging
+import configparser
 from configparser import ConfigParser, ExtendedInterpolation
 
 from qutebrowser.utils.misc import read_file
 
 config = None
+state = None
 colordict = {}
 fontdict = {}
 
 
 def init(confdir):
     """Initialize the global objects based on the config in configdir."""
-    global config, colordict, fontdict
-    config = Config(confdir)
+    global config, state, colordict, fontdict
+    logging.debug("Config init, confdir {}".format(confdir))
+    config = Config(confdir, 'qutebrowser.conf', read_file('qutebrowser.conf'))
+    state = Config(confdir, 'state', always_save=True)
     try:
         colordict = ColorDict(config['colors'])
     except KeyError:
@@ -126,31 +130,37 @@ class FontDict(dict):
         except KeyError:
             return None
 
-
 class Config(ConfigParser):
 
     """Our own ConfigParser subclass."""
 
     configdir = None
-    FNAME = 'config'
     default_cp = None
     config_loaded = False
 
-    def __init__(self, configdir):
+    def __init__(self, configdir, fname, default_config=None,
+                 always_save=False):
         """Config constructor.
 
         configdir -- directory to store the config in.
+        fname -- Filename of the config file.
+        default_config -- Default config as string.
+        always_save -- Whether to always save the config, even when it wasn't
+                       loaded.
 
         """
         super().__init__(interpolation=ExtendedInterpolation())
+        self.always_save = always_save
+        self.configdir = configdir
         self.default_cp = ConfigParser(interpolation=ExtendedInterpolation())
         self.default_cp.optionxform = lambda opt: opt  # be case-insensitive
-        self.default_cp.read_string(read_file('qutebrowser.conf'))
+        if default_config is not None:
+            self.default_cp.read_string(default_config)
         if not self.configdir:
             return
         self.optionxform = lambda opt: opt  # be case-insensitive
         self.configdir = configdir
-        self.configfile = os.path.join(self.configdir, self.FNAME)
+        self.configfile = os.path.join(self.configdir, fname)
         if not os.path.isfile(self.configfile):
             return
         logging.debug("Reading config from {}".format(self.configfile))

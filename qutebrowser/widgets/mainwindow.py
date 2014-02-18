@@ -17,12 +17,13 @@
 
 """The main window of QuteBrowser."""
 
+from PyQt5.QtCore import QRect
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
 from qutebrowser.widgets.statusbar import StatusBar
 from qutebrowser.widgets.browser import TabbedBrowser
 from qutebrowser.widgets.completion import CompletionView
-
+import qutebrowser.utils.config as config
 
 class MainWindow(QWidget):
 
@@ -41,8 +42,20 @@ class MainWindow(QWidget):
         super().__init__()
 
         self.setWindowTitle('qutebrowser')
-        # FIXME maybe store window position/size on exit
-        self.resize(800, 600)
+        try:
+            x = int(config.state['mainwindow']['x'])
+            y = int(config.state['mainwindow']['y'])
+            w = int(config.state['mainwindow']['w'])
+            h = int(config.state['mainwindow']['h'])
+        except KeyError:
+            rect = QRect()
+        else:
+            rect = QRect(x, y, w, h)
+        if not rect.isValid():
+            rect = QRect(50, 50, 800, 600)
+        # FIXME there is no setFrameGeometry, but this seems to do the wrong
+        # thing.
+        self.setGeometry(rect)
 
         self.vbox = QVBoxLayout(self)
         self.vbox.setContentsMargins(0, 0, 0, 0)
