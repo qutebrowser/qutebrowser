@@ -63,6 +63,7 @@ class CrashDialog(QDialog):
         self.vbox.addWidget(self.txt)
 
         self.hbox = QHBoxLayout()
+        self.hbox.addStretch()
         self.btn_quit = QPushButton()
         self.btn_quit.setText('Quit')
         self.btn_quit.clicked.connect(self.reject)
