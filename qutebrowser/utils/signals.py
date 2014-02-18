@@ -42,10 +42,13 @@ def dbg_signal(sig, args):
 
 class SignalCache(QObject):
 
-    """Cache signals emitted by an object, and re-emit them later."""
+    """Cache signals emitted by an object, and re-emit them later.
 
-    uncached = None
-    signal_dict = None
+    Attributes:
+        _uncached: A list of signals which should not be cached.
+        _signal_dict: The internal mapping of signals we got.
+
+    """
 
     def __init__(self, uncached=None):
         """Create a new SignalCache.
@@ -56,10 +59,14 @@ class SignalCache(QObject):
         """
         super().__init__()
         if uncached is None:
-            self.uncached = []
+            self._uncached = []
         else:
-            self.uncached = uncached
-        self.signal_dict = OrderedDict()
+            self._uncached = uncached
+        self._signal_dict = OrderedDict()
+
+    def _signal_needs_caching(self, signal):
+        """Return True if a signal should be cached, false otherwise."""
+        return not signal_name(signal) in self._uncached
 
     def add(self, sig, args):
         """Add a new signal to the signal cache.
@@ -71,21 +78,17 @@ class SignalCache(QObject):
         """
         if not self._signal_needs_caching(sig):
             return
-        had_signal = sig.signal in self.signal_dict
-        self.signal_dict[sig.signal] = (sig, args)
+        had_signal = sig.signal in self._signal_dict
+        self._signal_dict[sig.signal] = (sig, args)
         if had_signal:
-            self.signal_dict.move_to_end(sig.signal)
+            self._signal_dict.move_to_end(sig.signal)
 
     def clear(self):
         """Clear/purge the signal cache."""
-        self.signal_dict.clear()
+        self._signal_dict.clear()
 
     def replay(self):
         """Replay all cached signals."""
-        for (signal, args) in self.signal_dict.values():
+        for (signal, args) in self._signal_dict.values():
             logging.debug('emitting {}'.format(dbg_signal(signal, args)))
             signal.emit(*args)
-
-    def _signal_needs_caching(self, signal):
-        """Return True if a signal should be cached, false otherwise."""
-        return not signal_name(signal) in self.uncached

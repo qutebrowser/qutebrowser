@@ -27,29 +27,23 @@ from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex
 
 class CompletionFilterModel(QSortFilterProxyModel):
 
-    """Subclass of QSortFilterProxyModel with custom sorting/filtering."""
+    """Subclass of QSortFilterProxyModel with custom sorting/filtering.
 
-    _pattern = None
-    srcmodel = None
+    Attributes:
+        _pattern: The pattern to filter with, used in pattern property.
+        _srcmodel: The source model, accessed via the srcmodel property.
+
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._srcmodel = None
         self._pattern = ''
 
     @property
     def pattern(self):
         """Getter for pattern."""
         return self._pattern
-
-    def setsrc(self, model):
-        """Set a new source model and clear the pattern.
-
-        model -- The new source model.
-
-        """
-        self.setSourceModel(model)
-        self.srcmodel = model
-        self.pattern = ''
 
     @pattern.setter
     def pattern(self, val):
@@ -70,6 +64,33 @@ class CompletionFilterModel(QSortFilterProxyModel):
             except NotImplementedError:
                 self.sort(sortcol)
             self.invalidate()
+
+    @property
+    def srcmodel(self):
+        """Getter for srcmodel."""
+        return self._srcmodel
+
+    @srcmodel.setter
+    def srcmodel(self, model):
+        """Set a new source model and clear the pattern.
+
+        model -- The new source model.
+
+        """
+        # FIXME change this to a property
+        self.setSourceModel(model)
+        self._srcmodel = model
+        self.pattern = ''
+
+    def first_item(self):
+        """Return the first item in the model."""
+        cat = self.index(0, 0)
+        return self.index(0, 0, cat)
+
+    def last_item(self):
+        """Return the last item in the model."""
+        cat = self.index(self.rowCount() - 1, 0)
+        return self.index(self.rowCount(cat) - 1, 0, cat)
 
     def filterAcceptsRow(self, row, parent):
         """Custom filter implementation.
@@ -116,13 +137,3 @@ class CompletionFilterModel(QSortFilterProxyModel):
             return False
         else:
             return left < right
-
-    def first_item(self):
-        """Return the first item in the model."""
-        cat = self.index(0, 0)
-        return self.index(0, 0, cat)
-
-    def last_item(self):
-        """Return the last item in the model."""
-        cat = self.index(self.rowCount() - 1, 0)
-        return self.index(self.rowCount(cat) - 1, 0, cat)

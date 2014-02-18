@@ -15,15 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""The base completion model for completion in the command line.
-
-Contains:
-    CompletionModel       -- A simple tree model based on Python data.
-    CompletionItem        -- One item in the CompletionModel.
-
-"""
-
-from collections import OrderedDict
+"""The base completion model for completion in the command line."""
 
 from PyQt5.QtCore import Qt, QVariant, QAbstractItemModel, QModelIndex
 
@@ -34,26 +26,18 @@ class CompletionModel(QAbstractItemModel):
 
     Used for showing completions later in the CompletionView.
 
+    Attributes:
+        _id_map: A mapping from Python object IDs (from id()) to objects, to be
+                 used as internalIndex for the model.
+        _root: The root item.
+
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._data = OrderedDict()
-        self.parents = []
-        self.id_map = {}
-        self.root = CompletionItem([""] * 2)
-        self.id_map[id(self.root)] = self.root
-
-    def removeRows(self, position=0, count=1, parent=QModelIndex()):
-        """Remove rows from the model.
-
-        Override QAbstractItemModel::removeRows.
-
-        """
-        node = self._node(parent)
-        self.beginRemoveRows(parent, position, position + count - 1)
-        node.children.pop(position)
-        self.endRemoveRows()
+        self._id_map = {}
+        self._root = CompletionItem([""] * 2)
+        self._id_map[id(self._root)] = self._root
 
     def _node(self, index):
         """Return the interal data representation for index.
@@ -63,172 +47,9 @@ class CompletionModel(QAbstractItemModel):
 
         """
         if index.isValid():
-            return self.id_map[index.internalId()]
+            return self._id_map[index.internalId()]
         else:
-            return self.root
-
-    def columnCount(self, parent=QModelIndex()):
-        """Return the column count in the model.
-
-        Override QAbstractItemModel::columnCount.
-
-        """
-        # pylint: disable=unused-argument
-        return self.root.column_count()
-
-    def data(self, index, role=Qt.DisplayRole):
-        """Return the data for role/index as QVariant.
-
-        Return an invalid QVariant on error.
-        Override QAbstractItemModel::data.
-
-        """
-        if not index.isValid():
-            return QVariant()
-        try:
-            item = self.id_map[index.internalId()]
-        except KeyError:
-            return QVariant()
-        try:
-            return QVariant(item.data(index.column(), role))
-        except (IndexError, ValueError):
-            return QVariant()
-
-    def flags(self, index):
-        """Return the item flags for index.
-
-        Return Qt.NoItemFlags on error.
-        Override QAbstractItemModel::flags.
-
-        """
-        # FIXME categories are not selectable, but moving via arrow keys still
-        # tries to select them
-        if not index.isValid():
-            return Qt.NoItemFlags
-        flags = Qt.ItemIsEnabled
-        if len(self.id_map[index.internalId()].children) > 0:
-            return flags
-        else:
-            return flags | Qt.ItemIsSelectable
-
-    def headerData(self, section, orientation, role=Qt.DisplayRole):
-        """Return the header data for role/index as QVariant.
-
-        Return an invalid QVariant on error.
-        Override QAbstractItemModel::headerData.
-
-        """
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return QVariant(self.root.data(section))
-        return QVariant()
-
-    def setData(self, index, value, role=Qt.EditRole):
-        """Set the data for role/index to value.
-
-        Return True on success, False on failure.
-        Override QAbstractItemModel::setData.
-
-        """
-        if not index.isValid():
-            return False
-        item = self.id_map[index.internalId()]
-        try:
-            item.setdata(index.column(), value, role)
-        except (IndexError, ValueError):
-            return False
-        self.dataChanged.emit(index, index)
-        return True
-
-    def index(self, row, column, parent=QModelIndex()):
-        """Return the QModelIndex for row/column/parent.
-
-        Return an invalid QModelIndex on failure.
-        Override QAbstractItemModel::index.
-
-        """
-        if (0 <= row < self.rowCount(parent) and
-                0 <= column < self.columnCount(parent)):
-            pass
-        else:
-            return QModelIndex()
-
-        if not parent.isValid():
-            parent_item = self.root
-        else:
-            parent_item = self.id_map[parent.internalId()]
-
-        child_item = parent_item.children[row]
-        if child_item:
-            index = self.createIndex(row, column, id(child_item))
-            self.id_map.setdefault(index.internalId(), child_item)
-            return index
-        else:
-            return QModelIndex()
-
-    def parent(self, index):
-        """Return the QModelIndex of the parent of the object behind index.
-
-        Return an invalid QModelIndex on failure.
-        Override QAbstractItemModel::parent.
-
-        """
-        if not index.isValid():
-            return QModelIndex()
-        item = self.id_map[index.internalId()].parent
-        if item == self.root or item is None:
-            return QModelIndex()
-        return self.createIndex(item.row(), 0, id(item))
-
-    def rowCount(self, parent=QModelIndex()):
-        """Return the children count of an item.
-
-        Use the root frame if parent is invalid.
-        Override QAbstractItemModel::rowCount.
-
-        """
-        if parent.column() > 0:
-            return 0
-
-        if not parent.isValid():
-            pitem = self.root
-        else:
-            pitem = self.id_map[parent.internalId()]
-
-        return len(pitem.children)
-
-    def sort(self, column, order=Qt.AscendingOrder):
-        """Sort the data in column according to order.
-
-        Raise NotImplementedError, should be overwritten in a superclass.
-        Override QAbstractItemModel::sort.
-
-        """
-        raise NotImplementedError
-
-    def init_data(self):
-        """Initialize the Qt model based on the data in self._data."""
-        for (cat, items) in self._data.items():
-            newcat = CompletionItem([cat], self.root)
-            self.id_map[id(newcat)] = newcat
-            self.root.children.append(newcat)
-            for item in items:
-                newitem = CompletionItem(item, newcat)
-                self.id_map[id(newitem)] = newitem
-                newcat.children.append(newitem)
-
-    def mark_all_items(self, needle):
-        """Mark a string in all items (children of root-children).
-
-        needle -- The string to mark.
-
-        """
-        for i in range(self.rowCount()):
-            cat = self.index(i, 0)
-            for k in range(self.rowCount(cat)):
-                idx = self.index(k, 0, cat)
-                old = self.data(idx).value()
-                marks = self._get_marks(needle, old)
-                self.setData(idx, marks, Qt.UserRole)
+            return self._root
 
     def _get_marks(self, needle, haystack):
         """Return the marks for needle in haystack."""
@@ -244,15 +65,196 @@ class CompletionModel(QAbstractItemModel):
             marks.append((pos1, pos2))
         return marks
 
+    def mark_all_items(self, needle):
+        """Mark a string in all items (children of root-children).
+
+        needle -- The string to mark.
+
+        """
+        for i in range(self.rowCount()):
+            cat = self.index(i, 0)
+            for k in range(self.rowCount(cat)):
+                idx = self.index(k, 0, cat)
+                old = self.data(idx).value()
+                marks = self._get_marks(needle, old)
+                self.setData(idx, marks, Qt.UserRole)
+
+    def init_data(self, data):
+        """Initialize the Qt model based on the data given.
+
+        data -- dict of data to process.
+
+        """
+        for (cat, items) in data.items():
+            newcat = CompletionItem([cat], self._root)
+            self._id_map[id(newcat)] = newcat
+            self._root.children.append(newcat)
+            for item in items:
+                newitem = CompletionItem(item, newcat)
+                self._id_map[id(newitem)] = newitem
+                newcat.children.append(newitem)
+
+    def removeRows(self, position=0, count=1, parent=QModelIndex()):
+        """Remove rows from the model.
+
+        Override QAbstractItemModel::removeRows.
+
+        """
+        node = self._node(parent)
+        self.beginRemoveRows(parent, position, position + count - 1)
+        node.children.pop(position)
+        self.endRemoveRows()
+
+    def columnCount(self, parent=QModelIndex()):
+        """Return the column count in the model.
+
+        Override QAbstractItemModel::columnCount.
+
+        """
+        # pylint: disable=unused-argument
+        return self._root.column_count()
+
+    def rowCount(self, parent=QModelIndex()):
+        """Return the children count of an item.
+
+        Use the root frame if parent is invalid.
+        Override QAbstractItemModel::rowCount.
+
+        """
+        if parent.column() > 0:
+            return 0
+
+        if not parent.isValid():
+            pitem = self._root
+        else:
+            pitem = self._id_map[parent.internalId()]
+
+        return len(pitem.children)
+
+    def data(self, index, role=Qt.DisplayRole):
+        """Return the data for role/index as QVariant.
+
+        Return an invalid QVariant on error.
+        Override QAbstractItemModel::data.
+
+        """
+        if not index.isValid():
+            return QVariant()
+        try:
+            item = self._id_map[index.internalId()]
+        except KeyError:
+            return QVariant()
+        try:
+            return QVariant(item.data(index.column(), role))
+        except (IndexError, ValueError):
+            return QVariant()
+
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        """Return the header data for role/index as QVariant.
+
+        Return an invalid QVariant on error.
+        Override QAbstractItemModel::headerData.
+
+        """
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+            return QVariant(self._root.data(section))
+        return QVariant()
+
+    def setData(self, index, value, role=Qt.EditRole):
+        """Set the data for role/index to value.
+
+        Return True on success, False on failure.
+        Override QAbstractItemModel::setData.
+
+        """
+        if not index.isValid():
+            return False
+        item = self._id_map[index.internalId()]
+        try:
+            item.setdata(index.column(), value, role)
+        except (IndexError, ValueError):
+            return False
+        self.dataChanged.emit(index, index)
+        return True
+
+    def flags(self, index):
+        """Return the item flags for index.
+
+        Return Qt.NoItemFlags on error.
+        Override QAbstractItemModel::flags.
+
+        """
+        # FIXME categories are not selectable, but moving via arrow keys still
+        # tries to select them
+        if not index.isValid():
+            return Qt.NoItemFlags
+        flags = Qt.ItemIsEnabled
+        if len(self._id_map[index.internalId()].children) > 0:
+            return flags
+        else:
+            return flags | Qt.ItemIsSelectable
+
+    def index(self, row, column, parent=QModelIndex()):
+        """Return the QModelIndex for row/column/parent.
+
+        Return an invalid QModelIndex on failure.
+        Override QAbstractItemModel::index.
+
+        """
+        if (0 <= row < self.rowCount(parent) and
+                0 <= column < self.columnCount(parent)):
+            pass
+        else:
+            return QModelIndex()
+
+        if not parent.isValid():
+            parent_item = self._root
+        else:
+            parent_item = self._id_map[parent.internalId()]
+
+        child_item = parent_item.children[row]
+        if child_item:
+            index = self.createIndex(row, column, id(child_item))
+            self._id_map.setdefault(index.internalId(), child_item)
+            return index
+        else:
+            return QModelIndex()
+
+    def parent(self, index):
+        """Return the QModelIndex of the parent of the object behind index.
+
+        Return an invalid QModelIndex on failure.
+        Override QAbstractItemModel::parent.
+
+        """
+        if not index.isValid():
+            return QModelIndex()
+        item = self._id_map[index.internalId()].parent
+        if item == self._root or item is None:
+            return QModelIndex()
+        return self.createIndex(item.row(), 0, id(item))
+
+    def sort(self, column, order=Qt.AscendingOrder):
+        """Sort the data in column according to order.
+
+        Raise NotImplementedError, should be overwritten in a superclass.
+        Override QAbstractItemModel::sort.
+
+        """
+        raise NotImplementedError
+
 
 class CompletionItem():
 
-    """An item (row) in a CompletionModel."""
+    """An item (row) in a CompletionModel.
 
-    parent = None
-    children = None
-    _data = None
-    _marks = None
+    Attributes:
+        parent: The parent of this item.
+        children: The children of this item.
+        _data: The data of this item.
+        _marks: The marks of this item.
+
+    """
 
     def __init__(self, data, parent=None):
         """Constructor for CompletionItem.
@@ -262,8 +264,8 @@ class CompletionItem():
 
         """
         self.parent = parent
-        self._data = data
         self.children = []
+        self._data = data
         self._marks = []
 
     def data(self, column, role=Qt.DisplayRole):

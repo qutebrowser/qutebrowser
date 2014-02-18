@@ -17,6 +17,7 @@
 
 """Other utilities which don't fit anywhere else."""
 
+import sys
 import os.path
 
 from PyQt5.QtCore import pyqtRemoveInputHook
@@ -50,3 +51,16 @@ def read_file(filename):
     fn = os.path.join(qutebrowser.basedir, filename)
     with open(fn, 'r', encoding='UTF-8') as f:
         return f.read()
+
+
+def trace_lines(do_trace):
+    """Turn on/off printing each executed line."""
+    def trace(frame, event, _):
+        """Trace function passed to sys.settrace."""
+        print("{}, {}:{}".format(event, frame.f_code.co_filename,
+                                 frame.f_lineno))
+        return trace
+    if do_trace:
+        sys.settrace(trace)
+    else:
+        sys.settrace(None)

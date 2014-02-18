@@ -30,6 +30,10 @@ class Command(QObject):
 
     See the module documentation for qutebrowser.commands.commands for details.
 
+    Signals:
+        signal: Emitted when the command was executed.
+                arg: A tuple (command, [args])
+
     """
 
     # FIXME:

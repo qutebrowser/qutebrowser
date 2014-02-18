@@ -38,6 +38,9 @@ class Style(QCommonStyle):
     http://stackoverflow.com/a/17294081
     https://code.google.com/p/makehuman/source/browse/trunk/makehuman/lib/qtgui.py # noqa # pylint: disable=line-too-long
 
+    Attributes:
+        _style: The base/"parent" style.
+
     """
 
     def __init__(self, style):

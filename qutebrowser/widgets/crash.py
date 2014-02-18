@@ -29,14 +29,18 @@ from qutebrowser.utils.version import version
 
 class CrashDialog(QDialog):
 
-    """Dialog which gets shown after there was a crash."""
+    """Dialog which gets shown after there was a crash.
 
-    vbox = None
-    lbl = None
-    txt = None
-    hbox = None
-    btn_quit = None
-    btn_restore = None
+    Attributes:
+        These are just here to have a static reference to avoid GCing.
+        _vbox: The main QVBoxLayout
+        _lbl: The QLabel with the static text
+        _txt: The QTextEdit with the crash information
+        _hbox: The QHboxLayout containing the buttons
+        _btn_quit: The quit button
+        _btn_restore: the restore button
+
+    """
 
     def __init__(self, pages, cmdhist, exc):
         super().__init__()
@@ -44,8 +48,8 @@ class CrashDialog(QDialog):
         self.setWindowTitle('Whoops!')
         self.setModal(True)
 
-        self.vbox = QVBoxLayout()
-        self.lbl = QLabel(self)
+        self._vbox = QVBoxLayout(self)
+        self._lbl = QLabel()
         text = ('Argh! qutebrowser crashed unexpectedly.<br/>'
                 'Please review the info below to remove sensitive data and '
                 'then submit it to <a href="mailto:crash@qutebrowser.org">'
@@ -53,29 +57,29 @@ class CrashDialog(QDialog):
         if pages:
             text += ('You can click "Restore tabs" to attempt to reopen your '
                      'open tabs.')
-        self.lbl.setText(text)
-        self.lbl.setWordWrap(True)
-        self.vbox.addWidget(self.lbl)
+        self._lbl.setText(text)
+        self._lbl.setWordWrap(True)
+        self._vbox.addWidget(self._lbl)
 
-        self.txt = QTextEdit(self)
-        self.txt.setReadOnly(True)
-        self.txt.setText(self._crash_info(pages, cmdhist, exc))
-        self.vbox.addWidget(self.txt)
-        self.setLayout(self.vbox)
+        self._txt = QTextEdit()
+        self._txt.setReadOnly(True)
+        self._txt.setText(self._crash_info(pages, cmdhist, exc))
+        self._vbox.addWidget(self._txt)
 
-        self.hbox = QHBoxLayout()
-        self.btn_quit = QPushButton(self)
-        self.btn_quit.setText('Quit')
-        self.btn_quit.clicked.connect(self.reject)
-        self.hbox.addWidget(self.btn_quit)
+        self._hbox = QHBoxLayout()
+        self._hbox.addStretch()
+        self._btn_quit = QPushButton()
+        self._btn_quit.setText('Quit')
+        self._btn_quit.clicked.connect(self.reject)
+        self._hbox.addWidget(self._btn_quit)
         if pages:
-            self.btn_restore = QPushButton(self)
-            self.btn_restore.setText('Restore tabs')
-            self.btn_restore.clicked.connect(self.accept)
-            self.btn_restore.setDefault(True)
-            self.hbox.addWidget(self.btn_restore)
+            self._btn_restore = QPushButton()
+            self._btn_restore.setText('Restore tabs')
+            self._btn_restore.clicked.connect(self.accept)
+            self._btn_restore.setDefault(True)
+            self._hbox.addWidget(self._btn_restore)
 
-        self.vbox.addLayout(self.hbox)
+        self._vbox.addLayout(self._hbox)
 
     def _crash_info(self, pages, cmdhist, exc):
         """Gather crash information to display."""

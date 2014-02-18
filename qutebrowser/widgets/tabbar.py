@@ -26,12 +26,17 @@ from qutebrowser.utils.style import Style
 
 class TabWidget(QTabWidget):
 
-    """The tabwidget used for TabbedBrowser."""
+    """The tabwidget used for TabbedBrowser.
+
+    Attributes:
+        _STYLESHEET: The stylesheet template to be used.
+
+    """
 
     # FIXME there is still some ugly 1px white stripe from somewhere if we do
     # background-color: grey for QTabBar...
 
-    _stylesheet = """
+    _STYLESHEET = """
         QTabWidget::pane {{
             position: absolute;
             top: 0px;
@@ -63,7 +68,7 @@ class TabWidget(QTabWidget):
         super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setStyle(Style(self.style()))
-        self.setStyleSheet(config.get_stylesheet(self._stylesheet))
+        self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
         self._init_config()

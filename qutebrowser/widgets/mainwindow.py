@@ -17,11 +17,16 @@
 
 """The main window of QuteBrowser."""
 
+import binascii
+from base64 import b64decode
+
+from PyQt5.QtCore import QRect
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
 from qutebrowser.widgets.statusbar import StatusBar
 from qutebrowser.widgets.browser import TabbedBrowser
 from qutebrowser.widgets.completion import CompletionView
+import qutebrowser.utils.config as config
 
 
 class MainWindow(QWidget):
@@ -31,30 +36,41 @@ class MainWindow(QWidget):
     Adds all needed components to a vbox, initializes subwidgets and connects
     signals.
 
-    """
+    Attributes:
+        tabs: The TabbedBrowser widget.
+        status: The StatusBar widget.
+        _vbox: The main QVBoxLayout.
 
-    vbox = None
-    tabs = None
-    status = None
+    """
 
     def __init__(self):
         super().__init__()
 
         self.setWindowTitle('qutebrowser')
-        # FIXME maybe store window position/size on exit
-        self.resize(800, 600)
+        try:
+            geom = b64decode(config.state['geometry']['mainwindow'],
+                             validate=True)
+        except binascii.Error:
+            self._set_default_geometry()
+        else:
+            try:
+                ok = self.restoreGeometry(geom)
+            except KeyError:
+                self._set_default_geometry()
+            if not ok:
+                self._set_default_geometry()
 
-        self.vbox = QVBoxLayout(self)
-        self.vbox.setContentsMargins(0, 0, 0, 0)
-        self.vbox.setSpacing(0)
+        self._vbox = QVBoxLayout(self)
+        self._vbox.setContentsMargins(0, 0, 0, 0)
+        self._vbox.setSpacing(0)
 
         self.tabs = TabbedBrowser()
-        self.vbox.addWidget(self.tabs)
+        self._vbox.addWidget(self.tabs)
 
         self.completion = CompletionView(self)
 
         self.status = StatusBar()
-        self.vbox.addWidget(self.status)
+        self._vbox.addWidget(self.status)
 
         self.status.resized.connect(self.completion.resize_to_bar)
         self.status.moved.connect(self.completion.move_to_bar)
@@ -80,3 +96,7 @@ class MainWindow(QWidget):
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+    def _set_default_geometry(self):
+        """Set some sensible default geometry."""
+        self.setGeometry(QRect(50, 50, 800, 600))

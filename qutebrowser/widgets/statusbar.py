@@ -21,8 +21,7 @@ import logging
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt
 from PyQt5.QtWidgets import (QWidget, QLineEdit, QProgressBar, QLabel,
-                             QHBoxLayout, QSizePolicy, QShortcut, QStyle,
-                             QStyleOption)
+                             QHBoxLayout, QSizePolicy, QShortcut)
 from PyQt5.QtGui import QPainter, QKeySequence, QValidator
 
 import qutebrowser.utils.config as config
@@ -32,20 +31,33 @@ from qutebrowser.utils.url import urlstring
 
 class StatusBar(QWidget):
 
-    """The statusbar at the bottom of the mainwindow."""
+    """The statusbar at the bottom of the mainwindow.
 
-    hbox = None
-    cmd = None
-    txt = None
-    keystring = None
-    percentage = None
-    url = None
-    prog = None
+    Attributes:
+        cmd: The Command widget in the statusbar.
+        txt: The Text widget in the statusbar.
+        keystring: The KeyString widget in the statusbar.
+        percentage: The Percentage widget in the statusbar.
+        url: The Url widget in the statusbar.
+        prog: The Progress widget in the statusbar.
+        _hbox: The main QHBoxLayout.
+        _error: If there currently is an error, accessed through the error
+                property.
+        _STYLESHEET: The stylesheet template.
+
+    Signals:
+        resized: Emitted when the statusbar has resized, so the completion
+                 widget can adjust its size to it.
+                 arg: The new size.
+        moved: Emitted when the statusbar has moved, so the completion widget
+               can move the the right position.
+               arg: The new position.
+
+    """
+
     resized = pyqtSignal('QRect')
     moved = pyqtSignal('QPoint')
-    _error = False
-    _option = None
-    _stylesheet = """
+    _STYLESHEET = """
         QWidget#StatusBar[error="false"] {{
             {color[statusbar.bg]}
         }}
@@ -60,36 +72,39 @@ class StatusBar(QWidget):
         }}
     """
 
-    # TODO: the statusbar should be a bit smaller
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
-        self.setStyleSheet(config.get_stylesheet(self._stylesheet))
+        self.setAttribute(Qt.WA_StyledBackground)
+        self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
 
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
 
-        self.hbox = QHBoxLayout(self)
-        self.hbox.setContentsMargins(0, 0, 0, 0)
-        self.hbox.setSpacing(5)
+        self._error = False
+        self._option = None
 
-        self.cmd = Command(self)
-        self.hbox.addWidget(self.cmd)
+        self._hbox = QHBoxLayout(self)
+        self._hbox.setContentsMargins(0, 0, 0, 0)
+        self._hbox.setSpacing(5)
 
-        self.txt = Text(self)
-        self.hbox.addWidget(self.txt)
-        self.hbox.addStretch()
+        self.cmd = _Command(self)
+        self._hbox.addWidget(self.cmd)
 
-        self.keystring = KeyString(self)
-        self.hbox.addWidget(self.keystring)
+        self.txt = _Text(self)
+        self._hbox.addWidget(self.txt)
+        self._hbox.addStretch()
 
-        self.url = Url(self)
-        self.hbox.addWidget(self.url)
+        self.keystring = _KeyString(self)
+        self._hbox.addWidget(self.keystring)
 
-        self.percentage = Percentage(self)
-        self.hbox.addWidget(self.percentage)
+        self.url = _Url(self)
+        self._hbox.addWidget(self.url)
 
-        self.prog = Progress(self)
-        self.hbox.addWidget(self.prog)
+        self.percentage = _Percentage(self)
+        self._hbox.addWidget(self.percentage)
+
+        self.prog = _Progress(self)
+        self._hbox.addWidget(self.prog)
 
     @pyqtProperty(bool)
     def error(self):
@@ -106,20 +121,11 @@ class StatusBar(QWidget):
 
         """
         self._error = val
-        self.setStyleSheet(config.get_stylesheet(self._stylesheet))
-
-    def paintEvent(self, e):
-        """Override QWIidget.paintEvent to handle stylesheets."""
-        # pylint: disable=unused-argument
-        self._option = QStyleOption()
-        self._option.initFrom(self)
-        painter = QPainter(self)
-        self.style().drawPrimitive(QStyle.PE_Widget, self._option,
-                                   painter, self)
+        self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
 
     @pyqtSlot(str)
     def disp_error(self, text):
-        """Displaysan error in the statusbar."""
+        """Display an error in the statusbar."""
         self.error = True
         self.txt.set_error(text)
 
@@ -147,24 +153,40 @@ class StatusBar(QWidget):
         self.moved.emit(e.pos())
 
 
-class Command(QLineEdit):
+class _Command(QLineEdit):
 
-    """The commandline part of the statusbar."""
+    """The commandline part of the statusbar.
 
-    # Emitted when a command is triggered by the user
+    Attributes:
+        history: The command history, with newer commands at the bottom.
+        _statusbar: The statusbar (parent) QWidget.
+        _shortcuts: Defined QShortcuts to prevent GCing.
+        _tmphist: The temporary history for history browsing
+        _histpos: The current position inside _tmphist
+        _validator: The current command validator.
+
+    Signals:
+        got_cmd: Emitted when a command is triggered by the user.
+                 arg: The command string.
+        got_search: Emitted when the user started a new search.
+                    arg: The search term.
+        got_rev_search: Emitted when the user started a new reverse search.
+                        arg: The search term.
+        esc_pressed: Emitted when the escape key was pressed.
+        tab_pressed: Emitted when the tab key was pressed.
+                     arg: Whether shift has been pressed.
+        hide_completion: Emitted when the completion widget should be hidden.
+
+    """
+
+    # FIXME we should probably use a proper model for the command history.
+
     got_cmd = pyqtSignal(str)
-    # Emitted for searches triggered by the user
     got_search = pyqtSignal(str)
     got_search_rev = pyqtSignal(str)
-    statusbar = None  # The status bar object
-    esc_pressed = pyqtSignal()  # Emitted when escape is pressed
-    tab_pressed = pyqtSignal(bool)  # Emitted when tab is pressed (arg: shift)
-    hide_completion = pyqtSignal()  # Hide completion window
-    history = []  # The command history, with newer commands at the bottom
-    _shortcuts = []
-    _tmphist = []
-    _histpos = None
-    _validator = None  # CommandValidator
+    esc_pressed = pyqtSignal()
+    tab_pressed = pyqtSignal(bool)
+    hide_completion = pyqtSignal()
 
     # FIXME won't the tab key switch to the next widget?
     # See [0] for a possible fix.
@@ -173,7 +195,9 @@ class Command(QLineEdit):
     def __init__(self, statusbar):
         super().__init__(statusbar)
         # FIXME
-        self.statusbar = statusbar
+        self._statusbar = statusbar
+        self._histpos = None
+        self._tmphist = []
         self.setStyleSheet("""
             QLineEdit {
                 border: 0px;
@@ -181,16 +205,18 @@ class Command(QLineEdit):
                 background-color: transparent;
             }
         """)
-        self._validator = CommandValidator(self)
+        self._validator = _CommandValidator(self)
         self.setValidator(self._validator)
-        self.returnPressed.connect(self.on_return_pressed)
+        self.returnPressed.connect(self._on_return_pressed)
         self.textEdited.connect(self._histbrowse_stop)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
+        self.history = []
 
+        self._shortcuts = []
         for (key, handler) in [
                 (Qt.Key_Escape, self.esc_pressed),
-                (Qt.Key_Up, self.on_key_up_pressed),
-                (Qt.Key_Down, self.on_key_down_pressed),
+                (Qt.Key_Up, self._on_key_up_pressed),
+                (Qt.Key_Down, self._on_key_down_pressed),
                 (Qt.Key_Tab | Qt.SHIFT, lambda: self.tab_pressed.emit(True)),
                 (Qt.Key_Tab, lambda: self.tab_pressed.emit(False))
         ]:
@@ -201,7 +227,7 @@ class Command(QLineEdit):
             self._shortcuts.append(sc)
 
     @pyqtSlot()
-    def on_return_pressed(self):
+    def _on_return_pressed(self):
         """Handle the command in the status bar."""
         signals = {
             ':': self.got_cmd,
@@ -217,7 +243,7 @@ class Command(QLineEdit):
             signals[text[0]].emit(text.lstrip(text[0]))
 
     @pyqtSlot(str)
-    def on_set_cmd_text(self, text):
+    def set_cmd_text(self, text):
         """Preset the statusbar to some text."""
         self.setText(text)
         self.setFocus()
@@ -240,7 +266,7 @@ class Command(QLineEdit):
 
     def focusInEvent(self, e):
         """Clear error message when the statusbar is focused."""
-        self.statusbar.clear_error()
+        self._statusbar.clear_error()
         super().focusInEvent(e)
 
     def _histbrowse_start(self):
@@ -264,7 +290,7 @@ class Command(QLineEdit):
         self._histpos = None
 
     @pyqtSlot()
-    def on_key_up_pressed(self):
+    def _on_key_up_pressed(self):
         """Handle Up presses (go back in history)."""
         logging.debug("history up [pre]: pos {}".format(self._histpos))
         if self._histpos is None:
@@ -277,10 +303,10 @@ class Command(QLineEdit):
             return
         logging.debug("history up: {} / len {} / pos {}".format(
             self._tmphist, len(self._tmphist), self._histpos))
-        self.set_cmd(self._tmphist[self._histpos])
+        self.set_cmd_text(self._tmphist[self._histpos])
 
     @pyqtSlot()
-    def on_key_down_pressed(self):
+    def _on_key_down_pressed(self):
         """Handle Down presses (go forward in history)."""
         logging.debug("history up [pre]: pos {}".format(self._histpos,
                       self._tmphist, len(self._tmphist), self._histpos))
@@ -291,10 +317,10 @@ class Command(QLineEdit):
         self._histpos += 1
         logging.debug("history up: {} / len {} / pos {}".format(
             self._tmphist, len(self._tmphist), self._histpos))
-        self.set_cmd(self._tmphist[self._histpos])
+        self.set_cmd_text(self._tmphist[self._histpos])
 
 
-class CommandValidator(QValidator):
+class _CommandValidator(QValidator):
 
     """Validator to prevent the : from getting deleted."""
 
@@ -313,13 +339,17 @@ class CommandValidator(QValidator):
             return (QValidator.Invalid, string, pos)
 
 
-class Progress(QProgressBar):
+class _Progress(QProgressBar):
 
-    """The progress bar part of the status bar."""
+    """The progress bar part of the status bar.
 
-    statusbar = None
+    Attributes:
+        _STYLESHEET: The stylesheet template.
+
+    """
+
     # FIXME for some reason, margin-left is not shown
-    _stylesheet = """
+    _STYLESHEET = """
         QProgressBar {{
             border-radius: 0px;
             border: 2px solid transparent;
@@ -332,10 +362,9 @@ class Progress(QProgressBar):
         }}
     """
 
-    def __init__(self, statusbar):
-        super().__init__(statusbar)
-        self.statusbar = statusbar
-        self.setStyleSheet(config.get_stylesheet(self._stylesheet))
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Ignored)
         self.setTextVisible(False)
         self.hide()
@@ -356,15 +385,17 @@ class TextBase(QLabel):
     Eliding is loosly based on
     http://gedgedev.blogspot.ch/2010/12/elided-labels-in-qt.html
 
-    """
+    Attributes:
+        _elidemode: Where to elide the text.
+        _elided_text: The current elided text.
 
-    elidemode = None
-    _elided_text = None
+    """
 
     def __init__(self, bar, elidemode=Qt.ElideRight):
         super().__init__(bar)
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
-        self.elidemode = elidemode
+        self._elidemode = elidemode
+        self._elided_text = ''
 
     def setText(self, txt):
         """Extend QLabel::setText to update the elided text afterwards."""
@@ -383,11 +414,11 @@ class TextBase(QLabel):
 
         """
         self._elided_text = self.fontMetrics().elidedText(
-            self.text(), self.elidemode, width, Qt.TextShowMnemonic)
+            self.text(), self._elidemode, width, Qt.TextShowMnemonic)
 
     def paintEvent(self, e):
         """Override QLabel::paintEvent to draw elided text."""
-        if self.elidemode == Qt.ElideNone:
+        if self._elidemode == Qt.ElideNone:
             super().paintEvent(e)
         else:
             painter = QPainter(self)
@@ -396,30 +427,37 @@ class TextBase(QLabel):
                              self._elided_text)
 
 
-class Text(TextBase):
+class _Text(TextBase):
 
-    """Text displayed in the statusbar."""
+    """Text displayed in the statusbar.
 
-    old_text = ''
+    Attributes:
+        _old_text: The text displayed before the temporary error message.
+
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._old_text = ''
 
     def set_error(self, text):
         """Display an error message and save current text in old_text."""
-        self.old_text = self.text()
+        self._old_text = self.text()
         self.setText(text)
 
     def clear_error(self):
         """Clear a displayed error message."""
-        self.setText(self.old_text)
+        self.setText(self._old_text)
 
 
-class KeyString(TextBase):
+class _KeyString(TextBase):
 
     """Keychain string displayed in the statusbar."""
 
     pass
 
 
-class Percentage(TextBase):
+class _Percentage(TextBase):
 
     """Reading percentage displayed in the statusbar."""
 
@@ -434,15 +472,20 @@ class Percentage(TextBase):
             self.setText('[{:2}%]'.format(y))
 
 
-class Url(TextBase):
+class _Url(TextBase):
 
-    """URL displayed in the statusbar."""
+    """URL displayed in the statusbar.
 
-    _old_url = None
-    _old_urltype = None
-    _urltype = None  # 'normal', 'ok', 'error', 'warn, 'hover'
+    Attributes:
+        _old_url: The URL displayed before the hover URL.
+        _old_urltype: The type of the URL displayed before the hover URL.
+        _urltype: The current URL type. One of normal/ok/error/warn/hover.
+                  Accessed via the urltype property.
+        _STYLESHEET: The stylesheet template.
 
-    _stylesheet = """
+    """
+
+    _STYLESHEET = """
         QLabel#Url[urltype="normal"] {{
             {color[statusbar.url.fg]}
         }}
@@ -468,7 +511,10 @@ class Url(TextBase):
         """Override TextBase::__init__ to elide in the middle by default."""
         super().__init__(bar, elidemode)
         self.setObjectName(self.__class__.__name__)
-        self.setStyleSheet(config.get_stylesheet(self._stylesheet))
+        self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
+        self._urltype = None
+        self._old_urltype = None
+        self._old_url = None
 
     @pyqtProperty(str)
     def urltype(self):
@@ -480,7 +526,7 @@ class Url(TextBase):
     def urltype(self, val):
         """Setter for self.urltype, so it can be used as Qt property."""
         self._urltype = val
-        self.setStyleSheet(config.get_stylesheet(self._stylesheet))
+        self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
 
     @pyqtSlot(bool)
     def on_loading_finished(self, ok):

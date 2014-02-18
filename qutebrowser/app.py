@@ -22,8 +22,10 @@ import sys
 import logging
 import functools
 import subprocess
+import configparser
 from signal import signal, SIGINT
 from argparse import ArgumentParser
+from base64 import b64encode
 
 # Print a nice traceback on segfault -- only available on Python 3.3+, but if
 # it's unavailable, it doesn't matter much.
@@ -62,39 +64,43 @@ class QuteBrowser(QApplication):
     >>> app = QuteBrowser()
     >>> sys.exit(app.exec_())
 
-    """
+    Attributes:
+        mainwindow: The MainWindow QWidget.
+        commandparser: The main CommandParser instance.
+        keyparser: The main KeyParser instance.
+        searchparser: The main SearchParser instance.
+        _dirs: AppDirs instance for config/cache directories.
+        _args: ArgumentParser instance.
+        _timers: List of used QTimers so they don't get GCed.
+        _shutting_down: True if we're currently shutting down.
+        _quit_status: The current quitting status.
 
-    dirs = None  # AppDirs - config/cache directories
-    config = None  # Config(Parser) object
-    mainwindow = None
-    commandparser = None
-    keyparser = None
-    args = None  # ArgumentParser
-    timers = None
-    shutting_down = False
-    _quit_status = None
+    """
 
     def __init__(self):
         super().__init__(sys.argv)
         self._quit_status = {}
+        self._timers = []
+        self._shutting_down = False
+
         sys.excepthook = self._exception_hook
 
-        self._parseopts()
+        self._args = self._parseopts()
         self._initlog()
         self._initmisc()
 
-        self.dirs = AppDirs('qutebrowser')
-        if self.args.confdir is None:
-            confdir = self.dirs.user_config_dir
-        elif self.args.confdir == '':
+        self._dirs = AppDirs('qutebrowser')
+        if self._args.confdir is None:
+            confdir = self._dirs.user_config_dir
+        elif self._args.confdir == '':
             confdir = None
         else:
-            confdir = self.args.confdir
+            confdir = self._args.confdir
         config.init(confdir)
 
         self.commandparser = cmdutils.CommandParser()
         self.searchparser = cmdutils.SearchParser()
-        self.keyparser = KeyParser(self.mainwindow)
+        self.keyparser = KeyParser(self)
         self._init_cmds()
         self.mainwindow = MainWindow()
 
@@ -102,9 +108,9 @@ class QuteBrowser(QApplication):
         self.lastWindowClosed.connect(self.shutdown)
         self.mainwindow.tabs.keypress.connect(self.keyparser.handle)
         self.keyparser.set_cmd_text.connect(
-            self.mainwindow.status.cmd.on_set_cmd_text)
+            self.mainwindow.status.cmd.set_cmd_text)
         self.mainwindow.tabs.set_cmd_text.connect(
-            self.mainwindow.status.cmd.on_set_cmd_text)
+            self.mainwindow.status.cmd.set_cmd_text)
         self.mainwindow.tabs.quit.connect(self.shutdown)
         self.mainwindow.status.cmd.got_cmd.connect(self.commandparser.run)
         self.mainwindow.status.cmd.got_search.connect(self.searchparser.search)
@@ -123,7 +129,55 @@ class QuteBrowser(QApplication):
         self.mainwindow.show()
         self._python_hacks()
         timer = QTimer.singleShot(0, self._process_init_args)
-        self.timers.append(timer)
+        self._timers.append(timer)
+
+    def _parseopts(self):
+        """Parse command line options."""
+        parser = ArgumentParser("usage: %(prog)s [options]")
+        parser.add_argument('-l', '--log', dest='loglevel',
+                            help='Set loglevel', default='info')
+        parser.add_argument('-c', '--confdir', help='Set config directory '
+                            '(empty for no config storage)')
+        parser.add_argument('-d', '--debug', help='Turn on debugging options.',
+                            action='store_true')
+        parser.add_argument('command', nargs='*', help='Commands to execute '
+                            'on startup.', metavar=':command')
+        # URLs will actually be in command
+        parser.add_argument('url', nargs='*', help='URLs to open on startup.')
+        return parser.parse_args()
+
+    def _initlog(self):
+        """Initialisation of the logging output."""
+        loglevel = 'debug' if self._args.debug else self._args.loglevel
+        numeric_level = getattr(logging, loglevel.upper(), None)
+        if not isinstance(numeric_level, int):
+            raise ValueError('Invalid log level: {}'.format(loglevel))
+        logging.basicConfig(
+            level=numeric_level,
+            format='%(asctime)s [%(levelname)s] '
+                   '[%(module)s:%(funcName)s:%(lineno)s] %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S')
+
+    def _initmisc(self):
+        """Initialize misc things."""
+        if self._args.debug:
+            os.environ['QT_FATAL_WARNINGS'] = '1'
+        self.setApplicationName("qutebrowser")
+        self.setApplicationVersion(qutebrowser.__version__)
+
+    def _init_cmds(self):
+        """Initialisation of the qutebrowser commands.
+
+        Registers all commands, connects its signals, and sets up keyparser.
+
+        """
+        cmdutils.register_all()
+        for cmd in cmdutils.cmd_dict.values():
+            cmd.signal.connect(self.cmd_handler)
+        try:
+            self.keyparser.from_config_sect(config.config['keybind'])
+        except KeyError:
+            pass
 
     def _process_init_args(self):
         """Process initial positional args.
@@ -137,7 +191,7 @@ class QuteBrowser(QApplication):
                            QEventLoop.ExcludeSocketNotifiers)
         opened_urls = False
 
-        for e in self.args.command:
+        for e in self._args.command:
             if e.startswith(':'):
                 logging.debug('Startup cmd {}'.format(e))
                 self.commandparser.run(e.lstrip(':'))
@@ -151,6 +205,20 @@ class QuteBrowser(QApplication):
             # pylint: disable=maybe-no-member
             for url in config.config.get('general', 'startpage').split(','):
                 self.mainwindow.tabs.tabopen(url)
+
+    def _python_hacks(self):
+        """Get around some PyQt-oddities by evil hacks.
+
+        This sets up the uncaught exception hook, quits with an appropriate
+        exit status, and handles Ctrl+C properly by passing control to the
+        Python interpreter once all 500ms.
+
+        """
+        signal(SIGINT, lambda *args: self.exit(128 + SIGINT))
+        timer = QTimer()
+        timer.start(500)
+        timer.timeout.connect(lambda: None)
+        self._timers.append(timer)
 
     def _recover_pages(self):
         """Try to recover all open pages.
@@ -172,6 +240,15 @@ class QuteBrowser(QApplication):
             except Exception:  # pylint: disable=broad-except
                 pass
         return pages
+
+    def _save_geometry(self):
+        """Save the window geometry to the state config."""
+        geom = b64encode(bytes(self.mainwindow.saveGeometry())).decode('ASCII')
+        try:
+            config.state.add_section('geometry')
+        except configparser.DuplicateSectionError:
+            pass
+        config.state['geometry']['mainwindow'] = geom
 
     def _exception_hook(self, exctype, excvalue, tb):
         """Handle uncaught python exceptions.
@@ -237,98 +314,8 @@ class QuteBrowser(QApplication):
         logging.debug("maybe_quit called from {}, quit status {}".format(
             sender, self._quit_status))
         if all(self._quit_status.values()):
+            logging.debug("maybe_quit quitting.")
             self.quit()
-
-    def _python_hacks(self):
-        """Get around some PyQt-oddities by evil hacks.
-
-        This sets up the uncaught exception hook, quits with an appropriate
-        exit status, and handles Ctrl+C properly by passing control to the
-        Python interpreter once all 500ms.
-
-        """
-        signal(SIGINT, lambda *args: self.exit(128 + SIGINT))
-        timer = QTimer()
-        timer.start(500)
-        timer.timeout.connect(lambda: None)
-        self.timers.append(timer)
-
-    def _parseopts(self):
-        """Parse command line options."""
-        parser = ArgumentParser("usage: %(prog)s [options]")
-        parser.add_argument('-l', '--log', dest='loglevel',
-                            help='Set loglevel', default='info')
-        parser.add_argument('-c', '--confdir', help='Set config directory '
-                            '(empty for no config storage)')
-        parser.add_argument('-d', '--debug', help='Turn on debugging options.',
-                            action='store_true')
-        parser.add_argument('command', nargs='*', help='Commands to execute '
-                            'on startup.', metavar=':command')
-        # URLs will actually be in command
-        parser.add_argument('url', nargs='*', help='URLs to open on startup.')
-        self.args = parser.parse_args()
-
-    def _initlog(self):
-        """Initialisation of the logging output."""
-        loglevel = 'debug' if self.args.debug else self.args.loglevel
-        numeric_level = getattr(logging, loglevel.upper(), None)
-        if not isinstance(numeric_level, int):
-            raise ValueError('Invalid log level: {}'.format(loglevel))
-        logging.basicConfig(
-            level=numeric_level,
-            format='%(asctime)s [%(levelname)s] '
-                   '[%(module)s:%(funcName)s:%(lineno)s] %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S')
-
-    def _initmisc(self):
-        """Initialize misc things."""
-        if self.args.debug:
-            os.environ['QT_FATAL_WARNINGS'] = '1'
-        self.setApplicationName("qutebrowser")
-        self.setApplicationVersion(qutebrowser.__version__)
-        self.timers = []
-
-    def _init_cmds(self):
-        """Initialisation of the qutebrowser commands.
-
-        Registers all commands, connects its signals, and sets up keyparser.
-
-        """
-        cmdutils.register_all()
-        for cmd in cmdutils.cmd_dict.values():
-            cmd.signal.connect(self.cmd_handler)
-        try:
-            self.keyparser.from_config_sect(config.config['keybind'])
-        except KeyError:
-            pass
-
-    @pyqtSlot()
-    def shutdown(self, do_quit=True):
-        """Try to shutdown everything cleanly.
-
-        For some reason lastWindowClosing sometimes seem to get emitted twice,
-        so we make sure we only run once here.
-
-        quit -- Whether to quit after shutting down.
-
-        """
-        if self.shutting_down:
-            return
-        self.shutting_down = True
-        logging.debug("Shutting down... (do_quit={})".format(do_quit))
-        if config.config is not None:
-            config.config.save()
-        try:
-            if do_quit:
-                self.mainwindow.tabs.shutdown_complete.connect(self.quit)
-            else:
-                self.mainwindow.tabs.shutdown_complete.connect(
-                    functools.partial(self._maybe_quit, 'shutdown'))
-            self.mainwindow.tabs.shutdown()
-        except AttributeError:  # mainwindow or tabs could still be None
-            logging.debug("No mainwindow/tabs to shut down.")
-            if do_quit:
-                self.quit()
 
     @pyqtSlot(tuple)
     def cmd_handler(self, tpl):
@@ -345,32 +332,33 @@ class QuteBrowser(QApplication):
         (count, argv) = tpl
         cmd = argv[0]
         args = argv[1:]
+        browser = self.mainwindow.tabs
 
         handlers = {
-            'open':          self.mainwindow.tabs.openurl,
-            'opencur':       self.mainwindow.tabs.opencur,
-            'tabopen':       self.mainwindow.tabs.tabopen,
-            'tabopencur':    self.mainwindow.tabs.tabopencur,
+            'open':          browser.openurl,
+            'opencur':       browser.opencur,
+            'tabopen':       browser.tabopen,
+            'tabopencur':    browser.tabopencur,
             'quit':          self.shutdown,
-            'tabclose':      self.mainwindow.tabs.cur_close,
-            'tabprev':       self.mainwindow.tabs.switch_prev,
-            'tabnext':       self.mainwindow.tabs.switch_next,
-            'reload':        self.mainwindow.tabs.cur_reload,
-            'stop':          self.mainwindow.tabs.cur_stop,
-            'back':          self.mainwindow.tabs.cur_back,
-            'forward':       self.mainwindow.tabs.cur_forward,
-            'print':         self.mainwindow.tabs.cur_print,
-            'scroll':        self.mainwindow.tabs.cur_scroll,
-            'scroll_page':   self.mainwindow.tabs.cur_scroll_page,
-            'scroll_perc_x': self.mainwindow.tabs.cur_scroll_percent_x,
-            'scroll_perc_y': self.mainwindow.tabs.cur_scroll_percent_y,
-            'undo':          self.mainwindow.tabs.undo_close,
+            'tabclose':      browser.cur_close,
+            'tabprev':       browser.switch_prev,
+            'tabnext':       browser.switch_next,
+            'reload':        browser.cur_reload,
+            'stop':          browser.cur_stop,
+            'back':          browser.cur_back,
+            'forward':       browser.cur_forward,
+            'print':         browser.cur_print,
+            'scroll':        browser.cur_scroll,
+            'scroll_page':   browser.cur_scroll_page,
+            'scroll_perc_x': browser.cur_scroll_percent_x,
+            'scroll_perc_y': browser.cur_scroll_percent_y,
+            'undo':          browser.undo_close,
             'pyeval':        self.pyeval,
             'nextsearch':    self.searchparser.nextsearch,
-            'yank':          self.mainwindow.tabs.cur_yank,
-            'yanktitle':     self.mainwindow.tabs.cur_yank_title,
-            'paste':         self.mainwindow.tabs.paste,
-            'tabpaste':      self.mainwindow.tabs.tabpaste,
+            'yank':          browser.cur_yank,
+            'yanktitle':     browser.cur_yank_title,
+            'paste':         browser.paste,
+            'tabpaste':      browser.tabpaste,
             'crash':         self.crash,
         }
 
@@ -404,3 +392,49 @@ class QuteBrowser(QApplication):
 
         """
         raise Exception
+
+    @pyqtSlot()
+    def shutdown(self, do_quit=True):
+        """Try to shutdown everything cleanly.
+
+        For some reason lastWindowClosing sometimes seem to get emitted twice,
+        so we make sure we only run once here.
+
+        quit -- Whether to quit after shutting down.
+
+        """
+        if self._shutting_down:
+            return
+        self._shutting_down = True
+        logging.debug("Shutting down... (do_quit={})".format(do_quit))
+        try:
+            config.config.save()
+        except AttributeError:
+            logging.exception("Could not save config.")
+        try:
+            self._save_geometry()
+            config.state.save()
+        except AttributeError:
+            logging.exception("Could not save window geometry.")
+        try:
+            if do_quit:
+                self.mainwindow.tabs.shutdown_complete.connect(
+                    self.on_tab_shutdown_complete)
+            else:
+                self.mainwindow.tabs.shutdown_complete.connect(
+                    functools.partial(self._maybe_quit, 'shutdown'))
+            self.mainwindow.tabs.shutdown()
+        except AttributeError:  # mainwindow or tabs could still be None
+            logging.exception("No mainwindow/tabs to shut down.")
+            if do_quit:
+                self.quit()
+
+    @pyqtSlot()
+    def on_tab_shutdown_complete(self):
+        """Quit application after a shutdown.
+
+        Gets called when all tabs finished shutting down after shutdown().
+
+        """
+        logging.debug("Shutdown complete, quitting.")
+        self.quit()

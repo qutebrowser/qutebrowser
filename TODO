@@ -38,7 +38,6 @@ Internationalization
 Marks
 show infos in statusline, temporary/longer
 set settings/colors/bindings via commandline
-write default config with comments
 more completions (URLs, ...)
 SSL handling
 

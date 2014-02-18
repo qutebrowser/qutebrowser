@@ -15,131 +15,32 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Configuration storage and config-related utilities.
-
-config         -- The main Config object.
-colordict      -- All configured colors.
-default_config -- The default config as dict.
-MONOSPACE      -- A list of suitable monospace fonts.
-
-"""
+"""Configuration storage and config-related utilities."""
 
 import os
 import io
 import os.path
 import logging
-from configparser import ConfigParser, ExtendedInterpolation
+from configparser import (ConfigParser, ExtendedInterpolation, NoSectionError,
+                          NoOptionError)
+
+from qutebrowser.utils.misc import read_file
 
 config = None
+state = None
 colordict = {}
 fontdict = {}
 
-default_config = """
-[general]
-show_completion = true
-ignorecase = true
-wrapsearch = true
-startpage = http://www.duckduckgo.com/
-addressbar_dns_lookup = false
-auto_search = true
-
-[tabbar]
-movable = true
-closebuttons = false
-scrollbuttons = false
-# north, south, east, west
-position = north
-# previous, left, right
-select_on_remove = previous
-# ignore, blank, quit
-last_close = quit
-
-[searchengines]
-DEFAULT = ${duckduckgo}
-duckduckgo = https://duckduckgo.com/?q={}
-ddg = ${duckduckgo}
-google = https://encrypted.google.com/search?q={}
-g = ${google}
-wikipedia = http://en.wikipedia.org/w/index.php?title=Special:Search&search={}
-wiki = ${wikipedia}
-
-[keybind]
-o = open
-go = opencur
-O = tabopen
-gO = tabopencur
-ga = tabopen about:blank
-d = tabclose
-J = tabnext
-K = tabprev
-r = reload
-H = back
-L = forward
-h = scroll -50 0
-j = scroll 0 50
-k = scroll 0 -50
-l = scroll 50 0
-u = undo
-gg = scroll_perc_y 0
-G = scroll_perc_y
-n = nextsearch
-yy = yank
-yY = yank sel
-yt = yanktitle
-yT = yanktitle sel
-pp = paste
-pP = paste sel
-Pp = tabpaste
-PP = tabpaste sel
-@Ctrl-Q@ = quit
-@Ctrl-Shift-T@ = undo
-@Ctrl-W@ = tabclose
-@Ctrl-T@ = tabopen about:blank
-@Ctrl-F@ = scroll_page 0 1
-@Ctrl-B@ = scroll_page 0 -1
-@Ctrl-D@ = scroll_page 0 0.5
-@Ctrl-U@ = scroll_page 0 -0.5
-
-[colors]
-completion.fg = #333333
-completion.item.bg = white
-completion.category.bg = qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                         stop:0 #e4e4e4, stop:1 #dbdbdb)
-completion.category.border.top = #808080
-completion.category.border.bottom = #bbbbbb
-completion.item.selected.fg = #333333
-completion.item.selected.bg = #ffec8b
-completion.item.selected.border.top = #f2f2c0
-completion.item.selected.border.bottom = #e6e680
-completion.match.fg = red
-statusbar.progress.bg = white
-statusbar.bg = black
-statusbar.fg = white
-statusbar.bg.error = red
-statusbar.url.fg = ${statusbar.fg}
-statusbar.url.fg.success = lime
-statusbar.url.fg.error = orange
-statusbar.url.fg.warn = yellow
-statusbar.url.fg.hover = aqua
-tab.bg = grey
-tab.bg.selected = black
-tab.fg = white
-tab.seperator = white
-
-[fonts]
-_monospace = Monospace, "DejaVu Sans Mono", Consolas, Monaco,
-             "Bitstream Vera Sans Mono", "Andale Mono", "Liberation Mono",
-             "Courier New", Courier, monospace, Fixed, Terminal
-completion = 8pt ${_monospace}
-tabbar = 8pt ${_monospace}
-statusbar = 8pt ${_monospace}
-"""
+# Special value for an unset fallback, so None can be passed as fallback.
+_UNSET = object()
 
 
 def init(confdir):
     """Initialize the global objects based on the config in configdir."""
-    global config, colordict, fontdict
-    config = Config(confdir)
+    global config, state, colordict, fontdict
+    logging.debug("Config init, confdir {}".format(confdir))
+    config = Config(confdir, 'qutebrowser.conf', read_file('qutebrowser.conf'))
+    state = Config(confdir, 'state', always_save=True)
     try:
         colordict = ColorDict(config['colors'])
     except KeyError:
@@ -229,33 +130,44 @@ class FontDict(dict):
 
 class Config(ConfigParser):
 
-    """Our own ConfigParser subclass."""
+    """Our own ConfigParser subclass.
 
-    configdir = None
-    FNAME = 'config'
-    default_cp = None
-    config_loaded = False
+    Attributes:
+        _configdir: The dictionary to save the config in.
+        _default_cp: The ConfigParser instance supplying the default values.
+        _config_loaded: Whether the config was loaded successfully.
 
-    def __init__(self, configdir):
+    """
+
+    def __init__(self, configdir, fname, default_config=None,
+                 always_save=False):
         """Config constructor.
 
         configdir -- directory to store the config in.
+        fname -- Filename of the config file.
+        default_config -- Default config as string.
+        always_save -- Whether to always save the config, even when it wasn't
+                       loaded.
 
         """
         super().__init__(interpolation=ExtendedInterpolation())
-        self.default_cp = ConfigParser(interpolation=ExtendedInterpolation())
-        self.default_cp.optionxform = lambda opt: opt  # be case-insensitive
-        self.default_cp.read_string(default_config)
-        if not self.configdir:
+        self._config_loaded = False
+        self.always_save = always_save
+        self._configdir = configdir
+        self._default_cp = ConfigParser(interpolation=ExtendedInterpolation())
+        self._default_cp.optionxform = lambda opt: opt  # be case-insensitive
+        if default_config is not None:
+            self._default_cp.read_string(default_config)
+        if not self._configdir:
             return
         self.optionxform = lambda opt: opt  # be case-insensitive
-        self.configdir = configdir
-        self.configfile = os.path.join(self.configdir, self.FNAME)
+        self._configdir = configdir
+        self.configfile = os.path.join(self._configdir, fname)
         if not os.path.isfile(self.configfile):
             return
         logging.debug("Reading config from {}".format(self.configfile))
         self.read(self.configfile)
-        self.config_loaded = True
+        self._config_loaded = True
 
     def __getitem__(self, key):
         """Get an item from the configparser or default dict.
@@ -266,25 +178,42 @@ class Config(ConfigParser):
         try:
             return super().__getitem__(key)
         except KeyError:
-            return self.default_cp[key]
+            return self._default_cp[key]
 
-    def get(self, *args, **kwargs):
+    def get(self, *args, raw=False, vars=None, fallback=_UNSET):
         """Get an item from the configparser or default dict.
 
         Extend ConfigParser's get().
 
+        This is a bit of a hack, but it (hopefully) works like this:
+            - Get value from original configparser.
+            - If that's not available, try the default_cp configparser
+            - If that's not available, try the fallback given as kwarg
+            - If that's not available, we're doomed.
+
         """
-        if 'fallback' in kwargs:
-            del kwargs['fallback']
-        fallback = self.default_cp.get(*args, **kwargs)
-        return super().get(*args, fallback=fallback, **kwargs)
+        # pylint: disable=redefined-builtin
+        try:
+            return super().get(*args, raw=raw, vars=vars)
+        except (NoSectionError, NoOptionError):
+            pass
+        try:
+            return self._default_cp.get(*args, raw=raw, vars=vars)
+        except (NoSectionError, NoOptionError):
+            if fallback is _UNSET:
+                raise
+            else:
+                return fallback
 
     def save(self):
         """Save the config file."""
-        if self.configdir is None or not self.config_loaded:
+        if self._configdir is None or (not self._config_loaded and
+                                       not self.always_save):
+            logging.error("Not saving config (dir {}, loaded {})".format(
+                self._configdir, self._config_loaded))
             return
-        if not os.path.exists(self.configdir):
-            os.makedirs(self.configdir, 0o755)
+        if not os.path.exists(self._configdir):
+            os.makedirs(self._configdir, 0o755)
         logging.debug("Saving config to {}".format(self.configfile))
         with open(self.configfile, 'w') as f:
             self.write(f)
