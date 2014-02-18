@@ -130,6 +130,7 @@ class FontDict(dict):
         except KeyError:
             return None
 
+
 class Config(ConfigParser):
 
     """Our own ConfigParser subclass."""

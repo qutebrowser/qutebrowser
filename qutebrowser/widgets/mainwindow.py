@@ -28,6 +28,7 @@ from qutebrowser.widgets.browser import TabbedBrowser
 from qutebrowser.widgets.completion import CompletionView
 import qutebrowser.utils.config as config
 
+
 class MainWindow(QWidget):
 
     """The main window of QuteBrowser.

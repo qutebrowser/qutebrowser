@@ -54,7 +54,9 @@ def read_file(filename):
 
 
 def trace_lines(do_trace):
-    def trace(frame, event, arg):
+    """Turn on/off printing each executed line."""
+    def trace(frame, event, _):
+        """Trace function passed to sys.settrace."""
         print("{}, {}:{}".format(event, frame.f_code.co_filename,
                                  frame.f_lineno))
         return trace
