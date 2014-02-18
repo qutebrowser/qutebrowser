@@ -326,7 +326,7 @@ class QuteBrowser(QApplication):
                     functools.partial(self._maybe_quit, 'shutdown'))
             self.mainwindow.tabs.shutdown()
         except AttributeError:  # mainwindow or tabs could still be None
-            logging.debug("No mainwindow/tabs to shut down.")
+            logging.exception("No mainwindow/tabs to shut down.")
             if do_quit:
                 self.quit()
 
