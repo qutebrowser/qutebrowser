@@ -61,9 +61,8 @@ class CrashDialog(QDialog):
         self.txt.setReadOnly(True)
         self.txt.setText(self._crash_info(pages, cmdhist, exc))
         self.vbox.addWidget(self.txt)
-        self.setLayout(self.vbox)
 
-        self.hbox = QHBoxLayout(self)
+        self.hbox = QHBoxLayout()
         self.btn_quit = QPushButton()
         self.btn_quit.setText('Quit')
         self.btn_quit.clicked.connect(self.reject)
