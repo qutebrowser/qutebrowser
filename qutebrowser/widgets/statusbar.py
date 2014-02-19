@@ -98,6 +98,10 @@ class StatusBar(QWidget):
         self.txt = _Text(self)
         self._stack.addWidget(self.txt)
 
+        self.cmd.show_cmd.connect(self._show_cmd_widget)
+        self.cmd.hide_cmd.connect(self._hide_cmd_widget)
+        self._hide_cmd_widget()
+
         self._hbox.addLayout(self._stack)
         self._hbox.addStretch()
 
@@ -112,8 +116,6 @@ class StatusBar(QWidget):
 
         self.prog = _Progress(self)
         self._hbox.addWidget(self.prog)
-
-        self.clear_tmp_text()
 
     @pyqtProperty(bool)
     def error(self):
@@ -132,38 +134,36 @@ class StatusBar(QWidget):
         self._error = val
         self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
 
-    def _show_tmp_text(self):
+    def _show_cmd_widget(self):
+        """Show command widget instead of temporary text."""
+        self._stack.setCurrentWidget(self.cmd)
+        self.clear_error()
+
+    def _hide_cmd_widget(self):
         """Show temporary text instead of command widget."""
         self._stack.setCurrentWidget(self.txt)
-
-    def _hide_tmp_text(self):
-        """Show command widget instead of temproary text."""
-        self._stack.setCurrentWidget(self.cmd)
 
     @pyqtSlot(str)
     def disp_error(self, text):
         """Display an error in the statusbar."""
         self.error = True
-        self.disp_tmp_text(text)
+        self.txt.errortext = text
 
     @pyqtSlot()
     def clear_error(self):
         """Clear a displayed error from the status bar."""
         self.error = False
+        self.txt.errortext = ''
 
     @pyqtSlot(str)
-    def disp_tmp_text(self, txt):
+    def disp_tmp_text(self, text):
         """Display a temporary text.
 
         Args:
-            txt: The text to display, or an empty string to clear.
+            text: The text to display, or an empty string to clear.
 
         """
-        self.txt.setText(txt)
-        if txt:
-            self._show_tmp_text()
-        else:
-            self._hide_tmp_text()
+        self.txt.temptext = text
 
     @pyqtSlot()
     def clear_tmp_text(self):
@@ -233,6 +233,8 @@ class _Command(QLineEdit):
         tab_pressed: Emitted when the tab key was pressed.
                      arg: Whether shift has been pressed.
         hide_completion: Emitted when the completion widget should be hidden.
+        show_cmd: Emitted when command input should be shown.
+        hide_cmd: Emitted when command input can be hidden.
 
     """
 
@@ -244,6 +246,8 @@ class _Command(QLineEdit):
     esc_pressed = pyqtSignal()
     tab_pressed = pyqtSignal(bool)
     hide_completion = pyqtSignal()
+    show_cmd = pyqtSignal()
+    hide_cmd = pyqtSignal()
 
     # FIXME won't the tab key switch to the next widget?
     # See [0] for a possible fix.
@@ -366,6 +370,7 @@ class _Command(QLineEdit):
         """
         self.setText(text)
         self.setFocus()
+        self.show_cmd.emit()
 
     @pyqtSlot(str)
     def on_append_cmd_text(self, text):
@@ -378,6 +383,7 @@ class _Command(QLineEdit):
         # FIXME do the right thing here
         self.setText(':' + text)
         self.setFocus()
+        self.show_cmd.emit()
 
     def focusOutEvent(self, e):
         """Clear the statusbar text if it's explicitely unfocused.
@@ -393,6 +399,7 @@ class _Command(QLineEdit):
                           Qt.BacktabFocusReason, Qt.OtherFocusReason]:
             self.setText('')
             self._histbrowse_stop()
+            self.hide_cmd.emit()
         self.hide_completion.emit()
         super().focusOutEvent(e)
 
@@ -514,9 +521,58 @@ class TextBase(QLabel):
 
 class _Text(TextBase):
 
-    """Text displayed in the statusbar."""
+    """Text displayed in the statusbar.
 
-    pass
+    Attributes:
+        normaltext: The "permanent" text. Never automatically cleared.
+        temptext: The temporary text. Cleared on a keystroke.
+        errortext: The error text. Cleared on a keystroke.
+        _initializing: True if we're currently in __init__ and no text should
+                       be updated yet.
+
+        The errortext has the highest priority, i.e. it will always be shown
+        when it is set. The temptext is shown when there is no error, and the
+        (permanent) text is shown when there is neither a temporary text nor an
+        error.
+
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._initializing = True
+        self.normaltext = ''
+        self.temptext = ''
+        self.errortext = ''
+        self._initializing = False
+
+    def __setattr__(self, name, val):
+        """Overwrite __setattr__ to call _update_text when needed."""
+        super().__setattr__(name, val)
+        if not name.startswith('_') and not self._initializing:
+            self._update_text()
+
+    def _update_text(self):
+        """Update QLabel text when needed.
+
+        Called from __setattr__ if a text property changed.
+
+        """
+        for text in [self.errortext, self.temptext, self.normaltext]:
+            if text:
+                self.setText(text)
+                break
+        else:
+            self.setText('')
+
+    @pyqtSlot(str)
+    def set_normaltext(self, val):
+        """Setter for normaltext, to be used as Qt slot."""
+        self.normaltext = val
+
+    @pyqtSlot(str)
+    def set_temptext(self, val):
+        """Setter for temptext, to be used as Qt slot."""
+        self.temptext = val
 
 
 class _KeyString(TextBase):

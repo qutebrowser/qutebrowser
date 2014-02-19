@@ -67,6 +67,7 @@ class TabbedBrowser(TabWidget):
         cur_load_finished: Current tab finished loading (loadFinished)
         cur_statusbar_message: Current tab got a statusbar message
                                (statusBarMessage)
+        cur_tmp_message: Current tab needs to show a temporary message.
         cur_url_changed: Current URL changed (urlChanged)
         cur_link_hovered: Link hovered in current tab (linkHovered)
         cur_scroll_perc_changed: Scroll percentage of current tab changed.
@@ -85,6 +86,7 @@ class TabbedBrowser(TabWidget):
     cur_progress = pyqtSignal(int)
     cur_load_started = pyqtSignal()
     cur_load_finished = pyqtSignal(bool)
+    cur_temp_message = pyqtSignal(str)
     cur_statusbar_message = pyqtSignal(str)
     cur_url_changed = pyqtSignal('QUrl')
     cur_link_hovered = pyqtSignal(str, str, str)
@@ -506,14 +508,14 @@ class TabbedBrowser(TabWidget):
             sel: True to use primary selection, False to use clipboard
 
         Emit:
-            disp_tmp_message to display a temporary message.
+            cur_temp_message to display a temporary message.
 
         """
         clip = QApplication.clipboard()
         url = urlutils.urlstring(self.currentWidget().url())
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         clip.setText(url, mode)
-        self.cur_statusbar_message.emit('URL yanked to {}'.format(
+        self.cur_temp_message.emit('URL yanked to {}'.format(
             'primary selection' if sel else 'clipboard'))
 
     def cur_yank_title(self, sel=False):
@@ -525,14 +527,14 @@ class TabbedBrowser(TabWidget):
             sel: True to use primary selection, False to use clipboard
 
         Emit:
-            disp_tmp_message to display a temporary message.
+            cur_temp_message to display a temporary message.
 
         """
         clip = QApplication.clipboard()
         title = self.tabText(self.currentIndex())
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         clip.setText(title, mode)
-        self.cur_statusbar_message.emit('Title yanked to {}'.format(
+        self.cur_temp_message.emit('Title yanked to {}'.format(
             'primary selection' if sel else 'clipboard'))
 
     def switch_prev(self, count=1):
