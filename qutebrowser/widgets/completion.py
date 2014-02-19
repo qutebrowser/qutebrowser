@@ -133,7 +133,11 @@ class CompletionView(QTreeView):
 
         Used by tab_handler.
 
-        upwards -- Get previous item, not next.
+        Args:
+            upwards: Get previous item, not next.
+
+        Return:
+            A QModelIndex.
 
         """
         idx = self.selectionModel().currentIndex()
@@ -156,7 +160,8 @@ class CompletionView(QTreeView):
 
         Called from cmd_text_changed().
 
-        model -- A QAbstractItemModel with available completions.
+        Args:
+            model: A QAbstractItemModel with available completions.
 
         """
         self.model.srcmodel = self._completion_models[model]
@@ -168,7 +173,12 @@ class CompletionView(QTreeView):
         """Resize the completion area to the statusbar geometry.
 
         Slot for the resized signal of the statusbar.
-        geom -- A QRect containing the statusbar geometry.
+
+        Args:
+            geom: A QRect containing the statusbar geometry.
+
+        Raises:
+            AssertionError if new geometry is invalid.
 
         """
         bottomleft = geom.topLeft()
@@ -185,6 +195,9 @@ class CompletionView(QTreeView):
         Adjust the height of the completion if it was configured as a
         percentage.
 
+        Args:
+            geom: A QRect containing the browser geometry.
+
         """
         if self._height_perc is None:
             return
@@ -197,7 +210,9 @@ class CompletionView(QTreeView):
         """Move the completion area to the statusbar geometry.
 
         Slot for the moved signal of the statusbar.
-        pos -- A QPoint containing the statusbar position.
+
+        Args:
+            pos: A QPoint containing the statusbar position.
 
         """
         self.move(pos - self._height)
@@ -207,7 +222,9 @@ class CompletionView(QTreeView):
         """Check if completions are available and activate them.
 
         Slot for the textChanged signal of the statusbar command widget.
-        text -- The new text
+
+        Args:
+            text: The new text
 
         """
         if self._ignore_next:
@@ -235,7 +252,11 @@ class CompletionView(QTreeView):
         Select the previous/next item and write the new text to the
         statusbar. Called by key_(s)tab_handler in statusbar.command.
 
-        shift -- Whether shift is pressed or not.
+        Args:
+            shift: Whether shift is pressed or not.
+
+        Emit:
+            append_cmd_text: When a command text should be set/appended.
 
         """
         if not self._completing:
@@ -300,7 +321,8 @@ class _CompletionItemDelegate(QStyledItemDelegate):
         This is the main part where we differ from the original implementation
         in Qt: We use a QTextDocument to draw text.
 
-        index of the item of the item -- The QModelIndex of the item to draw.
+        Args:
+            index -- The QModelIndex of the item to draw.
 
         """
         if not self._opt.text:
@@ -347,7 +369,8 @@ class _CompletionItemDelegate(QStyledItemDelegate):
     def _draw_textdoc(self, text_rect):
         """Draw the QTextDocument of an item.
 
-        text_rect -- The QRect to clip the drawing to.
+        Args:
+            text_rect: The QRect to clip the drawing to.
 
         """
         clip = QRectF(0, 0, text_rect.width(), text_rect.height())
@@ -356,7 +379,8 @@ class _CompletionItemDelegate(QStyledItemDelegate):
     def _get_textdoc(self, index):
         """Create the QTextDocument of an item.
 
-        index -- The QModelIndex of the item to draw.
+        Args:
+            index: The QModelIndex of the item to draw.
 
         """
         # FIXME we probably should do eliding here. See
@@ -422,6 +446,13 @@ class _CompletionItemDelegate(QStyledItemDelegate):
         Return the cell size based on the QTextDocument size, but might not
         work correctly yet.
 
+        Args:
+            option: const QStyleOptionViewItem & option
+            index: const QModelIndex & index
+
+        Return:
+            A QSize with the recommended size.
+
         """
         value = index.data(Qt.SizeHintRole)
         if value is not None:
@@ -436,7 +467,14 @@ class _CompletionItemDelegate(QStyledItemDelegate):
         return size + QSize(10, 1)
 
     def paint(self, painter, option, index):
-        """Override the QStyledItemDelegate paint function."""
+        """Override the QStyledItemDelegate paint function.
+
+        Args:
+            painter: QPainter * painter
+            option: const QStyleOptionViewItem & option
+            index: const QModelIndex & index
+
+        """
         self._painter = painter
         self._painter.save()
         self._opt = QStyleOptionViewItem(option)

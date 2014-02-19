@@ -41,7 +41,14 @@ pyeval_output = None
 def handle(url):
     """Handle about page with an url.
 
-    Return HTML content.
+    Args:
+        url: The url (string) to serve the about page for.
+
+    Raise:
+        ValueError if passed URL is not an about URL
+
+    Return:
+        HTML content as bytes.
 
     """
     if not is_about_url(url):
@@ -51,15 +58,27 @@ def handle(url):
 
 
 def _transform_url(url):
-    """Transform a special URL to an AboutHandlers method name."""
+    """Transform a special URL to an AboutHandlers method name.
+
+    Args:
+        url: The URL as string.
+
+    Return:
+        The method name about_*
+
+    """
     return url.replace('http://', '').replace('about:', 'about_')
 
 
 def _get_html(title, snippet):
     """Add HTML boilerplate to a html snippet.
 
-    title -- The title the page should have.
-    snippet -- The html snippet.
+    Args:
+        title: The title the page should have.
+        snippet: The html snippet.
+
+    Return:
+        HTML content as bytes.
 
     """
     return _html_template.format(title=title, body=snippet).encode('UTF-8')
@@ -71,10 +90,10 @@ class AboutHandlers:
 
     @classmethod
     def about_pyeval(cls):
-        """Handler for about:pyeval."""
+        """Handler for about:pyeval. Return HTML content as bytes."""
         return _get_html('pyeval', '<pre>{}</pre>'.format(pyeval_output))
 
     @classmethod
     def about_version(cls):
-        """Handler for about:version."""
+        """Handler for about:version. Return HTML content as bytes."""
         return _get_html('Version', '<pre>{}</pre>'.format(version()))

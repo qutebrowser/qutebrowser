@@ -116,7 +116,7 @@ class StatusBar(QWidget):
     def error(self, val):
         """Setter for self.error, so it can be used as Qt property.
 
-        Re-sets the stylesheet after setting the value, so everything gets
+        Re-set the stylesheet after setting the value, so everything gets
         updated by Qt properly.
 
         """
@@ -137,7 +137,11 @@ class StatusBar(QWidget):
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
 
-        e -- The QResizeEvent.
+        Args:
+            e: The QResizeEvent.
+
+        Emit:
+            resized: Always emitted.
 
         """
         super().resizeEvent(e)
@@ -146,7 +150,11 @@ class StatusBar(QWidget):
     def moveEvent(self, e):
         """Extend moveEvent of QWidget to emit a moved signal afterwards.
 
-        e -- The QMoveEvent.
+        Args:
+            e: The QMoveEvent.
+
+        Emit:
+            moved: Always emitted.
 
         """
         super().moveEvent(e)
@@ -278,7 +286,14 @@ class _Command(QLineEdit):
 
     @pyqtSlot()
     def _on_return_pressed(self):
-        """Handle the command in the status bar."""
+        """Handle the command in the status bar.
+
+        Emit:
+            got_cmd: If a new cmd was entered.
+            got_search: If a new search was entered.
+            got_search_rev: If a new reverse search was entered.
+
+        """
         signals = {
             ':': self.got_cmd,
             '/': self.got_search,
@@ -294,19 +309,37 @@ class _Command(QLineEdit):
 
     @pyqtSlot(str)
     def set_cmd_text(self, text):
-        """Preset the statusbar to some text."""
+        """Preset the statusbar to some text.
+
+        Args:
+            text: The text to set (string).
+
+        """
         self.setText(text)
         self.setFocus()
 
     @pyqtSlot(str)
     def on_append_cmd_text(self, text):
-        """Append text to the commandline."""
+        """Append text to the commandline.
+
+        Args:
+            text: The text to set (string).
+
+        """
         # FIXME do the right thing here
         self.setText(':' + text)
         self.setFocus()
 
     def focusOutEvent(self, e):
-        """Clear the statusbar text if it's explicitely unfocused."""
+        """Clear the statusbar text if it's explicitely unfocused.
+
+        Args:
+            e: The QFocusEvent.
+
+        Emit:
+            hide_completion: Always emitted so the completion is hidden.
+
+        """
         if e.reason() in [Qt.MouseFocusReason, Qt.TabFocusReason,
                           Qt.BacktabFocusReason, Qt.OtherFocusReason]:
             self.setText('')
@@ -315,7 +348,12 @@ class _Command(QLineEdit):
         super().focusOutEvent(e)
 
     def focusInEvent(self, e):
-        """Clear error message when the statusbar is focused."""
+        """Clear error message when the statusbar is focused.
+
+        Args:
+            e: The QFocusEvent.
+
+        """
         self._statusbar.clear_error()
         super().focusInEvent(e)
 
@@ -327,10 +365,12 @@ class _CommandValidator(QValidator):
     def validate(self, string, pos):
         """Override QValidator::validate.
 
-        string -- The string to validate.
-        pos -- The current curser position.
+        Args:
+            string: The string to validate.
+            pos: The current curser position.
 
-        Return a tuple (status, string, pos) as a QValidator should.
+        Return:
+            A tuple (status, string, pos) as a QValidator should.
 
         """
         if any(string.startswith(c) for c in keys.startchars):
@@ -400,14 +440,20 @@ class TextBase(QLabel):
     def _update_elided_text(self, width):
         """Update the elided text when necessary.
 
-        width -- The maximal width the text should take.
+        Args:
+            width: The maximal width the text should take.
 
         """
         self._elided_text = self.fontMetrics().elidedText(
             self.text(), self._elidemode, width, Qt.TextShowMnemonic)
 
     def setText(self, txt):
-        """Extend QLabel::setText to update the elided text afterwards."""
+        """Extend QLabel::setText to update the elided text afterwards.
+
+        Args:
+            txt: The text to set (string).
+
+        """
         super().setText(txt)
         self._update_elided_text(self.geometry().width())
 
@@ -441,7 +487,12 @@ class _Text(TextBase):
         self._old_text = ''
 
     def set_error(self, text):
-        """Display an error message and save current text in old_text."""
+        """Display an error message and save current text in old_text.
+
+        Args:
+            text: The text to set (string).
+
+        """
         self._old_text = self.text()
         self.setText(text)
 
@@ -463,7 +514,13 @@ class _Percentage(TextBase):
 
     @pyqtSlot(int, int)
     def set_perc(self, _, y):
-        """Setter to be used as a Qt slot."""
+        """Setter to be used as a Qt slot.
+
+        Args:
+            _: The x percentage (int), currently ignored.
+            y: The y percentage (int)
+
+        """
         if y == 0:
             self.setText('[top]')
         elif y == 100:
@@ -508,7 +565,13 @@ class _Url(TextBase):
     """
 
     def __init__(self, bar, elidemode=Qt.ElideMiddle):
-        """Override TextBase::__init__ to elide in the middle by default."""
+        """Override TextBase::__init__ to elide in the middle by default.
+
+        Args:
+            bar: The statusbar (parent) object.
+            elidemode: How to elide the text.
+
+        """
         super().__init__(bar, elidemode)
         self.setObjectName(self.__class__.__name__)
         self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
@@ -530,13 +593,23 @@ class _Url(TextBase):
 
     @pyqtSlot(bool)
     def on_loading_finished(self, ok):
-        """Slot for cur_loading_finished. Colors the URL according to ok."""
+        """Slot for cur_loading_finished. Colors the URL according to ok.
+
+        Args:
+            ok: Whether loading finished successfully (True) or not (False).
+
+        """
         # FIXME: set color to warn if there was an SSL error
         self.urltype = 'success' if ok else 'error'
 
     @pyqtSlot(str)
     def set_url(self, s):
-        """Setter to be used as a Qt slot."""
+        """Setter to be used as a Qt slot.
+
+        Args:
+            s: The URL to set.
+
+        """
         self.setText(urlstring(s))
         self.urltype = 'normal'
 
@@ -547,6 +620,11 @@ class _Url(TextBase):
 
         Saves old shown URL in self._old_url and restores it later if a link is
         "un-hovered" when it gets called with empty parameters.
+
+        Args:
+            link: The link which was hovered (string)
+            title: The title of the hovered link (string)
+            text: The text of the hovered link (string)
 
         """
         if link:

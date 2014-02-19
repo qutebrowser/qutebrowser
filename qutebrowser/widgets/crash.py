@@ -43,6 +43,14 @@ class CrashDialog(QDialog):
     """
 
     def __init__(self, pages, cmdhist, exc):
+        """Constructor for CrashDialog.
+
+        Args:
+            pages: A list of the open pages (URLs as strings)
+            cmdhist: A list with the command history (as strings)
+            exc: An exception tuple (type, value, traceback)
+
+        """
         super().__init__()
         self.setFixedSize(500, 350)
         self.setWindowTitle('Whoops!')
@@ -82,7 +90,17 @@ class CrashDialog(QDialog):
         self._vbox.addLayout(self._hbox)
 
     def _crash_info(self, pages, cmdhist, exc):
-        """Gather crash information to display."""
+        """Gather crash information to display.
+
+        Args:
+            pages: A list of the open pages (URLs as strings)
+            cmdhist: A list with the command history (as strings)
+            exc: An exception tuple (type, value, traceback)
+
+        Return:
+            The string to display.
+
+        """
         outputs = [
             ('Version info', version()),
             ('Exception', ''.join(traceback.format_exception(*exc))),

@@ -28,7 +28,18 @@ import qutebrowser.utils.config as config
 
 
 def _get_search_url(txt):
-    """Return a search engine URL (QUrl) for a text."""
+    """Get a search engine URL for a text.
+
+    Args:
+        txt: Text to search for.
+
+    Return:
+        The search URL as a QUrl.
+
+    Raise:
+        ValueError if there is no template or no search term was found.
+
+    """
     logging.debug('Finding search engine for "{}"'.format(txt))
     r = re.compile(r'(^|\s+)!(\w+)($|\s+)')
     m = r.search(txt)
@@ -49,7 +60,15 @@ def _get_search_url(txt):
 
 
 def _is_url_naive(url):
-    """Naive check if given url (QUrl) is really an url."""
+    """Naive check if given url is really an url.
+
+    Args:
+        url: The URL to check for.
+
+    Return:
+        True if the url really is an URL, False otherwise.
+
+    """
     PROTOCOLS = ['http://', 'https://']
     u = urlstring(url)
     return (any(u.startswith(proto) for proto in PROTOCOLS) or '.' in u or
@@ -57,7 +76,15 @@ def _is_url_naive(url):
 
 
 def _is_url_dns(url):
-    """Check if an url (QUrl) is really an url via DNS."""
+    """Check if an url (QUrl) is really an url via DNS.
+
+    Args:
+        url: The URL to check for.
+
+    Return:
+        True if the url really is an URL, False otherwise.
+
+    """
     # FIXME we could probably solve this in a nicer way by attempting to open
     # the page in the webview, and then open the search if that fails.
     host = url.host()
@@ -73,23 +100,39 @@ def _is_url_dns(url):
 
 
 def qurl(url):
-    """Get a QUrl from an url string."""
+    """Get a QUrl from an url string.
+
+    Args:
+        The URL as string or QUrl.
+
+    Return:
+        The URL as string.
+
+    """
     return url if isinstance(url, QUrl) else QUrl(url)
 
 
 def urlstring(url):
-    """Return an QUrl as string.
+    """Get an QUrl as string.
 
-    qurl -- URL as string or QUrl.
+    Args:
+        qurl: URL as string or QUrl.
+
+    Return:
+        The URL as string
 
     """
     return url.toString() if isinstance(url, QUrl) else url
 
 
 def fuzzy_url(url):
-    """Return a QUrl based on an user input which is URL or search term.
+    """Get a QUrl based on an user input which is URL or search term.
 
-    url -- URL to load as QUrl or string.
+    Args:
+        url: URL to load as QUrl or string.
+
+    Return:
+        A target QUrl to a searchpage or the original URL.
 
     """
     u = qurl(url)
@@ -110,12 +153,23 @@ def fuzzy_url(url):
 
 
 def is_about_url(url):
-    """Return True if url (QUrl) is an about:... or other special URL."""
+    """Return True if url is an about:... or other special URL."""
     return urlstring(url).replace('http://', '').startswith('about:')
 
 
 def is_url(url):
-    """Return True if url (QUrl) seems to be a valid URL."""
+    """Check if url seems to be a valid URL.
+
+    Args:
+        url: The URL as QUrl or string.
+
+    Return:
+        True if it is a valid url, False otherwise.
+
+    Raise:
+        ValueError if the autosearch config value is invalid.
+
+    """
     urlstr = urlstring(url)
 
     try:

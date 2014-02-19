@@ -107,7 +107,15 @@ class TabbedBrowser(TabWidget):
         self._space.activated.connect(lambda: self.cur_scroll_page(0, 1))
 
     def _cb_tab_shutdown(self, tab):
-        """Called after a tab has been shut down completely."""
+        """Called after a tab has been shut down completely.
+
+        Args:
+            tab: The tab object which has been shut down.
+
+        Emit:
+            shutdown_complete: When the tab shutdown is done completely.
+
+        """
         try:
             self._tabs.remove(tab)
         except ValueError:
@@ -118,7 +126,14 @@ class TabbedBrowser(TabWidget):
             self.shutdown_complete.emit()
 
     def _cur_scroll_percent(self, perc=None, count=None, orientation=None):
-        """Inner logic for cur_scroll_percent_(x|y)."""
+        """Inner logic for cur_scroll_percent_(x|y).
+
+        Args:
+            perc: How many percent to scroll, or None
+            count: How many percent to scroll, or None
+            orientation: Qt.Horizontal or Qt.Vertical
+
+        """
         if perc is None and count is None:
             perc = 100
         elif perc is None:
@@ -134,7 +149,13 @@ class TabbedBrowser(TabWidget):
     def _widget(self, count=None):
         """Return a widget based on a count/idx.
 
-        If count is None, return the current widget.
+        Args:
+            count: The tab index, or None.
+
+        Return:
+            The current widget if count is None.
+            The widget with the given tab ID if count is given.
+            None if no widget was found.
 
         """
         if count is None:
@@ -149,6 +170,9 @@ class TabbedBrowser(TabWidget):
 
         Slot for the titleChanged signal of any tab.
 
+        Args:
+            text: The text to set.
+
         """
         logging.debug('title changed to "{}"'.format(text))
         if text:
@@ -157,7 +181,15 @@ class TabbedBrowser(TabWidget):
             logging.debug('ignoring title change')
 
     def _filter_factory(self, signal):
-        """Return a partial functon calling _filter_signals with a signal."""
+        """Factory for partial _filter_signals functions.
+
+        Args:
+            signal: The pyqtSignal to filter.
+
+        Return:
+            A partial functon calling _filter_signals with a signal.
+
+        """
         return functools.partial(self._filter_signals, signal)
 
     def _filter_signals(self, signal, *args):
@@ -172,8 +204,12 @@ class TabbedBrowser(TabWidget):
         The current value of the signal is also stored in tab.signal_cache so
         it can be emitted later when the tab changes to the current tab.
 
-        signal -- The signal to emit if the sender was the current widget.
-        *args -- The args to pass to the signal.
+        Args:
+            signal: The signal to emit if the sender was the current widget.
+            *args: The args to pass to the signal.
+
+        Emit:
+            The target signal if the sender was the current widget.
 
         """
         # FIXME BUG the signal cache ordering seems to be weird sometimes.
@@ -202,7 +238,12 @@ class TabbedBrowser(TabWidget):
                 logging.debug('  ignoring')
 
     def shutdown(self):
-        """Try to shut down all tabs cleanly."""
+        """Try to shut down all tabs cleanly.
+
+        Emit:
+            shutdown_complete if the shutdown completed successfully.
+
+        """
         try:
             self.currentChanged.disconnect()
         except TypeError:
@@ -222,6 +263,9 @@ class TabbedBrowser(TabWidget):
         """Open a new tab with a given url.
 
         Also connect all the signals we need to _filter_signals.
+
+        Args:
+            url: The URL to open.
 
         """
         logging.debug("Opening {}".format(url))
@@ -248,12 +292,22 @@ class TabbedBrowser(TabWidget):
         tab.openurl(url)
 
     def tabopencur(self):
-        """Set the statusbar to :tabopen and the current URL."""
+        """Set the statusbar to :tabopen and the current URL.
+
+        Emit:
+            set_cmd_text prefilled with :tabopen $URL
+
+        """
         url = urlutils.urlstring(self.currentWidget().url())
         self.set_cmd_text.emit(':tabopen ' + url)
 
     def opencur(self):
-        """Set the statusbar to :open and the current URL."""
+        """Set the statusbar to :open and the current URL.
+
+        Emit:
+            set_cmd_text prefilled with :open $URL
+
+        """
         url = urlutils.urlstring(self.currentWidget().url())
         self.set_cmd_text.emit(':open ' + url)
 
@@ -270,6 +324,13 @@ class TabbedBrowser(TabWidget):
         """Close the current/[count]th tab.
 
         Command handler for :close.
+
+        Args:
+            count: The tab index to close, or None
+
+        Emit:
+            quit: If last tab was closed and last_close in config is set to
+                  quit.
 
         """
         idx = self.currentIndex() if count is None else count - 1
@@ -292,7 +353,10 @@ class TabbedBrowser(TabWidget):
         """Open an url in the current/[count]th tab.
 
         Command handler for :open.
-        url -- The URL to open.
+
+        Args:
+            url: The URL to open.
+            count: The tab index to open the URL in, or None.
 
         """
         tab = self._widget(count)
@@ -304,6 +368,9 @@ class TabbedBrowser(TabWidget):
 
         Command handler for :reload.
 
+        Args:
+            count: The tab index to reload, or None.
+
         """
         tab = self._widget(count)
         if tab is not None:
@@ -314,6 +381,9 @@ class TabbedBrowser(TabWidget):
 
         Command handler for :stop.
 
+        Args:
+            count: The tab index to stop, or None.
+
         """
         tab = self._widget(count)
         if tab is not None:
@@ -323,6 +393,9 @@ class TabbedBrowser(TabWidget):
         """Print the current/[count]th tab.
 
         Command handler for :print.
+
+        Args:
+            count: The tab index to print, or None.
 
         """
         # FIXME that does not what I expect
@@ -335,8 +408,10 @@ class TabbedBrowser(TabWidget):
     def cur_back(self, count=1):
         """Go back in the history of the current tab.
 
-        Go back for 1 page if count is unset, else go back [count] pages.
         Command handler for :back.
+
+        Args:
+            count: How many pages to go back.
 
         """
         # FIXME display warning if beginning of history
@@ -346,8 +421,10 @@ class TabbedBrowser(TabWidget):
     def cur_forward(self, count=1):
         """Go forward in the history of the current tab.
 
-        Go forward for 1 page if count is unset, else go forward [count] pages.
         Command handler for :forward.
+
+        Args:
+            count: How many pages to go forward.
 
         """
         # FIXME display warning if end of history
@@ -358,8 +435,9 @@ class TabbedBrowser(TabWidget):
     def cur_search(self, text, flags):
         """Search for text in the current page.
 
-        text  -- The text to search for.
-        flags -- The QWebPage::FindFlags.
+        Args:
+            text: The text to search for.
+            flags: The QWebPage::FindFlags.
 
         """
         self.currentWidget().findText(text, flags)
@@ -369,6 +447,11 @@ class TabbedBrowser(TabWidget):
 
         Command handler for :scroll.
 
+        Args:
+            dx: How much to scroll in x-direction.
+            dy: How much to scroll in x-direction.
+            count: multiplier
+
         """
         dx = int(count) * float(dx)
         dy = int(count) * float(dy)
@@ -377,9 +460,11 @@ class TabbedBrowser(TabWidget):
     def cur_scroll_percent_x(self, perc=None, count=None):
         """Scroll the current tab to a specific percent of the page.
 
-        Accepts percentage either as argument, or as count.
-
         Command handler for :scroll_perc_x.
+
+        Args:
+            perc: Percentage to scroll.
+            count: Percentage to scroll.
 
         """
         self._cur_scroll_percent(perc, count, Qt.Horizontal)
@@ -387,15 +472,24 @@ class TabbedBrowser(TabWidget):
     def cur_scroll_percent_y(self, perc=None, count=None):
         """Scroll the current tab to a specific percent of the page.
 
-        Accepts percentage either as argument, or as count.
-
         Command handler for :scroll_perc_y
+
+        Args:
+            perc: Percentage to scroll.
+            count: Percentage to scroll.
 
         """
         self._cur_scroll_percent(perc, count, Qt.Vertical)
 
     def cur_scroll_page(self, mx, my, count=1):
-        """Scroll the frame mx pages to the right and my pages down."""
+        """Scroll the frame page-wise.
+
+        Args:
+            mx: How many pages to scroll to the right.
+            my: How many pages to scroll down.
+            count: multiplier
+
+        """
         # FIXME this might not work with HTML frames
         page = self.currentWidget().page_
         size = page.viewportSize()
@@ -406,6 +500,9 @@ class TabbedBrowser(TabWidget):
         """Yank the current url to the clipboard or primary selection.
 
         Command handler for :yank.
+
+        Args:
+            sel: True to use primary selection, False to use clipboard
 
         """
         clip = QApplication.clipboard()
@@ -419,6 +516,9 @@ class TabbedBrowser(TabWidget):
 
         Command handler for :yanktitle.
 
+        Args:
+            sel: True to use primary selection, False to use clipboard
+
         """
         clip = QApplication.clipboard()
         title = self.tabText(self.currentIndex())
@@ -430,6 +530,9 @@ class TabbedBrowser(TabWidget):
         """Switch to the ([count]th) previous tab.
 
         Command handler for :tabprev.
+
+        Args:
+            count: How many tabs to switch back.
 
         """
         idx = self.currentIndex()
@@ -444,6 +547,9 @@ class TabbedBrowser(TabWidget):
 
         Command handler for :tabnext.
 
+        Args:
+            count: How many tabs to switch forward.
+
         """
         idx = self.currentIndex()
         if idx + count < self.count():
@@ -456,6 +562,9 @@ class TabbedBrowser(TabWidget):
         """Open a page from the clipboard.
 
         Command handler for :paste.
+
+        Args:
+            sel: True to use primary selection, False to use clipboard
 
         """
         # FIXME what happens for invalid URLs?
@@ -470,6 +579,9 @@ class TabbedBrowser(TabWidget):
 
         Command handler for :paste.
 
+        Args:
+            sel: True to use primary selection, False to use clipboard
+
         """
         # FIXME what happens for invalid URLs?
         clip = QApplication.clipboard()
@@ -479,14 +591,26 @@ class TabbedBrowser(TabWidget):
         self.tabopen(url)
 
     def keyPressEvent(self, e):
-        """Extend TabWidget (QWidget)'s keyPressEvent to emit a signal."""
+        """Extend TabWidget (QWidget)'s keyPressEvent to emit a signal.
+
+        Args:
+            e: The QKeyPressEvent
+
+        Emit:
+            keypress: Always emitted.
+
+        """
         self.keypress.emit(e)
         super().keyPressEvent(e)
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
 
-        e -- The QResizeEvent.
+        Args:
+            e: The QResizeEvent
+
+        Emit:
+            resize: Always emitted.
 
         """
         super().resizeEvent(e)
@@ -507,6 +631,7 @@ class BrowserTab(QWebView):
         _open_new_tab: Whether to open a new tab for the next action.
         _shutdown_callback: The callback to call after shutting down.
         _destroyed: Dict of all items to be destroyed on shtudown.
+
     Signals:
         scroll_pos_changed: Scroll percentage of current tab changed.
                             arg 1: x-position in %.
@@ -538,7 +663,14 @@ class BrowserTab(QWebView):
     def openurl(self, url):
         """Open an URL in the browser.
 
-        url -- The URL to load, as string or QUrl.
+        Args:
+            url: The URL to load, as string or QUrl.
+
+        Return:
+            Return status of self.load
+
+        Emit:
+            titleChanged and urlChanged
 
         """
         u = urlutils.fuzzy_url(url)
@@ -563,7 +695,11 @@ class BrowserTab(QWebView):
         Called from the linkClicked signal. Checks if it should open it in a
         tab (middle-click or control) or not, and does so.
 
-        url -- The url to handle, as string or QUrl.
+        Args:
+            url: The url to handle, as string or QUrl.
+
+        Emit:
+            open_tab: Emitted if window should be opened in a new tab.
 
         """
         if self._open_new_tab:
@@ -577,6 +713,9 @@ class BrowserTab(QWebView):
         Inspired by [1].
 
         [1] https://github.com/integricho/path-of-a-pyqter/tree/master/qttut08
+
+        Args:
+            callback: Function to call after shutting down.
 
         """
         self._shutdown_callback = callback
@@ -606,7 +745,12 @@ class BrowserTab(QWebView):
         logging.debug("Tab shutdown scheduled")
 
     def _on_destroyed(self, sender):
-        """Called when a subsystem has been destroyed during shutdown."""
+        """Called when a subsystem has been destroyed during shutdown.
+
+        Args:
+            sender: The object which called the callback.
+
+        """
         self._destroyed[sender] = True
         dbgout = '\n'.join(['{}: {}'.format(k.__class__.__name__, v)
                            for (k, v) in self._destroyed.items()])
@@ -624,7 +768,11 @@ class BrowserTab(QWebView):
         hope a repaint will always be requested when scrolling, and if the
         scroll position actually changed, we emit a signal.
 
-        e -- The QPaintEvent.
+        Args:
+            e: The QPaintEvent.
+
+        Emit:
+            scroll_pos_changed; If the scroll position changed.
 
         """
         frame = self.page_.mainFrame()
@@ -650,7 +798,11 @@ class BrowserTab(QWebView):
         This also is a bit of a hack, but it seems it's the only possible way.
         Set the _open_new_tab attribute accordingly.
 
-        e -- The arrived event.
+        Args:
+            e: The arrived event.
+
+        Return:
+            The superclass event return value.
 
         """
         if e.type() in [QEvent.MouseButtonPress, QEvent.MouseButtonDblClick]:
@@ -683,6 +835,14 @@ class BrowserPage(QWebPage):
         Loosly based on Helpviewer/HelpBrowserWV.py from eric5
         (line 260 @ 5d937eb378dd)
 
+        Args:
+            opt: The QWebPage.ErrorPageExtensionOption instance.
+            out: The QWebPage.ErrorPageExtensionReturn instance to write return
+                 values to.
+
+        Return:
+            False if no error page should be displayed, True otherwise.
+
         """
         info = sip.cast(opt, QWebPage.ErrorPageExtensionOption)
         errpage = sip.cast(out, QWebPage.ErrorPageExtensionReturn)
@@ -697,11 +857,29 @@ class BrowserPage(QWebPage):
         return True
 
     def supportsExtension(self, ext):
-        """Override QWebPage::supportsExtension to provide error pages."""
+        """Override QWebPage::supportsExtension to provide error pages.
+
+        Args:
+            ext: The extension to check for.
+
+        Return:
+            True if the extension can be handled, False otherwise.
+
+        """
         return ext in self._extension_handlers
 
     def extension(self, ext, opt, out):
-        """Override QWebPage::extension to provide error pages."""
+        """Override QWebPage::extension to provide error pages.
+
+        Args:
+            ext: The extension.
+            opt: Extension options instance.
+            out: Extension output instance.
+
+        Return:
+            Handler return value.
+
+        """
         try:
             handler = self._extension_handlers[ext]
         except KeyError:
@@ -732,6 +910,14 @@ class NetworkManager(QNetworkAccessManager):
 
         Extend QNetworkAccessManager::createRequest to save requests in
         self._requests.
+
+        Args:
+             op: Operation op
+             req: const QNetworkRequest & req
+             outgoing_data: QIODevice * outgoingData
+
+        Return:
+            A QNetworkReply.
 
         """
         reply = super().createRequest(op, req, outgoing_data)

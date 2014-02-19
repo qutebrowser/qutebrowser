@@ -36,7 +36,12 @@ _UNSET = object()
 
 
 def init(confdir):
-    """Initialize the global objects based on the config in configdir."""
+    """Initialize the global objects based on the config in configdir.
+
+    Args:
+        confdir: The directory where the configs are stored in.
+
+    """
     global config, state, colordict, fontdict
     logging.debug("Config init, confdir {}".format(confdir))
     config = Config(confdir, 'qutebrowser.conf', read_file('qutebrowser.conf'))
@@ -49,7 +54,15 @@ def init(confdir):
 
 
 def get_stylesheet(template):
-    """Return a formatted stylesheet based on a template."""
+    """Format a stylesheet based on a template.
+
+    Args:
+        template: The stylesheet template as string.
+
+    Return:
+        The formatted template as string.
+
+    """
     return template.strip().format(color=colordict, font=fontdict)
 
 
@@ -64,13 +77,17 @@ class ColorDict(dict):
     def __getitem__(self, key):
         """Override dict __getitem__.
 
-        If a value wasn't found, return an empty string.
-        (Color not defined, so no output in the stylesheet)
+        Args:
+            key: The key to get from the dict.
 
-        If the key has a .fg. element in it, return  color: X;.
-        If the key has a .bg. element in it, return  background-color: X;.
+        Return:
+            If a value wasn't found, return an empty string.
+            (Color not defined, so no output in the stylesheet)
 
-        In all other cases, return the plain value.
+            If the key has a .fg. element in it, return  color: X;.
+            If the key has a .bg. element in it, return  background-color: X;.
+
+            In all other cases, return the plain value.
 
         """
         try:
@@ -87,7 +104,11 @@ class ColorDict(dict):
     def getraw(self, key):
         """Get a value without the transformations done in __getitem__.
 
-        Return a value, or None if the value wasn't found.
+        Args:
+            key: The key to get from the dict.
+
+        Return:
+            A value, or None if the value wasn't found.
 
         """
         try:
@@ -103,10 +124,14 @@ class FontDict(dict):
     def __getitem__(self, key):
         """Override dict __getitem__.
 
-        If a value wasn't found, return an empty string.
-        (Color not defined, so no output in the stylesheet)
+        Args:
+            key: The key to get from the dict.
 
-        In all other cases, return font: <value>.
+        Return:
+            If a value wasn't found, return an empty string.
+            (Color not defined, so no output in the stylesheet)
+
+            In all other cases, return font: <value>.
 
         """
         try:
@@ -119,7 +144,11 @@ class FontDict(dict):
     def getraw(self, key):
         """Get a value without the transformations done in __getitem__.
 
-        Return a value, or None if the value wasn't found.
+        Args:
+            key: The key to get from the dict.
+
+        Return:
+            A value, or None if the value wasn't found.
 
         """
         try:
@@ -143,11 +172,12 @@ class Config(ConfigParser):
                  always_save=False):
         """Config constructor.
 
-        configdir -- directory to store the config in.
-        fname -- Filename of the config file.
-        default_config -- Default config as string.
-        always_save -- Whether to always save the config, even when it wasn't
-                       loaded.
+        Args:
+            configdir: Directory to store the config in.
+            fname: Filename of the config file.
+            default_config: Default config as string.
+            always_save: Whether to always save the config, even when it wasn't
+                         loaded.
 
         """
         super().__init__(interpolation=ExtendedInterpolation())
@@ -174,6 +204,12 @@ class Config(ConfigParser):
 
         Extend ConfigParser's __getitem__.
 
+        Args:
+            key: The key to get from the dict.
+
+        Return:
+            The value of the main or fallback ConfigParser.
+
         """
         try:
             return super().__getitem__(key)
@@ -190,6 +226,16 @@ class Config(ConfigParser):
             - If that's not available, try the default_cp configparser
             - If that's not available, try the fallback given as kwarg
             - If that's not available, we're doomed.
+
+        Args:
+            *args: Passed to the other configparsers.
+            raw: Passed to the other configparsers (do not interpolate).
+            var: Passed to the other configparsers.
+            fallback: Fallback value if value wasn't found in any configparser.
+
+        Raise:
+            configparser.NoSectionError/configparser.NoOptionError if the
+            default configparser raised them and there is no fallback.
 
         """
         # pylint: disable=redefined-builtin
@@ -225,7 +271,12 @@ class Config(ConfigParser):
             os.fsync(f.fileno())
 
     def dump_userconfig(self):
-        """Return the part of the config which was changed by the user."""
+        """Get the part of the config which was changed by the user.
+
+        Return:
+            The changed config part as string.
+
+        """
         with io.StringIO() as f:
             self.write(f)
             return f.getvalue()

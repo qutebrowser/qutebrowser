@@ -67,7 +67,11 @@ class KeyParser(QObject):
 
         Return True if the keypress has been handled, and False if not.
 
-        e -- the KeyPressEvent from Qt
+        Args:
+            e: the KeyPressEvent from Qt.
+
+        Return:
+            True if event has been handled, False otherwise.
 
         """
         MODMASK2STR = {
@@ -103,7 +107,11 @@ class KeyParser(QObject):
         any possible command, and either run the command, ignore it, or
         display an error.
 
-        e -- the KeyPressEvent from Qt.
+        Args:
+            e: the KeyPressEvent from Qt.
+
+        Emit:
+            set_cmd_text: If the keystring should be shown in the statusbar.
 
         """
         # FIXME maybe we can do this in an easier way by using QKeySeqyence
@@ -155,7 +163,13 @@ class KeyParser(QObject):
     def _match_key(self, cmdstr_needle):
         """Try to match a given keystring with any bound keychain.
 
-        cmdstr_needle: The command string to find.
+        Args:
+            cmdstr_needle: The command string to find.
+
+        Return:
+            A tuple (matchtype, hay) where matchtype is MATCH_DEFINITIVE,
+            MATCH_PARTIAL or MATCH_NONE and hay is the long keystring where the
+            part was found in.
 
         """
         try:
@@ -177,7 +191,11 @@ class KeyParser(QObject):
     def _normalize_keystr(self, keystr):
         """Normalize a keystring like Ctrl-Q to a keystring like Ctrl+Q.
 
-        keystr -- The key combination as a string.
+        Args:
+            keystr: The key combination as a string.
+
+        Return:
+            The normalized keystring.
 
         """
         replacements = [
@@ -196,9 +214,14 @@ class KeyParser(QObject):
     def _run_or_fill(self, cmdstr, count=None, ignore_exc=True):
         """Run the command in cmdstr or fill the statusbar if args missing.
 
-        cmdstr -- The command string.
-        count -- Optional command count.
-        ignore_exc -- Ignore exceptions.
+        Args:
+            cmdstr: The command string.
+            count: Optional command count.
+            ignore_exc: Ignore exceptions.
+
+        Emit:
+            set_cmd_text: If a partial command should be printed to the
+                          statusbar.
 
         """
         try:
@@ -217,6 +240,9 @@ class KeyParser(QObject):
         Config format: key = command, e.g.:
         gg = scrollstart
 
+        Args:
+            sect: The section to get the keybindings from.
+
         """
         for (key, cmd) in sect.items():
             if key.startswith('@') and key.endswith('@'):
@@ -232,7 +258,11 @@ class KeyParser(QObject):
     def handle(self, e):
         """Handle a new keypress and call the respective handlers.
 
-        e -- the KeyPressEvent from Qt
+        Args:
+            e: the KeyPressEvent from Qt
+
+        Emit:
+            keystring_updated: If a new keystring should be set.
 
         """
         handled = self._handle_modifier_key(e)

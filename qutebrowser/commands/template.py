@@ -63,6 +63,12 @@ class Command(QObject):
 
         Raise ArgumentCountError if not.
 
+        Args:
+            args: The supplied arguments
+
+        Raise:
+            ArgumentCountError if the argument count is wrong.
+
         """
         if ((isinstance(self.nargs, int) and len(args) != self.nargs) or
                 (self.nargs == '?' and len(args) > 1) or
@@ -73,8 +79,12 @@ class Command(QObject):
     def run(self, args=None, count=None):
         """Run the command.
 
-        args -- Arguments to the command.
-        count -- Command repetition count.
+        Args:
+            args: Arguments to the command.
+            count: Command repetition count.
+
+        Emit:
+            The command's signal.
 
         """
         dbgout = ["command called:", self.mainname]

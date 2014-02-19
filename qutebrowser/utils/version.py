@@ -29,9 +29,11 @@ import qutebrowser
 
 
 def _git_str():
-    """Try to find out git version and return a string if possible.
+    """Try to find out git version.
 
-    Return None if there was an error or we're not in a git repo.
+    Return:
+        string containing the git commit ID.
+        None if there was an error or we're not in a git repo.
 
     """
     if hasattr(sys, "frozen"):

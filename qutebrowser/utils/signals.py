@@ -25,16 +25,28 @@ from PyQt5.QtCore import QObject
 
 
 def signal_name(sig):
-    """Return a cleaned up name of a signal."""
+    """Get a cleaned up name of a signal.
+
+    Args:
+        sig: The pyqtSignal
+
+    Return:
+        The cleaned up signal name.
+
+    """
     m = re.match(r'[0-9]+(.*)\(.*\)', sig.signal)
     return m.group(1)
 
 
 def dbg_signal(sig, args):
-    """Return a string representation of a signal for debugging.
+    """Get a string representation of a signal for debugging.
 
-    sig -- A pyqtSignal.
-    args -- The arguments as list of strings.
+    Args:
+        sig: A pyqtSignal.
+        args: The arguments as list of strings.
+
+    Return:
+        A human-readable string representation of signal/args.
 
     """
     return '{}({})'.format(signal_name(sig), ', '.join(map(str, args)))
@@ -53,8 +65,9 @@ class SignalCache(QObject):
     def __init__(self, uncached=None):
         """Create a new SignalCache.
 
-        uncached -- A list of signal names (as string) which should never be
-                    cached.
+        Args:
+            uncached: A list of signal names (as string) which should never be
+                      cached.
 
         """
         super().__init__()
@@ -65,7 +78,7 @@ class SignalCache(QObject):
         self._signal_dict = OrderedDict()
 
     def _signal_needs_caching(self, signal):
-        """Return True if a signal should be cached, false otherwise."""
+        """Return True if a signal should be cached, False otherwise."""
         return not signal_name(signal) in self._uncached
 
     def add(self, sig, args):
@@ -74,6 +87,13 @@ class SignalCache(QObject):
         If the signal doesn't need caching it will be ignored.
         If it's already in the cache, it'll be updated and moved to the front.
         If not, it will be added.
+
+        Args:
+            sig: The pyqtSignal.
+            args: A list of arguments.
+
+        Emit:
+            Cached signals.
 
         """
         if not self._signal_needs_caching(sig):

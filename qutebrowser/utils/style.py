@@ -48,6 +48,9 @@ class Style(QCommonStyle):
 
         This simply calls the corresponding function in self._style.
 
+        Args:
+            style: The base/"parent" style.
+
         """
         self._style = style
         for method in ['drawComplexControl', 'drawControl', 'drawItemPixmap',
@@ -65,6 +68,12 @@ class Style(QCommonStyle):
 
         Call the genuine drawPrimitive of self._style, except when a focus
         rectangle should be drawn.
+
+        Args:
+            element: PrimitiveElement pe
+            option: const QStyleOption * opt
+            painter: QPainter * p
+            widget: const QWidget * widget
 
         """
         if element == QStyle.PE_FrameFocusRect:

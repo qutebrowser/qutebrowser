@@ -47,14 +47,27 @@ def set_trace():
 
 
 def read_file(filename):
-    """Return the contents of a file contained with qutebrowser."""
+    """Get the contents of a file contained with qutebrowser.
+
+    Args:
+        filename: The filename to open as string.
+
+    Return:
+        The file contents as string.
+
+    """
     fn = os.path.join(qutebrowser.basedir, filename)
     with open(fn, 'r', encoding='UTF-8') as f:
         return f.read()
 
 
 def trace_lines(do_trace):
-    """Turn on/off printing each executed line."""
+    """Turn on/off printing each executed line.
+
+    Args:
+        do_trace: Whether to start tracing (True) or stop it (False).
+
+    """
     def trace(frame, event, _):
         """Trace function passed to sys.settrace."""
         print("{}, {}:{}".format(event, frame.f_code.co_filename,

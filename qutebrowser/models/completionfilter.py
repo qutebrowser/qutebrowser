@@ -54,6 +54,9 @@ class CompletionFilterModel(QSortFilterProxyModel):
         If the current completion model overrides sort(), it is used.
         If not, the default implementation in QCompletionFilterModel is called.
 
+        Args:
+            val: The value to set.
+
         """
         self._pattern = val
         self.invalidateFilter()
@@ -74,7 +77,8 @@ class CompletionFilterModel(QSortFilterProxyModel):
     def srcmodel(self, model):
         """Set a new source model and clear the pattern.
 
-        model -- The new source model.
+        Args:
+            model: The new source model.
 
         """
         # FIXME change this to a property
@@ -97,11 +101,13 @@ class CompletionFilterModel(QSortFilterProxyModel):
 
         Override QSortFilterProxyModel::filterAcceptsRow.
 
-        row    -- The row of the item.
-        parent -- The parent item QModelIndex.
+        Args:
+            row: The row of the item.
+            parent: The parent item QModelIndex.
 
-        Return True if self.pattern is contained in item, or if it's a root
-        item (category). Else returns False.
+        Return:
+            True if self.pattern is contained in item, or if it's a root item
+            (category). False in all other cases
 
         """
         if parent == QModelIndex():
@@ -116,11 +122,15 @@ class CompletionFilterModel(QSortFilterProxyModel):
     def lessThan(self, lindex, rindex):
         """Custom sorting implementation.
 
-        lindex -- The QModelIndex of the left item (*left* < right)
-        rindex -- The QModelIndex of the right item (left < *right*)
-
         Prefers all items which start with self.pattern. Other than that, uses
         normal Python string sorting.
+
+        Args:
+            lindex: The QModelIndex of the left item (*left* < right)
+            rindex: The QModelIndex of the right item (left < *right*)
+
+        Return:
+            True if left < right, else False
 
         """
         left = self.srcmodel.data(lindex).value()

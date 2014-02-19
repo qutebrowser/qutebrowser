@@ -72,8 +72,12 @@ class SearchParser(QObject):
     def _search(self, text, rev=False):
         """Search for a text on the current page.
 
-        text -- The text to search for.
-        rev -- Search direction.
+        Args:
+            text: The text to search for.
+            rev: Search direction, True if reverse, else False.
+
+        Emit:
+            do_search: If a search should be started.
 
         """
         if self._text is not None and self._text != text:
@@ -92,7 +96,8 @@ class SearchParser(QObject):
     def search(self, text):
         """Search for a text on a website.
 
-        text -- The text to search for.
+        Args:
+            text: The text to search for.
 
         """
         self._search(text)
@@ -101,13 +106,22 @@ class SearchParser(QObject):
     def search_rev(self, text):
         """Search for a text on a website in reverse direction.
 
-        text -- The text to search for.
+        Args:
+            text: The text to search for.
 
         """
         self._search(text, rev=True)
 
     def nextsearch(self, count=1):
-        """Continue the search to the ([count]th) next term."""
+        """Continue the search to the ([count]th) next term.
+
+        Args:
+            count: How many elements to ignore.
+
+        Emit:
+            do_search: If a search should be started.
+
+        """
         if self._text is not None:
             for i in range(count):  # pylint: disable=unused-variable
                 self.do_search.emit(self._text, self._flags)
@@ -137,7 +151,11 @@ class CommandParser(QObject):
     def _parse(self, text):
         """Split the commandline text into command and arguments.
 
-        Raise NoSuchCommandError if a command wasn't found.
+        Args:
+            text: Text to parse.
+
+        Raise:
+            NoSuchCommandError if a command wasn't found.
 
         """
         parts = text.strip().split(maxsplit=1)
@@ -163,7 +181,12 @@ class CommandParser(QObject):
         self._cmd.check(self._args)
 
     def _run(self, count=None):
-        """Run a command with an optional count."""
+        """Run a command with an optional count.
+
+        Args:
+            count: Count to pass to the command.
+
+        """
         if count is not None:
             self._cmd.run(self._args, count=count)
         else:
@@ -175,13 +198,26 @@ class CommandParser(QObject):
 
         If ignore_exc is True, ignore exceptions and return True/False.
 
-        Raise NoSuchCommandError if a command wasn't found, and
-        ArgumentCountError if a command was called with the wrong count of
-        arguments.
+        Args:
+            text: The text to parse.
+            count: The count to pass to the command.
+            ignore_exc: Ignore exceptions and return False instead.
+
+        Raise:
+            NoSuchCommandError: if a command wasn't found.
+            ArgumentCountError: if a command was called with the wrong count of
+            arguments.
+
+        Return:
+            FIXME
+
+        Emit:
+            error: If there was an error parsing a command.
 
         """
         if ';;' in text:
             for sub in text.split(';;'):
+                # FIXME handle return codes
                 self.run(sub, count, ignore_exc)
             return
         try:
@@ -201,3 +237,4 @@ class CommandParser(QObject):
             else:
                 raise
         self._run(count=count)
+        # FIXME return val

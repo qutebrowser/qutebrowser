@@ -132,7 +132,12 @@ class QuteBrowser(QApplication):
         self._timers.append(timer)
 
     def _parseopts(self):
-        """Parse command line options."""
+        """Parse command line options.
+
+        Return:
+            Argument namespace from argparse.
+
+        """
         parser = ArgumentParser("usage: %(prog)s [options]")
         parser.add_argument('-l', '--log', dest='loglevel',
                             help='Set loglevel', default='info')
@@ -222,8 +227,10 @@ class QuteBrowser(QApplication):
     def _recover_pages(self):
         """Try to recover all open pages.
 
-        Return a list of open pages, or an empty list.
         Called from _exception_hook, so as forgiving as possible.
+
+        Return:
+            A list of open pages, or an empty list.
 
         """
         pages = []
@@ -308,6 +315,9 @@ class QuteBrowser(QApplication):
         This only quits if both the CrashDialog was ready to quit AND the
         shutdown is complete.
 
+        Args:
+            The sender of the quit signal (string)
+
         """
         self._quit_status[sender] = True
         logging.debug("maybe_quit called from {}, quit status {}".format(
@@ -323,9 +333,14 @@ class QuteBrowser(QApplication):
         This gets called as a slot from all commands, and then calls the
         appropriate command handler.
 
-        tpl -- A tuple in the form (count, argv) where argv is [cmd, arg, ...]
-
         All handlers supporting a count should have a keyword argument count.
+
+        Args:
+            tpl: A tuple in the form (count, argv) where argv is
+                 [cmd, arg, ...]
+
+        Return:
+            The handlers return value.
 
         """
         (count, argv) = tpl
@@ -371,9 +386,10 @@ class QuteBrowser(QApplication):
     def pyeval(self, s):
         """Evaluate a python string and display the results as a webpage.
 
-        s -- The string to evaluate.
-
         :pyeval command handler.
+
+        Args:
+            s: The string to evaluate.
 
         """
         try:
@@ -389,6 +405,9 @@ class QuteBrowser(QApplication):
 
         :crash command handler.
 
+        Raises:
+            Always raises Exception.
+
         """
         raise Exception
 
@@ -399,7 +418,8 @@ class QuteBrowser(QApplication):
         For some reason lastWindowClosing sometimes seem to get emitted twice,
         so we make sure we only run once here.
 
-        quit -- Whether to quit after shutting down.
+        Args:
+            do_quit: Whether to quit after shutting down.
 
         """
         if self._shutting_down:

@@ -42,8 +42,12 @@ class CompletionModel(QAbstractItemModel):
     def _node(self, index):
         """Return the interal data representation for index.
 
-        Return the CompletionItem for index, or the root CompletionItem if the
-        index was invalid.
+        Args:
+            index: The QModelIndex to get data for.
+
+        Return:
+            The CompletionItem for index, or the root CompletionItem if the
+            index was invalid.
 
         """
         if index.isValid():
@@ -52,7 +56,16 @@ class CompletionModel(QAbstractItemModel):
             return self._root
 
     def _get_marks(self, needle, haystack):
-        """Return the marks for needle in haystack."""
+        """Return the marks for needle in haystack.
+
+        Args:
+            needle: The substring which should match.
+            haystack: The string where the matches should be in.
+
+        Return:
+            A list of (startidx, endidx) tuples.
+
+        """
         pos1 = pos2 = 0
         marks = []
         if not needle:
@@ -68,7 +81,8 @@ class CompletionModel(QAbstractItemModel):
     def mark_all_items(self, needle):
         """Mark a string in all items (children of root-children).
 
-        needle -- The string to mark.
+        Args:
+            needle: The string to mark.
 
         """
         for i in range(self.rowCount()):
@@ -82,7 +96,8 @@ class CompletionModel(QAbstractItemModel):
     def init_data(self, data):
         """Initialize the Qt model based on the data given.
 
-        data -- dict of data to process.
+        Args:
+            data: dict of data to process.
 
         """
         for (cat, items) in data.items():
@@ -99,6 +114,11 @@ class CompletionModel(QAbstractItemModel):
 
         Override QAbstractItemModel::removeRows.
 
+        Args:
+            position: The start row to remove.
+            count: How many rows to remove.
+            parent: The parent QModelIndex.
+
         """
         node = self._node(parent)
         self.beginRemoveRows(parent, position, position + count - 1)
@@ -110,6 +130,13 @@ class CompletionModel(QAbstractItemModel):
 
         Override QAbstractItemModel::columnCount.
 
+        Args:
+            parent: The parent for which to return the column count. Currently
+                    ignored.
+
+        Return:
+            Column count as an integer.
+
         """
         # pylint: disable=unused-argument
         return self._root.column_count()
@@ -119,6 +146,12 @@ class CompletionModel(QAbstractItemModel):
 
         Use the root frame if parent is invalid.
         Override QAbstractItemModel::rowCount.
+
+        Args:
+            parent: The parent for which to return the row count.
+
+        Return:
+            Row count as an integer.
 
         """
         if parent.column() > 0:
@@ -134,8 +167,14 @@ class CompletionModel(QAbstractItemModel):
     def data(self, index, role=Qt.DisplayRole):
         """Return the data for role/index as QVariant.
 
-        Return an invalid QVariant on error.
         Override QAbstractItemModel::data.
+
+        Args:
+            index: The QModelIndex for which to get data for.
+            roel: The role to use for the data.
+
+        Return:
+            The data as QVariant or an invalid QVariant on error.
 
         """
         if not index.isValid():
@@ -152,8 +191,14 @@ class CompletionModel(QAbstractItemModel):
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Return the header data for role/index as QVariant.
 
-        Return an invalid QVariant on error.
         Override QAbstractItemModel::headerData.
+
+        Args:
+            section: The section (as int) for which to get the header data.
+            orientation: Qt.Vertical or Qt.Horizontal
+
+        Return:
+            The data as QVariant or an invalid QVariant on error.
 
         """
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
@@ -163,8 +208,18 @@ class CompletionModel(QAbstractItemModel):
     def setData(self, index, value, role=Qt.EditRole):
         """Set the data for role/index to value.
 
-        Return True on success, False on failure.
         Override QAbstractItemModel::setData.
+
+        Args:
+            index: The QModelIndex where to set the data.
+            value: The new data value.
+            role: The role to set the data for.
+
+        Return:
+            True on success, False on failure.
+
+        Emit:
+            dataChanged when the data was changed.
 
         """
         if not index.isValid():
@@ -180,8 +235,13 @@ class CompletionModel(QAbstractItemModel):
     def flags(self, index):
         """Return the item flags for index.
 
-        Return Qt.NoItemFlags on error.
         Override QAbstractItemModel::flags.
+
+        Args:
+            index: The QModelIndex to get item flags for.
+
+        Return:
+            The item flags, or Qt.NoItemFlags on error.
 
         """
         # FIXME categories are not selectable, but moving via arrow keys still
@@ -197,8 +257,15 @@ class CompletionModel(QAbstractItemModel):
     def index(self, row, column, parent=QModelIndex()):
         """Return the QModelIndex for row/column/parent.
 
-        Return an invalid QModelIndex on failure.
         Override QAbstractItemModel::index.
+
+        Args:
+            row: The row (int) to get an index for.
+            column: The column (int) to get an index for.
+            parent: The parent (QModelIndex) to get an index for.
+
+        Return:
+            A generated QModelIndex or an invalid QModelIndex on failure.
 
         """
         if (0 <= row < self.rowCount(parent) and
@@ -223,8 +290,13 @@ class CompletionModel(QAbstractItemModel):
     def parent(self, index):
         """Return the QModelIndex of the parent of the object behind index.
 
-        Return an invalid QModelIndex on failure.
         Override QAbstractItemModel::parent.
+
+        Args:
+            index: The QModelIndex to get the parent for.
+
+        Return:
+            The parent's QModelIndex or an invalid QModelIndex on failure.
 
         """
         if not index.isValid():
@@ -237,8 +309,10 @@ class CompletionModel(QAbstractItemModel):
     def sort(self, column, order=Qt.AscendingOrder):
         """Sort the data in column according to order.
 
-        Raise NotImplementedError, should be overwritten in a superclass.
         Override QAbstractItemModel::sort.
+
+        Raise:
+            NotImplementedError, should be overwritten in a superclass.
 
         """
         raise NotImplementedError
@@ -259,8 +333,9 @@ class CompletionItem():
     def __init__(self, data, parent=None):
         """Constructor for CompletionItem.
 
-        data   -- The data for the model, as tuple (columns).
-        parent -- An optional parent item.
+        Args:
+            data: The data for the model, as tuple (columns).
+            parent: An optional parent item.
 
         """
         self.parent = parent
@@ -271,7 +346,15 @@ class CompletionItem():
     def data(self, column, role=Qt.DisplayRole):
         """Get the data for role/column.
 
-        Raise ValueError if the role is invalid.
+        Args:
+            column: The column (int) to get data for.
+            role: The role to get data for.
+
+        Return:
+            The requested data.
+
+        Raise:
+            ValueError if the role is invalid.
 
         """
         if role == Qt.DisplayRole:
@@ -284,7 +367,13 @@ class CompletionItem():
     def setdata(self, column, value, role=Qt.DisplayRole):
         """Set the data for column/role to value.
 
-        Raise ValueError if the role is invalid.
+        Args:
+            column: The column (int) to set the data for.
+            value: The value to set the data to.
+            role: The role to set the data for.
+
+        Raise:
+            ValueError if the role is invalid.
 
         """
         if role == Qt.DisplayRole:
@@ -295,11 +384,21 @@ class CompletionItem():
             raise ValueError
 
     def column_count(self):
-        """Return the column count in the item."""
+        """Get the column count in the item.
+
+        Return:
+            The column count.
+
+        """
         return len(self._data)
 
     def row(self):
-        """Return the row index (int) of the item, or 0 if it's a root item."""
+        """Get the row index (int) of the item.
+
+        Return:
+            The row index of the item, or 0 if we're a root item.
+
+        """
         if self.parent:
             return self.parent.children.index(self)
         return 0
