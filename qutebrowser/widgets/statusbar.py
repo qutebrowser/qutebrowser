@@ -494,7 +494,14 @@ class TextBase(QLabel):
             self.text(), self._elidemode, width, Qt.TextShowMnemonic)
 
     def setText(self, txt):
-        """Extend QLabel::setText to update the elided text afterwards.
+        """Extend QLabel::setText.
+
+        This update the elided text after setting the text, and also works
+        around a weird QLabel redrawing bug where it doesn't redraw correctly
+        when the text is empty -- we explicitely need to call repaint() to
+        resolve this. See http://stackoverflow.com/q/21890462/2085149
+
+        FIXME is there a nicer way to work around this?
 
         Args:
             txt: The text to set (string).
@@ -502,6 +509,8 @@ class TextBase(QLabel):
         """
         super().setText(txt)
         self._update_elided_text(self.geometry().width())
+        if not txt:
+            self.repaint()
 
     def resizeEvent(self, e):
         """Extend QLabel::resizeEvent to update the elided text afterwards."""
