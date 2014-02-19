@@ -72,8 +72,6 @@ class TabbedBrowser(TabWidget):
         cur_scroll_perc_changed: Scroll percentage of current tab changed.
                                  arg 1: x-position in %.
                                  arg 2: y-position in %.
-        disp_tmp_msg: A temporary message should be shown in the statusbar.
-                      arg: The message to display as string.
         keypress: A key was pressed.
                   arg: The QKeyEvent leading to the keypress.
         shutdown_complete: The shuttdown is completed.
@@ -92,7 +90,6 @@ class TabbedBrowser(TabWidget):
     cur_link_hovered = pyqtSignal(str, str, str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
     set_cmd_text = pyqtSignal(str)
-    disp_tmp_msg = pyqtSignal(str)
     keypress = pyqtSignal('QKeyEvent')
     shutdown_complete = pyqtSignal()
     quit = pyqtSignal()
@@ -516,7 +513,7 @@ class TabbedBrowser(TabWidget):
         url = urlutils.urlstring(self.currentWidget().url())
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         clip.setText(url, mode)
-        self.disp_tmp_msg.emit('URL yanked to {}'.format(
+        self.cur_statusbar_message.emit('URL yanked to {}'.format(
             'primary selection' if sel else 'clipboard'))
 
     def cur_yank_title(self, sel=False):
@@ -535,7 +532,7 @@ class TabbedBrowser(TabWidget):
         title = self.tabText(self.currentIndex())
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         clip.setText(title, mode)
-        self.disp_tmp_msg.emit('Title yanked to {}'.format(
+        self.cur_statusbar_message.emit('Title yanked to {}'.format(
             'primary selection' if sel else 'clipboard'))
 
     def switch_prev(self, count=1):

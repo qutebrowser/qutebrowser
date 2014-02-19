@@ -21,7 +21,8 @@ import logging
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt
 from PyQt5.QtWidgets import (QWidget, QLineEdit, QProgressBar, QLabel,
-                             QHBoxLayout, QSizePolicy, QShortcut)
+                             QHBoxLayout, QStackedLayout, QSizePolicy,
+                             QShortcut)
 from PyQt5.QtGui import QPainter, QKeySequence, QValidator
 
 import qutebrowser.utils.config as config
@@ -41,6 +42,7 @@ class StatusBar(QWidget):
         url: The Url widget in the statusbar.
         prog: The Progress widget in the statusbar.
         _hbox: The main QHBoxLayout.
+        _stack: The QStackedLayout with cmd/txt widgets.
         _error: If there currently is an error, accessed through the error
                 property.
         _STYLESHEET: The stylesheet template.
@@ -87,11 +89,16 @@ class StatusBar(QWidget):
         self._hbox.setContentsMargins(0, 0, 0, 0)
         self._hbox.setSpacing(5)
 
+        self._stack = QStackedLayout()
+        self._stack.setContentsMargins(0, 0, 0, 0)
+
         self.cmd = _Command(self)
-        self._hbox.addWidget(self.cmd)
+        self._stack.addWidget(self.cmd)
 
         self.txt = _Text(self)
-        self._hbox.addWidget(self.txt)
+        self._stack.addWidget(self.txt)
+
+        self._hbox.addLayout(self._stack)
         self._hbox.addStretch()
 
         self.keystring = _KeyString(self)
@@ -105,6 +112,8 @@ class StatusBar(QWidget):
 
         self.prog = _Progress(self)
         self._hbox.addWidget(self.prog)
+
+        self.clear_tmp_text()
 
     @pyqtProperty(bool)
     def error(self):
@@ -123,16 +132,44 @@ class StatusBar(QWidget):
         self._error = val
         self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
 
+    @pyqtSlot()
+    def _show_tmp_text(self):
+        """Show temporary text instead of command widget."""
+        self._stack.setCurrentWidget(self.txt)
+
+    @pyqtSlot()
+    def _hide_tmp_text(self):
+        """Show command widget instead of temproary text."""
+        self._stack.setCurrentWidget(self.cmd)
+
     @pyqtSlot(str)
     def disp_error(self, text):
         """Display an error in the statusbar."""
         self.error = True
-        self.txt.error = text
+        self.disp_tmp_text(text)
 
     def clear_error(self):
         """Clear a displayed error from the status bar."""
         self.error = False
-        self.txt.error = ''
+
+    @pyqtSlot(str)
+    def disp_tmp_text(self, txt):
+        """Display a temporary text.
+
+        Args:
+            txt: The text to display, or an empty string to clear.
+
+        """
+        self.txt.setText(txt)
+        if txt:
+            self._show_tmp_text()
+        else:
+            self._hide_tmp_text()
+
+    @pyqtSlot()
+    def clear_tmp_text(self):
+        """Clear a temporary text."""
+        self.disp_tmp_text('')
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
@@ -347,16 +384,6 @@ class _Command(QLineEdit):
         self.hide_completion.emit()
         super().focusOutEvent(e)
 
-    def focusInEvent(self, e):
-        """Clear error message when the statusbar is focused.
-
-        Args:
-            e: The QFocusEvent.
-
-        """
-        self._statusbar.clear_error()
-        super().focusInEvent(e)
-
 
 class _CommandValidator(QValidator):
 
@@ -475,60 +502,9 @@ class TextBase(QLabel):
 
 class _Text(TextBase):
 
-    """Text displayed in the statusbar.
+    """Text displayed in the statusbar."""
 
-    There are three types of texts which can be displayed:
-        The current normal text displayed for a longer time,
-        the current temporary text displayed until the next keystroke,
-        the current error text displayed until statusbar is focused.
-
-    Attributes:
-        normal: The text normally displayed, accessed via property normal.
-        temporary: The temporary text, accessed via property temporary.
-        error: The error text accessed via property error.
-        _initialized: True when initialization is done, to avoid calling
-                      callback when still in __init__.
-
-    """
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._initialized = False
-        self.normal = ''
-        self.temporary = ''
-        self.error = ''
-        self._initialized = True
-        self._update_text()
-
-    def __setattr__(self, name, value):
-        """Override __setattr__ to call _update_text() if texts changed."""
-        super().__setattr__(name, value)
-        if name in ['normal', 'temporary', 'error'] and self._initialized:
-            self._update_text()
-
-    def _update_text(self):
-        """Callback called when texts are updated. Display appropriate text."""
-        for t in [self.error, self.temporary, self.normal]:
-            if t:
-                self.setText(t)
-                break
-        else:
-            self.setText('')
-
-    @pyqtSlot(str)
-    def disp_tmp(self, txt):
-        """Display a temporary text.
-
-        Args:
-            txt: The text to display, or an empty string to clear.
-
-        """
-        self.temporary = txt
-
-    @pyqtSlot()
-    def clear_tmp(self):
-        """Clear a temporary text."""
-        self.temporary = ''
+    pass
 
 
 class _KeyString(TextBase):

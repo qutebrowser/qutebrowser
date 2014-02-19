@@ -107,7 +107,7 @@ class QuteBrowser(QApplication):
         self.setQuitOnLastWindowClosed(False)
         self.lastWindowClosed.connect(self.shutdown)
         self.mainwindow.tabs.keypress.connect(
-            self.mainwindow.status.txt.clear_tmp)
+            self.mainwindow.status.clear_tmp_text)
         self.mainwindow.tabs.keypress.connect(self.keyparser.handle)
         self.keyparser.set_cmd_text.connect(
             self.mainwindow.status.cmd.set_cmd_text)

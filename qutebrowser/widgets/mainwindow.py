@@ -74,7 +74,6 @@ class MainWindow(QWidget):
 
         self.status.resized.connect(self.completion.resize_to_bar)
         self.status.moved.connect(self.completion.move_to_bar)
-        self.tabs.disp_tmp_msg.connect(self.status.txt.disp_tmp)
         self.tabs.resized.connect(self.completion.on_browser_resized)
         self.tabs.cur_progress.connect(self.status.prog.setValue)
         self.tabs.cur_load_finished.connect(lambda *args:
@@ -84,7 +83,7 @@ class MainWindow(QWidget):
         self.tabs.cur_load_started.connect(self.status.prog.on_load_started)
         self.tabs.cur_scroll_perc_changed.connect(
             self.status.percentage.set_perc)
-        self.tabs.cur_statusbar_message.connect(self.status.txt.setText)
+        self.tabs.cur_statusbar_message.connect(self.status.disp_tmp_text)
         self.tabs.cur_url_changed.connect(self.status.url.set_url)
         self.tabs.cur_link_hovered.connect(self.status.url.set_hover_url)
         self.status.cmd.esc_pressed.connect(self.tabs.setFocus)
