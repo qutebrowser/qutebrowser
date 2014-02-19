@@ -268,7 +268,7 @@ class QuteBrowser(QApplication):
         exc = (exctype, excvalue, tb)
         sys.__excepthook__(*exc)
 
-        if not (isinstance(exctype, Exception) or exctype is Exception):
+        if not issubclass(exctype, Exception):
             # probably a KeyboardInterrupt
             try:
                 self.shutdown()
