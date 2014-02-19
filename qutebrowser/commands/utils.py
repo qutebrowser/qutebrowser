@@ -209,17 +209,18 @@ class CommandParser(QObject):
             arguments.
 
         Return:
-            FIXME
+            True if command was called (handler returnstatus is ignored!).
+            False if command wasn't called (there was an ignored exception).
 
         Emit:
             error: If there was an error parsing a command.
 
         """
         if ';;' in text:
+            retvals = []
             for sub in text.split(';;'):
-                # FIXME handle return codes
-                self.run(sub, count, ignore_exc)
-            return
+                retvals.append(self.run(sub, count, ignore_exc))
+            return all(retvals)
         try:
             self._parse(text)
             self._check()
@@ -237,4 +238,4 @@ class CommandParser(QObject):
             else:
                 raise
         self._run(count=count)
-        # FIXME return val
+        return True
