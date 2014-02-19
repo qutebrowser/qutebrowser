@@ -586,6 +586,11 @@ class _Percentage(TextBase):
 
     """Reading percentage displayed in the statusbar."""
 
+    def __init__(self, parent=None):
+        """Constructor. Set percentage to 0%."""
+        super().__init__(parent)
+        self.set_perc(0, 0)
+
     @pyqtSlot(int, int)
     def set_perc(self, _, y):
         """Setter to be used as a Qt slot.
