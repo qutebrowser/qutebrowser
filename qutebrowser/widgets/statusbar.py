@@ -170,6 +170,19 @@ class StatusBar(QWidget):
         """Clear a temporary text."""
         self.disp_tmp_text('')
 
+    @pyqtSlot('QKeyEvent')
+    def keypress(self, e):
+        """Hide temporary error message if a key was pressed.
+
+        Args:
+            e: The original QKeyEvent.
+
+        """
+        if e.key() in [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta]:
+            # Only modifier pressed, don't hide yet.
+            return
+        self.clear_tmp_text()
+
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
 
