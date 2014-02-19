@@ -525,6 +525,11 @@ class _Text(TextBase):
         """
         self.temporary = txt
 
+    @pyqtSlot()
+    def clear_tmp(self):
+        """Clear a temporary text."""
+        self.temporary = ''
+
 
 class _KeyString(TextBase):
 
