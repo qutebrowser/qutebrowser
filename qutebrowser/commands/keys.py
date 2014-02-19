@@ -27,7 +27,7 @@ from qutebrowser.commands.utils import (CommandParser, ArgumentCountError,
                                         NoSuchCommandError)
 
 # Possible chars for starting a commandline input
-startchars = ":/?"
+STARTCHARS = ":/?"
 
 
 class KeyParser(QObject):
@@ -124,7 +124,7 @@ class KeyParser(QObject):
 
         self._keystring += txt
 
-        if any(self._keystring == c for c in startchars):
+        if any(self._keystring == c for c in STARTCHARS):
             self.set_cmd_text.emit(self._keystring)
             self._keystring = ''
             return

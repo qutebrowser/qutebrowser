@@ -21,7 +21,7 @@ from qutebrowser.utils.version import version
 from qutebrowser.utils.url import is_about_url
 
 
-_html_template = """
+_HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
 <head>
@@ -81,7 +81,7 @@ def _get_html(title, snippet):
         HTML content as bytes.
 
     """
-    return _html_template.format(title=title, body=snippet).encode('UTF-8')
+    return _HTML_TEMPLATE.format(title=title, body=snippet).encode('UTF-8')
 
 
 class AboutHandlers:

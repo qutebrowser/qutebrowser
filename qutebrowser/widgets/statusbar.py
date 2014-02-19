@@ -373,7 +373,7 @@ class _CommandValidator(QValidator):
             A tuple (status, string, pos) as a QValidator should.
 
         """
-        if any(string.startswith(c) for c in keys.startchars):
+        if any(string.startswith(c) for c in keys.STARTCHARS):
             return (QValidator.Acceptable, string, pos)
         else:
             return (QValidator.Invalid, string, pos)
