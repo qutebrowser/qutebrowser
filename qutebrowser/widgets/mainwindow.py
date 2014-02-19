@@ -74,6 +74,7 @@ class MainWindow(QWidget):
 
         self.status.resized.connect(self.completion.resize_to_bar)
         self.status.moved.connect(self.completion.move_to_bar)
+        self.tabs.disp_tmp_msg.connect(self.status.txt.disp_tmp)
         self.tabs.resized.connect(self.completion.on_browser_resized)
         self.tabs.cur_progress.connect(self.status.prog.setValue)
         self.tabs.cur_load_finished.connect(lambda *args:

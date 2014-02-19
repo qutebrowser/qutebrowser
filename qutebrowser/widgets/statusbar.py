@@ -127,12 +127,12 @@ class StatusBar(QWidget):
     def disp_error(self, text):
         """Display an error in the statusbar."""
         self.error = True
-        self.txt.set_error(text)
+        self.txt.error = text
 
     def clear_error(self):
         """Clear a displayed error from the status bar."""
         self.error = False
-        self.txt.clear_error()
+        self.txt.error = ''
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
@@ -477,28 +477,53 @@ class _Text(TextBase):
 
     """Text displayed in the statusbar.
 
+    There are three types of texts which can be displayed:
+        The current normal text displayed for a longer time,
+        the current temporary text displayed until the next keystroke,
+        the current error text displayed until statusbar is focused.
+
     Attributes:
-        _old_text: The text displayed before the temporary error message.
+        normal: The text normally displayed, accessed via property normal.
+        temporary: The temporary text, accessed via property temporary.
+        error: The error text accessed via property error.
+        _initialized: True when initialization is done, to avoid calling
+                      callback when still in __init__.
 
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._old_text = ''
+        self._initialized = False
+        self.normal = ''
+        self.temporary = ''
+        self.error = ''
+        self._initialized = True
+        self._update_text()
 
-    def set_error(self, text):
-        """Display an error message and save current text in old_text.
+    def __setattr__(self, name, value):
+        """Override __setattr__ to call _update_text() if texts changed."""
+        super().__setattr__(name, value)
+        if name in ['normal', 'temporary', 'error'] and self._initialized:
+            self._update_text()
+
+    def _update_text(self):
+        """Callback called when texts are updated. Display appropriate text."""
+        for t in [self.error, self.temporary, self.normal]:
+            if t:
+                self.setText(t)
+                break
+        else:
+            self.setText('')
+
+    @pyqtSlot(str)
+    def disp_tmp(self, txt):
+        """Display a temporary text.
 
         Args:
-            text: The text to set (string).
+            txt: The text to display, or an empty string to clear.
 
         """
-        self._old_text = self.text()
-        self.setText(text)
-
-    def clear_error(self):
-        """Clear a displayed error message."""
-        self.setText(self._old_text)
+        self.temporary = txt
 
 
 class _KeyString(TextBase):
