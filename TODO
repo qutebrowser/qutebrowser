@@ -6,6 +6,7 @@ Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-20973
     https://bugreports.qt-project.org/browse/QTBUG-21036
 URL in statsbar sometimes doesn't draw correctly (when new URL longer?)
+keystring sometimes doesn't fully clear in statusbar
 
 Major features
 ==============
@@ -47,6 +48,7 @@ Minor features
 Hiding scrollbars
 :bind
 Ctrl+A/X to increase/decrease last number in URL
+keypress-signal-foo is a bit of a chaos and might be done better
 
 Other stuff
 ===========
