@@ -101,6 +101,7 @@ class TabbedBrowser(TabWidget):
                                     self.widget(idx).signal_cache.replay())
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._tabs = []
+        self._url_stack = []
         self._space = QShortcut(self)
         self._space.setKey(Qt.Key_Space)
         self._space.setContext(Qt.WidgetWithChildrenShortcut)
