@@ -74,7 +74,8 @@ class Command(QObject):
                 (self.nargs == '?' and len(args) > 1) or
                 (self.nargs == '+' and len(args) < 1)):
             # for nargs == '*', anything is okay
-            raise ArgumentCountError
+            raise ArgumentCountError("{} args expected, but got {}".format(
+                self.nargs, len(args)))
 
     def run(self, args=None, count=None):
         """Run the command.

@@ -52,7 +52,7 @@ def handle(url):
 
     """
     if not is_about_url(url):
-        raise ValueError
+        raise ValueError("URL {} is not an about URL".format(url))
     handler = getattr(AboutHandlers, _transform_url(url))
     return handler()
 

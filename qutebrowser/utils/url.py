@@ -54,8 +54,10 @@ def _get_search_url(txt):
                                      fallback=None)
         term = txt
         logging.debug('engine: default, term "{}"'.format(txt))
-    if template is None or not term:
-        raise ValueError
+    if template is None:
+        raise ValueError("Search template is None")
+    if not term:
+        raise ValueError("No search term given")
     return QUrl.fromUserInput(template.format(urllib.parse.quote(term)))
 
 

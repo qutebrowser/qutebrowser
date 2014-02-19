@@ -409,7 +409,7 @@ class QuteBrowser(QApplication):
             Always raises Exception.
 
         """
-        raise Exception
+        raise Exception("Forced crash")
 
     @pyqtSlot()
     def shutdown(self, do_quit=True):

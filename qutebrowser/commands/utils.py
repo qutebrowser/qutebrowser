@@ -160,12 +160,12 @@ class CommandParser(QObject):
         """
         parts = text.strip().split(maxsplit=1)
         if not parts:
-            raise NoSuchCommandError
+            raise NoSuchCommandError("No command given")
         cmdstr = parts[0]
         try:
             cmd = cmd_dict[cmdstr]
         except KeyError:
-            raise NoSuchCommandError(cmdstr)
+            raise NoSuchCommandError("Command {} not found.".format(cmdstr))
 
         if len(parts) == 1:
             args = []

@@ -362,7 +362,7 @@ class CompletionItem():
         elif role == Qt.UserRole:
             return self._marks
         else:
-            raise ValueError
+            raise ValueError("Invalid role {}".format(role))
 
     def setdata(self, column, value, role=Qt.DisplayRole):
         """Set the data for column/role to value.
@@ -381,7 +381,7 @@ class CompletionItem():
         elif role == Qt.UserRole:
             self._marks = value
         else:
-            raise ValueError
+            raise ValueError("Invalid role {}".format(role))
 
     def column_count(self):
         """Get the column count in the item.
