@@ -132,12 +132,10 @@ class StatusBar(QWidget):
         self._error = val
         self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
 
-    @pyqtSlot()
     def _show_tmp_text(self):
         """Show temporary text instead of command widget."""
         self._stack.setCurrentWidget(self.txt)
 
-    @pyqtSlot()
     def _hide_tmp_text(self):
         """Show command widget instead of temproary text."""
         self._stack.setCurrentWidget(self.cmd)
@@ -148,6 +146,7 @@ class StatusBar(QWidget):
         self.error = True
         self.disp_tmp_text(text)
 
+    @pyqtSlot()
     def clear_error(self):
         """Clear a displayed error from the status bar."""
         self.error = False
