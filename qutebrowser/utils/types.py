@@ -17,6 +17,8 @@
 
 """Custom useful datatypes."""
 
+import logging
+
 # Used as default argument in the constructor so default can be None.
 _UNSET = object()
 
@@ -77,6 +79,8 @@ class NeighborList:
 
         """
         # FIXME - zooming somehow wraps...
+        logging.debug("{} items, idx {}, offset {}".format(len(self._items),
+                                                           self.idx, offset))
         if not self._items:
             raise IndexError("No items found!")
         try:
