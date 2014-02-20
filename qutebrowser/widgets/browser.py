@@ -288,6 +288,7 @@ class TabbedBrowser(TabWidget):
             self._filter_factory(self.cur_statusbar_message))
         tab.scroll_pos_changed.connect(
             self._filter_factory(self.cur_scroll_perc_changed))
+        tab.temp_message.connect(self._filter_factory(self.cur_temp_message))
         tab.urlChanged.connect(self._filter_factory(self.cur_url_changed))
         tab.titleChanged.connect(self._titleChanged_handler)
         # FIXME sometimes this doesn't load
@@ -651,12 +652,15 @@ class BrowserTab(QWebView):
         open_tab: A new tab should be opened.
                   arg: The address to open
         linkHovered: QWebPages linkHovered signal exposed.
+        temp_message: Show a temporary message in the statusbar.
+                      arg: Message to be shown.
 
     """
 
     scroll_pos_changed = pyqtSignal(int, int)
     open_tab = pyqtSignal('QUrl')
     linkHovered = pyqtSignal(str, str, str)
+    temp_message = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
