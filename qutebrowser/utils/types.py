@@ -85,7 +85,7 @@ class NeighborList:
         if not self._items:
             raise IndexError("No items found!")
         try:
-            if self.idx + offset > 0:
+            if self.idx + offset >= 0:
                 new = self._items[self.idx + offset]
             else:
                 raise IndexError
