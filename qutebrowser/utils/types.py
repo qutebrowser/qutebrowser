@@ -80,7 +80,6 @@ class NeighborList:
             IndexError if the border of the list is reached and mode is RAISE.
 
         """
-        # FIXME - zooming somehow wraps...
         logging.debug("{} items, idx {}, offset {}".format(len(self._items),
                                                            self.idx, offset))
         if not self._items:
