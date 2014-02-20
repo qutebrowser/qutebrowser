@@ -114,6 +114,20 @@ class NeighborList:
         """Get the previous item in the list."""
         return self.getitem(-1)
 
+    def firstitem(self):
+        """Get the first item in the list."""
+        if not self._items:
+            raise IndexError("No items found!")
+        self.idx = 0
+        return self.curitem()
+
+    def lastitem(self):
+        """Get the last item in the list."""
+        if not self._items:
+            raise IndexError("No items found!")
+        self.idx = len(self._items) - 1
+        return self.curitem()
+
     def reset(self):
         """Reset the position to the default."""
         if self._default is _UNSET:
