@@ -259,8 +259,9 @@ class Config(ConfigParser):
         """Save the config file."""
         if self._configdir is None or (not self._config_loaded and
                                        not self.always_save):
-            logging.error("Not saving config (dir {}, loaded {})".format(
-                self._configdir, self._config_loaded))
+            logging.warning("Not saving config (dir {}, config {})".format(
+                self._configdir, 'loaded' if self._config_loaded
+                                  else 'not loaded'))
             return
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
