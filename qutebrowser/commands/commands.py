@@ -280,6 +280,22 @@ class TabPaste(Command):
     nargs = '?'
 
 
+class ZoomIn(Command):
+
+    """Zoom in in the current tab."""
+
+    nargs = 0
+    count = True
+
+
+class ZoomOut(Command):
+
+    """Zoom out in the current tab."""
+
+    nargs = 0
+    count = True
+
+
 class Crash(Command):
 
     """Simply raise an exception for debugging."""

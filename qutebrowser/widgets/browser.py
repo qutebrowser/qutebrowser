@@ -539,6 +539,26 @@ class TabbedBrowser(TabWidget):
         self.cur_temp_message.emit('Title yanked to {}'.format(
             'primary selection' if sel else 'clipboard'))
 
+    def cur_zoom_in(self, count=1):
+        """Zoom in in the current tab.
+
+        Args:
+            count: How many steps to take.
+
+        """
+        tab = self.currentWidget()
+        tab.zoom(count)
+
+    def cur_zoom_out(self, count=1):
+        """Zoom out in the current tab.
+
+        Args:
+            count: How many steps to take.
+
+        """
+        tab = self.currentWidget()
+        tab.zoom(-count)
+
     def switch_prev(self, count=1):
         """Switch to the ([count]th) previous tab.
 
@@ -639,6 +659,7 @@ class BrowserTab(QWebView):
     Attributes:
         page_: The QWebPage behind the view
         signal_cache: The signal cache associated with the view.
+        _zoom: A NeighborList with the zoom levels.
         _scroll_pos: The old scroll position.
         _shutdown_callback: Callback to be called after shutdown.
         _open_new_tab: Whether to open a new tab for the next action.
@@ -668,6 +689,10 @@ class BrowserTab(QWebView):
         self._shutdown_callback = None
         self._open_new_tab = False
         self._destroyed = {}
+        self._zoom = NeighborList(
+            config.config.get('general', 'zoomlevels').split(','),
+            default=config.config.get('general', 'defaultzoom'),
+            mode=NeighborList.BLOCK)
         self.page_ = BrowserPage(self)
         self.setPage(self.page_)
         self.signal_cache = SignalCache(uncached=['linkHovered'])
@@ -703,6 +728,20 @@ class BrowserTab(QWebView):
                 self.setContent(content, 'text/html')
         else:
             return self.load(u)
+
+    def zoom(self, offset):
+        """Increase/Decrease the zoom level.
+
+        Args:
+            offset: The offset in the zoom level list.
+
+        Emit:
+            temp_message: Emitted with new zoom level.
+
+        """
+        level = self._zoom.getitem(offset)
+        self.setZoomFactor(float(level) / 100)
+        self.temp_message.emit("Zoom level: {}%".format(level))
 
     @pyqtSlot(str)
     def on_link_clicked(self, url):

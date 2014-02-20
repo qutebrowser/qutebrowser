@@ -376,6 +376,8 @@ class QuteBrowser(QApplication):
             'paste':         browser.paste,
             'tabpaste':      browser.tabpaste,
             'crash':         self.crash,
+            'zoomin':        browser.cur_zoom_in,
+            'zoomout':       browser.cur_zoom_out,
         }
 
         handler = handlers[cmd]
