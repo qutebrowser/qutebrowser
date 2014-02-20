@@ -40,6 +40,7 @@ import qutebrowser.utils.config as config
 from qutebrowser.widgets.tabbar import TabWidget
 from qutebrowser.utils.signals import SignalCache, dbg_signal
 from qutebrowser.utils.misc import read_file
+from qutebrowser.utils.types import NeighborList
 
 
 class TabbedBrowser(TabWidget):
