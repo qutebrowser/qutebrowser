@@ -58,6 +58,8 @@ class NeighborList:
         self._default = default
         if default is not _UNSET:
             self.idx = self._items.index(default)
+        else:
+            self.idx = None
         self._mode = mode
 
     @property
