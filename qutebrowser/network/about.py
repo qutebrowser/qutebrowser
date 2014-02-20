@@ -17,8 +17,10 @@
 
 """Handler functions for different about:... pages."""
 
+from qutebrowser.network.schemehandler import (SchemeHandler,
+                                               SpecialNetworkReply)
 from qutebrowser.utils.version import version
-from qutebrowser.utils.url import is_about_url
+from qutebrowser.utils.url import is_about_url, urlstring
 
 
 _HTML_TEMPLATE = """
@@ -82,6 +84,30 @@ def _get_html(title, snippet):
 
     """
     return _HTML_TEMPLATE.format(title=title, body=snippet).encode('UTF-8')
+
+
+class AboutSchemeHandler(SchemeHandler):
+
+    """Scheme handler for about: URLs."""
+
+    def createRequest(self, op, request, outgoingData=None):
+        """Create a new request.
+
+        Args:
+             op: Operation op
+             req: const QNetworkRequest & req
+             outgoing_data: QIODevice * outgoingData
+
+        Return:
+            A QNetworkReply.
+
+        """
+
+        # FIXME handle unknown pages
+        # FIXME adjust URLutils based on handlers
+
+        data = handle(urlstring(request.url()))
+        return SpecialNetworkReply(request, data, "text/html", self.parent())
 
 
 class AboutHandlers:

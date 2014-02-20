@@ -36,7 +36,6 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.config as config
-import qutebrowser.network.about as about
 from qutebrowser.widgets.tabbar import TabWidget
 from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.utils.signals import SignalCache, dbg_signal
@@ -719,16 +718,7 @@ class BrowserTab(QWebView):
         logging.debug('New title: {}'.format(urlutils.urlstring(u)))
         self.titleChanged.emit(urlutils.urlstring(u))
         self.urlChanged.emit(urlutils.qurl(u))
-        if urlutils.is_about_url(u):
-            try:
-                content = about.handle(urlutils.urlstring(u))
-            except AttributeError:
-                return self.load(u)
-            else:
-                self.setUrl(u)
-                self.setContent(content, 'text/html')
-        else:
-            return self.load(u)
+        return self.load(u)
 
     def zoom(self, offset):
         """Increase/Decrease the zoom level.
