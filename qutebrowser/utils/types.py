@@ -37,7 +37,7 @@ class NeighborList:
     WRAP = 1
     RAISE = 2
 
-    def __init__(self, items, default=_UNSET, mode=BLOCK):
+    def __init__(self, items=None, default=_UNSET, mode=RAISE):
         """Constructor.
 
         Args:
@@ -49,7 +49,10 @@ class NeighborList:
                    RAISE: Raise an IndexError.
 
         """
-        self._items = items
+        if items is None:
+            self._items = []
+        else:
+            self._items = items
         self._default = default
         if default is not _UNSET:
             self.idx = self._items.index(default)
@@ -74,6 +77,8 @@ class NeighborList:
 
         """
         # FIXME - zooming somehow wraps...
+        if not self._items:
+            raise IndexError("No items found!")
         try:
             if self.idx + offset > 0:
                 new = self._items[self.idx + offset]
