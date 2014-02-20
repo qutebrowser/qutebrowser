@@ -34,9 +34,9 @@ from PyQt5.QtNetwork import QNetworkReply
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
-import qutebrowser.utils.about as about
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.config as config
+import qutebrowser.network.about as about
 from qutebrowser.widgets.tabbar import TabWidget
 from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.utils.signals import SignalCache, dbg_signal
