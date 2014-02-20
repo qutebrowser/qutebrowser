@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import QApplication, QShortcut, QSizePolicy
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QEvent
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
-from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply
+from PyQt5.QtNetwork import QNetworkReply
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
@@ -38,6 +38,7 @@ import qutebrowser.utils.about as about
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.config as config
 from qutebrowser.widgets.tabbar import TabWidget
+from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.utils.signals import SignalCache, dbg_signal
 from qutebrowser.utils.misc import read_file
 from qutebrowser.utils.types import NeighborList
@@ -940,42 +941,3 @@ class BrowserPage(QWebPage):
         except KeyError:
             return super().extension(ext, opt, out)
         return handler(opt, out)
-
-
-class NetworkManager(QNetworkAccessManager):
-
-    """Our own QNetworkAccessManager.
-
-    Attributes:
-        _requests: Pending requests.
-
-    """
-
-    def __init__(self, parent=None):
-        self._requests = {}
-        super().__init__(parent)
-
-    def abort_requests(self):
-        """Abort all running requests."""
-        for request in self._requests.values():
-            request.abort()
-
-    def createRequest(self, op, req, outgoing_data):
-        """Return a new QNetworkReply object.
-
-        Extend QNetworkAccessManager::createRequest to save requests in
-        self._requests.
-
-        Args:
-             op: Operation op
-             req: const QNetworkRequest & req
-             outgoing_data: QIODevice * outgoingData
-
-        Return:
-            A QNetworkReply.
-
-        """
-        reply = super().createRequest(op, req, outgoing_data)
-        self._requests[id(reply)] = reply
-        reply.destroyed.connect(lambda obj: self._requests.pop(id(obj)))
-        return reply
