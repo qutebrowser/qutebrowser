@@ -28,6 +28,7 @@ from PyQt5.QtGui import QPainter, QKeySequence, QValidator
 import qutebrowser.utils.config as config
 import qutebrowser.commands.keys as keys
 from qutebrowser.utils.url import urlstring
+from qutebrowser.utils.types import NeighborList
 
 
 class StatusBar(QWidget):
@@ -218,8 +219,7 @@ class _Command(QLineEdit):
         history: The command history, with newer commands at the bottom.
         _statusbar: The statusbar (parent) QWidget.
         _shortcuts: Defined QShortcuts to prevent GCing.
-        _tmphist: The temporary history for history browsing
-        _histpos: The current position inside _tmphist
+        _tmphist: The temporary history for history browsing as NeighborList.
         _validator: The current command validator.
 
     Signals:
@@ -257,8 +257,7 @@ class _Command(QLineEdit):
         super().__init__(statusbar)
         # FIXME
         self._statusbar = statusbar
-        self._histpos = None
-        self._tmphist = []
+        self._tmphist = None
         self.setStyleSheet("""
             QLineEdit {
                 border: 0px;
@@ -297,45 +296,49 @@ class _Command(QLineEdit):
         pre = self.text().strip()
         logging.debug('Preset text: "{}"'.format(pre))
         if pre:
-            self._tmphist = [e for e in self.history if e.startswith(pre)]
+            items = [e for e in self.history if e.startswith(pre)]
         else:
-            self._tmphist = self.history
-        self._histpos = len(self._tmphist) - 1
+            items = self.history
+        if not items:
+            raise ValueError("No history found!")
+        self._tmphist = NeighborList(items)
+        return self._tmphist.lastitem()
 
     @pyqtSlot()
     def _histbrowse_stop(self):
         """Stop browsing the history."""
-        self._histpos = None
+        self._tmphist = None
 
     @pyqtSlot()
     def _on_key_up_pressed(self):
         """Handle Up presses (go back in history)."""
-        logging.debug("history up [pre]: pos {}".format(self._histpos))
-        if self._histpos is None:
-            self._histbrowse_start()
-        elif self._histpos <= 0:
-            return
+        if self._tmphist is None:
+            try:
+                item = self._histbrowse_start()
+            except ValueError:
+                # no history
+                return
         else:
-            self._histpos -= 1
-        if not self._tmphist:
-            return
-        logging.debug("history up: {} / len {} / pos {}".format(
-            self._tmphist, len(self._tmphist), self._histpos))
-        self.set_cmd_text(self._tmphist[self._histpos])
+            try:
+                item = self._tmphist.previtem()
+            except IndexError:
+                # at beginning of history
+                return
+        if item:
+            self.set_cmd_text(item)
 
     @pyqtSlot()
     def _on_key_down_pressed(self):
         """Handle Down presses (go forward in history)."""
-        logging.debug("history up [pre]: pos {}".format(self._histpos,
-                      self._tmphist, len(self._tmphist), self._histpos))
-        if (self._histpos is None or
-                self._histpos >= len(self._tmphist) - 1 or
-                not self._tmphist):
+        if not self._tmphist:
             return
-        self._histpos += 1
-        logging.debug("history up: {} / len {} / pos {}".format(
-            self._tmphist, len(self._tmphist), self._histpos))
-        self.set_cmd_text(self._tmphist[self._histpos])
+        try:
+            item = self._tmphist.nextitem()
+        except IndexError:
+            logging.debug("At end of history")
+            return
+        if item:
+            self.set_cmd_text(item)
 
     @pyqtSlot()
     def _on_return_pressed(self):
