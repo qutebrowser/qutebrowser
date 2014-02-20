@@ -229,7 +229,9 @@ class CompletionModel(QAbstractItemModel):
             item.setdata(index.column(), value, role)
         except (IndexError, ValueError):
             return False
-        self.dataChanged.emit(index, index)
+        # We explicitely need to select this version, see [1].
+        # [1] http://python.6.x6.nabble.com/Bug-Report-pyqt5-discard-silently-signal-with-missing-optional-parameters-dataChanged-roles-for-exam-tt5043737.html  # noqa pylint: disable=line-too-long
+        self.dataChanged.emit(index, index, [])
         return True
 
     def flags(self, index):
