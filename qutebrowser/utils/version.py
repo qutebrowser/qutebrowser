@@ -88,6 +88,12 @@ def version():
 
     lines = [
         'qutebrowser v{}'.format(qutebrowser.__version__),
+    ]
+
+    if gitver is not None:
+        lines.append('Git commit: {}'.format(gitver))
+
+    lines += [
         '',
         '{} {}'.format(platform.python_implementation(),
                        platform.python_version()),
@@ -114,9 +120,5 @@ def version():
     if releaseinfo is not None:
         for (fn, data) in releaseinfo:
             lines += ['', '--- {} ---'.format(fn), data]
-        lines.append('')
-
-    if gitver is not None:
-        lines.append('Git commit: {}'.format(gitver))
 
     return '\n'.join(lines)
