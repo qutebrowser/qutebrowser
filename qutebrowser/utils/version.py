@@ -18,6 +18,7 @@
 """Utilities to show various version informations."""
 
 import sys
+import glob
 import os.path
 import platform
 import subprocess
@@ -53,31 +54,67 @@ def _git_str():
         return None
 
 
+def _release_info():
+    """Try to gather distribution release informations.
+
+    Return:
+        list of (filename, content) tuples.
+    """
+    data = []
+    for fn in glob.glob("/etc/*-release"):
+        try:
+            with open(fn, 'r') as f:
+                data.append((fn, ''.join(f.readlines())))
+        except IOError:
+            pass
+    return data
+
 def version():
     """Return a string with various version informations."""
+    releaseinfo = None
     if sys.platform == 'linux':
-        osver = ', '.join((platform.dist()))
+        osver = ', '.join([e for e in platform.dist() if e])
+        releaseinfo = _release_info()
     elif sys.platform == 'win32':
-        osver = ', '.join((platform.win32_ver()))
+        osver = ', '.join(platform.win32_ver())
     elif sys.platform == 'darwin':
-        osver = ', '.join((platform.mac_ver()))
+        osver = ', '.join(platform.mac_ver())
     else:
         osver = '?'
 
     gitver = _git_str()
 
     lines = [
-        'qutebrowser v{}\n\n'.format(qutebrowser.__version__),
-        'Python {}\n'.format(platform.python_version()),
-        'Qt {}, runtime {}\n'.format(QT_VERSION_STR, qVersion()),
-        'PyQt {}\n'.format(PYQT_VERSION_STR),
-        'Webkit {}\n\n'.format(qWebKitVersion()),
-        'Platform: {}, {}\n'.format(platform.platform(),
-                                    platform.architecture()[0]),
-        'OS Version: {}\n'.format(osver),
+        'qutebrowser v{}'.format(qutebrowser.__version__),
+        '',
+        '{} {}'.format(platform.python_implementation(),
+                       platform.python_version()),
+        'Qt {}, runtime {}'.format(QT_VERSION_STR, qVersion()),
+        'PyQt {}'.format(PYQT_VERSION_STR),
     ]
 
-    if gitver is not None:
-        lines.append('\nGit commit: {}'.format(gitver))
+    try:
+        import sipconfig  # pylint: disable=import-error
+    except ImportError:
+        pass
+    else:
+        lines.append('SIP {}'.format(
+            sipconfig.Configuration().sip_version_str))
 
-    return ''.join(lines)
+    lines += [
+        'Webkit {}'.format(qWebKitVersion()),
+        '',
+        'Platform: {}, {}'.format(platform.platform(),
+                                  platform.architecture()[0]),
+        'OS Version: {}'.format(osver),
+    ]
+
+    if releaseinfo is not None:
+        for (fn, data) in releaseinfo:
+            lines += ['', '--- {} ---'.format(fn), data]
+        lines.append('')
+
+    if gitver is not None:
+        lines.append('Git commit: {}'.format(gitver))
+
+    return '\n'.join(lines)

@@ -30,7 +30,7 @@ from base64 import b64encode
 # Print a nice traceback on segfault -- only available on Python 3.3+, but if
 # it's unavailable, it doesn't matter much.
 try:
-    import faulthandler
+    import faulthandler  # pylint: disable=import-error
 except ImportError:
     pass
 else:
