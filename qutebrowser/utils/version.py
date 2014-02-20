@@ -59,6 +59,7 @@ def _release_info():
 
     Return:
         list of (filename, content) tuples.
+
     """
     data = []
     for fn in glob.glob("/etc/*-release"):
@@ -68,6 +69,7 @@ def _release_info():
         except IOError:
             pass
     return data
+
 
 def version():
     """Return a string with various version informations."""
