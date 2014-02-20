@@ -54,7 +54,7 @@ class NeighborList:
         if items is None:
             self._items = []
         else:
-            self._items = items
+            self._items = list(items)
         self._default = default
         if default is not _UNSET:
             self.idx = self._items.index(default)
