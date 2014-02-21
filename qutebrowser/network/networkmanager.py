@@ -21,7 +21,7 @@ import logging
 
 from PyQt5.QtNetwork import QNetworkAccessManager
 
-from qutebrowser.network.about import AboutSchemeHandler
+from qutebrowser.network.qutescheme import QuteSchemeHandler
 
 
 class NetworkManager(QNetworkAccessManager):
@@ -39,7 +39,7 @@ class NetworkManager(QNetworkAccessManager):
         super().__init__(parent)
         self._requests = {}
         self._scheme_handlers = {
-            'about': AboutSchemeHandler,
+            'qute': QuteSchemeHandler,
         }
 
     def abort_requests(self):

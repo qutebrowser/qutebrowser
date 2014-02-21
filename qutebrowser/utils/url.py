@@ -154,9 +154,12 @@ def fuzzy_url(url):
     return newurl
 
 
-def is_about_url(url):
+def is_special_url(url):
     """Return True if url is an about:... or other special URL."""
-    return urlstring(url).replace('http://', '').startswith('about:')
+    # FIXME this needs to be done is some nicer way
+    _special_schemes = ['about', 'qute']
+    return any([urlstring(url).replace('http://', '').startswith(scheme) for
+                scheme in _special_schemes])
 
 
 def is_url(url):
@@ -195,9 +198,9 @@ def is_url(url):
         # An URL will never contain a space
         logging.debug('Contains space -> no url')
         return False
-    elif is_about_url(url):
-        # About URLs are always URLs, even with autosearch=False
-        logging.debug('Is an about URL.')
+    elif is_special_url(url):
+        # Special URLs are always URLs, even with autosearch=False
+        logging.debug('Is an special URL.')
         return True
     elif autosearch == 'dns':
         logging.debug('Checking via DNS')

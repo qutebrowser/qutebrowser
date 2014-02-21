@@ -48,7 +48,7 @@ from PyQt5.QtCore import pyqtSlot, QTimer, QEventLoop
 import qutebrowser
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.config as config
-import qutebrowser.network.about as about
+import qutebrowser.network.qutescheme as qutescheme
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
 from qutebrowser.commands.keys import KeyParser
@@ -401,8 +401,8 @@ class QuteBrowser(QApplication):
             out = repr(r)
         except Exception as e:  # pylint: disable=broad-except
             out = ': '.join([e.__class__.__name__, str(e)])
-        about.pyeval_output = out
-        self.mainwindow.tabs.openurl('about:pyeval')
+        qutescheme.pyeval_output = out
+        self.mainwindow.tabs.openurl('qute:pyeval')
 
     def crash(self):
         """Crash for debugging purposes.

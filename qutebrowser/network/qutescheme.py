@@ -15,12 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Handler functions for different about:... pages."""
+"""Handler functions for different qute:... pages."""
 
 from qutebrowser.network.schemehandler import (SchemeHandler,
                                                SpecialNetworkReply)
 from qutebrowser.utils.version import version
-from qutebrowser.utils.url import is_about_url, urlstring
+from qutebrowser.utils.url import urlstring
 
 
 _HTML_TEMPLATE = """
@@ -41,35 +41,33 @@ pyeval_output = None
 
 
 def handle(url):
-    """Handle about page with an url.
+    """Handle qute page with an url.
 
     Args:
-        url: The url (string) to serve the about page for.
+        url: The url (string) to serve the qute page for.
 
     Raise:
-        ValueError if passed URL is not an about URL
+        ValueError if passed URL is not an qute URL
 
     Return:
         HTML content as bytes.
 
     """
-    if not is_about_url(url):
-        raise ValueError("URL {} is not an about URL".format(url))
-    handler = getattr(AboutHandlers, _transform_url(url))
+    handler = getattr(QuteHandlers, _transform_url(url))
     return handler()
 
 
 def _transform_url(url):
-    """Transform a special URL to an AboutHandlers method name.
+    """Transform a special URL to an QuteHandlers method name.
 
     Args:
         url: The URL as string.
 
     Return:
-        The method name about_*
+        The method name qute_*
 
     """
-    return url.replace('http://', '').replace('about:', 'about_')
+    return url.replace('http://', '').replace('qute:', 'qute_')
 
 
 def _get_html(title, snippet):
@@ -86,9 +84,9 @@ def _get_html(title, snippet):
     return _HTML_TEMPLATE.format(title=title, body=snippet).encode('UTF-8')
 
 
-class AboutSchemeHandler(SchemeHandler):
+class QuteSchemeHandler(SchemeHandler):
 
-    """Scheme handler for about: URLs."""
+    """Scheme handler for qute: URLs."""
 
     def createRequest(self, op, request, outgoingData=None):
         """Create a new request.
@@ -110,16 +108,16 @@ class AboutSchemeHandler(SchemeHandler):
         return SpecialNetworkReply(request, data, "text/html", self.parent())
 
 
-class AboutHandlers:
+class QuteHandlers:
 
-    """Handlers for about:... pages."""
+    """Handlers for qute:... pages."""
 
     @classmethod
-    def about_pyeval(cls):
-        """Handler for about:pyeval. Return HTML content as bytes."""
+    def qute_pyeval(cls):
+        """Handler for qute:pyeval. Return HTML content as bytes."""
         return _get_html('pyeval', '<pre>{}</pre>'.format(pyeval_output))
 
     @classmethod
-    def about_version(cls):
-        """Handler for about:version. Return HTML content as bytes."""
+    def qute_version(cls):
+        """Handler for qute:version. Return HTML content as bytes."""
         return _get_html('Version', '<pre>{}</pre>'.format(version()))
