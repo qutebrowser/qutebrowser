@@ -20,16 +20,15 @@
 
 """Base class for custom scheme handlers."""
 
-import logging
-
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
 from PyQt5.QtCore import pyqtSlot, QObject, QIODevice, QByteArray, QTimer
+
 
 class SchemeHandler(QObject):
 
     """Abstract base class for custom scheme handlers."""
 
-    def createRequest(self, op, request, outgoingData=None):
+    def createRequest(self, op, request, outgoingData):
         """Create a new request.
 
         Args:
@@ -43,9 +42,9 @@ class SchemeHandler(QObject):
         Raise:
             NotImplementedError because this needs to be overwritten by
             subclasses.
+
         """
         raise NotImplementedError
-
 
 
 class SpecialNetworkReply(QNetworkReply):
@@ -77,6 +76,8 @@ class SpecialNetworkReply(QNetworkReply):
                        QByteArray.number(len(fileData)))
         self.setAttribute(QNetworkRequest.HttpStatusCodeAttribute, 200)
         self.setAttribute(QNetworkRequest.HttpReasonPhraseAttribute, "OK")
+        # For some reason, a segfault will be triggered if these lambdas aren't
+        # there.        pylint: disable=unnecessary-lambda
         QTimer.singleShot(0, lambda: self.metaDataChanged.emit())
         QTimer.singleShot(0, lambda: self.readyRead.emit())
         QTimer.singleShot(0, lambda: self.finished.emit())
@@ -93,7 +94,6 @@ class SpecialNetworkReply(QNetworkReply):
             bytes available (int)
 
         """
-        logging.debug("bytes available: {}".format(len(self._data)))
         return len(self._data) + super().bytesAvailable()
 
     def readData(self, maxlen):
@@ -108,7 +108,6 @@ class SpecialNetworkReply(QNetworkReply):
         """
         len_ = min(maxlen, len(self._data))
         buf = bytes(self._data[:len_])
-        logging.debug("readdata, len {}, maxlen {}, buf {}".format(len(self._data), maxlen, buf))
         self._data = self._data[len_:]
         return buf
 

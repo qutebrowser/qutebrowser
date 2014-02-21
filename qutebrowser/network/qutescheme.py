@@ -102,10 +102,8 @@ class QuteSchemeHandler(SchemeHandler):
             A QNetworkReply.
 
         """
-
         # FIXME handle unknown pages
         # FIXME adjust URLutils based on handlers
-
         logging.debug('request: {}'.format(request))
         data = handle(urlstring(request.url()))
         return SpecialNetworkReply(request, data, "text/html", self.parent())

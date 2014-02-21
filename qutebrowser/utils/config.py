@@ -261,7 +261,7 @@ class Config(ConfigParser):
                                        not self.always_save):
             logging.warning("Not saving config (dir {}, config {})".format(
                 self._configdir, 'loaded' if self._config_loaded
-                                  else 'not loaded'))
+                else 'not loaded'))
             return
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
