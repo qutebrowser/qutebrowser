@@ -42,36 +42,6 @@ _HTML_TEMPLATE = """
 pyeval_output = None
 
 
-def handle(url):
-    """Handle qute page with an url.
-
-    Args:
-        url: The url (string) to serve the qute page for.
-
-    Raise:
-        ValueError if passed URL is not an qute URL
-
-    Return:
-        HTML content as bytes.
-
-    """
-    handler = getattr(QuteHandlers, _transform_url(url))
-    return handler()
-
-
-def _transform_url(url):
-    """Transform a special URL to an QuteHandlers method name.
-
-    Args:
-        url: The URL as string.
-
-    Return:
-        The method name qute_*
-
-    """
-    return url.replace('http://', '').replace('qute:', 'qute_')
-
-
 def _get_html(title, snippet):
     """Add HTML boilerplate to a html snippet.
 
@@ -90,6 +60,18 @@ class QuteSchemeHandler(SchemeHandler):
 
     """Scheme handler for qute: URLs."""
 
+    def _transform_url(self, url):
+        """Transform a special URL to an QuteHandlers method name.
+
+        Args:
+            url: The URL as string.
+
+        Return:
+            The method name qute_*
+
+        """
+        return url.replace('http://', '').replace('qute:', 'qute_')
+
     def createRequest(self, op, request, outgoingData):
         """Create a new request.
 
@@ -105,7 +87,9 @@ class QuteSchemeHandler(SchemeHandler):
         # FIXME handle unknown pages
         # FIXME adjust URLutils based on handlers
         logging.debug('request: {}'.format(request))
-        data = handle(urlstring(request.url()))
+        url = urlstring(request.url())
+        handler = getattr(QuteHandlers, self._transform_url(url))
+        data = handler()
         return SpecialNetworkReply(request, data, "text/html", self.parent())
 
 
