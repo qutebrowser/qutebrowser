@@ -148,11 +148,12 @@ class CommandParser(QObject):
         self._cmd = None
         self._args = []
 
-    def _parse(self, text):
+    def _parse(self, text, aliases=True):
         """Split the commandline text into command and arguments.
 
         Args:
             text: Text to parse.
+            aliases: Whether to handle aliases.
 
         Raise:
             NoSuchCommandError if a command wasn't found.
@@ -162,6 +163,13 @@ class CommandParser(QObject):
         if not parts:
             raise NoSuchCommandError("No command given")
         cmdstr = parts[0]
+        if aliases:
+            try:
+                alias = config.config.get('aliases', cmdstr)
+            except config.NoOptionError:
+                pass
+            else:
+                return self._parse(alias, aliases=False)
         try:
             cmd = cmd_dict[cmdstr]
         except KeyError:
