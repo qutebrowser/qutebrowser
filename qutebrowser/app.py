@@ -122,7 +122,7 @@ class QuteBrowser(QApplication):
             self.mainwindow.tabs.setFocus)
         self.commandparser.error.connect(self.mainwindow.status.disp_error)
         self.searchparser.do_search.connect(
-            self.mainwindow.tabs.cur_search)
+            self.mainwindow.tabs.cur.search)
         self.keyparser.commandparser.error.connect(
             self.mainwindow.status.disp_error)
         self.keyparser.keystring_updated.connect(
@@ -349,34 +349,34 @@ class QuteBrowser(QApplication):
         browser = self.mainwindow.tabs
 
         handlers = {
-            'open': browser.openurl,
+            'open': browser.cur.openurl,
             'opencur': browser.opencur,
             'tabopen': browser.tabopen,
             'tabopencur': browser.tabopencur,
             'quit': self.shutdown,
-            'tabclose': browser.cur_close,
+            'tabclose': browser.tabclose,
             'tabprev': browser.switch_prev,
             'tabnext': browser.switch_next,
-            'reload': browser.cur_reload,
-            'stop': browser.cur_stop,
-            'back': browser.cur_back,
-            'forward': browser.cur_forward,
-            'print': browser.cur_print,
-            'scroll': browser.cur_scroll,
-            'scroll_page': browser.cur_scroll_page,
-            'scroll_perc_x': browser.cur_scroll_percent_x,
-            'scroll_perc_y': browser.cur_scroll_percent_y,
+            'reload': browser.cur.reloadpage,
+            'stop': browser.cur.stop,
+            'back': browser.cur.back,
+            'forward': browser.cur.forward,
+            'print': browser.cur.printpage,
+            'scroll': browser.cur.scroll,
+            'scroll_page': browser.cur.scroll_page,
+            'scroll_perc_x': browser.cur.scroll_percent_x,
+            'scroll_perc_y': browser.cur.scroll_percent_y,
             'undo': browser.undo_close,
             'pyeval': self.pyeval,
             'nextsearch': self.searchparser.nextsearch,
-            'yank': browser.cur_yank,
-            'yanktitle': browser.cur_yank_title,
+            'yank': browser.cur.yank,
+            'yanktitle': browser.cur.yank_title,
             'paste': browser.paste,
             'tabpaste': browser.tabpaste,
             'crash': self.crash,
-            'version': lambda: browser.openurl('qute:version'),
-            'zoomin': browser.cur_zoom_in,
-            'zoomout': browser.cur_zoom_out,
+            'version': lambda: browser.cur.openurl('qute:version'),
+            'zoomin': browser.cur.zoom_in,
+            'zoomout': browser.cur.zoom_out,
         }
 
         handler = handlers[cmd]
@@ -401,7 +401,7 @@ class QuteBrowser(QApplication):
         except Exception as e:  # pylint: disable=broad-except
             out = ': '.join([e.__class__.__name__, str(e)])
         qutescheme.pyeval_output = out
-        self.mainwindow.tabs.openurl('qute:pyeval')
+        self.mainwindow.tabs.cur.openurl('qute:pyeval')
 
     def crash(self):
         """Crash for debugging purposes.

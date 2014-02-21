@@ -40,7 +40,6 @@ set settings/colors/bindings via commandline
 more completions (URLs, ...)
 SSL handling
 add classes for ConfigOptions with section/name/desc/validate()/get() so we can validate config options, get transformed values and write a default config easily
-clean up cur_* mess for browser
 
 Minor features
 ==============

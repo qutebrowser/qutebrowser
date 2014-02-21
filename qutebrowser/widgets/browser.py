@@ -27,7 +27,7 @@ import functools
 
 import sip
 from PyQt5.QtWidgets import QApplication, QShortcut, QSizePolicy
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QEvent
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QEvent, QObject
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
 from PyQt5.QtNetwork import QNetworkReply
@@ -61,6 +61,8 @@ class TabbedBrowser(TabWidget):
         _url_stack: Stack of URLs of closed tabs.
         _space: Space QShortcut to avoid garbage collection
         _tabs: A list of open tabs.
+        cur: A CurCommandDispatcher instance to dispatch commands to the
+             current tab.
 
     Signals:
         cur_progress: Progress of the current tab changed (loadProgress).
@@ -68,7 +70,7 @@ class TabbedBrowser(TabWidget):
         cur_load_finished: Current tab finished loading (loadFinished)
         cur_statusbar_message: Current tab got a statusbar message
                                (statusBarMessage)
-        cur_tmp_message: Current tab needs to show a temporary message.
+        cur_temp_message: Current tab needs to show a temporary message.
         cur_url_changed: Current URL changed (urlChanged)
         cur_link_hovered: Link hovered in current tab (linkHovered)
         cur_scroll_perc_changed: Scroll percentage of current tab changed.
@@ -108,7 +110,9 @@ class TabbedBrowser(TabWidget):
         self._space = QShortcut(self)
         self._space.setKey(Qt.Key_Space)
         self._space.setContext(Qt.WidgetWithChildrenShortcut)
-        self._space.activated.connect(lambda: self.cur_scroll_page(0, 1))
+        self._space.activated.connect(lambda: self.cur.scroll_page(0, 1))
+        self.cur = CurCommandDispatcher(self)
+        self.cur.temp_message.connect(self.cur_temp_message)
 
     def _cb_tab_shutdown(self, tab):
         """Called after a tab has been shut down completely.
@@ -129,28 +133,7 @@ class TabbedBrowser(TabWidget):
             logging.debug("Tab shutdown complete.")
             self.shutdown_complete.emit()
 
-    def _cur_scroll_percent(self, perc=None, count=None, orientation=None):
-        """Inner logic for cur_scroll_percent_(x|y).
-
-        Args:
-            perc: How many percent to scroll, or None
-            count: How many percent to scroll, or None
-            orientation: Qt.Horizontal or Qt.Vertical
-
-        """
-        if perc is None and count is None:
-            perc = 100
-        elif perc is None:
-            perc = int(count)
-        else:
-            perc = float(perc)
-        frame = self.currentWidget().page_.mainFrame()
-        m = frame.scrollBarMaximum(orientation)
-        if m == 0:
-            return
-        frame.setScrollBarValue(orientation, int(m * perc / 100))
-
-    def _widget(self, count=None):
+    def cntwidget(self, count=None):
         """Return a widget based on a count/idx.
 
         Args:
@@ -263,6 +246,35 @@ class TabbedBrowser(TabWidget):
             tab.shutdown(callback=functools.partial(self._cb_tab_shutdown,
                                                     tab))
 
+    def tabclose(self, count=None):
+        """Close the current/[count]th tab.
+
+        Command handler for :close.
+
+        Args:
+            count: The tab index to close, or None
+
+        Emit:
+            quit: If last tab was closed and last_close in config is set to
+                  quit.
+
+        """
+        idx = self.currentIndex() if count is None else count - 1
+        tab = self.cntwidget(count)
+        if tab is None:
+            return
+        last_close = config.config.get('tabbar', 'last_close')
+        if self.count() > 1:
+            # FIXME maybe we actually should store the webview objects here
+            self._url_stack.append(tab.url())
+            self.removeTab(idx)
+            tab.shutdown(callback=functools.partial(self._cb_tab_shutdown,
+                                                    tab))
+        elif last_close == 'quit':
+            self.quit.emit()
+        elif last_close == 'blank':
+            tab.openurl('about:blank')
+
     def tabopen(self, url):
         """Open a new tab with a given url.
 
@@ -325,248 +337,6 @@ class TabbedBrowser(TabWidget):
         if self._url_stack:
             self.tabopen(self._url_stack.pop())
 
-    def cur_close(self, count=None):
-        """Close the current/[count]th tab.
-
-        Command handler for :close.
-
-        Args:
-            count: The tab index to close, or None
-
-        Emit:
-            quit: If last tab was closed and last_close in config is set to
-                  quit.
-
-        """
-        idx = self.currentIndex() if count is None else count - 1
-        tab = self._widget(count)
-        if tab is None:
-            return
-        last_close = config.config.get('tabbar', 'last_close')
-        if self.count() > 1:
-            # FIXME maybe we actually should store the webview objects here
-            self._url_stack.append(tab.url())
-            self.removeTab(idx)
-            tab.shutdown(callback=functools.partial(self._cb_tab_shutdown,
-                                                    tab))
-        elif last_close == 'quit':
-            self.quit.emit()
-        elif last_close == 'blank':
-            tab.openurl('about:blank')
-
-    def openurl(self, url, count=None):
-        """Open an url in the current/[count]th tab.
-
-        Command handler for :open.
-
-        Args:
-            url: The URL to open.
-            count: The tab index to open the URL in, or None.
-
-        """
-        tab = self._widget(count)
-        if tab is None:
-            if count is None:
-                # We want to open an URL in the current tab, but none exists
-                # yet.
-                self.tabopen(url)
-            else:
-                # Explicit count with a tab that doesn't exist.
-                return
-        else:
-            tab.openurl(url)
-
-    def cur_reload(self, count=None):
-        """Reload the current/[count]th tab.
-
-        Command handler for :reload.
-
-        Args:
-            count: The tab index to reload, or None.
-
-        """
-        tab = self._widget(count)
-        if tab is not None:
-            tab.reload()
-
-    def cur_stop(self, count=None):
-        """Stop loading in the current/[count]th tab.
-
-        Command handler for :stop.
-
-        Args:
-            count: The tab index to stop, or None.
-
-        """
-        tab = self._widget(count)
-        if tab is not None:
-            tab.stop()
-
-    def cur_print(self, count=None):
-        """Print the current/[count]th tab.
-
-        Command handler for :print.
-
-        Args:
-            count: The tab index to print, or None.
-
-        """
-        # FIXME that does not what I expect
-        tab = self._widget(count)
-        if tab is not None:
-            preview = QPrintPreviewDialog(self)
-            preview.paintRequested.connect(tab.print)
-            preview.exec_()
-
-    def cur_back(self, count=1):
-        """Go back in the history of the current tab.
-
-        Command handler for :back.
-
-        Args:
-            count: How many pages to go back.
-
-        """
-        # FIXME display warning if beginning of history
-        for i in range(count):  # pylint: disable=unused-variable
-            self.currentWidget().back()
-
-    def cur_forward(self, count=1):
-        """Go forward in the history of the current tab.
-
-        Command handler for :forward.
-
-        Args:
-            count: How many pages to go forward.
-
-        """
-        # FIXME display warning if end of history
-        for i in range(count):  # pylint: disable=unused-variable
-            self.currentWidget().forward()
-
-    @pyqtSlot(str, int)
-    def cur_search(self, text, flags):
-        """Search for text in the current page.
-
-        Args:
-            text: The text to search for.
-            flags: The QWebPage::FindFlags.
-
-        """
-        self.currentWidget().findText(text, flags)
-
-    def cur_scroll(self, dx, dy, count=1):
-        """Scroll the current tab by count * dx/dy.
-
-        Command handler for :scroll.
-
-        Args:
-            dx: How much to scroll in x-direction.
-            dy: How much to scroll in x-direction.
-            count: multiplier
-
-        """
-        dx = int(count) * float(dx)
-        dy = int(count) * float(dy)
-        self.currentWidget().page_.mainFrame().scroll(dx, dy)
-
-    def cur_scroll_percent_x(self, perc=None, count=None):
-        """Scroll the current tab to a specific percent of the page.
-
-        Command handler for :scroll_perc_x.
-
-        Args:
-            perc: Percentage to scroll.
-            count: Percentage to scroll.
-
-        """
-        self._cur_scroll_percent(perc, count, Qt.Horizontal)
-
-    def cur_scroll_percent_y(self, perc=None, count=None):
-        """Scroll the current tab to a specific percent of the page.
-
-        Command handler for :scroll_perc_y
-
-        Args:
-            perc: Percentage to scroll.
-            count: Percentage to scroll.
-
-        """
-        self._cur_scroll_percent(perc, count, Qt.Vertical)
-
-    def cur_scroll_page(self, mx, my, count=1):
-        """Scroll the frame page-wise.
-
-        Args:
-            mx: How many pages to scroll to the right.
-            my: How many pages to scroll down.
-            count: multiplier
-
-        """
-        # FIXME this might not work with HTML frames
-        page = self.currentWidget().page_
-        size = page.viewportSize()
-        page.mainFrame().scroll(int(count) * float(mx) * size.width(),
-                                int(count) * float(my) * size.height())
-
-    def cur_yank(self, sel=False):
-        """Yank the current url to the clipboard or primary selection.
-
-        Command handler for :yank.
-
-        Args:
-            sel: True to use primary selection, False to use clipboard
-
-        Emit:
-            cur_temp_message to display a temporary message.
-
-        """
-        clip = QApplication.clipboard()
-        url = urlutils.urlstring(self.currentWidget().url())
-        mode = QClipboard.Selection if sel else QClipboard.Clipboard
-        clip.setText(url, mode)
-        self.cur_temp_message.emit('URL yanked to {}'.format(
-            'primary selection' if sel else 'clipboard'))
-
-    def cur_yank_title(self, sel=False):
-        """Yank the current title to the clipboard or primary selection.
-
-        Command handler for :yanktitle.
-
-        Args:
-            sel: True to use primary selection, False to use clipboard
-
-        Emit:
-            cur_temp_message to display a temporary message.
-
-        """
-        clip = QApplication.clipboard()
-        title = self.tabText(self.currentIndex())
-        mode = QClipboard.Selection if sel else QClipboard.Clipboard
-        clip.setText(title, mode)
-        self.cur_temp_message.emit('Title yanked to {}'.format(
-            'primary selection' if sel else 'clipboard'))
-
-    def cur_zoom_in(self, count=1):
-        """Zoom in in the current tab.
-
-        Args:
-            count: How many steps to take.
-
-        """
-        tab = self.currentWidget()
-        tab.zoom(count)
-
-    def cur_zoom_out(self, count=1):
-        """Zoom out in the current tab.
-
-        Args:
-            count: How many steps to take.
-
-        """
-        tab = self.currentWidget()
-        tab.zoom(-count)
-
     def switch_prev(self, count=1):
         """Switch to the ([count]th) previous tab.
 
@@ -613,7 +383,7 @@ class TabbedBrowser(TabWidget):
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         url = clip.text(mode)
         logging.debug("Clipboard contained: '{}'".format(url))
-        self.openurl(url)
+        self.cur.openurl(url)
 
     def tabpaste(self, sel=False):
         """Open a page from the clipboard in a new tab.
@@ -656,6 +426,271 @@ class TabbedBrowser(TabWidget):
         """
         super().resizeEvent(e)
         self.resized.emit(self.geometry())
+
+
+class CurCommandDispatcher(QObject):
+
+    """Command dispatcher for TabbedBrowser.
+
+    Contains all commands which are related to the current tab.
+
+    Attributes:
+        tabs: The TabbedBrowser object.
+
+    Signals:
+        temp_message: Connected to TabbedBrowser signal.
+
+    """
+
+    # FIXME maybe subclassing would be more clean?
+
+    temp_message = pyqtSignal(str)
+
+    def __init__(self, parent):
+        """Constructor.
+
+        Uses setattr to get some methods from parent.
+
+        Args:
+            parent: The TabbedBrowser for this dispatcher.
+
+        """
+        super().__init__(parent)
+        self.tabs = parent
+
+    def _scroll_percent(self, perc=None, count=None, orientation=None):
+        """Inner logic for scroll_percent_(x|y).
+
+        Args:
+            perc: How many percent to scroll, or None
+            count: How many percent to scroll, or None
+            orientation: Qt.Horizontal or Qt.Vertical
+
+        """
+        if perc is None and count is None:
+            perc = 100
+        elif perc is None:
+            perc = int(count)
+        else:
+            perc = float(perc)
+        frame = self.tabs.currentWidget().page_.mainFrame()
+        m = frame.scrollBarMaximum(orientation)
+        if m == 0:
+            return
+        frame.setScrollBarValue(orientation, int(m * perc / 100))
+
+    def openurl(self, url, count=None):
+        """Open an url in the current/[count]th tab.
+
+        Command handler for :open.
+
+        Args:
+            url: The URL to open.
+            count: The tab index to open the URL in, or None.
+
+        """
+        tab = self.tabs.cntwidget(count)
+        if tab is None:
+            if count is None:
+                # We want to open an URL in the current tab, but none exists
+                # yet.
+                self.tabs.tabopen(url)
+            else:
+                # Explicit count with a tab that doesn't exist.
+                return
+        else:
+            tab.openurl(url)
+
+    def reloadpage(self, count=None):
+        """Reload the current/[count]th tab.
+
+        Command handler for :reload.
+
+        Args:
+            count: The tab index to reload, or None.
+
+        """
+        tab = self.tabs.cntwidget(count)
+        if tab is not None:
+            tab.reload()
+
+    def stop(self, count=None):
+        """Stop loading in the current/[count]th tab.
+
+        Command handler for :stop.
+
+        Args:
+            count: The tab index to stop, or None.
+
+        """
+        tab = self.tabs.cntwidget(count)
+        if tab is not None:
+            tab.stop()
+
+    def printpage(self, count=None):
+        """Print the current/[count]th tab.
+
+        Command handler for :print.
+
+        Args:
+            count: The tab index to print, or None.
+
+        """
+        # FIXME that does not what I expect
+        tab = self.tabs.cntwidget(count)
+        if tab is not None:
+            preview = QPrintPreviewDialog(self)
+            preview.paintRequested.connect(tab.print)
+            preview.exec_()
+
+    def back(self, count=1):
+        """Go back in the history of the current tab.
+
+        Command handler for :back.
+
+        Args:
+            count: How many pages to go back.
+
+        """
+        # FIXME display warning if beginning of history
+        for i in range(count):  # pylint: disable=unused-variable
+            self.tabs.currentWidget().back()
+
+    def forward(self, count=1):
+        """Go forward in the history of the current tab.
+
+        Command handler for :forward.
+
+        Args:
+            count: How many pages to go forward.
+
+        """
+        # FIXME display warning if end of history
+        for i in range(count):  # pylint: disable=unused-variable
+            self.tabs.currentWidget().forward()
+
+    @pyqtSlot(str, int)
+    def search(self, text, flags):
+        """Search for text in the current page.
+
+        Args:
+            text: The text to search for.
+            flags: The QWebPage::FindFlags.
+
+        """
+        self.tabs.currentWidget().findText(text, flags)
+
+    def scroll(self, dx, dy, count=1):
+        """Scroll the current tab by count * dx/dy.
+
+        Command handler for :scroll.
+
+        Args:
+            dx: How much to scroll in x-direction.
+            dy: How much to scroll in x-direction.
+            count: multiplier
+
+        """
+        dx = int(count) * float(dx)
+        dy = int(count) * float(dy)
+        self.tabs.currentWidget().page_.mainFrame().scroll(dx, dy)
+
+    def scroll_percent_x(self, perc=None, count=None):
+        """Scroll the current tab to a specific percent of the page.
+
+        Command handler for :scroll_perc_x.
+
+        Args:
+            perc: Percentage to scroll.
+            count: Percentage to scroll.
+
+        """
+        self._scroll_percent(perc, count, Qt.Horizontal)
+
+    def scroll_percent_y(self, perc=None, count=None):
+        """Scroll the current tab to a specific percent of the page.
+
+        Command handler for :scroll_perc_y
+
+        Args:
+            perc: Percentage to scroll.
+            count: Percentage to scroll.
+
+        """
+        self._scroll_percent(perc, count, Qt.Vertical)
+
+    def scroll_page(self, mx, my, count=1):
+        """Scroll the frame page-wise.
+
+        Args:
+            mx: How many pages to scroll to the right.
+            my: How many pages to scroll down.
+            count: multiplier
+
+        """
+        # FIXME this might not work with HTML frames
+        page = self.tabs.currentWidget().page_
+        size = page.viewportSize()
+        page.mainFrame().scroll(int(count) * float(mx) * size.width(),
+                                int(count) * float(my) * size.height())
+
+    def yank(self, sel=False):
+        """Yank the current url to the clipboard or primary selection.
+
+        Command handler for :yank.
+
+        Args:
+            sel: True to use primary selection, False to use clipboard
+
+        Emit:
+            temp_message to display a temporary message.
+
+        """
+        clip = QApplication.clipboard()
+        url = urlutils.urlstring(self.tabs.currentWidget().url())
+        mode = QClipboard.Selection if sel else QClipboard.Clipboard
+        clip.setText(url, mode)
+        self.temp_message.emit('URL yanked to {}'.format(
+            'primary selection' if sel else 'clipboard'))
+
+    def yank_title(self, sel=False):
+        """Yank the current title to the clipboard or primary selection.
+
+        Command handler for :yanktitle.
+
+        Args:
+            sel: True to use primary selection, False to use clipboard
+
+        Emit:
+            temp_message to display a temporary message.
+
+        """
+        clip = QApplication.clipboard()
+        title = self.tabs.tabText(self.tabs.currentIndex())
+        mode = QClipboard.Selection if sel else QClipboard.Clipboard
+        clip.setText(title, mode)
+        self.temp_message.emit('Title yanked to {}'.format(
+            'primary selection' if sel else 'clipboard'))
+
+    def zoom_in(self, count=1):
+        """Zoom in in the current tab.
+
+        Args:
+            count: How many steps to take.
+
+        """
+        tab = self.tabs.currentWidget()
+        tab.zoom(count)
+
+    def zoom_out(self, count=1):
+        """Zoom out in the current tab.
+
+        Args:
+            count: How many steps to take.
+
+        """
+        tab = self.tabs.currentWidget()
+        tab.zoom(-count)
 
 
 class BrowserTab(QWebView):
@@ -759,7 +794,7 @@ class BrowserTab(QWebView):
         if self._open_new_tab:
             self.open_tab.emit(url)
         else:
-            self.openurl(url)
+            self.cur.openurl(url)
 
     def shutdown(self, callback=None):
         """Shut down the tab cleanly and remove it.
