@@ -111,3 +111,7 @@ class SpecialNetworkReply(QNetworkReply):
         logging.debug("readdata, len {}, maxlen {}, buf {}".format(len(self._data), maxlen, buf))
         self._data = self._data[len_:]
         return buf
+
+    def isFinished(self):
+        """Check if the reply is finished."""
+        return True
