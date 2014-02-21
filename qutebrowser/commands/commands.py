@@ -302,3 +302,10 @@ class Crash(Command):
 
     nargs = 0
     hide = True
+
+
+class Version(Command):
+
+    """Show version information."""
+
+    nargs = 0

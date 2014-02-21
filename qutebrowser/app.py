@@ -376,6 +376,7 @@ class QuteBrowser(QApplication):
             'paste':         browser.paste,
             'tabpaste':      browser.tabpaste,
             'crash':         self.crash,
+            'version':       lambda: browser.openurl('qute:version'),
             'zoomin':        browser.cur_zoom_in,
             'zoomout':       browser.cur_zoom_out,
         }
