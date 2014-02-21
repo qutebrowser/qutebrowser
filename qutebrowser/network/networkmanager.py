@@ -39,7 +39,7 @@ class NetworkManager(QNetworkAccessManager):
         super().__init__(parent)
         self._requests = {}
         self._scheme_handlers = {
-            'qute': QuteSchemeHandler,
+            'qute': QuteSchemeHandler(),
         }
 
     def abort_requests(self):
