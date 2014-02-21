@@ -93,7 +93,7 @@ class QuteSchemeHandler(SchemeHandler):
 
         Args:
              op: Operation op
-             req: const QNetworkRequest & req
+             request: const QNetworkRequest & req
              outgoing_data: QIODevice * outgoingData
 
         Return:
