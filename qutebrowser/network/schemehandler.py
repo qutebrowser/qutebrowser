@@ -93,8 +93,8 @@ class SpecialNetworkReply(QNetworkReply):
             bytes available (int)
 
         """
-        return self._data.length() + super().bytesAvailable()
         logging.debug("bytes available: {}".format(len(self._data)))
+        return len(self._data) + super().bytesAvailable()
 
     def readData(self, maxlen):
         """Retrieve data from the reply object.
@@ -106,8 +106,8 @@ class SpecialNetworkReply(QNetworkReply):
             bytestring containing the data
 
         """
-        len_ = min(maxlen, self._data.length())
+        len_ = min(maxlen, len(self._data))
         buf = bytes(self._data[:len_])
-        self._data.remove(0, len_)
         logging.debug("readdata, len {}, maxlen {}, buf {}".format(len(self._data), maxlen, buf))
+        self._data = self._data[len_:]
         return buf
