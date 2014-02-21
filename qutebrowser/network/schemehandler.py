@@ -20,6 +20,8 @@
 
 """Base class for custom scheme handlers."""
 
+import logging
+
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
 from PyQt5.QtCore import pyqtSlot, QObject, QIODevice, QByteArray
 
@@ -96,6 +98,7 @@ class SpecialNetworkReply(QNetworkReply):
         if self._data.length() == 0:
             self.finished.emit()
         return self._data.length() + super().bytesAvailable()
+        logging.debug("bytes available: {}".format(len(self._data)))
 
     def readData(self, maxlen):
         """Retrieve data from the reply object.
@@ -115,4 +118,5 @@ class SpecialNetworkReply(QNetworkReply):
         self._data.remove(0, len_)
         if self._data.length() == 0:
             self.finished.emit()
+        logging.debug("readdata, len {}, maxlen {}, buf {}".format(len(self._data), maxlen, buf))
         return buf
