@@ -62,7 +62,7 @@ class SpecialNetworkReply(QNetworkReply):
             parent: reference to the parent object (QObject)
 
         Emit:
-            metaDataChanged and readyRead after initializing.
+            metaDataChanged and readyRead and finished after initializing.
 
         """
         super().__init__(parent)
@@ -79,6 +79,7 @@ class SpecialNetworkReply(QNetworkReply):
         self.setAttribute(QNetworkRequest.HttpReasonPhraseAttribute, "OK")
         self.metaDataChanged.emit()
         self.readyRead.emit()
+        self.finished.emit()
 
     @pyqtSlot()
     def abort(self):
@@ -91,12 +92,7 @@ class SpecialNetworkReply(QNetworkReply):
         Return:
             bytes available (int)
 
-        Emit:
-            finished: if the data length is 0
-
         """
-        if self._data.length() == 0:
-            self.finished.emit()
         return self._data.length() + super().bytesAvailable()
         logging.debug("bytes available: {}".format(len(self._data)))
 
@@ -109,14 +105,9 @@ class SpecialNetworkReply(QNetworkReply):
         Return:
             bytestring containing the data
 
-        Emit:
-            finished: if all data was read
-
         """
         len_ = min(maxlen, self._data.length())
         buf = bytes(self._data[:len_])
         self._data.remove(0, len_)
-        if self._data.length() == 0:
-            self.finished.emit()
         logging.debug("readdata, len {}, maxlen {}, buf {}".format(len(self._data), maxlen, buf))
         return buf
