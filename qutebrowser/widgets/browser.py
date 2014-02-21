@@ -365,7 +365,15 @@ class TabbedBrowser(TabWidget):
 
         """
         tab = self._widget(count)
-        if tab is not None:
+        if tab is None:
+            if count is None:
+                # We want to open an URL in the current tab, but none exists
+                # yet.
+                self.tabopen(url)
+            else:
+                # Explicit count with a tab that doesn't exist.
+                return
+        else:
             tab.openurl(url)
 
     def cur_reload(self, count=None):

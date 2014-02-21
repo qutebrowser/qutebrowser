@@ -196,7 +196,6 @@ class QuteBrowser(QApplication):
         # we make sure the GUI is refreshed here, so the start seems faster.
         self.processEvents(QEventLoop.ExcludeUserInputEvents |
                            QEventLoop.ExcludeSocketNotifiers)
-        opened_urls = False
 
         for e in self._args.command:
             if e.startswith(':'):
@@ -204,10 +203,9 @@ class QuteBrowser(QApplication):
                 self.commandparser.run(e.lstrip(':'))
             else:
                 logging.debug('Startup url {}'.format(e))
-                opened_urls = True
                 self.mainwindow.tabs.tabopen(e)
 
-        if not opened_urls:
+        if self.mainwindow.tabs.count() == 0:
             logging.debug('Opening startpage')
             for url in config.config.get('general', 'startpage').split(','):
                 self.mainwindow.tabs.tabopen(url)
