@@ -68,8 +68,8 @@ class NetworkManager(QNetworkAccessManager):
         if scheme in self._scheme_handlers:
             reply = self._scheme_handlers[scheme].createRequest(
                 op, req, outgoing_data)
-            return reply
-        reply = super().createRequest(op, req, outgoing_data)
-        self._requests[id(reply)] = reply
-        reply.destroyed.connect(lambda obj: self._requests.pop(id(obj)))
+        else:
+            reply = super().createRequest(op, req, outgoing_data)
+            self._requests[id(reply)] = reply
+            reply.destroyed.connect(lambda obj: self._requests.pop(id(obj)))
         return reply
