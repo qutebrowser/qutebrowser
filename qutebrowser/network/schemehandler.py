@@ -23,7 +23,7 @@
 import logging
 
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
-from PyQt5.QtCore import pyqtSlot, QObject, QIODevice, QByteArray
+from PyQt5.QtCore import pyqtSlot, QObject, QIODevice, QByteArray, QTimer
 
 class SchemeHandler(QObject):
 
@@ -74,12 +74,12 @@ class SpecialNetworkReply(QNetworkReply):
 
         self.setHeader(QNetworkRequest.ContentTypeHeader, mimeType)
         self.setHeader(QNetworkRequest.ContentLengthHeader,
-                       QByteArray.number(fileData.length()))
+                       QByteArray.number(len(fileData)))
         self.setAttribute(QNetworkRequest.HttpStatusCodeAttribute, 200)
         self.setAttribute(QNetworkRequest.HttpReasonPhraseAttribute, "OK")
-        self.metaDataChanged.emit()
-        self.readyRead.emit()
-        self.finished.emit()
+        QTimer.singleShot(0, lambda: self.metaDataChanged.emit())
+        QTimer.singleShot(0, lambda: self.readyRead.emit())
+        QTimer.singleShot(0, lambda: self.finished.emit())
 
     @pyqtSlot()
     def abort(self):
