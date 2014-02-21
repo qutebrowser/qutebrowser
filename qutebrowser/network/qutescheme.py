@@ -88,7 +88,7 @@ class QuteSchemeHandler(SchemeHandler):
 
     """Scheme handler for qute: URLs."""
 
-    def createRequest(self, op, request, outgoingData=None):
+    def createRequest(self, op, request, outgoingData):
         """Create a new request.
 
         Args:
