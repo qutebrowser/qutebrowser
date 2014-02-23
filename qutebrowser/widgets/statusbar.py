@@ -28,7 +28,7 @@ from PyQt5.QtGui import QPainter, QKeySequence, QValidator
 import qutebrowser.utils.config as config
 import qutebrowser.commands.keys as keys
 from qutebrowser.utils.url import urlstring
-from qutebrowser.utils.types import NeighborList
+from qutebrowser.utils.usertypes import NeighborList
 
 
 class StatusBar(QWidget):
