@@ -28,8 +28,6 @@ from qutebrowser.utils.misc import read_file
 
 config = None
 state = None
-colordict = {}
-fontdict = {}
 
 # Special value for an unset fallback, so None can be passed as fallback.
 _UNSET = object()
@@ -42,119 +40,10 @@ def init(confdir):
         confdir: The directory where the configs are stored in.
 
     """
-    global config, state, colordict, fontdict
+    global config, state
     logging.debug("Config init, confdir {}".format(confdir))
     config = Config(confdir, 'qutebrowser.conf', read_file('qutebrowser.conf'))
     state = Config(confdir, 'state', always_save=True)
-    try:
-        colordict = ColorDict(config['colors'])
-    except KeyError:
-        colordict = ColorDict()
-    fontdict = FontDict(config['fonts'])
-
-
-def get_stylesheet(template):
-    """Format a stylesheet based on a template.
-
-    Args:
-        template: The stylesheet template as string.
-
-    Return:
-        The formatted template as string.
-
-    """
-    return template.strip().format(color=colordict, font=fontdict)
-
-
-class ColorDict(dict):
-
-    """A dict aimed at Qt stylesheet colors."""
-
-    # FIXME we should validate colors in __setitem__ based on:
-    # http://qt-project.org/doc/qt-4.8/stylesheet-reference.html#brush
-    # http://www.w3.org/TR/CSS21/syndata.html#color-units
-
-    def __getitem__(self, key):
-        """Override dict __getitem__.
-
-        Args:
-            key: The key to get from the dict.
-
-        Return:
-            If a value wasn't found, return an empty string.
-            (Color not defined, so no output in the stylesheet)
-
-            If the key has a .fg. element in it, return  color: X;.
-            If the key has a .bg. element in it, return  background-color: X;.
-
-            In all other cases, return the plain value.
-
-        """
-        try:
-            val = super().__getitem__(key)
-        except KeyError:
-            return ''
-        if 'fg' in key.split('.'):
-            return 'color: {};'.format(val)
-        elif 'bg' in key.split('.'):
-            return 'background-color: {};'.format(val)
-        else:
-            return val
-
-    def getraw(self, key):
-        """Get a value without the transformations done in __getitem__.
-
-        Args:
-            key: The key to get from the dict.
-
-        Return:
-            A value, or None if the value wasn't found.
-
-        """
-        try:
-            return super().__getitem__(key)
-        except KeyError:
-            return None
-
-
-class FontDict(dict):
-
-    """A dict aimed at Qt stylesheet fonts."""
-
-    def __getitem__(self, key):
-        """Override dict __getitem__.
-
-        Args:
-            key: The key to get from the dict.
-
-        Return:
-            If a value wasn't found, return an empty string.
-            (Color not defined, so no output in the stylesheet)
-
-            In all other cases, return font: <value>.
-
-        """
-        try:
-            val = super().__getitem__(key)
-        except KeyError:
-            return ''
-        else:
-            return 'font: {};'.format(val)
-
-    def getraw(self, key):
-        """Get a value without the transformations done in __getitem__.
-
-        Args:
-            key: The key to get from the dict.
-
-        Return:
-            A value, or None if the value wasn't found.
-
-        """
-        try:
-            return super().__getitem__(key)
-        except KeyError:
-            return None
 
 
 class Config(ConfigParser):

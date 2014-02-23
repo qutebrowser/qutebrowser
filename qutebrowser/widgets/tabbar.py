@@ -21,6 +21,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTabWidget, QTabBar, QSizePolicy
 
 import qutebrowser.config.config as config
+from qutebrowser.config.style import get_stylesheet
 from qutebrowser.utils.style import Style
 
 
@@ -68,7 +69,7 @@ class TabWidget(QTabWidget):
         super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setStyle(Style(self.style()))
-        self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
+        self.setStyleSheet(get_stylesheet(self._STYLESHEET))
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
         self._init_config()

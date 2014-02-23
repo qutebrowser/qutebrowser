@@ -32,6 +32,7 @@ from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QTextCursor)
 
 import qutebrowser.config.config as config
+from qutebrowser.config.style import get_stylesheet
 from qutebrowser.models.completionfilter import CompletionFilterModel
 from qutebrowser.models.commandcompletion import CommandCompletionModel
 
@@ -114,7 +115,7 @@ class CompletionView(QTreeView):
         self.setmodel('command')
         self._delegate = _CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
-        self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
+        self.setStyleSheet(get_stylesheet(self._STYLESHEET))
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.setHeaderHidden(True)
         self.setIndentation(0)
@@ -401,7 +402,7 @@ class _CompletionItemDelegate(QStyledItemDelegate):
             self._doc.setHtml('<b>{}</b>'.format(html.escape(self._opt.text)))
         self._doc.setDefaultFont(self._opt.font)
         self._doc.setDefaultTextOption(text_option)
-        self._doc.setDefaultStyleSheet(config.get_stylesheet("""
+        self._doc.setDefaultStyleSheet(get_stylesheet("""
             .highlight {{
                 {color[completion.match.fg]}
             }}

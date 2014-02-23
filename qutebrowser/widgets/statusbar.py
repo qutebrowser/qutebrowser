@@ -26,6 +26,7 @@ from PyQt5.QtWidgets import (QWidget, QLineEdit, QProgressBar, QLabel,
 from PyQt5.QtGui import QPainter, QKeySequence, QValidator
 
 import qutebrowser.config.config as config
+from qutebrowser.config.style import get_stylesheet
 import qutebrowser.commands.keys as keys
 from qutebrowser.utils.url import urlstring
 from qutebrowser.utils.usertypes import NeighborList
@@ -79,7 +80,7 @@ class StatusBar(QWidget):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
         self.setAttribute(Qt.WA_StyledBackground)
-        self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
+        self.setStyleSheet(get_stylesheet(self._STYLESHEET))
 
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
 
@@ -133,7 +134,7 @@ class StatusBar(QWidget):
 
         """
         self._error = val
-        self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
+        self.setStyleSheet(get_stylesheet(self._STYLESHEET))
 
     def _show_cmd_widget(self):
         """Show command widget instead of temporary text."""
@@ -453,7 +454,7 @@ class _Progress(QProgressBar):
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
+        self.setStyleSheet(get_stylesheet(self._STYLESHEET))
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Ignored)
         self.setTextVisible(False)
         self.hide()
@@ -665,7 +666,7 @@ class _Url(TextBase):
         """
         super().__init__(bar, elidemode)
         self.setObjectName(self.__class__.__name__)
-        self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
+        self.setStyleSheet(get_stylesheet(self._STYLESHEET))
         self._urltype = None
         self._old_urltype = None
         self._old_url = None
@@ -680,7 +681,7 @@ class _Url(TextBase):
     def urltype(self, val):
         """Setter for self.urltype, so it can be used as Qt property."""
         self._urltype = val
-        self.setStyleSheet(config.get_stylesheet(self._STYLESHEET))
+        self.setStyleSheet(get_stylesheet(self._STYLESHEET))
 
     @pyqtSlot(bool)
     def on_loading_finished(self, ok):
