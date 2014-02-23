@@ -19,18 +19,6 @@
 
 import qutebrowser.config.config as config
 
-colordict = {}
-fontdict = {}
-
-def init():
-    """Initialize the global objects based on the config."""
-    global colordict, fontdict
-    try:
-        colordict = ColorDict(config.config['colors'])
-    except KeyError:
-        colordict = ColorDict()
-    fontdict = FontDict(config.config['fonts'])
-
 
 def get_stylesheet(template):
     """Format a stylesheet based on a template.
@@ -42,7 +30,8 @@ def get_stylesheet(template):
         The formatted template as string.
 
     """
-    return template.strip().format(color=colordict, font=fontdict)
+    return template.strip().format(color=ColorDict(config.config['colors']),
+                                   font=FontDict(config.config['fonts']))
 
 
 class ColorDict(dict):

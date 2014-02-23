@@ -98,7 +98,6 @@ class QuteBrowser(QApplication):
         else:
             confdir = self._args.confdir
         config.init(confdir)
-        style.init()
 
         self.commandparser = cmdutils.CommandParser()
         self.searchparser = cmdutils.SearchParser()
