@@ -35,7 +35,7 @@ from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 import qutebrowser.utils.url as urlutils
-import qutebrowser.utils.config as config
+import qutebrowser.config.config as config
 from qutebrowser.widgets.tabbar import TabWidget
 from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.utils.signals import SignalCache, dbg_signal

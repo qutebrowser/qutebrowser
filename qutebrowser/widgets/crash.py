@@ -23,7 +23,7 @@ import traceback
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout)
 
-import qutebrowser.utils.config as config
+import qutebrowser.config.config as config
 from qutebrowser.utils.version import version
 
 

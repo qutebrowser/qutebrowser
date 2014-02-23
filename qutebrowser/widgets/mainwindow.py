@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout
 from qutebrowser.widgets.statusbar import StatusBar
 from qutebrowser.widgets.browser import TabbedBrowser
 from qutebrowser.widgets.completion import CompletionView
-import qutebrowser.utils.config as config
+import qutebrowser.config.config as config
 
 
 class MainWindow(QWidget):

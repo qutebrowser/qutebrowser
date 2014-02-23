@@ -20,7 +20,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTabWidget, QTabBar, QSizePolicy
 
-import qutebrowser.utils.config as config
+import qutebrowser.config.config as config
 from qutebrowser.utils.style import Style
 
 

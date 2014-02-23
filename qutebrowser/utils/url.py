@@ -24,7 +24,7 @@ import urllib.parse
 
 from PyQt5.QtCore import QUrl
 
-import qutebrowser.utils.config as config
+import qutebrowser.config.config as config
 
 
 def _get_search_url(txt):

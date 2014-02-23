@@ -31,7 +31,7 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QRect, QRectF, QPoint,
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QTextCursor)
 
-import qutebrowser.utils.config as config
+import qutebrowser.config.config as config
 from qutebrowser.models.completionfilter import CompletionFilterModel
 from qutebrowser.models.commandcompletion import CommandCompletionModel
 

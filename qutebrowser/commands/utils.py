@@ -24,7 +24,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.commands.commands
-import qutebrowser.utils.config as config
+import qutebrowser.config.config as config
 from qutebrowser.commands.exceptions import (ArgumentCountError,
                                              NoSuchCommandError)
 

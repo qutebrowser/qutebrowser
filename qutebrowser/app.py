@@ -47,7 +47,7 @@ from PyQt5.QtCore import pyqtSlot, QTimer, QEventLoop
 
 import qutebrowser
 import qutebrowser.commands.utils as cmdutils
-import qutebrowser.utils.config as config
+import qutebrowser.config.config as config
 import qutebrowser.network.qutescheme as qutescheme
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
