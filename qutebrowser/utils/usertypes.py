@@ -104,7 +104,10 @@ class NeighborList:
 
     def curitem(self):
         """Get the current item in the list."""
-        return self._items[self.idx]
+        if self.idx is not None:
+            return self._items[self.idx]
+        else:
+            raise IndexError("No current item!")
 
     def nextitem(self):
         """Get the next item in the list."""
