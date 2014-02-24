@@ -21,10 +21,12 @@ import os
 import io
 import os.path
 import logging
+from collections import OrderedDict
 from configparser import (ConfigParser, ExtendedInterpolation, NoSectionError,
                           NoOptionError)
 
 from qutebrowser.utils.misc import read_file
+from qutebrowser.config.options import *
 
 config = None
 state = None
@@ -44,6 +46,47 @@ def init(confdir):
     logging.debug("Config init, confdir {}".format(confdir))
     config = Config(confdir, 'qutebrowser.conf', read_file('qutebrowser.conf'))
     state = Config(confdir, 'state', always_save=True)
+
+
+class ConfigStructure:
+
+    def __init__(self):
+        self.config = OrderedDict([
+            ('general', KeyValueSection(
+                ('show_completion', ShowCompletion()),
+                ('completion_height', CompletionHeight()),
+                ('ignorecase', IgnoreCase()),
+                ('wrapsearch', WrapSearch()),
+                ('startpage', StartPage()),
+                ('auto_search', AutoSearch()),
+                ('zoomlevels', ZoomLevels()),
+                ('defaultzoom', DefaultZoom()),
+            )),
+            ('tabbar', KeyValueSection(
+                ('movable', Movable()),
+                ('closebuttons', CloseButtons()),
+                ('scrollbuttons', ScrollButtons()),
+                ('position', Position()),
+                ('select_on_remove', SelectOnRemove()),
+                ('last_close', LastClose()),
+            )),
+            ('searchengines', ValueListSection(
+                SearchEngineKeyValue()
+            )),
+            ('keybind', ValueListSection(
+                KeybindKeyValue()
+            )),
+            ('aliases', ValueListSection(
+                AliasKeyValue()
+            )),
+            ('colors', KeyValueSection(
+                ('completion.fg', CompletionFgColor()),
+                ('completion.item.bg', CompletionItemBgColor()),
+                # FIXME ...
+            )),
+            ('fonts', KeyValueSection(
+            )),
+        ])
 
 
 class Config(ConfigParser):
