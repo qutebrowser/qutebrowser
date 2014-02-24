@@ -383,7 +383,7 @@ class TabbedBrowser(TabWidget):
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         url = clip.text(mode)
         logging.debug("Clipboard contained: '{}'".format(url))
-        self.cur.openurl(url)
+        self.openurl(url)
 
     def tabpaste(self, sel=False):
         """Open a page from the clipboard in a new tab.
@@ -794,7 +794,7 @@ class BrowserTab(QWebView):
         if self._open_new_tab:
             self.open_tab.emit(url)
         else:
-            self.cur.openurl(url)
+            self.openurl(url)
 
     def shutdown(self, callback=None):
         """Shut down the tab cleanly and remove it.
