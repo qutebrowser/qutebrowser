@@ -50,6 +50,8 @@ def init(confdir):
 
 class ConfigStructure:
 
+    """Contains the structure of the config file."""
+
     def __init__(self):
         self.config = OrderedDict([
             ('general', KeyValueSection(

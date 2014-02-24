@@ -19,6 +19,7 @@
 
 import qutebrowser.commands.utils as cmdutils
 
+
 class SettingValue:
 
     """Base class for settings. The docstring is used as a description."""
@@ -68,9 +69,11 @@ class SettingValue:
         else:
             raise NotImplementedError
 
+
 class BoolSettingValue(SettingValue):
 
     """Base class for a boolean setting."""
+
     values = ['true', 'false']
 
     # Taken from configparser

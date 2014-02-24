@@ -17,15 +17,17 @@
 
 """Setting options used for qutebrowser."""
 
-from qutebrowser.config.templates import *
+import qutebrowser.config.templates as template
 
-class ShowCompletion(BoolSettingValue):
+
+class ShowCompletion(template.BoolSettingValue):
 
     """Whether to show the autocompletion window or not."""
 
     default = "true"
 
-class CompletionHeight(SettingValue):
+
+class CompletionHeight(template.SettingValue):
 
     """The height of the completion, in px or as percentage of the window."""
 
@@ -48,28 +50,28 @@ class CompletionHeight(SettingValue):
                 return intval > 0
 
 
-class IgnoreCase(BoolSettingValue):
+class IgnoreCase(template.BoolSettingValue):
 
     """Whether to do case-insensitive searching."""
 
     default = "true"
 
 
-class WrapSearch(BoolSettingValue):
+class WrapSearch(template.BoolSettingValue):
 
     """Whether to wrap search to the top when arriving at the end."""
 
     default = "true"
 
 
-class StartPage(ListSettingValue):
+class StartPage(template.ListSettingValue):
 
     """The default page(s) to open at the start, separated with commas."""
 
     default = "http://www.duckduckgo.com/"
 
 
-class AutoSearch(BoolSettingValue):
+class AutoSearch(template.BoolSettingValue):
 
     """Whether to start a search when something else than an URL is entered."""
 
@@ -94,14 +96,14 @@ class AutoSearch(BoolSettingValue):
             return "false"
 
 
-class ZoomLevels(IntListSettingValue):
+class ZoomLevels(template.IntListSettingValue):
 
     """The available zoom levels, separated by commas."""
 
     default = "25,33,50,67,75,90,100,110,125,150,175,200,250,300,400,500"
 
 
-class DefaultZoom(IntSettingValue):
+class DefaultZoom(template.IntSettingValue):
 
     """The default zoom level."""
 
@@ -110,28 +112,28 @@ class DefaultZoom(IntSettingValue):
     default = "100"
 
 
-class Movable(BoolSettingValue):
+class Movable(template.BoolSettingValue):
 
     """Whether tabs should be movable."""
 
     default = "true"
 
 
-class CloseButtons(BoolSettingValue):
+class CloseButtons(template.BoolSettingValue):
 
     """Whether tabs should have close-buttons."""
 
     default = "false"
 
 
-class ScrollButtons(BoolSettingValue):
+class ScrollButtons(template.BoolSettingValue):
 
     """Whether there should be scroll buttons if there are too many tabs."""
 
     default = "true"
 
 
-class Position(SettingValue):
+class Position(template.SettingValue):
 
     """The position of the tab bar."""
 
@@ -139,7 +141,7 @@ class Position(SettingValue):
     default = "north"
 
 
-class SelectOnRemove(SettingValue):
+class SelectOnRemove(template.SettingValue):
 
     """Which tab to select when the focused tab is removed."""
 
@@ -149,7 +151,7 @@ class SelectOnRemove(SettingValue):
     default = "previous"
 
 
-class LastClose(SettingValue):
+class LastClose(template.SettingValue):
 
     """Behaviour when the last tab is closed."""
 
@@ -160,7 +162,8 @@ class LastClose(SettingValue):
 
 ### FIXME what to do with list-style sections?
 
-class SearchEngine(SettingValue):
+
+class SearchEngine(template.SettingValue):
 
     """A search engine setting."""
 
@@ -168,21 +171,21 @@ class SearchEngine(SettingValue):
         return "{}" in value
 
 
-class CompletionFgColor(ColorSettingValue):
+class CompletionFgColor(template.ColorSettingValue):
 
     """Text color of the completion widget."""
 
     default = "#333333"
 
 
-class CompletionItemBgColor(ColorSettingValue):
+class CompletionItemBgColor(template.ColorSettingValue):
 
     """Background color of completion widget items."""
 
     default = "white"
 
 
-class CompletionCategoryBgColor(ColorSettingValue):
+class CompletionCategoryBgColor(template.ColorSettingValue):
 
     """Background color of the completion widget category headers."""
 
@@ -190,154 +193,154 @@ class CompletionCategoryBgColor(ColorSettingValue):
                "x1:0, y1:0, x2:0, y2:1, stop:0 #e4e4e4, stop:1 #dbdbdb")
 
 
-class CompletionCategoryTopBorderColor(ColorSettingValue):
+class CompletionCategoryTopBorderColor(template.ColorSettingValue):
 
     """Top border color of the completion widget category headers."""
 
     default = "#808080"
 
 
-class CompletionCategoryBottomBorderColor(ColorSettingValue):
+class CompletionCategoryBottomBorderColor(template.ColorSettingValue):
 
     """Bottom border color of the completion widget category headers."""
 
     default = "#bbbbbb"
 
 
-class CompletionItemSelectedFgColor(ColorSettingValue):
+class CompletionItemSelectedFgColor(template.ColorSettingValue):
 
     """Foreground color of the selected completion item."""
 
     default = "#333333"
 
 
-class CompletionItemSelectedBgColor(ColorSettingValue):
+class CompletionItemSelectedBgColor(template.ColorSettingValue):
 
     """Background color of the selected completion item."""
 
     default = "#ffec8b"
 
 
-class CompletionItemSelectedTopBorderColor(ColorSettingValue):
+class CompletionItemSelectedTopBorderColor(template.ColorSettingValue):
 
     """Top border color of the selected completion item."""
 
     default = "#f2f2c0"
 
 
-class CompletionItemSelectedBottomBorderColor(ColorSettingValue):
+class CompletionItemSelectedBottomBorderColor(template.ColorSettingValue):
 
     """Bottom border color of the selected completion item."""
 
     default = "#ffec8b"
 
 
-class CompletionMatchFgColor(ColorSettingValue):
+class CompletionMatchFgColor(template.ColorSettingValue):
 
     """Foreground color of the matched text in the completion."""
 
     default = "red"
 
 
-class StatusbarBgColor(ColorSettingValue):
+class StatusbarBgColor(template.ColorSettingValue):
 
     """Background color of the statusbar."""
 
     default = "black"
 
 
-class StatusbarFgColor(ColorSettingValue):
+class StatusbarFgColor(template.ColorSettingValue):
 
     """Foreground color of the statusbar."""
 
     default = "white"
 
 
-class StatusbarFgErrorColor(ColorSettingValue):
+class StatusbarFgErrorColor(template.ColorSettingValue):
 
     """Foreground color of the statusbar if there was an error."""
 
     default = "${statusbar.fg}"
 
 
-class StatusbarBgErrorColor(ColorSettingValue):
+class StatusbarBgErrorColor(template.ColorSettingValue):
 
     """Background color of the statusbar if there was an error."""
 
     default = "red"
 
 
-class StatusbarProgressBgColor(ColorSettingValue):
+class StatusbarProgressBgColor(template.ColorSettingValue):
 
     """Background color of the progress bar."""
 
     default = "white"
 
 
-class StatusbarUrlFgColor(ColorSettingValue):
+class StatusbarUrlFgColor(template.ColorSettingValue):
 
     """Default foreground color of the URL in the statusbar."""
 
     default = "${statusbar.fg}"
 
 
-class StatusbarUrlSuccessFgColor(ColorSettingValue):
+class StatusbarUrlSuccessFgColor(template.ColorSettingValue):
 
     """Foreground color of the URL in the statusbar on successful load."""
 
     default = "lime"
 
 
-class StatusbarUrlErrorFgColor(ColorSettingValue):
+class StatusbarUrlErrorFgColor(template.ColorSettingValue):
 
     """Foreground color of the URL in the statusbar on error."""
 
     default = "orange"
 
 
-class StatusbarUrlWarnFgColor(ColorSettingValue):
+class StatusbarUrlWarnFgColor(template.ColorSettingValue):
 
     """Foreground color of the URL in the statusbar when there's a warning."""
 
     default = "yellow"
 
 
-class StatusbarUrlHoverFgColor(ColorSettingValue):
+class StatusbarUrlHoverFgColor(template.ColorSettingValue):
 
     """Foreground color of the URL in the statusbar for hovered links."""
 
     default = "aqua"
 
 
-class TabFgColor(ColorSettingValue):
+class TabFgColor(template.ColorSettingValue):
 
     """Foreground color of the tabbar."""
 
     default = "white"
 
 
-class TabBgColor(ColorSettingValue):
+class TabBgColor(template.ColorSettingValue):
 
     """Background color of the tabbar."""
 
     default = "grey"
 
 
-class TabSelectedBgColor(ColorSettingValue):
+class TabSelectedBgColor(template.ColorSettingValue):
 
     """Background color of the tabbar for the selected tab."""
 
     default = "black"
 
 
-class TabSeperatorColor(ColorSettingValue):
+class TabSeperatorColor(template.ColorSettingValue):
 
     """Color for the tab seperator."""
 
     default = "white"
 
 
-class MonospaceFonts(FontSettingValue):
+class MonospaceFonts(template.FontSettingValue):
 
     """Default monospace fonts."""
 
@@ -346,21 +349,21 @@ class MonospaceFonts(FontSettingValue):
                '"Courier New", Courier, monospace, Fixed, Terminal')
 
 
-class CompletionFont(FontSettingValue):
+class CompletionFont(template.FontSettingValue):
 
     """Font used in the completion widget."""
 
     default = "8pt ${_monospace}"
 
 
-class TabbarFont(FontSettingValue):
+class TabbarFont(template.FontSettingValue):
 
     """Font used in the tabbar."""
 
     default = "8pt ${_monospace}"
 
 
-class StatusbarFont(FontSettingValue):
+class StatusbarFont(template.FontSettingValue):
 
     """Font used in the statusbar."""
 

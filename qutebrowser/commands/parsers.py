@@ -20,11 +20,13 @@
 import shlex
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
+from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.commands.exceptions import (ArgumentCountError,
                                              NoSuchCommandError)
+
 
 class SearchParser(QObject):
 
