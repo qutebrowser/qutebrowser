@@ -119,7 +119,7 @@ class IntListSettingValue(ListSettingValue):
         vals = super().transform(value)
         return map(int, vals)
 
-    def validate(self, value)
+    def validate(self, value):
         try:
             self.transform(value)
         except ValueError:

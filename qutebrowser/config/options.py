@@ -75,14 +75,11 @@ class AutoSearch(BoolSettingValue):
 
     values = [("naive", "Use simple/naive check."),
               ("dns", "Use DNS requests (might be slow!)."),
-              ("false": "Never search automatically.")]
+              ("false", "Never search automatically.")]
     default = "naive"
 
     def validate(self, value):
         if value.lower() in ["naive", "dns"]:
-            return True
-        else:
-            return super().validate(value)
             return True
         else:
             return super().validate(value)
