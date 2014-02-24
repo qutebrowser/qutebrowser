@@ -26,7 +26,7 @@ from configparser import (ConfigParser, ExtendedInterpolation, NoSectionError,
                           NoOptionError)
 
 from qutebrowser.utils.misc import read_file
-from qutebrowser.config.options import *
+import qutebrowser.config.options as opt
 
 config = None
 state = None
@@ -53,38 +53,70 @@ class ConfigStructure:
     def __init__(self):
         self.config = OrderedDict([
             ('general', KeyValueSection(
-                ('show_completion', ShowCompletion()),
-                ('completion_height', CompletionHeight()),
-                ('ignorecase', IgnoreCase()),
-                ('wrapsearch', WrapSearch()),
-                ('startpage', StartPage()),
-                ('auto_search', AutoSearch()),
-                ('zoomlevels', ZoomLevels()),
-                ('defaultzoom', DefaultZoom()),
+                ('show_completion', opt.ShowCompletion()),
+                ('completion_height', opt.CompletionHeight()),
+                ('ignorecase', opt.IgnoreCase()),
+                ('wrapsearch', opt.WrapSearch()),
+                ('startpage', opt.StartPage()),
+                ('auto_search', opt.AutoSearch()),
+                ('zoomlevels', opt.ZoomLevels()),
+                ('defaultzoom', opt.DefaultZoom()),
             )),
             ('tabbar', KeyValueSection(
-                ('movable', Movable()),
-                ('closebuttons', CloseButtons()),
-                ('scrollbuttons', ScrollButtons()),
-                ('position', Position()),
-                ('select_on_remove', SelectOnRemove()),
-                ('last_close', LastClose()),
+                ('movable', opt.Movable()),
+                ('closebuttons', opt.CloseButtons()),
+                ('scrollbuttons', opt.ScrollButtons()),
+                ('position', opt.Position()),
+                ('select_on_remove', opt.SelectOnRemove()),
+                ('last_close', opt.LastClose()),
             )),
             ('searchengines', ValueListSection(
-                SearchEngineKeyValue()
+                opt.SearchEngineKeyValue()
             )),
             ('keybind', ValueListSection(
-                KeybindKeyValue()
+                opt.KeybindKeyValue()
             )),
             ('aliases', ValueListSection(
-                AliasKeyValue()
+                opt.AliasKeyValue()
             )),
             ('colors', KeyValueSection(
-                ('completion.fg', CompletionFgColor()),
-                ('completion.item.bg', CompletionItemBgColor()),
-                # FIXME ...
+                ('completion.fg', opt.CompletionFgColor()),
+                ('completion.item.bg', opt.CompletionItemBgColor()),
+                ('completion.category.bg', opt.CompletionCategoryBgColor()),
+                ('completion.category.border.top',
+                    opt.CompletionCategoryTopBorderColor()),
+                ('completion.category.border.bottom',
+                    opt.CompletionCategoryBottomBorderColor()),
+                ('completion.item.selected.fg',
+                    opt.CompletionItemSelectedFgColor()),
+                ('completion.item.selected.bg',
+                    opt.CompletionItemSelectedBgColor()),
+                ('completion.item.selected.border.top',
+                    opt.CompletionItemSelectedTopBorderColor()),
+                ('completion.item.selected.border.bottom',
+                    opt.CompletionCategoryBottomBorderColor()),
+                ('completion.match.fg',
+                    opt.CompletionMatchFgColor()),
+                ('statusbar.bg', opt.StatusbarBgColor()),
+                ('statusbar.fg', opt.StatusbarFgColor()),
+                ('statusbar.bg.error', opt.StatusbarBgErrorColor()),
+                ('statusbar.fg.error', opt.StatusbarFgErrorColor()),
+                ('statusbar.progress.pg', opt.StatusbarProgressBgColor()),
+                ('statusbar.url.fg', opt.StatusbarUrlFgColor()),
+                ('statusbar.url.fg.success', opt.StatusbarUrlHoverFgColor()),
+                ('statusbar.url.fg.error', opt.StatusbarUrlErrorFgColor()),
+                ('statusbar.url.fg.warn', opt.StatusbarUrlWarnFgColor()),
+                ('statusbar.url.fg.hover', opt.StatusbarUrlHoverFgColor()),
+                ('tab.fg', opt.TabFgColor()),
+                ('tab.bg', opt.TabBgColor()),
+                ('tab.bg.selected', opt.TabSelectedBgColor()),
+                ('tab.seperator', opt.TabSeperatorColor()),
             )),
             ('fonts', KeyValueSection(
+                ('_monospace', opt.MonospaceFonts()),
+                ('completion', opt.CompletionFont()),
+                ('tabbar', opt.TabbarFont()),
+                ('statusbar', opt.StatusbarFont()),
             )),
         ])
 
