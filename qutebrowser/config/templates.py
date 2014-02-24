@@ -135,10 +135,13 @@ class CommandSettingValue(SettingValue):
     values = cmdutils.cmd_dict.values()
 
     def validate(self, value):
-        cp = cmdutils.CommandParser()
+        # We need to import this here to avoid circular dependencies
+        from qutebrowser.commands.parsers import (CommandParser,
+                                                  NoSuchCommandError)
+        cp = CommandParser()
         try:
             cp.parse(value)
-        except cmdutils.NoSuchCommandError:
+        except NoSuchCommandError:
             return False
         else:
             return True

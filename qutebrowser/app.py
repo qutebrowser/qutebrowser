@@ -52,6 +52,7 @@ import qutebrowser.network.qutescheme as qutescheme
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
 from qutebrowser.commands.keys import KeyParser
+from qutebrowser.commands.parsers import CommandParser, SearchParser
 from qutebrowser.utils.appdirs import AppDirs
 from qutebrowser.utils.misc import dotted_getattr
 from qutebrowser.utils.debug import set_trace  # noqa pylint: disable=unused-import
@@ -100,8 +101,8 @@ class QuteBrowser(QApplication):
             confdir = self._args.confdir
         config.init(confdir)
 
-        self.commandparser = cmdutils.CommandParser()
-        self.searchparser = cmdutils.SearchParser()
+        self.commandparser = CommandParser()
+        self.searchparser = SearchParser()
         self.keyparser = KeyParser(self)
         self._init_cmds()
         self.mainwindow = MainWindow()

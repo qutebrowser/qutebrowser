@@ -23,8 +23,8 @@ import logging
 from PyQt5.QtCore import pyqtSignal, Qt, QObject
 from PyQt5.QtGui import QKeySequence
 
-from qutebrowser.commands.utils import (CommandParser, ArgumentCountError,
-                                        NoSuchCommandError)
+from qutebrowser.commands.parsers import (CommandParser, ArgumentCountError,
+                                          NoSuchCommandError)
 
 # Possible chars for starting a commandline input
 STARTCHARS = ":/?"
