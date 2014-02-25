@@ -27,6 +27,7 @@ from configparser import (ConfigParser, ExtendedInterpolation, NoSectionError,
 
 from qutebrowser.utils.misc import read_file
 import qutebrowser.config.options as opt
+import qutebrowser.config.sections as sect
 
 config = None
 state = None
@@ -54,7 +55,7 @@ class ConfigStructure:
 
     def __init__(self):
         self.config = OrderedDict([
-            ('general', KeyValueSection(
+            ('general', sect.KeyValue(
                 ('show_completion', opt.ShowCompletion()),
                 ('completion_height', opt.CompletionHeight()),
                 ('ignorecase', opt.IgnoreCase()),
@@ -64,7 +65,7 @@ class ConfigStructure:
                 ('zoomlevels', opt.ZoomLevels()),
                 ('defaultzoom', opt.DefaultZoom()),
             )),
-            ('tabbar', KeyValueSection(
+            ('tabbar', sect.KeyValue(
                 ('movable', opt.Movable()),
                 ('closebuttons', opt.CloseButtons()),
                 ('scrollbuttons', opt.ScrollButtons()),
@@ -72,16 +73,10 @@ class ConfigStructure:
                 ('select_on_remove', opt.SelectOnRemove()),
                 ('last_close', opt.LastClose()),
             )),
-            ('searchengines', ValueListSection(
-                opt.SearchEngineKeyValue()
-            )),
-            ('keybind', ValueListSection(
-                opt.KeybindKeyValue()
-            )),
-            ('aliases', ValueListSection(
-                opt.AliasKeyValue()
-            )),
-            ('colors', KeyValueSection(
+            ('searchengines', sect.SearchEngines()),
+            ('keybind', sect.KeyBindings()),
+            ('aliases', sect.Aliases()),
+            ('colors', sect.KeyValue(
                 ('completion.fg', opt.CompletionFgColor()),
                 ('completion.item.bg', opt.CompletionItemBgColor()),
                 ('completion.category.bg', opt.CompletionCategoryBgColor()),

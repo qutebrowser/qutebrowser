@@ -33,17 +33,17 @@ class CompletionHeight(template.SettingValue):
 
     default = "50%"
 
-    def validate(self, value):
-        if value.endswith('%'):
+    def validate(self):
+        if self.value.endswith('%'):
             try:
-                intval = int(value.rstrip('%'))
+                intval = int(self.value.rstrip('%'))
             except ValueError:
                 return False
             else:
                 return 0 <= intval <= 100
         else:
             try:
-                intval = int(value)
+                intval = int(self.value)
             except ValueError:
                 return False
             else:
@@ -75,21 +75,21 @@ class AutoSearch(template.BoolSettingValue):
 
     """Whether to start a search when something else than an URL is entered."""
 
-    values = [("naive", "Use simple/naive check."),
-              ("dns", "Use DNS requests (might be slow!)."),
-              ("false", "Never search automatically.")]
+    valid_values = [("naive", "Use simple/naive check."),
+                    ("dns", "Use DNS requests (might be slow!)."),
+                    ("false", "Never search automatically.")]
     default = "naive"
 
-    def validate(self, value):
-        if value.lower() in ["naive", "dns"]:
+    def validate(self):
+        if self.value.lower() in ["naive", "dns"]:
             return True
         else:
-            return super().validate(value)
+            return super().validate(self.value)
 
-    def transform(self, value):
-        if value.lower() in ["naive", "dns"]:
-            return value.lower()
-        elif super().transform(value):
+    def transform(self):
+        if self.value.lower() in ["naive", "dns"]:
+            return self.value.lower()
+        elif super().transform(self.value):
             # boolean true is an alias for naive matching
             return "naive"
         else:
@@ -137,7 +137,7 @@ class Position(template.SettingValue):
 
     """The position of the tab bar."""
 
-    values = ["north", "south", "east", "west"]
+    valid_values = ["north", "south", "east", "west"]
     default = "north"
 
 
@@ -145,9 +145,9 @@ class SelectOnRemove(template.SettingValue):
 
     """Which tab to select when the focused tab is removed."""
 
-    values = [("left", "Select the tab on the left."),
-              ("right", "Select the tab on the right."),
-              ("previous", "Select the previously selected tab.")]
+    valid_values = [("left", "Select the tab on the left."),
+                    ("right", "Select the tab on the right."),
+                    ("previous", "Select the previously selected tab.")]
     default = "previous"
 
 
@@ -155,9 +155,9 @@ class LastClose(template.SettingValue):
 
     """Behaviour when the last tab is closed."""
 
-    values = [("ignore", "Don't do anything."),
-              ("blank", "Load about:blank."),
-              ("quit", "Quit qutebrowser.")]
+    valid_values = [("ignore", "Don't do anything."),
+                    ("blank", "Load about:blank."),
+                    ("quit", "Quit qutebrowser.")]
     default = "ignore"
 
 ### FIXME what to do with list-style sections?
@@ -167,8 +167,8 @@ class SearchEngine(template.SettingValue):
 
     """A search engine setting."""
 
-    def validate(self, value):
-        return "{}" in value
+    def validate(self):
+        return "{}" in self.value
 
 
 class CompletionFgColor(template.ColorSettingValue):
@@ -260,7 +260,8 @@ class StatusbarFgErrorColor(template.ColorSettingValue):
 
     """Foreground color of the statusbar if there was an error."""
 
-    default = "${statusbar.fg}"
+    default = StatusbarFgColor.default
+    default_conf = "${statusbar.fg}"
 
 
 class StatusbarBgErrorColor(template.ColorSettingValue):
@@ -281,7 +282,8 @@ class StatusbarUrlFgColor(template.ColorSettingValue):
 
     """Default foreground color of the URL in the statusbar."""
 
-    default = "${statusbar.fg}"
+    default = StatusbarFgColor.default
+    default_conf = "${statusbar.fg}"
 
 
 class StatusbarUrlSuccessFgColor(template.ColorSettingValue):
@@ -353,18 +355,21 @@ class CompletionFont(template.FontSettingValue):
 
     """Font used in the completion widget."""
 
-    default = "8pt ${_monospace}"
+    default = MonospaceFonts.default
+    default_conf = "8pt ${_monospace}"
 
 
 class TabbarFont(template.FontSettingValue):
 
     """Font used in the tabbar."""
 
-    default = "8pt ${_monospace}"
+    default = MonospaceFonts.default
+    default_conf = "8pt ${_monospace}"
 
 
 class StatusbarFont(template.FontSettingValue):
 
     """Font used in the statusbar."""
 
-    default = "8pt ${_monospace}"
+    default = MonospaceFonts.default
+    default_conf = "8pt ${_monospace}"
