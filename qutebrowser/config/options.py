@@ -160,16 +160,6 @@ class LastClose(template.SettingValue):
                     ("quit", "Quit qutebrowser.")]
     default = "ignore"
 
-### FIXME what to do with list-style sections?
-
-
-class SearchEngine(template.SettingValue):
-
-    """A search engine setting."""
-
-    def validate(self):
-        return "{}" in self.value
-
 
 class CompletionFgColor(template.ColorSettingValue):
 
@@ -373,3 +363,35 @@ class StatusbarFont(template.FontSettingValue):
 
     default = MonospaceFonts.default
     default_conf = "8pt ${_monospace}"
+
+
+class SearchEngineName(template.SettingValue):
+
+    """A search engine name."""
+
+    def validate(self):
+        return True
+
+
+class SearchEngineUrl(template.SettingValue):
+
+    """A search engine URL."""
+
+    def validate(self):
+        return "{}" in self.value
+
+
+class KeyBindingName(template.SettingValue):
+
+    """The name (keys) of a keybinding."""
+
+    def validate(self):
+        # FIXME can we validate anything here?
+        return True
+
+
+class KeyBinding(template.CommandSettingValue):
+
+    """The command of a keybinding."""
+
+    pass
