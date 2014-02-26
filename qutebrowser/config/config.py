@@ -99,7 +99,7 @@ class NewConfig:
                 ('statusbar.fg', opt.StatusbarFgColor()),
                 ('statusbar.bg.error', opt.StatusbarBgErrorColor()),
                 ('statusbar.fg.error', opt.StatusbarFgErrorColor()),
-                ('statusbar.progress.pg', opt.StatusbarProgressBgColor()),
+                ('statusbar.progress.bg', opt.StatusbarProgressBgColor()),
                 ('statusbar.url.fg', opt.StatusbarUrlFgColor()),
                 ('statusbar.url.fg.success', opt.StatusbarUrlHoverFgColor()),
                 ('statusbar.url.fg.error', opt.StatusbarUrlErrorFgColor()),
@@ -117,7 +117,6 @@ class NewConfig:
                 ('statusbar', opt.StatusbarFont()),
             )),
         ])
-
 
     def __getitem__(self, key):
         """Get a section from the config."""

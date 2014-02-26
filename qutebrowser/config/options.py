@@ -179,8 +179,8 @@ class CompletionCategoryBgColor(template.ColorSettingValue):
 
     """Background color of the completion widget category headers."""
 
-    default = ("completion.category.bg = qlineargradient("
-               "x1:0, y1:0, x2:0, y2:1, stop:0 #e4e4e4, stop:1 #dbdbdb")
+    default = ("qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #e4e4e4, "
+               "stop:1 #dbdbdb)")
 
 
 class CompletionCategoryTopBorderColor(template.ColorSettingValue):

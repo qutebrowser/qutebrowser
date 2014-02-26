@@ -63,7 +63,7 @@ class ColorDict(dict):
 
         """
         try:
-            val = super().__getitem__(key)
+            val = super().__getitem__(key).value
         except KeyError:
             return ''
         if 'fg' in key.split('.'):
@@ -84,7 +84,7 @@ class ColorDict(dict):
 
         """
         try:
-            return super().__getitem__(key)
+            return super().__getitem__(key).value
         except KeyError:
             return None
 
@@ -107,7 +107,7 @@ class FontDict(dict):
 
         """
         try:
-            val = super().__getitem__(key)
+            val = super().__getitem__(key).value
         except KeyError:
             return ''
         else:
@@ -124,6 +124,6 @@ class FontDict(dict):
 
         """
         try:
-            return super().__getitem__(key)
+            return super().__getitem__(key).value
         except KeyError:
             return None
