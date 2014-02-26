@@ -34,9 +34,8 @@ def get_stylesheet(template):
     """
     cdict = config.config['colors'].values
     fdict = config.config['fonts'].values
-    ret = template.strip().format(color=ColorDict(cdict),
-                                  font=FontDict(fdict))
-    logging.debug(ret)
+    return template.strip().format(color=ColorDict(cdict),
+                                   font=FontDict(fdict))
 
 
 class ColorDict(dict):
