@@ -345,7 +345,7 @@ class CompletionFont(template.FontSettingValue):
 
     """Font used in the completion widget."""
 
-    default = MonospaceFonts.default
+    default = "8pt " + MonospaceFonts.default
     default_conf = "8pt ${_monospace}"
 
 
@@ -353,7 +353,7 @@ class TabbarFont(template.FontSettingValue):
 
     """Font used in the tabbar."""
 
-    default = MonospaceFonts.default
+    default = "8pt " + MonospaceFonts.default
     default_conf = "8pt ${_monospace}"
 
 
@@ -361,7 +361,7 @@ class StatusbarFont(template.FontSettingValue):
 
     """Font used in the statusbar."""
 
-    default = MonospaceFonts.default
+    default = "8pt " + MonospaceFonts.default
     default_conf = "8pt ${_monospace}"
 
 
