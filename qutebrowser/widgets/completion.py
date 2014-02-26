@@ -96,13 +96,6 @@ class CompletionView(QTreeView):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        height = config.config.get('general', 'completion_height')
-        if height.endswith('%'):
-            self._height = QPoint(0, 200)  # just a temporary sane value
-            self._height_perc = int(height.rstrip('%'))
-        else:
-            self._height = QPoint(0, int(height))
-            self._height_perc = None
         self._enabled = config.config.getboolean('general', 'show_completion')
         self._completion_models = {}
         self._completion_models[''] = None
@@ -168,55 +161,6 @@ class CompletionView(QTreeView):
         self.model.srcmodel = self._completion_models[model]
         self.expandAll()
         self.resizeColumnToContents(0)
-
-    @pyqtSlot('QRect')
-    def resize_to_bar(self, geom):
-        """Resize the completion area to the statusbar geometry.
-
-        Slot for the resized signal of the statusbar.
-
-        Args:
-            geom: A QRect containing the statusbar geometry.
-
-        Raises:
-            AssertionError if new geometry is invalid.
-
-        """
-        bottomleft = geom.topLeft()
-        bottomright = geom.topRight()
-        topleft = bottomleft - self._height
-        assert topleft.x() < bottomright.x()
-        assert topleft.y() < bottomright.y()
-        self.setGeometry(QRect(topleft, bottomright))
-
-    @pyqtSlot('QRect')
-    def on_browser_resized(self, geom):
-        """Slot for the resized signal of the browser window.
-
-        Adjust the height of the completion if it was configured as a
-        percentage.
-
-        Args:
-            geom: A QRect containing the browser geometry.
-
-        """
-        if self._height_perc is None:
-            return
-        else:
-            height = int(geom.height() * self._height_perc / 100)
-            self._height = QPoint(0, height)
-
-    @pyqtSlot('QPoint')
-    def move_to_bar(self, pos):
-        """Move the completion area to the statusbar geometry.
-
-        Slot for the moved signal of the statusbar.
-
-        Args:
-            pos: A QPoint containing the statusbar position.
-
-        """
-        self.move(pos - self._height)
 
     @pyqtSlot(str)
     def on_cmd_text_changed(self, text):

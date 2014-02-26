@@ -20,7 +20,7 @@
 import binascii
 from base64 import b64decode
 
-from PyQt5.QtCore import QRect
+from PyQt5.QtCore import QRect, QPoint
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
 from qutebrowser.widgets.statusbar import StatusBar
@@ -72,9 +72,9 @@ class MainWindow(QWidget):
         self.status = StatusBar()
         self._vbox.addWidget(self.status)
 
-        self.status.resized.connect(self.completion.resize_to_bar)
-        self.status.moved.connect(self.completion.move_to_bar)
-        self.tabs.resized.connect(self.completion.on_browser_resized)
+        #self.status.resized.connect(self.completion.resize_to_bar)
+        #self.status.moved.connect(self.completion.move_to_bar)
+        #self.tabs.resized.connect(self.completion.on_browser_resized)
         self.tabs.cur_progress.connect(self.status.prog.setValue)
         self.tabs.cur_load_finished.connect(self.status.prog.hide)
         self.tabs.cur_load_finished.connect(
@@ -101,3 +101,23 @@ class MainWindow(QWidget):
     def _set_default_geometry(self):
         """Set some sensible default geometry."""
         self.setGeometry(QRect(50, 50, 800, 600))
+
+    def resizeEvent(self, e):
+        """Extend resizewindow's resizeEvent to adjust completion.
+
+        Args:
+            e: The QResizeEvent
+
+        """
+        super().resizeEvent(e)
+        confheight = config.config.get('general', 'completion_height')
+        if confheight.endswith('%'):
+            perc = int(confheight.rstrip('%'))
+            height = self.height() * perc / 100
+        else:
+            height = int(confheight)
+        # hpoint now would be the bottom-left edge of the widget if it was on
+        # the top of the main window.
+        topleft = QPoint(0, self.height() - self.status.height() - height)
+        bottomright = self.status.geometry().topRight()
+        self.completion.setGeometry(QRect(topleft, bottomright))
