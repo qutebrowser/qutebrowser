@@ -234,6 +234,10 @@ class _CompletionItemDelegate(QStyledItemDelegate):
 
     """
 
+    # FIXME this is horribly slow when resizing.
+    # We should probably cache something in _get_textdoc or so, but as soon as
+    # we implement eliding that cache probably isn't worth much anymore...
+
     def __init__(self, parent=None):
         self._painter = None
         self._opt = None
