@@ -71,9 +71,7 @@ class SettingValue:
             val = self.rawvalue
         else:
             val = self.default
-        val = self.transform(val)
-        logging.debug("{} Value: {}".format(self.__class__.__name__, val))
-        return val
+        return self.transform(val)
 
     def transform(self, value):
         """Transform the setting value.
