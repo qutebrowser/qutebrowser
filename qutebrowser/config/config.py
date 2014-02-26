@@ -123,6 +123,16 @@ class NewConfig:
         """Get a section from the config."""
         return self.config[key]
 
+    def __str__(self):
+        """Get the whole config as a string."""
+        # FIXME this should also generate nice comments
+        lines = []
+        for secname, section in self.config.items():
+            lines.append('[{}]'.format(secname))
+            for optname, option in section.items():
+                lines.append('{} = {}'.format(optname, option))
+        return '\n'.join(lines)
+
     def get(self, section, option, fallback=_UNSET):
         """Get the real (transformed) value from a section/option."""
         try:

@@ -61,7 +61,11 @@ class SettingValue:
 
     def __str__(self):
         """Get raw string value."""
-        return self.rawvalue if self.rawvalue is not None else ''
+        if self.rawvalue is not None:
+            val = self.rawvalue
+        else:
+            val = self.default
+        return val
 
     @property
     def value(self):
@@ -253,11 +257,6 @@ class ValueListSection:
         self.values = OrderedDict()
         self.default = {self.types[0](key): self.types[1](value)
                         for key, value in self.default.items()}
-
-    def __str__(self):
-        """Get the key = value pairs as a string."""
-        return '\n'.join('{} = {}'.format(key.rawvalue, val.rawvalue)
-                         for key, val in self.values)
 
     def __getitem__(self, key):
         """Get the value for key.

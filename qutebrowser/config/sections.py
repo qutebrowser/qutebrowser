@@ -49,13 +49,6 @@ class KeyValue:
         if args:
             self.values = OrderedDict(args)
 
-    def __str__(self):
-        """Get the key = value pairs as a string."""
-        # FIXME implement that in some toini() method
-        #return '\n'.join('{} = {}'.format(key, val.rawvalue)
-        #                 for key, val in self.values.items())
-        return str(self.values)
-
     def __getitem__(self, key):
         """Get the value for key.
 
@@ -82,6 +75,10 @@ class KeyValue:
         """Iterate over all set values."""
         # FIXME using a custon iterator this could be done more efficiently
         return self.values.__iter__()
+
+    def items(self):
+        """Get dict item tuples."""
+        return self.values.items()
 
 
 class SearchEngines(template.ValueListSection):
