@@ -17,7 +17,6 @@
 
 """Templates for setting options."""
 
-import logging
 from collections import OrderedDict
 
 import qutebrowser.commands.utils as cmdutils

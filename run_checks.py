@@ -59,6 +59,7 @@ options = {
             'global-statement',
             'no-init',
             'too-many-arguments',
+            'too-few-public-methods',
             # visual noise
             'locally-disabled',
         ],

@@ -96,7 +96,7 @@ class CompletionView(QTreeView):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._enabled = config.config.getboolean('general', 'show_completion')
+        self._enabled = config.config.get('general', 'show_completion')
         self._completion_models = {}
         self._completion_models[''] = None
         self._completion_models['command'] = CommandCompletionModel()

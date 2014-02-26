@@ -25,7 +25,7 @@ from collections import OrderedDict
 from configparser import (ConfigParser, ExtendedInterpolation, NoSectionError,
                           NoOptionError)
 
-from qutebrowser.utils.misc import read_file
+#from qutebrowser.utils.misc import read_file
 import qutebrowser.config.options as opt
 import qutebrowser.config.sections as sect
 
@@ -45,7 +45,8 @@ def init(confdir):
     """
     global config, state
     logging.debug("Config init, confdir {}".format(confdir))
-    #config = Config(confdir, 'qutebrowser.conf', read_file('qutebrowser.conf'))
+    #config = Config(confdir, 'qutebrowser.conf',
+    #                read_file('qutebrowser.conf'))
     config = NewConfig()
     state = Config(confdir, 'state', always_save=True)
 
@@ -135,11 +136,18 @@ class NewConfig:
             return val.value
 
     def save(self):
-        # FIXME
+        """Save the config file."""
+        # FIXME to be implemented
         pass
 
     def dump_userconfig(self):
-        # FIXME
+        """Get the part of the config which was changed by the user.
+
+        Return:
+            The changed config part as string.
+
+        """
+        # FIXME to be implemented
         pass
 
 

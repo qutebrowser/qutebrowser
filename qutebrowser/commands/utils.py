@@ -46,8 +46,6 @@ class register:
 
     """
 
-    # pylint: disable=too-few-public-methods
-
     def __init__(self, instance=None, name=None, nargs=None, split_args=True,
                  hide=False):
         """Gets called on parse-time with the decorator arguments.
