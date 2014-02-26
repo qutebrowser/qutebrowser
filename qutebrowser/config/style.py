@@ -17,8 +17,6 @@
 
 """Utilities related to the look&feel of qutebrowser."""
 
-import logging
-
 import qutebrowser.config.config as config
 
 
