@@ -54,6 +54,7 @@ from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
 from qutebrowser.commands.keys import KeyParser
 from qutebrowser.utils.appdirs import AppDirs
+from qutebrowser.utils.misc import set_trace
 
 
 class QuteBrowser(QApplication):
@@ -369,6 +370,7 @@ class QuteBrowser(QApplication):
             'scroll_perc_y': browser.cur.scroll_percent_y,
             'undo': browser.undo_close,
             'pyeval': self.pyeval,
+            'settrace': set_trace,
             'nextsearch': self.searchparser.nextsearch,
             'yank': browser.cur.yank,
             'yanktitle': browser.cur.yank_title,

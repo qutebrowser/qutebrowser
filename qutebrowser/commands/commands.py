@@ -309,3 +309,11 @@ class Version(Command):
     """Show version information."""
 
     nargs = 0
+
+
+class SetTrace(Command):
+
+    """Set pdb trace."""
+
+    nargs = 0
+    hide = True
