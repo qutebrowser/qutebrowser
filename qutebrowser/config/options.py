@@ -86,14 +86,14 @@ class AutoSearch(template.BoolSettingValue):
         else:
             return super().validate(self.value)
 
-    def transform(self):
-        if self.value.lower() in ["naive", "dns"]:
-            return self.value.lower()
-        elif super().transform(self.value):
+    def transform(self, value):
+        if value.lower() in ["naive", "dns"]:
+            return value.lower()
+        elif super().transform(value):
             # boolean true is an alias for naive matching
             return "naive"
         else:
-            return "false"
+            return False
 
 
 class ZoomLevels(template.IntListSettingValue):
@@ -133,7 +133,7 @@ class ScrollButtons(template.BoolSettingValue):
     default = "true"
 
 
-class Position(template.SettingValue):
+class Position(template.StringSettingValue):
 
     """The position of the tab bar."""
 
@@ -141,7 +141,7 @@ class Position(template.SettingValue):
     default = "north"
 
 
-class SelectOnRemove(template.SettingValue):
+class SelectOnRemove(template.StringSettingValue):
 
     """Which tab to select when the focused tab is removed."""
 
@@ -151,7 +151,7 @@ class SelectOnRemove(template.SettingValue):
     default = "previous"
 
 
-class LastClose(template.SettingValue):
+class LastClose(template.StringSettingValue):
 
     """Behaviour when the last tab is closed."""
 

@@ -45,11 +45,12 @@ def init(confdir):
     """
     global config, state
     logging.debug("Config init, confdir {}".format(confdir))
-    config = Config(confdir, 'qutebrowser.conf', read_file('qutebrowser.conf'))
+    #config = Config(confdir, 'qutebrowser.conf', read_file('qutebrowser.conf'))
+    config = NewConfig()
     state = Config(confdir, 'state', always_save=True)
 
 
-class ConfigStructure:
+class NewConfig:
 
     """Contains the structure of the config file."""
 
@@ -109,13 +110,38 @@ class ConfigStructure:
                 ('tab.bg.selected', opt.TabSelectedBgColor()),
                 ('tab.seperator', opt.TabSeperatorColor()),
             )),
-            ('fonts', KeyValueSection(
+            ('fonts', sect.KeyValue(
                 ('_monospace', opt.MonospaceFonts()),
                 ('completion', opt.CompletionFont()),
                 ('tabbar', opt.TabbarFont()),
                 ('statusbar', opt.StatusbarFont()),
             )),
         ])
+
+
+    def __getitem__(self, key):
+        """Get a section from the config."""
+        return self.config[key]
+
+    def get(self, section, option, fallback=_UNSET):
+        """Get the real (transformed) value from a section/option."""
+        try:
+            val = self.config[section][option]
+        except KeyError:
+            if fallback is _UNSET:
+                raise
+            else:
+                return fallback
+        else:
+            return val.value
+
+    def save(self):
+        # FIXME
+        pass
+
+    def dump_userconfig(self):
+        # FIXME
+        pass
 
 
 class Config(ConfigParser):

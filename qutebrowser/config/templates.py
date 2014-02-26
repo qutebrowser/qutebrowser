@@ -17,6 +17,8 @@
 
 """Templates for setting options."""
 
+import logging
+
 import qutebrowser.commands.utils as cmdutils
 
 
@@ -64,14 +66,13 @@ class SettingValue:
     @property
     def value(self):
         """Get the currently valid value."""
-        # FIXME handle default properly
-        #if self._rawvalue is not None:
-        #    val = self.rawvalue
-        #else:
-        #    val = self.default
-        return self.transform()
+        if self.rawvalue is not None:
+            val = self.rawvalue
+        else:
+            val = self.default
+        return self.transform(val)
 
-    def transform(self):
+    def transform(self, value):
         """Transform the setting value.
 
         This method can assume the value is indeed a valid value.
@@ -82,7 +83,7 @@ class SettingValue:
             The transformed value.
 
         """
-        return self.value
+        return value
 
     def validate(self):
         """Validate value against possible values.
@@ -104,6 +105,16 @@ class SettingValue:
             raise NotImplementedError
 
 
+class StringSettingValue(SettingValue):
+
+    """Base class for a string setting (case-insensitive)."""
+
+    typestr = 'string'
+
+    def transform(self, value):
+        return value.lower()
+
+
 class BoolSettingValue(SettingValue):
 
     """Base class for a boolean setting."""
@@ -115,8 +126,8 @@ class BoolSettingValue(SettingValue):
     _BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
                        '0': False, 'no': False, 'false': False, 'off': False}
 
-    def transform(self):
-        return self._BOOLEAN_STATES[self.value.lower()]
+    def transform(self, value):
+        return self._BOOLEAN_STATES[value.lower()]
 
     def validate(self):
         return self.value.lower() in self._BOOLEAN_STATES
@@ -128,8 +139,8 @@ class IntSettingValue(SettingValue):
 
     typestr = 'int'
 
-    def transform(self):
-        return int(self.value)
+    def transform(self, value):
+        return int(value)
 
     def validate(self):
         try:
@@ -146,8 +157,8 @@ class ListSettingValue(SettingValue):
 
     typestr = 'string-list'
 
-    def transform(self):
-        return self.value.split(',')
+    def transform(self, value):
+        return value.split(',')
 
     def validate(self):
         return True
@@ -159,8 +170,8 @@ class IntListSettingValue(ListSettingValue):
 
     typestr = 'int-list'
 
-    def transform(self):
-        vals = super().transform(self.value)
+    def transform(self, value):
+        vals = super().transform(value)
         return map(int, vals)
 
     def validate(self):
@@ -228,6 +239,7 @@ class ValueListSection:
     Attributes:
         values: An OrderedDict with key as index and value as value.
         default: An OrderedDict with the default configuration as strings.
+                 After __init__, the strings become key/value types.
         types: A tuple for (keytype, valuetype)
 
     """
@@ -236,7 +248,43 @@ class ValueListSection:
     default = None
     types = None
 
+    def __init__(self):
+        """Wrap types over default values. Take care when overriding this."""
+        logging.debug("Default before wrapping: {}".format(self.default))
+        self.default = {self.types[0](key): self.types[1](value)
+                        for key, value in self.default.items()}
+
     def __str__(self):
         """Get the key = value pairs as a string."""
         return '\n'.join('{} = {}'.format(key.rawvalue, val.rawvalue)
                          for key, val in self.values)
+
+    def __getitem__(self, key):
+        """Get the value for key.
+
+        Args:
+            key: The key to get a value for, as a string.
+
+        Return:
+            The value, as value class.
+
+        """
+        try:
+            return self.values[key]
+        except KeyError:
+            return self.defaults[key]
+
+    def __iter__(self):
+        """Iterate over all set values."""
+        # FIXME using a custon iterator this could be done more efficiently
+        valdict = self.default
+        if self.values is not None:
+            valdict.update(self.values)
+        return valdict.__iter__()
+
+    def items(self):
+        """Get dict items."""
+        valdict = self.default
+        if self.values is not None:
+            valdict.update(self.values)
+        return valdict.items()

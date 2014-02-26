@@ -212,7 +212,7 @@ class QuteBrowser(QApplication):
 
         if self.mainwindow.tabs.count() == 0:
             logging.debug('Opening startpage')
-            for url in config.config.get('general', 'startpage').split(','):
+            for url in config.config.get('general', 'startpage'):
                 self.mainwindow.tabs.tabopen(url)
 
     def _python_hacks(self):

@@ -245,14 +245,15 @@ class KeyParser(QObject):
 
         """
         for (key, cmd) in sect.items():
-            if key.startswith('@') and key.endswith('@'):
+            if key.value.startswith('@') and key.value.endswith('@'):
                 # normalize keystring
-                keystr = self._normalize_keystr(key.strip('@'))
+                keystr = self._normalize_keystr(key.value.strip('@'))
                 logging.debug('registered mod key: {} -> {}'.format(keystr,
                                                                     cmd))
                 self._modifier_bindings[keystr] = cmd
             else:
-                logging.debug('registered key: {} -> {}'.format(key, cmd))
+                logging.debug('registered key: {} -> {}'.format(key.value,
+                                                                cmd))
                 self._bindings[key] = cmd
 
     def handle(self, e):

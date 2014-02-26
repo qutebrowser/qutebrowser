@@ -177,20 +177,12 @@ def is_url(url):
     """
     urlstr = urlstring(url)
 
-    try:
-        autosearch = config.config.getboolean('general', 'auto_search')
-    except ValueError:
-        autosearch = config.config.get('general', 'auto_search')
-    else:
-        if autosearch:
-            autosearch = 'naive'
-        else:
-            autosearch = None
+    autosearch = config.config.get('general', 'auto_search')
 
     logging.debug('Checking if "{}" is an URL (autosearch={}).'.format(
         urlstr, autosearch))
 
-    if autosearch is None:
+    if not autosearch:
         # no autosearch, so everything is an URL.
         return True
 

@@ -71,7 +71,7 @@ class BrowserTab(QWebView):
         self._open_new_tab = False
         self._destroyed = {}
         self._zoom = NeighborList(
-            config.config.get('general', 'zoomlevels').split(','),
+            config.config.get('general', 'zoomlevels'),
             default=config.config.get('general', 'defaultzoom'),
             mode=NeighborList.BLOCK)
         self.page_ = BrowserPage(self)
