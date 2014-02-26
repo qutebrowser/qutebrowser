@@ -18,6 +18,7 @@
 """Templates for setting options."""
 
 import logging
+from collections import OrderedDict
 
 import qutebrowser.commands.utils as cmdutils
 
@@ -250,7 +251,7 @@ class ValueListSection:
 
     def __init__(self):
         """Wrap types over default values. Take care when overriding this."""
-        logging.debug("Default before wrapping: {}".format(self.default))
+        self.values = OrderedDict()
         self.default = {self.types[0](key): self.types[1](value)
                         for key, value in self.default.items()}
 
@@ -272,7 +273,7 @@ class ValueListSection:
         try:
             return self.values[key]
         except KeyError:
-            return self.defaults[key]
+            return self.default[key]
 
     def __iter__(self):
         """Iterate over all set values."""

@@ -147,7 +147,7 @@ class CommandParser(QObject):
         if aliases:
             try:
                 alias = config.config.get('aliases', cmdstr)
-            except config.NoOptionError:
+            except KeyError:
                 pass
             else:
                 return self._parse(alias, aliases=False)

@@ -17,6 +17,8 @@
 
 """Utilities related to the look&feel of qutebrowser."""
 
+import logging
+
 import qutebrowser.config.config as config
 
 
@@ -30,8 +32,10 @@ def get_stylesheet(template):
         The formatted template as string.
 
     """
-    return template.strip().format(color=ColorDict(config.config['colors']),
-                                   font=FontDict(config.config['fonts']))
+    cdict = config.config['colors'].values
+    fdict = config.config['fonts'].values
+    return template.strip().format(color=ColorDict(cdict),
+                                   font=FontDict(fdict))
 
 
 class ColorDict(dict):
