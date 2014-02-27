@@ -45,7 +45,8 @@ class SettingValue:
             default_conf: Raw value to set, for the config.
 
         """
-        self.typ = typ
+        self.typ = typ()
+        self.rawvalue = None
         self.default = default
         self.default_conf = default_conf
 

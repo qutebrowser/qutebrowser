@@ -249,12 +249,11 @@ class KeyParser(QObject):
                 # normalize keystring
                 keystr = self._normalize_keystr(key.strip('@'))
                 logging.debug('registered mod key: {} -> {}'.format(keystr,
-                                                                    cmd.value))
-                self._modifier_bindings[keystr] = cmd.value
+                                                                    cmd))
+                self._modifier_bindings[keystr] = cmd
             else:
-                logging.debug('registered key: {} -> {}'.format(key,
-                                                                cmd.value))
-                self._bindings[key] = cmd.value
+                logging.debug('registered key: {} -> {}'.format(key, cmd))
+                self._bindings[key] = cmd
 
     def handle(self, e):
         """Handle a new keypress and call the respective handlers.

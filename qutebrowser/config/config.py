@@ -156,8 +156,8 @@ class NewConfig:
                  "is entered."),
 
                 ('zoomlevels',
-                 SettingValue(types.Int, "25,33,50,67,75,90,100,110,125,150,"
-                                         "175,200,250,300,400,500"),
+                 SettingValue(types.IntList, "25,33,50,67,75,90,100,110,125,"
+                                             "150,175,200,250,300,400,500"),
                  "The available zoom levels, separated by commas."),
 
                 ('defaultzoom',
