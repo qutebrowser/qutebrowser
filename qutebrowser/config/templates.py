@@ -55,7 +55,8 @@ class SettingValue:
         if self.rawvalue is not None:
             val = self.rawvalue
         else:
-            val = self.default
+            val = (self.default_conf if self.default_conf is not None
+                   else self.default)
         return val
 
     @property
