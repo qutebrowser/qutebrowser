@@ -21,7 +21,6 @@ from collections import OrderedDict
 
 import qutebrowser.config.conftypes as types
 import qutebrowser.config.sections as sect
-from qutebrowser.config.templates import SettingValue
 
 
 FIRST_COMMENT = """
@@ -302,3 +301,52 @@ def configdata():
 
             )),
         ])
+
+
+class SettingValue:
+
+    """Base class for setting values.
+
+    Intended to be subclassed by config value "types".
+
+    Attributes:
+        typ: A BaseType subclass.
+        default: Default value if the user has not overridden it, as a string.
+        default_conf: Default value for the config, with interpolation.
+        value: (property) The currently valid, most important, transformed
+               value.
+        rawvalue: The current value as a raw string.
+
+    """
+
+    def __init__(self, typ, default, default_conf=None):
+        """Constructor.
+
+        Args:
+            typ: The BaseType to use.
+            default: Raw value to set.
+            default_conf: Raw value to set, for the config.
+
+        """
+        self.typ = typ()
+        self.rawvalue = None
+        self.default = default
+        self.default_conf = default_conf
+
+    def __str__(self):
+        """Get raw string value."""
+        if self.rawvalue is not None:
+            val = self.rawvalue
+        else:
+            val = (self.default_conf if self.default_conf is not None
+                   else self.default)
+        return val
+
+    @property
+    def value(self):
+        """Get the currently valid value."""
+        if self.rawvalue is not None:
+            val = self.rawvalue
+        else:
+            val = self.default
+        return self.typ.transform(val)

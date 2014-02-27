@@ -19,7 +19,6 @@
 
 from collections import OrderedDict
 
-import qutebrowser.config.templates as template
 import qutebrowser.config.conftypes as conftypes
 
 
@@ -90,7 +89,81 @@ class KeyValue:
         return self.values.items()
 
 
-class SearchEngines(template.ValueListSection):
+class ValueList:
+
+    """This class represents a section with a list key-value settings.
+
+    These are settings inside sections which don't have fixed keys, but instead
+    have a dynamic list of "key = value" pairs, like keybindings or
+    searchengines.
+
+    They basically consist of two different SettingValues and have no defaults.
+
+    Attributes:
+        values: An OrderedDict with key as index and value as value.
+        default: An OrderedDict with the default configuration as strings.
+                 After __init__, the strings become key/value types.
+        types: A tuple for (keytype, valuetype)
+        valdict: The "true value" dict.
+        descriptions: A dict with the description strings for the keys.
+                      Currently a global empty dict to be compatible with
+                      KeyValue section.
+
+    """
+
+    values = None
+    default = None
+    types = None
+    descriptions = {}
+
+    def __init__(self):
+        """Wrap types over default values. Take care when overriding this."""
+        self.values = OrderedDict()
+        keytype = self.types[0]()
+        valtype = self.types[1]()
+        self.default = OrderedDict(
+            [(keytype.transform(key), valtype.transform(value))
+             for key, value in self.default.items()])
+
+    def update_valdict(self):
+        self.valdict = OrderedDict()
+        self.valdict.update(self.default)
+        if self.values is not None:
+            self.valdict.update(self.values)
+
+    def __getitem__(self, key):
+        """Get the value for key.
+
+        Args:
+            key: The key to get a value for, as a string.
+
+        Return:
+            The value, as value class.
+
+        """
+        try:
+            return self.values[key]
+        except KeyError:
+            return self.default[key]
+
+    def __iter__(self):
+        """Iterate over all set values."""
+        # FIXME using a custon iterator this could be done more efficiently
+        self.update_valdict()
+        return self.valdict.__iter__()
+
+    def __bool__(self):
+        """Get boolean state of section."""
+        self.update_valdict()
+        return bool(self.valdict)
+
+    def items(self):
+        """Get dict items."""
+        self.update_valdict()
+        return self.valdict.items()
+
+
+class SearchEngines(ValueList):
 
     """Search engine config section."""
 
@@ -108,7 +181,7 @@ class SearchEngines(template.ValueListSection):
     ])
 
 
-class KeyBindings(template.ValueListSection):
+class KeyBindings(ValueList):
 
     """Keybindings config section."""
 
@@ -154,7 +227,7 @@ class KeyBindings(template.ValueListSection):
     ])
 
 
-class Aliases(template.ValueListSection):
+class Aliases(ValueList):
 
     """Aliases config section."""
 
