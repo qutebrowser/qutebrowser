@@ -91,8 +91,6 @@ class NewConfig:
                 lines.append('# ' + secline)
             else:
                 lines += wrapper.wrap(secline)
-        if self.config[secname].descriptions:
-            lines.append('#')
         return lines
 
     def _str_option_desc(self, secname, section):
@@ -103,6 +101,7 @@ class NewConfig:
         if not section.descriptions:
             return lines
         for optname, option in section.items():
+            lines.append('#')
             if option.typ.typestr is None:
                 typestr = ''
             else:
@@ -112,19 +111,17 @@ class NewConfig:
                 desc = self.config[secname].descriptions[optname]
             except KeyError:
                 continue
-            wrapped_desc = []
             for descline in desc.splitlines():
-                wrapped_desc += wrapper.wrap(descline)
+                lines += wrapper.wrap(descline)
             valid_values = option.typ.valid_values
-            if valid_values is not None:
+            if valid_values is not None and option.typ.show_valid_values:
                 if isinstance(valid_values[0], str):
-                    wrapped_desc += wrapper.wrap('Valid values: {}'.format(
-                        ', '.join(valid_values)))
+                    lines += wrapper.wrap('Valid values: {}'.format(', '.join(
+                        valid_values)))
                 else:
                     for (val, desc) in valid_values:
-                        wrapped_desc += wrapper.wrap(
-                            '    {}: {}'.format(val, desc))
-            lines.append('\n'.join(wrapped_desc))
+                        lines += wrapper.wrap('    {}: {}'.format(val, desc))
+            lines += wrapper.wrap('Default: {}'.format(option.default))
         return lines
 
     def _str_items(self, section):

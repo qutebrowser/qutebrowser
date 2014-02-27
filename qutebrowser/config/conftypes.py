@@ -29,12 +29,14 @@ class BaseType:
                       string. Either a list of strings, or a list of (value,
                       desc) tuples.
                       # FIXME actually handle tuples and stuff when validating
+        show_valid_values; Whether to show valid values in config or not.
         typestr: The name of the type to appear in the config.
 
     """
 
     typestr = None
     valid_values = None
+    show_valid_values = True
 
     def transform(self, value):
         """Transform the setting value.
@@ -83,6 +85,7 @@ class Bool(BaseType):
     """Base class for a boolean setting."""
 
     valid_values = ['true', 'false']
+    show_valid_values = False
     typestr = 'bool'
 
     # Taken from configparser
@@ -240,6 +243,7 @@ class AutoSearch(Bool):
 
     """Whether to start a search when something else than an URL is entered."""
 
+    typestr = None
     valid_values = [("naive", "Use simple/naive check."),
                     ("dns", "Use DNS requests (might be slow!)."),
                     ("false", "Never search automatically.")]
