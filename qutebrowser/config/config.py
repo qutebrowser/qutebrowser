@@ -119,27 +119,22 @@ class NewConfig:
                 ('statusbar', opt.StatusbarFont()),
             )),
         ])
-        self.first_comment = """
-        # vim: ft=dosini
 
-        # Configfile for qutebrowser.
-        #
-        # This configfile is parsed by python's configparser in extended
-        # interpolation mode. The format is very INI-like, so there are
-        # categories like [general] with "key = value"-pairs.
-        #
-        # Comments start with ; or # and may only start at the beginning of a
-        # line.
-        #
-        # Interpolation looks like  ${value}  or  ${section:value} and will be
-        # replaced by the respective value.
-        #
-        # This is the default config, so if you want to remove anything from
-        # here (as opposed to change/add), for example a keybinding, set it to
-        # an empty value.
-        """.lstrip('\n')
+        self._first_comment = (
+            'vim: ft=dosini\n\n'
+            'Configfile for qutebrowser.\n\n'
+            "This configfile is parsed by python's configparser in extended "
+            'interpolation mode. The format is very INI-like, so there are '
+            'categories like [general] with "key = value"-pairs.\n\n'
+            "Note that you shouldn't add your own comments, as this file is "
+            'regenerated every time the config is saved.\n\n'
+            'Interpolation looks like  ${value}  or  ${section:value} and '
+            'will be replaced by the respective value.\n\n'
+            'This is the default config, so if you want to remove anything '
+            'from here (as opposed to change/add), for example a keybinding, '
+            'set it to an empty value.')
 
-        self.section_desc = {
+        self._section_desc = {
             'general': 'General/misc. options',
             'tabbar': 'Configuration of the tab bar.',
             'searchengines': (
@@ -150,7 +145,7 @@ class NewConfig:
                 'was entered to be opened. Other search engines can be used '
                 'via the bang-syntax, e.g. "qutebrowser !google". The string '
                 '"{}" will be replaced by the search term, use "{{" and "}}" '
-                'for literal {/} signs.')
+                'for literal {/} signs.'),
             'keybind': (
                 'Bindings from a key(chain) to a command. For special keys '
                 "(can't be part of a keychain), enclose them in @-signs. For "
@@ -164,12 +159,12 @@ class NewConfig:
                 'is pressed with Shift. For modifier keys (with @ signs), you '
                 'need to explicitely add "Shift-" to match a key pressed with '
                 'shift. You can bind multiple commands by separating them '
-                'with ";;".')
+                'with ";;".'),
             'aliases': (
                 'Here you can add aliases for commands. By default, no '
                 'aliases are defined. Example which adds a new command :qtb '
                 'to open qutebrowsers website:\n'
-                '  qtb = open http://www.qutebrowser.org/')
+                '  qtb = open http://www.qutebrowser.org/'),
             'colors': (
                 'Colors used in the UI. A value can be in one of the '
                 'following format:\n'
@@ -183,12 +178,12 @@ class NewConfig:
                 '  - A gradient as explained at [2] under "Gradient"\n'
                 '[1] http://www.w3.org/TR/SVG/types.html#ColorKeywords\n'
                 '[2] http://qt-project.org/doc/qt-4.8/stylesheet-reference'
-                '.html#list-of-property-types')
+                '.html#list-of-property-types'),
             'fonts': (
                 'Fonts used for the UI, with optional style/weight/size.\n'
                 'Style: normal/italic/oblique\n'
                 'Weight: normal, bold, 100..900\n'
-                'Size: Number + px/pt\n')
+                'Size: Number + px/pt\n'),
         }
 
     def __getitem__(self, key):
@@ -197,12 +192,22 @@ class NewConfig:
 
     def __str__(self):
         """Get the whole config as a string."""
-        lines = textwrap.dedent(self.first_comment).splitlines()
+        # FIXME empty lines get discared
+        # FIXME we should set subsequent_indent for config options later
+        wrapper = textwrap.TextWrapper(
+            width=72, replace_whitespace=False, break_long_words=False,
+            break_on_hyphens=False, initial_indent='# ',
+            subsequent_indent='# ')
+        lines = []
+        for par in map(wrapper.wrap, self._first_comment.splitlines()):
+            lines += par
         for secname, section in self.config.items():
-            if not section:
-                continue
             lines.append('\n[{}]'.format(secname))
+            for par in map(wrapper.wrap,
+                           self._section_desc[secname].splitlines()):
+                lines += par
             for optname, option in section.items():
+                # FIXME display option comment
                 lines.append('{} = {}'.format(optname, option))
         return '\n'.join(lines)
 
