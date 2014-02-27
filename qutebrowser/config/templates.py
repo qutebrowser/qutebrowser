@@ -281,6 +281,14 @@ class ValueListSection:
             valdict.update(self.values)
         return valdict.__iter__()
 
+    def __bool__(self):
+        """Get boolean state of section."""
+        # FIXME we really should cache valdict
+        valdict = self.default
+        if self.values is not None:
+            valdict.update(self.values)
+        return bool(valdict)
+
     def items(self):
         """Get dict items."""
         valdict = self.default

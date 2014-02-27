@@ -21,6 +21,7 @@ import os
 import io
 import os.path
 import logging
+import textwrap
 from collections import OrderedDict
 from configparser import (ConfigParser, ExtendedInterpolation, NoSectionError,
                           NoOptionError)
@@ -118,6 +119,77 @@ class NewConfig:
                 ('statusbar', opt.StatusbarFont()),
             )),
         ])
+        self.first_comment = """
+        # vim: ft=dosini
+
+        # Configfile for qutebrowser.
+        #
+        # This configfile is parsed by python's configparser in extended
+        # interpolation mode. The format is very INI-like, so there are
+        # categories like [general] with "key = value"-pairs.
+        #
+        # Comments start with ; or # and may only start at the beginning of a
+        # line.
+        #
+        # Interpolation looks like  ${value}  or  ${section:value} and will be
+        # replaced by the respective value.
+        #
+        # This is the default config, so if you want to remove anything from
+        # here (as opposed to change/add), for example a keybinding, set it to
+        # an empty value.
+        """.lstrip('\n')
+
+        self.section_desc = {
+            'general': 'General/misc. options',
+            'tabbar': 'Configuration of the tab bar.',
+            'searchengines': (
+                'Definitions of search engines which can be used via the '
+                'address bar.\n'
+                'The searchengine named DEFAULT is used when '
+                'general.auto_search is true an\d something else than an URL '
+                'was entered to be opened. Other search engines can be used '
+                'via the bang-syntax, e.g. "qutebrowser !google". The string '
+                '"{}" will be replaced by the search term, use "{{" and "}}" '
+                'for literal {/} signs.')
+            'keybind': (
+                'Bindings from a key(chain) to a command. For special keys '
+                "(can't be part of a keychain), enclose them in @-signs. For "
+                'modifiers, you can use either - or + as delimiters, and '
+                'these names:\n'
+                '  Control: Control, Ctrl\n'
+                '  Meta:    Meta, Windows, Mod4\n'
+                '  Alt:     Alt, Mod1\n'
+                '  Shift:   Shift\n'
+                'For simple keys (no @ signs), a capital letter means the key '
+                'is pressed with Shift. For modifier keys (with @ signs), you '
+                'need to explicitely add "Shift-" to match a key pressed with '
+                'shift. You can bind multiple commands by separating them '
+                'with ";;".')
+            'aliases': (
+                'Here you can add aliases for commands. By default, no '
+                'aliases are defined. Example which adds a new command :qtb '
+                'to open qutebrowsers website:\n'
+                '  qtb = open http://www.qutebrowser.org/')
+            'colors': (
+                'Colors used in the UI. A value can be in one of the '
+                'following format:\n'
+                '  - #RGB/#RRGGBB/#RRRGGGBBB/#RRRRGGGGBBBB\n'
+                '  - A SVG color name as specified in [1].\n'
+                '  - transparent (no color)\n'
+                '  - rgb(r, g, b) / rgba(r, g, b, a) (values 0-255 or '
+                'percentages)\n'
+                '  - hsv(h, s, v) / hsva(h, s, v, a) (values 0-255, hue '
+                '0-359)\n'
+                '  - A gradient as explained at [2] under "Gradient"\n'
+                '[1] http://www.w3.org/TR/SVG/types.html#ColorKeywords\n'
+                '[2] http://qt-project.org/doc/qt-4.8/stylesheet-reference'
+                '.html#list-of-property-types')
+            'fonts': (
+                'Fonts used for the UI, with optional style/weight/size.\n'
+                'Style: normal/italic/oblique\n'
+                'Weight: normal, bold, 100..900\n'
+                'Size: Number + px/pt\n')
+        }
 
     def __getitem__(self, key):
         """Get a section from the config."""
@@ -125,10 +197,11 @@ class NewConfig:
 
     def __str__(self):
         """Get the whole config as a string."""
-        # FIXME this should also generate nice comments
-        lines = []
+        lines = textwrap.dedent(self.first_comment).splitlines()
         for secname, section in self.config.items():
-            lines.append('[{}]'.format(secname))
+            if not section:
+                continue
+            lines.append('\n[{}]'.format(secname))
             for optname, option in section.items():
                 lines.append('{} = {}'.format(optname, option))
         return '\n'.join(lines)

@@ -76,6 +76,10 @@ class KeyValue:
         # FIXME using a custon iterator this could be done more efficiently
         return self.values.__iter__()
 
+    def __bool__(self):
+        """Get boolean state."""
+        return bool(self.values)
+
     def items(self):
         """Get dict item tuples."""
         return self.values.items()
