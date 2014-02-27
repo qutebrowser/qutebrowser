@@ -73,7 +73,11 @@ class NewConfig:
         option_wrapper = textwrap.TextWrapper(
             width=72, replace_whitespace=False, break_long_words=False,
             break_on_hyphens=False, initial_indent='# ',
-            subsequent_indent='#     ')
+            subsequent_indent='#' + ' ' * 5)
+        keyval_wrapper = textwrap.TextWrapper(
+            width=72, replace_whitespace=False, break_long_words=False,
+            break_on_hyphens=False, initial_indent='',
+            subsequent_indent=' ' * 4)
         lines = []
         for par in map(normal_wrapper.wrap,
                        configdata.FIRST_COMMENT.splitlines()):
@@ -99,7 +103,11 @@ class NewConfig:
                     else:
                         wrapped_desc += option_wrapper.wrap(descline)
                 lines.append('\n'.join(wrapped_desc))
-                lines.append('{} = {}'.format(optname, option))
+                keyval = '{} = {}'.format(optname, option)
+                if 'http://' in keyval:
+                    lines.append(keyval)
+                else:
+                    lines += keyval_wrapper.wrap(keyval)
         return '\n'.join(lines)
 
     def get(self, section, option, fallback=_UNSET):
