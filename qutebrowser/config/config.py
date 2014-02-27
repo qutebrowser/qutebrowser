@@ -100,7 +100,14 @@ class NewConfig:
                                        subsequent_indent='#' + ' ' * 5,
                                        **self._wrapper_args)
         lines = []
+        if not section.descriptions:
+            return lines
         for optname, option in section.items():
+            if option.typ.typestr is None:
+                typestr = ''
+            else:
+                typestr = ' ({})'.format(option.typ.typestr)
+            lines.append('# {}{}:'.format(optname, typestr))
             try:
                 desc = self.config[secname].descriptions[optname]
             except KeyError:
@@ -108,7 +115,16 @@ class NewConfig:
             wrapped_desc = []
             for descline in desc.splitlines():
                 wrapped_desc += wrapper.wrap(descline)
-            lines.append('# {}:\n{}'.format(optname, '\n'.join(wrapped_desc)))
+            valid_values = option.typ.valid_values
+            if valid_values is not None:
+                if isinstance(valid_values[0], str):
+                    wrapped_desc += wrapper.wrap('Valid values: {}'.format(
+                        ', '.join(valid_values)))
+                else:
+                    for (val, desc) in valid_values:
+                        wrapped_desc += wrapper.wrap(
+                            '    {}: {}'.format(val, desc))
+            lines.append('\n'.join(wrapped_desc))
         return lines
 
     def _str_items(self, section):
