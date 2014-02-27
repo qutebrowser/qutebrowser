@@ -239,11 +239,10 @@ class KeyBindingName(BaseType):
 
 
 
-class AutoSearch(Bool):
+class AutoSearch(BaseType):
 
     """Whether to start a search when something else than an URL is entered."""
 
-    typestr = None
     valid_values = [("naive", "Use simple/naive check."),
                     ("dns", "Use DNS requests (might be slow!)."),
                     ("false", "Never search automatically.")]
@@ -252,7 +251,7 @@ class AutoSearch(Bool):
         if self.value.lower() in ["naive", "dns"]:
             return True
         else:
-            return super().validate(self.value)
+            return Bool.validate(self, self.value)
 
     def transform(self, value):
         if value.lower() in ["naive", "dns"]:
