@@ -20,7 +20,7 @@
 from collections import OrderedDict
 
 import qutebrowser.config.templates as template
-import qutebrowser.config.options as opt
+import qutebrowser.config.conftypes as conftypes
 
 
 class KeyValue:
@@ -47,7 +47,9 @@ class KeyValue:
 
         """
         if args:
-            self.values = OrderedDict(args)
+            self.values = OrderedDict()
+            for (k, settingval, desc) in args:
+                self.values[k] = settingval
 
     def __getitem__(self, key):
         """Get the value for key.
@@ -89,7 +91,7 @@ class SearchEngines(template.ValueListSection):
 
     """Search engine config section."""
 
-    types = (opt.SearchEngineName, opt.SearchEngineUrl)
+    types = (conftypes.SearchEngineName, conftypes.SearchEngineUrl)
     # FIXME how to handle interpolation here?
     default = OrderedDict([
         ('DEFAULT', '${duckduckgo}'),
@@ -107,7 +109,7 @@ class KeyBindings(template.ValueListSection):
 
     """Keybindings config section."""
 
-    types = (opt.KeyBindingName, opt.KeyBinding)
+    types = (conftypes.KeyBindingName, conftypes.KeyBinding)
     default = OrderedDict([
         ('o', 'open'),
         ('go', 'opencur'),
@@ -153,5 +155,5 @@ class Aliases(template.ValueListSection):
 
     """Aliases config section."""
 
-    types = (template.CommandSettingValue, template.CommandSettingValue)
+    types = (conftypes.Command, conftypes.Command)
     default = OrderedDict()

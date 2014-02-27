@@ -245,16 +245,16 @@ class KeyParser(QObject):
 
         """
         for (key, cmd) in sect.items():
-            if key.value.startswith('@') and key.value.endswith('@'):
+            if key.startswith('@') and key.endswith('@'):
                 # normalize keystring
-                keystr = self._normalize_keystr(key.value.strip('@'))
+                keystr = self._normalize_keystr(key.strip('@'))
                 logging.debug('registered mod key: {} -> {}'.format(keystr,
                                                                     cmd.value))
                 self._modifier_bindings[keystr] = cmd.value
             else:
-                logging.debug('registered key: {} -> {}'.format(key.value,
+                logging.debug('registered key: {} -> {}'.format(key,
                                                                 cmd.value))
-                self._bindings[key.value] = cmd.value
+                self._bindings[key] = cmd.value
 
     def handle(self, e):
         """Handle a new keypress and call the respective handlers.

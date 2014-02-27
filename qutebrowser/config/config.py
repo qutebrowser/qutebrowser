@@ -27,8 +27,9 @@ from configparser import (ConfigParser, ExtendedInterpolation, NoSectionError,
                           NoOptionError)
 
 #from qutebrowser.utils.misc import read_file
-import qutebrowser.config.options as opt
+import qutebrowser.config.conftypes as types
 import qutebrowser.config.sections as sect
+from qutebrowser.config.templates import SettingValue
 
 config = None
 state = None
@@ -119,66 +120,212 @@ class NewConfig:
     }
 
     def __init__(self):
+        MONOSPACE = ('Monospace, "DejaVu Sans Mono", Consolas, Monaco, '
+                     '"Bitstream Vera Sans Mono", "Andale Mono", '
+                     '"Liberation Mono", "Courier New", Courier, monospace, '
+                     'Fixed, Terminal')
+
         self.config = OrderedDict([
             ('general', sect.KeyValue(
-                ('show_completion', opt.ShowCompletion()),
-                ('completion_height', opt.CompletionHeight()),
-                ('ignorecase', opt.IgnoreCase()),
-                ('wrapsearch', opt.WrapSearch()),
-                ('startpage', opt.StartPage()),
-                ('auto_search', opt.AutoSearch()),
-                ('zoomlevels', opt.ZoomLevels()),
-                ('defaultzoom', opt.DefaultZoom()),
+                ('show_completion',
+                 SettingValue(types.Bool, "true"),
+                 "Whether to show the autocompletion window or not."),
+
+                ('completion_height',
+                 SettingValue(types.PercOrInt, "50%"),
+                 "The height of the completion, in px or as percentage of the "
+                 "window."),
+
+                ('ignorecase',
+                 SettingValue(types.Bool, "true"),
+                 "Whether to do case-insensitive searching."),
+
+                ('wrapsearch',
+                 SettingValue(types.Bool, "true"),
+                 "Whether to wrap search to the top when arriving at the "
+                 "end."),
+
+                ('startpage',
+                 SettingValue(types.List, "http://www.duckduckgo.com"),
+                 "The default page(s) to open at the start, separated with "
+                 "commas."),
+
+                ('auto_search',
+                 SettingValue(types.AutoSearch, "naive"),
+                 "Whether to start a search when something else than an URL "
+                 "is entered."),
+
+                ('zoomlevels',
+                 SettingValue(types.Int, "25,33,50,67,75,90,100,110,125,150,"
+                                         "175,200,250,300,400,500"),
+                 "The available zoom levels, separated by commas."),
+
+                ('defaultzoom',
+                 SettingValue(types.Int, "100"),
+                 "The default zoom level."),
             )),
+
             ('tabbar', sect.KeyValue(
-                ('movable', opt.Movable()),
-                ('closebuttons', opt.CloseButtons()),
-                ('scrollbuttons', opt.ScrollButtons()),
-                ('position', opt.Position()),
-                ('select_on_remove', opt.SelectOnRemove()),
-                ('last_close', opt.LastClose()),
+                ('movable',
+                 SettingValue(types.Bool, "true"),
+                 "Whether tabs should be movable."),
+
+                ('closebuttons',
+                 SettingValue(types.Bool, "false"),
+                 "Whether tabs should have close-buttons."),
+
+                ('scrollbuttons',
+                 SettingValue(types.Bool, "true"),
+                 "Whether there should be scroll buttons if there are too "
+                 "many tabs."),
+
+                ('position',
+                 SettingValue(types.Position, "north"),
+                 "The position of the tab bar."),
+
+                ('select_on_remove',
+                 SettingValue(types.SelectOnRemove, "previous"),
+                 "Which tab to select when the focused tab is removed."),
+
+                ('last_close',
+                 SettingValue(types.LastClose, "ignore"),
+                 "Behaviour when the last tab is closed."),
             )),
+
             ('searchengines', sect.SearchEngines()),
+
             ('keybind', sect.KeyBindings()),
+
             ('aliases', sect.Aliases()),
+
             ('colors', sect.KeyValue(
-                ('completion.fg', opt.CompletionFgColor()),
-                ('completion.item.bg', opt.CompletionItemBgColor()),
-                ('completion.category.bg', opt.CompletionCategoryBgColor()),
+                ('completion.fg',
+                 SettingValue(types.Color, "#333333"),
+                 "Text color of the completion widget."),
+
+                ('completion.item.bg',
+                 SettingValue(types.Color, "white"),
+                 "Background color of completion widget items."),
+
+                ('completion.category.bg',
+                 SettingValue(
+                     types.Color,
+                     "qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #e4e4e4, "
+                     "stop:1 #dbdbdb)"),
+                 "Background color of the completion widget category "
+                 "headers."),
+
                 ('completion.category.border.top',
-                    opt.CompletionCategoryTopBorderColor()),
+                 SettingValue(types.Color, "#808080"),
+                 "Top border color of the completion widget category "
+                 "headers."),
+
                 ('completion.category.border.bottom',
-                    opt.CompletionCategoryBottomBorderColor()),
+                 SettingValue(types.Color, "#bbbbbb"),
+                 "Bottom border color of the completion widget category "
+                 "headers."),
+
                 ('completion.item.selected.fg',
-                    opt.CompletionItemSelectedFgColor()),
+                 SettingValue(types.Color, "#333333"),
+                 "Foreground color of the selected completion item."),
+
                 ('completion.item.selected.bg',
-                    opt.CompletionItemSelectedBgColor()),
+                 SettingValue(types.Color, "#ffec8b"),
+                 "Background color of the selected completion item."),
+
                 ('completion.item.selected.border.top',
-                    opt.CompletionItemSelectedTopBorderColor()),
+                 SettingValue(types.Color, "#f2f2c0"),
+                 "Top border color of the completion widget category "
+                 "headers."),
+
                 ('completion.item.selected.border.bottom',
-                    opt.CompletionCategoryBottomBorderColor()),
+                 SettingValue(types.Color, "#ffec8b"),
+                 "Bottom border color of the selected completion item."),
+
                 ('completion.match.fg',
-                    opt.CompletionMatchFgColor()),
-                ('statusbar.bg', opt.StatusbarBgColor()),
-                ('statusbar.fg', opt.StatusbarFgColor()),
-                ('statusbar.bg.error', opt.StatusbarBgErrorColor()),
-                ('statusbar.fg.error', opt.StatusbarFgErrorColor()),
-                ('statusbar.progress.bg', opt.StatusbarProgressBgColor()),
-                ('statusbar.url.fg', opt.StatusbarUrlFgColor()),
-                ('statusbar.url.fg.success', opt.StatusbarUrlHoverFgColor()),
-                ('statusbar.url.fg.error', opt.StatusbarUrlErrorFgColor()),
-                ('statusbar.url.fg.warn', opt.StatusbarUrlWarnFgColor()),
-                ('statusbar.url.fg.hover', opt.StatusbarUrlHoverFgColor()),
-                ('tab.fg', opt.TabFgColor()),
-                ('tab.bg', opt.TabBgColor()),
-                ('tab.bg.selected', opt.TabSelectedBgColor()),
-                ('tab.seperator', opt.TabSeperatorColor()),
+                 SettingValue(types.Color, "red"),
+                 "Foreground color of the matched text in the completion."),
+
+                ('statusbar.bg',
+                 SettingValue(types.Color, "black"),
+                 "Foreground color of the statusbar."),
+
+                ('statusbar.fg',
+                 SettingValue(types.Color, "white"),
+                 "Foreground color of the statusbar."),
+
+                ('statusbar.bg.error',
+                 SettingValue(types.Color, "red"),
+                 "Background color of the statusbar if there was an error."),
+
+                ('statusbar.fg.error',
+                 SettingValue(types.Color, "white", "${statusbar.fg}"),
+                 "Foreground color of the statusbar if there was an error."),
+
+                ('statusbar.progress.bg',
+                 SettingValue(types.Color, "white"),
+                 "Background color of the progress bar."),
+
+                ('statusbar.url.fg',
+                 SettingValue(types.Color, "white", "${statusbar.fg}"),
+                 "Default foreground color of the URL in the statusbar."),
+
+                ('statusbar.url.fg.success',
+                 SettingValue(types.Color, "lime"),
+                 "Foreground color of the URL in the statusbar on successful "
+                 "load."),
+
+                ('statusbar.url.fg.error',
+                 SettingValue(types.Color, "orange"),
+                 "Foreground color of the URL in the statusbar on error."),
+
+                ('statusbar.url.fg.warn',
+                 SettingValue(types.Color, "yellow"),
+                 "Foreground color of the URL in the statusbar when there's a "
+                 "warning."),
+
+                ('statusbar.url.fg.hover',
+                 SettingValue(types.Color, "aqua"),
+                 "Foreground color of the URL in the statusbar for hovered "
+                 "links."),
+
+                ('tab.fg',
+                 SettingValue(types.Color, "white"),
+                 "Foreground color of the tabbar."),
+
+                ('tab.bg',
+                 SettingValue(types.Color, "grey"),
+                 "Background color of the tabbar."),
+
+                ('tab.bg.selected',
+                 SettingValue(types.Color, "black"),
+                 "Background color of the tabbar for the selected tab."),
+
+                ('tab.seperator',
+                 SettingValue(types.Color, "white"),
+                 "Color for the tab seperator."),
             )),
+
             ('fonts', sect.KeyValue(
-                ('_monospace', opt.MonospaceFonts()),
-                ('completion', opt.CompletionFont()),
-                ('tabbar', opt.TabbarFont()),
-                ('statusbar', opt.StatusbarFont()),
+                ('_monospace',
+                 SettingValue(types.Font, MONOSPACE),
+                 "Default monospace fonts."),
+
+                ('completion',
+                 SettingValue(types.Font, "8pt " + MONOSPACE,
+                              "8pt ${_monospace}"),
+                 "Font used in the completion widget."),
+
+                ('tabbar',
+                 SettingValue(types.Font, "8pt " + MONOSPACE,
+                              "8pt ${_monospace}"),
+                 "Font used in the tabbar."),
+
+                ('statusbar',
+                 SettingValue(types.Font, "8pt " + MONOSPACE,
+                              "8pt ${_monospace}"),
+                 "Font used in the statusbar."),
+
             )),
         ])
 

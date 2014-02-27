@@ -19,8 +19,6 @@
 
 from collections import OrderedDict
 
-import qutebrowser.commands.utils as cmdutils
-
 
 class SettingValue:
 
@@ -29,35 +27,27 @@ class SettingValue:
     Intended to be subclassed by config value "types".
 
     Attributes:
-        valid_values: Possible values if they can be expressed as a fixed
-                      string. Either a list of strings, or a list of (value,
-                      desc) tuples.
-                      # FIXME actually handle tuples and stuff when validating
-
+        typ: A BaseType subclass.
         default: Default value if the user has not overridden it, as a string.
         default_conf: Default value for the config, with interpolation.
         value: (property) The currently valid, most important, transformed
                value.
         rawvalue: The current value as a raw string.
-        typestr: The name of the type to appear in the config.
 
     """
 
-    valid_values = None
-    default = None
-    default_conf = None
-    typestr = None
-    rawvalue = None
-
-    def __init__(self, rawval=None):
+    def __init__(self, typ, default, default_conf=None):
         """Constructor.
 
         Args:
-            rawval: Raw value to set.
+            typ: The BaseType to use.
+            default: Raw value to set.
+            default_conf: Raw value to set, for the config.
 
         """
-        if rawval is not None:
-            self.rawvalue = rawval
+        self.typ = typ
+        self.default = default
+        self.default_conf = default_conf
 
     def __str__(self):
         """Get raw string value."""
@@ -74,160 +64,7 @@ class SettingValue:
             val = self.rawvalue
         else:
             val = self.default
-        return self.transform(val)
-
-    def transform(self, value):
-        """Transform the setting value.
-
-        This method can assume the value is indeed a valid value.
-
-        The default implementation returns the original value.
-
-        Return:
-            The transformed value.
-
-        """
-        return value
-
-    def validate(self):
-        """Validate value against possible values.
-
-        The default implementation checks the value against self.valid_values
-        if it was defined.
-
-        Return:
-            Ture if validation succeeded, False otherwise.
-
-        Raise:
-            NotImplementedError if self.valid_values is not defined and this
-            method should be overridden.
-
-        """
-        if self.valid_values is not None:
-            return self.value in self.valid_values
-        else:
-            raise NotImplementedError
-
-
-class StringSettingValue(SettingValue):
-
-    """Base class for a string setting (case-insensitive)."""
-
-    typestr = 'string'
-
-    def transform(self, value):
-        return value.lower()
-
-
-class BoolSettingValue(SettingValue):
-
-    """Base class for a boolean setting."""
-
-    valid_values = ['true', 'false']
-    typestr = 'bool'
-
-    # Taken from configparser
-    _BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
-                       '0': False, 'no': False, 'false': False, 'off': False}
-
-    def transform(self, value):
-        return self._BOOLEAN_STATES[value.lower()]
-
-    def validate(self):
-        return self.value.lower() in self._BOOLEAN_STATES
-
-
-class IntSettingValue(SettingValue):
-
-    """Base class for an integer setting."""
-
-    typestr = 'int'
-
-    def transform(self, value):
-        return int(value)
-
-    def validate(self):
-        try:
-            int(self.value)
-        except ValueError:
-            return False
-        else:
-            return True
-
-
-class ListSettingValue(SettingValue):
-
-    """Base class for a (string-)list setting."""
-
-    typestr = 'string-list'
-
-    def transform(self, value):
-        return value.split(',')
-
-    def validate(self):
-        return True
-
-
-class IntListSettingValue(ListSettingValue):
-
-    """Base class for an int-list setting."""
-
-    typestr = 'int-list'
-
-    def transform(self, value):
-        vals = super().transform(value)
-        return map(int, vals)
-
-    def validate(self):
-        try:
-            self.transform(self.value)
-        except ValueError:
-            return False
-        else:
-            return True
-
-
-class CommandSettingValue(SettingValue):
-
-    """Base class for a command value with arguments."""
-
-    typestr = 'command'
-
-    valid_values = cmdutils.cmd_dict.items()
-
-    def validate(self):
-        # We need to import this here to avoid circular dependencies
-        from qutebrowser.commands.parsers import (CommandParser,
-                                                  NoSuchCommandError)
-        cp = CommandParser()
-        try:
-            cp.parse(self.value)
-        except NoSuchCommandError:
-            return False
-        else:
-            return True
-
-
-class ColorSettingValue(SettingValue):
-
-    """Base class for a color value."""
-
-    typestr = 'color'
-
-    def validate(self):
-        # FIXME validate colors
-        return True
-
-
-class FontSettingValue(SettingValue):
-
-    """Base class for a font value."""
-
-    typestr = 'font'
-
-    def validate(self):
-        # FIXME validate fonts
-        return True
+        return self.typ.transform(val)
 
 
 class ValueListSection:
@@ -255,7 +92,9 @@ class ValueListSection:
     def __init__(self):
         """Wrap types over default values. Take care when overriding this."""
         self.values = OrderedDict()
-        self.default = {self.types[0](key): self.types[1](value)
+        keytype = self.types[0]()
+        valtype = self.types[1]()
+        self.default = {keytype.transform(key): valtype.transform(value)
                         for key, value in self.default.items()}
 
     def __getitem__(self, key):
