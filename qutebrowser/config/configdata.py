@@ -24,19 +24,25 @@ import qutebrowser.config.sections as sect
 from qutebrowser.config.templates import SettingValue
 
 
-FIRST_COMMENT = (
-    'vim: ft=dosini\n\n'
-    'Configfile for qutebrowser.\n\n'
-    "This configfile is parsed by python's configparser in extended "
-    'interpolation mode. The format is very INI-like, so there are '
-    'categories like [general] with "key = value"-pairs.\n\n'
-    "Note that you shouldn't add your own comments, as this file is "
-    'regenerated every time the config is saved.\n\n'
-    'Interpolation looks like  ${value}  or  ${section:value} and will be '
-    'replaced by the respective value.\n\n'
-    'This is the default config, so if you want to remove anything from '
-    'here (as opposed to change/add), for example a keybinding, set it to '
-    'an empty value.')
+FIRST_COMMENT = """
+# vim: ft=dosini
+#
+# Configfile for qutebrowser.
+#
+# This configfile is parsed by python's configparser in extended
+# interpolation mode. The format is very INI-like, so there are
+# categories like [general] with "key = value"-pairs.
+#
+# Note that you shouldn't add your own comments, as this file is
+# regenerated every time the config is saved.
+#
+# Interpolation looks like  ${value}  or  ${section:value} and will be
+# replaced by the respective value.
+#
+# This is the default config, so if you want to remove anything from
+# here (as opposed to change/add), for example a keybinding, set it to
+# an empty value.
+"""
 
 
 SECTION_DESC = {

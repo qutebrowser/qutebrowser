@@ -69,28 +69,26 @@ class NewConfig:
         normal_wrapper = textwrap.TextWrapper(
             width=72, replace_whitespace=False, break_long_words=False,
             break_on_hyphens=False, initial_indent='# ',
-            subsequent_indent='# ')
+            subsequent_indent='# ', drop_whitespace=False)
         option_wrapper = textwrap.TextWrapper(
             width=72, replace_whitespace=False, break_long_words=False,
-            break_on_hyphens=False, initial_indent='# ',
+            break_on_hyphens=False, initial_indent='#' + ' ' * 5,
             subsequent_indent='#' + ' ' * 5)
         keyval_wrapper = textwrap.TextWrapper(
             width=72, replace_whitespace=False, break_long_words=False,
             break_on_hyphens=False, initial_indent='',
             subsequent_indent=' ' * 4)
-        lines = []
-        for par in map(normal_wrapper.wrap,
-                       configdata.FIRST_COMMENT.splitlines()):
-            lines += par
+        lines = configdata.FIRST_COMMENT.strip('\n').splitlines()
         for secname, section in self.config.items():
-            lines.append('\n\n[{}]\n'.format(secname))
+            lines.append('\n[{}]'.format(secname))
             seclines = configdata.SECTION_DESC[secname].splitlines()
             for secline in seclines:
                 if 'http://' in secline:
                     lines.append('# ' + secline)
                 else:
                     lines += normal_wrapper.wrap(secline)
-            lines.append('')
+            if self.config[secname].descriptions:
+                lines.append('#')
             for optname, option in section.items():
                 try:
                     desc = self.config[secname].descriptions[optname]
@@ -98,11 +96,10 @@ class NewConfig:
                     continue
                 wrapped_desc = []
                 for descline in desc.splitlines():
-                    if 'http://' in descline:
-                        wrapped_desc.append('# ' + descline)
-                    else:
-                        wrapped_desc += option_wrapper.wrap(descline)
-                lines.append('\n'.join(wrapped_desc))
+                    wrapped_desc += option_wrapper.wrap(descline)
+                lines.append('# {}:\n{}'.format(optname,
+                                                '\n'.join(wrapped_desc)))
+            for optname, option in section.items():
                 keyval = '{} = {}'.format(optname, option)
                 if 'http://' in keyval:
                     lines.append(keyval)
