@@ -62,7 +62,6 @@ class NewConfig:
             'replace_whitespace': False,
             'break_long_words': False,
             'break_on_hyphens': False,
-            'drop_whitespace': False,
         }
         print(str(self))
 
@@ -129,6 +128,7 @@ class NewConfig:
     def _str_items(self, section):
         keyval_wrapper = textwrap.TextWrapper(initial_indent='',
                                               subsequent_indent=' ' * 4,
+                                              drop_whitespace = False,
                                               **self._wrapper_args)
         lines = []
         for optname, option in section.items():
