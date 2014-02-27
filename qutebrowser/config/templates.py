@@ -84,6 +84,7 @@ class ValueListSection:
         default: An OrderedDict with the default configuration as strings.
                  After __init__, the strings become key/value types.
         types: A tuple for (keytype, valuetype)
+        valdict: The "true value" dict.
         descriptions: A dict with the description strings for the keys.
                       Currently a global empty dict to be compatible with
                       KeyValue section.
@@ -100,8 +101,15 @@ class ValueListSection:
         self.values = OrderedDict()
         keytype = self.types[0]()
         valtype = self.types[1]()
-        self.default = {keytype.transform(key): valtype.transform(value)
-                        for key, value in self.default.items()}
+        self.default = OrderedDict(
+            [(keytype.transform(key), valtype.transform(value))
+             for key, value in self.default.items()])
+
+    def update_valdict(self):
+        self.valdict = OrderedDict()
+        self.valdict.update(self.default)
+        if self.values is not None:
+            self.valdict.update(self.values)
 
     def __getitem__(self, key):
         """Get the value for key.
@@ -121,22 +129,15 @@ class ValueListSection:
     def __iter__(self):
         """Iterate over all set values."""
         # FIXME using a custon iterator this could be done more efficiently
-        valdict = self.default
-        if self.values is not None:
-            valdict.update(self.values)
-        return valdict.__iter__()
+        self.update_valdict()
+        return self.valdict.__iter__()
 
     def __bool__(self):
         """Get boolean state of section."""
-        # FIXME we really should cache valdict
-        valdict = self.default
-        if self.values is not None:
-            valdict.update(self.values)
-        return bool(valdict)
+        self.update_valdict()
+        return bool(self.valdict)
 
     def items(self):
         """Get dict items."""
-        valdict = self.default
-        if self.values is not None:
-            valdict.update(self.values)
-        return valdict.items()
+        self.update_valdict()
+        return self.valdict.items()
