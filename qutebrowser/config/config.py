@@ -56,6 +56,68 @@ class NewConfig:
 
     """Contains the structure of the config file."""
 
+    _FIRST_COMMENT = (
+        'vim: ft=dosini\n\n'
+        'Configfile for qutebrowser.\n\n'
+        "This configfile is parsed by python's configparser in extended "
+        'interpolation mode. The format is very INI-like, so there are '
+        'categories like [general] with "key = value"-pairs.\n\n'
+        "Note that you shouldn't add your own comments, as this file is "
+        'regenerated every time the config is saved.\n\n'
+        'Interpolation looks like  ${value}  or  ${section:value} and will be '
+        'replaced by the respective value.\n\n'
+        'This is the default config, so if you want to remove anything from '
+        'here (as opposed to change/add), for example a keybinding, set it to '
+        'an empty value.')
+
+    _SECTION_DESC = {
+        'general': 'General/misc. options',
+        'tabbar': 'Configuration of the tab bar.',
+        'searchengines': (
+            'Definitions of search engines which can be used via the address '
+            'bar.\n'
+            'The searchengine named DEFAULT is used when general.auto_search '
+            'is true and something else than an URL was entered to be opened. '
+            'Other search engines can be used via the bang-syntax, e.g. '
+            '"qutebrowser !google". The string "{}" will be replaced by the '
+            'search term, use "{{" and "}}" for literal {/} signs.'),
+        'keybind': (
+            "Bindings from a key(chain) to a command. For special keys (can't "
+            'be part of a keychain), enclose them in @-signs. For modifiers, '
+            'you can use either - or + as delimiters, and these names:\n'
+            '  Control: Control, Ctrl\n'
+            '  Meta:    Meta, Windows, Mod4\n'
+            '  Alt:     Alt, Mod1\n'
+            '  Shift:   Shift\n'
+            'For simple keys (no @ signs), a capital letter means the key is '
+            'pressed with Shift. For modifier keys (with @ signs), you need '
+            'to explicitely add "Shift-" to match a key pressed with shift. '
+            'You can bind multiple commands by separating them with ";;".'),
+        'aliases': (
+            'Here you can add aliases for commands. By default, no aliases '
+            'are defined. Example which adds a new command :qtb to open '
+            'qutebrowsers website:\n'
+            '  qtb = open http://www.qutebrowser.org/'),
+        'colors': (
+            'Colors used in the UI. A value can be in one of the following '
+            'format:\n'
+            '  - #RGB/#RRGGBB/#RRRGGGBBB/#RRRRGGGGBBBB\n'
+            '  - A SVG color name as specified in [1].\n'
+            '  - transparent (no color)\n'
+            '  - rgb(r, g, b) / rgba(r, g, b, a) (values 0-255 or '
+            'percentages)\n'
+            '  - hsv(h, s, v) / hsva(h, s, v, a) (values 0-255, hue 0-359)\n'
+            '  - A gradient as explained at [2] under "Gradient"\n'
+            '[1] http://www.w3.org/TR/SVG/types.html#ColorKeywords\n'
+            '[2] http://qt-project.org/doc/qt-4.8/stylesheet-reference.html'
+            '#list-of-property-types'),
+        'fonts': (
+            'Fonts used for the UI, with optional style/weight/size.\n'
+            'Style: normal/italic/oblique\n'
+            'Weight: normal, bold, 100..900\n'
+            'Size: Number + px/pt\n'),
+    }
+
     def __init__(self):
         self.config = OrderedDict([
             ('general', sect.KeyValue(
@@ -120,72 +182,6 @@ class NewConfig:
             )),
         ])
 
-        self._first_comment = (
-            'vim: ft=dosini\n\n'
-            'Configfile for qutebrowser.\n\n'
-            "This configfile is parsed by python's configparser in extended "
-            'interpolation mode. The format is very INI-like, so there are '
-            'categories like [general] with "key = value"-pairs.\n\n'
-            "Note that you shouldn't add your own comments, as this file is "
-            'regenerated every time the config is saved.\n\n'
-            'Interpolation looks like  ${value}  or  ${section:value} and '
-            'will be replaced by the respective value.\n\n'
-            'This is the default config, so if you want to remove anything '
-            'from here (as opposed to change/add), for example a keybinding, '
-            'set it to an empty value.')
-
-        self._section_desc = {
-            'general': 'General/misc. options',
-            'tabbar': 'Configuration of the tab bar.',
-            'searchengines': (
-                'Definitions of search engines which can be used via the '
-                'address bar.\n'
-                'The searchengine named DEFAULT is used when '
-                'general.auto_search is true and something else than an URL '
-                'was entered to be opened. Other search engines can be used '
-                'via the bang-syntax, e.g. "qutebrowser !google". The string '
-                '"{}" will be replaced by the search term, use "{{" and "}}" '
-                'for literal {/} signs.'),
-            'keybind': (
-                'Bindings from a key(chain) to a command. For special keys '
-                "(can't be part of a keychain), enclose them in @-signs. For "
-                'modifiers, you can use either - or + as delimiters, and '
-                'these names:\n'
-                '  Control: Control, Ctrl\n'
-                '  Meta:    Meta, Windows, Mod4\n'
-                '  Alt:     Alt, Mod1\n'
-                '  Shift:   Shift\n'
-                'For simple keys (no @ signs), a capital letter means the key '
-                'is pressed with Shift. For modifier keys (with @ signs), you '
-                'need to explicitely add "Shift-" to match a key pressed with '
-                'shift. You can bind multiple commands by separating them '
-                'with ";;".'),
-            'aliases': (
-                'Here you can add aliases for commands. By default, no '
-                'aliases are defined. Example which adds a new command :qtb '
-                'to open qutebrowsers website:\n'
-                '  qtb = open http://www.qutebrowser.org/'),
-            'colors': (
-                'Colors used in the UI. A value can be in one of the '
-                'following format:\n'
-                '  - #RGB/#RRGGBB/#RRRGGGBBB/#RRRRGGGGBBBB\n'
-                '  - A SVG color name as specified in [1].\n'
-                '  - transparent (no color)\n'
-                '  - rgb(r, g, b) / rgba(r, g, b, a) (values 0-255 or '
-                'percentages)\n'
-                '  - hsv(h, s, v) / hsva(h, s, v, a) (values 0-255, hue '
-                '0-359)\n'
-                '  - A gradient as explained at [2] under "Gradient"\n'
-                '[1] http://www.w3.org/TR/SVG/types.html#ColorKeywords\n'
-                '[2] http://qt-project.org/doc/qt-4.8/stylesheet-reference'
-                '.html#list-of-property-types'),
-            'fonts': (
-                'Fonts used for the UI, with optional style/weight/size.\n'
-                'Style: normal/italic/oblique\n'
-                'Weight: normal, bold, 100..900\n'
-                'Size: Number + px/pt\n'),
-        }
-
     def __getitem__(self, key):
         """Get a section from the config."""
         return self.config[key]
@@ -199,12 +195,12 @@ class NewConfig:
             break_on_hyphens=False, initial_indent='# ',
             subsequent_indent='# ')
         lines = []
-        for par in map(wrapper.wrap, self._first_comment.splitlines()):
+        for par in map(wrapper.wrap, self._FIRST_COMMENT.splitlines()):
             lines += par
         for secname, section in self.config.items():
             lines.append('\n[{}]'.format(secname))
             for par in map(wrapper.wrap,
-                           self._section_desc[secname].splitlines()):
+                           self._SECTION_DESC[secname].splitlines()):
                 lines += par
             for optname, option in section.items():
                 # FIXME display option comment
