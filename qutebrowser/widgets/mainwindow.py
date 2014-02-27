@@ -110,7 +110,7 @@ class MainWindow(QWidget):
 
         """
         super().resizeEvent(e)
-        confheight = config.config.get('general', 'completion_height')
+        confheight = str(config.config.get('general', 'completion_height'))
         if confheight.endswith('%'):
             perc = int(confheight.rstrip('%'))
             height = self.height() * perc / 100

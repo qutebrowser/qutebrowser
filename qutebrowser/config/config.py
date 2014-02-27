@@ -141,7 +141,7 @@ class NewConfig:
                 'Definitions of search engines which can be used via the '
                 'address bar.\n'
                 'The searchengine named DEFAULT is used when '
-                'general.auto_search is true an\d something else than an URL '
+                'general.auto_search is true and something else than an URL '
                 'was entered to be opened. Other search engines can be used '
                 'via the bang-syntax, e.g. "qutebrowser !google". The string '
                 '"{}" will be replaced by the search term, use "{{" and "}}" '
