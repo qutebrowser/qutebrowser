@@ -26,7 +26,7 @@ from qutebrowser.config.templates import SettingValue
 
 FIRST_COMMENT = """
 # vim: ft=dosini
-#
+
 # Configfile for qutebrowser.
 #
 # This configfile is parsed by python's configparser in extended

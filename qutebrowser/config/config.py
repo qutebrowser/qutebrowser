@@ -57,6 +57,13 @@ class NewConfig:
 
     def __init__(self):
         self.config = configdata.configdata()
+        self._wrapper_args = {
+            'width': 72,
+            'replace_whitespace': False,
+            'break_long_words': False,
+            'break_on_hyphens': False,
+            'drop_whitespace': False,
+        }
         print(str(self))
 
     def __getitem__(self, key):
@@ -65,47 +72,57 @@ class NewConfig:
 
     def __str__(self):
         """Get the whole config as a string."""
-        # FIXME empty lines get discared
-        normal_wrapper = textwrap.TextWrapper(
-            width=72, replace_whitespace=False, break_long_words=False,
-            break_on_hyphens=False, initial_indent='# ',
-            subsequent_indent='# ', drop_whitespace=False)
-        option_wrapper = textwrap.TextWrapper(
-            width=72, replace_whitespace=False, break_long_words=False,
-            break_on_hyphens=False, initial_indent='#' + ' ' * 5,
-            subsequent_indent='#' + ' ' * 5)
-        keyval_wrapper = textwrap.TextWrapper(
-            width=72, replace_whitespace=False, break_long_words=False,
-            break_on_hyphens=False, initial_indent='',
-            subsequent_indent=' ' * 4)
         lines = configdata.FIRST_COMMENT.strip('\n').splitlines()
         for secname, section in self.config.items():
             lines.append('\n[{}]'.format(secname))
-            seclines = configdata.SECTION_DESC[secname].splitlines()
-            for secline in seclines:
-                if 'http://' in secline:
-                    lines.append('# ' + secline)
-                else:
-                    lines += normal_wrapper.wrap(secline)
-            if self.config[secname].descriptions:
-                lines.append('#')
-            for optname, option in section.items():
-                try:
-                    desc = self.config[secname].descriptions[optname]
-                except KeyError:
-                    continue
-                wrapped_desc = []
-                for descline in desc.splitlines():
-                    wrapped_desc += option_wrapper.wrap(descline)
-                lines.append('# {}:\n{}'.format(optname,
-                                                '\n'.join(wrapped_desc)))
-            for optname, option in section.items():
-                keyval = '{} = {}'.format(optname, option)
-                if 'http://' in keyval:
-                    lines.append(keyval)
-                else:
-                    lines += keyval_wrapper.wrap(keyval)
+            lines += self._str_section_desc(secname)
+            lines += self._str_option_desc(secname, section)
+            lines += self._str_items(section)
         return '\n'.join(lines)
+
+    def _str_section_desc(self, secname):
+        wrapper = textwrap.TextWrapper(initial_indent='# ',
+                                       subsequent_indent='# ',
+                                       **self._wrapper_args)
+        lines = []
+        seclines = configdata.SECTION_DESC[secname].splitlines()
+        for secline in seclines:
+            if 'http://' in secline:
+                lines.append('# ' + secline)
+            else:
+                lines += wrapper.wrap(secline)
+        if self.config[secname].descriptions:
+            lines.append('#')
+        return lines
+
+    def _str_option_desc(self, secname, section):
+        wrapper = textwrap.TextWrapper(initial_indent='#' + ' ' * 5,
+                                       subsequent_indent='#' + ' ' * 5,
+                                       **self._wrapper_args)
+        lines = []
+        for optname, option in section.items():
+            try:
+                desc = self.config[secname].descriptions[optname]
+            except KeyError:
+                continue
+            wrapped_desc = []
+            for descline in desc.splitlines():
+                wrapped_desc += wrapper.wrap(descline)
+            lines.append('# {}:\n{}'.format(optname, '\n'.join(wrapped_desc)))
+        return lines
+
+    def _str_items(self, section):
+        keyval_wrapper = textwrap.TextWrapper(initial_indent='',
+                                              subsequent_indent=' ' * 4,
+                                              **self._wrapper_args)
+        lines = []
+        for optname, option in section.items():
+            keyval = '{} = {}'.format(optname, option)
+            if 'http://' in keyval:
+                lines.append(keyval)
+            else:
+                lines += keyval_wrapper.wrap(keyval)
+        return lines
 
     def get(self, section, option, fallback=_UNSET):
         """Get the real (transformed) value from a section/option."""
