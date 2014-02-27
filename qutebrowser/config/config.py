@@ -121,7 +121,9 @@ class NewConfig:
                 else:
                     for (val, desc) in valid_values:
                         lines += wrapper.wrap('    {}: {}'.format(val, desc))
-            lines += wrapper.wrap('Default: {}'.format(option.default))
+            lines += wrapper.wrap('Default: {}'.format(
+                option.default_conf if option.default_conf is not None
+                else option.default))
         return lines
 
     def _str_items(self, section):
