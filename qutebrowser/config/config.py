@@ -52,8 +52,7 @@ def init(confdir):
 
 class NewConfig:
 
-    """Contains the structure of the config file."""
-
+    """New configuration manager."""
 
     def __init__(self):
         self.config = configdata.configdata()
@@ -63,7 +62,6 @@ class NewConfig:
             'break_long_words': False,
             'break_on_hyphens': False,
         }
-        print(str(self))
 
     def __getitem__(self, key):
         """Get a section from the config."""
@@ -80,6 +78,7 @@ class NewConfig:
         return '\n'.join(lines)
 
     def _str_section_desc(self, secname):
+        """Get the section description string for secname."""
         wrapper = textwrap.TextWrapper(initial_indent='# ',
                                        subsequent_indent='# ',
                                        **self._wrapper_args)
@@ -93,6 +92,7 @@ class NewConfig:
         return lines
 
     def _str_option_desc(self, secname, section):
+        """Get the option description strings for section/secname."""
         wrapper = textwrap.TextWrapper(initial_indent='#' + ' ' * 5,
                                        subsequent_indent='#' + ' ' * 5,
                                        **self._wrapper_args)
@@ -126,9 +126,10 @@ class NewConfig:
         return lines
 
     def _str_items(self, section):
+        """Get the option items as string for section."""
         keyval_wrapper = textwrap.TextWrapper(initial_indent='',
                                               subsequent_indent=' ' * 4,
-                                              drop_whitespace = False,
+                                              drop_whitespace=False,
                                               **self._wrapper_args)
         lines = []
         for optname, option in section.items():

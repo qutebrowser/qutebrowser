@@ -77,7 +77,7 @@ class KeyValue:
 
     def __iter__(self):
         """Iterate over all set values."""
-        # FIXME using a custon iterator this could be done more efficiently
+        # FIXME using a custom iterator this could be done more efficiently.
         return self.values.__iter__()
 
     def __bool__(self):
@@ -124,9 +124,11 @@ class ValueList:
         self.default = OrderedDict(
             [(keytype.transform(key), valtype.transform(value))
              for key, value in self.default.items()])
+        self.valdict = OrderedDict()
 
     def update_valdict(self):
-        self.valdict = OrderedDict()
+        """Update the global "true" value dict."""
+        self.valdict.clear()
         self.valdict.update(self.default)
         if self.values is not None:
             self.valdict.update(self.values)

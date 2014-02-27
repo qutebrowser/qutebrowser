@@ -29,7 +29,7 @@ class BaseType:
                       string. Either a list of strings, or a list of (value,
                       desc) tuples.
                       # FIXME actually handle tuples and stuff when validating
-        show_valid_values; Whether to show valid values in config or not.
+        show_valid_values" Whether to show valid values in config or not.
         typestr: The name of the type to appear in the config.
 
     """
@@ -45,17 +45,23 @@ class BaseType:
 
         The default implementation returns the original value.
 
+        Args:
+            value: The original string value.
+
         Return:
             The transformed value.
 
         """
         return value
 
-    def validate(self):
+    def validate(self, value):
         """Validate value against possible values.
 
         The default implementation checks the value against self.valid_values
         if it was defined.
+
+        Args:
+            value: The value to validate.
 
         Return:
             Ture if validation succeeded, False otherwise.
@@ -66,9 +72,10 @@ class BaseType:
 
         """
         if self.valid_values is not None:
-            return self.value in self.valid_values
+            return value in self.valid_values
         else:
             raise NotImplementedError
+
 
 class String(BaseType):
 
@@ -95,8 +102,8 @@ class Bool(BaseType):
     def transform(self, value):
         return self._BOOLEAN_STATES[value.lower()]
 
-    def validate(self):
-        return self.value.lower() in self._BOOLEAN_STATES
+    def validate(self, value):
+        return value.lower() in self._BOOLEAN_STATES
 
 
 class Int(BaseType):
@@ -108,9 +115,9 @@ class Int(BaseType):
     def transform(self, value):
         return int(value)
 
-    def validate(self):
+    def validate(self, value):
         try:
-            int(self.value)
+            int(value)
         except ValueError:
             return False
         else:
@@ -126,7 +133,7 @@ class List(BaseType):
     def transform(self, value):
         return value.split(',')
 
-    def validate(self):
+    def validate(self, value):
         return True
 
 
@@ -140,9 +147,9 @@ class IntList(List):
         vals = super().transform(value)
         return map(int, vals)
 
-    def validate(self):
+    def validate(self, value):
         try:
-            self.transform(self.value)
+            self.transform(value)
         except ValueError:
             return False
         else:
@@ -153,17 +160,17 @@ class PercOrInt(BaseType):
 
     """Percentage or integer."""
 
-    def validate(self):
-        if self.value.endswith('%'):
+    def validate(self, value):
+        if value.endswith('%'):
             try:
-                intval = int(self.value.rstrip('%'))
+                intval = int(value.rstrip('%'))
             except ValueError:
                 return False
             else:
                 return 0 <= intval <= 100
         else:
             try:
-                intval = int(self.value)
+                intval = int(value)
             except ValueError:
                 return False
             else:
@@ -178,13 +185,13 @@ class Command(BaseType):
 
     valid_values = cmdutils.cmd_dict.items()
 
-    def validate(self):
+    def validate(self, value):
         # We need to import this here to avoid circular dependencies
         from qutebrowser.commands.parsers import (CommandParser,
                                                   NoSuchCommandError)
         cp = CommandParser()
         try:
-            cp.parse(self.value)
+            cp.parse(value)
         except NoSuchCommandError:
             return False
         else:
@@ -197,7 +204,7 @@ class Color(BaseType):
 
     typestr = 'color'
 
-    def validate(self):
+    def validate(self, value):
         # FIXME validate colors
         return True
 
@@ -208,7 +215,7 @@ class Font(BaseType):
 
     typestr = 'font'
 
-    def validate(self):
+    def validate(self, value):
         # FIXME validate fonts
         return True
 
@@ -217,7 +224,7 @@ class SearchEngineName(BaseType):
 
     """A search engine name."""
 
-    def validate(self):
+    def validate(self, value):
         return True
 
 
@@ -225,18 +232,17 @@ class SearchEngineUrl(BaseType):
 
     """A search engine URL."""
 
-    def validate(self):
-        return "{}" in self.value
+    def validate(self, value):
+        return "{}" in value
 
 
 class KeyBindingName(BaseType):
 
     """The name (keys) of a keybinding."""
 
-    def validate(self):
+    def validate(self, value):
         # FIXME can we validate anything here?
         return True
-
 
 
 class AutoSearch(BaseType):
@@ -247,11 +253,11 @@ class AutoSearch(BaseType):
                     ("dns", "Use DNS requests (might be slow!)."),
                     ("false", "Never search automatically.")]
 
-    def validate(self):
-        if self.value.lower() in ["naive", "dns"]:
+    def validate(self, value):
+        if value.lower() in ["naive", "dns"]:
             return True
         else:
-            return Bool.validate(self, self.value)
+            return Bool.validate(self, value)
 
     def transform(self, value):
         if value.lower() in ["naive", "dns"]:
@@ -293,5 +299,3 @@ class KeyBinding(Command):
     """The command of a keybinding."""
 
     pass
-
-
