@@ -57,6 +57,7 @@ class NewConfig:
 
     def __init__(self):
         self.config = configdata.configdata()
+        print(str(self))
 
     def __getitem__(self, key):
         """Get a section from the config."""
@@ -65,21 +66,39 @@ class NewConfig:
     def __str__(self):
         """Get the whole config as a string."""
         # FIXME empty lines get discared
-        # FIXME we should set subsequent_indent for config options later
-        wrapper = textwrap.TextWrapper(
+        normal_wrapper = textwrap.TextWrapper(
             width=72, replace_whitespace=False, break_long_words=False,
             break_on_hyphens=False, initial_indent='# ',
             subsequent_indent='# ')
+        option_wrapper = textwrap.TextWrapper(
+            width=72, replace_whitespace=False, break_long_words=False,
+            break_on_hyphens=False, initial_indent='# ',
+            subsequent_indent='#     ')
         lines = []
-        for par in map(wrapper.wrap, configdata.FIRST_COMMENT.splitlines()):
+        for par in map(normal_wrapper.wrap,
+                       configdata.FIRST_COMMENT.splitlines()):
             lines += par
         for secname, section in self.config.items():
-            lines.append('\n[{}]'.format(secname))
-            for par in map(wrapper.wrap,
-                           configdata.SECTION_DESC[secname].splitlines()):
-                lines += par
+            lines.append('\n\n[{}]\n'.format(secname))
+            seclines = configdata.SECTION_DESC[secname].splitlines()
+            for secline in seclines:
+                if 'http://' in secline:
+                    lines.append('# ' + secline)
+                else:
+                    lines += normal_wrapper.wrap(secline)
+            lines.append('')
             for optname, option in section.items():
-                # FIXME display option comment
+                try:
+                    desc = self.config[secname].descriptions[optname]
+                except KeyError:
+                    continue
+                wrapped_desc = []
+                for descline in desc.splitlines():
+                    if 'http://' in descline:
+                        wrapped_desc.append('# ' + descline)
+                    else:
+                        wrapped_desc += option_wrapper.wrap(descline)
+                lines.append('\n'.join(wrapped_desc))
                 lines.append('{} = {}'.format(optname, option))
         return '\n'.join(lines)
 

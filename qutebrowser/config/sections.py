@@ -34,6 +34,7 @@ class KeyValue:
         values: An OrderedDict with key as index and value as value.
                 key: string
                 value: SettingValue
+        descriptions: A dict with the description strings for the keys.
 
     """
 
@@ -47,9 +48,11 @@ class KeyValue:
 
         """
         if args:
+            self.descriptions = {}
             self.values = OrderedDict()
             for (k, settingval, desc) in args:
                 self.values[k] = settingval
+                self.descriptions[k] = desc
 
     def __getitem__(self, key):
         """Get the value for key.

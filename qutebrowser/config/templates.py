@@ -84,12 +84,16 @@ class ValueListSection:
         default: An OrderedDict with the default configuration as strings.
                  After __init__, the strings become key/value types.
         types: A tuple for (keytype, valuetype)
+        descriptions: A dict with the description strings for the keys.
+                      Currently a global empty dict to be compatible with
+                      KeyValue section.
 
     """
 
     values = None
     default = None
     types = None
+    descriptions = {}
 
     def __init__(self):
         """Wrap types over default values. Take care when overriding this."""
