@@ -20,23 +20,50 @@
 import qutebrowser.commands.utils as cmdutils
 
 
+class ValidValues:
+
+    """Container for valid values for a given type.
+
+    Attributes:
+        values: A list with the allowed untransformed values.
+        descriptions: A dict with value/desc mappings.
+        show: Whether to show the values in the config or not.
+
+    """
+
+    def __init__(self, *vals, show=True):
+        self.descriptions = {}
+        self.values = []
+        self.show = show
+        for v in vals:
+            if isinstance(v, str):
+                # Value without description
+                self.values.append(v)
+            else:
+                # (value, description) tuple
+                self.values.append(v[0])
+                self.descriptions[v[0]] = v[1]
+
+    def __contains__(self, val):
+        return val in self.values
+
+    def __iter__(self):
+        return self.values.__iter__()
+
+
 class BaseType:
 
     """A type used for a setting value.
 
     Attributes:
         valid_values: Possible values if they can be expressed as a fixed
-                      string. Either a list of strings, or a list of (value,
-                      desc) tuples.
-                      # FIXME actually handle tuples and stuff when validating
-        show_valid_values" Whether to show valid values in config or not.
+                      string. ValidValues instance.
         typestr: The name of the type to appear in the config.
 
     """
 
     typestr = None
     valid_values = None
-    show_valid_values = True
 
     def transform(self, value):
         """Transform the setting value.
@@ -91,8 +118,7 @@ class Bool(BaseType):
 
     """Base class for a boolean setting."""
 
-    valid_values = ['true', 'false']
-    show_valid_values = False
+    valid_values = ValidValues('true', 'false', show=False)
     typestr = 'bool'
 
     # Taken from configparser
@@ -183,7 +209,7 @@ class Command(BaseType):
 
     typestr = 'command'
 
-    valid_values = cmdutils.cmd_dict.items()
+    valid_values = ValidValues(*cmdutils.cmd_dict.items())
 
     def validate(self, value):
         # We need to import this here to avoid circular dependencies
@@ -249,9 +275,9 @@ class AutoSearch(BaseType):
 
     """Whether to start a search when something else than an URL is entered."""
 
-    valid_values = [("naive", "Use simple/naive check."),
-                    ("dns", "Use DNS requests (might be slow!)."),
-                    ("false", "Never search automatically.")]
+    valid_values = ValidValues(("naive", "Use simple/naive check."),
+                               ("dns", "Use DNS requests (might be slow!)."),
+                               ("false", "Never search automatically."))
 
     def validate(self, value):
         if value.lower() in ["naive", "dns"]:
@@ -273,25 +299,26 @@ class Position(String):
 
     """The position of the tab bar."""
 
-    valid_values = ["north", "south", "east", "west"]
+    valid_values = ValidValues("north", "south", "east", "west")
 
 
 class SelectOnRemove(String):
 
     """Which tab to select when the focused tab is removed."""
 
-    valid_values = [("left", "Select the tab on the left."),
-                    ("right", "Select the tab on the right."),
-                    ("previous", "Select the previously selected tab.")]
+    valid_values = ValidValues(
+        ("left", "Select the tab on the left."),
+        ("right", "Select the tab on the right."),
+        ("previous", "Select the previously selected tab."))
 
 
 class LastClose(String):
 
     """Behaviour when the last tab is closed."""
 
-    valid_values = [("ignore", "Don't do anything."),
-                    ("blank", "Load about:blank."),
-                    ("quit", "Quit qutebrowser.")]
+    valid_values = ValidValues(("ignore", "Don't do anything."),
+                               ("blank", "Load about:blank."),
+                               ("quit", "Quit qutebrowser."))
 
 
 class KeyBinding(Command):

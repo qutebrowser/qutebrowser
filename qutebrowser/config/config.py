@@ -113,13 +113,14 @@ class NewConfig:
             for descline in desc.splitlines():
                 lines += wrapper.wrap(descline)
             valid_values = option.typ.valid_values
-            if valid_values is not None and option.typ.show_valid_values:
-                if isinstance(valid_values[0], str):
+            if valid_values is not None and valid_values.show:
+                if valid_values.descriptions:
+                    for val in valid_values:
+                        desc = valid_values.descriptions[val]
+                        lines += wrapper.wrap('    {}: {}'.format(val, desc))
+                else:
                     lines += wrapper.wrap('Valid values: {}'.format(', '.join(
                         valid_values)))
-                else:
-                    for (val, desc) in valid_values:
-                        lines += wrapper.wrap('    {}: {}'.format(val, desc))
             lines += wrapper.wrap('Default: {}'.format(
                 option.default_conf if option.default_conf is not None
                 else option.default))
