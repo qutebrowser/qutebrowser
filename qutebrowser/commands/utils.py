@@ -32,25 +32,11 @@ from qutebrowser.commands.exceptions import (ArgumentCountError,
 cmd_dict = {}
 
 
-def register_all():
-    """Register and initialize all commands."""
-    for (name, cls) in inspect.getmembers(  # pylint: disable=unused-variable
-            qutebrowser.commands.commands,
-            (lambda o: inspect.isclass(o) and o.__module__ ==
-             'qutebrowser.commands.commands')):
-        obj = cls()
-        if isinstance(obj.name, str):
-            names = [obj.name]
-        else:
-            names = obj.name
-        for n in names:
-            cmd_dict[n] = obj
-
-
 def register_cmd(func, name=None, split_args=True, hide=False):
     """Decorator to register a new command handler."""
     global cmd_dict
     names = []
+    names += newnames
     if name is None:
         name = func.__name__.lower()
     if isinstance(name, str):
@@ -59,9 +45,41 @@ def register_cmd(func, name=None, split_args=True, hide=False):
     else:
         mainname = name[0]
         names += name
-    cmd = Command(mainname, split_args, hide, handler=func)
+    count, nargs = _get_nargs_count(func)
+    cmd = Command(mainname, split_args, hide, nargs, count, handler=func)
     for name in names:
         cmd_dict[name] = cmd
+    return func
+
+
+def _get_nargs_count(self, func):
+    """Get the number of command-arguments and count-support for a function.
+
+    Args:
+        func: The function to get the argcount for.
+
+    Return:
+        A (count, (minargs, maxargs)) tuple, with maxargs=None if there are
+        infinite args. count is True if the function supports count, else
+        False.
+
+        Mapping from old nargs format to (minargs, maxargs):
+            ?   (0, 1)
+            N   (N, N)
+            +   (1, None)
+            *   (0, None)
+
+    """
+    # We could use inspect.signature maybe, but that's python >= 3.3 only.
+    spec = inspect.getfullargspec(func)
+    count = 'count' in spec.args
+    # we assume count always has a default (and it should!)
+    minargs = len(spec.args) - len(spec.defaults)
+    if spec.varargs is not None:
+        maxargs = None
+    else:
+        maxargs = len(spec.args) - int(count)  # -1 if count is defined
+    return (count, (minargs, maxargs))
 
 
 class SearchParser(QObject):

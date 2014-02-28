@@ -40,12 +40,13 @@ class Command(QObject):
     # we should probably have some kind of typing / argument casting for args
     # this might be combined with help texts or so as well
 
-    def __init__(self, name, split_args, hide, nargs, handler):
+    def __init__(self, name, split_args, hide, nargs, count, handler):
         super().__init__()
         self.name = name
         self.split_args = split_args
         self.hide = hide
         self.nargs = nargs
+        self.count = count
         self.handler = handler
 
     def check(self, args):
