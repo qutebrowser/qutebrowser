@@ -47,6 +47,23 @@ def register_all():
             cmd_dict[n] = obj
 
 
+def register_cmd(func, name=None, split_args=True, hide=False):
+    """Decorator to register a new command handler."""
+    global cmd_dict
+    names = []
+    if name is None:
+        name = func.__name__.lower()
+    if isinstance(name, str):
+        mainname = name
+        names.append(name)
+    else:
+        mainname = name[0]
+        names += name
+    cmd = Command(mainname, split_args, hide, handler=func)
+    for name in names:
+        cmd_dict[name] = cmd
+
+
 class SearchParser(QObject):
 
     """Parse qutebrowser searches.
