@@ -22,6 +22,8 @@ import os.path
 
 from PyQt5.QtCore import pyqtRemoveInputHook
 
+#import qutebrowser.commands.utils as cmdutils
+
 try:
     # pylint: disable=import-error
     from ipdb import set_trace as pdb_set_trace
@@ -30,10 +32,10 @@ except ImportError:
 
 import qutebrowser
 
-
+# FIXME we can';t do this because of circular imports
+#@cmdutils.register(name='settrace', hide=True)
 def set_trace():
-    """
-    Set a tracepoint in the Python debugger that works with Qt.
+    """Set a tracepoint in the Python debugger that works with Qt.
 
     Based on http://stackoverflow.com/a/1745965/2085149
 

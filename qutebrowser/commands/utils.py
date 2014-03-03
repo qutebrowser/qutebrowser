@@ -23,8 +23,8 @@ import inspect
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 from PyQt5.QtWebKitWidgets import QWebPage
 
-import qutebrowser.commands.commands
 import qutebrowser.config.config as config
+from qutebrowser.commands.template import Command
 from qutebrowser.commands.exceptions import (ArgumentCountError,
                                              NoSuchCommandError)
 
@@ -32,54 +32,81 @@ from qutebrowser.commands.exceptions import (ArgumentCountError,
 cmd_dict = {}
 
 
-def register_cmd(func, name=None, split_args=True, hide=False):
-    """Decorator to register a new command handler."""
-    global cmd_dict
-    names = []
-    names += newnames
-    if name is None:
-        name = func.__name__.lower()
-    if isinstance(name, str):
-        mainname = name
-        names.append(name)
-    else:
-        mainname = name[0]
-        names += name
-    count, nargs = _get_nargs_count(func)
-    cmd = Command(mainname, split_args, hide, nargs, count, handler=func)
-    for name in names:
-        cmd_dict[name] = cmd
-    return func
+class register:
+    """Decorator to register a new command handler.
 
-
-def _get_nargs_count(self, func):
-    """Get the number of command-arguments and count-support for a function.
-
-    Args:
-        func: The function to get the argcount for.
-
-    Return:
-        A (count, (minargs, maxargs)) tuple, with maxargs=None if there are
-        infinite args. count is True if the function supports count, else
-        False.
-
-        Mapping from old nargs format to (minargs, maxargs):
-            ?   (0, 1)
-            N   (N, N)
-            +   (1, None)
-            *   (0, None)
+    This could also be a function, but as a class (with a "wrong" name) it's
+    much cleaner to implement.
 
     """
-    # We could use inspect.signature maybe, but that's python >= 3.3 only.
-    spec = inspect.getfullargspec(func)
-    count = 'count' in spec.args
-    # we assume count always has a default (and it should!)
-    minargs = len(spec.args) - len(spec.defaults)
-    if spec.varargs is not None:
-        maxargs = None
-    else:
-        maxargs = len(spec.args) - int(count)  # -1 if count is defined
-    return (count, (minargs, maxargs))
+
+    def __init__(self, name=None, nargs=None, split_args=True, hide=False):
+        self.name = name
+        self.split_args = split_args
+        self.hide = hide
+        self.nargs = nargs
+
+    def __call__(self, func):
+        global cmd_dict
+        names = []
+        name = func.__name__.lower() if self.name is None else self.name
+        if isinstance(name, str):
+            mainname = name
+            names.append(name)
+        else:
+            mainname = name[0]
+            names += name
+        count, nargs = self._get_nargs_count(func)
+        desc = func.__doc__.splitlines()[0].strip().rstrip('.')
+        cmd = Command(mainname, self.split_args, self.hide, nargs, count, desc,
+                      handler=func)
+        for name in names:
+            cmd_dict[name] = cmd
+        return func
+
+
+    def _get_nargs_count(self, func):
+        """Get the number of command-arguments and count-support for a func.
+
+        Args:
+            func: The function to get the argcount for.
+
+        Return:
+            A (count, (minargs, maxargs)) tuple, with maxargs=None if there are
+            infinite args. count is True if the function supports count, else
+            False.
+
+            Mapping from old nargs format to (minargs, maxargs):
+                ?   (0, 1)
+                N   (N, N)
+                +   (1, None)
+                *   (0, None)
+
+        """
+        # We could use inspect.signature maybe, but that's python >= 3.3 only.
+        spec = inspect.getfullargspec(func)
+        count = 'count' in spec.args
+        # we assume count always has a default (and it should!)
+        if self.nargs is not None:
+            # If nargs is overriden, use that.
+            if isinstance(self.nargs, int):
+                # Single int
+                minargs, maxargs = self.nargs, self.nargs
+            else:
+                # Tuple (min, max)
+                minargs, maxargs = self.nargs
+        else:
+            defaultcount = (len(spec.defaults) if spec.defaults is not None
+                                               else 0)
+            argcount = len(spec.args)
+            if 'self' in spec.args:
+                argcount -= 1
+            minargs = argcount - defaultcount
+            if spec.varargs is not None:
+                maxargs = None
+            else:
+                maxargs = len(spec.args) - int(count)  # -1 if count is defined
+        return (count, (minargs, maxargs))
 
 
 class SearchParser(QObject):
@@ -147,6 +174,7 @@ class SearchParser(QObject):
         """
         self._search(text, rev=True)
 
+    @register(hide=True)
     def nextsearch(self, count=1):
         """Continue the search to the ([count]th) next term.
 

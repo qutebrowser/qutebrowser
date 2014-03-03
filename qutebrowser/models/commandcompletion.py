@@ -35,8 +35,7 @@ class CommandCompletionModel(CompletionModel):
         cmdlist = []
         for obj in set(cmd_dict.values()):
             if not obj.hide:
-                doc = obj.__doc__.splitlines()[0].strip().rstrip('.')
-                cmdlist.append([obj.mainname, doc])
+                cmdlist.append([obj.name, obj.desc])
         data = OrderedDict()
         data['Commands'] = sorted(cmdlist)
         self.init_data(data)

@@ -180,13 +180,7 @@ class QuteBrowser(QApplication):
         Registers all commands, connects its signals, and sets up keyparser.
 
         """
-        cmdutils.register_all()
-        for cmd in cmdutils.cmd_dict.values():
-            cmd.signal.connect(self.cmd_handler)
-        try:
-            self.keyparser.from_config_sect(config.config['keybind'])
-        except KeyError:
-            pass
+        self.keyparser.from_config_sect(config.config['keybind'])
 
     def _process_init_args(self):
         """Process initial positional args.
@@ -328,67 +322,7 @@ class QuteBrowser(QApplication):
             logging.debug("maybe_quit quitting.")
             self.quit()
 
-    @pyqtSlot(tuple)
-    def cmd_handler(self, tpl):
-        """Handle commands and delegate the specific actions.
-
-        This gets called as a slot from all commands, and then calls the
-        appropriate command handler.
-
-        All handlers supporting a count should have a keyword argument count.
-
-        Args:
-            tpl: A tuple in the form (count, argv) where argv is
-                 [cmd, arg, ...]
-
-        Return:
-            The handlers return value.
-
-        """
-        (count, argv) = tpl
-        cmd = argv[0]
-        args = argv[1:]
-        browser = self.mainwindow.tabs
-
-        handlers = {
-            'open': browser.cur.openurl,
-            'opencur': browser.opencur,
-            'tabopen': browser.tabopen,
-            'tabopencur': browser.tabopencur,
-            'quit': self.shutdown,
-            'tabclose': browser.tabclose,
-            'tabprev': browser.switch_prev,
-            'tabnext': browser.switch_next,
-            'reload': browser.cur.reloadpage,
-            'stop': browser.cur.stop,
-            'back': browser.cur.back,
-            'forward': browser.cur.forward,
-            'print': browser.cur.printpage,
-            'scroll': browser.cur.scroll,
-            'scroll_page': browser.cur.scroll_page,
-            'scroll_perc_x': browser.cur.scroll_percent_x,
-            'scroll_perc_y': browser.cur.scroll_percent_y,
-            'undo': browser.undo_close,
-            'pyeval': self.pyeval,
-            'settrace': set_trace,
-            'nextsearch': self.searchparser.nextsearch,
-            'yank': browser.cur.yank,
-            'yanktitle': browser.cur.yank_title,
-            'paste': browser.paste,
-            'tabpaste': browser.tabpaste,
-            'crash': self.crash,
-            'version': lambda: browser.cur.openurl('qute:version'),
-            'zoomin': browser.cur.zoom_in,
-            'zoomout': browser.cur.zoom_out,
-        }
-
-        handler = handlers[cmd]
-
-        if count is not None and self.sender().count:
-            return handler(*args, count=count)
-        else:
-            return handler(*args)
-
+    @cmdutils.register(split_args=False)
     def pyeval(self, s):
         """Evaluate a python string and display the results as a webpage.
 
@@ -406,6 +340,7 @@ class QuteBrowser(QApplication):
         qutescheme.pyeval_output = out
         self.mainwindow.tabs.cur.openurl('qute:pyeval')
 
+    @cmdutils.register(hide=True)
     def crash(self):
         """Crash for debugging purposes.
 
@@ -418,6 +353,7 @@ class QuteBrowser(QApplication):
         raise Exception("Forced crash")
 
     @pyqtSlot()
+    @cmdutils.register(name=['q', 'quit'], nargs=0)
     def shutdown(self, do_quit=True):
         """Try to shutdown everything cleanly.
 

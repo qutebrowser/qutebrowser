@@ -19,20 +19,15 @@
 
 import logging
 
-from PyQt5.QtCore import pyqtSignal, QObject
-
 from qutebrowser.commands.exceptions import ArgumentCountError
 
 
-class Command(QObject):
+class Command:
 
     """Base skeleton for a command.
 
-    See the module documentation for qutebrowser.commands.commands for details.
-
-    Signals:
-        signal: Emitted when the command was executed.
-                arg: A tuple (command, [args])
+    Attributes:
+        FIXME ...
 
     """
 
@@ -40,13 +35,14 @@ class Command(QObject):
     # we should probably have some kind of typing / argument casting for args
     # this might be combined with help texts or so as well
 
-    def __init__(self, name, split_args, hide, nargs, count, handler):
+    def __init__(self, name, split_args, hide, nargs, count, desc, handler):
         super().__init__()
         self.name = name
         self.split_args = split_args
         self.hide = hide
         self.nargs = nargs
         self.count = count
+        self.desc = desc
         self.handler = handler
 
     def check(self, args):
@@ -61,12 +57,11 @@ class Command(QObject):
             ArgumentCountError if the argument count is wrong.
 
         """
-        if ((isinstance(self.nargs, int) and len(args) != self.nargs) or
-                (self.nargs == '?' and len(args) > 1) or
-                (self.nargs == '+' and len(args) < 1)):
-            # for nargs == '*', anything is okay
-            raise ArgumentCountError("{} args expected, but got {}".format(
-                self.nargs, len(args)))
+        if self.nargs[0] <= len(args) <= self.nargs[1]:
+            pass
+        else:
+            raise ArgumentCountError("{}-{} args expected, but got {}".format(
+                self.nargs[0], self.nargs[1], len(args)))
 
     def run(self, args=None, count=None):
         """Run the command.
@@ -75,18 +70,15 @@ class Command(QObject):
             args: Arguments to the command.
             count: Command repetition count.
 
-        Emit:
-            The command's signal.
-
         """
-        dbgout = ["command called:", self.mainname]
+        dbgout = ["command called:", self.name]
         if args:
             dbgout += args
         if count is not None:
             dbgout.append("(count={})".format(count))
         logging.debug(' '.join(dbgout))
 
-        argv = [self.mainname]
-        if args is not None:
-            argv += args
-        self.signal.emit((count, argv))
+        if count is not None and self.count:
+            return self.handler(*args, count=count)
+        else:
+            return self.handler(*args)

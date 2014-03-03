@@ -36,6 +36,7 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 import qutebrowser.utils.url as urlutils
 import qutebrowser.config.config as config
+import qutebrowser.commands.utils as cmdutils
 from qutebrowser.widgets.tabbar import TabWidget
 from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.utils.signals import SignalCache, dbg_signal
@@ -246,6 +247,7 @@ class TabbedBrowser(TabWidget):
             tab.shutdown(callback=functools.partial(self._cb_tab_shutdown,
                                                     tab))
 
+    @cmdutils.register()
     def tabclose(self, count=None):
         """Close the current/[count]th tab.
 
@@ -275,6 +277,7 @@ class TabbedBrowser(TabWidget):
         elif last_close == 'blank':
             tab.openurl('about:blank')
 
+    @cmdutils.register(split_args=False)
     def tabopen(self, url):
         """Open a new tab with a given url.
 
@@ -308,6 +311,7 @@ class TabbedBrowser(TabWidget):
         tab.open_tab.connect(self.tabopen)
         tab.openurl(url)
 
+    @cmdutils.register(hide=True)
     def tabopencur(self):
         """Set the statusbar to :tabopen and the current URL.
 
@@ -318,6 +322,7 @@ class TabbedBrowser(TabWidget):
         url = urlutils.urlstring(self.currentWidget().url())
         self.set_cmd_text.emit(':tabopen ' + url)
 
+    @cmdutils.register(hide=True)
     def opencur(self):
         """Set the statusbar to :open and the current URL.
 
@@ -328,8 +333,9 @@ class TabbedBrowser(TabWidget):
         url = urlutils.urlstring(self.currentWidget().url())
         self.set_cmd_text.emit(':open ' + url)
 
+    @cmdutils.register(name='undo')
     def undo_close(self):
-        """Undo closing a tab.
+        """Switch to the previous tab, or skip [count] tabs.
 
         Command handler for :undo.
 
@@ -337,6 +343,7 @@ class TabbedBrowser(TabWidget):
         if self._url_stack:
             self.tabopen(self._url_stack.pop())
 
+    @cmdutils.register(name='tabprev')
     def switch_prev(self, count=1):
         """Switch to the ([count]th) previous tab.
 
@@ -353,8 +360,9 @@ class TabbedBrowser(TabWidget):
             # FIXME
             pass
 
+    @cmdutils.register('tabnext')
     def switch_next(self, count=1):
-        """Switch to the ([count]th) next tab.
+        """Switch to the next tab, or skip [count] tabs.
 
         Command handler for :tabnext.
 
@@ -369,6 +377,7 @@ class TabbedBrowser(TabWidget):
             # FIXME
             pass
 
+    @cmdutils.register()
     def paste(self, sel=False):
         """Open a page from the clipboard.
 
@@ -385,6 +394,7 @@ class TabbedBrowser(TabWidget):
         logging.debug("Clipboard contained: '{}'".format(url))
         self.openurl(url)
 
+    @cmdutils.register()
     def tabpaste(self, sel=False):
         """Open a page from the clipboard in a new tab.
 
@@ -479,6 +489,7 @@ class CurCommandDispatcher(QObject):
             return
         frame.setScrollBarValue(orientation, int(m * perc / 100))
 
+    @cmdutils.register(name='open', split_args=False)
     def openurl(self, url, count=None):
         """Open an url in the current/[count]th tab.
 
@@ -501,6 +512,7 @@ class CurCommandDispatcher(QObject):
         else:
             tab.openurl(url)
 
+    @cmdutils.register(name='reload')
     def reloadpage(self, count=None):
         """Reload the current/[count]th tab.
 
@@ -514,6 +526,7 @@ class CurCommandDispatcher(QObject):
         if tab is not None:
             tab.reload()
 
+    @cmdutils.register()
     def stop(self, count=None):
         """Stop loading in the current/[count]th tab.
 
@@ -527,6 +540,7 @@ class CurCommandDispatcher(QObject):
         if tab is not None:
             tab.stop()
 
+    @cmdutils.register(name='print')
     def printpage(self, count=None):
         """Print the current/[count]th tab.
 
@@ -543,6 +557,7 @@ class CurCommandDispatcher(QObject):
             preview.paintRequested.connect(tab.print)
             preview.exec_()
 
+    @cmdutils.register()
     def back(self, count=1):
         """Go back in the history of the current tab.
 
@@ -556,6 +571,7 @@ class CurCommandDispatcher(QObject):
         for i in range(count):  # pylint: disable=unused-variable
             self.tabs.currentWidget().back()
 
+    @cmdutils.register()
     def forward(self, count=1):
         """Go forward in the history of the current tab.
 
@@ -580,6 +596,7 @@ class CurCommandDispatcher(QObject):
         """
         self.tabs.currentWidget().findText(text, flags)
 
+    @cmdutils.register(hide=True)
     def scroll(self, dx, dy, count=1):
         """Scroll the current tab by count * dx/dy.
 
@@ -595,8 +612,9 @@ class CurCommandDispatcher(QObject):
         dy = int(count) * float(dy)
         self.tabs.currentWidget().page_.mainFrame().scroll(dx, dy)
 
+    @cmdutils.register(name='scroll_perc_x', hide=True)
     def scroll_percent_x(self, perc=None, count=None):
-        """Scroll the current tab to a specific percent of the page.
+        """Scroll the current tab to a specific percent of the page (horiz).
 
         Command handler for :scroll_perc_x.
 
@@ -607,8 +625,9 @@ class CurCommandDispatcher(QObject):
         """
         self._scroll_percent(perc, count, Qt.Horizontal)
 
+    @cmdutils.register(name='scroll_perc_y', hide=True)
     def scroll_percent_y(self, perc=None, count=None):
-        """Scroll the current tab to a specific percent of the page.
+        """Scroll the current tab to a specific percent of the page (vert).
 
         Command handler for :scroll_perc_y
 
@@ -619,6 +638,7 @@ class CurCommandDispatcher(QObject):
         """
         self._scroll_percent(perc, count, Qt.Vertical)
 
+    @cmdutils.register(hide=True)
     def scroll_page(self, mx, my, count=1):
         """Scroll the frame page-wise.
 
@@ -634,6 +654,7 @@ class CurCommandDispatcher(QObject):
         page.mainFrame().scroll(int(count) * float(mx) * size.width(),
                                 int(count) * float(my) * size.height())
 
+    @cmdutils.register()
     def yank(self, sel=False):
         """Yank the current url to the clipboard or primary selection.
 
@@ -653,6 +674,7 @@ class CurCommandDispatcher(QObject):
         self.temp_message.emit('URL yanked to {}'.format(
             'primary selection' if sel else 'clipboard'))
 
+    @cmdutils.register(name='yanktitle')
     def yank_title(self, sel=False):
         """Yank the current title to the clipboard or primary selection.
 
@@ -672,6 +694,7 @@ class CurCommandDispatcher(QObject):
         self.temp_message.emit('Title yanked to {}'.format(
             'primary selection' if sel else 'clipboard'))
 
+    @cmdutils.register(name='zoomin')
     def zoom_in(self, count=1):
         """Zoom in in the current tab.
 
@@ -682,6 +705,7 @@ class CurCommandDispatcher(QObject):
         tab = self.tabs.currentWidget()
         tab.zoom(count)
 
+    @cmdutils.register(name='zoomout')
     def zoom_out(self, count=1):
         """Zoom out in the current tab.
 
