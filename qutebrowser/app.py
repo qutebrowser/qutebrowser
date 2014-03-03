@@ -48,14 +48,13 @@ from PyQt5.QtCore import pyqtSlot, QTimer, QEventLoop
 import qutebrowser
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.config.config as config
-import qutebrowser.config.style as style
 import qutebrowser.network.qutescheme as qutescheme
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
 from qutebrowser.commands.keys import KeyParser
 from qutebrowser.utils.appdirs import AppDirs
 from qutebrowser.utils.misc import dotted_getattr
-from qutebrowser.utils.debug import set_trace
+from qutebrowser.utils.debug import set_trace  # noqa pylint: disable=unused-import
 
 
 class QuteBrowser(QApplication):

@@ -22,6 +22,7 @@ from functools import reduce
 
 import qutebrowser
 
+
 def read_file(filename):
     """Get the contents of a file contained with qutebrowser.
 

@@ -58,6 +58,7 @@ options = {
             'too-many-instance-attributes',
             'global-statement',
             'no-init',
+            'too-many-arguments',
             # visual noise
             'locally-disabled',
         ],

@@ -19,11 +19,8 @@
 
 import shlex
 import inspect
-import logging
-import functools
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
-from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.config.config as config
@@ -36,12 +33,15 @@ cmd_dict = {}
 
 
 class register:
+
     """Decorator to register a new command handler.
 
     This could also be a function, but as a class (with a "wrong" name) it's
     much cleaner to implement.
 
     """
+
+    # pylint: disable=too-few-public-methods
 
     def __init__(self, instance=None, name=None, nargs=None, split_args=True,
                  hide=False):
@@ -52,7 +52,6 @@ class register:
         self.instance = instance
 
     def __call__(self, func):
-        global cmd_dict
         names = []
         name = func.__name__.lower() if self.name is None else self.name
         if isinstance(name, str):
@@ -69,7 +68,6 @@ class register:
         for name in names:
             cmd_dict[name] = cmd
         return func
-
 
     def _get_nargs_count(self, func):
         """Get the number of command-arguments and count-support for a func.
@@ -89,6 +87,8 @@ class register:
                 *   (0, None)
 
         """
+        # pylint: disable=no-member
+        # pylint: disable=unpacking-non-sequence
         # We could use inspect.signature maybe, but that's python >= 3.3 only.
         spec = inspect.getfullargspec(func)
         count = 'count' in spec.args
@@ -103,7 +103,7 @@ class register:
                 minargs, maxargs = self.nargs
         else:
             defaultcount = (len(spec.defaults) if spec.defaults is not None
-                                               else 0)
+                            else 0)
             argcount = len(spec.args)
             if 'self' in spec.args:
                 argcount -= 1
