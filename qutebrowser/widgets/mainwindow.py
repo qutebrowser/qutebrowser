@@ -24,7 +24,7 @@ from PyQt5.QtCore import QRect, QPoint
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
 from qutebrowser.widgets.statusbar import StatusBar
-from qutebrowser.widgets.browser import TabbedBrowser
+from qutebrowser.widgets.tabbedbrowser import TabbedBrowser
 from qutebrowser.widgets.completion import CompletionView
 import qutebrowser.config.config as config
 
