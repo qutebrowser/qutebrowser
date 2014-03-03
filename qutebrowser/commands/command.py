@@ -21,8 +21,10 @@ import logging
 
 from qutebrowser.commands.exceptions import ArgumentCountError
 
+from PyQt5.QtCore import pyqtSignal, QObject
 
-class Command:
+
+class Command(QObject):
 
     """Base skeleton for a command.
 
@@ -31,11 +33,14 @@ class Command:
 
     """
 
+    signal = pyqtSignal(tuple)
+
     # FIXME:
     # we should probably have some kind of typing / argument casting for args
     # this might be combined with help texts or so as well
 
-    def __init__(self, name, split_args, hide, nargs, count, desc, handler):
+    def __init__(self, name, split_args, hide, nargs, count, desc, instance,
+                 handler):
         super().__init__()
         self.name = name
         self.split_args = split_args
@@ -43,6 +48,7 @@ class Command:
         self.nargs = nargs
         self.count = count
         self.desc = desc
+        self.instance = instance
         self.handler = handler
 
     def check(self, args):
@@ -78,7 +84,13 @@ class Command:
             dbgout.append("(count={})".format(count))
         logging.debug(' '.join(dbgout))
 
-        if count is not None and self.count:
+        if self.instance is not None and self.count and count is not None:
+            self.signal.emit((self.instance, self.handler.__name__, count,
+                              args))
+        elif self.instance is not None:
+            self.signal.emit((self.instance, self.handler.__name__, None,
+                              args))
+        elif count is not None and self.count:
             return self.handler(*args, count=count)
         else:
             return self.handler(*args)

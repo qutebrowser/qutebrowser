@@ -17,36 +17,10 @@
 
 """Other utilities which don't fit anywhere else."""
 
-import sys
 import os.path
-
-from PyQt5.QtCore import pyqtRemoveInputHook
-
-#import qutebrowser.commands.utils as cmdutils
-
-try:
-    # pylint: disable=import-error
-    from ipdb import set_trace as pdb_set_trace
-except ImportError:
-    from pdb import set_trace as pdb_set_trace
+from functools import reduce
 
 import qutebrowser
-
-# FIXME we can';t do this because of circular imports
-#@cmdutils.register(name='settrace', hide=True)
-def set_trace():
-    """Set a tracepoint in the Python debugger that works with Qt.
-
-    Based on http://stackoverflow.com/a/1745965/2085149
-
-    """
-    print()
-    print("When done debugging, remember to execute:")
-    print("  from PyQt5 import QtCore; QtCore.pyqtRestoreInputHook()")
-    print("before executing c(ontinue).")
-    pyqtRemoveInputHook()
-    return pdb_set_trace()
-
 
 def read_file(filename):
     """Get the contents of a file contained with qutebrowser.
@@ -63,19 +37,15 @@ def read_file(filename):
         return f.read()
 
 
-def trace_lines(do_trace):
-    """Turn on/off printing each executed line.
+def dotted_getattr(obj, path):
+    """getattr supporting the dot notation.
 
     Args:
-        do_trace: Whether to start tracing (True) or stop it (False).
+        obj: The object where to start.
+        path: A dotted object path as a string.
+
+    Return:
+        The object at path.
 
     """
-    def trace(frame, event, _):
-        """Trace function passed to sys.settrace."""
-        print("{}, {}:{}".format(event, frame.f_code.co_filename,
-                                 frame.f_lineno))
-        return trace
-    if do_trace:
-        sys.settrace(trace)
-    else:
-        sys.settrace(None)
+    return reduce(getattr, path.split('.'), obj)

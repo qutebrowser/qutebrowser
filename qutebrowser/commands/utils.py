@@ -19,6 +19,7 @@
 
 import shlex
 import inspect
+import logging
 import functools
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
@@ -26,7 +27,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.config.config as config
-from qutebrowser.commands.template import Command
+from qutebrowser.commands.command import Command
 from qutebrowser.commands.exceptions import (ArgumentCountError,
                                              NoSuchCommandError)
 
@@ -62,12 +63,9 @@ class register:
             names += name
         count, nargs = self._get_nargs_count(func)
         desc = func.__doc__.splitlines()[0].strip().rstrip('.')
-        if self.instance is not None:
-            handler = functools.partial(func, instance])
-        else:
-            handler = func
-        cmd = Command(mainname, self.split_args, self.hide, nargs, count, desc,
-                      handler=handler)
+        cmd = Command(name=mainname, split_args=self.split_args,
+                      hide=self.hide, nargs=nargs, count=count, desc=desc,
+                      instance=self.instance, handler=func)
         for name in names:
             cmd_dict[name] = cmd
         return func

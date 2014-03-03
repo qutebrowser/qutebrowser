@@ -54,7 +54,8 @@ from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
 from qutebrowser.commands.keys import KeyParser
 from qutebrowser.utils.appdirs import AppDirs
-from qutebrowser.utils.misc import set_trace
+from qutebrowser.utils.misc import dotted_getattr
+from qutebrowser.utils.debug import set_trace
 
 
 class QuteBrowser(QApplication):
@@ -180,6 +181,14 @@ class QuteBrowser(QApplication):
         Registers all commands, connects its signals, and sets up keyparser.
 
         """
+        for key, cmd in sorted(cmdutils.cmd_dict.items()):
+            cmd.signal.connect(self.command_handler)
+            if cmd.instance is not None:
+                func = '.'.join([cmd.instance if cmd.instance else 'app',
+                                 cmd.handler.__name__])
+            else:
+                func = cmd.handler.__name__
+            logging.debug("Registered command: {} -> {}".format(key, func))
         self.keyparser.from_config_sect(config.config['keybind'])
 
     def _process_init_args(self):
@@ -322,7 +331,7 @@ class QuteBrowser(QApplication):
             logging.debug("maybe_quit quitting.")
             self.quit()
 
-    @cmdutils.register(instance='app', split_args=False)
+    @cmdutils.register(instance='', split_args=False)
     def pyeval(self, s):
         """Evaluate a python string and display the results as a webpage.
 
@@ -340,7 +349,7 @@ class QuteBrowser(QApplication):
         qutescheme.pyeval_output = out
         self.mainwindow.tabs.cur.openurl('qute:pyeval')
 
-    @cmdutils.register(instance='app', hide=True)
+    @cmdutils.register(instance='', hide=True)
     def crash(self):
         """Crash for debugging purposes.
 
@@ -353,7 +362,7 @@ class QuteBrowser(QApplication):
         raise Exception("Forced crash")
 
     @pyqtSlot()
-    @cmdutils.register(instance='app', name=['q', 'quit'], nargs=0)
+    @cmdutils.register(instance='', name=['q', 'quit'], nargs=0)
     def shutdown(self, do_quit=True):
         """Try to shutdown everything cleanly.
 
@@ -399,3 +408,28 @@ class QuteBrowser(QApplication):
         """
         logging.debug("Shutdown complete, quitting.")
         self.quit()
+
+    @pyqtSlot(tuple)
+    def command_handler(self, tpl):
+        """Handle commands which need an instance..
+
+        Args:
+            tpl: An (instance, func, count, args) tuple.
+                instance: How to get the current instance of the target object
+                          from app.py, as a dotted string, e.g.
+                          'mainwindow.tabs.cur'.
+                func:     The function name to be called (as string).
+                count:    The count given to the command, or None.
+                args:     A list of arguments given to the command.
+
+        """
+        (instance, func, count, args) = tpl
+        if instance == '':
+            obj = self
+        else:
+            obj = dotted_getattr(self, instance)
+        handler = getattr(obj, func)
+        if count is not None:
+            handler(*args, count=count)
+        else:
+            handler(*args)
