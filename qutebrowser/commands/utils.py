@@ -19,6 +19,7 @@
 
 import inspect
 
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.config.config as config

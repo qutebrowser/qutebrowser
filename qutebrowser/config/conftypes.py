@@ -17,8 +17,6 @@
 
 """Setting options used for qutebrowser."""
 
-import qutebrowser.commands.utils as cmdutils
-
 
 class ValidValues:
 
@@ -207,21 +205,23 @@ class Command(BaseType):
 
     """Base class for a command value with arguments."""
 
+    # FIXME we need to use this without having problems with circular imports.
+
     typestr = 'command'
 
-    valid_values = ValidValues(*cmdutils.cmd_dict.items())
+    #valid_values = ValidValues(*cmdutils.cmd_dict.items())
 
     def validate(self, value):
-        # We need to import this here to avoid circular dependencies
-        from qutebrowser.commands.parsers import (CommandParser,
-                                                  NoSuchCommandError)
-        cp = CommandParser()
-        try:
-            cp.parse(value)
-        except NoSuchCommandError:
-            return False
-        else:
-            return True
+        #from qutebrowser.commands.parsers import (CommandParser,
+        #                                          NoSuchCommandError)
+        #cp = CommandParser()
+        #try:
+        #    cp.parse(value)
+        #except NoSuchCommandError:
+        #    return False
+        #else:
+        #    return True
+        return True
 
 
 class Color(BaseType):
