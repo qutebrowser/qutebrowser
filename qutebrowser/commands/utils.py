@@ -26,7 +26,6 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.config.config as config
-from qutebrowser.app import components as qtb_components
 from qutebrowser.commands.template import Command
 from qutebrowser.commands.exceptions import (ArgumentCountError,
                                              NoSuchCommandError)
@@ -64,7 +63,7 @@ class register:
         count, nargs = self._get_nargs_count(func)
         desc = func.__doc__.splitlines()[0].strip().rstrip('.')
         if self.instance is not None:
-            handler = functools.partial(func, qtb_components[self.instance])
+            handler = functools.partial(func, instance])
         else:
             handler = func
         cmd = Command(mainname, self.split_args, self.hide, nargs, count, desc,
@@ -139,7 +138,6 @@ class SearchParser(QObject):
         self._text = None
         self._flags = 0
         super().__init__(parent)
-        qtb_components['searchparser'] = self
 
     def _search(self, text, rev=False):
         """Search for a text on the current page.

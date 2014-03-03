@@ -57,9 +57,6 @@ from qutebrowser.utils.appdirs import AppDirs
 from qutebrowser.utils.misc import set_trace
 
 
-components = {}
-
-
 class QuteBrowser(QApplication):
 
     """Main object for qutebrowser.
@@ -132,8 +129,6 @@ class QuteBrowser(QApplication):
             self.mainwindow.status.disp_error)
         self.keyparser.keystring_updated.connect(
             self.mainwindow.status.keystring.setText)
-
-        components['app'] = self
 
         self.mainwindow.show()
         self._python_hacks()
