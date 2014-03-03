@@ -26,8 +26,8 @@ import html
 
 from PyQt5.QtWidgets import (QStyle, QStyleOptionViewItem, QTreeView,
                              QStyledItemDelegate, QSizePolicy)
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QRect, QRectF, QPoint,
-                          QSize, QItemSelectionModel)
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QRectF, QSize,
+                          QItemSelectionModel)
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QTextCursor)
 

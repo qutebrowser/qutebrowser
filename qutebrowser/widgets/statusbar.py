@@ -25,7 +25,6 @@ from PyQt5.QtWidgets import (QWidget, QLineEdit, QProgressBar, QLabel,
                              QShortcut)
 from PyQt5.QtGui import QPainter, QKeySequence, QValidator
 
-import qutebrowser.config.config as config
 from qutebrowser.config.style import get_stylesheet
 import qutebrowser.commands.keys as keys
 from qutebrowser.utils.url import urlstring
