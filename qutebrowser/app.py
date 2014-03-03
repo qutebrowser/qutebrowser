@@ -57,6 +57,9 @@ from qutebrowser.utils.appdirs import AppDirs
 from qutebrowser.utils.misc import set_trace
 
 
+components = {}
+
+
 class QuteBrowser(QApplication):
 
     """Main object for qutebrowser.
@@ -129,6 +132,8 @@ class QuteBrowser(QApplication):
             self.mainwindow.status.disp_error)
         self.keyparser.keystring_updated.connect(
             self.mainwindow.status.keystring.setText)
+
+        components['app'] = self
 
         self.mainwindow.show()
         self._python_hacks()
@@ -322,7 +327,7 @@ class QuteBrowser(QApplication):
             logging.debug("maybe_quit quitting.")
             self.quit()
 
-    @cmdutils.register(split_args=False)
+    @cmdutils.register(instance='app', split_args=False)
     def pyeval(self, s):
         """Evaluate a python string and display the results as a webpage.
 
@@ -340,7 +345,7 @@ class QuteBrowser(QApplication):
         qutescheme.pyeval_output = out
         self.mainwindow.tabs.cur.openurl('qute:pyeval')
 
-    @cmdutils.register(hide=True)
+    @cmdutils.register(instance='app', hide=True)
     def crash(self):
         """Crash for debugging purposes.
 
@@ -353,7 +358,7 @@ class QuteBrowser(QApplication):
         raise Exception("Forced crash")
 
     @pyqtSlot()
-    @cmdutils.register(name=['q', 'quit'], nargs=0)
+    @cmdutils.register(instance='app', name=['q', 'quit'], nargs=0)
     def shutdown(self, do_quit=True):
         """Try to shutdown everything cleanly.
 

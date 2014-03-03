@@ -19,11 +19,14 @@
 
 import shlex
 import inspect
+import functools
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.config.config as config
+from qutebrowser.app import components as qtb_components
 from qutebrowser.commands.template import Command
 from qutebrowser.commands.exceptions import (ArgumentCountError,
                                              NoSuchCommandError)
@@ -40,11 +43,13 @@ class register:
 
     """
 
-    def __init__(self, name=None, nargs=None, split_args=True, hide=False):
+    def __init__(self, instance=None, name=None, nargs=None, split_args=True,
+                 hide=False):
         self.name = name
         self.split_args = split_args
         self.hide = hide
         self.nargs = nargs
+        self.instance = instance
 
     def __call__(self, func):
         global cmd_dict
@@ -58,8 +63,12 @@ class register:
             names += name
         count, nargs = self._get_nargs_count(func)
         desc = func.__doc__.splitlines()[0].strip().rstrip('.')
+        if self.instance is not None:
+            handler = functools.partial(func, qtb_components[self.instance])
+        else:
+            handler = func
         cmd = Command(mainname, self.split_args, self.hide, nargs, count, desc,
-                      handler=func)
+                      handler=handler)
         for name in names:
             cmd_dict[name] = cmd
         return func
@@ -130,6 +139,7 @@ class SearchParser(QObject):
         self._text = None
         self._flags = 0
         super().__init__(parent)
+        qtb_components['searchparser'] = self
 
     def _search(self, text, rev=False):
         """Search for a text on the current page.
@@ -174,7 +184,7 @@ class SearchParser(QObject):
         """
         self._search(text, rev=True)
 
-    @register(hide=True)
+    @register(instance='searchparser', hide=True)
     def nextsearch(self, count=1):
         """Continue the search to the ([count]th) next term.
 
