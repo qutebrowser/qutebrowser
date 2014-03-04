@@ -160,7 +160,10 @@ class CompletionModel(QAbstractItemModel):
         if not parent.isValid():
             pitem = self._root
         else:
-            pitem = self._id_map[parent.internalId()]
+            try:
+                pitem = self._id_map[parent.internalId()]
+            except KeyError:
+                from qutebrowser.utils.debug import set_trace; set_trace()
 
         return len(pitem.children)
 

@@ -35,6 +35,7 @@ import qutebrowser.config.config as config
 from qutebrowser.config.style import get_stylesheet
 from qutebrowser.models.completionfilter import CompletionFilterModel
 from qutebrowser.models.commandcompletion import CommandCompletionModel
+from qutebrowser.models.settingcompletion import SettingCompletionModel
 
 
 class CompletionView(QTreeView):
@@ -100,6 +101,7 @@ class CompletionView(QTreeView):
         self._completion_models = {}
         self._completion_models[''] = None
         self._completion_models['command'] = CommandCompletionModel()
+        self._completion_models['setting'] = SettingCompletionModel()
         self._ignore_next = False
         self._completing = False
 
@@ -176,15 +178,28 @@ class CompletionView(QTreeView):
             # Text changed by a completion, so we don't have to complete again.
             self._ignore_next = False
             return
-        # FIXME more sophisticated completions
-        if ' ' in text or not text.startswith(':'):
+
+        if not text.startswith(':'):
             self.hide()
             self._completing = False
             return
 
-        self._completing = True
-        self.setmodel('command')
         text = text.lstrip(':')
+
+        if ' ' in text:
+            spl = text.split()
+            if len(spl) == 1 and spl[0] in ['open']:  # FIXME
+                self.setmodel('setting')
+            else:
+                self.hide()
+                self._completing = False
+                return
+        else:
+            self.setmodel('command')
+
+        self._completing = True
+        if text:
+            text = text.split()[-1]
         self.model.pattern = text
         self.model.srcmodel.mark_all_items(text)
         if self._enabled:
