@@ -39,12 +39,26 @@ class register:
     This could also be a function, but as a class (with a "wrong" name) it's
     much cleaner to implement.
 
+    Attributes:
+        instance: The instance to be used as "self", as a dotted string.
+        name: The name (as string) or names (as list) of the command.
+        nargs: A (minargs, maxargs) tuple of valid argument counts.
+        split_args: Whether to split the arguments or not.
+        hide: Whether to hide the command or not.
+
     """
 
     # pylint: disable=too-few-public-methods
 
     def __init__(self, instance=None, name=None, nargs=None, split_args=True,
                  hide=False):
+        """Gets called on parse-time with the decorator arguments.
+
+        Arguments:
+            See class attributes.
+
+        """
+
         self.name = name
         self.split_args = split_args
         self.hide = hide
@@ -52,6 +66,18 @@ class register:
         self.instance = instance
 
     def __call__(self, func):
+        """Gets called when a function should be decorated.
+
+        Doesn't actually decorate anything, but creates a Command object and
+        registers it in the cmd_dict.
+
+        Arguments:
+            func: The function to be decorated.
+
+        Return:
+            The original function (unmodified).
+
+        """
         names = []
         name = func.__name__.lower() if self.name is None else self.name
         if isinstance(name, str):

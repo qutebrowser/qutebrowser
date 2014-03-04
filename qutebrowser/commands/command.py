@@ -29,15 +29,27 @@ class Command(QObject):
     """Base skeleton for a command.
 
     Attributes:
-        FIXME ...
+        name: The main name of the command.
+        split_args: Whether to split the arguments or not.
+        hide: Whether to hide the arguments or not.
+        nargs: A (minargs, maxargs) tuple, maxargs = None if there's no limit.
+        count: Whether the command supports a count, or not.
+        desc: The description of the command.
+        instance: How to get to the "self" argument of the handler.
+                  A dotted string as viewed from app.py, or None.
+        handler: The handler function to call.
+
+    Signals:
+        signal: Gets emitted when something should be called via handle_command
+                from the app.py context.
 
     """
-
-    signal = pyqtSignal(tuple)
 
     # FIXME:
     # we should probably have some kind of typing / argument casting for args
     # this might be combined with help texts or so as well
+
+    signal = pyqtSignal(tuple)
 
     def __init__(self, name, split_args, hide, nargs, count, desc, instance,
                  handler):
@@ -75,6 +87,10 @@ class Command(QObject):
         Args:
             args: Arguments to the command.
             count: Command repetition count.
+
+        Emit:
+            signal: When the command has an instance and should be handled from
+                    the app.py context.
 
         """
         dbgout = ["command called:", self.name]
