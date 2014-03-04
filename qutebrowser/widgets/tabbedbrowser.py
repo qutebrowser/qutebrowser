@@ -381,7 +381,7 @@ class TabbedBrowser(TabWidget):
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         url = clip.text(mode)
         logging.debug("Clipboard contained: '{}'".format(url))
-        self.openurl(url)
+        self.cur.openurl(url)
 
     @cmdutils.register(instance='mainwindow.tabs')
     def tabpaste(self, sel=False):
