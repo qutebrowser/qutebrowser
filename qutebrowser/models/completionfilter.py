@@ -22,6 +22,8 @@ Contains:
 
 """
 
+import logging
+
 from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex
 
 
@@ -31,13 +33,11 @@ class CompletionFilterModel(QSortFilterProxyModel):
 
     Attributes:
         _pattern: The pattern to filter with, used in pattern property.
-        _srcmodel: The source model, accessed via the srcmodel property.
 
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._srcmodel = None
         self._pattern = ''
 
     @property
@@ -61,30 +61,12 @@ class CompletionFilterModel(QSortFilterProxyModel):
         self._pattern = val
         self.invalidateFilter()
         sortcol = 0
-        if self.srcmodel is not None:
+        if self.sourceModel() is not None:
             try:
-                self.srcmodel.sort(sortcol)
+                self.sourceModel().sort(sortcol)
             except NotImplementedError:
                 self.sort(sortcol)
             self.invalidate()
-
-    @property
-    def srcmodel(self):
-        """Getter for srcmodel."""
-        return self._srcmodel
-
-    @srcmodel.setter
-    def srcmodel(self, model):
-        """Set a new source model and clear the pattern.
-
-        Args:
-            model: The new source model.
-
-        """
-        # FIXME change this to a property
-        self.setSourceModel(model)
-        self._srcmodel = model
-        self.pattern = ''
 
     def first_item(self):
         """Return the first item in the model."""
@@ -95,6 +77,11 @@ class CompletionFilterModel(QSortFilterProxyModel):
         """Return the last item in the model."""
         cat = self.index(self.rowCount() - 1, 0)
         return self.index(self.rowCount(cat) - 1, 0, cat)
+
+    def setSourceModel(self, model):
+        logging.debug("Setting source model: {}".format(model))
+        self.pattern = ''
+        super().setSourceModel(model)
 
     def filterAcceptsRow(self, row, parent):
         """Custom filter implementation.
@@ -112,8 +99,8 @@ class CompletionFilterModel(QSortFilterProxyModel):
         """
         if parent == QModelIndex():
             return True
-        idx = self.srcmodel.index(row, 0, parent)
-        data = self.srcmodel.data(idx).value()
+        idx = self.sourceModel().index(row, 0, parent)
+        data = self.sourceModel().data(idx).value()
         # TODO more sophisticated filtering
         if not self.pattern:
             return True
@@ -133,8 +120,8 @@ class CompletionFilterModel(QSortFilterProxyModel):
             True if left < right, else False
 
         """
-        left = self.srcmodel.data(lindex).value()
-        right = self.srcmodel.data(rindex).value()
+        left = self.sourceModel().data(lindex).value()
+        right = self.sourceModel().data(rindex).value()
 
         leftstart = left.startswith(self.pattern)
         rightstart = right.startswith(self.pattern)

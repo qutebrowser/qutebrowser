@@ -111,7 +111,8 @@ class CrashDialog(QDialog):
         ]
         chunks = []
         for (header, body) in outputs:
-            h = '==== {} ===='.format(header)
-            chunks.append('\n'.join([h, body]))
+            if body is not None:
+                h = '==== {} ===='.format(header)
+                chunks.append('\n'.join([h, body]))
 
         return '\n\n'.join(chunks)

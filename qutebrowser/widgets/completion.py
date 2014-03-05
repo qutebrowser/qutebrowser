@@ -160,7 +160,7 @@ class CompletionView(QTreeView):
             model: A QAbstractItemModel with available completions.
 
         """
-        self.model.srcmodel = self._completion_models[model]
+        self.model.setSourceModel(self._completion_models[model])
         self.expandAll()
         self.resizeColumnToContents(0)
 
@@ -201,7 +201,7 @@ class CompletionView(QTreeView):
         if text:
             text = text.split()[-1]
         self.model.pattern = text
-        self.model.srcmodel.mark_all_items(text)
+        self.model.sourceModel().mark_all_items(text)
         if self._enabled:
             self.show()
 

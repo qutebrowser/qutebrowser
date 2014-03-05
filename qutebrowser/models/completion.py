@@ -17,6 +17,7 @@
 
 """The base completion model for completion in the command line."""
 
+import logging
 from PyQt5.QtCore import Qt, QVariant, QAbstractItemModel, QModelIndex
 
 
@@ -160,11 +161,7 @@ class CompletionModel(QAbstractItemModel):
         if not parent.isValid():
             pitem = self._root
         else:
-            try:
-                pitem = self._id_map[parent.internalId()]
-            except KeyError:
-                from qutebrowser.utils.debug import set_trace; set_trace()
-
+            pitem = self._id_map[parent.internalId()]
         return len(pitem.children)
 
     def data(self, index, role=Qt.DisplayRole):
@@ -273,6 +270,9 @@ class CompletionModel(QAbstractItemModel):
             A generated QModelIndex or an invalid QModelIndex on failure.
 
         """
+        if parent.model() is not None and parent.model() is not self:
+            logging.debug("row {}, column {}, parent {}, parentmodel {}, self {}".format(row, column, parent, parent.model(), self))
+            from qutebrowser.utils.debug import set_trace; set_trace()
         if (0 <= row < self.rowCount(parent) and
                 0 <= column < self.columnCount(parent)):
             pass
