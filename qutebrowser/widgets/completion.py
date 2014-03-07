@@ -22,6 +22,7 @@ subclasses to provide completions.
 
 """
 
+import logging
 import html
 
 from PyQt5.QtWidgets import (QStyle, QStyleOptionViewItem, QTreeView,
@@ -200,8 +201,11 @@ class CompletionView(QTreeView):
             self.setmodel('command')
 
         self._completing = True
-        if text:
+        if text.endswith(' '):
+            text = ''
+        elif text:
             text = text.split()[-1]
+        logging.debug("pattern: {}".format(text))
         self.model.pattern = text
         self.model.sourceModel().mark_all_items(text)
         if self._enabled:
