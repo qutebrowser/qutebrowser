@@ -160,6 +160,8 @@ class CompletionView(QTreeView):
             model: A QAbstractItemModel with available completions.
 
         """
+        # Necessary to clear weird references to parent model
+        self.model.setSourceModel(None)
         self.model.setSourceModel(self._completion_models[model])
         self.expandAll()
         self.resizeColumnToContents(0)
