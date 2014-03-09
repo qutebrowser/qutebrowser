@@ -17,6 +17,7 @@
 
 """Setting sections used for qutebrowser."""
 
+import logging
 from collections import OrderedDict
 
 import qutebrowser.config.conftypes as conftypes
@@ -87,6 +88,12 @@ class KeyValue:
     def items(self):
         """Get dict item tuples."""
         return self.values.items()
+
+    def from_cp(self, sect):
+        """Initialize the values from a configparser section."""
+        for k, v in sect.items():
+            logging.debug("'{}' = '{}'".format(k, v))
+            self.values[k].rawvalue = v
 
 
 class ValueList:
@@ -164,6 +171,14 @@ class ValueList:
         self.update_valdict()
         return self.valdict.items()
 
+    def from_cp(self, sect):
+        """Initialize the values from a configparser section."""
+        keytype = self.types[0]()
+        valtype = self.types[1]()
+        for k, v in sect.items():
+            keytype.validate(k)
+            valtype.validate(v)
+            self.values[keytype.transform(k)] = valtype.transform(v)
 
 class SearchEngines(ValueList):
 

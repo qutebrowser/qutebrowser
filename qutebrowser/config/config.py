@@ -55,7 +55,7 @@ class Config:
 
     Attributes:
         config: The configuration data as an OrderedDict.
-        _configparser: A custom ConfigParser instance to load/save files.
+        _configparser: A ReadConfigParser instance to load the config.
         _wrapper_args: A dict with the default kwargs for the config wrappers.
         _configdir: The dictionary to read the config from and save it in.
         _configfile: The config file path.
@@ -73,6 +73,11 @@ class Config:
             'break_on_hyphens': False,
         }
         self._configdir = configdir
+        for secname, section in self.config.items():
+            try:
+                section.from_cp(self._configparser[secname])
+            except KeyError:
+                pass
 
     def __getitem__(self, key):
         """Get a section from the config."""
