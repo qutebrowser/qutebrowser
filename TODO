@@ -48,6 +48,7 @@ Hiding scrollbars
 :bind
 Ctrl+A/X to increase/decrease last number in URL
 keypress-signal-foo is a bit of a chaos and might be done better
+remove empty lines at docstring end
 
 Other stuff
 ===========
