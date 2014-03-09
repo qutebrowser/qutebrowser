@@ -88,7 +88,7 @@ class Config:
             lines += self._str_section_desc(secname)
             lines += self._str_option_desc(secname, section)
             lines += self._str_items(section)
-        return '\n'.join(lines)
+        return '\n'.join(lines) + '\n'
 
     def _str_section_desc(self, secname):
         """Get the section description string for secname."""
