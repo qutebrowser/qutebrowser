@@ -79,6 +79,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
         return self.index(self.rowCount(cat) - 1, 0, cat)
 
     def setSourceModel(self, model):
+        """Override QSortFilterProxyModel's setSourceModel to clear pattern."""
         logging.debug("Setting source model: {}".format(model))
         self.pattern = ''
         super().setSourceModel(model)

@@ -271,8 +271,10 @@ class CompletionModel(QAbstractItemModel):
 
         """
         if parent.model() is not None and parent.model() is not self:
-            logging.debug("row {}, column {}, parent {}, parentmodel {}, self {}".format(row, column, parent, parent.model(), self))
-            from qutebrowser.utils.debug import set_trace; set_trace()
+            logging.warn("index() called with wrong parent! - "
+                         "row {}, column {}, parentmodel {}, self {}".format(
+                             row, column, parent.model(), self))
+            return
         if (0 <= row < self.rowCount(parent) and
                 0 <= column < self.columnCount(parent)):
             pass

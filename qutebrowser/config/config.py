@@ -18,12 +18,10 @@
 """Configuration storage and config-related utilities."""
 
 import os
-import io
 import os.path
 import logging
 import textwrap
-from configparser import (ConfigParser, ExtendedInterpolation, NoSectionError,
-                          NoOptionError)
+from configparser import ConfigParser, ExtendedInterpolation
 
 #from qutebrowser.utils.misc import read_file
 import qutebrowser.config.configdata as configdata
