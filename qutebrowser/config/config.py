@@ -36,33 +36,45 @@ state = None
 _UNSET = object()
 
 
-def init(confdir):
+def init(configdir):
     """Initialize the global objects based on the config in configdir.
 
     Args:
-        confdir: The directory where the configs are stored in.
+        configdir: The directory where the configs are stored in.
 
     """
     global config, state
-    logging.debug("Config init, confdir {}".format(confdir))
-    #config = Config(confdir, 'qutebrowser.conf',
+    logging.debug("Config init, configdir {}".format(configdir))
+    #config = Config(configdir, 'qutebrowser.conf',
     #                read_file('qutebrowser.conf'))
-    config = NewConfig()
-    state = Config(confdir, 'state', always_save=True)
+    config = Config(configdir, 'qutebrowser.conf')
+    state = ReadWriteConfigParser(configdir, 'state')
 
 
-class NewConfig:
+class Config:
 
-    """New configuration manager."""
+    """Configuration manager for qutebrowser.
 
-    def __init__(self):
+    Attributes:
+        config: The configuration data as an OrderedDict.
+        _configparser: A custom ConfigParser instance to load/save files.
+        _wrapper_args: A dict with the default kwargs for the config wrappers.
+        _configdir: The dictionary to read the config from and save it in.
+        _configfile: The config file path.
+
+    """
+
+    def __init__(self, configdir, fname):
         self.config = configdata.configdata()
+        self._configparser = ReadConfigParser(configdir, fname)
+        self._configfile = os.path.join(configdir, fname)
         self._wrapper_args = {
             'width': 72,
             'replace_whitespace': False,
             'break_long_words': False,
             'break_on_hyphens': False,
         }
+        self._configdir = configdir
 
     def __getitem__(self, key):
         """Get a section from the config."""
@@ -157,8 +169,11 @@ class NewConfig:
 
     def save(self):
         """Save the config file."""
-        # FIXME to be implemented
-        pass
+        if not os.path.exists(self._configdir):
+            os.makedirs(self._configdir, 0o755)
+        logging.debug("Saving config to {}".format(self._configfile))
+        with open(self._configfile, 'w') as f:
+            f.write(str(self))
 
     def dump_userconfig(self):
         """Get the part of the config which was changed by the user.
@@ -171,127 +186,42 @@ class NewConfig:
         pass
 
 
-class Config(ConfigParser):
+class ReadConfigParser(ConfigParser):
 
-    """Our own ConfigParser subclass.
+    """Our own ConfigParser subclass to read the main config.
 
     Attributes:
-        _configdir: The dictionary to save the config in.
-        _default_cp: The ConfigParser instance supplying the default values.
-        _config_loaded: Whether the config was loaded successfully.
+        _configdir: The directory to read the config from.
+        _configfile: The config file path.
 
     """
 
-    def __init__(self, configdir, fname, default_config=None,
-                 always_save=False):
+    def __init__(self, configdir, fname):
         """Config constructor.
 
         Args:
-            configdir: Directory to store the config in.
+            configdir: Directory to read the config from.
             fname: Filename of the config file.
-            default_config: Default config as string.
-            always_save: Whether to always save the config, even when it wasn't
-                         loaded.
 
         """
         super().__init__(interpolation=ExtendedInterpolation())
-        self._config_loaded = False
-        self.always_save = always_save
-        self._configdir = configdir
-        self._default_cp = ConfigParser(interpolation=ExtendedInterpolation())
-        self._default_cp.optionxform = lambda opt: opt  # be case-insensitive
-        if default_config is not None:
-            self._default_cp.read_string(default_config)
-        if not self._configdir:
-            return
         self.optionxform = lambda opt: opt  # be case-insensitive
         self._configdir = configdir
-        self.configfile = os.path.join(self._configdir, fname)
-        if not os.path.isfile(self.configfile):
+        self._configfile = os.path.join(self._configdir, fname)
+        if not os.path.isfile(self._configfile):
             return
-        logging.debug("Reading config from {}".format(self.configfile))
-        self.read(self.configfile)
-        self._config_loaded = True
+        logging.debug("Reading config from {}".format(self._configfile))
+        self.read(self._configfile)
 
-    def __getitem__(self, key):
-        """Get an item from the configparser or default dict.
 
-        Extend ConfigParser's __getitem__.
+class ReadWriteConfigParser(ReadConfigParser):
 
-        Args:
-            key: The key to get from the dict.
-
-        Return:
-            The value of the main or fallback ConfigParser.
-
-        """
-        try:
-            return super().__getitem__(key)
-        except KeyError:
-            return self._default_cp[key]
-
-    def get(self, *args, raw=False, vars=None, fallback=_UNSET):
-        """Get an item from the configparser or default dict.
-
-        Extend ConfigParser's get().
-
-        This is a bit of a hack, but it (hopefully) works like this:
-            - Get value from original configparser.
-            - If that's not available, try the default_cp configparser
-            - If that's not available, try the fallback given as kwarg
-            - If that's not available, we're doomed.
-
-        Args:
-            *args: Passed to the other configparsers.
-            raw: Passed to the other configparsers (do not interpolate).
-            var: Passed to the other configparsers.
-            fallback: Fallback value if value wasn't found in any configparser.
-
-        Raise:
-            configparser.NoSectionError/configparser.NoOptionError if the
-            default configparser raised them and there is no fallback.
-
-        """
-        # pylint: disable=redefined-builtin
-        # The arguments returned by the ConfigParsers actually are strings
-        # already, but we add an explicit str() here to trick pylint into
-        # thinking a string is returned (rather than an object) to avoid
-        # maybe-no-member errors.
-        try:
-            return str(super().get(*args, raw=raw, vars=vars))
-        except (NoSectionError, NoOptionError):
-            pass
-        try:
-            return str(self._default_cp.get(*args, raw=raw, vars=vars))
-        except (NoSectionError, NoOptionError):
-            if fallback is _UNSET:
-                raise
-            else:
-                return fallback
+    """ConfigParser subclass used for auxillary config files."""
 
     def save(self):
         """Save the config file."""
-        if self._configdir is None or (not self._config_loaded and
-                                       not self.always_save):
-            logging.warning("Not saving config (dir {}, config {})".format(
-                self._configdir, 'loaded' if self._config_loaded
-                else 'not loaded'))
-            return
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
-        logging.debug("Saving config to {}".format(self.configfile))
-        with open(self.configfile, 'w') as f:
+        logging.debug("Saving config to {}".format(self._configfile))
+        with open(self._configfile, 'w') as f:
             self.write(f)
-            f.flush()
-            os.fsync(f.fileno())
-
-    def dump_userconfig(self):
-        """Get the part of the config which was changed by the user.
-
-        Return:
-            The changed config part as string.
-
-        """
-        with io.StringIO() as f:
-            self.write(f)
-            return f.getvalue()
