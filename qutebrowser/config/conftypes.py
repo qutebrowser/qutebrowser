@@ -18,6 +18,11 @@
 """Setting options used for qutebrowser."""
 
 
+class ValidationError(ValueError):
+    """Exception raised when a value for a config type was invalid."""
+    pass
+
+
 class ValidValues:
 
     """Container for valid values for a given type.
@@ -88,16 +93,17 @@ class BaseType:
         Args:
             value: The value to validate.
 
-        Return:
-            Ture if validation succeeded, False otherwise.
-
         Raise:
+            ValidationError if the value was invalid.
             NotImplementedError if self.valid_values is not defined and this
             method should be overridden.
 
         """
         if self.valid_values is not None:
-            return value in self.valid_values
+            if value not in self.valid_values:
+                raise ValidationError
+            else:
+                return
         else:
             raise NotImplementedError
 
@@ -127,7 +133,8 @@ class Bool(BaseType):
         return self._BOOLEAN_STATES[value.lower()]
 
     def validate(self, value):
-        return value.lower() in self._BOOLEAN_STATES
+        if value.lower() not in self._BOOLEAN_STATES:
+            raise ValidationError
 
 
 class Int(BaseType):
@@ -143,9 +150,7 @@ class Int(BaseType):
         try:
             int(value)
         except ValueError:
-            return False
-        else:
-            return True
+            raise ValidationError
 
 
 class List(BaseType):
@@ -158,7 +163,7 @@ class List(BaseType):
         return value.split(',')
 
     def validate(self, value):
-        return True
+        pass
 
 
 class IntList(List):
@@ -175,9 +180,7 @@ class IntList(List):
         try:
             self.transform(value)
         except ValueError:
-            return False
-        else:
-            return True
+            raise ValidationError
 
 
 class PercOrInt(BaseType):
@@ -189,16 +192,18 @@ class PercOrInt(BaseType):
             try:
                 intval = int(value.rstrip('%'))
             except ValueError:
-                return False
+                raise ValidationError
             else:
-                return 0 <= intval <= 100
+                if not 0 <= intval <= 100:
+                    raise ValidationError
         else:
             try:
                 intval = int(value)
             except ValueError:
-                return False
+                raise ValidationError
             else:
-                return intval > 0
+                if intval < 0:
+                    raise ValidationError
 
 
 class Command(BaseType):
@@ -218,10 +223,8 @@ class Command(BaseType):
         #try:
         #    cp.parse(value)
         #except NoSuchCommandError:
-        #    return False
-        #else:
-        #    return True
-        return True
+        #    raise ValidationError
+        pass
 
 
 class Color(BaseType):
@@ -232,7 +235,7 @@ class Color(BaseType):
 
     def validate(self, value):
         # FIXME validate colors
-        return True
+        pass
 
 
 class Font(BaseType):
@@ -243,7 +246,7 @@ class Font(BaseType):
 
     def validate(self, value):
         # FIXME validate fonts
-        return True
+        pass
 
 
 class SearchEngineName(BaseType):
@@ -251,7 +254,7 @@ class SearchEngineName(BaseType):
     """A search engine name."""
 
     def validate(self, value):
-        return True
+        pass
 
 
 class SearchEngineUrl(BaseType):
@@ -268,7 +271,7 @@ class KeyBindingName(BaseType):
 
     def validate(self, value):
         # FIXME can we validate anything here?
-        return True
+        pass
 
 
 class AutoSearch(BaseType):
@@ -281,9 +284,9 @@ class AutoSearch(BaseType):
 
     def validate(self, value):
         if value.lower() in ["naive", "dns"]:
-            return True
+            pass
         else:
-            return Bool.validate(self, value)
+            Bool.validate(self, value)
 
     def transform(self, value):
         if value.lower() in ["naive", "dns"]:
