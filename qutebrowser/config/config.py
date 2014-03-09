@@ -27,6 +27,7 @@ from configparser import (ConfigParser, ExtendedInterpolation, NoSectionError,
 
 #from qutebrowser.utils.misc import read_file
 import qutebrowser.config.configdata as configdata
+import qutebrowser.commands.utils as cmdutils
 
 config = None
 state = None
@@ -141,6 +142,7 @@ class NewConfig:
                 lines += keyval_wrapper.wrap(keyval)
         return lines
 
+    @cmdutils.register(instance='config')
     def get(self, section, option, fallback=_UNSET):
         """Get the real (transformed) value from a section/option."""
         try:

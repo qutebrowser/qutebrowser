@@ -85,6 +85,7 @@ class QuteBrowser(QApplication):
         self._quit_status = {}
         self._timers = []
         self._shutting_down = False
+        self.config = config.config
 
         sys.excepthook = self._exception_hook
 
