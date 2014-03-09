@@ -216,7 +216,7 @@ class CommandParser(QObject):
         except ArgumentCountError:
             if ignore_exc:
                 self.error.emit("{}: invalid argument count".format(
-                    self._cmd.mainname))
+                    self._cmd.name))
                 return False
             else:
                 raise
