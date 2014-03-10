@@ -17,6 +17,7 @@
 
 """Configuration storage and config-related utilities."""
 
+import re
 import os
 import os.path
 import logging
@@ -148,6 +149,11 @@ class Config:
                                               subsequent_indent=' ' * 4,
                                               drop_whitespace=False,
                                               **self._wrapper_args)
+        # Other than the default TextWrapper would, we want to count a word and
+        # the whitespace following it as one chunk, so lines will always be
+        # split *after* whitespace, because whitespace at the beginning of a
+        # line could confuse configparser. Monkeypatching ftw!
+        keyval_wrapper.wordsep_simple_re = re.compile(r'(\S+\s*)')
         lines = []
         for optname, option in section.items():
             keyval = '{} = {}'.format(optname, option)
