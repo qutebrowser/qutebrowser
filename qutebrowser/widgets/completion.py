@@ -53,6 +53,7 @@ class CompletionView(QTreeView):
         model: The currently active filter model.
         _STYLESHEET: The stylesheet template for the CompletionView.
         _completion_models: dict of available completion models.
+        _ignore_next: Whether to ignore the next cmd_text_changed signal.
         _enabled: Whether showing the CompletionView is enabled.
         _completing: Whether we're currently completing something.
         _height: The height to use for the CompletionView.
@@ -104,6 +105,7 @@ class CompletionView(QTreeView):
             'command': CompletionFilterModel(CommandCompletionModel(self)),
             'setting': CompletionFilterModel(SettingCompletionModel(self)),
         }
+        self._ignore_next = False
         self._completing = False
 
         self._delegate = _CompletionItemDelegate(self)
@@ -199,6 +201,11 @@ class CompletionView(QTreeView):
 
         """
         # FIXME we should also consider the cursor position
+        if self._ignore_next:
+            # Text changed by a completion, so we don't have to complete again.
+            self._ignore_next = False
+            return
+
         if not text.startswith(':'):
             # This is a search or gibberish, so we don't need to complete
             # anything (yet)
@@ -249,6 +256,7 @@ class CompletionView(QTreeView):
             idx, QItemSelectionModel.ClearAndSelect)
         data = self.model.data(idx)
         if data is not None:
+            self._ignore_next = True
             self.append_cmd_text.emit(self.model.data(idx) + ' ')
 
 
