@@ -150,6 +150,29 @@ class CompletionView(QTreeView):
                 # Item is a real item, not a category header -> success
                 return idx
 
+    def _get_new_completion(self, parts):
+        """Get a new completion model.
+
+        parts: The command chunks to get a completion for.
+        """
+        model = None
+        if len(parts) == 1:
+            model = 'command'
+        else:
+            # try to delegate to the command
+            try:
+                completions = cmdutils.cmd_dict[parts[0]].completion
+                logging.debug('completions: {}'.format(completions))
+                if completions is None:
+                    model = None
+                else:
+                    model = completions[len(parts) - 2]
+            except KeyError:
+                logging.debug("No completions for '{}'".format(parts[0]))
+                model = None
+            # FIXME: if this fails, what do we do?
+        return model
+
     def set_model(self, model):
         """Switch completion to a new model.
 
@@ -185,34 +208,20 @@ class CompletionView(QTreeView):
             return
 
         text = text.lstrip(':')
-
-        model = None
         parts = text.split(' ')  # FIXME what about commands which use shutil?
-        if len(parts) == 1:
-            model = 'command'
-        else:
-            # try to delegate to the command
-            try:
-                completions = cmdutils.cmd_dict[parts[0]].completion
-                logging.debug('completions: {}'.format(completions))
-                if completions is None:
-                    model = None
-                else:
-                    model = completions[len(parts) - 2]
-            except KeyError:
-                logging.debug("No completions for '{}'".format(parts[0]))
-                model = None
-            # FIXME: if this fails, what do we do?
 
-        if model is None:
-            self.hide()
-            self._completing = False
-            return
-
-        self.set_model(model)
-        self._completing = True
+        if not text or text.endswith(' '):
+            # The completion only needs to be changed if:
+            #   - Only ":" is entered, OR
+            #   - The text ends with a space, so we're starting a new part.
+            model = self._get_new_completion(parts)
+            if model is None:
+                self.hide()
+                self._completing = False
+                return
+            self.set_model(model)
+            self._completing = True
         pattern = parts[-1] if parts else ''
-        logging.debug("pattern: {}".format(pattern))
         self.model.pattern = pattern
         self.model.srcmodel.mark_all_items(text)
         if self._enabled:
