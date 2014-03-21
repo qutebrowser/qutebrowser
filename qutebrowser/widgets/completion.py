@@ -101,14 +101,14 @@ class CompletionView(QTreeView):
         self._enabled = config.config.get('general', 'show_completion')
         self._completion_models = {}
         self._completion_models[''] = None
-        self._completion_models['command'] = CommandCompletionModel()
-        self._completion_models['setting'] = SettingCompletionModel()
+        self._completion_models['command'] = CompletionFilterModel(
+            CommandCompletionModel())
+        self._completion_models['setting'] = CompletionFilterModel(
+            SettingCompletionModel())
         self._ignore_next = False
         self._completing = False
 
-        self.model = CompletionFilterModel()
-        self.setModel(self.model)
-        self.setmodel('command')
+        self.set_model('command')
         self._delegate = _CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
         self.setStyleSheet(get_stylesheet(self._STYLESHEET))
@@ -152,18 +152,16 @@ class CompletionView(QTreeView):
                 # Item is a real item, not a category header -> success
                 return idx
 
-    def setmodel(self, model):
+    def set_model(self, model):
         """Switch completion to a new model.
 
         Called from cmd_text_changed().
 
         Args:
-            model: A QAbstractItemModel with available completions.
+            model: An index into self._completion_models.
 
         """
-        # Necessary to clear weird references to parent model
-        self.model.setSourceModel(None)
-        self.model.setSourceModel(self._completion_models[model])
+        self.setModel(self._completion_models[model])
         self.expandAll()
         self.resizeColumnToContents(0)
 
@@ -192,13 +190,13 @@ class CompletionView(QTreeView):
         if ' ' in text:
             spl = text.split()
             if len(spl) == 1 and spl[0] in ['open']:  # FIXME
-                self.setmodel('setting')
+                self.set_model('setting')
             else:
                 self.hide()
                 self._completing = False
                 return
         else:
-            self.setmodel('command')
+            self.set_model('command')
 
         self._completing = True
         if text.endswith(' '):
