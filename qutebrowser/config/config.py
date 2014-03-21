@@ -144,17 +144,10 @@ class Config:
 
     def _str_items(self, section):
         """Get the option items as string for section."""
-        keyval_wrapper = textwrap.TextWrapper(initial_indent='',
-                                              subsequent_indent=' ' * 4,
-                                              drop_whitespace=False,
-                                              **self._wrapper_args)
         lines = []
         for optname, option in section.items():
             keyval = '{} = {}'.format(optname, option)
-            if 'http://' in keyval:
-                lines.append(keyval)
-            else:
-                lines += keyval_wrapper.wrap(keyval)
+            lines.append(keyval)
         return lines
 
     @cmdutils.register(instance='config')
