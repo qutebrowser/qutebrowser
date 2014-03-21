@@ -49,6 +49,7 @@ class CompletionView(QTreeView):
     Highlights completions based on marks in the UserRole.
 
     Attributes:
+        model: The currently active filter model.
         _STYLESHEET: The stylesheet template for the CompletionView.
         _completion_models: dict of available completion models.
         _ignore_next: Whether to ignore the next cmd_text_changed signal.
@@ -99,16 +100,13 @@ class CompletionView(QTreeView):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._enabled = config.config.get('general', 'show_completion')
-        self._completion_models = {}
-        self._completion_models[''] = None
-        self._completion_models['command'] = CompletionFilterModel(
-            CommandCompletionModel())
-        self._completion_models['setting'] = CompletionFilterModel(
-            SettingCompletionModel())
+        self._completion_models = {
+            'command': CompletionFilterModel(CommandCompletionModel(self)),
+            'setting': CompletionFilterModel(SettingCompletionModel(self)),
+        }
         self._ignore_next = False
         self._completing = False
 
-        self.set_model('command')
         self._delegate = _CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
         self.setStyleSheet(get_stylesheet(self._STYLESHEET))
@@ -122,6 +120,7 @@ class CompletionView(QTreeView):
         # Some background: http://bugs.quassel-irc.org/issues/663
         # The proposed fix there was later reverted because it didn't help.
         self.setUniformRowHeights(True)
+        self.set_model('command')
         self.hide()
         # FIXME set elidemode
 
@@ -161,7 +160,9 @@ class CompletionView(QTreeView):
             model: An index into self._completion_models.
 
         """
-        self.setModel(self._completion_models[model])
+        m = self._completion_models[model]
+        self.setModel(m)
+        self.model = m
         self.expandAll()
         self.resizeColumnToContents(0)
 
@@ -205,7 +206,7 @@ class CompletionView(QTreeView):
             text = text.split()[-1]
         logging.debug("pattern: {}".format(text))
         self.model.pattern = text
-        self.model.sourceModel().mark_all_items(text)
+        self.model.srcmodel.mark_all_items(text)
         if self._enabled:
             self.show()
 

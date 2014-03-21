@@ -32,12 +32,15 @@ class CompletionFilterModel(QSortFilterProxyModel):
     """Subclass of QSortFilterProxyModel with custom sorting/filtering.
 
     Attributes:
+        srcmodel: The source model of this QSFPM.
         _pattern: The pattern to filter with, used in pattern property.
 
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, source, parent=None):
         super().__init__(parent)
+        super().setSourceModel(source)
+        self.srcmodel = source
         self._pattern = ''
 
     @property
@@ -61,12 +64,11 @@ class CompletionFilterModel(QSortFilterProxyModel):
         self._pattern = val
         self.invalidateFilter()
         sortcol = 0
-        if self.sourceModel() is not None:
-            try:
-                self.sourceModel().sort(sortcol)
-            except NotImplementedError:
-                self.sort(sortcol)
-            self.invalidate()
+        try:
+            self.srcmodel.sort(sortcol)
+        except NotImplementedError:
+            self.sort(sortcol)
+        self.invalidate()
 
     def first_item(self):
         """Return the first item in the model."""
@@ -82,6 +84,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
         """Override QSortFilterProxyModel's setSourceModel to clear pattern."""
         logging.debug("Setting source model: {}".format(model))
         self.pattern = ''
+        self.srcmodel = model
         super().setSourceModel(model)
 
     def filterAcceptsRow(self, row, parent):
@@ -100,8 +103,8 @@ class CompletionFilterModel(QSortFilterProxyModel):
         """
         if parent == QModelIndex():
             return True
-        idx = self.sourceModel().index(row, 0, parent)
-        data = self.sourceModel().data(idx).value()
+        idx = self.srcmodel.index(row, 0, parent)
+        data = self.srcmodel.data(idx).value()
         # TODO more sophisticated filtering
         if not self.pattern:
             return True
@@ -121,8 +124,8 @@ class CompletionFilterModel(QSortFilterProxyModel):
             True if left < right, else False
 
         """
-        left = self.sourceModel().data(lindex).value()
-        right = self.sourceModel().data(rindex).value()
+        left = self.srcmodel.data(lindex).value()
+        right = self.srcmodel.data(rindex).value()
 
         leftstart = left.startswith(self.pattern)
         rightstart = right.startswith(self.pattern)
