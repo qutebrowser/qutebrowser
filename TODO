@@ -1,6 +1,7 @@
 New config TODO
 ===============
 
+- Writing _monospace doesn't work correctly (indented too much?)
 - How to handle interpolation correctly? Maybe we really should handle interpolation ourselves?
   Main problem: When re-writing the value, we don't know about the interpolation anymore, so we write the wrong value.
 - Tabbing through setting completion does not work
