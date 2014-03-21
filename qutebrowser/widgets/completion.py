@@ -257,7 +257,7 @@ class CompletionView(QTreeView):
         data = self.model.data(idx)
         if data is not None:
             self._ignore_next = True
-            self.append_cmd_text.emit(self.model.data(idx) + ' ')
+            self.append_cmd_text.emit(self.model.data(idx))
 
 
 class _CompletionItemDelegate(QStyledItemDelegate):
