@@ -33,6 +33,7 @@ from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QTextCursor)
 
 import qutebrowser.config.config as config
+import qutebrowser.commands.utils as cmdutils
 from qutebrowser.config.style import get_stylesheet
 from qutebrowser.models.completionfilter import CompletionFilterModel
 from qutebrowser.models.commandcompletion import CommandCompletionModel
@@ -176,36 +177,50 @@ class CompletionView(QTreeView):
             text: The new text
 
         """
+        # FIXME we should also consider the cursor position
         if self._ignore_next:
             # Text changed by a completion, so we don't have to complete again.
             self._ignore_next = False
             return
 
         if not text.startswith(':'):
+            # This is a search or gibberish, so we don't need to complete
+            # anything (yet)
+            # FIXME complete searchs
             self.hide()
             self._completing = False
             return
 
         text = text.lstrip(':')
 
-        if ' ' in text:
-            spl = text.split()
-            if len(spl) == 1 and spl[0] in ['open']:  # FIXME
-                self.set_model('setting')
-            else:
-                self.hide()
-                self._completing = False
-                return
+        model = None
+        parts = text.split(' ')  # FIXME what about commands which use shutil?
+        if len(parts) == 1:
+            model = 'command'
         else:
-            self.set_model('command')
+            # try to delegate to the command
+            try:
+                completions = cmdutils.cmd_dict[parts[0]].completion
+                logging.debug('completions: {}'.format(completions))
+                if completions is None:
+                    model = None
+                else:
+                    model = completions[len(parts) - 2]
+            except KeyError:
+                logging.debug("No completions for '{}'".format(parts[0]))
+                model = None
+            # FIXME: if this fails, what do we do?
 
+        if model is None:
+            self.hide()
+            self._completing = False
+            return
+
+        self.set_model(model)
         self._completing = True
-        if text.endswith(' '):
-            text = ''
-        elif text:
-            text = text.split()[-1]
-        logging.debug("pattern: {}".format(text))
-        self.model.pattern = text
+        pattern = parts[-1] if parts else ''
+        logging.debug("pattern: {}".format(pattern))
+        self.model.pattern = pattern
         self.model.srcmodel.mark_all_items(text)
         if self._enabled:
             self.show()

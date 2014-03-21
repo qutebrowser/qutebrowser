@@ -38,11 +38,13 @@ class register:
         nargs: A (minargs, maxargs) tuple of valid argument counts.
         split_args: Whether to split the arguments or not.
         hide: Whether to hide the command or not.
+        completion: Which completion to use for arguments, as a list of
+                    strings.
 
     """
 
     def __init__(self, instance=None, name=None, nargs=None, split_args=True,
-                 hide=False):
+                 hide=False, completion=None):
         """Gets called on parse-time with the decorator arguments.
 
         Arguments:
@@ -55,6 +57,7 @@ class register:
         self.hide = hide
         self.nargs = nargs
         self.instance = instance
+        self.completion = completion
 
     def __call__(self, func):
         """Gets called when a function should be decorated.
@@ -81,7 +84,8 @@ class register:
         desc = func.__doc__.splitlines()[0].strip().rstrip('.')
         cmd = Command(name=mainname, split_args=self.split_args,
                       hide=self.hide, nargs=nargs, count=count, desc=desc,
-                      instance=self.instance, handler=func)
+                      instance=self.instance, handler=func,
+                      completion=self.completion)
         for name in names:
             cmd_dict[name] = cmd
         return func

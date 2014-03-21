@@ -38,6 +38,7 @@ class Command(QObject):
         instance: How to get to the "self" argument of the handler.
                   A dotted string as viewed from app.py, or None.
         handler: The handler function to call.
+        completion: Completions to use for arguments, as a list of strings.
 
     Signals:
         signal: Gets emitted when something should be called via handle_command
@@ -52,7 +53,7 @@ class Command(QObject):
     signal = pyqtSignal(tuple)
 
     def __init__(self, name, split_args, hide, nargs, count, desc, instance,
-                 handler):
+                 handler, completion):
         super().__init__()
         self.name = name
         self.split_args = split_args
@@ -62,6 +63,7 @@ class Command(QObject):
         self.desc = desc
         self.instance = instance
         self.handler = handler
+        self.completion = completion
 
     def check(self, args):
         """Check if the argument count is valid.

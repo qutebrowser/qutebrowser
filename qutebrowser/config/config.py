@@ -150,7 +150,7 @@ class Config:
             lines.append(keyval)
         return lines
 
-    @cmdutils.register(instance='config')
+    @cmdutils.register(instance='config', completion=['setting'])
     def get(self, section, option, fallback=_UNSET):
         """Get the real (transformed) value from a section/option."""
         try:
