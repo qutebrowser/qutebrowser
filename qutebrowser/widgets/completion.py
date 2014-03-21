@@ -121,7 +121,6 @@ class CompletionView(QTreeView):
         # Some background: http://bugs.quassel-irc.org/issues/663
         # The proposed fix there was later reverted because it didn't help.
         self.setUniformRowHeights(True)
-        self.set_model('command')
         self.hide()
         # FIXME set elidemode
 
