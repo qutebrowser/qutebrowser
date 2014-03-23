@@ -50,7 +50,7 @@ class CompletionView(QTreeView):
     Highlights completions based on marks in the UserRole.
 
     Attributes:
-        model: The currently active filter model.
+        _model: The currently active filter model.
         _STYLESHEET: The stylesheet template for the CompletionView.
         _completion_models: dict of available completion models.
         _ignore_next: Whether to ignore the next cmd_text_changed signal.
@@ -139,14 +139,14 @@ class CompletionView(QTreeView):
         idx = self.selectionModel().currentIndex()
         if not idx.isValid():
             # No item selected yet
-            return self.model.first_item()
+            return self._model.first_item()
         while True:
             idx = self.indexAbove(idx) if upwards else self.indexBelow(idx)
             # wrap around if we arrived at beginning/end
             if not idx.isValid() and upwards:
-                return self.model.last_item()
+                return self._model.last_item()
             elif not idx.isValid() and not upwards:
-                return self.model.first_item()
+                return self._model.first_item()
             elif idx.parent().isValid():
                 # Item is a real item, not a category header -> success
                 return idx
@@ -185,7 +185,7 @@ class CompletionView(QTreeView):
         """
         m = self._completion_models[model]
         self.setModel(m)
-        self.model = m
+        self._model = m
         self.expandAll()
         self.resizeColumnToContents(0)
 
@@ -229,8 +229,8 @@ class CompletionView(QTreeView):
             self.set_model(model)
             self._completing = True
         pattern = parts[-1] if parts else ''
-        self.model.pattern = pattern
-        self.model.srcmodel.mark_all_items(text)
+        self._model.pattern = pattern
+        self._model.srcmodel.mark_all_items(text)
         if self._enabled:
             self.show()
 
@@ -254,10 +254,10 @@ class CompletionView(QTreeView):
         idx = self._next_idx(shift)
         self.selectionModel().setCurrentIndex(
             idx, QItemSelectionModel.ClearAndSelect)
-        data = self.model.data(idx)
+        data = self._model.data(idx)
         if data is not None:
             self._ignore_next = True
-            self.append_cmd_text.emit(self.model.data(idx))
+            self.append_cmd_text.emit(self._model.data(idx))
 
 
 class _CompletionItemDelegate(QStyledItemDelegate):
