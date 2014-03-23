@@ -383,8 +383,7 @@ class _Command(QLineEdit):
             text: The text to set (string).
 
         """
-        # FIXME do the right thing here
-        self.setText(':' + text)
+        self.setText(self.text() + text)
         self.setFocus()
         self.show_cmd.emit()
 
