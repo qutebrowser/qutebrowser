@@ -72,19 +72,19 @@ class CompletionFilterModel(QSortFilterProxyModel):
 
     def first_item(self):
         """Return the first item in the model."""
-        # FIXME if the tree looks like this:
-        # - cat1
-        # + cat2
-        #    - item
-        # then this will yield an invalid index.
-        cat = self.index(0, 0)
-        return self.index(0, 0, cat)
+        for i in range(self.rowCount()):
+            cat = self.index(i, 0)
+            if cat.model().hasChildren(cat):
+                return self.index(0, 0, cat)
+        return QModelIndex()
 
     def last_item(self):
         """Return the last item in the model."""
-        # FIXME this has about the same problem as above
-        cat = self.index(self.rowCount() - 1, 0)
-        return self.index(self.rowCount(cat) - 1, 0, cat)
+        for i in range(self.rowCount() - 1, -1, -1):
+            cat = self.index(i, 0)
+            if cat.model().hasChildren(cat):
+                return self.index(self.rowCount(cat) - 1, 0, cat)
+        return QModelIndex()
 
     def setSourceModel(self, model):
         """Override QSortFilterProxyModel's setSourceModel to clear pattern."""
