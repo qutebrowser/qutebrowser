@@ -101,6 +101,7 @@ class CompletionView(QTreeView):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._enabled = config.config.get('general', 'show_completion')
+        self._model = None
         self._completion_models = {
             'command': CompletionFilterModel(CommandCompletionModel(self)),
             'setting': CompletionFilterModel(SettingCompletionModel(self)),
@@ -155,6 +156,7 @@ class CompletionView(QTreeView):
         """Get a new completion model.
 
         parts: The command chunks to get a completion for.
+
         """
         if len(parts) == 1:
             return 'command'

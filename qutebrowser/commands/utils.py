@@ -45,13 +45,14 @@ class register:
 
     def __init__(self, instance=None, name=None, nargs=None, split_args=True,
                  hide=False, completion=None):
-        """Gets called on parse-time with the decorator arguments.
+        """Save decorator arguments.
+
+        Gets called on parse-time with the decorator arguments.
 
         Arguments:
             See class attributes.
 
         """
-
         self.name = name
         self.split_args = split_args
         self.hide = hide
@@ -60,7 +61,9 @@ class register:
         self.completion = completion
 
     def __call__(self, func):
-        """Gets called when a function should be decorated.
+        """Register the command before running the function.
+
+        Gets called when a function should be decorated.
 
         Doesn't actually decorate anything, but creates a Command object and
         registers it in the cmd_dict.
@@ -72,6 +75,7 @@ class register:
             The original function (unmodified).
 
         """
+        # FIXME: only register commands once
         names = []
         name = func.__name__.lower() if self.name is None else self.name
         if isinstance(name, str):

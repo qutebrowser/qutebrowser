@@ -60,6 +60,7 @@ options = {
             'no-init',
             'too-many-arguments',
             'too-few-public-methods',
+            'too-many-ancestors',
             # visual noise
             'locally-disabled',
         ],

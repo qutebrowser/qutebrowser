@@ -19,7 +19,9 @@
 
 
 class ValidationError(ValueError):
+
     """Exception raised when a value for a config type was invalid."""
+
     pass
 
 

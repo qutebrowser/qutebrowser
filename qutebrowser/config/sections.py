@@ -180,6 +180,7 @@ class ValueList:
             valtype.validate(v)
             self.values[keytype.transform(k)] = valtype.transform(v)
 
+
 class SearchEngines(ValueList):
 
     """Search engine config section."""
