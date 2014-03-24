@@ -156,23 +156,20 @@ class CompletionView(QTreeView):
 
         parts: The command chunks to get a completion for.
         """
-        model = None
         if len(parts) == 1:
-            model = 'command'
-        else:
-            # try to delegate to the command
-            try:
-                completions = cmdutils.cmd_dict[parts[0]].completion
-                logging.debug('completions: {}'.format(completions))
-                if completions is None:
-                    model = None
-                else:
-                    model = completions[len(parts) - 2]
-            except KeyError:
-                logging.debug("No completions for '{}'".format(parts[0]))
-                model = None
-            # FIXME: if this fails, what do we do?
-        return model
+            return 'command'
+        # try to delegate to the command
+        try:
+            completions = cmdutils.cmd_dict[parts[0]].completion
+        except KeyError:
+            return None
+        logging.debug('completions: {}'.format(completions))
+        if completions is None:
+            return None
+        try:
+            return completions[len(parts) - 2]
+        except IndexError:
+            return None
 
     def set_model(self, model):
         """Switch completion to a new model.
