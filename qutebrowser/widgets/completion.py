@@ -51,6 +51,7 @@ class CompletionView(QTreeView):
 
     Attributes:
         _model: The currently active filter model.
+        _lastmodel: The model set in the last iteration.
         _STYLESHEET: The stylesheet template for the CompletionView.
         _completion_models: dict of available completion models.
         _ignore_next: Whether to ignore the next cmd_text_changed signal.
@@ -102,6 +103,7 @@ class CompletionView(QTreeView):
         super().__init__(parent)
         self._enabled = config.config.get('general', 'show_completion')
         self._model = None
+        self._lastmodel = None
         self._completion_models = {
             'command': CompletionFilterModel(CommandCompletionModel(self)),
             'setting': CompletionFilterModel(SettingCompletionModel(self)),
@@ -182,7 +184,9 @@ class CompletionView(QTreeView):
             model: An index into self._completion_models.
 
         """
+        self._lastmidel = self._model
         m = self._completion_models[model]
+        logging.debug("Setting model to {}".format(m))
         self.setModel(m)
         self._model = m
         self.expandAll()
@@ -216,11 +220,8 @@ class CompletionView(QTreeView):
         text = text.lstrip(':')
         parts = text.split(' ')  # FIXME what about commands which use shutil?
 
-        if not text or text.endswith(' '):
-            # The completion only needs to be changed if:
-            #   - Only ":" is entered, OR
-            #   - The text ends with a space, so we're starting a new part.
-            model = self._get_new_completion(parts)
+        model = self._get_new_completion(parts)
+        if model != self._lastmodel:
             if model is None:
                 self.hide()
                 self._completing = False
