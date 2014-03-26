@@ -228,6 +228,10 @@ class CompletionView(QTreeView):
                 return
             self.set_model(model)
             self._completing = True
+
+        if model is None:
+            return
+
         pattern = parts[-1] if parts else ''
         self._model.pattern = pattern
         self._model.srcmodel.mark_all_items(text)
