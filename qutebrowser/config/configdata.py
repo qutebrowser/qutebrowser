@@ -95,10 +95,6 @@ SECTION_DESC = {
 
 def configdata():
     """Get the config structure as an OrderedDict."""
-    MONOSPACE = ('Monospace, "DejaVu Sans Mono", Consolas, Monaco, '
-                 '"Bitstream Vera Sans Mono", "Andale Mono", '
-                 '"Liberation Mono", "Courier New", Courier, monospace, '
-                 'Fixed, Terminal')
     return OrderedDict([
         ('general', sect.KeyValue(
             ('show_completion',
@@ -228,7 +224,7 @@ def configdata():
              "Background color of the statusbar if there was an error."),
 
             ('statusbar.fg.error',
-             SettingValue(types.Color, "white", "${statusbar.fg}"),
+             SettingValue(types.Color, "${statusbar.fg}"),
              "Foreground color of the statusbar if there was an error."),
 
             ('statusbar.progress.bg',
@@ -236,7 +232,7 @@ def configdata():
              "Background color of the progress bar."),
 
             ('statusbar.url.fg',
-             SettingValue(types.Color, "white", "${statusbar.fg}"),
+             SettingValue(types.Color, "${statusbar.fg}"),
              "Default foreground color of the URL in the statusbar."),
 
             ('statusbar.url.fg.success',
@@ -277,19 +273,22 @@ def configdata():
 
         ('fonts', sect.KeyValue(
             ('_monospace',
-             SettingValue(types.Font, MONOSPACE),
+             SettingValue(types.Font, 'Monospace, "DejaVu Sans Mono", '
+                          'Consolas, Monaco, "Bitstream Vera Sans Mono", '
+                          '"Andale Mono", "Liberation Mono", "Courier New", '
+                          'Courier, monospace, Fixed, Terminal'),
              "Default monospace fonts."),
 
             ('completion',
-             SettingValue(types.Font, "8pt " + MONOSPACE, "8pt ${_monospace}"),
+             SettingValue(types.Font, "8pt ${_monospace}"),
              "Font used in the completion widget."),
 
             ('tabbar',
-             SettingValue(types.Font, "8pt " + MONOSPACE, "8pt ${_monospace}"),
+             SettingValue(types.Font, "8pt ${_monospace}"),
              "Font used in the tabbar."),
 
             ('statusbar',
-             SettingValue(types.Font, "8pt " + MONOSPACE, "8pt ${_monospace}"),
+             SettingValue(types.Font, "8pt ${_monospace}"),
              "Font used in the statusbar."),
 
         )),
@@ -305,34 +304,30 @@ class SettingValue:
     Attributes:
         typ: A BaseType subclass.
         default: Default value if the user has not overridden it, as a string.
-        default_conf: Default value for the config, with interpolation.
         value: (property) The currently valid, most important, transformed
                value.
         rawvalue: The current value as a raw string.
 
     """
 
-    def __init__(self, typ, default, default_conf=None):
+    def __init__(self, typ, default):
         """Constructor.
 
         Args:
             typ: The BaseType to use.
             default: Raw value to set.
-            default_conf: Raw value to set, for the config.
 
         """
         self.typ = typ()
         self.rawvalue = None
         self.default = default
-        self.default_conf = default_conf
 
     def __str__(self):
         """Get raw string value."""
         if self.rawvalue is not None:
             val = self.rawvalue
         else:
-            val = (self.default_conf if self.default_conf is not None
-                   else self.default)
+            val = self.default
         return val
 
     @property

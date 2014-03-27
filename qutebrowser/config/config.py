@@ -21,7 +21,7 @@ import os
 import os.path
 import logging
 import textwrap
-from configparser import ConfigParser, ExtendedInterpolation
+from configparser import ConfigParser
 
 #from qutebrowser.utils.misc import read_file
 import qutebrowser.config.configdata as configdata
@@ -200,7 +200,7 @@ class ReadConfigParser(ConfigParser):
             fname: Filename of the config file.
 
         """
-        super().__init__(interpolation=ExtendedInterpolation())
+        super().__init__(interpolation=None)
         self.optionxform = lambda opt: opt  # be case-insensitive
         self._configdir = configdir
         self._configfile = os.path.join(self._configdir, fname)
