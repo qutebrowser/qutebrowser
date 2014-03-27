@@ -15,13 +15,20 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Configuration storage and config-related utilities."""
+"""Configuration storage and config-related utilities.
+
+This borrows a lot of ideas from configparser, but also has some things that
+are fundamentally different. This is why nothing inherts from configparser, but
+we borrow some methods and classes from there where it makes sense.
+
+"""
 
 import os
 import os.path
 import logging
 import textwrap
-from configparser import ConfigParser
+import configparser
+from configparser import ConfigParser, ExtendedInterpolation
 
 #from qutebrowser.utils.misc import read_file
 import qutebrowser.config.configdata as configdata
@@ -59,6 +66,8 @@ class Config:
         _wrapper_args: A dict with the default kwargs for the config wrappers.
         _configdir: The dictionary to read the config from and save it in.
         _configfile: The config file path.
+        _interpolation: An configparser.Interpolation object
+        _proxies: configparser.SectionProxy objects for sections.
 
     """
 
@@ -73,7 +82,10 @@ class Config:
             'break_on_hyphens': False,
         }
         self._configdir = configdir
+        self._interpolation = ExtendedInterpolation()
+        self._proxies = {}
         for secname, section in self.config.items():
+            self._proxies[secname] = SectionProxy(self, secname)
             try:
                 section.from_cp(self._configparser[secname])
             except KeyError:
@@ -221,3 +233,52 @@ class ReadWriteConfigParser(ReadConfigParser):
         logging.debug("Saving config to {}".format(self._configfile))
         with open(self._configfile, 'w') as f:
             self.write(f)
+
+
+class SectionProxy(configparser.SectionProxy):
+    """A proxy for a single section from a parser."""
+
+    def __getitem__(self, key):
+        return self._parser.get(self._name, key)
+
+    def __setitem__(self, key, value):
+        return self._parser.set(self._name, key, value)
+
+    def __delitem__(self, key):
+        # TODO
+        #if not (self._parser.has_option(self._name, key) and
+        #        self._parser.remove_option(self._name, key)):
+        #    raise KeyError(key)
+        raise NotImplementedError
+
+    def __contains__(self, key):
+        # TODO
+        #return self._parser.has_option(self._name, key)
+        raise NotImplementedError
+
+    def _options(self):
+        # TODO
+        return self._parser.options(self._name)
+
+    def get(self, option, fallback=None, *, raw=False, vars=None):
+        return self._parser.get(self._name, option, raw=raw, vars=vars,
+                                fallback=fallback)
+
+    def getint(self, option, fallback=None, *, raw=False, vars=None):
+        raise NotImplementedError
+
+    def getfloat(self, option, fallback=None, *, raw=False, vars=None):
+        raise NotImplementedError
+
+    def getboolean(self, option, fallback=None, *, raw=False, vars=None):
+        raise NotImplementedError
+
+    @property
+    def parser(self):
+        # The parser object of the proxy is read-only.
+        return self._parser
+
+    @property
+    def name(self):
+        # The name of the section on a proxy is read-only.
+        return self._name
