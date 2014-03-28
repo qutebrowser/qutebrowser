@@ -304,8 +304,7 @@ class SettingValue:
     Attributes:
         typ: A BaseType subclass.
         default: Default value if the user has not overridden it, as a string.
-        value: (property) The currently valid, most important, transformed
-               value.
+        value: (property) The currently valid, most important value.
         rawvalue: The current value as a raw string.
 
     """
@@ -324,17 +323,14 @@ class SettingValue:
 
     def __str__(self):
         """Get raw string value."""
-        if self.rawvalue is not None:
-            val = self.rawvalue
-        else:
-            val = self.default
-        return val
+        return self.value
+
+    def transformed(self):
+        """Get the transformed value."""
+        v = self.value
+        return self.typ.transform(v)
 
     @property
     def value(self):
         """Get the currently valid value."""
-        if self.rawvalue is not None:
-            val = self.rawvalue
-        else:
-            val = self.default
-        return self.typ.transform(val)
+        return self.rawvalue if self.rawvalue is not None else self.default

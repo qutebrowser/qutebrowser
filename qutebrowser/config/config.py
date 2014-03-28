@@ -93,7 +93,7 @@ class Config:
 
     def __getitem__(self, key):
         """Get a section from the config."""
-        return self.config[key]
+        return self._proxies[key]
 
     def __str__(self):
         """Get the whole config as a string."""
@@ -163,8 +163,17 @@ class Config:
         return lines
 
     @cmdutils.register(instance='config', completion=['setting'])
-    def get(self, section, option, fallback=_UNSET):
-        """Get the real (transformed) value from a section/option."""
+    def get(self, section, option, fallback=_UNSET, raw=False):
+        """Get the value from a section/option.
+
+        Arguments:
+            section: The section to get the option from.
+            option: The option name
+            fallback: A fallback value.
+            raw: Whether to get the uninterpolated (but transformed!) value.
+
+        """
+        logging.debug("getting {} -> {}".format(section, option))
         try:
             val = self.config[section][option]
         except KeyError:
@@ -173,7 +182,14 @@ class Config:
             else:
                 return fallback
         else:
-            return val.value
+            if raw:
+                return val.transformed()
+            newval = self._interpolation.before_get(
+                self, section, option, val.value,
+                self.config[section].values)
+            logging.debug("interpolated val: {}".format(newval))
+            newval = val.typ.transform(newval)
+            return newval
 
     def save(self):
         """Save the config file."""
@@ -258,11 +274,10 @@ class SectionProxy(configparser.SectionProxy):
 
     def _options(self):
         # TODO
-        return self._parser.options(self._name)
+        return self._parser.config[self._name].values.keys()
 
     def get(self, option, fallback=None, *, raw=False, vars=None):
-        return self._parser.get(self._name, option, raw=raw, vars=vars,
-                                fallback=fallback)
+        return self._parser.get(self._name, option, raw=raw, fallback=fallback)
 
     def getint(self, option, fallback=None, *, raw=False, vars=None):
         raise NotImplementedError
