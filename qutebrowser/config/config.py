@@ -149,9 +149,7 @@ class Config:
                 else:
                     lines += wrapper.wrap('Valid values: {}'.format(', '.join(
                         valid_values)))
-            lines += wrapper.wrap('Default: {}'.format(
-                option.default_conf if option.default_conf is not None
-                else option.default))
+            lines += wrapper.wrap('Default: {}'.format(option.default))
         return lines
 
     def _str_items(self, section):
@@ -170,7 +168,7 @@ class Config:
             section: The section to get the option from.
             option: The option name
             fallback: A fallback value.
-            raw: Whether to get the uninterpolated (but transformed!) value.
+            raw: Whether to get the uninterpolated, untransformed value.
 
         """
         logging.debug("getting {} -> {}".format(section, option))
@@ -183,7 +181,7 @@ class Config:
                 return fallback
         else:
             if raw:
-                return val.transformed()
+                return val
             newval = self._interpolation.before_get(
                 self, section, option, val.value,
                 self.config[section].values)

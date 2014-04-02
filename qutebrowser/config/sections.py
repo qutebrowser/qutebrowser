@@ -109,19 +109,18 @@ class ValueList:
     Attributes:
         values: An OrderedDict with key as index and value as value.
         default: An OrderedDict with the default configuration as strings.
-                 After __init__, the strings become key/value types.
         types: A tuple for (keytype, valuetype)
         valdict: The "true value" dict.
-        descriptions: A dict with the description strings for the keys.
-                      Currently a global empty dict to be compatible with
-                      KeyValue section.
+        #descriptions: A dict with the description strings for the keys.
+        #              Currently a global empty dict to be compatible with
+        #              KeyValue section.
 
     """
 
     values = None
     default = None
     types = None
-    descriptions = {}
+    #descriptions = {}
 
     def __init__(self):
         """Wrap types over default values. Take care when overriding this."""
