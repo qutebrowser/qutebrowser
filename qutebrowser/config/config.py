@@ -182,9 +182,10 @@ class Config:
         else:
             if raw:
                 return val.value
-            newval = self._interpolation.before_get(
-                self, section, option, val.value,
-                {key: val.value for key, val in self.config[section].values.items()})
+            mapping = {key: val.value
+                       for key, val in self.config[section].values.items()}
+            newval = self._interpolation.before_get(self, section, option,
+                                                    val.value, mapping)
             logging.debug("interpolated val: {}".format(newval))
             newval = val.typ.transform(newval)
             return newval
@@ -254,7 +255,10 @@ class ReadWriteConfigParser(ReadConfigParser):
 
 
 class SectionProxy(configparser.SectionProxy):
+
     """A proxy for a single section from a parser."""
+
+    # pylint: disable=redefined-builtin
 
     def __getitem__(self, key):
         return self._parser.get(self._name, key)

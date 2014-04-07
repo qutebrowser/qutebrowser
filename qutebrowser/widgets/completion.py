@@ -184,7 +184,7 @@ class CompletionView(QTreeView):
             model: An index into self._completion_models.
 
         """
-        self._lastmidel = self._model
+        self._lastmodel = self._model
         m = self._completion_models[model]
         logging.debug("Setting model to {}".format(m))
         self.setModel(m)
