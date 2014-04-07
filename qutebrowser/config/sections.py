@@ -122,12 +122,13 @@ class ValueList:
     types = None
     #descriptions = {}
 
-    def __init__(self):
+    def __init__(self, keytype, valtype, *defaults):
         """Wrap types over default values. Take care when overriding this."""
+        self.types = (keytype, valtype)
         self.values = OrderedDict()
         self.default = OrderedDict(
-            [(key, conftypes.SettingValue(self.types[1], value))
-             for key, value in self.default.items()])
+            [(key, conftypes.SettingValue(valtype, value))
+             for key, value in defaults])
         self.valdict = OrderedDict()
 
     def update_valdict(self):
@@ -176,75 +177,3 @@ class ValueList:
             keytype.validate(k)
             valtype.validate(v)
             self.values[k] = conftypes.SettingValue(self.types[1], v)
-
-
-class SearchEngines(ValueList):
-
-    """Search engine config section."""
-
-    types = (conftypes.SearchEngineName, conftypes.SearchEngineUrl)
-    # FIXME how to handle interpolation here?
-    default = OrderedDict([
-        ('DEFAULT', '${duckduckgo}'),
-        ('duckduckgo', 'https://duckduckgo.com/?q={}'),
-        ('ddg', '${duckduckgo}'),
-        ('google', 'https://encrypted.google.com/search?q={}'),
-        ('g', '${google}'),
-        ('wikipedia', 'http://en.wikipedia.org/w/index.php?'
-                      'title=Special:Search&search={}'),
-        ('wiki', '${wikipedia}'),
-    ])
-
-
-class KeyBindings(ValueList):
-
-    """Keybindings config section."""
-
-    types = (conftypes.KeyBindingName, conftypes.KeyBinding)
-    default = OrderedDict([
-        ('o', 'open'),
-        ('go', 'opencur'),
-        ('O', 'tabopen'),
-        ('gO', 'tabopencur'),
-        ('ga', 'tabopen about:blank'),
-        ('d', 'tabclose'),
-        ('J', 'tabnext'),
-        ('K', 'tabprev'),
-        ('r', 'reload'),
-        ('H', 'back'),
-        ('L', 'forward'),
-        ('h', 'scroll -50 0'),
-        ('j', 'scroll 0 50'),
-        ('k', 'scroll 0 -50'),
-        ('l', 'scroll 50 0'),
-        ('u', 'undo'),
-        ('gg', 'scroll_perc_y 0'),
-        ('G', 'scroll_perc_y'),
-        ('n', 'nextsearch'),
-        ('yy', 'yank'),
-        ('yY', 'yank sel'),
-        ('yt', 'yanktitle'),
-        ('yT', 'yanktitle sel'),
-        ('pp', 'paste'),
-        ('pP', 'paste sel'),
-        ('Pp', 'tabpaste'),
-        ('PP', 'tabpaste sel'),
-        ('-', 'zoomout'),
-        ('+', 'zoomin'),
-        ('@Ctrl-Q@', 'quit'),
-        ('@Ctrl-Shift-T@', 'undo'),
-        ('@Ctrl-W@', 'tabclose'),
-        ('@Ctrl-T@', 'tabopen about:blank'),
-        ('@Ctrl-F@', 'scroll_page 0 1'),
-        ('@Ctrl-B@', 'scroll_page 0 -1'),
-        ('@Ctrl-D@', 'scroll_page 0 0.5'),
-        ('@Ctrl-U@', 'scroll_page 0 -0.5'),
-    ])
-
-
-class Aliases(ValueList):
-
-    """Aliases config section."""
-
-    types = (conftypes.Command, conftypes.Command)
-    default = OrderedDict()
