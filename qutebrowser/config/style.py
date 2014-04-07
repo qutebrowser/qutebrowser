@@ -19,6 +19,8 @@
 
 import qutebrowser.config.config as config
 
+_colordict = None
+_fontdict = None
 
 def get_stylesheet(template):
     """Format a stylesheet based on a template.
@@ -30,10 +32,12 @@ def get_stylesheet(template):
         The formatted template as string.
 
     """
-    cdict = config.config['colors']
-    fdict = config.config['fonts']
-    return template.strip().format(color=ColorDict(cdict),
-                                   font=FontDict(fdict))
+    global _colordict, _fontdict
+    if _colordict is None:
+        _colordict = ColorDict(config.config['colors'])
+    if _fontdict is None:
+        _fontdict = FontDict(config.config['fonts'])
+    return template.strip().format(color=_colordict, font=_fontdict)
 
 
 class ColorDict(dict):
