@@ -85,6 +85,10 @@ class KeyValue:
         """Get boolean state."""
         return bool(self.values)
 
+    def __contains__(self, key):
+        """Return whether the section contains a given key."""
+        return key in self.values
+
     def items(self):
         """Get dict item tuples."""
         return self.values.items()
@@ -163,6 +167,11 @@ class ValueList:
         """Get boolean state of section."""
         self.update_valdict()
         return bool(self.valdict)
+
+    def __contains__(self, key):
+        """Return whether the section contains a given key."""
+        self.update_valdict()
+        return key in self.valdict
 
     def items(self):
         """Get dict items."""

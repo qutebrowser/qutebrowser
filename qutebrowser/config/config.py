@@ -160,6 +160,10 @@ class Config:
             lines.append(keyval)
         return lines
 
+    def has_option(section, option):
+        """Returns True if option is in section."""
+        return option in self.config[section]
+
     @cmdutils.register(instance='config', completion=['setting'])
     def get(self, section, option, fallback=_UNSET, raw=False):
         """Get the value from a section/option.
