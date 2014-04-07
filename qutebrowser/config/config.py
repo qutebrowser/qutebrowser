@@ -125,7 +125,7 @@ class Config:
                                        subsequent_indent='#' + ' ' * 5,
                                        **self._wrapper_args)
         lines = []
-        if not section.descriptions:
+        if not getattr(section, 'descriptions', None):
             return lines
         for optname, option in section.items():
             lines.append('#')

@@ -125,10 +125,8 @@ class ValueList:
     def __init__(self):
         """Wrap types over default values. Take care when overriding this."""
         self.values = OrderedDict()
-        keytype = self.types[0]()
-        valtype = self.types[1]()
         self.default = OrderedDict(
-            [(keytype.transform(key), valtype.transform(value))
+            [(key, conftypes.SettingValue(self.types[1], value))
              for key, value in self.default.items()])
         self.valdict = OrderedDict()
 
@@ -177,7 +175,7 @@ class ValueList:
         for k, v in sect.items():
             keytype.validate(k)
             valtype.validate(v)
-            self.values[keytype.transform(k)] = valtype.transform(v)
+            self.values[k] = conftypes.SettingValue(self.types[1], v)
 
 
 class SearchEngines(ValueList):
