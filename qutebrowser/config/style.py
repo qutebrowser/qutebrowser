@@ -30,8 +30,8 @@ def get_stylesheet(template):
         The formatted template as string.
 
     """
-    cdict = config.config['colors'].values
-    fdict = config.config['fonts'].values
+    cdict = config.config['colors']
+    fdict = config.config['fonts']
     return template.strip().format(color=ColorDict(cdict),
                                    font=FontDict(fdict))
 
@@ -61,7 +61,7 @@ class ColorDict(dict):
 
         """
         try:
-            val = super().__getitem__(key).value
+            val = super().__getitem__(key)
         except KeyError:
             return ''
         if 'fg' in key.split('.'):
@@ -82,7 +82,7 @@ class ColorDict(dict):
 
         """
         try:
-            return super().__getitem__(key).value
+            return super().__getitem__(key)
         except KeyError:
             return None
 
@@ -105,7 +105,7 @@ class FontDict(dict):
 
         """
         try:
-            val = super().__getitem__(key).value
+            val = super().__getitem__(key)
         except KeyError:
             return ''
         else:
@@ -122,6 +122,6 @@ class FontDict(dict):
 
         """
         try:
-            return super().__getitem__(key).value
+            return super().__getitem__(key)
         except KeyError:
             return None

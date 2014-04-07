@@ -181,10 +181,10 @@ class Config:
                 return fallback
         else:
             if raw:
-                return val
+                return val.value
             newval = self._interpolation.before_get(
                 self, section, option, val.value,
-                self.config[section].values)
+                {key: val.value for key, val in self.config[section].values.items()})
             logging.debug("interpolated val: {}".format(newval))
             newval = val.typ.transform(newval)
             return newval
@@ -206,6 +206,10 @@ class Config:
         """
         # FIXME to be implemented
         pass
+
+    def optionxform(self, val):
+        """Implemented to be compatible with ConfigParser interpolation."""
+        return val
 
 
 class ReadConfigParser(ConfigParser):
