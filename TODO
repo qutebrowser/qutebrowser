@@ -4,7 +4,6 @@ New config TODO
 - Changing models is awfully slow
 - Add correctly working :get and :set commands
 - Implement different layers of config options correctly, not only default.
-- When cmd string ends with space, the next model should be shown
 
 Bugs
 ====

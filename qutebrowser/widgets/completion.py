@@ -205,7 +205,6 @@ class CompletionView(QTreeView):
 
         """
         # FIXME we should also consider the cursor position
-        # FIXME when backspacing, models aren't changed correctly
         if self._ignore_next:
             # Text changed by a completion, so we don't have to complete again.
             self._ignore_next = False
@@ -221,6 +220,8 @@ class CompletionView(QTreeView):
 
         text = text.lstrip(':')
         parts = split_cmdline(text)
+        if text.endswith(' '):
+            parts.append('')
 
         model = self._get_new_completion(parts)
         if model != self._lastmodel:
