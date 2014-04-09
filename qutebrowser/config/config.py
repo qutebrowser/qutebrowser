@@ -160,8 +160,8 @@ class Config:
             lines.append(keyval)
         return lines
 
-    def has_option(section, option):
-        """Returns True if option is in section."""
+    def has_option(self, section, option):
+        """Return True if option is in section."""
         return option in self.config[section]
 
     @cmdutils.register(name='get', instance='config', completion=['setting'],
@@ -291,9 +291,7 @@ class SectionProxy(configparser.SectionProxy):
         raise NotImplementedError
 
     def __contains__(self, key):
-        # TODO
-        #return self._parser.has_option(self._name, key)
-        raise NotImplementedError
+        return self._parser.has_option(self._name, key)
 
     def _options(self):
         # TODO

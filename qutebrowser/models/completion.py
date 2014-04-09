@@ -23,6 +23,7 @@ from PyQt5.QtCore import Qt, QVariant, QAbstractItemModel, QModelIndex
 ROLE_MARKS = Qt.UserRole
 ROLE_FULLTEXT = Qt.UserRole + 1
 
+
 class CompletionModel(QAbstractItemModel):
 
     """A simple tree model based on Python OrderdDict containing tuples.

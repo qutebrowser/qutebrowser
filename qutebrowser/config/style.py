@@ -22,6 +22,7 @@ import qutebrowser.config.config as config
 _colordict = None
 _fontdict = None
 
+
 def get_stylesheet(template):
     """Format a stylesheet based on a template.
 
