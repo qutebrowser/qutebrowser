@@ -63,8 +63,8 @@ class CompletionView(QTreeView):
         _delegate: The item delegate used.
 
     Signals:
-        append_cmd_text: Command text which should be appended to the
-                         statusbar.
+        change_completed_part: Text which should be substituted for the word
+                               we're currently completing.
 
     """
 
@@ -98,7 +98,7 @@ class CompletionView(QTreeView):
     # like one anymore
     # FIXME somehow only the first column is yellow, even with
     # setAllColumnsShowFocus
-    append_cmd_text = pyqtSignal(str)
+    change_completed_part = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -250,7 +250,7 @@ class CompletionView(QTreeView):
             shift: Whether shift is pressed or not.
 
         Emit:
-            append_cmd_text: When a command text should be set/appended.
+            change_completed_part: When a completion took place.
 
         """
         if not self._completing:
@@ -262,7 +262,7 @@ class CompletionView(QTreeView):
         data = self._model.data(idx)
         if data is not None:
             self._ignore_next = True
-            self.append_cmd_text.emit(self._model.data(idx))
+            self.change_completed_part.emit(self._model.data(idx))
 
 
 class _CompletionItemDelegate(QStyledItemDelegate):

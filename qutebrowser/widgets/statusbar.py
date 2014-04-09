@@ -29,6 +29,7 @@ from qutebrowser.config.style import get_stylesheet
 import qutebrowser.commands.keys as keys
 from qutebrowser.utils.url import urlstring
 from qutebrowser.utils.usertypes import NeighborList
+from qutebrowser.commands.parsers import split_cmdline
 
 
 class StatusBar(QWidget):
@@ -376,14 +377,17 @@ class _Command(QLineEdit):
         self.show_cmd.emit()
 
     @pyqtSlot(str)
-    def on_append_cmd_text(self, text):
-        """Append text to the commandline.
+    def on_change_completed_part(self, text):
+        """Change the part we're currently completing in the commandline.
 
         Args:
             text: The text to set (string).
 
         """
-        self.setText(self.text() + text)
+        # FIXME we should consider the cursor position.
+        parts = split_cmdline(self.text())
+        parts[-1] = text
+        self.setText(':' + ' '.join(parts))
         self.setFocus()
         self.show_cmd.emit()
 

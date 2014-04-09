@@ -91,8 +91,8 @@ class MainWindow(QWidget):
         self.status.cmd.textChanged.connect(
             self.completion.on_cmd_text_changed)
         self.status.cmd.tab_pressed.connect(self.completion.on_tab_pressed)
-        self.completion.append_cmd_text.connect(
-            self.status.cmd.on_append_cmd_text)
+        self.completion.change_completed_part.connect(
+            self.status.cmd.on_change_completed_part)
 
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
