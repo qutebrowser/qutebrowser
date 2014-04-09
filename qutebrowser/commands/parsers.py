@@ -24,6 +24,7 @@ from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
+import qutebrowser.utils.message as message
 from qutebrowser.commands.exceptions import (ArgumentCountError,
                                              NoSuchCommandError)
 
@@ -108,7 +109,7 @@ class SearchParser(QObject):
                 self.do_search.emit(self._text, self._flags)
 
 
-class CommandParser(QObject):
+class CommandParser:
 
     """Parse qutebrowser commandline commands.
 
@@ -116,16 +117,9 @@ class CommandParser(QObject):
         _cmd: The command which was parsed.
         _args: The arguments which were parsed.
 
-    Signals:
-        error: Emitted if there was an error.
-               arg: The error message.
-
     """
 
-    error = pyqtSignal(str)
-
     def __init__(self, parent=None):
-        super().__init__(parent)
         self._cmd = None
         self._args = []
 
@@ -205,9 +199,6 @@ class CommandParser(QObject):
             True if command was called (handler returnstatus is ignored!).
             False if command wasn't called (there was an ignored exception).
 
-        Emit:
-            error: If there was an error parsing a command.
-
         """
         if ';;' in text:
             retvals = []
@@ -219,14 +210,14 @@ class CommandParser(QObject):
             self._check()
         except ArgumentCountError:
             if ignore_exc:
-                self.error.emit("{}: invalid argument count".format(
+                message.error("{}: invalid argument count".format(
                     self._cmd.name))
                 return False
             else:
                 raise
         except NoSuchCommandError as e:
             if ignore_exc:
-                self.error.emit("{}: no such command".format(e))
+                message.error("{}: no such command".format(e))
                 return False
             else:
                 raise

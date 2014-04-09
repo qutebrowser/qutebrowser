@@ -49,6 +49,7 @@ import qutebrowser
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.config.config as config
 import qutebrowser.network.qutescheme as qutescheme
+import qutebrowser.utils.message as message
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
 from qutebrowser.commands.keys import KeyParser
@@ -124,13 +125,12 @@ class QuteBrowser(QApplication):
             self.searchparser.search_rev)
         self.mainwindow.status.cmd.returnPressed.connect(
             self.mainwindow.tabs.setFocus)
-        self.commandparser.error.connect(self.mainwindow.status.disp_error)
         self.searchparser.do_search.connect(
             self.mainwindow.tabs.cur.search)
-        self.keyparser.commandparser.error.connect(
-            self.mainwindow.status.disp_error)
         self.keyparser.keystring_updated.connect(
             self.mainwindow.status.keystring.setText)
+        message.bridge.error.connect(self.mainwindow.status.disp_error)
+        message.bridge.info.connect(self.mainwindow.status.disp_tmp_text)
 
         self.mainwindow.show()
         self._python_hacks()
@@ -175,6 +175,7 @@ class QuteBrowser(QApplication):
             os.environ['QT_FATAL_WARNINGS'] = '1'
         self.setApplicationName("qutebrowser")
         self.setApplicationVersion(qutebrowser.__version__)
+        message.init()
 
     def _init_cmds(self):
         """Initialisation of the qutebrowser commands.

@@ -33,6 +33,7 @@ from configparser import ConfigParser, ExtendedInterpolation
 #from qutebrowser.utils.misc import read_file
 import qutebrowser.config.configdata as configdata
 import qutebrowser.commands.utils as cmdutils
+import qutebrowser.utils.message as message
 
 config = None
 state = None
@@ -166,8 +167,10 @@ class Config:
 
     @cmdutils.register(name='get', instance='config', completion=['setting'],
                        split_args=False)
-    def get_wrapper(self, sectopt):
-        """Wrapper for the get-command to have section/option in one arg.
+    def get_wrapper(self, secopt):
+        """Get the value from a section/option.
+
+        Wrapper for the get-command to have section/option in one arg.
 
         Arguments:
             secopt: Section and option, delimited by a space.
@@ -176,7 +179,10 @@ class Config:
             The value of the section/option.
 
         """
-        return self.get(*sectopt.split())
+        sect, opt = secopt.split()
+        val = self.get(sect, opt)
+        message.info("{} {} = {}".format(sect, opt, val))
+
 
     def get(self, section, option, fallback=_UNSET, raw=False):
         """Get the value from a section/option.
