@@ -97,7 +97,7 @@ class KeyValue:
         """Initialize the values from a configparser section."""
         for k, v in sect.items():
             logging.debug("'{}' = '{}'".format(k, v))
-            self.values[k].rawvalue = v
+            self.values[k].value = v
 
 
 class ValueList:
