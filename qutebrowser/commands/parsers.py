@@ -208,10 +208,10 @@ class CommandParser:
         try:
             self.parse(text)
             self._check()
-        except ArgumentCountError:
+        except ArgumentCountError as e:
             if ignore_exc:
-                message.error("{}: invalid argument count".format(
-                    self._cmd.name))
+                message.error("{}: invalid argument count - {}".format(
+                    self._cmd.name, str(e)))
                 return False
             else:
                 raise
