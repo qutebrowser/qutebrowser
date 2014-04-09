@@ -105,7 +105,7 @@ class StatusBar(QWidget):
         self._hide_cmd_widget()
 
         self._hbox.addLayout(self._stack)
-        self._hbox.addStretch()
+        #self._hbox.addStretch()
 
         self.keystring = _KeyString(self)
         self._hbox.addWidget(self.keystring)
