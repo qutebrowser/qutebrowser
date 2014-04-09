@@ -220,8 +220,6 @@ class CompletionView(QTreeView):
 
         text = text.lstrip(':')
         parts = split_cmdline(text)
-        if text.endswith(' '):
-            parts.append('')
 
         model = self._get_new_completion(parts)
         if model != self._lastmodel:

@@ -240,4 +240,6 @@ def split_cmdline(text):
         parts = parser.parse(text)
     except NoSuchCommandError:
         parts = text.split(' ')
+    if text.endswith(' '):
+        parts.append('')
     return parts
