@@ -34,6 +34,8 @@ from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
 
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
+from qutebrowser.commands.parsers import CommandParser
+from qutebrowser.commands.exceptions import NoSuchCommandError
 from qutebrowser.config.style import get_stylesheet
 from qutebrowser.models.completionfilter import CompletionFilterModel
 from qutebrowser.models.commandcompletion import CommandCompletionModel
@@ -218,7 +220,12 @@ class CompletionView(QTreeView):
             return
 
         text = text.lstrip(':')
-        parts = text.split(' ')  # FIXME what about commands which use shutil?
+        parser = CommandParser()
+        try:
+            parts = parser.parse(text)
+        except NoSuchCommandError:
+            parts = text.split(' ')
+        logging.debug("parts: {}".format(parts))
 
         model = self._get_new_completion(parts)
         if model != self._lastmodel:

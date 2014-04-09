@@ -129,7 +129,7 @@ class CommandParser(QObject):
         self._cmd = None
         self._args = []
 
-    def _parse(self, text, aliases=True):
+    def parse(self, text, aliases=True):
         """Split the commandline text into command and arguments.
 
         Args:
@@ -138,6 +138,9 @@ class CommandParser(QObject):
 
         Raise:
             NoSuchCommandError if a command wasn't found.
+
+        Return:
+            The parts list.
 
         """
         parts = text.strip().split(maxsplit=1)
@@ -150,7 +153,7 @@ class CommandParser(QObject):
             except KeyError:
                 pass
             else:
-                return self._parse(alias, aliases=False)
+                return self.parse(alias, aliases=False)
         try:
             cmd = cmdutils.cmd_dict[cmdstr]
         except KeyError:
@@ -164,6 +167,7 @@ class CommandParser(QObject):
             args = [parts[1]]
         self._cmd = cmd
         self._args = args
+        return parts
 
     def _check(self):
         """Check if the argument count for the command is correct."""
@@ -211,7 +215,7 @@ class CommandParser(QObject):
                 retvals.append(self.run(sub, count, ignore_exc))
             return all(retvals)
         try:
-            self._parse(text)
+            self.parse(text)
             self._check()
         except ArgumentCountError:
             if ignore_exc:
