@@ -28,7 +28,7 @@ import os.path
 import logging
 import textwrap
 import configparser
-from configparser import ConfigParser, ExtendedInterpolation
+from configparser import ConfigParser, ExtendedInterpolation, NoSectionError
 
 #from qutebrowser.utils.misc import read_file
 import qutebrowser.config.configdata as configdata
@@ -212,6 +212,35 @@ class Config:
             logging.debug("interpolated val: {}".format(newval))
             newval = val.typ.transform(newval)
             return newval
+
+    # FIXME completion for values
+    @cmdutils.register(name='set', instance='config', completion=['setting'],
+                       split_args=False, nargs=(3,3))
+    def set_wrapper(self, secopt, val):
+        """Set the value for a section/option.
+
+        Wrapper for the set-command to have section/option in one arg.
+
+        Arguments:
+            secopt: Section and option, delimited by a space.
+
+        """
+        sect, opt = secopt.split()
+        self.set(sect, opt, val)
+
+    def set(self, section, option, value):
+        """Set an option."""
+        if value:
+            value = self._interpolation.before_set(self, section, option,
+                                                   value)
+        if not section or section == self.default_section:
+            sectdict = self._defaults
+        else:
+            try:
+                sectdict = self._sections[section]
+            except KeyError:
+                raise NoSectionError(section)
+        sectdict[self.optionxform(option)] = value
 
     def save(self):
         """Save the config file."""
