@@ -20,6 +20,8 @@
 import logging
 from PyQt5.QtCore import Qt, QVariant, QAbstractItemModel, QModelIndex
 
+ROLE_MARKS = Qt.UserRole
+ROLE_FULLTEXT = Qt.UserRole + 1
 
 class CompletionModel(QAbstractItemModel):
 
@@ -92,23 +94,41 @@ class CompletionModel(QAbstractItemModel):
                 idx = self.index(k, 0, cat)
                 old = self.data(idx).value()
                 marks = self._get_marks(needle, old)
-                self.setData(idx, marks, Qt.UserRole)
+                self.setData(idx, marks, ROLE_MARKS)
 
-    def init_data(self, data):
-        """Initialize the Qt model based on the data given.
+    def new_category(self, name):
+        """Add a new category to the model.
 
         Args:
-            data: dict of data to process.
+            name: The name of the category to add.
+
+        Return:
+            The created CompletionItem.
 
         """
-        for (cat, items) in data.items():
-            newcat = CompletionItem([cat], self._root)
-            self._id_map[id(newcat)] = newcat
-            self._root.children.append(newcat)
-            for item in items:
-                newitem = CompletionItem(item, newcat)
-                self._id_map[id(newitem)] = newitem
-                newcat.children.append(newitem)
+        cat = CompletionItem([name], self._root)
+        self._id_map[id(cat)] = cat
+        self._root.children.append(cat)
+        return cat
+
+    def new_item(self, cat, name, desc, completion=None):
+        """Add a new item to a category.
+
+        Args:
+            cat: The parent category.
+            name: The name of the item.
+            desc: The description of the item.
+            completion: The long text to insert for a completion.
+                        None if it's the same as name.
+
+        Return:
+            The created CompletionItem.
+
+        """
+        item = CompletionItem((name, desc), parent=cat, fulltext=completion)
+        self._id_map[id(item)] = item
+        cat.children.append(item)
+        return item
 
     def removeRows(self, position=0, count=1, parent=QModelIndex()):
         """Remove rows from the model.
@@ -171,7 +191,7 @@ class CompletionModel(QAbstractItemModel):
 
         Args:
             index: The QModelIndex for which to get data for.
-            roel: The role to use for the data.
+            role: The role to use for the data.
 
         Return:
             The data as QVariant or an invalid QVariant on error.
@@ -334,21 +354,25 @@ class CompletionItem():
         children: The children of this item.
         _data: The data of this item.
         _marks: The marks of this item.
+        _fulltext: The full text to insert when completing.
+                   None if _data[0] already is the full text.
 
     """
 
-    def __init__(self, data, parent=None):
+    def __init__(self, data, parent=None, fulltext=None):
         """Constructor for CompletionItem.
 
         Args:
             data: The data for the model, as tuple (columns).
             parent: An optional parent item.
+            fulltext: The full text to insert when completing.
 
         """
         self.parent = parent
         self.children = []
         self._data = data
         self._marks = []
+        self._fulltext = fulltext
 
     def data(self, column, role=Qt.DisplayRole):
         """Get the data for role/column.
@@ -366,8 +390,10 @@ class CompletionItem():
         """
         if role == Qt.DisplayRole:
             return self._data[column]
-        elif role == Qt.UserRole:
+        elif role == ROLE_MARKS:
             return self._marks
+        elif role == ROLE_FULLTEXT:
+            return self._fulltext
         else:
             raise ValueError("Invalid role {}".format(role))
 
@@ -385,8 +411,10 @@ class CompletionItem():
         """
         if role == Qt.DisplayRole:
             self._data[column] = value
-        elif role == Qt.UserRole:
+        elif role == ROLE_MARKS:
             self._marks = value
+        elif role == ROLE_FULLTEXT:
+            self._fulltext = value
         else:
             raise ValueError("Invalid role {}".format(role))
 

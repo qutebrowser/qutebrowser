@@ -34,6 +34,7 @@ from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
 
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
+from qutebrowser.models.completion import ROLE_MARKS, ROLE_FULLTEXT
 from qutebrowser.config.style import get_stylesheet
 from qutebrowser.commands.parsers import split_cmdline
 from qutebrowser.models.completionfilter import CompletionFilterModel
@@ -48,7 +49,7 @@ class CompletionView(QTreeView):
     Based on QTreeView but heavily customized so root elements show as category
     headers, and children show as flat list.
 
-    Highlights completions based on marks in the UserRole.
+    Highlights completions based on marks in the ROLE_MARKS data.
 
     Attributes:
         _model: The currently active filter model.
@@ -259,10 +260,12 @@ class CompletionView(QTreeView):
         idx = self._next_idx(shift)
         self.selectionModel().setCurrentIndex(
             idx, QItemSelectionModel.ClearAndSelect)
-        data = self._model.data(idx)
+        data = self._model.data(idx, role=ROLE_FULLTEXT)
+        if data is None:
+            data = self._model.data(idx)
         if data is not None:
             self._ignore_next = True
-            self.change_completed_part.emit(self._model.data(idx))
+            self.change_completed_part.emit(data)
 
 
 class _CompletionItemDelegate(QStyledItemDelegate):
@@ -407,7 +410,7 @@ class _CompletionItemDelegate(QStyledItemDelegate):
         self._doc.setDocumentMargin(2)
 
         if index.column() == 0:
-            marks = index.data(Qt.UserRole)
+            marks = index.data(ROLE_MARKS)
             for mark in marks:
                 cur = QTextCursor(self._doc)
                 cur.setPosition(mark[0])

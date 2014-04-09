@@ -164,7 +164,20 @@ class Config:
         """Returns True if option is in section."""
         return option in self.config[section]
 
-    @cmdutils.register(instance='config', completion=['setting'])
+    @cmdutils.register(name='get', instance='config', completion=['setting'],
+                       split_args=False)
+    def get_wrapper(self, sectopt):
+        """Wrapper for the get-command to have section/option in one arg.
+
+        Arguments:
+            secopt: Section and option, delimited by a space.
+
+        Return:
+            The value of the section/option.
+
+        """
+        return self.get(*sectopt.split())
+
     def get(self, section, option, fallback=_UNSET, raw=False):
         """Get the value from a section/option.
 

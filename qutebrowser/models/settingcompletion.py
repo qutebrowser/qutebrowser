@@ -17,10 +17,6 @@
 
 """A CompletionModel filled with settings and their descriptions."""
 
-import logging
-
-from collections import OrderedDict
-
 from qutebrowser.models.completion import CompletionModel
 from qutebrowser.config.configdata import configdata
 
@@ -33,11 +29,8 @@ class SettingCompletionModel(CompletionModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        data = OrderedDict()
         for secname, secdata in configdata().items():
-            newdata = []
+            cat = self.new_category(secname)
             for name in secdata.values.keys():
-                newdata.append((name, secdata.descriptions[name]))
-            data[secname] = newdata
-        logging.debug("Setting data: {}".format(data))
-        self.init_data(data)
+                self.new_item(cat, name, secdata.descriptions[name],
+                              '{} {}'.format(secname, name))
