@@ -85,6 +85,8 @@ class register:
             mainname = name[0]
             names += name
         count, nargs = self._get_nargs_count(func)
+        if self.nargs is not None:
+            nargs = self.nargs
         desc = func.__doc__.splitlines()[0].strip().rstrip('.')
         cmd = Command(name=mainname, split_args=self.split_args,
                       hide=self.hide, nargs=nargs, count=count, desc=desc,
