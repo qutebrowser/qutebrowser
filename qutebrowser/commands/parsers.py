@@ -232,3 +232,21 @@ class CommandParser(QObject):
                 raise
         self._run(count=count)
         return True
+
+
+def split_cmdline(text):
+    """Split a commandline into it's logical parts.
+
+    Arguments:
+        text: The string to split.
+
+    Return:
+        A list of strings.
+
+    """
+    parser = CommandParser()
+    try:
+        parts = parser.parse(text)
+    except NoSuchCommandError:
+        parts = text.split(' ')
+    return parts
