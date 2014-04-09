@@ -1,12 +1,10 @@
 New config TODO
 ===============
 
-- How to handle interpolation correctly? Maybe we really should handle interpolation ourselves?
-  Main problem: When re-writing the value, we don't know about the interpolation anymore, so we write the wrong value.
-- Tabbing through setting completion does not work
 - Changing models is awfully slow
 - Add correctly working :get and :set commands
 - Implement different layers of config options correctly, not only default.
+- When cmd string ends with space, the next model should be shown
 
 Bugs
 ====
