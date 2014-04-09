@@ -27,10 +27,6 @@ class MessageBridge(QObject):
     error = pyqtSignal(str)
     info = pyqtSignal(str)
 
-    def __init__(self, parent=None):
-        print("=====> initializing bridge")
-        super().__init__(parent)
-
 
 bridge = None
 
