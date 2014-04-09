@@ -377,7 +377,7 @@ class _Command(QLineEdit):
         self.show_cmd.emit()
 
     @pyqtSlot(str)
-    def on_change_completed_part(self, text):
+    def on_change_completed_part(self, newtext):
         """Change the part we're currently completing in the commandline.
 
         Args:
@@ -385,9 +385,15 @@ class _Command(QLineEdit):
 
         """
         # FIXME we should consider the cursor position.
-        parts = split_cmdline(self.text())
-        parts[-1] = text
-        self.setText(':' + ' '.join(parts))
+        text = self.text()
+        if text[0] in ':/?':
+            prefix = text[0]
+            text = text[1:]
+        else:
+            prefix = ''
+        parts = split_cmdline(text)
+        parts[-1] = newtext
+        self.setText(prefix + ' '.join(parts))
         self.setFocus()
         self.show_cmd.emit()
 
