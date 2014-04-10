@@ -157,6 +157,17 @@ class ValueList:
         except KeyError:
             return self.default[key]
 
+    def __setitem__(self, key, value):
+        """Set the value for key.
+
+        Args:
+            key: The key to set the value for, as a string.
+            value: The value to set, as a string
+
+        """
+        valtype = self.types[1]
+        self.values[key] = conftypes.SettingValue(valtype, value)
+
     def __iter__(self):
         """Iterate over all set values."""
         # FIXME using a custon iterator this could be done more efficiently
