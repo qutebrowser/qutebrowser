@@ -34,6 +34,7 @@ from configparser import ConfigParser, ExtendedInterpolation
 import qutebrowser.config.configdata as configdata
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.message as message
+from qutebrowser.config.conftypes import ValidationError
 
 config = None
 state = None
@@ -249,7 +250,7 @@ class Config:
         # FIXME completion for values
         try:
             self.set(section, option, value)
-        except (NoOptionError, NoSectionError) as e:
+        except (NoOptionError, NoSectionError, ValidationError) as e:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
     def set(self, section, option, value):

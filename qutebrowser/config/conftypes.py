@@ -22,7 +22,8 @@ class ValidationError(ValueError):
 
     """Exception raised when a value for a config type was invalid."""
 
-    pass
+    def __init__(self, value, msg):
+        super().__init__('Invalid value "{}" - {}'.format(value, msg))
 
 
 class ValidValues:
@@ -99,6 +100,7 @@ class SettingValue:
     @value.setter
     def value(self, val):
         """Set the currently valid value."""
+        self.typ.validate(val)
         self.rawvalue = val
 
 
@@ -149,7 +151,8 @@ class BaseType:
         """
         if self.valid_values is not None:
             if value not in self.valid_values:
-                raise ValidationError
+                raise ValidationError(value, "valid values: {}".format(
+                    ','.join(self.valid_values)))
             else:
                 return
         else:
@@ -182,7 +185,7 @@ class Bool(BaseType):
 
     def validate(self, value):
         if value.lower() not in self._BOOLEAN_STATES:
-            raise ValidationError
+            raise ValidationError(value, "must be a boolean!")
 
 
 class Int(BaseType):
@@ -198,7 +201,7 @@ class Int(BaseType):
         try:
             int(value)
         except ValueError:
-            raise ValidationError
+            raise ValidationError(value, "must be an integer!")
 
 
 class List(BaseType):
@@ -228,7 +231,7 @@ class IntList(List):
         try:
             self.transform(value)
         except ValueError:
-            raise ValidationError
+            raise ValidationError(value, "must be a list of integers!")
 
 
 class PercOrInt(BaseType):
@@ -240,18 +243,19 @@ class PercOrInt(BaseType):
             try:
                 intval = int(value.rstrip('%'))
             except ValueError:
-                raise ValidationError
+                raise ValidationError(value, "invalid percentage!")
             else:
                 if not 0 <= intval <= 100:
-                    raise ValidationError
+                    raise ValidationError(value, "percentage needs to be >= 0 "
+                                          "and <= 100!")
         else:
             try:
                 intval = int(value)
             except ValueError:
-                raise ValidationError
+                raise ValidationError(value, "must be integer or percentage!")
             else:
                 if intval < 0:
-                    raise ValidationError
+                    raise ValidationError(value, "must be >= 0")
 
 
 class Command(BaseType):
@@ -271,7 +275,7 @@ class Command(BaseType):
         #try:
         #    cp.parse(value)
         #except NoSuchCommandError:
-        #    raise ValidationError
+        #    raise ValidationError(value, "must be a valid command!")
         pass
 
 
