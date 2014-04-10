@@ -181,10 +181,10 @@ class Bool(BaseType):
                        '0': False, 'no': False, 'false': False, 'off': False}
 
     def transform(self, value):
-        return self._BOOLEAN_STATES[value.lower()]
+        return Bool._BOOLEAN_STATES[value.lower()]
 
     def validate(self, value):
-        if value.lower() not in self._BOOLEAN_STATES:
+        if value.lower() not in Bool._BOOLEAN_STATES:
             raise ValidationError(value, "must be a boolean!")
 
 
