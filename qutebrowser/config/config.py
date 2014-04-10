@@ -240,8 +240,18 @@ class Config:
             The changed config part as string.
 
         """
-        # FIXME to be implemented
-        pass
+        lines = []
+        for secname, section in self.config.items():
+            changed_opts = []
+            for optname, option in section.items():
+                if (option.rawvalue is not None and
+                        option.rawvalue != option.default):
+                    keyval = '{} = {}'.format(optname, option)
+                    changed_opts.append(keyval)
+            if changed_opts:
+                lines.append('[{}]'.format(secname))
+                lines += changed_opts
+        return '\n'.join(lines)
 
     def optionxform(self, val):
         """Implemented to be compatible with ConfigParser interpolation."""

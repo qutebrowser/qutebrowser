@@ -79,7 +79,7 @@ class SettingValue:
 
         """
         self.typ = typ()
-        self._rawvalue = None
+        self.rawvalue = None
         self.default = default
 
     def __str__(self):
@@ -94,12 +94,12 @@ class SettingValue:
     @property
     def value(self):
         """Get the currently valid value."""
-        return self._rawvalue if self._rawvalue is not None else self.default
+        return self.rawvalue if self.rawvalue is not None else self.default
 
     @value.setter
     def value(self, val):
         """Set the currently valid value."""
-        self._rawvalue = val
+        self.rawvalue = val
 
 
 class BaseType:
