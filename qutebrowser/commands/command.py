@@ -80,10 +80,14 @@ class Command(QObject):
         if self.nargs[0] <= len(args) <= self.nargs[1]:
             pass
         else:
-            raise ArgumentCountError("{}-{} args expected, but got {}".format(
-                self.nargs[0],
-                self.nargs[1] if self.nargs[1] is not None else 'inf',
-                len(args)))
+            if self.nargs[0] == self.nargs[1]:
+                argcnt = str(self.nargs[0])
+            elif self.nargs[1] is None:
+                argcnt = '{}-inf'.format(self.nargs[0])
+            else:
+                argcnt = '{}-{}'.format(self.nargs[0], self.nargs[1])
+            raise ArgumentCountError("{} args expected, but got {}".format(
+                argcnt, len(args)))
 
     def run(self, args=None, count=None):
         """Run the command.
