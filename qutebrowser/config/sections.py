@@ -113,7 +113,8 @@ class ValueList:
     Attributes:
         values: An OrderedDict with key as index and value as value.
         default: An OrderedDict with the default configuration as strings.
-        types: A tuple for (keytype, valuetype)
+        keytype: The type to use for the key (only used for validating)
+        valtype: The type to use for the value.
         valdict: The "true value" dict.
         #descriptions: A dict with the description strings for the keys.
         #              Currently a global empty dict to be compatible with
@@ -121,14 +122,10 @@ class ValueList:
 
     """
 
-    values = None
-    default = None
-    types = None
-    #descriptions = {}
-
     def __init__(self, keytype, valtype, *defaults):
         """Wrap types over default values. Take care when overriding this."""
-        self.types = (keytype, valtype)
+        self.keytype = keytype
+        self.valtype = valtype
         self.values = OrderedDict()
         self.default = OrderedDict(
             [(key, conftypes.SettingValue(valtype, value))
@@ -165,8 +162,8 @@ class ValueList:
             value: The value to set, as a string
 
         """
-        valtype = self.types[1]
-        self.values[key] = conftypes.SettingValue(valtype, value)
+        self.values[key] = conftypes.SettingValue(self.valtype)
+        self.values[key].value = value
 
     def __iter__(self):
         """Iterate over all set values."""
@@ -191,9 +188,9 @@ class ValueList:
 
     def from_cp(self, sect):
         """Initialize the values from a configparser section."""
-        keytype = self.types[0]()
-        valtype = self.types[1]()
+        keytype = self.keytype()
+        valtype = self.valtype()
         for k, v in sect.items():
             keytype.validate(k)
             valtype.validate(v)
-            self.values[k] = conftypes.SettingValue(self.types[1], v)
+            self.values[k] = conftypes.SettingValue(self.valtype, v)

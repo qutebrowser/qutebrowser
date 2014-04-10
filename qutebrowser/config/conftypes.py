@@ -70,7 +70,7 @@ class SettingValue:
 
     """
 
-    def __init__(self, typ, default):
+    def __init__(self, typ, default=None):
         """Constructor.
 
         Args:
