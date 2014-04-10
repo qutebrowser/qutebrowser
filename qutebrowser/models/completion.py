@@ -21,7 +21,6 @@ import logging
 from PyQt5.QtCore import Qt, QVariant, QAbstractItemModel, QModelIndex
 
 ROLE_MARKS = Qt.UserRole
-ROLE_FULLTEXT = Qt.UserRole + 1
 
 
 class CompletionModel(QAbstractItemModel):
@@ -112,21 +111,19 @@ class CompletionModel(QAbstractItemModel):
         self._root.children.append(cat)
         return cat
 
-    def new_item(self, cat, name, desc, completion=None):
+    def new_item(self, cat, name, desc=""):
         """Add a new item to a category.
 
         Args:
             cat: The parent category.
             name: The name of the item.
             desc: The description of the item.
-            completion: The long text to insert for a completion.
-                        None if it's the same as name.
 
         Return:
             The created CompletionItem.
 
         """
-        item = CompletionItem((name, desc), parent=cat, fulltext=completion)
+        item = CompletionItem((name, desc), parent=cat)
         self._id_map[id(item)] = item
         cat.children.append(item)
         return item
@@ -355,25 +352,21 @@ class CompletionItem():
         children: The children of this item.
         _data: The data of this item.
         _marks: The marks of this item.
-        _fulltext: The full text to insert when completing.
-                   None if _data[0] already is the full text.
 
     """
 
-    def __init__(self, data, parent=None, fulltext=None):
+    def __init__(self, data, parent=None):
         """Constructor for CompletionItem.
 
         Args:
             data: The data for the model, as tuple (columns).
             parent: An optional parent item.
-            fulltext: The full text to insert when completing.
 
         """
         self.parent = parent
         self.children = []
         self._data = data
         self._marks = []
-        self._fulltext = fulltext
 
     def data(self, column, role=Qt.DisplayRole):
         """Get the data for role/column.
@@ -393,8 +386,6 @@ class CompletionItem():
             return self._data[column]
         elif role == ROLE_MARKS:
             return self._marks
-        elif role == ROLE_FULLTEXT:
-            return self._fulltext
         else:
             raise ValueError("Invalid role {}".format(role))
 
@@ -414,8 +405,6 @@ class CompletionItem():
             self._data[column] = value
         elif role == ROLE_MARKS:
             self._marks = value
-        elif role == ROLE_FULLTEXT:
-            self._fulltext = value
         else:
             raise ValueError("Invalid role {}".format(role))
 

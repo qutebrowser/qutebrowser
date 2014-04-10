@@ -165,24 +165,23 @@ class Config:
         """Return True if option is in section."""
         return option in self.config[section]
 
-    @cmdutils.register(name='get', instance='config', completion=['setting'],
-                       split_args=False)
-    def get_wrapper(self, secopt):
+    @cmdutils.register(name='get', instance='config',
+                       completion=['section', 'option'])
+    def get_wrapper(self, section, option):
         """Get the value from a section/option.
 
-        Wrapper for the get-command to have section/option in one arg.
+        Wrapper for the get-command to output the value in the status bar
 
         Arguments:
-            secopt: Section and option, delimited by a space.
+            section: Section to get the value from
+            option: The option to get.
 
         Return:
-            The value of the section/option.
+            The value of the option.
 
         """
-        sect, opt = secopt.split()
-        val = self.get(sect, opt)
-        message.info("{} {} = {}".format(sect, opt, val))
-
+        val = self.get(section, option)
+        message.info("{} {} = {}".format(section, option, val))
 
     def get(self, section, option, fallback=_UNSET, raw=False):
         """Get the value from a section/option.
@@ -213,22 +212,9 @@ class Config:
             newval = val.typ.transform(newval)
             return newval
 
-    # FIXME completion for values
-    @cmdutils.register(name='set', instance='config', completion=['setting'],
-                       split_args=False, nargs=(3,3))
-    def set_wrapper(self, secopt, val):
-        """Set the value for a section/option.
-
-        Wrapper for the set-command to have section/option in one arg.
-
-        Arguments:
-            secopt: Section and option, delimited by a space.
-
-        """
-        sect, opt = secopt.split()
-        self.set(sect, opt, val)
-
+    @cmdutils.register(instance='config', completion=['section', 'option'])
     def set(self, section, option, value):
+        # FIXME completion for values
         """Set an option."""
         if value:
             value = self._interpolation.before_set(self, section, option,

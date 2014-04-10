@@ -15,22 +15,38 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""A CompletionModel filled with settings and their descriptions."""
+"""CompletionModels for settings/sections."""
 
 from qutebrowser.models.completion import CompletionModel
 from qutebrowser.config.configdata import configdata
 
 
-class SettingCompletionModel(CompletionModel):
+class SettingSectionCompletionModel(CompletionModel):
 
-    """A CompletionModel filled with settings and their descriptions."""
+    """A CompletionModel filled with settings sections."""
 
     # pylint: disable=abstract-method
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        for secname, secdata in configdata().items():
-            cat = self.new_category(secname)
-            for name in secdata.values.keys():
-                self.new_item(cat, name, secdata.descriptions[name],
-                              '{} {}'.format(secname, name))
+        cat = self.new_category("Config sections")
+        for name in configdata().keys():
+            self.new_item(cat, name )
+
+
+class SettingOptionCompletionModel(CompletionModel):
+
+    """A CompletionModel filled with settings and their descriptions."""
+
+    # pylint: disable=abstract-method
+
+    def __init__(self, section, parent=None):
+        super().__init__(parent)
+        cat = self.new_category("Config options for {}".format(section))
+        sectdata = configdata()[section]
+        for name, _ in sectdata.items():
+            try:
+                desc = sectdata.descriptions[name]
+            except (KeyError, AttributeError):
+                desc = ""
+            self.new_item(cat, name, desc)
