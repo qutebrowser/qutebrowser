@@ -57,10 +57,7 @@ class register:
         self.name = name
         self.split_args = split_args
         self.hide = hide
-        if isinstance(nargs, Iterable) or nargs is None:
-            self.nargs = nargs
-        else:
-            self.nargs = (nargs, nargs)
+        self.nargs = nargs
         self.instance = instance
         self.completion = completion
 
@@ -89,8 +86,6 @@ class register:
             mainname = name[0]
             names += name
         count, nargs = self._get_nargs_count(func)
-        if self.nargs is not None:
-            nargs = self.nargs
         desc = func.__doc__.splitlines()[0].strip().rstrip('.')
         cmd = Command(name=mainname, split_args=self.split_args,
                       hide=self.hide, nargs=nargs, count=count, desc=desc,
@@ -142,5 +137,5 @@ class register:
             if spec.varargs is not None:
                 maxargs = None
             else:
-                maxargs = len(spec.args) - int(count)  # -1 if count is defined
+                maxargs = argcount - int(count)  # -1 if count is defined
         return (count, (minargs, maxargs))

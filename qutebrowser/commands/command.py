@@ -77,7 +77,9 @@ class Command(QObject):
             ArgumentCountError if the argument count is wrong.
 
         """
-        if self.nargs[0] <= len(args) <= self.nargs[1]:
+        if self.nargs[1] is None and self.nargs[0] <= len(args):
+            pass
+        elif self.nargs[0] <= len(args) <= self.nargs[1]:
             pass
         else:
             if self.nargs[0] == self.nargs[1]:
