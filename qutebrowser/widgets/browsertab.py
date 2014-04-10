@@ -56,7 +56,6 @@ class BrowserTab(QWebView):
         linkHovered: QWebPages linkHovered signal exposed.
         temp_message: Show a temporary message in the statusbar.
                       arg: Message to be shown.
-
     """
 
     scroll_pos_changed = pyqtSignal(int, int)
@@ -93,7 +92,6 @@ class BrowserTab(QWebView):
 
         Emit:
             titleChanged and urlChanged
-
         """
         u = urlutils.fuzzy_url(url)
         logging.debug('New title: {}'.format(urlutils.urlstring(u)))
@@ -109,7 +107,6 @@ class BrowserTab(QWebView):
 
         Emit:
             temp_message: Emitted with new zoom level.
-
         """
         level = self._zoom.getitem(offset)
         self.setZoomFactor(float(level) / 100)
@@ -127,7 +124,6 @@ class BrowserTab(QWebView):
 
         Emit:
             open_tab: Emitted if window should be opened in a new tab.
-
         """
         if self._open_new_tab:
             self.open_tab.emit(url)
@@ -143,7 +139,6 @@ class BrowserTab(QWebView):
 
         Args:
             callback: Function to call after shutting down.
-
         """
         self._shutdown_callback = callback
         try:
@@ -176,7 +171,6 @@ class BrowserTab(QWebView):
 
         Args:
             sender: The object which called the callback.
-
         """
         self._destroyed[sender] = True
         dbgout = '\n'.join(['{}: {}'.format(k.__class__.__name__, v)
@@ -200,7 +194,6 @@ class BrowserTab(QWebView):
 
         Emit:
             scroll_pos_changed; If the scroll position changed.
-
         """
         frame = self.page_.mainFrame()
         new_pos = (frame.scrollBarValue(Qt.Horizontal),
@@ -230,7 +223,6 @@ class BrowserTab(QWebView):
 
         Return:
             The superclass event return value.
-
         """
         if e.type() in [QEvent.MouseButtonPress, QEvent.MouseButtonDblClick]:
             self._open_new_tab = (e.button() == Qt.MidButton or

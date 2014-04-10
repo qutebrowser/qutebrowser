@@ -31,7 +31,6 @@ def get_stylesheet(template):
 
     Return:
         The formatted template as string.
-
     """
     global _colordict, _fontdict
     if _colordict is None:
@@ -63,7 +62,6 @@ class ColorDict(dict):
             If the key has a .bg. element in it, return  background-color: X;.
 
             In all other cases, return the plain value.
-
         """
         try:
             val = super().__getitem__(key)
@@ -84,7 +82,6 @@ class ColorDict(dict):
 
         Return:
             A value, or None if the value wasn't found.
-
         """
         try:
             return super().__getitem__(key)
@@ -107,7 +104,6 @@ class FontDict(dict):
             (Color not defined, so no output in the stylesheet)
 
             In all other cases, return font: <value>.
-
         """
         try:
             val = super().__getitem__(key)
@@ -124,7 +120,6 @@ class FontDict(dict):
 
         Return:
             A value, or None if the value wasn't found.
-
         """
         try:
             return super().__getitem__(key)

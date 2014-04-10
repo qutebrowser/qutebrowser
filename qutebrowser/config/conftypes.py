@@ -34,7 +34,6 @@ class ValidValues:
         values: A list with the allowed untransformed values.
         descriptions: A dict with value/desc mappings.
         show: Whether to show the values in the config or not.
-
     """
 
     def __init__(self, *vals, show=True):
@@ -68,7 +67,6 @@ class SettingValue:
         default: Default value if the user has not overridden it, as a string.
         value: (property) The currently valid, most important value.
         rawvalue: The current value as a raw string.
-
     """
 
     def __init__(self, typ, default=None):
@@ -77,7 +75,6 @@ class SettingValue:
         Args:
             typ: The BaseType to use.
             default: Raw value to set.
-
         """
         self.typ = typ()
         self.rawvalue = None
@@ -112,7 +109,6 @@ class BaseType:
         valid_values: Possible values if they can be expressed as a fixed
                       string. ValidValues instance.
         typestr: The name of the type to appear in the config.
-
     """
 
     typestr = None
@@ -130,7 +126,6 @@ class BaseType:
 
         Return:
             The transformed value.
-
         """
         return value
 
@@ -147,7 +142,6 @@ class BaseType:
             ValidationError if the value was invalid.
             NotImplementedError if self.valid_values is not defined and this
             method should be overridden.
-
         """
         if self.valid_values is not None:
             if value not in self.valid_values:

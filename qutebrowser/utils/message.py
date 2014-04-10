@@ -36,7 +36,6 @@ def init():
 
     This needs to be done by hand because the import time is before Qt is ready
     for everything.
-
     """
     global bridge
     bridge = MessageBridge()

@@ -32,7 +32,6 @@ def signal_name(sig):
 
     Return:
         The cleaned up signal name.
-
     """
     m = re.match(r'[0-9]+(.*)\(.*\)', sig.signal)
     return m.group(1)
@@ -47,7 +46,6 @@ def dbg_signal(sig, args):
 
     Return:
         A human-readable string representation of signal/args.
-
     """
     return '{}({})'.format(signal_name(sig), ', '.join(map(str, args)))
 
@@ -59,7 +57,6 @@ class SignalCache(QObject):
     Attributes:
         _uncached: A list of signals which should not be cached.
         _signal_dict: The internal mapping of signals we got.
-
     """
 
     def __init__(self, uncached=None):
@@ -68,7 +65,6 @@ class SignalCache(QObject):
         Args:
             uncached: A list of signal names (as string) which should never be
                       cached.
-
         """
         super().__init__()
         if uncached is None:
@@ -94,7 +90,6 @@ class SignalCache(QObject):
 
         Emit:
             Cached signals.
-
         """
         if not self._signal_needs_caching(sig):
             return

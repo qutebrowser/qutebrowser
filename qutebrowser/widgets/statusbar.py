@@ -56,7 +56,6 @@ class StatusBar(QWidget):
         moved: Emitted when the statusbar has moved, so the completion widget
                can move the the right position.
                arg: The new position.
-
     """
 
     resized = pyqtSignal('QRect')
@@ -131,7 +130,6 @@ class StatusBar(QWidget):
 
         Re-set the stylesheet after setting the value, so everything gets
         updated by Qt properly.
-
         """
         self._error = val
         self.setStyleSheet(get_stylesheet(self._STYLESHEET))
@@ -163,7 +161,6 @@ class StatusBar(QWidget):
 
         Args:
             text: The text to display, or an empty string to clear.
-
         """
         self.txt.temptext = text
 
@@ -178,7 +175,6 @@ class StatusBar(QWidget):
 
         Args:
             e: The original QKeyEvent.
-
         """
         if e.key() in [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta]:
             # Only modifier pressed, don't hide yet.
@@ -193,7 +189,6 @@ class StatusBar(QWidget):
 
         Emit:
             resized: Always emitted.
-
         """
         super().resizeEvent(e)
         self.resized.emit(self.geometry())
@@ -206,7 +201,6 @@ class StatusBar(QWidget):
 
         Emit:
             moved: Always emitted.
-
         """
         super().moveEvent(e)
         self.moved.emit(e.pos())
@@ -236,7 +230,6 @@ class _Command(QLineEdit):
         hide_completion: Emitted when the completion widget should be hidden.
         show_cmd: Emitted when command input should be shown.
         hide_cmd: Emitted when command input can be hidden.
-
     """
 
     # FIXME we should probably use a proper model for the command history.
@@ -292,7 +285,6 @@ class _Command(QLineEdit):
 
         Called when the user presses the up/down key and wasn't browsing the
         history already.
-
         """
         pre = self.text().strip()
         logging.debug('Preset text: "{}"'.format(pre))
@@ -349,7 +341,6 @@ class _Command(QLineEdit):
             got_cmd: If a new cmd was entered.
             got_search: If a new search was entered.
             got_search_rev: If a new reverse search was entered.
-
         """
         signals = {
             ':': self.got_cmd,
@@ -370,7 +361,6 @@ class _Command(QLineEdit):
 
         Args:
             text: The text to set (string).
-
         """
         self.setText(text)
         self.setFocus()
@@ -382,7 +372,6 @@ class _Command(QLineEdit):
 
         Args:
             text: The text to set (string).
-
         """
         # FIXME we should consider the cursor position.
         text = self.text()
@@ -405,7 +394,6 @@ class _Command(QLineEdit):
 
         Emit:
             hide_completion: Always emitted so the completion is hidden.
-
         """
         if e.reason() in [Qt.MouseFocusReason, Qt.TabFocusReason,
                           Qt.BacktabFocusReason, Qt.OtherFocusReason]:
@@ -429,7 +417,6 @@ class _CommandValidator(QValidator):
 
         Return:
             A tuple (status, string, pos) as a QValidator should.
-
         """
         if any(string.startswith(c) for c in keys.STARTCHARS):
             return (QValidator.Acceptable, string, pos)
@@ -443,7 +430,6 @@ class _Progress(QProgressBar):
 
     Attributes:
         _STYLESHEET: The stylesheet template.
-
     """
 
     # FIXME for some reason, margin-left is not shown
@@ -486,7 +472,6 @@ class TextBase(QLabel):
     Attributes:
         _elidemode: Where to elide the text.
         _elided_text: The current elided text.
-
     """
 
     def __init__(self, bar, elidemode=Qt.ElideRight):
@@ -500,7 +485,6 @@ class TextBase(QLabel):
 
         Args:
             width: The maximal width the text should take.
-
         """
         self._elided_text = self.fontMetrics().elidedText(
             self.text(), self._elidemode, width, Qt.TextShowMnemonic)
@@ -517,7 +501,6 @@ class TextBase(QLabel):
 
         Args:
             txt: The text to set (string).
-
         """
         super().setText(txt)
         self._update_elided_text(self.geometry().width())
@@ -555,7 +538,6 @@ class _Text(TextBase):
         when it is set. The temptext is shown when there is no error, and the
         (permanent) text is shown when there is neither a temporary text nor an
         error.
-
     """
 
     def __init__(self, parent=None):
@@ -576,7 +558,6 @@ class _Text(TextBase):
         """Update QLabel text when needed.
 
         Called from __setattr__ if a text property changed.
-
         """
         for text in [self.errortext, self.temptext, self.normaltext]:
             if text:
@@ -619,7 +600,6 @@ class _Percentage(TextBase):
         Args:
             _: The x percentage (int), currently ignored.
             y: The y percentage (int)
-
         """
         if y == 0:
             self.setText('[top]')
@@ -639,7 +619,6 @@ class _Url(TextBase):
         _urltype: The current URL type. One of normal/ok/error/warn/hover.
                   Accessed via the urltype property.
         _STYLESHEET: The stylesheet template.
-
     """
 
     _STYLESHEET = """
@@ -670,7 +649,6 @@ class _Url(TextBase):
         Args:
             bar: The statusbar (parent) object.
             elidemode: How to elide the text.
-
         """
         super().__init__(bar, elidemode)
         self.setObjectName(self.__class__.__name__)
@@ -697,7 +675,6 @@ class _Url(TextBase):
 
         Args:
             ok: Whether loading finished successfully (True) or not (False).
-
         """
         # FIXME: set color to warn if there was an SSL error
         self.urltype = 'success' if ok else 'error'
@@ -708,7 +685,6 @@ class _Url(TextBase):
 
         Args:
             s: The URL to set.
-
         """
         self.setText(urlstring(s))
         self.urltype = 'normal'
@@ -725,7 +701,6 @@ class _Url(TextBase):
             link: The link which was hovered (string)
             title: The title of the hovered link (string)
             text: The text of the hovered link (string)
-
         """
         if link:
             if self._old_url is None:

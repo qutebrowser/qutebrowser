@@ -39,7 +39,6 @@ class CrashDialog(QDialog):
         _hbox: The QHboxLayout containing the buttons
         _btn_quit: The quit button
         _btn_restore: the restore button
-
     """
 
     def __init__(self, pages, cmdhist, exc):
@@ -49,7 +48,6 @@ class CrashDialog(QDialog):
             pages: A list of the open pages (URLs as strings)
             cmdhist: A list with the command history (as strings)
             exc: An exception tuple (type, value, traceback)
-
         """
         super().__init__()
         self.setFixedSize(500, 350)
@@ -99,7 +97,6 @@ class CrashDialog(QDialog):
 
         Return:
             The string to display.
-
         """
         outputs = [
             ('Version info', version()),

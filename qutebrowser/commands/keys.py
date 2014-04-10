@@ -45,7 +45,6 @@ class KeyParser(QObject):
                       arg: Text to set.
         keystring_updated: Emitted when the keystring is updated.
                            arg: New keystring.
-
     """
 
     set_cmd_text = pyqtSignal(str)
@@ -72,7 +71,6 @@ class KeyParser(QObject):
 
         Return:
             True if event has been handled, False otherwise.
-
         """
         MODMASK2STR = {
             Qt.ControlModifier: 'Ctrl',
@@ -112,7 +110,6 @@ class KeyParser(QObject):
 
         Emit:
             set_cmd_text: If the keystring should be shown in the statusbar.
-
         """
         # FIXME maybe we can do this in an easier way by using QKeySeqyence
         # which has a matches method.
@@ -170,7 +167,6 @@ class KeyParser(QObject):
             A tuple (matchtype, hay) where matchtype is MATCH_DEFINITIVE,
             MATCH_PARTIAL or MATCH_NONE and hay is the long keystring where the
             part was found in.
-
         """
         try:
             cmdstr_hay = self._bindings[cmdstr_needle]
@@ -196,7 +192,6 @@ class KeyParser(QObject):
 
         Return:
             The normalized keystring.
-
         """
         replacements = [
             ('Control', 'Ctrl'),
@@ -222,7 +217,6 @@ class KeyParser(QObject):
         Emit:
             set_cmd_text: If a partial command should be printed to the
                           statusbar.
-
         """
         try:
             self.commandparser.run(cmdstr, count=count, ignore_exc=ignore_exc)
@@ -242,7 +236,6 @@ class KeyParser(QObject):
 
         Args:
             sect: The section to get the keybindings from.
-
         """
         for (key, cmd) in sect.items():
             if key.startswith('@') and key.endswith('@'):
@@ -263,7 +256,6 @@ class KeyParser(QObject):
 
         Emit:
             keystring_updated: If a new keystring should be set.
-
         """
         handled = self._handle_modifier_key(e)
         if not handled:

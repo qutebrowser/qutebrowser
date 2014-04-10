@@ -18,7 +18,6 @@
 """Qt style to remove Ubuntu focus rectangle uglyness.
 
 We might also use this to do more in the future.
-
 """
 
 import functools
@@ -40,7 +39,6 @@ class Style(QCommonStyle):
 
     Attributes:
         _style: The base/"parent" style.
-
     """
 
     def __init__(self, style):
@@ -50,7 +48,6 @@ class Style(QCommonStyle):
 
         Args:
             style: The base/"parent" style.
-
         """
         self._style = style
         for method in ['drawComplexControl', 'drawControl', 'drawItemPixmap',
@@ -74,7 +71,6 @@ class Style(QCommonStyle):
             option: const QStyleOption * opt
             painter: QPainter * p
             widget: const QWidget * widget
-
         """
         if element == QStyle.PE_FrameFocusRect:
             return

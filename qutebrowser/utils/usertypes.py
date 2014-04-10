@@ -32,7 +32,6 @@ class NeighborList:
         _items: A list of all items, accessed through item property.
         idx: The current position in the list.
         _mode: The current mode.
-
     """
 
     BLOCK = 0
@@ -49,7 +48,6 @@ class NeighborList:
                    BLOCK: Stay on the selected item
                    WRAP: Wrap around to the other end
                    RAISE: Raise an IndexError.
-
         """
         if items is None:
             self._items = []
@@ -78,7 +76,6 @@ class NeighborList:
 
         Raise:
             IndexError if the border of the list is reached and mode is RAISE.
-
         """
         logging.debug("{} items, idx {}, offset {}".format(len(self._items),
                                                            self.idx, offset))

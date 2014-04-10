@@ -51,7 +51,6 @@ def _get_html(title, snippet):
 
     Return:
         HTML content as bytes.
-
     """
     return _HTML_TEMPLATE.format(title=title, body=snippet).encode('UTF-8')
 
@@ -68,7 +67,6 @@ class QuteSchemeHandler(SchemeHandler):
 
         Return:
             The method name qute_*
-
         """
         return url.replace('http://', '').replace('qute:', 'qute_')
 
@@ -82,7 +80,6 @@ class QuteSchemeHandler(SchemeHandler):
 
         Return:
             A QNetworkReply.
-
         """
         # FIXME handle unknown pages
         # FIXME adjust URLutils based on handlers

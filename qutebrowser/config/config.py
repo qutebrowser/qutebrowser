@@ -20,7 +20,6 @@
 This borrows a lot of ideas from configparser, but also has some things that
 are fundamentally different. This is why nothing inherts from configparser, but
 we borrow some methods and classes from there where it makes sense.
-
 """
 
 import os
@@ -63,7 +62,6 @@ def init(configdir):
 
     Args:
         configdir: The directory where the configs are stored in.
-
     """
     global config, state
     logging.debug("Config init, configdir {}".format(configdir))
@@ -85,7 +83,6 @@ class Config:
         _configfile: The config file path.
         _interpolation: An configparser.Interpolation object
         _proxies: configparser.SectionProxy objects for sections.
-
     """
 
     def __init__(self, configdir, fname):
@@ -186,7 +183,6 @@ class Config:
 
         Return:
             True if the option and section exist, False otherwise.
-
         """
         if section not in self.config:
             return False
@@ -201,7 +197,6 @@ class Config:
 
         Return:
             True if the option existed, False otherwise.
-
         """
         try:
             sectdict = self.config[section]
@@ -226,7 +221,6 @@ class Config:
 
         Return:
             The value of the option.
-
         """
         val = self.get(section, option)
         message.info("{} {} = {}".format(section, option, val))
@@ -239,7 +233,6 @@ class Config:
             option: The option name
             fallback: A fallback value.
             raw: Whether to get the uninterpolated, untransformed value.
-
         """
         logging.debug("getting {} -> {}".format(section, option))
         try:
@@ -274,7 +267,6 @@ class Config:
 
         Arguments:
             *args: Get passed to self.set().
-
         """
         # FIXME completion for values
         try:
@@ -309,7 +301,6 @@ class Config:
 
         Return:
             The changed config part as string.
-
         """
         lines = []
         for secname, section in self.config.items():
@@ -336,7 +327,6 @@ class ReadConfigParser(ConfigParser):
     Attributes:
         _configdir: The directory to read the config from.
         _configfile: The config file path.
-
     """
 
     def __init__(self, configdir, fname):
@@ -345,7 +335,6 @@ class ReadConfigParser(ConfigParser):
         Args:
             configdir: Directory to read the config from.
             fname: Filename of the config file.
-
         """
         super().__init__(interpolation=None)
         self.optionxform = lambda opt: opt  # be case-insensitive
@@ -377,7 +366,6 @@ class SectionProxy(MutableMapping):
     Attributes:
         _conf: The Config object.
         _name: The section name.
-
     """
 
     # pylint: disable=redefined-builtin
@@ -388,7 +376,6 @@ class SectionProxy(MutableMapping):
         Arguments:
             conf: The Config object.
             name: The section name.
-
         """
         self._conf = conf
         self._name = name
@@ -429,7 +416,6 @@ class SectionProxy(MutableMapping):
             option: The option name to get.
             fallback: A fallback value.
             raw: Whether to get a raw value or not.
-
         """
         return self._conf.get(self._name, option, raw=raw, fallback=fallback)
 

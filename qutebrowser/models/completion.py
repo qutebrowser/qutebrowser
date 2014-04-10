@@ -33,7 +33,6 @@ class CompletionModel(QAbstractItemModel):
         _id_map: A mapping from Python object IDs (from id()) to objects, to be
                  used as internalIndex for the model.
         _root: The root item.
-
     """
 
     def __init__(self, parent=None):
@@ -51,7 +50,6 @@ class CompletionModel(QAbstractItemModel):
         Return:
             The CompletionItem for index, or the root CompletionItem if the
             index was invalid.
-
         """
         if index.isValid():
             return self._id_map[index.internalId()]
@@ -67,7 +65,6 @@ class CompletionModel(QAbstractItemModel):
 
         Return:
             A list of (startidx, endidx) tuples.
-
         """
         pos1 = pos2 = 0
         marks = []
@@ -86,7 +83,6 @@ class CompletionModel(QAbstractItemModel):
 
         Args:
             needle: The string to mark.
-
         """
         for i in range(self.rowCount()):
             cat = self.index(i, 0)
@@ -104,7 +100,6 @@ class CompletionModel(QAbstractItemModel):
 
         Return:
             The created CompletionItem.
-
         """
         cat = CompletionItem([name], self._root)
         self._id_map[id(cat)] = cat
@@ -121,7 +116,6 @@ class CompletionModel(QAbstractItemModel):
 
         Return:
             The created CompletionItem.
-
         """
         item = CompletionItem((name, desc), parent=cat)
         self._id_map[id(item)] = item
@@ -137,7 +131,6 @@ class CompletionModel(QAbstractItemModel):
             position: The start row to remove.
             count: How many rows to remove.
             parent: The parent QModelIndex.
-
         """
         node = self._node(parent)
         self.beginRemoveRows(parent, position, position + count - 1)
@@ -155,7 +148,6 @@ class CompletionModel(QAbstractItemModel):
 
         Return:
             Column count as an integer.
-
         """
         # pylint: disable=unused-argument
         return self._root.column_count()
@@ -171,7 +163,6 @@ class CompletionModel(QAbstractItemModel):
 
         Return:
             Row count as an integer.
-
         """
         if parent.column() > 0:
             return 0
@@ -193,7 +184,6 @@ class CompletionModel(QAbstractItemModel):
 
         Return:
             The data as QVariant or an invalid QVariant on error.
-
         """
         if not index.isValid():
             return QVariant()
@@ -217,7 +207,6 @@ class CompletionModel(QAbstractItemModel):
 
         Return:
             The data as QVariant or an invalid QVariant on error.
-
         """
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             return QVariant(self._root.data(section))
@@ -238,7 +227,6 @@ class CompletionModel(QAbstractItemModel):
 
         Emit:
             dataChanged when the data was changed.
-
         """
         if not index.isValid():
             return False
@@ -262,7 +250,6 @@ class CompletionModel(QAbstractItemModel):
 
         Return:
             The item flags, or Qt.NoItemFlags on error.
-
         """
         # FIXME categories are not selectable, but moving via arrow keys still
         # tries to select them
@@ -286,7 +273,6 @@ class CompletionModel(QAbstractItemModel):
 
         Return:
             A generated QModelIndex or an invalid QModelIndex on failure.
-
         """
         if parent.model() is not None and parent.model() is not self:
             logging.warn("index() called with wrong parent! - "
@@ -322,7 +308,6 @@ class CompletionModel(QAbstractItemModel):
 
         Return:
             The parent's QModelIndex or an invalid QModelIndex on failure.
-
         """
         if not index.isValid():
             return QModelIndex()
@@ -338,7 +323,6 @@ class CompletionModel(QAbstractItemModel):
 
         Raise:
             NotImplementedError, should be overwritten in a superclass.
-
         """
         raise NotImplementedError
 
@@ -352,7 +336,6 @@ class CompletionItem():
         children: The children of this item.
         _data: The data of this item.
         _marks: The marks of this item.
-
     """
 
     def __init__(self, data, parent=None):
@@ -361,7 +344,6 @@ class CompletionItem():
         Args:
             data: The data for the model, as tuple (columns).
             parent: An optional parent item.
-
         """
         self.parent = parent
         self.children = []
@@ -380,7 +362,6 @@ class CompletionItem():
 
         Raise:
             ValueError if the role is invalid.
-
         """
         if role == Qt.DisplayRole:
             return self._data[column]
@@ -399,7 +380,6 @@ class CompletionItem():
 
         Raise:
             ValueError if the role is invalid.
-
         """
         if role == Qt.DisplayRole:
             self._data[column] = value
@@ -413,7 +393,6 @@ class CompletionItem():
 
         Return:
             The column count.
-
         """
         return len(self._data)
 
@@ -422,7 +401,6 @@ class CompletionItem():
 
         Return:
             The row index of the item, or 0 if we're a root item.
-
         """
         if self.parent:
             return self.parent.children.index(self)

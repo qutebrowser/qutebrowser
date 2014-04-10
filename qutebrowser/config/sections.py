@@ -35,7 +35,6 @@ class KeyValue:
                 key: string
                 value: SettingValue
         descriptions: A dict with the description strings for the keys.
-
     """
 
     def __init__(self, *args):
@@ -45,7 +44,6 @@ class KeyValue:
             *args: Key/Value pairs to set.
                    key: string
                    value: SettingValue
-
         """
         if args:
             self.descriptions = {}
@@ -62,7 +60,6 @@ class KeyValue:
 
         Return:
             The value, as value class.
-
         """
         return self.values[key]
 
@@ -72,7 +69,6 @@ class KeyValue:
         Args:
             key: The key to set the value for, as a string.
             value: The value to set, as a string
-
         """
         self.values[key].value = value
 
@@ -119,7 +115,6 @@ class ValueList:
         #descriptions: A dict with the description strings for the keys.
         #              Currently a global empty dict to be compatible with
         #              KeyValue section.
-
     """
 
     def __init__(self, keytype, valtype, *defaults):
@@ -147,7 +142,6 @@ class ValueList:
 
         Return:
             The value, as value class.
-
         """
         try:
             return self.values[key]
@@ -160,7 +154,6 @@ class ValueList:
         Args:
             key: The key to set the value for, as a string.
             value: The value to set, as a string
-
         """
         self.values[key] = conftypes.SettingValue(self.valtype)
         self.values[key].value = value

@@ -19,7 +19,6 @@
 
 Defines a CompletionView which uses CompletionFiterModel and CompletionModel
 subclasses to provide completions.
-
 """
 
 import logging
@@ -68,7 +67,6 @@ class CompletionView(QTreeView):
     Signals:
         change_completed_part: Text which should be substituted for the word
                                we're currently completing.
-
     """
 
     _STYLESHEET = """
@@ -145,7 +143,6 @@ class CompletionView(QTreeView):
 
         Return:
             A QModelIndex.
-
         """
         idx = self.selectionModel().currentIndex()
         if not idx.isValid():
@@ -166,7 +163,6 @@ class CompletionView(QTreeView):
         """Get a new completion model.
 
         parts: The command chunks to get a completion for.
-
         """
         if len(parts) == 1:
             return 'command'
@@ -196,7 +192,6 @@ class CompletionView(QTreeView):
 
         Args:
             model: An index into self._completion_models.
-
         """
         self._lastmodel = self._model
         m = self._completion_models[model]
@@ -214,7 +209,6 @@ class CompletionView(QTreeView):
 
         Args:
             text: The new text
-
         """
         # FIXME we should also consider the cursor position
         if self._ignore_next:
@@ -263,7 +257,6 @@ class CompletionView(QTreeView):
 
         Emit:
             change_completed_part: When a completion took place.
-
         """
         if not self._completing:
             # No completion running at the moment, ignore keypress
@@ -292,7 +285,6 @@ class _CompletionItemDelegate(QStyledItemDelegate):
         _style: The style to be used.
         _painter: The QPainter to be used.
         _doc: The QTextDocument to be used.
-
     """
 
     # FIXME this is horribly slow when resizing.
@@ -333,7 +325,6 @@ class _CompletionItemDelegate(QStyledItemDelegate):
 
         Args:
             index -- The QModelIndex of the item to draw.
-
         """
         if not self._opt.text:
             return
@@ -381,7 +372,6 @@ class _CompletionItemDelegate(QStyledItemDelegate):
 
         Args:
             text_rect: The QRect to clip the drawing to.
-
         """
         clip = QRectF(0, 0, text_rect.width(), text_rect.height())
         self._doc.drawContents(self._painter, clip)
@@ -391,7 +381,6 @@ class _CompletionItemDelegate(QStyledItemDelegate):
 
         Args:
             index: The QModelIndex of the item to draw.
-
         """
         # FIXME we probably should do eliding here. See
         # qcommonstyle.cpp:viewItemDrawText
@@ -462,7 +451,6 @@ class _CompletionItemDelegate(QStyledItemDelegate):
 
         Return:
             A QSize with the recommended size.
-
         """
         value = index.data(Qt.SizeHintRole)
         if value is not None:
@@ -483,7 +471,6 @@ class _CompletionItemDelegate(QStyledItemDelegate):
             painter: QPainter * painter
             option: const QStyleOptionViewItem & option
             index: const QModelIndex & index
-
         """
         self._painter = painter
         self._painter.save()

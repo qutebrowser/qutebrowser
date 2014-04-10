@@ -31,7 +31,6 @@ def read_file(filename):
 
     Return:
         The file contents as string.
-
     """
     fn = os.path.join(qutebrowser.basedir, filename)
     with open(fn, 'r', encoding='UTF-8') as f:
@@ -47,6 +46,5 @@ def dotted_getattr(obj, path):
 
     Return:
         The object at path.
-
     """
     return reduce(getattr, path.split('.'), obj)

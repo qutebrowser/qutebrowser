@@ -32,7 +32,6 @@ class NetworkManager(QNetworkAccessManager):
         _requests: Pending requests.
         _scheme_handlers: A dictionary (scheme -> handler) of supported custom
                           schemes.
-
     """
 
     def __init__(self, parent=None):
@@ -60,7 +59,6 @@ class NetworkManager(QNetworkAccessManager):
 
         Return:
             A QNetworkReply.
-
         """
         scheme = req.url().scheme()
         logging.debug("new req, scheme {}, handlers {}".format(

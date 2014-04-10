@@ -35,7 +35,6 @@ def set_trace():
     """Set a tracepoint in the Python debugger that works with Qt.
 
     Based on http://stackoverflow.com/a/1745965/2085149
-
     """
     print()
     print("When done debugging, remember to execute:")
@@ -50,7 +49,6 @@ def trace_lines(do_trace):
 
     Args:
         do_trace: Whether to start tracing (True) or stop it (False).
-
     """
     def trace(frame, event, _):
         """Trace function passed to sys.settrace."""

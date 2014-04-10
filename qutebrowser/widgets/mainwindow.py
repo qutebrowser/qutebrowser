@@ -40,7 +40,6 @@ class MainWindow(QWidget):
         tabs: The TabbedBrowser widget.
         status: The StatusBar widget.
         _vbox: The main QVBoxLayout.
-
     """
 
     def __init__(self):
@@ -107,7 +106,6 @@ class MainWindow(QWidget):
 
         Args:
             e: The QResizeEvent
-
         """
         super().resizeEvent(e)
         confheight = str(config.config.get('general', 'completion_height'))

@@ -38,7 +38,6 @@ def _get_search_url(txt):
 
     Raise:
         ValueError if there is no template or no search term was found.
-
     """
     logging.debug('Finding search engine for "{}"'.format(txt))
     r = re.compile(r'(^|\s+)!(\w+)($|\s+)')
@@ -69,7 +68,6 @@ def _is_url_naive(url):
 
     Return:
         True if the url really is an URL, False otherwise.
-
     """
     PROTOCOLS = ['http://', 'https://']
     u = urlstring(url)
@@ -85,7 +83,6 @@ def _is_url_dns(url):
 
     Return:
         True if the url really is an URL, False otherwise.
-
     """
     # FIXME we could probably solve this in a nicer way by attempting to open
     # the page in the webview, and then open the search if that fails.
@@ -109,7 +106,6 @@ def qurl(url):
 
     Return:
         The URL as string.
-
     """
     return url if isinstance(url, QUrl) else QUrl(url)
 
@@ -122,7 +118,6 @@ def urlstring(url):
 
     Return:
         The URL as string
-
     """
     return url.toString() if isinstance(url, QUrl) else url
 
@@ -135,7 +130,6 @@ def fuzzy_url(url):
 
     Return:
         A target QUrl to a searchpage or the original URL.
-
     """
     u = qurl(url)
     urlstr = urlstring(url)
@@ -173,7 +167,6 @@ def is_url(url):
 
     Raise:
         ValueError if the autosearch config value is invalid.
-
     """
     urlstr = urlstring(url)
 

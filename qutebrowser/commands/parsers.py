@@ -41,7 +41,6 @@ class SearchParser(QObject):
         do_search: Emitted when a search should be started.
                    arg 1: Search string.
                    arg 2: Flags to use.
-
     """
 
     do_search = pyqtSignal(str, 'QWebPage::FindFlags')
@@ -60,7 +59,6 @@ class SearchParser(QObject):
 
         Emit:
             do_search: If a search should be started.
-
         """
         if self._text is not None and self._text != text:
             self.do_search.emit('', 0)
@@ -80,7 +78,6 @@ class SearchParser(QObject):
 
         Args:
             text: The text to search for.
-
         """
         self._search(text)
 
@@ -90,7 +87,6 @@ class SearchParser(QObject):
 
         Args:
             text: The text to search for.
-
         """
         self._search(text, rev=True)
 
@@ -102,7 +98,6 @@ class SearchParser(QObject):
 
         Emit:
             do_search: If a search should be started.
-
         """
         if self._text is not None:
             for i in range(count):  # pylint: disable=unused-variable
@@ -116,7 +111,6 @@ class CommandParser:
     Attributes:
         _cmd: The command which was parsed.
         _args: The arguments which were parsed.
-
     """
 
     def __init__(self):
@@ -135,7 +129,6 @@ class CommandParser:
 
         Return:
             A split string commandline, e.g ['open', 'www.google.com']
-
         """
         parts = text.strip().split(maxsplit=1)
         if not parts:
@@ -172,7 +165,6 @@ class CommandParser:
 
         Args:
             count: Count to pass to the command.
-
         """
         if count is not None:
             self._cmd.run(self._args, count=count)
@@ -198,7 +190,6 @@ class CommandParser:
         Return:
             True if command was called (handler returnstatus is ignored!).
             False if command wasn't called (there was an ignored exception).
-
         """
         if ';;' in text:
             retvals = []
@@ -233,7 +224,6 @@ def split_cmdline(text):
 
     Return:
         A list of strings.
-
     """
     parser = CommandParser()
     try:

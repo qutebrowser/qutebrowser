@@ -31,7 +31,6 @@ class TabWidget(QTabWidget):
 
     Attributes:
         _STYLESHEET: The stylesheet template to be used.
-
     """
 
     # FIXME there is still some ugly 1px white stripe from somewhere if we do

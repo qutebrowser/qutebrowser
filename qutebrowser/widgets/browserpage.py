@@ -33,7 +33,6 @@ class BrowserPage(QWebPage):
     Attributes:
         _extension_handlers: Mapping of QWebPage extensions to their handlers.
         network_access_manager: The QNetworkAccessManager used.
-
     """
 
     def __init__(self, parent=None):
@@ -57,7 +56,6 @@ class BrowserPage(QWebPage):
 
         Return:
             False if no error page should be displayed, True otherwise.
-
         """
         info = sip.cast(opt, QWebPage.ErrorPageExtensionOption)
         errpage = sip.cast(out, QWebPage.ErrorPageExtensionReturn)
@@ -79,7 +77,6 @@ class BrowserPage(QWebPage):
 
         Return:
             True if the extension can be handled, False otherwise.
-
         """
         return ext in self._extension_handlers
 
@@ -93,7 +90,6 @@ class BrowserPage(QWebPage):
 
         Return:
             Handler return value.
-
         """
         try:
             handler = self._extension_handlers[ext]

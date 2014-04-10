@@ -35,7 +35,6 @@ def _git_str():
     Return:
         string containing the git commit ID.
         None if there was an error or we're not in a git repo.
-
     """
     if hasattr(sys, "frozen"):
         return None
@@ -59,7 +58,6 @@ def _release_info():
 
     Return:
         list of (filename, content) tuples.
-
     """
     data = []
     for fn in glob.glob("/etc/*-release"):

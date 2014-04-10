@@ -42,7 +42,6 @@ class SchemeHandler(QObject):
         Raise:
             NotImplementedError because this needs to be overwritten by
             subclasses.
-
         """
         raise NotImplementedError
 
@@ -62,7 +61,6 @@ class SpecialNetworkReply(QNetworkReply):
 
         Emit:
             metaDataChanged and readyRead and finished after initializing.
-
         """
         super().__init__(parent)
 
@@ -92,7 +90,6 @@ class SpecialNetworkReply(QNetworkReply):
 
         Return:
             bytes available (int)
-
         """
         return len(self._data) + super().bytesAvailable()
 
@@ -104,7 +101,6 @@ class SpecialNetworkReply(QNetworkReply):
 
         Return:
             bytestring containing the data
-
         """
         len_ = min(maxlen, len(self._data))
         buf = bytes(self._data[:len_])

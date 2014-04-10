@@ -18,7 +18,6 @@
 """Exception classes for commands modules.
 
 Defined here to avoid circular dependency hell.
-
 """
 
 

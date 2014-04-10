@@ -78,7 +78,6 @@ class QuteBrowser(QApplication):
         _timers: List of used QTimers so they don't get GCed.
         _shutting_down: True if we're currently shutting down.
         _quit_status: The current quitting status.
-
     """
 
     def __init__(self):
@@ -142,7 +141,6 @@ class QuteBrowser(QApplication):
 
         Return:
             Argument namespace from argparse.
-
         """
         parser = ArgumentParser("usage: %(prog)s [options]")
         parser.add_argument('-l', '--log', dest='loglevel',
@@ -181,7 +179,6 @@ class QuteBrowser(QApplication):
         """Initialisation of the qutebrowser commands.
 
         Registers all commands, connects its signals, and sets up keyparser.
-
         """
         for key, cmd in sorted(cmdutils.cmd_dict.items()):
             cmd.signal.connect(self.command_handler)
@@ -197,7 +194,6 @@ class QuteBrowser(QApplication):
         """Process initial positional args.
 
         URLs to open have no prefix, commands to execute begin with a colon.
-
         """
         # QNetworkAccessManager::createRequest will hang for over a second, so
         # we make sure the GUI is refreshed here, so the start seems faster.
@@ -223,7 +219,6 @@ class QuteBrowser(QApplication):
         This sets up the uncaught exception hook, quits with an appropriate
         exit status, and handles Ctrl+C properly by passing control to the
         Python interpreter once all 500ms.
-
         """
         signal(SIGINT, lambda *args: self.exit(128 + SIGINT))
         timer = QTimer()
@@ -238,7 +233,6 @@ class QuteBrowser(QApplication):
 
         Return:
             A list of open pages, or an empty list.
-
         """
         pages = []
         if self.mainwindow is None:
@@ -268,7 +262,6 @@ class QuteBrowser(QApplication):
 
         It'll try very hard to write all open tabs to a file, and then exit
         gracefully.
-
         """
         # pylint: disable=broad-except
 
@@ -324,7 +317,6 @@ class QuteBrowser(QApplication):
 
         Args:
             The sender of the quit signal (string)
-
         """
         self._quit_status[sender] = True
         logging.debug("maybe_quit called from {}, quit status {}".format(
@@ -341,7 +333,6 @@ class QuteBrowser(QApplication):
 
         Args:
             s: The string to evaluate.
-
         """
         try:
             r = eval(s)
@@ -359,7 +350,6 @@ class QuteBrowser(QApplication):
 
         Raises:
             Always raises Exception.
-
         """
         raise Exception("Forced crash")
 
@@ -373,7 +363,6 @@ class QuteBrowser(QApplication):
 
         Args:
             do_quit: Whether to quit after shutting down.
-
         """
         if self._shutting_down:
             return
@@ -406,7 +395,6 @@ class QuteBrowser(QApplication):
         """Quit application after a shutdown.
 
         Gets called when all tabs finished shutting down after shutdown().
-
         """
         logging.debug("Shutdown complete, quitting.")
         self.quit()
@@ -423,7 +411,6 @@ class QuteBrowser(QApplication):
                 func:     The function name to be called (as string).
                 count:    The count given to the command, or None.
                 args:     A list of arguments given to the command.
-
         """
         (instance, func, count, args) = tpl
         if instance == '':

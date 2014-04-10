@@ -41,7 +41,6 @@ class register:
         hide: Whether to hide the command or not.
         completion: Which completion to use for arguments, as a list of
                     strings.
-
     """
 
     def __init__(self, instance=None, name=None, nargs=None, split_args=True,
@@ -52,7 +51,6 @@ class register:
 
         Arguments:
             See class attributes.
-
         """
         self.name = name
         self.split_args = split_args
@@ -74,7 +72,6 @@ class register:
 
         Return:
             The original function (unmodified).
-
         """
         # FIXME: only register commands once
         names = []
@@ -111,7 +108,6 @@ class register:
                 N   (N, N)
                 +   (1, None)
                 *   (0, None)
-
         """
         # pylint: disable=no-member
         # pylint: disable=unpacking-non-sequence

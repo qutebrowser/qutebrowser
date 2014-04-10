@@ -19,7 +19,6 @@
 
 Contains:
     CompletionFilterModel -- A QSortFilterProxyModel subclass for completions.
-
 """
 
 import logging
@@ -34,7 +33,6 @@ class CompletionFilterModel(QSortFilterProxyModel):
     Attributes:
         srcmodel: The source model of this QSFPM.
         _pattern: The pattern to filter with, used in pattern property.
-
     """
 
     def __init__(self, source, parent=None):
@@ -59,7 +57,6 @@ class CompletionFilterModel(QSortFilterProxyModel):
 
         Args:
             val: The value to set.
-
         """
         self._pattern = val
         self.invalidateFilter()
@@ -105,7 +102,6 @@ class CompletionFilterModel(QSortFilterProxyModel):
         Return:
             True if self.pattern is contained in item, or if it's a root item
             (category). False in all other cases
-
         """
         if parent == QModelIndex():
             return True
@@ -128,7 +124,6 @@ class CompletionFilterModel(QSortFilterProxyModel):
 
         Return:
             True if left < right, else False
-
         """
         left = self.srcmodel.data(lindex).value()
         right = self.srcmodel.data(rindex).value()

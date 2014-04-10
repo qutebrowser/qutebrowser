@@ -73,7 +73,6 @@ class TabbedBrowser(TabWidget):
         resized: Emitted when the browser window has resized, so the completion
                  widget can adjust its size to it.
                  arg: The new size.
-
     """
 
     cur_progress = pyqtSignal(int)
@@ -112,7 +111,6 @@ class TabbedBrowser(TabWidget):
 
         Emit:
             shutdown_complete: When the tab shutdown is done completely.
-
         """
         try:
             self._tabs.remove(tab)
@@ -133,7 +131,6 @@ class TabbedBrowser(TabWidget):
             The current widget if count is None.
             The widget with the given tab ID if count is given.
             None if no widget was found.
-
         """
         if count is None:
             return self.currentWidget()
@@ -149,7 +146,6 @@ class TabbedBrowser(TabWidget):
 
         Args:
             text: The text to set.
-
         """
         logging.debug('title changed to "{}"'.format(text))
         if text:
@@ -165,7 +161,6 @@ class TabbedBrowser(TabWidget):
 
         Return:
             A partial functon calling _filter_signals with a signal.
-
         """
         return functools.partial(self._filter_signals, signal)
 
@@ -187,7 +182,6 @@ class TabbedBrowser(TabWidget):
 
         Emit:
             The target signal if the sender was the current widget.
-
         """
         # FIXME BUG the signal cache ordering seems to be weird sometimes.
         # How to reproduce:
@@ -219,7 +213,6 @@ class TabbedBrowser(TabWidget):
 
         Emit:
             shutdown_complete if the shutdown completed successfully.
-
         """
         try:
             self.currentChanged.disconnect()
@@ -248,7 +241,6 @@ class TabbedBrowser(TabWidget):
         Emit:
             quit: If last tab was closed and last_close in config is set to
                   quit.
-
         """
         idx = self.currentIndex() if count is None else count - 1
         tab = self.cntwidget(count)
@@ -274,7 +266,6 @@ class TabbedBrowser(TabWidget):
 
         Args:
             url: The URL to open.
-
         """
         logging.debug("Opening {}".format(url))
         url = urlutils.qurl(url)
@@ -306,7 +297,6 @@ class TabbedBrowser(TabWidget):
 
         Emit:
             set_cmd_text prefilled with :tabopen $URL
-
         """
         url = urlutils.urlstring(self.currentWidget().url())
         self.set_cmd_text.emit(':tabopen ' + url)
@@ -317,7 +307,6 @@ class TabbedBrowser(TabWidget):
 
         Emit:
             set_cmd_text prefilled with :open $URL
-
         """
         url = urlutils.urlstring(self.currentWidget().url())
         self.set_cmd_text.emit(':open ' + url)
@@ -327,7 +316,6 @@ class TabbedBrowser(TabWidget):
         """Switch to the previous tab, or skip [count] tabs.
 
         Command handler for :undo.
-
         """
         if self._url_stack:
             self.tabopen(self._url_stack.pop())
@@ -340,7 +328,6 @@ class TabbedBrowser(TabWidget):
 
         Args:
             count: How many tabs to switch back.
-
         """
         idx = self.currentIndex()
         if idx - count >= 0:
@@ -357,7 +344,6 @@ class TabbedBrowser(TabWidget):
 
         Args:
             count: How many tabs to switch forward.
-
         """
         idx = self.currentIndex()
         if idx + count < self.count():
@@ -374,7 +360,6 @@ class TabbedBrowser(TabWidget):
 
         Args:
             sel: True to use primary selection, False to use clipboard
-
         """
         # FIXME what happens for invalid URLs?
         clip = QApplication.clipboard()
@@ -391,7 +376,6 @@ class TabbedBrowser(TabWidget):
 
         Args:
             sel: True to use primary selection, False to use clipboard
-
         """
         # FIXME what happens for invalid URLs?
         clip = QApplication.clipboard()
@@ -408,7 +392,6 @@ class TabbedBrowser(TabWidget):
 
         Emit:
             keypress: Always emitted.
-
         """
         self.keypress.emit(e)
         super().keyPressEvent(e)
@@ -421,7 +404,6 @@ class TabbedBrowser(TabWidget):
 
         Emit:
             resize: Always emitted.
-
         """
         super().resizeEvent(e)
         self.resized.emit(self.geometry())
@@ -438,7 +420,6 @@ class CurCommandDispatcher(QObject):
 
     Signals:
         temp_message: Connected to TabbedBrowser signal.
-
     """
 
     # FIXME maybe subclassing would be more clean?
@@ -452,7 +433,6 @@ class CurCommandDispatcher(QObject):
 
         Args:
             parent: The TabbedBrowser for this dispatcher.
-
         """
         super().__init__(parent)
         self.tabs = parent
@@ -464,7 +444,6 @@ class CurCommandDispatcher(QObject):
             perc: How many percent to scroll, or None
             count: How many percent to scroll, or None
             orientation: Qt.Horizontal or Qt.Vertical
-
         """
         if perc is None and count is None:
             perc = 100
@@ -488,7 +467,6 @@ class CurCommandDispatcher(QObject):
         Args:
             url: The URL to open.
             count: The tab index to open the URL in, or None.
-
         """
         tab = self.tabs.cntwidget(count)
         if tab is None:
@@ -510,7 +488,6 @@ class CurCommandDispatcher(QObject):
 
         Args:
             count: The tab index to reload, or None.
-
         """
         tab = self.tabs.cntwidget(count)
         if tab is not None:
@@ -524,7 +501,6 @@ class CurCommandDispatcher(QObject):
 
         Args:
             count: The tab index to stop, or None.
-
         """
         tab = self.tabs.cntwidget(count)
         if tab is not None:
@@ -538,7 +514,6 @@ class CurCommandDispatcher(QObject):
 
         Args:
             count: The tab index to print, or None.
-
         """
         # FIXME that does not what I expect
         tab = self.tabs.cntwidget(count)
@@ -555,7 +530,6 @@ class CurCommandDispatcher(QObject):
 
         Args:
             count: How many pages to go back.
-
         """
         # FIXME display warning if beginning of history
         for i in range(count):  # pylint: disable=unused-variable
@@ -569,7 +543,6 @@ class CurCommandDispatcher(QObject):
 
         Args:
             count: How many pages to go forward.
-
         """
         # FIXME display warning if end of history
         for i in range(count):  # pylint: disable=unused-variable
@@ -582,7 +555,6 @@ class CurCommandDispatcher(QObject):
         Args:
             text: The text to search for.
             flags: The QWebPage::FindFlags.
-
         """
         self.tabs.currentWidget().findText(text, flags)
 
@@ -596,7 +568,6 @@ class CurCommandDispatcher(QObject):
             dx: How much to scroll in x-direction.
             dy: How much to scroll in x-direction.
             count: multiplier
-
         """
         dx = int(count) * float(dx)
         dy = int(count) * float(dy)
@@ -612,7 +583,6 @@ class CurCommandDispatcher(QObject):
         Args:
             perc: Percentage to scroll.
             count: Percentage to scroll.
-
         """
         self._scroll_percent(perc, count, Qt.Horizontal)
 
@@ -626,7 +596,6 @@ class CurCommandDispatcher(QObject):
         Args:
             perc: Percentage to scroll.
             count: Percentage to scroll.
-
         """
         self._scroll_percent(perc, count, Qt.Vertical)
 
@@ -638,7 +607,6 @@ class CurCommandDispatcher(QObject):
             mx: How many pages to scroll to the right.
             my: How many pages to scroll down.
             count: multiplier
-
         """
         # FIXME this might not work with HTML frames
         page = self.tabs.currentWidget().page_
@@ -657,7 +625,6 @@ class CurCommandDispatcher(QObject):
 
         Emit:
             temp_message to display a temporary message.
-
         """
         clip = QApplication.clipboard()
         url = urlutils.urlstring(self.tabs.currentWidget().url())
@@ -677,7 +644,6 @@ class CurCommandDispatcher(QObject):
 
         Emit:
             temp_message to display a temporary message.
-
         """
         clip = QApplication.clipboard()
         title = self.tabs.tabText(self.tabs.currentIndex())
@@ -692,7 +658,6 @@ class CurCommandDispatcher(QObject):
 
         Args:
             count: How many steps to take.
-
         """
         tab = self.tabs.currentWidget()
         tab.zoom(count)
@@ -703,7 +668,6 @@ class CurCommandDispatcher(QObject):
 
         Args:
             count: How many steps to take.
-
         """
         tab = self.tabs.currentWidget()
         tab.zoom(-count)

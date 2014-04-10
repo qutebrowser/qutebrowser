@@ -43,7 +43,6 @@ class Command(QObject):
     Signals:
         signal: Gets emitted when something should be called via handle_command
                 from the app.py context.
-
     """
 
     # FIXME:
@@ -75,7 +74,6 @@ class Command(QObject):
 
         Raise:
             ArgumentCountError if the argument count is wrong.
-
         """
         if self.nargs[1] is None and self.nargs[0] <= len(args):
             pass
@@ -101,7 +99,6 @@ class Command(QObject):
         Emit:
             signal: When the command has an instance and should be handled from
                     the app.py context.
-
         """
         dbgout = ["command called:", self.name]
         if args:
