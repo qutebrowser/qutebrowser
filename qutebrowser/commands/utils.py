@@ -18,6 +18,7 @@
 """Contains various command utils and a global command dict."""
 
 import inspect
+from collections import Iterable
 
 from qutebrowser.commands.command import Command
 
@@ -35,7 +36,7 @@ class register:
     Attributes:
         instance: The instance to be used as "self", as a dotted string.
         name: The name (as string) or names (as list) of the command.
-        nargs: A (minargs, maxargs) tuple of valid argument counts.
+        nargs: A (minargs, maxargs) tuple of valid argument counts, or an int.
         split_args: Whether to split the arguments or not.
         hide: Whether to hide the command or not.
         completion: Which completion to use for arguments, as a list of
@@ -56,7 +57,10 @@ class register:
         self.name = name
         self.split_args = split_args
         self.hide = hide
-        self.nargs = nargs
+        if isinstance(nargs, Iterable) or nargs is None:
+            self.nargs = nargs
+        else:
+            self.nargs = (nargs, nargs)
         self.instance = instance
         self.completion = completion
 
