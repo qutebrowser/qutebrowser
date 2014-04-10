@@ -219,13 +219,10 @@ class Config:
         if value:
             value = self._interpolation.before_set(self, section, option,
                                                    value)
-        if not section or section == self.default_section:
-            sectdict = self._defaults
-        else:
-            try:
-                sectdict = self._sections[section]
-            except KeyError:
-                raise NoSectionError(section)
+        try:
+            sectdict = self.config[section]
+        except KeyError:
+            raise NoSectionError(section)
         sectdict[self.optionxform(option)] = value
 
     def save(self):
