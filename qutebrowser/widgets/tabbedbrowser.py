@@ -139,6 +139,12 @@ class TabbedBrowser(TabWidget):
         else:
             return None
 
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
+        """Update tab config when config was changed."""
+        for tab in self._tabs:
+            tab.on_config_changed(section, option)
+
     def _titleChanged_handler(self, text):
         """Set the title of a tab.
 

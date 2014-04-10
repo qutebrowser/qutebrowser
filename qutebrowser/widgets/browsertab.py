@@ -70,10 +70,8 @@ class BrowserTab(QWebView):
         self._shutdown_callback = None
         self._open_new_tab = False
         self._destroyed = {}
-        self._zoom = NeighborList(
-            config.config.get('general', 'zoomlevels'),
-            default=config.config.get('general', 'defaultzoom'),
-            mode=NeighborList.BLOCK)
+        self._zoom = None
+        self._init_neighborlist()
         self.page_ = BrowserPage(self)
         self.setPage(self.page_)
         self.signal_cache = SignalCache(uncached=['linkHovered'])
@@ -81,6 +79,13 @@ class BrowserTab(QWebView):
         self.page_.linkHovered.connect(self.linkHovered)
         self.linkClicked.connect(self.on_link_clicked)
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
+
+    def _init_neighborlist(self):
+        """Initialize the _zoom neighborlist."""
+        self._zoom = NeighborList(
+            config.config.get('general', 'zoomlevels'),
+            default=config.config.get('general', 'defaultzoom'),
+            mode=NeighborList.BLOCK)
 
     def openurl(self, url):
         """Open an URL in the browser.
@@ -170,6 +175,11 @@ class BrowserTab(QWebView):
         netman.destroyed.connect(functools.partial(self._on_destroyed, netman))
         netman.deleteLater()
         logging.debug("Tab shutdown scheduled")
+
+    def on_config_changed(self, section, option):
+        """Update tab config when config was changed."""
+        if section == 'general' and option in ['zoomlevels', 'defaultzoom']:
+            self._init_neighborlist()
 
     def _on_destroyed(self, sender):
         """Called when a subsystem has been destroyed during shutdown.

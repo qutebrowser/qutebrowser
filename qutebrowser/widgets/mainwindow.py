@@ -97,17 +97,8 @@ class MainWindow(QWidget):
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-    def _set_default_geometry(self):
-        """Set some sensible default geometry."""
-        self.setGeometry(QRect(50, 50, 800, 600))
-
-    def resizeEvent(self, e):
-        """Extend resizewindow's resizeEvent to adjust completion.
-
-        Args:
-            e: The QResizeEvent
-        """
-        super().resizeEvent(e)
+    def resize_completion(self):
+        """Adjust completion according to config."""
         confheight = str(config.config.get('general', 'completion_height'))
         if confheight.endswith('%'):
             perc = int(confheight.rstrip('%'))
@@ -119,3 +110,16 @@ class MainWindow(QWidget):
         topleft = QPoint(0, self.height() - self.status.height() - height)
         bottomright = self.status.geometry().topRight()
         self.completion.setGeometry(QRect(topleft, bottomright))
+
+    def _set_default_geometry(self):
+        """Set some sensible default geometry."""
+        self.setGeometry(QRect(50, 50, 800, 600))
+
+    def resizeEvent(self, e):
+        """Extend resizewindow's resizeEvent to adjust completion.
+
+        Args:
+            e: The QResizeEvent
+        """
+        super().resizeEvent(e)
+        self.resize_completion()

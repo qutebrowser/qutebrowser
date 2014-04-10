@@ -130,6 +130,10 @@ class QuteBrowser(QApplication):
             self.mainwindow.status.keystring.setText)
         message.bridge.error.connect(self.mainwindow.status.disp_error)
         message.bridge.info.connect(self.mainwindow.status.disp_tmp_text)
+        self.config.changed.connect(self.mainwindow.tabs.on_config_changed)
+        self.config.changed.connect(
+            self.mainwindow.completion.on_config_changed)
+        self.config.changed.connect(self.mainwindow.resize_completion)
 
         self.mainwindow.show()
         self._python_hacks()

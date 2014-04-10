@@ -30,6 +30,8 @@ import configparser
 from configparser import ConfigParser, ExtendedInterpolation
 from collections.abc import MutableMapping
 
+from PyQt5.QtCore import pyqtSignal, QObject
+
 #from qutebrowser.utils.misc import read_file
 import qutebrowser.config.configdata as configdata
 import qutebrowser.commands.utils as cmdutils
@@ -68,7 +70,7 @@ def init(configdir):
     state = ReadWriteConfigParser(configdir, 'state')
 
 
-class Config:
+class Config(QObject):
 
     """Configuration manager for qutebrowser.
 
@@ -80,9 +82,16 @@ class Config:
         _configfile: The config file path.
         _interpolation: An configparser.Interpolation object
         _proxies: configparser.SectionProxy objects for sections.
+
+    Signals:
+        changed: Gets emitted when the config has changed.
+                 Args: the changed section and option.
     """
 
-    def __init__(self, configdir, fname):
+    changed = pyqtSignal(str, str)
+
+    def __init__(self, configdir, fname, parent=None):
+        super().__init__(parent)
         self.config = configdata.configdata()
         self._configparser = ReadConfigParser(configdir, fname)
         self._configfile = os.path.join(configdir, fname)
@@ -265,7 +274,20 @@ class Config:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
     def set(self, section, option, value):
-        """Set an option."""
+        """Set an option.
+
+        Args:
+            section: The name of the section to change.
+            option: The name of the option to change.
+            value: The new value.
+
+        Raise:
+            NoSectionError: If the specified section doesn't exist.
+            NoOptionError: If the specified option doesn't exist.
+
+        Emit:
+            changed: If the config was changed.
+        """
         if value:
             value = self._interpolation.before_set(self, section, option,
                                                    value)
@@ -277,6 +299,8 @@ class Config:
             sectdict[self.optionxform(option)] = value
         except KeyError:
             raise NoOptionError(option, section)
+        else:
+            self.changed.emit(section, option)
 
     def save(self):
         """Save the config file."""

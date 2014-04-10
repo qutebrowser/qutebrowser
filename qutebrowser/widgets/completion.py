@@ -201,6 +201,12 @@ class CompletionView(QTreeView):
         self.expandAll()
         self.resizeColumnToContents(0)
 
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
+        """Update self._enabled when the config changed."""
+        if section == 'general' and option == 'show_completion':
+            self._enabled = config.config.get('general', 'show_completion')
+
     @pyqtSlot(str)
     def on_cmd_text_changed(self, text):
         """Check if completions are available and activate them.
