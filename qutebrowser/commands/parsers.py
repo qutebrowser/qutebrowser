@@ -17,7 +17,6 @@
 
 """Module containing commandline parsers ( SearchParser and CommandParser)."""
 
-import logging
 import shlex
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
@@ -139,7 +138,6 @@ class CommandParser:
 
         """
         parts = text.strip().split(maxsplit=1)
-        logging.debug("parts in parser: {}".format(parts))
         if not parts:
             raise NoSuchCommandError("No command given")
         cmdstr = parts[0]
