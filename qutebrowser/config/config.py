@@ -261,7 +261,10 @@ class Config:
             sectdict = self.config[section]
         except KeyError:
             raise NoSectionError(section)
-        sectdict[self.optionxform(option)] = value
+        try:
+            sectdict[self.optionxform(option)] = value
+        except KeyError:
+            raise NoOptionError(option, section)
 
     def save(self):
         """Save the config file."""
