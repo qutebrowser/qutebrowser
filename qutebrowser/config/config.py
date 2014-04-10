@@ -28,7 +28,7 @@ import os.path
 import logging
 import textwrap
 import configparser
-from configparser import ConfigParser, ExtendedInterpolation, NoSectionError
+from configparser import ConfigParser, ExtendedInterpolation
 
 #from qutebrowser.utils.misc import read_file
 import qutebrowser.config.configdata as configdata
@@ -40,6 +40,20 @@ state = None
 
 # Special value for an unset fallback, so None can be passed as fallback.
 _UNSET = object()
+
+
+class NoSectionError(configparser.NoSectionError):
+
+    """Exception raised when a section was not found."""
+
+    pass
+
+
+class NoOptionError(configparser.NoOptionError):
+
+    """Exception raised when an option was not found."""
+
+    pass
 
 
 def init(configdir):
@@ -162,7 +176,11 @@ class Config:
         return lines
 
     def has_option(self, section, option):
-        """Return True if option is in section."""
+        """Return True if option is in section.
+
+        Return False if section does not exist."""
+        if section not in self.config:
+            return False
         return option in self.config[section]
 
     @cmdutils.register(name='get', instance='config',
@@ -195,22 +213,27 @@ class Config:
         """
         logging.debug("getting {} -> {}".format(section, option))
         try:
-            val = self.config[section][option]
+            sect = self.config[section]
         except KeyError:
             if fallback is _UNSET:
-                raise
+                raise NoSectionError(section)
             else:
                 return fallback
-        else:
-            if raw:
-                return val.value
-            mapping = {key: val.value
-                       for key, val in self.config[section].values.items()}
-            newval = self._interpolation.before_get(self, section, option,
-                                                    val.value, mapping)
-            logging.debug("interpolated val: {}".format(newval))
-            newval = val.typ.transform(newval)
-            return newval
+        try:
+            val = sect[option]
+        except KeyError:
+            if fallback is _UNSET:
+                raise NoOptionError(option, section)
+            else:
+                return fallback
+        if raw:
+            return val.value
+        mapping = {key: val.value for key, val in sect.values.items()}
+        newval = self._interpolation.before_get(self, section, option,
+                                                val.value, mapping)
+        logging.debug("interpolated val: {}".format(newval))
+        newval = val.typ.transform(newval)
+        return newval
 
     @cmdutils.register(instance='config', completion=['section', 'option'])
     def set(self, section, option, value):

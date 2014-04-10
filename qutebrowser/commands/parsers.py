@@ -144,7 +144,7 @@ class CommandParser:
         if aliases:
             try:
                 alias = config.config.get('aliases', cmdstr)
-            except KeyError:
+            except (config.NoOptionError, config.NoSectionError):
                 pass
             else:
                 return self.parse(alias, aliases=False)
