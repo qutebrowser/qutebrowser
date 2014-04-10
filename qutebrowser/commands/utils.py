@@ -121,12 +121,12 @@ class register:
         # we assume count always has a default (and it should!)
         if self.nargs is not None:
             # If nargs is overriden, use that.
-            if isinstance(self.nargs, int):
+            if isinstance(self.nargs, Iterable):
+                # Iterable (min, max)
+                minargs, maxargs = self.nargs
+            else:
                 # Single int
                 minargs, maxargs = self.nargs, self.nargs
-            else:
-                # Tuple (min, max)
-                minargs, maxargs = self.nargs
         else:
             defaultcount = (len(spec.defaults) if spec.defaults is not None
                             else 0)

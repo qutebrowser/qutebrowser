@@ -38,7 +38,6 @@ def init():
     for everything.
 
     """
-
     global bridge
     bridge = MessageBridge()
 

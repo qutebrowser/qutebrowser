@@ -179,7 +179,9 @@ class Config:
     def has_option(self, section, option):
         """Return True if option is in section.
 
-        Return False if section does not exist."""
+        Return False if section does not exist.
+
+        """
         if section not in self.config:
             return False
         return option in self.config[section]
