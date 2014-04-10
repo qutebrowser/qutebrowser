@@ -26,6 +26,7 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 import qutebrowser.utils.url as urlutils
 import qutebrowser.config.config as config
+import qutebrowser.utils.message as message
 from qutebrowser.widgets.browserpage import BrowserPage
 from qutebrowser.utils.signals import SignalCache
 from qutebrowser.utils.usertypes import NeighborList
@@ -93,7 +94,11 @@ class BrowserTab(QWebView):
         Emit:
             titleChanged and urlChanged
         """
-        u = urlutils.fuzzy_url(url)
+        try:
+            u = urlutils.fuzzy_url(url)
+        except urlutils.SearchEngineError as e:
+            message.error(str(e))
+            return
         logging.debug('New title: {}'.format(urlutils.urlstring(u)))
         self.titleChanged.emit(urlutils.urlstring(u))
         self.urlChanged.emit(urlutils.qurl(u))

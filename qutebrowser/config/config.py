@@ -39,9 +39,6 @@ from qutebrowser.config.conftypes import ValidationError
 config = None
 state = None
 
-# Special value for an unset fallback, so None can be passed as fallback.
-_UNSET = object()
-
 
 class NoSectionError(configparser.NoSectionError):
 
@@ -225,30 +222,23 @@ class Config:
         val = self.get(section, option)
         message.info("{} {} = {}".format(section, option, val))
 
-    def get(self, section, option, fallback=_UNSET, raw=False):
+    def get(self, section, option, raw=False):
         """Get the value from a section/option.
 
         Arguments:
             section: The section to get the option from.
             option: The option name
-            fallback: A fallback value.
             raw: Whether to get the uninterpolated, untransformed value.
         """
         logging.debug("getting {} -> {}".format(section, option))
         try:
             sect = self.config[section]
         except KeyError:
-            if fallback is _UNSET:
-                raise NoSectionError(section)
-            else:
-                return fallback
+            raise NoSectionError(section)
         try:
             val = sect[option]
         except KeyError:
-            if fallback is _UNSET:
-                raise NoOptionError(option, section)
-            else:
-                return fallback
+            raise NoOptionError(option, section)
         if raw:
             return val.value
         mapping = {key: val.value for key, val in sect.values.items()}
@@ -409,15 +399,18 @@ class SectionProxy(MutableMapping):
         """Get the option keys from this section."""
         return self._conf.config[self._name].values.keys()
 
-    def get(self, option, fallback=_UNSET, *, raw=False):
+    def get(self, option, *, raw=False):
         """Get a value from this section.
+
+        We deliberately don't support the default argument here, but have a raw
+        argument instead.
 
         Arguments:
             option: The option name to get.
-            fallback: A fallback value.
             raw: Whether to get a raw value or not.
         """
-        return self._conf.get(self._name, option, raw=raw, fallback=fallback)
+        # pylint: disable=arguments-differ
+        return self._conf.get(self._name, option, raw=raw)
 
     @property
     def conf(self):

@@ -27,6 +27,13 @@ from PyQt5.QtCore import QUrl
 import qutebrowser.config.config as config
 
 
+class SearchEngineError(Exception):
+
+    """Exception raised when a search engine wasn't found."""
+
+    pass
+
+
 def _get_search_url(txt):
     """Get a search engine URL for a text.
 
@@ -37,26 +44,26 @@ def _get_search_url(txt):
         The search URL as a QUrl.
 
     Raise:
-        ValueError if there is no template or no search term was found.
+        SearchEngineError if there is no template or no search term was found.
     """
     logging.debug('Finding search engine for "{}"'.format(txt))
     r = re.compile(r'(^|\s+)!(\w+)($|\s+)')
     m = r.search(txt)
     if m:
         engine = m.group(2)
-        # FIXME why doesn't fallback work?!
-        template = config.config.get('searchengines', engine, fallback=None)
+        try:
+            template = config.config.get('searchengines', engine)
+        except config.NoOptionError:
+            raise SearchEngineError("Search engine {} not found!".format(
+                engine))
         term = r.sub('', txt)
         logging.debug('engine {}, term "{}"'.format(engine, term))
     else:
-        template = config.config.get('searchengines', 'DEFAULT',
-                                     fallback=None)
+        template = config.config.get('searchengines', 'DEFAULT')
         term = txt
         logging.debug('engine: default, term "{}"'.format(txt))
-    if template is None:
-        raise ValueError("Search template is None")
     if not term:
-        raise ValueError("No search term given")
+        raise SearchEngineError("No search term given")
     return QUrl.fromUserInput(template.format(urllib.parse.quote(term)))
 
 
