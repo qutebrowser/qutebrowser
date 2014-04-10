@@ -235,9 +235,24 @@ class Config:
         newval = val.typ.transform(newval)
         return newval
 
-    @cmdutils.register(instance='config', completion=['section', 'option'])
-    def set(self, section, option, value):
+    @cmdutils.register(name='set', instance='config',
+                       completion=['section', 'option'])
+    def set_wrapper(self, section, option, value):
+        """Set an option.
+
+        Wrapper for self.set() to output exceptions in the status bar.
+
+        Arguments:
+            *args: Get passed to self.set().
+
+        """
         # FIXME completion for values
+        try:
+            self.set(section, option, value)
+        except (NoOptionError, NoSectionError) as e:
+            message.error("set: {} - {}".format(e.__class__.__name__, e))
+
+    def set(self, section, option, value):
         """Set an option."""
         if value:
             value = self._interpolation.before_set(self, section, option,
