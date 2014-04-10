@@ -97,6 +97,11 @@ class MainWindow(QWidget):
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
+    def on_config_changed(self, section, option):
+        """Resize completion if config changed."""
+        if section == 'general' and option == 'completion_height':
+            self.resize_completion()
+
     def resize_completion(self):
         """Adjust completion according to config."""
         confheight = str(config.config.get('general', 'completion_height'))

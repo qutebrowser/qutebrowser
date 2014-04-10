@@ -47,6 +47,7 @@ from PyQt5.QtCore import pyqtSlot, QTimer, QEventLoop
 
 import qutebrowser
 import qutebrowser.commands.utils as cmdutils
+import qutebrowser.config.style as style
 import qutebrowser.config.config as config
 import qutebrowser.network.qutescheme as qutescheme
 import qutebrowser.utils.message as message
@@ -130,10 +131,11 @@ class QuteBrowser(QApplication):
             self.mainwindow.status.keystring.setText)
         message.bridge.error.connect(self.mainwindow.status.disp_error)
         message.bridge.info.connect(self.mainwindow.status.disp_tmp_text)
+        self.config.style_changed.connect(style.invalidate_caches)
         self.config.changed.connect(self.mainwindow.tabs.on_config_changed)
         self.config.changed.connect(
             self.mainwindow.completion.on_config_changed)
-        self.config.changed.connect(self.mainwindow.resize_completion)
+        self.config.changed.connect(self.mainwindow.on_config_changed)
 
         self.mainwindow.show()
         self._python_hacks()

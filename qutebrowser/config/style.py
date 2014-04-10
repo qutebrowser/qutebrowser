@@ -17,6 +17,8 @@
 
 """Utilities related to the look&feel of qutebrowser."""
 
+from functools import partial
+
 import qutebrowser.config.config as config
 
 _colordict = None
@@ -38,6 +40,31 @@ def get_stylesheet(template):
     if _fontdict is None:
         _fontdict = FontDict(config.config['fonts'])
     return template.strip().format(color=_colordict, font=_fontdict)
+
+
+def set_register_stylesheet(obj):
+    """Set the stylesheet for an object based on it's STYLESHEET attribute.
+
+    Also, register an update when the config is changed.
+    """
+    obj.setStyleSheet(get_stylesheet(obj.STYLESHEET))
+    config.config.changed.connect(partial(_update_stylesheet, obj))
+
+
+def _update_stylesheet(obj, section, option):
+    """Update the stylesheet for obj."""
+    # pylint: disable=unused-argument
+    obj.setStyleSheet(get_stylesheet(obj.STYLESHEET))
+
+
+def invalidate_caches(section, option):
+    """Invalidate cached dicts."""
+    # pylint: disable=unused-argument
+    global _colordict, _fontdict
+    if section == 'colors':
+        _colordict = None
+    elif section == 'fonts':
+        _fontdict = None
 
 
 class ColorDict(dict):

@@ -25,7 +25,7 @@ from PyQt5.QtWidgets import (QWidget, QLineEdit, QProgressBar, QLabel,
                              QShortcut)
 from PyQt5.QtGui import QPainter, QKeySequence, QValidator
 
-from qutebrowser.config.style import get_stylesheet
+from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 import qutebrowser.commands.keys as keys
 from qutebrowser.utils.url import urlstring
 from qutebrowser.utils.usertypes import NeighborList
@@ -47,7 +47,7 @@ class StatusBar(QWidget):
         _stack: The QStackedLayout with cmd/txt widgets.
         _error: If there currently is an error, accessed through the error
                 property.
-        _STYLESHEET: The stylesheet template.
+        STYLESHEET: The stylesheet template.
 
     Signals:
         resized: Emitted when the statusbar has resized, so the completion
@@ -60,7 +60,7 @@ class StatusBar(QWidget):
 
     resized = pyqtSignal('QRect')
     moved = pyqtSignal('QPoint')
-    _STYLESHEET = """
+    STYLESHEET = """
         QWidget#StatusBar[error="false"] {{
             {color[statusbar.bg]}
         }}
@@ -79,7 +79,7 @@ class StatusBar(QWidget):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
         self.setAttribute(Qt.WA_StyledBackground)
-        self.setStyleSheet(get_stylesheet(self._STYLESHEET))
+        set_register_stylesheet(self)
 
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
 
@@ -132,7 +132,7 @@ class StatusBar(QWidget):
         updated by Qt properly.
         """
         self._error = val
-        self.setStyleSheet(get_stylesheet(self._STYLESHEET))
+        self.setStyleSheet(get_stylesheet(self.STYLESHEET))
 
     def _show_cmd_widget(self):
         """Show command widget instead of temporary text."""
@@ -429,11 +429,11 @@ class _Progress(QProgressBar):
     """The progress bar part of the status bar.
 
     Attributes:
-        _STYLESHEET: The stylesheet template.
+        STYLESHEET: The stylesheet template.
     """
 
     # FIXME for some reason, margin-left is not shown
-    _STYLESHEET = """
+    STYLESHEET = """
         QProgressBar {{
             border-radius: 0px;
             border: 2px solid transparent;
@@ -448,7 +448,7 @@ class _Progress(QProgressBar):
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.setStyleSheet(get_stylesheet(self._STYLESHEET))
+        set_register_stylesheet(self)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Ignored)
         self.setTextVisible(False)
         self.hide()
@@ -618,10 +618,10 @@ class _Url(TextBase):
         _old_urltype: The type of the URL displayed before the hover URL.
         _urltype: The current URL type. One of normal/ok/error/warn/hover.
                   Accessed via the urltype property.
-        _STYLESHEET: The stylesheet template.
+        STYLESHEET: The stylesheet template.
     """
 
-    _STYLESHEET = """
+    STYLESHEET = """
         QLabel#Url[urltype="normal"] {{
             {color[statusbar.url.fg]}
         }}
@@ -652,7 +652,7 @@ class _Url(TextBase):
         """
         super().__init__(bar, elidemode)
         self.setObjectName(self.__class__.__name__)
-        self.setStyleSheet(get_stylesheet(self._STYLESHEET))
+        set_register_stylesheet(self)
         self._urltype = None
         self._old_urltype = None
         self._old_url = None
@@ -667,7 +667,7 @@ class _Url(TextBase):
     def urltype(self, val):
         """Setter for self.urltype, so it can be used as Qt property."""
         self._urltype = val
-        self.setStyleSheet(get_stylesheet(self._STYLESHEET))
+        self.setStyleSheet(get_stylesheet(self.STYLESHEET))
 
     @pyqtSlot(bool)
     def on_loading_finished(self, ok):

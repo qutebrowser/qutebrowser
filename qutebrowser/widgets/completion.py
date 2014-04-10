@@ -35,7 +35,7 @@ import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.config.configdata import configdata
 from qutebrowser.models.completion import ROLE_MARKS
-from qutebrowser.config.style import get_stylesheet
+from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 from qutebrowser.commands.parsers import split_cmdline
 from qutebrowser.models.completionfilter import CompletionFilterModel
 from qutebrowser.models.commandcompletion import CommandCompletionModel
@@ -55,7 +55,7 @@ class CompletionView(QTreeView):
     Attributes:
         _model: The currently active filter model.
         _lastmodel: The model set in the last iteration.
-        _STYLESHEET: The stylesheet template for the CompletionView.
+        STYLESHEET: The stylesheet template for the CompletionView.
         _completion_models: dict of available completion models.
         _ignore_next: Whether to ignore the next cmd_text_changed signal.
         _enabled: Whether showing the CompletionView is enabled.
@@ -69,7 +69,7 @@ class CompletionView(QTreeView):
                                we're currently completing.
     """
 
-    _STYLESHEET = """
+    STYLESHEET = """
         QTreeView {{
             {font[completion]}
             {color[completion.fg]}
@@ -119,7 +119,7 @@ class CompletionView(QTreeView):
 
         self._delegate = _CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
-        self.setStyleSheet(get_stylesheet(self._STYLESHEET))
+        set_register_stylesheet(self)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.setHeaderHidden(True)
         self.setIndentation(0)

@@ -86,9 +86,12 @@ class Config(QObject):
     Signals:
         changed: Gets emitted when the config has changed.
                  Args: the changed section and option.
+        style_changed: When style caches need to be invalidated.
+                 Args: the changed section and option.
     """
 
     changed = pyqtSignal(str, str)
+    style_changed = pyqtSignal(str, str)
 
     def __init__(self, configdir, fname, parent=None):
         super().__init__(parent)
@@ -287,6 +290,7 @@ class Config(QObject):
 
         Emit:
             changed: If the config was changed.
+            style_changed: When style caches need to be invalidated.
         """
         if value:
             value = self._interpolation.before_set(self, section, option,
@@ -300,6 +304,8 @@ class Config(QObject):
         except KeyError:
             raise NoOptionError(option, section)
         else:
+            if section in ['colors', 'fonts']:
+                self.style_changed.emit(section, option)
             self.changed.emit(section, option)
 
     def save(self):

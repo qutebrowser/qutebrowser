@@ -17,11 +17,11 @@
 
 """The tab widget used for TabbedBrowser from browser.py."""
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtWidgets import QTabWidget, QTabBar, QSizePolicy
 
 import qutebrowser.config.config as config
-from qutebrowser.config.style import get_stylesheet
+from qutebrowser.config.style import set_register_stylesheet
 from qutebrowser.utils.style import Style
 
 
@@ -30,13 +30,13 @@ class TabWidget(QTabWidget):
     """The tabwidget used for TabbedBrowser.
 
     Attributes:
-        _STYLESHEET: The stylesheet template to be used.
+        STYLESHEET: The stylesheet template to be used.
     """
 
     # FIXME there is still some ugly 1px white stripe from somewhere if we do
     # background-color: grey for QTabBar...
 
-    _STYLESHEET = """
+    STYLESHEET = """
         QTabWidget::pane {{
             position: absolute;
             top: 0px;
@@ -68,7 +68,7 @@ class TabWidget(QTabWidget):
         super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setStyle(Style(self.style()))
-        self.setStyleSheet(get_stylesheet(self._STYLESHEET))
+        set_register_stylesheet(self)
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
         self._init_config()
@@ -96,3 +96,10 @@ class TabWidget(QTabWidget):
             self.tabBar().setSelectionBehaviorOnRemove(select_conv[selstr])
         except KeyError:
             pass
+
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
+        """Update attributes when config changed."""
+        # pylint: disable=unused-argument
+        if section == 'tabbar':
+            self._init_config()
