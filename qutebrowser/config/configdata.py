@@ -126,12 +126,13 @@ def configdata():
              "entered."),
 
             ('zoomlevels',
-             SettingValue(types.IntList, "25,33,50,67,75,90,100,110,125,150,"
-                                         "175,200,250,300,400,500"),
+             SettingValue(types.PercList, "25%,33%,50%,67%,75%,90%,100%,110%,"
+                                          "125%,150%,175%,200%,250%,300%,400%,"
+                                          "500%"),
              "The available zoom levels, separated by commas."),
 
             ('defaultzoom',
-             SettingValue(types.Int, "100"),
+             SettingValue(types.ZoomPerc, "100%"),
              "The default zoom level."),
         )),
 

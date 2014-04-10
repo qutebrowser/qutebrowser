@@ -234,6 +234,53 @@ class IntList(List):
             raise ValidationError(value, "must be a list of integers!")
 
 
+class Perc(BaseType):
+
+    """Percentage which may be >100 but needs to be positive."""
+
+    def transform(self, value):
+        return int(value.rstrip('%'))
+
+    def validate(self, value):
+        if not value.endswith('%'):
+            raise ValidationError(value, "does not end with %")
+        try:
+            intval = int(value.rstrip('%'))
+        except ValueError:
+            raise ValidationError(value, "invalid percentage!")
+        else:
+            if not 0 <= intval:
+                raise ValidationError(value, "percentage needs to be >= 0!")
+
+
+class PercList(List):
+
+    """Base class for a list of percentages."""
+
+    typestr = 'perc-list'
+
+    def transform(self, value):
+        vals = super().transform(value)
+        return [int(val.rstrip('%')) for val in vals]
+
+    def validate(self, value):
+        vals = super().transform(value)
+        try:
+            for val in vals:
+                Perc.validate(self, val)
+        except ValidationError:
+            raise ValidationError(value, "must be a list of percentages!")
+
+
+class ZoomPerc(Perc):
+
+    """A percentage which needs to be in the current zoom percentages."""
+
+    def validate(self, value):
+        super().validate(value)
+        # FIXME we should validate the percentage is in the list here.
+
+
 class PercOrInt(BaseType):
 
     """Percentage or integer."""
