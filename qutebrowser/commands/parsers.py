@@ -120,7 +120,7 @@ class CommandParser:
 
     """
 
-    def __init__(self, parent=None):
+    def __init__(self):
         self._cmd = None
         self._args = []
 

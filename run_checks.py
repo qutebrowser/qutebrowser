@@ -66,6 +66,7 @@ options = {
         ],
         'flake8': [
             'E241',  # Multiple spaces after ,
+            'E265',  # Block comment should start with '#'
         ],
         'pep257': [
             'D102',  # Docstring missing, will be handled by others
