@@ -29,6 +29,7 @@ import logging
 import textwrap
 import configparser
 from configparser import ConfigParser, ExtendedInterpolation
+from collections.abc import MutableMapping
 
 #from qutebrowser.utils.misc import read_file
 import qutebrowser.config.configdata as configdata
@@ -177,14 +178,40 @@ class Config:
         return lines
 
     def has_option(self, section, option):
-        """Return True if option is in section.
+        """Check if option exists in section.
 
-        Return False if section does not exist.
+        Arguments:
+            section: The section name.
+            option: The option name
+
+        Return:
+            True if the option and section exist, False otherwise.
 
         """
         if section not in self.config:
             return False
         return option in self.config[section]
+
+    def remove_option(self, section, option):
+        """Remove an option.
+
+        Arguments:
+            section: The section where to remove an option.
+            option: The option name to remove.
+
+        Return:
+            True if the option existed, False otherwise.
+
+        """
+        try:
+            sectdict = self.config[section]
+        except KeyError:
+            raise NoSectionError(section)
+        option = self.optionxform(option)
+        existed = option in sectdict
+        if existed:
+            del sectdict[option]
+        return existed
 
     @cmdutils.register(name='get', instance='config',
                        completion=['section', 'option'])
@@ -343,50 +370,75 @@ class ReadWriteConfigParser(ReadConfigParser):
             self.write(f)
 
 
-class SectionProxy(configparser.SectionProxy):
+class SectionProxy(MutableMapping):
 
-    """A proxy for a single section from a parser."""
+    """A proxy for a single section from a config.
+
+    Attributes:
+        _conf: The Config object.
+        _name: The section name.
+
+    """
 
     # pylint: disable=redefined-builtin
 
+    def __init__(self, conf, name):
+        """Create a view on a section.
+
+        Arguments:
+            conf: The Config object.
+            name: The section name.
+
+        """
+        self._conf = conf
+        self._name = name
+
+    def __repr__(self):
+        return '<Section: {}>'.format(self._name)
+
     def __getitem__(self, key):
-        return self._parser.get(self._name, key)
+        if not self._conf.has_option(self._name, key):
+            raise KeyError(key)
+        return self._conf.get(self._name, key)
 
     def __setitem__(self, key, value):
-        return self._parser.set(self._name, key, value)
+        return self._conf.set(self._name, key, value)
 
     def __delitem__(self, key):
-        # TODO
-        #if not (self._parser.has_option(self._name, key) and
-        #        self._parser.remove_option(self._name, key)):
-        #    raise KeyError(key)
-        raise NotImplementedError
+        if not (self._conf.has_option(self._name, key) and
+                self._conf.remove_option(self._name, key)):
+            raise KeyError(key)
 
     def __contains__(self, key):
-        return self._parser.has_option(self._name, key)
+        return self._conf.has_option(self._name, key)
+
+    def __len__(self):
+        return len(self._options())
+
+    def __iter__(self):
+        return self._options().__iter__()
 
     def _options(self):
-        # TODO
-        return self._parser.config[self._name].values.keys()
+        """Get the option keys from this section."""
+        return self._conf.config[self._name].values.keys()
 
-    def get(self, option, fallback=None, *, raw=False, vars=None):
-        return self._parser.get(self._name, option, raw=raw, fallback=fallback)
+    def get(self, option, fallback=_UNSET, *, raw=False):
+        """Get a value from this section.
 
-    def getint(self, option, fallback=None, *, raw=False, vars=None):
-        raise NotImplementedError
+        Arguments:
+            option: The option name to get.
+            fallback: A fallback value.
+            raw: Whether to get a raw value or not.
 
-    def getfloat(self, option, fallback=None, *, raw=False, vars=None):
-        raise NotImplementedError
-
-    def getboolean(self, option, fallback=None, *, raw=False, vars=None):
-        raise NotImplementedError
+        """
+        return self._conf.get(self._name, option, raw=raw, fallback=fallback)
 
     @property
-    def parser(self):
-        # The parser object of the proxy is read-only.
-        return self._parser
+    def conf(self):
+        """The conf object of the proxy is read-only."""
+        return self._conf
 
     @property
     def name(self):
-        # The name of the section on a proxy is read-only.
+        """The name of the section on a proxy is read-only."""
         return self._name
