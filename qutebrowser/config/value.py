@@ -77,6 +77,7 @@ class SettingValue:
         Args:
             startlayer: The first layer to include.
         """
+        # pylint: disable=useless-else-on-loop
         if startlayer is None:
             d = self._values
         else:
