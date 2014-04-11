@@ -90,7 +90,7 @@ class KeyValue:
 
         Arguments:
             layer: The layer to set the value on, an element name of the
-                   ValueLayers namedtuple.
+                   ValueLayers dict.
             key: The key of the element to set.
             value: The value to set.
         """
@@ -195,7 +195,7 @@ class ValueList:
 
         Arguments:
             layer: The layer to set the value on, an element name of the
-                   ValueLayers namedtuple.
+                   ValueLayers dict.
             key: The key of the element to set.
             value: The value to set.
         """

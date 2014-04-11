@@ -17,9 +17,7 @@
 
 """A single value (with multiple layers possibly) in the config."""
 
-from collections import namedtuple
-
-ValueLayers = namedtuple('ValueLayers', 'temp, conf, default')
+from collections import OrderedDict
 
 
 class SettingValue:
@@ -31,7 +29,7 @@ class SettingValue:
     Attributes:
         typ: A BaseType subclass.
         value: (readonly property) The currently valid, most important value.
-        _values: A namedtuple with the values on different layers, with the
+        _values: An OrderedDict with the values on different layers, with the
                  most significant layer first.
     """
 
@@ -43,8 +41,9 @@ class SettingValue:
             default: Raw value to set.
         """
         self.typ = typ()
-        self._values = ValueLayers(None, None, None)
-        self._values.default = default
+        self._values = OrderedDict.fromkeys(['temp', 'conf', 'default'])
+        self._values['default'] = default
+
 
     def __str__(self):
         """Get raw string value."""
@@ -53,7 +52,7 @@ class SettingValue:
     @property
     def value(self):
         """Get the currently valid value."""
-        for val in self._values:
+        for val in self._values.values():
             if val is not None:
                 return val
         else:
@@ -74,8 +73,8 @@ class SettingValue:
 
         Arguments:
             layer: The layer to set the value on, an element name of the
-                   ValueLayers namedtuple.
+                   ValueLayers dict.
             value: The value to set.
         """
         self.typ.validate(value)
-        setattr(self._values, layer, value)
+        self._values[layer] = value
