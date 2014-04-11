@@ -274,11 +274,26 @@ class Config(QObject):
         """
         # FIXME completion for values
         try:
-            self.set(section, option, value)
+            self.set('conf', section, option, value)
         except (NoOptionError, NoSectionError, ValidationError) as e:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
-    def set(self, section, option, value):
+    @cmdutils.register(name='set_temp', instance='config',
+                       completion=['section', 'option'])
+    def set_temp_wrapper(self, section, option, value):
+        """Set a temporary option.
+
+        Wrapper for self.set() to output exceptions in the status bar.
+
+        Arguments:
+            *args: Get passed to self.set().
+        """
+        try:
+            self.set('temp', section, option, value)
+        except (NoOptionError, NoSectionError, ValidationError) as e:
+            message.error("set: {} - {}".format(e.__class__.__name__, e))
+
+    def set(self, layer, section, option, value):
         """Set an option.
 
         Args:
@@ -298,11 +313,11 @@ class Config(QObject):
             value = self._interpolation.before_set(self, section, option,
                                                    value)
         try:
-            sectdict = self.config[section]
+            sect = self.config[section]
         except KeyError:
             raise NoSectionError(section)
         try:
-            sectdict[self.optionxform(option)] = value
+            sect.setv(layer, option, value)
         except KeyError:
             raise NoOptionError(option, section)
         else:
@@ -414,7 +429,7 @@ class SectionProxy(MutableMapping):
         return self._conf.get(self._name, key)
 
     def __setitem__(self, key, value):
-        return self._conf.set(self._name, key, value)
+        return self._conf.set('conf', self._name, key, value)
 
     def __delitem__(self, key):
         if not (self._conf.has_option(self._name, key) and
