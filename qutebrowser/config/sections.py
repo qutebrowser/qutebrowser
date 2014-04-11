@@ -64,13 +64,13 @@ class KeyValue:
         return self.values[key]
 
     def __setitem__(self, key, value):
-        """Set the value for key.
+        """Set the config value for key.
 
         Args:
             key: The key to set the value for, as a string.
             value: The value to set, as a string
         """
-        self.values[key].value = value
+        self.setv('conf', key, value)
 
     def __iter__(self):
         """Iterate over all set values."""
@@ -85,15 +85,29 @@ class KeyValue:
         """Return whether the section contains a given key."""
         return key in self.values
 
+    def setv(self, layer, key, value):
+        """Set the value on a layer.
+
+        Arguments:
+            layer: The layer to set the value on, an element name of the
+                   ValueLayers namedtuple.
+            key: The key of the element to set.
+            value: The value to set.
+        """
+        self.values[key].setv(layer, value)
+
     def items(self):
         """Get dict item tuples."""
         return self.values.items()
 
     def from_cp(self, sect):
-        """Initialize the values from a configparser section."""
+        """Initialize the values from a configparser section.
+
+        We assume all keys already exist from the defaults.
+        """
         for k, v in sect.items():
             logging.debug("'{}' = '{}'".format(k, v))
-            self.values[k].value = v
+            self.values[k].setv('conf', v)
 
 
 class ValueList:
@@ -116,6 +130,9 @@ class ValueList:
         #              Currently a global empty dict to be compatible with
         #              KeyValue section.
     """
+
+    # FIXME use a ChainMap for this
+    # FIXME how to handle value layers here?
 
     def __init__(self, keytype, valtype, *defaults):
         """Wrap types over default values. Take care when overriding this."""
@@ -149,14 +166,13 @@ class ValueList:
             return self.default[key]
 
     def __setitem__(self, key, value):
-        """Set the value for key.
+        """Set the config value for key.
 
         Args:
             key: The key to set the value for, as a string.
             value: The value to set, as a string
         """
-        self.values[key] = SettingValue(self.valtype)
-        self.values[key].value = value
+        self.setv('conf', key, value)
 
     def __iter__(self):
         """Iterate over all set values."""
@@ -174,6 +190,22 @@ class ValueList:
         self.update_valdict()
         return key in self.valdict
 
+    def setv(self, layer, key, value):
+        """Set the value on a layer.
+
+        Arguments:
+            layer: The layer to set the value on, an element name of the
+                   ValueLayers namedtuple.
+            key: The key of the element to set.
+            value: The value to set.
+        """
+        if key in self.values:
+            self.values[key].setv(layer, value)
+        else:
+            val = SettingValue(self.valtype)
+            val.setv(layer, value)
+            self.values[key] = val
+
     def items(self):
         """Get dict items."""
         self.update_valdict()
@@ -186,4 +218,4 @@ class ValueList:
         for k, v in sect.items():
             keytype.validate(k)
             valtype.validate(v)
-            self.values[k] = SettingValue(self.valtype, v)
+            self.setv('conf', k, v)

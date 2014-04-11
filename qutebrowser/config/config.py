@@ -322,13 +322,16 @@ class Config(QObject):
         Return:
             The changed config part as string.
         """
+        # FIXME adopt this for layering
         lines = []
         for secname, section in self.config.items():
             changed_opts = []
             for optname, option in section.items():
-                if (option.rawvalue is not None and
-                        option.rawvalue != option.default):
-                    keyval = '{} = {}'.format(optname, option)
+                if (option.values.temp is not None and
+                        option.values.temp != option.default or
+                    option.values.conf is not None and
+                        option.values.conf != option.default):
+                    keyval = '{} = {}'.format(optname, option)  # FIXME layer?
                     changed_opts.append(keyval)
             if changed_opts:
                 lines.append('[{}]'.format(secname))

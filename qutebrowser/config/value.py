@@ -17,6 +17,10 @@
 
 """A single value (with multiple layers possibly) in the config."""
 
+from collections import namedtuple
+
+ValueLayers = namedtuple('ValueLayers', 'temp, conf, default')
+
 
 class SettingValue:
 
@@ -26,9 +30,9 @@ class SettingValue:
 
     Attributes:
         typ: A BaseType subclass.
-        default: Default value if the user has not overridden it, as a string.
-        value: (property) The currently valid, most important value.
-        rawvalue: The current value as a raw string.
+        value: (readonly property) The currently valid, most important value.
+        _values: A namedtuple with the values on different layers, with the
+                 most significant layer first.
     """
 
     def __init__(self, typ, default=None):
@@ -39,25 +43,39 @@ class SettingValue:
             default: Raw value to set.
         """
         self.typ = typ()
-        self.rawvalue = None
-        self.default = default
+        self._values = ValueLayers(None, None, None)
+        self._values.default = default
 
     def __str__(self):
         """Get raw string value."""
         return self.value
+
+    @property
+    def value(self):
+        """Get the currently valid value."""
+        for val in self._values:
+            if val is not None:
+                return val
+        else:
+            raise ValueError("No valid config value found!")
+
+    @property
+    def values(self):
+        """Readonly property for _values."""
+        return self._values
 
     def transformed(self):
         """Get the transformed value."""
         v = self.value
         return self.typ.transform(v)
 
-    @property
-    def value(self):
-        """Get the currently valid value."""
-        return self.rawvalue if self.rawvalue is not None else self.default
+    def setv(self, layer, value):
+        """Set the value on a layer.
 
-    @value.setter
-    def value(self, val):
-        """Set the currently valid value."""
-        self.typ.validate(val)
-        self.rawvalue = val
+        Arguments:
+            layer: The layer to set the value on, an element name of the
+                   ValueLayers namedtuple.
+            value: The value to set.
+        """
+        self.typ.validate(value)
+        setattr(self._values, layer, value)
