@@ -44,7 +44,6 @@ class SettingValue:
         self._values = OrderedDict.fromkeys(['temp', 'conf', 'default'])
         self._values['default'] = default
 
-
     def __str__(self):
         """Get raw string value."""
         return self.value
