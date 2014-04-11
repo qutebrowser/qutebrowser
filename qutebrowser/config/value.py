@@ -51,16 +51,41 @@ class SettingValue:
     @property
     def value(self):
         """Get the currently valid value."""
-        for val in self._values.values():
-            if val is not None:
-                return val
-        else:
-            raise ValueError("No valid config value found!")
+        return self.get_first_value()
 
     @property
     def values(self):
         """Readonly property for _values."""
         return self._values
+
+    def getlayers(self, startlayer):
+        """Get a dict of values starting with startlayer.
+
+        Args:
+            startlayer: The first layer to include.
+        """
+        # FIXME this could be done more efficiently with a view.
+        idx = list(self._values.keys()).index(startlayer)
+        d = self._values.copy()
+        for _ in range(idx):
+            d.popitem(last=False)
+        return d
+
+    def get_first_value(self, startlayer=None):
+        """Get the first valid value starting from startlayer.
+
+        Args:
+            startlayer: The first layer to include.
+        """
+        if startlayer is None:
+            d = self._values
+        else:
+            d = self.getlayers(startlayer)
+        for val in d.values():
+            if val is not None:
+                return val
+        else:
+            raise ValueError("No valid config value found!")
 
     def transformed(self):
         """Get the transformed value."""

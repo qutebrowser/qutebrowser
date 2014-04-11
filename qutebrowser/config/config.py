@@ -180,7 +180,8 @@ class Config(QObject):
         """Get the option items as string for section."""
         lines = []
         for optname, option in section.items():
-            keyval = '{} = {}'.format(optname, option)
+            keyval = '{} = {}'.format(optname, option.get_first_value(
+                startlayer='conf'))
             lines.append(keyval)
         return lines
 
