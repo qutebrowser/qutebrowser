@@ -172,7 +172,8 @@ class Config(QObject):
                 else:
                     lines += wrapper.wrap('Valid values: {}'.format(', '.join(
                         valid_values)))
-            lines += wrapper.wrap('Default: {}'.format(option.default))
+            lines += wrapper.wrap('Default: {}'.format(
+                option.values['default']))
         return lines
 
     def _str_items(self, section):
