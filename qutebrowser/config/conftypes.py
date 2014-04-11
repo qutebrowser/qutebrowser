@@ -56,51 +56,6 @@ class ValidValues:
         return self.values.__iter__()
 
 
-class SettingValue:
-
-    """Base class for setting values.
-
-    Intended to be subclassed by config value "types".
-
-    Attributes:
-        typ: A BaseType subclass.
-        default: Default value if the user has not overridden it, as a string.
-        value: (property) The currently valid, most important value.
-        rawvalue: The current value as a raw string.
-    """
-
-    def __init__(self, typ, default=None):
-        """Constructor.
-
-        Args:
-            typ: The BaseType to use.
-            default: Raw value to set.
-        """
-        self.typ = typ()
-        self.rawvalue = None
-        self.default = default
-
-    def __str__(self):
-        """Get raw string value."""
-        return self.value
-
-    def transformed(self):
-        """Get the transformed value."""
-        v = self.value
-        return self.typ.transform(v)
-
-    @property
-    def value(self):
-        """Get the currently valid value."""
-        return self.rawvalue if self.rawvalue is not None else self.default
-
-    @value.setter
-    def value(self, val):
-        """Set the currently valid value."""
-        self.typ.validate(val)
-        self.rawvalue = val
-
-
 class BaseType:
 
     """A type used for a setting value.

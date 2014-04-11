@@ -19,7 +19,7 @@
 
 from collections import OrderedDict
 
-from qutebrowser.config.conftypes import SettingValue
+from qutebrowser.config.value import SettingValue
 import qutebrowser.config.conftypes as types
 import qutebrowser.config.sections as sect
 

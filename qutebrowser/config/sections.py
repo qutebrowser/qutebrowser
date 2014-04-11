@@ -20,7 +20,7 @@
 import logging
 from collections import OrderedDict
 
-import qutebrowser.config.conftypes as conftypes
+from qutebrowser.config.value import SettingValue
 
 
 class KeyValue:
@@ -123,7 +123,7 @@ class ValueList:
         self.valtype = valtype
         self.values = OrderedDict()
         self.default = OrderedDict(
-            [(key, conftypes.SettingValue(valtype, value))
+            [(key, SettingValue(valtype, value))
              for key, value in defaults])
         self.valdict = OrderedDict()
 
@@ -155,7 +155,7 @@ class ValueList:
             key: The key to set the value for, as a string.
             value: The value to set, as a string
         """
-        self.values[key] = conftypes.SettingValue(self.valtype)
+        self.values[key] = SettingValue(self.valtype)
         self.values[key].value = value
 
     def __iter__(self):
@@ -186,4 +186,4 @@ class ValueList:
         for k, v in sect.items():
             keytype.validate(k)
             valtype.validate(v)
-            self.values[k] = conftypes.SettingValue(self.valtype, v)
+            self.values[k] = SettingValue(self.valtype, v)
