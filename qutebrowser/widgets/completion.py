@@ -275,6 +275,12 @@ class CompletionView(QTreeView):
             self._ignore_next = True
             self.change_completed_part.emit(data)
 
+    @pyqtSlot()
+    def on_clear_completion_selection(self):
+        """Clear the selection model when an item is activated."""
+        self.selectionModel().clearSelection()
+        self.selectionModel().clearCurrentIndex()
+
 
 class _CompletionItemDelegate(QStyledItemDelegate):
 

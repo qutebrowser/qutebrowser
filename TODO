@@ -7,7 +7,6 @@ New config TODO
 Bugs
 ====
 
-- Tabbing to a command, then executing it with an error (e.g. :set) keeps the completion position
 Underlines aren't displayed correctly in completion widget
 All kind of FIXMEs
 Weird font rendering

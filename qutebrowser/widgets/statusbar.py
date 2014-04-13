@@ -227,6 +227,8 @@ class _Command(QLineEdit):
         esc_pressed: Emitted when the escape key was pressed.
         tab_pressed: Emitted when the tab key was pressed.
                      arg: Whether shift has been pressed.
+        clear_completion_selection: Emitted before the completion widget is
+                                    hidden.
         hide_completion: Emitted when the completion widget should be hidden.
         show_cmd: Emitted when command input should be shown.
         hide_cmd: Emitted when command input can be hidden.
@@ -239,6 +241,7 @@ class _Command(QLineEdit):
     got_search_rev = pyqtSignal(str)
     esc_pressed = pyqtSignal()
     tab_pressed = pyqtSignal(bool)
+    clear_completion_selection = pyqtSignal()
     hide_completion = pyqtSignal()
     show_cmd = pyqtSignal()
     hide_cmd = pyqtSignal()
@@ -393,6 +396,7 @@ class _Command(QLineEdit):
             e: The QFocusEvent.
 
         Emit:
+            clear_completion_selection: Always emitted.
             hide_completion: Always emitted so the completion is hidden.
         """
         if e.reason() in [Qt.MouseFocusReason, Qt.TabFocusReason,
@@ -400,6 +404,7 @@ class _Command(QLineEdit):
             self.setText('')
             self._histbrowse_stop()
             self.hide_cmd.emit()
+        self.clear_completion_selection.emit()
         self.hide_completion.emit()
         super().focusOutEvent(e)
 

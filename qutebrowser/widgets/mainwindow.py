@@ -86,6 +86,8 @@ class MainWindow(QWidget):
         self.tabs.cur_url_changed.connect(self.status.url.set_url)
         self.tabs.cur_link_hovered.connect(self.status.url.set_hover_url)
         self.status.cmd.esc_pressed.connect(self.tabs.setFocus)
+        self.status.cmd.clear_completion_selection.connect(
+            self.completion.on_clear_completion_selection)
         self.status.cmd.hide_completion.connect(self.completion.hide)
         self.status.cmd.textChanged.connect(
             self.completion.on_cmd_text_changed)
