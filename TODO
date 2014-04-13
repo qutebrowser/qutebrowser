@@ -2,7 +2,6 @@ New config TODO
 ===============
 
 - Changing models is awfully slow
-- Implement different layers of config options correctly, not only default.
 
 Bugs
 ====
