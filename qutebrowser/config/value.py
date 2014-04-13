@@ -64,11 +64,8 @@ class SettingValue:
         Args:
             startlayer: The first layer to include.
         """
-        # FIXME this could be done more efficiently with a view.
         idx = list(self._values.keys()).index(startlayer)
-        d = self._values.copy()
-        for _ in range(idx):
-            d.popitem(last=False)
+        d = OrderedDict(list(self._values.items())[idx:])
         return d
 
     def get_first_value(self, startlayer=None):
