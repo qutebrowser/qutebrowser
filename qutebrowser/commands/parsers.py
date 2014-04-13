@@ -144,7 +144,7 @@ class CommandParser:
         try:
             cmd = cmdutils.cmd_dict[cmdstr]
         except KeyError:
-            raise NoSuchCommandError("Command {} not found.".format(cmdstr))
+            raise NoSuchCommandError(cmdstr)
 
         if len(parts) == 1:
             args = []

@@ -10,7 +10,6 @@ All kind of FIXMEs
 Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-20973
     https://bugreports.qt-project.org/browse/QTBUG-21036
-Weird "no such command" message
 
 Major features
 ==============
