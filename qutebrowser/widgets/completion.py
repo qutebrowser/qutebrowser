@@ -97,8 +97,6 @@ class CompletionView(QTreeView):
     """
     # FIXME because we use :has-children, if a category is empty, it won't look
     # like one anymore
-    # FIXME somehow only the first column is yellow, even with
-    # setAllColumnsShowFocus
     change_completed_part = pyqtSignal(str)
 
     def __init__(self, parent=None):
@@ -269,7 +267,8 @@ class CompletionView(QTreeView):
             return
         idx = self._next_idx(shift)
         self.selectionModel().setCurrentIndex(
-            idx, QItemSelectionModel.ClearAndSelect)
+                idx, QItemSelectionModel.ClearAndSelect |
+                QItemSelectionModel.Rows )
         data = self._model.data(idx)
         if data is not None:
             self._ignore_next = True
