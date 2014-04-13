@@ -474,7 +474,7 @@ class _CompletionItemDelegate(QStyledItemDelegate):
         docsize = self._doc.size().toSize()
         size = self._style.sizeFromContents(QStyle.CT_ItemViewItem, self._opt,
                                             docsize, self._opt.widget)
-        return size + QSize(10, 1)
+        return size + QSize(10, 3)
 
     def paint(self, painter, option, index):
         """Override the QStyledItemDelegate paint function.

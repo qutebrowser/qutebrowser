@@ -7,7 +7,6 @@ New config TODO
 Bugs
 ====
 
-Underlines aren't displayed correctly in completion widget
 All kind of FIXMEs
 Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-20973
