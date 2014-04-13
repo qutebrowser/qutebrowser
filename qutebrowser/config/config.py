@@ -172,14 +172,16 @@ class Config(QObject):
                 else:
                     lines += wrapper.wrap('Valid values: {}'.format(', '.join(
                         valid_values)))
-            lines += wrapper.wrap('Default: {}'.format(option.default))
+            lines += wrapper.wrap('Default: {}'.format(
+                option.values['default']))
         return lines
 
     def _str_items(self, section):
         """Get the option items as string for section."""
         lines = []
         for optname, option in section.items():
-            keyval = '{} = {}'.format(optname, option)
+            keyval = '{} = {}'.format(optname, option.get_first_value(
+                startlayer='conf'))
             lines.append(keyval)
         return lines
 
@@ -272,11 +274,26 @@ class Config(QObject):
         """
         # FIXME completion for values
         try:
-            self.set(section, option, value)
+            self.set('conf', section, option, value)
         except (NoOptionError, NoSectionError, ValidationError) as e:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
-    def set(self, section, option, value):
+    @cmdutils.register(name='set_temp', instance='config',
+                       completion=['section', 'option'])
+    def set_temp_wrapper(self, section, option, value):
+        """Set a temporary option.
+
+        Wrapper for self.set() to output exceptions in the status bar.
+
+        Arguments:
+            *args: Get passed to self.set().
+        """
+        try:
+            self.set('temp', section, option, value)
+        except (NoOptionError, NoSectionError, ValidationError) as e:
+            message.error("set: {} - {}".format(e.__class__.__name__, e))
+
+    def set(self, layer, section, option, value):
         """Set an option.
 
         Args:
@@ -296,11 +313,11 @@ class Config(QObject):
             value = self._interpolation.before_set(self, section, option,
                                                    value)
         try:
-            sectdict = self.config[section]
+            sect = self.config[section]
         except KeyError:
             raise NoSectionError(section)
         try:
-            sectdict[self.optionxform(option)] = value
+            sect.setv(layer, option, value)
         except KeyError:
             raise NoOptionError(option, section)
         else:
@@ -322,13 +339,16 @@ class Config(QObject):
         Return:
             The changed config part as string.
         """
+        # FIXME adopt this for layering
         lines = []
         for secname, section in self.config.items():
             changed_opts = []
             for optname, option in section.items():
-                if (option.rawvalue is not None and
-                        option.rawvalue != option.default):
-                    keyval = '{} = {}'.format(optname, option)
+                if (option.values.temp is not None and
+                        option.values.temp != option.default or
+                    option.values.conf is not None and
+                        option.values.conf != option.default):
+                    keyval = '{} = {}'.format(optname, option)  # FIXME layer?
                     changed_opts.append(keyval)
             if changed_opts:
                 lines.append('[{}]'.format(secname))
@@ -409,7 +429,7 @@ class SectionProxy(MutableMapping):
         return self._conf.get(self._name, key)
 
     def __setitem__(self, key, value):
-        return self._conf.set(self._name, key, value)
+        return self._conf.set('conf', self._name, key, value)
 
     def __delitem__(self, key):
         if not (self._conf.has_option(self._name, key) and

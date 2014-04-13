@@ -17,6 +17,8 @@
 
 """A single value (with multiple layers possibly) in the config."""
 
+from collections import OrderedDict
+
 
 class SettingValue:
 
@@ -26,9 +28,9 @@ class SettingValue:
 
     Attributes:
         typ: A BaseType subclass.
-        default: Default value if the user has not overridden it, as a string.
-        value: (property) The currently valid, most important value.
-        rawvalue: The current value as a raw string.
+        value: (readonly property) The currently valid, most important value.
+        _values: An OrderedDict with the values on different layers, with the
+                 most significant layer first.
     """
 
     def __init__(self, typ, default=None):
@@ -39,25 +41,62 @@ class SettingValue:
             default: Raw value to set.
         """
         self.typ = typ()
-        self.rawvalue = None
-        self.default = default
+        self._values = OrderedDict.fromkeys(['temp', 'conf', 'default'])
+        self._values['default'] = default
 
     def __str__(self):
         """Get raw string value."""
         return self.value
+
+    @property
+    def value(self):
+        """Get the currently valid value."""
+        return self.get_first_value()
+
+    @property
+    def values(self):
+        """Readonly property for _values."""
+        return self._values
+
+    def getlayers(self, startlayer):
+        """Get a dict of values starting with startlayer.
+
+        Args:
+            startlayer: The first layer to include.
+        """
+        idx = list(self._values.keys()).index(startlayer)
+        d = OrderedDict(list(self._values.items())[idx:])
+        return d
+
+    def get_first_value(self, startlayer=None):
+        """Get the first valid value starting from startlayer.
+
+        Args:
+            startlayer: The first layer to include.
+        """
+        # pylint: disable=useless-else-on-loop
+        if startlayer is None:
+            d = self._values
+        else:
+            d = self.getlayers(startlayer)
+        for val in d.values():
+            if val is not None:
+                return val
+        else:
+            raise ValueError("No valid config value found!")
 
     def transformed(self):
         """Get the transformed value."""
         v = self.value
         return self.typ.transform(v)
 
-    @property
-    def value(self):
-        """Get the currently valid value."""
-        return self.rawvalue if self.rawvalue is not None else self.default
+    def setv(self, layer, value):
+        """Set the value on a layer.
 
-    @value.setter
-    def value(self, val):
-        """Set the currently valid value."""
-        self.typ.validate(val)
-        self.rawvalue = val
+        Arguments:
+            layer: The layer to set the value on, an element name of the
+                   ValueLayers dict.
+            value: The value to set.
+        """
+        self.typ.validate(value)
+        self._values[layer] = value
