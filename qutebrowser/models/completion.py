@@ -23,6 +23,13 @@ from PyQt5.QtCore import Qt, QVariant, QAbstractItemModel, QModelIndex
 ROLE_MARKS = Qt.UserRole
 
 
+class NoCompletionsError(Exception):
+
+    """Gets raised when there are no completions available."""
+
+    pass
+
+
 class CompletionModel(QAbstractItemModel):
 
     """A simple tree model based on Python OrderdDict containing tuples.

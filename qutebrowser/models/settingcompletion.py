@@ -17,7 +17,7 @@
 
 """CompletionModels for settings/sections."""
 
-from qutebrowser.models.completion import CompletionModel
+from qutebrowser.models.completion import CompletionModel, NoCompletionsError
 from qutebrowser.config.configdata import configdata
 
 
@@ -50,3 +50,23 @@ class SettingOptionCompletionModel(CompletionModel):
             except (KeyError, AttributeError):
                 desc = ""
             self.new_item(cat, name, desc)
+
+
+class SettingValueCompletionModel(CompletionModel):
+
+    """A CompletionModel filled with setting values."""
+
+    # pylint: disable=abstract-method
+
+    def __init__(self, section, option, parent=None):
+        super().__init__(parent)
+        cat = self.new_category("Setting values for {}".format(option))
+        vals = configdata()[section][option].typ.valid_values
+        if vals is None:
+            raise NoCompletionsError
+        for val in vals:
+            try:
+                desc = vals.descriptions[val]
+            except KeyError:
+                desc = ""
+            self.new_item(cat, val, desc)

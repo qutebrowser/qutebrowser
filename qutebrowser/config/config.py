@@ -263,7 +263,7 @@ class Config(QObject):
         return newval
 
     @cmdutils.register(name='set', instance='config',
-                       completion=['section', 'option'])
+                       completion=['section', 'option', 'value'])
     def set_wrapper(self, section, option, value):
         """Set an option.
 
@@ -279,7 +279,7 @@ class Config(QObject):
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
     @cmdutils.register(name='set_temp', instance='config',
-                       completion=['section', 'option'])
+                       completion=['section', 'option', 'value'])
     def set_temp_wrapper(self, section, option, value):
         """Set a temporary option.
 

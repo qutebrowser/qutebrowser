@@ -100,6 +100,10 @@ class KeyValue:
         """Get dict item tuples."""
         return self.values.items()
 
+    def keys(self):
+        """Get value keys."""
+        return self.values.keys()
+
     def from_cp(self, sect):
         """Initialize the values from a configparser section.
 
@@ -210,6 +214,10 @@ class ValueList:
         """Get dict items."""
         self.update_valdict()
         return self.valdict.items()
+
+    def keys(self):
+        """Get value keys."""
+        return self.values.keys()
 
     def from_cp(self, sect):
         """Initialize the values from a configparser section."""

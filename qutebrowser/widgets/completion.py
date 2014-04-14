@@ -34,13 +34,14 @@ from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.config.configdata import configdata
-from qutebrowser.models.completion import ROLE_MARKS
+from qutebrowser.models.completion import ROLE_MARKS, NoCompletionsError
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 from qutebrowser.commands.parsers import split_cmdline
 from qutebrowser.models.completionfilter import CompletionFilterModel
 from qutebrowser.models.commandcompletion import CommandCompletionModel
 from qutebrowser.models.settingcompletion import (
-    SettingSectionCompletionModel, SettingOptionCompletionModel)
+    SettingSectionCompletionModel, SettingOptionCompletionModel,
+    SettingValueCompletionModel)
 
 
 class CompletionView(QTreeView):
@@ -112,6 +113,13 @@ class CompletionView(QTreeView):
         for sect in configdata().keys():
             self._completion_models['option_' + sect] = CompletionFilterModel(
                 SettingOptionCompletionModel(sect, self))
+            for opt in configdata()[sect].keys():
+                try:
+                    self._completion_models['value_{}_{}'.format(sect,opt)] = (
+                        CompletionFilterModel(SettingValueCompletionModel(sect,
+                        opt, self)))
+                except NoCompletionsError:
+                    pass
         self._ignore_next = False
         self._completing = False
 
@@ -178,9 +186,12 @@ class CompletionView(QTreeView):
             return None
         if compl == 'option':
             compl = 'option_' + parts[-2]
+        elif compl == 'value':
+            compl = 'value_{}_{}'.format(parts[-3], parts[-2])
         if compl in self._completion_models:
             return compl
         else:
+            logging.debug("No completion model for {}.".format(compl))
             return None
 
     def set_model(self, model):
