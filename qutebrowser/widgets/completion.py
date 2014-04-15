@@ -288,8 +288,10 @@ class CompletionView(QTreeView):
     @pyqtSlot()
     def on_clear_completion_selection(self):
         """Clear the selection model when an item is activated."""
-        self.selectionModel().clearSelection()
-        self.selectionModel().clearCurrentIndex()
+        selmod = self.selectionModel()
+        if selmod is not None:
+            selmod.clearSelection()
+            selmod.clearCurrentIndex()
 
 
 class _CompletionItemDelegate(QStyledItemDelegate):
