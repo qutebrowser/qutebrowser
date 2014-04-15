@@ -136,6 +136,7 @@ class QuteBrowser(QApplication):
         self.config.changed.connect(
             self.mainwindow.completion.on_config_changed)
         self.config.changed.connect(self.mainwindow.on_config_changed)
+        self.config.changed.connect(config.cmd_history.on_config_changed)
 
         self.mainwindow.show()
         self._python_hacks()
@@ -379,6 +380,10 @@ class QuteBrowser(QApplication):
                 config.config.save()
             except AttributeError:
                 logging.exception("Could not save config.")
+        try:
+            config.cmd_history.save()
+        except AttributeError:
+            logging.exception("Could not save command history.")
         try:
             self._save_geometry()
             config.state.save()

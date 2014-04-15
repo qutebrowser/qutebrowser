@@ -25,6 +25,7 @@ from PyQt5.QtWidgets import (QWidget, QLineEdit, QProgressBar, QLabel,
                              QShortcut)
 from PyQt5.QtGui import QPainter, QKeySequence, QValidator
 
+import qutebrowser.config.config as config
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 import qutebrowser.commands.keys as keys
 from qutebrowser.utils.url import urlstring
@@ -267,7 +268,10 @@ class _Command(QLineEdit):
         self.returnPressed.connect(self._on_return_pressed)
         self.textEdited.connect(self._histbrowse_stop)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
-        self.history = []
+        if config.cmd_history.data is None:
+            self.history = []
+        else:
+            self.history = config.cmd_history.data
 
         self._shortcuts = []
         for (key, handler) in [

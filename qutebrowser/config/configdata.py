@@ -138,6 +138,11 @@ def configdata():
             ('autosave',
              SettingValue(types.Bool, "true"),
              "Whether to save the config automatically on quit."),
+
+            ('cmd_histlen',
+             SettingValue(types.Int, "100"),
+             "How many commands to save in the history. 0: no history / -1: "
+             "unlimited")
         )),
 
         ('tabbar', sect.KeyValue(
