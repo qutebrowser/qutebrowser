@@ -115,9 +115,10 @@ class CompletionView(QTreeView):
                 SettingOptionCompletionModel(sect, self))
             for opt in configdata()[sect].keys():
                 try:
-                    self._completion_models['value_{}_{}'.format(sect,opt)] = (
+                    modelname = 'value_{}_{}'.format(sect, opt)
+                    self._completion_models[modelname] = (
                         CompletionFilterModel(SettingValueCompletionModel(sect,
-                        opt, self)))
+                                              opt, self)))
                 except NoCompletionsError:
                     pass
         self._ignore_next = False
@@ -278,8 +279,8 @@ class CompletionView(QTreeView):
             return
         idx = self._next_idx(shift)
         self.selectionModel().setCurrentIndex(
-                idx, QItemSelectionModel.ClearAndSelect |
-                QItemSelectionModel.Rows )
+            idx, QItemSelectionModel.ClearAndSelect |
+            QItemSelectionModel.Rows)
         data = self._model.data(idx)
         if data is not None:
             self._ignore_next = True

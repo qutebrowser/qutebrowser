@@ -36,6 +36,8 @@ class TabWidget(QTabWidget):
     # FIXME there is still some ugly 1px white stripe from somewhere if we do
     # background-color: grey for QTabBar...
 
+    # pylint: disable=unused-argument
+
     STYLESHEET = """
         QTabWidget::pane {{
             position: absolute;
@@ -100,6 +102,5 @@ class TabWidget(QTabWidget):
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update attributes when config changed."""
-        # pylint: disable=unused-argument
         if section == 'tabbar':
             self._init_config()
