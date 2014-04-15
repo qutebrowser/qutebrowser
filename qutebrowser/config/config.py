@@ -325,6 +325,7 @@ class Config(QObject):
                 self.style_changed.emit(section, option)
             self.changed.emit(section, option)
 
+    @cmdutils.register(instance='config')
     def save(self):
         """Save the config file."""
         if not os.path.exists(self._configdir):
