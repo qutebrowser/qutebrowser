@@ -374,10 +374,11 @@ class QuteBrowser(QApplication):
             return
         self._shutting_down = True
         logging.debug("Shutting down... (do_quit={})".format(do_quit))
-        try:
-            config.config.save()
-        except AttributeError:
-            logging.exception("Could not save config.")
+        if config.config.get('general', 'autosave'):
+            try:
+                config.config.save()
+            except AttributeError:
+                logging.exception("Could not save config.")
         try:
             self._save_geometry()
             config.state.save()

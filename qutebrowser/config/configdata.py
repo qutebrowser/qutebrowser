@@ -134,6 +134,10 @@ def configdata():
             ('defaultzoom',
              SettingValue(types.ZoomPerc, "100%"),
              "The default zoom level."),
+
+            ('autosave',
+             SettingValue(types.Bool, "true"),
+             "Whether to save the config automatically on quit."),
         )),
 
         ('tabbar', sect.KeyValue(
