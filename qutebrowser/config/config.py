@@ -99,7 +99,7 @@ class Config(QObject):
 
     def __init__(self, configdir, fname, parent=None):
         super().__init__(parent)
-        self.config = configdata.configdata()
+        self.config = configdata.data
         self._configparser = ReadConfigParser(configdir, fname)
         self._configfile = os.path.join(configdir, fname)
         self._wrapper_args = {

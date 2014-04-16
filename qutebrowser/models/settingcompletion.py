@@ -18,7 +18,7 @@
 """CompletionModels for settings/sections."""
 
 from qutebrowser.models.completion import CompletionModel, NoCompletionsError
-from qutebrowser.config.configdata import configdata
+import qutebrowser.config.configdata as configdata
 
 
 class SettingSectionCompletionModel(CompletionModel):
@@ -30,7 +30,7 @@ class SettingSectionCompletionModel(CompletionModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         cat = self.new_category("Config sections")
-        for name in configdata().keys():
+        for name in configdata.data.keys():
             self.new_item(cat, name)
 
 
@@ -43,7 +43,7 @@ class SettingOptionCompletionModel(CompletionModel):
     def __init__(self, section, parent=None):
         super().__init__(parent)
         cat = self.new_category("Config options for {}".format(section))
-        sectdata = configdata()[section]
+        sectdata = configdata.data[section]
         for name, _ in sectdata.items():
             try:
                 desc = sectdata.descriptions[name]
@@ -61,7 +61,7 @@ class SettingValueCompletionModel(CompletionModel):
     def __init__(self, section, option, parent=None):
         super().__init__(parent)
         cat = self.new_category("Setting values for {}".format(option))
-        vals = configdata()[section][option].typ.valid_values
+        vals = configdata.data[section][option].typ.valid_values
         if vals is None:
             raise NoCompletionsError
         for val in vals:

@@ -33,7 +33,7 @@ from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
 
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
-from qutebrowser.config.configdata import configdata
+import qutebrowser.config.configdata as configdata
 from qutebrowser.models.completion import ROLE_MARKS, NoCompletionsError
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 from qutebrowser.commands.parsers import split_cmdline
@@ -110,10 +110,10 @@ class CompletionView(QTreeView):
             'section': CompletionFilterModel(SettingSectionCompletionModel(
                                              self)),
         }
-        for sect in configdata().keys():
+        for sect in configdata.data.keys():
             self._completion_models['option_' + sect] = CompletionFilterModel(
                 SettingOptionCompletionModel(sect, self))
-            for opt in configdata()[sect].keys():
+            for opt in configdata.data[sect].keys():
                 try:
                     modelname = 'value_{}_{}'.format(sect, opt)
                     self._completion_models[modelname] = (
