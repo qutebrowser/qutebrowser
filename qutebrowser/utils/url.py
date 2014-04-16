@@ -76,9 +76,9 @@ def _is_url_naive(url):
     Return:
         True if the url really is an URL, False otherwise.
     """
-    PROTOCOLS = ['http://', 'https://']
+    protocols = ['http://', 'https://']
     u = urlstring(url)
-    return (any(u.startswith(proto) for proto in PROTOCOLS) or '.' in u or
+    return (any(u.startswith(proto) for proto in protocols) or '.' in u or
             u == 'localhost')
 
 

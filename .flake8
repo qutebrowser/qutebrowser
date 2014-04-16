@@ -1,0 +1,8 @@
+[flake8]
+# E241: Multiple spaces after ,
+# E265: Block comment should start with '#'
+# F401: Unused import (checked by pylint)
+# E501: Line too long (checked by pylint)
+ignore=E241,E265,F401,E501
+max_complexity = 10
+exclude = appdirs.py

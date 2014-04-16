@@ -70,7 +70,7 @@ class QuteSchemeHandler(SchemeHandler):
         """
         return url.replace('http://', '').replace('qute:', 'qute_')
 
-    def createRequest(self, op, request, outgoingData):
+    def createRequest(self, op, request, outgoing_data):
         """Create a new request.
 
         Args:
@@ -81,6 +81,7 @@ class QuteSchemeHandler(SchemeHandler):
         Return:
             A QNetworkReply.
         """
+        # pylint: disable=unused-argument
         # FIXME handle unknown pages
         # FIXME adjust URLutils based on handlers
         logging.debug('request: {}'.format(request))

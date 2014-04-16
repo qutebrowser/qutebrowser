@@ -72,7 +72,7 @@ class KeyParser(QObject):
         Return:
             True if event has been handled, False otherwise.
         """
-        MODMASK2STR = {
+        modmask2str = {
             Qt.ControlModifier: 'Ctrl',
             Qt.AltModifier: 'Alt',
             Qt.MetaModifier: 'Meta',
@@ -86,7 +86,7 @@ class KeyParser(QObject):
         if not mod & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier):
             # won't be a shortcut with modifiers
             return False
-        for (mask, s) in MODMASK2STR.items():
+        for (mask, s) in modmask2str.items():
             if mod & mask:
                 modstr += s + '+'
         keystr = QKeySequence(e.key()).toString()

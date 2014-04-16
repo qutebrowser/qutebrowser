@@ -28,7 +28,7 @@ class SchemeHandler(QObject):
 
     """Abstract base class for custom scheme handlers."""
 
-    def createRequest(self, op, request, outgoingData):
+    def createRequest(self, op, request, outgoing_data):
         """Create a new request.
 
         Args:

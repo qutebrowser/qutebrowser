@@ -35,7 +35,7 @@ class Style(QCommonStyle):
     Based on:
 
     http://stackoverflow.com/a/17294081
-    https://code.google.com/p/makehuman/source/browse/trunk/makehuman/lib/qtgui.py # pylint: disable=line-too-long
+    https://code.google.com/p/makehuman/source/browse/trunk/makehuman/lib/qtgui.py
 
     Attributes:
         _style: The base/"parent" style.

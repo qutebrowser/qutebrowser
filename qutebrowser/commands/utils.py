@@ -26,7 +26,7 @@ from qutebrowser.commands.command import Command
 cmd_dict = {}
 
 
-class register:
+class register:  # pylint: disable=invalid-name
 
     """Decorator to register a new command handler.
 

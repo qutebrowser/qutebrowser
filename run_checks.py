@@ -39,37 +39,6 @@ status = OrderedDict()
 options = {
     'target': 'qutebrowser',
     'disable': {
-        'pylint': [
-            # short variable names can be nice
-            'invalid-name',
-            # Basically unavoidable with Qt
-            'too-many-public-methods',
-            'no-self-use',
-            # These don't even exist in python3
-            'super-on-old-class',
-            'old-style-class',
-            # False-positives
-            'abstract-class-little-used',
-            # map/filter can be nicer than comprehensions
-            'bad-builtin',
-            # I disagree with these
-            'star-args',
-            'fixme',
-            'too-many-instance-attributes',
-            'global-statement',
-            'no-init',
-            'too-many-arguments',
-            'too-few-public-methods',
-            'too-many-ancestors',
-            # visual noise
-            'locally-disabled',
-        ],
-        'flake8': [
-            'E241',  # Multiple spaces after ,
-            'E265',  # Block comment should start with '#'
-            'F401',  # Unused import (checked by pylint)
-            'E501',  # Line too long (checked by pylint)
-        ],
         'pep257': [
             'D102',  # Docstring missing, will be handled by others
             'D209',  # Blank line before closing """ (removed from PEP257)
@@ -77,8 +46,9 @@ options = {
     },
     'exclude': ['appdirs.py'],
     'other': {
-        'pylint': ['--output-format=colorized', '--reports=no'],
-        'flake8': ['--max-complexity=10'],
+        'pylint': ['--output-format=colorized', '--reports=no',
+                   '--rcfile=.pylintrc'],
+        'flake8': ['--max-complexity=10', '--config=.flake8'],
     },
 }
 
@@ -164,14 +134,26 @@ def _get_args(checker):
     if checker == 'pylint':
         try:
             args += ['--disable=' + ','.join(options['disable']['pylint'])]
+        except KeyError:
+            pass
+        try:
             args += ['--ignore=' + ','.join(options['exclude'])]
+        except KeyError:
+            pass
+        try:
             args += options['other']['pylint']
         except KeyError:
             pass
     elif checker == 'flake8':
         try:
             args += ['--ignore=' + ','.join(options['disable']['flake8'])]
+        except KeyError:
+            pass
+        try:
             args += ['--exclude=' + ','.join(options['exclude'])]
+        except KeyError:
+            pass
+        try:
             args += options['other']['flake8']
         except KeyError:
             pass
@@ -179,8 +161,14 @@ def _get_args(checker):
         args = []
         try:
             args += ['--ignore=' + ','.join(options['disable']['pep257'])]
+        except KeyError:
+            pass
+        try:
             args += ['--match=(?!{}).*\.py'.format('|'.join(
                 options['exclude']))]
+        except KeyError:
+            pass
+        try:
             args += options['other']['pep257']
         except KeyError:
             pass
