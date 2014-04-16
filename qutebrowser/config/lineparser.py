@@ -70,7 +70,7 @@ class LineConfigParser:
 
     def save(self):
         """Save the config file."""
-        from qutebrowser.config.config import config
+        import qutebrowser.config.config as config
         limit = -1 if self._limit is None else config.config.get(*self._limit)
         if limit == 0:
             return
