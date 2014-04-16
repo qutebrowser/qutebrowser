@@ -349,10 +349,10 @@ class Config(QObject):
         for secname, section in self.config.items():
             changed_opts = []
             for optname, option in section.items():
-                if (option.values.temp is not None and
-                        option.values.temp != option.default or
-                    option.values.conf is not None and
-                        option.values.conf != option.default):
+                if (option.values['temp'] is not None and
+                        option.values['temp'] != option.values['default'] or
+                    option.values['conf'] is not None and
+                        option.values['conf'] != option.values['default']):
                     keyval = '{} = {}'.format(optname, option)  # FIXME layer?
                     changed_opts.append(keyval)
             if changed_opts:
