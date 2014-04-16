@@ -137,6 +137,7 @@ class QuteBrowser(QApplication):
             self.mainwindow.completion.on_config_changed)
         self.config.changed.connect(self.mainwindow.on_config_changed)
         self.config.changed.connect(config.cmd_history.on_config_changed)
+        self.config.changed.connect(config.qwebsetting_on_config_changed)
 
         self.mainwindow.show()
         self._python_hacks()

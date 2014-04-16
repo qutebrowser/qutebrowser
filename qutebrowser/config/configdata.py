@@ -48,6 +48,7 @@ FIRST_COMMENT = """
 SECTION_DESC = {
     'general': 'General/misc. options',
     'tabbar': 'Configuration of the tab bar.',
+    'webkit': 'Webkit settings.',
     'searchengines': (
         'Definitions of search engines which can be used via the address '
         'bar.\n'
@@ -170,6 +171,135 @@ def configdata():
             ('last_close',
              SettingValue(types.LastClose, "ignore"),
              "Behaviour when the last tab is closed."),
+        )),
+
+        ('webkit', sect.KeyValue(
+            ('auto_load_images',
+             SettingValue(types.Bool, "true"),
+             "Specifies whether images are automatically loaded in web "
+             "pages."),
+
+            ('dns_prefetch_enabled',
+             SettingValue(types.Bool, "false"),
+             "Specifies whether QtWebkit will try to pre-fetch DNS entries to "
+             "speed up browsing."),
+
+            ('javascript_enabled',
+             SettingValue(types.Bool, "true"),
+             "Enables or disables the running of JavaScript programs."),
+
+            #('java_enabled',
+            # SettingValue(types.Bool, "true"),
+            # "Enables or disables Java applets. Currently Java applets are "
+            # "not supported"),
+
+            ('plugins_enabled',
+             SettingValue(types.Bool, "false"),
+             "Enables or disables plugins in Web pages"),
+
+            ('private_browsing_enabled',
+             SettingValue(types.Bool, "false"),
+             "Private browsing prevents WebKit from recording visited pages "
+             "in the history and storing web page icons."),
+
+            ('javascript_can_open_windows',
+             SettingValue(types.Bool, "false"),
+             "Specifies whether JavaScript programs can open new windows."),
+
+            ('javascript_can_close_windows',
+             SettingValue(types.Bool, "false"),
+             "Specifies whether JavaScript programs can close windows."),
+
+            ('javascript_can_access_clipboard',
+             SettingValue(types.Bool, "false"),
+             "Specifies whether JavaScript programs can read or write to the "
+             "clipboard."),
+
+            ('developer_extras_enabled',
+             SettingValue(types.Bool, "false"),
+             "Enables extra tools for Web developers (e.g. webinspector)"),
+
+            ('spatial_navigation_enabled',
+             SettingValue(types.Bool, "false"),
+             "Enables or disables the Spatial Navigation feature, which "
+             "consists in the ability to navigate between focusable elements "
+             "in a Web page, such as hyperlinks and form controls, by using "
+             "Left, Right, Up and Down arrow keys."),
+
+            ('links_included_in_focus_chain',
+             SettingValue(types.Bool, "true"),
+             "Specifies whether hyperlinks should be included in the keyboard "
+             "focus chain."),
+
+            ('zoom_text_only',
+             SettingValue(types.Bool, "false"),
+             "Specifies whether the zoom factor on a frame applies only to "
+             "the text or to all content."),
+
+            ('print_element_backgrounds',
+             SettingValue(types.Bool, "true"),
+             "Specifies whether the background color and images are also "
+             "drawn when the page is printed. "),
+
+            ('offline_storage_database_enabled',
+             SettingValue(types.Bool, "false"),
+             "Specifies whether support for the HTML 5 offline storage "
+             "feature is enabled or not. "),
+
+            ('offline_web_application_storage_enabled',
+             SettingValue(types.Bool, "false"),
+             "Specifies whether support for the HTML 5 web application cache "
+             "feature is enabled or not. "),
+
+            ('local_storage_enabled',
+             SettingValue(types.Bool, "false"),
+             "Specifies whether support for the HTML 5 local storage feature "
+             "is enabled or not."),
+
+            ('local_content_can_access_remote_urls',
+             SettingValue(types.Bool, "false"),
+             "Specifies whether locally loaded documents are allowed to "
+             "access remote urls."),
+
+            ('local_content_can_access_file_urls',
+             SettingValue(types.Bool, "true"),
+             "Specifies whether locally loaded documents are allowed to "
+             "access other local urls."),
+
+            ('xss_auditing_enabled',
+             SettingValue(types.Bool, "false"),
+             "Specifies whether load requests should be monitored for "
+             "cross-site scripting attempts. Suspicious scripts will be "
+             "blocked and reported in the inspector's JavaScript console. "
+             "Enabling this feature might have an impact on performance."),
+
+            #('accelerated_compositing_enabled',
+            # SettingValue(types.Bool, "true"),
+            # "This feature, when used in conjunction with QGraphicsWebView, "
+            # "accelerates animations of web content. CSS animations of the "
+            # "transform and opacity properties will be rendered by composing "
+            # "the cached content of the animated elements. "),
+
+            #('tiled_backing_store_enabled',
+            # SettingValue(types.Bool, "false"),
+            # "This setting enables the tiled backing store feature for a "
+            # "QGraphicsWebView. With the tiled backing store enabled, the web "
+            # "page contents in and around the current visible area is "
+            # "speculatively cached to bitmap tiles. The tiles are "
+            # "automatically kept in sync with the web page as it changes. "
+            # "Enabling tiling can significantly speed up painting heavy "
+            # "operations like scrolling. Enabling the feature increases "
+            # "memory consumption. "),
+
+            ('frame_flattening_enabled',
+             SettingValue(types.Bool, "false"),
+             "With this setting each subframe is expanded to its contents. "
+             "This will flatten all the frames to become one scrollable "
+             "page."),
+
+            ('site_specific_quirks_enabled',
+             SettingValue(types.Bool, "true"),
+             "This setting enables WebKit's workaround for broken sites."),
         )),
 
         ('searchengines', sect.ValueList(
