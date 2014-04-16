@@ -27,20 +27,37 @@ import os.path
 import logging
 import textwrap
 import configparser
-from configparser import ConfigParser, ExtendedInterpolation
+from configparser import ExtendedInterpolation
 from collections.abc import MutableMapping
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
+from PyQt5.QtCore import pyqtSignal, QObject
 
 #from qutebrowser.utils.misc import read_file
 import qutebrowser.config.configdata as configdata
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.message as message
 from qutebrowser.config.conftypes import ValidationError
+from qutebrowser.config.iniparsers import (ReadConfigParser,
+                                           ReadWriteConfigParser)
+from qutebrowser.config.lineparser import LineConfigParser
 
 config = None
 state = None
 cmd_history = None
+
+
+def init(configdir):
+    """Initialize the global objects based on the config in configdir.
+
+    Args:
+        configdir: The directory where the configs are stored in.
+    """
+    global config, state, cmd_history
+    logging.debug("Config init, configdir {}".format(configdir))
+    config = Config(configdir, 'qutebrowser.conf')
+    state = ReadWriteConfigParser(configdir, 'state')
+    cmd_history = LineConfigParser(configdir, 'cmd_history',
+                                   ('general', 'cmd_histlen'))
 
 
 class NoSectionError(configparser.NoSectionError):
@@ -55,22 +72,6 @@ class NoOptionError(configparser.NoOptionError):
     """Exception raised when an option was not found."""
 
     pass
-
-
-def init(configdir):
-    """Initialize the global objects based on the config in configdir.
-
-    Args:
-        configdir: The directory where the configs are stored in.
-    """
-    global config, state, cmd_history
-    logging.debug("Config init, configdir {}".format(configdir))
-    #config = Config(configdir, 'qutebrowser.conf',
-    #                read_file('qutebrowser.conf'))
-    config = Config(configdir, 'qutebrowser.conf')
-    state = ReadWriteConfigParser(configdir, 'state')
-    cmd_history = LineConfigParser(configdir, 'cmd_history',
-                                   ('general', 'cmd_histlen'))
 
 
 class Config(QObject):
@@ -362,111 +363,6 @@ class Config(QObject):
     def optionxform(self, val):
         """Implemented to be compatible with ConfigParser interpolation."""
         return val
-
-
-class ReadConfigParser(ConfigParser):
-
-    """Our own ConfigParser subclass to read the main config.
-
-    Attributes:
-        _configdir: The directory to read the config from.
-        _configfile: The config file path.
-    """
-
-    def __init__(self, configdir, fname):
-        """Config constructor.
-
-        Args:
-            configdir: Directory to read the config from.
-            fname: Filename of the config file.
-        """
-        super().__init__(interpolation=None)
-        self.optionxform = lambda opt: opt  # be case-insensitive
-        self._configdir = configdir
-        self._configfile = os.path.join(self._configdir, fname)
-        if not os.path.isfile(self._configfile):
-            return
-        logging.debug("Reading config from {}".format(self._configfile))
-        self.read(self._configfile)
-
-
-class ReadWriteConfigParser(ReadConfigParser):
-
-    """ConfigParser subclass used for auxillary config files."""
-
-    def save(self):
-        """Save the config file."""
-        if not os.path.exists(self._configdir):
-            os.makedirs(self._configdir, 0o755)
-        logging.debug("Saving config to {}".format(self._configfile))
-        with open(self._configfile, 'w') as f:
-            self.write(f)
-
-
-class LineConfigParser:
-
-    """Parser for configuration files which are simply line-based.
-
-    Attributes:
-        data: A list of lines.
-        _configdir: The directory to read the config from.
-        _configfile: The config file path.
-    """
-
-    def __init__(self, configdir, fname, limit=None):
-        """Config constructor.
-
-        Args:
-            configdir: Directory to read the config from.
-            fname: Filename of the config file.
-            limit: Config tuple (section, option) which contains a limit.
-        """
-        self._configdir = configdir
-        self._configfile = os.path.join(self._configdir, fname)
-        self._limit = limit
-        self.data = None
-        if not os.path.isfile(self._configfile):
-            return
-        logging.debug("Reading config from {}".format(self._configfile))
-        self.read(self._configfile)
-
-    def read(self, filename):
-        """Read the data from a file."""
-        with open(filename, 'r') as f:
-            self.data = [line.rstrip('\n') for line in f.readlines()]
-
-    def write(self, fp, limit=-1):
-        """Write the data to a file.
-
-        Arguments:
-            fp: A file object to write the data to.
-            limit: How many lines to write, or -1 for no limit.
-        """
-        if limit == -1:
-            data = self.data
-        else:
-            data = self.data[-limit:]
-        fp.write('\n'.join(data))
-
-    def save(self):
-        """Save the config file."""
-        limit = -1 if self._limit is None else config.get(*self._limit)
-        if limit == 0:
-            return
-        if not os.path.exists(self._configdir):
-            os.makedirs(self._configdir, 0o755)
-        logging.debug("Saving config to {}".format(self._configfile))
-        with open(self._configfile, 'w') as f:
-            self.write(f, limit)
-
-    @pyqtSlot(str, str, object)
-    def on_config_changed(self, section, option, value):
-        """Delete the file if the limit was changed to 0."""
-        if self._limit is None:
-            return
-        if (section, option) == self._limit and value == 0:
-            if os.path.exists(self._configfile):
-                os.remove(self._configfile)
 
 
 class SectionProxy(MutableMapping):
