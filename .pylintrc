@@ -31,6 +31,9 @@ bad-names=foo,bar,baz,tmp
 max-line-length=79
 ignore-long-lines=<?https?://
 
+[SIMILARITIES]
+min-similarity-lines=6
+
 [VARIABLES]
 dummy-variables-rgx=_$
 
