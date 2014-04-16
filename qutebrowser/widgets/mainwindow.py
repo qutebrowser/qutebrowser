@@ -22,10 +22,12 @@ from base64 import b64decode
 
 from PyQt5.QtCore import pyqtSlot, QRect, QPoint
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
+from PyQt5.QtWebKitWidgets import QWebInspector
 
 from qutebrowser.widgets.statusbar import StatusBar
 from qutebrowser.widgets.tabbedbrowser import TabbedBrowser
 from qutebrowser.widgets.completion import CompletionView
+import qutebrowser.commands.utils as cmdutils
 import qutebrowser.config.config as config
 
 
@@ -39,6 +41,7 @@ class MainWindow(QWidget):
     Attributes:
         tabs: The TabbedBrowser widget.
         status: The StatusBar widget.
+        inspector: The QWebInspector.
         _vbox: The main QVBoxLayout.
     """
 
@@ -67,6 +70,9 @@ class MainWindow(QWidget):
         self._vbox.addWidget(self.tabs)
 
         self.completion = CompletionView(self)
+        self.inspector = QWebInspector()
+        self.inspector.hide()
+        self._vbox.addWidget(self.inspector)
 
         self.status = StatusBar()
         self._vbox.addWidget(self.status)
@@ -85,6 +91,7 @@ class MainWindow(QWidget):
         self.tabs.cur_temp_message.connect(self.status.txt.set_temptext)
         self.tabs.cur_url_changed.connect(self.status.url.set_url)
         self.tabs.cur_link_hovered.connect(self.status.url.set_hover_url)
+        self.tabs.currentChanged.connect(self.update_inspector)
         self.status.cmd.esc_pressed.connect(self.tabs.setFocus)
         self.status.cmd.clear_completion_selection.connect(
             self.completion.on_clear_completion_selection)
@@ -123,6 +130,24 @@ class MainWindow(QWidget):
     def _set_default_geometry(self):
         """Set some sensible default geometry."""
         self.setGeometry(QRect(50, 50, 800, 600))
+
+    @cmdutils.register(instance='mainwindow', name='inspector')
+    def toggle_inspector(self):
+        """Toggle the web inspector."""
+        if self.inspector.isVisible():
+            self.inspector.hide()
+        else:
+            self.inspector.show()
+
+    @pyqtSlot()
+    def update_inspector(self):
+        """Update the web inspector if the page changed."""
+        self.inspector.setPage(self.tabs.currentWidget().page())
+        if self.inspector.isVisible():
+            # For some odd reason, we need to do this so the inspector actually
+            # shows some content...
+            self.inspector.hide()
+            self.inspector.show()
 
     def resizeEvent(self, e):
         """Extend resizewindow's resizeEvent to adjust completion.
