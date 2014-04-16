@@ -100,7 +100,7 @@ class SearchParser(QObject):
             do_search: If a search should be started.
         """
         if self._text is not None:
-            for i in range(count):  # pylint: disable=unused-variable
+            for _ in range(count):
                 self.do_search.emit(self._text, self._flags)
 
 

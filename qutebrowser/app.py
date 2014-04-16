@@ -57,7 +57,7 @@ from qutebrowser.commands.keys import KeyParser
 from qutebrowser.commands.parsers import CommandParser, SearchParser
 from qutebrowser.utils.appdirs import AppDirs
 from qutebrowser.utils.misc import dotted_getattr
-from qutebrowser.utils.debug import set_trace  # noqa pylint: disable=unused-import
+from qutebrowser.utils.debug import set_trace  # pylint: disable=unused-import
 
 
 class QuteBrowser(QApplication):

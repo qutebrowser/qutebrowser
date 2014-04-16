@@ -67,6 +67,8 @@ options = {
         'flake8': [
             'E241',  # Multiple spaces after ,
             'E265',  # Block comment should start with '#'
+            'F401',  # Unused import (checked by pylint)
+            'E501',  # Line too long (checked by pylint)
         ],
         'pep257': [
             'D102',  # Docstring missing, will be handled by others

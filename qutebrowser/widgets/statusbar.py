@@ -249,7 +249,7 @@ class _Command(QLineEdit):
 
     # FIXME won't the tab key switch to the next widget?
     # See [0] for a possible fix.
-    # [0] http://www.saltycrane.com/blog/2008/01/how-to-capture-tab-key-press-event-with/ # noqa # pylint: disable=line-too-long
+    # [0] http://www.saltycrane.com/blog/2008/01/how-to-capture-tab-key-press-event-with/ # pylint: disable=line-too-long
 
     def __init__(self, statusbar):
         super().__init__(statusbar)

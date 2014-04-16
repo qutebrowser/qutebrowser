@@ -539,7 +539,7 @@ class CurCommandDispatcher(QObject):
             count: How many pages to go back.
         """
         # FIXME display warning if beginning of history
-        for i in range(count):  # pylint: disable=unused-variable
+        for _ in range(count):
             self.tabs.currentWidget().back()
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
@@ -552,7 +552,7 @@ class CurCommandDispatcher(QObject):
             count: How many pages to go forward.
         """
         # FIXME display warning if end of history
-        for i in range(count):  # pylint: disable=unused-variable
+        for _ in range(count):
             self.tabs.currentWidget().forward()
 
     @pyqtSlot(str, int)
