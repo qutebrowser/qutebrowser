@@ -1,8 +1,3 @@
-New config TODO
-===============
-
-- Changing models is awfully slow
-
 Bugs
 ====
 
@@ -10,6 +5,13 @@ All kind of FIXMEs
 Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-20973
     https://bugreports.qt-project.org/browse/QTBUG-21036
+Changing completion models is awfully slow
+
+Style
+=====
+
+Rename browsertab/tabbedbrowser/... widgets
+Maybe move tabs.cur.* stuff to browsertab?
 
 Major features
 ==============
@@ -27,6 +29,7 @@ Plugin architecture
 Insert mode
 Extern editor
 Hints
+    Use HTML elements inserted into DOM or Qt overlay?
 Downloads
 webinterface for settings/colors/bindings
 [[/]] for back/forward links
@@ -40,10 +43,8 @@ Mode handling?
 Bookmarks
 Internationalization
 Marks
-set settings/colors/bindings via commandline
 more completions (URLs, ...)
 SSL handling
-add classes for ConfigOptions with section/name/desc/validate()/get() so we can validate config options, get transformed values and write a default config easily
 
 Minor features
 ==============
@@ -52,7 +53,6 @@ Hiding scrollbars
 :bind
 Ctrl+A/X to increase/decrease last number in URL
 keypress-signal-foo is a bit of a chaos and might be done better
-remove empty lines at docstring end
 
 Other stuff
 ===========
