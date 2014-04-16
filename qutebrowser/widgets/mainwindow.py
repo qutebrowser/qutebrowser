@@ -20,7 +20,7 @@
 import binascii
 from base64 import b64decode
 
-from PyQt5.QtCore import QRect, QPoint
+from PyQt5.QtCore import pyqtSlot, QRect, QPoint
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
 from qutebrowser.widgets.statusbar import StatusBar
@@ -99,7 +99,9 @@ class MainWindow(QWidget):
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-    def on_config_changed(self, section, option):
+    # pylint: disable=unused-argument
+    @pyqtSlot(str, str, object)
+    def on_config_changed(self, section, option, value):
         """Resize completion if config changed."""
         if section == 'general' and option == 'completion_height':
             self.resize_completion()

@@ -88,12 +88,12 @@ class Config(QObject):
 
     Signals:
         changed: Gets emitted when the config has changed.
-                 Args: the changed section and option.
+                 Args: the changed section, option and new value.
         style_changed: When style caches need to be invalidated.
                  Args: the changed section and option.
     """
 
-    changed = pyqtSignal(str, str)
+    changed = pyqtSignal(str, str, object)
     style_changed = pyqtSignal(str, str)
 
     def __init__(self, configdir, fname, parent=None):
@@ -326,7 +326,7 @@ class Config(QObject):
         else:
             if section in ['colors', 'fonts']:
                 self.style_changed.emit(section, option)
-            self.changed.emit(section, option)
+            self.changed.emit(section, option, self.get(section, option))
 
     @cmdutils.register(instance='config')
     def save(self):
@@ -459,12 +459,12 @@ class LineConfigParser:
         with open(self._configfile, 'w') as f:
             self.write(f, limit)
 
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
+    @pyqtSlot(str, str, object)
+    def on_config_changed(self, section, option, value):
         """Delete the file if the limit was changed to 0."""
         if self._limit is None:
             return
-        if (section, option) == self._limit and config.get(*self._limit) == 0:
+        if (section, option) == self._limit and value == 0:
             if os.path.exists(self._configfile):
                 os.remove(self._configfile)
 
