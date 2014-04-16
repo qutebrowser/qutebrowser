@@ -283,8 +283,8 @@ def configdata():
             #('tiled_backing_store_enabled',
             # SettingValue(types.Bool, "false"),
             # "This setting enables the tiled backing store feature for a "
-            # "QGraphicsWebView. With the tiled backing store enabled, the web "
-            # "page contents in and around the current visible area is "
+            # "QGraphicsWebView. With the tiled backing store enabled, the "
+            # "web page contents in and around the current visible area is "
             # "speculatively cached to bitmap tiles. The tiles are "
             # "automatically kept in sync with the web page as it changes. "
             # "Enabling tiling can significantly speed up painting heavy "

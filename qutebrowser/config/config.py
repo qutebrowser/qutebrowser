@@ -45,6 +45,7 @@ cmd_history = None
 
 
 WEBSETTINGS_MAPPING = {
+    # noqa
     'auto_load_images': QWebSettings.AutoLoadImages,
     'dns_prefetch_enabled': QWebSettings.DnsPrefetchEnabled,
     'javascript_enabled': QWebSettings.JavascriptEnabled,
@@ -107,6 +108,7 @@ def init(configdir):
     cmd_history = LineConfigParser(configdir, 'cmd_history',
                                    ('general', 'cmd_histlen'))
     init_qwebsettings()
+
 
 def init_qwebsettings():
     """Initialize the global QWebSettings."""
