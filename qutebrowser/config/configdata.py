@@ -58,9 +58,10 @@ SECTION_DESC = {
         '"qutebrowser !google". The string "{}" will be replaced by the '
         'search term, use "{{" and "}}" for literal {/} signs.'),
     'keybind': (
-        "Bindings from a key(chain) to a command. For special keys (can't "
-        'be part of a keychain), enclose them in @-signs. For modifiers, '
-        'you can use either - or + as delimiters, and these names:\n'
+        'Bindings from a key(chain) to a command.\n'
+        "For special keys (can't be part of a keychain), enclose them in "
+        '@-signs. For modifiers, you can use either - or + as delimiters, and '
+        'these names:\n'
         '  Control: Control, Ctrl\n'
         '  Meta:    Meta, Windows, Mod4\n'
         '  Alt:     Alt, Mod1\n'
@@ -70,13 +71,13 @@ SECTION_DESC = {
         'to explicitely add "Shift-" to match a key pressed with shift. '
         'You can bind multiple commands by separating them with ";;".'),
     'aliases': (
-        'Here you can add aliases for commands. By default, no aliases '
-        'are defined. Example which adds a new command :qtb to open '
-        'qutebrowsers website:\n'
+        'Aliases for commands.\n'
+        'By default, no aliases are defined. Example which adds a new command '
+        ':qtb to open qutebrowsers website:\n'
         '  qtb = open http://www.qutebrowser.org/'),
     'colors': (
-        'Colors used in the UI. A value can be in one of the following '
-        'format:\n'
+        'Colors used in the UI.\n'
+        'A value can be in one of the following format:\n'
         '  - #RGB/#RRGGBB/#RRRGGGBBB/#RRRRGGGGBBBB\n'
         '  - A SVG color name as specified in [1].\n'
         '  - transparent (no color)\n'

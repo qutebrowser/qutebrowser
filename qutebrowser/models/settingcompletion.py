@@ -31,7 +31,8 @@ class SettingSectionCompletionModel(CompletionModel):
         super().__init__(parent)
         cat = self.new_category("Config sections")
         for name in configdata.data.keys():
-            self.new_item(cat, name)
+            desc = configdata.SECTION_DESC[name].splitlines()[0].strip()
+            self.new_item(cat, name, desc)
 
 
 class SettingOptionCompletionModel(CompletionModel):
