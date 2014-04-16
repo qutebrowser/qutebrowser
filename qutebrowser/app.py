@@ -27,6 +27,8 @@ from signal import signal, SIGINT
 from argparse import ArgumentParser
 from base64 import b64encode
 
+import qutebrowser.config.websettings as websettings
+
 # Print a nice traceback on segfault -- only available on Python 3.3+, but if
 # it's unavailable, it doesn't matter much.
 try:
@@ -102,6 +104,7 @@ class QuteBrowser(QApplication):
             confdir = self._args.confdir
         config.init(confdir)
         self.config = config.config
+        websettings.init()
 
         self.commandparser = CommandParser()
         self.searchparser = SearchParser()
@@ -137,7 +140,7 @@ class QuteBrowser(QApplication):
             self.mainwindow.completion.on_config_changed)
         self.config.changed.connect(self.mainwindow.on_config_changed)
         self.config.changed.connect(config.cmd_history.on_config_changed)
-        self.config.changed.connect(config.qwebsetting_on_config_changed)
+        self.config.changed.connect(websettings.on_config_changed)
 
         self.mainwindow.show()
         self._python_hacks()

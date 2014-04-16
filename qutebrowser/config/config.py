@@ -31,7 +31,6 @@ from configparser import ConfigParser, ExtendedInterpolation
 from collections.abc import MutableMapping
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
-from PyQt5.QtWebKit import QWebSettings
 
 #from qutebrowser.utils.misc import read_file
 import qutebrowser.config.configdata as configdata
@@ -42,41 +41,6 @@ from qutebrowser.config.conftypes import ValidationError
 config = None
 state = None
 cmd_history = None
-
-
-WEBSETTINGS_MAPPING = {
-    # noqa
-    'auto_load_images': QWebSettings.AutoLoadImages,
-    'dns_prefetch_enabled': QWebSettings.DnsPrefetchEnabled,
-    'javascript_enabled': QWebSettings.JavascriptEnabled,
-    #'java_enabled': #QWebSettings.JavaEnabled,
-    'plugins_enabled': QWebSettings.PluginsEnabled,
-    'private_browsing_enabled': QWebSettings.PrivateBrowsingEnabled,
-    'javascript_can_open_windows': QWebSettings.JavascriptCanOpenWindows,
-    'javascript_can_close_windows': QWebSettings.JavascriptCanCloseWindows,
-    'javascript_can_access_clipboard':
-        QWebSettings.JavascriptCanAccessClipboard,
-    'developer_extras_enabled': QWebSettings.DeveloperExtrasEnabled,
-    'spatial_navigation_enabled': QWebSettings.SpatialNavigationEnabled,
-    'links_included_in_focus_chain': QWebSettings.LinksIncludedInFocusChain,
-    'zoom_text_only': QWebSettings.ZoomTextOnly,
-    'print_element_backgrounds': QWebSettings.PrintElementBackgrounds,
-    'offline_storage_database_enabled':
-        QWebSettings.OfflineStorageDatabaseEnabled,
-    'offline_web_application_storage_enabled':
-        QWebSettings.OfflineWebApplicationCacheEnabled,
-    'local_storage_enabled': QWebSettings.LocalStorageEnabled,
-    'local_content_can_access_remote_urls':
-        QWebSettings.LocalContentCanAccessRemoteUrls,
-    'local_content_can_access_file_urls':
-        QWebSettings.LocalContentCanAccessFileUrls,
-    'xss_auditing_enabled': QWebSettings.XSSAuditingEnabled,
-    #'accelerated_compositing_enabled':
-    #   QWebSettings.AcceleratedCompositingEnabled,
-    #'tiled_backing_store_enabled': QWebSettings.TiledBackingStoreEnabled,
-    'frame_flattening_enabled': QWebSettings.FrameFlatteningEnabled,
-    'site_specific_quirks_enabled': QWebSettings.SiteSpecificQuirksEnabled,
-}
 
 
 class NoSectionError(configparser.NoSectionError):
@@ -107,22 +71,6 @@ def init(configdir):
     state = ReadWriteConfigParser(configdir, 'state')
     cmd_history = LineConfigParser(configdir, 'cmd_history',
                                    ('general', 'cmd_histlen'))
-    init_qwebsettings()
-
-
-def init_qwebsettings():
-    """Initialize the global QWebSettings."""
-    settings = QWebSettings.globalSettings()
-    for name, item in WEBSETTINGS_MAPPING.items():
-        settings.setAttribute(item, config.get('webkit', name))
-
-
-@pyqtSlot(str, str, object)
-def qwebsetting_on_config_changed(section, option, value):
-    """Update global settings when qwebsettings changed."""
-    if section == 'webkit':
-        settings = QWebSettings.globalSettings()
-        settings.setAttribute(WEBSETTINGS_MAPPING[option], value)
 
 
 class Config(QObject):
