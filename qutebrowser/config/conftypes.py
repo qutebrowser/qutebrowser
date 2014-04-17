@@ -17,6 +17,8 @@
 
 """Setting options used for qutebrowser."""
 
+from PyQt5.QtGui import QColor
+
 
 class ValidationError(ValueError):
 
@@ -281,13 +283,24 @@ class Command(BaseType):
 
 class Color(BaseType):
 
-    """Base class for a color value."""
+    """Base class for a color value.
+
+    Class attributes:
+        _GRADIENTS: Valid gradient function names.
+    """
 
     typestr = 'color'
 
+    _GRADIENTS = ['qlineargradient', 'qradialgradient', 'qconicalgradient']
+
     def validate(self, value):
-        # FIXME validate colors
-        pass
+        if any([value.startswith(start) for start in Color._GRADIENTS]):
+            # We can't validate this further.
+            return
+        if QColor.isValidColor(value):
+            pass
+        else:
+            raise ValidationError(value, "must be a valid color")
 
 
 class Font(BaseType):
@@ -314,7 +327,10 @@ class SearchEngineUrl(BaseType):
     """A search engine URL."""
 
     def validate(self, value):
-        return "{}" in value
+        if "{}" in value:
+            pass
+        else:
+            raise ValidationError(value, 'must contain "{}"')
 
 
 class KeyBindingName(BaseType):
