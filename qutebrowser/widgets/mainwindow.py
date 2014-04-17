@@ -136,7 +136,11 @@ class MainWindow(QWidget):
         if self.inspector.isVisible():
             self.inspector.hide()
         else:
-            self.inspector.show()
+            if not config.get('webkit', 'developer_extras_enabled'):
+                self.status.disp_error("Please enable developer-extras before "
+                    "using the webinspector!")
+            else:
+                self.inspector.show()
 
     @pyqtSlot()
     def update_inspector(self):
