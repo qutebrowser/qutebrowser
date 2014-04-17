@@ -1,7 +1,6 @@
 Bugs
 ====
 
-keybind doesn't work properly because it only wants 1 argument for cmd
 dump_userconfig dumps everything for ValueList sections
 All kind of FIXMEs
 Weird font rendering

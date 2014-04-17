@@ -266,7 +266,7 @@ class Config(QObject):
         newval = val.typ.transform(newval)
         return newval
 
-    @cmdutils.register(name='set', instance='config',
+    @cmdutils.register(name='set', instance='config', maxsplit=2,
                        completion=['section', 'option', 'value'])
     def set_wrapper(self, section, option, value):
         """Set an option.
@@ -281,7 +281,7 @@ class Config(QObject):
         except (NoOptionError, NoSectionError, ValidationError) as e:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
-    @cmdutils.register(name='set_temp', instance='config',
+    @cmdutils.register(name='set_temp', instance='config', maxsplit=2,
                        completion=['section', 'option', 'value'])
     def set_temp_wrapper(self, section, option, value):
         """Set a temporary option.
