@@ -20,6 +20,9 @@
 from PyQt5.QtGui import QColor
 
 
+# FIXME uninterpolated values get validated
+
+
 class ValidationError(ValueError):
 
     """Exception raised when a value for a config type was invalid."""
