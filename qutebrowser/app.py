@@ -141,6 +141,7 @@ class QuteBrowser(QApplication):
         self.config.changed.connect(self.mainwindow.on_config_changed)
         self.config.changed.connect(config.cmd_history.on_config_changed)
         self.config.changed.connect(websettings.on_config_changed)
+        self.config.changed.connect(self.keyparser.on_config_changed)
 
         self.mainwindow.show()
         self._python_hacks()
@@ -199,7 +200,6 @@ class QuteBrowser(QApplication):
             else:
                 func = cmd.handler.__name__
             logging.debug("Registered command: {} -> {}".format(key, func))
-        self.keyparser.from_config_sect(config.config['keybind'])
 
     def _process_init_args(self):
         """Process initial positional args.

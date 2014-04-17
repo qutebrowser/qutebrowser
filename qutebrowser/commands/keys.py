@@ -20,9 +20,10 @@
 import re
 import logging
 
-from PyQt5.QtCore import pyqtSignal, Qt, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject
 from PyQt5.QtGui import QKeySequence
 
+import qutebrowser.config.config as config
 from qutebrowser.commands.parsers import (CommandParser, ArgumentCountError,
                                           NoSuchCommandError)
 
@@ -60,6 +61,7 @@ class KeyParser(QObject):
         self._keystring = ''
         self._bindings = {}
         self._modifier_bindings = {}
+        self.read_config()
 
     def _handle_modifier_key(self, e):
         """Handle a new keypress with modifiers.
@@ -228,15 +230,18 @@ class KeyParser(QObject):
             self.set_cmd_text.emit(':{} '.format(cmdstr))
         return
 
-    def from_config_sect(self, sect):
-        """Load keybindings from a ConfigParser section.
+    @pyqtSlot(str, str, object)
+    def on_config_changed(self, section, option, value):
+        if section == 'keybind':
+            self.read_config()
+
+    def read_config(self):
+        """Read the configuration.
 
         Config format: key = command, e.g.:
         gg = scrollstart
-
-        Args:
-            sect: The section to get the keybindings from.
         """
+        sect = config.config['keybind']
         if not sect.items():
             logging.warn("No keybindings defined!")
         for (key, cmd) in sect.items():
