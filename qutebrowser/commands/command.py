@@ -30,7 +30,10 @@ class Command(QObject):
 
     Attributes:
         name: The main name of the command.
-        split_args: Whether to split the arguments or not.
+        maxsplit: Maximum count of splits to be made.
+            -1: Split everything (default)
+            0:  Don't split.
+            n:  Split a maximum of n times.
         hide: Whether to hide the arguments or not.
         nargs: A (minargs, maxargs) tuple, maxargs = None if there's no limit.
         count: Whether the command supports a count, or not.
@@ -51,11 +54,11 @@ class Command(QObject):
 
     signal = pyqtSignal(tuple)
 
-    def __init__(self, name, split_args, hide, nargs, count, desc, instance,
+    def __init__(self, name, maxsplit, hide, nargs, count, desc, instance,
                  handler, completion):
         super().__init__()
         self.name = name
-        self.split_args = split_args
+        self.maxsplit = maxsplit
         self.hide = hide
         self.nargs = nargs
         self.count = count

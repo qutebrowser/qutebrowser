@@ -78,8 +78,7 @@ class CurCommandDispatcher(QObject):
             return
         frame.setScrollBarValue(orientation, int(m * perc / 100))
 
-    @cmdutils.register(instance='mainwindow.tabs.cur', name='open',
-                       split_args=False)
+    @cmdutils.register(instance='mainwindow.tabs.cur', name='open', maxsplit=0)
     def openurl(self, url, count=None):
         """Open an url in the current/[count]th tab.
 

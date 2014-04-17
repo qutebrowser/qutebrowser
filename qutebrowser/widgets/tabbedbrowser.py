@@ -210,7 +210,7 @@ class TabbedBrowser(TabWidget):
         elif last_close == 'blank':
             tab.openurl('about:blank')
 
-    @cmdutils.register(instance='mainwindow.tabs', split_args=False)
+    @cmdutils.register(instance='mainwindow.tabs', maxsplit=0)
     def tabopen(self, url):
         """Open a new tab with a given url.
 

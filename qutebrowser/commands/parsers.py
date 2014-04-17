@@ -146,10 +146,8 @@ class CommandParser:
 
         if len(parts) == 1:
             args = []
-        elif cmd.split_args:
-            args = parts[1].split()
         else:
-            args = [parts[1]]
+            args = parts[1].split(maxsplit=cmd.maxsplit)
         self._cmd = cmd
         self._args = args
         return [cmdstr] + args
