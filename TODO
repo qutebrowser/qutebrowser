@@ -11,11 +11,6 @@ Style
 =====
 
 Refactor completion widget mess (initializing / changing completions)
-Rename config madness:
-    config: folder
-    config: module
-    config: object
-    config: data
 
 Major features
 ==============
