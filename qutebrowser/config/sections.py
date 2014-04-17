@@ -48,15 +48,6 @@ class Section:
         """
         return self.values[key]
 
-    def __setitem__(self, key, value):
-        """Set the config value for key.
-
-        Args:
-            key: The key to set the value for, as a string.
-            value: The value to set, as a string
-        """
-        self.setv('conf', key, value)
-
     def __iter__(self):
         """Iterate over all set values."""
         return self.values.__iter__()
