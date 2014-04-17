@@ -422,6 +422,10 @@ class CurCommandDispatcher(QObject):
 
     Contains all commands which are related to the current tab.
 
+    We can't simply add these commands to BrowserTab directly and use
+    currentWidget() for TabbedBrowser.cur because at the time
+    cmdutils.register() decorators are run, currentWidget() will return None.
+
     Attributes:
         tabs: The TabbedBrowser object.
 
