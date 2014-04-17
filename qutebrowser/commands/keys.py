@@ -230,8 +230,9 @@ class KeyParser(QObject):
             self.set_cmd_text.emit(':{} '.format(cmdstr))
         return
 
-    @pyqtSlot(str, str, object)
-    def on_config_changed(self, section, option, value):
+    # pylint: disable=unused-argument
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
         if section == 'keybind':
             self.read_config()
 

@@ -176,9 +176,8 @@ class BrowserTab(QWebView):
         netman.deleteLater()
         logging.debug("Tab shutdown scheduled")
 
-    # pylint: disable=unused-argument
-    @pyqtSlot(str, str, object)
-    def on_config_changed(self, section, option, value):
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
         """Update tab config when config was changed."""
         if section == 'general' and option in ['zoomlevels', 'defaultzoom']:
             self._init_neighborlist()

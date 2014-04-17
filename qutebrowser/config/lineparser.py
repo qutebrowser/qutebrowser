@@ -20,6 +20,7 @@
 import os
 import os.path
 import logging
+
 from PyQt5.QtCore import pyqtSlot
 
 
@@ -73,7 +74,7 @@ class LineConfigParser:
         if not self.data:
             logging.debug("No data to save.")
             return
-        import qutebrowser.config.config as config
+        import qutebrowser.config.config as config   # FIXME
         limit = -1 if self._limit is None else config.config.get(*self._limit)
         if limit == 0:
             return
@@ -83,11 +84,13 @@ class LineConfigParser:
         with open(self._configfile, 'w') as f:
             self.write(f, limit)
 
-    @pyqtSlot(str, str, object)
-    def on_config_changed(self, section, option, value):
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
         """Delete the file if the limit was changed to 0."""
         if self._limit is None:
             return
+        import qutebrowser.config.config as config   # FIXME
+        value = config.config.get(section, option)
         if (section, option) == self._limit and value == 0:
             if os.path.exists(self._configfile):
                 os.remove(self._configfile)

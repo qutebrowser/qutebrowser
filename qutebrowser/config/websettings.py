@@ -68,8 +68,9 @@ def init():
         settings.setAttribute(item, config.config.get('webkit', name))
 
 
-@pyqtSlot(str, str, object)
-def on_config_changed(section, option, value):
+@pyqtSlot(str, str)
+def on_config_changed(section, option):
     """Update global settings when qwebsettings changed."""
     if section == 'webkit':
+        value = config.config.get(section, option)
         settings.setAttribute(MAPPING[option], value)

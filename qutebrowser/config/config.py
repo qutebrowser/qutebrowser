@@ -94,7 +94,7 @@ class Config(QObject):
                  Args: the changed section and option.
     """
 
-    changed = pyqtSignal(str, str, object)
+    changed = pyqtSignal(str, str)
     style_changed = pyqtSignal(str, str)
 
     def __init__(self, configdir, fname, parent=None):
@@ -327,7 +327,7 @@ class Config(QObject):
         else:
             if section in ['colors', 'fonts']:
                 self.style_changed.emit(section, option)
-            self.changed.emit(section, option, self.get(section, option))
+            self.changed.emit(section, option)
 
     @cmdutils.register(instance='config')
     def save(self):

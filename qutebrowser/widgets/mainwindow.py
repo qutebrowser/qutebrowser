@@ -106,9 +106,8 @@ class MainWindow(QWidget):
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-    # pylint: disable=unused-argument
-    @pyqtSlot(str, str, object)
-    def on_config_changed(self, section, option, value):
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
         """Resize completion if config changed."""
         if section == 'general' and option == 'completion_height':
             self.resize_completion()
