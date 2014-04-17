@@ -27,7 +27,7 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 import qutebrowser.utils.url as urlutils
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
-from qutebrowser.widgets.browserpage import BrowserPage
+from qutebrowser.browser.webpage import BrowserPage
 from qutebrowser.utils.signals import SignalCache
 from qutebrowser.utils.usertypes import NeighborList
 

@@ -7,12 +7,6 @@ Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-21036
 Changing completion models is awfully slow
 
-Style
-=====
-
-Rename browsertab/tabbedbrowser/... widgets
-Maybe move tabs.cur.* stuff to browsertab?
-
 Major features
 ==============
 
