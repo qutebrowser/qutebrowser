@@ -124,6 +124,9 @@ class MainWindow(QWidget):
         # the top of the main window.
         topleft = QPoint(0, self.height() - self.status.height() - height)
         bottomright = self.status.geometry().topRight()
+        if self.inspector.isVisible():
+            topleft -= QPoint(0, self.inspector.height())
+            bottomright -= QPoint(0, self.inspector.height())
         self.completion.setGeometry(QRect(topleft, bottomright))
 
     def _set_default_geometry(self):
@@ -135,12 +138,14 @@ class MainWindow(QWidget):
         """Toggle the web inspector."""
         if self.inspector.isVisible():
             self.inspector.hide()
+            self.resize_completion()
         else:
             if not config.get('webkit', 'developer_extras_enabled'):
                 self.status.disp_error("Please enable developer-extras before "
                     "using the webinspector!")
             else:
                 self.inspector.show()
+                self.resize_completion()
 
     @pyqtSlot()
     def update_inspector(self):
