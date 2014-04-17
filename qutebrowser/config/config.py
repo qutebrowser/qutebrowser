@@ -79,7 +79,7 @@ class Config(QObject):
     """Configuration manager for qutebrowser.
 
     Attributes:
-        config: The configuration data as an OrderedDict.
+        sections: The configuration data as an OrderedDict.
         _configparser: A ReadConfigParser instance to load the config.
         _wrapper_args: A dict with the default kwargs for the config wrappers.
         _configdir: The dictionary to read the config from and save it in.
@@ -99,7 +99,7 @@ class Config(QObject):
 
     def __init__(self, configdir, fname, parent=None):
         super().__init__(parent)
-        self.config = configdata.data
+        self.sections = configdata.data
         self._configparser = ReadConfigParser(configdir, fname)
         self._configfile = os.path.join(configdir, fname)
         self._wrapper_args = {
@@ -111,7 +111,7 @@ class Config(QObject):
         self._configdir = configdir
         self._interpolation = ExtendedInterpolation()
         self._proxies = {}
-        for secname, section in self.config.items():
+        for secname, section in self.sections.items():
             self._proxies[secname] = SectionProxy(self, secname)
             try:
                 section.from_cp(self._configparser[secname])
@@ -125,7 +125,7 @@ class Config(QObject):
     def __str__(self):
         """Get the whole config as a string."""
         lines = configdata.FIRST_COMMENT.strip('\n').splitlines()
-        for secname, section in self.config.items():
+        for secname, section in self.sections.items():
             lines.append('\n[{}]'.format(secname))
             lines += self._str_section_desc(secname)
             lines += self._str_option_desc(secname, section)
@@ -162,7 +162,7 @@ class Config(QObject):
                 typestr = ' ({})'.format(option.typ.typestr)
             lines.append('# {}{}:'.format(optname, typestr))
             try:
-                desc = self.config[secname].descriptions[optname]
+                desc = self.sections[secname].descriptions[optname]
             except KeyError:
                 continue
             for descline in desc.splitlines():
@@ -199,9 +199,9 @@ class Config(QObject):
         Return:
             True if the option and section exist, False otherwise.
         """
-        if section not in self.config:
+        if section not in self.sections:
             return False
-        return option in self.config[section]
+        return option in self.sections[section]
 
     def remove_option(self, section, option):
         """Remove an option.
@@ -214,7 +214,7 @@ class Config(QObject):
             True if the option existed, False otherwise.
         """
         try:
-            sectdict = self.config[section]
+            sectdict = self.sections[section]
         except KeyError:
             raise NoSectionError(section)
         option = self.optionxform(option)
@@ -250,7 +250,7 @@ class Config(QObject):
         """
         logging.debug("getting {} -> {}".format(section, option))
         try:
-            sect = self.config[section]
+            sect = self.sections[section]
         except KeyError:
             raise NoSectionError(section)
         try:
@@ -316,7 +316,7 @@ class Config(QObject):
             value = self._interpolation.before_set(self, section, option,
                                                    value)
         try:
-            sect = self.config[section]
+            sect = self.sections[section]
         except KeyError:
             raise NoSectionError(section)
         try:
@@ -345,7 +345,7 @@ class Config(QObject):
         """
         # FIXME adopt this for layering
         lines = []
-        for secname, section in self.config.items():
+        for secname, section in self.sections.items():
             changed = section.dump_userconfig()
             if changed:
                 lines.append('[{}]'.format(secname))
@@ -405,7 +405,7 @@ class SectionProxy(MutableMapping):
 
     def _options(self):
         """Get the option keys from this section."""
-        return self._conf.config[self._name].keys()
+        return self._conf.sections[self._name].keys()
 
     def get(self, option, *, raw=False):
         """Get a value from this section.
