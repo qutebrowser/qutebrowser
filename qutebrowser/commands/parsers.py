@@ -62,9 +62,9 @@ class SearchParser(QObject):
             self.do_search.emit('', 0)
         self._text = text
         self._flags = 0
-        if config.config.get('general', 'ignorecase'):
+        if config.get('general', 'ignorecase'):
             self._flags |= QWebPage.FindCaseSensitively
-        if config.config.get('general', 'wrapsearch'):
+        if config.get('general', 'wrapsearch'):
             self._flags |= QWebPage.FindWrapsAroundDocument
         if rev:
             self._flags |= QWebPage.FindBackward
@@ -134,7 +134,7 @@ class CommandParser:
         cmdstr = parts[0]
         if aliases:
             try:
-                alias = config.config.get('aliases', cmdstr)
+                alias = config.get('aliases', cmdstr)
             except (config.NoOptionError, config.NoSectionError):
                 pass
             else:

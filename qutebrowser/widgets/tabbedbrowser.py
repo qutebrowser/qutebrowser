@@ -199,7 +199,7 @@ class TabbedBrowser(TabWidget):
         tab = self.cntwidget(count)
         if tab is None:
             return
-        last_close = config.config.get('tabbar', 'last_close')
+        last_close = config.get('tabbar', 'last_close')
         if self.count() > 1:
             # FIXME maybe we actually should store the webview objects here
             self._url_stack.append(tab.url())

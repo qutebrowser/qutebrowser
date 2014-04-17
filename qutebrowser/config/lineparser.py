@@ -75,7 +75,7 @@ class LineConfigParser:
             logging.debug("No data to save.")
             return
         import qutebrowser.config.config as config   # FIXME
-        limit = -1 if self._limit is None else config.config.get(*self._limit)
+        limit = -1 if self._limit is None else config.get(*self._limit)
         if limit == 0:
             return
         if not os.path.exists(self._configdir):
@@ -90,7 +90,7 @@ class LineConfigParser:
         if self._limit is None:
             return
         import qutebrowser.config.config as config   # FIXME
-        value = config.config.get(section, option)
+        value = config.get(section, option)
         if (section, option) == self._limit and value == 0:
             if os.path.exists(self._configfile):
                 os.remove(self._configfile)

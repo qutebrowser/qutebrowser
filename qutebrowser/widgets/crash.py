@@ -104,7 +104,7 @@ class CrashDialog(QDialog):
             ('Open Pages', '\n'.join(pages)),
             ('Command history', '\n'.join(cmdhist)),
             ('Commandline args', ' '.join(sys.argv[1:])),
-            ('Config', config.config.dump_userconfig()),
+            ('Config', config.instance.dump_userconfig()),
         ]
         chunks = []
         for (header, body) in outputs:

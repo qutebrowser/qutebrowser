@@ -36,9 +36,9 @@ def get_stylesheet(template):
     """
     global _colordict, _fontdict
     if _colordict is None:
-        _colordict = ColorDict(config.config['colors'])
+        _colordict = ColorDict(config.instance['colors'])
     if _fontdict is None:
-        _fontdict = FontDict(config.config['fonts'])
+        _fontdict = FontDict(config.instance['fonts'])
     return template.strip().format(color=_colordict, font=_fontdict)
 
 
@@ -48,7 +48,7 @@ def set_register_stylesheet(obj):
     Also, register an update when the config is changed.
     """
     obj.setStyleSheet(get_stylesheet(obj.STYLESHEET))
-    config.config.changed.connect(partial(_update_stylesheet, obj))
+    config.instance.changed.connect(partial(_update_stylesheet, obj))
 
 
 def _update_stylesheet(obj, section, option):

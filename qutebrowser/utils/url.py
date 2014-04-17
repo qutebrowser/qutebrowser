@@ -52,14 +52,14 @@ def _get_search_url(txt):
     if m:
         engine = m.group(2)
         try:
-            template = config.config.get('searchengines', engine)
+            template = config.get('searchengines', engine)
         except config.NoOptionError:
             raise SearchEngineError("Search engine {} not found!".format(
                 engine))
         term = r.sub('', txt)
         logging.debug('engine {}, term "{}"'.format(engine, term))
     else:
-        template = config.config.get('searchengines', 'DEFAULT')
+        template = config.get('searchengines', 'DEFAULT')
         term = txt
         logging.debug('engine: default, term "{}"'.format(txt))
     if not term:
@@ -177,7 +177,7 @@ def is_url(url):
     """
     urlstr = urlstring(url)
 
-    autosearch = config.config.get('general', 'auto_search')
+    autosearch = config.get('general', 'auto_search')
 
     logging.debug('Checking if "{}" is an URL (autosearch={}).'.format(
         urlstr, autosearch))

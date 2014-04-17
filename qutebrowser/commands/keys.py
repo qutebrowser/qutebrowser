@@ -243,7 +243,7 @@ class KeyParser(QObject):
         Config format: key = command, e.g.:
         gg = scrollstart
         """
-        sect = config.config['keybind']
+        sect = config.instance['keybind']
         if not sect.items():
             logging.warn("No keybindings defined!")
         for (key, cmd) in sect.items():

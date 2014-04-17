@@ -103,7 +103,7 @@ class QuteBrowser(QApplication):
         else:
             confdir = self._args.confdir
         config.init(confdir)
-        self.config = config.config
+        self.config = config.instance
         websettings.init()
 
         self.commandparser = CommandParser()
@@ -221,7 +221,7 @@ class QuteBrowser(QApplication):
 
         if self.mainwindow.tabs.count() == 0:
             logging.debug('Opening startpage')
-            for url in config.config.get('general', 'startpage'):
+            for url in config.get('general', 'startpage'):
                 self.mainwindow.tabs.tabopen(url)
 
     def _python_hacks(self):
@@ -379,9 +379,9 @@ class QuteBrowser(QApplication):
             return
         self._shutting_down = True
         logging.debug("Shutting down... (do_quit={})".format(do_quit))
-        if config.config.get('general', 'autosave'):
+        if config.get('general', 'autosave'):
             try:
-                config.config.save()
+                config.instance.save()
             except AttributeError:
                 logging.exception("Could not save config.")
         try:

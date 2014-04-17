@@ -83,8 +83,8 @@ class BrowserTab(QWebView):
     def _init_neighborlist(self):
         """Initialize the _zoom neighborlist."""
         self._zoom = NeighborList(
-            config.config.get('general', 'zoomlevels'),
-            default=config.config.get('general', 'defaultzoom'),
+            config.get('general', 'zoomlevels'),
+            default=config.get('general', 'defaultzoom'),
             mode=NeighborList.BLOCK)
 
     def openurl(self, url):

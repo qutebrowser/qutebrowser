@@ -41,7 +41,7 @@ from qutebrowser.config.iniparsers import (ReadConfigParser,
                                            ReadWriteConfigParser)
 from qutebrowser.config.lineparser import LineConfigParser
 
-config = None
+instance = None   # The main config instance
 state = None
 cmd_history = None
 
@@ -52,12 +52,17 @@ def init(configdir):
     Args:
         configdir: The directory where the configs are stored in.
     """
-    global config, state, cmd_history
+    global instance, state, cmd_history
     logging.debug("Config init, configdir {}".format(configdir))
-    config = Config(configdir, 'qutebrowser.conf')
+    instance = Config(configdir, 'qutebrowser.conf')
     state = ReadWriteConfigParser(configdir, 'state')
     cmd_history = LineConfigParser(configdir, 'cmd_history',
                                    ('general', 'cmd_histlen'))
+
+
+def get(*args, **kwargs):
+    """Convenience method to call get(...) of the config instance."""
+    return instance.get(*args, **kwargs)
 
 
 class NoSectionError(configparser.NoSectionError):
