@@ -413,7 +413,7 @@ class SectionProxy(MutableMapping):
 
     def _options(self):
         """Get the option keys from this section."""
-        return self._conf.config[self._name].values.keys()
+        return self._conf.config[self._name].keys()
 
     def get(self, option, *, raw=False):
         """Get a value from this section.

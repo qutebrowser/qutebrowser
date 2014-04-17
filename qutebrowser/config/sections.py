@@ -18,7 +18,7 @@
 """Setting sections used for qutebrowser."""
 
 import logging
-from collections import OrderedDict
+from collections import OrderedDict, ChainMap
 
 from qutebrowser.config.value import SettingValue
 
@@ -135,25 +135,20 @@ class ValueList:
         #              KeyValue section.
     """
 
-    # FIXME use a ChainMap for this
     # FIXME how to handle value layers here?
 
     def __init__(self, keytype, valtype, *defaults):
         """Wrap types over default values. Take care when overriding this."""
         self.keytype = keytype
         self.valtype = valtype
-        self.values = OrderedDict()
-        self.default = OrderedDict(
-            [(key, SettingValue(valtype, value))
-             for key, value in defaults])
-        self.valdict = OrderedDict()
-
-    def update_valdict(self):
-        """Update the global "true" value dict."""
-        self.valdict.clear()
-        self.valdict.update(self.default)
-        if self.values is not None:
-            self.valdict.update(self.values)
+        self.layers = OrderedDict([
+            ('default', OrderedDict([(key, SettingValue(valtype, value))
+                                     for key, value in defaults])),
+            ('conf', OrderedDict()),
+            ('temp', OrderedDict()),
+        ])
+        self.values = ChainMap(self.layers['temp'], self.layers['conf'],
+                               self.layers['default'])
 
     def __getitem__(self, key):
         """Get the value for key.
@@ -164,10 +159,7 @@ class ValueList:
         Return:
             The value, as value class.
         """
-        try:
-            return self.values[key]
-        except KeyError:
-            return self.default[key]
+        return self.values[key]
 
     def __setitem__(self, key, value):
         """Set the config value for key.
@@ -181,18 +173,15 @@ class ValueList:
     def __iter__(self):
         """Iterate over all set values."""
         # FIXME using a custon iterator this could be done more efficiently
-        self.update_valdict()
-        return self.valdict.__iter__()
+        return self.values.__iter__()
 
     def __bool__(self):
         """Get boolean state of section."""
-        self.update_valdict()
-        return bool(self.valdict)
+        return bool(self.values)
 
     def __contains__(self, key):
         """Return whether the section contains a given key."""
-        self.update_valdict()
-        return key in self.valdict
+        return key in self.values
 
     def setv(self, layer, key, value):
         """Set the value on a layer.
@@ -203,17 +192,16 @@ class ValueList:
             key: The key of the element to set.
             value: The value to set.
         """
-        if key in self.values:
-            self.values[key].setv(layer, value)
+        if key in self.layers[layer]:
+            self.layers[layer][key].setv(layer, value)
         else:
             val = SettingValue(self.valtype)
             val.setv(layer, value)
-            self.values[key] = val
+            self.layers[layer][key] = val
 
     def items(self):
         """Get dict items."""
-        self.update_valdict()
-        return self.valdict.items()
+        return self.values.items()
 
     def keys(self):
         """Get value keys."""

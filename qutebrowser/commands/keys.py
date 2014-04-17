@@ -237,6 +237,8 @@ class KeyParser(QObject):
         Args:
             sect: The section to get the keybindings from.
         """
+        if not sect.items():
+            from qutebrowser.utils.debug import set_trace; set_trace()
         for (key, cmd) in sect.items():
             if key.startswith('@') and key.endswith('@'):
                 # normalize keystring
