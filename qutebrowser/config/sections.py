@@ -23,12 +23,9 @@ from collections import OrderedDict, ChainMap
 from qutebrowser.config.value import SettingValue
 
 
-class KeyValue:
+class Section:
 
-    """Representation of a section with ordinary key-value mappings.
-
-    This is a section which contains normal "key = value" pairs with a fixed
-    set of keys.
+    """Base class for KeyValue/ValueList sections.
 
     Attributes:
         values: An OrderedDict with key as index and value as value.
@@ -37,20 +34,9 @@ class KeyValue:
         descriptions: A dict with the description strings for the keys.
     """
 
-    def __init__(self, *args):
-        """Constructor.
-
-        Args:
-            *args: Key/Value pairs to set.
-                   key: string
-                   value: SettingValue
-        """
-        if args:
-            self.descriptions = {}
-            self.values = OrderedDict()
-            for (k, settingval, desc) in args:
-                self.values[k] = settingval
-                self.descriptions[k] = desc
+    def __init__(self):
+        self.values = None
+        self.descriptions = {}
 
     def __getitem__(self, key):
         """Get the value for key.
@@ -74,16 +60,23 @@ class KeyValue:
 
     def __iter__(self):
         """Iterate over all set values."""
-        # FIXME using a custom iterator this could be done more efficiently.
         return self.values.__iter__()
 
     def __bool__(self):
-        """Get boolean state."""
+        """Get boolean state of section."""
         return bool(self.values)
 
     def __contains__(self, key):
         """Return whether the section contains a given key."""
         return key in self.values
+
+    def items(self):
+        """Get dict items."""
+        return self.values.items()
+
+    def keys(self):
+        """Get value keys."""
+        return self.values.keys()
 
     def setv(self, layer, key, value):
         """Set the value on a layer.
@@ -94,27 +87,45 @@ class KeyValue:
             key: The key of the element to set.
             value: The value to set.
         """
-        self.values[key].setv(layer, value)
-
-    def items(self):
-        """Get dict item tuples."""
-        return self.values.items()
-
-    def keys(self):
-        """Get value keys."""
-        return self.values.keys()
+        raise NotImplementedError
 
     def from_cp(self, sect):
-        """Initialize the values from a configparser section.
+        """Initialize the values from a configparser section."""
+        raise NotImplementedError
 
-        We assume all keys already exist from the defaults.
+
+class KeyValue(Section):
+
+    """Representation of a section with ordinary key-value mappings.
+
+    This is a section which contains normal "key = value" pairs with a fixed
+    set of keys.
+    """
+
+    def __init__(self, *defaults):
+        """Constructor.
+
+        Args:
+            *defaults: A (key, value, description) list of defaults.
         """
+        super().__init__()
+        if not defaults:
+            return
+        self.values = OrderedDict()
+        for (k, v, desc) in defaults:
+            self.values[k] = v
+            self.descriptions[k] = desc
+
+    def setv(self, layer, key, value):
+        self.values[key].setv(layer, value)
+
+    def from_cp(self, sect):
         for k, v in sect.items():
             logging.debug("'{}' = '{}'".format(k, v))
             self.values[k].setv('conf', v)
 
 
-class ValueList:
+class ValueList(Section):
 
     """This class represents a section with a list key-value settings.
 
@@ -122,23 +133,26 @@ class ValueList:
     have a dynamic list of "key = value" pairs, like keybindings or
     searchengines.
 
-    They basically consist of two different SettingValues and have no defaults.
+    They basically consist of two different SettingValues.
 
     Attributes:
-        values: An OrderedDict with key as index and value as value.
         default: An OrderedDict with the default configuration as strings.
         keytype: The type to use for the key (only used for validating)
         valtype: The type to use for the value.
         valdict: The "true value" dict.
-        #descriptions: A dict with the description strings for the keys.
-        #              Currently a global empty dict to be compatible with
-        #              KeyValue section.
     """
 
     # FIXME how to handle value layers here?
 
     def __init__(self, keytype, valtype, *defaults):
-        """Wrap types over default values. Take care when overriding this."""
+        """Wrap types over default values. Take care when overriding this.
+
+        Arguments:
+            keytype: The type to be used for keys.
+            valtype: The type to be used for values.
+            *defaults: A (key, value) list of default values.
+        """
+        super().__init__()
         self.keytype = keytype
         self.valtype = valtype
         self.layers = OrderedDict([
@@ -149,39 +163,6 @@ class ValueList:
         ])
         self.values = ChainMap(self.layers['temp'], self.layers['conf'],
                                self.layers['default'])
-
-    def __getitem__(self, key):
-        """Get the value for key.
-
-        Args:
-            key: The key to get a value for, as a string.
-
-        Return:
-            The value, as value class.
-        """
-        return self.values[key]
-
-    def __setitem__(self, key, value):
-        """Set the config value for key.
-
-        Args:
-            key: The key to set the value for, as a string.
-            value: The value to set, as a string
-        """
-        self.setv('conf', key, value)
-
-    def __iter__(self):
-        """Iterate over all set values."""
-        # FIXME using a custon iterator this could be done more efficiently
-        return self.values.__iter__()
-
-    def __bool__(self):
-        """Get boolean state of section."""
-        return bool(self.values)
-
-    def __contains__(self, key):
-        """Return whether the section contains a given key."""
-        return key in self.values
 
     def setv(self, layer, key, value):
         """Set the value on a layer.
@@ -198,14 +179,6 @@ class ValueList:
             val = SettingValue(self.valtype)
             val.setv(layer, value)
             self.layers[layer][key] = val
-
-    def items(self):
-        """Get dict items."""
-        return self.values.items()
-
-    def keys(self):
-        """Get value keys."""
-        return self.values.keys()
 
     def from_cp(self, sect):
         """Initialize the values from a configparser section."""
