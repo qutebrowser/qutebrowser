@@ -17,20 +17,18 @@
 
 """Widgets needed in the qutebrowser statusbar."""
 
-import logging
-
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt
 from PyQt5.QtWidgets import (QWidget, QLineEdit, QProgressBar, QLabel,
                              QHBoxLayout, QStackedLayout, QSizePolicy,
                              QShortcut)
 from PyQt5.QtGui import QPainter, QKeySequence, QValidator
 
-import qutebrowser.config.config as config
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 import qutebrowser.commands.keys as keys
 from qutebrowser.utils.url import urlstring
-from qutebrowser.utils.usertypes import NeighborList
 from qutebrowser.commands.parsers import split_cmdline
+from qutebrowser.models.cmdhistory import (History, HistoryEmptyError,
+                                           HistoryEndReachedError)
 
 
 class StatusBar(QWidget):
@@ -212,10 +210,9 @@ class _Command(QLineEdit):
     """The commandline part of the statusbar.
 
     Attributes:
-        history: The command history, with newer commands at the bottom.
+        history: The command history object.
         _statusbar: The statusbar (parent) QWidget.
         _shortcuts: Defined QShortcuts to prevent GCing.
-        _tmphist: The temporary history for history browsing as NeighborList.
         _validator: The current command validator.
 
     Signals:
@@ -235,8 +232,6 @@ class _Command(QLineEdit):
         hide_cmd: Emitted when command input can be hidden.
     """
 
-    # FIXME we should probably use a proper model for the command history.
-
     got_cmd = pyqtSignal(str)
     got_search = pyqtSignal(str)
     got_search_rev = pyqtSignal(str)
@@ -255,7 +250,6 @@ class _Command(QLineEdit):
         super().__init__(statusbar)
         # FIXME
         self._statusbar = statusbar
-        self._tmphist = None
         self.setStyleSheet("""
             QLineEdit {
                 border: 0px;
@@ -263,16 +257,12 @@ class _Command(QLineEdit):
                 background-color: transparent;
             }
         """)
+        self.history = History()
         self._validator = _CommandValidator(self)
         self.setValidator(self._validator)
         self.returnPressed.connect(self._on_return_pressed)
-        self.textEdited.connect(self._histbrowse_stop)
+        self.textEdited.connect(self.history.stop)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
-        if config.cmd_history.data is None:
-            self.history = []
-        else:
-            self.history = config.cmd_history.data
-
         self._shortcuts = []
         for (key, handler) in [
                 (Qt.Key_Escape, self.esc_pressed),
@@ -287,55 +277,27 @@ class _Command(QLineEdit):
             sc.activated.connect(handler)
             self._shortcuts.append(sc)
 
-    def _histbrowse_start(self):
-        """Start browsing to the history.
-
-        Called when the user presses the up/down key and wasn't browsing the
-        history already.
-        """
-        pre = self.text().strip()
-        logging.debug('Preset text: "{}"'.format(pre))
-        if pre:
-            items = [e for e in self.history if e.startswith(pre)]
-        else:
-            items = self.history
-        if not items:
-            raise ValueError("No history found!")
-        self._tmphist = NeighborList(items)
-        return self._tmphist.lastitem()
-
-    @pyqtSlot()
-    def _histbrowse_stop(self):
-        """Stop browsing the history."""
-        self._tmphist = None
-
     @pyqtSlot()
     def _on_key_up_pressed(self):
         """Handle Up presses (go back in history)."""
-        if self._tmphist is None:
-            try:
-                item = self._histbrowse_start()
-            except ValueError:
-                # no history
-                return
-        else:
-            try:
-                item = self._tmphist.previtem()
-            except IndexError:
-                # at beginning of history
-                return
+        try:
+            if not self.history.browsing:
+                item = self.history.start(self.text().strip())
+            else:
+                item = self.history.previtem()
+        except (HistoryEmptyError, HistoryEndReachedError):
+            return
         if item:
             self.set_cmd_text(item)
 
     @pyqtSlot()
     def _on_key_down_pressed(self):
         """Handle Down presses (go forward in history)."""
-        if not self._tmphist:
+        if not self.history.browsing:
             return
         try:
-            item = self._tmphist.nextitem()
-        except IndexError:
-            logging.debug("At end of history")
+            item = self.history.nextitem()
+        except HistoryEndReachedError:
             return
         if item:
             self.set_cmd_text(item)
@@ -354,10 +316,9 @@ class _Command(QLineEdit):
             '/': self.got_search,
             '?': self.got_search_rev,
         }
-        self._histbrowse_stop()
+        self.history.stop()
         text = self.text()
-        if not self.history or text != self.history[-1]:
-            self.history.append(text)
+        self.history.append(text)
         self.setText('')
         if text[0] in signals:
             signals[text[0]].emit(text.lstrip(text[0]))
@@ -406,7 +367,7 @@ class _Command(QLineEdit):
         if e.reason() in [Qt.MouseFocusReason, Qt.TabFocusReason,
                           Qt.BacktabFocusReason, Qt.OtherFocusReason]:
             self.setText('')
-            self._histbrowse_stop()
+            self.history.stop()
             self.hide_cmd.emit()
         self.clear_completion_selection.emit()
         self.hide_completion.emit()
