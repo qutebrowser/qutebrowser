@@ -248,8 +248,8 @@ class _Command(QLineEdit):
     hide_cmd = pyqtSignal()
 
     # FIXME won't the tab key switch to the next widget?
-    # See [0] for a possible fix.
-    # [0] http://www.saltycrane.com/blog/2008/01/how-to-capture-tab-key-press-event-with/ # pylint: disable=line-too-long
+    # See http://www.saltycrane.com/blog/2008/01/how-to-capture-tab-key-press-event-with/
+    # for a possible fix.
 
     def __init__(self, statusbar):
         super().__init__(statusbar)
