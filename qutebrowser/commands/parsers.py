@@ -17,8 +17,6 @@
 
 """Module containing commandline parsers ( SearchParser and CommandParser)."""
 
-import shlex
-
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 from PyQt5.QtWebKitWidgets import QWebPage
 
@@ -149,7 +147,7 @@ class CommandParser:
         if len(parts) == 1:
             args = []
         elif cmd.split_args:
-            args = shlex.split(parts[1])
+            args = parts[1].split()
         else:
             args = [parts[1]]
         self._cmd = cmd

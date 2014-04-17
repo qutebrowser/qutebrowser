@@ -3,24 +3,6 @@ Bugs
 
 keybind doesn't work properly because it only wants 1 argument for cmd
 dump_userconfig dumps everything for ValueList sections
-using " in command bar causes exception with shutil commands
-    Traceback (most recent call last):
-      File ".\qutebrowser\widgets\completion.py", line 244, in on_cmd_text_changed
-        parts = split_cmdline(text)
-      File ".\qutebrowser\commands\parsers.py", line 230, in split_cmdline
-        parts = parser.parse(text)
-      File ".\qutebrowser\commands\parsers.py", line 152, in parse
-        args = shlex.split(parts[1])
-      File "C:\python33\lib\shlex.py", line 276, in split
-        return list(lex)
-      File "C:\python33\lib\shlex.py", line 266, in __next__
-        token = self.get_token()
-      File "C:\python33\lib\shlex.py", line 93, in get_token
-        raw = self.read_token()
-      File "C:\python33\lib\shlex.py", line 169, in read_token
-        raise ValueError("No closing quotation")
-    ValueError: No closing quotation
-
 All kind of FIXMEs
 Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-20973
