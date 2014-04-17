@@ -248,8 +248,12 @@ class Config(QObject):
 
         Wrapper for the get-command to output the value in the status bar.
         """
-        val = self.get(section, option)
-        message.info("{} {} = {}".format(section, option, val))
+        try:
+            val = self.get(section, option)
+        except (NoOptionError, NoSectionError) as e:
+            message.error("get: {} - {}".format(e.__class__.__name__, e))
+        else:
+            message.info("{} {} = {}".format(section, option, val))
 
     def get(self, section, option, raw=False):
         """Get the value from a section/option.
