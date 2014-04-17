@@ -17,7 +17,6 @@
 
 """Setting sections used for qutebrowser."""
 
-import logging
 from collections import OrderedDict, ChainMap
 
 from qutebrowser.config.value import SettingValue
@@ -78,7 +77,7 @@ class Section:
         """Get value keys."""
         return self.values.keys()
 
-    def setv(self, layer, key, value):
+    def setv(self, layer, key, value, interpolated):
         """Set the value on a layer.
 
         Args:
@@ -86,11 +85,8 @@ class Section:
                    ValueLayers dict.
             key: The key of the element to set.
             value: The value to set.
+            interpolated: The interpolated value, for checking.
         """
-        raise NotImplementedError
-
-    def from_cp(self, sect):
-        """Initialize the values from a configparser section."""
         raise NotImplementedError
 
     def dump_userconfig(self):
@@ -124,13 +120,8 @@ class KeyValue(Section):
             self.values[k] = v
             self.descriptions[k] = desc
 
-    def setv(self, layer, key, value):
-        self.values[key].setv(layer, value)
-
-    def from_cp(self, sect):
-        for k, v in sect.items():
-            logging.debug("'{}' = '{}'".format(k, v))
-            self.values[k].setv('conf', v)
+    def setv(self, layer, key, value, interpolated):
+        self.values[key].setv(layer, value, interpolated)
 
     def dump_userconfig(self):
         changed = []
@@ -183,21 +174,14 @@ class ValueList(Section):
         self.values = ChainMap(self.layers['temp'], self.layers['conf'],
                                self.layers['default'])
 
-    def setv(self, layer, key, value):
+    def setv(self, layer, key, value, interpolated):
+        self.keytype().validate(key)
         if key in self.layers[layer]:
-            self.layers[layer][key].setv(layer, value)
+            self.layers[layer][key].setv(layer, value, interpolated)
         else:
             val = SettingValue(self.valtype)
-            val.setv(layer, value)
+            val.setv(layer, value, interpolated)
             self.layers[layer][key] = val
-
-    def from_cp(self, sect):
-        keytype = self.keytype()
-        valtype = self.valtype()
-        for k, v in sect.items():
-            keytype.validate(k)
-            valtype.validate(v)
-            self.setv('conf', k, v)
 
     def dump_userconfig(self):
         changed = []

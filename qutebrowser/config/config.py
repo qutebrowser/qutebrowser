@@ -120,12 +120,9 @@ class Config(QObject):
         self._configdir = configdir
         self._interpolation = ExtendedInterpolation()
         self._proxies = {}
-        for secname, section in self.sections.items():
+        for secname in self.sections.keys():
             self._proxies[secname] = SectionProxy(self, secname)
-            try:
-                section.from_cp(self._configparser[secname])
-            except KeyError:
-                pass
+        self._from_cp(self._configparser)
 
     def __getitem__(self, key):
         """Get a section from the config."""
@@ -197,6 +194,18 @@ class Config(QObject):
                 startlayer='conf'))
             lines.append(keyval)
         return lines
+
+    def _from_cp(self, cp):
+        """Read the config from a configparser instance.
+
+        Args:
+            cp: The configparser instande to read the values from.
+        """
+        for secname in self.sections.keys():
+            if secname not in cp:
+                continue
+            for k, v in cp[secname].items():
+                self.set('conf', secname, k, v)
 
     def has_option(self, section, option):
         """Check if option exists in section.
@@ -312,15 +321,16 @@ class Config(QObject):
             changed: If the config was changed.
             style_changed: When style caches need to be invalidated.
         """
-        if value:
-            value = self._interpolation.before_set(self, section, option,
-                                                   value)
+        value = self._interpolation.before_set(self, section, option, value)
         try:
             sect = self.sections[section]
         except KeyError:
             raise NoSectionError(section)
+        mapping = {key: val.value for key, val in sect.values.items()}
+        interpolated = self._interpolation.before_get(self, section, option,
+                                                      value, mapping)
         try:
-            sect.setv(layer, option, value)
+            sect.setv(layer, option, value, interpolated)
         except KeyError:
             raise NoOptionError(option, section)
         else:
