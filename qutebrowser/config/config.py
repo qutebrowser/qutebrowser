@@ -276,7 +276,6 @@ class Config(QObject):
         Arguments:
             *args: Get passed to self.set().
         """
-        # FIXME completion for values
         try:
             self.set('conf', section, option, value)
         except (NoOptionError, NoSectionError, ValidationError) as e:
