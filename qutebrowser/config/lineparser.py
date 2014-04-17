@@ -44,11 +44,11 @@ class LineConfigParser:
         self._configdir = configdir
         self._configfile = os.path.join(self._configdir, fname)
         self._limit = limit
-        self.data = None
         if not os.path.isfile(self._configfile):
-            return
-        logging.debug("Reading config from {}".format(self._configfile))
-        self.read(self._configfile)
+            self.data = []
+        else:
+            logging.debug("Reading config from {}".format(self._configfile))
+            self.read(self._configfile)
 
     def read(self, filename):
         """Read the data from a file."""
@@ -70,7 +70,9 @@ class LineConfigParser:
 
     def save(self):
         """Save the config file."""
-        if self.data is None:
+        logging.warn("Values: {}".format(self.data))
+        if not self.data:
+            logging.debug("No data to save.")
             return
         import qutebrowser.config.config as config
         limit = -1 if self._limit is None else config.config.get(*self._limit)
