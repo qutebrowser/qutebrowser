@@ -42,6 +42,8 @@ options = {
         'pep257': [
             'D102',  # Docstring missing, will be handled by others
             'D209',  # Blank line before closing """ (removed from PEP257)
+            'D402',  # First line should not be function's signature
+                     # (false-positives)
         ],
     },
     'exclude': ['appdirs.py'],
