@@ -70,7 +70,6 @@ class LineConfigParser:
 
     def save(self):
         """Save the config file."""
-        logging.warn("Values: {}".format(self.data))
         if not self.data:
             logging.debug("No data to save.")
             return
