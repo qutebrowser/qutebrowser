@@ -346,17 +346,10 @@ class Config(QObject):
         # FIXME adopt this for layering
         lines = []
         for secname, section in self.config.items():
-            changed_opts = []
-            for optname, option in section.items():
-                if (option.values['temp'] is not None and
-                        option.values['temp'] != option.values['default'] or
-                    option.values['conf'] is not None and
-                        option.values['conf'] != option.values['default']):
-                    keyval = '{} = {}'.format(optname, option)  # FIXME layer?
-                    changed_opts.append(keyval)
-            if changed_opts:
+            changed = section.dump_userconfig()
+            if changed:
                 lines.append('[{}]'.format(secname))
-                lines += changed_opts
+                lines += ['{} = {}'.format(k, v) for k, v in changed]
         return '\n'.join(lines)
 
     def optionxform(self, val):

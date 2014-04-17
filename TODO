@@ -1,7 +1,6 @@
 Bugs
 ====
 
-dump_userconfig dumps everything for ValueList sections
 All kind of FIXMEs
 Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-20973

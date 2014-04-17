@@ -93,6 +93,14 @@ class Section:
         """Initialize the values from a configparser section."""
         raise NotImplementedError
 
+    def dump_userconfig(self):
+        """Dump the part of the config which was changed by the user.
+
+        Return:
+            A list of (key, valuestr) tuples.
+        """
+        raise NotImplementedError
+
 
 class KeyValue(Section):
 
@@ -123,6 +131,17 @@ class KeyValue(Section):
         for k, v in sect.items():
             logging.debug("'{}' = '{}'".format(k, v))
             self.values[k].setv('conf', v)
+
+    def dump_userconfig(self):
+        changed = []
+        for k, v in self.items():
+            if (v.values['temp'] is not None and
+                    v.values['temp'] != v.values['default']):
+                changed.append((k, v.values['temp']))
+            elif (v.values['conf'] is not None and
+                    v.values['conf'] != v.values['default']):
+                changed.append((k, v.values['conf']))
+        return changed
 
 
 class ValueList(Section):
@@ -165,14 +184,6 @@ class ValueList(Section):
                                self.layers['default'])
 
     def setv(self, layer, key, value):
-        """Set the value on a layer.
-
-        Arguments:
-            layer: The layer to set the value on, an element name of the
-                   ValueLayers dict.
-            key: The key of the element to set.
-            value: The value to set.
-        """
         if key in self.layers[layer]:
             self.layers[layer][key].setv(layer, value)
         else:
@@ -181,10 +192,17 @@ class ValueList(Section):
             self.layers[layer][key] = val
 
     def from_cp(self, sect):
-        """Initialize the values from a configparser section."""
         keytype = self.keytype()
         valtype = self.valtype()
         for k, v in sect.items():
             keytype.validate(k)
             valtype.validate(v)
             self.setv('conf', k, v)
+
+    def dump_userconfig(self):
+        changed = []
+        mapping = ChainMap(self.layers['temp'], self.layers['conf'])
+        for k, v in mapping.items():
+            if v.value != self.layers['default'][k].value:
+                changed.append((k, v.value))
+        return changed
