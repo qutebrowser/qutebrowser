@@ -90,7 +90,7 @@ class SettingValue:
         v = self.value
         return self.typ.transform(v)
 
-    def setv(self, layer, value, interpolated):
+    def setv(self, layer, value, interpolated=None):
         """Set the value on a layer.
 
         Args:
@@ -98,6 +98,8 @@ class SettingValue:
                    ValueLayers dict.
             value: The value to set.
             interpolated: The interpolated value, for typechecking.
+                          If None, no checks get performed.
         """
-        self.typ.validate(interpolated)
+        if interpolated is not None:
+            self.typ.validate(interpolated)
         self._values[layer] = value
