@@ -59,7 +59,7 @@ class LineConfigParser:
     def write(self, fp, limit=-1):
         """Write the data to a file.
 
-        Arguments:
+        Args:
             fp: A file object to write the data to.
             limit: How many lines to write, or -1 for no limit.
         """

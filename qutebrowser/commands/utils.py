@@ -15,14 +15,17 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Contains various command utils and a global command dict."""
+"""Contains various command utils and a global command dict.
+
+Module attributes:
+    cmd_dict: A mapping from command-strings to command objects.
+"""
 
 import inspect
 from collections import Iterable
 
 from qutebrowser.commands.command import Command
 
-# A mapping from command-strings to command objects.
 cmd_dict = {}
 
 
@@ -52,7 +55,7 @@ class register:  # pylint: disable=invalid-name
 
         Gets called on parse-time with the decorator arguments.
 
-        Arguments:
+        Args:
             See class attributes.
         """
         self.name = name
@@ -70,7 +73,7 @@ class register:  # pylint: disable=invalid-name
         Doesn't actually decorate anything, but creates a Command object and
         registers it in the cmd_dict.
 
-        Arguments:
+        Args:
             func: The function to be decorated.
 
         Return:

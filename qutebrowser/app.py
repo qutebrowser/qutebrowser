@@ -168,7 +168,11 @@ class QuteBrowser(QApplication):
         return parser.parse_args()
 
     def _initlog(self):
-        """Initialisation of the logging output."""
+        """Initialisation of the logging output.
+
+        Raise:
+            ValueError if there was an invalid loglevel.
+        """
         loglevel = 'debug' if self._args.debug else self._args.loglevel
         numeric_level = getattr(logging, loglevel.upper(), None)
         if not isinstance(numeric_level, int):
@@ -190,7 +194,7 @@ class QuteBrowser(QApplication):
     def _init_cmds(self):
         """Initialisation of the qutebrowser commands.
 
-        Registers all commands, connects its signals, and sets up keyparser.
+        Registers all commands and connects their signals.
         """
         for key, cmd in sorted(cmdutils.cmd_dict.items()):
             cmd.signal.connect(self.command_handler)

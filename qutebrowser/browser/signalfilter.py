@@ -91,7 +91,7 @@ class SignalFilter(QObject):
         if self._tabs.currentWidget() == sender:
             if log_signal:
                 logging.debug('  emitting')
-            return signal.emit(*args)
+            signal.emit(*args)
         else:
             if log_signal:
                 logging.debug('  ignoring')

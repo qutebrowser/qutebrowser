@@ -1,8 +1,3 @@
-""" Run different codecheckers over a codebase.
-
-Runs flake8, pylint, pep257 and a CRLF/whitespace/conflict-checker by default.
-"""
-
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -19,6 +14,15 @@ Runs flake8, pylint, pep257 and a CRLF/whitespace/conflict-checker by default.
 #
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+""" Run different codecheckers over a codebase.
+
+Runs flake8, pylint, pep257 and a CRLF/whitespace/conflict-checker by default.
+
+Module attributes:
+    status: An OrderedDict for return status values.
+    option: A dictionary with options.
+"""
 
 import sys
 import subprocess
@@ -56,10 +60,11 @@ options = {
 
 
 def run(name, args=None):
-    """ Run a checker via distutils with optional args.
+    """Run a checker via distutils with optional args.
 
-    name -- Name of the checker/binary
-    args -- Option list of arguments to pass
+    Arguments:
+        name: Name of the checker/binary
+        args: Option list of arguments to pass
     """
     sys.argv = [name, options['target']]
     if args is not None:
@@ -84,6 +89,7 @@ def run(name, args=None):
 
 
 def check_pep257(args=None):
+    """Run pep257 checker with args passed."""
     sys.argv = ['pep257', options['target']]
     if args is not None:
         sys.argv += args
@@ -97,14 +103,14 @@ def check_pep257(args=None):
 
 
 def check_line():
-    """Checks a filetree for CRLFs, conflict markers and weird whitespace"""
+    """Run _check_file over a filetree."""
     print("====== line ======")
     ret = []
     try:
         for (dirpath, dirnames, filenames) in os.walk(options['target']):
             for name in (e for e in filenames if e.endswith('.py')):
                 fn = os.path.join(dirpath, name)
-                ret.append(_check_line(fn))
+                ret.append(_check_file(fn))
         status['line'] = all(ret)
     except Exception as e:
         print('{}: {}'.format(e.__class__.__name__, e))
@@ -112,7 +118,8 @@ def check_line():
     print()
 
 
-def _check_line(fn):
+def _check_file(fn):
+    """Check a single file for CRLFs, conflict markers and weird whitespace."""
     with open(fn, 'rb') as f:
         for line in f:
             if b'\r\n' in line:
@@ -132,6 +139,11 @@ def _check_line(fn):
 
 
 def _get_args(checker):
+    """Construct the arguments for a given checker.
+
+    Return:
+        A list of commandline arguments.
+    """
     args = []
     if checker == 'pylint':
         try:

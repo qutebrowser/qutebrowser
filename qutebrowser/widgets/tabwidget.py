@@ -29,14 +29,12 @@ class TabWidget(QTabWidget):
 
     """The tabwidget used for TabbedBrowser.
 
-    Attributes:
+    Class attributes:
         STYLESHEET: The stylesheet template to be used.
     """
 
     # FIXME there is still some ugly 1px white stripe from somewhere if we do
     # background-color: grey for QTabBar...
-
-    # pylint: disable=unused-argument
 
     STYLESHEET = """
         QTabWidget::pane {{
@@ -99,6 +97,7 @@ class TabWidget(QTabWidget):
         except KeyError:
             pass
 
+    # pylint: disable=unused-argument
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update attributes when config changed."""

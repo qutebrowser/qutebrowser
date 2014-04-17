@@ -285,7 +285,7 @@ class TabbedBrowser(TabWidget):
         if idx - count >= 0:
             self.setCurrentIndex(idx - count)
         else:
-            # FIXME
+            # FIXME display message or wrap
             pass
 
     @cmdutils.register(instance='mainwindow.tabs', name='tabnext')
@@ -301,7 +301,7 @@ class TabbedBrowser(TabWidget):
         if idx + count < self.count():
             self.setCurrentIndex(idx + count)
         else:
-            # FIXME
+            # FIXME display message or wrap
             pass
 
     @cmdutils.register(instance='mainwindow.tabs')

@@ -15,11 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Custom useful datatypes."""
+"""Custom useful datatypes.
+
+Module attributes:
+    _UNSET: Used as default argument in the constructor so default can be None.
+"""
 
 import logging
 
-# Used as default argument in the constructor so default can be None.
 _UNSET = object()
 
 
@@ -27,10 +30,12 @@ class NeighborList:
 
     """A list of items which saves it current position.
 
-    Attributes:
+    Class attributes:
         BLOCK/WRAP/RAISE: Modes, see constructor documentation.
-        _items: A list of all items, accessed through item property.
+
+    Attributes:
         idx: The current position in the list.
+        _items: A list of all items, accessed through item property.
         _mode: The current mode.
     """
 

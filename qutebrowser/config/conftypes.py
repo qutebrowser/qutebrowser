@@ -60,7 +60,7 @@ class BaseType:
 
     """A type used for a setting value.
 
-    Attributes:
+    Class attributes:
         valid_values: Possible values if they can be expressed as a fixed
                       string. ValidValues instance.
         typestr: The name of the type to appear in the config.
@@ -96,7 +96,7 @@ class BaseType:
         Raise:
             ValidationError if the value was invalid.
             NotImplementedError if self.valid_values is not defined and this
-            method should be overridden.
+                                method should be overridden.
         """
         if self.valid_values is not None:
             if value not in self.valid_values:
@@ -120,7 +120,11 @@ class String(BaseType):
 
 class Bool(BaseType):
 
-    """Base class for a boolean setting."""
+    """Base class for a boolean setting.
+
+    Class attributes:
+        _BOOLEAN_STATES: A dictionary of strings mapped to their bool meanings.
+    """
 
     valid_values = ValidValues('true', 'false', show=False)
     typestr = 'bool'
@@ -198,7 +202,7 @@ class Perc(BaseType):
         except ValueError:
             raise ValidationError(value, "invalid percentage!")
         else:
-            if not 0 <= intval:
+            if not intval >= 0:
                 raise ValidationError(value, "percentage needs to be >= 0!")
 
 

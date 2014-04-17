@@ -27,13 +27,6 @@ from PyQt5.QtCore import QUrl
 import qutebrowser.config.config as config
 
 
-class SearchEngineError(Exception):
-
-    """Exception raised when a search engine wasn't found."""
-
-    pass
-
-
 def _get_search_url(txt):
     """Get a search engine URL for a text.
 
@@ -202,3 +195,10 @@ def is_url(url):
         return _is_url_naive(url)
     else:
         raise ValueError("Invalid autosearch value")
+
+
+class SearchEngineError(Exception):
+
+    """Exception raised when a search engine wasn't found."""
+
+    pass

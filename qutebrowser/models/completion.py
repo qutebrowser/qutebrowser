@@ -15,7 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""The base completion model for completion in the command line."""
+"""The base completion model for completion in the command line.
+
+Module attributes:
+    ROLE_MARKS: The role index used for marks.
+"""
 
 import logging
 from PyQt5.QtCore import Qt, QVariant, QAbstractItemModel, QModelIndex

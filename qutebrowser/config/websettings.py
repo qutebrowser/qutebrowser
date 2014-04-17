@@ -15,7 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Bridge from QWebSettings to our own settings."""
+"""Bridge from QWebSettings to our own settings.
+
+Module attributes:
+    MAPPING: A mapping from internal setting names to QWebSetting enum
+             constants.
+    settings: The global QWebSettings singleton instance.
+"""
 
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWebKit import QWebSettings

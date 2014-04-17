@@ -86,7 +86,14 @@ class History:
         self._tmphist = None
 
     def previtem(self):
-        """Get the previous item in the temp history, or start browsing."""
+        """Get the previous item in the temp history.
+
+        start() needs to be called before calling this.
+
+        Raise:
+            ValueError if start() wasn't called.
+            HistoryEndReachedError if the first item was reached.
+        """
         if not self.browsing:
             raise ValueError("Currently not browsing history")
         try:
@@ -95,7 +102,14 @@ class History:
             raise HistoryEndReachedError
 
     def nextitem(self):
-        """Get the next item in the temp history."""
+        """Get the next item in the temp history.
+
+        start() needs to be called before calling this.
+
+        Raise:
+            ValueError if start() wasn't called.
+            HistoryEndReachedError if the last item was reached.
+        """
         if not self.browsing:
             raise ValueError("Currently not browsing history")
         try:

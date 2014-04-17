@@ -15,7 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Parse keypresses/keychains in the main window."""
+"""Parse keypresses/keychains in the main window.
+
+Module attributes:
+    STARTCHARS: Possible chars for starting a commandline input.
+"""
 
 import re
 import logging
@@ -27,13 +31,18 @@ import qutebrowser.config.config as config
 from qutebrowser.commands.parsers import (CommandParser, ArgumentCountError,
                                           NoSuchCommandError)
 
-# Possible chars for starting a commandline input
 STARTCHARS = ":/?"
 
 
 class KeyParser(QObject):
 
     """Parser for vim-like key sequences.
+
+    Class Attributes:
+        MATCH_PARTIAL: Constant for a partial match (no keychain matched yet,
+                       but it's still possible in the future.
+        MATCH_DEFINITIVE: Constant for a full match (keychain matches exactly).
+        MATCH_NONE: Constant for no match (no more matches possible).
 
     Attributes:
         commandparser: Commandparser instance.
@@ -241,7 +250,7 @@ class KeyParser(QObject):
         """Read the configuration.
 
         Config format: key = command, e.g.:
-        gg = scrollstart
+            gg = scrollstart
         """
         sect = config.instance['keybind']
         if not sect.items():

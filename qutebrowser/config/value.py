@@ -93,7 +93,7 @@ class SettingValue:
     def setv(self, layer, value):
         """Set the value on a layer.
 
-        Arguments:
+        Args:
             layer: The layer to set the value on, an element name of the
                    ValueLayers dict.
             value: The value to set.

@@ -20,6 +20,11 @@
 This borrows a lot of ideas from configparser, but also has some things that
 are fundamentally different. This is why nothing inherts from configparser, but
 we borrow some methods and classes from there where it makes sense.
+
+Module attributes:
+    instance: The "qutebrowser.conf" Config instance.
+    state: The "state" ReadWriteConfigParser instance.
+    cmd_history: The "cmd_history" LineConfigParser instance.
 """
 
 import os
@@ -32,7 +37,6 @@ from collections.abc import MutableMapping
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
-#from qutebrowser.utils.misc import read_file
 import qutebrowser.config.configdata as configdata
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.message as message
@@ -41,7 +45,7 @@ from qutebrowser.config.iniparsers import (ReadConfigParser,
                                            ReadWriteConfigParser)
 from qutebrowser.config.lineparser import LineConfigParser
 
-instance = None   # The main config instance
+instance = None
 state = None
 cmd_history = None
 
@@ -104,7 +108,7 @@ class Config(QObject):
 
     def __init__(self, configdir, fname, parent=None):
         super().__init__(parent)
-        self.sections = configdata.data
+        self.sections = configdata.DATA
         self._configparser = ReadConfigParser(configdir, fname)
         self._configfile = os.path.join(configdir, fname)
         self._wrapper_args = {
@@ -197,7 +201,7 @@ class Config(QObject):
     def has_option(self, section, option):
         """Check if option exists in section.
 
-        Arguments:
+        Args:
             section: The section name.
             option: The option name
 
@@ -211,7 +215,7 @@ class Config(QObject):
     def remove_option(self, section, option):
         """Remove an option.
 
-        Arguments:
+        Args:
             section: The section where to remove an option.
             option: The option name to remove.
 
@@ -233,14 +237,7 @@ class Config(QObject):
     def get_wrapper(self, section, option):
         """Get the value from a section/option.
 
-        Wrapper for the get-command to output the value in the status bar
-
-        Arguments:
-            section: Section to get the value from
-            option: The option to get.
-
-        Return:
-            The value of the option.
+        Wrapper for the get-command to output the value in the status bar.
         """
         val = self.get(section, option)
         message.info("{} {} = {}".format(section, option, val))
@@ -248,10 +245,13 @@ class Config(QObject):
     def get(self, section, option, raw=False):
         """Get the value from a section/option.
 
-        Arguments:
+        Args:
             section: The section to get the option from.
             option: The option name
             raw: Whether to get the uninterpolated, untransformed value.
+
+        Return:
+            The value of the option.
         """
         logging.debug("getting {} -> {}".format(section, option))
         try:
@@ -277,9 +277,6 @@ class Config(QObject):
         """Set an option.
 
         Wrapper for self.set() to output exceptions in the status bar.
-
-        Arguments:
-            *args: Get passed to self.set().
         """
         try:
             self.set('conf', section, option, value)
@@ -292,9 +289,6 @@ class Config(QObject):
         """Set a temporary option.
 
         Wrapper for self.set() to output exceptions in the status bar.
-
-        Arguments:
-            *args: Get passed to self.set().
         """
         try:
             self.set('temp', section, option, value)
@@ -305,6 +299,7 @@ class Config(QObject):
         """Set an option.
 
         Args:
+            layer: A layer name as string (conf/temp/default).
             section: The name of the section to change.
             option: The name of the option to change.
             value: The new value.
@@ -376,7 +371,7 @@ class SectionProxy(MutableMapping):
     def __init__(self, conf, name):
         """Create a view on a section.
 
-        Arguments:
+        Args:
             conf: The Config object.
             name: The section name.
         """
@@ -418,7 +413,7 @@ class SectionProxy(MutableMapping):
         We deliberately don't support the default argument here, but have a raw
         argument instead.
 
-        Arguments:
+        Args:
             option: The option name to get.
             raw: Whether to get a raw value or not.
         """

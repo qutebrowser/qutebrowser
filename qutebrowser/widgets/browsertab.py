@@ -210,6 +210,9 @@ class BrowserTab(QWebView):
 
         Emit:
             scroll_pos_changed; If the scroll position changed.
+
+        Return:
+            The superclass event return value.
         """
         frame = self.page_.mainFrame()
         new_pos = (frame.scrollBarValue(Qt.Horizontal),

@@ -30,7 +30,7 @@ class SettingSectionCompletionModel(CompletionModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         cat = self.new_category("Config sections")
-        for name in configdata.data.keys():
+        for name in configdata.DATA.keys():
             desc = configdata.SECTION_DESC[name].splitlines()[0].strip()
             self.new_item(cat, name, desc)
 
@@ -44,7 +44,7 @@ class SettingOptionCompletionModel(CompletionModel):
     def __init__(self, section, parent=None):
         super().__init__(parent)
         cat = self.new_category("Config options for {}".format(section))
-        sectdata = configdata.data[section]
+        sectdata = configdata.DATA[section]
         for name, _ in sectdata.items():
             try:
                 desc = sectdata.descriptions[name]
@@ -62,7 +62,7 @@ class SettingValueCompletionModel(CompletionModel):
     def __init__(self, section, option, parent=None):
         super().__init__(parent)
         cat = self.new_category("Setting values for {}".format(option))
-        vals = configdata.data[section][option].typ.valid_values
+        vals = configdata.DATA[section][option].typ.valid_values
         if vals is None:
             raise NoCompletionsError
         for val in vals:

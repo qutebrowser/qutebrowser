@@ -77,9 +77,6 @@ class MainWindow(QWidget):
         self.status = StatusBar()
         self._vbox.addWidget(self.status)
 
-        #self.status.resized.connect(self.completion.resize_to_bar)
-        #self.status.moved.connect(self.completion.move_to_bar)
-        #self.tabs.resized.connect(self.completion.on_browser_resized)
         self.tabs.cur_progress.connect(self.status.prog.setValue)
         self.tabs.cur_load_finished.connect(self.status.prog.hide)
         self.tabs.cur_load_finished.connect(
@@ -106,6 +103,10 @@ class MainWindow(QWidget):
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
+    def _set_default_geometry(self):
+        """Set some sensible default geometry."""
+        self.setGeometry(QRect(50, 50, 800, 600))
+
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Resize completion if config changed."""
@@ -129,10 +130,6 @@ class MainWindow(QWidget):
             bottomright -= QPoint(0, self.inspector.height())
         self.completion.setGeometry(QRect(topleft, bottomright))
 
-    def _set_default_geometry(self):
-        """Set some sensible default geometry."""
-        self.setGeometry(QRect(50, 50, 800, 600))
-
     @cmdutils.register(instance='mainwindow', name='inspector')
     def toggle_inspector(self):
         """Toggle the web inspector."""
@@ -142,7 +139,7 @@ class MainWindow(QWidget):
         else:
             if not config.get('webkit', 'developer_extras_enabled'):
                 self.status.disp_error("Please enable developer-extras before "
-                    "using the webinspector!")
+                                       "using the webinspector!")
             else:
                 self.inspector.show()
                 self.resize_completion()

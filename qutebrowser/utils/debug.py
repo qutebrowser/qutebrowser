@@ -41,7 +41,7 @@ def set_trace():
     print("  from PyQt5 import QtCore; QtCore.pyqtRestoreInputHook()")
     print("before executing c(ontinue).")
     pyqtRemoveInputHook()
-    return pdb_set_trace()
+    pdb_set_trace()
 
 
 def trace_lines(do_trace):
@@ -51,7 +51,11 @@ def trace_lines(do_trace):
         do_trace: Whether to start tracing (True) or stop it (False).
     """
     def trace(frame, event, _):
-        """Trace function passed to sys.settrace."""
+        """Trace function passed to sys.settrace.
+
+        Return:
+            Itself, so tracing continues.
+        """
         print("{}, {}:{}".format(event, frame.f_code.co_filename,
                                  frame.f_lineno))
         return trace

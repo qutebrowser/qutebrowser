@@ -37,26 +37,22 @@ class CurCommandDispatcher(QObject):
     cmdutils.register() decorators are run, currentWidget() will return None.
 
     Attributes:
-        tabs: The TabbedBrowser object.
+        _tabs: The TabbedBrowser object.
 
     Signals:
         temp_message: Connected to TabbedBrowser signal.
     """
-
-    # FIXME maybe subclassing would be more clean?
 
     temp_message = pyqtSignal(str)
 
     def __init__(self, parent):
         """Constructor.
 
-        Uses setattr to get some methods from parent.
-
         Args:
             parent: The TabbedBrowser for this dispatcher.
         """
         super().__init__(parent)
-        self.tabs = parent
+        self._tabs = parent
 
     def _scroll_percent(self, perc=None, count=None, orientation=None):
         """Inner logic for scroll_percent_(x|y).
@@ -72,7 +68,7 @@ class CurCommandDispatcher(QObject):
             perc = int(count)
         else:
             perc = float(perc)
-        frame = self.tabs.currentWidget().page_.mainFrame()
+        frame = self._tabs.currentWidget().page_.mainFrame()
         m = frame.scrollBarMaximum(orientation)
         if m == 0:
             return
@@ -88,12 +84,12 @@ class CurCommandDispatcher(QObject):
             url: The URL to open.
             count: The tab index to open the URL in, or None.
         """
-        tab = self.tabs.cntwidget(count)
+        tab = self._tabs.cntwidget(count)
         if tab is None:
             if count is None:
                 # We want to open an URL in the current tab, but none exists
                 # yet.
-                self.tabs.tabopen(url)
+                self._tabs.tabopen(url)
             else:
                 # Explicit count with a tab that doesn't exist.
                 return
@@ -109,7 +105,7 @@ class CurCommandDispatcher(QObject):
         Args:
             count: The tab index to reload, or None.
         """
-        tab = self.tabs.cntwidget(count)
+        tab = self._tabs.cntwidget(count)
         if tab is not None:
             tab.reload()
 
@@ -122,7 +118,7 @@ class CurCommandDispatcher(QObject):
         Args:
             count: The tab index to stop, or None.
         """
-        tab = self.tabs.cntwidget(count)
+        tab = self._tabs.cntwidget(count)
         if tab is not None:
             tab.stop()
 
@@ -136,7 +132,7 @@ class CurCommandDispatcher(QObject):
             count: The tab index to print, or None.
         """
         # FIXME that does not what I expect
-        tab = self.tabs.cntwidget(count)
+        tab = self._tabs.cntwidget(count)
         if tab is not None:
             preview = QPrintPreviewDialog(self)
             preview.paintRequested.connect(tab.print)
@@ -153,7 +149,7 @@ class CurCommandDispatcher(QObject):
         """
         # FIXME display warning if beginning of history
         for _ in range(count):
-            self.tabs.currentWidget().back()
+            self._tabs.currentWidget().back()
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
     def forward(self, count=1):
@@ -166,7 +162,7 @@ class CurCommandDispatcher(QObject):
         """
         # FIXME display warning if end of history
         for _ in range(count):
-            self.tabs.currentWidget().forward()
+            self._tabs.currentWidget().forward()
 
     @pyqtSlot(str, int)
     def search(self, text, flags):
@@ -176,7 +172,7 @@ class CurCommandDispatcher(QObject):
             text: The text to search for.
             flags: The QWebPage::FindFlags.
         """
-        self.tabs.currentWidget().findText(text, flags)
+        self._tabs.currentWidget().findText(text, flags)
 
     @cmdutils.register(instance='mainwindow.tabs.cur', hide=True)
     def scroll(self, dx, dy, count=1):
@@ -191,7 +187,7 @@ class CurCommandDispatcher(QObject):
         """
         dx = int(count) * float(dx)
         dy = int(count) * float(dy)
-        self.tabs.currentWidget().page_.mainFrame().scroll(dx, dy)
+        self._tabs.currentWidget().page_.mainFrame().scroll(dx, dy)
 
     @cmdutils.register(instance='mainwindow.tabs.cur', name='scroll_perc_x',
                        hide=True)
@@ -229,7 +225,7 @@ class CurCommandDispatcher(QObject):
             count: multiplier
         """
         # FIXME this might not work with HTML frames
-        page = self.tabs.currentWidget().page_
+        page = self._tabs.currentWidget().page_
         size = page.viewportSize()
         page.mainFrame().scroll(int(count) * float(mx) * size.width(),
                                 int(count) * float(my) * size.height())
@@ -247,7 +243,7 @@ class CurCommandDispatcher(QObject):
             temp_message to display a temporary message.
         """
         clip = QApplication.clipboard()
-        url = urlutils.urlstring(self.tabs.currentWidget().url())
+        url = urlutils.urlstring(self._tabs.currentWidget().url())
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         clip.setText(url, mode)
         self.temp_message.emit('URL yanked to {}'.format(
@@ -266,7 +262,7 @@ class CurCommandDispatcher(QObject):
             temp_message to display a temporary message.
         """
         clip = QApplication.clipboard()
-        title = self.tabs.tabText(self.tabs.currentIndex())
+        title = self._tabs.tabText(self._tabs.currentIndex())
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         clip.setText(title, mode)
         self.temp_message.emit('Title yanked to {}'.format(
@@ -279,7 +275,7 @@ class CurCommandDispatcher(QObject):
         Args:
             count: How many steps to take.
         """
-        tab = self.tabs.currentWidget()
+        tab = self._tabs.currentWidget()
         tab.zoom(count)
 
     @cmdutils.register(instance='mainwindow.tabs.cur', name='zoomout')
@@ -289,5 +285,5 @@ class CurCommandDispatcher(QObject):
         Args:
             count: How many steps to take.
         """
-        tab = self.tabs.currentWidget()
+        tab = self._tabs.currentWidget()
         tab.zoom(-count)

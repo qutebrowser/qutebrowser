@@ -35,6 +35,9 @@ class StatusBar(QWidget):
 
     """The statusbar at the bottom of the mainwindow.
 
+    Class attributes:
+        STYLESHEET: The stylesheet template.
+
     Attributes:
         cmd: The Command widget in the statusbar.
         txt: The Text widget in the statusbar.
@@ -46,7 +49,6 @@ class StatusBar(QWidget):
         _stack: The QStackedLayout with cmd/txt widgets.
         _error: If there currently is an error, accessed through the error
                 property.
-        STYLESHEET: The stylesheet template.
 
     Signals:
         resized: Emitted when the statusbar has resized, so the completion
@@ -59,6 +61,7 @@ class StatusBar(QWidget):
 
     resized = pyqtSignal('QRect')
     moved = pyqtSignal('QPoint')
+
     STYLESHEET = """
         QWidget#StatusBar[error="false"] {{
             {color[statusbar.bg]}
@@ -103,7 +106,6 @@ class StatusBar(QWidget):
         self._hide_cmd_widget()
 
         self._hbox.addLayout(self._stack)
-        #self._hbox.addStretch()
 
         self.keystring = _KeyString(self)
         self._hbox.addWidget(self.keystring)
@@ -248,7 +250,6 @@ class _Command(QLineEdit):
 
     def __init__(self, statusbar):
         super().__init__(statusbar)
-        # FIXME
         self._statusbar = statusbar
         self.setStyleSheet("""
             QLineEdit {
@@ -343,7 +344,7 @@ class _Command(QLineEdit):
         """
         # FIXME we should consider the cursor position.
         text = self.text()
-        if text[0] in ':/?':
+        if text[0] in keys.STARTCHARS:
             prefix = text[0]
             text = text[1:]
         else:
@@ -398,7 +399,7 @@ class _Progress(QProgressBar):
 
     """The progress bar part of the status bar.
 
-    Attributes:
+    Class attributes:
         STYLESHEET: The stylesheet template.
     """
 
@@ -583,12 +584,14 @@ class _Url(TextBase):
 
     """URL displayed in the statusbar.
 
+    Class attributes:
+        STYLESHEET: The stylesheet template.
+
     Attributes:
         _old_url: The URL displayed before the hover URL.
         _old_urltype: The type of the URL displayed before the hover URL.
         _urltype: The current URL type. One of normal/ok/error/warn/hover.
                   Accessed via the urltype property.
-        STYLESHEET: The stylesheet template.
     """
 
     STYLESHEET = """

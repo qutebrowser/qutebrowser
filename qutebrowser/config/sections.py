@@ -81,7 +81,7 @@ class Section:
     def setv(self, layer, key, value):
         """Set the value on a layer.
 
-        Arguments:
+        Args:
             layer: The layer to set the value on, an element name of the
                    ValueLayers dict.
             key: The key of the element to set.
@@ -166,7 +166,7 @@ class ValueList(Section):
     def __init__(self, keytype, valtype, *defaults):
         """Wrap types over default values. Take care when overriding this.
 
-        Arguments:
+        Args:
             keytype: The type to be used for keys.
             valtype: The type to be used for values.
             *defaults: A (key, value) list of default values.

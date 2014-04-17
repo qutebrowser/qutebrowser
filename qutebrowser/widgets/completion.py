@@ -53,10 +53,12 @@ class CompletionView(QTreeView):
 
     Highlights completions based on marks in the ROLE_MARKS data.
 
+    Class attributes:
+        STYLESHEET: The stylesheet template for the CompletionView.
+
     Attributes:
         _model: The currently active filter model.
         _lastmodel: The model set in the last iteration.
-        STYLESHEET: The stylesheet template for the CompletionView.
         _completion_models: dict of available completion models.
         _ignore_next: Whether to ignore the next cmd_text_changed signal.
         _enabled: Whether showing the CompletionView is enabled.
@@ -110,10 +112,10 @@ class CompletionView(QTreeView):
             'section': CompletionFilterModel(SettingSectionCompletionModel(
                                              self)),
         }
-        for sect in configdata.data.keys():
+        for sect in configdata.DATA.keys():
             self._completion_models['option_' + sect] = CompletionFilterModel(
                 SettingOptionCompletionModel(sect, self))
-            for opt in configdata.data[sect].keys():
+            for opt in configdata.DATA[sect].keys():
                 try:
                     modelname = 'value_{}_{}'.format(sect, opt)
                     self._completion_models[modelname] = (
@@ -349,7 +351,7 @@ class _CompletionItemDelegate(QStyledItemDelegate):
         in Qt: We use a QTextDocument to draw text.
 
         Args:
-            index -- The QModelIndex of the item to draw.
+            index: The QModelIndex of the item to draw.
         """
         if not self._opt.text:
             return

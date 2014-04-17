@@ -15,7 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Utilities related to the look&feel of qutebrowser."""
+"""Utilities related to the look&feel of qutebrowser.
+
+Module attributes:
+    _colordict: The global cached ColorDict.
+    _fontdict: The global cached FontDict.
+"""
 
 from functools import partial
 
@@ -46,6 +51,12 @@ def set_register_stylesheet(obj):
     """Set the stylesheet for an object based on it's STYLESHEET attribute.
 
     Also, register an update when the config is changed.
+    This isn't really good OOP, but it's the cleanest solution I could think
+    of.
+
+    Args:
+        obj: The object to set the stylesheet for and register.
+             Must have a STYLESHEET attribute.
     """
     obj.setStyleSheet(get_stylesheet(obj.STYLESHEET))
     config.instance.changed.connect(partial(_update_stylesheet, obj))

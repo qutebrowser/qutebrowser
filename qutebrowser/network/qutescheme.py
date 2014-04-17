@@ -15,7 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Handler functions for different qute:... pages."""
+"""Handler functions for different qute:... pages.
+
+Module attributes:
+    _HTML_TEMPLATE: The HTML boilerplate used to convert text into html.
+    pyeval_output: The output of the last :pyeval command.
+"""
 
 import logging
 
@@ -52,6 +57,7 @@ def _get_html(title, snippet):
     Return:
         HTML content as bytes.
     """
+    # FIXME we should html-escape the body
     return _HTML_TEMPLATE.format(title=title, body=snippet).encode('UTF-8')
 
 

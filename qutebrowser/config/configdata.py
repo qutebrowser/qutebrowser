@@ -15,7 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Configuration data for config.py."""
+"""Configuration data for config.py.
+
+Module attributes:
+
+FIRST_COMMENT: The initial comment header to place in the config.
+SECTION_DESC: A dictionary with descriptions for sections.
+DATA: The config defaults, an OrderedDict of sections.
+"""
 
 from collections import OrderedDict
 
@@ -96,7 +103,7 @@ SECTION_DESC = {
 }
 
 
-data = OrderedDict([
+DATA = OrderedDict([
     ('general', sect.KeyValue(
         ('show_completion',
          SettingValue(types.Bool, "true"),

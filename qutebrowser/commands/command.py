@@ -117,6 +117,6 @@ class Command(QObject):
             self.signal.emit((self.instance, self.handler.__name__, None,
                               args))
         elif count is not None and self.count:
-            return self.handler(*args, count=count)
+            self.handler(*args, count=count)
         else:
-            return self.handler(*args)
+            self.handler(*args)

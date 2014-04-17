@@ -27,6 +27,25 @@ from qutebrowser.commands.exceptions import (ArgumentCountError,
                                              NoSuchCommandError)
 
 
+def split_cmdline(text):
+    """Convenience function to split a commandline into it's logical parts.
+
+    Args:
+        text: The string to split.
+
+    Return:
+        A list of strings.
+    """
+    parser = CommandParser()
+    try:
+        parts = parser.parse(text)
+    except NoSuchCommandError:
+        parts = text.split(' ')
+    if text.endswith(' '):
+        parts.append('')
+    return parts
+
+
 class SearchParser(QObject):
 
     """Parse qutebrowser searches.
@@ -44,9 +63,9 @@ class SearchParser(QObject):
     do_search = pyqtSignal(str, 'QWebPage::FindFlags')
 
     def __init__(self, parent=None):
+        super().__init__(parent)
         self._text = None
         self._flags = 0
-        super().__init__(parent)
 
     def _search(self, text, rev=False):
         """Search for a text on the current page.
@@ -181,7 +200,7 @@ class CommandParser:
         Raise:
             NoSuchCommandError: if a command wasn't found.
             ArgumentCountError: if a command was called with the wrong count of
-            arguments.
+                                arguments.
 
         Return:
             True if command was called (handler returnstatus is ignored!).
@@ -210,22 +229,3 @@ class CommandParser:
                 raise
         self._run(count=count)
         return True
-
-
-def split_cmdline(text):
-    """Split a commandline into it's logical parts.
-
-    Arguments:
-        text: The string to split.
-
-    Return:
-        A list of strings.
-    """
-    parser = CommandParser()
-    try:
-        parts = parser.parse(text)
-    except NoSuchCommandError:
-        parts = text.split(' ')
-    if text.endswith(' '):
-        parts.append('')
-    return parts
