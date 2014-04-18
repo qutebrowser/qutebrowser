@@ -68,7 +68,7 @@ class Section:
         """Get value keys."""
         return self.values.keys()
 
-    def setv(self, layer, key, value, interpolated=None):
+    def setv(self, layer, key, value, interpolated):
         """Set the value on a layer.
 
         Args:
@@ -111,7 +111,7 @@ class KeyValue(Section):
             self.values[k] = v
             self.descriptions[k] = desc
 
-    def setv(self, layer, key, value, interpolated=None):
+    def setv(self, layer, key, value, interpolated):
         self.values[key].setv(layer, value, interpolated)
 
     def dump_userconfig(self):
@@ -165,7 +165,7 @@ class ValueList(Section):
         self.values = ChainMap(self.layers['temp'], self.layers['conf'],
                                self.layers['default'])
 
-    def setv(self, layer, key, value, interpolated=None):
+    def setv(self, layer, key, value, interpolated):
         self.keytype().validate(key)
         if key in self.layers[layer]:
             self.layers[layer][key].setv(layer, value, interpolated)
