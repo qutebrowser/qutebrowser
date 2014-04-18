@@ -17,8 +17,6 @@
 
 """Our own QNetworkAccessManager."""
 
-import logging
-
 from PyQt5.QtNetwork import QNetworkAccessManager
 
 from qutebrowser.network.qutescheme import QuteSchemeHandler
@@ -61,8 +59,6 @@ class NetworkManager(QNetworkAccessManager):
             A QNetworkReply.
         """
         scheme = req.url().scheme()
-        logging.debug("new req, scheme {}, handlers {}".format(
-            scheme, self._scheme_handlers))
         if scheme in self._scheme_handlers:
             reply = self._scheme_handlers[scheme].createRequest(
                 op, req, outgoing_data)
