@@ -27,6 +27,7 @@ class HintManager:
 
     Attributes:
         _frame: The QWebFrame to use.
+        _elems: The elements we're hinting currently.
     """
 
     SELECTORS = {
@@ -41,6 +42,21 @@ class HintManager:
         "url": "[src], [href]",
     }
 
+    HINT_CSS = """
+        z-index: 100000;
+        font-family: monospace;
+        font-size: 10px;
+        font-weight: bold;
+        color: white;
+        background-color: red;
+        padding: 0px 1px;
+        position: absolute;
+        left: {left}px;
+        top: {top}px;
+        width: 30px;
+        height: 10px;
+    """
+
     def __init__(self, frame):
         """Constructor.
 
@@ -48,6 +64,14 @@ class HintManager:
             frame: The QWebFrame to use for finding elements and drawing.
         """
         self._frame = frame
+        self._elems = None
+
+    def _draw_label(self, elem):
+        """Draw a hint label over an element."""
+        rect = elem.geometry()
+        css = HintManager.HINT_CSS.format(left=rect.x(), top=rect.y())
+        self._frame.documentElement().appendInside(
+            '<span class="qutehint" style="{}">foo</span>'.format(css))
 
     def start(self, mode="all"):
         """Start hinting.
@@ -55,6 +79,7 @@ class HintManager:
         Args:
             mode: The mode to be used.
         """
-        elems = self._frame.findAllElements(HintManager.SELECTORS[mode])
-        for e in elems:
-            e.setAttribute("style", "background-color:red")
+        selector = HintManager.SELECTORS[mode]
+        self._elems = self._frame.findAllElements(selector)
+        for e in self._elems:
+            self._draw_label(e)
