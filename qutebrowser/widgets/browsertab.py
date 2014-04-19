@@ -28,6 +28,7 @@ import qutebrowser.utils.url as urlutils
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
 from qutebrowser.browser.webpage import BrowserPage
+from qutebrowser.browser.hints import HintManager
 from qutebrowser.utils.signals import SignalCache
 from qutebrowser.utils.usertypes import NeighborList
 
@@ -41,6 +42,7 @@ class BrowserTab(QWebView):
     Attributes:
         page_: The QWebPage behind the view
         signal_cache: The signal cache associated with the view.
+        _hintmanager: The HintManager instance for this view.
         _zoom: A NeighborList with the zoom levels.
         _scroll_pos: The old scroll position.
         _shutdown_callback: Callback to be called after shutdown.
@@ -74,6 +76,7 @@ class BrowserTab(QWebView):
         self._init_neighborlist()
         self.page_ = BrowserPage(self)
         self.setPage(self.page_)
+        self._hintmanager = HintManager(self.page_.mainFrame())
         self.signal_cache = SignalCache(uncached=['linkHovered'])
         self.page_.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.page_.linkHovered.connect(self.linkHovered)

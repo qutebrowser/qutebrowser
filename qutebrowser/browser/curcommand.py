@@ -164,6 +164,17 @@ class CurCommandDispatcher(QObject):
         for _ in range(count):
             self._tabs.currentWidget().forward()
 
+    @cmdutils.register(instance='mainwindow.tabs.cur')
+    def hint(self, mode="all"):
+        """Start hinting.
+
+        Command handler for :hint.
+
+        Args:
+            mode: The hinting mode to use.
+        """
+        self._tabs.currentWidget()._hintmanager.start(mode)
+
     @pyqtSlot(str, int)
     def search(self, text, flags):
         """Search for text in the current page.
