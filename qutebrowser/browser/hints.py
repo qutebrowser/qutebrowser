@@ -72,7 +72,8 @@ class HintManager:
     def _draw_label(self, elem):
         """Draw a hint label over an element."""
         rect = elem.geometry()
-        if not rect.isValid():
+        if (not rect.isValid()) and rect.x() == 0:
+            # Most likely an invisible link
             return
         css = HintManager.HINT_CSS.format(left=rect.x(), top=rect.y(),
                                           config=config.instance)
