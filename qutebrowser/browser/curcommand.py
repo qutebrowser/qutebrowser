@@ -173,7 +173,7 @@ class CurCommandDispatcher(QObject):
         Args:
             mode: The hinting mode to use.
         """
-        self._tabs.currentWidget()._hintmanager.start(mode)
+        self._tabs.currentWidget().hintmanager.start(mode)
 
     @pyqtSlot(str, int)
     def search(self, text, flags):

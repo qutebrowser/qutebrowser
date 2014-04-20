@@ -17,7 +17,6 @@
 
 """A HintManager to draw hints over links."""
 
-import logging
 import math
 
 import qutebrowser.config.config as config
@@ -75,6 +74,12 @@ class HintManager:
         """Calculate the hint strings for elems.
 
         Inspirated by Vimium.
+
+        Args:
+            elems: The elements to get hint strings for.
+
+        Return:
+            A list of hint strings, in the same order as the elements.
         """
         chars = config.get("hints", "chars")
         # Determine how many digits the link hints will require in the worst
@@ -106,6 +111,13 @@ class HintManager:
         the array.
 
         Inspired by Vimium.
+
+        Args:
+            hints: A list of hint strings.
+            length: Length of the available charset.
+
+        Return:
+            A list of shuffled hint strings.
         """
         buckets = [[] for i in range(length)]
         for i, hint in enumerate(hints):
@@ -123,6 +135,14 @@ class HintManager:
         digits.
 
         Inspired by Vimium.
+
+        Args:
+            number: The hint number.
+            chars: The charset to use.
+            digits: The minimum output length.
+
+        Return:
+            A hint string.
         """
         base = len(chars)
         hintstr = []
@@ -135,12 +155,17 @@ class HintManager:
             if number <= 0:
                 break
         # Pad the hint string we're returning so that it matches digits.
-        for i in range(0, digits - len(hintstr)):
+        for _ in range(0, digits - len(hintstr)):
             hintstr.insert(0, chars[0])
         return ''.join(hintstr)
 
     def _draw_label(self, elem, string):
-        """Draw a hint label over an element."""
+        """Draw a hint label over an element.
+
+        Args:
+            elem: The QWebElement to use.
+            string: The hint string to print.
+        """
         rect = elem.geometry()
         css = HintManager.HINT_CSS.format(left=rect.x(), top=rect.y(),
                                           config=config.instance)
