@@ -28,6 +28,7 @@ class HintManager:
 
     Class attributes:
         SELECTORS: CSS selectors for the different highlighting modes.
+        HINT_CSS: The CSS template to use for hints.
 
     Attributes:
         _frame: The QWebFrame to use.
