@@ -43,18 +43,18 @@ class HintManager:
     }
 
     HINT_CSS = """
-        z-index: 100000;
-        font-family: monospace;
-        font-size: 10px;
+        background: -webkit-gradient(linear, left top, left bottom,
+                    color-stop(0%,#FFF785), color-stop(100%,#FFC542));
+        border: 1px solid #E3BE23;
+        opacity: 0.7;
+        color: black;
         font-weight: bold;
-        color: white;
-        background-color: red;
-        padding: 0px 1px;
+        font-family: monospace;
+        font-size: 12px;
+        z-index: 100000;
         position: absolute;
         left: {left}px;
         top: {top}px;
-        width: 30px;
-        height: 10px;
     """
 
     def __init__(self, frame):
