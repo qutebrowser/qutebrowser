@@ -75,6 +75,11 @@ class HintManager:
         if (not rect.isValid()) and rect.x() == 0:
             # Most likely an invisible link
             return
+        framegeom = self._frame.geometry()
+        framegeom.translate(self._frame.scrollPosition())
+        if not framegeom.contains(rect):
+            # out of screen
+            return
         css = HintManager.HINT_CSS.format(left=rect.x(), top=rect.y(),
                                           config=config.instance)
         doc = self._frame.documentElement()
