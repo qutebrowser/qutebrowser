@@ -107,7 +107,8 @@ class BaseType:
             else:
                 return
         else:
-            raise NotImplementedError
+            raise NotImplementedError("{} does not implement validate.".format(
+                self.__class__.__name__))
 
 
 class String(BaseType):
