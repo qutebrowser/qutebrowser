@@ -28,6 +28,7 @@ class HintManager:
     Attributes:
         _frame: The QWebFrame to use.
         _elems: The elements we're hinting currently.
+        _labels: The label elements.
     """
 
     SELECTORS = {
@@ -65,13 +66,16 @@ class HintManager:
         """
         self._frame = frame
         self._elems = None
+        self._labels = []
 
     def _draw_label(self, elem):
         """Draw a hint label over an element."""
         rect = elem.geometry()
         css = HintManager.HINT_CSS.format(left=rect.x(), top=rect.y())
-        self._frame.documentElement().appendInside(
-            '<span class="qutehint" style="{}">foo</span>'.format(css))
+        doc = self._frame.documentElement()
+        doc.appendInside('<span class="qutehint" style="{}">foo</span>'.format(
+            css))
+        self._labels.append(doc.lastChild())
 
     def start(self, mode="all"):
         """Start hinting.
@@ -86,6 +90,7 @@ class HintManager:
 
     def stop(self):
         """Stop hinting."""
-        self._elems = None
-        for e in self._frame.findAllElements("span.qutehint"):
+        for e in self._labels:
             e.removeFromDocument()
+        self._elems = None
+        self._labels = []
