@@ -17,6 +17,10 @@
 
 """A HintManager to draw hints over links."""
 
+import logging
+
+import qutebrowser.config.config as config
+
 
 class HintManager:
 
@@ -44,14 +48,11 @@ class HintManager:
     }
 
     HINT_CSS = """
-        background: -webkit-gradient(linear, left top, left bottom,
-                    color-stop(0%,#FFF785), color-stop(100%,#FFC542));
-        border: 1px solid #E3BE23;
-        opacity: 0.7;
-        color: black;
-        font-weight: bold;
-        font-family: monospace;
-        font-size: 12px;
+        color: {config[colors][hints.fg]};
+        background: {config[colors][hints.bg]};
+        font: {config[fonts][hints]};
+        border: {config[hints][border]};
+        opacity: {config[hints][opacity]};
         z-index: 100000;
         position: absolute;
         left: {left}px;
@@ -71,7 +72,15 @@ class HintManager:
     def _draw_label(self, elem):
         """Draw a hint label over an element."""
         rect = elem.geometry()
-        css = HintManager.HINT_CSS.format(left=rect.x(), top=rect.y())
+        if rect.x() == 0 and rect.y() == 0:
+            logging.warn("Element is at 0/0...")
+            return
+        logging.debug("rect: {}/{}".format(rect.x(), rect.y()))
+        css = HintManager.HINT_CSS.format(
+            left=rect.x(),
+            top=rect.y(),
+            config=config.instance)
+        logging.debug("css: {}".format(css))
         doc = self._frame.documentElement()
         doc.appendInside('<span class="qutehint" style="{}">foo</span>'.format(
             css))

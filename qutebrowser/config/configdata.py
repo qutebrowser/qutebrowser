@@ -56,6 +56,7 @@ SECTION_DESC = {
     'general': 'General/misc. options',
     'tabbar': 'Configuration of the tab bar.',
     'webkit': 'Webkit settings.',
+    'hints': 'Hinting settings.',
     'searchengines': (
         'Definitions of search engines which can be used via the address '
         'bar.\n'
@@ -303,6 +304,15 @@ DATA = OrderedDict([
          "This setting enables WebKit's workaround for broken sites."),
     )),
 
+    ('hints', sect.KeyValue(
+        ('border',
+         SettingValue(types.String, "1px solid #E3BE23"),
+         "CSS border value for hints."),
+        ('opacity',
+         SettingValue(types.Float, "0.7"),
+         "Opacity for hints."),
+    )),
+
     ('searchengines', sect.ValueList(
         types.SearchEngineName, types.SearchEngineUrl,
         ('DEFAULT', '${duckduckgo}'),
@@ -460,6 +470,16 @@ DATA = OrderedDict([
         ('tab.seperator',
          SettingValue(types.Color, "white"),
          "Color for the tab seperator."),
+
+        ('hints.fg',
+         SettingValue(types.CssColor, "black"),
+         "Font color for hints."),
+
+        ('hints.bg',
+         SettingValue(types.CssColor, "-webkit-gradient(linear, left top, "
+                                      "left bottom, color-stop(0%,#FFF785), "
+                                      "color-stop(100%,#FFC542))"),
+         "Background color for hints."),
     )),
 
     ('fonts', sect.KeyValue(
@@ -475,5 +495,8 @@ DATA = OrderedDict([
          SettingValue(types.Font, "8pt Monospace"),
          "Font used in the statusbar."),
 
+        ('hints',
+         SettingValue(types.Font, "bold 12px Monospace"),
+         "Font used for the hints."),
     )),
 ])
