@@ -164,6 +164,22 @@ class Int(BaseType):
             raise ValidationError(value, "must be an integer!")
 
 
+class Float(BaseType):
+
+    """Base class for an float setting."""
+
+    typestr = 'float'
+
+    def transform(self, value):
+        return float(value)
+
+    def validate(self, value):
+        try:
+            float(value)
+        except ValueError:
+            raise ValidationError(value, "must be a float!")
+
+
 class List(BaseType):
 
     """Base class for a (string-)list setting."""
