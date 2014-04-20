@@ -120,6 +120,10 @@ class String(BaseType):
     def transform(self, value):
         return value.lower()
 
+    def validate(self, value):
+        # Nothing to do
+        return
+
 
 class Bool(BaseType):
 
