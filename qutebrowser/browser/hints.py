@@ -72,15 +72,10 @@ class HintManager:
     def _draw_label(self, elem):
         """Draw a hint label over an element."""
         rect = elem.geometry()
-        if rect.x() == 0 and rect.y() == 0:
-            logging.warn("Element is at 0/0...")
+        if not rect.isValid():
             return
-        logging.debug("rect: {}/{}".format(rect.x(), rect.y()))
-        css = HintManager.HINT_CSS.format(
-            left=rect.x(),
-            top=rect.y(),
-            config=config.instance)
-        logging.debug("css: {}".format(css))
+        css = HintManager.HINT_CSS.format(left=rect.x(), top=rect.y(),
+                                          config=config.instance)
         doc = self._frame.documentElement()
         doc.appendInside('<span class="qutehint" style="{}">foo</span>'.format(
             css))
