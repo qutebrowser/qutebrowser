@@ -311,6 +311,9 @@ DATA = OrderedDict([
         ('opacity',
          SettingValue(types.Float, "0.7"),
          "Opacity for hints."),
+        ('chars',
+         SettingValue(types.String, "asdfghjkl"),
+         "Chars used for hint strings."),
     )),
 
     ('searchengines', sect.ValueList(

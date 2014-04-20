@@ -18,6 +18,7 @@
 """A HintManager to draw hints over links."""
 
 import logging
+import math
 
 import qutebrowser.config.config as config
 
@@ -70,14 +71,82 @@ class HintManager:
         self._elems = []
         self._labels = []
 
-    def _draw_label(self, elem):
+    def _hint_strings(self, elems):
+        """Calculate the hint strings for elems.
+
+        Inspirated by Vimium.
+        """
+        chars = config.get("hints", "chars")
+        # Determine how many digits the link hints will require in the worst
+        # case. Usually we do not need all of these digits for every link
+        # single hint, so we can show shorter hints for a few of the links.
+        needed = math.ceil(math.log(len(elems), len(chars)))
+        # Short hints are the number of hints we can possibly show which are
+        # (needed - 1) digits in length.
+        short_count = math.floor((len(chars) ** needed - len(elems)) /
+                                 len(chars))
+        long_count = len(elems) - short_count
+
+        strings = []
+
+        if needed > 1:
+            for i in range(short_count):
+                strings.append(self._number_to_hint_str(i, chars, needed - 1))
+
+        start = short_count * len(chars)
+        for i in range(start, start + long_count):
+            strings.append(self._number_to_hint_str(i, chars, needed))
+
+        return self._shuffle_hints(strings, len(chars))
+
+    def _shuffle_hints(self, hints, length):
+        """Shuffle the given set of hints so that they're scattered.
+
+        Hints starting with the same character will be spread evenly throughout
+        the array.
+
+        Inspired by Vimium.
+        """
+        buckets = [[] for i in range(length)]
+        for i, hint in enumerate(hints):
+            buckets[i % len(buckets)].append(hint)
+        result = []
+        for bucket in buckets:
+            result += bucket
+        return result
+
+    def _number_to_hint_str(self, number, chars, digits=0):
+        """Convert a number like "8" into a hint string like "JK".
+
+        This is used to sequentially generate all of the hint text.
+        The hint string will be "padded with zeroes" to ensure its length is >=
+        digits.
+
+        Inspired by Vimium.
+        """
+        base = len(chars)
+        hintstr = []
+        remainder = 0
+        while True:
+            remainder = number % base
+            hintstr.insert(0, chars[remainder])
+            number -= remainder
+            number //= base
+            if number <= 0:
+                break
+        # Pad the hint string we're returning so that it matches digits.
+        for i in range(0, digits - len(hintstr)):
+            hintstr.insert(0, chars[0])
+        return ''.join(hintstr)
+
+    def _draw_label(self, elem, string):
         """Draw a hint label over an element."""
         rect = elem.geometry()
         css = HintManager.HINT_CSS.format(left=rect.x(), top=rect.y(),
                                           config=config.instance)
         doc = self._frame.documentElement()
-        doc.appendInside('<span class="qutehint" style="{}">foo</span>'.format(
-            css))
+        doc.appendInside('<span class="qutehint" style="{}">{}</span>'.format(
+            css, string))
         self._labels.append(doc.lastChild())
 
     def start(self, mode="all"):
@@ -99,7 +168,9 @@ class HintManager:
                 # out of screen
                 continue
             self._elems.append(e)
-            self._draw_label(e)
+        strings = self._hint_strings(self._elems)
+        for e, string in zip(self._elems, strings):
+            self._draw_label(e, string)
 
     def stop(self):
         """Stop hinting."""
