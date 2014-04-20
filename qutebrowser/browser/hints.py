@@ -83,3 +83,9 @@ class HintManager:
         self._elems = self._frame.findAllElements(selector)
         for e in self._elems:
             self._draw_label(e)
+
+    def stop(self):
+        """Stop hinting."""
+        self._elems = None
+        for e in self._frame.findAllElements("span.qutehint"):
+            e.removeFromDocument()
