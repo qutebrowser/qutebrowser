@@ -302,7 +302,23 @@ class Command(BaseType):
         pass
 
 
-class Color(BaseType):
+class CssColor(BaseType):
+
+    """Base class for a CSS color value."""
+
+    typestr = 'css-color'
+
+    def validate(self, value):
+        if value.startswith('-'):
+            # custom function name, won't validate.
+            return
+        if QColor.isValidColor(value):
+            pass
+        else:
+            raise ValidationError(value, "must be a valid CSS color")
+
+
+class Color(CssColor):
 
     """Base class for a color value.
 
@@ -318,10 +334,7 @@ class Color(BaseType):
         if any([value.startswith(start) for start in Color._GRADIENTS]):
             # We can't validate this further.
             return
-        if QColor.isValidColor(value):
-            pass
-        else:
-            raise ValidationError(value, "must be a valid color")
+        super().validate(value)
 
 
 class Font(BaseType):
