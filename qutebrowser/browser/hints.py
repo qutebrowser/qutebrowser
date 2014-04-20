@@ -66,20 +66,12 @@ class HintManager:
             frame: The QWebFrame to use for finding elements and drawing.
         """
         self._frame = frame
-        self._elems = None
+        self._elems = []
         self._labels = []
 
     def _draw_label(self, elem):
         """Draw a hint label over an element."""
         rect = elem.geometry()
-        if (not rect.isValid()) and rect.x() == 0:
-            # Most likely an invisible link
-            return
-        framegeom = self._frame.geometry()
-        framegeom.translate(self._frame.scrollPosition())
-        if not framegeom.contains(rect):
-            # out of screen
-            return
         css = HintManager.HINT_CSS.format(left=rect.x(), top=rect.y(),
                                           config=config.instance)
         doc = self._frame.documentElement()
@@ -94,8 +86,18 @@ class HintManager:
             mode: The mode to be used.
         """
         selector = HintManager.SELECTORS[mode]
-        self._elems = self._frame.findAllElements(selector)
-        for e in self._elems:
+        elems = self._frame.findAllElements(selector)
+        for e in elems:
+            rect = e.geometry()
+            if (not rect.isValid()) and rect.x() == 0:
+                # Most likely an invisible link
+                continue
+            framegeom = self._frame.geometry()
+            framegeom.translate(self._frame.scrollPosition())
+            if not framegeom.contains(rect):
+                # out of screen
+                continue
+            self._elems.append(e)
             self._draw_label(e)
 
     def stop(self):
