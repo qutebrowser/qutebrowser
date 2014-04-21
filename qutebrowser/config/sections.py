@@ -149,8 +149,8 @@ class ValueList(Section):
         """Wrap types over default values. Take care when overriding this.
 
         Args:
-            keytype: The type to be used for keys.
-            valtype: The type to be used for values.
+            keytype: The type instance to be used for keys.
+            valtype: The type instance to be used for values.
             *defaults: A (key, value) list of default values.
         """
         super().__init__()
@@ -166,7 +166,7 @@ class ValueList(Section):
                                self.layers['default'])
 
     def setv(self, layer, key, value, interpolated):
-        self.keytype().validate(key)
+        self.keytype.validate(key)
         if key in self.layers[layer]:
             self.layers[layer][key].setv(layer, value, interpolated)
         else:

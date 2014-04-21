@@ -27,7 +27,7 @@ class SettingValue:
     Intended to be subclassed by config value "types".
 
     Attributes:
-        typ: A BaseType subclass.
+        typ: A BaseType subclass instance.
         value: (readonly property) The currently valid, most important value.
         _values: An OrderedDict with the values on different layers, with the
                  most significant layer first.
@@ -40,7 +40,7 @@ class SettingValue:
             typ: The BaseType to use.
             default: Raw value to set.
         """
-        self.typ = typ()
+        self.typ = typ
         self._values = OrderedDict.fromkeys(['temp', 'conf', 'default'])
         self._values['default'] = default
 

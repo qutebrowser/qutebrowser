@@ -113,16 +113,29 @@ class BaseType:
 
 class String(BaseType):
 
-    """Base class for a string setting (case-insensitive)."""
+    """Base class for a string setting (case-insensitive).
+
+    Attributes:
+        minlen: Minimum length (inclusive).
+        maxlen: Maximum length (inclusive).
+    """
 
     typestr = 'string'
+
+    def __init__(self, minlen=None, maxlen=None):
+        self.minlen = minlen
+        self.maxlen = maxlen
 
     def transform(self, value):
         return value.lower()
 
     def validate(self, value):
-        # Nothing to do
-        return
+        if self.minlen is not None and len(value) < self.minlen:
+            raise ValidationError(value, "must be at least {} chars "
+                                  "long!".format(self.minlen))
+        if self.maxlen is not None and len(value) > self.maxlen:
+            raise ValidationError(value, "must be at most {} long!".format(
+                                  self.maxlen))
 
 
 class Bool(BaseType):
@@ -150,34 +163,64 @@ class Bool(BaseType):
 
 class Int(BaseType):
 
-    """Base class for an integer setting."""
+    """Base class for an integer setting.
+
+    Attributes:
+        minval: Minimum value (inclusive).
+        maxval: Maximum value (inclusive).
+    """
 
     typestr = 'int'
+
+    def __init__(self, minval=None, maxval=None):
+        self.minval = minval
+        self.maxval = maxval
 
     def transform(self, value):
         return int(value)
 
     def validate(self, value):
         try:
-            int(value)
+            intval = int(value)
         except ValueError:
             raise ValidationError(value, "must be an integer!")
+        if self.minval is not None and intval < self.minval:
+            raise ValidationError(value, "must be {} or bigger!".format(
+                                  self.minval))
+        if self.maxval is not None and intval > self.maxval:
+            raise ValidationError(value, "must be {} or smaller!".format(
+                                  self.maxval))
 
 
 class Float(BaseType):
 
-    """Base class for an float setting."""
+    """Base class for an float setting.
+
+    Attributes:
+        minval: Minimum value (inclusive).
+        maxval: Maximum value (inclusive).
+    """
 
     typestr = 'float'
+
+    def __init__(self, minval=None, maxval=None):
+        self.minval = minval
+        self.maxval = maxval
 
     def transform(self, value):
         return float(value)
 
     def validate(self, value):
         try:
-            float(value)
+            floatval = float(value)
         except ValueError:
             raise ValidationError(value, "must be a float!")
+        if self.minval is not None and floatval < self.minval:
+            raise ValidationError(value, "must be {} or bigger!".format(
+                                  self.minval))
+        if self.maxval is not None and floatval > self.maxval:
+            raise ValidationError(value, "must be {} or smaller!".format(
+                                  self.maxval))
 
 
 class List(BaseType):
@@ -212,7 +255,16 @@ class IntList(List):
 
 class Perc(BaseType):
 
-    """Percentage which may be >100 but needs to be positive."""
+    """Percentage.
+
+    Attributes:
+        minval: Minimum value (inclusive).
+        maxval: Maximum value (inclusive).
+    """
+
+    def __init__(self, minval=None, maxval=None):
+        self.minval = minval
+        self.maxval = maxval
 
     def transform(self, value):
         return int(value.rstrip('%'))
@@ -224,16 +276,28 @@ class Perc(BaseType):
             intval = int(value.rstrip('%'))
         except ValueError:
             raise ValidationError(value, "invalid percentage!")
-        else:
-            if not intval >= 0:
-                raise ValidationError(value, "percentage needs to be >= 0!")
+        if self.minval is not None and intval < self.minval:
+            raise ValidationError(value, "must be {}% or more!".format(
+                                  self.minval))
+        if self.maxval is not None and intval > self.maxval:
+            raise ValidationError(value, "must be {}% or less!".format(
+                                  self.maxval))
 
 
 class PercList(List):
 
-    """Base class for a list of percentages."""
+    """Base class for a list of percentages.
+
+    Attributes:
+        minval: Minimum value (inclusive).
+        maxval: Maximum value (inclusive).
+    """
 
     typestr = 'perc-list'
+
+    def __init__(self, minval=None, maxval=None):
+        self.minval = minval
+        self.maxval = maxval
 
     def transform(self, value):
         vals = super().transform(value)
@@ -241,9 +305,10 @@ class PercList(List):
 
     def validate(self, value):
         vals = super().transform(value)
+        perctype = Perc(minval=self.minval, maxval=self.maxval)
         try:
             for val in vals:
-                Perc.validate(self, val)
+                perctype.validate(val)
         except ValidationError:
             raise ValidationError(value, "must be a list of percentages!")
 
@@ -259,7 +324,20 @@ class ZoomPerc(Perc):
 
 class PercOrInt(BaseType):
 
-    """Percentage or integer."""
+    """Percentage or integer.
+
+    Attributes:
+        minperc: Minimum value for percentage (inclusive).
+        maxperc: Maximum value for percentage (inclusive).
+        minint: Minimum value for integer (inclusive).
+        maxint: Maximum value for integer (inclusive).
+    """
+
+    def __init__(self, minperc=None, maxperc=None, minint=None, maxint=None):
+        self.minperc = minperc
+        self.maxperc = maxperc
+        self.minint = minint
+        self.maxint = maxint
 
     def validate(self, value):
         if value.endswith('%'):
@@ -267,18 +345,23 @@ class PercOrInt(BaseType):
                 intval = int(value.rstrip('%'))
             except ValueError:
                 raise ValidationError(value, "invalid percentage!")
-            else:
-                if not 0 <= intval <= 100:
-                    raise ValidationError(value, "percentage needs to be >= 0 "
-                                          "and <= 100!")
+            if self.minperc is not None and intval < self.minperc:
+                raise ValidationError(value, "must be {}% or more!".format(
+                                      self.minperc))
+            if self.maxperc is not None and intval > self.maxperc:
+                raise ValidationError(value, "must be {}% or less!".format(
+                                      self.maxperc))
         else:
             try:
                 intval = int(value)
             except ValueError:
                 raise ValidationError(value, "must be integer or percentage!")
-            else:
-                if intval < 0:
-                    raise ValidationError(value, "must be >= 0")
+        if self.minint is not None and intval < self.minint:
+            raise ValidationError(value, "must be {} or bigger!".format(
+                                  self.minint))
+        if self.maxint is not None and intval > self.maxint:
+            raise ValidationError(value, "must be {} or smaller!".format(
+                                  self.maxint))
 
 
 class Command(BaseType):
