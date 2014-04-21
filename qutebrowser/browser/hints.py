@@ -19,10 +19,41 @@
 
 import math
 
+from PyQt5.QtCore import pyqtSignal, QObject
+
 import qutebrowser.config.config as config
+from qutebrowser.utils.keyparser import KeyParser
 
 
-class HintManager:
+class HintKeyParser(KeyParser):
+
+    """KeyParser for hints.
+
+    Class attributes:
+        supports_count: If the keyparser should support counts.
+
+    Signals:
+        fire_hint: When a hint keybinding was completed.
+                   Arg: the keystring/hint string pressed.
+    """
+
+    supports_count = False
+    fire_hint = pyqtSignal(str)
+
+    def execute(self, cmdstr, count=None):
+        """Handle a completed keychain."""
+        self.fire_hint.emit(cmdstr)
+
+    def on_hint_strings_updated(self, strings):
+        """Handler for HintManager's hint_strings_updated.
+
+        Args:
+            strings: A list of hint strings.
+        """
+        self.bindings = {s: s for s in strings}
+
+
+class HintManager(QObject):
 
     """Manage drawing hints over links or other elements.
 
@@ -34,6 +65,10 @@ class HintManager:
         _frame: The QWebFrame to use.
         _elems: The elements we're hinting currently.
         _labels: The label elements.
+
+    Signals:
+        hint_strings_updated: Emitted when the possible hint strings changed.
+        set_mode: Emitted when the input mode should be changed.
     """
 
     SELECTORS = {
@@ -60,12 +95,16 @@ class HintManager:
         top: {top}px;
     """
 
+    hint_strings_updated = pyqtSignal(list)
+    set_mode = pyqtSignal(str)
+
     def __init__(self, frame):
         """Constructor.
 
         Args:
             frame: The QWebFrame to use for finding elements and drawing.
         """
+        super().__init__(frame)
         self._frame = frame
         self._elems = []
         self._labels = []
@@ -196,6 +235,8 @@ class HintManager:
         strings = self._hint_strings(self._elems)
         for e, string in zip(self._elems, strings):
             self._draw_label(e, string)
+        self.hint_strings_updated.emit(strings)
+        self.set_mode.emit("hint")
 
     def stop(self):
         """Stop hinting."""
@@ -203,3 +244,12 @@ class HintManager:
             e.removeFromDocument()
         self._elems = None
         self._labels = []
+        self.set_mode.emit("normal")
+
+    def handle_partial_key(self, keystr):
+        """Handle a new partial keypress."""
+        raise NotImplementedError
+
+    def fire(self, keystr):
+        """Fire a completed hint."""
+        raise NotImplementedError

@@ -37,9 +37,11 @@ class CommandKeyParser(KeyParser):
 
     """Keyparser for command bindings.
 
+    Class attributes:
+        supports_count: If the keyparser should support counts.
+
     Attributes:
         commandparser: Commandparser instance.
-        supports_count: If the keyparser should support counts.
 
     Signals:
         set_cmd_text: Emitted when the statusbar should set a partial command.

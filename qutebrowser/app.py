@@ -57,6 +57,7 @@ from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
 from qutebrowser.commands.keys import CommandKeyParser
 from qutebrowser.commands.parsers import CommandParser, SearchParser
+from qutebrowser.browser.hints import HintKeyParser
 from qutebrowser.utils.appdirs import AppDirs
 from qutebrowser.utils.misc import dotted_getattr
 from qutebrowser.utils.debug import set_trace  # pylint: disable=unused-import
@@ -74,13 +75,14 @@ class QuteBrowser(QApplication):
     Attributes:
         mainwindow: The MainWindow QWidget.
         commandparser: The main CommandParser instance.
-        keyparser: The main CommandKeyParser instance.
         searchparser: The main SearchParser instance.
+        _keyparsers: A mapping from modes to keyparsers.
         _dirs: AppDirs instance for config/cache directories.
         _args: ArgumentParser instance.
         _timers: List of used QTimers so they don't get GCed.
         _shutting_down: True if we're currently shutting down.
         _quit_status: The current quitting status.
+        _mode: The mode we're currently in.
     """
 
     def __init__(self):
@@ -88,6 +90,7 @@ class QuteBrowser(QApplication):
         self._quit_status = {}
         self._timers = []
         self._shutting_down = False
+        self._mode = None
 
         sys.excepthook = self._exception_hook
 
@@ -108,40 +111,16 @@ class QuteBrowser(QApplication):
 
         self.commandparser = CommandParser()
         self.searchparser = SearchParser()
-        self.keyparser = CommandKeyParser(self)
+        self._keyparsers = {
+            "normal": CommandKeyParser(self),
+            "hint": HintKeyParser(self),
+        }
         self._init_cmds()
         self.mainwindow = MainWindow()
-
         self.setQuitOnLastWindowClosed(False)
-        self.lastWindowClosed.connect(self.shutdown)
-        self.mainwindow.tabs.keypress.connect(
-            self.mainwindow.status.keypress)
-        self.mainwindow.tabs.keypress.connect(self.keyparser.handle)
-        self.keyparser.set_cmd_text.connect(
-            self.mainwindow.status.cmd.set_cmd_text)
-        self.mainwindow.tabs.set_cmd_text.connect(
-            self.mainwindow.status.cmd.set_cmd_text)
-        self.mainwindow.tabs.quit.connect(self.shutdown)
-        self.mainwindow.status.cmd.got_cmd.connect(self.commandparser.run)
-        self.mainwindow.status.cmd.got_search.connect(self.searchparser.search)
-        self.mainwindow.status.cmd.got_search_rev.connect(
-            self.searchparser.search_rev)
-        self.mainwindow.status.cmd.returnPressed.connect(
-            self.mainwindow.tabs.setFocus)
-        self.searchparser.do_search.connect(
-            self.mainwindow.tabs.cur.search)
-        self.keyparser.keystring_updated.connect(
-            self.mainwindow.status.keystring.setText)
-        message.bridge.error.connect(self.mainwindow.status.disp_error)
-        message.bridge.info.connect(self.mainwindow.status.disp_tmp_text)
-        self.config.style_changed.connect(style.invalidate_caches)
-        self.config.changed.connect(self.mainwindow.tabs.on_config_changed)
-        self.config.changed.connect(
-            self.mainwindow.completion.on_config_changed)
-        self.config.changed.connect(self.mainwindow.on_config_changed)
-        self.config.changed.connect(config.cmd_history.on_config_changed)
-        self.config.changed.connect(websettings.on_config_changed)
-        self.config.changed.connect(self.keyparser.on_config_changed)
+
+        self._connect_signals()
+        self.set_mode("normal")
 
         self.mainwindow.show()
         self._python_hacks()
@@ -241,6 +220,45 @@ class QuteBrowser(QApplication):
         timer.timeout.connect(lambda: None)
         self._timers.append(timer)
 
+    def _connect_signals(self):
+        """Connect all signals to their slots."""
+        self.lastWindowClosed.connect(self.shutdown)
+        self.mainwindow.tabs.keypress.connect(
+            self.mainwindow.status.keypress)
+        self._keyparsers["normal"].set_cmd_text.connect(
+            self.mainwindow.status.cmd.set_cmd_text)
+        self.mainwindow.tabs.set_cmd_text.connect(
+            self.mainwindow.status.cmd.set_cmd_text)
+        self.mainwindow.tabs.quit.connect(self.shutdown)
+        self.mainwindow.status.cmd.got_cmd.connect(self.commandparser.run)
+        self.mainwindow.status.cmd.got_search.connect(self.searchparser.search)
+        self.mainwindow.status.cmd.got_search_rev.connect(
+            self.searchparser.search_rev)
+        self.mainwindow.status.cmd.returnPressed.connect(
+            self.mainwindow.tabs.setFocus)
+        self.searchparser.do_search.connect(
+            self.mainwindow.tabs.cur.search)
+        self._keyparsers["normal"].keystring_updated.connect(
+            self.mainwindow.status.keystring.setText)
+        self._keyparsers["hint"].fire_hint.connect(
+            self.mainwindow.tabs.cur.fire_hint)
+        self._keyparsers["hint"].keystring_updated.connect(
+            self.mainwindow.tabs.cur.handle_hint_key)
+        self.mainwindow.tabs.hint_strings_updated.connect(
+            self._keyparsers["hint"].on_hint_strings_updated)
+        self.mainwindow.tabs.set_mode.connect(self.set_mode)
+        message.bridge.error.connect(self.mainwindow.status.disp_error)
+        message.bridge.info.connect(self.mainwindow.status.disp_tmp_text)
+        self.config.style_changed.connect(style.invalidate_caches)
+        self.config.changed.connect(self.mainwindow.tabs.on_config_changed)
+        self.config.changed.connect(
+            self.mainwindow.completion.on_config_changed)
+        self.config.changed.connect(self.mainwindow.on_config_changed)
+        self.config.changed.connect(config.cmd_history.on_config_changed)
+        self.config.changed.connect(websettings.on_config_changed)
+        self.config.changed.connect(
+            self._keyparsers["normal"].on_config_changed)
+
     def _recover_pages(self):
         """Try to recover all open pages.
 
@@ -339,6 +357,20 @@ class QuteBrowser(QApplication):
         if all(self._quit_status.values()):
             logging.debug("maybe_quit quitting.")
             self.quit()
+
+    @pyqtSlot(str)
+    def set_mode(self, mode):
+        """Set a key input mode.
+
+        Args:
+            mode: The new mode to set, as an index for self._keyparsers.
+        """
+        if self._mode is not None:
+            oldhandler = self._keyparsers[self._mode]
+            self.mainwindow.tabs.keypress.disconnect(oldhandler.handle)
+        handler = self._keyparsers[mode]
+        self.mainwindow.tabs.keypress.connect(handler.handle)
+        self._mode = mode
 
     @cmdutils.register(instance='', maxsplit=0)
     def pyeval(self, s):

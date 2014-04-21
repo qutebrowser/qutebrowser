@@ -67,6 +67,10 @@ class TabbedBrowser(TabWidget):
         cur_scroll_perc_changed: Scroll percentage of current tab changed.
                                  arg 1: x-position in %.
                                  arg 2: y-position in %.
+        hint_strings_updated: Hint strings were updated.
+                              arg: A list of hint strings.
+        set_mode: The input mode should be changed.
+                  arg: The new mode as a string.
         keypress: A key was pressed.
                   arg: The QKeyEvent leading to the keypress.
         shutdown_complete: The shuttdown is completed.
@@ -84,7 +88,9 @@ class TabbedBrowser(TabWidget):
     cur_url_changed = pyqtSignal('QUrl')
     cur_link_hovered = pyqtSignal(str, str, str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
+    hint_strings_updated = pyqtSignal(list)
     set_cmd_text = pyqtSignal(str)
+    set_mode = pyqtSignal(str)
     keypress = pyqtSignal('QKeyEvent')
     shutdown_complete = pyqtSignal()
     quit = pyqtSignal()
@@ -238,6 +244,8 @@ class TabbedBrowser(TabWidget):
         tab.temp_message.connect(self._filter.create(self.cur_temp_message))
         tab.urlChanged.connect(self._filter.create(self.cur_url_changed))
         tab.titleChanged.connect(self._titleChanged_handler)
+        tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)
+        tab.hintmanager.set_mode.connect(self.set_mode)
         # FIXME sometimes this doesn't load
         tab.show()
         tab.open_tab.connect(self.tabopen)

@@ -175,6 +175,16 @@ class CurCommandDispatcher(QObject):
         """
         self._tabs.currentWidget().hintmanager.start(mode)
 
+    @pyqtSlot(str)
+    def handle_hint_key(self, keystr):
+        """Handle a new hint keypress."""
+        self._tabs.currentWidget().hintmanager.handle_partial_key(keystr)
+
+    @pyqtSlot(str)
+    def fire_hint(self, keystr):
+        """Fire a completed hint."""
+        self._tabs.currentWidget().hintmanager.fire(keystr)
+
     @pyqtSlot(str, int)
     def search(self, text, flags):
         """Search for text in the current page.
