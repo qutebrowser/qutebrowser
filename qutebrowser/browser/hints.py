@@ -21,7 +21,7 @@ import logging
 import math
 from collections import namedtuple
 
-from PyQt5.QtCore import pyqtSignal, QObject, QEvent, Qt, QUrl
+from PyQt5.QtCore import pyqtSignal, QObject, QEvent, Qt
 from PyQt5.QtGui import QMouseEvent, QClipboard
 from PyQt5.QtWidgets import QApplication
 
@@ -153,6 +153,7 @@ class HintManager(QObject):
         self._frame = frame
         self._elems = {}
         self._target = None
+        self._baseurl = None
 
     def _hint_strings(self, elems):
         """Calculate the hint strings for elems.
@@ -311,6 +312,25 @@ class HintManager(QObject):
         self.set_cmd_text.emit(':{} {}'.format(command,
                                                urlutils.urlstring(link)))
 
+    def _resolve_link(self, elem):
+        """Resolve a link and check if we want to keep it.
+
+        Args:
+            elem: The QWebElement to get the link of.
+
+        Return:
+            A QUrl with the absolute link, or None.
+        """
+        link = elem.attribute('href')
+        if not link:
+            return None
+        link = urlutils.qurl(link)
+        if link.scheme() == "javascript":
+            return None
+        if link.isRelative():
+            link = self._baseurl.resolved(link)
+        return link
+
     def start(self, baseurl, mode="all", target="normal"):
         """Start hinting.
 
@@ -378,33 +398,28 @@ class HintManager(QObject):
 
     def fire(self, keystr):
         """Fire a completed hint."""
+        # Targets which require a valid link
+        require_link = ['yank', 'yank_primary', 'cmd', 'cmd_tab', 'cmd_bgtab']
         elem = self._elems[keystr].elem
         target = self._target
         if target != 'rapid':
             self.stop()
-
+        if target in require_link:
+            link = self._resolve_link(elem)
+            if link is None:
+                message.error("No suitable link found for this element.")
+                return
         if target in ['normal', 'tab', 'bgtab']:
             self._click(elem, target)
         elif target == 'rapid':
             self._click(elem, 'bgtab')
-        else:
-            # Target which require a link
-            link = elem.attribute('href')
-            if not link:
-                message.error("No link found for this element.")
-                return
-            link = urlutils.qurl(link)
-            if link.scheme() == "javascript":
-                return
-            if link.isRelative():
-                link = self._baseurl.resolved(link)
-            if target in ['yank', 'yank_primary']:
-                sel = target == 'yank_primary'
-                self._yank(link, sel)
-            if target in ['cmd', 'cmd_tab', 'cmd_bgtab']:
-                commands = {
-                    'cmd': 'open',
-                    'cmd_tab': 'tabopen',
-                    'cmd_bgtab': 'backtabopen',
-                }
-                self._set_cmd_text(link, commands[target])
+        elif target in ['yank', 'yank_primary']:
+            sel = target == 'yank_primary'
+            self._yank(link, sel)
+        elif target in ['cmd', 'cmd_tab', 'cmd_bgtab']:
+            commands = {
+                'cmd': 'open',
+                'cmd_tab': 'tabopen',
+                'cmd_bgtab': 'backtabopen',
+            }
+            self._set_cmd_text(link, commands[target])
