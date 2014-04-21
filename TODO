@@ -27,8 +27,6 @@ Plugin architecture
     https://chrome.google.com/webstore/detail/remove-google-redirects/ccenmflbeofaceccfhhggbagkblihpoh
 Insert mode
 Extern editor
-Hints
-    Use HTML elements inserted into DOM or Qt overlay?
 Downloads
 webinterface for settings/colors/bindings
 [[/]] for back/forward links
