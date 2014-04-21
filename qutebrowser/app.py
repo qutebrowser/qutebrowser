@@ -55,7 +55,7 @@ import qutebrowser.network.qutescheme as qutescheme
 import qutebrowser.utils.message as message
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
-from qutebrowser.commands.keys import KeyParser
+from qutebrowser.commands.keys import CommandKeyParser
 from qutebrowser.commands.parsers import CommandParser, SearchParser
 from qutebrowser.utils.appdirs import AppDirs
 from qutebrowser.utils.misc import dotted_getattr
@@ -74,7 +74,7 @@ class QuteBrowser(QApplication):
     Attributes:
         mainwindow: The MainWindow QWidget.
         commandparser: The main CommandParser instance.
-        keyparser: The main KeyParser instance.
+        keyparser: The main CommandKeyParser instance.
         searchparser: The main SearchParser instance.
         _dirs: AppDirs instance for config/cache directories.
         _args: ArgumentParser instance.
@@ -108,7 +108,7 @@ class QuteBrowser(QApplication):
 
         self.commandparser = CommandParser()
         self.searchparser = SearchParser()
-        self.keyparser = KeyParser(self)
+        self.keyparser = CommandKeyParser(self)
         self._init_cmds()
         self.mainwindow = MainWindow()
 
