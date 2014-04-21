@@ -17,10 +17,12 @@
 
 """A HintManager to draw hints over links."""
 
+import logging
 import math
 from collections import namedtuple
 
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject, QEvent, Qt
+from PyQt5.QtGui import QMouseEvent
 
 import qutebrowser.config.config as config
 from qutebrowser.utils.keyparser import KeyParser
@@ -71,7 +73,14 @@ class HintManager(QObject):
 
     Signals:
         hint_strings_updated: Emitted when the possible hint strings changed.
+                              arg: A list of hint strings.
         set_mode: Emitted when the input mode should be changed.
+                  arg: The new mode, as a string.
+        mouse_event: Mouse event to be posted in the web view.
+                     arg: A QMouseEvent
+        openurl: Open a new url
+                 arg 0: URL to open as a string.
+                 arg 1: true if it should be opened in a new tab, else false.
     """
 
     SELECTORS = {
@@ -100,6 +109,7 @@ class HintManager(QObject):
 
     hint_strings_updated = pyqtSignal(list)
     set_mode = pyqtSignal(str)
+    mouse_event = pyqtSignal('QMouseEvent')
 
     def __init__(self, frame):
         """Constructor.
@@ -247,7 +257,7 @@ class HintManager(QObject):
 
     def stop(self):
         """Stop hinting."""
-        for elem in self._elems:
+        for elem in self._elems.values():
             elem.label.removeFromDocument()
         self._elems = {}
         self.set_mode.emit("normal")
@@ -269,4 +279,16 @@ class HintManager(QObject):
 
     def fire(self, keystr):
         """Fire a completed hint."""
-        raise NotImplementedError
+        elem = self._elems[keystr].elem
+        logging.debug("Clicking on: {}".format(elem.toPlainText()))
+        self.stop()
+        events = [
+            QMouseEvent(QEvent.MouseMove, elem.geometry().center(),
+                        Qt.NoButton, Qt.NoButton, Qt.NoModifier),
+            QMouseEvent(QEvent.MouseButtonPress, elem.geometry().center(),
+                        Qt.LeftButton, Qt.NoButton, Qt.NoModifier),
+            QMouseEvent(QEvent.MouseButtonRelease, elem.geometry().center(),
+                        Qt.LeftButton, Qt.NoButton, Qt.NoModifier),
+        ]
+        for evt in events:
+            self.mouse_event.emit(evt)

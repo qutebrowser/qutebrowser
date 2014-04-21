@@ -21,6 +21,7 @@ import logging
 import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QEvent
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
@@ -77,6 +78,7 @@ class BrowserTab(QWebView):
         self.page_ = BrowserPage(self)
         self.setPage(self.page_)
         self.hintmanager = HintManager(self.page_.mainFrame())
+        self.hintmanager.mouse_event.connect(self.on_mouse_event)
         self.signal_cache = SignalCache(uncached=['linkHovered'])
         self.page_.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.page_.linkHovered.connect(self.linkHovered)
@@ -184,6 +186,11 @@ class BrowserTab(QWebView):
         """Update tab config when config was changed."""
         if section == 'general' and option in ['zoomlevels', 'defaultzoom']:
             self._init_neighborlist()
+
+    @pyqtSlot('QMouseEvent')
+    def on_mouse_event(self, evt):
+        """Post a new mouseevent from a hintmanager."""
+        QApplication.postEvent(self, evt)
 
     def _on_destroyed(self, sender):
         """Called when a subsystem has been destroyed during shutdown.

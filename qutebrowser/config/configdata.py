@@ -341,6 +341,7 @@ DATA = OrderedDict([
         ('r', 'reload'),
         ('H', 'back'),
         ('L', 'forward'),
+        ('f', 'hint'),
         ('h', 'scroll -50 0'),
         ('j', 'scroll 0 50'),
         ('k', 'scroll 0 -50'),
