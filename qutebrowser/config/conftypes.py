@@ -22,7 +22,16 @@ from PyQt5.QtGui import QColor
 
 class ValidationError(ValueError):
 
-    """Exception raised when a value for a config type was invalid."""
+    """Exception raised when a value for a config type was invalid.
+
+    Class attributes:
+        section: Section in which the error occured (added when catching and
+                 re-raising the exception).
+        option: Option in which the error occured.
+    """
+
+    section = None
+    option = None
 
     def __init__(self, value, msg):
         super().__init__('Invalid value "{}" - {}'.format(value, msg))

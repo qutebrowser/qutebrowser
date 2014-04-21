@@ -44,7 +44,7 @@ else:
 import qutebrowser.utils.harfbuzz as harfbuzz
 harfbuzz.fix()
 
-from PyQt5.QtWidgets import QApplication, QDialog
+from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.QtCore import pyqtSlot, QTimer, QEventLoop
 
 import qutebrowser
@@ -61,6 +61,7 @@ from qutebrowser.browser.hints import HintKeyParser
 from qutebrowser.utils.appdirs import AppDirs
 from qutebrowser.utils.misc import dotted_getattr
 from qutebrowser.utils.debug import set_trace  # pylint: disable=unused-import
+from qutebrowser.config.conftypes import ValidationError
 
 
 class QuteBrowser(QApplication):
@@ -105,7 +106,17 @@ class QuteBrowser(QApplication):
             confdir = None
         else:
             confdir = self._args.confdir
-        config.init(confdir)
+        try:
+            config.init(confdir)
+        except ValidationError as e:
+            msgbox = QMessageBox(
+                QMessageBox.Critical,
+                "Error while reading config!",
+                "Error while reading config:\n\n{} -> {}:\n{}".format(
+                    e.section, e.option, e))
+            msgbox.exec_()
+            # We didn't really initialize much so far, so we just quit hard.
+            sys.exit(1)
         self.config = config.instance
         websettings.init()
 

@@ -205,7 +205,12 @@ class Config(QObject):
             if secname not in cp:
                 continue
             for k, v in cp[secname].items():
-                self.set('conf', secname, k, v)
+                try:
+                    self.set('conf', secname, k, v)
+                except ValidationError as e:
+                    e.section = secname
+                    e.option = k
+                    raise
 
     def has_option(self, section, option):
         """Check if option exists in section.
