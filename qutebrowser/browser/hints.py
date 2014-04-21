@@ -290,15 +290,20 @@ class HintManager(QObject):
     def fire(self, keystr):
         """Fire a completed hint."""
         elem = self._elems[keystr].elem
-        logging.debug("Clicking on: {}".format(elem.toPlainText()))
         self.stop()
+        point = elem.geometry().topLeft()
+        scrollpos = self._frame.scrollPosition()
+        logging.debug("Clicking on \"{}\" at {}/{} - {}/{}".format(
+            elem.toPlainText(), point.x(), point.y(), scrollpos.x(),
+            scrollpos.y()))
+        point -= scrollpos
         events = [
-            QMouseEvent(QEvent.MouseMove, elem.geometry().topLeft(),
-                        Qt.NoButton, Qt.NoButton, Qt.NoModifier),
-            QMouseEvent(QEvent.MouseButtonPress, elem.geometry().topLeft(),
-                        Qt.LeftButton, Qt.NoButton, Qt.NoModifier),
-            QMouseEvent(QEvent.MouseButtonRelease, elem.geometry().topLeft(),
-                        Qt.LeftButton, Qt.NoButton, Qt.NoModifier),
+            QMouseEvent(QEvent.MouseMove, point, Qt.NoButton, Qt.NoButton,
+                        Qt.NoModifier),
+            QMouseEvent(QEvent.MouseButtonPress, point, Qt.LeftButton,
+                        Qt.NoButton, Qt.NoModifier),
+            QMouseEvent(QEvent.MouseButtonRelease, point, Qt.LeftButton,
+                        Qt.NoButton, Qt.NoModifier),
         ]
         for evt in events:
             self.mouse_event.emit(evt)
