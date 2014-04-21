@@ -25,6 +25,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from PyQt5.QtGui import QClipboard
 
 import qutebrowser.utils.url as urlutils
+import qutebrowser.utils.message as message
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.widgets.tabwidget import TabWidget
@@ -314,21 +315,28 @@ class TabbedBrowser(TabWidget):
             # FIXME display message or wrap
             pass
 
-    @cmdutils.register(instance='mainwindow.tabs')
-    def paste(self, sel=False):
+    @cmdutils.register(instance='mainwindow.tabs', nargs=(0,1))
+    def paste(self, sel=False, tab=False):
         """Open a page from the clipboard.
 
         Command handler for :paste.
 
         Args:
             sel: True to use primary selection, False to use clipboard
+            tab: True to open in a new tab.
         """
         # FIXME what happens for invalid URLs?
         clip = QApplication.clipboard()
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         url = clip.text(mode)
+        if not url:
+            message.error("Clipboard is empty.")
+            return
         logging.debug("Clipboard contained: '{}'".format(url))
-        self.cur.openurl(url)
+        if tab:
+            self.tabopen(url)
+        else:
+            self.cur.openurl(url)
 
     @cmdutils.register(instance='mainwindow.tabs')
     def tabpaste(self, sel=False):
@@ -339,12 +347,7 @@ class TabbedBrowser(TabWidget):
         Args:
             sel: True to use primary selection, False to use clipboard
         """
-        # FIXME what happens for invalid URLs?
-        clip = QApplication.clipboard()
-        mode = QClipboard.Selection if sel else QClipboard.Clipboard
-        url = clip.text(mode)
-        logging.debug("Clipboard contained: '{}'".format(url))
-        self.tabopen(url)
+        self.paste(sel, True)
 
     def keyPressEvent(self, e):
         """Extend TabWidget (QWidget)'s keyPressEvent to emit a signal.
