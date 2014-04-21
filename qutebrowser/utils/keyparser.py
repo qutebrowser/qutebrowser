@@ -40,8 +40,8 @@ class KeyParser(QObject):
 
     Attributes:
         _keystring: The currently entered key sequence
-        _bindings: Bound keybindings
-        _modifier_bindings: Bound modifier bindings.
+        bindings: Bound keybindings
+        modifier_bindings: Bound modifier bindings.
 
     Signals:
         keystring_updated: Emitted when the keystring is updated.
@@ -56,11 +56,12 @@ class KeyParser(QObject):
 
     supports_count = False
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, bindings=None, modifier_bindings=None):
         super().__init__(parent)
         self._keystring = ''
-        self._bindings = {}
-        self._modifier_bindings = {}
+        self.bindings = {} if bindings is None else bindings
+        self.modifier_bindings = ({} if modifier_bindings is None
+                                  else modifier_bindings)
 
     def _handle_modifier_key(self, e):
         """Handle a new keypress with modifiers.
@@ -92,7 +93,7 @@ class KeyParser(QObject):
                 modstr += s + '+'
         keystr = QKeySequence(e.key()).toString()
         try:
-            cmdstr = self._modifier_bindings[modstr + keystr]
+            cmdstr = self.modifier_bindings[modstr + keystr]
         except KeyError:
             logging.debug('No binding found for {}.'.format(modstr + keystr))
             return True
@@ -166,11 +167,11 @@ class KeyParser(QObject):
             part was found in.
         """
         try:
-            cmdstr_hay = self._bindings[cmdstr_needle]
+            cmdstr_hay = self.bindings[cmdstr_needle]
             return (self.MATCH_DEFINITIVE, cmdstr_hay)
         except KeyError:
             # No definitive match, check if there's a chance of a partial match
-            for hay in self._bindings:
+            for hay in self.bindings:
                 try:
                     if cmdstr_needle[-1] == hay[len(cmdstr_needle) - 1]:
                         return (self.MATCH_PARTIAL, None)
