@@ -185,6 +185,11 @@ class CurCommandDispatcher(QObject):
         """Fire a completed hint."""
         self._tabs.currentWidget().hintmanager.fire(keystr)
 
+    @pyqtSlot()
+    def abort_hinting(self):
+        """Abort hinting."""
+        self._tabs.currentWidget().hintmanager.stop()
+
     @pyqtSlot(str, int)
     def search(self, text, flags):
         """Search for text in the current page.

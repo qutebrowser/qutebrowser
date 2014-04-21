@@ -41,10 +41,20 @@ class HintKeyParser(KeyParser):
     Signals:
         fire_hint: When a hint keybinding was completed.
                    Arg: the keystring/hint string pressed.
+        abort_hinting: Esc pressed, so abort hinting.
     """
 
     supports_count = False
     fire_hint = pyqtSignal(str)
+    abort_hinting = pyqtSignal()
+
+    def _handle_modifier_key(self, e):
+        """We don't support modifiers here, but we'll handle escape in here."""
+        if e.key() == Qt.Key_Escape:
+            self._keystring = ''
+            self.abort_hinting.emit()
+            return True
+        return False
 
     def execute(self, cmdstr, count=None):
         """Handle a completed keychain."""

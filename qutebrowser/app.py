@@ -242,6 +242,8 @@ class QuteBrowser(QApplication):
             self.mainwindow.status.keystring.setText)
         self._keyparsers["hint"].fire_hint.connect(
             self.mainwindow.tabs.cur.fire_hint)
+        self._keyparsers["hint"].abort_hinting.connect(
+            self.mainwindow.tabs.cur.abort_hinting)
         self._keyparsers["hint"].keystring_updated.connect(
             self.mainwindow.tabs.cur.handle_hint_key)
         self.mainwindow.tabs.hint_strings_updated.connect(
