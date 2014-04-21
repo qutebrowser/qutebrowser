@@ -199,7 +199,7 @@ class Config(QObject):
         """Read the config from a configparser instance.
 
         Args:
-            cp: The configparser instande to read the values from.
+            cp: The configparser instance to read the values from.
         """
         for secname in self.sections.keys():
             if secname not in cp:
