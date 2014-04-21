@@ -254,6 +254,11 @@ class TabbedBrowser(TabWidget):
         if not background:
             self.setCurrentWidget(tab)
 
+    @cmdutils.register(instance='mainwindow.tabs', maxsplit=0)
+    def backtabopen(self, url):
+        """Open a new tab in background."""
+        self.tabopen(url, background=True)
+
     @cmdutils.register(instance='mainwindow.tabs', hide=True)
     def tabopencur(self):
         """Set the statusbar to :tabopen and the current URL.
