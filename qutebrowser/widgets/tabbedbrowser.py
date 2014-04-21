@@ -217,20 +217,20 @@ class TabbedBrowser(TabWidget):
             tab.openurl('about:blank')
 
     @cmdutils.register(instance='mainwindow.tabs', maxsplit=0)
-    def tabopen(self, url):
+    def tabopen(self, url, background=False):
         """Open a new tab with a given url.
 
         Also connect all the signals we need to _filter_signals.
 
         Args:
             url: The URL to open.
+            background: Whether to oepn the tab in the background.
         """
         logging.debug("Opening {}".format(url))
         url = urlutils.qurl(url)
         tab = BrowserTab(self)
         self._tabs.append(tab)
         self.addTab(tab, urlutils.urlstring(url))
-        self.setCurrentWidget(tab)
         tab.linkHovered.connect(self._filter.create(self.cur_link_hovered))
         tab.loadProgress.connect(self._filter.create(self.cur_progress))
         tab.loadFinished.connect(self._filter.create(self.cur_load_finished))
@@ -250,6 +250,8 @@ class TabbedBrowser(TabWidget):
         tab.show()
         tab.open_tab.connect(self.tabopen)
         tab.openurl(url)
+        if not background:
+            self.setCurrentWidget(tab)
 
     @cmdutils.register(instance='mainwindow.tabs', hide=True)
     def tabopencur(self):

@@ -47,7 +47,7 @@ class BrowserTab(QWebView):
         _zoom: A NeighborList with the zoom levels.
         _scroll_pos: The old scroll position.
         _shutdown_callback: Callback to be called after shutdown.
-        _open_new_tab: Whether to open a new tab for the next action.
+        _open_target: Where to open the next tab ("normal", "tab", "bgtab")
         _shutdown_callback: The callback to call after shutting down.
         _destroyed: Dict of all items to be destroyed on shtudown.
 
@@ -56,14 +56,15 @@ class BrowserTab(QWebView):
                             arg 1: x-position in %.
                             arg 2: y-position in %.
         open_tab: A new tab should be opened.
-                  arg: The address to open
+                  arg 1: The address to open
+                  arg 2: Whether to open the tab in the background
         linkHovered: QWebPages linkHovered signal exposed.
         temp_message: Show a temporary message in the statusbar.
                       arg: Message to be shown.
     """
 
     scroll_pos_changed = pyqtSignal(int, int)
-    open_tab = pyqtSignal('QUrl')
+    open_tab = pyqtSignal('QUrl', bool)
     linkHovered = pyqtSignal(str, str, str)
     temp_message = pyqtSignal(str)
 
@@ -71,7 +72,7 @@ class BrowserTab(QWebView):
         super().__init__(parent)
         self._scroll_pos = (-1, -1)
         self._shutdown_callback = None
-        self._open_new_tab = False
+        self._open_target = "normal"
         self._destroyed = {}
         self._zoom = None
         self._init_neighborlist()
@@ -140,8 +141,10 @@ class BrowserTab(QWebView):
         Emit:
             open_tab: Emitted if window should be opened in a new tab.
         """
-        if self._open_new_tab:
-            self.open_tab.emit(url)
+        if self._open_target == "tab":
+            self.open_tab.emit(url, False)
+        elif self._open_target == "bgtab":
+            self.open_tab.emit(url, True)
         else:
             self.openurl(url)
 
@@ -246,7 +249,7 @@ class BrowserTab(QWebView):
         Extend the superclass event().
 
         This also is a bit of a hack, but it seems it's the only possible way.
-        Set the _open_new_tab attribute accordingly.
+        Set the _open_target attribute accordingly.
 
         Args:
             e: The arrived event.
@@ -255,6 +258,12 @@ class BrowserTab(QWebView):
             The superclass event return value.
         """
         if e.type() in [QEvent.MouseButtonPress, QEvent.MouseButtonDblClick]:
-            self._open_new_tab = (e.button() == Qt.MidButton or
-                                  e.modifiers() & Qt.ControlModifier)
+            if (e.button() == Qt.MidButton or
+                    e.modifiers() & Qt.ControlModifier):
+                if config.get('general', 'background_tabs'):
+                    self._open_target = "bgtab"
+                else:
+                    self._open_target = "tab"
+            else:
+                self._open_target = "normal"
         return super().event(e)

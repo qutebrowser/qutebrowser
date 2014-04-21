@@ -148,7 +148,11 @@ DATA = OrderedDict([
         ('cmd_histlen',
          SettingValue(types.Int, "100"),
          "How many commands to save in the history. 0: no history / -1: "
-         "unlimited")
+         "unlimited"),
+
+        ('background_tabs',
+         SettingValue(types.Bool, "false"),
+         "Whether to open new tabs (middleclick/ctrl+click) in background"),
     )),
 
     ('tabbar', sect.KeyValue(
