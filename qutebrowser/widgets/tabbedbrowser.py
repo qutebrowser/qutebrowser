@@ -315,7 +315,7 @@ class TabbedBrowser(TabWidget):
             # FIXME display message or wrap
             pass
 
-    @cmdutils.register(instance='mainwindow.tabs', nargs=(0,1))
+    @cmdutils.register(instance='mainwindow.tabs', nargs=(0, 1))
     def paste(self, sel=False, tab=False):
         """Open a page from the clipboard.
 

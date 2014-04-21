@@ -314,10 +314,12 @@ DATA = OrderedDict([
         ('border',
          SettingValue(types.String(), "1px solid #E3BE23"),
          "CSS border value for hints."),
+
         ('opacity',
          SettingValue(types.Float(minval=0.0, maxval=1.0), "0.7"),
          "Opacity for hints."),
-         ('chars',
+
+        ('chars',
          SettingValue(types.String(minlen=2), "asdfghjkl"),
          "Chars used for hint strings."),
     )),
