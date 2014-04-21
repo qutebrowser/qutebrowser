@@ -174,7 +174,8 @@ class CurCommandDispatcher(QObject):
             mode: The hinting mode to use.
             target: Where to open the links.
         """
-        self._tabs.currentWidget().hintmanager.start(mode, target)
+        widget = self._tabs.currentWidget()
+        widget.hintmanager.start(widget.url(), mode, target)
 
     @pyqtSlot(str)
     def handle_hint_key(self, keystr):

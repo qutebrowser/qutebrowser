@@ -21,12 +21,13 @@ import logging
 import math
 from collections import namedtuple
 
-from PyQt5.QtCore import pyqtSignal, QObject, QEvent, Qt
+from PyQt5.QtCore import pyqtSignal, QObject, QEvent, Qt, QUrl
 from PyQt5.QtGui import QMouseEvent, QClipboard
 from PyQt5.QtWidgets import QApplication
 
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
+import qutebrowser.utils.url as urlutils
 from qutebrowser.utils.keyparser import KeyParser
 
 
@@ -90,6 +91,7 @@ class HintManager(QObject):
     Attributes:
         _frame: The QWebFrame to use.
         _elems: A mapping from keystrings to (elem, label) namedtuples.
+        _baseurl: The URL of the current page.
         _target: What to do with the opened links.
                  "normal"/"tab"/"bgtab": Get passed to BrowserTab.
                  "yank"/"yank_primary": Yank to clipboard/primary selection
@@ -284,42 +286,36 @@ class HintManager(QObject):
         for evt in events:
             self.mouse_event.emit(evt)
 
-    def _yank(self, elem, sel):
+    def _yank(self, link, sel):
         """Yank an element to the clipboard or primary selection.
 
         Args:
-            elem: The QWebElement to yank.
+            link: The URL to open.
             sel: True to yank to the primary selection, False for clipboard.
         """
-        link = elem.attribute('href')
-        if not link:
-            message.error("No link found for this element.")
-            return
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
-        QApplication.clipboard().setText(link, mode)
+        QApplication.clipboard().setText(urlutils.urlstring(link), mode)
         message.info('URL yanked to {}'.format('primary selection' if sel
                                                else 'clipboard'))
 
-    def _set_cmd_text(self, elem, command):
+    def _set_cmd_text(self, link, command):
         """Fill the command line with an element link.
 
         Args:
-            elem: The QWebElement to use for the link.
+            link: The URL to open.
             command: The command to use.
 
         Emit:
             set_cmd_text: Always emitted.
         """
-        link = elem.attribute('href')
-        if not link:
-            message.error("No link found for this element.")
-            return
-        self.set_cmd_text.emit(':{} {}'.format(command, link))
+        self.set_cmd_text.emit(':{} {}'.format(command,
+                                               urlutils.urlstring(link)))
 
-    def start(self, mode="all", target="normal"):
+    def start(self, baseurl, mode="all", target="normal"):
         """Start hinting.
 
         Args:
+            baseurl: URL of the current page.
             mode: The mode to be used.
             target: What to do with the link. See attribute docstring.
 
@@ -329,6 +325,7 @@ class HintManager(QObject):
         """
         selector = HintManager.SELECTORS[mode]
         self._target = target
+        self._baseurl = baseurl
         elems = self._frame.findAllElements(selector)
         visible_elems = []
         for e in elems:
@@ -390,13 +387,24 @@ class HintManager(QObject):
             self._click(elem, target)
         elif target == 'rapid':
             self._click(elem, 'bgtab')
-        elif target in ['yank', 'yank_primary']:
-            sel = target == 'yank_primary'
-            self._yank(elem, sel)
-        elif target in ['cmd', 'cmd_tab', 'cmd_bgtab']:
-            commands = {
-                'cmd': 'open',
-                'cmd_tab': 'tabopen',
-                'cmd_bgtab': 'backtabopen',
-            }
-            self._set_cmd_text(elem, commands[target])
+        else:
+            # Target which require a link
+            link = elem.attribute('href')
+            if not link:
+                message.error("No link found for this element.")
+                return
+            link = urlutils.qurl(link)
+            if link.scheme() == "javascript":
+                return
+            if link.isRelative():
+                link = self._baseurl.resolved(link)
+            if target in ['yank', 'yank_primary']:
+                sel = target == 'yank_primary'
+                self._yank(link, sel)
+            if target in ['cmd', 'cmd_tab', 'cmd_bgtab']:
+                commands = {
+                    'cmd': 'open',
+                    'cmd_tab': 'tabopen',
+                    'cmd_bgtab': 'backtabopen',
+                }
+                self._set_cmd_text(link, commands[target])
