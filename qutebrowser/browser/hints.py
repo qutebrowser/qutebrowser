@@ -123,6 +123,7 @@ class HintManager(QObject):
         border: {config[hints][border]};
         opacity: {config[hints][opacity]};
         z-index: 100000;
+        pointer-events: none;
         position: absolute;
         left: {left}px;
         top: {top}px;
