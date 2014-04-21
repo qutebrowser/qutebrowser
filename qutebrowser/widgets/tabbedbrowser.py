@@ -247,6 +247,7 @@ class TabbedBrowser(TabWidget):
         tab.titleChanged.connect(self._titleChanged_handler)
         tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)
         tab.hintmanager.set_mode.connect(self.set_mode)
+        tab.hintmanager.set_cmd_text.connect(self.set_cmd_text)
         # FIXME sometimes this doesn't load
         tab.show()
         tab.open_tab.connect(self.tabopen)

@@ -185,26 +185,8 @@ Lock tab [n]. Locking a tab will lock this tab to the current uri, it’s not po
 wf
 Show hints, open link in a new tab. (command hints_win, aliases: winhints, whi).
 
-;o
-Set hint’s url in commandline (command hints_url, aliases: uhints, uhi).
-
-;O
-Set hint’s url in commandline, open in a new tab (command hints_url_tab, aliases: utabhints, uthi).
-
-.o
-Set hint’s url in commandline, open in a background tab (command hints_url_background, aliases: ubackhints).
-
 ;d
 Download via hints (command hints_download, aliases: dhints).
-
-;y
-Save link location to clipboard (command hints_clipboard, aliases: chints, chi).
-
-;Y
-Save link location to primary selection (command hints_primary, aliases: phints, phi).
-
-;r
-Rapid hint mode, each matching hint opens a new tab in background. (command hints_rapid, aliases: rhints, rhi).
 
 ;R
 Rapid hint mode, each matching hint opens a new window. (command hints_rapid_win, aliases: wrhints, wrhi).

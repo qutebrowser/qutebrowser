@@ -22,7 +22,8 @@ import math
 from collections import namedtuple
 
 from PyQt5.QtCore import pyqtSignal, QObject, QEvent, Qt
-from PyQt5.QtGui import QMouseEvent
+from PyQt5.QtGui import QMouseEvent, QClipboard
+from PyQt5.QtWidgets import QApplication
 
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
@@ -90,6 +91,10 @@ class HintManager(QObject):
         _frame: The QWebFrame to use.
         _elems: A mapping from keystrings to (elem, label) namedtuples.
         _target: What to do with the opened links.
+                 "normal"/"tab"/"bgtab": Get passed to BrowserTab.
+                 "yank"/"yank_primary": Yank to clipboard/primary selection
+                 "cmd"/"cmd_tab"/"cmd_bgtab": Enter link to commandline
+                 "rapid": Rapid mode with background tabs
 
     Signals:
         hint_strings_updated: Emitted when the possible hint strings changed.
@@ -102,6 +107,7 @@ class HintManager(QObject):
                  arg 0: URL to open as a string.
                  arg 1: true if it should be opened in a new tab, else false.
         set_open_target: Set a new target to open the links in.
+        set_cmd_text: Emitted when the commandline text should be set.
     """
 
     SELECTORS = {
@@ -133,6 +139,7 @@ class HintManager(QObject):
     set_mode = pyqtSignal(str)
     mouse_event = pyqtSignal('QMouseEvent')
     set_open_target = pyqtSignal(str)
+    set_cmd_text = pyqtSignal(str)
 
     def __init__(self, frame):
         """Constructor.
@@ -375,21 +382,21 @@ class HintManager(QObject):
     def fire(self, keystr):
         """Fire a completed hint."""
         elem = self._elems[keystr].elem
-        self.set_open_target.emit(self._target)
-        self.stop()
-        point = elem.geometry().topLeft()
-        scrollpos = self._frame.scrollPosition()
-        logging.debug("Clicking on \"{}\" at {}/{} - {}/{}".format(
-            elem.toPlainText(), point.x(), point.y(), scrollpos.x(),
-            scrollpos.y()))
-        point -= scrollpos
-        events = [
-            QMouseEvent(QEvent.MouseMove, point, Qt.NoButton, Qt.NoButton,
-                        Qt.NoModifier),
-            QMouseEvent(QEvent.MouseButtonPress, point, Qt.LeftButton,
-                        Qt.NoButton, Qt.NoModifier),
-            QMouseEvent(QEvent.MouseButtonRelease, point, Qt.LeftButton,
-                        Qt.NoButton, Qt.NoModifier),
-        ]
-        for evt in events:
-            self.mouse_event.emit(evt)
+        target = self._target
+        if target != 'rapid':
+            self.stop()
+
+        if target in ['normal', 'tab', 'bgtab']:
+            self._click(elem, target)
+        elif target == 'rapid':
+            self._click(elem, 'bgtab')
+        elif target in ['yank', 'yank_primary']:
+            sel = target == 'yank_primary'
+            self._yank(elem, sel)
+        elif target in ['cmd', 'cmd_tab', 'cmd_bgtab']:
+            commands = {
+                'cmd': 'open',
+                'cmd_tab': 'tabopen',
+                'cmd_bgtab': 'backtabopen',
+            }
+            self._set_cmd_text(elem, commands[target])
