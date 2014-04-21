@@ -184,29 +184,8 @@ Lock tab [n]. Locking a tab will lock this tab to the current domain, it’s not
 [n]xu
 Lock tab [n]. Locking a tab will lock this tab to the current uri, it’s not possible to navigate to another uri until unlocked. lock_uri, aliases: ulock).
 
-f
-Show hints (command hints, aliases: hints, hi).
-
-F
-Show hints, open link in a new foreground tab. (command hints_tab, aliases: tabhints, thi).
-
-;b
-Show hints, open link in a new background tab. (command hints_background, aliases: backhints, bhi).
-
 wf
 Show hints, open link in a new tab. (command hints_win, aliases: winhints, whi).
-
-;i
-Follow image (command hints_images, aliases: ihints, ihi).
-
-;I
-Follow image in a new tab (command hints_images_tab, aliases: itabhints, ithi).
-
-.i
-Follow image in a background tab (command hints_images_background, aliases: ibackhints).
-
-;e
-Focus editable elements via hints (command hints_editable, aliases: ehints, ehi).
 
 ;o
 Set hint’s url in commandline (command hints_url, aliases: uhints, uhi).

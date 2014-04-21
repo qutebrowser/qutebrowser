@@ -48,6 +48,7 @@ class BrowserTab(QWebView):
         _scroll_pos: The old scroll position.
         _shutdown_callback: Callback to be called after shutdown.
         _open_target: Where to open the next tab ("normal", "tab", "bgtab")
+        _force_open_target: Override for _open_target.
         _shutdown_callback: The callback to call after shutting down.
         _destroyed: Dict of all items to be destroyed on shtudown.
 
@@ -73,6 +74,7 @@ class BrowserTab(QWebView):
         self._scroll_pos = (-1, -1)
         self._shutdown_callback = None
         self._open_target = "normal"
+        self._force_open_target = None
         self._destroyed = {}
         self._zoom = None
         self._init_neighborlist()
@@ -80,6 +82,7 @@ class BrowserTab(QWebView):
         self.setPage(self.page_)
         self.hintmanager = HintManager(self.page_.mainFrame())
         self.hintmanager.mouse_event.connect(self.on_mouse_event)
+        self.hintmanager.set_open_target.connect(self.set_force_open_target)
         self.signal_cache = SignalCache(uncached=['linkHovered'])
         self.page_.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.page_.linkHovered.connect(self.linkHovered)
@@ -196,6 +199,15 @@ class BrowserTab(QWebView):
         self.setFocus()
         QApplication.postEvent(self, evt)
 
+    @pyqtSlot(str)
+    def set_force_open_target(self, target):
+        """Change the forced link target. Setter for _force_open_target.
+
+        Args:
+            target: A string to set self._force_open_target to.
+        """
+        self._force_open_target = target
+
     def _on_destroyed(self, sender):
         """Called when a subsystem has been destroyed during shutdown.
 
@@ -258,12 +270,18 @@ class BrowserTab(QWebView):
             The superclass event return value.
         """
         if e.type() in [QEvent.MouseButtonPress, QEvent.MouseButtonDblClick]:
-            if (e.button() == Qt.MidButton or
-                    e.modifiers() & Qt.ControlModifier):
+            if self._force_open_target is not None:
+                self._open_target = self._force_open_target
+                self._force_open_target = None
+                logging.debug("Setting force target: {}".format(
+                    self._open_target))
+            elif (e.button() == Qt.MidButton or
+                  e.modifiers() & Qt.ControlModifier):
                 if config.get('general', 'background_tabs'):
                     self._open_target = "bgtab"
                 else:
                     self._open_target = "tab"
+                logging.debug("Setting target: {}".format(self._open_target))
             else:
                 self._open_target = "normal"
         return super().event(e)

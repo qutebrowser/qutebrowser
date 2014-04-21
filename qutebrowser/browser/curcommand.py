@@ -165,15 +165,16 @@ class CurCommandDispatcher(QObject):
             self._tabs.currentWidget().forward()
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
-    def hint(self, mode="all"):
+    def hint(self, mode="all", target="normal"):
         """Start hinting.
 
         Command handler for :hint.
 
         Args:
             mode: The hinting mode to use.
+            target: Where to open the links.
         """
-        self._tabs.currentWidget().hintmanager.start(mode)
+        self._tabs.currentWidget().hintmanager.start(mode, target)
 
     @pyqtSlot(str)
     def handle_hint_key(self, keystr):

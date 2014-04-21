@@ -80,6 +80,7 @@ class HintManager(QObject):
     Attributes:
         _frame: The QWebFrame to use.
         _elems: A mapping from keystrings to (elem, label) namedtuples.
+        _target: What to do with the opened links.
 
     Signals:
         hint_strings_updated: Emitted when the possible hint strings changed.
@@ -91,6 +92,7 @@ class HintManager(QObject):
         openurl: Open a new url
                  arg 0: URL to open as a string.
                  arg 1: true if it should be opened in a new tab, else false.
+        set_open_target: Set a new target to open the links in.
     """
 
     SELECTORS = {
@@ -120,6 +122,7 @@ class HintManager(QObject):
     hint_strings_updated = pyqtSignal(list)
     set_mode = pyqtSignal(str)
     mouse_event = pyqtSignal('QMouseEvent')
+    set_open_target = pyqtSignal(str)
 
     def __init__(self, frame):
         """Constructor.
@@ -130,6 +133,7 @@ class HintManager(QObject):
         super().__init__(frame)
         self._frame = frame
         self._elems = {}
+        self._target = None
 
     def _hint_strings(self, elems):
         """Calculate the hint strings for elems.
@@ -238,13 +242,16 @@ class HintManager(QObject):
             css, string))
         return doc.lastChild()
 
-    def start(self, mode="all"):
+    def start(self, mode="all", target="normal"):
         """Start hinting.
 
         Args:
             mode: The mode to be used.
+            target: What to do with the link.
+                    "normal"/"tab"/"bgtab": Get passed to BrowserTab.
         """
         selector = HintManager.SELECTORS[mode]
+        self._target = target
         elems = self._frame.findAllElements(selector)
         visible_elems = []
         for e in elems:
@@ -270,6 +277,7 @@ class HintManager(QObject):
         for elem in self._elems.values():
             elem.label.removeFromDocument()
         self._elems = {}
+        self._target = None
         self.set_mode.emit("normal")
 
     def handle_partial_key(self, keystr):
@@ -290,6 +298,7 @@ class HintManager(QObject):
     def fire(self, keystr):
         """Fire a completed hint."""
         elem = self._elems[keystr].elem
+        self.set_open_target.emit(self._target)
         self.stop()
         point = elem.geometry().topLeft()
         scrollpos = self._frame.scrollPosition()
