@@ -50,7 +50,11 @@ class HintKeyParser(KeyParser):
     abort_hinting = pyqtSignal()
 
     def _handle_modifier_key(self, e):
-        """We don't support modifiers here, but we'll handle escape in here."""
+        """We don't support modifiers here, but we'll handle escape in here.
+
+        Emit:
+            abort_hinting: Emitted if hinting was aborted.
+        """
         if e.key() == Qt.Key_Escape:
             self._keystring = ''
             self.abort_hinting.emit()
@@ -58,7 +62,11 @@ class HintKeyParser(KeyParser):
         return False
 
     def execute(self, cmdstr, count=None):
-        """Handle a completed keychain."""
+        """Handle a completed keychain.
+
+        Emit:
+            fire_hint: Always emitted.
+        """
         self.fire_hint.emit(cmdstr)
 
     def on_hint_strings_updated(self, strings):
@@ -243,13 +251,73 @@ class HintManager(QObject):
             css, string))
         return doc.lastChild()
 
+    def _click(self, elem, target):
+        """Click an element.
+
+        Args:
+            elem: The QWebElement to click.
+            target: The target to use for opening links.
+        """
+        self.set_open_target.emit(target)
+        point = elem.geometry().topLeft()
+        scrollpos = self._frame.scrollPosition()
+        logging.debug("Clicking on \"{}\" at {}/{} - {}/{}".format(
+            elem.toPlainText(), point.x(), point.y(), scrollpos.x(),
+            scrollpos.y()))
+        point -= scrollpos
+        events = [
+            QMouseEvent(QEvent.MouseMove, point, Qt.NoButton, Qt.NoButton,
+                        Qt.NoModifier),
+            QMouseEvent(QEvent.MouseButtonPress, point, Qt.LeftButton,
+                        Qt.NoButton, Qt.NoModifier),
+            QMouseEvent(QEvent.MouseButtonRelease, point, Qt.LeftButton,
+                        Qt.NoButton, Qt.NoModifier),
+        ]
+        for evt in events:
+            self.mouse_event.emit(evt)
+
+    def _yank(self, elem, sel):
+        """Yank an element to the clipboard or primary selection.
+
+        Args:
+            elem: The QWebElement to yank.
+            sel: True to yank to the primary selection, False for clipboard.
+        """
+        link = elem.attribute('href')
+        if not link:
+            message.error("No link found for this element.")
+            return
+        mode = QClipboard.Selection if sel else QClipboard.Clipboard
+        QApplication.clipboard().setText(link, mode)
+        message.info('URL yanked to {}'.format('primary selection' if sel
+                                               else 'clipboard'))
+
+    def _set_cmd_text(self, elem, command):
+        """Fill the command line with an element link.
+
+        Args:
+            elem: The QWebElement to use for the link.
+            command: The command to use.
+
+        Emit:
+            set_cmd_text: Always emitted.
+        """
+        link = elem.attribute('href')
+        if not link:
+            message.error("No link found for this element.")
+            return
+        self.set_cmd_text.emit(':{} {}'.format(command, link))
+
     def start(self, mode="all", target="normal"):
         """Start hinting.
 
         Args:
             mode: The mode to be used.
-            target: What to do with the link.
-                    "normal"/"tab"/"bgtab": Get passed to BrowserTab.
+            target: What to do with the link. See attribute docstring.
+
+        Emit:
+            hint_strings_updated: Emitted to update keypraser.
+            set_mode: Emitted to enter hinting mode
         """
         selector = HintManager.SELECTORS[mode]
         self._target = target
@@ -277,7 +345,11 @@ class HintManager(QObject):
         self.set_mode.emit("hint")
 
     def stop(self):
-        """Stop hinting."""
+        """Stop hinting.
+
+        Emit:
+            set_mode: Emitted to leave hinting mode.
+        """
         for elem in self._elems.values():
             elem.label.removeFromDocument()
         self._elems = {}
