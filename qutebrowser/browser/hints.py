@@ -25,6 +25,7 @@ from PyQt5.QtCore import pyqtSignal, QObject, QEvent, Qt
 from PyQt5.QtGui import QMouseEvent
 
 import qutebrowser.config.config as config
+import qutebrowser.utils.message as message
 from qutebrowser.utils.keyparser import KeyParser
 
 
@@ -265,6 +266,9 @@ class HintManager(QObject):
                 # out of screen
                 continue
             visible_elems.append(e)
+        if not visible_elems:
+            message.error("No elements found.")
+            return
         strings = self._hint_strings(visible_elems)
         for e, string in zip(visible_elems, strings):
             label = self._draw_label(e, string)
