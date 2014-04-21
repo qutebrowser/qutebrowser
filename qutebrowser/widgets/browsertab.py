@@ -190,6 +190,7 @@ class BrowserTab(QWebView):
     @pyqtSlot('QMouseEvent')
     def on_mouse_event(self, evt):
         """Post a new mouseevent from a hintmanager."""
+        self.setFocus()
         QApplication.postEvent(self, evt)
 
     def _on_destroyed(self, sender):
