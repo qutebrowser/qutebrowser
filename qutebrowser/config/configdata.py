@@ -478,6 +478,10 @@ DATA = OrderedDict([
          SettingValue(types.CssColor, "black"),
          "Font color for hints."),
 
+        ('hints.fg.match',
+         SettingValue(types.CssColor, "green"),
+         "Font color for the matched part of hints."),
+
         ('hints.bg',
          SettingValue(types.CssColor, "-webkit-gradient(linear, left top, "
                                       "left bottom, color-stop(0%,#FFF785), "

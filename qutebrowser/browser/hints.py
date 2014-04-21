@@ -18,11 +18,15 @@
 """A HintManager to draw hints over links."""
 
 import math
+from collections import namedtuple
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
 import qutebrowser.config.config as config
 from qutebrowser.utils.keyparser import KeyParser
+
+
+ElemTuple = namedtuple('ElemTuple', 'elem, label')
 
 
 class HintKeyParser(KeyParser):
@@ -63,8 +67,7 @@ class HintManager(QObject):
 
     Attributes:
         _frame: The QWebFrame to use.
-        _elems: The elements we're hinting currently.
-        _labels: The label elements.
+        _elems: A mapping from keystrings to (elem, label) namedtuples.
 
     Signals:
         hint_strings_updated: Emitted when the possible hint strings changed.
@@ -106,8 +109,7 @@ class HintManager(QObject):
         """
         super().__init__(frame)
         self._frame = frame
-        self._elems = []
-        self._labels = []
+        self._elems = {}
 
     def _hint_strings(self, elems):
         """Calculate the hint strings for elems.
@@ -204,6 +206,9 @@ class HintManager(QObject):
         Args:
             elem: The QWebElement to use.
             string: The hint string to print.
+
+        Return:
+            The newly created label elment
         """
         rect = elem.geometry()
         css = HintManager.HINT_CSS.format(left=rect.x(), top=rect.y(),
@@ -211,7 +216,7 @@ class HintManager(QObject):
         doc = self._frame.documentElement()
         doc.appendInside('<span class="qutehint" style="{}">{}</span>'.format(
             css, string))
-        self._labels.append(doc.lastChild())
+        return doc.lastChild()
 
     def start(self, mode="all"):
         """Start hinting.
@@ -221,6 +226,7 @@ class HintManager(QObject):
         """
         selector = HintManager.SELECTORS[mode]
         elems = self._frame.findAllElements(selector)
+        visible_elems = []
         for e in elems:
             rect = e.geometry()
             if (not rect.isValid()) and rect.x() == 0:
@@ -231,24 +237,35 @@ class HintManager(QObject):
             if not framegeom.contains(rect):
                 # out of screen
                 continue
-            self._elems.append(e)
-        strings = self._hint_strings(self._elems)
-        for e, string in zip(self._elems, strings):
-            self._draw_label(e, string)
+            visible_elems.append(e)
+        strings = self._hint_strings(visible_elems)
+        for e, string in zip(visible_elems, strings):
+            label = self._draw_label(e, string)
+            self._elems[string] = ElemTuple(e, label)
         self.hint_strings_updated.emit(strings)
         self.set_mode.emit("hint")
 
     def stop(self):
         """Stop hinting."""
-        for e in self._labels:
-            e.removeFromDocument()
-        self._elems = None
-        self._labels = []
+        for elem in self._elems:
+            elem.label.removeFromDocument()
+        self._elems = {}
         self.set_mode.emit("normal")
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
-        raise NotImplementedError
+        delete = []
+        for (string, elems) in self._elems.items():
+            if string.startswith(keystr):
+                matched = string[:len(keystr)]
+                rest = string[len(keystr):]
+                elems.label.setInnerXml('<font color="{}">{}</font>{}'.format(
+                    config.get("colors", "hints.fg.match"), matched, rest))
+            else:
+                elems.label.removeFromDocument()
+                delete.append(string)
+        for key in delete:
+            del self._elems[key]
 
     def fire(self, keystr):
         """Fire a completed hint."""
