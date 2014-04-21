@@ -181,6 +181,7 @@ class StatusBar(QWidget):
             # Only modifier pressed, don't hide yet.
             return
         self.clear_tmp_text()
+        self.clear_error()
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
