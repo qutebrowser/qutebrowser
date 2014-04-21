@@ -254,7 +254,7 @@ class HintManager(QObject):
                 continue
             framegeom = self._frame.geometry()
             framegeom.translate(self._frame.scrollPosition())
-            if not framegeom.contains(rect):
+            if not framegeom.contains(rect.topLeft()):
                 # out of screen
                 continue
             visible_elems.append(e)
@@ -293,11 +293,11 @@ class HintManager(QObject):
         logging.debug("Clicking on: {}".format(elem.toPlainText()))
         self.stop()
         events = [
-            QMouseEvent(QEvent.MouseMove, elem.geometry().center(),
+            QMouseEvent(QEvent.MouseMove, elem.geometry().topLeft(),
                         Qt.NoButton, Qt.NoButton, Qt.NoModifier),
-            QMouseEvent(QEvent.MouseButtonPress, elem.geometry().center(),
+            QMouseEvent(QEvent.MouseButtonPress, elem.geometry().topLeft(),
                         Qt.LeftButton, Qt.NoButton, Qt.NoModifier),
-            QMouseEvent(QEvent.MouseButtonRelease, elem.geometry().center(),
+            QMouseEvent(QEvent.MouseButtonRelease, elem.geometry().topLeft(),
                         Qt.LeftButton, Qt.NoButton, Qt.NoModifier),
         ]
         for evt in events:
