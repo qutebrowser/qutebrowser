@@ -11,6 +11,7 @@ Style
 =====
 
 Refactor completion widget mess (initializing / changing completions)
+Check if we can get rid of temp_message
 
 Major features
 ==============
@@ -46,6 +47,11 @@ SSL handling
 Minor features
 ==============
 
+add setup.py and PKGBUILD
+add THANKS
+add README
+add HACKING
+add AUTHORS
 handle completion for aliases
 keybind should have completion for commands/arguments
 Hiding scrollbars
