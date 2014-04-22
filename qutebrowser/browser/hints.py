@@ -118,7 +118,7 @@ class HintManager(QObject):
                 "[role=option], [role=button], img"),
         "links": "a",
         "images": "img",
-        # FIXME remove input:not([type=hidden]) and add mor explicit inputs.
+        # FIXME remove input:not([type=hidden]) and add more explicit inputs.
         "editable": ("input:not([type=hidden]), input[type=text], "
                      "input[type=password], input[type=search], textarea"),
         "url": "[src], [href]",
@@ -158,7 +158,7 @@ class HintManager(QObject):
     def _hint_strings(self, elems):
         """Calculate the hint strings for elems.
 
-        Inspirated by Vimium.
+        Inspired by Vimium.
 
         Args:
             elems: The elements to get hint strings for.
