@@ -23,6 +23,7 @@ Module attributes:
 """
 
 import logging
+import cgi
 
 from qutebrowser.network.schemehandler import (SchemeHandler,
                                                SpecialNetworkReply)
@@ -57,7 +58,6 @@ def _get_html(title, snippet):
     Return:
         HTML content as bytes.
     """
-    # FIXME we should html-escape the body
     return _HTML_TEMPLATE.format(title=title, body=snippet).encode('UTF-8')
 
 
@@ -103,9 +103,11 @@ class QuteHandlers:
     @classmethod
     def qute_pyeval(cls):
         """Handler for qute:pyeval. Return HTML content as bytes."""
-        return _get_html('pyeval', '<pre>{}</pre>'.format(pyeval_output))
+        text = cgi.escape(pyeval_output)
+        return _get_html('pyeval', '<pre>{}</pre>'.format(text))
 
     @classmethod
     def qute_version(cls):
         """Handler for qute:version. Return HTML content as bytes."""
-        return _get_html('Version', '<pre>{}</pre>'.format(version()))
+        text = cgi.escape(version())
+        return _get_html('Version', '<pre>{}</pre>'.format(text))
