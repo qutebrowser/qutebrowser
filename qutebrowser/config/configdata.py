@@ -497,18 +497,22 @@ DATA = OrderedDict([
 
         ('tab.fg',
          SettingValue(types.Color(), "white"),
-         "Foreground color of the tabbar."),
+         "Foreground color of tabs."),
 
         ('tab.bg',
          SettingValue(types.Color(), "grey"),
-         "Background color of the tabbar."),
+         "Background color of unselected tabs."),
 
         ('tab.bg.selected',
          SettingValue(types.Color(), "black"),
-         "Background color of the tabbar for the selected tab."),
+         "Background color of selected tabs."),
+
+        ('tab.bg.bar',
+         SettingValue(types.Color(), "#555555"),
+         "Background color of the tabbar."),
 
         ('tab.seperator',
-         SettingValue(types.Color(), "white"),
+         SettingValue(types.Color(), "#555555"),
          "Color for the tab seperator."),
 
         ('hints.fg',

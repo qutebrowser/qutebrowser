@@ -33,9 +33,6 @@ class TabWidget(QTabWidget):
         STYLESHEET: The stylesheet template to be used.
     """
 
-    # FIXME there is still some ugly 1px white stripe from somewhere if we do
-    # background-color: grey for QTabBar...
-
     STYLESHEET = """
         QTabWidget::pane {{
             position: absolute;
@@ -44,6 +41,7 @@ class TabWidget(QTabWidget):
 
         QTabBar {{
             {font[tabbar]}
+            {color[tab.bg.bar]}
         }}
 
         QTabBar::tab {{
@@ -53,9 +51,6 @@ class TabWidget(QTabWidget):
             padding-right: 5px;
             padding-top: 0px;
             padding-bottom: 0px;
-        }}
-
-        QTabBar::tab:first, QTabBar::tab:middle {{
             border-right: 1px solid {color[tab.seperator]};
         }}
 
@@ -71,6 +66,7 @@ class TabWidget(QTabWidget):
         set_register_stylesheet(self)
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
+        self.tabBar().setDrawBase(False)
         self._init_config()
 
     def _init_config(self):
