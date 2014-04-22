@@ -107,6 +107,7 @@ class SearchParser(QObject):
         """
         self._search(text, rev=True)
 
+    @cmdutils.register(instance='searchparser', hide=True)
     def nextsearch(self, count=1):
         """Continue the search to the ([count]th) next term.
 
