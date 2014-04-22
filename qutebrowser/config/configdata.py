@@ -395,6 +395,7 @@ DATA = OrderedDict([
         ('@Ctrl-B@', 'scroll_page 0 -1'),
         ('@Ctrl-D@', 'scroll_page 0 0.5'),
         ('@Ctrl-U@', 'scroll_page 0 -0.5'),
+        ('@Backspace@', 'back'),
     )),
 
     ('aliases', sect.ValueList(
