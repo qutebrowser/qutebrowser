@@ -62,15 +62,13 @@ def set_register_stylesheet(obj):
     config.instance.changed.connect(partial(_update_stylesheet, obj))
 
 
-def _update_stylesheet(obj, section, option):
+def _update_stylesheet(obj, _section, _option):
     """Update the stylesheet for obj."""
-    # pylint: disable=unused-argument
     obj.setStyleSheet(get_stylesheet(obj.STYLESHEET))
 
 
-def invalidate_caches(section, option):
+def invalidate_caches(section, _option):
     """Invalidate cached dicts."""
-    # pylint: disable=unused-argument
     global _colordict, _fontdict
     if section == 'colors':
         _colordict = None

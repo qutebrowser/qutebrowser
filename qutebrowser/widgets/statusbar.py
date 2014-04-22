@@ -658,9 +658,8 @@ class _Url(TextBase):
         self.setText(urlstring(s))
         self.urltype = 'normal'
 
-    # pylint: disable=unused-argument
     @pyqtSlot(str, str, str)
-    def set_hover_url(self, link, title, text):
+    def set_hover_url(self, link, _title, _text):
         """Setter to be used as a Qt slot.
 
         Saves old shown URL in self._old_url and restores it later if a link is
@@ -668,8 +667,8 @@ class _Url(TextBase):
 
         Args:
             link: The link which was hovered (string)
-            title: The title of the hovered link (string)
-            text: The text of the hovered link (string)
+            _title: The title of the hovered link (string)
+            _text: The text of the hovered link (string)
         """
         if link:
             if self._old_url is None:

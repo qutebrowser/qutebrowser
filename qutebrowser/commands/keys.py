@@ -96,9 +96,8 @@ class CommandKeyParser(KeyParser):
         """Handle a completed keychain."""
         self._run_or_fill(cmdstr, count, ignore_exc=False)
 
-    # pylint: disable=unused-argument
     @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
+    def on_config_changed(self, section, _option):
         """Re-read the config if a keybinding was changed."""
         if section == 'keybind':
             self.read_config()

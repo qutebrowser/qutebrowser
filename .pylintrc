@@ -35,7 +35,7 @@ ignore-long-lines=<?https?://
 min-similarity-lines=6
 
 [VARIABLES]
-dummy-variables-rgx=_$
+dummy-variables-rgx=_.*
 
 [CLASSES]
 defining-attr-methods=__init__,__new__,setUp

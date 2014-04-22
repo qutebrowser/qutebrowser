@@ -450,9 +450,8 @@ class HintManager(QObject):
         if self._target != 'rapid':
             self.stop()
 
-    # pylint: disable=unused-argument
     @pyqtSlot('QSize')
-    def on_contents_size_changed(self, size):
+    def on_contents_size_changed(self, _size):
         """Reposition hints if contents size changed."""
         for elems in self._elems.values():
             rect = elems.elem.geometry()

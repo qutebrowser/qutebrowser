@@ -97,9 +97,8 @@ class TabWidget(QTabWidget):
         except KeyError:
             pass
 
-    # pylint: disable=unused-argument
     @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
+    def on_config_changed(self, section, _option):
         """Update attributes when config changed."""
         if section == 'tabbar':
             self._init_config()

@@ -76,18 +76,17 @@ class QuteSchemeHandler(SchemeHandler):
         """
         return url.replace('http://', '').replace('qute:', 'qute_')
 
-    def createRequest(self, op, request, outgoing_data):
+    def createRequest(self, _op, request, _outgoing_data):
         """Create a new request.
 
         Args:
-             op: Operation op
              request: const QNetworkRequest & req
-             outgoing_data: QIODevice * outgoingData
+             _op: Operation op
+             _outgoing_data: QIODevice * outgoingData
 
         Return:
             A QNetworkReply.
         """
-        # pylint: disable=unused-argument
         logging.debug('request: {}'.format(request))
         url = urlstring(request.url())
         try:

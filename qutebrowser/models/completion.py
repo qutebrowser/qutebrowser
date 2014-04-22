@@ -148,7 +148,7 @@ class CompletionModel(QAbstractItemModel):
         node.children.pop(position)
         self.endRemoveRows()
 
-    def columnCount(self, parent=QModelIndex()):
+    def columnCount(self, _parent=QModelIndex()):
         """Return the column count in the model.
 
         Override QAbstractItemModel::columnCount.
@@ -160,7 +160,6 @@ class CompletionModel(QAbstractItemModel):
         Return:
             Column count as an integer.
         """
-        # pylint: disable=unused-argument
         return self._root.column_count()
 
     def rowCount(self, parent=QModelIndex()):
