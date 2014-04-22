@@ -1,0 +1,65 @@
+Thanks to the following projects, which were a source for great inspiration:
+    - eric5 <http://eric-ide.python-projects.org/>
+    - dwb <http://portix.bitbucket.org/dwb/>
+    - Vimperator <http://www.vimperator.org/>
+    - pentadactyl <http://5digits.org/pentadactyl/>
+    - vimb <https://github.com/fanglingsu/vimb>
+    - Vimium <http://vimium.github.io/>
+
+Thanks to the following people for helping me with problems big and small:
+    - portix
+    - Detlev Offenbach
+    - seir
+    - nitroxleecher
+
+Thanks to the following people for early testing:
+    - V155
+    - eto
+    - portix
+
+Thanks to these stackoverflow users for answering my questions, and other
+valuable ones:
+    - Pavel Strakhov
+    - ekhumoro
+    - andrean
+    - chelmuth
+    - quark
+
+Thanks to these people for helpful bits and pieces in the Qt bugtracker and IRC
+channel:
+    - Allan Sandfeld Jensen
+    - bachewii
+    - Vitaliy Filippov
+    - Lisandro Damián Nicanor Pérez Meyer
+    - david_boddie
+    - jcookeman
+    - jturcotte
+    - carewolf
+    - mibrunin
+    - TheBootroo
+    - peppe
+    - HuntsMan
+    - Papierkorb
+    - hyde_
+    - Giles
+    - pvdk
+    - LBV_User
+    - Fleias
+    - richmoore1
+    - Xenakis
+    - ottoshmidt
+    - AlexWMF
+    - scummos
+    - svuorela
+
+Thanks to these projects which were essential while developing qutebrowser:
+    - Python
+    - vim
+    - git
+    - Qt
+    - PyQt
+    - pylint
+    - pyflakes
+    - pep8
+    - pep257
+    - flake8
