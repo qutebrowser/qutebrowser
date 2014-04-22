@@ -86,7 +86,6 @@ class MainWindow(QWidget):
             self.status.percentage.set_perc)
         self.tabs.cur_statusbar_message.connect(
             self.status.txt.on_statusbar_message)
-        self.tabs.cur_temp_message.connect(self.status.txt.set_temptext)
         self.tabs.cur_url_changed.connect(self.status.url.set_url)
         self.tabs.cur_link_hovered.connect(self.status.url.set_hover_url)
         self.tabs.currentChanged.connect(self.update_inspector)

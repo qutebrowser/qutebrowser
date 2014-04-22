@@ -18,11 +18,12 @@
 """The main tabbed browser widget."""
 
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject
+from PyQt5.QtCore import pyqtSlot, Qt, QObject
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
 
 import qutebrowser.utils.url as urlutils
+import qutebrowser.utils.message as message
 import qutebrowser.commands.utils as cmdutils
 
 
@@ -38,12 +39,7 @@ class CurCommandDispatcher(QObject):
 
     Attributes:
         _tabs: The TabbedBrowser object.
-
-    Signals:
-        temp_message: Connected to TabbedBrowser signal.
     """
-
-    temp_message = pyqtSignal(str)
 
     def __init__(self, parent):
         """Constructor.
@@ -266,16 +262,13 @@ class CurCommandDispatcher(QObject):
 
         Args:
             sel: True to use primary selection, False to use clipboard
-
-        Emit:
-            temp_message to display a temporary message.
         """
         clip = QApplication.clipboard()
         url = urlutils.urlstring(self._tabs.currentWidget().url())
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         clip.setText(url, mode)
-        self.temp_message.emit('URL yanked to {}'.format(
-            'primary selection' if sel else 'clipboard'))
+        message.info('URL yanked to {}'.format('primary selection' if sel
+                                               else 'clipboard'))
 
     @cmdutils.register(instance='mainwindow.tabs.cur', name='yanktitle')
     def yank_title(self, sel=False):
@@ -285,16 +278,13 @@ class CurCommandDispatcher(QObject):
 
         Args:
             sel: True to use primary selection, False to use clipboard
-
-        Emit:
-            temp_message to display a temporary message.
         """
         clip = QApplication.clipboard()
         title = self._tabs.tabText(self._tabs.currentIndex())
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         clip.setText(title, mode)
-        self.temp_message.emit('Title yanked to {}'.format(
-            'primary selection' if sel else 'clipboard'))
+        message.info('Title yanked to {}'.format('primary selection' if sel
+                                                 else 'clipboard'))
 
     @cmdutils.register(instance='mainwindow.tabs.cur', name='zoomin')
     def zoom_in(self, count=1):

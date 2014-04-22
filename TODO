@@ -11,7 +11,6 @@ Style
 =====
 
 Refactor completion widget mess (initializing / changing completions)
-Check if we can get rid of temp_message
 
 Major features
 ==============

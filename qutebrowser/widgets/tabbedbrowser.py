@@ -62,7 +62,6 @@ class TabbedBrowser(TabWidget):
         cur_load_finished: Current tab finished loading (loadFinished)
         cur_statusbar_message: Current tab got a statusbar message
                                (statusBarMessage)
-        cur_temp_message: Current tab needs to show a temporary message.
         cur_url_changed: Current URL changed (urlChanged)
         cur_link_hovered: Link hovered in current tab (linkHovered)
         cur_scroll_perc_changed: Scroll percentage of current tab changed.
@@ -84,7 +83,6 @@ class TabbedBrowser(TabWidget):
     cur_progress = pyqtSignal(int)
     cur_load_started = pyqtSignal()
     cur_load_finished = pyqtSignal(bool)
-    cur_temp_message = pyqtSignal(str)
     cur_statusbar_message = pyqtSignal(str)
     cur_url_changed = pyqtSignal('QUrl')
     cur_link_hovered = pyqtSignal(str, str, str)
@@ -110,7 +108,6 @@ class TabbedBrowser(TabWidget):
         self._space.activated.connect(lambda: self.cur.scroll_page(0, 1))
         self._filter = SignalFilter(self)
         self.cur = CurCommandDispatcher(self)
-        self.cur.temp_message.connect(self.cur_temp_message)
 
     def _cb_tab_shutdown(self, tab):
         """Called after a tab has been shut down completely.
@@ -242,7 +239,6 @@ class TabbedBrowser(TabWidget):
             self._filter.create(self.cur_statusbar_message))
         tab.scroll_pos_changed.connect(
             self._filter.create(self.cur_scroll_perc_changed))
-        tab.temp_message.connect(self._filter.create(self.cur_temp_message))
         tab.urlChanged.connect(self._filter.create(self.cur_url_changed))
         tab.titleChanged.connect(self._titleChanged_handler)
         tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)

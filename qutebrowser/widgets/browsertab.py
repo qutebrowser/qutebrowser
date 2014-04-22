@@ -60,14 +60,11 @@ class BrowserTab(QWebView):
                   arg 1: The address to open
                   arg 2: Whether to open the tab in the background
         linkHovered: QWebPages linkHovered signal exposed.
-        temp_message: Show a temporary message in the statusbar.
-                      arg: Message to be shown.
     """
 
     scroll_pos_changed = pyqtSignal(int, int)
     open_tab = pyqtSignal('QUrl', bool)
     linkHovered = pyqtSignal(str, str, str)
-    temp_message = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -123,13 +120,10 @@ class BrowserTab(QWebView):
 
         Args:
             offset: The offset in the zoom level list.
-
-        Emit:
-            temp_message: Emitted with new zoom level.
         """
         level = self._zoom.getitem(offset)
         self.setZoomFactor(float(level) / 100)
-        self.temp_message.emit("Zoom level: {}%".format(level))
+        message.info("Zoom level: {}%".format(level))
 
     @pyqtSlot(str)
     def on_link_clicked(self, url):
