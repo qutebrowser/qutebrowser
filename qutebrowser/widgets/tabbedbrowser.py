@@ -313,7 +313,6 @@ class TabbedBrowser(TabWidget):
             sel: True to use primary selection, False to use clipboard
             tab: True to open in a new tab.
         """
-        # FIXME what happens for invalid URLs?
         clip = QApplication.clipboard()
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         url = clip.text(mode)
