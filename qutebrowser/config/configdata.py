@@ -511,16 +511,23 @@ DATA = OrderedDict([
     )),
 
     ('fonts', sect.KeyValue(
+        ('_monospace',
+         SettingValue(types.Font(), 'Monospace, "DejaVu Sans Mono", Consolas, '
+                      'Monaco, "Bitstream Vera Sans Mono", "Andale Mono", '
+                      '"Liberation Mono", "Courier New", Courier, monospace, '
+                      'Fixed, Terminal'),
+         "Default monospace fonts."),
+
         ('completion',
-         SettingValue(types.Font(), "8pt Monospace"),
+         SettingValue(types.Font(), "8pt ${_monospace}"),
          "Font used in the completion widget."),
 
         ('tabbar',
-         SettingValue(types.Font(), "8pt Monospace"),
+         SettingValue(types.Font(), "8pt ${_monospace}"),
          "Font used in the tabbar."),
 
         ('statusbar',
-         SettingValue(types.Font(), "8pt Monospace"),
+         SettingValue(types.Font(), "8pt ${_monospace}"),
          "Font used in the statusbar."),
 
         ('hints',
