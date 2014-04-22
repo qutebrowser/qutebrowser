@@ -240,7 +240,6 @@ class BrowserTab(QWebView):
         if self._scroll_pos != new_pos:
             self._scroll_pos = new_pos
             logging.debug("Updating scroll position")
-            frame = self.page_.mainFrame()
             m = (frame.scrollBarMaximum(Qt.Horizontal),
                  frame.scrollBarMaximum(Qt.Vertical))
             perc = (round(100 * new_pos[0] / m[0]) if m[0] != 0 else 0,
