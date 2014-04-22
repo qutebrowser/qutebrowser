@@ -362,7 +362,6 @@ class Config(QObject):
         Return:
             The changed config part as string.
         """
-        # FIXME adopt this for layering
         lines = []
         for secname, section in self.sections.items():
             changed = section.dump_userconfig()

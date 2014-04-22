@@ -133,7 +133,7 @@ class CompletionView(QTreeView):
         self.setHeaderHidden(True)
         self.setIndentation(0)
         self.setItemsExpandable(False)
-        # FIXME This is a workaround for weird race conditions with invalid
+        # QTBUG? This is a workaround for weird race conditions with invalid
         # item indexes leading to segfaults in Qt.
         #
         # Some background: http://bugs.quassel-irc.org/issues/663
@@ -379,8 +379,8 @@ class _CompletionItemDelegate(QStyledItemDelegate):
         if state & QStyle.State_Selected:
             self._painter.setPen(self._opt.palette.color(
                 cg, QPalette.HighlightedText))
-            # FIXME this is a dirty fix for the text jumping by one pixel...
-            # we really should do this properly somehow
+            # This is a dirty fix for the text jumping by one pixel for
+            # whatever reason.
             text_rect.adjust(0, -1, 0, 0)
         else:
             self._painter.setPen(self._opt.palette.color(cg, QPalette.Text))

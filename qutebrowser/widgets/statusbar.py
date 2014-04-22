@@ -455,8 +455,6 @@ class TextBase(QLabel):
         when the text is empty -- we explicitely need to call repaint() to
         resolve this. See http://stackoverflow.com/q/21890462/2085149
 
-        FIXME is there a nicer way to work around this?
-
         Args:
             txt: The text to set (string).
         """

@@ -206,7 +206,6 @@ class TabbedBrowser(TabWidget):
             return
         last_close = config.get('tabbar', 'last_close')
         if self.count() > 1:
-            # FIXME maybe we actually should store the webview objects here
             self._url_stack.append(tab.url())
             self.removeTab(idx)
             tab.shutdown(callback=partial(self._cb_tab_shutdown, tab))
@@ -231,7 +230,6 @@ class TabbedBrowser(TabWidget):
         self._connect_tab_signals(tab)
         self._tabs.append(tab)
         self.addTab(tab, urlutils.urlstring(url))
-        # FIXME sometimes this doesn't load
         tab.show()
         tab.openurl(url)
         if not background:

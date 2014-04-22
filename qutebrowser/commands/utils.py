@@ -79,7 +79,6 @@ class register:  # pylint: disable=invalid-name
         Return:
             The original function (unmodified).
         """
-        # FIXME: only register commands once
         names = []
         name = func.__name__.lower() if self.name is None else self.name
         if isinstance(name, str):

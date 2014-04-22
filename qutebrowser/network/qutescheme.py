@@ -89,7 +89,6 @@ class QuteSchemeHandler(SchemeHandler):
         """
         # pylint: disable=unused-argument
         # FIXME handle unknown pages
-        # FIXME adjust URLutils based on handlers
         logging.debug('request: {}'.format(request))
         url = urlstring(request.url())
         handler = getattr(QuteHandlers, self._transform_url(url))

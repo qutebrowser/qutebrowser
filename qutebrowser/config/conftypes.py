@@ -436,7 +436,7 @@ class Font(BaseType):
     typestr = 'font'
 
     def validate(self, value):
-        # FIXME validate fonts
+        # We can't really validate anything here
         pass
 
 

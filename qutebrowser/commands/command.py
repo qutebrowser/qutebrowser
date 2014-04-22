@@ -48,7 +48,7 @@ class Command(QObject):
                 from the app.py context.
     """
 
-    # FIXME:
+    # TODO:
     # we should probably have some kind of typing / argument casting for args
     # this might be combined with help texts or so as well
 

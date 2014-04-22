@@ -262,8 +262,6 @@ class CompletionModel(QAbstractItemModel):
         Return:
             The item flags, or Qt.NoItemFlags on error.
         """
-        # FIXME categories are not selectable, but moving via arrow keys still
-        # tries to select them
         if not index.isValid():
             return Qt.NoItemFlags
         flags = Qt.ItemIsEnabled

@@ -110,7 +110,7 @@ class KeyParser(QObject):
         Args:
             e: the KeyPressEvent from Qt.
         """
-        # FIXME maybe we can do this in an easier way by using QKeySeqyence
+        # FIXME maybe we can do this in an easier way by using QKeySequence
         # which has a matches method.
         logging.debug('Got key: {} / text: "{}"'.format(e.key(), e.text()))
         txt = e.text().strip()

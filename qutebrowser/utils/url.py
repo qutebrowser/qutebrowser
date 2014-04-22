@@ -84,8 +84,8 @@ def _is_url_dns(url):
     Return:
         True if the url really is an URL, False otherwise.
     """
-    # FIXME we could probably solve this in a nicer way by attempting to open
-    # the page in the webview, and then open the search if that fails.
+    # FIXME If we use Qt's methods to resolve URLs, we could benefit from the
+    # build-in cache and wouldn't have to resolve again.
     host = url.host()
     logging.debug("DNS request for {}".format(host))
     if not host:
