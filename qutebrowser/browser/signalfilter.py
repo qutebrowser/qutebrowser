@@ -71,19 +71,13 @@ class SignalFilter(QObject):
         Emit:
             The target signal if the sender was the current widget.
         """
-        # FIXME BUG the signal cache ordering seems to be weird sometimes.
-        # How to reproduce:
-        #   - Open tab
-        #   - While loading, open another tab
-        #   - Switch back to #1 when loading finished
-        #   - It seems loadingStarted is before loadingFinished
         sender = self.sender()
         log_signal = not signal.signal.startswith('2cur_progress')
         if log_signal:
             logging.debug('signal {} (tab {})'.format(
                 dbg_signal(signal, args), self._tabs.indexOf(sender)))
         if not isinstance(sender, BrowserTab):
-            # FIXME why does this happen?
+            # BUG? This should never happen, but it does regularely...
             logging.warn('Got signal {} by {} which is no tab!'.format(
                 dbg_signal(signal, args), sender))
             return
