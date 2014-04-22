@@ -38,7 +38,7 @@ class KeyParser(QObject):
         MATCH_PARTIAL: Constant for a partial match (no keychain matched yet,
                        but it's still possible in the future.
         MATCH_DEFINITIVE: Constant for a full match (keychain matches exactly).
-        MATCH_BOTH: There are both a partial and a definitive match.
+        MATCH_AMBIGUOUS: There are both a partial and a definitive match.
         MATCH_NONE: Constant for no match (no more matches possible).
         supports_count: If the keyparser should support counts.
 
@@ -57,7 +57,7 @@ class KeyParser(QObject):
 
     MATCH_PARTIAL = 0
     MATCH_DEFINITIVE = 1
-    MATCH_BOTH = 2
+    MATCH_AMBIGUOUS = 2
     MATCH_NONE = 3
 
     supports_count = False
@@ -123,54 +123,27 @@ class KeyParser(QObject):
             logging.debug('Ignoring, no text')
             return
 
-        if self._timer is not None:
-            logging.debug("Stopping delayed execution.")
-            self._timer.stop()
-            self._timer = None
-
+        self._stop_delayed_exec()
         self._keystring += txt
 
         if self.supports_count:
-            (countstr, cmdstr_needle) = re.match(r'^(\d*)(.*)',
-                                                 self._keystring).groups()
+            (countstr, cmd_input) = re.match(r'^(\d*)(.*)',
+                                             self._keystring).groups()
+            count = int(countstr) if countstr else None
         else:
-            countstr = None
-            cmdstr_needle = self._keystring
+            cmd_input = self._keystring
+            count = None
 
-        if not cmdstr_needle:
+        if not cmd_input:
             return
 
-        # FIXME this doesn't handle ambigious keys correctly.
-        #
-        # If a keychain is ambigious, we probably should set up a QTimer with a
-        # configurable timeout, which triggers cmd.run() when expiring. Then
-        # when we enter _handle() again in time we stop the timer.
-
-        (match, cmdstr_hay) = self._match_key(cmdstr_needle)
+        (match, binding) = self._match_key(cmd_input)
 
         if match == self.MATCH_DEFINITIVE:
             self._keystring = ''
-            count = int(countstr) if countstr else None
-            self.execute(cmdstr_hay, count=count)
-        elif match == self.MATCH_BOTH:
-            logging.debug("Partial and definitive match for \"{}\"".format(
-                self._keystring))
-            time = config.get('general', 'cmd_timeout')
-            count = int(countstr) if countstr else None
-            if time == 0:
-                # execute immediately
-                self._keystring = ''
-                self.execute(cmdstr_hay, count=count)
-            else:
-                # execute in `time' ms
-                logging.debug("Scheduling execution of {} in {}ms".format(
-                    cmdstr_hay, time))
-                self._timer = QTimer(self)
-                self._timer.setSingleShot(True)
-                self._timer.setInterval(time)
-                self._timer.timeout.connect(
-                    partial(self.delayed_exec, cmdstr_hay, count))
-                self._timer.start()
+            self.execute(binding, count)
+        elif match == self.MATCH_AMBIGUOUS:
+            self._handle_ambiguous_match(binding, count)
         elif match == self.MATCH_PARTIAL:
             logging.debug('No match for "{}" (added {})'.format(
                 self._keystring, txt))
@@ -179,47 +152,78 @@ class KeyParser(QObject):
                 self._keystring))
             self._keystring = ''
 
-    def _match_key(self, cmdstr_needle):
+    def _match_key(self, cmd_input):
         """Try to match a given keystring with any bound keychain.
 
         Args:
-            cmdstr_needle: The command string to find.
+            cmd_input: The command string to find.
 
         Return:
-            A tuple (matchtype, hay) where matchtype is MATCH_DEFINITIVE,
-            MATCH_PARTIAL or MATCH_NONE and hay is the long keystring where the
-            part was found in.
+            A tuple (matchtype, binding).
+                matchtype: MATCH_DEFINITIVE, MATCH_AMBIGUOUS, MATCH_PARTIAL or
+                           MATCH_NONE
+                binding: - None with MATCH_PARTIAL/MATCH_NONE
+                         - The found binding with MATCH_DEFINITIVE/
+                           MATCH_AMBIGUOUS
         """
-        # Check definitive match
+        # A (cmd_input, binding) tuple (k, v of bindings) or None.
         definitive_match = None
         partial_match = False
+        # Check definitive match
         try:
-            cmdstr_hay = self.bindings[cmdstr_needle]
+            definitive_match = (cmd_input, self.bindings[cmd_input])
         except KeyError:
             pass
-        else:
-            definitive_match = (cmdstr_needle, cmdstr_hay)
         # Check partial match
-        for hay in self.bindings:
-            if definitive_match is not None and hay == definitive_match[0]:
+        for binding in self.bindings:
+            if definitive_match is not None and binding == definitive_match[0]:
                 # We already matched that one
                 continue
-            try:
-                if cmdstr_needle[-1] == hay[len(cmdstr_needle) - 1]:
-                    partial_match = True
-                    break
-            except IndexError:
-                # current cmd is shorter than our cmdstr_needle, so it
-                # won't match
+            if len(binding) < len(cmd_input):
+                # binding is shorter than cmd_input, so it can't possibly match
                 continue
+            elif cmd_input[-1] == binding[len(cmd_input) - 1]:
+                partial_match = True
+                break
         if definitive_match is not None and partial_match:
-            return (self.MATCH_BOTH, definitive_match[1])
+            return (self.MATCH_AMBIGUOUS, definitive_match[1])
         elif definitive_match is not None:
             return (self.MATCH_DEFINITIVE, definitive_match[1])
         elif partial_match:
             return (self.MATCH_PARTIAL, None)
         else:
             return (self.MATCH_NONE, None)
+
+    def _stop_delayed_exec(self):
+        """Stop a delayed execution if any is running."""
+        if self._timer is not None:
+            logging.debug("Stopping delayed execution.")
+            self._timer.stop()
+            self._timer = None
+
+    def _handle_ambiguous_match(self, binding, count):
+        """Handle an ambiguous match.
+
+        Args:
+            binding: The command-string to execute.
+            count: The count to pass.
+        """
+        logging.debug("Ambiguous match for \"{}\"".format(self._keystring))
+        time = config.get('general', 'cmd_timeout')
+        if time == 0:
+            # execute immediately
+            self._keystring = ''
+            self.execute(binding, count)
+        else:
+            # execute in `time' ms
+            logging.debug("Scheduling execution of {} in {}ms".format(binding,
+                                                                      time))
+            self._timer = QTimer(self)
+            self._timer.setSingleShot(True)
+            self._timer.setInterval(time)
+            self._timer.timeout.connect(partial(self.delayed_exec, binding,
+                                                count))
+            self._timer.start()
 
     def _normalize_keystr(self, keystr):
         """Normalize a keystring like Ctrl-Q to a keystring like Ctrl+Q.
