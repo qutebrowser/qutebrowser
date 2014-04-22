@@ -174,7 +174,7 @@ class Config(QObject):
             for descline in desc.splitlines():
                 lines += wrapper.wrap(descline)
             valid_values = option.typ.valid_values
-            if valid_values is not None and valid_values.show:
+            if valid_values is not None:
                 if valid_values.descriptions:
                     for val in valid_values:
                         desc = valid_values.descriptions[val]

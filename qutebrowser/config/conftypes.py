@@ -44,13 +44,11 @@ class ValidValues:
     Attributes:
         values: A list with the allowed untransformed values.
         descriptions: A dict with value/desc mappings.
-        show: Whether to show the values in the config or not.
     """
 
-    def __init__(self, *vals, show=True):
+    def __init__(self, *vals):
         self.descriptions = {}
         self.values = []
-        self.show = show
         for v in vals:
             if isinstance(v, str):
                 # Value without description
@@ -119,6 +117,27 @@ class BaseType:
             raise NotImplementedError("{} does not implement validate.".format(
                 self.__class__.__name__))
 
+    def complete(self):
+        """Return a list of possible values for completion.
+
+        The default implementation just returns valid_values, but it might be
+        useful to override this for special cases.
+
+        Return:
+            A list of (value, description) tuples or None.
+        """
+        if self.valid_values is None:
+            return None
+        else:
+            out = []
+            for val in self.valid_values:
+                try:
+                    desc = self.valid_values.descriptions[val]
+                except KeyError:
+                    desc = ""
+            out.append((val, desc))
+            return out
+
 
 class String(BaseType):
 
@@ -155,7 +174,6 @@ class Bool(BaseType):
         _BOOLEAN_STATES: A dictionary of strings mapped to their bool meanings.
     """
 
-    valid_values = ValidValues('true', 'false', show=False)
     typestr = 'bool'
 
     # Taken from configparser
@@ -168,6 +186,9 @@ class Bool(BaseType):
     def validate(self, value):
         if value.lower() not in Bool._BOOLEAN_STATES:
             raise ValidationError(value, "must be a boolean!")
+
+    def complete(self):
+        return [('true', ''), ('false', '')]
 
 
 class Int(BaseType):

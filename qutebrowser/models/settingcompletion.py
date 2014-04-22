@@ -62,12 +62,8 @@ class SettingValueCompletionModel(CompletionModel):
     def __init__(self, section, option, parent=None):
         super().__init__(parent)
         cat = self.new_category("Setting values for {}".format(option))
-        vals = configdata.DATA[section][option].typ.valid_values
+        vals = configdata.DATA[section][option].typ.complete()
         if vals is None:
             raise NoCompletionsError
-        for val in vals:
-            try:
-                desc = vals.descriptions[val]
-            except KeyError:
-                desc = ""
+        for (val, desc) in vals:
             self.new_item(cat, val, desc)
