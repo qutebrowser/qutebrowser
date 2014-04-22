@@ -17,10 +17,10 @@
 
 """The main tabbed browser widget."""
 
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QDialog
 from PyQt5.QtCore import pyqtSlot, Qt, QObject
 from PyQt5.QtGui import QClipboard
-from PyQt5.QtPrintSupport import QPrintPreviewDialog
+from PyQt5.QtPrintSupport import QPrinter, QPrintDialog, QPrintPreviewDialog
 
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.message as message
@@ -118,6 +118,21 @@ class CurCommandDispatcher(QObject):
         if tab is not None:
             tab.stop()
 
+    @cmdutils.register(instance='mainwindow.tabs.cur', name='printpreview')
+    def printpreview(self, count=None):
+        """Preview printing of the current/[count]th tab.
+
+        Command handler for :printpreview.
+
+        Args:
+            count: The tab index to print, or None.
+        """
+        tab = self._tabs.cntwidget(count)
+        if tab is not None:
+            preview = QPrintPreviewDialog(tab)
+            preview.paintRequested.connect(tab.print)
+            preview.exec_()
+
     @cmdutils.register(instance='mainwindow.tabs.cur', name='print')
     def printpage(self, count=None):
         """Print the current/[count]th tab.
@@ -127,12 +142,14 @@ class CurCommandDispatcher(QObject):
         Args:
             count: The tab index to print, or None.
         """
-        # FIXME that does not what I expect
+        # FIXME for some reason we only get empty pages
+        # maybe this is related to:
+        # https://bugreports.qt-project.org/browse/QTBUG-19571
         tab = self._tabs.cntwidget(count)
         if tab is not None:
-            preview = QPrintPreviewDialog(self)
-            preview.paintRequested.connect(tab.print)
-            preview.exec_()
+            printer = QPrinter()
+            printdiag = QPrintDialog(printer, tab)
+            printdiag.open(lambda: tab.print(printdiag.printer()))
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
     def back(self, count=1):
