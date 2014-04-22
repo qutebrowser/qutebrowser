@@ -263,11 +263,12 @@ class CompletionModel(QAbstractItemModel):
         """
         if not index.isValid():
             return Qt.NoItemFlags
-        flags = Qt.ItemIsEnabled
-        if len(self._id_map[index.internalId()].children) > 0:
-            return flags
+        if index.parent().isValid():
+            # item
+            return Qt.ItemIsEnabled | Qt.ItemIsSelectable
         else:
-            return flags | Qt.ItemIsSelectable
+            # category
+            return Qt.NoItemFlags
 
     def index(self, row, column, parent=QModelIndex()):
         """Return the QModelIndex for row/column/parent.
