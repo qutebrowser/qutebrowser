@@ -146,7 +146,7 @@ class Config(QObject):
         lines = []
         seclines = configdata.SECTION_DESC[secname].splitlines()
         for secline in seclines:
-            if 'http://' in secline:
+            if 'http://' in secline or 'https://' in secline:
                 lines.append('# ' + secline)
             else:
                 lines += wrapper.wrap(secline)
