@@ -18,11 +18,11 @@
 """Utils regarding URL handling."""
 
 import re
-import socket
 import logging
 import urllib.parse
 
 from PyQt5.QtCore import QUrl
+from PyQt5.QtNetwork import QHostInfo
 
 import qutebrowser.config.config as config
 
@@ -84,18 +84,12 @@ def _is_url_dns(url):
     Return:
         True if the url really is an URL, False otherwise.
     """
-    # FIXME If we use Qt's methods to resolve URLs, we could benefit from the
-    # build-in cache and wouldn't have to resolve again.
     host = url.host()
     logging.debug("DNS request for {}".format(host))
     if not host:
         return False
-    try:
-        socket.gethostbyname(host)
-    except socket.gaierror:
-        return False
-    else:
-        return True
+    info = QHostInfo.fromName(host)
+    return not info.error()
 
 
 def qurl(url):
