@@ -84,12 +84,14 @@ class QuteBrowser(QApplication):
         _shutting_down: True if we're currently shutting down.
         _quit_status: The current quitting status.
         _mode: The mode we're currently in.
+        _opened_urls: List of opened URLs.
     """
 
     def __init__(self):
         super().__init__(sys.argv)
         self._quit_status = {}
         self._timers = []
+        self._opened_urls = []
         self._shutting_down = False
         self._mode = None
 
@@ -211,6 +213,7 @@ class QuteBrowser(QApplication):
                 self.commandparser.run(e.lstrip(':'))
             else:
                 logging.debug('Startup url {}'.format(e))
+                self._opened_urls.append(e)
                 self.mainwindow.tabs.tabopen(e)
 
         if self.mainwindow.tabs.count() == 0:
@@ -370,9 +373,13 @@ class QuteBrowser(QApplication):
         ret = dlg.exec_()
         if ret == QDialog.Accepted:  # restore
             os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
-            # FIXME we might want to use argparse's features to not open pages
-            # again if they were opened via cmdline
-            argv = [sys.executable] + sys.argv + pages
+            argv = sys.argv[:]
+            for page in self._opened_urls:
+                try:
+                    argv.remove(page)
+                except ValueError:
+                    pass
+            argv = [sys.executable] + argv + pages
             logging.debug('Running {} with args {}'.format(sys.executable,
                                                            argv))
             subprocess.Popen(argv)
