@@ -142,9 +142,9 @@ class CurCommandDispatcher(QObject):
         Args:
             count: The tab index to print, or None.
         """
-        # FIXME for some reason we only get empty pages
-        # maybe this is related to:
+        # QTBUG: We only get blank pages.
         # https://bugreports.qt-project.org/browse/QTBUG-19571
+        # If this isn't fixed in Qt 5.3, bug should be reopened.
         tab = self._tabs.cntwidget(count)
         if tab is not None:
             printer = QPrinter()
