@@ -255,11 +255,11 @@ class HintManager(QObject):
             The newly created label elment
         """
         rect = elem.geometry()
-        css = HintManager.HINT_CSS.format(left=rect.x(), top=rect.y(),
-                                          config=config.instance)
+        css = self.HINT_CSS.format(left=rect.x(), top=rect.y(),
+                                   config=config.instance)
         doc = self._frame.documentElement()
         doc.appendInside('<span class="qutehint" style="{}">{}</span>'.format(
-            css, string))
+                         css, string))
         return doc.lastChild()
 
     def _click(self, elem, target):
