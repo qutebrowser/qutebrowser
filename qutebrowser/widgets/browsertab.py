@@ -93,6 +93,22 @@ class BrowserTab(QWebView):
             default=config.get('general', 'defaultzoom'),
             mode=NeighborList.BLOCK)
 
+    def _on_destroyed(self, sender):
+        """Called when a subsystem has been destroyed during shutdown.
+
+        Args:
+            sender: The object which called the callback.
+        """
+        self._destroyed[sender] = True
+        dbgout = '\n'.join(['{}: {}'.format(k.__class__.__name__, v)
+                           for (k, v) in self._destroyed.items()])
+        logging.debug("{} has been destroyed, new status:\n{}".format(
+            sender.__class__.__name__, dbgout))
+        if all(self._destroyed.values()):
+            if self._shutdown_callback is not None:
+                logging.debug("Everything destroyed, calling callback")
+                self._shutdown_callback()
+
     def openurl(self, url):
         """Open an URL in the browser.
 
@@ -124,26 +140,6 @@ class BrowserTab(QWebView):
         level = self._zoom.getitem(offset)
         self.setZoomFactor(float(level) / 100)
         message.info("Zoom level: {}%".format(level))
-
-    @pyqtSlot(str)
-    def on_link_clicked(self, url):
-        """Handle a link.
-
-        Called from the linkClicked signal. Checks if it should open it in a
-        tab (middle-click or control) or not, and does so.
-
-        Args:
-            url: The url to handle, as string or QUrl.
-
-        Emit:
-            open_tab: Emitted if window should be opened in a new tab.
-        """
-        if self._open_target == "tab":
-            self.open_tab.emit(url, False)
-        elif self._open_target == "bgtab":
-            self.open_tab.emit(url, True)
-        else:
-            self.openurl(url)
 
     def shutdown(self, callback=None):
         """Shut down the tab cleanly and remove it.
@@ -181,6 +177,26 @@ class BrowserTab(QWebView):
         netman.deleteLater()
         logging.debug("Tab shutdown scheduled")
 
+    @pyqtSlot(str)
+    def on_link_clicked(self, url):
+        """Handle a link.
+
+        Called from the linkClicked signal. Checks if it should open it in a
+        tab (middle-click or control) or not, and does so.
+
+        Args:
+            url: The url to handle, as string or QUrl.
+
+        Emit:
+            open_tab: Emitted if window should be opened in a new tab.
+        """
+        if self._open_target == "tab":
+            self.open_tab.emit(url, False)
+        elif self._open_target == "bgtab":
+            self.open_tab.emit(url, True)
+        else:
+            self.openurl(url)
+
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update tab config when config was changed."""
@@ -201,22 +217,6 @@ class BrowserTab(QWebView):
             target: A string to set self._force_open_target to.
         """
         self._force_open_target = target
-
-    def _on_destroyed(self, sender):
-        """Called when a subsystem has been destroyed during shutdown.
-
-        Args:
-            sender: The object which called the callback.
-        """
-        self._destroyed[sender] = True
-        dbgout = '\n'.join(['{}: {}'.format(k.__class__.__name__, v)
-                           for (k, v) in self._destroyed.items()])
-        logging.debug("{} has been destroyed, new status:\n{}".format(
-            sender.__class__.__name__, dbgout))
-        if all(self._destroyed.values()):
-            if self._shutdown_callback is not None:
-                logging.debug("Everything destroyed, calling callback")
-                self._shutdown_callback()
 
     def paintEvent(self, e):
         """Extend paintEvent to emit a signal if the scroll position changed.

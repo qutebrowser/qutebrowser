@@ -146,7 +146,7 @@ class TabbedBrowser(TabWidget):
         tab.hintmanager.set_mode.connect(self.set_mode)
         tab.hintmanager.set_cmd_text.connect(self.set_cmd_text)
         # misc
-        tab.titleChanged.connect(self._titleChanged_handler)
+        tab.titleChanged.connect(self.on_title_changed)
         tab.open_tab.connect(self.tabopen)
 
     def cntwidget(self, count=None):
@@ -166,27 +166,6 @@ class TabbedBrowser(TabWidget):
             return self.widget(count - 1)
         else:
             return None
-
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
-        """Update tab config when config was changed."""
-        super().on_config_changed(section, option)
-        for tab in self._tabs:
-            tab.on_config_changed(section, option)
-
-    def _titleChanged_handler(self, text):
-        """Set the title of a tab.
-
-        Slot for the titleChanged signal of any tab.
-
-        Args:
-            text: The text to set.
-        """
-        logging.debug('title changed to "{}"'.format(text))
-        if text:
-            self.setTabText(self.indexOf(self.sender()), text)
-        else:
-            logging.debug('ignoring title change')
 
     def shutdown(self):
         """Try to shut down all tabs cleanly.
@@ -357,6 +336,28 @@ class TabbedBrowser(TabWidget):
             sel: True to use primary selection, False to use clipboard
         """
         self.paste(sel, True)
+
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
+        """Update tab config when config was changed."""
+        super().on_config_changed(section, option)
+        for tab in self._tabs:
+            tab.on_config_changed(section, option)
+
+    @pyqtSlot(str)
+    def on_title_changed(self, text):
+        """Set the title of a tab.
+
+        Slot for the titleChanged signal of any tab.
+
+        Args:
+            text: The text to set.
+        """
+        logging.debug('title changed to "{}"'.format(text))
+        if text:
+            self.setTabText(self.indexOf(self.sender()), text)
+        else:
+            logging.debug('ignoring title change')
 
     def keyPressEvent(self, e):
         """Extend TabWidget (QWidget)'s keyPressEvent to emit a signal.
