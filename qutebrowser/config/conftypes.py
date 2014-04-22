@@ -137,7 +137,7 @@ class BaseType:
                     desc = self.valid_values.descriptions[val]
                 except KeyError:
                     desc = ""
-            out.append((val, desc))
+                out.append((val, desc))
             return out
 
 
