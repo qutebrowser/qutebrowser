@@ -362,7 +362,18 @@ class HintManager(QObject):
         if not visible_elems:
             message.error("No elements found.")
             return
-        message.text("Following hint...")
+        texts = {
+            "normal": "Follow hint...",
+            "tab": "Follow hint in new tab...",
+            "bgtab": "Follow hint in background tab...",
+            "yank": "Yank hint to clipboard...",
+            "yank_primary": "Yank hint to primary selection...",
+            "cmd": "Set hint in commandline...",
+            "cmd_tab": "Set hint in commandline as new tab...",
+            "cmd_bgtab": "Set hint in commandline as background tab...",
+            "rapid": "Follow hint (rapid mode)...",
+        }
+        message.text(texts[target])
         strings = self._hint_strings(visible_elems)
         for e, string in zip(visible_elems, strings):
             label = self._draw_label(e, string)
