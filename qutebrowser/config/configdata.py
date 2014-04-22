@@ -53,54 +53,61 @@ FIRST_COMMENT = """
 
 
 SECTION_DESC = {
-    'general': 'General/misc. options',
-    'tabbar': 'Configuration of the tab bar.',
-    'webkit': 'Webkit settings.',
-    'hints': 'Hinting settings.',
+    'general': "General/misc. options",
+    'tabbar': "Configuration of the tab bar.",
+    'webkit': "Webkit settings.",
+    'hints': "Hinting settings.",
     'searchengines': (
-        'Definitions of search engines which can be used via the address '
-        'bar.\n'
-        'The searchengine named DEFAULT is used when general.auto_search '
-        'is true and something else than an URL was entered to be opened. '
-        'Other search engines can be used via the bang-syntax, e.g. '
-        '"qutebrowser !google". The string "{}" will be replaced by the '
-        'search term, use "{{" and "}}" for literal {/} signs.'),
+        "Definitions of search engines which can be used via the address "
+        "bar.\n"
+        "The searchengine named DEFAULT is used when general.auto_search "
+        "is true and something else than an URL was entered to be opened. "
+        "Other search engines can be used via the bang-syntax, e.g. "
+        "\"qutebrowser !google\". The string \"{}\" will be replaced by the "
+        "search term, use \"{{\" and \"}}\" for literal {/} signs."),
     'keybind': (
-        'Bindings from a key(chain) to a command.\n'
+        "Bindings from a key(chain) to a command.\n"
         "For special keys (can't be part of a keychain), enclose them in "
-        '@-signs. For modifiers, you can use either - or + as delimiters, and '
-        'these names:\n'
-        '  Control: Control, Ctrl\n'
-        '  Meta:    Meta, Windows, Mod4\n'
-        '  Alt:     Alt, Mod1\n'
-        '  Shift:   Shift\n'
-        'For simple keys (no @ signs), a capital letter means the key is '
-        'pressed with Shift. For modifier keys (with @ signs), you need '
-        'to explicitely add "Shift-" to match a key pressed with shift. '
-        'You can bind multiple commands by separating them with ";;".'),
+        "@-signs. For modifiers, you can use either - or + as delimiters, and "
+        "these names:\n"
+        "  Control: Control, Ctrl\n"
+        "  Meta:    Meta, Windows, Mod4\n"
+        "  Alt:     Alt, Mod1\n"
+        "  Shift:   Shift\n"
+        "For simple keys (no @ signs), a capital letter means the key is "
+        "pressed with Shift. For modifier keys (with @ signs), you need "
+        "to explicitely add \"Shift-\" to match a key pressed with shift. "
+        "You can bind multiple commands by separating them with \";;\"."),
     'aliases': (
-        'Aliases for commands.\n'
-        'By default, no aliases are defined. Example which adds a new command '
-        ':qtb to open qutebrowsers website:\n'
-        '  qtb = open http://www.qutebrowser.org/'),
+        "Aliases for commands.\n"
+        "By default, no aliases are defined. Example which adds a new command "
+        ":qtb to open qutebrowsers website:\n"
+        "  qtb = open http://www.qutebrowser.org/"),
     'colors': (
-        'Colors used in the UI.\n'
-        'A value can be in one of the following format:\n'
-        '  - #RGB/#RRGGBB/#RRRGGGBBB/#RRRRGGGGBBBB\n'
-        '  - A SVG color name as specified in [1].\n'
-        '  - transparent (no color)\n'
-        '  - rgb(r, g, b) / rgba(r, g, b, a) (values 0-255 or '
-        'percentages)\n'
-        '  - hsv(h, s, v) / hsva(h, s, v, a) (values 0-255, hue 0-359)\n'
-        '  - A gradient as explained at [2] under "Gradient"\n'
-        '[1] http://www.w3.org/TR/SVG/types.html#ColorKeywords\n'
-        '[2] http://qt-project.org/doc/qt-4.8/stylesheet-reference.html'
-        '#list-of-property-types'),
+        "Colors used in the UI.\n"
+        "A value can be in one of the following format:\n"
+        "  - #RGB/#RRGGBB/#RRRGGGBBB/#RRRRGGGGBBBB\n"
+        "  - A SVG color name as specified in [1].\n"
+        "  - transparent (no color)\n"
+        "  - rgb(r, g, b) / rgba(r, g, b, a) (values 0-255 or "
+        "percentages)\n"
+        "  - hsv(h, s, v) / hsva(h, s, v, a) (values 0-255, hue 0-359)\n"
+        "  - A gradient as explained at [2] under \"Gradient\"\n"
+        "  [1] http://www.w3.org/TR/SVG/types.html#ColorKeywords\n"
+        "  [2] http://qt-project.org/doc/qt-4.8/stylesheet-reference.html"
+        "#list-of-property-types\n"
+        "The \"hints.*\" values are a special case as they're real CSS "
+        "colors, not Qt-CSS colors. There, for a gradient, you need to use "
+        "-webkit-gradient, see [3].\n"
+        "  [3] https://www.webkit.org/blog/175/introducing-css-gradients/"),
     'fonts': (
-        'Fonts used for the UI, with optional style/weight/size.\n'
-        'Style: normal/italic/oblique\n'
-        'Weight: normal, bold, 100..900\n'
-        'Size: Number + px/pt\n'),
+        "Fonts used for the UI, with optional style/weight/size.\n"
+        "  Style: normal/italic/oblique\n"
+        "  Weight: normal, bold, 100..900\n"
+        "  Size: Number + px/pt\n"
+        "Note: The font for hints is a true CSS font, not a Qt-CSS one, "
+        "because of that, a general \"Monospace\" family is enough and we "
+        "don't use \"${_monospace}\" there."),
 }
 
 
