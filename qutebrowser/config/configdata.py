@@ -162,6 +162,10 @@ DATA = OrderedDict([
         ('background_tabs',
          SettingValue(types.Bool(), "false"),
          "Whether to open new tabs (middleclick/ctrl+click) in background"),
+
+        ('cmd_timeout',
+         SettingValue(types.Int(minval=0), "500"),
+         "Timeout for ambiguous keybindings."),
     )),
 
     ('tabbar', sect.KeyValue(

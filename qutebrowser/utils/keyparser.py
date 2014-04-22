@@ -19,9 +19,12 @@
 
 import re
 import logging
+from functools import partial
 
-from PyQt5.QtCore import pyqtSignal, Qt, QObject
+from PyQt5.QtCore import pyqtSignal, Qt, QObject, QTimer
 from PyQt5.QtGui import QKeySequence
+
+import qutebrowser.config.config as config
 
 
 class KeyParser(QObject):
@@ -35,11 +38,13 @@ class KeyParser(QObject):
         MATCH_PARTIAL: Constant for a partial match (no keychain matched yet,
                        but it's still possible in the future.
         MATCH_DEFINITIVE: Constant for a full match (keychain matches exactly).
+        MATCH_BOTH: There are both a partial and a definitive match.
         MATCH_NONE: Constant for no match (no more matches possible).
         supports_count: If the keyparser should support counts.
 
     Attributes:
         _keystring: The currently entered key sequence
+        _timer: QTimer for delayed execution.
         bindings: Bound keybindings
         modifier_bindings: Bound modifier bindings.
 
@@ -52,12 +57,14 @@ class KeyParser(QObject):
 
     MATCH_PARTIAL = 0
     MATCH_DEFINITIVE = 1
-    MATCH_NONE = 2
+    MATCH_BOTH = 2
+    MATCH_NONE = 3
 
     supports_count = False
 
     def __init__(self, parent=None, bindings=None, modifier_bindings=None):
         super().__init__(parent)
+        self._timer = None
         self._keystring = ''
         self.bindings = {} if bindings is None else bindings
         self.modifier_bindings = ({} if modifier_bindings is None
@@ -116,6 +123,11 @@ class KeyParser(QObject):
             logging.debug('Ignoring, no text')
             return
 
+        if self._timer is not None:
+            logging.debug("Stopping delayed execution.")
+            self._timer.stop()
+            self._timer = None
+
         self._keystring += txt
 
         if self.supports_count:
@@ -137,21 +149,35 @@ class KeyParser(QObject):
         (match, cmdstr_hay) = self._match_key(cmdstr_needle)
 
         if match == self.MATCH_DEFINITIVE:
-            pass
+            self._keystring = ''
+            count = int(countstr) if countstr else None
+            self.execute(cmdstr_hay, count=count)
+        elif match == self.MATCH_BOTH:
+            logging.debug("Partial and definitive match for \"{}\"".format(
+                self._keystring))
+            time = config.get('general', 'cmd_timeout')
+            count = int(countstr) if countstr else None
+            if time == 0:
+                # execute immediately
+                self._keystring = ''
+                self.execute(cmdstr_hay, count=count)
+            else:
+                # execute in `time' ms
+                logging.debug("Scheduling execution of {} in {}ms".format(
+                    cmdstr_hay, time))
+                self._timer = QTimer(self)
+                self._timer.setSingleShot(True)
+                self._timer.setInterval(time)
+                self._timer.timeout.connect(
+                    partial(self.delayed_exec, cmdstr_hay, count))
+                self._timer.start()
         elif match == self.MATCH_PARTIAL:
             logging.debug('No match for "{}" (added {})'.format(
                 self._keystring, txt))
-            return
         elif match == self.MATCH_NONE:
             logging.debug('Giving up with "{}", no matches'.format(
                 self._keystring))
             self._keystring = ''
-            return
-
-        self._keystring = ''
-        count = int(countstr) if countstr else None
-        self.execute(cmdstr_hay, count=count)
-        return
 
     def _match_key(self, cmdstr_needle):
         """Try to match a given keystring with any bound keychain.
@@ -164,20 +190,35 @@ class KeyParser(QObject):
             MATCH_PARTIAL or MATCH_NONE and hay is the long keystring where the
             part was found in.
         """
+        # Check definitive match
+        definitive_match = None
+        partial_match = False
         try:
             cmdstr_hay = self.bindings[cmdstr_needle]
-            return (self.MATCH_DEFINITIVE, cmdstr_hay)
         except KeyError:
-            # No definitive match, check if there's a chance of a partial match
-            for hay in self.bindings:
-                try:
-                    if cmdstr_needle[-1] == hay[len(cmdstr_needle) - 1]:
-                        return (self.MATCH_PARTIAL, None)
-                except IndexError:
-                    # current cmd is shorter than our cmdstr_needle, so it
-                    # won't match
-                    continue
-            # no definitive and no partial matches if we arrived here
+            pass
+        else:
+            definitive_match = (cmdstr_needle, cmdstr_hay)
+        # Check partial match
+        for hay in self.bindings:
+            if definitive_match is not None and hay == definitive_match[0]:
+                # We already matched that one
+                continue
+            try:
+                if cmdstr_needle[-1] == hay[len(cmdstr_needle) - 1]:
+                    partial_match = True
+                    break
+            except IndexError:
+                # current cmd is shorter than our cmdstr_needle, so it
+                # won't match
+                continue
+        if definitive_match is not None and partial_match:
+            return (self.MATCH_BOTH, definitive_match[1])
+        elif definitive_match is not None:
+            return (self.MATCH_DEFINITIVE, definitive_match[1])
+        elif partial_match:
+            return (self.MATCH_PARTIAL, None)
+        else:
             return (self.MATCH_NONE, None)
 
     def _normalize_keystr(self, keystr):
@@ -201,6 +242,21 @@ class KeyParser(QObject):
             keystr = keystr.replace(mod + '-', mod + '+')
         keystr = QKeySequence(keystr).toString()
         return keystr
+
+    def delayed_exec(self, command, count):
+        """Execute a delayed command.
+
+        Args:
+            command/count: As if passed to self.execute()
+
+        Emit:
+            keystring_updated to do a delayed update.
+        """
+        logging.debug("Executing delayed command now!")
+        self._timer = None
+        self._keystring = ''
+        self.keystring_updated.emit(self._keystring)
+        self.execute(command, count)
 
     def execute(self, cmdstr, count=None):
         """Execute an action when a binding is triggered."""
