@@ -362,6 +362,7 @@ class HintManager(QObject):
         if not visible_elems:
             message.error("No elements found.")
             return
+        message.text("Following hint...")
         strings = self._hint_strings(visible_elems)
         for e, string in zip(visible_elems, strings):
             label = self._draw_label(e, string)
@@ -380,6 +381,7 @@ class HintManager(QObject):
         self._elems = {}
         self._target = None
         self.set_mode.emit("normal")
+        message.clear()
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
