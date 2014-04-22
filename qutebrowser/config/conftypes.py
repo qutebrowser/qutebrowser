@@ -19,6 +19,8 @@
 
 from PyQt5.QtGui import QColor
 
+import qutebrowser.commands.utils as cmdutils
+
 
 class ValidationError(ValueError):
 
@@ -398,21 +400,17 @@ class Command(BaseType):
 
     """Base class for a command value with arguments."""
 
-    # FIXME we need to use this without having problems with circular imports.
-
     typestr = 'command'
 
-    #valid_values = ValidValues(*cmdutils.cmd_dict.items())
-
     def validate(self, value):
-        #from qutebrowser.commands.parsers import (CommandParser,
-        #                                          NoSuchCommandError)
-        #cp = CommandParser()
-        #try:
-        #    cp.parse(value)
-        #except NoSuchCommandError:
-        #    raise ValidationError(value, "must be a valid command!")
-        pass
+        if value.split()[0] not in cmdutils.cmd_dict:
+            raise ValidationError(value, "must be a valid command!")
+
+    def complete(self):
+        out = []
+        for cmdname, obj in cmdutils.cmd_dict.items():
+            out.append((cmdname, obj.desc))
+        return out
 
 
 class CssColor(BaseType):
