@@ -3,7 +3,7 @@
 # E265: Block comment should start with '#'
 # F401: Unused import (checked by pylint)
 # E501: Line too long (checked by pylint)
-# E821: undefined name (checked by pylint)
-ignore=E241,E265,F401,E501,E821
+# F821: undefined name (checked by pylint)
+ignore=E241,E265,F401,E501,F821
 max_complexity = 10
 exclude = appdirs.py
