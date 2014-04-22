@@ -60,7 +60,6 @@ keybind should have completion for commands/arguments
 Hiding scrollbars
 Ctrl+A/X to increase/decrease last number in URL
 command completion gets hidden when doing a new ValueList value
-log_events class decorator
 logging contexts
 
 Qt Bugs
