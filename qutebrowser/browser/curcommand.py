@@ -17,7 +17,7 @@
 
 """The main tabbed browser widget."""
 
-from PyQt5.QtWidgets import QApplication, QDialog
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import pyqtSlot, Qt, QObject
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrinter, QPrintDialog, QPrintPreviewDialog
