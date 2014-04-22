@@ -50,7 +50,6 @@ Minor features
 add setup.py and PKGBUILD
 add README
 add HACKING
-add AUTHORS
 handle completion for aliases
 keybind should have completion for commands/arguments
 Hiding scrollbars
