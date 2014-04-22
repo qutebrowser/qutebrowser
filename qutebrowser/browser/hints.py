@@ -86,6 +86,9 @@ class HintManager(QObject):
 
     Class attributes:
         SELECTORS: CSS selectors for the different highlighting modes.
+        FILTERS: A dictionary of filter functions for the modes.
+                 The filter for "links" filters javascript:-links and a-tags
+                 without "href".
         HINT_CSS: The CSS template to use for hints.
 
     Attributes:
@@ -122,6 +125,11 @@ class HintManager(QObject):
         "editable": ("input:not([type=hidden]), input[type=text], "
                      "input[type=password], input[type=search], textarea"),
         "url": "[src], [href]",
+    }
+
+    FILTERS = {
+        "links": (lambda e: e.hasAttribute("href") and
+                  urlutils.qurl(e.attribute("href")).scheme() != "javascript"),
     }
 
     HINT_CSS = """
@@ -325,8 +333,6 @@ class HintManager(QObject):
         if not link:
             return None
         link = urlutils.qurl(link)
-        if link.scheme() == "javascript":
-            return None
         if link.isRelative():
             link = self._baseurl.resolved(link)
         return link
@@ -343,12 +349,14 @@ class HintManager(QObject):
             hint_strings_updated: Emitted to update keypraser.
             set_mode: Emitted to enter hinting mode
         """
-        selector = HintManager.SELECTORS[mode]
         self._target = target
         self._baseurl = baseurl
-        elems = self._frame.findAllElements(selector)
+        elems = self._frame.findAllElements(self.SELECTORS[mode])
+        filterfunc = self.FILTERS.get(mode, lambda e: True)
         visible_elems = []
         for e in elems:
+            if not filterfunc(e):
+                continue
             rect = e.geometry()
             if (not rect.isValid()) and rect.x() == 0:
                 # Most likely an invisible link
