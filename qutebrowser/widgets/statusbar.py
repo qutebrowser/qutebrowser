@@ -544,6 +544,17 @@ class _Text(TextBase):
         self.normaltext = val
 
     @pyqtSlot(str)
+    def on_statusbar_message(self, val):
+        """Called when javascript tries to set a statusbar message.
+
+        For some reason, this is emitted a lot with an empty string during page
+        load, so we currently ignore these and thus don't support clearing the
+        message, which is a bit unfortunate...
+        """
+        if val:
+            self.temptext = val
+
+    @pyqtSlot(str)
     def set_temptext(self, val):
         """Setter for temptext, to be used as Qt slot."""
         self.temptext = val
