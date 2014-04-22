@@ -47,10 +47,7 @@ class TabWidget(QTabWidget):
         QTabBar::tab {{
             {color[tab.bg]}
             {color[tab.fg]}
-            padding-left: 5px;
-            padding-right: 5px;
-            padding-top: 0px;
-            padding-bottom: 0px;
+            padding: 0px 5px 0px 5px;
             border-right: 1px solid {color[tab.seperator]};
         }}
 

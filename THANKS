@@ -52,6 +52,7 @@ channel:
     - AlexWMF
     - scummos
     - svuorela
+    - kpj
 
 Thanks to these projects which were essential while developing qutebrowser:
     - Python
