@@ -160,9 +160,12 @@ class CurCommandDispatcher(QObject):
         Args:
             count: How many pages to go back.
         """
-        # FIXME display warning if beginning of history
         for _ in range(count):
-            self._tabs.currentWidget().back()
+            if self._tabs.currentWidget().page_.history().canGoBack():
+                self._tabs.currentWidget().back()
+            else:
+                message.info("At beginning of history.")
+                break
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
     def forward(self, count=1):
@@ -173,9 +176,12 @@ class CurCommandDispatcher(QObject):
         Args:
             count: How many pages to go forward.
         """
-        # FIXME display warning if end of history
         for _ in range(count):
-            self._tabs.currentWidget().forward()
+            if self._tabs.currentWidget().page_.history().canGoForward():
+                self._tabs.currentWidget().forward()
+            else:
+                message.info("At end of history.")
+                break
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
     def hint(self, mode="all", target="normal"):
