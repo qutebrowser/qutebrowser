@@ -156,34 +156,6 @@ class StatusBar(QWidget):
         self.error = False
         self.txt.errortext = ''
 
-    @pyqtSlot(str)
-    def disp_tmp_text(self, text):
-        """Display a temporary text.
-
-        Args:
-            text: The text to display, or an empty string to clear.
-        """
-        self.txt.temptext = text
-
-    @pyqtSlot()
-    def clear_tmp_text(self):
-        """Clear a temporary text."""
-        self.disp_tmp_text('')
-
-    @pyqtSlot(str)
-    def disp_text(self, text):
-        """Display a persistent text.
-
-        Args:
-            text: The text to display, or an empty string to clear.
-        """
-        self.txt.normaltext = text
-
-    @pyqtSlot()
-    def clear_text(self):
-        """Clear a persistent text."""
-        self.disp_text('')
-
     @pyqtSlot('QKeyEvent')
     def keypress(self, e):
         """Hide temporary error message if a key was pressed.
@@ -194,7 +166,7 @@ class StatusBar(QWidget):
         if e.key() in [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta]:
             # Only modifier pressed, don't hide yet.
             return
-        self.clear_tmp_text()
+        self.txt.set_temptext('')
         self.clear_error()
 
     def resizeEvent(self, e):

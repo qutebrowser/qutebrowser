@@ -261,9 +261,8 @@ class QuteBrowser(QApplication):
             self._keyparsers["hint"].on_hint_strings_updated)
         self.mainwindow.tabs.set_mode.connect(self.set_mode)
         message.bridge.error.connect(self.mainwindow.status.disp_error)
-        message.bridge.info.connect(self.mainwindow.status.disp_tmp_text)
-        message.bridge.text.connect(self.mainwindow.status.disp_text)
-        message.bridge.clear.connect(self.mainwindow.status.clear_text)
+        message.bridge.info.connect(self.mainwindow.status.txt.set_temptext)
+        message.bridge.text.connect(self.mainwindow.status.txt.set_normaltext)
         self.config.style_changed.connect(style.invalidate_caches)
         self.config.changed.connect(self.mainwindow.tabs.on_config_changed)
         self.config.changed.connect(

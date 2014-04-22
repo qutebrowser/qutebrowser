@@ -54,7 +54,7 @@ def text(message):
 
 def clear():
     """Clear a persistent message in the statusbar."""
-    bridge.clear.emit()
+    bridge.text.emit('')
 
 
 class MessageBridge(QObject):
@@ -64,4 +64,3 @@ class MessageBridge(QObject):
     error = pyqtSignal(str)
     info = pyqtSignal(str)
     text = pyqtSignal(str)
-    clear = pyqtSignal()
