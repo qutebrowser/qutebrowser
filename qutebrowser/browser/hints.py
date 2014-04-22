@@ -21,7 +21,7 @@ import logging
 import math
 from collections import namedtuple
 
-from PyQt5.QtCore import pyqtSignal, QObject, QEvent, Qt
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent, Qt
 from PyQt5.QtGui import QMouseEvent, QClipboard
 from PyQt5.QtWidgets import QApplication
 
@@ -367,6 +367,7 @@ class HintManager(QObject):
         for e, string in zip(visible_elems, strings):
             label = self._draw_label(e, string)
             self._elems[string] = ElemTuple(e, label)
+        self._frame.contentsSizeChanged.connect(self.on_contents_size_changed)
         self.hint_strings_updated.emit(strings)
         self.set_mode.emit("hint")
 
@@ -378,6 +379,8 @@ class HintManager(QObject):
         """
         for elem in self._elems.values():
             elem.label.removeFromDocument()
+        self._frame.contentsSizeChanged.disconnect(
+            self.on_contents_size_changed)
         self._elems = {}
         self._target = None
         self.set_mode.emit("normal")
@@ -425,3 +428,13 @@ class HintManager(QObject):
                 'cmd_bgtab': 'backtabopen',
             }
             self._set_cmd_text(link, commands[target])
+
+    # pylint: disable=unused-argument
+    @pyqtSlot('QSize')
+    def on_contents_size_changed(self, size):
+        """Reposition hints if contents size changed."""
+        for elems in self._elems.values():
+            rect = elems.elem.geometry()
+            css = self.HINT_CSS.format(left=rect.x(), top=rect.y(),
+                                       config=config.instance)
+            elems.label.setAttribute("style", css)
