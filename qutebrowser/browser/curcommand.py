@@ -64,7 +64,7 @@ class CurCommandDispatcher(QObject):
             perc = int(count)
         else:
             perc = float(perc)
-        frame = self._tabs.currentWidget().page_.mainFrame()
+        frame = self._tabs.currentWidget().page_.currentFrame()
         m = frame.scrollBarMaximum(orientation)
         if m == 0:
             return
@@ -234,7 +234,7 @@ class CurCommandDispatcher(QObject):
         """
         dx = int(count) * float(dx)
         dy = int(count) * float(dy)
-        self._tabs.currentWidget().page_.mainFrame().scroll(dx, dy)
+        self._tabs.currentWidget().page_.currentFrame().scroll(dx, dy)
 
     @cmdutils.register(instance='mainwindow.tabs.cur', name='scroll_perc_x',
                        hide=True)
@@ -271,11 +271,10 @@ class CurCommandDispatcher(QObject):
             my: How many pages to scroll down.
             count: multiplier
         """
-        # FIXME this might not work with HTML frames
-        page = self._tabs.currentWidget().page_
-        size = page.viewportSize()
-        page.mainFrame().scroll(int(count) * float(mx) * size.width(),
-                                int(count) * float(my) * size.height())
+        frame = self._tabs.currentWidget().page_.currentFrame()
+        size = frame.geometry()
+        frame.scroll(int(count) * float(mx) * size.width(),
+                     int(count) * float(my) * size.height())
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
     def yank(self, sel=False):
