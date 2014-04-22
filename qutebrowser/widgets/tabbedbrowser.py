@@ -127,6 +127,28 @@ class TabbedBrowser(TabWidget):
             logging.debug("Tab shutdown complete.")
             self.shutdown_complete.emit()
 
+    def _connect_tab_signals(self, tab):
+        """Set up the needed signals for tab."""
+        # filtered signals
+        tab.linkHovered.connect(self._filter.create(self.cur_link_hovered))
+        tab.loadProgress.connect(self._filter.create(self.cur_progress))
+        tab.loadFinished.connect(self._filter.create(self.cur_load_finished))
+        tab.loadStarted.connect(lambda:  # pylint: disable=unnecessary-lambda
+                                self.sender().signal_cache.clear())
+        tab.loadStarted.connect(self._filter.create(self.cur_load_started))
+        tab.statusBarMessage.connect(
+            self._filter.create(self.cur_statusbar_message))
+        tab.scroll_pos_changed.connect(
+            self._filter.create(self.cur_scroll_perc_changed))
+        tab.urlChanged.connect(self._filter.create(self.cur_url_changed))
+        # hintmanager
+        tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)
+        tab.hintmanager.set_mode.connect(self.set_mode)
+        tab.hintmanager.set_cmd_text.connect(self.set_cmd_text)
+        # misc
+        tab.titleChanged.connect(self._titleChanged_handler)
+        tab.open_tab.connect(self.tabopen)
+
     def cntwidget(self, count=None):
         """Return a widget based on a count/idx.
 
@@ -227,26 +249,11 @@ class TabbedBrowser(TabWidget):
         logging.debug("Opening {}".format(url))
         url = urlutils.qurl(url)
         tab = BrowserTab(self)
+        self._connect_tab_signals(tab)
         self._tabs.append(tab)
         self.addTab(tab, urlutils.urlstring(url))
-        tab.linkHovered.connect(self._filter.create(self.cur_link_hovered))
-        tab.loadProgress.connect(self._filter.create(self.cur_progress))
-        tab.loadFinished.connect(self._filter.create(self.cur_load_finished))
-        tab.loadStarted.connect(lambda:  # pylint: disable=unnecessary-lambda
-                                self.sender().signal_cache.clear())
-        tab.loadStarted.connect(self._filter.create(self.cur_load_started))
-        tab.statusBarMessage.connect(
-            self._filter.create(self.cur_statusbar_message))
-        tab.scroll_pos_changed.connect(
-            self._filter.create(self.cur_scroll_perc_changed))
-        tab.urlChanged.connect(self._filter.create(self.cur_url_changed))
-        tab.titleChanged.connect(self._titleChanged_handler)
-        tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)
-        tab.hintmanager.set_mode.connect(self.set_mode)
-        tab.hintmanager.set_cmd_text.connect(self.set_cmd_text)
         # FIXME sometimes this doesn't load
         tab.show()
-        tab.open_tab.connect(self.tabopen)
         tab.openurl(url)
         if not background:
             self.setCurrentWidget(tab)

@@ -233,45 +233,67 @@ class QuteBrowser(QApplication):
 
     def _connect_signals(self):
         """Connect all signals to their slots."""
+        # syntactic sugar
+        kp = self._keyparsers
+        status = self.mainwindow.status
+        completion = self.mainwindow.completion
+        tabs = self.mainwindow.tabs
+        cmd = self.mainwindow.status.cmd
+
+        # misc
         self.lastWindowClosed.connect(self.shutdown)
-        self.mainwindow.tabs.keypress.connect(
-            self.mainwindow.status.keypress)
-        self._keyparsers["normal"].set_cmd_text.connect(
-            self.mainwindow.status.cmd.set_cmd_text)
-        self.mainwindow.tabs.set_cmd_text.connect(
-            self.mainwindow.status.cmd.set_cmd_text)
-        self.mainwindow.tabs.quit.connect(self.shutdown)
-        self.mainwindow.status.cmd.got_cmd.connect(self.commandparser.run)
-        self.mainwindow.status.cmd.got_search.connect(self.searchparser.search)
-        self.mainwindow.status.cmd.got_search_rev.connect(
-            self.searchparser.search_rev)
-        self.mainwindow.status.cmd.returnPressed.connect(
-            self.mainwindow.tabs.setFocus)
-        self.searchparser.do_search.connect(
-            self.mainwindow.tabs.cur.search)
-        self._keyparsers["normal"].keystring_updated.connect(
-            self.mainwindow.status.keystring.setText)
-        self._keyparsers["hint"].fire_hint.connect(
-            self.mainwindow.tabs.cur.fire_hint)
-        self._keyparsers["hint"].abort_hinting.connect(
-            self.mainwindow.tabs.cur.abort_hinting)
-        self._keyparsers["hint"].keystring_updated.connect(
-            self.mainwindow.tabs.cur.handle_hint_key)
-        self.mainwindow.tabs.hint_strings_updated.connect(
-            self._keyparsers["hint"].on_hint_strings_updated)
-        self.mainwindow.tabs.set_mode.connect(self.set_mode)
-        message.bridge.error.connect(self.mainwindow.status.disp_error)
-        message.bridge.info.connect(self.mainwindow.status.txt.set_temptext)
-        message.bridge.text.connect(self.mainwindow.status.txt.set_normaltext)
+        tabs.quit.connect(self.shutdown)
+        tabs.set_mode.connect(self.set_mode)
+        tabs.currentChanged.connect(self.mainwindow.update_inspector)
+
+        # status bar
+        tabs.keypress.connect(status.keypress)
+        for obj in [kp["normal"], tabs]:
+            obj.set_cmd_text.connect(cmd.set_cmd_text)
+
+        # commands
+        cmd.got_cmd.connect(self.commandparser.run)
+        cmd.got_search.connect(self.searchparser.search)
+        cmd.got_search_rev.connect(self.searchparser.search_rev)
+        cmd.returnPressed.connect(tabs.setFocus)
+        self.searchparser.do_search.connect(tabs.cur.search)
+        kp["normal"].keystring_updated.connect(status.keystring.setText)
+
+        # hints
+        kp["hint"].fire_hint.connect(tabs.cur.fire_hint)
+        kp["hint"].abort_hinting.connect(tabs.cur.abort_hinting)
+        kp["hint"].keystring_updated.connect(tabs.cur.handle_hint_key)
+        tabs.hint_strings_updated.connect(kp["hint"].on_hint_strings_updated)
+
+        # messages
+        message.bridge.error.connect(status.disp_error)
+        message.bridge.info.connect(status.txt.set_temptext)
+        message.bridge.text.connect(status.txt.set_normaltext)
+
+        # config
         self.config.style_changed.connect(style.invalidate_caches)
-        self.config.changed.connect(self.mainwindow.tabs.on_config_changed)
-        self.config.changed.connect(
-            self.mainwindow.completion.on_config_changed)
-        self.config.changed.connect(self.mainwindow.on_config_changed)
-        self.config.changed.connect(config.cmd_history.on_config_changed)
-        self.config.changed.connect(websettings.on_config_changed)
-        self.config.changed.connect(
-            self._keyparsers["normal"].on_config_changed)
+        for obj in [tabs, completion, self.mainwindow, config.cmd_history,
+                    websettings, kp["normal"]]:
+            self.config.changed.connect(obj.on_config_changed)
+
+        # statusbar
+        tabs.cur_progress.connect(status.prog.setValue)
+        tabs.cur_load_finished.connect(status.prog.hide)
+        tabs.cur_load_finished.connect(status.url.on_loading_finished)
+        tabs.cur_load_started.connect(status.prog.on_load_started)
+        tabs.cur_scroll_perc_changed.connect(status.percentage.set_perc)
+        tabs.cur_statusbar_message.connect(status.txt.on_statusbar_message)
+        tabs.cur_url_changed.connect(status.url.set_url)
+        tabs.cur_link_hovered.connect(status.url.set_hover_url)
+
+        # command input / completion
+        cmd.esc_pressed.connect(tabs.setFocus)
+        cmd.clear_completion_selection.connect(
+            completion.on_clear_completion_selection)
+        cmd.hide_completion.connect(completion.hide)
+        cmd.textChanged.connect(completion.on_cmd_text_changed)
+        cmd.tab_pressed.connect(completion.on_tab_pressed)
+        completion.change_completed_part.connect(cmd.on_change_completed_part)
 
     def _recover_pages(self):
         """Try to recover all open pages.

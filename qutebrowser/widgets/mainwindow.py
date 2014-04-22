@@ -77,28 +77,6 @@ class MainWindow(QWidget):
         self.status = StatusBar()
         self._vbox.addWidget(self.status)
 
-        self.tabs.cur_progress.connect(self.status.prog.setValue)
-        self.tabs.cur_load_finished.connect(self.status.prog.hide)
-        self.tabs.cur_load_finished.connect(
-            self.status.url.on_loading_finished)
-        self.tabs.cur_load_started.connect(self.status.prog.on_load_started)
-        self.tabs.cur_scroll_perc_changed.connect(
-            self.status.percentage.set_perc)
-        self.tabs.cur_statusbar_message.connect(
-            self.status.txt.on_statusbar_message)
-        self.tabs.cur_url_changed.connect(self.status.url.set_url)
-        self.tabs.cur_link_hovered.connect(self.status.url.set_hover_url)
-        self.tabs.currentChanged.connect(self.update_inspector)
-        self.status.cmd.esc_pressed.connect(self.tabs.setFocus)
-        self.status.cmd.clear_completion_selection.connect(
-            self.completion.on_clear_completion_selection)
-        self.status.cmd.hide_completion.connect(self.completion.hide)
-        self.status.cmd.textChanged.connect(
-            self.completion.on_cmd_text_changed)
-        self.status.cmd.tab_pressed.connect(self.completion.on_tab_pressed)
-        self.completion.change_completed_part.connect(
-            self.status.cmd.on_change_completed_part)
-
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
