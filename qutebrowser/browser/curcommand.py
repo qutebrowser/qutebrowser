@@ -194,7 +194,8 @@ class CurCommandDispatcher(QObject):
             target: Where to open the links.
         """
         widget = self._tabs.currentWidget()
-        widget.hintmanager.start(widget.url(), mode, target)
+        widget.hintmanager.start(widget.page_.currentFrame(), widget.url(),
+                                 mode, target)
 
     @pyqtSlot(str)
     def handle_hint_key(self, keystr):

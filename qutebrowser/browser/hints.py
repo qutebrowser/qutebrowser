@@ -151,15 +151,15 @@ class HintManager(QObject):
     set_open_target = pyqtSignal(str)
     set_cmd_text = pyqtSignal(str)
 
-    def __init__(self, frame):
+    def __init__(self, parent=None):
         """Constructor.
 
         Args:
             frame: The QWebFrame to use for finding elements and drawing.
         """
-        super().__init__(frame)
-        self._frame = frame
+        super().__init__(parent)
         self._elems = {}
+        self._frame = None
         self._target = None
         self._baseurl = None
 
@@ -337,10 +337,11 @@ class HintManager(QObject):
             link = self._baseurl.resolved(link)
         return link
 
-    def start(self, baseurl, mode="all", target="normal"):
+    def start(self, frame, baseurl, mode="all", target="normal"):
         """Start hinting.
 
         Args:
+            frame: The QWebFrame to place hints in.
             baseurl: URL of the current page.
             mode: The mode to be used.
             target: What to do with the link. See attribute docstring.
@@ -351,7 +352,8 @@ class HintManager(QObject):
         """
         self._target = target
         self._baseurl = baseurl
-        elems = self._frame.findAllElements(self.SELECTORS[mode])
+        self._frame = frame
+        elems = frame.findAllElements(self.SELECTORS[mode])
         filterfunc = self.FILTERS.get(mode, lambda e: True)
         visible_elems = []
         for e in elems:
@@ -361,8 +363,8 @@ class HintManager(QObject):
             if (not rect.isValid()) and rect.x() == 0:
                 # Most likely an invisible link
                 continue
-            framegeom = self._frame.geometry()
-            framegeom.translate(self._frame.scrollPosition())
+            framegeom = frame.geometry()
+            framegeom.translate(frame.scrollPosition())
             if not framegeom.contains(rect.topLeft()):
                 # out of screen
                 continue
@@ -386,7 +388,7 @@ class HintManager(QObject):
         for e, string in zip(visible_elems, strings):
             label = self._draw_label(e, string)
             self._elems[string] = ElemTuple(e, label)
-        self._frame.contentsSizeChanged.connect(self.on_contents_size_changed)
+        frame.contentsSizeChanged.connect(self.on_contents_size_changed)
         self.hint_strings_updated.emit(strings)
         self.set_mode.emit("hint")
 
@@ -402,6 +404,7 @@ class HintManager(QObject):
             self.on_contents_size_changed)
         self._elems = {}
         self._target = None
+        self._frame = None
         self.set_mode.emit("normal")
         message.clear()
 
@@ -425,28 +428,27 @@ class HintManager(QObject):
         # Targets which require a valid link
         require_link = ['yank', 'yank_primary', 'cmd', 'cmd_tab', 'cmd_bgtab']
         elem = self._elems[keystr].elem
-        target = self._target
-        if target != 'rapid':
-            self.stop()
-        if target in require_link:
+        if self._target in require_link:
             link = self._resolve_link(elem)
             if link is None:
                 message.error("No suitable link found for this element.")
                 return
-        if target in ['normal', 'tab', 'bgtab']:
-            self._click(elem, target)
-        elif target == 'rapid':
+        if self._target in ['normal', 'tab', 'bgtab']:
+            self._click(elem, self._target)
+        elif self._target == 'rapid':
             self._click(elem, 'bgtab')
-        elif target in ['yank', 'yank_primary']:
-            sel = target == 'yank_primary'
+        elif self._target in ['yank', 'yank_primary']:
+            sel = self._target == 'yank_primary'
             self._yank(link, sel)
-        elif target in ['cmd', 'cmd_tab', 'cmd_bgtab']:
+        elif self._target in ['cmd', 'cmd_tab', 'cmd_bgtab']:
             commands = {
                 'cmd': 'open',
                 'cmd_tab': 'tabopen',
                 'cmd_bgtab': 'backtabopen',
             }
-            self._set_cmd_text(link, commands[target])
+            self._set_cmd_text(link, commands[self._target])
+        if self._target != 'rapid':
+            self.stop()
 
     # pylint: disable=unused-argument
     @pyqtSlot('QSize')
