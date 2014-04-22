@@ -483,7 +483,6 @@ class KeyBindingName(BaseType):
     """The name (keys) of a keybinding."""
 
     def validate(self, value):
-        # FIXME can we validate anything here?
         pass
 
 
