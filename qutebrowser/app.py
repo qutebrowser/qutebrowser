@@ -262,6 +262,8 @@ class QuteBrowser(QApplication):
         self.mainwindow.tabs.set_mode.connect(self.set_mode)
         message.bridge.error.connect(self.mainwindow.status.disp_error)
         message.bridge.info.connect(self.mainwindow.status.disp_tmp_text)
+        message.bridge.text.connect(self.mainwindow.status.disp_text)
+        message.bridge.clear.connect(self.mainwindow.status.clear_text)
         self.config.style_changed.connect(style.invalidate_caches)
         self.config.changed.connect(self.mainwindow.tabs.on_config_changed)
         self.config.changed.connect(

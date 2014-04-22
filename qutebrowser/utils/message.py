@@ -43,8 +43,18 @@ def error(message):
 
 
 def info(message):
-    """Display an info message in the statusbar."""
+    """Display a temporary info message in the statusbar."""
     bridge.info.emit(message)
+
+
+def text(message):
+    """Display a persistent message in the statusbar."""
+    bridge.text.emit(message)
+
+
+def clear():
+    """Clear a persistent message in the statusbar."""
+    bridge.clear.emit()
 
 
 class MessageBridge(QObject):
@@ -53,3 +63,5 @@ class MessageBridge(QObject):
 
     error = pyqtSignal(str)
     info = pyqtSignal(str)
+    text = pyqtSignal(str)
+    clear = pyqtSignal()
