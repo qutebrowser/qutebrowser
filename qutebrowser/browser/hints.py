@@ -121,8 +121,8 @@ class HintManager(QObject):
                 "[role=option], [role=button], img"),
         "links": "a",
         "images": "img",
-        # FIXME remove input:not([type=hidden]) and add more explicit inputs.
-        "editable": ("input:not([type=hidden]), input[type=text], "
+        "editable": ("input[type=text], input[type=email], input[type=url],"
+                     "input[type=tel], input[type=number], "
                      "input[type=password], input[type=search], textarea"),
         "url": "[src], [href]",
     }
