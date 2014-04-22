@@ -188,6 +188,10 @@ DATA = OrderedDict([
         ('last_close',
          SettingValue(types.LastClose(), "ignore"),
          "Behaviour when the last tab is closed."),
+
+        ('wrap',
+         SettingValue(types.Bool(), "true"),
+         "Whether to wrap when changing tabs."),
     )),
 
     ('webkit', sect.KeyValue(

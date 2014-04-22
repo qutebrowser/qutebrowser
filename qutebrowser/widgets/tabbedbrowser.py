@@ -278,12 +278,13 @@ class TabbedBrowser(TabWidget):
         Args:
             count: How many tabs to switch back.
         """
-        idx = self.currentIndex()
-        if idx - count >= 0:
-            self.setCurrentIndex(idx - count)
+        newidx = self.currentIndex() - count
+        if newidx >= 0:
+            self.setCurrentIndex(newidx)
+        elif config.get('tabbar', 'wrap'):
+            self.setCurrentIndex(newidx % self.count())
         else:
-            # FIXME display message or wrap
-            pass
+            message.info("First tab")
 
     @cmdutils.register(instance='mainwindow.tabs', name='tabnext')
     def switch_next(self, count=1):
@@ -294,12 +295,13 @@ class TabbedBrowser(TabWidget):
         Args:
             count: How many tabs to switch forward.
         """
-        idx = self.currentIndex()
-        if idx + count < self.count():
-            self.setCurrentIndex(idx + count)
+        newidx = self.currentIndex() + count
+        if newidx < self.count():
+            self.setCurrentIndex(newidx)
+        elif config.get('tabbar', 'wrap'):
+            self.setCurrentIndex(newidx % self.count())
         else:
-            # FIXME display message or wrap
-            pass
+            message.info("Last tab")
 
     @cmdutils.register(instance='mainwindow.tabs', nargs=(0, 1))
     def paste(self, sel=False, tab=False):
