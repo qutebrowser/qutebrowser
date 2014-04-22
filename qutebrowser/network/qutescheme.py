@@ -88,7 +88,6 @@ class QuteSchemeHandler(SchemeHandler):
             A QNetworkReply.
         """
         # pylint: disable=unused-argument
-        # FIXME handle unknown pages
         logging.debug('request: {}'.format(request))
         url = urlstring(request.url())
         try:
