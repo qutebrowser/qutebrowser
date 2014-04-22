@@ -91,8 +91,12 @@ class QuteSchemeHandler(SchemeHandler):
         # FIXME handle unknown pages
         logging.debug('request: {}'.format(request))
         url = urlstring(request.url())
-        handler = getattr(QuteHandlers, self._transform_url(url))
-        data = handler()
+        try:
+            handler = getattr(QuteHandlers, self._transform_url(url))
+        except AttributeError:
+            data = bytes()
+        else:
+            data = handler()
         return SpecialNetworkReply(request, data, "text/html", self.parent())
 
 
