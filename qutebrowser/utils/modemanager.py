@@ -94,6 +94,8 @@ class ModeManager(QObject):
         """
         oldmode = self.mode
         logging.debug("Switching mode: {} -> {}".format(oldmode, mode))
+        if mode not in self._handlers:
+            raise ValueError("No handler for mode {}".format(mode))
         if oldmode is not None:
             self.leaved.emit(oldmode)
         self.mode = mode
