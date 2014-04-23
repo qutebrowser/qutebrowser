@@ -54,6 +54,7 @@ class ModeManager(QObject):
 
     Attributes:
         _handlers: A dictionary of modes and their handlers.
+        _passthrough: A list of modes in which to pass through events.
         mode: The current mode.
 
     Signals:
@@ -74,19 +75,24 @@ class ModeManager(QObject):
         """
         super().__init__(parent)
         self._handlers = {}
+        self._passthrough = []
         self.mode = None
         if parsers is not None:
             for name, parser in parsers.items():
                 self._handlers[name] = parser.handle
 
-    def register(self, mode, handler):
+    def register(self, mode, handler, passthrough=False):
         """Register a new mode.
 
         Args:
             mode: The name of the mode.
             handler: Handler for keyPressEvents.
+            passthrough: Whether to pass keybindings in this mode through to
+                         the widgets.
         """
         self._handlers[mode] = handler
+        if passthrough:
+            self._passthrough.append(mode)
 
     def enter(self, mode):
         """Enter a new mode.
