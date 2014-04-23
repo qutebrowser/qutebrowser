@@ -271,6 +271,8 @@ class BrowserTab(QWebView):
         if hitresult.isContentEditable():
             logging.debug("Clicked editable element!")
             modemanager.enter("insert")
+        else:
+            modemanager.enter("normal")
 
         if self._force_open_target is not None:
             self._open_target = self._force_open_target
