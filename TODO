@@ -47,6 +47,12 @@ Minor features
 ==============
 
 add setup.py and PKGBUILD
+    add to run_checks.py:
+        namcap?
+        https://pypi.python.org/pypi/pyroma
+        https://pypi.python.org/pypi/check-manifest
+    maybe useful:
+        https://pypi.python.org/pypi/zest.releaser
 add README
 add HACKING
 handle completion for aliases
