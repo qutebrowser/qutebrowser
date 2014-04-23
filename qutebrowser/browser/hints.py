@@ -266,6 +266,11 @@ class HintManager(QObject):
         css = self.HINT_CSS.format(left=rect.x(), top=rect.y(),
                                    config=config.instance)
         doc = self._frame.documentElement()
+        # It seems impossible to create an empty QWebElement for which isNull()
+        # is false so we can work with it.
+        # As a workaround, we use appendInside() with markup as argument, and
+        # then use lastChild() to get a reference to it.
+        # See: http://stackoverflow.com/q/7364852/2085149
         doc.appendInside('<span class="qutehint" style="{}">{}</span>'.format(
                          css, string))
         return doc.lastChild()
