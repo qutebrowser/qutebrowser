@@ -53,6 +53,7 @@ import qutebrowser.config.style as style
 import qutebrowser.config.config as config
 import qutebrowser.network.qutescheme as qutescheme
 import qutebrowser.utils.message as message
+import qutebrowser.utils.modemanager as modemanager
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
 from qutebrowser.commands.keys import CommandKeyParser
@@ -83,7 +84,6 @@ class QuteBrowser(QApplication):
         _timers: List of used QTimers so they don't get GCed.
         _shutting_down: True if we're currently shutting down.
         _quit_status: The current quitting status.
-        _mode: The mode we're currently in.
         _opened_urls: List of opened URLs.
     """
 
@@ -93,7 +93,6 @@ class QuteBrowser(QApplication):
         self._timers = []
         self._opened_urls = []
         self._shutting_down = False
-        self._mode = None
 
         sys.excepthook = self._exception_hook
 
@@ -130,10 +129,11 @@ class QuteBrowser(QApplication):
         }
         self._init_cmds()
         self.mainwindow = MainWindow()
+        modemanager.init(self.mainwindow.tabs.keypress, self._keyparsers, self)
         self.setQuitOnLastWindowClosed(False)
 
         self._connect_signals()
-        self.set_mode("normal")
+        modemanager.enter("normal")
 
         self.mainwindow.show()
         self._python_hacks()
@@ -246,7 +246,6 @@ class QuteBrowser(QApplication):
         # misc
         self.lastWindowClosed.connect(self.shutdown)
         tabs.quit.connect(self.shutdown)
-        tabs.set_mode.connect(self.set_mode)
         tabs.currentChanged.connect(self.mainwindow.update_inspector)
 
         # status bar
@@ -400,20 +399,6 @@ class QuteBrowser(QApplication):
         if all(self._quit_status.values()):
             logging.debug("maybe_quit quitting.")
             self.quit()
-
-    @pyqtSlot(str)
-    def set_mode(self, mode):
-        """Set a key input mode.
-
-        Args:
-            mode: The new mode to set, as an index for self._keyparsers.
-        """
-        if self._mode is not None:
-            oldhandler = self._keyparsers[self._mode]
-            self.mainwindow.tabs.keypress.disconnect(oldhandler.handle)
-        handler = self._keyparsers[mode]
-        self.mainwindow.tabs.keypress.connect(handler.handle)
-        self._mode = mode
 
     @cmdutils.register(instance='', maxsplit=0)
     def pyeval(self, s):

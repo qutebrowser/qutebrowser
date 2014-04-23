@@ -28,6 +28,7 @@ from PyQt5.QtWidgets import QApplication
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
 import qutebrowser.utils.url as urlutils
+import qutebrowser.utils.modemanager as modemanager
 from qutebrowser.utils.keyparser import KeyParser
 
 
@@ -104,8 +105,6 @@ class HintManager(QObject):
     Signals:
         hint_strings_updated: Emitted when the possible hint strings changed.
                               arg: A list of hint strings.
-        set_mode: Emitted when the input mode should be changed.
-                  arg: The new mode, as a string.
         mouse_event: Mouse event to be posted in the web view.
                      arg: A QMouseEvent
         openurl: Open a new url
@@ -146,7 +145,6 @@ class HintManager(QObject):
     """
 
     hint_strings_updated = pyqtSignal(list)
-    set_mode = pyqtSignal(str)
     mouse_event = pyqtSignal('QMouseEvent')
     set_open_target = pyqtSignal(str)
     set_cmd_text = pyqtSignal(str)
@@ -353,7 +351,6 @@ class HintManager(QObject):
 
         Emit:
             hint_strings_updated: Emitted to update keypraser.
-            set_mode: Emitted to enter hinting mode
         """
         self._target = target
         self._baseurl = baseurl
@@ -395,14 +392,10 @@ class HintManager(QObject):
             self._elems[string] = ElemTuple(e, label)
         frame.contentsSizeChanged.connect(self.on_contents_size_changed)
         self.hint_strings_updated.emit(strings)
-        self.set_mode.emit("hint")
+        modemanager.enter("hint")
 
     def stop(self):
-        """Stop hinting.
-
-        Emit:
-            set_mode: Emitted to leave hinting mode.
-        """
+        """Stop hinting."""
         for elem in self._elems.values():
             elem.label.removeFromDocument()
         self._frame.contentsSizeChanged.disconnect(
@@ -410,7 +403,7 @@ class HintManager(QObject):
         self._elems = {}
         self._target = None
         self._frame = None
-        self.set_mode.emit("normal")
+        modemanager.enter("normal")
         message.clear()
 
     def handle_partial_key(self, keystr):
