@@ -48,16 +48,6 @@ def enter(mode):
     manager.enter(mode)
 
 
-def register(mode, handler):
-    """Register a new mode.
-
-    Args:
-        mode: The name of the mode.
-        handler: Handler for keyPressEvents.
-    """
-    manager.register(mode, handler)
-
-
 class ModeManager(QObject):
 
     """Manager for keyboard modes.
