@@ -268,6 +268,8 @@ class TabbedBrowser(TabWidget):
         """
         if self._url_stack:
             self.tabopen(self._url_stack.pop())
+        else:
+            message.error("Nothing to undo!")
 
     @cmdutils.register(instance='mainwindow.tabs', name='tabprev')
     def switch_prev(self, count=1):
