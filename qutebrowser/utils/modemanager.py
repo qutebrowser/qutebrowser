@@ -23,7 +23,7 @@ Module attributes:
 
 import logging
 
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import pyqtSignal, QObject
 
 
 manager = None
@@ -67,7 +67,16 @@ class ModeManager(QObject):
         _source: The keypress source signal.
         _handlers: A dictionary of modes and their handlers.
         mode: The current mode.
+
+    Signals:
+        entered: Emitted when a mode is entered.
+                 arg: Name of the entered mode.
+        leaved:  Emitted when a mode is leaved.
+                 arg: Name of the leaved mode.
     """
+
+    entered = pyqtSignal(str)
+    leaved = pyqtSignal(str)
 
     def __init__(self, sourcesig, parsers=None, parent=None):
         """Constructor.
@@ -94,7 +103,12 @@ class ModeManager(QObject):
         self._handlers[mode] = handler
 
     def enter(self, mode):
-        """Enter a new mode."""
+        """Enter a new mode.
+
+        Emit:
+            leaved: With the old mode name.
+            entered: With the new mode name.
+        """
         oldmode = self.mode
         logging.debug("Switching mode: {} -> {}".format(oldmode, mode))
         if oldmode is not None:
@@ -102,5 +116,7 @@ class ModeManager(QObject):
                 self._source.disconnect(self._handlers[oldmode])
             except TypeError:
                 logging.debug("Could not disconnect mode {}".format(oldmode))
+            self.leaved.emit(oldmode)
         self._source.connect(self._handlers[mode])
         self.mode = mode
+        self.entered.emit(mode)
