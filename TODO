@@ -13,6 +13,11 @@ Style
 Refactor completion widget mess (initializing / changing completions)
 keypress-signal-foo is a bit of a chaos and might be done better
 we probably could replace CompletionModel with QStandardModel...
+replace foo_bar options with foo-bar
+reorder options
+clean up utils/ mess (e.g. keys/ subfolder?)
+rename *Parser to more meaningful names
+rename modemanager because it sounds like modemmanager (at least imported name)
 
 Major features
 ==============
