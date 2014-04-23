@@ -249,12 +249,13 @@ class BrowserTab(QWebView):
         return super().paintEvent(e)
 
     def mousePressEvent(self, e):
-        """Check if a link was clicked with the middle button or Ctrl.
+        """Extend QWidget::mousePressEvent().
 
-        Extend the superclass mousePressEvent().
-
-        This also is a bit of a hack, but it seems it's the only possible way.
-        Set the _open_target attribute accordingly.
+        This does the following things:
+            - Check if a link was clicked with the middle button or Ctrl and
+              set the _open_target attribute accordingly.
+            - Emit the editable_elem_selected signal if an editable element was
+              clicked.
 
         Args:
             e: The arrived event.
@@ -262,6 +263,14 @@ class BrowserTab(QWebView):
         Return:
             The superclass return value.
         """
+        pos = e.pos()
+        frame = self.page_.frameAt(pos)
+        pos -= frame.geometry().topLeft()
+        hitresult = frame.hitTestContent(pos)
+        if hitresult.isContentEditable():
+            logging.debug("Clicked editable element!")
+            self.setFocus()
+
         if self._force_open_target is not None:
             self._open_target = self._force_open_target
             self._force_open_target = None
