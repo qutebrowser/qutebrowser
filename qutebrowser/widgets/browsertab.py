@@ -20,7 +20,7 @@
 import logging
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QEvent
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
@@ -248,10 +248,10 @@ class BrowserTab(QWebView):
         # Let superclass handle the event
         return super().paintEvent(e)
 
-    def event(self, e):
+    def mousePressEvent(self, e):
         """Check if a link was clicked with the middle button or Ctrl.
 
-        Extend the superclass event().
+        Extend the superclass mousePressEvent().
 
         This also is a bit of a hack, but it seems it's the only possible way.
         Set the _open_target attribute accordingly.
@@ -260,21 +260,20 @@ class BrowserTab(QWebView):
             e: The arrived event.
 
         Return:
-            The superclass event return value.
+            The superclass return value.
         """
-        if e.type() in [QEvent.MouseButtonPress, QEvent.MouseButtonDblClick]:
-            if self._force_open_target is not None:
-                self._open_target = self._force_open_target
-                self._force_open_target = None
-                logging.debug("Setting force target: {}".format(
-                    self._open_target))
-            elif (e.button() == Qt.MidButton or
-                  e.modifiers() & Qt.ControlModifier):
-                if config.get('general', 'background_tabs'):
-                    self._open_target = "bgtab"
-                else:
-                    self._open_target = "tab"
-                logging.debug("Setting target: {}".format(self._open_target))
+        if self._force_open_target is not None:
+            self._open_target = self._force_open_target
+            self._force_open_target = None
+            logging.debug("Setting force target: {}".format(
+                self._open_target))
+        elif (e.button() == Qt.MidButton or
+              e.modifiers() & Qt.ControlModifier):
+            if config.get('general', 'background_tabs'):
+                self._open_target = "bgtab"
             else:
-                self._open_target = "normal"
-        return super().event(e)
+                self._open_target = "tab"
+            logging.debug("Setting target: {}".format(self._open_target))
+        else:
+            self._open_target = "normal"
+        return super().mousePressEvent(e)
