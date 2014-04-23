@@ -45,7 +45,7 @@ import qutebrowser.utils.harfbuzz as harfbuzz
 harfbuzz.fix()
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
-from PyQt5.QtCore import pyqtSlot, QTimer, QEventLoop
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QEventLoop, QEvent
 
 import qutebrowser
 import qutebrowser.commands.utils as cmdutils
@@ -129,7 +129,8 @@ class QuteBrowser(QApplication):
         }
         self._init_cmds()
         self.mainwindow = MainWindow()
-        modemanager.init(self.mainwindow.tabs.keypress, self._keyparsers, self)
+        modemanager.init(self._keyparsers, self)
+        self.installEventFilter(modemanager.manager)
         self.setQuitOnLastWindowClosed(False)
 
         self._connect_signals()
@@ -249,6 +250,7 @@ class QuteBrowser(QApplication):
         tabs.currentChanged.connect(self.mainwindow.update_inspector)
 
         # status bar
+        # FIXME what to do here?
         tabs.keypress.connect(status.keypress)
         for obj in [kp["normal"], tabs]:
             obj.set_cmd_text.connect(cmd.set_cmd_text)

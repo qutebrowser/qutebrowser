@@ -23,25 +23,24 @@ Module attributes:
 
 import logging
 
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject, QEvent
 
 
 manager = None
 
 
-def init(source, parsers=None, parent=None):
+def init(parsers=None, parent=None):
     """Initialize the global ModeManager.
 
     This needs to be done by hand because the import time is before Qt is ready
     for everything.
 
     Args:
-        source: The keypress source signal.
         parsers: A dict of KeyParsers to register.
         parent: Parent to use for ModeManager.
     """
     global manager
-    manager = ModeManager(source, parsers, parent)
+    manager = ModeManager(parsers, parent)
 
 
 def enter(mode):
@@ -64,7 +63,6 @@ class ModeManager(QObject):
     """Manager for keyboard modes.
 
     Attributes:
-        _source: The keypress source signal.
         _handlers: A dictionary of modes and their handlers.
         mode: The current mode.
 
@@ -78,15 +76,13 @@ class ModeManager(QObject):
     entered = pyqtSignal(str)
     leaved = pyqtSignal(str)
 
-    def __init__(self, sourcesig, parsers=None, parent=None):
+    def __init__(self, parsers=None, parent=None):
         """Constructor.
 
         Args:
-            sourcesig: The signal which gets emitted on a keypress.
             parsers: A list of parsers to register.
         """
         super().__init__(parent)
-        self._source = sourcesig
         self._handlers = {}
         self.mode = None
         if parsers is not None:
@@ -112,11 +108,17 @@ class ModeManager(QObject):
         oldmode = self.mode
         logging.debug("Switching mode: {} -> {}".format(oldmode, mode))
         if oldmode is not None:
-            try:
-                self._source.disconnect(self._handlers[oldmode])
-            except TypeError:
-                logging.debug("Could not disconnect mode {}".format(oldmode))
             self.leaved.emit(oldmode)
-        self._source.connect(self._handlers[mode])
         self.mode = mode
         self.entered.emit(mode)
+
+    def eventFilter(self, obj, evt):
+        if evt.type() not in [QEvent.KeyPress, QEvent.KeyRelease]:
+            return False
+        elif self.mode == "insert":
+            return False
+        elif evt.type() == QEvent.KeyPress:
+            self._handlers[self.mode](evt)
+            return True
+        else:
+            return True

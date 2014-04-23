@@ -28,6 +28,7 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 import qutebrowser.utils.url as urlutils
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
+import qutebrowser.utils.modemanager as modemanager
 from qutebrowser.browser.webpage import BrowserPage
 from qutebrowser.browser.hints import HintManager
 from qutebrowser.utils.signals import SignalCache
@@ -269,7 +270,7 @@ class BrowserTab(QWebView):
         hitresult = frame.hitTestContent(pos)
         if hitresult.isContentEditable():
             logging.debug("Clicked editable element!")
-            self.setFocus()
+            modemanager.enter("insert")
 
         if self._force_open_target is not None:
             self._open_target = self._force_open_target
