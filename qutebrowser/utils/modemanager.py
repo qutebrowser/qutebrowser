@@ -29,18 +29,17 @@ from PyQt5.QtCore import pyqtSignal, QObject, QEvent
 manager = None
 
 
-def init(parsers=None, parent=None):
+def init(parent=None):
     """Initialize the global ModeManager.
 
     This needs to be done by hand because the import time is before Qt is ready
     for everything.
 
     Args:
-        parsers: A dict of KeyParsers to register.
         parent: Parent to use for ModeManager.
     """
     global manager
-    manager = ModeManager(parsers, parent)
+    manager = ModeManager(parent)
 
 
 def enter(mode):
@@ -67,19 +66,11 @@ class ModeManager(QObject):
     entered = pyqtSignal(str)
     leaved = pyqtSignal(str)
 
-    def __init__(self, parsers=None, parent=None):
-        """Constructor.
-
-        Args:
-            parsers: A list of parsers to register.
-        """
+    def __init__(self, parent=None):
         super().__init__(parent)
         self._handlers = {}
         self._passthrough = []
         self.mode = None
-        if parsers is not None:
-            for name, parser in parsers.items():
-                self._handlers[name] = parser.handle
 
     def register(self, mode, handler, passthrough=False):
         """Register a new mode.

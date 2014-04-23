@@ -129,7 +129,12 @@ class QuteBrowser(QApplication):
         }
         self._init_cmds()
         self.mainwindow = MainWindow()
-        modemanager.init(self._keyparsers, self)
+        modemanager.init(self)
+        modemanager.manager.register("normal",
+                                     self._keyparsers["normal"].handle)
+        modemanager.manager.register("hint", self._keyparsers["hint"].handle)
+        modemanager.manager.register("insert", None, passthrough=True)
+        modemanager.manager.register("command", None, passthrough=True)
         self.installEventFilter(modemanager.manager)
         self.setQuitOnLastWindowClosed(False)
 
