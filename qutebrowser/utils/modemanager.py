@@ -102,12 +102,29 @@ class ModeManager(QObject):
         self.entered.emit(mode)
 
     def eventFilter(self, obj, evt):
-        if evt.type() not in [QEvent.KeyPress, QEvent.KeyRelease]:
+        """Filter all events based on the currently set mode.
+
+        Also calls the real keypress handler.
+        """
+        typ = evt.type()
+        handler = self._handlers[self.mode]
+        if typ not in [QEvent.KeyPress, QEvent.KeyRelease]:
+            # We're not interested in non-key-events so we pass them through.
             return False
-        elif self.mode == "insert":
+        elif self.mode in self._passthrough:
+            # We're currently in a passthrough mode so we pass everything
+            # through.*and* let the passthrough keyhandler know.
+            # FIXME what if we leave the passthrough mode right here?
+            if handler is not None:
+                handler(evt)
             return False
-        elif evt.type() == QEvent.KeyPress:
-            self._handlers[self.mode](evt)
+        elif typ == QEvent.KeyPress:
+            # KeyPress in a non-passthrough mode - call handler and filter
+            # event from widgets
+            if handler is not None:
+                handler(evt)
             return True
         else:
+            # KeyRelease in a non-passthrough mode - filter event and ignore it
+            # entirely.
             return True
