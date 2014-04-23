@@ -23,8 +23,9 @@ from PyQt5.QtWidgets import (QWidget, QLineEdit, QProgressBar, QLabel,
                              QShortcut)
 from PyQt5.QtGui import QPainter, QKeySequence, QValidator
 
-from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 import qutebrowser.commands.keys as keys
+import qutebrowser.utils.modemanager as modemanager
+from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 from qutebrowser.utils.url import urlstring
 from qutebrowser.commands.parsers import split_cmdline
 from qutebrowser.models.cmdhistory import (History, HistoryEmptyError,
@@ -342,8 +343,18 @@ class _Command(QLineEdit):
         self.setFocus()
         self.show_cmd.emit()
 
+    def focusInEvent(self, e):
+        """Extend focusInEvent to enter command mode."""
+        modemanager.enter("command")
+        super().focusInEvent(e)
+
     def focusOutEvent(self, e):
-        """Clear the statusbar text if it's explicitely unfocused.
+        """Extend focusOutEvent to do several tasks.
+
+        - Clear the statusbar text if it's explicitely unfocused.
+        - Leave command mode
+        - Clear completion selection
+        - Hide completion
 
         Args:
             e: The QFocusEvent.
@@ -352,6 +363,7 @@ class _Command(QLineEdit):
             clear_completion_selection: Always emitted.
             hide_completion: Always emitted so the completion is hidden.
         """
+        modemanager.enter("normal")
         if e.reason() in [Qt.MouseFocusReason, Qt.TabFocusReason,
                           Qt.BacktabFocusReason, Qt.OtherFocusReason]:
             self.setText('')
