@@ -268,6 +268,8 @@ class TabbedBrowser(TabWidget):
         """
         if self._url_stack:
             self.tabopen(self._url_stack.pop())
+        else:
+            message.error("Nothing to undo!")
 
     @cmdutils.register(instance='mainwindow.tabs', name='tabprev')
     def switch_prev(self, count=1):
@@ -284,7 +286,7 @@ class TabbedBrowser(TabWidget):
         elif config.get('tabbar', 'wrap'):
             self.setCurrentIndex(newidx % self.count())
         else:
-            message.info("First tab")
+            message.error("First tab")
 
     @cmdutils.register(instance='mainwindow.tabs', name='tabnext')
     def switch_next(self, count=1):
@@ -301,7 +303,7 @@ class TabbedBrowser(TabWidget):
         elif config.get('tabbar', 'wrap'):
             self.setCurrentIndex(newidx % self.count())
         else:
-            message.info("Last tab")
+            message.error("Last tab")
 
     @cmdutils.register(instance='mainwindow.tabs', nargs=(0, 1))
     def paste(self, sel=False, tab=False):

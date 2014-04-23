@@ -18,8 +18,10 @@
 """Utilities used for debugging."""
 
 import sys
+import logging
+from functools import wraps
 
-from PyQt5.QtCore import pyqtRemoveInputHook
+from PyQt5.QtCore import pyqtRemoveInputHook, QEvent
 
 try:
     # pylint: disable=import-error
@@ -28,6 +30,24 @@ except ImportError:
     from pdb import set_trace as pdb_set_trace
 
 import qutebrowser.commands.utils as cmdutils
+
+EVENTS = {n: x for x, n in vars(QEvent).items()
+          if isinstance(n, QEvent.Type)}
+
+
+def log_events(klass):
+    """Class decorator to log Qt events."""
+    old_event = klass.event
+
+    @wraps(old_event)
+    def new_event(self, e, *args, **kwargs):
+        """Wrapper for event() which logs events."""
+        logging.debug("Event in {}: {}".format(klass.__name__,
+                                               EVENTS[e.type()]))
+        return old_event(self, e, *args, **kwargs)
+
+    klass.event = new_event
+    return klass
 
 
 @cmdutils.register(name='settrace', hide=True)

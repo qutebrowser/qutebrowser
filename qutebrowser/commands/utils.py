@@ -88,7 +88,10 @@ class register:  # pylint: disable=invalid-name
             mainname = name[0]
             names += name
         count, nargs = self._get_nargs_count(func)
-        desc = func.__doc__.splitlines()[0].strip().rstrip('.')
+        if func.__doc__ is not None:
+            desc = func.__doc__.splitlines()[0].strip().rstrip('.')
+        else:
+            desc = ""
         cmd = Command(name=mainname, maxsplit=self.maxsplit,
                       hide=self.hide, nargs=nargs, count=count, desc=desc,
                       instance=self.instance, handler=func,

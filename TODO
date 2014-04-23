@@ -11,6 +11,7 @@ Style
 =====
 
 Refactor completion widget mess (initializing / changing completions)
+keypress-signal-foo is a bit of a chaos and might be done better
 
 Major features
 ==============
@@ -25,7 +26,6 @@ Plugin architecture
     NoScript
     Certificate Patrol
     https://chrome.google.com/webstore/detail/remove-google-redirects/ccenmflbeofaceccfhhggbagkblihpoh
-Insert mode
 Extern editor
 Downloads
 webinterface for settings/colors/bindings
@@ -37,6 +37,12 @@ Before Blink
 session handling / saving
 IPC, like dwb -x
 Mode handling?
+    - Problem: how to detect we're going to insert mode:
+      -> Detect mouse clicks and use QWebFrame::hitTestContent (only mouse)
+      -> Use javascript: http://stackoverflow.com/a/2848120/2085149
+      -> Use microFocusChanged and check active element via:
+         frame = page.currentFrame()
+         elem = frame.findFirstElement('*:focus')
 Bookmarks
 Internationalization
 Marks
@@ -59,7 +65,18 @@ handle completion for aliases
 keybind should have completion for commands/arguments
 Hiding scrollbars
 Ctrl+A/X to increase/decrease last number in URL
-keypress-signal-foo is a bit of a chaos and might be done better
+command completion gets hidden when doing a new ValueList value
+logging contexts
+catch import errors for PyQt and QtWebKit
+
+Qt Bugs
+========
+
+- Printing under windows produced blank pages
+    https://bugreports.qt-project.org/browse/QTBUG-19571
+    If this isn't fixed in Qt 5.3, bug should be reopened.
+
+- Web inspector is blank unless .hide()/.show() is called.
 
 Other stuff
 ===========

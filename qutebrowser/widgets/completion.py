@@ -79,17 +79,20 @@ class CompletionView(QTreeView):
             {color[completion.bg]}
             outline: 0;
         }}
-        QTreeView::item {{
+
+        QTreeView::item:enabled {{
             {color[completion.item.fg]}
             {color[completion.item.bg]}
         }}
-        QTreeView::item:has-children {{
+
+        QTreeView::item:disabled {{
             {color[completion.category.fg]}
             {color[completion.category.bg]}
             border-top: 1px solid {color[completion.category.border.top]};
             border-bottom: 1px solid
                 {color[completion.category.border.bottom]};
         }}
+
         QTreeView::item:selected {{
             border-top: 1px solid {color[completion.item.selected.border.top]};
             border-bottom: 1px solid
@@ -98,8 +101,7 @@ class CompletionView(QTreeView):
             {color[completion.item.selected.fg]}
         }}
     """
-    # FIXME because we use :has-children, if a category is empty, it won't look
-    # like one anymore
+
     change_completed_part = pyqtSignal(str)
 
     def __init__(self, parent=None):

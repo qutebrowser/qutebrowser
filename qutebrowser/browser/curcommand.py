@@ -164,7 +164,7 @@ class CurCommandDispatcher(QObject):
             if self._tabs.currentWidget().page_.history().canGoBack():
                 self._tabs.currentWidget().back()
             else:
-                message.info("At beginning of history.")
+                message.error("At beginning of history.")
                 break
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
@@ -180,7 +180,7 @@ class CurCommandDispatcher(QObject):
             if self._tabs.currentWidget().page_.history().canGoForward():
                 self._tabs.currentWidget().forward()
             else:
-                message.info("At end of history.")
+                message.error("At end of history.")
                 break
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
