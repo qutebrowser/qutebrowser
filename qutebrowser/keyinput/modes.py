@@ -165,8 +165,11 @@ class ModeManager(QObject):
         Emit:
             key_pressed: When a key was actually pressed.
         """
-        typ = evt.type()
+        if self.mode is None:
+            # We got events before mode is set, so just pass them through.
+            return False
         handler = self._handlers[self.mode]
+        typ = evt.type()
         if typ not in [QEvent.KeyPress, QEvent.KeyRelease]:
             # We're not interested in non-key-events so we pass them through.
             return False
