@@ -53,8 +53,10 @@ class HintKeyParser(KeyParser):
     fire_hint = pyqtSignal(str)
     abort_hinting = pyqtSignal()
 
-    def _handle_modifier_key(self, e):
-        """We don't support modifiers here, but we'll handle escape in here.
+    def _handle_special_key(self, e):
+        """Handle the escape key.
+
+        FIXME make this more generic
 
         Emit:
             abort_hinting: Emitted if hinting was aborted.

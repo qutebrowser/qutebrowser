@@ -46,7 +46,7 @@ class KeyParser(QObject):
         _keystring: The currently entered key sequence
         _timer: QTimer for delayed execution.
         bindings: Bound keybindings
-        modifier_bindings: Bound modifier bindings.
+        special_bindings: Bound special bindings (@Foo@).
 
     Signals:
         keystring_updated: Emitted when the keystring is updated.
@@ -62,16 +62,16 @@ class KeyParser(QObject):
 
     supports_count = False
 
-    def __init__(self, parent=None, bindings=None, modifier_bindings=None):
+    def __init__(self, parent=None, bindings=None, special_bindings=None):
         super().__init__(parent)
         self._timer = None
         self._keystring = ''
         self.bindings = {} if bindings is None else bindings
-        self.modifier_bindings = ({} if modifier_bindings is None
-                                  else modifier_bindings)
+        self.special_bindings = ({} if special_bindings is None
+                                 else special_bindings)
 
-    def _handle_modifier_key(self, e):
-        """Handle a new keypress with modifiers.
+    def _handle_special_key(self, e):
+        """Handle a new keypress with special keys (@Foo@).
 
         Return True if the keypress has been handled, and False if not.
 
@@ -92,18 +92,15 @@ class KeyParser(QObject):
             return False
         mod = e.modifiers()
         modstr = ''
-        if not mod & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier):
-            # won't be a shortcut with modifiers
-            return False
         for (mask, s) in modmask2str.items():
             if mod & mask:
                 modstr += s + '+'
         keystr = QKeySequence(e.key()).toString()
         try:
-            cmdstr = self.modifier_bindings[modstr + keystr]
+            cmdstr = self.special_bindings[modstr + keystr]
         except KeyError:
             logging.debug('No binding found for {}.'.format(modstr + keystr))
-            return True
+            return False
         self.execute(cmdstr)
         return True
 
@@ -281,7 +278,7 @@ class KeyParser(QObject):
         Emit:
             keystring_updated: If a new keystring should be set.
         """
-        handled = self._handle_modifier_key(e)
+        handled = self._handle_special_key(e)
         if not handled:
             self._handle_single_key(e)
             self.keystring_updated.emit(self._keystring)

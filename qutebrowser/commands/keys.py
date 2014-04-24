@@ -118,9 +118,9 @@ class CommandKeyParser(KeyParser):
             if key.startswith('@') and key.endswith('@'):
                 # normalize keystring
                 keystr = self._normalize_keystr(key.strip('@'))
-                logging.debug('registered mod key: {} -> {}'.format(keystr,
-                                                                    cmd))
-                self.modifier_bindings[keystr] = cmd
+                logging.debug('registered special key: {} -> {}'.format(keystr,
+                                                                        cmd))
+                self.special_bindings[keystr] = cmd
             else:
                 logging.debug('registered key: {} -> {}'.format(key, cmd))
                 self.bindings[key] = cmd
