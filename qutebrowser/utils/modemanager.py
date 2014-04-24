@@ -111,6 +111,9 @@ class ModeManager(QObject):
         logging.debug("Switching mode to {}".format(mode))
         if mode not in self._handlers:
             raise ValueError("No handler for mode {}".format(mode))
+        if self._mode_stack and self._mode_stack[-1] == mode:
+            logging.debug("Already at end of stack, doing nothing")
+            return
         self._mode_stack.append(mode)
         logging.debug("New mode stack: {}".format(self._mode_stack))
         self.entered.emit(mode)
