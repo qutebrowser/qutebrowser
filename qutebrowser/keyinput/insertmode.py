@@ -28,7 +28,7 @@ class InsertKeyParser(KeyParser):
     """KeyParser for insert mode."""
 
     def __init__(self, parent=None):
-        super().__init__(parent)
+        super().__init__(parent, supports_chains=False)
         self.read_config('keybind.insert')
 
     def execute(self, cmdstr, count=None):

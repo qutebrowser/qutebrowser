@@ -19,15 +19,12 @@
 
 from PyQt5.QtCore import pyqtSignal, Qt
 
-from qutebrowser.keyinput.keyparser import KeyChainParser
+from qutebrowser.keyinput.keyparser import KeyParser
 
 
-class HintKeyParser(KeyChainParser):
+class HintKeyParser(KeyParser):
 
     """KeyChainParser for hints.
-
-    Class attributes:
-        supports_count: If the keyparser should support counts.
 
     Signals:
         fire_hint: When a hint keybinding was completed.
@@ -35,9 +32,11 @@ class HintKeyParser(KeyChainParser):
         abort_hinting: Esc pressed, so abort hinting.
     """
 
-    supports_count = False
     fire_hint = pyqtSignal(str)
     abort_hinting = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent, supports_count=False, supports_chains=True)
 
     def _handle_special_key(self, e):
         """Handle the escape key.

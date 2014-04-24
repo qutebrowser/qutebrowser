@@ -29,25 +29,57 @@ import qutebrowser.config.config as config
 
 class KeyParser(QObject):
 
-    """Parser for non-chained Qt keypresses ("special bindings").
-
-    We call these special because chained keypresses are the "normal" ones in
-    qutebrowser, however there are some cases where we can _only_ use special
-    keys (like in insert mode).
+    """Parser for vim-like key sequences and shortcuts.
 
     Not intended to be instantiated directly. Subclasses have to override
     execute() to do whatever they want to.
 
+    Class Attributes:
+        MATCH_PARTIAL: Constant for a partial match (no keychain matched yet,
+                       but it's still possible in the future.
+        MATCH_DEFINITIVE: Constant for a full match (keychain matches exactly).
+        MATCH_AMBIGUOUS: There are both a partial and a definitive match.
+        MATCH_NONE: Constant for no match (no more matches possible).
+
     Attributes:
+        bindings: Bound keybindings
         special_bindings: Bound special bindings (<Foo>).
+        _keystring: The currently entered key sequence
+        _timer: QTimer for delayed execution.
         _confsectname: The name of the configsection.
+        _supports_count: Whether count is supported
+        _supports_chains: Whether keychains are supported
+
+    Signals:
+        keystring_updated: Emitted when the keystring is updated.
+                           arg: New keystring.
     """
 
-    def __init__(self, parent=None, special_bindings=None):
+    keystring_updated = pyqtSignal(str)
+
+    MATCH_PARTIAL = 0
+    MATCH_DEFINITIVE = 1
+    MATCH_AMBIGUOUS = 2
+    MATCH_NONE = 3
+
+    def __init__(self, parent=None, bindings=None, special_bindings=None,
+                 supports_count=None, supports_chains=False):
         super().__init__(parent)
+        self._timer = None
         self._confsectname = None
+        self._keystring = ''
+        if supports_count is None:
+            supports_count = supports_chains
+        self._supports_count = supports_count
+        self._supports_chains = supports_chains
         self.special_bindings = ({} if special_bindings is None
                                  else special_bindings)
+        if bindings is None:
+            self.bindings = {}
+        elif supports_chains:
+            self.bindsings = bindings
+        else:
+            raise ValueError("bindings given with supports_chains=False!")
 
     def _normalize_keystr(self, keystr):
         """Normalize a keystring like Ctrl-Q to a keystring like Ctrl+Q.
@@ -105,99 +137,6 @@ class KeyParser(QObject):
         self.execute(cmdstr)
         return True
 
-    def handle(self, e):
-        """Handle a new keypress and call the respective handlers.
-
-        Args:
-            e: the KeyPressEvent from Qt
-        """
-        return self._handle_special_key(e)
-
-    def execute(self, cmdstr, count=None):
-        """Execute an action when a binding is triggered.
-
-        Needs to be overriden in superclasses."""
-        raise NotImplementedError
-
-    def read_config(self, sectname=None):
-        """Read the configuration.
-
-        Config format: key = command, e.g.:
-            <Ctrl+Q> = quit
-
-        Args:
-            sectname: Name of the section to read.
-        """
-        if sectname is None:
-            if self._confsectname is None:
-                raise ValueError("read_config called with no section, but "
-                                 "None defined so far!")
-            sectname = self._confsectname
-        else:
-            self._confsectname = sectname
-        sect = config.instance[sectname]
-        if not sect.items():
-            logging.warn("No keybindings defined!")
-        for (key, cmd) in sect.items():
-            if key.startswith('<') and key.endswith('>'):
-                keystr = self._normalize_keystr(key[1:-1])
-                logging.debug('registered special key: {} -> {}'.format(keystr,
-                                                                        cmd))
-                self.special_bindings[keystr] = cmd
-
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, _option):
-        """Re-read the config if a keybinding was changed."""
-        if self._confsectname is None:
-            raise AttributeError("on_config_changed called but no section "
-                                 "defined!")
-        if section == self._confsectname:
-            self.read_config()
-
-
-class KeyChainParser(KeyParser):
-
-    """Parser for vim-like key sequences.
-
-    Not intended to be instantiated directly. Subclasses have to override
-    execute() to do whatever they want to.
-
-    Class Attributes:
-        MATCH_PARTIAL: Constant for a partial match (no keychain matched yet,
-                       but it's still possible in the future.
-        MATCH_DEFINITIVE: Constant for a full match (keychain matches exactly).
-        MATCH_AMBIGUOUS: There are both a partial and a definitive match.
-        MATCH_NONE: Constant for no match (no more matches possible).
-        supports_count: If the keyparser should support counts.
-
-    Attributes:
-        _keystring: The currently entered key sequence
-        _timer: QTimer for delayed execution.
-        bindings: Bound keybindings
-
-    Signals:
-        keystring_updated: Emitted when the keystring is updated.
-                           arg: New keystring.
-    """
-
-    # This is an abstract superclass of an abstract class.
-    # pylint: disable=abstract-method
-
-    keystring_updated = pyqtSignal(str)
-
-    MATCH_PARTIAL = 0
-    MATCH_DEFINITIVE = 1
-    MATCH_AMBIGUOUS = 2
-    MATCH_NONE = 3
-
-    supports_count = False
-
-    def __init__(self, parent=None, bindings=None, special_bindings=None):
-        super().__init__(parent, special_bindings)
-        self._timer = None
-        self._keystring = ''
-        self.bindings = {} if bindings is None else bindings
-
     def _handle_single_key(self, e):
         """Handle a new keypress with a single key (no modifiers).
 
@@ -220,7 +159,7 @@ class KeyChainParser(KeyParser):
         self._stop_delayed_exec()
         self._keystring += txt
 
-        if self.supports_count:
+        if self._supports_count:
             (countstr, cmd_input) = re.match(r'^(\d*)(.*)',
                                              self._keystring).groups()
             count = int(countstr) if countstr else None
@@ -338,7 +277,7 @@ class KeyChainParser(KeyParser):
         self.execute(command, count)
 
     def handle(self, e):
-        """Override KeyParser.handle() to also handle keychains.
+        """Handle a new keypress and call the respective handlers.
 
         Args:
             e: the KeyPressEvent from Qt
@@ -346,15 +285,15 @@ class KeyChainParser(KeyParser):
         Emit:
             keystring_updated: If a new keystring should be set.
         """
-        handled = super().handle(e)
-        if handled:
-            return True
+        handled = self._handle_special_key(e)
+        if handled or not self._supports_chains:
+            return handled
         handled = self._handle_single_key(e)
         self.keystring_updated.emit(self._keystring)
         return handled
 
     def read_config(self, sectname=None):
-        """Extend KeyParser.read_config to also read keychains.
+        """Read the configuration.
 
         Config format: key = command, e.g.:
             <Ctrl+Q> = quit
@@ -362,12 +301,35 @@ class KeyChainParser(KeyParser):
         Args:
             sectname: Name of the section to read.
         """
-        super().read_config(sectname)
+        if sectname is None:
+            if self._confsectname is None:
+                raise ValueError("read_config called with no section, but "
+                                 "None defined so far!")
+            sectname = self._confsectname
+        else:
+            self._confsectname = sectname
         sect = config.instance[sectname]
+        if not sect.items():
+            logging.warn("No keybindings defined!")
         for (key, cmd) in sect.items():
             if key.startswith('<') and key.endswith('>'):
-                # Already registered by superclass
-                pass
-            else:
-                logging.debug('registered key: {} -> {}'.format(key, cmd))
+                keystr = self._normalize_keystr(key[1:-1])
+                logging.debug("registered special key: {} -> {}".format(keystr,
+                                                                        cmd))
+                self.special_bindings[keystr] = cmd
+            elif self._supports_chains:
+                logging.debug("registered key: {} -> {}".format(key, cmd))
                 self.bindings[key] = cmd
+            else:
+                logging.warn("Ignoring keychain \"{}\" in section \"{}\" "
+                    "because keychains are not supported there.".format(
+                    key, sectname))
+
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, _option):
+        """Re-read the config if a keybinding was changed."""
+        if self._confsectname is None:
+            raise AttributeError("on_config_changed called but no section "
+                                 "defined!")
+        if section == self._confsectname:
+            self.read_config()
