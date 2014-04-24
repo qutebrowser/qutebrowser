@@ -25,6 +25,7 @@ import logging
 
 from PyQt5.QtCore import pyqtSignal
 
+import qutebrowser.utils.message as message
 from qutebrowser.keyinput.keyparser import KeyChainParser
 from qutebrowser.commands.parsers import (CommandParser, ArgumentCountError,
                                           NoSuchCommandError)
@@ -41,13 +42,8 @@ class CommandKeyParser(KeyChainParser):
 
     Attributes:
         commandparser: Commandparser instance.
-
-    Signals:
-        set_cmd_text: Emitted when the statusbar should set a partial command.
-                      arg: Text to set.
     """
 
-    set_cmd_text = pyqtSignal(str)
     supports_count = True
 
     def __init__(self, parent=None):
@@ -62,10 +58,6 @@ class CommandKeyParser(KeyChainParser):
             cmdstr: The command string.
             count: Optional command count.
             ignore_exc: Ignore exceptions.
-
-        Emit:
-            set_cmd_text: If a partial command should be printed to the
-                          statusbar.
         """
         try:
             self.commandparser.run(cmdstr, count=count, ignore_exc=ignore_exc)
@@ -74,7 +66,7 @@ class CommandKeyParser(KeyChainParser):
         except ArgumentCountError:
             logging.debug('Filling statusbar with partial command {}'.format(
                 cmdstr))
-            self.set_cmd_text.emit(':{} '.format(cmdstr))
+            message.set_cmd_text(':{} '.format(cmdstr))
 
     def _handle_single_key(self, e):
         """Override _handle_single_key to abort if the key is a startchar.
@@ -82,15 +74,12 @@ class CommandKeyParser(KeyChainParser):
         Args:
             e: the KeyPressEvent from Qt.
 
-        Emit:
-            set_cmd_text: If the keystring should be shown in the statusbar.
-
         Return:
             True if event has been handled, False otherwise.
         """
         txt = e.text().strip()
         if not self._keystring and any(txt == c for c in STARTCHARS):
-            self.set_cmd_text.emit(txt)
+            message.set_cmd_text(txt)
             return True
         return super()._handle_single_key(e)
 

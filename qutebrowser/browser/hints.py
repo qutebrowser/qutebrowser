@@ -62,7 +62,6 @@ class HintManager(QObject):
                  arg 0: URL to open as a string.
                  arg 1: true if it should be opened in a new tab, else false.
         set_open_target: Set a new target to open the links in.
-        set_cmd_text: Emitted when the commandline text should be set.
     """
 
     HINT_CSS = """
@@ -81,7 +80,6 @@ class HintManager(QObject):
     hint_strings_updated = pyqtSignal(list)
     mouse_event = pyqtSignal('QMouseEvent')
     set_open_target = pyqtSignal(str)
-    set_cmd_text = pyqtSignal(str)
 
     def __init__(self, parent=None):
         """Constructor.
@@ -244,19 +242,6 @@ class HintManager(QObject):
         message.info('URL yanked to {}'.format('primary selection' if sel
                                                else 'clipboard'))
 
-    def _set_cmd_text(self, link, command):
-        """Fill the command line with an element link.
-
-        Args:
-            link: The URL to open.
-            command: The command to use.
-
-        Emit:
-            set_cmd_text: Always emitted.
-        """
-        self.set_cmd_text.emit(':{} {}'.format(command,
-                                               urlutils.urlstring(link)))
-
     def _resolve_link(self, elem):
         """Resolve a link and check if we want to keep it.
 
@@ -368,7 +353,8 @@ class HintManager(QObject):
                 'cmd_tab': 'tabopen',
                 'cmd_bgtab': 'backtabopen',
             }
-            self._set_cmd_text(link, commands[self._target])
+            message.set_cmd_text(':{} {}'.format(commands[self._target],
+                                                 urlutils.urlstring(link)))
         if self._target != 'rapid':
             self.stop()
 

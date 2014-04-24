@@ -259,10 +259,7 @@ class QuteBrowser(QApplication):
         # status bar
         modes.manager.entered.connect(status.on_mode_entered)
         modes.manager.left.connect(status.on_mode_left)
-        # FIXME what to do here?
         modes.manager.key_pressed.connect(status.on_key_pressed)
-        for obj in [kp["normal"], tabs]:
-            obj.set_cmd_text.connect(cmd.set_cmd_text)
 
         # commands
         cmd.got_cmd.connect(self.commandparser.run)
@@ -282,6 +279,7 @@ class QuteBrowser(QApplication):
         message.bridge.error.connect(status.disp_error)
         message.bridge.info.connect(status.txt.set_temptext)
         message.bridge.text.connect(status.txt.set_normaltext)
+        message.bridge.set_cmd_text.connect(cmd.set_cmd_text)
 
         # config
         self.config.style_changed.connect(style.invalidate_caches)
