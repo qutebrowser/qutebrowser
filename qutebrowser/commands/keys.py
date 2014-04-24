@@ -115,9 +115,9 @@ class CommandKeyParser(KeyParser):
         if not sect.items():
             logging.warn("No keybindings defined!")
         for (key, cmd) in sect.items():
-            if key.startswith('@') and key.endswith('@'):
+            if key.startswith('<') and key.endswith('>'):
                 # normalize keystring
-                keystr = self._normalize_keystr(key.strip('@'))
+                keystr = self._normalize_keystr(key[1:-1])
                 logging.debug('registered special key: {} -> {}'.format(keystr,
                                                                         cmd))
                 self.special_bindings[keystr] = cmd

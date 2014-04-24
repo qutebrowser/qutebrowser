@@ -46,7 +46,7 @@ class KeyParser(QObject):
         _keystring: The currently entered key sequence
         _timer: QTimer for delayed execution.
         bindings: Bound keybindings
-        special_bindings: Bound special bindings (@Foo@).
+        special_bindings: Bound special bindings (<Foo>).
 
     Signals:
         keystring_updated: Emitted when the keystring is updated.
@@ -71,7 +71,7 @@ class KeyParser(QObject):
                                  else special_bindings)
 
     def _handle_special_key(self, e):
-        """Handle a new keypress with special keys (@Foo@).
+        """Handle a new keypress with special keys (<Foo>).
 
         Return True if the keypress has been handled, and False if not.
 
