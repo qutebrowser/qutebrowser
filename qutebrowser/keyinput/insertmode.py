@@ -18,18 +18,13 @@
 """KeyParser for "insert" mode."""
 
 import qutebrowser.keyinput.modes as modes
-from qutebrowser.keyinput.keyparser import KeyParser
+from qutebrowser.keyinput.keyparser import CommandKeyParser
 
 
-class InsertKeyParser(KeyParser):
+class InsertKeyParser(CommandKeyParser):
 
     """KeyParser for insert mode."""
 
     def __init__(self, parent=None):
         super().__init__(parent, supports_chains=False)
         self.read_config('keybind.insert')
-
-    def execute(self, cmdstr, _count=None):
-        """Handle a completed keychain."""
-        if cmdstr == '<leave>':
-            modes.leave("insert")

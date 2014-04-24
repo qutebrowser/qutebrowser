@@ -26,6 +26,7 @@ import logging
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
 
 import qutebrowser.config.config as config
+import qutebrowser.commands.utils as cmdutils
 
 
 manager = None
@@ -149,6 +150,13 @@ class ModeManager(QObject):
         logging.debug("Leaving mode {}".format(mode))
         logging.debug("New mode stack: {}".format(self._mode_stack))
         self.left.emit(mode)
+
+    # FIXME handle modes=[] and not_modes=[] params
+    @cmdutils.register(instance='modeman', name='leave_mode', hide=True)
+    def leave_current_mode(self):
+        if self.mode == "normal":
+            raise ValueError("Can't leave normal mode!")
+        self.leave(self.mode)
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):

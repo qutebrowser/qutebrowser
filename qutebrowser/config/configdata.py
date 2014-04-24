@@ -82,9 +82,7 @@ SECTION_DESC = {
         "Keybindings for insert mode.\n"
         "Since normal keypresses are passed through, only special keys are "
         "supported in this mode.\n"
-        "In addition to the normal commands, the following special commands "
-        "are defined:\n"
-        "  <leave>: Leave the insert mode."),
+        "An useful command to map here is the hidden command leave_mode."),
     'aliases': (
         "Aliases for commands.\n"
         "By default, no aliases are defined. Example which adds a new command "
@@ -428,9 +426,9 @@ DATA = OrderedDict([
     )),
 
     ('keybind.insert', sect.ValueList(
-        types.KeyBindingName(), types.KeyBinding(['<leave>']),
-        ('<Escape>', '<leave>'),
-        ('<Ctrl-C>', '<leave>'),
+        types.KeyBindingName(), types.KeyBinding(),
+        ('<Escape>', 'leave_mode'),
+        ('<Ctrl-C>', 'leave_mode'),
     )),
 
     ('aliases', sect.ValueList(

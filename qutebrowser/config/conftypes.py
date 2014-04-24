@@ -538,18 +538,6 @@ class LastClose(String):
 
 class KeyBinding(Command):
 
-    """The command of a keybinding.
+    """The command of a keybinding."""
 
-    Attributes:
-        _special_keys: Specially defined keys which are no commands.
-    """
-
-    def __init__(self, special_keys=None):
-        if special_keys is None:
-            special_keys = []
-        self._special_keys = special_keys
-
-    def validate(self, value):
-        if value in self._special_keys:
-            return
-        super().validate(value)
+    pass

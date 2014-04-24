@@ -137,6 +137,7 @@ class QuteBrowser(QApplication):
         modes.manager.register('insert', self._keyparsers['insert'].handle,
                                passthrough=True)
         modes.manager.register('command', None, passthrough=True)
+        self.modeman = modes.manager  # for commands
         self.installEventFilter(modes.manager)
         self.setQuitOnLastWindowClosed(False)
 
