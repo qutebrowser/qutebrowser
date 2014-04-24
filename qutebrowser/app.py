@@ -58,8 +58,8 @@ from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
 from qutebrowser.keyinput.normalmode import CommandKeyParser
 from qutebrowser.keyinput.insertmode import InsertKeyParser
+from qutebrowser.keyinput.hintmode import HintKeyParser
 from qutebrowser.commands.parsers import CommandParser, SearchParser
-from qutebrowser.browser.hints import HintKeyParser
 from qutebrowser.utils.appdirs import AppDirs
 from qutebrowser.utils.misc import dotted_getattr
 from qutebrowser.utils.debug import set_trace  # pylint: disable=unused-import

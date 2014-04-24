@@ -52,7 +52,7 @@ class HintKeyParser(KeyParser):
             return True
         return False
 
-    def execute(self, cmdstr, count=None):
+    def execute(self, cmdstr, _count=None):
         """Handle a completed keychain.
 
         Emit:

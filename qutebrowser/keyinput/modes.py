@@ -190,10 +190,8 @@ class ModeManager(QObject):
                 handled = handler(evt)
             else:
                 handled = False
-            if handled:
+            if handled or not self._forward_unbound_keys:
                 return True
-            elif self._forward_unbound_keys:
-                return False
             else:
                 return True
         else:

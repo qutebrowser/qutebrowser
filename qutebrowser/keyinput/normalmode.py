@@ -23,8 +23,6 @@ Module attributes:
 
 import logging
 
-from PyQt5.QtCore import pyqtSignal
-
 import qutebrowser.utils.message as message
 from qutebrowser.keyinput.keyparser import KeyParser
 from qutebrowser.commands.parsers import (CommandParser, ArgumentCountError,

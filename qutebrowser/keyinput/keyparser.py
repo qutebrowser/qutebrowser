@@ -321,9 +321,9 @@ class KeyParser(QObject):
                 logging.debug("registered key: {} -> {}".format(key, cmd))
                 self.bindings[key] = cmd
             else:
-                logging.warn("Ignoring keychain \"{}\" in section \"{}\" "
-                    "because keychains are not supported there.".format(
-                    key, sectname))
+                logging.warn(
+                    "Ignoring keychain \"{}\" in section \"{}\" because "
+                    "keychains are not supported there.".format(key, sectname))
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, _option):

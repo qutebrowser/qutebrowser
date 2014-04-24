@@ -30,7 +30,6 @@ import qutebrowser.keyinput.modes as modes
 import qutebrowser.utils.message as message
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.webelem as webelem
-from qutebrowser.keyinput.hintmode import HintKeyParser
 
 
 ElemTuple = namedtuple('ElemTuple', 'elem, label')

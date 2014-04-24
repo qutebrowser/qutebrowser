@@ -545,7 +545,7 @@ class KeyBinding(Command):
     """
 
     def __init__(self, special_keys=None):
-        if special_keys == None:
+        if special_keys is None:
             special_keys = []
         self._special_keys = special_keys
 

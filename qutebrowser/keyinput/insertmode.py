@@ -17,8 +17,6 @@
 
 """KeyParser for "insert" mode."""
 
-from PyQt5.QtCore import pyqtSignal, Qt
-
 import qutebrowser.keyinput.modes as modes
 from qutebrowser.keyinput.keyparser import KeyParser
 
@@ -31,7 +29,7 @@ class InsertKeyParser(KeyParser):
         super().__init__(parent, supports_chains=False)
         self.read_config('keybind.insert')
 
-    def execute(self, cmdstr, count=None):
+    def execute(self, cmdstr, _count=None):
         """Handle a completed keychain."""
         if cmdstr == '<leave>':
             modes.leave("insert")
