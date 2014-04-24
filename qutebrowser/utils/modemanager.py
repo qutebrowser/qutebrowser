@@ -109,10 +109,10 @@ class ModeManager(QObject):
             entered: With the new mode name.
         """
         logging.debug("Switching mode to {}".format(mode))
-        logging.debug("Mode stack: {}".format(self._mode_stack))
         if mode not in self._handlers:
             raise ValueError("No handler for mode {}".format(mode))
         self._mode_stack.append(mode)
+        logging.debug("New mode stack: {}".format(self._mode_stack))
         self.entered.emit(mode)
 
     def leave(self, mode):
@@ -128,6 +128,8 @@ class ModeManager(QObject):
             self._mode_stack.remove(mode)
         except ValueError:
             raise ValueError("Mode {} not on mode stack!".format(mode))
+        logging.debug("Leaving mode {}".format(mode))
+        logging.debug("New mode stack: {}".format(self._mode_stack))
         self.left.emit(mode)
 
     def eventFilter(self, _obj, evt):
