@@ -166,6 +166,11 @@ DATA = OrderedDict([
         ('cmd_timeout',
          SettingValue(types.Int(minval=0), "500"),
          "Timeout for ambiguous keybindings."),
+
+        ('insert_mode_on_plugins',
+         SettingValue(types.Bool(), "true"),
+         "Whether to switch to insert mode when clicking flash and other "
+         "plugins."),
     )),
 
     ('tabbar', sect.KeyValue(

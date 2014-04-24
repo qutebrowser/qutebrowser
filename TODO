@@ -1,7 +1,6 @@
 keyparser foo
 =============
 
-- Get to insert mode when clicking flash plugins
 - Handle keybind to get out of insert mode (e.g. esc)
 - Pass keypresses to statusbar correctly
 - Switch to normal mode if new page loaded

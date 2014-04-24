@@ -110,6 +110,30 @@ class BrowserTab(QWebView):
                 logging.debug("Everything destroyed, calling callback")
                 self._shutdown_callback()
 
+    def _is_editable(self, hitresult):
+        """Checks if the hitresult needs keyboard focus.
+
+        Args:
+            hitresult: A QWebHitTestResult
+        """
+        # FIXME is this algorithm accurate?
+        if hitresult.isContentEditable():
+            return True
+        if not config.get('general', 'insert_mode_on_plugins'):
+            return False
+        elem = hitresult.element()
+        tag = elem.tagName().lower()
+        if tag in ['embed', 'applet']:
+            return True
+        elif tag == 'object':
+            if not elem.hasAttribute("type"):
+                logging.warn("<object> without type clicked...")
+                return False
+            objtype = elem.attribute("type")
+            if not objtype.startswith("image/"):
+                logging.debug("<object type=\"{}\"> clicked.".format(objtype))
+                return True
+
     def openurl(self, url):
         """Open an URL in the browser.
 
@@ -268,10 +292,11 @@ class BrowserTab(QWebView):
         frame = self.page_.frameAt(pos)
         pos -= frame.geometry().topLeft()
         hitresult = frame.hitTestContent(pos)
-        if hitresult.isContentEditable():
+        if self._is_editable(hitresult):
             logging.debug("Clicked editable element!")
             modemanager.enter("insert")
         else:
+            logging.debug("Clicked non-editable element!")
             try:
                 modemanager.leave("insert")
             except ValueError:
