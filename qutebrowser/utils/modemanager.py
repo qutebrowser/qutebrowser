@@ -66,12 +66,12 @@ class ModeManager(QObject):
     Signals:
         entered: Emitted when a mode is entered.
                  arg: Name of the entered mode.
-        leaved:  Emitted when a mode is leaved.
-                 arg: Name of the leaved mode.
+        left:  Emitted when a mode is left.
+                 arg: Name of the left mode.
     """
 
     entered = pyqtSignal(str)
-    leaved = pyqtSignal(str)
+    left = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -122,13 +122,13 @@ class ModeManager(QObject):
             mode; The name of the mode to leave.
 
         Emit:
-            leaved: With the old mode name.
+            left: With the old mode name.
         """
         try:
             self._mode_stack.remove(mode)
         except ValueError:
             raise ValueError("Mode {} not on mode stack!".format(mode))
-        self.leaved.emit(mode)
+        self.left.emit(mode)
 
     def eventFilter(self, _obj, evt):
         """Filter all events based on the currently set mode.
