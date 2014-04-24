@@ -78,6 +78,13 @@ SECTION_DESC = {
         "pressed with Shift. For special keys (with <>-signs), you need "
         "to explicitely add \"Shift-\" to match a key pressed with shift. "
         "You can bind multiple commands by separating them with \";;\"."),
+    'keybind.insert': (
+        "Keybindings for insert mode.\n"
+        "Since normal keypresses are passed through, only special keys are "
+        "supported in this mode.\n"
+        "In addition to the normal commands, the following special commands "
+        "are defined:\n"
+        "  <normal>: Switch back to normal mode."),
     'aliases': (
         "Aliases for commands.\n"
         "By default, no aliases are defined. Example which adds a new command "
@@ -418,6 +425,12 @@ DATA = OrderedDict([
         ('<Ctrl-D>', 'scroll_page 0 0.5'),
         ('<Ctrl-U>', 'scroll_page 0 -0.5'),
         ('<Backspace>', 'back'),
+    )),
+
+    ('keybind.insert', sect.ValueList(
+        types.KeyBindingName(), types.KeyBinding(['<normal>']),
+        ('<Escape>', '<normal>'),
+        ('<Ctrl-C>', '<normal>'),
     )),
 
     ('aliases', sect.ValueList(

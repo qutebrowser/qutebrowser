@@ -57,6 +57,7 @@ import qutebrowser.utils.message as message
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
 from qutebrowser.keyinput.commandmode import CommandKeyParser
+from qutebrowser.keyinput.insertmode import InsertKeyParser
 from qutebrowser.commands.parsers import CommandParser, SearchParser
 from qutebrowser.browser.hints import HintKeyParser
 from qutebrowser.utils.appdirs import AppDirs
@@ -124,16 +125,18 @@ class QuteBrowser(QApplication):
         self.commandparser = CommandParser()
         self.searchparser = SearchParser()
         self._keyparsers = {
-            "normal": CommandKeyParser(self),
-            "hint": HintKeyParser(self),
+            'normal': CommandKeyParser(self),
+            'hint': HintKeyParser(self),
+            'insert': InsertKeyParser(self),
         }
         self._init_cmds()
         self.mainwindow = MainWindow()
         modes.init(self)
-        modes.manager.register("normal", self._keyparsers["normal"].handle)
-        modes.manager.register("hint", self._keyparsers["hint"].handle)
-        modes.manager.register("insert", None, passthrough=True)
-        modes.manager.register("command", None, passthrough=True)
+        modes.manager.register('normal', self._keyparsers['normal'].handle)
+        modes.manager.register('hint', self._keyparsers['hint'].handle)
+        modes.manager.register('insert', self._keyparsers['insert'].handle,
+                               passthrough=True)
+        modes.manager.register('command', None, passthrough=True)
         self.installEventFilter(modes.manager)
         self.setQuitOnLastWindowClosed(False)
 
