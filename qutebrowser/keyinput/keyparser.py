@@ -322,6 +322,15 @@ class KeyParser(QObject):
                     "Ignoring keychain \"{}\" in section \"{}\" because "
                     "keychains are not supported there.".format(key, sectname))
 
+    def execute(self, cmdstr, count=None):
+        """Handle a completed keychain.
+
+        Args:
+            cmdstr: The command to execute as a string.
+            count: The count if given.
+        """
+        raise NotImplementedError
+
     @pyqtSlot(str, str)
     def on_config_changed(self, section, _option):
         """Re-read the config if a keybinding was changed."""
@@ -363,5 +372,4 @@ class CommandKeyParser(KeyParser):
             message.set_cmd_text(':{} '.format(cmdstr))
 
     def execute(self, cmdstr, count=None):
-        """Handle a completed keychain."""
         self._run_or_fill(cmdstr, count, ignore_exc=False)
