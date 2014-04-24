@@ -56,7 +56,7 @@ import qutebrowser.keyinput.modes as modes
 import qutebrowser.utils.message as message
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
-from qutebrowser.keyinput.normalmode import CommandKeyParser
+from qutebrowser.keyinput.normalmode import NormalKeyParser
 from qutebrowser.keyinput.insertmode import InsertKeyParser
 from qutebrowser.keyinput.hintmode import HintKeyParser
 from qutebrowser.commands.parsers import CommandParser, SearchParser
@@ -125,7 +125,7 @@ class QuteBrowser(QApplication):
         self.commandparser = CommandParser()
         self.searchparser = SearchParser()
         self._keyparsers = {
-            'normal': CommandKeyParser(self),
+            'normal': NormalKeyParser(self),
             'hint': HintKeyParser(self),
             'insert': InsertKeyParser(self),
         }

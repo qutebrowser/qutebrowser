@@ -24,42 +24,16 @@ Module attributes:
 import logging
 
 import qutebrowser.utils.message as message
-from qutebrowser.keyinput.keyparser import KeyParser
-from qutebrowser.commands.parsers import (CommandParser, ArgumentCountError,
-                                          NoSuchCommandError)
+from qutebrowser.keyinput.keyparser import CommandKeyParser
 
 STARTCHARS = ":/?"
 
 
-class CommandKeyParser(KeyParser):
-
-    """KeyChainParser for command bindings.
-
-    Attributes:
-        commandparser: Commandparser instance.
-    """
+class NormalKeyParser(CommandKeyParser):
 
     def __init__(self, parent=None):
         super().__init__(parent, supports_count=True, supports_chains=True)
-        self.commandparser = CommandParser()
         self.read_config('keybind')
-
-    def _run_or_fill(self, cmdstr, count=None, ignore_exc=True):
-        """Run the command in cmdstr or fill the statusbar if args missing.
-
-        Args:
-            cmdstr: The command string.
-            count: Optional command count.
-            ignore_exc: Ignore exceptions.
-        """
-        try:
-            self.commandparser.run(cmdstr, count=count, ignore_exc=ignore_exc)
-        except NoSuchCommandError:
-            pass
-        except ArgumentCountError:
-            logging.debug('Filling statusbar with partial command {}'.format(
-                cmdstr))
-            message.set_cmd_text(':{} '.format(cmdstr))
 
     def _handle_single_key(self, e):
         """Override _handle_single_key to abort if the key is a startchar.
@@ -75,7 +49,3 @@ class CommandKeyParser(KeyParser):
             message.set_cmd_text(txt)
             return True
         return super()._handle_single_key(e)
-
-    def execute(self, cmdstr, count=None):
-        """Handle a completed keychain."""
-        self._run_or_fill(cmdstr, count, ignore_exc=False)

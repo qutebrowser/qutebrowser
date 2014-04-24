@@ -25,6 +25,9 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject, QTimer
 from PyQt5.QtGui import QKeySequence
 
 import qutebrowser.config.config as config
+import qutebrowser.utils.message as message
+from qutebrowser.commands.parsers import (CommandParser, ArgumentCountError,
+                                          NoSuchCommandError)
 
 
 class KeyParser(QObject):
@@ -333,3 +336,39 @@ class KeyParser(QObject):
                                  "defined!")
         if section == self._confsectname:
             self.read_config()
+
+
+class CommandKeyParser(KeyParser):
+
+    """KeyChainParser for command bindings.
+
+    Attributes:
+        commandparser: Commandparser instance.
+    """
+
+    def __init__(self, parent=None, supports_count=None,
+                 supports_chains=False):
+        super().__init__(parent, supports_count=supports_count,
+                         supports_chains=supports_chains)
+        self.commandparser = CommandParser()
+
+    def _run_or_fill(self, cmdstr, count=None, ignore_exc=True):
+        """Run the command in cmdstr or fill the statusbar if args missing.
+
+        Args:
+            cmdstr: The command string.
+            count: Optional command count.
+            ignore_exc: Ignore exceptions.
+        """
+        try:
+            self.commandparser.run(cmdstr, count=count, ignore_exc=ignore_exc)
+        except NoSuchCommandError:
+            pass
+        except ArgumentCountError:
+            logging.debug('Filling statusbar with partial command {}'.format(
+                cmdstr))
+            message.set_cmd_text(':{} '.format(cmdstr))
+
+    def execute(self, cmdstr, count=None):
+        """Handle a completed keychain."""
+        self._run_or_fill(cmdstr, count, ignore_exc=False)
