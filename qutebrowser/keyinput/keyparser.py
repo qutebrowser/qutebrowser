@@ -65,8 +65,8 @@ class KeyParser(QObject):
     MATCH_AMBIGUOUS = 2
     MATCH_NONE = 3
 
-    def __init__(self, parent=None, bindings=None, special_bindings=None,
-                 supports_count=None, supports_chains=False):
+    def __init__(self, parent=None, supports_count=None,
+                 supports_chains=False):
         super().__init__(parent)
         self._timer = None
         self._confsectname = None
@@ -75,14 +75,8 @@ class KeyParser(QObject):
             supports_count = supports_chains
         self._supports_count = supports_count
         self._supports_chains = supports_chains
-        self.special_bindings = ({} if special_bindings is None
-                                 else special_bindings)
-        if bindings is None:
-            self.bindings = {}
-        elif supports_chains:
-            self.bindsings = bindings
-        else:
-            raise ValueError("bindings given with supports_chains=False!")
+        self.bindings = {}
+        self.special_bindings = {}
 
     def _normalize_keystr(self, keystr):
         """Normalize a keystring like Ctrl-Q to a keystring like Ctrl+Q.
@@ -348,8 +342,7 @@ class CommandKeyParser(KeyParser):
 
     def __init__(self, parent=None, supports_count=None,
                  supports_chains=False):
-        super().__init__(parent, supports_count=supports_count,
-                         supports_chains=supports_chains)
+        super().__init__(parent, supports_count, supports_chains)
         self.commandparser = CommandParser()
 
     def _run_or_fill(self, cmdstr, count=None, ignore_exc=True):
