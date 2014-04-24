@@ -6,6 +6,9 @@ Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-20973
     https://bugreports.qt-project.org/browse/QTBUG-21036
 Changing completion models is awfully slow
+new keybinding (not in config) crashes exception handler
+    Also, what about unknown settings, unknown values, wrong interpolations,
+    etc.?
 
 Style
 =====
@@ -74,6 +77,11 @@ Ctrl+A/X to increase/decrease last number in URL
 command completion gets hidden when doing a new ValueList value
 logging contexts
 catch import errors for PyQt and QtWebKit
+Allow binding to empty values for keys to override defaults
+How do we handle empty values in input bar?
+Human-readable error messages for unknown settings / wrong interpolations / ...
+auto-click on active hint
+click hints on enter
 
 Qt Bugs
 ========
