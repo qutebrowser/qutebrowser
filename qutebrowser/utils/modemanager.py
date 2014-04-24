@@ -47,6 +47,11 @@ def enter(mode):
     manager.enter(mode)
 
 
+def leave(mode):
+    """Leave the mode 'mode'."""
+    manager.leave(mode)
+
+
 class ModeManager(QObject):
 
     """Manager for keyboard modes.
@@ -54,7 +59,9 @@ class ModeManager(QObject):
     Attributes:
         _handlers: A dictionary of modes and their handlers.
         _passthrough: A list of modes in which to pass through events.
-        mode: The current mode.
+        _mode_stack: A list of the modes we're currently in, with the active
+                     one on the right.
+        mode: The current mode (readonly property).
 
     Signals:
         entered: Emitted when a mode is entered.
@@ -70,7 +77,14 @@ class ModeManager(QObject):
         super().__init__(parent)
         self._handlers = {}
         self._passthrough = []
-        self.mode = None
+        self._mode_stack = []
+
+    @property
+    def mode(self):
+        """Read-only property for the current mode."""
+        if not self._mode_stack:
+            return None
+        return self._mode_stack[-1]
 
     def register(self, mode, handler, passthrough=False):
         """Register a new mode.
@@ -88,18 +102,33 @@ class ModeManager(QObject):
     def enter(self, mode):
         """Enter a new mode.
 
+        Args:
+            mode; The name of the mode to enter.
+
         Emit:
-            leaved: With the old mode name.
             entered: With the new mode name.
         """
-        oldmode = self.mode
-        logging.debug("Switching mode: {} -> {}".format(oldmode, mode))
+        logging.debug("Switching mode to {}".format(mode))
+        logging.debug("Mode stack: {}".format(self._mode_stack))
         if mode not in self._handlers:
             raise ValueError("No handler for mode {}".format(mode))
-        if oldmode is not None:
-            self.leaved.emit(oldmode)
-        self.mode = mode
+        self._mode_stack.append(mode)
         self.entered.emit(mode)
+
+    def leave(self, mode):
+        """Leave a mode.
+
+        Args:
+            mode; The name of the mode to leave.
+
+        Emit:
+            leaved: With the old mode name.
+        """
+        try:
+            self._mode_stack.remove(mode)
+        except ValueError:
+            raise ValueError("Mode {} not on mode stack!".format(mode))
+        self.leaved.emit(mode)
 
     def eventFilter(self, obj, evt):
         """Filter all events based on the currently set mode.

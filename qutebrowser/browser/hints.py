@@ -403,7 +403,7 @@ class HintManager(QObject):
         self._elems = {}
         self._target = None
         self._frame = None
-        modemanager.enter("normal")
+        modemanager.leave("hint")
         message.clear()
 
     def handle_partial_key(self, keystr):

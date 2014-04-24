@@ -363,7 +363,7 @@ class _Command(QLineEdit):
             clear_completion_selection: Always emitted.
             hide_completion: Always emitted so the completion is hidden.
         """
-        modemanager.enter("normal")
+        modemanager.leave("command")
         if e.reason() in [Qt.MouseFocusReason, Qt.TabFocusReason,
                           Qt.BacktabFocusReason, Qt.OtherFocusReason]:
             self.setText('')
