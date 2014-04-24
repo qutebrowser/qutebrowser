@@ -45,7 +45,7 @@ import qutebrowser.utils.harfbuzz as harfbuzz
 harfbuzz.fix()
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QEventLoop, QEvent
+from PyQt5.QtCore import pyqtSlot, QTimer, QEventLoop
 
 import qutebrowser
 import qutebrowser.commands.utils as cmdutils

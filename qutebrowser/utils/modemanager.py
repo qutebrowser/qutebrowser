@@ -130,7 +130,7 @@ class ModeManager(QObject):
             raise ValueError("Mode {} not on mode stack!".format(mode))
         self.leaved.emit(mode)
 
-    def eventFilter(self, obj, evt):
+    def eventFilter(self, _obj, evt):
         """Filter all events based on the currently set mode.
 
         Also calls the real keypress handler.
