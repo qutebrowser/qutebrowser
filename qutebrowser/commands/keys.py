@@ -85,12 +85,15 @@ class CommandKeyParser(KeyParser):
 
         Emit:
             set_cmd_text: If the keystring should be shown in the statusbar.
+
+        Return:
+            True if event has been handled, False otherwise.
         """
         txt = e.text().strip()
         if not self._keystring and any(txt == c for c in STARTCHARS):
             self.set_cmd_text.emit(txt)
-            return
-        super()._handle_single_key(e)
+            return True
+        return super()._handle_single_key(e)
 
     def execute(self, cmdstr, count=None):
         """Handle a completed keychain."""

@@ -116,12 +116,15 @@ class KeyParser(QObject):
 
         Args:
             e: the KeyPressEvent from Qt.
+
+        Return:
+            True if event has been handled, False otherwise.
         """
         logging.debug('Got key: {} / text: "{}"'.format(e.key(), e.text()))
         txt = e.text().strip()
         if not txt:
             logging.debug('Ignoring, no text')
-            return
+            return False
 
         self._stop_delayed_exec()
         self._keystring += txt
@@ -135,7 +138,8 @@ class KeyParser(QObject):
             count = None
 
         if not cmd_input:
-            return
+            # Only a count, no command yet, but we handled it
+            return True
 
         (match, binding) = self._match_key(cmd_input)
 
@@ -151,6 +155,8 @@ class KeyParser(QObject):
             logging.debug('Giving up with "{}", no matches'.format(
                 self._keystring))
             self._keystring = ''
+            return False
+        return True
 
     def _match_key(self, cmd_input):
         """Try to match a given keystring with any bound keychain.

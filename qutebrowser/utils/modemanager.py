@@ -25,6 +25,8 @@ import logging
 
 from PyQt5.QtCore import pyqtSignal, QObject, QEvent
 
+import qutebrowser.config.config as config
+
 
 manager = None
 
@@ -168,11 +170,19 @@ class ModeManager(QObject):
             return False
         elif typ == QEvent.KeyPress:
             # KeyPress in a non-passthrough mode - call handler and filter
-            # event from widgets
+            # event from widgets (unless unhandled and configured to pass
+            # unhandled events through)
             self.key_pressed.emit(evt)
             if handler is not None:
-                handler(evt)
-            return True
+                handled = handler(evt)
+            else:
+                handled = False
+            if handled:
+                return True
+            elif config.get('general', 'forward_unbound_keys'):
+                return False
+            else:
+                return True
         else:
             # KeyRelease in a non-passthrough mode - filter event and ignore it
             # entirely.
