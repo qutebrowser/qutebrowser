@@ -23,7 +23,7 @@ Module attributes:
 
 import logging
 
-from PyQt5.QtCore import pyqtSignal, QObject, QEvent
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
 
 import qutebrowser.config.config as config
 
@@ -72,13 +72,14 @@ class ModeManager(QObject):
         _handlers: A dictionary of modes and their handlers.
         _mode_stack: A list of the modes we're currently in, with the active
                      one on the right.
+        _forward_unbound_keys: If we should forward unbound keys.
 
     Signals:
         entered: Emitted when a mode is entered.
                  arg: Name of the entered mode.
         left:  Emitted when a mode is left.
                  arg: Name of the left mode.
-        key_pressed; A key was pressed.
+        key_pressed: A key was pressed.
     """
 
     entered = pyqtSignal(str)
@@ -90,6 +91,8 @@ class ModeManager(QObject):
         self._handlers = {}
         self.passthrough = []
         self._mode_stack = []
+        self._forward_unbound_keys = config.get('general',
+                                                'forward_unbound_keys')
 
     @property
     def mode(self):
@@ -147,6 +150,13 @@ class ModeManager(QObject):
         logging.debug("New mode stack: {}".format(self._mode_stack))
         self.left.emit(mode)
 
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
+        """Update local setting when config changed."""
+        if (section, option) == ('general', 'forward_unbound_keys'):
+            self._forward_unbound_keys = config.get('general',
+                                                    'forward_unbound_keys')
+
     def eventFilter(self, _obj, evt):
         """Filter all events based on the currently set mode.
 
@@ -179,7 +189,7 @@ class ModeManager(QObject):
                 handled = False
             if handled:
                 return True
-            elif config.get('general', 'forward_unbound_keys'):
+            elif self._forward_unbound_keys:
                 return False
             else:
                 return True

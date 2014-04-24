@@ -284,7 +284,7 @@ class QuteBrowser(QApplication):
         # config
         self.config.style_changed.connect(style.invalidate_caches)
         for obj in [tabs, completion, self.mainwindow, config.cmd_history,
-                    websettings, kp["normal"]]:
+                    websettings, kp["normal"], modemanager.manager]:
             self.config.changed.connect(obj.on_config_changed)
 
         # statusbar
