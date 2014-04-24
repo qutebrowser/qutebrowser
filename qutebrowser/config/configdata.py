@@ -83,6 +83,11 @@ SECTION_DESC = {
         "Since normal keypresses are passed through, only special keys are "
         "supported in this mode.\n"
         "An useful command to map here is the hidden command leave_mode."),
+    'keybind.hint': (
+        "Keybindings for hint mode.\n"
+        "Since normal keypresses are passed through, only special keys are "
+        "supported in this mode.\n"
+        "An useful command to map here is the hidden command leave_mode."),
     'aliases': (
         "Aliases for commands.\n"
         "By default, no aliases are defined. Example which adds a new command "
@@ -426,6 +431,12 @@ DATA = OrderedDict([
     )),
 
     ('keybind.insert', sect.ValueList(
+        types.KeyBindingName(), types.KeyBinding(),
+        ('<Escape>', 'leave_mode'),
+        ('<Ctrl-C>', 'leave_mode'),
+    )),
+
+    ('keybind.hint', sect.ValueList(
         types.KeyBindingName(), types.KeyBinding(),
         ('<Escape>', 'leave_mode'),
         ('<Ctrl-C>', 'leave_mode'),

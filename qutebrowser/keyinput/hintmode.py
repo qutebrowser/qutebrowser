@@ -19,46 +19,35 @@
 
 from PyQt5.QtCore import pyqtSignal, Qt
 
-from qutebrowser.keyinput.keyparser import KeyParser
+from qutebrowser.keyinput.keyparser import CommandKeyParser
 
 
-class HintKeyParser(KeyParser):
+class HintKeyParser(CommandKeyParser):
 
     """KeyChainParser for hints.
 
     Signals:
         fire_hint: When a hint keybinding was completed.
                    Arg: the keystring/hint string pressed.
-        abort_hinting: Esc pressed, so abort hinting.
     """
 
     fire_hint = pyqtSignal(str)
-    abort_hinting = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent, supports_count=False, supports_chains=True)
+        self.read_config('keybind.hint')
 
-    def _handle_special_key(self, e):
-        """Handle the escape key.
-
-        FIXME make this more generic
-
-        Emit:
-            abort_hinting: Emitted if hinting was aborted.
-        """
-        if e.key() == Qt.Key_Escape:
-            self._keystring = ''
-            self.abort_hinting.emit()
-            return True
-        return False
-
-    def execute(self, cmdstr, _count=None):
+    def execute(self, cmdstr, keytype, count=None):
         """Handle a completed keychain.
 
         Emit:
-            fire_hint: Always emitted.
+            fire_hint: Emitted if keytype is TYPE_CHAIN
         """
-        self.fire_hint.emit(cmdstr)
+        if keytype == self.TYPE_CHAIN:
+            self.fire_hint.emit(cmdstr)
+        else:
+            # execute as command
+            super().execute(cmdstr, keytype, count)
 
     def on_hint_strings_updated(self, strings):
         """Handler for HintManager's hint_strings_updated.

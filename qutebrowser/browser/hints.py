@@ -91,6 +91,7 @@ class HintManager(QObject):
         self._frame = None
         self._target = None
         self._baseurl = None
+        modes.manager.left.connect(self.on_mode_left)
 
     def _hint_strings(self, elems):
         """Calculate the hint strings for elems.
@@ -302,18 +303,6 @@ class HintManager(QObject):
         self.hint_strings_updated.emit(strings)
         modes.enter("hint")
 
-    def stop(self):
-        """Stop hinting."""
-        for elem in self._elems.values():
-            elem.label.removeFromDocument()
-        self._frame.contentsSizeChanged.disconnect(
-            self.on_contents_size_changed)
-        self._elems = {}
-        self._target = None
-        self._frame = None
-        modes.leave("hint")
-        message.clear()
-
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
         delete = []
@@ -355,7 +344,7 @@ class HintManager(QObject):
             message.set_cmd_text(':{} {}'.format(commands[self._target],
                                                  urlutils.urlstring(link)))
         if self._target != 'rapid':
-            self.stop()
+            modes.leave("hint")
 
     @pyqtSlot('QSize')
     def on_contents_size_changed(self, _size):
@@ -365,3 +354,17 @@ class HintManager(QObject):
             css = self.HINT_CSS.format(left=rect.x(), top=rect.y(),
                                        config=config.instance)
             elems.label.setAttribute("style", css)
+
+    @pyqtSlot(str)
+    def on_mode_left(self, mode):
+        """Stop hinting when hinting mode was left."""
+        if mode != "hint":
+            return
+        for elem in self._elems.values():
+            elem.label.removeFromDocument()
+        self._frame.contentsSizeChanged.disconnect(
+            self.on_contents_size_changed)
+        self._elems = {}
+        self._target = None
+        self._frame = None
+        message.clear()
