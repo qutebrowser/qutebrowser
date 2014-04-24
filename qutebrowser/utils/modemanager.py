@@ -68,10 +68,12 @@ class ModeManager(QObject):
                  arg: Name of the entered mode.
         left:  Emitted when a mode is left.
                  arg: Name of the left mode.
+        key_pressed; A key was pressed.
     """
 
     entered = pyqtSignal(str)
     left = pyqtSignal(str)
+    key_pressed = pyqtSignal('QKeyEvent')
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -139,6 +141,9 @@ class ModeManager(QObject):
         """Filter all events based on the currently set mode.
 
         Also calls the real keypress handler.
+
+        Emit:
+            key_pressed: When a key was actually pressed.
         """
         typ = evt.type()
         handler = self._handlers[self.mode]
@@ -149,12 +154,14 @@ class ModeManager(QObject):
             # We're currently in a passthrough mode so we pass everything
             # through.*and* let the passthrough keyhandler know.
             # FIXME what if we leave the passthrough mode right here?
+            self.key_pressed.emit(evt)
             if handler is not None:
                 handler(evt)
             return False
         elif typ == QEvent.KeyPress:
             # KeyPress in a non-passthrough mode - call handler and filter
             # event from widgets
+            self.key_pressed.emit(evt)
             if handler is not None:
                 handler(evt)
             return True

@@ -69,8 +69,6 @@ class TabbedBrowser(TabWidget):
                                  arg 2: y-position in %.
         hint_strings_updated: Hint strings were updated.
                               arg: A list of hint strings.
-        keypress: A key was pressed.
-                  arg: The QKeyEvent leading to the keypress.
         shutdown_complete: The shuttdown is completed.
         quit: The last tab was closed, quit application.
         resized: Emitted when the browser window has resized, so the completion
@@ -87,7 +85,6 @@ class TabbedBrowser(TabWidget):
     cur_scroll_perc_changed = pyqtSignal(int, int)
     hint_strings_updated = pyqtSignal(list)
     set_cmd_text = pyqtSignal(str)
-    keypress = pyqtSignal('QKeyEvent')
     shutdown_complete = pyqtSignal()
     quit = pyqtSignal()
     resized = pyqtSignal('QRect')
@@ -355,18 +352,6 @@ class TabbedBrowser(TabWidget):
             self.setTabText(self.indexOf(self.sender()), text)
         else:
             logging.debug('ignoring title change')
-
-    def keyPressEvent(self, e):
-        """Extend TabWidget (QWidget)'s keyPressEvent to emit a signal.
-
-        Args:
-            e: The QKeyPressEvent
-
-        Emit:
-            keypress: Always emitted.
-        """
-        self.keypress.emit(e)
-        super().keyPressEvent(e)
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

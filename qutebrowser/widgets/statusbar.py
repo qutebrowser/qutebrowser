@@ -158,7 +158,7 @@ class StatusBar(QWidget):
         self.txt.errortext = ''
 
     @pyqtSlot('QKeyEvent')
-    def keypress(self, e):
+    def on_key_pressed(self, e):
         """Hide temporary error message if a key was pressed.
 
         Args:

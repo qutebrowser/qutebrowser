@@ -258,7 +258,7 @@ class QuteBrowser(QApplication):
         modemanager.manager.entered.connect(status.on_mode_entered)
         modemanager.manager.left.connect(status.on_mode_left)
         # FIXME what to do here?
-        tabs.keypress.connect(status.keypress)
+        modemanager.manager.key_pressed.connect(status.on_key_pressed)
         for obj in [kp["normal"], tabs]:
             obj.set_cmd_text.connect(cmd.set_cmd_text)
 

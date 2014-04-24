@@ -2,7 +2,6 @@ keyparser foo
 =============
 
 - Handle keybind to get out of insert mode (e.g. esc)
-- Pass keypresses to statusbar correctly
 - Switch to normal mode if new page loaded
 - Add passthrough-keys option to pass through unmapped keys
 - Add auto-insert-mode to switch to insert mode if editable element is focused
