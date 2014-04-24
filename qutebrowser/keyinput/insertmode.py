@@ -33,5 +33,5 @@ class InsertKeyParser(KeyParser):
 
     def execute(self, cmdstr, count=None):
         """Handle a completed keychain."""
-        if cmdstr == '<normal>':
+        if cmdstr == '<leave>':
             modes.leave("insert")

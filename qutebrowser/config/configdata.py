@@ -84,7 +84,7 @@ SECTION_DESC = {
         "supported in this mode.\n"
         "In addition to the normal commands, the following special commands "
         "are defined:\n"
-        "  <normal>: Switch back to normal mode."),
+        "  <leave>: Leave the insert mode."),
     'aliases': (
         "Aliases for commands.\n"
         "By default, no aliases are defined. Example which adds a new command "
@@ -428,9 +428,9 @@ DATA = OrderedDict([
     )),
 
     ('keybind.insert', sect.ValueList(
-        types.KeyBindingName(), types.KeyBinding(['<normal>']),
-        ('<Escape>', '<normal>'),
-        ('<Ctrl-C>', '<normal>'),
+        types.KeyBindingName(), types.KeyBinding(['<leave>']),
+        ('<Escape>', '<leave>'),
+        ('<Ctrl-C>', '<leave>'),
     )),
 
     ('aliases', sect.ValueList(
