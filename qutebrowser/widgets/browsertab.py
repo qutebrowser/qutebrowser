@@ -85,6 +85,7 @@ class BrowserTab(QWebView):
         self.page_.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.page_.linkHovered.connect(self.linkHovered)
         self.linkClicked.connect(self.on_link_clicked)
+        self.loadFinished.connect(self.on_load_finished)
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
 
     def _init_neighborlist(self):
@@ -241,6 +242,21 @@ class BrowserTab(QWebView):
         """Post a new mouseevent from a hintmanager."""
         self.setFocus()
         QApplication.postEvent(self, evt)
+
+    @pyqtSlot(bool)
+    def on_load_finished(self, ok):
+        """Handle insert mode after loading finished."""
+        if config.get('general', 'auto_insert_mode'):
+            frame = self.page_.currentFrame()
+            # FIXME better selector (from hintmanager)
+            elem = frame.findFirstElement('*:focus')
+            logging.debug("focus element: {}".format(not elem.isNull()))
+            if elem.isNull():
+                modemanager.maybe_leave("insert")
+            else:
+                modemanager.enter("insert")
+        else:
+            modemanager.maybe_leave("insert")
 
     @pyqtSlot(str)
     def set_force_open_target(self, target):

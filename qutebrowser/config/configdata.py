@@ -171,6 +171,11 @@ DATA = OrderedDict([
          SettingValue(types.Bool(), "true"),
          "Whether to switch to insert mode when clicking flash and other "
          "plugins."),
+
+        ('auto_insert_mode',
+         SettingValue(types.Bool(), "true"),
+         "Whether to automatically enter insert mode if an editable element "
+         "is focused after page load."),
     )),
 
     ('tabbar', sect.KeyValue(

@@ -4,8 +4,6 @@ keyparser foo
 - Handle keybind to get out of insert mode (e.g. esc)
 - Switch to normal mode if new page loaded
 - Add passthrough-keys option to pass through unmapped keys
-- Add auto-insert-mode to switch to insert mode if editable element is focused
-  after page load
 - Add more element-selection-detection code (with options?) based on:
       -> javascript: http://stackoverflow.com/a/2848120/2085149
       -> microFocusChanged and check active element via:

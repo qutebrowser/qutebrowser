@@ -52,6 +52,14 @@ def leave(mode):
     manager.leave(mode)
 
 
+def maybe_leave(mode):
+    """Convenience method to leave 'mode' without exceptions."""
+    try:
+        manager.leave(mode)
+    except ValueError:
+        pass
+
+
 class ModeManager(QObject):
 
     """Manager for keyboard modes.
