@@ -21,6 +21,13 @@ reorder options
 clean up utils/ mess (e.g. keys/ subfolder?)
 rename *Parser to more meaningful names
 rename modemanager because it sounds like modemmanager (at least imported name)
+_foo = QApplication.instance().obj.foo   for global singletons?
+decorators for often-used signals from singletons?
+    - @on_config_changed('colors')
+    - @on_enter_mode('hints')
+find better names for *Parser/*Manager
+Use _foo.py for modules only used in subpackage?
+Use py3.4 Enums with a backport to qutebrowser.utils?
 
 Major features
 ==============
