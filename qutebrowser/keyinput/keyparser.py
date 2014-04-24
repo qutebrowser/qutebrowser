@@ -44,6 +44,9 @@ class KeyParser(QObject):
         MATCH_AMBIGUOUS: There are both a partial and a definitive match.
         MATCH_NONE: Constant for no match (no more matches possible).
 
+        TYPE_CHAIN: execute() was called via a chain-like keybinding
+        TYPE_SPECIAL: execute() was called via a special keybinding
+
     Attributes:
         bindings: Bound keybindings
         special_bindings: Bound special bindings (<Foo>).
@@ -64,6 +67,9 @@ class KeyParser(QObject):
     MATCH_DEFINITIVE = 1
     MATCH_AMBIGUOUS = 2
     MATCH_NONE = 3
+
+    TYPE_CHAIN = 0
+    TYPE_SPECIAL = 1
 
     def __init__(self, parent=None, supports_count=None,
                  supports_chains=False):
@@ -131,7 +137,7 @@ class KeyParser(QObject):
         except KeyError:
             logging.debug('No binding found for {}.'.format(modstr + keystr))
             return False
-        self.execute(cmdstr)
+        self.execute(cmdstr, self.TYPE_SPECIAL)
         return True
 
     def _handle_single_key(self, e):
@@ -172,7 +178,7 @@ class KeyParser(QObject):
 
         if match == self.MATCH_DEFINITIVE:
             self._keystring = ''
-            self.execute(binding, count)
+            self.execute(binding, self.TYPE_CHAIN, count)
         elif match == self.MATCH_AMBIGUOUS:
             self._handle_ambiguous_match(binding, count)
         elif match == self.MATCH_PARTIAL:
@@ -246,7 +252,7 @@ class KeyParser(QObject):
         if time == 0:
             # execute immediately
             self._keystring = ''
-            self.execute(binding, count)
+            self.execute(binding, self.TYPE_CHAIN, count)
         else:
             # execute in `time' ms
             logging.debug("Scheduling execution of {} in {}ms".format(binding,
@@ -271,7 +277,7 @@ class KeyParser(QObject):
         self._timer = None
         self._keystring = ''
         self.keystring_updated.emit(self._keystring)
-        self.execute(command, count)
+        self.execute(command, self.TYPE_CHAIN, count)
 
     def handle(self, e):
         """Handle a new keypress and call the respective handlers.
@@ -322,11 +328,12 @@ class KeyParser(QObject):
                     "Ignoring keychain \"{}\" in section \"{}\" because "
                     "keychains are not supported there.".format(key, sectname))
 
-    def execute(self, cmdstr, count=None):
+    def execute(self, cmdstr, keytype, count=None):
         """Handle a completed keychain.
 
         Args:
             cmdstr: The command to execute as a string.
+            keytype: TYPE_CHAIN or TYPE_SPECIAL
             count: The count if given.
         """
         raise NotImplementedError
@@ -371,5 +378,5 @@ class CommandKeyParser(KeyParser):
                 cmdstr))
             message.set_cmd_text(':{} '.format(cmdstr))
 
-    def execute(self, cmdstr, count=None):
+    def execute(self, cmdstr, _keytype, count=None):
         self._run_or_fill(cmdstr, count, ignore_exc=False)
