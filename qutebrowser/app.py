@@ -56,7 +56,7 @@ import qutebrowser.keyinput.modes as modes
 import qutebrowser.utils.message as message
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
-from qutebrowser.keyinput.commandmode import CommandKeyParser
+from qutebrowser.keyinput.normalmode import CommandKeyParser
 from qutebrowser.keyinput.insertmode import InsertKeyParser
 from qutebrowser.commands.parsers import CommandParser, SearchParser
 from qutebrowser.browser.hints import HintKeyParser

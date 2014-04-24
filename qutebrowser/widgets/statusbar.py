@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import (QWidget, QLineEdit, QProgressBar, QLabel,
 from PyQt5.QtGui import QPainter, QKeySequence, QValidator
 
 import qutebrowser.keyinput.modes as modes
-from qutebrowser.keyinput.commandmode import STARTCHARS
+from qutebrowser.keyinput.normalmode import STARTCHARS
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 from qutebrowser.utils.url import urlstring
 from qutebrowser.commands.parsers import split_cmdline
