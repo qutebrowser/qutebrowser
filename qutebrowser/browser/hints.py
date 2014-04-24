@@ -30,15 +30,15 @@ import qutebrowser.utils.message as message
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.modemanager as modemanager
 import qutebrowser.utils.webelem as webelem
-from qutebrowser.utils.keyparser import KeyParser
+from qutebrowser.utils.keyparser import KeyChainParser
 
 
 ElemTuple = namedtuple('ElemTuple', 'elem, label')
 
 
-class HintKeyParser(KeyParser):
+class HintKeyParser(KeyChainParser):
 
-    """KeyParser for hints.
+    """KeyChainParser for hints.
 
     Class attributes:
         supports_count: If the keyparser should support counts.

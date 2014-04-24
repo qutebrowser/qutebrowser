@@ -23,19 +23,18 @@ Module attributes:
 
 import logging
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSignal
 
-import qutebrowser.config.config as config
-from qutebrowser.utils.keyparser import KeyParser
+from qutebrowser.utils.keyparser import KeyChainParser
 from qutebrowser.commands.parsers import (CommandParser, ArgumentCountError,
                                           NoSuchCommandError)
 
 STARTCHARS = ":/?"
 
 
-class CommandKeyParser(KeyParser):
+class CommandKeyParser(KeyChainParser):
 
-    """Keyparser for command bindings.
+    """KeyChainParser for command bindings.
 
     Class attributes:
         supports_count: If the keyparser should support counts.
@@ -54,7 +53,7 @@ class CommandKeyParser(KeyParser):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.commandparser = CommandParser()
-        self.read_config()
+        self.read_config('keybind')
 
     def _run_or_fill(self, cmdstr, count=None, ignore_exc=True):
         """Run the command in cmdstr or fill the statusbar if args missing.
@@ -98,29 +97,3 @@ class CommandKeyParser(KeyParser):
     def execute(self, cmdstr, count=None):
         """Handle a completed keychain."""
         self._run_or_fill(cmdstr, count, ignore_exc=False)
-
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, _option):
-        """Re-read the config if a keybinding was changed."""
-        if section == 'keybind':
-            self.read_config()
-
-    def read_config(self):
-        """Read the configuration.
-
-        Config format: key = command, e.g.:
-            gg = scrollstart
-        """
-        sect = config.instance['keybind']
-        if not sect.items():
-            logging.warn("No keybindings defined!")
-        for (key, cmd) in sect.items():
-            if key.startswith('<') and key.endswith('>'):
-                # normalize keystring
-                keystr = self._normalize_keystr(key[1:-1])
-                logging.debug('registered special key: {} -> {}'.format(keystr,
-                                                                        cmd))
-                self.special_bindings[keystr] = cmd
-            else:
-                logging.debug('registered key: {} -> {}'.format(key, cmd))
-                self.bindings[key] = cmd
