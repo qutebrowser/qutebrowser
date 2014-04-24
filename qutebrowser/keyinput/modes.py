@@ -27,6 +27,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
 
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
+import qutebrowser.utils.debug as debug
 
 
 manager = None
@@ -181,7 +182,8 @@ class ModeManager(QObject):
         if typ not in [QEvent.KeyPress, QEvent.KeyRelease]:
             # We're not interested in non-key-events so we pass them through.
             return False
-        elif self.mode in self.passthrough:
+        logging.debug("Got event {} for {}".format(debug.EVENTS[typ], _obj))
+        if self.mode in self.passthrough:
             # We're currently in a passthrough mode so we pass everything
             # through.*and* let the passthrough keyhandler know.
             # FIXME what if we leave the passthrough mode right here?
