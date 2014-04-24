@@ -29,6 +29,7 @@ import qutebrowser.utils.url as urlutils
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
 import qutebrowser.utils.modemanager as modemanager
+import qutebrowser.utils.webelem as webelem
 from qutebrowser.browser.webpage import BrowserPage
 from qutebrowser.browser.hints import HintManager
 from qutebrowser.utils.signals import SignalCache
@@ -250,8 +251,8 @@ class BrowserTab(QWebView):
             modemanager.maybe_leave("insert")
         elif config.get('general', 'auto_insert_mode'):
             frame = self.page_.currentFrame()
-            # FIXME better selector (from hintmanager)
-            elem = frame.findFirstElement('*:focus')
+            elem = frame.findFirstElement(
+                webelem.SELECTORS['editable_focused'])
             logging.debug("focus element: {}".format(not elem.isNull()))
             if elem.isNull():
                 modemanager.maybe_leave("insert")

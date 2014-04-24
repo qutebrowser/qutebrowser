@@ -29,6 +29,7 @@ import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.modemanager as modemanager
+import qutebrowser.utils.webelem as webelem
 from qutebrowser.utils.keyparser import KeyParser
 
 
@@ -86,10 +87,6 @@ class HintManager(QObject):
     """Manage drawing hints over links or other elements.
 
     Class attributes:
-        SELECTORS: CSS selectors for the different highlighting modes.
-        FILTERS: A dictionary of filter functions for the modes.
-                 The filter for "links" filters javascript:-links and a-tags
-                 without "href".
         HINT_CSS: The CSS template to use for hints.
 
     Attributes:
@@ -113,23 +110,6 @@ class HintManager(QObject):
         set_open_target: Set a new target to open the links in.
         set_cmd_text: Emitted when the commandline text should be set.
     """
-
-    SELECTORS = {
-        "all": ("a, textarea, select, input:not([type=hidden]), button, "
-                "frame, iframe, [onclick], [onmousedown], [role=link], "
-                "[role=option], [role=button], img"),
-        "links": "a",
-        "images": "img",
-        "editable": ("input[type=text], input[type=email], input[type=url],"
-                     "input[type=tel], input[type=number], "
-                     "input[type=password], input[type=search], textarea"),
-        "url": "[src], [href]",
-    }
-
-    FILTERS = {
-        "links": (lambda e: e.hasAttribute("href") and
-                  urlutils.qurl(e.attribute("href")).scheme() != "javascript"),
-    }
 
     HINT_CSS = """
         color: {config[colors][hints.fg]};
@@ -355,22 +335,12 @@ class HintManager(QObject):
         self._target = target
         self._baseurl = baseurl
         self._frame = frame
-        elems = frame.findAllElements(self.SELECTORS[mode])
-        filterfunc = self.FILTERS.get(mode, lambda e: True)
+        elems = frame.findAllElements(webelem.SELECTORS[mode])
+        filterfunc = webelem.FILTERS.get(mode, lambda e: True)
         visible_elems = []
         for e in elems:
-            if not filterfunc(e):
-                continue
-            rect = e.geometry()
-            if (not rect.isValid()) and rect.x() == 0:
-                # Most likely an invisible link
-                continue
-            framegeom = frame.geometry()
-            framegeom.translate(frame.scrollPosition())
-            if not framegeom.contains(rect.topLeft()):
-                # out of screen
-                continue
-            visible_elems.append(e)
+            if filterfunc(e) and webelem.is_visible(e, self._frame):
+                visible_elems.append(e)
         if not visible_elems:
             message.error("No elements found.")
             return
