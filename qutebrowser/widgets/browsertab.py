@@ -246,7 +246,9 @@ class BrowserTab(QWebView):
     @pyqtSlot(bool)
     def on_load_finished(self, ok):
         """Handle insert mode after loading finished."""
-        if config.get('general', 'auto_insert_mode'):
+        if not ok:
+            modemanager.maybe_leave("insert")
+        elif config.get('general', 'auto_insert_mode'):
             frame = self.page_.currentFrame()
             # FIXME better selector (from hintmanager)
             elem = frame.findFirstElement('*:focus')
