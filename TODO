@@ -25,7 +25,6 @@ Style
 =====
 
 Refactor completion widget mess (initializing / changing completions)
-keypress-signal-foo is a bit of a chaos and might be done better
 we probably could replace CompletionModel with QStandardModel...
 
 Major features
