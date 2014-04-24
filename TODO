@@ -3,7 +3,6 @@ keyparser foo
 
 - Create a SimpleKeyParser and inherit KeyParser from that.
     - Handle keybind to get out of insert mode (e.g. esc)
-- Enter normal mode in loadingStarted already
 - Read unbound-keys setting only once
 - Add more element-selection-detection code (with options?) based on:
       -> javascript: http://stackoverflow.com/a/2848120/2085149

@@ -86,6 +86,7 @@ class BrowserTab(QWebView):
         self.page_.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.page_.linkHovered.connect(self.linkHovered)
         self.linkClicked.connect(self.on_link_clicked)
+        self.loadStarted.connect(lambda: modemanager.maybe_leave("insert"))
         self.loadFinished.connect(self.on_load_finished)
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
 
@@ -245,21 +246,18 @@ class BrowserTab(QWebView):
         QApplication.postEvent(self, evt)
 
     @pyqtSlot(bool)
-    def on_load_finished(self, ok):
-        """Handle insert mode after loading finished."""
-        if not ok:
+    def on_load_finished(self, _ok):
+        """Handle auto_insert_mode after loading finished."""
+        if not config.get('general', 'auto_insert_mode'):
+            return
+        frame = self.page_.currentFrame()
+        elem = frame.findFirstElement(
+            webelem.SELECTORS['editable_focused'])
+        logging.debug("focus element: {}".format(not elem.isNull()))
+        if elem.isNull():
             modemanager.maybe_leave("insert")
-        elif config.get('general', 'auto_insert_mode'):
-            frame = self.page_.currentFrame()
-            elem = frame.findFirstElement(
-                webelem.SELECTORS['editable_focused'])
-            logging.debug("focus element: {}".format(not elem.isNull()))
-            if elem.isNull():
-                modemanager.maybe_leave("insert")
-            else:
-                modemanager.enter("insert")
         else:
-            modemanager.maybe_leave("insert")
+            modemanager.enter("insert")
 
     @pyqtSlot(str)
     def set_force_open_target(self, target):
