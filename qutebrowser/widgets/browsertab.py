@@ -111,28 +111,36 @@ class BrowserTab(QWebView):
                 self._shutdown_callback()
 
     def _is_editable(self, hitresult):
-        """Checks if the hitresult needs keyboard focus.
+        """Check if a hit result needs keyboard focus.
 
         Args:
             hitresult: A QWebHitTestResult
         """
         # FIXME is this algorithm accurate?
         if hitresult.isContentEditable():
+            # text fields and the like
             return True
         if not config.get('general', 'insert_mode_on_plugins'):
             return False
         elem = hitresult.element()
         tag = elem.tagName().lower()
         if tag in ['embed', 'applet']:
+            # Flash/Java/...
             return True
-        elif tag == 'object':
+        if tag == 'object':
+            # Could be Flash/Java/..., could be image/audio/...
             if not elem.hasAttribute("type"):
-                logging.warn("<object> without type clicked...")
+                logging.debug("<object> without type clicked...")
                 return False
             objtype = elem.attribute("type")
-            if not objtype.startswith("image/"):
+            if (objtype.startswith("application/") or
+                    elem.hasAttribute("classid")):
+                # Let's hope flash/java stuff has an application/* mimetype OR
+                # at least a classid attribute. Oh, and let's home images/...
+                # DON"T have a classid attribute. HTML sucks.
                 logging.debug("<object type=\"{}\"> clicked.".format(objtype))
                 return True
+        return False
 
     def openurl(self, url):
         """Open an URL in the browser.
