@@ -170,6 +170,18 @@ class StatusBar(QWidget):
         self.txt.set_temptext('')
         self.clear_error()
 
+    @pyqtSlot(str)
+    def on_mode_entered(self, mode):
+        """Mark certain modes in the commandline."""
+        if mode in modemanager.manager.passthrough:
+            self.txt.normaltext = "-- {} MODE --".format(mode.upper())
+
+    @pyqtSlot(str)
+    def on_mode_left(self, mode):
+        """Clear marked mode."""
+        if mode in modemanager.manager.passthrough:
+            self.txt.normaltext = ""
+
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
 

@@ -255,6 +255,8 @@ class QuteBrowser(QApplication):
         tabs.currentChanged.connect(self.mainwindow.update_inspector)
 
         # status bar
+        modemanager.manager.entered.connect(status.on_mode_entered)
+        modemanager.manager.leaved.connect(status.on_mode_left)
         # FIXME what to do here?
         tabs.keypress.connect(status.keypress)
         for obj in [kp["normal"], tabs]:

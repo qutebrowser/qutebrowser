@@ -57,11 +57,11 @@ class ModeManager(QObject):
     """Manager for keyboard modes.
 
     Attributes:
+        mode: The current mode (readonly property).
+        passthrough: A list of modes in which to pass through events.
         _handlers: A dictionary of modes and their handlers.
-        _passthrough: A list of modes in which to pass through events.
         _mode_stack: A list of the modes we're currently in, with the active
                      one on the right.
-        mode: The current mode (readonly property).
 
     Signals:
         entered: Emitted when a mode is entered.
@@ -76,7 +76,7 @@ class ModeManager(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._handlers = {}
-        self._passthrough = []
+        self.passthrough = []
         self._mode_stack = []
 
     @property
@@ -97,7 +97,7 @@ class ModeManager(QObject):
         """
         self._handlers[mode] = handler
         if passthrough:
-            self._passthrough.append(mode)
+            self.passthrough.append(mode)
 
     def enter(self, mode):
         """Enter a new mode.
@@ -140,7 +140,7 @@ class ModeManager(QObject):
         if typ not in [QEvent.KeyPress, QEvent.KeyRelease]:
             # We're not interested in non-key-events so we pass them through.
             return False
-        elif self.mode in self._passthrough:
+        elif self.mode in self.passthrough:
             # We're currently in a passthrough mode so we pass everything
             # through.*and* let the passthrough keyhandler know.
             # FIXME what if we leave the passthrough mode right here?
