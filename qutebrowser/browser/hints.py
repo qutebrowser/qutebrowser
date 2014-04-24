@@ -26,62 +26,14 @@ from PyQt5.QtGui import QMouseEvent, QClipboard
 from PyQt5.QtWidgets import QApplication
 
 import qutebrowser.config.config as config
+import qutebrowser.keyinput.modes as modes
 import qutebrowser.utils.message as message
 import qutebrowser.utils.url as urlutils
-import qutebrowser.utils.modemanager as modemanager
 import qutebrowser.utils.webelem as webelem
-from qutebrowser.utils.keyparser import KeyChainParser
+from qutebrowser.keyinput.hintmode import HintKeyParser
 
 
 ElemTuple = namedtuple('ElemTuple', 'elem, label')
-
-
-class HintKeyParser(KeyChainParser):
-
-    """KeyChainParser for hints.
-
-    Class attributes:
-        supports_count: If the keyparser should support counts.
-
-    Signals:
-        fire_hint: When a hint keybinding was completed.
-                   Arg: the keystring/hint string pressed.
-        abort_hinting: Esc pressed, so abort hinting.
-    """
-
-    supports_count = False
-    fire_hint = pyqtSignal(str)
-    abort_hinting = pyqtSignal()
-
-    def _handle_special_key(self, e):
-        """Handle the escape key.
-
-        FIXME make this more generic
-
-        Emit:
-            abort_hinting: Emitted if hinting was aborted.
-        """
-        if e.key() == Qt.Key_Escape:
-            self._keystring = ''
-            self.abort_hinting.emit()
-            return True
-        return False
-
-    def execute(self, cmdstr, count=None):
-        """Handle a completed keychain.
-
-        Emit:
-            fire_hint: Always emitted.
-        """
-        self.fire_hint.emit(cmdstr)
-
-    def on_hint_strings_updated(self, strings):
-        """Handler for HintManager's hint_strings_updated.
-
-        Args:
-            strings: A list of hint strings.
-        """
-        self.bindings = {s: s for s in strings}
 
 
 class HintManager(QObject):
@@ -364,7 +316,7 @@ class HintManager(QObject):
             self._elems[string] = ElemTuple(e, label)
         frame.contentsSizeChanged.connect(self.on_contents_size_changed)
         self.hint_strings_updated.emit(strings)
-        modemanager.enter("hint")
+        modes.enter("hint")
 
     def stop(self):
         """Stop hinting."""
@@ -375,7 +327,7 @@ class HintManager(QObject):
         self._elems = {}
         self._target = None
         self._frame = None
-        modemanager.leave("hint")
+        modes.leave("hint")
         message.clear()
 
     def handle_partial_key(self, keystr):

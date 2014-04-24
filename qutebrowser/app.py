@@ -52,11 +52,11 @@ import qutebrowser.commands.utils as cmdutils
 import qutebrowser.config.style as style
 import qutebrowser.config.config as config
 import qutebrowser.network.qutescheme as qutescheme
+import qutebrowser.keyinput.modes as modes
 import qutebrowser.utils.message as message
-import qutebrowser.utils.modemanager as modemanager
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
-from qutebrowser.commands.keys import CommandKeyParser
+from qutebrowser.keyinput.commandmode import CommandKeyParser
 from qutebrowser.commands.parsers import CommandParser, SearchParser
 from qutebrowser.browser.hints import HintKeyParser
 from qutebrowser.utils.appdirs import AppDirs
@@ -129,17 +129,16 @@ class QuteBrowser(QApplication):
         }
         self._init_cmds()
         self.mainwindow = MainWindow()
-        modemanager.init(self)
-        modemanager.manager.register("normal",
-                                     self._keyparsers["normal"].handle)
-        modemanager.manager.register("hint", self._keyparsers["hint"].handle)
-        modemanager.manager.register("insert", None, passthrough=True)
-        modemanager.manager.register("command", None, passthrough=True)
-        self.installEventFilter(modemanager.manager)
+        modes.init(self)
+        modes.manager.register("normal", self._keyparsers["normal"].handle)
+        modes.manager.register("hint", self._keyparsers["hint"].handle)
+        modes.manager.register("insert", None, passthrough=True)
+        modes.manager.register("command", None, passthrough=True)
+        self.installEventFilter(modes.manager)
         self.setQuitOnLastWindowClosed(False)
 
         self._connect_signals()
-        modemanager.enter("normal")
+        modes.enter("normal")
 
         self.mainwindow.show()
         self._python_hacks()
@@ -255,10 +254,10 @@ class QuteBrowser(QApplication):
         tabs.currentChanged.connect(self.mainwindow.update_inspector)
 
         # status bar
-        modemanager.manager.entered.connect(status.on_mode_entered)
-        modemanager.manager.left.connect(status.on_mode_left)
+        modes.manager.entered.connect(status.on_mode_entered)
+        modes.manager.left.connect(status.on_mode_left)
         # FIXME what to do here?
-        modemanager.manager.key_pressed.connect(status.on_key_pressed)
+        modes.manager.key_pressed.connect(status.on_key_pressed)
         for obj in [kp["normal"], tabs]:
             obj.set_cmd_text.connect(cmd.set_cmd_text)
 
@@ -284,7 +283,7 @@ class QuteBrowser(QApplication):
         # config
         self.config.style_changed.connect(style.invalidate_caches)
         for obj in [tabs, completion, self.mainwindow, config.cmd_history,
-                    websettings, kp["normal"], modemanager.manager]:
+                    websettings, kp["normal"], modes.manager]:
             self.config.changed.connect(obj.on_config_changed)
 
         # statusbar

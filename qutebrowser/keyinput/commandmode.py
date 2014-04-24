@@ -25,7 +25,7 @@ import logging
 
 from PyQt5.QtCore import pyqtSignal
 
-from qutebrowser.utils.keyparser import KeyChainParser
+from qutebrowser.keyinput.keyparser import KeyChainParser
 from qutebrowser.commands.parsers import (CommandParser, ArgumentCountError,
                                           NoSuchCommandError)
 

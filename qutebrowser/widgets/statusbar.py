@@ -23,8 +23,8 @@ from PyQt5.QtWidgets import (QWidget, QLineEdit, QProgressBar, QLabel,
                              QShortcut)
 from PyQt5.QtGui import QPainter, QKeySequence, QValidator
 
-import qutebrowser.commands.keys as keys
-import qutebrowser.utils.modemanager as modemanager
+import qutebrowser.keyinput.modes as modes
+from qutebrowser.keyinput.commandmode import STARTCHARS
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 from qutebrowser.utils.url import urlstring
 from qutebrowser.commands.parsers import split_cmdline
@@ -173,13 +173,13 @@ class StatusBar(QWidget):
     @pyqtSlot(str)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
-        if mode in modemanager.manager.passthrough:
+        if mode in modes.manager.passthrough:
             self.txt.normaltext = "-- {} MODE --".format(mode.upper())
 
     @pyqtSlot(str)
     def on_mode_left(self, mode):
         """Clear marked mode."""
-        if mode in modemanager.manager.passthrough:
+        if mode in modes.manager.passthrough:
             self.txt.normaltext = ""
 
     def resizeEvent(self, e):
@@ -344,7 +344,7 @@ class _Command(QLineEdit):
         """
         # FIXME we should consider the cursor position.
         text = self.text()
-        if text[0] in keys.STARTCHARS:
+        if text[0] in STARTCHARS:
             prefix = text[0]
             text = text[1:]
         else:
@@ -357,7 +357,7 @@ class _Command(QLineEdit):
 
     def focusInEvent(self, e):
         """Extend focusInEvent to enter command mode."""
-        modemanager.enter("command")
+        modes.enter("command")
         super().focusInEvent(e)
 
     def focusOutEvent(self, e):
@@ -375,7 +375,7 @@ class _Command(QLineEdit):
             clear_completion_selection: Always emitted.
             hide_completion: Always emitted so the completion is hidden.
         """
-        modemanager.leave("command")
+        modes.leave("command")
         if e.reason() in [Qt.MouseFocusReason, Qt.TabFocusReason,
                           Qt.BacktabFocusReason, Qt.OtherFocusReason]:
             self.setText('')
@@ -400,7 +400,7 @@ class _CommandValidator(QValidator):
         Return:
             A tuple (status, string, pos) as a QValidator should.
         """
-        if any(string.startswith(c) for c in keys.STARTCHARS):
+        if any(string.startswith(c) for c in STARTCHARS):
             return (QValidator.Acceptable, string, pos)
         else:
             return (QValidator.Invalid, string, pos)
