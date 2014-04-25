@@ -380,3 +380,20 @@ class CommandKeyParser(KeyParser):
 
     def execute(self, cmdstr, _keytype, count=None):
         self._run_or_fill(cmdstr, count, ignore_exc=False)
+
+
+class PassthroughKeyParser(CommandKeyParser):
+
+    """KeyChainParser which passes through normal keys.
+
+    Used for insert/passthrough modes.
+    """
+
+    def __init__(self, confsect, parent=None):
+        """Constructor.
+
+        Args:
+            confsect: The config section to use.
+        """
+        super().__init__(parent, supports_chains=False)
+        self.read_config(confsect)
