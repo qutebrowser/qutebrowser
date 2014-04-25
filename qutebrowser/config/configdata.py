@@ -97,7 +97,13 @@ SECTION_DESC = {
         "Keybindings for command mode.\n"
         "Since normal keypresses are passed through, only special keys are "
         "supported in this mode.\n"
-        "An useful command to map here is the hidden command leave_mode."),
+        "Useful hidden commands to map in this section:\n"
+        "  command_history_prev: Switch to previous command in history.\n"
+        "  command_history_next: Switch to next command in history.\n"
+        "  completion_item_prev: Select previous item in completion.\n"
+        "  completion_item_next: Select next item in completion.\n"
+        "  command_accept: Execute the command currently in the commandline.\n"
+        "  leave_mode: Leave the command mode."),
     'aliases': (
         "Aliases for commands.\n"
         "By default, no aliases are defined. Example which adds a new command "
