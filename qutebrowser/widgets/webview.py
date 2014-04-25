@@ -36,7 +36,7 @@ from qutebrowser.utils.signals import SignalCache
 from qutebrowser.utils.usertypes import NeighborList
 
 
-class BrowserTab(QWebView):
+class WebView(QWebView):
 
     """One browser tab in TabbedBrowser.
 

@@ -29,7 +29,7 @@ import qutebrowser.utils.message as message
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.widgets._tabwidget import TabWidget
-from qutebrowser.widgets.browsertab import BrowserTab
+from qutebrowser.widgets.webview import WebView
 from qutebrowser.browser.signalfilter import SignalFilter
 from qutebrowser.browser.curcommand import CurCommandDispatcher
 
@@ -217,7 +217,7 @@ class TabbedBrowser(TabWidget):
         """
         logging.debug("Opening {}".format(url))
         url = urlutils.qurl(url)
-        tab = BrowserTab(self)
+        tab = WebView(self)
         self._connect_tab_signals(tab)
         self._tabs.append(tab)
         self.addTab(tab, urlutils.urlstring(url))

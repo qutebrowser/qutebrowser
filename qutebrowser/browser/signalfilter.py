@@ -23,7 +23,7 @@ from functools import partial
 from PyQt5.QtCore import QObject
 
 from qutebrowser.utils.signals import dbg_signal
-from qutebrowser.widgets.browsertab import BrowserTab
+from qutebrowser.widgets.webview import WebView
 
 
 class SignalFilter(QObject):
@@ -76,7 +76,7 @@ class SignalFilter(QObject):
         if log_signal:
             logging.debug('signal {} (tab {})'.format(
                 dbg_signal(signal, args), self._tabs.indexOf(sender)))
-        if not isinstance(sender, BrowserTab):
+        if not isinstance(sender, WebView):
             # BUG? This should never happen, but it does regularely...
             logging.warn('Got signal {} by {} which is no tab!'.format(
                 dbg_signal(signal, args), sender))
