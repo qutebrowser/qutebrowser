@@ -114,6 +114,7 @@ class ModeManager(QObject):
         if passthrough:
             self.passthrough.append(mode)
 
+    @cmdutils.register(instance='modeman', name='enter_mode', hide=True)
     def enter(self, mode):
         """Enter a new mode.
 
