@@ -190,12 +190,12 @@ class ModeManager(QObject):
         if not isinstance(obj, QWindow):
             # We already handled this same event at some point earlier, so
             # we're not interested in it anymore.
-            logging.debug("Got event {} for {} -> ignoring".format(
+            logging.debug("Ignoring event {} for {}".format(
                 debug.EVENTS[typ], obj.__class__.__name__))
             return False
 
-        logging.debug("Got event {} for {}".format(
-            debug.EVENTS[typ], obj.__class__.__name__))
+        logging.debug("Got event {} for {} in mode {}".format(
+            debug.EVENTS[typ], obj.__class__.__name__, self.mode))
 
         handler = self._handlers[self.mode]
 
