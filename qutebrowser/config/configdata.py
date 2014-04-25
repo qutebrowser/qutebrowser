@@ -425,6 +425,7 @@ DATA = OrderedDict([
         ('gg', 'scroll_perc_y 0'),
         ('G', 'scroll_perc_y'),
         ('n', 'nextsearch'),
+        ('i', 'enter_mode insert'),
         ('yy', 'yank'),
         ('yY', 'yank sel'),
         ('yt', 'yanktitle'),
