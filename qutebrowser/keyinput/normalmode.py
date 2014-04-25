@@ -21,8 +21,6 @@ Module attributes:
     STARTCHARS: Possible chars for starting a commandline input.
 """
 
-import logging
-
 import qutebrowser.utils.message as message
 from qutebrowser.keyinput.keyparser import CommandKeyParser
 
@@ -30,6 +28,8 @@ STARTCHARS = ":/?"
 
 
 class NormalKeyParser(CommandKeyParser):
+
+    """KeyParser for normalmode with added STARTCHARS detection."""
 
     def __init__(self, parent=None):
         super().__init__(parent, supports_count=True, supports_chains=True)

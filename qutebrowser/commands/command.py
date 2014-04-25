@@ -20,7 +20,7 @@
 import logging
 
 from qutebrowser.commands.exceptions import (ArgumentCountError,
-    InvalidModeError)
+                                             InvalidModeError)
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
@@ -57,6 +57,8 @@ class Command(QObject):
 
     def __init__(self, name, maxsplit, hide, nargs, count, desc, instance,
                  handler, completion, modes, not_modes):
+        # I really don't know how to solve this in a better way, I tried.
+        # pylint: disable=too-many-arguments
         super().__init__()
         self.name = name
         self.maxsplit = maxsplit

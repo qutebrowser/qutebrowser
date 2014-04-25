@@ -23,8 +23,8 @@ from PyQt5.QtWebKitWidgets import QWebPage
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.message as message
-from qutebrowser.commands.exceptions import (ArgumentCountError,
-    NoSuchCommandError, InvalidModeError)
+from qutebrowser.commands.exceptions import (
+    ArgumentCountError, NoSuchCommandError, InvalidModeError)
 
 
 def split_cmdline(text):

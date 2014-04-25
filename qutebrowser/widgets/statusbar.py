@@ -19,9 +19,8 @@
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt
 from PyQt5.QtWidgets import (QWidget, QLineEdit, QProgressBar, QLabel,
-                             QHBoxLayout, QStackedLayout, QSizePolicy,
-                             QShortcut)
-from PyQt5.QtGui import QPainter, QKeySequence, QValidator
+                             QHBoxLayout, QStackedLayout, QSizePolicy)
+from PyQt5.QtGui import QPainter, QValidator
 
 import qutebrowser.keyinput.modes as modes
 import qutebrowser.commands.utils as cmdutils

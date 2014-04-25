@@ -108,6 +108,57 @@ class ModeManager(QObject):
             return None
         return self._mode_stack[-1]
 
+    def _eventFilter_keypress(self, event):
+        """Handle filtering of KeyPress events.
+
+        Args:
+            event: The KeyPress to examine.
+
+        Return:
+            True if event should be filtered, False otherwise.
+        """
+        handler = self._handlers[self.mode]
+        logging.debug("KeyPress, calling handler {}".format(handler))
+        self.key_pressed.emit(event)
+        handled = handler(event) if handler is not None else False
+
+        if handled:
+            filter_this = True
+        elif self.mode in self.passthrough or self._forward_unbound_keys:
+            filter_this = False
+        else:
+            filter_this = True
+
+        if not filter_this:
+            self._releaseevents_to_pass.append(event)
+
+        logging.debug("handled: {}, forward_unbound_keys: {}, passthrough: {} "
+                      "--> filter: {}".format(handled,
+                                              self._forward_unbound_keys,
+                                              self.mode in self.passthrough,
+                                              filter_this))
+        return filter_this
+
+    def _eventFilter_keyrelease(self, event):
+        """Handle filtering of KeyRelease events.
+
+        Args:
+            event: The KeyPress to examine.
+
+        Return:
+            True if event should be filtered, False otherwise.
+        """
+        # handle like matching KeyPress
+        if event in self._releaseevents_to_pass:
+            # remove all occurences
+            self._releaseevents_to_pass = [
+                e for e in self._releaseevents_to_pass if e != event]
+            filter_this = False
+        else:
+            filter_this = True
+        logging.debug("KeyRelease --> filter: {}".format(filter_this))
+        return filter_this
+
     def register(self, mode, handler, passthrough=False):
         """Register a new mode.
 
@@ -161,6 +212,7 @@ class ModeManager(QObject):
     @cmdutils.register(instance='modeman', name='leave_mode',
                        not_modes=['normal'], hide=True)
     def leave_current_mode(self):
+        """Leave the mode we're currently in."""
         if self.mode == "normal":
             raise ValueError("Can't leave normal mode!")
         self.leave(self.mode)
@@ -172,10 +224,16 @@ class ModeManager(QObject):
             self._forward_unbound_keys = config.get('general',
                                                     'forward_unbound_keys')
 
-    def eventFilter(self, obj, evt):
+    def eventFilter(self, obj, event):
         """Filter all events based on the currently set mode.
 
         Also calls the real keypress handler.
+
+        Args:
+            event: The KeyPress to examine.
+
+        Return:
+            True if event should be filtered, False otherwise.
 
         Emit:
             key_pressed: When a key was actually pressed.
@@ -183,7 +241,7 @@ class ModeManager(QObject):
         if self.mode is None:
             # We got events before mode is set, so just pass them through.
             return False
-        typ = evt.type()
+        typ = event.type()
         if typ not in [QEvent.KeyPress, QEvent.KeyRelease]:
             # We're not interested in non-key-events so we pass them through.
             return False
@@ -197,35 +255,7 @@ class ModeManager(QObject):
         logging.debug("Got event {} for {} in mode {}".format(
             debug.EVENTS[typ], obj.__class__.__name__, self.mode))
 
-        handler = self._handlers[self.mode]
-
         if typ == QEvent.KeyPress:
-            logging.debug("KeyPress, calling handler {}".format(handler))
-            self.key_pressed.emit(evt)
-            handled = handler(evt) if handler is not None else False
-
-            if handled:
-                filter_this = True
-            elif self.mode in self.passthrough or self._forward_unbound_keys:
-                filter_this = False
-            else:
-                filter_this = True
-
-            if not filter_this:
-                self._releaseevents_to_pass.append(evt)
-
-            logging.debug("handled: {}, forward_unbound_keys: {}, "
-                          "passthrough: {} --> filter: {}".format(
-                              handled, self._forward_unbound_keys,
-                              self.mode in self.passthrough, filter_this))
+            return self._eventFilter_keypress(event)
         else:
-            # KeyRelease, handle like matching KeyPress
-            if evt in self._releaseevents_to_pass:
-                # remove all occurences
-                self._releaseevents_to_pass = [e for e in
-                        self._releaseevents_to_pass if e != evt]
-                filter_this = False
-            else:
-                filter_this = True
-            logging.debug("KeyRelease --> filter: {}".format(filter_this))
-        return filter_this
+            return self._eventFilter_keyrelease(event)

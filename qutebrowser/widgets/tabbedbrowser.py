@@ -345,7 +345,7 @@ class TabbedBrowser(TabWidget):
 
     @pyqtSlot(str)
     def on_mode_left(self, mode):
-        """Focus tabs if command mode was left."""
+        """Give focus to tabs if command mode was left."""
         if mode == "command":
             self.setFocus()
 

@@ -17,7 +17,7 @@
 
 """KeyChainParser for "hint" mode."""
 
-from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtCore import pyqtSignal
 
 from qutebrowser.keyinput.keyparser import CommandKeyParser
 
