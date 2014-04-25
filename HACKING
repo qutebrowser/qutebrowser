@@ -1,0 +1,25 @@
+== Style conventions ==
+
+As you might have noticed, I *really* like clean and consistent code. While I
+won't reject your contribution when you don't follow the guidelines, I'd be
+really glad if you'd do so.
+
+qutebrowser's coding conventions are based on [PEP8][1] and [PEP257][2], with
+some additions:
+
+    - Methods overriding Qt methods (obviously!) don't follow the naming
+      schemes.
+
+    - Everything else does though, even slots.
+
+    - The layout of a module should be like this:
+
+      ...
+
+    - The layout of a class should be like this:
+
+      ...
+
+
+[1] http://legacy.python.org/dev/peps/pep-0008/
+[2] http://legacy.python.org/dev/peps/pep-0257/
