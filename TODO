@@ -2,9 +2,6 @@ Bugs
 ====
 
 All kind of FIXMEs
-Weird font rendering
-    https://bugreports.qt-project.org/browse/QTBUG-20973
-    https://bugreports.qt-project.org/browse/QTBUG-21036
 Changing completion models is awfully slow
 values starting with ; need to be escaped
 
@@ -100,6 +97,10 @@ Qt Bugs
     If this isn't fixed in Qt 5.3, bug should be reopened.
 
 - Web inspector is blank unless .hide()/.show() is called.
+
+- Weird font rendering
+    https://bugreports.qt-project.org/browse/QTBUG-20973
+    https://bugreports.qt-project.org/browse/QTBUG-21036
 
 Other stuff
 ===========
