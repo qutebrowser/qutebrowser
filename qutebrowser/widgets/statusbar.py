@@ -23,8 +23,9 @@ from PyQt5.QtWidgets import (QWidget, QLineEdit, QProgressBar, QLabel,
                              QShortcut)
 from PyQt5.QtGui import QPainter, QKeySequence, QValidator
 
+import qutebrowser.keyinput.modes as modes
+from qutebrowser.keyinput.normalmode import STARTCHARS
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
-import qutebrowser.commands.keys as keys
 from qutebrowser.utils.url import urlstring
 from qutebrowser.commands.parsers import split_cmdline
 from qutebrowser.models.cmdhistory import (History, HistoryEmptyError,
@@ -157,7 +158,7 @@ class StatusBar(QWidget):
         self.txt.errortext = ''
 
     @pyqtSlot('QKeyEvent')
-    def keypress(self, e):
+    def on_key_pressed(self, e):
         """Hide temporary error message if a key was pressed.
 
         Args:
@@ -168,6 +169,18 @@ class StatusBar(QWidget):
             return
         self.txt.set_temptext('')
         self.clear_error()
+
+    @pyqtSlot(str)
+    def on_mode_entered(self, mode):
+        """Mark certain modes in the commandline."""
+        if mode in modes.manager.passthrough:
+            self.txt.normaltext = "-- {} MODE --".format(mode.upper())
+
+    @pyqtSlot(str)
+    def on_mode_left(self, mode):
+        """Clear marked mode."""
+        if mode in modes.manager.passthrough:
+            self.txt.normaltext = ""
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
@@ -331,7 +344,7 @@ class _Command(QLineEdit):
         """
         # FIXME we should consider the cursor position.
         text = self.text()
-        if text[0] in keys.STARTCHARS:
+        if text[0] in STARTCHARS:
             prefix = text[0]
             text = text[1:]
         else:
@@ -342,8 +355,18 @@ class _Command(QLineEdit):
         self.setFocus()
         self.show_cmd.emit()
 
+    def focusInEvent(self, e):
+        """Extend focusInEvent to enter command mode."""
+        modes.enter("command")
+        super().focusInEvent(e)
+
     def focusOutEvent(self, e):
-        """Clear the statusbar text if it's explicitely unfocused.
+        """Extend focusOutEvent to do several tasks.
+
+        - Clear the statusbar text if it's explicitely unfocused.
+        - Leave command mode
+        - Clear completion selection
+        - Hide completion
 
         Args:
             e: The QFocusEvent.
@@ -352,6 +375,7 @@ class _Command(QLineEdit):
             clear_completion_selection: Always emitted.
             hide_completion: Always emitted so the completion is hidden.
         """
+        modes.leave("command")
         if e.reason() in [Qt.MouseFocusReason, Qt.TabFocusReason,
                           Qt.BacktabFocusReason, Qt.OtherFocusReason]:
             self.setText('')
@@ -376,7 +400,7 @@ class _CommandValidator(QValidator):
         Return:
             A tuple (status, string, pos) as a QValidator should.
         """
-        if any(string.startswith(c) for c in keys.STARTCHARS):
+        if any(string.startswith(c) for c in STARTCHARS):
             return (QValidator.Acceptable, string, pos)
         else:
             return (QValidator.Invalid, string, pos)

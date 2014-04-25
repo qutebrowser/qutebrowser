@@ -54,6 +54,7 @@ channels:
     - scummos
     - svuorela
     - kpj
+    - hyde
 
 Thanks to these projects which were essential while developing qutebrowser:
     - Python

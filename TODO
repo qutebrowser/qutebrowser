@@ -14,7 +14,6 @@ Style
 =====
 
 Refactor completion widget mess (initializing / changing completions)
-keypress-signal-foo is a bit of a chaos and might be done better
 we probably could replace CompletionModel with QStandardModel...
 replace foo_bar options with foo-bar
 reorder options
@@ -52,13 +51,6 @@ Before Blink
 
 session handling / saving
 IPC, like dwb -x
-Mode handling?
-    - Problem: how to detect we're going to insert mode:
-      -> Detect mouse clicks and use QWebFrame::hitTestContent (only mouse)
-      -> Use javascript: http://stackoverflow.com/a/2848120/2085149
-      -> Use microFocusChanged and check active element via:
-         frame = page.currentFrame()
-         elem = frame.findFirstElement('*:focus')
 Bookmarks
 Internationalization
 Marks
@@ -89,6 +81,13 @@ How do we handle empty values in input bar?
 Human-readable error messages for unknown settings / wrong interpolations / ...
 auto-click on active hint
 click hints on enter
+- Add mode=[]/no_mode=[] to cmdutils.register so we can avoid executing
+  commands in the wrong mode
+- Add more element-selection-detection code (with options?) based on:
+      -> javascript: http://stackoverflow.com/a/2848120/2085149
+      -> microFocusChanged and check active element via:
+         frame = page.currentFrame()
+         elem = frame.findFirstElement('*:focus')
 
 Qt Bugs
 ========

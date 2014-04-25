@@ -52,12 +52,14 @@ import qutebrowser.commands.utils as cmdutils
 import qutebrowser.config.style as style
 import qutebrowser.config.config as config
 import qutebrowser.network.qutescheme as qutescheme
+import qutebrowser.keyinput.modes as modes
 import qutebrowser.utils.message as message
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
-from qutebrowser.commands.keys import CommandKeyParser
+from qutebrowser.keyinput.normalmode import NormalKeyParser
+from qutebrowser.keyinput.insertmode import InsertKeyParser
+from qutebrowser.keyinput.hintmode import HintKeyParser
 from qutebrowser.commands.parsers import CommandParser, SearchParser
-from qutebrowser.browser.hints import HintKeyParser
 from qutebrowser.utils.appdirs import AppDirs
 from qutebrowser.utils.misc import dotted_getattr
 from qutebrowser.utils.debug import set_trace  # pylint: disable=unused-import
@@ -83,7 +85,6 @@ class QuteBrowser(QApplication):
         _timers: List of used QTimers so they don't get GCed.
         _shutting_down: True if we're currently shutting down.
         _quit_status: The current quitting status.
-        _mode: The mode we're currently in.
         _opened_urls: List of opened URLs.
     """
 
@@ -93,7 +94,6 @@ class QuteBrowser(QApplication):
         self._timers = []
         self._opened_urls = []
         self._shutting_down = False
-        self._mode = None
 
         sys.excepthook = self._exception_hook
 
@@ -125,15 +125,24 @@ class QuteBrowser(QApplication):
         self.commandparser = CommandParser()
         self.searchparser = SearchParser()
         self._keyparsers = {
-            "normal": CommandKeyParser(self),
-            "hint": HintKeyParser(self),
+            'normal': NormalKeyParser(self),
+            'hint': HintKeyParser(self),
+            'insert': InsertKeyParser(self),
         }
         self._init_cmds()
         self.mainwindow = MainWindow()
+        modes.init(self)
+        modes.manager.register('normal', self._keyparsers['normal'].handle)
+        modes.manager.register('hint', self._keyparsers['hint'].handle)
+        modes.manager.register('insert', self._keyparsers['insert'].handle,
+                               passthrough=True)
+        modes.manager.register('command', None, passthrough=True)
+        self.modeman = modes.manager  # for commands
+        self.installEventFilter(modes.manager)
         self.setQuitOnLastWindowClosed(False)
 
         self._connect_signals()
-        self.set_mode("normal")
+        modes.enter("normal")
 
         self.mainwindow.show()
         self._python_hacks()
@@ -246,13 +255,12 @@ class QuteBrowser(QApplication):
         # misc
         self.lastWindowClosed.connect(self.shutdown)
         tabs.quit.connect(self.shutdown)
-        tabs.set_mode.connect(self.set_mode)
         tabs.currentChanged.connect(self.mainwindow.update_inspector)
 
         # status bar
-        tabs.keypress.connect(status.keypress)
-        for obj in [kp["normal"], tabs]:
-            obj.set_cmd_text.connect(cmd.set_cmd_text)
+        modes.manager.entered.connect(status.on_mode_entered)
+        modes.manager.left.connect(status.on_mode_left)
+        modes.manager.key_pressed.connect(status.on_key_pressed)
 
         # commands
         cmd.got_cmd.connect(self.commandparser.run)
@@ -264,7 +272,6 @@ class QuteBrowser(QApplication):
 
         # hints
         kp["hint"].fire_hint.connect(tabs.cur.fire_hint)
-        kp["hint"].abort_hinting.connect(tabs.cur.abort_hinting)
         kp["hint"].keystring_updated.connect(tabs.cur.handle_hint_key)
         tabs.hint_strings_updated.connect(kp["hint"].on_hint_strings_updated)
 
@@ -272,6 +279,7 @@ class QuteBrowser(QApplication):
         message.bridge.error.connect(status.disp_error)
         message.bridge.info.connect(status.txt.set_temptext)
         message.bridge.text.connect(status.txt.set_normaltext)
+        message.bridge.set_cmd_text.connect(cmd.set_cmd_text)
 
         # config
         self.config.style_changed.connect(style.invalidate_caches)
@@ -400,20 +408,6 @@ class QuteBrowser(QApplication):
         if all(self._quit_status.values()):
             logging.debug("maybe_quit quitting.")
             self.quit()
-
-    @pyqtSlot(str)
-    def set_mode(self, mode):
-        """Set a key input mode.
-
-        Args:
-            mode: The new mode to set, as an index for self._keyparsers.
-        """
-        if self._mode is not None:
-            oldhandler = self._keyparsers[self._mode]
-            self.mainwindow.tabs.keypress.disconnect(oldhandler.handle)
-        handler = self._keyparsers[mode]
-        self.mainwindow.tabs.keypress.connect(handler.handle)
-        self._mode = mode
 
     @cmdutils.register(instance='', maxsplit=0)
     def pyeval(self, s):

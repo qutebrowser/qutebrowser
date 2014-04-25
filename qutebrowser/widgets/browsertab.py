@@ -27,7 +27,9 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 import qutebrowser.utils.url as urlutils
 import qutebrowser.config.config as config
+import qutebrowser.keyinput.modes as modes
 import qutebrowser.utils.message as message
+import qutebrowser.utils.webelem as webelem
 from qutebrowser.browser.webpage import BrowserPage
 from qutebrowser.browser.hints import HintManager
 from qutebrowser.utils.signals import SignalCache
@@ -84,6 +86,8 @@ class BrowserTab(QWebView):
         self.page_.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.page_.linkHovered.connect(self.linkHovered)
         self.linkClicked.connect(self.on_link_clicked)
+        self.loadStarted.connect(lambda: modes.maybe_leave("insert"))
+        self.loadFinished.connect(self.on_load_finished)
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
 
     def _init_neighborlist(self):
@@ -108,6 +112,38 @@ class BrowserTab(QWebView):
             if self._shutdown_callback is not None:
                 logging.debug("Everything destroyed, calling callback")
                 self._shutdown_callback()
+
+    def _is_editable(self, hitresult):
+        """Check if a hit result needs keyboard focus.
+
+        Args:
+            hitresult: A QWebHitTestResult
+        """
+        # FIXME is this algorithm accurate?
+        if hitresult.isContentEditable():
+            # text fields and the like
+            return True
+        if not config.get('general', 'insert_mode_on_plugins'):
+            return False
+        elem = hitresult.element()
+        tag = elem.tagName().lower()
+        if tag in ['embed', 'applet']:
+            # Flash/Java/...
+            return True
+        if tag == 'object':
+            # Could be Flash/Java/..., could be image/audio/...
+            if not elem.hasAttribute("type"):
+                logging.debug("<object> without type clicked...")
+                return False
+            objtype = elem.attribute("type")
+            if (objtype.startswith("application/") or
+                    elem.hasAttribute("classid")):
+                # Let's hope flash/java stuff has an application/* mimetype OR
+                # at least a classid attribute. Oh, and let's home images/...
+                # DON"T have a classid attribute. HTML sucks.
+                logging.debug("<object type=\"{}\"> clicked.".format(objtype))
+                return True
+        return False
 
     def openurl(self, url):
         """Open an URL in the browser.
@@ -209,6 +245,20 @@ class BrowserTab(QWebView):
         self.setFocus()
         QApplication.postEvent(self, evt)
 
+    @pyqtSlot(bool)
+    def on_load_finished(self, _ok):
+        """Handle auto_insert_mode after loading finished."""
+        if not config.get('general', 'auto_insert_mode'):
+            return
+        frame = self.page_.currentFrame()
+        elem = frame.findFirstElement(
+            webelem.SELECTORS['editable_focused'])
+        logging.debug("focus element: {}".format(not elem.isNull()))
+        if elem.isNull():
+            modes.maybe_leave("insert")
+        else:
+            modes.enter("insert")
+
     @pyqtSlot(str)
     def set_force_open_target(self, target):
         """Change the forced link target. Setter for _force_open_target.
@@ -249,12 +299,13 @@ class BrowserTab(QWebView):
         return super().paintEvent(e)
 
     def mousePressEvent(self, e):
-        """Check if a link was clicked with the middle button or Ctrl.
+        """Extend QWidget::mousePressEvent().
 
-        Extend the superclass mousePressEvent().
-
-        This also is a bit of a hack, but it seems it's the only possible way.
-        Set the _open_target attribute accordingly.
+        This does the following things:
+            - Check if a link was clicked with the middle button or Ctrl and
+              set the _open_target attribute accordingly.
+            - Emit the editable_elem_selected signal if an editable element was
+              clicked.
 
         Args:
             e: The arrived event.
@@ -262,6 +313,20 @@ class BrowserTab(QWebView):
         Return:
             The superclass return value.
         """
+        pos = e.pos()
+        frame = self.page_.frameAt(pos)
+        pos -= frame.geometry().topLeft()
+        hitresult = frame.hitTestContent(pos)
+        if self._is_editable(hitresult):
+            logging.debug("Clicked editable element!")
+            modes.enter("insert")
+        else:
+            logging.debug("Clicked non-editable element!")
+            try:
+                modes.leave("insert")
+            except ValueError:
+                pass
+
         if self._force_open_target is not None:
             self._open_target = self._force_open_target
             self._force_open_target = None

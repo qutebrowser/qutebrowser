@@ -57,6 +57,11 @@ def clear():
     bridge.text.emit('')
 
 
+def set_cmd_text(txt):
+    """Set the statusbar command line to a preset text."""
+    bridge.set_cmd_text.emit(txt)
+
+
 class MessageBridge(QObject):
 
     """Bridge for messages to be shown in the statusbar."""
@@ -64,3 +69,4 @@ class MessageBridge(QObject):
     error = pyqtSignal(str)
     info = pyqtSignal(str)
     text = pyqtSignal(str)
+    set_cmd_text = pyqtSignal(str)

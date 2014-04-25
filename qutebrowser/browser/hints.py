@@ -26,58 +26,13 @@ from PyQt5.QtGui import QMouseEvent, QClipboard
 from PyQt5.QtWidgets import QApplication
 
 import qutebrowser.config.config as config
+import qutebrowser.keyinput.modes as modes
 import qutebrowser.utils.message as message
 import qutebrowser.utils.url as urlutils
-from qutebrowser.utils.keyparser import KeyParser
+import qutebrowser.utils.webelem as webelem
 
 
 ElemTuple = namedtuple('ElemTuple', 'elem, label')
-
-
-class HintKeyParser(KeyParser):
-
-    """KeyParser for hints.
-
-    Class attributes:
-        supports_count: If the keyparser should support counts.
-
-    Signals:
-        fire_hint: When a hint keybinding was completed.
-                   Arg: the keystring/hint string pressed.
-        abort_hinting: Esc pressed, so abort hinting.
-    """
-
-    supports_count = False
-    fire_hint = pyqtSignal(str)
-    abort_hinting = pyqtSignal()
-
-    def _handle_modifier_key(self, e):
-        """We don't support modifiers here, but we'll handle escape in here.
-
-        Emit:
-            abort_hinting: Emitted if hinting was aborted.
-        """
-        if e.key() == Qt.Key_Escape:
-            self._keystring = ''
-            self.abort_hinting.emit()
-            return True
-        return False
-
-    def execute(self, cmdstr, count=None):
-        """Handle a completed keychain.
-
-        Emit:
-            fire_hint: Always emitted.
-        """
-        self.fire_hint.emit(cmdstr)
-
-    def on_hint_strings_updated(self, strings):
-        """Handler for HintManager's hint_strings_updated.
-
-        Args:
-            strings: A list of hint strings.
-        """
-        self.bindings = {s: s for s in strings}
 
 
 class HintManager(QObject):
@@ -85,10 +40,6 @@ class HintManager(QObject):
     """Manage drawing hints over links or other elements.
 
     Class attributes:
-        SELECTORS: CSS selectors for the different highlighting modes.
-        FILTERS: A dictionary of filter functions for the modes.
-                 The filter for "links" filters javascript:-links and a-tags
-                 without "href".
         HINT_CSS: The CSS template to use for hints.
 
     Attributes:
@@ -104,33 +55,13 @@ class HintManager(QObject):
     Signals:
         hint_strings_updated: Emitted when the possible hint strings changed.
                               arg: A list of hint strings.
-        set_mode: Emitted when the input mode should be changed.
-                  arg: The new mode, as a string.
         mouse_event: Mouse event to be posted in the web view.
                      arg: A QMouseEvent
         openurl: Open a new url
                  arg 0: URL to open as a string.
                  arg 1: true if it should be opened in a new tab, else false.
         set_open_target: Set a new target to open the links in.
-        set_cmd_text: Emitted when the commandline text should be set.
     """
-
-    SELECTORS = {
-        "all": ("a, textarea, select, input:not([type=hidden]), button, "
-                "frame, iframe, [onclick], [onmousedown], [role=link], "
-                "[role=option], [role=button], img"),
-        "links": "a",
-        "images": "img",
-        "editable": ("input[type=text], input[type=email], input[type=url],"
-                     "input[type=tel], input[type=number], "
-                     "input[type=password], input[type=search], textarea"),
-        "url": "[src], [href]",
-    }
-
-    FILTERS = {
-        "links": (lambda e: e.hasAttribute("href") and
-                  urlutils.qurl(e.attribute("href")).scheme() != "javascript"),
-    }
 
     HINT_CSS = """
         color: {config[colors][hints.fg]};
@@ -146,10 +77,8 @@ class HintManager(QObject):
     """
 
     hint_strings_updated = pyqtSignal(list)
-    set_mode = pyqtSignal(str)
     mouse_event = pyqtSignal('QMouseEvent')
     set_open_target = pyqtSignal(str)
-    set_cmd_text = pyqtSignal(str)
 
     def __init__(self, parent=None):
         """Constructor.
@@ -162,6 +91,7 @@ class HintManager(QObject):
         self._frame = None
         self._target = None
         self._baseurl = None
+        modes.manager.left.connect(self.on_mode_left)
 
     def _hint_strings(self, elems):
         """Calculate the hint strings for elems.
@@ -312,19 +242,6 @@ class HintManager(QObject):
         message.info('URL yanked to {}'.format('primary selection' if sel
                                                else 'clipboard'))
 
-    def _set_cmd_text(self, link, command):
-        """Fill the command line with an element link.
-
-        Args:
-            link: The URL to open.
-            command: The command to use.
-
-        Emit:
-            set_cmd_text: Always emitted.
-        """
-        self.set_cmd_text.emit(':{} {}'.format(command,
-                                               urlutils.urlstring(link)))
-
     def _resolve_link(self, elem):
         """Resolve a link and check if we want to keep it.
 
@@ -353,27 +270,16 @@ class HintManager(QObject):
 
         Emit:
             hint_strings_updated: Emitted to update keypraser.
-            set_mode: Emitted to enter hinting mode
         """
         self._target = target
         self._baseurl = baseurl
         self._frame = frame
-        elems = frame.findAllElements(self.SELECTORS[mode])
-        filterfunc = self.FILTERS.get(mode, lambda e: True)
+        elems = frame.findAllElements(webelem.SELECTORS[mode])
+        filterfunc = webelem.FILTERS.get(mode, lambda e: True)
         visible_elems = []
         for e in elems:
-            if not filterfunc(e):
-                continue
-            rect = e.geometry()
-            if (not rect.isValid()) and rect.x() == 0:
-                # Most likely an invisible link
-                continue
-            framegeom = frame.geometry()
-            framegeom.translate(frame.scrollPosition())
-            if not framegeom.contains(rect.topLeft()):
-                # out of screen
-                continue
-            visible_elems.append(e)
+            if filterfunc(e) and webelem.is_visible(e, self._frame):
+                visible_elems.append(e)
         if not visible_elems:
             message.error("No elements found.")
             return
@@ -395,23 +301,7 @@ class HintManager(QObject):
             self._elems[string] = ElemTuple(e, label)
         frame.contentsSizeChanged.connect(self.on_contents_size_changed)
         self.hint_strings_updated.emit(strings)
-        self.set_mode.emit("hint")
-
-    def stop(self):
-        """Stop hinting.
-
-        Emit:
-            set_mode: Emitted to leave hinting mode.
-        """
-        for elem in self._elems.values():
-            elem.label.removeFromDocument()
-        self._frame.contentsSizeChanged.disconnect(
-            self.on_contents_size_changed)
-        self._elems = {}
-        self._target = None
-        self._frame = None
-        self.set_mode.emit("normal")
-        message.clear()
+        modes.enter("hint")
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
@@ -451,9 +341,10 @@ class HintManager(QObject):
                 'cmd_tab': 'tabopen',
                 'cmd_bgtab': 'backtabopen',
             }
-            self._set_cmd_text(link, commands[self._target])
+            message.set_cmd_text(':{} {}'.format(commands[self._target],
+                                                 urlutils.urlstring(link)))
         if self._target != 'rapid':
-            self.stop()
+            modes.leave("hint")
 
     @pyqtSlot('QSize')
     def on_contents_size_changed(self, _size):
@@ -463,3 +354,17 @@ class HintManager(QObject):
             css = self.HINT_CSS.format(left=rect.x(), top=rect.y(),
                                        config=config.instance)
             elems.label.setAttribute("style", css)
+
+    @pyqtSlot(str)
+    def on_mode_left(self, mode):
+        """Stop hinting when hinting mode was left."""
+        if mode != "hint":
+            return
+        for elem in self._elems.values():
+            elem.label.removeFromDocument()
+        self._frame.contentsSizeChanged.disconnect(
+            self.on_contents_size_changed)
+        self._elems = {}
+        self._target = None
+        self._frame = None
+        message.clear()

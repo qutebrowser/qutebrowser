@@ -69,10 +69,6 @@ class TabbedBrowser(TabWidget):
                                  arg 2: y-position in %.
         hint_strings_updated: Hint strings were updated.
                               arg: A list of hint strings.
-        set_mode: The input mode should be changed.
-                  arg: The new mode as a string.
-        keypress: A key was pressed.
-                  arg: The QKeyEvent leading to the keypress.
         shutdown_complete: The shuttdown is completed.
         quit: The last tab was closed, quit application.
         resized: Emitted when the browser window has resized, so the completion
@@ -88,9 +84,6 @@ class TabbedBrowser(TabWidget):
     cur_link_hovered = pyqtSignal(str, str, str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
     hint_strings_updated = pyqtSignal(list)
-    set_cmd_text = pyqtSignal(str)
-    set_mode = pyqtSignal(str)
-    keypress = pyqtSignal('QKeyEvent')
     shutdown_complete = pyqtSignal()
     quit = pyqtSignal()
     resized = pyqtSignal('QRect')
@@ -143,8 +136,6 @@ class TabbedBrowser(TabWidget):
         tab.urlChanged.connect(self._filter.create(self.cur_url_changed))
         # hintmanager
         tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)
-        tab.hintmanager.set_mode.connect(self.set_mode)
-        tab.hintmanager.set_cmd_text.connect(self.set_cmd_text)
         # misc
         tab.titleChanged.connect(self.on_title_changed)
         tab.open_tab.connect(self.tabopen)
@@ -242,23 +233,15 @@ class TabbedBrowser(TabWidget):
 
     @cmdutils.register(instance='mainwindow.tabs', hide=True)
     def tabopencur(self):
-        """Set the statusbar to :tabopen and the current URL.
-
-        Emit:
-            set_cmd_text prefilled with :tabopen $URL
-        """
+        """Set the statusbar to :tabopen and the current URL."""
         url = urlutils.urlstring(self.currentWidget().url())
-        self.set_cmd_text.emit(':tabopen ' + url)
+        message.set_cmd_text(':tabopen ' + url)
 
     @cmdutils.register(instance='mainwindow.tabs', hide=True)
     def opencur(self):
-        """Set the statusbar to :open and the current URL.
-
-        Emit:
-            set_cmd_text prefilled with :open $URL
-        """
+        """Set the statusbar to :open and the current URL."""
         url = urlutils.urlstring(self.currentWidget().url())
-        self.set_cmd_text.emit(':open ' + url)
+        message.set_cmd_text(':open ' + url)
 
     @cmdutils.register(instance='mainwindow.tabs', name='undo')
     def undo_close(self):
@@ -359,18 +342,6 @@ class TabbedBrowser(TabWidget):
             self.setTabText(self.indexOf(self.sender()), text)
         else:
             logging.debug('ignoring title change')
-
-    def keyPressEvent(self, e):
-        """Extend TabWidget (QWidget)'s keyPressEvent to emit a signal.
-
-        Args:
-            e: The QKeyPressEvent
-
-        Emit:
-            keypress: Always emitted.
-        """
-        self.keypress.emit(e)
-        super().keyPressEvent(e)
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

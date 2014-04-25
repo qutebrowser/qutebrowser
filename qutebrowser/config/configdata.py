@@ -68,16 +68,26 @@ SECTION_DESC = {
     'keybind': (
         "Bindings from a key(chain) to a command.\n"
         "For special keys (can't be part of a keychain), enclose them in "
-        "@-signs. For modifiers, you can use either - or + as delimiters, and "
+        "<...>. For modifiers, you can use either - or + as delimiters, and "
         "these names:\n"
         "  Control: Control, Ctrl\n"
         "  Meta:    Meta, Windows, Mod4\n"
         "  Alt:     Alt, Mod1\n"
         "  Shift:   Shift\n"
-        "For simple keys (no @ signs), a capital letter means the key is "
-        "pressed with Shift. For modifier keys (with @ signs), you need "
+        "For simple keys (no <>-signs), a capital letter means the key is "
+        "pressed with Shift. For special keys (with <>-signs), you need "
         "to explicitely add \"Shift-\" to match a key pressed with shift. "
         "You can bind multiple commands by separating them with \";;\"."),
+    'keybind.insert': (
+        "Keybindings for insert mode.\n"
+        "Since normal keypresses are passed through, only special keys are "
+        "supported in this mode.\n"
+        "An useful command to map here is the hidden command leave_mode."),
+    'keybind.hint': (
+        "Keybindings for hint mode.\n"
+        "Since normal keypresses are passed through, only special keys are "
+        "supported in this mode.\n"
+        "An useful command to map here is the hidden command leave_mode."),
     'aliases': (
         "Aliases for commands.\n"
         "By default, no aliases are defined. Example which adds a new command "
@@ -166,6 +176,16 @@ DATA = OrderedDict([
         ('cmd_timeout',
          SettingValue(types.Int(minval=0), "500"),
          "Timeout for ambiguous keybindings."),
+
+        ('insert_mode_on_plugins',
+         SettingValue(types.Bool(), "true"),
+         "Whether to switch to insert mode when clicking flash and other "
+         "plugins."),
+
+        ('auto_insert_mode',
+         SettingValue(types.Bool(), "true"),
+         "Whether to automatically enter insert mode if an editable element "
+         "is focused after page load."),
     )),
 
     ('tabbar', sect.KeyValue(
@@ -395,15 +415,27 @@ DATA = OrderedDict([
         ('PP', 'tabpaste sel'),
         ('-', 'zoomout'),
         ('+', 'zoomin'),
-        ('@Ctrl-Q@', 'quit'),
-        ('@Ctrl-Shift-T@', 'undo'),
-        ('@Ctrl-W@', 'tabclose'),
-        ('@Ctrl-T@', 'tabopen about:blank'),
-        ('@Ctrl-F@', 'scroll_page 0 1'),
-        ('@Ctrl-B@', 'scroll_page 0 -1'),
-        ('@Ctrl-D@', 'scroll_page 0 0.5'),
-        ('@Ctrl-U@', 'scroll_page 0 -0.5'),
-        ('@Backspace@', 'back'),
+        ('<Ctrl-Q>', 'quit'),
+        ('<Ctrl-Shift-T>', 'undo'),
+        ('<Ctrl-W>', 'tabclose'),
+        ('<Ctrl-T>', 'tabopen about:blank'),
+        ('<Ctrl-F>', 'scroll_page 0 1'),
+        ('<Ctrl-B>', 'scroll_page 0 -1'),
+        ('<Ctrl-D>', 'scroll_page 0 0.5'),
+        ('<Ctrl-U>', 'scroll_page 0 -0.5'),
+        ('<Backspace>', 'back'),
+    )),
+
+    ('keybind.insert', sect.ValueList(
+        types.KeyBindingName(), types.KeyBinding(),
+        ('<Escape>', 'leave_mode'),
+        ('<Ctrl-C>', 'leave_mode'),
+    )),
+
+    ('keybind.hint', sect.ValueList(
+        types.KeyBindingName(), types.KeyBinding(),
+        ('<Escape>', 'leave_mode'),
+        ('<Ctrl-C>', 'leave_mode'),
     )),
 
     ('aliases', sect.ValueList(
