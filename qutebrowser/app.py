@@ -108,12 +108,17 @@ class QuteBrowser(QApplication):
             confdir = self._args.confdir
         try:
             config.init(confdir)
-        except config.ValidationError as e:
-            msgbox = QMessageBox(
-                QMessageBox.Critical,
-                "Error while reading config!",
-                "Error while reading config:\n\n{} -> {}:\n{}".format(
-                    e.section, e.option, e))
+        except (config.ValidationError,
+                configparser.InterpolationError,
+                configparser.DuplicateSectionError,
+                configparser.DuplicateOptionError,
+                configparser.ParsingError) as e:
+            errstr = "Error while reading config:"
+            if hasattr(e, 'section') and hasattr(e, 'option'):
+                errstr += "\n\n{} -> {}:".format(e.section, e.option)
+            errstr += "\n{}".format(e)
+            msgbox = QMessageBox(QMessageBox.Critical,
+                                 "Error while reading config!", errstr)
             msgbox.exec_()
             # We didn't really initialize much so far, so we just quit hard.
             sys.exit(1)
