@@ -76,6 +76,9 @@ class ModeManager(QObject):
         _mode_stack: A list of the modes we're currently in, with the active
                      one on the right.
         _forward_unbound_keys: If we should forward unbound keys.
+        _releaseevents_to_pass: A list of keys where the keyPressEvent was
+                                passed through, so the release event should as
+                                well.
 
     Signals:
         entered: Emitted when a mode is entered.
@@ -94,6 +97,7 @@ class ModeManager(QObject):
         self._handlers = {}
         self.passthrough = []
         self._mode_stack = []
+        self._releaseevents_to_pass = []
         self._forward_unbound_keys = config.get('general',
                                                 'forward_unbound_keys')
 
@@ -195,38 +199,33 @@ class ModeManager(QObject):
 
         handler = self._handlers[self.mode]
 
-        if self.mode in self.passthrough:
-            # We're currently in a passthrough mode so we pass everything
-            # through.*and* let the passthrough keyhandler know.
-            # FIXME what if we leave the passthrough mode right here?
-            logging.debug("We're in a passthrough mode -> passing through")
-            if typ == QEvent.KeyPress:
-                logging.debug("KeyPress, calling handler {}".format(handler))
-                self.key_pressed.emit(evt)
-                if handler is not None:
-                    handler(evt)
+        if typ == QEvent.KeyPress:
+            logging.debug("KeyPress, calling handler {}".format(handler))
+            self.key_pressed.emit(evt)
+            handled = handler(evt) if handler is not None else False
+
+            if handled:
+                filter_this = True
+            elif self.mode in self.passthrough or self._forward_unbound_keys:
+                filter_this = False
             else:
-                logging.debug("KeyRelease, not calling anything")
-            return False
+                filter_this = True
+
+            if not filter_this:
+                self._releaseevents_to_pass.append(evt)
+
+            logging.debug("handled: {}, forward_unbound_keys: {}, "
+                          "passthrough: {} --> filter: {}".format(
+                              handled, self._forward_unbound_keys,
+                              self.mode in self.passthrough, filter_this))
         else:
-            logging.debug("We're in a non-passthrough mode")
-            if typ == QEvent.KeyPress:
-                # KeyPress in a non-passthrough mode - call handler and filter
-                # event from widgets (unless unhandled and configured to pass
-                # unhandled events through)
-                logging.debug("KeyPress, calling handler {}".format(handler))
-                self.key_pressed.emit(evt)
-                handled = handler(evt) if handler is not None else False
-                logging.debug("handled: {}, forward_unbound_keys: {} -> "
-                              "filtering: {}".format(
-                                  handled, self._forward_unbound_keys,
-                                  handled or not self._forward_unbound_keys))
-                if handled or not self._forward_unbound_keys:
-                    return True
-                else:
-                    return False
+            # KeyRelease, handle like matching KeyPress
+            if evt in self._releaseevents_to_pass:
+                # remove all occurences
+                self._releaseevents_to_pass = [e for e in
+                        self._releaseevents_to_pass if e != evt]
+                filter_this = False
             else:
-                # KeyRelease in a non-passthrough mode - filter event and
-                # ignore it entirely.
-                logging.debug("KeyRelease, not calling anything and filtering")
-                return True
+                filter_this = True
+            logging.debug("KeyRelease --> filter: {}".format(filter_this))
+        return filter_this
