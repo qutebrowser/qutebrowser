@@ -3,7 +3,6 @@ Bugs
 
 All kind of FIXMEs
 Changing completion models is awfully slow
-values starting with ; need to be escaped
 
 Style
 =====

@@ -87,6 +87,11 @@ class ConfigManager(QObject):
 
     """Configuration manager for qutebrowser.
 
+    Class attributes:
+        SPECIAL_CHARS: Chars which need escaping when they occur as first char
+                       in a line.
+        ESCAPE_CHAR: The char to be used for escaping
+
     Attributes:
         sections: The configuration data as an OrderedDict.
         _configparser: A ReadConfigParser instance to load the config.
@@ -102,6 +107,9 @@ class ConfigManager(QObject):
         style_changed: When style caches need to be invalidated.
                  Args: the changed section and option.
     """
+
+    SPECIAL_CHARS = r'\#;['
+    ESCAPE_CHAR = '\\'
 
     changed = pyqtSignal(str, str)
     style_changed = pyqtSignal(str, str)
@@ -190,6 +198,9 @@ class ConfigManager(QObject):
         """Get the option items as string for section."""
         lines = []
         for optname, option in section.items():
+            for c in self.SPECIAL_CHARS:
+                if optname.startswith(c):
+                    optname = optname.replace(c, self.ESCAPE_CHAR + c, 1)
             keyval = '{} = {}'.format(optname, option.get_first_value(
                 startlayer='conf'))
             lines.append(keyval)
@@ -205,6 +216,8 @@ class ConfigManager(QObject):
             if secname not in cp:
                 continue
             for k, v in cp[secname].items():
+                if k.startswith(self.ESCAPE_CHAR):
+                    k = k[1:]
                 try:
                     self.set('conf', secname, k, v)
                 except ValidationError as e:
