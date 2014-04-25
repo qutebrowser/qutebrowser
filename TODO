@@ -9,6 +9,7 @@ Changing completion models is awfully slow
 new keybinding (not in config) crashes exception handler
     Also, what about unknown settings, unknown values, wrong interpolations,
     etc.?
+values written to config are unordered
 
 Style
 =====
@@ -17,9 +18,7 @@ Refactor completion widget mess (initializing / changing completions)
 we probably could replace CompletionModel with QStandardModel...
 replace foo_bar options with foo-bar
 reorder options
-clean up utils/ mess (e.g. keys/ subfolder?)
 rename *Parser to more meaningful names
-rename modemanager because it sounds like modemmanager (at least imported name)
 _foo = QApplication.instance().obj.foo   for global singletons?
 decorators for often-used signals from singletons?
     - @on_config_changed('colors')
