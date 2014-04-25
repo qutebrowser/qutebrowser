@@ -6,7 +6,6 @@ Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-20973
     https://bugreports.qt-project.org/browse/QTBUG-21036
 Changing completion models is awfully slow
-values written to config are unordered
 values starting with ; need to be escaped
 
 Style

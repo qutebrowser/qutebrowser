@@ -165,6 +165,18 @@ class ValueList(Section):
         self.values = ChainMap(self.layers['temp'], self.layers['conf'],
                                self.layers['default'])
 
+    @property
+    def ordered_values(self):
+        """Get ordered values in layers.
+
+        This is more expensive than the ChainMap, but we need this for
+        iterating/items/etc. when order matters.
+        """
+        d = OrderedDict()
+        for layer in self.layers.values():
+            d.update(layer)
+        return d
+
     def setv(self, layer, key, value, interpolated):
         self.keytype.validate(key)
         if key in self.layers[layer]:
@@ -184,3 +196,15 @@ class ValueList(Section):
             except KeyError:
                 changed.append((k, v.value))
         return changed
+
+    def __iter__(self):
+        """Iterate over all set values."""
+        return self.ordered_values.__iter__()
+
+    def items(self):
+        """Get dict items."""
+        return self.ordered_values.items()
+
+    def keys(self):
+        """Get value keys."""
+        return self.ordered_values.keys()
