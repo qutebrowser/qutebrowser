@@ -84,7 +84,7 @@ filtering when typing part of name
 filter close hints when it's the same link
 check if there's any fix for links with newlines in them (geometry() vs.
 geometries())
-
+somehow unfocus elements when insert mode is left?
 
 Qt Bugs
 ========
