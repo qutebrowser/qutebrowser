@@ -256,29 +256,8 @@ class _Command(QLineEdit):
         self.history = History()
         self._validator = _CommandValidator(self)
         self.setValidator(self._validator)
-        self.returnPressed.connect(self._on_return_pressed)
         self.textEdited.connect(self.history.stop)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
-
-    @pyqtSlot()
-    def _on_return_pressed(self):
-        """Handle the command in the status bar.
-
-        Emit:
-            got_cmd: If a new cmd was entered.
-            got_search: If a new search was entered.
-            got_search_rev: If a new reverse search was entered.
-        """
-        signals = {
-            ':': self.got_cmd,
-            '/': self.got_search,
-            '?': self.got_search_rev,
-        }
-        text = self.text()
-        self.history.append(text)
-        modes.leave("command")
-        if text[0] in signals:
-            signals[text[0]].emit(text.lstrip(text[0]))
 
     @pyqtSlot(str)
     def set_cmd_text(self, text):
@@ -335,6 +314,26 @@ class _Command(QLineEdit):
             return
         if item:
             self.set_cmd_text(item)
+
+    @cmdutils.register(instance='mainwindow.status.cmd', hide=True)
+    def command_accept(self):
+        """Handle the command in the status bar.
+
+        Emit:
+            got_cmd: If a new cmd was entered.
+            got_search: If a new search was entered.
+            got_search_rev: If a new reverse search was entered.
+        """
+        signals = {
+            ':': self.got_cmd,
+            '/': self.got_search,
+            '?': self.got_search_rev,
+        }
+        text = self.text()
+        self.history.append(text)
+        modes.leave("command")
+        if text[0] in signals:
+            signals[text[0]].emit(text.lstrip(text[0]))
 
     def on_mode_left(self, mode):
         """Clear up when ommand mode was left.

@@ -464,6 +464,7 @@ DATA = OrderedDict([
         ('<Down>', 'command_history_next'),
         ('<Shift-Tab>', 'command_item_prev'),
         ('<Tab>', 'command_item_next'),
+        ('<Return>', 'command_accept'),
     )),
 
     ('aliases', sect.ValueList(
