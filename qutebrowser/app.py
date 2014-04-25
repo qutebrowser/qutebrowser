@@ -266,6 +266,7 @@ class QuteBrowser(QApplication):
         # status bar
         modes.manager.entered.connect(status.on_mode_entered)
         modes.manager.left.connect(status.on_mode_left)
+        modes.manager.left.connect(status.cmd.on_mode_left)
         modes.manager.key_pressed.connect(status.on_key_pressed)
 
         # commands

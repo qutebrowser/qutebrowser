@@ -337,37 +337,31 @@ class _Command(QLineEdit):
         if item:
             self.set_cmd_text(item)
 
-    def focusInEvent(self, e):
-        """Extend focusInEvent to enter command mode."""
-        modes.enter("command")
-        super().focusInEvent(e)
-
-    def focusOutEvent(self, e):
-        """Extend focusOutEvent to do several tasks.
+    def on_mode_left(self, mode):
+        """Clear up when ommand mode was left.
 
         - Clear the statusbar text if it's explicitely unfocused.
-        - Leave command mode
         - Clear completion selection
         - Hide completion
 
-        FIXME we should rather do this on on_mode_left...
-
         Args:
-            e: The QFocusEvent.
+            mode: The mode which was left.
 
         Emit:
             clear_completion_selection: Always emitted.
             hide_completion: Always emitted so the completion is hidden.
         """
-        modes.maybe_leave("command")
-        if e.reason() in [Qt.MouseFocusReason, Qt.TabFocusReason,
-                          Qt.BacktabFocusReason, Qt.OtherFocusReason]:
+        if mode == "command":
             self.setText('')
             self.history.stop()
             self.hide_cmd.emit()
-        self.clear_completion_selection.emit()
-        self.hide_completion.emit()
-        super().focusOutEvent(e)
+            self.clear_completion_selection.emit()
+            self.hide_completion.emit()
+
+    def focusInEvent(self, e):
+        """Extend focusInEvent to enter command mode."""
+        modes.enter("command")
+        super().focusInEvent(e)
 
 
 class _CommandValidator(QValidator):
