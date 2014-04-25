@@ -75,6 +75,7 @@ class ModeManager(QObject):
         _handlers: A dictionary of modes and their handlers.
         _mode_stack: A list of the modes we're currently in, with the active
                      one on the right.
+        _forward_unbound_keys: If we should forward unbound keys.
 
     Signals:
         entered: Emitted when a mode is entered.
@@ -93,6 +94,8 @@ class ModeManager(QObject):
         self._handlers = {}
         self.passthrough = []
         self._mode_stack = []
+        self._forward_unbound_keys = config.get('general',
+                                                'forward_unbound_keys')
 
     @property
     def mode(self):
@@ -158,6 +161,13 @@ class ModeManager(QObject):
             raise ValueError("Can't leave normal mode!")
         self.leave(self.mode)
 
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
+        """Update local setting when config changed."""
+        if (section, option) == ('general', 'forward_unbound_keys'):
+            self._forward_unbound_keys = config.get('general',
+                                                    'forward_unbound_keys')
+
     def eventFilter(self, obj, evt):
         """Filter all events based on the currently set mode.
 
@@ -204,11 +214,17 @@ class ModeManager(QObject):
                 # KeyPress in a non-passthrough mode - call handler and filter
                 # event from widgets (unless unhandled and configured to pass
                 # unhandled events through)
-                logging.debug("KeyPress, calling handler {} and "
-                              "filtering".format(handler))
+                logging.debug("KeyPress, calling handler {}".format(handler))
                 self.key_pressed.emit(evt)
                 handled = handler(evt) if handler is not None else False
-                return True
+                logging.debug("handled: {}, forward_unbound_keys: {} -> "
+                              "filtering: {}".format(
+                                  handled, self._forward_unbound_keys,
+                                  handled or not self._forward_unbound_keys))
+                if handled or not self._forward_unbound_keys:
+                    return True
+                else:
+                    return False
             else:
                 # KeyRelease in a non-passthrough mode - filter event and
                 # ignore it entirely.
