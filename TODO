@@ -79,8 +79,6 @@ catch import errors for PyQt and QtWebKit
 Allow binding to empty values for keys to override defaults
 How do we handle empty values in input bar?
 Human-readable error messages for unknown settings / wrong interpolations / ...
-auto-click on active hint
-click hints on enter
 - Add mode=[]/no_mode=[] to cmdutils.register so we can avoid executing
   commands in the wrong mode
 - Add more element-selection-detection code (with options?) based on:
@@ -88,6 +86,19 @@ click hints on enter
       -> microFocusChanged and check active element via:
          frame = page.currentFrame()
          elem = frame.findFirstElement('*:focus')
+
+hints
+-----
+
+auto-click on active hint
+click hints on enter
+bindings for prev/next hint
+more intelligent clicking (end of textfields)
+filtering when typing part of name
+filter close hints when it's the same link
+check if there's any fix for links with newlines in them (geometry() vs.
+geometries())
+
 
 Qt Bugs
 ========
