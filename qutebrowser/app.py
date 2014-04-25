@@ -52,13 +52,12 @@ import qutebrowser.commands.utils as cmdutils
 import qutebrowser.config.style as style
 import qutebrowser.config.config as config
 import qutebrowser.network.qutescheme as qutescheme
-import qutebrowser.keyinput.modes as modes
+import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.message as message
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
-from qutebrowser.keyinput.normalmode import NormalKeyParser
+from qutebrowser.keyinput.modeparsers import NormalKeyParser, HintKeyParser
 from qutebrowser.keyinput.keyparser import PassthroughKeyParser
-from qutebrowser.keyinput.hintmode import HintKeyParser
 from qutebrowser.commands.managers import CommandManager, SearchManager
 from qutebrowser.utils.appdirs import AppDirs
 from qutebrowser.utils.misc import dotted_getattr
@@ -132,22 +131,22 @@ class QuteBrowser(QApplication):
         }
         self._init_cmds()
         self.mainwindow = MainWindow()
-        modes.init(self)
-        modes.manager.register('normal', self._keyparsers['normal'].handle)
-        modes.manager.register('hint', self._keyparsers['hint'].handle)
-        modes.manager.register('insert', self._keyparsers['insert'].handle,
-                               passthrough=True)
-        modes.manager.register('passthrough',
+        modeman.init(self)
+        modeman.manager.register('normal', self._keyparsers['normal'].handle)
+        modeman.manager.register('hint', self._keyparsers['hint'].handle)
+        modeman.manager.register('insert', self._keyparsers['insert'].handle,
+                                 passthrough=True)
+        modeman.manager.register('passthrough',
                                self._keyparsers['passthrough'].handle,
                                passthrough=True)
-        modes.manager.register('command', self._keyparsers['command'].handle,
-                               passthrough=True)
-        self.modeman = modes.manager  # for commands
-        self.installEventFilter(modes.manager)
+        modeman.manager.register('command', self._keyparsers['command'].handle,
+                                 passthrough=True)
+        self.modeman = modeman.manager  # for commands
+        self.installEventFilter(modeman.manager)
         self.setQuitOnLastWindowClosed(False)
 
         self._connect_signals()
-        modes.enter("normal")
+        modeman.enter("normal")
 
         self.mainwindow.show()
         self._python_hacks()
@@ -263,10 +262,10 @@ class QuteBrowser(QApplication):
         tabs.currentChanged.connect(self.mainwindow.update_inspector)
 
         # status bar
-        modes.manager.entered.connect(status.on_mode_entered)
-        modes.manager.left.connect(status.on_mode_left)
-        modes.manager.left.connect(status.cmd.on_mode_left)
-        modes.manager.key_pressed.connect(status.on_key_pressed)
+        modeman.manager.entered.connect(status.on_mode_entered)
+        modeman.manager.left.connect(status.on_mode_left)
+        modeman.manager.left.connect(status.cmd.on_mode_left)
+        modeman.manager.key_pressed.connect(status.on_key_pressed)
 
         # commands
         cmd.got_cmd.connect(self.commandmanager.run)
@@ -290,7 +289,7 @@ class QuteBrowser(QApplication):
         # config
         self.config.style_changed.connect(style.invalidate_caches)
         for obj in [tabs, completion, self.mainwindow, config.cmd_history,
-                    websettings, kp["normal"], modes.manager]:
+                    websettings, kp["normal"], modeman.manager]:
             self.config.changed.connect(obj.on_config_changed)
 
         # statusbar
@@ -304,7 +303,7 @@ class QuteBrowser(QApplication):
         tabs.cur_link_hovered.connect(status.url.set_hover_url)
 
         # command input / completion
-        modes.manager.left.connect(tabs.on_mode_left)
+        modeman.manager.left.connect(tabs.on_mode_left)
         cmd.clear_completion_selection.connect(
             completion.on_clear_completion_selection)
         cmd.hide_completion.connect(completion.hide)

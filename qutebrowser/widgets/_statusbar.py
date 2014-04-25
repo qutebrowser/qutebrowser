@@ -22,9 +22,9 @@ from PyQt5.QtWidgets import (QWidget, QLineEdit, QProgressBar, QLabel,
                              QHBoxLayout, QStackedLayout, QSizePolicy)
 from PyQt5.QtGui import QPainter, QValidator
 
-import qutebrowser.keyinput.modes as modes
+import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.commands.utils as cmdutils
-from qutebrowser.keyinput.normalmode import STARTCHARS
+from qutebrowser.keyinput.modeparsers import STARTCHARS
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 from qutebrowser.utils.url import urlstring
 from qutebrowser.commands.managers import split_cmdline
@@ -173,13 +173,13 @@ class StatusBar(QWidget):
     @pyqtSlot(str)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
-        if mode in modes.manager.passthrough:
+        if mode in modeman.manager.passthrough:
             self.txt.normaltext = "-- {} MODE --".format(mode.upper())
 
     @pyqtSlot(str)
     def on_mode_left(self, mode):
         """Clear marked mode."""
-        if mode in modes.manager.passthrough:
+        if mode in modeman.manager.passthrough:
             self.txt.normaltext = ""
 
     def resizeEvent(self, e):
@@ -333,7 +333,7 @@ class _Command(QLineEdit):
         }
         text = self.text()
         self.history.append(text)
-        modes.leave("command")
+        modeman.leave("command")
         if text[0] in signals:
             signals[text[0]].emit(text.lstrip(text[0]))
 
@@ -360,7 +360,7 @@ class _Command(QLineEdit):
 
     def focusInEvent(self, e):
         """Extend focusInEvent to enter command mode."""
-        modes.enter("command")
+        modeman.enter("command")
         super().focusInEvent(e)
 
 

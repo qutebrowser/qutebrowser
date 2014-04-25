@@ -27,7 +27,7 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 import qutebrowser.utils.url as urlutils
 import qutebrowser.config.config as config
-import qutebrowser.keyinput.modes as modes
+import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.message as message
 import qutebrowser.utils.webelem as webelem
 from qutebrowser.browser.webpage import BrowserPage
@@ -86,7 +86,7 @@ class BrowserTab(QWebView):
         self.page_.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.page_.linkHovered.connect(self.linkHovered)
         self.linkClicked.connect(self.on_link_clicked)
-        self.loadStarted.connect(lambda: modes.maybe_leave("insert"))
+        self.loadStarted.connect(lambda: modeman.maybe_leave("insert"))
         self.loadFinished.connect(self.on_load_finished)
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
 
@@ -255,9 +255,9 @@ class BrowserTab(QWebView):
             webelem.SELECTORS['editable_focused'])
         logging.debug("focus element: {}".format(not elem.isNull()))
         if elem.isNull():
-            modes.maybe_leave("insert")
+            modeman.maybe_leave("insert")
         else:
-            modes.enter("insert")
+            modeman.enter("insert")
 
     @pyqtSlot(str)
     def set_force_open_target(self, target):
@@ -319,11 +319,11 @@ class BrowserTab(QWebView):
         hitresult = frame.hitTestContent(pos)
         if self._is_editable(hitresult):
             logging.debug("Clicked editable element!")
-            modes.enter("insert")
+            modeman.enter("insert")
         else:
             logging.debug("Clicked non-editable element!")
             try:
-                modes.leave("insert")
+                modeman.leave("insert")
             except ValueError:
                 pass
 

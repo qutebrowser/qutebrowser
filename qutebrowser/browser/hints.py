@@ -26,7 +26,7 @@ from PyQt5.QtGui import QMouseEvent, QClipboard
 from PyQt5.QtWidgets import QApplication
 
 import qutebrowser.config.config as config
-import qutebrowser.keyinput.modes as modes
+import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.message as message
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.webelem as webelem
@@ -91,7 +91,7 @@ class HintManager(QObject):
         self._frame = None
         self._target = None
         self._baseurl = None
-        modes.manager.left.connect(self.on_mode_left)
+        modeman.manager.left.connect(self.on_mode_left)
 
     def _hint_strings(self, elems):
         """Calculate the hint strings for elems.
@@ -301,7 +301,7 @@ class HintManager(QObject):
             self._elems[string] = ElemTuple(e, label)
         frame.contentsSizeChanged.connect(self.on_contents_size_changed)
         self.hint_strings_updated.emit(strings)
-        modes.enter("hint")
+        modeman.enter("hint")
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
@@ -344,7 +344,7 @@ class HintManager(QObject):
             message.set_cmd_text(':{} {}'.format(commands[self._target],
                                                  urlutils.urlstring(link)))
         if self._target != 'rapid':
-            modes.leave("hint")
+            modeman.leave("hint")
 
     @pyqtSlot('QSize')
     def on_contents_size_changed(self, _size):

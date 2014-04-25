@@ -82,7 +82,7 @@ class Command(QObject):
             ArgumentCountError if the argument count is wrong.
             InvalidModeError if the command can't be called in this mode.
         """
-        import qutebrowser.keyinput.modes as modeman
+        import qutebrowser.keyinput.modeman as modeman
         if self.modes is not None and modeman.manager.mode not in self.modes:
             raise InvalidModeError("This command is only allowed in {} "
                                    "mode.".format('/'.join(self.modes)))
