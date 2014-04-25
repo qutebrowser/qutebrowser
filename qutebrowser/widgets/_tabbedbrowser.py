@@ -337,11 +337,11 @@ class TabbedBrowser(TabWidget):
         Args:
             text: The text to set.
         """
-        logging.debug('title changed to "{}"'.format(text))
+        logging.debug("title changed to '{}'".format(text))
         if text:
             self.setTabText(self.indexOf(self.sender()), text)
         else:
-            logging.debug('ignoring title change')
+            logging.debug("ignoring title change")
 
     @pyqtSlot(str)
     def on_mode_left(self, mode):

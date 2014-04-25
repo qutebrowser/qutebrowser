@@ -47,10 +47,10 @@ class HintManager(QObject):
         _elems: A mapping from keystrings to (elem, label) namedtuples.
         _baseurl: The URL of the current page.
         _target: What to do with the opened links.
-                 "normal"/"tab"/"bgtab": Get passed to BrowserTab.
-                 "yank"/"yank_primary": Yank to clipboard/primary selection
-                 "cmd"/"cmd_tab"/"cmd_bgtab": Enter link to commandline
-                 "rapid": Rapid mode with background tabs
+                 'normal'/'tab'/'bgtab': Get passed to BrowserTab.
+                 'yank'/'yank_primary': Yank to clipboard/primary selection
+                 'cmd'/'cmd_tab'/'cmd_bgtab': Enter link to commandline
+                 'rapid': Rapid mode with background tabs
 
     Signals:
         hint_strings_updated: Emitted when the possible hint strings changed.
@@ -239,8 +239,8 @@ class HintManager(QObject):
         """
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         QApplication.clipboard().setText(urlutils.urlstring(link), mode)
-        message.info('URL yanked to {}'.format('primary selection' if sel
-                                               else 'clipboard'))
+        message.info("URL yanked to {}".format("primary selection" if sel
+                                               else "clipboard"))
 
     def _resolve_link(self, elem):
         """Resolve a link and check if we want to keep it.
@@ -259,7 +259,7 @@ class HintManager(QObject):
             link = self._baseurl.resolved(link)
         return link
 
-    def start(self, frame, baseurl, mode="all", target="normal"):
+    def start(self, frame, baseurl, mode='all', target='normal'):
         """Start hinting.
 
         Args:
@@ -284,15 +284,15 @@ class HintManager(QObject):
             message.error("No elements found.")
             return
         texts = {
-            "normal": "Follow hint...",
-            "tab": "Follow hint in new tab...",
-            "bgtab": "Follow hint in background tab...",
-            "yank": "Yank hint to clipboard...",
-            "yank_primary": "Yank hint to primary selection...",
-            "cmd": "Set hint in commandline...",
-            "cmd_tab": "Set hint in commandline as new tab...",
-            "cmd_bgtab": "Set hint in commandline as background tab...",
-            "rapid": "Follow hint (rapid mode)...",
+            'normal': "Follow hint...",
+            'tab': "Follow hint in new tab...",
+            'bgtab': "Follow hint in background tab...",
+            'yank': "Yank hint to clipboard...",
+            'yank_primary': "Yank hint to primary selection...",
+            'cmd': "Set hint in commandline...",
+            'cmd_tab': "Set hint in commandline as new tab...",
+            'cmd_bgtab': "Set hint in commandline as background tab...",
+            'rapid': "Follow hint (rapid mode)...",
         }
         message.text(texts[target])
         strings = self._hint_strings(visible_elems)
@@ -301,7 +301,7 @@ class HintManager(QObject):
             self._elems[string] = ElemTuple(e, label)
         frame.contentsSizeChanged.connect(self.on_contents_size_changed)
         self.hint_strings_updated.emit(strings)
-        modeman.enter("hint")
+        modeman.enter('hint')
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
@@ -311,7 +311,7 @@ class HintManager(QObject):
                 matched = string[:len(keystr)]
                 rest = string[len(keystr):]
                 elems.label.setInnerXml('<font color="{}">{}</font>{}'.format(
-                    config.get("colors", "hints.fg.match"), matched, rest))
+                    config.get('colors', 'hints.fg.match'), matched, rest))
             else:
                 elems.label.removeFromDocument()
                 delete.append(string)
@@ -344,7 +344,7 @@ class HintManager(QObject):
             message.set_cmd_text(':{} {}'.format(commands[self._target],
                                                  urlutils.urlstring(link)))
         if self._target != 'rapid':
-            modeman.leave("hint")
+            modeman.leave('hint')
 
     @pyqtSlot('QSize')
     def on_contents_size_changed(self, _size):
@@ -353,12 +353,12 @@ class HintManager(QObject):
             rect = elems.elem.geometry()
             css = self.HINT_CSS.format(left=rect.x(), top=rect.y(),
                                        config=config.instance)
-            elems.label.setAttribute("style", css)
+            elems.label.setAttribute('style', css)
 
     @pyqtSlot(str)
     def on_mode_left(self, mode):
         """Stop hinting when hinting mode was left."""
-        if mode != "hint":
+        if mode != 'hint':
             return
         for elem in self._elems.values():
             elem.label.removeFromDocument()

@@ -51,18 +51,18 @@ class CrashDialog(QDialog):
         """
         super().__init__()
         self.setFixedSize(500, 350)
-        self.setWindowTitle('Whoops!')
+        self.setWindowTitle("Whoops!")
         self.setModal(True)
 
         self._vbox = QVBoxLayout(self)
         self._lbl = QLabel()
-        text = ('Argh! qutebrowser crashed unexpectedly.<br/>'
-                'Please review the info below to remove sensitive data and '
-                'then submit it to <a href="mailto:crash@qutebrowser.org">'
-                'crash@qutebrowser.org</a>.<br/><br/>')
+        text = ("Argh! qutebrowser crashed unexpectedly.<br/>"
+                "Please review the info below to remove sensitive data and "
+                "then submit it to <a href='mailto:crash@qutebrowser.org'>"
+                "crash@qutebrowser.org</a>.<br/><br/>")
         if pages:
-            text += ('You can click "Restore tabs" to attempt to reopen your '
-                     'open tabs.')
+            text += ("You can click \"Restore tabs\" to attempt to reopen "
+                     "your open tabs.")
         self._lbl.setText(text)
         self._lbl.setWordWrap(True)
         self._vbox.addWidget(self._lbl)
@@ -75,12 +75,12 @@ class CrashDialog(QDialog):
         self._hbox = QHBoxLayout()
         self._hbox.addStretch()
         self._btn_quit = QPushButton()
-        self._btn_quit.setText('Quit')
+        self._btn_quit.setText("Quit")
         self._btn_quit.clicked.connect(self.reject)
         self._hbox.addWidget(self._btn_quit)
         if pages:
             self._btn_restore = QPushButton()
-            self._btn_restore.setText('Restore tabs')
+            self._btn_restore.setText("Restore tabs")
             self._btn_restore.clicked.connect(self.accept)
             self._btn_restore.setDefault(True)
             self._hbox.addWidget(self._btn_restore)
@@ -99,14 +99,14 @@ class CrashDialog(QDialog):
             The string to display.
         """
         outputs = [
-            ('Version info', version()),
-            ('Exception', ''.join(traceback.format_exception(*exc))),
-            ('Open Pages', '\n'.join(pages)),
-            ('Command history', '\n'.join(cmdhist)),
-            ('Commandline args', ' '.join(sys.argv[1:])),
+            ("Version info", version()),
+            ("Exception", ''.join(traceback.format_exception(*exc))),
+            ("Open Pages", '\n'.join(pages)),
+            ("Command history", '\n'.join(cmdhist)),
+            ("Commandline args", ' '.join(sys.argv[1:])),
         ]
         try:
-            outputs.append(('Config', config.instance.dump_userconfig()))
+            outputs.append(("Config", config.instance.dump_userconfig()))
         except AttributeError:
             pass
         chunks = []

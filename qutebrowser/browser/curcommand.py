@@ -184,7 +184,7 @@ class CurCommandDispatcher(QObject):
                 break
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
-    def hint(self, mode="all", target="normal"):
+    def hint(self, mode='all', target='normal'):
         """Start hinting.
 
         Command handler for :hint.
@@ -288,8 +288,8 @@ class CurCommandDispatcher(QObject):
         url = urlutils.urlstring(self._tabs.currentWidget().url())
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         clip.setText(url, mode)
-        message.info('URL yanked to {}'.format('primary selection' if sel
-                                               else 'clipboard'))
+        message.info("URL yanked to {}".format("primary selection" if sel
+                                               else "clipboard"))
 
     @cmdutils.register(instance='mainwindow.tabs.cur', name='yanktitle')
     def yank_title(self, sel=False):
@@ -304,8 +304,8 @@ class CurCommandDispatcher(QObject):
         title = self._tabs.tabText(self._tabs.currentIndex())
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         clip.setText(title, mode)
-        message.info('Title yanked to {}'.format('primary selection' if sel
-                                                 else 'clipboard'))
+        message.info("Title yanked to {}".format("primary selection" if sel
+                                                 else "clipboard"))
 
     @cmdutils.register(instance='mainwindow.tabs.cur', name='zoomin')
     def zoom_in(self, count=1):

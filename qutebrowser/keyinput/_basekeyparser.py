@@ -132,7 +132,7 @@ class BaseKeyParser(QObject):
         try:
             cmdstr = self.special_bindings[modstr + keystr]
         except KeyError:
-            logging.debug('No binding found for {}.'.format(modstr + keystr))
+            logging.debug("No binding found for {}.".format(modstr + keystr))
             return False
         self.execute(cmdstr, self.TYPE_SPECIAL)
         return True
@@ -150,10 +150,10 @@ class BaseKeyParser(QObject):
         Return:
             True if event has been handled, False otherwise.
         """
-        logging.debug('Got key: {} / text: "{}"'.format(e.key(), e.text()))
+        logging.debug("Got key: {} / text: '{}'".format(e.key(), e.text()))
         txt = e.text().strip()
         if not txt:
-            logging.debug('Ignoring, no text')
+            logging.debug("Ignoring, no text")
             return False
 
         self._stop_delayed_exec()
@@ -179,10 +179,10 @@ class BaseKeyParser(QObject):
         elif match == self.MATCH_AMBIGUOUS:
             self._handle_ambiguous_match(binding, count)
         elif match == self.MATCH_PARTIAL:
-            logging.debug('No match for "{}" (added {})'.format(
+            logging.debug("No match for \"{}\" (added {})".format(
                 self._keystring, txt))
         elif match == self.MATCH_NONE:
-            logging.debug('Giving up with "{}", no matches'.format(
+            logging.debug("Giving up with \"{}\", no matches".format(
                 self._keystring))
             self._keystring = ''
             return False

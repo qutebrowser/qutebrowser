@@ -85,11 +85,11 @@ def version():
     gitver = _git_str()
 
     lines = [
-        'qutebrowser v{}'.format(qutebrowser.__version__),
+        "qutebrowser v{}".format(qutebrowser.__version__),
     ]
 
     if gitver is not None:
-        lines.append('Git commit: {}'.format(gitver))
+        lines.append("Git commit: {}".format(gitver))
 
     lines += [
         '',

@@ -52,7 +52,7 @@ class CommandKeyParser(BaseKeyParser):
         except NoSuchCommandError:
             pass
         except ArgumentCountError:
-            logging.debug('Filling statusbar with partial command {}'.format(
+            logging.debug("Filling statusbar with partial command {}".format(
                 cmdstr))
             message.set_cmd_text(':{} '.format(cmdstr))
 

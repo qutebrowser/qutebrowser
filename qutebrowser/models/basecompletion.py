@@ -49,7 +49,7 @@ class BaseCompletionModel(QAbstractItemModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._id_map = {}
-        self._root = CompletionItem([""] * 2)
+        self._root = CompletionItem([''] * 2)
         self._id_map[id(self._root)] = self._root
 
     def _node(self, index):
@@ -117,7 +117,7 @@ class BaseCompletionModel(QAbstractItemModel):
         self._root.children.append(cat)
         return cat
 
-    def new_item(self, cat, name, desc=""):
+    def new_item(self, cat, name, desc=''):
         """Add a new item to a category.
 
         Args:

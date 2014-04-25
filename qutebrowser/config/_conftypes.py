@@ -36,7 +36,7 @@ class ValidationError(ValueError):
     option = None
 
     def __init__(self, value, msg):
-        super().__init__('Invalid value "{}" - {}'.format(value, msg))
+        super().__init__("Invalid value \"{}\" - {}".format(value, msg))
 
 
 class ValidValues:
@@ -472,10 +472,10 @@ class SearchEngineUrl(BaseType):
     """A search engine URL."""
 
     def validate(self, value):
-        if "{}" in value:
+        if '{}' in value:
             pass
         else:
-            raise ValidationError(value, 'must contain "{}"')
+            raise ValidationError(value, "must contain \"{}\"")
 
 
 class KeyBindingName(BaseType):
@@ -490,22 +490,22 @@ class AutoSearch(BaseType):
 
     """Whether to start a search when something else than an URL is entered."""
 
-    valid_values = ValidValues(("naive", "Use simple/naive check."),
-                               ("dns", "Use DNS requests (might be slow!)."),
-                               ("false", "Never search automatically."))
+    valid_values = ValidValues(('naive', "Use simple/naive check."),
+                               ('dns', "Use DNS requests (might be slow!)."),
+                               ('false', "Never search automatically."))
 
     def validate(self, value):
-        if value.lower() in ["naive", "dns"]:
+        if value.lower() in ['naive', 'dns']:
             pass
         else:
             Bool.validate(self, value)
 
     def transform(self, value):
-        if value.lower() in ["naive", "dns"]:
+        if value.lower() in ['naive', 'dns']:
             return value.lower()
         elif super().transform(value):
             # boolean true is an alias for naive matching
-            return "naive"
+            return 'naive'
         else:
             return False
 
@@ -514,7 +514,7 @@ class Position(String):
 
     """The position of the tab bar."""
 
-    valid_values = ValidValues("north", "south", "east", "west")
+    valid_values = ValidValues('north', 'south', 'east', 'west')
 
 
 class SelectOnRemove(String):
@@ -522,18 +522,18 @@ class SelectOnRemove(String):
     """Which tab to select when the focused tab is removed."""
 
     valid_values = ValidValues(
-        ("left", "Select the tab on the left."),
-        ("right", "Select the tab on the right."),
-        ("previous", "Select the previously selected tab."))
+        ('left', "Select the tab on the left."),
+        ('right', "Select the tab on the right."),
+        ('previous', "Select the previously selected tab."))
 
 
 class LastClose(String):
 
     """Behaviour when the last tab is closed."""
 
-    valid_values = ValidValues(("ignore", "Don't do anything."),
-                               ("blank", "Load about:blank."),
-                               ("quit", "Quit qutebrowser."))
+    valid_values = ValidValues(('ignore', "Don't do anything."),
+                               ('blank', "Load about:blank."),
+                               ('quit', "Quit qutebrowser."))
 
 
 class KeyBinding(Command):

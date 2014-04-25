@@ -72,7 +72,7 @@ class WebView(QWebView):
         super().__init__(parent)
         self._scroll_pos = (-1, -1)
         self._shutdown_callback = None
-        self._open_target = "normal"
+        self._open_target = 'normal'
         self._force_open_target = None
         self._destroyed = {}
         self._zoom = None
@@ -86,7 +86,7 @@ class WebView(QWebView):
         self.page_.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.page_.linkHovered.connect(self.linkHovered)
         self.linkClicked.connect(self.on_link_clicked)
-        self.loadStarted.connect(lambda: modeman.maybe_leave("insert"))
+        self.loadStarted.connect(lambda: modeman.maybe_leave('insert'))
         self.loadFinished.connect(self.on_load_finished)
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
 
@@ -132,12 +132,12 @@ class WebView(QWebView):
             return True
         if tag == 'object':
             # Could be Flash/Java/..., could be image/audio/...
-            if not elem.hasAttribute("type"):
+            if not elem.hasAttribute('type'):
                 logging.debug("<object> without type clicked...")
                 return False
-            objtype = elem.attribute("type")
-            if (objtype.startswith("application/") or
-                    elem.hasAttribute("classid")):
+            objtype = elem.attribute('type')
+            if (objtype.startswith('application/') or
+                    elem.hasAttribute('classid')):
                 # Let's hope flash/java stuff has an application/* mimetype OR
                 # at least a classid attribute. Oh, and let's home images/...
                 # DON"T have a classid attribute. HTML sucks.
@@ -162,7 +162,7 @@ class WebView(QWebView):
         except urlutils.SearchEngineError as e:
             message.error(str(e))
             return
-        logging.debug('New title: {}'.format(urlutils.urlstring(u)))
+        logging.debug("New title: {}".format(urlutils.urlstring(u)))
         self.titleChanged.emit(urlutils.urlstring(u))
         self.urlChanged.emit(urlutils.qurl(u))
         return self.load(u)
@@ -226,9 +226,9 @@ class WebView(QWebView):
         Emit:
             open_tab: Emitted if window should be opened in a new tab.
         """
-        if self._open_target == "tab":
+        if self._open_target == 'tab':
             self.open_tab.emit(url, False)
-        elif self._open_target == "bgtab":
+        elif self._open_target == 'bgtab':
             self.open_tab.emit(url, True)
         else:
             self.openurl(url)

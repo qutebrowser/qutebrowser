@@ -16,7 +16,6 @@ decorators for often-used signals from singletons?
     - @on_config_changed('colors')
     - @on_enter_mode('hints')
 Use py3.4 Enums with a backport to qutebrowser.utils?
-" vs ' with strings
 
 Major features
 ==============

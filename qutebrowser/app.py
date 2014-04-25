@@ -151,7 +151,7 @@ class QuteBrowser(QApplication):
         self.setQuitOnLastWindowClosed(False)
 
         self._connect_signals()
-        modeman.enter("normal")
+        modeman.enter('normal')
 
         self.mainwindow.show()
         self._python_hacks()
@@ -166,15 +166,15 @@ class QuteBrowser(QApplication):
         """
         parser = ArgumentParser("usage: %(prog)s [options]")
         parser.add_argument('-l', '--log', dest='loglevel',
-                            help='Set loglevel', default='info')
-        parser.add_argument('-c', '--confdir', help='Set config directory '
-                            '(empty for no config storage)')
-        parser.add_argument('-d', '--debug', help='Turn on debugging options.',
+                            help="Set loglevel", default='info')
+        parser.add_argument('-c', '--confdir', help="Set config directory "
+                            "(empty for no config storage)")
+        parser.add_argument('-d', '--debug', help="Turn on debugging options.",
                             action='store_true')
-        parser.add_argument('command', nargs='*', help='Commands to execute '
-                            'on startup.', metavar=':command')
+        parser.add_argument('command', nargs='*', help="Commands to execute "
+                            "on startup.", metavar=':command')
         # URLs will actually be in command
-        parser.add_argument('url', nargs='*', help='URLs to open on startup.')
+        parser.add_argument('url', nargs='*', help="URLs to open on startup.")
         return parser.parse_args()
 
     def _initlog(self):
@@ -186,7 +186,7 @@ class QuteBrowser(QApplication):
         loglevel = 'debug' if self._args.debug else self._args.loglevel
         numeric_level = getattr(logging, loglevel.upper(), None)
         if not isinstance(numeric_level, int):
-            raise ValueError('Invalid log level: {}'.format(loglevel))
+            raise ValueError("Invalid log level: {}".format(loglevel))
         logging.basicConfig(
             level=numeric_level,
             format='%(asctime)s [%(levelname)s] '
@@ -227,15 +227,15 @@ class QuteBrowser(QApplication):
 
         for e in self._args.command:
             if e.startswith(':'):
-                logging.debug('Startup cmd {}'.format(e))
+                logging.debug("Startup cmd {}".format(e))
                 self.commandmanager.run(e.lstrip(':'))
             else:
-                logging.debug('Startup url {}'.format(e))
+                logging.debug("Startup url {}".format(e))
                 self._opened_urls.append(e)
                 self.mainwindow.tabs.tabopen(e)
 
         if self.mainwindow.tabs.count() == 0:
-            logging.debug('Opening startpage')
+            logging.debug("Opening startpage")
             for url in config.get('general', 'startpage'):
                 self.mainwindow.tabs.tabopen(url)
 
@@ -278,12 +278,12 @@ class QuteBrowser(QApplication):
         cmd.got_search_rev.connect(self.searchmanager.search_rev)
         cmd.returnPressed.connect(tabs.setFocus)
         self.searchmanager.do_search.connect(tabs.cur.search)
-        kp["normal"].keystring_updated.connect(status.keystring.setText)
+        kp['normal'].keystring_updated.connect(status.keystring.setText)
 
         # hints
-        kp["hint"].fire_hint.connect(tabs.cur.fire_hint)
-        kp["hint"].keystring_updated.connect(tabs.cur.handle_hint_key)
-        tabs.hint_strings_updated.connect(kp["hint"].on_hint_strings_updated)
+        kp['hint'].fire_hint.connect(tabs.cur.fire_hint)
+        kp['hint'].keystring_updated.connect(tabs.cur.handle_hint_key)
+        tabs.hint_strings_updated.connect(kp['hint'].on_hint_strings_updated)
 
         # messages
         message.bridge.error.connect(status.disp_error)
@@ -294,7 +294,7 @@ class QuteBrowser(QApplication):
         # config
         self.config.style_changed.connect(style.invalidate_caches)
         for obj in [tabs, completion, self.mainwindow, config.cmd_history,
-                    websettings, kp["normal"], modeman.manager]:
+                    websettings, kp['normal'], modeman.manager]:
             self.config.changed.connect(obj.on_config_changed)
 
         # statusbar
@@ -397,7 +397,7 @@ class QuteBrowser(QApplication):
                 except ValueError:
                     pass
             argv = [sys.executable] + argv + pages
-            logging.debug('Running {} with args {}'.format(sys.executable,
+            logging.debug("Running {} with args {}".format(sys.executable,
                                                            argv))
             subprocess.Popen(argv)
         self._maybe_quit('crash')

@@ -73,7 +73,7 @@ class SpecialNetworkReply(QNetworkReply):
         self.setHeader(QNetworkRequest.ContentLengthHeader,
                        QByteArray.number(len(fileData)))
         self.setAttribute(QNetworkRequest.HttpStatusCodeAttribute, 200)
-        self.setAttribute(QNetworkRequest.HttpReasonPhraseAttribute, "OK")
+        self.setAttribute(QNetworkRequest.HttpReasonPhraseAttribute, 'OK')
         # For some reason, a segfault will be triggered if these lambdas aren't
         # there.        pylint: disable=unnecessary-lambda
         QTimer.singleShot(0, lambda: self.metaDataChanged.emit())

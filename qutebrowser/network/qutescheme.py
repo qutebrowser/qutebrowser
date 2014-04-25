@@ -87,7 +87,7 @@ class QuteSchemeHandler(SchemeHandler):
         Return:
             A QNetworkReply.
         """
-        logging.debug('request: {}'.format(request))
+        logging.debug("request: {}".format(request))
         url = urlstring(request.url())
         try:
             handler = getattr(QuteHandlers, self._transform_url(url))
@@ -95,7 +95,7 @@ class QuteSchemeHandler(SchemeHandler):
             data = bytes()
         else:
             data = handler()
-        return SpecialNetworkReply(request, data, "text/html", self.parent())
+        return SpecialNetworkReply(request, data, 'text/html', self.parent())
 
 
 class QuteHandlers:

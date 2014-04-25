@@ -70,7 +70,7 @@ class History:
         Args:
             text: The preset text.
         """
-        logging.debug('Preset text: "{}"'.format(text))
+        logging.debug("Preset text: \"{}\"".format(text))
         if text:
             items = [e for e in self._history if e.startswith(text)]
         else:

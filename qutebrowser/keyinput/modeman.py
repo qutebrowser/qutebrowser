@@ -213,7 +213,7 @@ class ModeManager(QObject):
                        not_modes=['normal'], hide=True)
     def leave_current_mode(self):
         """Leave the mode we're currently in."""
-        if self.mode == "normal":
+        if self.mode == 'normal':
             raise ValueError("Can't leave normal mode!")
         self.leave(self.mode)
 

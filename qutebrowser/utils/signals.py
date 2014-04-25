@@ -105,5 +105,5 @@ class SignalCache(QObject):
     def replay(self):
         """Replay all cached signals."""
         for (signal, args) in self._signal_dict.values():
-            logging.debug('emitting {}'.format(dbg_signal(signal, args)))
+            logging.debug("emitting {}".format(dbg_signal(signal, args)))
             signal.emit(*args)

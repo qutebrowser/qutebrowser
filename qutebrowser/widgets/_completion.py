@@ -181,7 +181,7 @@ class CompletionView(QTreeView):
             completions = cmdutils.cmd_dict[parts[0]].completion
         except KeyError:
             return None
-        logging.debug('completions: {}'.format(completions))
+        logging.debug("completions: {}".format(completions))
         if completions is None:
             return None
         try:

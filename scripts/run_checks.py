@@ -123,17 +123,17 @@ def _check_file(fn):
     with open(fn, 'rb') as f:
         for line in f:
             if b'\r\n' in line:
-                print('Found CRLF in {}'.format(fn))
+                print("Found CRLF in {}".format(fn))
                 return False
             elif any(line.decode('UTF-8').startswith(c * 7) for c in "<>=|"):
-                print('Found conflict marker in {}'.format(fn))
+                print("Found conflict marker in {}".format(fn))
                 return False
             elif any([line.decode('UTF-8').rstrip('\r\n').endswith(c)
                       for c in " \t"]):
-                print('Found whitespace at line ending in {}'.format(fn))
+                print("Found whitespace at line ending in {}".format(fn))
                 return False
             elif b' \t' in line or b'\t ' in line:
-                print('Found tab-space mix in {}'.format(fn))
+                print("Found tab-space mix in {}".format(fn))
                 return False
     return True
 
@@ -195,7 +195,7 @@ for checker in ['pylint', 'flake8']:
     run(checker, _get_args(checker))
 check_line()
 
-print('Exit status values:')
+print("Exit status values:")
 for (k, v) in status.items():
     print('  {} - {}'.format(k, v))
 

@@ -174,7 +174,7 @@ class ConfigManager(QObject):
                 typestr = ''
             else:
                 typestr = ' ({})'.format(option.typ.typestr)
-            lines.append('# {}{}:'.format(optname, typestr))
+            lines.append("# {}{}:".format(optname, typestr))
             try:
                 desc = self.sections[secname].descriptions[optname]
             except KeyError:
@@ -186,11 +186,11 @@ class ConfigManager(QObject):
                 if valid_values.descriptions:
                     for val in valid_values:
                         desc = valid_values.descriptions[val]
-                        lines += wrapper.wrap('    {}: {}'.format(val, desc))
+                        lines += wrapper.wrap("    {}: {}".format(val, desc))
                 else:
-                    lines += wrapper.wrap('Valid values: {}'.format(', '.join(
+                    lines += wrapper.wrap("Valid values: {}".format(', '.join(
                         valid_values)))
-            lines += wrapper.wrap('Default: {}'.format(
+            lines += wrapper.wrap("Default: {}".format(
                 option.values['default']))
         return lines
 
