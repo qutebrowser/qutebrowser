@@ -1,15 +1,3 @@
-keyparser foo
-=============
-
-- Add mode=[]/no_mode=[] to cmdutils.register so we can avoid executing
-  commands in the wrong mode
-- Add more element-selection-detection code (with options?) based on:
-      -> javascript: http://stackoverflow.com/a/2848120/2085149
-      -> microFocusChanged and check active element via:
-         frame = page.currentFrame()
-         elem = frame.findFirstElement('*:focus')
-- BUG: sometimes events arrive like 5 times... :(
-
 Bugs
 ====
 
@@ -73,6 +61,13 @@ Ctrl+A/X to increase/decrease last number in URL
 command completion gets hidden when doing a new ValueList value
 logging contexts
 catch import errors for PyQt and QtWebKit
+- Add mode=[]/no_mode=[] to cmdutils.register so we can avoid executing
+  commands in the wrong mode
+- Add more element-selection-detection code (with options?) based on:
+      -> javascript: http://stackoverflow.com/a/2848120/2085149
+      -> microFocusChanged and check active element via:
+         frame = page.currentFrame()
+         elem = frame.findFirstElement('*:focus')
 
 Qt Bugs
 ========
