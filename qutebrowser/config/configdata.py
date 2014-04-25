@@ -446,6 +446,10 @@ DATA = OrderedDict([
         ('<Ctrl-D>', 'scroll_page 0 0.5'),
         ('<Ctrl-U>', 'scroll_page 0 -0.5'),
         ('<Backspace>', 'back'),
+        ('<Left>', '${h}'),
+        ('<Down>', '${k}'),
+        ('<Up>', '${j}'),
+        ('<Right>', '${l}'),
     )),
 
     ('keybind.insert', sect.ValueList(
