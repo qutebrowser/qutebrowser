@@ -462,8 +462,8 @@ DATA = OrderedDict([
         ('<Escape>', 'leave_mode'),
         ('<Up>', 'command_history_prev'),
         ('<Down>', 'command_history_next'),
-        ('<Shift-Tab>', 'command_item_prev'),
-        ('<Tab>', 'command_item_next'),
+        ('<Shift-Tab>', 'completion_item_prev'),
+        ('<Tab>', 'completion_item_next'),
         ('<Return>', 'command_accept'),
     )),
 
