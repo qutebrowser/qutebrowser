@@ -27,6 +27,7 @@ decorators for often-used signals from singletons?
 find better names for *Parser/*Manager
 Use _foo.py for modules only used in subpackage?
 Use py3.4 Enums with a backport to qutebrowser.utils?
+Simplify using of modes (e.g. enter_mode hint instead of :hint)
 
 Major features
 ==============
