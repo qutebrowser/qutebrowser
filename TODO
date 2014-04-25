@@ -67,7 +67,6 @@ logging contexts
 catch import errors for PyQt and QtWebKit
 Allow binding to empty values for keys to override defaults
 How do we handle empty values in input bar?
-Human-readable error messages for unknown settings / wrong interpolations / ...
 - Add more element-selection-detection code (with options?) based on:
       -> javascript: http://stackoverflow.com/a/2848120/2085149
       -> microFocusChanged and check active element via:
