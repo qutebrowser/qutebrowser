@@ -88,6 +88,11 @@ SECTION_DESC = {
         "Since normal keypresses are passed through, only special keys are "
         "supported in this mode.\n"
         "An useful command to map here is the hidden command leave_mode."),
+    'keybind.passthrough': (
+        "Keybindings for hint passthrough.\n"
+        "Since normal keypresses are passed through, only special keys are "
+        "supported in this mode.\n"
+        "An useful command to map here is the hidden command leave_mode."),
     'aliases': (
         "Aliases for commands.\n"
         "By default, no aliases are defined. Example which adds a new command "
@@ -415,6 +420,7 @@ DATA = OrderedDict([
         ('PP', 'tabpaste sel'),
         ('-', 'zoomout'),
         ('+', 'zoomin'),
+        ('<Ctrl-V>', 'enter_mode passthrough'),
         ('<Ctrl-Q>', 'quit'),
         ('<Ctrl-Shift-T>', 'undo'),
         ('<Ctrl-W>', 'tabclose'),
@@ -435,6 +441,11 @@ DATA = OrderedDict([
         types.KeyBindingName(), types.KeyBinding(),
         ('<Escape>', 'leave_mode'),
         ('<Ctrl-C>', 'leave_mode'),
+    )),
+
+    ('keybind.passthrough', sect.ValueList(
+        types.KeyBindingName(), types.KeyBinding(),
+        ('<Escape>', 'leave_mode'),
     )),
 
     ('aliases', sect.ValueList(

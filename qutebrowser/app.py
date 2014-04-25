@@ -128,6 +128,7 @@ class QuteBrowser(QApplication):
             'normal': NormalKeyParser(self),
             'hint': HintKeyParser(self),
             'insert': PassthroughKeyParser('keybind.insert', self),
+            'passthrough': PassthroughKeyParser('keybind.passthrough', self),
         }
         self._init_cmds()
         self.mainwindow = MainWindow()
@@ -135,6 +136,9 @@ class QuteBrowser(QApplication):
         modes.manager.register('normal', self._keyparsers['normal'].handle)
         modes.manager.register('hint', self._keyparsers['hint'].handle)
         modes.manager.register('insert', self._keyparsers['insert'].handle,
+                               passthrough=True)
+        modes.manager.register('passthrough',
+                               self._keyparsers['passthrough'].handle,
                                passthrough=True)
         modes.manager.register('command', None, passthrough=True)
         self.modeman = modes.manager  # for commands
