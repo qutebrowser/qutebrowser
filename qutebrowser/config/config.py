@@ -58,7 +58,7 @@ def init(configdir):
     """
     global instance, state, cmd_history
     logging.debug("Config init, configdir {}".format(configdir))
-    instance = Config(configdir, 'qutebrowser.conf')
+    instance = ConfigManager(configdir, 'qutebrowser.conf')
     state = ReadWriteConfigParser(configdir, 'state')
     cmd_history = LineConfigParser(configdir, 'cmd_history',
                                    ('general', 'cmd_histlen'))
@@ -83,7 +83,7 @@ class NoOptionError(configparser.NoOptionError):
     pass
 
 
-class Config(QObject):
+class ConfigManager(QObject):
 
     """Configuration manager for qutebrowser.
 
