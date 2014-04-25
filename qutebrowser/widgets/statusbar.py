@@ -274,10 +274,9 @@ class _Command(QLineEdit):
             '/': self.got_search,
             '?': self.got_search_rev,
         }
-        self.history.stop()
         text = self.text()
         self.history.append(text)
-        self.setText('')
+        modes.leave("command")
         if text[0] in signals:
             signals[text[0]].emit(text.lstrip(text[0]))
 
