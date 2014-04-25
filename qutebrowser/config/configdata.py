@@ -89,7 +89,12 @@ SECTION_DESC = {
         "supported in this mode.\n"
         "An useful command to map here is the hidden command leave_mode."),
     'keybind.passthrough': (
-        "Keybindings for hint passthrough.\n"
+        "Keybindings for hint mode.\n"
+        "Since normal keypresses are passed through, only special keys are "
+        "supported in this mode.\n"
+        "An useful command to map here is the hidden command leave_mode."),
+    'keybind.command': (
+        "Keybindings for command mode.\n"
         "Since normal keypresses are passed through, only special keys are "
         "supported in this mode.\n"
         "An useful command to map here is the hidden command leave_mode."),
@@ -446,6 +451,15 @@ DATA = OrderedDict([
     ('keybind.passthrough', sect.ValueList(
         types.KeyBindingName(), types.KeyBinding(),
         ('<Escape>', 'leave_mode'),
+    )),
+
+    ('keybind.command', sect.ValueList(
+        types.KeyBindingName(), types.KeyBinding(),
+        ('<Escape>', 'leave_mode'),
+        ('<Up>', 'command_history_prev'),
+        ('<Down>', 'command_history_next'),
+        ('<Shift-Tab>', 'command_item_prev'),
+        ('<Tab>', 'command_item_next'),
     )),
 
     ('aliases', sect.ValueList(

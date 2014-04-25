@@ -199,6 +199,30 @@ class CompletionView(QTreeView):
             logging.debug("No completion model for {}.".format(compl))
             return None
 
+    def _next_prev_item(self, prev):
+        """Handle a tab press for the CompletionView.
+
+        Select the previous/next item and write the new text to the
+        statusbar.
+
+        Args:
+            prev: True for prev item, False for next one.
+
+        Emit:
+            change_completed_part: When a completion took place.
+        """
+        if not self._completing:
+            # No completion running at the moment, ignore keypress
+            return
+        idx = self._next_idx(prev)
+        self.selectionModel().setCurrentIndex(
+            idx, QItemSelectionModel.ClearAndSelect |
+            QItemSelectionModel.Rows)
+        data = self._model.data(idx)
+        if data is not None:
+            self._ignore_next = True
+            self.change_completed_part.emit(data)
+
     def set_model(self, model):
         """Switch completion to a new model.
 
@@ -265,31 +289,6 @@ class CompletionView(QTreeView):
         if self._enabled:
             self.show()
 
-    @pyqtSlot(bool)
-    def on_tab_pressed(self, shift):
-        """Handle a tab press for the CompletionView.
-
-        Select the previous/next item and write the new text to the
-        statusbar. Called by key_(s)tab_handler in statusbar.command.
-
-        Args:
-            shift: Whether shift is pressed or not.
-
-        Emit:
-            change_completed_part: When a completion took place.
-        """
-        if not self._completing:
-            # No completion running at the moment, ignore keypress
-            return
-        idx = self._next_idx(shift)
-        self.selectionModel().setCurrentIndex(
-            idx, QItemSelectionModel.ClearAndSelect |
-            QItemSelectionModel.Rows)
-        data = self._model.data(idx)
-        if data is not None:
-            self._ignore_next = True
-            self.change_completed_part.emit(data)
-
     @pyqtSlot()
     def on_clear_completion_selection(self):
         """Clear the selection model when an item is activated."""
@@ -297,6 +296,16 @@ class CompletionView(QTreeView):
         if selmod is not None:
             selmod.clearSelection()
             selmod.clearCurrentIndex()
+
+    @cmdutils.register(instance='mainwindow.completion')
+    def command_item_prev(self):
+        """Select the previous completion item."""
+        self._next_prev_item(prev=True)
+
+    @cmdutils.register(instance='mainwindow.completion')
+    def command_item_next(self):
+        """Select the next completion item."""
+        self._next_prev_item(prev=False)
 
 
 class _CompletionItemDelegate(QStyledItemDelegate):

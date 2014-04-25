@@ -24,6 +24,7 @@ from PyQt5.QtWidgets import (QWidget, QLineEdit, QProgressBar, QLabel,
 from PyQt5.QtGui import QPainter, QKeySequence, QValidator
 
 import qutebrowser.keyinput.modes as modes
+import qutebrowser.commands.utils as cmdutils
 from qutebrowser.keyinput.normalmode import STARTCHARS
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 from qutebrowser.utils.url import urlstring
@@ -214,7 +215,6 @@ class _Command(QLineEdit):
     Attributes:
         history: The command history object.
         _statusbar: The statusbar (parent) QWidget.
-        _shortcuts: Defined QShortcuts to prevent GCing.
         _validator: The current command validator.
 
     Signals:
@@ -224,9 +224,6 @@ class _Command(QLineEdit):
                     arg: The search term.
         got_rev_search: Emitted when the user started a new reverse search.
                         arg: The search term.
-        esc_pressed: Emitted when the escape key was pressed.
-        tab_pressed: Emitted when the tab key was pressed.
-                     arg: Whether shift has been pressed.
         clear_completion_selection: Emitted before the completion widget is
                                     hidden.
         hide_completion: Emitted when the completion widget should be hidden.
@@ -237,8 +234,6 @@ class _Command(QLineEdit):
     got_cmd = pyqtSignal(str)
     got_search = pyqtSignal(str)
     got_search_rev = pyqtSignal(str)
-    esc_pressed = pyqtSignal()
-    tab_pressed = pyqtSignal(bool)
     clear_completion_selection = pyqtSignal()
     hide_completion = pyqtSignal()
     show_cmd = pyqtSignal()
@@ -264,44 +259,6 @@ class _Command(QLineEdit):
         self.returnPressed.connect(self._on_return_pressed)
         self.textEdited.connect(self.history.stop)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
-        self._shortcuts = []
-        for (key, handler) in [
-                (Qt.Key_Escape, self.esc_pressed),
-                (Qt.Key_Up, self._on_key_up_pressed),
-                (Qt.Key_Down, self._on_key_down_pressed),
-                (Qt.Key_Tab | Qt.SHIFT, lambda: self.tab_pressed.emit(True)),
-                (Qt.Key_Tab, lambda: self.tab_pressed.emit(False))
-        ]:
-            sc = QShortcut(self)
-            sc.setKey(QKeySequence(key))
-            sc.setContext(Qt.WidgetWithChildrenShortcut)
-            sc.activated.connect(handler)
-            self._shortcuts.append(sc)
-
-    @pyqtSlot()
-    def _on_key_up_pressed(self):
-        """Handle Up presses (go back in history)."""
-        try:
-            if not self.history.browsing:
-                item = self.history.start(self.text().strip())
-            else:
-                item = self.history.previtem()
-        except (HistoryEmptyError, HistoryEndReachedError):
-            return
-        if item:
-            self.set_cmd_text(item)
-
-    @pyqtSlot()
-    def _on_key_down_pressed(self):
-        """Handle Down presses (go forward in history)."""
-        if not self.history.browsing:
-            return
-        try:
-            item = self.history.nextitem()
-        except HistoryEndReachedError:
-            return
-        if item:
-            self.set_cmd_text(item)
 
     @pyqtSlot()
     def _on_return_pressed(self):
@@ -355,6 +312,31 @@ class _Command(QLineEdit):
         self.setFocus()
         self.show_cmd.emit()
 
+    @cmdutils.register(instance='mainwindow.status.cmd', hide=True)
+    def command_history_prev(self):
+        """Handle Up presses (go back in history)."""
+        try:
+            if not self.history.browsing:
+                item = self.history.start(self.text().strip())
+            else:
+                item = self.history.previtem()
+        except (HistoryEmptyError, HistoryEndReachedError):
+            return
+        if item:
+            self.set_cmd_text(item)
+
+    @cmdutils.register(instance='mainwindow.status.cmd', hide=True)
+    def command_history_next(self):
+        """Handle Down presses (go forward in history)."""
+        if not self.history.browsing:
+            return
+        try:
+            item = self.history.nextitem()
+        except HistoryEndReachedError:
+            return
+        if item:
+            self.set_cmd_text(item)
+
     def focusInEvent(self, e):
         """Extend focusInEvent to enter command mode."""
         modes.enter("command")
@@ -368,6 +350,8 @@ class _Command(QLineEdit):
         - Clear completion selection
         - Hide completion
 
+        FIXME we should rather do this on on_mode_left...
+
         Args:
             e: The QFocusEvent.
 
@@ -375,7 +359,7 @@ class _Command(QLineEdit):
             clear_completion_selection: Always emitted.
             hide_completion: Always emitted so the completion is hidden.
         """
-        modes.leave("command")
+        modes.maybe_leave("command")
         if e.reason() in [Qt.MouseFocusReason, Qt.TabFocusReason,
                           Qt.BacktabFocusReason, Qt.OtherFocusReason]:
             self.setText('')

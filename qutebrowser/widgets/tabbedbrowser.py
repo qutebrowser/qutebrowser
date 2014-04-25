@@ -343,6 +343,12 @@ class TabbedBrowser(TabWidget):
         else:
             logging.debug('ignoring title change')
 
+    @pyqtSlot(str)
+    def on_mode_left(self, mode):
+        """Focus tabs if command mode was left."""
+        if mode == "command":
+            self.setFocus()
+
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
 

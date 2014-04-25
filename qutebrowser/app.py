@@ -129,6 +129,7 @@ class QuteBrowser(QApplication):
             'hint': HintKeyParser(self),
             'insert': PassthroughKeyParser('keybind.insert', self),
             'passthrough': PassthroughKeyParser('keybind.passthrough', self),
+            'command': PassthroughKeyParser('keybind.command', self),
         }
         self._init_cmds()
         self.mainwindow = MainWindow()
@@ -140,7 +141,8 @@ class QuteBrowser(QApplication):
         modes.manager.register('passthrough',
                                self._keyparsers['passthrough'].handle,
                                passthrough=True)
-        modes.manager.register('command', None, passthrough=True)
+        modes.manager.register('command', self._keyparsers['command'].handle,
+                               passthrough=True)
         self.modeman = modes.manager  # for commands
         self.installEventFilter(modes.manager)
         self.setQuitOnLastWindowClosed(False)
@@ -302,12 +304,11 @@ class QuteBrowser(QApplication):
         tabs.cur_link_hovered.connect(status.url.set_hover_url)
 
         # command input / completion
-        cmd.esc_pressed.connect(tabs.setFocus)
+        modes.manager.left.connect(tabs.on_mode_left)
         cmd.clear_completion_selection.connect(
             completion.on_clear_completion_selection)
         cmd.hide_completion.connect(completion.hide)
         cmd.textChanged.connect(completion.on_cmd_text_changed)
-        cmd.tab_pressed.connect(completion.on_tab_pressed)
         completion.change_completed_part.connect(cmd.on_change_completed_part)
 
     def _recover_pages(self):
