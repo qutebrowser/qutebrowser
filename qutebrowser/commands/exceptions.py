@@ -33,3 +33,10 @@ class ArgumentCountError(TypeError):
     """Raised when a command was called with an invalid count of arguments."""
 
     pass
+
+
+class InvalidModeError(Exception):
+
+    """Raised when a command is called in a wrong input mode."""
+
+    pass

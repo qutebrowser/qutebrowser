@@ -24,7 +24,7 @@ import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.message as message
 from qutebrowser.commands.exceptions import (ArgumentCountError,
-                                             NoSuchCommandError)
+    NoSuchCommandError, InvalidModeError)
 
 
 def split_cmdline(text):
@@ -202,6 +202,7 @@ class CommandParser:
             NoSuchCommandError: if a command wasn't found.
             ArgumentCountError: if a command was called with the wrong count of
                                 arguments.
+            InvalidModeError: if a command can't be called in this mode.
 
         Return:
             True if command was called (handler returnstatus is ignored!).
@@ -225,6 +226,12 @@ class CommandParser:
         except NoSuchCommandError as e:
             if ignore_exc:
                 message.error("{}: no such command".format(e))
+                return False
+            else:
+                raise
+        except InvalidModeError as e:
+            if ignore_exc:
+                message.error("{}: {}".format(self._cmd.name, e))
                 return False
             else:
                 raise

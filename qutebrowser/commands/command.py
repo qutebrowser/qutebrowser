@@ -19,7 +19,8 @@
 
 import logging
 
-from qutebrowser.commands.exceptions import ArgumentCountError
+from qutebrowser.commands.exceptions import (ArgumentCountError,
+    InvalidModeError)
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
@@ -55,7 +56,7 @@ class Command(QObject):
     signal = pyqtSignal(tuple)
 
     def __init__(self, name, maxsplit, hide, nargs, count, desc, instance,
-                 handler, completion):
+                 handler, completion, modes, not_modes):
         super().__init__()
         self.name = name
         self.maxsplit = maxsplit
@@ -66,18 +67,27 @@ class Command(QObject):
         self.instance = instance
         self.handler = handler
         self.completion = completion
+        self.modes = modes
+        self.not_modes = not_modes
 
     def check(self, args):
-        """Check if the argument count is valid.
-
-        Raise ArgumentCountError if not.
+        """Check if the argument count is valid and the command is permitted.
 
         Args:
             args: The supplied arguments
 
         Raise:
             ArgumentCountError if the argument count is wrong.
+            InvalidModeError if the command can't be called in this mode.
         """
+        import qutebrowser.keyinput.modes as modeman
+        if self.modes is not None and modeman.manager.mode not in self.modes:
+            raise InvalidModeError("This command is only allowed in {} "
+                                   "mode.".format('/'.join(self.modes)))
+        elif (self.not_modes is not None and
+              modeman.manager.mode in self.not_modes):
+            raise InvalidModeError("This command is not allowed in {} "
+                                   "mode.".format('/'.join(self.not_modes)))
         if self.nargs[1] is None and self.nargs[0] <= len(args):
             pass
         elif self.nargs[0] <= len(args) <= self.nargs[1]:

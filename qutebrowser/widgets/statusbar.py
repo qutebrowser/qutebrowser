@@ -290,7 +290,8 @@ class _Command(QLineEdit):
         self.setFocus()
         self.show_cmd.emit()
 
-    @cmdutils.register(instance='mainwindow.status.cmd', hide=True)
+    @cmdutils.register(instance='mainwindow.status.cmd', hide=True,
+                       modes=['command'])
     def command_history_prev(self):
         """Handle Up presses (go back in history)."""
         try:
@@ -303,7 +304,8 @@ class _Command(QLineEdit):
         if item:
             self.set_cmd_text(item)
 
-    @cmdutils.register(instance='mainwindow.status.cmd', hide=True)
+    @cmdutils.register(instance='mainwindow.status.cmd', hide=True,
+                       modes=['command'])
     def command_history_next(self):
         """Handle Down presses (go forward in history)."""
         if not self.history.browsing:
@@ -315,7 +317,8 @@ class _Command(QLineEdit):
         if item:
             self.set_cmd_text(item)
 
-    @cmdutils.register(instance='mainwindow.status.cmd', hide=True)
+    @cmdutils.register(instance='mainwindow.status.cmd', hide=True,
+                       modes=['command'])
     def command_accept(self):
         """Handle the command in the status bar.
 

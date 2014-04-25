@@ -47,10 +47,11 @@ class register:  # pylint: disable=invalid-name
         hide: Whether to hide the command or not.
         completion: Which completion to use for arguments, as a list of
                     strings.
+        modes/not_modes: List of modes to use/not use.
     """
 
     def __init__(self, instance=None, name=None, nargs=None, maxsplit=-1,
-                 hide=False, completion=None):
+                 hide=False, completion=None, modes=None, not_modes=None):
         """Save decorator arguments.
 
         Gets called on parse-time with the decorator arguments.
@@ -58,12 +59,16 @@ class register:  # pylint: disable=invalid-name
         Args:
             See class attributes.
         """
+        if modes is not None and not_modes is not None:
+            raise ValueError("Only modes or not_modes can be given!")
         self.name = name
         self.maxsplit = maxsplit
         self.hide = hide
         self.nargs = nargs
         self.instance = instance
         self.completion = completion
+        self.modes = modes
+        self.not_modes = not_modes
 
     def __call__(self, func):
         """Register the command before running the function.
@@ -95,7 +100,8 @@ class register:  # pylint: disable=invalid-name
         cmd = Command(name=mainname, maxsplit=self.maxsplit,
                       hide=self.hide, nargs=nargs, count=count, desc=desc,
                       instance=self.instance, handler=func,
-                      completion=self.completion)
+                      completion=self.completion, modes=self.modes,
+                      not_modes=self.not_modes)
         for name in names:
             cmd_dict[name] = cmd
         return func
