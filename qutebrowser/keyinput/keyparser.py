@@ -131,7 +131,7 @@ class KeyParser(QObject):
         for (mask, s) in modmask2str.items():
             if mod & mask:
                 modstr += s + '+'
-        keystr = QKeySequence(e.key()).toString()
+        keystr = QKeySequence(e.key()).toString().replace("Backtab", "Tab")
         try:
             cmdstr = self.special_bindings[modstr + keystr]
         except KeyError:
