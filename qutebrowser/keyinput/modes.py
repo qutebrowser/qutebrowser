@@ -23,6 +23,7 @@ Module attributes:
 
 import logging
 
+from PyQt5.QtGui import QWindow
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
 
 import qutebrowser.config.config as config
@@ -166,7 +167,7 @@ class ModeManager(QObject):
             self._forward_unbound_keys = config.get('general',
                                                     'forward_unbound_keys')
 
-    def eventFilter(self, _obj, evt):
+    def eventFilter(self, obj, evt):
         """Filter all events based on the currently set mode.
 
         Also calls the real keypress handler.
@@ -177,21 +178,29 @@ class ModeManager(QObject):
         if self.mode is None:
             # We got events before mode is set, so just pass them through.
             return False
-        handler = self._handlers[self.mode]
         typ = evt.type()
         if typ not in [QEvent.KeyPress, QEvent.KeyRelease]:
             # We're not interested in non-key-events so we pass them through.
             return False
-        logging.debug("Got event {} for {}".format(debug.EVENTS[typ], _obj))
+        logging.debug("Got event {} for {}".format(debug.EVENTS[typ],
+                                                   obj.__class__))
+        if not isinstance(obj, QWindow):
+            # We already handled this same event at some point earlier, so
+            # we're not interested in it anymore.
+            return False
+
+        handler = self._handlers[self.mode]
+
         if self.mode in self.passthrough:
             # We're currently in a passthrough mode so we pass everything
             # through.*and* let the passthrough keyhandler know.
             # FIXME what if we leave the passthrough mode right here?
-            self.key_pressed.emit(evt)
-            if handler is not None:
-                handler(evt)
+            if typ == QEvent.KeyPress:
+                self.key_pressed.emit(evt)
+                if handler is not None:
+                    handler(evt)
             return False
-        elif typ == QEvent.KeyPress:
+        if typ == QEvent.KeyPress:
             # KeyPress in a non-passthrough mode - call handler and filter
             # event from widgets (unless unhandled and configured to pass
             # unhandled events through)
@@ -205,6 +214,6 @@ class ModeManager(QObject):
             else:
                 return True
         else:
-            # KeyRelease in a non-passthrough mode - filter event and ignore it
-            # entirely.
+            # KeyRelease in a non-passthrough mode - filter event and
+            # ignore it entirely.
             return True
