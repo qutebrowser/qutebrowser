@@ -27,7 +27,7 @@ import qutebrowser.commands.utils as cmdutils
 from qutebrowser.keyinput.normalmode import STARTCHARS
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 from qutebrowser.utils.url import urlstring
-from qutebrowser.commands.parsers import split_cmdline
+from qutebrowser.commands.managers import split_cmdline
 from qutebrowser.models.cmdhistory import (History, HistoryEmptyError,
                                            HistoryEndReachedError)
 

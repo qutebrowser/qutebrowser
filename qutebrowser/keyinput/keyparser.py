@@ -26,8 +26,8 @@ from PyQt5.QtGui import QKeySequence
 
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
-from qutebrowser.commands.parsers import (CommandParser, ArgumentCountError,
-                                          NoSuchCommandError)
+from qutebrowser.commands.managers import (CommandManager, ArgumentCountError,
+                                           NoSuchCommandError)
 
 
 class KeyParser(QObject):
@@ -353,13 +353,13 @@ class CommandKeyParser(KeyParser):
     """KeyChainParser for command bindings.
 
     Attributes:
-        commandparser: Commandparser instance.
+        commandmanager: CommandManager instance.
     """
 
     def __init__(self, parent=None, supports_count=None,
                  supports_chains=False):
         super().__init__(parent, supports_count, supports_chains)
-        self.commandparser = CommandParser()
+        self.commandmanager = CommandManager()
 
     def _run_or_fill(self, cmdstr, count=None, ignore_exc=True):
         """Run the command in cmdstr or fill the statusbar if args missing.
@@ -370,7 +370,7 @@ class CommandKeyParser(KeyParser):
             ignore_exc: Ignore exceptions.
         """
         try:
-            self.commandparser.run(cmdstr, count=count, ignore_exc=ignore_exc)
+            self.commandmanager.run(cmdstr, count=count, ignore_exc=ignore_exc)
         except NoSuchCommandError:
             pass
         except ArgumentCountError:

@@ -59,7 +59,7 @@ from qutebrowser.widgets.crash import CrashDialog
 from qutebrowser.keyinput.normalmode import NormalKeyParser
 from qutebrowser.keyinput.keyparser import PassthroughKeyParser
 from qutebrowser.keyinput.hintmode import HintKeyParser
-from qutebrowser.commands.parsers import CommandParser, SearchParser
+from qutebrowser.commands.managers import CommandManager, SearchManager
 from qutebrowser.utils.appdirs import AppDirs
 from qutebrowser.utils.misc import dotted_getattr
 from qutebrowser.utils.debug import set_trace  # pylint: disable=unused-import
@@ -76,8 +76,8 @@ class QuteBrowser(QApplication):
 
     Attributes:
         mainwindow: The MainWindow QWidget.
-        commandparser: The main CommandParser instance.
-        searchparser: The main SearchParser instance.
+        commandmanager: The main CommandManager instance.
+        searchmanager: The main SearchManager instance.
         _keyparsers: A mapping from modes to keyparsers.
         _dirs: AppDirs instance for config/cache directories.
         _args: ArgumentParser instance.
@@ -121,8 +121,8 @@ class QuteBrowser(QApplication):
         self.config = config.instance
         websettings.init()
 
-        self.commandparser = CommandParser()
-        self.searchparser = SearchParser()
+        self.commandmanager = CommandManager()
+        self.searchmanager = SearchManager()
         self._keyparsers = {
             'normal': NormalKeyParser(self),
             'hint': HintKeyParser(self),
@@ -224,7 +224,7 @@ class QuteBrowser(QApplication):
         for e in self._args.command:
             if e.startswith(':'):
                 logging.debug('Startup cmd {}'.format(e))
-                self.commandparser.run(e.lstrip(':'))
+                self.commandmanager.run(e.lstrip(':'))
             else:
                 logging.debug('Startup url {}'.format(e))
                 self._opened_urls.append(e)
@@ -269,11 +269,11 @@ class QuteBrowser(QApplication):
         modes.manager.key_pressed.connect(status.on_key_pressed)
 
         # commands
-        cmd.got_cmd.connect(self.commandparser.run)
-        cmd.got_search.connect(self.searchparser.search)
-        cmd.got_search_rev.connect(self.searchparser.search_rev)
+        cmd.got_cmd.connect(self.commandmanager.run)
+        cmd.got_search.connect(self.searchmanager.search)
+        cmd.got_search_rev.connect(self.searchmanager.search_rev)
         cmd.returnPressed.connect(tabs.setFocus)
-        self.searchparser.do_search.connect(tabs.cur.search)
+        self.searchmanager.do_search.connect(tabs.cur.search)
         kp["normal"].keystring_updated.connect(status.keystring.setText)
 
         # hints

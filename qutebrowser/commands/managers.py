@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Module containing commandline parsers ( SearchParser and CommandParser)."""
+"""Module containing command managers (SearchManager and CommandManager)."""
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 from PyQt5.QtWebKitWidgets import QWebPage
@@ -36,9 +36,9 @@ def split_cmdline(text):
     Return:
         A list of strings.
     """
-    parser = CommandParser()
+    manager = CommandManager()
     try:
-        parts = parser.parse(text)
+        parts = manager.parse(text)
     except NoSuchCommandError:
         parts = text.split(' ')
     if text.endswith(' '):
@@ -46,9 +46,9 @@ def split_cmdline(text):
     return parts
 
 
-class SearchParser(QObject):
+class SearchManager(QObject):
 
-    """Parse qutebrowser searches.
+    """Manage qutebrowser searches.
 
     Attributes:
         _text: The text from the last search.
@@ -107,7 +107,7 @@ class SearchParser(QObject):
         """
         self._search(text, rev=True)
 
-    @cmdutils.register(instance='searchparser', hide=True)
+    @cmdutils.register(instance='searchmanager', hide=True)
     def nextsearch(self, count=1):
         """Continue the search to the ([count]th) next term.
 
@@ -122,9 +122,9 @@ class SearchParser(QObject):
                 self.do_search.emit(self._text, self._flags)
 
 
-class CommandParser:
+class CommandManager:
 
-    """Parse qutebrowser commandline commands.
+    """Manage qutebrowser commandline commands.
 
     Attributes:
         _cmd: The command which was parsed.

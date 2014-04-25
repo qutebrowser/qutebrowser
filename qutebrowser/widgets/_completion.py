@@ -36,7 +36,7 @@ import qutebrowser.commands.utils as cmdutils
 import qutebrowser.config.configdata as configdata
 from qutebrowser.models.completion import ROLE_MARKS, NoCompletionsError
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
-from qutebrowser.commands.parsers import split_cmdline
+from qutebrowser.commands.managers import split_cmdline
 from qutebrowser.models.completionfilter import CompletionFilterModel
 from qutebrowser.models.commandcompletion import CommandCompletionModel
 from qutebrowser.models.settingcompletion import (
