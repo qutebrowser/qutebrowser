@@ -137,8 +137,8 @@ class QuteBrowser(QApplication):
         modeman.manager.register('insert', self._keyparsers['insert'].handle,
                                  passthrough=True)
         modeman.manager.register('passthrough',
-                               self._keyparsers['passthrough'].handle,
-                               passthrough=True)
+                                 self._keyparsers['passthrough'].handle,
+                                 passthrough=True)
         modeman.manager.register('command', self._keyparsers['command'].handle,
                                  passthrough=True)
         self.modeman = modeman.manager  # for commands
