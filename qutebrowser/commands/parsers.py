@@ -23,7 +23,7 @@ from PyQt5.QtWebKitWidgets import QWebPage
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.message as message
-from qutebrowser.commands.exceptions import (
+from qutebrowser.commands._exceptions import (
     ArgumentCountError, NoSuchCommandError, InvalidModeError)
 
 

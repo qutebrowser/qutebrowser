@@ -19,7 +19,7 @@
 
 from collections import OrderedDict, ChainMap
 
-from qutebrowser.config.value import SettingValue
+from qutebrowser.config._value import SettingValue
 
 
 class Section:

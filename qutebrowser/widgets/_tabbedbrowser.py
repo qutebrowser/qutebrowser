@@ -28,7 +28,7 @@ import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.message as message
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
-from qutebrowser.widgets.tabwidget import TabWidget
+from qutebrowser.widgets._tabwidget import TabWidget
 from qutebrowser.widgets.browsertab import BrowserTab
 from qutebrowser.browser.signalfilter import SignalFilter
 from qutebrowser.browser.curcommand import CurCommandDispatcher

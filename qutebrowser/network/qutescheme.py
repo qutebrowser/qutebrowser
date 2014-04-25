@@ -25,8 +25,8 @@ Module attributes:
 import logging
 import cgi
 
-from qutebrowser.network.schemehandler import (SchemeHandler,
-                                               SpecialNetworkReply)
+from qutebrowser.network._schemehandler import (SchemeHandler,
+                                                SpecialNetworkReply)
 from qutebrowser.utils.version import version
 from qutebrowser.utils.url import urlstring
 

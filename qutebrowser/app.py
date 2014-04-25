@@ -63,7 +63,6 @@ from qutebrowser.commands.parsers import CommandParser, SearchParser
 from qutebrowser.utils.appdirs import AppDirs
 from qutebrowser.utils.misc import dotted_getattr
 from qutebrowser.utils.debug import set_trace  # pylint: disable=unused-import
-from qutebrowser.config.conftypes import ValidationError
 
 
 class QuteBrowser(QApplication):
@@ -110,7 +109,7 @@ class QuteBrowser(QApplication):
             confdir = self._args.confdir
         try:
             config.init(confdir)
-        except ValidationError as e:
+        except config.ValidationError as e:
             msgbox = QMessageBox(
                 QMessageBox.Critical,
                 "Error while reading config!",

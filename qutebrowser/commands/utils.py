@@ -24,7 +24,7 @@ Module attributes:
 import inspect
 from collections import Iterable
 
-from qutebrowser.commands.command import Command
+from qutebrowser.commands._command import Command
 
 cmd_dict = {}
 

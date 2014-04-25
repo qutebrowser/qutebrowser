@@ -19,8 +19,8 @@
 
 import logging
 
-from qutebrowser.commands.exceptions import (ArgumentCountError,
-                                             InvalidModeError)
+from qutebrowser.commands._exceptions import (ArgumentCountError,
+                                              InvalidModeError)
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
