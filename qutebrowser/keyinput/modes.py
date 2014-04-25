@@ -158,7 +158,6 @@ class ModeManager(QObject):
         logging.debug("New mode stack: {}".format(self._mode_stack))
         self.left.emit(mode)
 
-    # FIXME handle modes=[] and not_modes=[] params
     @cmdutils.register(instance='modeman', name='leave_mode', hide=True)
     def leave_current_mode(self):
         if self.mode == "normal":
