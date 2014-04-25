@@ -186,10 +186,6 @@ DATA = OrderedDict([
          SettingValue(types.Bool(), "true"),
          "Whether to automatically enter insert mode if an editable element "
          "is focused after page load."),
-
-        ('forward_unbound_keys',
-         SettingValue(types.Bool(), "false"),
-         "Whether to forward unbound keys to the website in normal mode."),
     )),
 
     ('tabbar', sect.KeyValue(
