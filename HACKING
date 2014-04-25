@@ -1,25 +1,99 @@
+== Use the scripts! ==
+
+In the scripts/ subfolder, there are a run_checks.py and a run_profile.py.
+
+run_checks runs the flake8/pylint/pep257 checkers on all source files. Please
+makes this script complete without any messages with your patch. There are some
+techniques to handle "wrong" error messages:
+
+  - Use _foo for unused parameters (not '_')
+
+  - If you think you have a good reason to suppress a message, use:
+      # pylint: disable=message-name
+    in the innermost-scope (line/function/class) possible.
+
+  - If you really think a check shouldn't be done, let me know! I'm still
+    tweaking the parameters.
+
+run_profile needs pyprof2calltree and KCacheGrind and runs qutebrowser under a
+profiler to show you what uses the most time. This might come in handy when
+something is slow and you don't know what.
+
+== Useful utilities ==
+
+In the qutebrowser.utils.debug and -signal modules there are some useful
+functions for debugging. In particular you should use set_trace from
+qutebrowser.utils.debug instead of pdb to set breakpoints or you'll get
+annoying Qt error messages.
+
 == Style conventions ==
 
 As you might have noticed, I *really* like clean and consistent code. While I
 won't reject your contribution when you don't follow the guidelines, I'd be
 really glad if you'd do so.
 
-qutebrowser's coding conventions are based on [PEP8][1] and [PEP257][2], with
-some additions:
+qutebrowser's coding conventions are based on [PEP8][1] and the [Google Python
+style guidelines][2] with some additions:
 
-    - Methods overriding Qt methods (obviously!) don't follow the naming
-      schemes.
+- Methods overriding Qt methods (obviously!) don't follow the naming schemes.
 
-    - Everything else does though, even slots.
+- Everything else does though, even slots.
 
-    - The layout of a module should be like this:
+- Docstring are like described in [PEP257][3] and the google guidelines.
+  Class docstrings have additional "Attributes", "Class attributes" and
+  "Signals" sections, method/function docstrings have an "Emit" section.
 
-      ...
+  Example for a class docstring:
 
-    - The layout of a class should be like this:
+  """Some object.
 
-      ...
+  Attributes:
+      blub: The current thing to handle.
+
+  Signals:
+      valueChanged: When a value changed.
+                    arg: The new value
+  """
+
+  Example for a method/function docstring:
+
+  """Do something special.
+
+  Args:
+      foo: ...
+
+  Return:
+      True if something, False if something else.
+
+  Raise:
+      ValueError if foo is None
+
+  Emit:
+      value_changed
+  """
+
+- The layout of a module should be like this:
+
+  - Copyright
+  - GPL boilerplate
+  - Module docstring
+  - Python standard library imports
+  - PyQt imports
+  - qutebrowser imports
+  - functions
+  - classes
+
+- The layout of a class should be like this:
+
+  - docstring
+  - __magic__ methods
+  - properties
+  - _private methods
+  - public methods
+  - on_* methods
+  - overrides of Qt methods
 
 
 [1] http://legacy.python.org/dev/peps/pep-0008/
-[2] http://legacy.python.org/dev/peps/pep-0257/
+[2] https://google-styleguide.googlecode.com/svn/trunk/pyguide.html
+[3] http://legacy.python.org/dev/peps/pep-0257/
