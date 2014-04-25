@@ -178,6 +178,9 @@ class ValueList(Section):
         changed = []
         mapping = ChainMap(self.layers['temp'], self.layers['conf'])
         for k, v in mapping.items():
-            if v.value != self.layers['default'][k].value:
+            try:
+                if v.value != self.layers['default'][k].value:
+                    changed.append((k, v.value))
+            except KeyError:
                 changed.append((k, v.value))
         return changed
