@@ -429,7 +429,6 @@ DATA = OrderedDict([
     ('keybind.insert', sect.ValueList(
         types.KeyBindingName(), types.KeyBinding(),
         ('<Escape>', 'leave_mode'),
-        ('<Ctrl-C>', 'leave_mode'),
     )),
 
     ('keybind.hint', sect.ValueList(
