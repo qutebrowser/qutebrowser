@@ -145,7 +145,7 @@ def fuzzy_url(url):
 def is_special_url(url):
     """Return True if url is an about:... or other special URL."""
     # FIXME this needs to be done is some nicer way
-    _special_schemes = ['about', 'qute']
+    _special_schemes = ['about', 'qute', 'file']
     return any([urlstring(url).replace('http://', '').startswith(scheme) for
                 scheme in _special_schemes])
 
