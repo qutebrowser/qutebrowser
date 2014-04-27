@@ -327,11 +327,11 @@ class HintManager(QObject):
             keystr: The keychain string to follow.
             force: When True, follow even when auto-follow is false.
         """
-        # Targets which require a valid link
         if not (force or config.get('hints', 'auto-follow')):
             self.handle_partial_key(keystr)
             self._to_follow = keystr
             return
+        # Targets which require a valid link
         require_link = ['yank', 'yank_primary', 'cmd', 'cmd_tab', 'cmd_bgtab']
         elem = self._elems[keystr].elem
         if self._target in require_link:
@@ -358,6 +358,7 @@ class HintManager(QObject):
             modeman.leave('hint')
 
     def follow_hint(self):
+        """Follow the currently selected hint."""
         if not self._to_follow:
             message.error("No hint to follow")
         self.fire(self._to_follow, force=True)

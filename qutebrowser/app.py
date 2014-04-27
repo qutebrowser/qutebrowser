@@ -428,7 +428,7 @@ class QuteBrowser(QApplication):
             s: The string to evaluate.
         """
         try:
-            r = eval(s)
+            r = eval(s)  # pylint: disable=eval-used
             out = repr(r)
         except Exception as e:  # pylint: disable=broad-except
             out = ': '.join([e.__class__.__name__, str(e)])
