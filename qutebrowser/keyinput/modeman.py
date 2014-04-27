@@ -98,8 +98,8 @@ class ModeManager(QObject):
         self.passthrough = []
         self._mode_stack = []
         self._releaseevents_to_pass = []
-        self._forward_unbound_keys = config.get('general',
-                                                'forward_unbound_keys')
+        self._forward_unbound_keys = config.get('input',
+                                                'forward-unbound-keys')
 
     @property
     def mode(self):
@@ -132,7 +132,7 @@ class ModeManager(QObject):
         if not filter_this:
             self._releaseevents_to_pass.append(event)
 
-        logging.debug("handled: {}, forward_unbound_keys: {}, passthrough: {} "
+        logging.debug("handled: {}, forward-unbound-keys: {}, passthrough: {} "
                       "--> filter: {}".format(handled,
                                               self._forward_unbound_keys,
                                               self.mode in self.passthrough,
@@ -220,9 +220,9 @@ class ModeManager(QObject):
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update local setting when config changed."""
-        if (section, option) == ('general', 'forward_unbound_keys'):
-            self._forward_unbound_keys = config.get('general',
-                                                    'forward_unbound_keys')
+        if (section, option) == ('input', 'forward-unbound-keys'):
+            self._forward_unbound_keys = config.get('input',
+                                                    'forward-unbound-keys')
 
     def eventFilter(self, obj, event):
         """Filter all events based on the currently set mode.

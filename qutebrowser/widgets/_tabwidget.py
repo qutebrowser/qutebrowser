@@ -80,10 +80,10 @@ class TabWidget(QTabWidget):
             'previous': QTabBar.SelectPreviousTab,
         }
         self.setMovable(config.get('tabbar', 'movable'))
-        self.setTabsClosable(config.get('tabbar', 'closebuttons'))
-        self.setUsesScrollButtons(config.get('tabbar', 'scrollbuttons'))
+        self.setTabsClosable(config.get('tabbar', 'close-buttons'))
+        self.setUsesScrollButtons(config.get('tabbar', 'scroll-buttons'))
         posstr = config.get('tabbar', 'position')
-        selstr = config.get('tabbar', 'select_on_remove')
+        selstr = config.get('tabbar', 'select-on-remove')
         try:
             self.setTabPosition(position_conv[posstr])
             self.tabBar().setSelectionBehaviorOnRemove(select_conv[selstr])

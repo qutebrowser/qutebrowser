@@ -61,7 +61,7 @@ def init(configdir):
     instance = ConfigManager(configdir, 'qutebrowser.conf')
     state = ReadWriteConfigParser(configdir, 'state')
     cmd_history = LineConfigParser(configdir, 'cmd_history',
-                                   ('general', 'cmd_histlen'))
+                                   ('completion', 'history-length'))
 
 
 def get(*args, **kwargs):

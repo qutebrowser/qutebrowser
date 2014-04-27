@@ -164,7 +164,7 @@ def is_url(url):
     """
     urlstr = urlstring(url)
 
-    autosearch = config.get('general', 'auto_search')
+    autosearch = config.get('general', 'auto-search')
 
     logging.debug("Checking if '{}' is an URL (autosearch={}).".format(
         urlstr, autosearch))

@@ -245,7 +245,7 @@ class BaseKeyParser(QObject):
             count: The count to pass.
         """
         logging.debug("Ambiguous match for \"{}\"".format(self._keystring))
-        time = config.get('general', 'cmd_timeout')
+        time = config.get('input', 'timeout')
         if time == 0:
             # execute immediately
             self._keystring = ''

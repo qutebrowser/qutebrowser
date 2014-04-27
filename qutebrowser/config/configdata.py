@@ -54,13 +54,15 @@ FIRST_COMMENT = """
 
 SECTION_DESC = {
     'general': "General/misc. options",
+    'input': "Options related to input modes.",
+    'completion': "Options related to completion and command history .",
     'tabbar': "Configuration of the tab bar.",
     'webkit': "Webkit settings.",
     'hints': "Hinting settings.",
     'searchengines': (
         "Definitions of search engines which can be used via the address "
         "bar.\n"
-        "The searchengine named DEFAULT is used when general.auto_search "
+        "The searchengine named DEFAULT is used when general.auto-search "
         "is true and something else than an URL was entered to be opened. "
         "Other search engines can be used via the bang-syntax, e.g. "
         "\"qutebrowser !google\". The string \"{}\" will be replaced by the "
@@ -139,21 +141,11 @@ SECTION_DESC = {
 
 DATA = OrderedDict([
     ('general', sect.KeyValue(
-        ('show_completion',
-         SettingValue(types.Bool(), 'true'),
-         "Whether to show the autocompletion window or not."),
-
-        ('completion_height',
-         SettingValue(types.PercOrInt(minperc=0, maxperc=100, minint=1),
-                      '50%'),
-         "The height of the completion, in px or as percentage of the "
-         "window."),
-
-        ('ignorecase',
+        ('ignore-case',
          SettingValue(types.Bool(), 'true'),
          "Whether to do case-insensitive searching."),
 
-        ('wrapsearch',
+        ('wrap-search',
          SettingValue(types.Bool(), 'true'),
          "Whether to wrap search to the top when arriving at the end."),
 
@@ -161,49 +153,64 @@ DATA = OrderedDict([
          SettingValue(types.List(), 'http://www.duckduckgo.com'),
          "The default page(s) to open at the start, separated with commas."),
 
-        ('auto_search',
+        ('auto-search',
          SettingValue(types.AutoSearch(), 'naive'),
          "Whether to start a search when something else than an URL is "
          "entered."),
 
-        ('zoomlevels',
+        ('zoom-levels',
          SettingValue(types.PercList(minval=0),
                       '25%,33%,50%,67%,75%,90%,100%,110%,125%,150%,175%,200%,'
                       '250%,300%,400%,500%'),
          "The available zoom levels, separated by commas."),
 
-        ('defaultzoom',
+        ('default-zoom',
          SettingValue(types.ZoomPerc(), '100%'),
          "The default zoom level."),
 
-        ('autosave',
+        ('auto-save-config',
          SettingValue(types.Bool(), 'true'),
          "Whether to save the config automatically on quit."),
 
-        ('cmd_histlen',
+        ('background-tabs',
+         SettingValue(types.Bool(), 'false'),
+         "Whether to open new tabs (middleclick/ctrl+click) in background"),
+    )),
+
+    ('completion', sect.KeyValue(
+        ('show',
+         SettingValue(types.Bool(), 'true'),
+         "Whether to show the autocompletion window or not."),
+
+        ('height',
+         SettingValue(types.PercOrInt(minperc=0, maxperc=100, minint=1),
+                      '50%'),
+         "The height of the completion, in px or as percentage of the "
+         "window."),
+
+        ('history-length',
          SettingValue(types.Int(minval=-1), '100'),
          "How many commands to save in the history. 0: no history / -1: "
          "unlimited"),
 
-        ('background_tabs',
-         SettingValue(types.Bool(), 'false'),
-         "Whether to open new tabs (middleclick/ctrl+click) in background"),
+    )),
 
-        ('cmd_timeout',
+    ('input', sect.KeyValue(
+        ('timeout',
          SettingValue(types.Int(minval=0), '500'),
          "Timeout for ambiguous keybindings."),
 
-        ('insert_mode_on_plugins',
+        ('insert-mode-on-plugins',
          SettingValue(types.Bool(), 'true'),
          "Whether to switch to insert mode when clicking flash and other "
          "plugins."),
 
-        ('auto_insert_mode',
+        ('auto-insert-mode',
          SettingValue(types.Bool(), 'true'),
          "Whether to automatically enter insert mode if an editable element "
          "is focused after page load."),
 
-        ('forward_unbound_keys',
+        ('forward-unbound-keys',
          SettingValue(types.Bool(), 'false'),
          "Whether to forward unbound keys to the website in normal mode."),
     )),
@@ -213,11 +220,11 @@ DATA = OrderedDict([
          SettingValue(types.Bool(), 'true'),
          "Whether tabs should be movable."),
 
-        ('closebuttons',
+        ('close-buttons',
          SettingValue(types.Bool(), 'false'),
          "Whether tabs should have close-buttons."),
 
-        ('scrollbuttons',
+        ('scroll-buttons',
          SettingValue(types.Bool(), 'true'),
          "Whether there should be scroll buttons if there are too many tabs."),
 
@@ -225,11 +232,11 @@ DATA = OrderedDict([
          SettingValue(types.Position(), 'north'),
          "The position of the tab bar."),
 
-        ('select_on_remove',
+        ('select-on-remove',
          SettingValue(types.SelectOnRemove(), 'previous'),
          "Which tab to select when the focused tab is removed."),
 
-        ('last_close',
+        ('last-close',
          SettingValue(types.LastClose(), 'ignore'),
          "Behaviour when the last tab is closed."),
 
@@ -239,112 +246,112 @@ DATA = OrderedDict([
     )),
 
     ('webkit', sect.KeyValue(
-        ('auto_load_images',
+        ('auto-load-images',
          SettingValue(types.Bool(), 'true'),
          "Specifies whether images are automatically loaded in web pages."),
 
-        ('dns_prefetch_enabled',
+        ('dns-prefetch-enabled',
          SettingValue(types.Bool(), 'false'),
          "Specifies whether QtWebkit will try to pre-fetch DNS entries to "
          "speed up browsing."),
 
-        ('javascript_enabled',
+        ('javascript-enabled',
          SettingValue(types.Bool(), 'true'),
          "Enables or disables the running of JavaScript programs."),
 
-        #('java_enabled',
+        #('java-enabled',
         # SettingValue(types.Bool(), 'true'),
         # "Enables or disables Java applets. Currently Java applets are "
         # "not supported"),
 
-        ('plugins_enabled',
+        ('plugins-enabled',
          SettingValue(types.Bool(), 'false'),
          "Enables or disables plugins in Web pages"),
 
-        ('private_browsing_enabled',
+        ('private-browsing-enabled',
          SettingValue(types.Bool(), 'false'),
          "Private browsing prevents WebKit from recording visited pages in "
          "the history and storing web page icons."),
 
-        ('javascript_can_open_windows',
+        ('javascript-can-open-windows',
          SettingValue(types.Bool(), 'false'),
          "Specifies whether JavaScript programs can open new windows."),
 
-        ('javascript_can_close_windows',
+        ('javascript-can-close-windows',
          SettingValue(types.Bool(), 'false'),
          "Specifies whether JavaScript programs can close windows."),
 
-        ('javascript_can_access_clipboard',
+        ('javascript-can-access-clipboard',
          SettingValue(types.Bool(), 'false'),
          "Specifies whether JavaScript programs can read or write to the "
          "clipboard."),
 
-        ('developer_extras_enabled',
+        ('developer-extras-enabled',
          SettingValue(types.Bool(), 'false'),
          "Enables extra tools for Web developers (e.g. webinspector)"),
 
-        ('spatial_navigation_enabled',
+        ('spatial-navigation-enabled',
          SettingValue(types.Bool(), 'false'),
          "Enables or disables the Spatial Navigation feature, which consists "
          "in the ability to navigate between focusable elements in a Web "
          "page, such as hyperlinks and form controls, by using Left, Right, "
          "Up and Down arrow keys."),
 
-        ('links_included_in_focus_chain',
+        ('links-included-in-focus-chain',
          SettingValue(types.Bool(), 'true'),
          "Specifies whether hyperlinks should be included in the keyboard "
          "focus chain."),
 
-        ('zoom_text_only',
+        ('zoom-text-only',
          SettingValue(types.Bool(), 'false'),
          "Specifies whether the zoom factor on a frame applies only to the "
          "text or to all content."),
 
-        ('print_element_backgrounds',
+        ('print-element-backgrounds',
          SettingValue(types.Bool(), 'true'),
          "Specifies whether the background color and images are also drawn "
          "when the page is printed. "),
 
-        ('offline_storage_database_enabled',
+        ('offline-storage-database-enabled',
          SettingValue(types.Bool(), 'false'),
          "Specifies whether support for the HTML 5 offline storage feature is "
          "enabled or not. "),
 
-        ('offline_web_application_storage_enabled',
+        ('offline-web-application-storage-enabled',
          SettingValue(types.Bool(), 'false'),
          "Specifies whether support for the HTML 5 web application cache "
          "feature is enabled or not. "),
 
-        ('local_storage_enabled',
+        ('local-storage-enabled',
          SettingValue(types.Bool(), 'false'),
          "Specifies whether support for the HTML 5 local storage feature is "
          "enabled or not."),
 
-        ('local_content_can_access_remote_urls',
+        ('local-content-can-access-remote-urls',
          SettingValue(types.Bool(), 'false'),
          "Specifies whether locally loaded documents are allowed to access "
          "remote urls."),
 
-        ('local_content_can_access_file_urls',
+        ('local-content-can-access-file-urls',
          SettingValue(types.Bool(), 'true'),
          "Specifies whether locally loaded documents are allowed to access "
          "other local urls."),
 
-        ('xss_auditing_enabled',
+        ('xss-auditing-enabled',
          SettingValue(types.Bool(), 'false'),
          "Specifies whether load requests should be monitored for cross-site "
          "scripting attempts. Suspicious scripts will be blocked and reported "
          "in the inspector's JavaScript console. Enabling this feature might "
          "have an impact on performance."),
 
-        #('accelerated_compositing_enabled',
+        #('accelerated-compositing-enabled',
         # SettingValue(types.Bool(), 'true'),
         # "This feature, when used in conjunction with QGraphicsWebView, "
         # "accelerates animations of web content. CSS animations of the "
         # "transform and opacity properties will be rendered by composing the "
         # "cached content of the animated elements. "),
 
-        #('tiled_backing_store_enabled',
+        #('tiled-backing-store-enabled',
         # SettingValue(types.Bool(), 'false'),
         # "This setting enables the tiled backing store feature for a "
         # "QGraphicsWebView. With the tiled backing store enabled, the web "
@@ -354,13 +361,13 @@ DATA = OrderedDict([
         # "significantly speed up painting heavy operations like scrolling. "
         # "Enabling the feature increases memory consuption."),
 
-        ('frame_flattening_enabled',
+        ('frame-flattening-enabled',
          SettingValue(types.Bool(), 'false'),
          "With this setting each subframe is expanded to its contents. This "
          "will flatten all the frames to become one scrollable "
          "page."),
 
-        ('site_specific_quirks_enabled',
+        ('site-specific-quirks-enabled',
          SettingValue(types.Bool(), 'true'),
          "This setting enables WebKit's workaround for broken sites."),
     )),

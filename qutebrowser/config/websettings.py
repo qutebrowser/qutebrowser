@@ -31,36 +31,36 @@ import qutebrowser.config.config as config
 
 MAPPING = {
     # noqa
-    'auto_load_images': QWebSettings.AutoLoadImages,
-    'dns_prefetch_enabled': QWebSettings.DnsPrefetchEnabled,
-    'javascript_enabled': QWebSettings.JavascriptEnabled,
-    #'java_enabled': #QWebSettings.JavaEnabled,
-    'plugins_enabled': QWebSettings.PluginsEnabled,
-    'private_browsing_enabled': QWebSettings.PrivateBrowsingEnabled,
-    'javascript_can_open_windows': QWebSettings.JavascriptCanOpenWindows,
-    'javascript_can_close_windows': QWebSettings.JavascriptCanCloseWindows,
-    'javascript_can_access_clipboard':
+    'auto-load-images': QWebSettings.AutoLoadImages,
+    'dns-prefetch-enabled': QWebSettings.DnsPrefetchEnabled,
+    'javascript-enabled': QWebSettings.JavascriptEnabled,
+    #'java-enabled': #QWebSettings.JavaEnabled,
+    'plugins-enabled': QWebSettings.PluginsEnabled,
+    'private-browsing-enabled': QWebSettings.PrivateBrowsingEnabled,
+    'javascript-can-open-windows': QWebSettings.JavascriptCanOpenWindows,
+    'javascript-can-close-windows': QWebSettings.JavascriptCanCloseWindows,
+    'javascript-can-access-clipboard':
         QWebSettings.JavascriptCanAccessClipboard,
-    'developer_extras_enabled': QWebSettings.DeveloperExtrasEnabled,
-    'spatial_navigation_enabled': QWebSettings.SpatialNavigationEnabled,
-    'links_included_in_focus_chain': QWebSettings.LinksIncludedInFocusChain,
-    'zoom_text_only': QWebSettings.ZoomTextOnly,
-    'print_element_backgrounds': QWebSettings.PrintElementBackgrounds,
-    'offline_storage_database_enabled':
+    'developer-extras-enabled': QWebSettings.DeveloperExtrasEnabled,
+    'spatial-navigation-enabled': QWebSettings.SpatialNavigationEnabled,
+    'links-included-in-focus-chain': QWebSettings.LinksIncludedInFocusChain,
+    'zoom-text-only': QWebSettings.ZoomTextOnly,
+    'print-element-backgrounds': QWebSettings.PrintElementBackgrounds,
+    'offline-storage-database-enabled':
         QWebSettings.OfflineStorageDatabaseEnabled,
-    'offline_web_application_storage_enabled':
+    'offline-web-application-storage-enabled':
         QWebSettings.OfflineWebApplicationCacheEnabled,
-    'local_storage_enabled': QWebSettings.LocalStorageEnabled,
-    'local_content_can_access_remote_urls':
+    'local-storage-enabled': QWebSettings.LocalStorageEnabled,
+    'local-content-can-access-remote-urls':
         QWebSettings.LocalContentCanAccessRemoteUrls,
-    'local_content_can_access_file_urls':
+    'local-content-can-access-file-urls':
         QWebSettings.LocalContentCanAccessFileUrls,
-    'xss_auditing_enabled': QWebSettings.XSSAuditingEnabled,
-    #'accelerated_compositing_enabled':
+    'xss-auditing-enabled': QWebSettings.XSSAuditingEnabled,
+    #'accelerated-compositing-enabled':
     #   QWebSettings.AcceleratedCompositingEnabled,
-    #'tiled_backing_store_enabled': QWebSettings.TiledBackingStoreEnabled,
-    'frame_flattening_enabled': QWebSettings.FrameFlatteningEnabled,
-    'site_specific_quirks_enabled': QWebSettings.SiteSpecificQuirksEnabled,
+    #'tiled-backing-store-enabled': QWebSettings.TiledBackingStoreEnabled,
+    'frame-flattening-enabled': QWebSettings.FrameFlatteningEnabled,
+    'site-specific-quirks-enabled': QWebSettings.SiteSpecificQuirksEnabled,
 }
 
 settings = None

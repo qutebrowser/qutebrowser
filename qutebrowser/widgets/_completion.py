@@ -105,7 +105,7 @@ class CompletionView(QTreeView):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._enabled = config.get('general', 'show_completion')
+        self._enabled = config.get('completion', 'show')
         self._model = None
         self._lastmodel = None
         self._completion_models = {
@@ -241,8 +241,8 @@ class CompletionView(QTreeView):
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update self._enabled when the config changed."""
-        if section == 'general' and option == 'show_completion':
-            self._enabled = config.get('general', 'show_completion')
+        if section == 'completion' and option == 'show':
+            self._enabled = config.get('completion', 'show')
 
     @pyqtSlot(str)
     def on_cmd_text_changed(self, text):

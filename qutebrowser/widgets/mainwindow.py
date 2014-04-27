@@ -88,12 +88,12 @@ class MainWindow(QWidget):
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Resize completion if config changed."""
-        if section == 'general' and option == 'completion_height':
+        if section == 'completion' and option == 'height':
             self.resize_completion()
 
     def resize_completion(self):
         """Adjust completion according to config."""
-        confheight = str(config.get('general', 'completion_height'))
+        confheight = str(config.get('completion', 'height'))
         if confheight.endswith('%'):
             perc = int(confheight.rstrip('%'))
             height = self.height() * perc / 100
@@ -115,7 +115,7 @@ class MainWindow(QWidget):
             self.inspector.hide()
             self.resize_completion()
         else:
-            if not config.get('webkit', 'developer_extras_enabled'):
+            if not config.get('webkit', 'developer-extras-enabled'):
                 self.status.disp_error("Please enable developer-extras before "
                                        "using the webinspector!")
             else:

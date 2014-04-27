@@ -461,7 +461,7 @@ class QuteBrowser(QApplication):
             return
         self._shutting_down = True
         logging.debug("Shutting down... (do_quit={})".format(do_quit))
-        if config.get('general', 'autosave'):
+        if config.get('general', 'auto-save-config'):
             try:
                 config.instance.save()
             except AttributeError:

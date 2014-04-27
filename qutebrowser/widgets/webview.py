@@ -93,8 +93,8 @@ class WebView(QWebView):
     def _init_neighborlist(self):
         """Initialize the _zoom neighborlist."""
         self._zoom = NeighborList(
-            config.get('general', 'zoomlevels'),
-            default=config.get('general', 'defaultzoom'),
+            config.get('general', 'zoom-levels'),
+            default=config.get('general', 'default-zoom'),
             mode=NeighborList.BLOCK)
 
     def _on_destroyed(self, sender):
@@ -123,7 +123,7 @@ class WebView(QWebView):
         if hitresult.isContentEditable():
             # text fields and the like
             return True
-        if not config.get('general', 'insert_mode_on_plugins'):
+        if not config.get('input', 'insert-mode-on-plugins'):
             return False
         elem = hitresult.element()
         tag = elem.tagName().lower()
@@ -236,7 +236,7 @@ class WebView(QWebView):
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update tab config when config was changed."""
-        if section == 'general' and option in ['zoomlevels', 'defaultzoom']:
+        if section == 'general' and option in ['zoom-levels', 'default-zoom']:
             self._init_neighborlist()
 
     @pyqtSlot('QMouseEvent')
@@ -247,8 +247,8 @@ class WebView(QWebView):
 
     @pyqtSlot(bool)
     def on_load_finished(self, _ok):
-        """Handle auto_insert_mode after loading finished."""
-        if not config.get('general', 'auto_insert_mode'):
+        """Handle auto-insert-mode after loading finished."""
+        if not config.get('input', 'auto-insert-mode'):
             return
         frame = self.page_.currentFrame()
         elem = frame.findFirstElement(
@@ -334,7 +334,7 @@ class WebView(QWebView):
                 self._open_target))
         elif (e.button() == Qt.MidButton or
               e.modifiers() & Qt.ControlModifier):
-            if config.get('general', 'background_tabs'):
+            if config.get('general', 'background-tabs'):
                 self._open_target = "bgtab"
             else:
                 self._open_target = "tab"

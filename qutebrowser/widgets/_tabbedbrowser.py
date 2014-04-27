@@ -188,14 +188,14 @@ class TabbedBrowser(TabWidget):
             count: The tab index to close, or None
 
         Emit:
-            quit: If last tab was closed and last_close in config is set to
+            quit: If last tab was closed and last-close in config is set to
                   quit.
         """
         idx = self.currentIndex() if count is None else count - 1
         tab = self.cntwidget(count)
         if tab is None:
             return
-        last_close = config.get('tabbar', 'last_close')
+        last_close = config.get('tabbar', 'last-close')
         if self.count() > 1:
             self._url_stack.append(tab.url())
             self.removeTab(idx)
