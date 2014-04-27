@@ -51,6 +51,7 @@ class HintManager(QObject):
                  'yank'/'yank_primary': Yank to clipboard/primary selection
                  'cmd'/'cmd_tab'/'cmd_bgtab': Enter link to commandline
                  'rapid': Rapid mode with background tabs
+        _to_follow: The link to follow when enter is pressed.
 
     Signals:
         hint_strings_updated: Emitted when the possible hint strings changed.
@@ -91,6 +92,7 @@ class HintManager(QObject):
         self._frame = None
         self._target = None
         self._baseurl = None
+        self._to_follow = None
         modeman.manager.left.connect(self.on_mode_left)
 
     def _hint_strings(self, elems):
@@ -318,9 +320,18 @@ class HintManager(QObject):
         for key in delete:
             del self._elems[key]
 
-    def fire(self, keystr):
-        """Fire a completed hint."""
+    def fire(self, keystr, force=False):
+        """Fire a completed hint.
+
+        Args:
+            keystr: The keychain string to follow.
+            force: When True, follow even when auto-follow is false.
+        """
         # Targets which require a valid link
+        if not (force or config.get('hints', 'auto-follow')):
+            self.handle_partial_key(keystr)
+            self._to_follow = keystr
+            return
         require_link = ['yank', 'yank_primary', 'cmd', 'cmd_tab', 'cmd_bgtab']
         elem = self._elems[keystr].elem
         if self._target in require_link:
@@ -346,6 +357,11 @@ class HintManager(QObject):
         if self._target != 'rapid':
             modeman.leave('hint')
 
+    def follow_hint(self):
+        if not self._to_follow:
+            message.error("No hint to follow")
+        self.fire(self._to_follow, force=True)
+
     @pyqtSlot('QSize')
     def on_contents_size_changed(self, _size):
         """Reposition hints if contents size changed."""
@@ -365,6 +381,7 @@ class HintManager(QObject):
         self._frame.contentsSizeChanged.disconnect(
             self.on_contents_size_changed)
         self._elems = {}
+        self._to_follow = None
         self._target = None
         self._frame = None
         message.clear()

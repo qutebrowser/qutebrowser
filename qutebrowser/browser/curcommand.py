@@ -200,6 +200,11 @@ class CurCommandDispatcher(QObject):
         else:
             widget.hintmanager.start(frame, widget.url(), mode, target)
 
+    @cmdutils.register(instance='mainwindow.tabs.cur', hide=True)
+    def follow_hint(self):
+        """Follow the currently selected hint."""
+        self._tabs.currentWidget().hintmanager.follow_hint()
+
     @pyqtSlot(str)
     def handle_hint_key(self, keystr):
         """Handle a new hint keypress."""

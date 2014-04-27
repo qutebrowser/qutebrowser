@@ -89,7 +89,9 @@ SECTION_DESC = {
         "Keybindings for hint mode.\n"
         "Since normal keypresses are passed through, only special keys are "
         "supported in this mode.\n"
-        "An useful command to map here is the hidden command leave_mode."),
+        "Useful hidden commands to map in this section:\n"
+        "  follow_hint: Follow the currently selected hint.\n"
+        "  leave_mode: Leave the command mode."),
     'keybind.passthrough': (
         "Keybindings for hint mode.\n"
         "Since normal keypresses are passed through, only special keys are "
@@ -384,6 +386,10 @@ DATA = OrderedDict([
         ('chars',
          SettingValue(types.String(minlen=2), 'asdfghjkl'),
          "Chars used for hint strings."),
+
+        ('auto-follow',
+         SettingValue(types.Bool(), 'true'),
+         "Whether to auto-follow a hint if there's only one left."),
     )),
 
     ('searchengines', sect.ValueList(
@@ -466,6 +472,7 @@ DATA = OrderedDict([
 
     ('keybind.hint', sect.ValueList(
         types.KeyBindingName(), types.KeyBinding(),
+        ('<Return>', 'follow_hint'),
         ('<Escape>', 'leave_mode'),
         ('<Ctrl-C>', 'leave_mode'),
     )),
