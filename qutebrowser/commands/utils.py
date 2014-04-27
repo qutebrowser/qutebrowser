@@ -92,7 +92,12 @@ class register:  # pylint: disable=invalid-name
         else:
             mainname = name[0]
             names += name
-        count, nargs = self._get_nargs_count(func)
+        argspec = inspect.getfullargspec(func)
+        # pylint: disable=no-member
+        if 'self' in argspec.args and self.instance is None:
+            raise ValueError("{} is a class method, but instance was not "
+                             "given!".format(mainname))
+        count, nargs = self._get_nargs_count(argspec)
         if func.__doc__ is not None:
             desc = func.__doc__.splitlines()[0].strip().rstrip('.')
         else:
@@ -106,11 +111,11 @@ class register:  # pylint: disable=invalid-name
             cmd_dict[name] = cmd
         return func
 
-    def _get_nargs_count(self, func):
+    def _get_nargs_count(self, spec):
         """Get the number of command-arguments and count-support for a func.
 
         Args:
-            func: The function to get the argcount for.
+            spec: A FullArgSpec as returned by inspect.
 
         Return:
             A (count, (minargs, maxargs)) tuple, with maxargs=None if there are
@@ -123,10 +128,8 @@ class register:  # pylint: disable=invalid-name
                 +   (1, None)
                 *   (0, None)
         """
-        # pylint: disable=no-member
         # pylint: disable=unpacking-non-sequence
-        # We could use inspect.signature maybe, but that's python >= 3.3 only.
-        spec = inspect.getfullargspec(func)
+        # pylint: disable=no-member
         count = 'count' in spec.args
         # we assume count always has a default (and it should!)
         if self.nargs is not None:
