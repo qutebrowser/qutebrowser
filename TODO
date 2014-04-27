@@ -9,8 +9,6 @@ Style
 
 Refactor completion widget mess (initializing / changing completions)
 we probably could replace CompletionModel with QStandardModel...
-replace foo_bar options with foo-bar
-reorder options
 _foo = QApplication.instance().obj.foo   for global singletons?
 decorators for often-used signals from singletons?
     - @on_config_changed('colors')
