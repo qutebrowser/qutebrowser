@@ -207,13 +207,16 @@ class HintManager(QObject):
                          css, string))
         return doc.lastChild()
 
-    def _click(self, elem, target):
+    def _click(self, elem):
         """Click an element.
 
         Args:
             elem: The QWebElement to click.
-            target: The target to use for opening links.
         """
+        if self._target == 'rapid':
+            target = 'bgtab'
+        else:
+            target = self._target
         self.set_open_target.emit(target)
         point = elem.geometry().topLeft()
         scrollpos = self._frame.scrollPosition()
@@ -232,17 +235,31 @@ class HintManager(QObject):
         for evt in events:
             self.mouse_event.emit(evt)
 
-    def _yank(self, link, sel):
+    def _yank(self, link):
         """Yank an element to the clipboard or primary selection.
 
         Args:
             link: The URL to open.
-            sel: True to yank to the primary selection, False for clipboard.
         """
+        sel = self._target == 'yank_primary'
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         QApplication.clipboard().setText(urlutils.urlstring(link), mode)
         message.info("URL yanked to {}".format("primary selection" if sel
                                                else "clipboard"))
+
+    def _preset_cmd_text(self, link):
+        """Preset a commandline text based on a hint URL.
+
+        Args:
+            link: The link to open.
+        """
+        commands = {
+            'cmd': 'open',
+            'cmd_tab': 'tabopen',
+            'cmd_bgtab': 'backtabopen',
+        }
+        message.set_cmd_text(':{} {}'.format(commands[self._target],
+                                             urlutils.urlstring(link)))
 
     def _resolve_link(self, elem):
         """Resolve a link and check if we want to keep it.
@@ -331,29 +348,30 @@ class HintManager(QObject):
             self.handle_partial_key(keystr)
             self._to_follow = keystr
             return
-        # Targets which require a valid link
-        require_link = ['yank', 'yank_primary', 'cmd', 'cmd_tab', 'cmd_bgtab']
+        # Handlers which take a QWebElement
+        elem_handlers = {
+            'normal': self._click,
+            'tab': self._click,
+            'bgtab': self._click,
+            'rapid': self._click,
+        }
+        # Handlers which take a link string
+        link_handlers = {
+            'yank': self._yank,
+            'yank_primary': self._yank,
+            'cmd': self._preset_cmd_text,
+            'cmd_tab': self._preset_cmd_text,
+            'cmd_bgtab': self._preset_cmd_text,
+        }
         elem = self._elems[keystr].elem
-        if self._target in require_link:
+        if self._target in elem_handlers:
+            elem_handlers[self._target](elem)
+        elif self._target in link_handlers:
             link = self._resolve_link(elem)
             if link is None:
                 message.error("No suitable link found for this element.")
                 return
-        if self._target in ['normal', 'tab', 'bgtab']:
-            self._click(elem, self._target)
-        elif self._target == 'rapid':
-            self._click(elem, 'bgtab')
-        elif self._target in ['yank', 'yank_primary']:
-            sel = self._target == 'yank_primary'
-            self._yank(link, sel)
-        elif self._target in ['cmd', 'cmd_tab', 'cmd_bgtab']:
-            commands = {
-                'cmd': 'open',
-                'cmd_tab': 'tabopen',
-                'cmd_bgtab': 'backtabopen',
-            }
-            message.set_cmd_text(':{} {}'.format(commands[self._target],
-                                                 urlutils.urlstring(link)))
+            link_handlers[self._target](link)
         if self._target != 'rapid':
             modeman.leave('hint')
 
