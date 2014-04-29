@@ -17,7 +17,6 @@
 
 """Other utilities which don't fit anywhere else."""
 
-import os.path
 from functools import reduce
 from pkg_resources import resource_string
 

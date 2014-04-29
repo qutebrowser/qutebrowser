@@ -22,9 +22,12 @@
 from qutebrowser.app import QuteBrowser
 import sys
 
+
 def main():
+    """Main entry point for qutebrowser."""
     app = QuteBrowser()
     return app.exec_()
+
 
 if __name__ == '__main__':
     sys.exit(main())

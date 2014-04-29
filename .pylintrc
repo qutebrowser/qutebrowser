@@ -15,7 +15,8 @@ disable=no-self-use,
         too-many-ancestors,
         too-few-public-methods,
         too-many-public-methods,
-        cyclic-import
+        cyclic-import,
+        bad-option-value
 
 [BASIC]
 module-rgx=[a-z_]*$
