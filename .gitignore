@@ -1,2 +1,5 @@
 __pycache__
 *.pyc
+/build
+/dist
+/qutebrowser.egg-info
