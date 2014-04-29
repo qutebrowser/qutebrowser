@@ -17,6 +17,8 @@
 
 """Setting options used for qutebrowser."""
 
+import shlex
+
 from PyQt5.QtGui import QColor
 
 import qutebrowser.commands.utils as cmdutils
@@ -166,6 +168,29 @@ class String(BaseType):
         if self.maxlen is not None and len(value) > self.maxlen:
             raise ValidationError(value, "must be at most {} long!".format(
                                   self.maxlen))
+
+
+class ShellCommand(String):
+
+    """A shellcommand which is split via shlex.
+
+    Attributes:
+        placeholder: If there should be a placeholder.
+    """
+
+    typestr = 'shell-cmd'
+
+    def __init__(self, placeholder=False):
+        self.placeholder = placeholder
+        super().__init__()
+
+    def validate(self, value):
+        super().validate(value)
+        if self.placeholder and '{}' not in value:
+            raise ValidationError(value, "needs to contain a {}-placeholder.")
+
+    def transform(self, value):
+        return shlex.split(value)
 
 
 class Bool(BaseType):

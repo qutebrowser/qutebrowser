@@ -72,3 +72,24 @@ def is_visible(e, frame=None):
         # out of screen
         return False
     return True
+
+
+def javascript_escape(text):
+    """Escapes special values in strings.
+
+    This maybe makes them work with QWebElement::evaluateJavaScript.
+    Maybe.
+    """
+    # This is a list of tuples because order matters, and using OrderedDict
+    # makes no sense because we don't actually need dict-like properties.
+    replacements = [
+        ('\\', r'\\'),
+        ('\n', r'\n'),
+        ('\t', r'\t'),
+        ("'", r"\'"),
+        ('"', r'\"'),
+    ]
+    text = text.rstrip('\n')
+    for orig, repl in replacements:
+        text = text.replace(orig, repl)
+    return text

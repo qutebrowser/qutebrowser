@@ -84,7 +84,9 @@ SECTION_DESC = {
         "Keybindings for insert mode.\n"
         "Since normal keypresses are passed through, only special keys are "
         "supported in this mode.\n"
-        "An useful command to map here is the hidden command leave_mode."),
+        "Useful hidden commands to map in this section:\n"
+        "  open_editor: Open a texteditor with the focused field.\n"
+        "  leave_mode: Leave the command mode."),
     'keybind.hint': (
         "Keybindings for hint mode.\n"
         "Since normal keypresses are passed through, only special keys are "
@@ -177,6 +179,11 @@ DATA = OrderedDict([
         ('background-tabs',
          SettingValue(types.Bool(), 'false'),
          "Whether to open new tabs (middleclick/ctrl+click) in background"),
+
+        ('editor',
+         SettingValue(types.ShellCommand(placeholder=True), 'gvim -f "{}"'),
+         "The editor (and arguments) to use for the open_editor binding. "
+         "Use {} for the filename. Gets split via shutils."),
     )),
 
     ('completion', sect.KeyValue(
@@ -468,6 +475,7 @@ DATA = OrderedDict([
     ('keybind.insert', sect.ValueList(
         types.KeyBindingName(), types.KeyBinding(),
         ('<Escape>', 'leave_mode'),
+        ('<Ctrl-E>', 'open_editor'),
     )),
 
     ('keybind.hint', sect.ValueList(

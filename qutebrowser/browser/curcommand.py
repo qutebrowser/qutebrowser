@@ -17,14 +17,21 @@
 
 """The main tabbed browser widget."""
 
+import os
+import logging
+from tempfile import mkstemp
+from functools import partial
+
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import pyqtSlot, Qt, QObject
+from PyQt5.QtCore import pyqtSlot, Qt, QObject, QProcess
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrinter, QPrintDialog, QPrintPreviewDialog
 
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.message as message
 import qutebrowser.commands.utils as cmdutils
+import qutebrowser.utils.webelem as webelem
+import qutebrowser.config.config as config
 
 
 class CurCommandDispatcher(QObject):
@@ -331,3 +338,51 @@ class CurCommandDispatcher(QObject):
         """
         tab = self._tabs.currentWidget()
         tab.zoom(-count)
+
+    @cmdutils.register(instance='mainwindow.tabs.cur', modes=['insert'],
+                       name='open_editor', hide=True)
+    def editor(self):
+        """Open an external editor with the current form field."""
+        frame = self._tabs.currentWidget().page_.currentFrame()
+        elem = frame.findFirstElement(webelem.SELECTORS['editable_focused'])
+        if elem.isNull():
+            message.error("No editable element focused!")
+            return
+        oshandle, filename = mkstemp(text=True)
+        text = elem.evaluateJavaScript('this.value')
+        if text:
+            with open(filename, 'w') as f:
+                f.write(text)
+        proc = QProcess(self)
+        proc.finished.connect(partial(self.on_editor_closed, elem, oshandle,
+                                      filename))
+        editor = config.get('general', 'editor')
+        executable = editor[0]
+        args = [arg.replace('{}', filename) for arg in editor[1:]]
+        logging.debug("Calling \"{}\" with args {}".format(executable, args))
+        proc.start(executable, args)
+
+    def on_editor_closed(self, elem, oshandle, filename, exitcode,
+                         exitstatus):
+        """Gets called by QProcess when the editor was closed.
+
+        Writes the editor text into the form field.
+        """
+        logging.debug("Editor closed")
+        if exitcode != 0 or exitstatus != QProcess.NormalExit:
+            message.error("Editor did quit abnormally (status {})!".format(
+                exitcode))
+            return
+        if elem.isNull():
+            message.error("Element vanished while editing!")
+            return
+        with open(filename, 'r') as f:
+            text = ''.join(f.readlines())
+            text = webelem.javascript_escape(text)
+        logging.debug("Read back: {}".format(text))
+        elem.evaluateJavaScript("this.value='{}'".format(text))
+        os.close(oshandle)
+        try:
+            os.remove(filename)
+        except PermissionError:
+            message.error("Failed to delete tempfile...")
