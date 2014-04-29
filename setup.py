@@ -38,4 +38,6 @@ setup(
     packages=find_packages(exclude=['qutebrowser.test']),
     include_package_data=True,
     entry_points={'gui_scripts': [ 'qutebrowser = qutebrowser.__main__:main' ],},
+    test_suite='qutebrowser.test',
+    zip_safe=True,
 )
