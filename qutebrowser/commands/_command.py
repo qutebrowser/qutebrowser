@@ -20,9 +20,10 @@
 import logging
 
 from qutebrowser.commands._exceptions import (ArgumentCountError,
-                                              InvalidModeError)
+                                              InvalidModeError, NeedsJSError)
 
 from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtWebKit import QWebSettings
 
 
 class Command(QObject):
@@ -43,6 +44,7 @@ class Command(QObject):
                   A dotted string as viewed from app.py, or None.
         handler: The handler function to call.
         completion: Completions to use for arguments, as a list of strings.
+        needs_js: Whether the command needs javascript enabled
 
     Signals:
         signal: Gets emitted when something should be called via handle_command
@@ -56,7 +58,7 @@ class Command(QObject):
     signal = pyqtSignal(tuple)
 
     def __init__(self, name, maxsplit, hide, nargs, count, desc, instance,
-                 handler, completion, modes, not_modes):
+                 handler, completion, modes, not_modes, needs_js):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-arguments
         super().__init__()
@@ -71,6 +73,7 @@ class Command(QObject):
         self.completion = completion
         self.modes = modes
         self.not_modes = not_modes
+        self.needs_js = needs_js
 
     def check(self, args):
         """Check if the argument count is valid and the command is permitted.
@@ -90,6 +93,9 @@ class Command(QObject):
               modeman.manager.mode in self.not_modes):
             raise InvalidModeError("This command is not allowed in {} "
                                    "mode.".format('/'.join(self.not_modes)))
+        if self.needs_js and not QWebSettings.globalSettings().testAttribute(
+                QWebSettings.JavascriptEnabled):
+            raise NeedsJSError
         if self.nargs[1] is None and self.nargs[0] <= len(args):
             pass
         elif self.nargs[0] <= len(args) <= self.nargs[1]:

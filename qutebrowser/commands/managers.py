@@ -24,7 +24,7 @@ import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.message as message
 from qutebrowser.commands._exceptions import (
-    ArgumentCountError, NoSuchCommandError, InvalidModeError)
+    ArgumentCountError, NoSuchCommandError, InvalidModeError, NeedsJSError)
 
 
 def split_cmdline(text):
@@ -230,6 +230,12 @@ class CommandManager:
             else:
                 raise
         except InvalidModeError as e:
+            if ignore_exc:
+                message.error("{}: {}".format(self._cmd.name, e))
+                return False
+            else:
+                raise
+        except NeedsJSError as e:
             if ignore_exc:
                 message.error("{}: {}".format(self._cmd.name, e))
                 return False

@@ -340,7 +340,7 @@ class CurCommandDispatcher(QObject):
         tab.zoom(-count)
 
     @cmdutils.register(instance='mainwindow.tabs.cur', modes=['insert'],
-                       name='open_editor', hide=True)
+                       name='open_editor', hide=True, needs_js=True)
     def editor(self):
         """Open an external editor with the current form field."""
         frame = self._tabs.currentWidget().page_.currentFrame()

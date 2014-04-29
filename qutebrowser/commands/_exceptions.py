@@ -40,3 +40,10 @@ class InvalidModeError(Exception):
     """Raised when a command is called in a wrong input mode."""
 
     pass
+
+
+class NeedsJSError(Exception):
+
+    """Raised when a command needs javascript but it is disabled."""
+
+    pass

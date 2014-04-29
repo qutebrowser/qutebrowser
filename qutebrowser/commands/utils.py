@@ -48,10 +48,12 @@ class register:  # pylint: disable=invalid-name
         completion: Which completion to use for arguments, as a list of
                     strings.
         modes/not_modes: List of modes to use/not use.
+        needs_js: If javascript is needed for this command.
     """
 
     def __init__(self, instance=None, name=None, nargs=None, maxsplit=-1,
-                 hide=False, completion=None, modes=None, not_modes=None):
+                 hide=False, completion=None, modes=None, not_modes=None,
+                 needs_js=False):
         """Save decorator arguments.
 
         Gets called on parse-time with the decorator arguments.
@@ -69,6 +71,7 @@ class register:  # pylint: disable=invalid-name
         self.completion = completion
         self.modes = modes
         self.not_modes = not_modes
+        self.needs_js = needs_js
 
     def __call__(self, func):
         """Register the command before running the function.
@@ -106,7 +109,7 @@ class register:  # pylint: disable=invalid-name
                       hide=self.hide, nargs=nargs, count=count, desc=desc,
                       instance=self.instance, handler=func,
                       completion=self.completion, modes=self.modes,
-                      not_modes=self.not_modes)
+                      not_modes=self.not_modes, needs_js=self.needs_js)
         for name in names:
             cmd_dict[name] = cmd
         return func
