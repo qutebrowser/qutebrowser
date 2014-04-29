@@ -42,6 +42,7 @@ setup(
     keywords='pyqt browser web qt webkit',
     packages=find_packages(exclude=['qutebrowser.test']),
     include_package_data=True,
+    package_data={'qutebrowser': ['html/*']},
     entry_points={'gui_scripts': ['qutebrowser = qutebrowser.__main__:main']},
     test_suite='qutebrowser.test',
     zip_safe=True,
