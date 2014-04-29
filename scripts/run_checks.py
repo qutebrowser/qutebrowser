@@ -17,7 +17,8 @@
 
 """ Run different codecheckers over a codebase.
 
-Runs flake8, pylint, pep257 and a CRLF/whitespace/conflict-checker by default.
+Runs flake8, pylint, pep257, a CRLF/whitespace/conflict-checker and pyroma by
+default.
 
 Module attributes:
     status: An OrderedDict for return status values.
@@ -186,11 +187,13 @@ def _get_args(checker):
             args += options['other']['pep257']
         except KeyError:
             pass
+    elif checker == 'pyroma':
+        args = ['.']
     return args
 
 if do_check_257:
     check_pep257(_get_args('pep257'))
-for checker in ['pylint', 'flake8']:
+for checker in ['pylint', 'flake8', 'pyroma']:
     # FIXME what the hell is the flake8 exit status?
     run(checker, _get_args(checker))
 check_line()
