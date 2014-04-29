@@ -13,7 +13,8 @@ def read_file(name):
 setup(
     name='qutebrowser',
     version=qutebrowser.__version__,
-    description="A keyboard-driven, vim-like browser based on PyQt5 and QtWebKit.",
+    description="A keyboard-driven, vim-like browser based on PyQt5 and "
+                "QtWebKit.",
     long_description=read_file('README'),
     url='http://www.qutebrowser.org/',
     author="Florian Bruhin",
@@ -23,7 +24,8 @@ setup(
         'Development Status :: 3 - Alpha',
         'Environment :: X11 Applications :: Qt',
         'Intended Audience :: End Users/Desktop',
-        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+        'License :: OSI Approved :: GNU General Public License v3 or later '
+            '(GPLv3+)',
         'Natural Language :: English',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: Microsoft :: Windows :: Windows XP',
@@ -40,7 +42,7 @@ setup(
     keywords='pyqt browser web qt webkit',
     packages=find_packages(exclude=['qutebrowser.test']),
     include_package_data=True,
-    entry_points={'gui_scripts': [ 'qutebrowser = qutebrowser.__main__:main' ],},
+    entry_points={'gui_scripts': ['qutebrowser = qutebrowser.__main__:main']},
     test_suite='qutebrowser.test',
     zip_safe=True,
 )
