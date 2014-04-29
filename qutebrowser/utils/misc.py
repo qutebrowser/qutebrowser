@@ -19,6 +19,7 @@
 
 import os.path
 from functools import reduce
+from pkg_resources import resource_string
 
 import qutebrowser
 
@@ -32,9 +33,7 @@ def read_file(filename):
     Return:
         The file contents as string.
     """
-    fn = os.path.join(qutebrowser.basedir, filename)
-    with open(fn, 'r', encoding='UTF-8') as f:
-        return f.read()
+    return resource_string(qutebrowser.__name__, filename).decode('UTF-8')
 
 
 def dotted_getattr(obj, path):
