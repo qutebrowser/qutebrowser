@@ -62,9 +62,8 @@ How do we handle empty values in input bar?
 hints
 -----
 
-auto-click on active hint
-click hints on enter
 bindings for prev/next hint
+bindings for "prev/next" page links
 more intelligent clicking (end of textfields)
 filtering when typing part of name
 filter close hints when it's the same link
