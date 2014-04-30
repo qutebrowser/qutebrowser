@@ -196,6 +196,7 @@ class CommandManager:
         if ';;' in text:
             for sub in text.split(';;'):
                 self.run(sub, count)
+            return
         self.parse(text)
         self._check()
         self._run(count=count)
