@@ -356,11 +356,19 @@ class CurCommandDispatcher(QObject):
         proc = QProcess(self)
         proc.finished.connect(partial(self.on_editor_closed, elem, oshandle,
                                       filename))
+        proc.error.connect(partial(self.on_editor_error, oshandle, filename))
         editor = config.get('general', 'editor')
         executable = editor[0]
         args = [arg.replace('{}', filename) for arg in editor[1:]]
         logging.debug("Calling \"{}\" with args {}".format(executable, args))
         proc.start(executable, args)
+
+    def _on_editor_cleanup(self, oshandle, filename):
+        os.close(oshandle)
+        try:
+            os.remove(filename)
+        except PermissionError:
+            message.error("Failed to delete tempfile...")
 
     def on_editor_closed(self, elem, oshandle, filename, exitcode,
                          exitstatus):
@@ -369,9 +377,12 @@ class CurCommandDispatcher(QObject):
         Callback for QProcess when the editor was closed.
         """
         logging.debug("Editor closed")
-        if exitcode != 0 or exitstatus != QProcess.NormalExit:
+        if exitcode != 0:
             message.error("Editor did quit abnormally (status {})!".format(
                 exitcode))
+            return
+        if exitstatus != QProcess.NormalExit:
+            # No error here, since we already handle this in on_editor_error
             return
         if elem.isNull():
             message.error("Element vanished while editing!")
@@ -381,8 +392,19 @@ class CurCommandDispatcher(QObject):
             text = webelem.javascript_escape(text)
         logging.debug("Read back: {}".format(text))
         elem.evaluateJavaScript("this.value='{}'".format(text))
-        os.close(oshandle)
-        try:
-            os.remove(filename)
-        except PermissionError:
-            message.error("Failed to delete tempfile...")
+        self._on_editor_cleanup(oshandle, filename)
+
+    def on_editor_error(self, oshandle, filename, error):
+        """Display an error message and clean up when editor crashed."""
+        messages = {
+            QProcess.FailedToStart: "The process failed to start.",
+            QProcess.Crashed: "The process crashed.",
+            QProcess.Timedout: "The last waitFor...() function timed out.",
+            QProcess.WriteError: ("An error occurred when attempting to write "
+                                  "to the process."),
+            QProcess.ReadError: ("An error occurred when attempting to read "
+                                "from the process."),
+            QProcess.UnknownError: "An unknown error occurred.",
+        }
+        message.error("Error while calling editor: {}".format(messages[error]))
+        self._on_editor_cleanup(oshandle, filename)
