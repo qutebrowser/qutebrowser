@@ -20,7 +20,7 @@
 import logging
 
 from qutebrowser.commands._exceptions import (ArgumentCountError,
-                                              InvalidModeError, NeedsJSError)
+                                              PrerequisitesError)
 
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtWebKit import QWebSettings
@@ -83,19 +83,22 @@ class Command(QObject):
 
         Raise:
             ArgumentCountError if the argument count is wrong.
-            InvalidModeError if the command can't be called in this mode.
+            PrerequisitesError if the command can't be called currently.
         """
         import qutebrowser.keyinput.modeman as modeman
         if self.modes is not None and modeman.manager.mode not in self.modes:
-            raise InvalidModeError("This command is only allowed in {} "
-                                   "mode.".format('/'.join(self.modes)))
+            raise PrerequisitesError("{}: This command is only allowed in {} "
+                                     "mode.".format(self.name,
+                                                    '/'.join(self.modes)))
         elif (self.not_modes is not None and
               modeman.manager.mode in self.not_modes):
-            raise InvalidModeError("This command is not allowed in {} "
-                                   "mode.".format('/'.join(self.not_modes)))
+            raise PrerequisitesError("{}: This command is not allowed in {} "
+                                     "mode.".format(self.name,
+                                                    '/'.join(self.not_modes)))
         if self.needs_js and not QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
-            raise NeedsJSError
+            raise PrerequisitesError("{}: This command needs javascript "
+                                     "enabled.".format(self.name))
         if self.nargs[1] is None and self.nargs[0] <= len(args):
             pass
         elif self.nargs[0] <= len(args) <= self.nargs[1]:

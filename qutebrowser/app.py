@@ -228,7 +228,7 @@ class QuteBrowser(QApplication):
         for e in self._args.command:
             if e.startswith(':'):
                 logging.debug("Startup cmd {}".format(e))
-                self.commandmanager.run(e.lstrip(':'))
+                self.commandmanager.run_safely(e.lstrip(':'))
             else:
                 logging.debug("Startup url {}".format(e))
                 self._opened_urls.append(e)
@@ -273,7 +273,7 @@ class QuteBrowser(QApplication):
         modeman.manager.key_pressed.connect(status.on_key_pressed)
 
         # commands
-        cmd.got_cmd.connect(self.commandmanager.run)
+        cmd.got_cmd.connect(self.commandmanager.run_safely)
         cmd.got_search.connect(self.searchmanager.search)
         cmd.got_search_rev.connect(self.searchmanager.search_rev)
         cmd.returnPressed.connect(tabs.setFocus)

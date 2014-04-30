@@ -21,29 +21,31 @@ Defined here to avoid circular dependency hell.
 """
 
 
-class NoSuchCommandError(ValueError):
+class CommandError(Exception):
+
+    """Common base class for all command exceptions."""
+
+
+class NoSuchCommandError(CommandError):
 
     """Raised when a command wasn't found."""
 
     pass
 
 
-class ArgumentCountError(TypeError):
+class ArgumentCountError(CommandError):
 
     """Raised when a command was called with an invalid count of arguments."""
 
     pass
 
 
-class InvalidModeError(Exception):
+class PrerequisitesError(CommandError):
 
-    """Raised when a command is called in a wrong input mode."""
+    """Raised when a cmd can't be used because some prerequisites aren't met.
 
-    pass
-
-
-class NeedsJSError(Exception):
-
-    """Raised when a command needs javascript but it is disabled."""
+    This is raised for example when we're in the wrong mode while executing the
+    command, or we need javascript enabled but don't have done so.
+    """
 
     pass

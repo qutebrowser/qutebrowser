@@ -23,8 +23,7 @@ from PyQt5.QtWebKitWidgets import QWebPage
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.message as message
-from qutebrowser.commands._exceptions import (
-    ArgumentCountError, NoSuchCommandError, InvalidModeError, NeedsJSError)
+from qutebrowser.commands._exceptions import NoSuchCommandError, CommandError
 
 
 def split_cmdline(text):
@@ -162,7 +161,7 @@ class CommandManager:
         try:
             cmd = cmdutils.cmd_dict[cmdstr]
         except KeyError:
-            raise NoSuchCommandError(cmdstr)
+            raise NoSuchCommandError('{}: no such command'.format(cmdstr))
 
         if len(parts) == 1:
             args = []
@@ -187,59 +186,24 @@ class CommandManager:
         else:
             self._cmd.run(self._args)
 
-    @pyqtSlot(str, int, bool)
-    def run(self, text, count=None, ignore_exc=True):
+    def run(self, text, count=None):
         """Parse a command from a line of text.
-
-        If ignore_exc is True, ignore exceptions and return True/False.
 
         Args:
             text: The text to parse.
             count: The count to pass to the command.
-            ignore_exc: Ignore exceptions and return False instead.
-
-        Raise:
-            NoSuchCommandError: if a command wasn't found.
-            ArgumentCountError: if a command was called with the wrong count of
-                                arguments.
-            InvalidModeError: if a command can't be called in this mode.
-
-        Return:
-            True if command was called (handler returnstatus is ignored!).
-            False if command wasn't called (there was an ignored exception).
         """
         if ';;' in text:
-            retvals = []
             for sub in text.split(';;'):
-                retvals.append(self.run(sub, count, ignore_exc))
-            return all(retvals)
-        try:
-            self.parse(text)
-            self._check()
-        except NoSuchCommandError as e:
-            if ignore_exc:
-                message.error("{}: no such command".format(e))
-                return False
-            else:
-                raise
-        except ArgumentCountError as e:
-            if ignore_exc:
-                message.error("{}: invalid argument count - {}".format(
-                    self._cmd.name, e))
-                return False
-            else:
-                raise
-        except InvalidModeError as e:
-            if ignore_exc:
-                message.error("{}: {}".format(self._cmd.name, e))
-                return False
-            else:
-                raise
-        except NeedsJSError as e:
-            if ignore_exc:
-                message.error("{}: {}".format(self._cmd.name, e))
-                return False
-            else:
-                raise
+                self.run(sub, count)
+        self.parse(text)
+        self._check()
         self._run(count=count)
-        return True
+
+    @pyqtSlot(str, int)
+    def run_safely(self, text, count=None):
+        """Run a command and display exceptions in the statusbar."""
+        try:
+            self.run(text, count)
+        except CommandError as e:
+            message.error(str(e))
