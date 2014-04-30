@@ -132,6 +132,7 @@ class CompletionView(QTreeView):
         self.setHeaderHidden(True)
         self.setIndentation(0)
         self.setItemsExpandable(False)
+        self.setExpandsOnDoubleClick(False)
         # QTBUG? This is a workaround for weird race conditions with invalid
         # item indexes leading to segfaults in Qt.
         #
@@ -215,9 +216,6 @@ class CompletionView(QTreeView):
         self.selectionModel().setCurrentIndex(
             idx, QItemSelectionModel.ClearAndSelect |
             QItemSelectionModel.Rows)
-        data = self._model.data(idx)
-        if data is not None:
-            self.change_completed_part.emit(data)
 
     def set_model(self, model):
         """Switch completion to a new model.
@@ -299,6 +297,23 @@ class CompletionView(QTreeView):
     def completion_item_next(self):
         """Select the next completion item."""
         self._next_prev_item(prev=False)
+
+    def selectionChanged(self, selected, deselected):
+        """Extend selectionChanged to mit change_completed_part if necessary.
+
+        Args:
+            selected: New selection.
+            delected: Previous selection.
+
+        Emit:
+            change_completed_part: Emitted when there's data for the new item.
+        """
+        indexes = selected.indexes()
+        if indexes:
+            data = self._model.data(indexes[0])
+            if data is not None:
+                self.change_completed_part.emit(data)
+        super().selectionChanged(selected, deselected)
 
 
 class _CompletionItemDelegate(QStyledItemDelegate):
