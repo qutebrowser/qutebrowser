@@ -58,7 +58,7 @@ class CompletionView(QTreeView):
     Attributes:
         _model: The currently active filter model.
         _lastmodel: The model set in the last iteration.
-        _completion_models: dict of available completion models.
+        _models: dict of available completion models.
         _enabled: Whether showing the CompletionView is enabled.
         _completing: Whether we're currently completing something.
         _height: The height to use for the CompletionView.
@@ -107,20 +107,22 @@ class CompletionView(QTreeView):
         self._enabled = config.get('completion', 'show')
         self._model = None
         self._lastmodel = None
-        self._completion_models = {
+        self._models = {
             'command': CompletionFilterModel(CommandCompletionModel(self)),
-            'section': CompletionFilterModel(SettingSectionCompletionModel(
-                                             self)),
+            'section': CompletionFilterModel(
+                SettingSectionCompletionModel(self)),
+            'option': {},
+            'value': {},
         }
         for sect in configdata.DATA.keys():
-            self._completion_models['option_' + sect] = CompletionFilterModel(
+            self._models['option'][sect] = CompletionFilterModel(
                 SettingOptionCompletionModel(sect, self))
+            self._models['value'][sect] = {}
             for opt in configdata.DATA[sect].keys():
                 try:
-                    modelname = 'value_{}_{}'.format(sect, opt)
-                    self._completion_models[modelname] = (
-                        CompletionFilterModel(SettingValueCompletionModel(sect,
-                                              opt, self)))
+                    self._models['value'][sect][opt] = (
+                        CompletionFilterModel(SettingValueCompletionModel(
+                            sect, opt, self)))
                 except NoCompletionsError:
                     pass
         self._completing = False
@@ -176,28 +178,39 @@ class CompletionView(QTreeView):
         parts: The command chunks to get a completion for.
         """
         if len(parts) == 1:
-            return 'command'
-        # try to delegate to the command
+            # parts = [''] or something like ['set']
+            return self._models['command']
+        # delegate completion to command
         try:
             completions = cmdutils.cmd_dict[parts[0]].completion
         except KeyError:
+            # entering an unknown command
             return None
         logging.debug("completions: {}".format(completions))
         if completions is None:
+            # command without any available completions
             return None
         try:
-            compl = completions[len(parts) - 2]
+            idx = len(parts[1:]) - 1
+            completion_name = completions[idx]
+            logging.debug('partlen: {}, modelname {}'.format(
+                len(parts[1:]), completion_name))
         except IndexError:
+            # More arguments than completions
             return None
-        if compl == 'option':
-            compl = 'option_' + parts[-2]
-        elif compl == 'value':
-            compl = 'value_{}_{}'.format(parts[-3], parts[-2])
-        if compl in self._completion_models:
-            return compl
+        if completion_name == 'option':
+            section = parts[-2]
+            model = self._models['option'].get(section)
+        elif completion_name == 'value':
+            section = parts[-3]
+            option = parts[-2]
+            try:
+                model = self._models['value'][section][option]
+            except KeyError:
+                model = None
         else:
-            logging.debug("No completion model for {}.".format(compl))
-            return None
+            model = self._models.get(completion_name)
+        return model
 
     def _next_prev_item(self, prev):
         """Handle a tab press for the CompletionView.
@@ -225,13 +238,11 @@ class CompletionView(QTreeView):
         Called from cmd_text_changed().
 
         Args:
-            model: An index into self._completion_models.
+            model: The model to use.
         """
-        self._lastmodel = self._model
-        m = self._completion_models[model]
-        logging.debug("Setting model to {}".format(m))
-        self.setModel(m)
-        self._model = m
+        logging.debug("Setting model to {}".format(model.__class__.__name__))
+        self.setModel(model)
+        self._model = model
         self.expandAll()
         self.resizeColumnToContents(0)
 
@@ -263,7 +274,15 @@ class CompletionView(QTreeView):
         parts = split_cmdline(text)
 
         model = self._get_new_completion(parts)
+        if model is None:
+            logging.debug("No completion model for {}.".format(parts))
+        else:
+            logging.debug("New completion: {} / last: {}".format(
+                model.srcmodel.__class__.__name__,
+                self._lastmodel.srcmodel.__class__.__name__ if self._lastmodel
+                is not None else "None"))
         if model != self._lastmodel:
+            self._lastmodel = model
             if model is None:
                 self.hide()
                 self._completing = False

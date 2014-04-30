@@ -17,6 +17,8 @@
 
 """Module containing command managers (SearchManager and CommandManager)."""
 
+import logging
+
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 from PyQt5.QtWebKitWidgets import QWebPage
 
@@ -40,8 +42,9 @@ def split_cmdline(text):
         parts = manager.parse(text)
     except NoSuchCommandError:
         parts = text.split(' ')
-    if text.endswith(' '):
-        parts.append('')
+        if text.endswith(' '):
+            parts.append('')
+    logging.debug("Split parts: {}".format(parts))
     return parts
 
 
@@ -166,10 +169,15 @@ class CommandManager:
         if len(parts) == 1:
             args = []
         else:
+            logging.debug("Splitting '{}' with max {} splits".format(
+                parts[1], cmd.maxsplit))
             args = parts[1].split(maxsplit=cmd.maxsplit)
         self._cmd = cmd
         self._args = args
-        return [cmdstr] + args
+        retargs = args[:]
+        if text.endswith(' ') and len(args) <= cmd.maxsplit:
+            retargs.append('')
+        return [cmdstr] + retargs
 
     def _check(self):
         """Check if the argument count for the command is correct."""
