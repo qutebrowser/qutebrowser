@@ -163,7 +163,9 @@ class CompletionView(QTreeView):
             if not idx.isValid() and upwards:
                 return self._model.last_item()
             elif not idx.isValid() and not upwards:
-                return self._model.first_item()
+                idx = self._model.first_item()
+                self.scrollTo(idx.parent())
+                return idx
             elif idx.parent().isValid():
                 # Item is a real item, not a category header -> success
                 return idx
