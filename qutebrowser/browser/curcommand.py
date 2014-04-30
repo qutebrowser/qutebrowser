@@ -363,7 +363,8 @@ class CurCommandDispatcher(QObject):
         logging.debug("Calling \"{}\" with args {}".format(executable, args))
         proc.start(executable, args)
 
-    def _on_editor_cleanup(self, oshandle, filename):
+    def _editor_cleanup(self, oshandle, filename):
+        """Clean up temporary file."""
         os.close(oshandle)
         try:
             os.remove(filename)
@@ -392,7 +393,7 @@ class CurCommandDispatcher(QObject):
             text = webelem.javascript_escape(text)
         logging.debug("Read back: {}".format(text))
         elem.evaluateJavaScript("this.value='{}'".format(text))
-        self._on_editor_cleanup(oshandle, filename)
+        self._editor_cleanup(oshandle, filename)
 
     def on_editor_error(self, oshandle, filename, error):
         """Display an error message and clean up when editor crashed."""
@@ -403,8 +404,8 @@ class CurCommandDispatcher(QObject):
             QProcess.WriteError: ("An error occurred when attempting to write "
                                   "to the process."),
             QProcess.ReadError: ("An error occurred when attempting to read "
-                                "from the process."),
+                                 "from the process."),
             QProcess.UnknownError: "An unknown error occurred.",
         }
         message.error("Error while calling editor: {}".format(messages[error]))
-        self._on_editor_cleanup(oshandle, filename)
+        self._editor_cleanup(oshandle, filename)
