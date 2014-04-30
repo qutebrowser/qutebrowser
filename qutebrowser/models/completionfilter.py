@@ -106,7 +106,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
         if parent == QModelIndex():
             return True
         idx = self.srcmodel.index(row, 0, parent)
-        data = self.srcmodel.data(idx).value()
+        data = self.srcmodel.data(idx)
         # TODO more sophisticated filtering
         if not self.pattern:
             return True
@@ -125,8 +125,8 @@ class CompletionFilterModel(QSortFilterProxyModel):
         Return:
             True if left < right, else False
         """
-        left = self.srcmodel.data(lindex).value()
-        right = self.srcmodel.data(rindex).value()
+        left = self.srcmodel.data(lindex)
+        right = self.srcmodel.data(rindex)
 
         leftstart = left.startswith(self.pattern)
         rightstart = right.startswith(self.pattern)

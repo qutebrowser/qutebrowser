@@ -448,6 +448,8 @@ class _CompletionItemDelegate(QStyledItemDelegate):
 
         if index.column() == 0:
             marks = index.data(ROLE_MARKS)
+            if marks is None:
+                return
             for mark in marks:
                 cur = QTextCursor(self._doc)
                 cur.setPosition(mark[0])
