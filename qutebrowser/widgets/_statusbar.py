@@ -264,8 +264,15 @@ class _Command(QLineEdit):
 
         Args:
             text: The text to set (string).
+
+        Emit:
+            textEdited: Emitted if the text changed.
         """
+        old_text = self.text()
         self.setText(text)
+        if old_text != text:
+            # We want the completion to pop out here.
+            self.textEdited.emit(text)
         self.setFocus()
         self.show_cmd.emit()
 
