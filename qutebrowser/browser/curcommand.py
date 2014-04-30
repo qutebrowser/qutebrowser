@@ -32,6 +32,7 @@ import qutebrowser.utils.message as message
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.webelem as webelem
 import qutebrowser.config.config as config
+from qutebrowser.utils.misc import ExternalEditor
 
 
 class CurCommandDispatcher(QObject):
@@ -348,63 +349,19 @@ class CurCommandDispatcher(QObject):
         if elem.isNull():
             message.error("No editable element focused!")
             return
-        oshandle, filename = mkstemp(text=True)
         text = elem.evaluateJavaScript('this.value')
-        if text:
-            with open(filename, 'w') as f:
-                f.write(text)
-        proc = QProcess(self)
-        proc.finished.connect(partial(self.on_editor_closed, elem, oshandle,
-                                      filename))
-        proc.error.connect(partial(self.on_editor_error, oshandle, filename))
-        editor = config.get('general', 'editor')
-        executable = editor[0]
-        args = [arg.replace('{}', filename) for arg in editor[1:]]
-        logging.debug("Calling \"{}\" with args {}".format(executable, args))
-        proc.start(executable, args)
+        editor = ExternalEditor()
+        editor.editing_finished.connect(self.on_editing_finished)
+        from qutebrowser.utils.debug import trace_lines; trace_lines(True)
+        editor.edit(text)
 
-    def _on_editor_cleanup(self, oshandle, filename):
-        os.close(oshandle)
-        try:
-            os.remove(filename)
-        except PermissionError:
-            message.error("Failed to delete tempfile...")
-
-    def on_editor_closed(self, elem, oshandle, filename, exitcode,
-                         exitstatus):
+    def on_editing_finished(self, text):
         """Write the editor text into the form field and clean up tempfile.
 
         Callback for QProcess when the editor was closed.
         """
-        logging.debug("Editor closed")
-        if exitcode != 0:
-            message.error("Editor did quit abnormally (status {})!".format(
-                exitcode))
-            return
-        if exitstatus != QProcess.NormalExit:
-            # No error here, since we already handle this in on_editor_error
-            return
         if elem.isNull():
             message.error("Element vanished while editing!")
             return
-        with open(filename, 'r') as f:
-            text = ''.join(f.readlines())
-            text = webelem.javascript_escape(text)
-        logging.debug("Read back: {}".format(text))
+        text = webelem.javascript_escape(text)
         elem.evaluateJavaScript("this.value='{}'".format(text))
-        self._on_editor_cleanup(oshandle, filename)
-
-    def on_editor_error(self, oshandle, filename, error):
-        """Display an error message and clean up when editor crashed."""
-        messages = {
-            QProcess.FailedToStart: "The process failed to start.",
-            QProcess.Crashed: "The process crashed.",
-            QProcess.Timedout: "The last waitFor...() function timed out.",
-            QProcess.WriteError: ("An error occurred when attempting to write "
-                                  "to the process."),
-            QProcess.ReadError: ("An error occurred when attempting to read "
-                                "from the process."),
-            QProcess.UnknownError: "An unknown error occurred.",
-        }
-        message.error("Error while calling editor: {}".format(messages[error]))
-        self._on_editor_cleanup(oshandle, filename)
