@@ -364,9 +364,9 @@ class CurCommandDispatcher(QObject):
 
     def on_editor_closed(self, elem, oshandle, filename, exitcode,
                          exitstatus):
-        """Gets called by QProcess when the editor was closed.
+        """Write the editor text into the form field and clean up tempfile.
 
-        Writes the editor text into the form field.
+        Callback for QProcess when the editor was closed.
         """
         logging.debug("Editor closed")
         if exitcode != 0 or exitstatus != QProcess.NormalExit:

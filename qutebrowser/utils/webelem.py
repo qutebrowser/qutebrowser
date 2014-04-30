@@ -75,7 +75,7 @@ def is_visible(e, frame=None):
 
 
 def javascript_escape(text):
-    """Escapes special values in strings.
+    """Escape values special to javascript in strings.
 
     This maybe makes them work with QWebElement::evaluateJavaScript.
     Maybe.
