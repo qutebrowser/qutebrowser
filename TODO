@@ -78,6 +78,12 @@ Qt Bugs
     https://bugreports.qt-project.org/browse/QTBUG-19571
     If this isn't fixed in Qt 5.3, bug should be reopened.
 
+- QWebElement needs geometries()
+    https://bugreports.qt-project.org/browse/QTBUG-38698
+
+- Impossible to retrieve user value of QWebElement:
+    https://bugreports.qt-project.org/browse/QTBUG-38669
+
 - Web inspector is blank unless .hide()/.show() is called.
 
 - Weird font rendering
