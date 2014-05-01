@@ -112,7 +112,8 @@ class QuteBrowser(QApplication):
                 configparser.InterpolationError,
                 configparser.DuplicateSectionError,
                 configparser.DuplicateOptionError,
-                configparser.ParsingError) as e:
+                configparser.ParsingError,
+                ValueError) as e:
             errstr = "Error while reading config:"
             if hasattr(e, 'section') and hasattr(e, 'option'):
                 errstr += "\n\n{} -> {}:".format(e.section, e.option)
