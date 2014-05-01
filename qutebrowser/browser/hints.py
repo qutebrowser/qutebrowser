@@ -322,7 +322,6 @@ class HintManager(QObject):
             return
         self.openurl.emit(link, newtab)
 
-
     def start(self, frame, baseurl, mode='all', target='normal'):
         """Start hinting.
 

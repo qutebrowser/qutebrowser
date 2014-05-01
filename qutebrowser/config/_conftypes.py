@@ -535,7 +535,7 @@ class RegexList(List):
     """A list of regexes."""
 
     def __init__(self, flags=0):
-        self.flags=flags
+        self.flags = flags
 
     def transform(self, value):
         vals = super().transform(value)
