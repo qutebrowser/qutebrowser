@@ -109,6 +109,7 @@ class QuteBrowser(QApplication):
         try:
             config.init(confdir)
         except (config.ValidationError,
+                config.NoOptionError,
                 configparser.InterpolationError,
                 configparser.DuplicateSectionError,
                 configparser.DuplicateOptionError,
