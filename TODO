@@ -12,9 +12,6 @@ Use py3.4 Enums with a backport to qutebrowser.utils?
 Major features
 ==============
 
-After Blink
------------
-
 Plugin architecture
     Adblock?
     RequestPolicy
@@ -23,20 +20,19 @@ Plugin architecture
     Certificate Patrol
     https://chrome.google.com/webstore/detail/remove-google-redirects/ccenmflbeofaceccfhhggbagkblihpoh
 Downloads
-
-Before Blink
-------------
-
 session handling / saving
 IPC, like dwb -x
 Bookmarks
 Internationalization
 more completions (URLs, ...)
 SSL handling
+cookie handling
+history
 
 Minor features
 ==============
 
+set useragent
 show current value in setting completions
 handle completion for aliases
 keybind should have completion for commands/arguments
@@ -52,18 +48,15 @@ How do we handle empty values in input bar?
       -> microFocusChanged and check active element via:
          frame = page.currentFrame()
          elem = frame.findFirstElement('*:focus')
+somehow unfocus elements (hide blinking cursor) when insert mode is left?
 
 hints
 -----
 
 bindings for prev/next hint
-bindings for "prev/next" page links
 more intelligent clicking (end of textfields)
 filtering when typing part of name
 filter close hints when it's the same link
-check if there's any fix for links with newlines in them (geometry() vs.
-geometries())
-somehow unfocus elements when insert mode is left?
 
 Qt Bugs
 ========
@@ -83,13 +76,6 @@ Qt Bugs
 - Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-20973
     https://bugreports.qt-project.org/browse/QTBUG-21036
-
-Other stuff
-===========
-
-http://agateau.com/article-series/pyqtwebkit-experiments/
-http://die-offenbachs.homelinux.org:48888/hg/eric5/file/5d937eb378dd/Helpviewer
-http://qt-project.org/wiki/Using-QtWebKit-and-QML-with-PySide
 
 Keybinding stuff (from dwb)
 ===========================
