@@ -88,8 +88,9 @@ class ConfigManager(QObject):
     """Configuration manager for qutebrowser.
 
     Class attributes:
-        SPECIAL_CHARS: Chars which need escaping when they occur as first char
-                       in a line.
+        KEY_ESCAPE: Chars which need escaping when they occur as first char
+                    in a line.
+        VALUE_ESCAPE: Chars to escape inside values.
         ESCAPE_CHAR: The char to be used for escaping
 
     Attributes:
@@ -108,7 +109,8 @@ class ConfigManager(QObject):
                  Args: the changed section and option.
     """
 
-    SPECIAL_CHARS = r'\#;['
+    KEY_ESCAPE = r'\#['
+    VALUE_ESCAPE = r'\$'
     ESCAPE_CHAR = '\\'
 
     changed = pyqtSignal(str, str)
@@ -198,11 +200,15 @@ class ConfigManager(QObject):
         """Get the option items as string for section."""
         lines = []
         for optname, option in section.items():
-            for c in self.SPECIAL_CHARS:
+            value = option.get_first_value(startlayer='conf')
+            for c in self.KEY_ESCAPE:
                 if optname.startswith(c):
                     optname = optname.replace(c, self.ESCAPE_CHAR + c, 1)
-            keyval = '{} = {}'.format(optname, option.get_first_value(
-                startlayer='conf'))
+            for c in self.VALUE_ESCAPE:
+                logging.warn("{} Before escaping {}: {}".format(optname, c, value))
+                value = value.replace(c, self.ESCAPE_CHAR + c)
+                logging.warn("After escaping {}: {}".format(c, value))
+            keyval = '{} = {}'.format(optname, value)
             lines.append(keyval)
         return lines
 
@@ -218,6 +224,8 @@ class ConfigManager(QObject):
             for k, v in cp[secname].items():
                 if k.startswith(self.ESCAPE_CHAR):
                     k = k[1:]
+                for c in self.VALUE_ESCAPE:
+                    v = v.replace(self.ESCAPE_CHAR + c, c)
                 try:
                     self.set('conf', secname, k, v)
                 except ValidationError as e:

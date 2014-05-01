@@ -39,7 +39,7 @@ class ReadConfigParser(ConfigParser):
             configdir: Directory to read the config from.
             fname: Filename of the config file.
         """
-        super().__init__(interpolation=None)
+        super().__init__(interpolation=None, comment_prefixes='#')
         self.optionxform = lambda opt: opt  # be case-insensitive
         self._configdir = configdir
         self._configfile = os.path.join(self._configdir, fname)

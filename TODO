@@ -8,7 +8,6 @@ Style
 
 _foo = QApplication.instance().obj.foo   for global singletons?
 Use py3.4 Enums with a backport to qutebrowser.utils?
-Make config escaping more clear (escape all ;? Use \ to convert $-signs?)
 
 Major features
 ==============
