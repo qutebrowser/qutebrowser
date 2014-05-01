@@ -215,10 +215,7 @@ class BaseKeyParser(QObject):
             if definitive_match is not None and binding == definitive_match[0]:
                 # We already matched that one
                 continue
-            if len(binding) < len(cmd_input):
-                # binding is shorter than cmd_input, so it can't possibly match
-                continue
-            elif cmd_input[-1] == binding[len(cmd_input) - 1]:
+            elif binding.startswith(cmd_input):
                 partial_match = True
                 break
         if definitive_match is not None and partial_match:
