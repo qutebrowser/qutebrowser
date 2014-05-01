@@ -503,6 +503,7 @@ DATA = OrderedDict([
         ('<Down>', '${k}'),
         ('<Up>', '${j}'),
         ('<Right>', '${l}'),
+        ('<Space>', '${<Ctrl-F>}'),
     )),
 
     ('keybind.insert', sect.ValueList(

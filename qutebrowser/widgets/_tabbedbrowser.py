@@ -20,8 +20,8 @@
 import logging
 from functools import partial
 
-from PyQt5.QtWidgets import QApplication, QShortcut, QSizePolicy
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
+from PyQt5.QtWidgets import QApplication, QSizePolicy
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QClipboard
 
 import qutebrowser.utils.url as urlutils
@@ -50,7 +50,6 @@ class TabbedBrowser(TabWidget):
 
     Attributes:
         _url_stack: Stack of URLs of closed tabs.
-        _space: Space QShortcut to avoid garbage collection
         _tabs: A list of open tabs.
         _filter: A SignalFilter instance.
         cur: A CurCommandDispatcher instance to dispatch commands to the
@@ -95,10 +94,6 @@ class TabbedBrowser(TabWidget):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._tabs = []
         self._url_stack = []
-        self._space = QShortcut(self)
-        self._space.setKey(Qt.Key_Space)
-        self._space.setContext(Qt.WidgetWithChildrenShortcut)
-        self._space.activated.connect(lambda: self.cur.scroll_page(0, 1))
         self._filter = SignalFilter(self)
         self.cur = CurCommandDispatcher(self)
 
