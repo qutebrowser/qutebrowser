@@ -32,7 +32,7 @@ import qutebrowser.config._conftypes as types
 import qutebrowser.config._sections as sect
 
 
-FIRST_COMMENT = """
+FIRST_COMMENT = r"""
 # vim: ft=dosini
 
 # Configfile for qutebrowser.
