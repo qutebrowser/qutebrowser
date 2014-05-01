@@ -84,7 +84,7 @@ class CurCommandDispatcher(QObject):
         if frame is None:
             message.error("No frame focused!")
             return
-        widget.hintmanager.follow_prevnext(frame, prev, newtab)
+        widget.hintmanager.follow_prevnext(frame, widget.url(), prev, newtab)
 
     @cmdutils.register(instance='mainwindow.tabs.cur', name='open', maxsplit=0)
     def openurl(self, url, count=None):

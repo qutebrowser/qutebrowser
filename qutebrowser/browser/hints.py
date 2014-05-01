@@ -262,11 +262,12 @@ class HintManager(QObject):
         message.set_cmd_text(':{} {}'.format(commands[self._target],
                                              urlutils.urlstring(link)))
 
-    def _resolve_link(self, elem):
+    def _resolve_link(self, elem, baseurl=None):
         """Resolve a link and check if we want to keep it.
 
         Args:
             elem: The QWebElement to get the link of.
+            baseurl: The baseurl of the current tab (overrides self._baseurl).
 
         Return:
             A QUrl with the absolute link, or None.
@@ -274,9 +275,11 @@ class HintManager(QObject):
         link = elem.attribute('href')
         if not link:
             return None
+        if baseurl is None:
+            baseurl = self._baseurl
         link = urlutils.qurl(link)
         if link.isRelative():
-            link = self._baseurl.resolved(link)
+            link = baseurl.resolved(link)
         return link
 
     def _find_prevnext(self, frame, prev=False):
@@ -298,11 +301,12 @@ class HintManager(QObject):
                     return e
         return None
 
-    def follow_prevnext(self, frame, prev=False, newtab=False):
+    def follow_prevnext(self, frame, baseurl, prev=False, newtab=False):
         """Click a "previous"/"next" element on the page.
 
         Args:
             frame: The frame where the element is in.
+            baseurl: The base URL of the current tab.
             prev: True to open a "previous" link, False to open a "next" link.
             newtab: True to open in a new tab, False for the current tab.
         """
@@ -311,7 +315,7 @@ class HintManager(QObject):
             message.error("No {} links found!".format("prev" if prev
                                                       else "forward"))
             return
-        link = self._resolve_link(elem)
+        link = self._resolve_link(elem, baseurl)
         if link is None:
             message.error("No {} links found!".format("prev" if prev
                                                       else "forward"))
