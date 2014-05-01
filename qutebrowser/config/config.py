@@ -267,19 +267,20 @@ class ConfigManager(QObject):
         Wrapper for the get-command to output the value in the status bar.
         """
         try:
-            val = self.get(section, option)
+            val = self.get(section, option, transformed=False)
         except (NoOptionError, NoSectionError) as e:
             message.error("get: {} - {}".format(e.__class__.__name__, e))
         else:
             message.info("{} {} = {}".format(section, option, val))
 
-    def get(self, section, option, raw=False):
+    def get(self, section, option, raw=False, transformed=True):
         """Get the value from a section/option.
 
         Args:
             section: The section to get the option from.
             option: The option name
             raw: Whether to get the uninterpolated, untransformed value.
+            transformed: Whether the value should be transformed.
 
         Return:
             The value of the option.
@@ -299,7 +300,8 @@ class ConfigManager(QObject):
         newval = self._interpolation.before_get(self, section, option,
                                                 val.value, mapping)
         logging.debug("interpolated val: {}".format(newval))
-        newval = val.typ.transform(newval)
+        if transformed:
+            newval = val.typ.transform(newval)
         return newval
 
     @cmdutils.register(name='set', instance='config', maxsplit=2,
