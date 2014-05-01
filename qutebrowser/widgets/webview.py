@@ -315,6 +315,10 @@ class WebView(QWebView):
         """
         pos = e.pos()
         frame = self.page_.frameAt(pos)
+        if frame is None:
+            # I don't know why this would happen, but it did.
+            logging.warn("Clicked at {} but frame is None!".format(pos))
+            return
         pos -= frame.geometry().topLeft()
         hitresult = frame.hitTestContent(pos)
         if self._is_editable(hitresult):
