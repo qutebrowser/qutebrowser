@@ -136,6 +136,7 @@ class TabbedBrowser(TabWidget):
         tab.urlChanged.connect(self._filter.create(self.cur_url_changed))
         # hintmanager
         tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)
+        tab.hintmanager.openurl.connect(self.cur.openurl_slot)
         # misc
         tab.titleChanged.connect(self.on_title_changed)
         tab.open_tab.connect(self.tabopen)

@@ -77,6 +77,15 @@ class CurCommandDispatcher(QObject):
             return
         frame.setScrollBarValue(orientation, int(m * perc / 100))
 
+    def _prevnext(self, prev, newtab):
+        """Inner logic for {tab,}{prev,next}page."""
+        widget = self._tabs.currentWidget()
+        frame = widget.page_.currentFrame()
+        if frame is None:
+            message.error("No frame focused!")
+            return
+        widget.hintmanager.follow_prevnext(frame, prev, newtab)
+
     @cmdutils.register(instance='mainwindow.tabs.cur', name='open', maxsplit=0)
     def openurl(self, url, count=None):
         """Open an url in the current/[count]th tab.
@@ -98,6 +107,19 @@ class CurCommandDispatcher(QObject):
                 return
         else:
             tab.openurl(url)
+
+    @pyqtSlot('QUrl', bool)
+    def openurl_slot(self, url, newtab):
+        """Open an URL, used as a slot.
+
+        Args:
+            url: The URL to open.
+            newtab: True to open URL in a new tab, False otherwise.
+        """
+        if newtab:
+            self._tabs.tabopen(url)
+        else:
+            self._tabs.currentWidget().openurl(url)
 
     @cmdutils.register(instance='mainwindow.tabs.cur', name='reload')
     def reloadpage(self, count=None):
@@ -223,24 +245,24 @@ class CurCommandDispatcher(QObject):
         self._tabs.currentWidget().hintmanager.fire(keystr)
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
-    def prev_page(self):
-        """Click on a "previous" link."""
-        widget = self._tabs.currentWidget()
-        frame = widget.page_.currentFrame()
-        if frame is None:
-            message.error("No frame focused!")
-            return
-        widget.hintmanager.click_prevnext(frame, prev=True)
+    def prevpage(self):
+        """Open a "previous" link."""
+        self._prevnext(prev=True, newtab=False)
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
-    def next_page(self):
-        """Click on a "next" link."""
-        widget = self._tabs.currentWidget()
-        frame = widget.page_.currentFrame()
-        if frame is None:
-            message.error("No frame focused!")
-            return
-        widget.hintmanager.click_prevnext(frame, prev=False)
+    def nextpage(self):
+        """Open a "next" link."""
+        self._prevnext(prev=False, newtab=False)
+
+    @cmdutils.register(instance='mainwindow.tabs.cur')
+    def tabprevpage(self):
+        """Open a "previous" link in a new tab."""
+        self._prevnext(prev=True, newtab=True)
+
+    @cmdutils.register(instance='mainwindow.tabs.cur')
+    def tabnextpage(self):
+        """Open a "next" link in a new tab."""
+        self._prevnext(prev=False, newtab=True)
 
     @pyqtSlot(str, int)
     def search(self, text, flags):

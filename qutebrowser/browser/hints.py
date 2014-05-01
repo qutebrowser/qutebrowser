@@ -59,8 +59,8 @@ class HintManager(QObject):
         mouse_event: Mouse event to be posted in the web view.
                      arg: A QMouseEvent
         openurl: Open a new url
-                 arg 0: URL to open as a string.
-                 arg 1: true if it should be opened in a new tab, else false.
+                 arg 0: URL to open as QUrl.
+                 arg 1: True if it should be opened in a new tab, else False.
         set_open_target: Set a new target to open the links in.
     """
 
@@ -79,6 +79,7 @@ class HintManager(QObject):
 
     hint_strings_updated = pyqtSignal(list)
     mouse_event = pyqtSignal('QMouseEvent')
+    openurl = pyqtSignal('QUrl', bool)
     set_open_target = pyqtSignal(str)
 
     def __init__(self, parent=None):
@@ -278,26 +279,44 @@ class HintManager(QObject):
             link = self._baseurl.resolved(link)
         return link
 
-    def click_prevnext(self, frame, prev=False):
-        """Click a "previous"/"next" element on the page."""
+    def _find_prevnext(self, frame, prev=False):
+        """Find a prev/next element in frame."""
         # First check for <link rel="prev(ious)|next">
         elems = frame.findAllElements(webelem.SELECTORS['prevnext_rel'])
         rel_values = ['prev', 'previous'] if prev else ['next']
         for e in elems:
             if e.attribute('rel') in rel_values:
-                self._click(e, 'normal', frame)
-                return
+                return e
         # Then check for regular links
         elems = frame.findAllElements(webelem.SELECTORS['prevnext'])
         option = 'prev-regexes' if prev else 'next-regexes'
-        if elems:
-            for regex in config.get('hints', option):
-                for e in elems:
-                    if regex.match(e.toPlainText()):
-                        self._click(e, 'normal', frame)
-                        return
-        message.error("No {} links found!".format("prev" if prev
-                                                  else "forward"))
+        if not elems:
+            return None
+        for regex in config.get('hints', option):
+            for e in elems:
+                if regex.match(e.toPlainText()):
+                    return e
+        return None
+
+    def follow_prevnext(self, frame, prev=False, newtab=False):
+        """Click a "previous"/"next" element on the page.
+
+        Args:
+            frame: The frame where the element is in.
+            prev: True to open a "previous" link, False to open a "next" link.
+            newtab: True to open in a new tab, False for the current tab.
+        """
+        elem = self._find_prevnext(frame, prev)
+        if elem is None:
+            message.error("No {} links found!".format("prev" if prev
+                                                      else "forward"))
+            return
+        link = self._resolve_link(elem)
+        if link is None:
+            message.error("No {} links found!".format("prev" if prev
+                                                      else "forward"))
+            return
+        self.openurl.emit(link, newtab)
 
 
     def start(self, frame, baseurl, mode='all', target='normal'):
