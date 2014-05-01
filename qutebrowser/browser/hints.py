@@ -207,24 +207,19 @@ class HintManager(QObject):
                          css, string))
         return doc.lastChild()
 
-    def _click(self, elem, target=None, frame=None):
+    def _click(self, elem):
         """Click an element.
 
         Args:
             elem: The QWebElement to click.
-            target_override: Target which overrides self._target
         """
-        if target is not None:
-            pass
-        elif self._target == 'rapid':
+        if self._target == 'rapid':
             target = 'bgtab'
         else:
             target = self._target
-        if frame is None:
-            frame = self._frame
         self.set_open_target.emit(target)
         point = elem.geometry().topLeft()
-        scrollpos = frame.scrollPosition()
+        scrollpos = self._frame.scrollPosition()
         logging.debug("Clicking on \"{}\" at {}/{} - {}/{}".format(
             elem.toPlainText(), point.x(), point.y(), scrollpos.x(),
             scrollpos.y()))
