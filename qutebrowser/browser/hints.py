@@ -207,19 +207,24 @@ class HintManager(QObject):
                          css, string))
         return doc.lastChild()
 
-    def _click(self, elem):
+    def _click(self, elem, target=None, frame=None):
         """Click an element.
 
         Args:
             elem: The QWebElement to click.
+            target_override: Target which overrides self._target
         """
-        if self._target == 'rapid':
+        if target is not None:
+            pass
+        elif self._target == 'rapid':
             target = 'bgtab'
         else:
             target = self._target
+        if frame is None:
+            frame = self._frame
         self.set_open_target.emit(target)
         point = elem.geometry().topLeft()
-        scrollpos = self._frame.scrollPosition()
+        scrollpos = frame.scrollPosition()
         logging.debug("Clicking on \"{}\" at {}/{} - {}/{}".format(
             elem.toPlainText(), point.x(), point.y(), scrollpos.x(),
             scrollpos.y()))
@@ -281,22 +286,23 @@ class HintManager(QObject):
     def click_prevnext(self, frame, prev=False):
         """Click a "previous"/"next" element on the page."""
         # First check for <link rel="prev(ious)|next">
-        self.target='normal'
         elems = frame.findAllElements(webelem.SELECTORS['prevnext_rel'])
         rel_values = ['prev', 'previous'] if prev else ['next']
         for e in elems:
             if e.attribute('rel') in rel_values:
-                self.click(e)
+                self._click(e, 'normal', frame)
                 return
         # Then check for regular links
         elems = frame.findAllElements(webelem.SELECTORS['prevnext'])
         option = 'prev-regexes' if prev else 'next-regexes'
-        for regex in config.get('hints', option):
-            for e in elems:
-                if regex.match(e.toPlainText()):
-                    self.click(e)
-                    return
-        message.error("No prev/forward links found!")
+        if elems:
+            for regex in config.get('hints', option):
+                for e in elems:
+                    if regex.match(e.toPlainText()):
+                        self._click(e, 'normal', frame)
+                        return
+        message.error("No {} links found!".format("prev" if prev
+                                                  else "forward"))
 
 
     def start(self, frame, baseurl, mode='all', target='normal'):

@@ -17,7 +17,9 @@
 
 """Setting options used for qutebrowser."""
 
+import re
 import shlex
+from sre_constants import error as RegexError
 
 from PyQt5.QtGui import QColor
 
@@ -509,6 +511,42 @@ class KeyBindingName(BaseType):
 
     def validate(self, value):
         pass
+
+
+class Regex(BaseType):
+
+    """A regular expression."""
+
+    def __init__(self, flags=0):
+        self.flags = flags
+
+    def validate(self, value):
+        try:
+            re.compile(value, self.flags)
+        except RegexError as e:
+            raise ValidationError(value, "must be a valid regex - " + str(e))
+
+    def transform(self, value):
+        return re.compile(value, self.flags)
+
+
+class RegexList(List):
+
+    """A list of regexes."""
+
+    def __init__(self, flags=0):
+        self.flags=flags
+
+    def transform(self, value):
+        vals = super().transform(value)
+        return [re.compile(pattern, self.flags) for pattern in vals]
+
+    def validate(self, value):
+        try:
+            self.transform(value)
+        except RegexError as e:
+            raise ValidationError(value, "must be a list valid regexes - " +
+                                  str(e))
 
 
 class AutoSearch(BaseType):

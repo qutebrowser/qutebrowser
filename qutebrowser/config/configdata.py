@@ -24,6 +24,7 @@ SECTION_DESC: A dictionary with descriptions for sections.
 DATA: The config defaults, an OrderedDict of sections.
 """
 
+import re
 from collections import OrderedDict
 
 from qutebrowser.config._value import SettingValue
@@ -397,6 +398,18 @@ DATA = OrderedDict([
         ('auto-follow',
          SettingValue(types.Bool(), 'true'),
          "Whether to auto-follow a hint if there's only one left."),
+
+        ('next-regexes',
+         SettingValue(types.RegexList(flags=re.IGNORECASE),
+                      r'\bnext\b,\bmore\b,\bnewer\b,^>$$,^(>>|»|→|≫)$$,'
+                      r'^(>|»|→|≫),(>|»|→|≫)$$'),
+         "A comma-separated list of regexes to use for 'next' links."),
+
+        ('prev-regexes',
+         SettingValue(types.RegexList(flags=re.IGNORECASE),
+                      r'\bprev(ious)\b,\bback\b,\bolder\b,^<$$,^(<<|«|←|≪)$$,'
+                      r'^(<|«|←|≪),(<|«|←|≪)$$'),
+         "A comma-separated list of regexes to use for 'prev' links."),
     )),
 
     ('searchengines', sect.ValueList(
@@ -456,6 +469,8 @@ DATA = OrderedDict([
         ('PP', 'tabpaste sel'),
         ('-', 'zoomout'),
         ('+', 'zoomin'),
+        ('[[', 'prev_page'),
+        (']]', 'next_page'),
         ('<Ctrl-V>', 'enter_mode passthrough'),
         ('<Ctrl-Q>', 'quit'),
         ('<Ctrl-Shift-T>', 'undo'),

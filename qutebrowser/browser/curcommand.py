@@ -222,6 +222,26 @@ class CurCommandDispatcher(QObject):
         """Fire a completed hint."""
         self._tabs.currentWidget().hintmanager.fire(keystr)
 
+    @cmdutils.register(instance='mainwindow.tabs.cur')
+    def prev_page(self):
+        """Click on a "previous" link."""
+        widget = self._tabs.currentWidget()
+        frame = widget.page_.currentFrame()
+        if frame is None:
+            message.error("No frame focused!")
+            return
+        widget.hintmanager.click_prevnext(frame, prev=True)
+
+    @cmdutils.register(instance='mainwindow.tabs.cur')
+    def next_page(self):
+        """Click on a "next" link."""
+        widget = self._tabs.currentWidget()
+        frame = widget.page_.currentFrame()
+        if frame is None:
+            message.error("No frame focused!")
+            return
+        widget.hintmanager.click_prevnext(frame, prev=False)
+
     @pyqtSlot(str, int)
     def search(self, text, flags):
         """Search for text in the current page.

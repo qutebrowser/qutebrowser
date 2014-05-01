@@ -36,8 +36,8 @@ SELECTORS = {
                  'input[type=tel], input[type=number], '
                  'input[type=password], input[type=search], textarea'),
     'url': '[src], [href]',
-    'prevnext_rel': 'link [role=link]',
-    'prevnext': 'a button [role=button]',
+    'prevnext_rel': 'link, [role=link]',
+    'prevnext': 'a, button, [role=button]',
 }
 
 SELECTORS['editable_focused'] = ', '.join(
