@@ -19,6 +19,7 @@
 
 from PyQt5.QtNetwork import QNetworkAccessManager
 
+import qutebrowser.config.config as config
 from qutebrowser.network.qutescheme import QuteSchemeHandler
 
 
@@ -63,6 +64,14 @@ class NetworkManager(QNetworkAccessManager):
             reply = self._scheme_handlers[scheme].createRequest(
                 op, req, outgoing_data)
         else:
+            if config.get('network', 'do-not-track'):
+                dnt = '1'.encode('ascii')
+            else:
+                dnt = '0'.encode('ascii')
+            req.setRawHeader('DNT'.encode('ascii'), dnt)
+            req.setRawHeader('X-Do-Not-Track'.encode('ascii'), dnt)
+            req.setRawHeader('Accept-Language'.encode('ascii'),
+                             config.get('network', 'accept-language'))
             reply = super().createRequest(op, req, outgoing_data)
             self._requests[id(reply)] = reply
             reply.destroyed.connect(lambda obj: self._requests.pop(id(obj)))

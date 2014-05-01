@@ -56,6 +56,7 @@ FIRST_COMMENT = """
 SECTION_DESC = {
     'general': "General/misc. options",
     'input': "Options related to input modes.",
+    'network': "Settings related to the network.",
     'completion': "Options related to completion and command history .",
     'tabbar': "Configuration of the tab bar.",
     'webkit': "Webkit settings.",
@@ -185,6 +186,16 @@ DATA = OrderedDict([
          SettingValue(types.ShellCommand(placeholder=True), 'gvim -f "{}"'),
          "The editor (and arguments) to use for the open_editor binding. "
          "Use {} for the filename. Gets split via shutils."),
+    )),
+
+    ('network', sect.KeyValue(
+        ('do-not-track',
+         SettingValue(types.Bool(), 'true'),
+         "Value to send in the DNT header."),
+
+        ('accept-language',
+         SettingValue(types.String(), 'en-US,en'),
+         "Value to send in the accept-language header."),
     )),
 
     ('completion', sect.KeyValue(
