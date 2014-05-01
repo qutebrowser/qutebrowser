@@ -205,9 +205,7 @@ class ConfigManager(QObject):
                 if optname.startswith(c):
                     optname = optname.replace(c, self.ESCAPE_CHAR + c, 1)
             for c in self.VALUE_ESCAPE:
-                logging.warn("{} Before escaping {}: {}".format(optname, c, value))
                 value = value.replace(c, self.ESCAPE_CHAR + c)
-                logging.warn("After escaping {}: {}".format(c, value))
             keyval = '{} = {}'.format(optname, value)
             lines.append(keyval)
         return lines
