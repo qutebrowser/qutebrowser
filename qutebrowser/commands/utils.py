@@ -40,10 +40,7 @@ class register:  # pylint: disable=invalid-name
         instance: The instance to be used as "self", as a dotted string.
         name: The name (as string) or names (as list) of the command.
         nargs: A (minargs, maxargs) tuple of valid argument counts, or an int.
-        maxsplit: Maximum count of splits to be made.
-            -1: Split everything (default)
-            0:  Don't split.
-            n:  Split a maximum of n times.
+        split: Whether to split the arguments.
         hide: Whether to hide the command or not.
         completion: Which completion to use for arguments, as a list of
                     strings.
@@ -51,7 +48,7 @@ class register:  # pylint: disable=invalid-name
         needs_js: If javascript is needed for this command.
     """
 
-    def __init__(self, instance=None, name=None, nargs=None, maxsplit=-1,
+    def __init__(self, instance=None, name=None, nargs=None, split=True,
                  hide=False, completion=None, modes=None, not_modes=None,
                  needs_js=False):
         """Save decorator arguments.
@@ -64,7 +61,7 @@ class register:  # pylint: disable=invalid-name
         if modes is not None and not_modes is not None:
             raise ValueError("Only modes or not_modes can be given!")
         self.name = name
-        self.maxsplit = maxsplit
+        self.split = split
         self.hide = hide
         self.nargs = nargs
         self.instance = instance
@@ -105,7 +102,7 @@ class register:  # pylint: disable=invalid-name
             desc = func.__doc__.splitlines()[0].strip().rstrip('.')
         else:
             desc = ""
-        cmd = Command(name=mainname, maxsplit=self.maxsplit,
+        cmd = Command(name=mainname, split=self.split,
                       hide=self.hide, nargs=nargs, count=count, desc=desc,
                       instance=self.instance, handler=func,
                       completion=self.completion, modes=self.modes,

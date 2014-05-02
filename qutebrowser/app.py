@@ -420,7 +420,7 @@ class QuteBrowser(QApplication):
             logging.debug("maybe_quit quitting.")
             self.quit()
 
-    @cmdutils.register(instance='', maxsplit=0)
+    @cmdutils.register(instance='', split=False)
     def pyeval(self, s):
         """Evaluate a python string and display the results as a webpage.
 

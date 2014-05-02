@@ -26,6 +26,7 @@ import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.message as message
 from qutebrowser.commands._exceptions import NoSuchCommandError, CommandError
+from qutebrowser.utils.misc import safe_shlex_split
 
 
 def split_cmdline(text):
@@ -168,15 +169,15 @@ class CommandManager:
 
         if len(parts) == 1:
             args = []
+        elif cmd.split:
+            args = safe_shlex_split(parts[1])
         else:
-            logging.debug("Splitting '{}' with max {} splits".format(
-                parts[1], cmd.maxsplit))
-            args = parts[1].split(maxsplit=cmd.maxsplit)
+            args = parts[1].split(maxsplit=cmd.nargs[0] - 1)
         self._cmd = cmd
         self._args = args
         retargs = args[:]
-        if text.endswith(' ') and (cmd.maxsplit == -1 or
-                                   len(args) <= cmd.maxsplit):
+        if text.endswith(' ') and (cmd.split is True or
+                                   len(args) < cmd.args[0]):
             retargs.append('')
         return [cmdstr] + retargs
 

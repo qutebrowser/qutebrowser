@@ -222,12 +222,12 @@ class TabbedBrowser(TabWidget):
         elif last_close == 'blank':
             tab.openurl('about:blank')
 
-    @cmdutils.register(instance='mainwindow.tabs', maxsplit=0)
+    @cmdutils.register(instance='mainwindow.tabs', split=False)
     def tabopen(self, url):
         """Open a new tab with a given url."""
         self._tabopen(url, background=False)
 
-    @cmdutils.register(instance='mainwindow.tabs', maxsplit=0)
+    @cmdutils.register(instance='mainwindow.tabs', split=False)
     def backtabopen(self, url):
         """Open a new tab in background."""
         self._tabopen(url, background=True)

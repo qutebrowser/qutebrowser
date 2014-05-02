@@ -17,6 +17,7 @@
 
 """Other utilities which don't fit anywhere else."""
 
+import shlex
 from functools import reduce
 from pkg_resources import resource_string
 
@@ -46,3 +47,32 @@ def dotted_getattr(obj, path):
         The object at path.
     """
     return reduce(getattr, path.split('.'), obj)
+
+
+def safe_shlex_split(s):
+    r"""Split a string via shlex safely (don't bail out on unbalanced quotes).
+
+    We split while the user is typing (for completion), and as
+    soon as " or \ is typed, the string is invalid for shlex,
+    because it encounters EOF while in quote/escape state.
+
+    Here we fix this error temporarely so shlex doesn't blow up,
+    and then retry splitting again.
+
+    Since shlex raises ValueError in both cases we unfortunately
+    have to parse the exception string...
+    """
+    try:
+        return shlex.split(s)
+    except ValueError as e:
+        if str(e) == "No closing quotation":
+            # e.g.   eggs "bacon ham
+            # -> we fix this as   eggs "bacon ham"
+            s += '"'
+        elif str(e) == "No escaped character":
+            # e.g.   eggs\
+            # -> we fix this as  eggs\\
+            s += '\\'
+        else:
+            raise
+        return shlex.split(s)

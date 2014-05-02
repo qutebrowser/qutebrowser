@@ -86,7 +86,8 @@ class CurCommandDispatcher(QObject):
             return
         widget.hintmanager.follow_prevnext(frame, widget.url(), prev, newtab)
 
-    @cmdutils.register(instance='mainwindow.tabs.cur', name='open', maxsplit=0)
+    @cmdutils.register(instance='mainwindow.tabs.cur', name='open',
+                       split=False)
     def openurl(self, url, count=None):
         """Open an url in the current/[count]th tab.
 

@@ -32,10 +32,7 @@ class Command(QObject):
 
     Attributes:
         name: The main name of the command.
-        maxsplit: Maximum count of splits to be made.
-            -1: Split everything (default)
-            0:  Don't split.
-            n:  Split a maximum of n times.
+        split: Whether to split the arguments.
         hide: Whether to hide the arguments or not.
         nargs: A (minargs, maxargs) tuple, maxargs = None if there's no limit.
         count: Whether the command supports a count, or not.
@@ -57,13 +54,13 @@ class Command(QObject):
 
     signal = pyqtSignal(tuple)
 
-    def __init__(self, name, maxsplit, hide, nargs, count, desc, instance,
+    def __init__(self, name, split, hide, nargs, count, desc, instance,
                  handler, completion, modes, not_modes, needs_js):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-arguments
         super().__init__()
         self.name = name
-        self.maxsplit = maxsplit
+        self.split = split
         self.hide = hide
         self.nargs = nargs
         self.count = count
