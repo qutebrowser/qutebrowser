@@ -8,6 +8,7 @@ Style
 
 _foo = QApplication.instance().obj.foo   for global singletons?
 Use py3.4 Enums with a backport to qutebrowser.utils?
+initialize completion models at some nicer place (not in widget)
 
 Major features
 ==============
