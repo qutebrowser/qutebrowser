@@ -136,6 +136,27 @@ class TabbedBrowser(TabWidget):
         tab.titleChanged.connect(self.on_title_changed)
         tab.open_tab.connect(self.tabopen)
 
+    def _tabopen(self, url, background=False):
+        """Open a new tab with a given url.
+
+        Inner logic for tabopen and backtabopen.
+        Also connect all the signals we need to _filter_signals.
+
+        Args:
+            url: The URL to open.
+            background: Whether to oepn the tab in the background.
+        """
+        logging.debug("Opening {}".format(url))
+        url = urlutils.qurl(url)
+        tab = WebView(self)
+        self._connect_tab_signals(tab)
+        self._tabs.append(tab)
+        self.addTab(tab, urlutils.urlstring(url))
+        tab.show()
+        tab.openurl(url)
+        if not background:
+            self.setCurrentWidget(tab)
+
     def cntwidget(self, count=None):
         """Return a widget based on a count/idx.
 
@@ -202,30 +223,14 @@ class TabbedBrowser(TabWidget):
             tab.openurl('about:blank')
 
     @cmdutils.register(instance='mainwindow.tabs', maxsplit=0)
-    def tabopen(self, url, background=False):
-        """Open a new tab with a given url.
-
-        Also connect all the signals we need to _filter_signals.
-
-        Args:
-            url: The URL to open.
-            background: Whether to oepn the tab in the background.
-        """
-        logging.debug("Opening {}".format(url))
-        url = urlutils.qurl(url)
-        tab = WebView(self)
-        self._connect_tab_signals(tab)
-        self._tabs.append(tab)
-        self.addTab(tab, urlutils.urlstring(url))
-        tab.show()
-        tab.openurl(url)
-        if not background:
-            self.setCurrentWidget(tab)
+    def tabopen(self, url):
+        """Open a new tab with a given url."""
+        self._tabopen(url, background=False)
 
     @cmdutils.register(instance='mainwindow.tabs', maxsplit=0)
     def backtabopen(self, url):
         """Open a new tab in background."""
-        self.tabopen(url, background=True)
+        self._tabopen(url, background=True)
 
     @cmdutils.register(instance='mainwindow.tabs', hide=True)
     def tabopencur(self):
