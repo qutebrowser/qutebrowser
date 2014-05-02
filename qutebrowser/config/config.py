@@ -192,8 +192,10 @@ class ConfigManager(QObject):
                 else:
                     lines += wrapper.wrap("Valid values: {}".format(', '.join(
                         valid_values)))
-            lines += wrapper.wrap("Default: {}".format(
-                option.values['default']))
+            default = option.values['default']
+            for c in self.VALUE_ESCAPE:
+                default = default.replace(c, self.ESCAPE_CHAR + c)
+            lines += wrapper.wrap("Default: {}".format(default))
         return lines
 
     def _str_items(self, section):
