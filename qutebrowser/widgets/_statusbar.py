@@ -17,6 +17,8 @@
 
 """Widgets needed in the qutebrowser statusbar."""
 
+import logging
+
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt
 from PyQt5.QtWidgets import (QWidget, QLineEdit, QProgressBar, QLabel,
                              QHBoxLayout, QStackedLayout, QSizePolicy)
@@ -291,6 +293,8 @@ class _Command(QLineEdit):
         else:
             prefix = ''
         parts = split_cmdline(text)
+        logging.debug("Old text: '{}' - parts: '{}', changing to '{}".format(
+            text, parts, newtext))
         parts[-1] = newtext
         self.setText(prefix + ' '.join(parts))
         self.setFocus()
