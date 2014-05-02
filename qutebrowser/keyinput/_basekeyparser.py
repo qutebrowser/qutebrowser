@@ -309,7 +309,9 @@ class BaseKeyParser(QObject):
         if not sect.items():
             logging.warn("No keybindings defined!")
         for (key, cmd) in sect.items():
-            if key.startswith('<') and key.endswith('>'):
+            if not cmd:
+                continue
+            elif key.startswith('<') and key.endswith('>'):
                 keystr = self._normalize_keystr(key[1:-1])
                 logging.debug("registered special key: {} -> {}".format(keystr,
                                                                         cmd))

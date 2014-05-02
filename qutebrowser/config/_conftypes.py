@@ -430,6 +430,8 @@ class Command(BaseType):
     typestr = 'command'
 
     def validate(self, value):
+        if not value:
+            return
         if value.split()[0] not in cmdutils.cmd_dict:
             raise ValidationError(value, "must be a valid command!")
 
