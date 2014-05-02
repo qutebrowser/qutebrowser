@@ -156,14 +156,19 @@ class String(BaseType):
 
     typestr = 'string'
 
-    def __init__(self, minlen=None, maxlen=None):
+    def __init__(self, minlen=None, maxlen=None, forbidden=None):
         self.minlen = minlen
         self.maxlen = maxlen
+        self.forbidden = forbidden
 
     def transform(self, value):
         return value.lower()
 
     def validate(self, value):
+        if self.forbidden is not None and any(c in value
+                                              for c in self.forbidden):
+            raise ValidationError(value, "may not contain the chars "
+                                  "\"{}\"".format(self.forbidden))
         if self.minlen is not None and len(value) < self.minlen:
             raise ValidationError(value, "must be at least {} chars "
                                   "long!".format(self.minlen))
