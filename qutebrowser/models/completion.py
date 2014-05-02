@@ -69,6 +69,7 @@ class SettingOptionCompletionModel(BaseCompletionModel):
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
+        """Update misc column when config changed."""
         if section != self._section:
             return
         try:

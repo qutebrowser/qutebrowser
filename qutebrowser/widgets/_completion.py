@@ -147,7 +147,8 @@ class CompletionView(QTreeView):
         for sectname, sect in configdata.DATA.items():
             optmodel = CFM(SettingOptionCompletionModel(sectname, self))
             self._models['option'][sectname] = optmodel
-            config.instance.changed.connect(optmodel.srcmodel.on_config_changed)
+            config.instance.changed.connect(
+                optmodel.srcmodel.on_config_changed)
             if hasattr(sect, 'valtype'):
                 # Same type for all values (ValueList)
                 try:
