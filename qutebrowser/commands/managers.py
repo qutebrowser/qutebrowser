@@ -38,7 +38,9 @@ def split_cmdline(text):
     Return:
         A list of strings.
     """
+    logging.debug("Splitting '{}'".format(text))
     manager = CommandManager()
+    original_cmd = text.strip().split(maxsplit=1)
     try:
         parts = manager.parse(text)
     except NoSuchCommandError:
@@ -46,6 +48,8 @@ def split_cmdline(text):
         if text.endswith(' '):
             parts.append('')
     logging.debug("Split parts: {}".format(parts))
+    if len(parts) == 1 and parts[0]:
+        parts = original_cmd
     return parts
 
 
