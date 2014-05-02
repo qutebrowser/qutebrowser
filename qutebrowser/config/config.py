@@ -32,7 +32,6 @@ import os.path
 import logging
 import textwrap
 import configparser
-from configparser import ExtendedInterpolation
 from collections.abc import MutableMapping
 
 from PyQt5.QtCore import pyqtSignal, QObject
@@ -83,6 +82,35 @@ class NoOptionError(configparser.NoOptionError):
     pass
 
 
+class Interpolation(configparser.ExtendedInterpolation):
+
+    """Subclass of ExtendedInterpolation to change escape char."""
+
+    def _interpolate_some(self, parser, option, accum, rest, section, mapping,
+                          depth):
+        r"""Override _interpolate_some to change the escape char.
+
+        We replace "\$" by "$$" which then gets interpreted as a single $ by
+        the interpolation.
+
+        We also replace "\\" by a single \.
+        """
+        c = ConfigManager.ESCAPE_CHAR
+        if rest is not None:
+            rest = rest.replace(c + '$', '$$').replace(c + c, c)
+        return super()._interpolate_some(parser, option, accum, rest, section,
+                                         mapping, depth)
+
+    def before_set(self, parser, section, option, value):
+        c = ConfigManager.ESCAPE_CHAR
+        tmp_value = value.replace(c + '$', '') # escaped dollar signs
+        tmp_value = self._KEYCRE.sub('', tmp_value) # valid syntax
+        if '$' in tmp_value:
+            raise ValueError("invalid interpolation syntax in %r at "
+                             "position %d" % (value, tmp_value.find('$')))
+        return value
+
+
 class ConfigManager(QObject):
 
     """Configuration manager for qutebrowser.
@@ -90,7 +118,6 @@ class ConfigManager(QObject):
     Class attributes:
         KEY_ESCAPE: Chars which need escaping when they occur as first char
                     in a line.
-        VALUE_ESCAPE: Chars to escape inside values.
         ESCAPE_CHAR: The char to be used for escaping
 
     Attributes:
@@ -110,7 +137,6 @@ class ConfigManager(QObject):
     """
 
     KEY_ESCAPE = r'\#['
-    VALUE_ESCAPE = r'\$'
     ESCAPE_CHAR = '\\'
 
     changed = pyqtSignal(str, str)
@@ -128,7 +154,7 @@ class ConfigManager(QObject):
             'break_on_hyphens': False,
         }
         self._configdir = configdir
-        self._interpolation = ExtendedInterpolation()
+        self._interpolation = Interpolation()
         self._proxies = {}
         for secname in self.sections.keys():
             self._proxies[secname] = SectionProxy(self, secname)
@@ -193,8 +219,6 @@ class ConfigManager(QObject):
                     lines += wrapper.wrap("Valid values: {}".format(', '.join(
                         valid_values)))
             default = option.values['default']
-            for c in self.VALUE_ESCAPE:
-                default = default.replace(c, self.ESCAPE_CHAR + c)
             lines += wrapper.wrap("Default: {}".format(default))
         return lines
 
@@ -206,8 +230,6 @@ class ConfigManager(QObject):
             for c in self.KEY_ESCAPE:
                 if optname.startswith(c):
                     optname = optname.replace(c, self.ESCAPE_CHAR + c, 1)
-            for c in self.VALUE_ESCAPE:
-                value = value.replace(c, self.ESCAPE_CHAR + c)
             keyval = '{} = {}'.format(optname, value)
             lines.append(keyval)
         return lines
@@ -224,8 +246,6 @@ class ConfigManager(QObject):
             for k, v in cp[secname].items():
                 if k.startswith(self.ESCAPE_CHAR):
                     k = k[1:]
-                for c in self.VALUE_ESCAPE:
-                    v = v.replace(self.ESCAPE_CHAR + c, c)
                 try:
                     self.set('conf', secname, k, v)
                 except ValidationError as e:
