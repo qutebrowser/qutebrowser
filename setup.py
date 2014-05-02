@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 import qutebrowser
 
 def read_file(name):
-    with open(name) as f:
+    with open(name, encoding='utf-8') as f:
         return f.read()
 
 setup(

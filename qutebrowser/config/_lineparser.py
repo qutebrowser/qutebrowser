@@ -53,7 +53,7 @@ class LineConfigParser:
 
     def read(self, filename):
         """Read the data from a file."""
-        with open(filename, 'r') as f:
+        with open(filename, 'r', encoding='utf-8') as f:
             self.data = [line.rstrip('\n') for line in f.readlines()]
 
     def write(self, fp, limit=-1):
@@ -82,7 +82,7 @@ class LineConfigParser:
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
         logging.debug("Saving config to {}".format(self._configfile))
-        with open(self._configfile, 'w') as f:
+        with open(self._configfile, 'w', encoding='utf-8') as f:
             self.write(f, limit)
 
     @pyqtSlot(str, str)

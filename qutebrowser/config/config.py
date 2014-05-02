@@ -374,7 +374,7 @@ class ConfigManager(QObject):
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
         logging.debug("Saving config to {}".format(self._configfile))
-        with open(self._configfile, 'w') as f:
+        with open(self._configfile, 'w', encoding='utf-8') as f:
             f.write(str(self))
 
     def dump_userconfig(self):

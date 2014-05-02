@@ -46,7 +46,7 @@ class ReadConfigParser(ConfigParser):
         if not os.path.isfile(self._configfile):
             return
         logging.debug("Reading config from {}".format(self._configfile))
-        self.read(self._configfile)
+        self.read(self._configfile, encoding='utf-8')
 
 
 class ReadWriteConfigParser(ReadConfigParser):
@@ -58,5 +58,5 @@ class ReadWriteConfigParser(ReadConfigParser):
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
         logging.debug("Saving config to {}".format(self._configfile))
-        with open(self._configfile, 'w') as f:
+        with open(self._configfile, 'w', encoding='utf-8') as f:
             self.write(f)

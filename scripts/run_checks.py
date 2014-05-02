@@ -52,6 +52,7 @@ options = {
         ],
     },
     'exclude': ['appdirs.py'],
+    'exclude_pep257': [],
     'other': {
         'pylint': ['--output-format=colorized', '--reports=no',
                    '--rcfile=.pylintrc'],
@@ -59,6 +60,10 @@ options = {
     },
 }
 
+if os.name == 'nt':
+    # pep257 uses cp1252 by default on Windows, which can't handle the unicode
+    # arrows in configdata.py
+    options['exclude_pep257'].append('configdata.py')
 
 def run(name, args=None):
     """Run a checker via distutils with optional args.
@@ -180,7 +185,7 @@ def _get_args(checker):
             pass
         try:
             args += ['--match=(?!{}).*\.py'.format('|'.join(
-                options['exclude']))]
+                options['exclude'] + options['exclude_pep257']))]
         except KeyError:
             pass
         try:

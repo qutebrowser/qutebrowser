@@ -394,7 +394,7 @@ class CurCommandDispatcher(QObject):
         oshandle, filename = mkstemp(text=True)
         text = elem.evaluateJavaScript('this.value')
         if text:
-            with open(filename, 'w') as f:
+            with open(filename, 'w', encoding='utf-8') as f:
                 f.write(text)
         proc = QProcess(self)
         proc.finished.connect(partial(self.on_editor_closed, elem, oshandle,
@@ -431,7 +431,7 @@ class CurCommandDispatcher(QObject):
         if elem.isNull():
             message.error("Element vanished while editing!")
             return
-        with open(filename, 'r') as f:
+        with open(filename, 'r', encoding='utf-8') as f:
             text = ''.join(f.readlines())
             text = webelem.javascript_escape(text)
         logging.debug("Read back: {}".format(text))
