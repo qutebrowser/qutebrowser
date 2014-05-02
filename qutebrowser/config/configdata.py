@@ -421,14 +421,14 @@ DATA = OrderedDict([
 
         ('next-regexes',
          SettingValue(types.RegexList(flags=re.IGNORECASE),
-                      r'\bnext\b,\bmore\b,\bnewer\b,^>$$,^(>>|»|→|≫)$$,'
-                      r'^(>|»|→|≫),(>|»|→|≫)$$'),
+                      r'\bnext\b,\bmore\b,\bnewer\b,^>$,^(>>|»|→|≫)$,'
+                      r'^(>|»|→|≫),(>|»|→|≫)$'),
          "A comma-separated list of regexes to use for 'next' links."),
 
         ('prev-regexes',
          SettingValue(types.RegexList(flags=re.IGNORECASE),
-                      r'\bprev(ious)\b,\bback\b,\bolder\b,^<$$,^(<<|«|←|≪)$$,'
-                      r'^(<|«|←|≪),(<|«|←|≪)$$'),
+                      r'\bprev(ious)\b,\bback\b,\bolder\b,^<$,^(<<|«|←|≪)$,'
+                      r'^(<|«|←|≪),(<|«|←|≪)$'),
          "A comma-separated list of regexes to use for 'prev' links."),
     )),
 
