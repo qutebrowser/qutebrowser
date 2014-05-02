@@ -37,7 +37,7 @@ import qutebrowser.config.configdata as configdata
 from qutebrowser.models.basecompletion import ROLE_MARKS, NoCompletionsError
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 from qutebrowser.commands.managers import split_cmdline
-from qutebrowser.models.completionfilter import CompletionFilterModel
+from qutebrowser.models.completionfilter import CompletionFilterModel as CFM
 from qutebrowser.models.completion import (
     CommandCompletionModel, SettingSectionCompletionModel,
     SettingOptionCompletionModel, SettingValueCompletionModel)
@@ -109,13 +109,11 @@ class CompletionView(QTreeView):
         self._model = None
         self._lastmodel = None
         self._models = {
-            'command': CompletionFilterModel(CommandCompletionModel(self)),
-            'section': CompletionFilterModel(
-                SettingSectionCompletionModel(self)),
             'option': {},
             'value': {},
         }
-        self._init_completions()
+        self._init_command_completion()
+        self._init_setting_completions()
         self._completing = False
 
         self._delegate = _CompletionItemDelegate(self)
@@ -135,16 +133,23 @@ class CompletionView(QTreeView):
         self.hide()
         # FIXME set elidemode
 
-    def _init_completions(self):
-        """Initialize completion models."""
+    def _init_command_completion(self):
+        """Initialize the command completion model."""
+        self._models['command'] = CFM(CommandCompletionModel(self))
+
+    def _init_setting_completions(self):
+        """Initialize setting completion models."""
+        self._models['section'] = CFM(SettingSectionCompletionModel(self))
+        self._models['option'] = {}
+        self._models['value'] = {}
         for sectname, sect in configdata.DATA.items():
-            self._models['option'][sectname] = CompletionFilterModel(
+            self._models['option'][sectname] = CFM(
                 SettingOptionCompletionModel(sectname, self))
             if hasattr(sect, 'valtype'):
                 # Same type for all values (ValueList)
                 try:
-                    model = CompletionFilterModel(
-                        SettingValueCompletionModel(sectname, parent=self))
+                    model = CFM(SettingValueCompletionModel(
+                        sectname, parent=self))
                     self._models['value'][sectname] = FakeDict(model)
                 except NoCompletionsError:
                     pass
@@ -152,9 +157,8 @@ class CompletionView(QTreeView):
                 self._models['value'][sectname] = {}
                 for opt in configdata.DATA[sectname].keys():
                     try:
-                        self._models['value'][sectname][opt] = (
-                            CompletionFilterModel(SettingValueCompletionModel(
-                                sectname, opt, self)))
+                        self._models['value'][sectname][opt] = CFM(
+                            SettingValueCompletionModel(sectname, opt, self))
                     except NoCompletionsError:
                         pass
 
@@ -265,6 +269,8 @@ class CompletionView(QTreeView):
         """Update self._enabled when the config changed."""
         if section == 'completion' and option == 'show':
             self._enabled = config.get('completion', 'show')
+        elif section == 'aliases':
+            self._init_command_completion()
 
     @pyqtSlot(str)
     def on_cmd_text_changed(self, text):
