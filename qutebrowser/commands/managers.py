@@ -165,7 +165,14 @@ class CommandManager:
             except (config.NoOptionError, config.NoSectionError):
                 pass
             else:
-                return self.parse(alias, aliases=False)
+                try:
+                    new_cmd = '{} {}'.format(alias, parts[1])
+                except IndexError:
+                    new_cmd = alias
+                if text.endswith(' '):
+                    new_cmd += ' '
+                logging.debug("Re-parsing with '{}'.".format(new_cmd))
+                return self.parse(new_cmd, aliases=False)
         try:
             cmd = cmdutils.cmd_dict[cmdstr]
         except KeyError:
