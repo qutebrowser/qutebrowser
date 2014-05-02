@@ -340,7 +340,7 @@ class CompletionView(QTreeView):
         self._next_prev_item(prev=False)
 
     def selectionChanged(self, selected, deselected):
-        """Extend selectionChanged to mit change_completed_part if necessary.
+        """Extend selectionChanged to emit change_completed_part if necessary.
 
         Args:
             selected: New selection.
