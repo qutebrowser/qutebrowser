@@ -51,10 +51,9 @@ FIRST_COMMENT = r"""
 # here (as opposed to change/add), for example a keybinding, set it to
 # an empty value.
 #
-# You will need to escape the following value:
+# You will need to escape the following values:
 #   - # at the start of the line (at the first position of the key) (\#)
-#   - $ in a value (\$)
-#   - \ in a value (\\)
+#   - $ in a value ($$)
 """
 
 
