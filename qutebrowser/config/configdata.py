@@ -538,7 +538,7 @@ DATA = OrderedDict([
     )),
 
     ('aliases', sect.ValueList(
-        types.Command(), types.Command(),
+        types.String(forbidden=' '), types.Command(),
     )),
 
     ('colors', sect.KeyValue(
