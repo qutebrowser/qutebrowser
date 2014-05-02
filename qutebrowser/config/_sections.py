@@ -137,10 +137,10 @@ class ValueList(Section):
     They basically consist of two different SettingValues.
 
     Attributes:
-        default: An OrderedDict with the default configuration as strings.
+        layers: An OrderedDict of the config layers.
         keytype: The type to use for the key (only used for validating)
         valtype: The type to use for the value.
-        valdict: The "true value" dict.
+        _ordered_value_cache: A ChainMap-like OrderedDict of all values.
     """
 
     # FIXME how to handle value layers here?
@@ -154,6 +154,7 @@ class ValueList(Section):
             *defaults: A (key, value) list of default values.
         """
         super().__init__()
+        self._ordered_value_cache = None
         self.keytype = keytype
         self.valtype = valtype
         self.layers = OrderedDict([
@@ -172,10 +173,11 @@ class ValueList(Section):
         This is more expensive than the ChainMap, but we need this for
         iterating/items/etc. when order matters.
         """
-        d = OrderedDict()
-        for layer in self.layers.values():
-            d.update(layer)
-        return d
+        if self._ordered_value_cache is None:
+            self._ordered_value_cache = OrderedDict()
+            for layer in self.layers.values():
+                self._ordered_value_cache.update(layer)
+        return self._ordered_value_cache
 
     def setv(self, layer, key, value, interpolated):
         self.keytype.validate(key)
@@ -185,6 +187,7 @@ class ValueList(Section):
             val = SettingValue(self.valtype)
             val.setv(layer, value, interpolated)
             self.layers[layer][key] = val
+        self._ordered_value_cache = None
 
     def dump_userconfig(self):
         changed = []
