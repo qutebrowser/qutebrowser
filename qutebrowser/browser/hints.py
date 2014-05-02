@@ -334,10 +334,14 @@ class HintManager(QObject):
         Emit:
             hint_strings_updated: Emitted to update keypraser.
         """
+        try:
+            elems = frame.findAllElements(webelem.SELECTORS[mode])
+        except KeyError:
+            message.error("Hinting mode '{}' does not exist!".format(mode))
+            return
         self._target = target
         self._baseurl = baseurl
         self._frame = frame
-        elems = frame.findAllElements(webelem.SELECTORS[mode])
         filterfunc = webelem.FILTERS.get(mode, lambda e: True)
         visible_elems = []
         for e in elems:
@@ -357,7 +361,11 @@ class HintManager(QObject):
             'cmd_bgtab': "Set hint in commandline as background tab...",
             'rapid': "Follow hint (rapid mode)...",
         }
-        message.text(texts[target])
+        try:
+            message.text(texts[target])
+        except KeyError:
+            message.error("Hinting target '{}' does not exist!".format(target))
+            return
         strings = self._hint_strings(visible_elems)
         for e, string in zip(visible_elems, strings):
             label = self._draw_label(e, string)
