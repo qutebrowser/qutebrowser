@@ -90,7 +90,6 @@ class ConfigManager(QObject):
     Class attributes:
         KEY_ESCAPE: Chars which need escaping when they occur as first char
                     in a line.
-        VALUE_ESCAPE: Chars to escape inside values.
         ESCAPE_CHAR: The char to be used for escaping
 
     Attributes:
@@ -110,7 +109,6 @@ class ConfigManager(QObject):
     """
 
     KEY_ESCAPE = r'\#['
-    VALUE_ESCAPE = r'\$'
     ESCAPE_CHAR = '\\'
 
     changed = pyqtSignal(str, str)
@@ -204,8 +202,6 @@ class ConfigManager(QObject):
             for c in self.KEY_ESCAPE:
                 if optname.startswith(c):
                     optname = optname.replace(c, self.ESCAPE_CHAR + c, 1)
-            for c in self.VALUE_ESCAPE:
-                value = value.replace(c, self.ESCAPE_CHAR + c)
             keyval = '{} = {}'.format(optname, value)
             lines.append(keyval)
         return lines
@@ -222,8 +218,6 @@ class ConfigManager(QObject):
             for k, v in cp[secname].items():
                 if k.startswith(self.ESCAPE_CHAR):
                     k = k[1:]
-                for c in self.VALUE_ESCAPE:
-                    v = v.replace(self.ESCAPE_CHAR + c, c)
                 try:
                     self.set('conf', secname, k, v)
                 except ValidationError as e:
