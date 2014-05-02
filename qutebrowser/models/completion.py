@@ -74,7 +74,7 @@ class SettingOptionCompletionModel(BaseCompletionModel):
             # changed before init
             return
         val = config.get(section, option)
-        item.setData(val, Qt.DisplayRole)
+        self.setData(item.index(), val, Qt.DisplayRole)
 
 
 class SettingValueCompletionModel(BaseCompletionModel):
