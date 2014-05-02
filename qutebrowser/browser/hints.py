@@ -344,6 +344,11 @@ class HintManager(QObject):
             return
         self._target = target
         self._baseurl = baseurl
+        if frame is None:
+            # This should never happen since we check frame before calling
+            # start. But since we had a bug where frame is None in
+            # on_mode_left, we are extra careful here.
+            raise ValueError("start() was called with frame=None")
         self._frame = frame
         filterfunc = webelem.FILTERS.get(mode, lambda e: True)
         visible_elems = []
