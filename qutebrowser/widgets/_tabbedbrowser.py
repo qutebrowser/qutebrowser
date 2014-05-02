@@ -322,6 +322,23 @@ class TabbedBrowser(TabWidget):
         """
         self.paste(sel, True)
 
+    @cmdutils.register(instance='mainwindow.tabs')
+    def focus_tab(self, arg=None, count=None):
+        if ((arg is None and count is None) or
+                (arg is not None and count is not None)):
+            message.error("Either argument or count must be given!")
+            return
+        try:
+            idx = int(arg) if arg is not None else count
+        except ValueError:
+            message.error("Invalid argument: {}".format(arg))
+            return
+        if 1 <= idx <= self.count():
+            self.setCurrentIndex(idx - 1)
+        else:
+            message.error("Index out of bounds!")
+            return
+
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update tab config when config was changed."""

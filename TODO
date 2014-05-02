@@ -48,7 +48,6 @@ somehow unfocus elements (hide blinking cursor) when insert mode is left?
 tabs: some more padding?
 exec command for shell
 custom stylesheet
-Alt+N to focus tab N
 Really fix URL detection properly
 
 hints
