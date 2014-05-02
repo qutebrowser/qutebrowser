@@ -200,6 +200,16 @@ class ShellCommand(String):
         return shlex.split(value)
 
 
+class HintMode(BaseType):
+
+    """Base class for the hints -> mode setting."""
+
+    typestr = 'hint-mode'
+
+    valid_values = ValidValues(('number', "Use numeric hints."),
+                               ('letter', "Use the chars in hints -> chars."))
+
+
 class Bool(BaseType):
 
     """Base class for a boolean setting.

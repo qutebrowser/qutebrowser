@@ -410,6 +410,10 @@ DATA = OrderedDict([
          SettingValue(types.Float(minval=0.0, maxval=1.0), '0.7'),
          "Opacity for hints."),
 
+        ('mode',
+         SettingValue(types.HintMode(), 'letter'),
+         "Mode to use for hints, 'number' or 'letter'."),
+
         ('chars',
          SettingValue(types.String(minlen=2), 'asdfghjkl'),
          "Chars used for hint strings."),

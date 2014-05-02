@@ -245,6 +245,11 @@ class CurCommandDispatcher(QObject):
         """Fire a completed hint."""
         self._tabs.currentWidget().hintmanager.fire(keystr)
 
+    @pyqtSlot(str)
+    def filter_hints(self, filterstr):
+        """Filter displayed hints."""
+        self._tabs.currentWidget().hintmanager.filter_hints(filterstr)
+
     @cmdutils.register(instance='mainwindow.tabs.cur')
     def prevpage(self):
         """Open a "previous" link."""

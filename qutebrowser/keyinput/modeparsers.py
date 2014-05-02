@@ -21,9 +21,12 @@ Module attributes:
     STARTCHARS: Possible chars for starting a commandline input.
 """
 
-from PyQt5.QtCore import pyqtSignal
+import logging
+
+from PyQt5.QtCore import pyqtSignal, Qt
 
 import qutebrowser.utils.message as message
+import qutebrowser.config.config as config
 from qutebrowser.keyinput.keyparser import CommandKeyParser
 
 
@@ -61,13 +64,64 @@ class HintKeyParser(CommandKeyParser):
     Signals:
         fire_hint: When a hint keybinding was completed.
                    Arg: the keystring/hint string pressed.
+        filter_hints: When the filter text changed.
+                      Arg: the text to filter hints with.
+
+    Attributes:
+        _filtertext: The text to filter with.
     """
 
     fire_hint = pyqtSignal(str)
+    filter_hints = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent, supports_count=False, supports_chains=True)
+        self._filtertext = ''
         self.read_config('keybind.hint')
+
+    def _handle_special_key(self, e):
+        """Override _handle_special_key to handle string filtering.
+
+        Return True if the keypress has been handled, and False if not.
+
+        Args:
+            e: the KeyPressEvent from Qt.
+
+        Return:
+            True if event has been handled, False otherwise.
+
+        Emit:
+            filter_hints: Emitted when filter string has changed.
+        """
+        logging.debug("Got special key {} text {}".format(e.key(), e.text()))
+        if config.get('hints', 'mode') != 'number':
+            return super()._handle_special_key(e)
+        elif e.key() == Qt.Key_Backspace:
+            if self._filtertext:
+                self._filtertext = self._filtertext[:-1]
+                self.filter_hints.emit(self._filtertext)
+            return True
+        elif not e.text():
+            return super()._handle_special_key(e)
+        else:
+            self._filtertext += e.text()
+            self.filter_hints.emit(self._filtertext)
+            return True
+
+    def handle(self, e):
+        """Handle a new keypress and call the respective handlers.
+
+        Args:
+            e: the KeyPressEvent from Qt
+
+        Emit:
+            keystring_updated: If a new keystring should be set.
+        """
+        handled = self._handle_single_key(e)
+        if handled:
+            self.keystring_updated.emit(self._keystring)
+            return handled
+        return self._handle_special_key(e)
 
     def execute(self, cmdstr, keytype, count=None):
         """Handle a completed keychain.
@@ -88,3 +142,4 @@ class HintKeyParser(CommandKeyParser):
             strings: A list of hint strings.
         """
         self.bindings = {s: s for s in strings}
+        self._filtertext = ''

@@ -284,6 +284,7 @@ class QuteBrowser(QApplication):
 
         # hints
         kp['hint'].fire_hint.connect(tabs.cur.fire_hint)
+        kp['hint'].filter_hints.connect(tabs.cur.filter_hints)
         kp['hint'].keystring_updated.connect(tabs.cur.handle_hint_key)
         tabs.hint_strings_updated.connect(kp['hint'].on_hint_strings_updated)
 

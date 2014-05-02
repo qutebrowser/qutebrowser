@@ -107,7 +107,10 @@ class HintManager(QObject):
         Return:
             A list of hint strings, in the same order as the elements.
         """
-        chars = config.get("hints", "chars")
+        if config.get('hints', 'mode') == 'number':
+            chars = '0123456789'
+        else:
+            chars = config.get('hints', 'chars')
         # Determine how many digits the link hints will require in the worst
         # case. Usually we do not need all of these digits for every link
         # single hint, so we can show shorter hints for a few of the links.
@@ -388,6 +391,22 @@ class HintManager(QObject):
                 delete.append(string)
         for key in delete:
             del self._elems[key]
+
+    def filter_hints(self, filterstr):
+        """Filter displayed hints according to a text."""
+        delete = []
+        for (string, elems) in self._elems.items():
+            if not elems.elem.toPlainText().lower().startswith(filterstr):
+                elems.label.removeFromDocument()
+                delete.append(string)
+        for key in delete:
+            del self._elems[key]
+        if not self._elems:
+            # Whoops, filtered all hints
+            modeman.leave('hint')
+        elif len(self._elems) == 1 and config.get('hints', 'auto-follow'):
+            # unpacking gets us the first (and only) key in the dict.
+            self.fire(*self._elems)
 
     def fire(self, keystr, force=False):
         """Fire a completed hint.

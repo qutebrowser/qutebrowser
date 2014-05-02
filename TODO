@@ -50,8 +50,8 @@ hints
 
 bindings for prev/next hint
 more intelligent clicking (end of textfields)
-filtering when typing part of name
 filter close hints when it's the same link
+ignore keypresses shortly after link following
 
 Qt Bugs
 ========
