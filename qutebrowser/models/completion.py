@@ -17,6 +17,7 @@
 
 """CompletionModels for different usages."""
 
+import qutebrowser.config.config as config
 import qutebrowser.config.configdata as configdata
 from qutebrowser.models.basecompletion import (BaseCompletionModel,
                                                NoCompletionsError)
@@ -94,6 +95,8 @@ class CommandCompletionModel(BaseCompletionModel):
         for obj in set(cmd_dict.values()):
             if not obj.hide:
                 cmdlist.append((obj.name, obj.desc))
+        for name, cmd in config.instance['aliases'].items():
+            cmdlist.append((name, "Alias for \"{}\"".format(cmd)))
         cat = self.new_category("Commands")
         for (name, desc) in sorted(cmdlist):
             self.new_item(cat, name, desc)
