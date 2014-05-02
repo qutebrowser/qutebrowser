@@ -44,7 +44,7 @@ class BaseCompletionModel(QStandardItemModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setColumnCount(2)
+        self.setColumnCount(3)
 
     def _get_marks(self, needle, haystack):
         """Return the marks for needle in haystack.
@@ -95,19 +95,29 @@ class BaseCompletionModel(QStandardItemModel):
         self.appendRow(cat)
         return cat
 
-    def new_item(self, cat, name, desc=''):
+    def new_item(self, cat, name, desc='', misc=None):
         """Add a new item to a category.
 
         Args:
             cat: The parent category.
             name: The name of the item.
             desc: The description of the item.
+            misc: Misc text to display.
+
+        Return:
+            A (nameitem, descitem, miscitem) tuple.
         """
         nameitem = QStandardItem(name)
         descitem = QStandardItem(desc)
+        if misc is None:
+            miscitem = QStandardItem()
+        else:
+            miscitem = QStandardItem(misc)
         idx = cat.rowCount()
         cat.setChild(idx, 0, nameitem)
         cat.setChild(idx, 1, descitem)
+        cat.setChild(idx, 2, miscitem)
+        return nameitem, descitem, miscitem
 
     def flags(self, index):
         """Return the item flags for index.

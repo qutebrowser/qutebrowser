@@ -40,12 +40,17 @@ class SettingSectionCompletionModel(BaseCompletionModel):
 
 class SettingOptionCompletionModel(BaseCompletionModel):
 
-    """A CompletionModel filled with settings and their descriptions."""
+    """A CompletionModel filled with settings and their descriptions.
+
+    Attributes:
+        misc_items: A dict of the misc. column items which will be set later.
+    """
 
     # pylint: disable=abstract-method
 
     def __init__(self, section, parent=None):
         super().__init__(parent)
+        self.misc_items = {}
         cat = self.new_category("Config options for {}".format(section))
         sectdata = configdata.DATA[section]
         for name, _ in sectdata.items():
@@ -53,7 +58,11 @@ class SettingOptionCompletionModel(BaseCompletionModel):
                 desc = sectdata.descriptions[name]
             except (KeyError, AttributeError):
                 desc = ""
-            self.new_item(cat, name, desc)
+            value = config.get(section, name, raw=True)
+            _valitem, _descitem, miscitem = self.new_item(cat, name, desc,
+                                                          value)
+            self.misc_items[section] = {}
+            self.misc_items[section][name] = miscitem
 
 
 class SettingValueCompletionModel(BaseCompletionModel):
