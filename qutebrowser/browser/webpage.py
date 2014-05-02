@@ -22,6 +22,7 @@ from PyQt5.QtNetwork import QNetworkReply
 from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.utils.url as urlutils
+import qutebrowser.config.config as config
 from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.utils.misc import read_file
 
@@ -68,6 +69,14 @@ class BrowserPage(QWebPage):
         errpage.content = read_file('html/error.html').format(
             title=title, url=urlstr, error=info.errorString, icon='')
         return True
+
+    def userAgentForUrl(self, url):
+        """Override QWebPage::userAgentForUrl to customize the user agent."""
+        ua = config.get('network', 'user-agent')
+        if not ua:
+            return super().userAgentForUrl(url)
+        else:
+            return ua
 
     def supportsExtension(self, ext):
         """Override QWebPage::supportsExtension to provide error pages.

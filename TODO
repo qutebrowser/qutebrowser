@@ -32,7 +32,6 @@ history
 Minor features
 ==============
 
-set useragent
 show current value in setting completions
 handle completion for aliases
 keybind should have completion for commands/arguments

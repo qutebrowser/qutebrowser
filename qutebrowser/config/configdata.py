@@ -201,6 +201,10 @@ DATA = OrderedDict([
         ('accept-language',
          SettingValue(types.String(), 'en-US,en'),
          "Value to send in the accept-language header."),
+
+        ('user-agent',
+         SettingValue(types.String(), ''),
+         "User agent to send. Empty to send the default."),
     )),
 
     ('completion', sect.KeyValue(
