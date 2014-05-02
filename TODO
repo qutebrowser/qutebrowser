@@ -46,7 +46,6 @@ catch import errors for PyQt and QtWebKit
          elem = frame.findFirstElement('*:focus')
 somehow unfocus elements (hide blinking cursor) when insert mode is left?
 tabs: some more padding?
-localhost:8080 opens searchresults
 exec command for shell
 custom stylesheet
 Alt+N to focus tab N

@@ -70,9 +70,18 @@ def _is_url_naive(url):
         True if the url really is an URL, False otherwise.
     """
     protocols = ['http://', 'https://']
-    u = urlstring(url)
-    return (any(u.startswith(proto) for proto in protocols) or '.' in u or
-            u == 'localhost')
+    if isinstance(url, QUrl):
+        u = url
+    else:
+        u = QUrl.fromUserInput(url)
+    if u.scheme() in protocols:
+        return True
+    elif '.' in u.host():
+        return True
+    elif u.host() == 'localhost':
+        return True
+    else:
+        return False
 
 
 def _is_url_dns(url):
@@ -127,7 +136,7 @@ def fuzzy_url(url):
     """
     u = qurl(url)
     urlstr = urlstring(url)
-    if is_url(u):
+    if is_url(urlstr):
         # probably an address
         logging.debug("url is a fuzzy address")
         newurl = QUrl.fromUserInput(urlstr)
