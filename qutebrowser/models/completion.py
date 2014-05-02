@@ -17,6 +17,8 @@
 
 """CompletionModels for different usages."""
 
+from PyQt5.QtCore import pyqtSlot, Qt
+
 import qutebrowser.config.config as config
 import qutebrowser.config.configdata as configdata
 from qutebrowser.models.basecompletion import (BaseCompletionModel,
@@ -63,6 +65,16 @@ class SettingOptionCompletionModel(BaseCompletionModel):
                                                           value)
             self.misc_items[section] = {}
             self.misc_items[section][name] = miscitem
+
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
+        try:
+            item = self.misc_items[section][option]
+        except KeyError:
+            # changed before init
+            return
+        val = config.get(section, option)
+        item.setData(val, Qt.DisplayRole)
 
 
 class SettingValueCompletionModel(BaseCompletionModel):
