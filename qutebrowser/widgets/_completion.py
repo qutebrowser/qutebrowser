@@ -41,6 +41,7 @@ from qutebrowser.models.completionfilter import CompletionFilterModel
 from qutebrowser.models.completion import (
     CommandCompletionModel, SettingSectionCompletionModel,
     SettingOptionCompletionModel, SettingValueCompletionModel)
+from qutebrowser.utils.usertypes import FakeDict
 
 
 class CompletionView(QTreeView):
@@ -114,17 +115,7 @@ class CompletionView(QTreeView):
             'option': {},
             'value': {},
         }
-        for sect in configdata.DATA.keys():
-            self._models['option'][sect] = CompletionFilterModel(
-                SettingOptionCompletionModel(sect, self))
-            self._models['value'][sect] = {}
-            for opt in configdata.DATA[sect].keys():
-                try:
-                    self._models['value'][sect][opt] = (
-                        CompletionFilterModel(SettingValueCompletionModel(
-                            sect, opt, self)))
-                except NoCompletionsError:
-                    pass
+        self._init_completions()
         self._completing = False
 
         self._delegate = _CompletionItemDelegate(self)
@@ -143,6 +134,29 @@ class CompletionView(QTreeView):
         self.setUniformRowHeights(True)
         self.hide()
         # FIXME set elidemode
+
+    def _init_completions(self):
+        """Initialize completion models."""
+        for sectname, sect in configdata.DATA.items():
+            self._models['option'][sectname] = CompletionFilterModel(
+                SettingOptionCompletionModel(sectname, self))
+            if hasattr(sect, 'valtype'):
+                # Same type for all values (ValueList)
+                try:
+                    model = CompletionFilterModel(
+                        SettingValueCompletionModel(sectname, parent=self))
+                    self._models['value'][sectname] = FakeDict(model)
+                except NoCompletionsError:
+                    pass
+            else:
+                self._models['value'][sectname] = {}
+                for opt in configdata.DATA[sectname].keys():
+                    try:
+                        self._models['value'][sectname][opt] = (
+                            CompletionFilterModel(SettingValueCompletionModel(
+                                sectname, opt, self)))
+                    except NoCompletionsError:
+                        pass
 
     def _next_idx(self, upwards):
         """Get the previous/next QModelIndex displayed in the view.

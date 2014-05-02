@@ -61,10 +61,20 @@ class SettingValueCompletionModel(BaseCompletionModel):
 
     # pylint: disable=abstract-method
 
-    def __init__(self, section, option, parent=None):
+    def __init__(self, section, option=None, parent=None):
         super().__init__(parent)
-        cat = self.new_category("Setting values for {}".format(option))
-        vals = configdata.DATA[section][option].typ.complete()
+        if hasattr(configdata.DATA[section], 'valtype'):
+            # Same type for all values (ValueList)
+            cat = self.new_category("Setting values for {} options".format(
+                section))
+            vals = configdata.DATA[section].valtype.complete()
+        else:
+            if option is None:
+                raise ValueError("option may only be None for ValueList "
+                                 "sections, but {} is not!".format(section))
+            # Different type for each value (KeyValue)
+            cat = self.new_category("Setting values for {}".format(option))
+            vals = configdata.DATA[section][option].typ.complete()
         if vals is None:
             raise NoCompletionsError
         for (val, desc) in vals:

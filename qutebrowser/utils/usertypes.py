@@ -140,3 +140,18 @@ class NeighborList:
         else:
             self.idx = self._items.index(self._default)
             return self.curitem()
+
+
+class FakeDict:
+
+    """A fake dictionary which always returns the same value.
+
+    Attributes:
+        _val: The value to return.
+    """
+
+    def __init__(self, val):
+        self._val = val
+
+    def __getitem__(self, _key):
+        return self._val
