@@ -45,16 +45,18 @@ class SettingOptionCompletionModel(BaseCompletionModel):
     """A CompletionModel filled with settings and their descriptions.
 
     Attributes:
-        misc_items: A dict of the misc. column items which will be set later.
+        _section: The section of this model.
+        _misc_items: A dict of the misc. column items which will be set later.
     """
 
     # pylint: disable=abstract-method
 
     def __init__(self, section, parent=None):
         super().__init__(parent)
-        self.misc_items = {}
         cat = self.new_category("Config options for {}".format(section))
         sectdata = configdata.DATA[section]
+        self._misc_items = {}
+        self._section = section
         for name, _ in sectdata.items():
             try:
                 desc = sectdata.descriptions[name]
@@ -63,13 +65,14 @@ class SettingOptionCompletionModel(BaseCompletionModel):
             value = config.get(section, name, raw=True)
             _valitem, _descitem, miscitem = self.new_item(cat, name, desc,
                                                           value)
-            self.misc_items[section] = {}
-            self.misc_items[section][name] = miscitem
+            self._misc_items[name] = miscitem
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
+        if section != self._section:
+            return
         try:
-            item = self.misc_items[section][option]
+            item = self._misc_items[option]
         except KeyError:
             # changed before init
             return
