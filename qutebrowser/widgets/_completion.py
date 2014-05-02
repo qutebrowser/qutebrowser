@@ -55,6 +55,7 @@ class CompletionView(QTreeView):
 
     Class attributes:
         STYLESHEET: The stylesheet template for the CompletionView.
+        COLUMN_WIDTHS: A list of column widths, in percent.
 
     Attributes:
         _model: The currently active filter model.
@@ -100,6 +101,7 @@ class CompletionView(QTreeView):
             {color[completion.item.selected.fg]}
         }}
     """
+    COLUMN_WIDTHS = [20, 70, 10]
 
     change_completed_part = pyqtSignal(str)
 
@@ -143,8 +145,9 @@ class CompletionView(QTreeView):
         self._models['option'] = {}
         self._models['value'] = {}
         for sectname, sect in configdata.DATA.items():
-            self._models['option'][sectname] = CFM(
-                SettingOptionCompletionModel(sectname, self))
+            optmodel = CFM(SettingOptionCompletionModel(sectname, self))
+            self._models['option'][sectname] = optmodel
+            config.instance.changed.connect(optmodel.srcmodel.on_config_changed)
             if hasattr(sect, 'valtype'):
                 # Same type for all values (ValueList)
                 try:
@@ -161,6 +164,16 @@ class CompletionView(QTreeView):
                             SettingValueCompletionModel(sectname, opt, self))
                     except NoCompletionsError:
                         pass
+
+    def _resize_columns(self):
+        """Resize the completion columns based on COLUMN_WIDTHS."""
+        width = self.size().width()
+        pixel_widths = [(width * perc // 100) for perc in self.COLUMN_WIDTHS]
+        if self.verticalScrollBar().isVisible():
+            pixel_widths[-1] -= self.style().pixelMetric(
+                QStyle.PM_ScrollBarExtent) + 5
+        for i, w in enumerate(pixel_widths):
+            self.setColumnWidth(i, w)
 
     def _next_idx(self, upwards):
         """Get the previous/next QModelIndex displayed in the view.
@@ -262,7 +275,7 @@ class CompletionView(QTreeView):
         self.setModel(model)
         self._model = model
         self.expandAll()
-        self.resizeColumnToContents(0)
+        self._resize_columns()
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
@@ -355,6 +368,11 @@ class CompletionView(QTreeView):
             if data is not None:
                 self.change_completed_part.emit(data)
         super().selectionChanged(selected, deselected)
+
+    def resizeEvent(self, e):
+        """Extend resizeEvent to adjust column size."""
+        super().resizeEvent(e)
+        self._resize_columns()
 
 
 class _CompletionItemDelegate(QStyledItemDelegate):
