@@ -341,7 +341,8 @@ class ConfigManager(QObject):
         """
         try:
             self.set('conf', section, option, value)
-        except (NoOptionError, NoSectionError, ValidationError) as e:
+        except (NoOptionError, NoSectionError, ValidationError,
+                ValueError) as e:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
     @cmdutils.register(name='set_temp', instance='config',
