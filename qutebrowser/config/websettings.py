@@ -24,6 +24,8 @@ Module attributes:
     settings: The global QWebSettings singleton instance.
 """
 
+# pylint: disable=unnecessary-lambda
+
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWebKit import QWebSettings
 
@@ -98,6 +100,7 @@ STATIC_SETTERS = {
         lambda v: QWebSettings.setOfflineWebApplicationCacheQuota(v),
 }
 
+
 settings = None
 
 
@@ -126,7 +129,6 @@ def init(cachedir):
 def on_config_changed(section, option):
     """Update global settings when qwebsettings changed."""
     if section == 'webkit':
-        settings = QWebSettings.globalSettings()
         value = config.get(section, option)
         if option in ATTRIBUTES:
             settings.setAttribute(ATTRIBUTES[option], value)

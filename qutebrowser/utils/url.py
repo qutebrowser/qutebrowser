@@ -134,7 +134,6 @@ def fuzzy_url(url):
     Return:
         A target QUrl to a searchpage or the original URL.
     """
-    u = qurl(url)
     urlstr = urlstring(url)
     if is_url(urlstr):
         # probably an address
