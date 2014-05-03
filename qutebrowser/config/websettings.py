@@ -101,9 +101,14 @@ STATIC_SETTERS = {
 settings = None
 
 
-def init():
-    """Initialize the global QWebSettings."""
+def init(cachedir):
+    """Initialize the global QWebSettings.
+
+    Args:
+        cachedir: Directory to save cache files in.
+    """
     global settings
+    QWebSettings.enablePersistentStorage(cachedir)
     settings = QWebSettings.globalSettings()
     for name, item in ATTRIBUTES.items():
         settings.setAttribute(item, config.get('webkit', name))

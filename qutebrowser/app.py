@@ -125,7 +125,7 @@ class QuteBrowser(QApplication):
             # We didn't really initialize much so far, so we just quit hard.
             sys.exit(1)
         self.config = config.instance
-        websettings.init()
+        websettings.init(self._dirs.user_cache_dir)
 
         self.commandmanager = CommandManager()
         self.searchmanager = SearchManager()
