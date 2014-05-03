@@ -399,6 +399,10 @@ DATA = OrderedDict([
         ('site-specific-quirks-enabled',
          SettingValue(types.Bool(), 'true'),
          "This setting enables WebKit's workaround for broken sites."),
+
+        ('user-stylesheet',
+         SettingValue(types.WebSettingsFile(), ''),
+         "User stylesheet to set."),
     )),
 
     ('hints', sect.KeyValue(

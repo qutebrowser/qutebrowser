@@ -18,8 +18,9 @@
 """Bridge from QWebSettings to our own settings.
 
 Module attributes:
-    MAPPING: A mapping from internal setting names to QWebSetting enum
-             constants.
+    ATTRIBUTES: A mapping from internal setting names to QWebSetting enum
+                constants.
+    SETTERS: A mapping from setting names to QWebSetting setter method names.
     settings: The global QWebSettings singleton instance.
 """
 
@@ -29,7 +30,7 @@ from PyQt5.QtWebKit import QWebSettings
 import qutebrowser.config.config as config
 
 
-MAPPING = {
+ATTRIBUTES = {
     # noqa
     'auto-load-images': QWebSettings.AutoLoadImages,
     'dns-prefetch-enabled': QWebSettings.DnsPrefetchEnabled,
@@ -63,6 +64,12 @@ MAPPING = {
     'site-specific-quirks-enabled': QWebSettings.SiteSpecificQuirksEnabled,
 }
 
+
+SETTERS = {
+    'user-stylesheet': 'setUserStyleSheetUrl'
+}
+
+
 settings = None
 
 
@@ -70,8 +77,13 @@ def init():
     """Initialize the global QWebSettings."""
     global settings
     settings = QWebSettings.globalSettings()
-    for name, item in MAPPING.items():
+    for name, item in ATTRIBUTES.items():
         settings.setAttribute(item, config.get('webkit', name))
+    for name, method in SETTERS.items():
+        value = config.get('webkit', name)
+        if value is not None:
+            setter = getattr(settings, method)
+            setter(value)
 
 
 @pyqtSlot(str, str)
@@ -79,4 +91,8 @@ def on_config_changed(section, option):
     """Update global settings when qwebsettings changed."""
     if section == 'webkit':
         value = config.get(section, option)
-        settings.setAttribute(MAPPING[option], value)
+        if option in ATTRIBUTES:
+            settings.setAttribute(ATTRIBUTES[option], value)
+        elif option in SETTERS and value is not None:
+            setter = getattr(settings, SETTERS[option])
+            setter(value)

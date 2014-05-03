@@ -19,8 +19,10 @@
 
 import re
 import shlex
+import os.path
 from sre_constants import error as RegexError
 
+from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor
 
 import qutebrowser.commands.utils as cmdutils
@@ -564,6 +566,32 @@ class RegexList(List):
         except RegexError as e:
             raise ValidationError(value, "must be a list valid regexes - " +
                                   str(e))
+
+
+class File(BaseType):
+
+    """A file on the local filesystem."""
+
+    def validate(self, value):
+        if not os.path.isfile(value):
+            raise ValidationError(value, "must be a valid file!")
+
+
+class WebSettingsFile(File):
+
+    """QWebSettings file which also can be none."""
+
+    def validate(self, value):
+        if not value:
+            # empty values are okay
+            return
+        super().validate(value)
+
+    def transform(self, value):
+        if value is None:
+            return value
+        else:
+            return QUrl.fromLocalFile(value)
 
 
 class AutoSearch(BaseType):

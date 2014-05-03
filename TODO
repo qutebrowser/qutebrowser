@@ -46,7 +46,6 @@ catch import errors for PyQt and QtWebKit
          elem = frame.findFirstElement('*:focus')
 somehow unfocus elements (hide blinking cursor) when insert mode is left?
 tabs: some more padding?
-custom stylesheet
 Really fix URL detection properly
 
 hints
