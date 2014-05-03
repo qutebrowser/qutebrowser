@@ -25,11 +25,16 @@ DATA: The config defaults, an OrderedDict of sections.
 """
 
 import re
+import struct
 from collections import OrderedDict
 
 from qutebrowser.config._value import SettingValue
 import qutebrowser.config._conftypes as types
 import qutebrowser.config._sections as sect
+
+
+INT_MAX = 2 ** (8 * struct.calcsize('@i')) // 2 - 1
+INT64_MAX = 2 ** 64 // 2 - 1
 
 
 FIRST_COMMENT = r"""
@@ -403,6 +408,72 @@ DATA = OrderedDict([
         ('user-stylesheet',
          SettingValue(types.WebSettingsFile(), ''),
          "User stylesheet to set."),
+
+        ('css-media-type',
+         SettingValue(types.String(), ''),
+         "Set the CSS media type."),
+
+        ('default-encoding',
+         SettingValue(types.String(), ''),
+         "Default encoding to use for websites."),
+
+        ('font-family-standard',
+         SettingValue(types.String(), ''),
+         "Font family for standard fonts."),
+
+        ('font-family-fixed',
+         SettingValue(types.String(), ''),
+         "Font family for fixed fonts."),
+
+        ('font-family-serif',
+         SettingValue(types.String(), ''),
+         "Font family for serif fonts."),
+
+        ('font-family-sans-serif',
+         SettingValue(types.String(), ''),
+         "Font family for sans-serif fonts."),
+
+        ('font-family-cursive',
+         SettingValue(types.String(), ''),
+         "Font family for cursive fonts."),
+
+        ('font-family-fantasy',
+         SettingValue(types.String(), ''),
+         "Font family for fantasy fonts."),
+
+        ('font-size-minimum',
+         SettingValue(types.String(), ''),
+         "The hard minimum font size."),
+
+        ('font-size-minimum-logical',
+         SettingValue(types.String(), ''),
+         "The minimum logical font size that is applied when zooming out."),
+
+        ('font-size-default',
+         SettingValue(types.String(), ''),
+         "The default font size for regular text."),
+
+        ('font-size-default-fixed',
+         SettingValue(types.String(), ''),
+         "The default font size for fixed-pitch text."),
+
+        ('maximum-pages-in-cache',
+         SettingValue(types.NoneInt(), ''),
+         "The default font size for fixed-pitch text."),
+
+        ('object-cache-capacities',
+         SettingValue(types.WebKitBytesList(length=3, maxsize=INT_MAX), ''),
+         "Specifies the capacities for the memory cache for dead objects "
+         "such as stylesheets or scripts. Three values are expected: "
+         "cacheMinDeadCapacity, cacheMaxDead, totalCapacity"),
+
+        ('offline-storage-default-quota',
+         SettingValue(types.WebKitBytes(maxsize=INT64_MAX), ''),
+         "Default quota for new offline storage databases."),
+
+        ('offline-web-application-cache-quota',
+         SettingValue(types.WebKitBytes(maxsize=INT64_MAX), ''),
+         "Quota for the offline web application cache>"),
     )),
 
     ('hints', sect.KeyValue(

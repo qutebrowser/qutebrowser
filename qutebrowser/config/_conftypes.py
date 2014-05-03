@@ -268,6 +268,22 @@ class Int(BaseType):
                                   self.maxval))
 
 
+class NoneInt(BaseType):
+
+    """Int or None."""
+
+    def transform(self, value):
+        if value == '':
+            return None
+        else:
+            return super().transform(value)
+
+    def validate(self, value):
+        if value == '':
+            return
+        super().validate(value)
+
+
 class Float(BaseType):
 
     """Base class for an float setting.
@@ -440,6 +456,88 @@ class PercOrInt(BaseType):
                                   self.maxint))
 
 
+class WebKitBytes(BaseType):
+
+    """A size with an optional suffix.
+
+    Attributes:
+        maxsize: The maximum size to be used.
+
+    Class attributes:
+        SUFFIXES: A mapping of size suffixes to multiplicators.
+    """
+
+    SUFFIXES = {
+        'k': 1024 ** 1,
+        'm': 1024 ** 2,
+        'g': 1024 ** 3,
+        't': 1024 ** 4,
+        'p': 1024 ** 5,
+        'e': 1024 ** 6,
+        'z': 1024 ** 7,
+        'y': 1024 ** 8,
+    }
+
+    def __init__(self, maxsize=None):
+        self.maxsize = maxsize
+
+    def validate(self, value):
+        if value == '':
+            return
+        try:
+            val = self.transform(value)
+        except ValueError:
+            raise ValidationError(value, "must be a valid integer with "
+                                         "optional suffix!")
+        if self.maxsize is not None and val > self.maxsize:
+            raise ValidationError(value, "must be {} "
+                                         "maximum!".format(self.maxsize))
+
+    def transform(self, value):
+        if value == '':
+            return None
+        if any(value.lower().endswith(c) for c in self.SUFFIXES):
+            suffix = value[-1].lower()
+            val = value[:-1]
+            multiplicator = self.SUFFIXES[suffix]
+        else:
+            val = value
+            multiplicator = 1
+        return int(val) * multiplicator
+
+
+class WebKitBytesList(List):
+
+    """A size with an optional suffix.
+
+    Attributes:
+        length: The length of the list.
+        bytestype: The webkit bytes type.
+    """
+
+    def __init__(self, maxsize=None, length=None):
+        self.length = length
+        self.bytestype = WebKitBytes(maxsize)
+
+    def transform(self, value):
+        if value == '':
+            return None
+        vals = super().transform(value)
+        return [self.bytestype.transform(val) for val in vals]
+
+    def validate(self, value):
+        if value == '':
+            return
+        vals = super().transform(value)
+        for val in vals:
+            self.bytestype.validate(val)
+        if any(val is None for val in vals):
+            raise ValidationError(value, "all values need to be set!")
+        if self.length is not None and len(vals) != self.length:
+            raise ValidationError(value, "exactly {} values need to be "
+                                         "set!".format(self.length))
+
+
 class Command(BaseType):
 
     """Base class for a command value with arguments."""
@@ -582,14 +680,14 @@ class WebSettingsFile(File):
     """QWebSettings file which also can be none."""
 
     def validate(self, value):
-        if not value:
+        if value == '':
             # empty values are okay
             return
         super().validate(value)
 
     def transform(self, value):
-        if value is None:
-            return value
+        if value == '':
+            return None
         else:
             return QUrl.fromLocalFile(value)
 

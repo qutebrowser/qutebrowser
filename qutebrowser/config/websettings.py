@@ -66,9 +66,37 @@ ATTRIBUTES = {
 
 
 SETTERS = {
-    'user-stylesheet': 'setUserStyleSheetUrl'
+    'user-stylesheet':
+        lambda qws, v: qws.setUserStyleSheetUrl(v),
+    'css-media-type':
+        lambda qws, v: qws.setCSSMediaType(v),
+    'default-encoding':
+        lambda qws, v: qws.setDefaultTextEncoding(v),
+    'font-family-standard':
+        lambda qws, v: qws.setFontFamily(QWebSettings.StandardFont, v),
+    'font-family-fixed':
+        lambda qws, v: qws.setFontFamily(QWebSettings.FixedFont, v),
+    'font-family-serif':
+        lambda qws, v: qws.setFontFamily(QWebSettings.SerifFont, v),
+    'font-family-sans-serif':
+        lambda qws, v: qws.setFontFamily(QWebSettings.SansSerifFont, v),
+    'font-family-cursive':
+        lambda qws, v: qws.setFontFamily(QWebSettings.CursiveFont, v),
+    'font-family-fantasy':
+        lambda qws, v: qws.setFontFamily(QWebSettings.FantasyFont, v),
 }
 
+
+STATIC_SETTERS = {
+    'maximum-pages-in-cache':
+        lambda v: QWebSettings.setMaximumPagesInCache(v),
+    'object-cache-capacities':
+        lambda v: QWebSettings.setObjectCacheCapacities(*v),
+    'offline-storage-default-quota':
+        lambda v: QWebSettings.setOfflineStorageDefaultQuota(v),
+    'offline-web-application-cache-quota':
+        lambda v: QWebSettings.setOfflineWebApplicationCacheQuota(v),
+}
 
 settings = None
 
@@ -79,10 +107,13 @@ def init():
     settings = QWebSettings.globalSettings()
     for name, item in ATTRIBUTES.items():
         settings.setAttribute(item, config.get('webkit', name))
-    for name, method in SETTERS.items():
+    for name, setter in SETTERS.items():
         value = config.get('webkit', name)
         if value is not None:
-            setter = getattr(settings, method)
+            setter(settings, value)
+    for name, setter in STATIC_SETTERS.items():
+        value = config.get('webkit', name)
+        if value is not None:
             setter(value)
 
 
@@ -90,9 +121,11 @@ def init():
 def on_config_changed(section, option):
     """Update global settings when qwebsettings changed."""
     if section == 'webkit':
+        settings = QWebSettings.globalSettings()
         value = config.get(section, option)
         if option in ATTRIBUTES:
             settings.setAttribute(ATTRIBUTES[option], value)
         elif option in SETTERS and value is not None:
-            setter = getattr(settings, SETTERS[option])
-            setter(value)
+            SETTERS[option](settings, value)
+        elif option in STATIC_SETTERS and value is not None:
+            STATIC_SETTERS[option](value)
