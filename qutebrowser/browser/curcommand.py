@@ -19,6 +19,7 @@
 
 import os
 import logging
+import subprocess
 from tempfile import mkstemp
 from functools import partial
 
@@ -32,6 +33,7 @@ import qutebrowser.utils.message as message
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.webelem as webelem
 import qutebrowser.config.config as config
+from qutebrowser.utils.misc import shell_escape
 
 
 class CurCommandDispatcher(QObject):
@@ -386,6 +388,23 @@ class CurCommandDispatcher(QObject):
         """
         tab = self._tabs.currentWidget()
         tab.zoom(-count)
+
+    @cmdutils.register(instance='mainwindow.tabs.cur', split=False)
+    def spawn(self, cmd):
+        """Spawn a command in a shell. {} gets replaced by the current URL.
+
+        The URL will already be quoted correctly, so there's no need to do
+        that.
+
+        The command will be run in a shell, so you can use shell features like
+        redirections.
+
+        Args:
+            cmd: The command to execute.
+        """
+        url = urlutils.urlstring(self._tabs.currentWidget().url())
+        cmd = cmd.replace('{}', shell_escape(url))
+        subprocess.Popen(cmd, shell=True)
 
     @cmdutils.register(instance='mainwindow.tabs.cur', modes=['insert'],
                        name='open_editor', hide=True, needs_js=True)
