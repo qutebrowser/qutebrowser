@@ -31,77 +31,115 @@ from PyQt5.QtWebKit import QWebSettings
 
 import qutebrowser.config.config as config
 
+ATTRIBUTE = 0
+SETTER = 1
+STATIC_SETTER = 2
 
-ATTRIBUTES = {
+
+MAPPINGS = {
     # noqa
-    'auto-load-images': QWebSettings.AutoLoadImages,
-    'dns-prefetch-enabled': QWebSettings.DnsPrefetchEnabled,
-    'javascript-enabled': QWebSettings.JavascriptEnabled,
-    #'java-enabled': #QWebSettings.JavaEnabled,
-    'plugins-enabled': QWebSettings.PluginsEnabled,
-    'private-browsing-enabled': QWebSettings.PrivateBrowsingEnabled,
-    'javascript-can-open-windows': QWebSettings.JavascriptCanOpenWindows,
-    'javascript-can-close-windows': QWebSettings.JavascriptCanCloseWindows,
+    'auto-load-images':
+        (ATTRIBUTE, QWebSettings.AutoLoadImages),
+    'dns-prefetch-enabled':
+        (ATTRIBUTE, QWebSettings.DnsPrefetchEnabled),
+    'javascript-enabled':
+        (ATTRIBUTE, QWebSettings.JavascriptEnabled),
+    #'java-enabled':
+    #   (ATTRIBUTE, QWebSettings.JavaEnabled),
+    'plugins-enabled':
+        (ATTRIBUTE, QWebSettings.PluginsEnabled),
+    'private-browsing-enabled':
+        (ATTRIBUTE, QWebSettings.PrivateBrowsingEnabled),
+    'javascript-can-open-windows':
+        (ATTRIBUTE, QWebSettings.JavascriptCanOpenWindows),
+    'javascript-can-close-windows':
+        (ATTRIBUTE, QWebSettings.JavascriptCanCloseWindows),
     'javascript-can-access-clipboard':
-        QWebSettings.JavascriptCanAccessClipboard,
-    'developer-extras-enabled': QWebSettings.DeveloperExtrasEnabled,
-    'spatial-navigation-enabled': QWebSettings.SpatialNavigationEnabled,
-    'links-included-in-focus-chain': QWebSettings.LinksIncludedInFocusChain,
-    'zoom-text-only': QWebSettings.ZoomTextOnly,
-    'print-element-backgrounds': QWebSettings.PrintElementBackgrounds,
+        (ATTRIBUTE, QWebSettings.JavascriptCanAccessClipboard),
+    'developer-extras-enabled':
+        (ATTRIBUTE, QWebSettings.DeveloperExtrasEnabled),
+    'spatial-navigation-enabled':
+        (ATTRIBUTE, QWebSettings.SpatialNavigationEnabled),
+    'links-included-in-focus-chain':
+        (ATTRIBUTE, QWebSettings.LinksIncludedInFocusChain),
+    'zoom-text-only':
+        (ATTRIBUTE, QWebSettings.ZoomTextOnly),
+    'print-element-backgrounds':
+        (ATTRIBUTE, QWebSettings.PrintElementBackgrounds),
     'offline-storage-database-enabled':
-        QWebSettings.OfflineStorageDatabaseEnabled,
+        (ATTRIBUTE, QWebSettings.OfflineStorageDatabaseEnabled),
     'offline-web-application-storage-enabled':
-        QWebSettings.OfflineWebApplicationCacheEnabled,
-    'local-storage-enabled': QWebSettings.LocalStorageEnabled,
+        (ATTRIBUTE, QWebSettings.OfflineWebApplicationCacheEnabled),
+    'local-storage-enabled':
+        (ATTRIBUTE, QWebSettings.LocalStorageEnabled),
     'local-content-can-access-remote-urls':
-        QWebSettings.LocalContentCanAccessRemoteUrls,
+        (ATTRIBUTE, QWebSettings.LocalContentCanAccessRemoteUrls),
     'local-content-can-access-file-urls':
-        QWebSettings.LocalContentCanAccessFileUrls,
-    'xss-auditing-enabled': QWebSettings.XSSAuditingEnabled,
+        (ATTRIBUTE, QWebSettings.LocalContentCanAccessFileUrls),
+    'xss-auditing-enabled':
+        (ATTRIBUTE, QWebSettings.XSSAuditingEnabled),
     #'accelerated-compositing-enabled':
-    #   QWebSettings.AcceleratedCompositingEnabled,
-    #'tiled-backing-store-enabled': QWebSettings.TiledBackingStoreEnabled,
-    'frame-flattening-enabled': QWebSettings.FrameFlatteningEnabled,
-    'site-specific-quirks-enabled': QWebSettings.SiteSpecificQuirksEnabled,
-}
-
-
-SETTERS = {
+    #   (ATTRIBUTE, QWebSettings.AcceleratedCompositingEnabled),
+    #'tiled-backing-store-enabled':
+    #   (ATTRIBUTE, QWebSettings.TiledBackingStoreEnabled),
+    'frame-flattening-enabled':
+        (ATTRIBUTE, QWebSettings.FrameFlatteningEnabled),
+    'site-specific-quirks-enabled':
+        (ATTRIBUTE, QWebSettings.SiteSpecificQuirksEnabled),
     'user-stylesheet':
-        lambda qws, v: qws.setUserStyleSheetUrl(v),
+        (SETTER, lambda qws, v: qws.setUserStyleSheetUrl(v)),
     'css-media-type':
-        lambda qws, v: qws.setCSSMediaType(v),
+        (SETTER, lambda qws, v: qws.setCSSMediaType(v)),
     'default-encoding':
-        lambda qws, v: qws.setDefaultTextEncoding(v),
+        (SETTER, lambda qws, v: qws.setDefaultTextEncoding(v)),
     'font-family-standard':
-        lambda qws, v: qws.setFontFamily(QWebSettings.StandardFont, v),
+        (SETTER, lambda qws, v:
+            qws.setFontFamily(QWebSettings.StandardFont, v)),
     'font-family-fixed':
-        lambda qws, v: qws.setFontFamily(QWebSettings.FixedFont, v),
+        (SETTER, lambda qws, v:
+            qws.setFontFamily(QWebSettings.FixedFont, v)),
     'font-family-serif':
-        lambda qws, v: qws.setFontFamily(QWebSettings.SerifFont, v),
+        (SETTER, lambda qws, v:
+            qws.setFontFamily(QWebSettings.SerifFont, v)),
     'font-family-sans-serif':
-        lambda qws, v: qws.setFontFamily(QWebSettings.SansSerifFont, v),
+        (SETTER, lambda qws, v:
+            qws.setFontFamily(QWebSettings.SansSerifFont, v)),
     'font-family-cursive':
-        lambda qws, v: qws.setFontFamily(QWebSettings.CursiveFont, v),
+        (SETTER, lambda qws, v:
+            qws.setFontFamily(QWebSettings.CursiveFont, v)),
     'font-family-fantasy':
-        lambda qws, v: qws.setFontFamily(QWebSettings.FantasyFont, v),
-}
-
-
-STATIC_SETTERS = {
+        (SETTER, lambda qws, v:
+            qws.setFontFamily(QWebSettings.FantasyFont, v)),
     'maximum-pages-in-cache':
-        lambda v: QWebSettings.setMaximumPagesInCache(v),
+        (STATIC_SETTER, lambda v: QWebSettings.setMaximumPagesInCache(v)),
     'object-cache-capacities':
-        lambda v: QWebSettings.setObjectCacheCapacities(*v),
+        (STATIC_SETTER, lambda v: QWebSettings.setObjectCacheCapacities(*v)),
     'offline-storage-default-quota':
-        lambda v: QWebSettings.setOfflineStorageDefaultQuota(v),
+        (STATIC_SETTER, lambda v:
+            QWebSettings.setOfflineStorageDefaultQuota(v)),
     'offline-web-application-cache-quota':
-        lambda v: QWebSettings.setOfflineWebApplicationCacheQuota(v),
+        (STATIC_SETTER, lambda v:
+            QWebSettings.setOfflineWebApplicationCacheQuota(v)),
 }
 
 
 settings = None
+
+
+def _set_setting(typ, arg, value):
+    """Set a QWebSettings setting.
+
+    Args:
+        typ: The type of the item (ATTRIBUTE/SETTER/STATIC_SETTER)
+        arg: The argument (attribute/handler)
+        value: The value to set.
+    """
+    if typ == ATTRIBUTE:
+        settings.setAttribute(arg, value)
+    elif typ == SETTER and value is not None:
+        arg(settings, value)
+    elif typ == STATIC_SETTER and value is not None:
+        arg(value)
 
 
 def init(cachedir):
@@ -113,16 +151,9 @@ def init(cachedir):
     global settings
     QWebSettings.enablePersistentStorage(cachedir)
     settings = QWebSettings.globalSettings()
-    for name, item in ATTRIBUTES.items():
-        settings.setAttribute(item, config.get('webkit', name))
-    for name, setter in SETTERS.items():
+    for name, (typ, arg) in MAPPINGS.items():
         value = config.get('webkit', name)
-        if value is not None:
-            setter(settings, value)
-    for name, setter in STATIC_SETTERS.items():
-        value = config.get('webkit', name)
-        if value is not None:
-            setter(value)
+        _set_setting(typ, arg, value)
 
 
 @pyqtSlot(str, str)
@@ -130,9 +161,5 @@ def on_config_changed(section, option):
     """Update global settings when qwebsettings changed."""
     if section == 'webkit':
         value = config.get(section, option)
-        if option in ATTRIBUTES:
-            settings.setAttribute(ATTRIBUTES[option], value)
-        elif option in SETTERS and value is not None:
-            SETTERS[option](settings, value)
-        elif option in STATIC_SETTERS and value is not None:
-            STATIC_SETTERS[option](value)
+        typ, arg = MAPPINGS[option]
+        _set_setting(typ, arg, value)
