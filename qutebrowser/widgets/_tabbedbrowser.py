@@ -21,8 +21,8 @@ import logging
 from functools import partial
 
 from PyQt5.QtWidgets import QApplication, QSizePolicy
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5.QtGui import QClipboard
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QSize
+from PyQt5.QtGui import QClipboard, QIcon
 
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.message as message
@@ -96,6 +96,8 @@ class TabbedBrowser(TabWidget):
         self._url_stack = []
         self._filter = SignalFilter(self)
         self.cur = CurCommandDispatcher(self)
+        # FIXME adjust this to font size
+        self.setIconSize(QSize(12, 12))
 
     def _cb_tab_shutdown(self, tab):
         """Called after a tab has been shut down completely.
@@ -121,8 +123,8 @@ class TabbedBrowser(TabWidget):
         tab.linkHovered.connect(self._filter.create(self.cur_link_hovered))
         tab.loadProgress.connect(self._filter.create(self.cur_progress))
         tab.loadFinished.connect(self._filter.create(self.cur_load_finished))
-        tab.loadStarted.connect(lambda:  # pylint: disable=unnecessary-lambda
-                                self.sender().signal_cache.clear())
+        tab.page().mainFrame().loadStarted.connect(partial(
+            self.on_load_started, tab))
         tab.loadStarted.connect(self._filter.create(self.cur_load_started))
         tab.statusBarMessage.connect(
             self._filter.create(self.cur_statusbar_message))
@@ -135,6 +137,7 @@ class TabbedBrowser(TabWidget):
         # misc
         tab.titleChanged.connect(self.on_title_changed)
         tab.open_tab.connect(self.tabopen)
+        tab.iconChanged.connect(self.on_icon_changed)
 
     def _tabopen(self, url, background=False):
         """Open a new tab with a given url.
@@ -346,6 +349,16 @@ class TabbedBrowser(TabWidget):
         for tab in self._tabs:
             tab.on_config_changed(section, option)
 
+    @pyqtSlot()
+    def on_load_started(self, tab):
+        """Clear signal cache and icon when a tab started loading.
+
+        Args:
+            tab: The tab where the signal belongs to.
+        """
+        tab.signal_cache.clear()
+        self.setTabIcon(self.indexOf(tab), QIcon())
+
     @pyqtSlot(str)
     def on_title_changed(self, text):
         """Set the title of a tab.
@@ -360,6 +373,15 @@ class TabbedBrowser(TabWidget):
             self.setTabText(self.indexOf(self.sender()), text)
         else:
             logging.debug("ignoring title change")
+
+    @pyqtSlot()
+    def on_icon_changed(self):
+        """Set the icon of a tab.
+
+        Slot for the iconChanged signal of any tab.
+        """
+        tab = self.sender()
+        self.setTabIcon(self.indexOf(tab), tab.icon())
 
     @pyqtSlot(str)
     def on_mode_left(self, mode):
