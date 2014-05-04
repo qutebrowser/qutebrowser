@@ -34,7 +34,7 @@ class SettingSectionCompletionModel(BaseCompletionModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        cat = self.new_category("Config sections")
+        cat = self.new_category("Sections")
         for name in configdata.DATA.keys():
             desc = configdata.SECTION_DESC[name].splitlines()[0].strip()
             self.new_item(cat, name, desc)
@@ -53,7 +53,7 @@ class SettingOptionCompletionModel(BaseCompletionModel):
 
     def __init__(self, section, parent=None):
         super().__init__(parent)
-        cat = self.new_category("Config options for {}".format(section))
+        cat = self.new_category(section)
         sectdata = configdata.DATA[section]
         self._misc_items = {}
         self._section = section
@@ -91,15 +91,14 @@ class SettingValueCompletionModel(BaseCompletionModel):
         super().__init__(parent)
         if hasattr(configdata.DATA[section], 'valtype'):
             # Same type for all values (ValueList)
-            cat = self.new_category("Setting values for {} options".format(
-                section))
+            cat = self.new_category(section)
             vals = configdata.DATA[section].valtype.complete()
         else:
             if option is None:
                 raise ValueError("option may only be None for ValueList "
                                  "sections, but {} is not!".format(section))
             # Different type for each value (KeyValue)
-            cat = self.new_category("Setting values for {}".format(option))
+            cat = self.new_category(option)
             vals = configdata.DATA[section][option].typ.complete()
         if vals is None:
             raise NoCompletionsError
