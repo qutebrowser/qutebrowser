@@ -33,7 +33,6 @@ history
 Minor features
 ==============
 
-show new ValueList items in completion
 keybind/aliases should have completion for commands/arguments
 Hiding scrollbars
 Ctrl+A/X to increase/decrease last number in URL
