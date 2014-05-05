@@ -114,8 +114,8 @@ class ConfigManager(QObject):
         self._configdir = configdir
         self._interpolation = ExtendedInterpolation()
         self._proxies = {}
-        for secname in self.sections.keys():
-            self._proxies[secname] = SectionProxy(self, secname)
+        for sectname in self.sections.keys():
+            self._proxies[sectname] = SectionProxy(self, sectname)
         self._from_cp(self._configparser)
 
     def __getitem__(self, key):
@@ -125,20 +125,20 @@ class ConfigManager(QObject):
     def __str__(self):
         """Get the whole config as a string."""
         lines = configdata.FIRST_COMMENT.strip('\n').splitlines()
-        for secname, section in self.sections.items():
-            lines.append('\n[{}]'.format(secname))
-            lines += self._str_section_desc(secname)
-            lines += self._str_option_desc(secname, section)
-            lines += self._str_items(section)
+        for sectname, sect in self.sections.items():
+            lines.append('\n[{}]'.format(sectname))
+            lines += self._str_section_desc(sectname)
+            lines += self._str_option_desc(sectname, sect)
+            lines += self._str_items(sect)
         return '\n'.join(lines) + '\n'
 
-    def _str_section_desc(self, secname):
-        """Get the section description string for secname."""
+    def _str_section_desc(self, sectname):
+        """Get the section description string for sectname."""
         wrapper = textwrap.TextWrapper(initial_indent='# ',
                                        subsequent_indent='# ',
                                        **self._wrapper_args)
         lines = []
-        seclines = configdata.SECTION_DESC[secname].splitlines()
+        seclines = configdata.SECTION_DESC[sectname].splitlines()
         for secline in seclines:
             if 'http://' in secline or 'https://' in secline:
                 lines.append('# ' + secline)
@@ -146,15 +146,15 @@ class ConfigManager(QObject):
                 lines += wrapper.wrap(secline)
         return lines
 
-    def _str_option_desc(self, secname, section):
-        """Get the option description strings for section/secname."""
+    def _str_option_desc(self, sectname, sect):
+        """Get the option description strings for sect/sectname."""
         wrapper = textwrap.TextWrapper(initial_indent='#' + ' ' * 5,
                                        subsequent_indent='#' + ' ' * 5,
                                        **self._wrapper_args)
         lines = []
-        if not getattr(section, 'descriptions', None):
+        if not getattr(sect, 'descriptions', None):
             return lines
-        for optname, option in section.items():
+        for optname, option in sect.items():
             lines.append('#')
             if option.typ.typestr is None:
                 typestr = ''
@@ -162,7 +162,7 @@ class ConfigManager(QObject):
                 typestr = ' ({})'.format(option.typ.typestr)
             lines.append("# {}{}:".format(optname, typestr))
             try:
-                desc = self.sections[secname].descriptions[optname]
+                desc = self.sections[sectname].descriptions[optname]
             except KeyError:
                 continue
             for descline in desc.splitlines():
@@ -180,10 +180,10 @@ class ConfigManager(QObject):
                 option.values['default']))
         return lines
 
-    def _str_items(self, section):
-        """Get the option items as string for section."""
+    def _str_items(self, sect):
+        """Get the option items as string for sect."""
         lines = []
-        for optname, option in section.items():
+        for optname, option in sect.items():
             value = option.get_first_value(startlayer='conf')
             for c in self.KEY_ESCAPE:
                 if optname.startswith(c):
@@ -198,47 +198,47 @@ class ConfigManager(QObject):
         Args:
             cp: The configparser instance to read the values from.
         """
-        for secname in self.sections.keys():
-            if secname not in cp:
+        for sectname in self.sections.keys():
+            if sectname not in cp:
                 continue
-            for k, v in cp[secname].items():
+            for k, v in cp[sectname].items():
                 if k.startswith(self.ESCAPE_CHAR):
                     k = k[1:]
                 try:
-                    self.set('conf', secname, k, v)
+                    self.set('conf', sectname, k, v)
                 except ValidationError as e:
-                    e.section = secname
+                    e.section = sectname
                     e.option = k
                     raise
 
-    def has_option(self, section, option):
+    def has_option(self, sectname, option):
         """Check if option exists in section.
 
         Args:
-            section: The section name.
+            sectname: The section name.
             option: The option name
 
         Return:
             True if the option and section exist, False otherwise.
         """
-        if section not in self.sections:
+        if sectname not in self.sections:
             return False
-        return option in self.sections[section]
+        return option in self.sections[sectname]
 
-    def remove_option(self, section, option):
+    def remove_option(self, sectname, option):
         """Remove an option.
 
         Args:
-            section: The section where to remove an option.
+            sectname: The section where to remove an option.
             option: The option name to remove.
 
         Return:
             True if the option existed, False otherwise.
         """
         try:
-            sectdict = self.sections[section]
+            sectdict = self.sections[sectname]
         except KeyError:
-            raise NoSectionError(section)
+            raise NoSectionError(sectname)
         option = self.optionxform(option)
         existed = option in sectdict
         if existed:
@@ -247,23 +247,23 @@ class ConfigManager(QObject):
 
     @cmdutils.register(name='get', instance='config',
                        completion=['section', 'option'])
-    def get_wrapper(self, section, option):
+    def get_wrapper(self, sectname, option):
         """Get the value from a section/option.
 
         Wrapper for the get-command to output the value in the status bar.
         """
         try:
-            val = self.get(section, option, transformed=False)
+            val = self.get(sectname, option, transformed=False)
         except (NoOptionError, NoSectionError) as e:
             message.error("get: {} - {}".format(e.__class__.__name__, e))
         else:
-            message.info("{} {} = {}".format(section, option, val))
+            message.info("{} {} = {}".format(sectname, option, val))
 
-    def get(self, section, option, raw=False, transformed=True):
+    def get(self, sectname, option, raw=False, transformed=True):
         """Get the value from a section/option.
 
         Args:
-            section: The section to get the option from.
+            sectname: The section to get the option from.
             option: The option name
             raw: Whether to get the uninterpolated, untransformed value.
             transformed: Whether the value should be transformed.
@@ -271,19 +271,19 @@ class ConfigManager(QObject):
         Return:
             The value of the option.
         """
-        logging.debug("getting {} -> {}".format(section, option))
+        logging.debug("getting {} -> {}".format(sectname, option))
         try:
-            sect = self.sections[section]
+            sect = self.sections[sectname]
         except KeyError:
-            raise NoSectionError(section)
+            raise NoSectionError(sectname)
         try:
             val = sect[option]
         except KeyError:
-            raise NoOptionError(option, section)
+            raise NoOptionError(option, sectname)
         if raw:
             return val.value
         mapping = {key: val.value for key, val in sect.values.items()}
-        newval = self._interpolation.before_get(self, section, option,
+        newval = self._interpolation.before_get(self, sectname, option,
                                                 val.value, mapping)
         logging.debug("interpolated val: {}".format(newval))
         if transformed:
@@ -292,35 +292,35 @@ class ConfigManager(QObject):
 
     @cmdutils.register(name='set', instance='config',
                        completion=['section', 'option', 'value'])
-    def set_wrapper(self, section, option, value):
+    def set_wrapper(self, sectname, option, value):
         """Set an option.
 
         Wrapper for self.set() to output exceptions in the status bar.
         """
         try:
-            self.set('conf', section, option, value)
+            self.set('conf', sectname, option, value)
         except (NoOptionError, NoSectionError, ValidationError,
                 ValueError) as e:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
     @cmdutils.register(name='set_temp', instance='config',
                        completion=['section', 'option', 'value'])
-    def set_temp_wrapper(self, section, option, value):
+    def set_temp_wrapper(self, sectname, option, value):
         """Set a temporary option.
 
         Wrapper for self.set() to output exceptions in the status bar.
         """
         try:
-            self.set('temp', section, option, value)
+            self.set('temp', sectname, option, value)
         except (NoOptionError, NoSectionError, ValidationError) as e:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
-    def set(self, layer, section, option, value):
+    def set(self, layer, sectname, option, value):
         """Set an option.
 
         Args:
             layer: A layer name as string (conf/temp/default).
-            section: The name of the section to change.
+            sectname: The name of the section to change.
             option: The name of the option to change.
             value: The new value.
 
@@ -332,22 +332,22 @@ class ConfigManager(QObject):
             changed: If the config was changed.
             style_changed: When style caches need to be invalidated.
         """
-        value = self._interpolation.before_set(self, section, option, value)
+        value = self._interpolation.before_set(self, sectname, option, value)
         try:
-            sect = self.sections[section]
+            sect = self.sections[sectname]
         except KeyError:
-            raise NoSectionError(section)
+            raise NoSectionError(sectname)
         mapping = {key: val.value for key, val in sect.values.items()}
-        interpolated = self._interpolation.before_get(self, section, option,
+        interpolated = self._interpolation.before_get(self, sectname, option,
                                                       value, mapping)
         try:
             sect.setv(layer, option, value, interpolated)
         except KeyError:
-            raise NoOptionError(option, section)
+            raise NoOptionError(option, sectname)
         else:
-            if section in ['colors', 'fonts']:
-                self.style_changed.emit(section, option)
-            self.changed.emit(section, option)
+            if sectname in ['colors', 'fonts']:
+                self.style_changed.emit(sectname, option)
+            self.changed.emit(sectname, option)
 
     @cmdutils.register(instance='config')
     def save(self):
@@ -365,10 +365,10 @@ class ConfigManager(QObject):
             The changed config part as string.
         """
         lines = []
-        for secname, section in self.sections.items():
-            changed = section.dump_userconfig()
+        for sectname, sect in self.sections.items():
+            changed = sect.dump_userconfig()
             if changed:
-                lines.append('[{}]'.format(secname))
+                lines.append('[{}]'.format(sectname))
                 lines += ['{} = {}'.format(k, v) for k, v in changed]
         return '\n'.join(lines)
 
