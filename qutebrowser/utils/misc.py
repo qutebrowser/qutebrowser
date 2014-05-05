@@ -18,6 +18,7 @@
 """Other utilities which don't fit anywhere else."""
 
 import re
+import sys
 import shlex
 from functools import reduce
 from pkg_resources import resource_string
@@ -80,26 +81,32 @@ def safe_shlex_split(s):
 
 
 def shell_escape(s):
-    """Escape a string so it's safe to pass to a shell.
-
-    Backported from python's shlex because that's only available since 3.3 and
-    we might want to support 3.2.
-
-    FIXME: Make this work correctly in Windows, but I'd probably rather kill
-    myself. [1] might help.
-
-    [1] https://en.wikibooks.org/wiki/Windows_Batch_Scripting#How_a_command_line_is_interpreted
-    """
-    try:
-        return shlex.quote(s)
-    except AttributeError:
-        _find_unsafe = re.compile(r'[^\w@%+=:,./-]', re.ASCII).search
-
+    """Escape a string so it's safe to pass to a shell."""
+    if sys.platform == 'win32':
+        # Oh dear flying sphagetti monster please kill me now...
+        if not s:
+            # Is this an empty argument or a literal ""? It seems to depend on
+            # something magical.
+            return '""'
+        # We could also use \", but what do we do for a literal \" then? It
+        # seems \\\". But \\ anywhere else is a literal \\. Because that makes
+        # sense. Totally NOT. Using """ also seems to yield " and work in some
+        # kind-of-safe manner.
+        s.replace('"', '"""')
+        # Some places suggest we use %% to escape %, but actually ^% seems to
+        # work better (compare  echo %%DATE%%  and  echo ^%DATE^%)
+        s = re.sub(r'[&|^><%]', r'^\g<0>', s)
+        # Is everything escaped now? Maybe. I don't know. I don't *get* the
+        # black magic Microshit is doing here.
+        return s
+    else:
+        # Backported from python's shlex because that's only available since
+        # 3.3 and we might want to support 3.2.
+        find_unsafe = re.compile(r'[^\w@%+=:,./-]', re.ASCII).search
         if not s:
             return "''"
-        if _find_unsafe(s) is None:
+        if find_unsafe(s) is None:
             return s
-
         # use single quotes, and put single quotes into double quotes
         # the string $'b is then quoted as '$'"'"'b'
         return "'" + s.replace("'", "'\"'\"'") + "'"

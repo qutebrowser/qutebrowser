@@ -419,6 +419,7 @@ class CurCommandDispatcher(QObject):
         """
         url = urlutils.urlstring(self._tabs.currentWidget().url())
         cmd = cmd.replace('{}', shell_escape(url))
+        logging.debug("Executing: {}".format(cmd))
         subprocess.Popen(cmd, shell=True)
 
     @cmdutils.register(instance='mainwindow.tabs.cur', modes=['insert'],
