@@ -90,7 +90,6 @@ def shell_escape(s):
 
     [1] https://en.wikibooks.org/wiki/Windows_Batch_Scripting#How_a_command_line_is_interpreted
     """
-
     try:
         return shlex.quote(s)
     except AttributeError:

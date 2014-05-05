@@ -327,7 +327,7 @@ class TabbedBrowser(TabWidget):
 
     @cmdutils.register(instance='mainwindow.tabs')
     def focus_tab(self, idx=None, count=None):
-        """Focus the tab given as argument or in count.
+        """Select the tab given as argument or in count.
 
         Args:
             idx: The tab index to focus, starting with 1.
