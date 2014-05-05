@@ -42,6 +42,8 @@ class ProxyFactory(QNetworkProxyFactory):
         """
         proxy = config.get('network', 'proxy')
         if proxy is None:
+            # config.get returns a QNetworkProxy for all cases, except when we
+            # should use the system proxy -- then it returns None.
             return QNetworkProxyFactory.systemProxyForQuery(query)
         else:
             return [proxy]
