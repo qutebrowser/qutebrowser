@@ -27,6 +27,9 @@ from PyQt5.QtNetwork import QHostInfo
 import qutebrowser.config.config as config
 
 
+# FIXME: we probably could raise some exceptions on invalid URLs
+
+
 def _get_search_url(txt):
     """Get a search engine URL for a text.
 
@@ -152,10 +155,8 @@ def fuzzy_url(url):
 
 def is_special_url(url):
     """Return True if url is an about:... or other special URL."""
-    # FIXME this needs to be done is some nicer way
-    _special_schemes = ['about', 'qute', 'file']
-    return any([urlstring(url).replace('http://', '').startswith(scheme) for
-                scheme in _special_schemes])
+    special_schemes = ['about', 'qute', 'file']
+    return qurl(url).scheme() in special_schemes
 
 
 def is_url(url):
