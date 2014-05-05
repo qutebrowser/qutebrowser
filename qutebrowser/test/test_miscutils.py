@@ -22,6 +22,7 @@
 import sys
 import unittest
 import os.path
+import subprocess
 from unittest import TestCase
 
 import qutebrowser.utils.misc as utils
@@ -92,42 +93,53 @@ class SafeShlexSplitTests(TestCase):
 
 class ShellEscapeTests(TestCase):
 
+    TEXTS_LINUX = [
+        ('', "''"),
+        ('foo%bar+baz', 'foo%bar+baz'),
+        ('foo$bar', "'foo$bar'"),
+        ("$'b", """'$'"'"'b'"""),
+    ]
+
+    TEXTS_WINDOWS = [
+        ('', '""'),
+        ('foo*bar?baz', 'foo*bar?baz'),
+        ("a&b|c^d<e>f%", "a^&b^|c^^d^<e^>f^%"),
+        ('foo"bar', 'foo"""bar'),
+    ]
+
     def setUp(self):
         self.platform = sys.platform
 
-    def test_linux_empty(self):
+    def test_fake_linux(self):
+        """Fake test which simply checks if the escaped string looks right."""
         sys.platform = 'linux'
-        self.assertEqual(utils.shell_escape(''), "''")
+        for (orig, escaped) in self.TEXTS_LINUX:
+            self.assertEqual(utils.shell_escape(orig), escaped)
 
-    def test_linux_safe(self):
-        sys.platform = 'linux'
-        self.assertEqual(utils.shell_escape('foo%bar+baz'), 'foo%bar+baz')
-
-    def test_linux_unsafe(self):
-        sys.platform = 'linux'
-        self.assertEqual(utils.shell_escape('foo$bar'), "'foo$bar'")
-
-    def test_linux_unsafe_quotes(self):
-        sys.platform = 'linux'
-        # $'b --> '$'"'"'b'
-        self.assertEqual(utils.shell_escape("$'b"), """'$'"'"'b'""")
-
-    def test_windows_empty(self):
+    def test_fake_windows(self):
+        """Fake test which simply checks if the escaped string looks right."""
         sys.platform = 'win32'
-        self.assertEqual(utils.shell_escape(''), '""')
+        for (orig, escaped) in self.TEXTS_WINDOWS:
+            self.assertEqual(utils.shell_escape(orig), escaped)
 
-    def test_windows_safe(self):
-        sys.platform = 'win32'
-        self.assertEqual(utils.shell_escape('foo*bar?baz'), 'foo*bar?baz')
+    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
+    def test_real_linux(self):
+        """Real test which prints an escaped string via python."""
+        for (orig, _escaped) in self.TEXTS_LINUX:
+            cmd = ("python -c 'import sys; print(sys.argv[1], end=\"\")' "
+                   "{}".format(utils.shell_escape(orig)))
+            out = subprocess.check_output(cmd, shell=True).decode('ASCII')
+            self.assertEqual(out, orig, cmd)
 
-    def test_windows_unsafe(self):
-        sys.platform = 'win32'
-        self.assertEqual(utils.shell_escape("a&b|c^d<e>f%"),
-                         "a^&b^|c^^d^<e^>f^%")
+    @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
+    def test_real_windows(self):
+        """Real test which prints an escaped string via python."""
+        for (orig, _escaped) in self.TEXTS_WINDOWS:
+            cmd = ('python -c "import sys; print(sys.argv[1], end=\'\')" '
+                   '{}'.format(utils.shell_escape(orig)))
+            out = subprocess.check_output(cmd, shell=True).decode('ASCII')
+            self.assertEqual(out, orig, cmd)
 
-    def test_windows_unsafe_quotes(self):
-        sys.platform = 'win32'
-        self.assertEqual(utils.shell_escape('foo"bar'), 'foo"""bar')
 
     def tearDown(self):
         sys.platform = self.platform
