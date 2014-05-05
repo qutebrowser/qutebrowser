@@ -49,10 +49,10 @@ class MainWindow(QWidget):
         super().__init__()
 
         self.setWindowTitle('qutebrowser')
+        stateconfig = QApplication.instance().obj['stateconfig']
         try:
-            geom = b64decode(
-                QApplication.instance().stateconfig['geometry']['mainwindow'],
-                validate=True)
+            geom = b64decode(stateconfig['geometry']['mainwindow'],
+                             validate=True)
         except (KeyError, binascii.Error):
             self._set_default_geometry()
         else:

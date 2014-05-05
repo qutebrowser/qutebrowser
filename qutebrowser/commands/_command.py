@@ -85,7 +85,7 @@ class Command(QObject):
         """
         # We don't use modeman.instance() here to avoid a circular import
         # of qutebrowser.keyinput.modeman.
-        curmode = QApplication.instance().modeman.mode
+        curmode = QApplication.instance().obj['modeman'].mode
         if self.modes is not None and curmode not in self.modes:
             raise PrerequisitesError("{}: This command is only allowed in {} "
                                      "mode.".format(self.name,

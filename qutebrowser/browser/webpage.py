@@ -41,7 +41,8 @@ class BrowserPage(QWebPage):
         self._extension_handlers = {
             QWebPage.ErrorPageExtension: self._handle_errorpage,
         }
-        self.setNetworkAccessManager(QApplication.instance().networkmanager)
+        netman = QApplication.instance().obj['networkmanager']
+        self.setNetworkAccessManager(netman)
 
     def _handle_errorpage(self, opt, out):
         """Display an error page if needed.

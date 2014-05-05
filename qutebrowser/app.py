@@ -64,6 +64,7 @@ from qutebrowser.browser.cookies import CookieJar
 from qutebrowser.utils.message import MessageBridge
 from qutebrowser.utils.appdirs import AppDirs
 from qutebrowser.utils.misc import dotted_getattr
+from qutebrowser.utils.usertypes import ImmutableDict
 from qutebrowser.utils.debug import set_trace  # pylint: disable=unused-import
 
 
@@ -78,15 +79,7 @@ class QuteBrowser(QApplication):
 
     Attributes:
         mainwindow: The MainWindow QWidget.
-        commandmanager: The main CommandManager instance.
-        searchmanager: The main SearchManager instance.
-        config: The main ConfigManager
-        stateconfig: The "state" ReadWriteConfigParser instance.
-        cmd_history: The "cmd_history" LineConfigParser instance.
-        messagebridge: The global MessageBridge instance.
-        modeman: The global ModeManager instance.
-        networkmanager: The global NetworkManager instance.
-        cookiejar: The global CookieJar instance.
+        obj: Dictionary containing global singleton objects.
         _keyparsers: A mapping from modes to keyparsers.
         _dirs: AppDirs instance for config/cache directories.
         _args: ArgumentParser instance.
@@ -96,9 +89,6 @@ class QuteBrowser(QApplication):
         _opened_urls: List of opened URLs.
     """
 
-    # This also holds all our globals, so we're a bit over the top here.
-    # pylint: disable=too-many-instance-attributes
-
     def __init__(self):
         super().__init__(sys.argv)
         self._quit_status = {}
@@ -107,11 +97,7 @@ class QuteBrowser(QApplication):
         self._shutting_down = False
         self._keyparsers = None
         self._dirs = None
-        self.messagebridge = None
-        self.stateconfig = None
-        self.modeman = None
-        self.cmd_history = None
-        self.config = None
+        self.obj = ImmutableDict()
 
         sys.excepthook = self._exception_hook
 
@@ -121,18 +107,18 @@ class QuteBrowser(QApplication):
         self._init_config()
         self._init_modes()
         websettings.init(self._dirs.user_cache_dir)
-        self.cookiejar = CookieJar(self._dirs.user_data_dir)
-        self.networkmanager = NetworkManager(self.cookiejar)
-        self.commandmanager = CommandManager()
-        self.searchmanager = SearchManager()
+        self.obj['cookiejar'] = CookieJar(self._dirs.user_data_dir)
+        self.obj['networkmanager'] = NetworkManager(self.obj['cookiejar'])
+        self.obj['commandmanager'] = CommandManager()
+        self.obj['searchmanager'] = SearchManager()
         self._init_cmds()
         self.mainwindow = MainWindow()
 
-        self.installEventFilter(self.modeman)
+        self.installEventFilter(self.obj['modeman'])
         self.setQuitOnLastWindowClosed(False)
 
         self._connect_signals()
-        self.modeman.enter('normal')
+        self.obj['modeman'].enter('normal')
 
         self.mainwindow.show()
         self._python_hacks()
@@ -168,7 +154,7 @@ class QuteBrowser(QApplication):
         else:
             confdir = self._args.confdir
         try:
-            self.config = ConfigManager(confdir, 'qutebrowser.conf')
+            self.obj['config'] = ConfigManager(confdir, 'qutebrowser.conf')
         except (config.ValidationError,
                 config.NoOptionError,
                 configparser.InterpolationError,
@@ -185,9 +171,9 @@ class QuteBrowser(QApplication):
             msgbox.exec_()
             # We didn't really initialize much so far, so we just quit hard.
             sys.exit(1)
-        self.stateconfig = ReadWriteConfigParser(confdir, 'state')
-        self.cmd_history = LineConfigParser(confdir, 'cmd_history',
-                                            ('completion', 'history-length'))
+        self.obj['stateconfig'] = ReadWriteConfigParser(confdir, 'state')
+        self.obj['cmd_history'] = LineConfigParser(
+            confdir, 'cmd_history', ('completion', 'history-length'))
 
     def _init_modes(self):
         """Inizialize the mode manager and the keyparsers."""
@@ -198,16 +184,16 @@ class QuteBrowser(QApplication):
             'passthrough': PassthroughKeyParser('keybind.passthrough', self),
             'command': PassthroughKeyParser('keybind.command', self),
         }
-        self.modeman = ModeManager()
-        self.modeman.register('normal', self._keyparsers['normal'].handle)
-        self.modeman.register('hint', self._keyparsers['hint'].handle)
-        self.modeman.register('insert', self._keyparsers['insert'].handle,
-                              passthrough=True)
-        self.modeman.register('passthrough',
-                              self._keyparsers['passthrough'].handle,
-                              passthrough=True)
-        self.modeman.register('command', self._keyparsers['command'].handle,
-                              passthrough=True)
+        modeman = ModeManager()
+        modeman.register('normal', self._keyparsers['normal'].handle)
+        modeman.register('hint', self._keyparsers['hint'].handle)
+        modeman.register('insert', self._keyparsers['insert'].handle,
+                         passthrough=True)
+        modeman.register('passthrough', self._keyparsers['passthrough'].handle,
+                         passthrough=True)
+        modeman.register('command', self._keyparsers['command'].handle,
+                         passthrough=True)
+        self.obj['modeman'] = modeman
 
     def _init_log(self):
         """Initialisation of the logging output.
@@ -231,7 +217,7 @@ class QuteBrowser(QApplication):
             os.environ['QT_FATAL_WARNINGS'] = '1'
         self.setApplicationName("qutebrowser")
         self.setApplicationVersion(qutebrowser.__version__)
-        self.messagebridge = MessageBridge()
+        self.obj['messagebridge'] = MessageBridge()
 
     def _init_cmds(self):
         """Initialisation of the qutebrowser commands.
@@ -260,7 +246,7 @@ class QuteBrowser(QApplication):
         for e in self._args.command:
             if e.startswith(':'):
                 logging.debug("Startup cmd {}".format(e))
-                self.commandmanager.run_safely(e.lstrip(':'))
+                self.obj['commandmanager'].run_safely(e.lstrip(':'))
             else:
                 logging.debug("Startup url {}".format(e))
                 self._opened_urls.append(e)
@@ -268,7 +254,7 @@ class QuteBrowser(QApplication):
 
         if self.mainwindow.tabs.count() == 0:
             logging.debug("Opening startpage")
-            for url in self.config.get('general', 'startpage'):
+            for url in self.obj['config'].get('general', 'startpage'):
                 self.mainwindow.tabs.tabopen(url)
 
     def _python_hacks(self):
@@ -292,6 +278,10 @@ class QuteBrowser(QApplication):
         completion = self.mainwindow.completion
         tabs = self.mainwindow.tabs
         cmd = self.mainwindow.status.cmd
+        searchmanager = self.obj['searchmanager']
+        conf = self.obj['config']
+        messagebridge = self.obj['messagebridge']
+        modeman = self.obj['modeman']
 
         # misc
         self.lastWindowClosed.connect(self.shutdown)
@@ -299,17 +289,17 @@ class QuteBrowser(QApplication):
         tabs.currentChanged.connect(self.mainwindow.update_inspector)
 
         # status bar
-        self.modeman.entered.connect(status.on_mode_entered)
-        self.modeman.left.connect(status.on_mode_left)
-        self.modeman.left.connect(status.cmd.on_mode_left)
-        self.modeman.key_pressed.connect(status.on_key_pressed)
+        modeman.entered.connect(status.on_mode_entered)
+        modeman.left.connect(status.on_mode_left)
+        modeman.left.connect(status.cmd.on_mode_left)
+        modeman.key_pressed.connect(status.on_key_pressed)
 
         # commands
-        cmd.got_cmd.connect(self.commandmanager.run_safely)
-        cmd.got_search.connect(self.searchmanager.search)
-        cmd.got_search_rev.connect(self.searchmanager.search_rev)
+        cmd.got_cmd.connect(self.obj['commandmanager'].run_safely)
+        cmd.got_search.connect(searchmanager.search)
+        cmd.got_search_rev.connect(searchmanager.search_rev)
         cmd.returnPressed.connect(tabs.setFocus)
-        self.searchmanager.do_search.connect(tabs.cur.search)
+        searchmanager.do_search.connect(tabs.cur.search)
         kp['normal'].keystring_updated.connect(status.keystring.setText)
 
         # hints
@@ -319,16 +309,16 @@ class QuteBrowser(QApplication):
         tabs.hint_strings_updated.connect(kp['hint'].on_hint_strings_updated)
 
         # messages
-        self.messagebridge.error.connect(status.disp_error)
-        self.messagebridge.info.connect(status.txt.set_temptext)
-        self.messagebridge.text.connect(status.txt.set_normaltext)
-        self.messagebridge.set_cmd_text.connect(cmd.set_cmd_text)
+        messagebridge.error.connect(status.disp_error)
+        messagebridge.info.connect(status.txt.set_temptext)
+        messagebridge.text.connect(status.txt.set_normaltext)
+        messagebridge.set_cmd_text.connect(cmd.set_cmd_text)
 
         # config
-        self.config.style_changed.connect(style.invalidate_caches)
-        for obj in [tabs, completion, self.mainwindow, self.cmd_history,
-                    websettings, kp['normal'], self.modeman]:
-            self.config.changed.connect(obj.on_config_changed)
+        conf.style_changed.connect(style.invalidate_caches)
+        for obj in [tabs, completion, self.mainwindow, self.obj['cmd_history'],
+                    websettings, kp['normal'], modeman]:
+            conf.changed.connect(obj.on_config_changed)
 
         # statusbar
         tabs.cur_progress.connect(status.prog.setValue)
@@ -341,7 +331,7 @@ class QuteBrowser(QApplication):
         tabs.cur_link_hovered.connect(status.url.set_hover_url)
 
         # command input / completion
-        self.modeman.left.connect(tabs.on_mode_left)
+        modeman.left.connect(tabs.on_mode_left)
         cmd.clear_completion_selection.connect(
             completion.on_clear_completion_selection)
         cmd.hide_completion.connect(completion.hide)
@@ -374,10 +364,10 @@ class QuteBrowser(QApplication):
         """Save the window geometry to the state config."""
         geom = b64encode(bytes(self.mainwindow.saveGeometry())).decode('ASCII')
         try:
-            self.stateconfig.add_section('geometry')
+            self.obj['stateconfig'].add_section('geometry')
         except configparser.DuplicateSectionError:
             pass
-        self.stateconfig['geometry']['mainwindow'] = geom
+        self.obj['stateconfig']['geometry']['mainwindow'] = geom
 
     def _exception_hook(self, exctype, excvalue, tb):
         """Handle uncaught python exceptions.
@@ -494,22 +484,22 @@ class QuteBrowser(QApplication):
             return
         self._shutting_down = True
         logging.debug("Shutting down... (do_quit={})".format(do_quit))
-        if self.config.get('general', 'auto-save-config'):
+        if self.obj['config'].get('general', 'auto-save-config'):
             try:
-                self.config.save()
+                self.obj['config'].save()
             except AttributeError:
                 logging.exception("Could not save config.")
         try:
-            self.cmd_history.save()
+            self.obj['cmd_history'].save()
         except AttributeError:
             logging.exception("Could not save command history.")
         try:
             self._save_geometry()
-            self.stateconfig.save()
+            self.obj['stateconfig'].save()
         except AttributeError:
             logging.exception("Could not save window geometry.")
         try:
-            self.cookiejar.save()
+            self.obj['cookiejar'].save()
         except AttributeError:
             logging.exception("Could not save cookies.")
         try:

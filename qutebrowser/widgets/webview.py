@@ -209,7 +209,7 @@ class WebView(QWebView):
         self.destroyed.connect(functools.partial(self._on_destroyed, self))
         self.deleteLater()
 
-        netman = QApplication.instance().networkmanager
+        netman = QApplication.instance().obj['networkmanager']
         self._destroyed[netman] = False
         netman.abort_requests()
         netman.destroyed.connect(functools.partial(self._on_destroyed, netman))
