@@ -241,27 +241,8 @@ class CurCommandDispatcher(QObject):
         except AttributeError:
             message.error("Unknown hinting target {}!".format(targetstr))
             return
-        widget.hintmanager.start(frame, widget.url(), group, target)
-
-    @cmdutils.register(instance='mainwindow.tabs.cur', hide=True)
-    def follow_hint(self):
-        """Follow the currently selected hint."""
-        self._tabs.currentWidget().hintmanager.follow_hint()
-
-    @pyqtSlot(str)
-    def handle_hint_key(self, keystr):
-        """Handle a new hint keypress."""
-        self._tabs.currentWidget().hintmanager.handle_partial_key(keystr)
-
-    @pyqtSlot(str)
-    def fire_hint(self, keystr):
-        """Fire a completed hint."""
-        self._tabs.currentWidget().hintmanager.fire(keystr)
-
-    @pyqtSlot(str)
-    def filter_hints(self, filterstr):
-        """Filter displayed hints."""
-        self._tabs.currentWidget().hintmanager.filter_hints(filterstr)
+        QApplication.instance().hintmanager.start(frame, widget.url(), group,
+                                                  target)
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
     def prevpage(self):

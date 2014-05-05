@@ -66,8 +66,6 @@ class TabbedBrowser(TabWidget):
         cur_scroll_perc_changed: Scroll percentage of current tab changed.
                                  arg 1: x-position in %.
                                  arg 2: y-position in %.
-        hint_strings_updated: Hint strings were updated.
-                              arg: A list of hint strings.
         shutdown_complete: The shuttdown is completed.
         quit: The last tab was closed, quit application.
         resized: Emitted when the browser window has resized, so the completion
@@ -82,7 +80,6 @@ class TabbedBrowser(TabWidget):
     cur_url_changed = pyqtSignal('QUrl')
     cur_link_hovered = pyqtSignal(str, str, str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
-    hint_strings_updated = pyqtSignal(list)
     shutdown_complete = pyqtSignal()
     quit = pyqtSignal()
     resized = pyqtSignal('QRect')
@@ -131,9 +128,6 @@ class TabbedBrowser(TabWidget):
         tab.scroll_pos_changed.connect(
             self._filter.create(self.cur_scroll_perc_changed))
         tab.urlChanged.connect(self._filter.create(self.cur_url_changed))
-        # hintmanager
-        tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)
-        tab.hintmanager.openurl.connect(self.cur.openurl_slot)
         # misc
         tab.titleChanged.connect(self.on_title_changed)
         tab.open_tab.connect(self.tabopen)

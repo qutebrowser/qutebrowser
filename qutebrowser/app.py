@@ -61,6 +61,7 @@ from qutebrowser.commands.managers import CommandManager, SearchManager
 from qutebrowser.config.iniparsers import ReadWriteConfigParser
 from qutebrowser.config.lineparser import LineConfigParser
 from qutebrowser.browser.cookies import CookieJar
+from qutebrowser.browser.hints import HintManager
 from qutebrowser.utils.message import MessageBridge
 from qutebrowser.utils.appdirs import AppDirs
 from qutebrowser.utils.misc import dotted_getattr
@@ -87,6 +88,7 @@ class QuteBrowser(QApplication):
         modeman: The global ModeManager instance.
         networkmanager: The global NetworkManager instance.
         cookiejar: The global CookieJar instance.
+        hintmanager: The global HintManager instance.
         _keyparsers: A mapping from modes to keyparsers.
         _dirs: AppDirs instance for config/cache directories.
         _args: ArgumentParser instance.
@@ -125,6 +127,7 @@ class QuteBrowser(QApplication):
         self.networkmanager = NetworkManager(self.cookiejar)
         self.commandmanager = CommandManager()
         self.searchmanager = SearchManager()
+        self.hintmanager = HintManager()
         self._init_cmds()
         self.mainwindow = MainWindow()
 
@@ -313,10 +316,13 @@ class QuteBrowser(QApplication):
         kp['normal'].keystring_updated.connect(status.keystring.setText)
 
         # hints
-        kp['hint'].fire_hint.connect(tabs.cur.fire_hint)
-        kp['hint'].filter_hints.connect(tabs.cur.filter_hints)
-        kp['hint'].keystring_updated.connect(tabs.cur.handle_hint_key)
-        tabs.hint_strings_updated.connect(kp['hint'].on_hint_strings_updated)
+        kp['hint'].fire_hint.connect(self.hintmanager.fire)
+        kp['hint'].filter_hints.connect(self.hintmanager.filter_hints)
+        kp['hint'].keystring_updated.connect(
+            self.hintmanager.handle_partial_key)
+        self.hintmanager.hint_strings_updated.connect(
+            kp['hint'].on_hint_strings_updated)
+        self.hintmanager.openurl.connect(tabs.cur.openurl_slot)
 
         # messages
         self.messagebridge.error.connect(status.disp_error)
