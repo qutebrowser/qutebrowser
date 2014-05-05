@@ -226,7 +226,7 @@ class HintManager(QObject):
             target = Target.bgtab
         else:
             target = self._target
-        self.set_open_target.emit(Target.reverse_mapping[target])
+        self.set_open_target.emit(Target[target])
         point = elem.geometry().topLeft()
         scrollpos = self._frame.scrollPosition()
         logging.debug("Clicking on \"{}\" at {}/{} - {}/{}".format(

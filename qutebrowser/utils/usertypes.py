@@ -27,7 +27,6 @@ _UNSET = object()
 
 
 def enum(*items, **named):
-
     """Factory for simple enumerations.
 
     We really don't need more complex things here, so we don't use python3.4's
@@ -40,9 +39,19 @@ def enum(*items, **named):
         **named: Items to have a given position/number.
     """
     enums = dict(zip(items, range(len(items))), **named)
-    reverse = dict((v, k) for k, v in enums.items())
-    enums['reverse_mapping'] = reverse
-    return type('Enum', (), enums)
+    return EnumBase('Enum', (), enums)
+
+
+class EnumBase(type):
+
+    """Metaclass for enums to provide __getitem__ for reverse mapping."""
+
+    def __init__(cls, name, base, fields):
+        super().__init__(name, base, fields)
+        cls._mapping = dict((v, k) for k, v in fields.items())
+
+    def __getitem__(cls, key):
+        return cls._mapping[key]
 
 
 class NeighborList:
