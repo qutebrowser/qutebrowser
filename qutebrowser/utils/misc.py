@@ -92,7 +92,7 @@ def shell_escape(s):
         # seems \\\". But \\ anywhere else is a literal \\. Because that makes
         # sense. Totally NOT. Using """ also seems to yield " and work in some
         # kind-of-safe manner.
-        s.replace('"', '"""')
+        s = s.replace('"', '"""')
         # Some places suggest we use %% to escape %, but actually ^% seems to
         # work better (compare  echo %%DATE%%  and  echo ^%DATE^%)
         s = re.sub(r'[&|^><%]', r'^\g<0>', s)
