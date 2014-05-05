@@ -64,20 +64,20 @@ def safe_shlex_split(s):
     Since shlex raises ValueError in both cases we unfortunately
     have to parse the exception string...
     """
-    try:
-        return shlex.split(s)
-    except ValueError as e:
-        if str(e) == "No closing quotation":
-            # e.g.   eggs "bacon ham
-            # -> we fix this as   eggs "bacon ham"
-            s += '"'
-        elif str(e) == "No escaped character":
-            # e.g.   eggs\
-            # -> we fix this as  eggs\\
-            s += '\\'
-        else:
-            raise
-        return shlex.split(s)
+    while True:
+        try:
+            return shlex.split(s)
+        except ValueError as e:
+            if str(e) == "No closing quotation":
+                # e.g.   eggs "bacon ham
+                # -> we fix this as   eggs "bacon ham"
+                s += '"'
+            elif str(e) == "No escaped character":
+                # e.g.   eggs\
+                # -> we fix this as  eggs\\
+                s += '\\'
+            else:
+                raise
 
 
 def shell_escape(s):
