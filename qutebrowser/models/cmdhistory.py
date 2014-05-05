@@ -51,7 +51,7 @@ class History:
 
     def __init__(self):
         self._tmphist = None
-        history = QApplication.instance().obj['cmd_history'].data
+        history = QApplication.instance().cmd_history.data
         if history is None:
             self._history = []
         else:

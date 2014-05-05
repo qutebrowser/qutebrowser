@@ -34,7 +34,7 @@ import qutebrowser.utils.debug as debug
 
 def instance():
     """Get the global modeman instance."""
-    return QApplication.instance().obj['modeman']
+    return QApplication.instance().modeman
 
 
 def enter(mode):

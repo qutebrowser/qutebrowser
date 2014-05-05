@@ -42,7 +42,7 @@ from qutebrowser.config._conftypes import ValidationError
 
 def instance():
     """Get the global config instance."""
-    return QApplication.instance().obj['config']
+    return QApplication.instance().config
 
 
 def get(*args, **kwargs):

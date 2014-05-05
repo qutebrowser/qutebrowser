@@ -23,7 +23,7 @@ from PyQt5.QtWidgets import QApplication
 
 def instance():
     """Get the global messagebridge instance."""
-    return QApplication.instance().obj['messagebridge']
+    return QApplication.instance().messagebridge
 
 
 def error(message):
