@@ -25,42 +25,32 @@ import logging
 
 from PyQt5.QtGui import QWindow
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
+from PyQt5.QtWidgets import QApplication
 
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.debug as debug
 
 
-manager = None
-
-
-def init(parent=None):
-    """Initialize the global ModeManager.
-
-    This needs to be done by hand because the import time is before Qt is ready
-    for everything.
-
-    Args:
-        parent: Parent to use for ModeManager.
-    """
-    global manager
-    manager = ModeManager(parent)
+def instance():
+    """Get the global modeman instance."""
+    return QApplication.instance().modeman
 
 
 def enter(mode):
     """Enter the mode 'mode'."""
-    manager.enter(mode)
+    instance().enter(mode)
 
 
 def leave(mode):
     """Leave the mode 'mode'."""
-    manager.leave(mode)
+    instance().leave(mode)
 
 
 def maybe_leave(mode):
     """Convenience method to leave 'mode' without exceptions."""
     try:
-        manager.leave(mode)
+        instance().leave(mode)
     except ValueError:
         pass
 

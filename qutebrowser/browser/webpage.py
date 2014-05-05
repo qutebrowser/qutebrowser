@@ -18,12 +18,12 @@
 """The main browser widgets."""
 
 import sip
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtNetwork import QNetworkReply
 from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.utils.url as urlutils
 import qutebrowser.config.config as config
-import qutebrowser.network.networkmanager as networkmanager
 from qutebrowser.utils.misc import read_file
 
 
@@ -41,7 +41,7 @@ class BrowserPage(QWebPage):
         self._extension_handlers = {
             QWebPage.ErrorPageExtension: self._handle_errorpage,
         }
-        self.setNetworkAccessManager(networkmanager.networkmanager)
+        self.setNetworkAccessManager(QApplication.instance().networkmanager)
 
     def _handle_errorpage(self, opt, out):
         """Display an error page if needed.

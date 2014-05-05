@@ -6,7 +6,6 @@ All kind of FIXMEs
 Style
 =====
 
-_foo = QApplication.instance().obj.foo   for global singletons?
 initialize completion models at some nicer place (not in widget)
 
 Major features

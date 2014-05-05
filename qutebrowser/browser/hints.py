@@ -99,7 +99,7 @@ class HintManager(QObject):
         self._target = None
         self._baseurl = None
         self._to_follow = None
-        modeman.manager.left.connect(self.on_mode_left)
+        modeman.instance().left.connect(self.on_mode_left)
 
     def _hint_strings(self, elems):
         """Calculate the hint strings for elems.
@@ -205,7 +205,7 @@ class HintManager(QObject):
         """
         rect = elem.geometry()
         css = self.HINT_CSS.format(left=rect.x(), top=rect.y(),
-                                   config=config.instance)
+                                   config=config.instance())
         doc = self._frame.documentElement()
         # It seems impossible to create an empty QWebElement for which isNull()
         # is false so we can work with it.
@@ -463,7 +463,7 @@ class HintManager(QObject):
         for elems in self._elems.values():
             rect = elems.elem.geometry()
             css = self.HINT_CSS.format(left=rect.x(), top=rect.y(),
-                                       config=config.instance)
+                                       config=config.instance())
             elems.label.setAttribute('style', css)
 
     @pyqtSlot(str)

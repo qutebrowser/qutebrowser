@@ -303,7 +303,7 @@ class BaseKeyParser(QObject):
             sectname = self._confsectname
         else:
             self._confsectname = sectname
-        sect = config.instance[sectname]
+        sect = config.section(sectname)
         if not sect.items():
             logging.warn("No keybindings defined!")
         for (key, cmd) in sect.items():

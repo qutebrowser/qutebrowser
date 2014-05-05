@@ -26,6 +26,7 @@ from functools import partial
 
 import qutebrowser.config.config as config
 
+
 _colordict = None
 _fontdict = None
 
@@ -41,9 +42,9 @@ def get_stylesheet(template):
     """
     global _colordict, _fontdict
     if _colordict is None:
-        _colordict = ColorDict(config.instance['colors'])
+        _colordict = ColorDict(config.section('colors'))
     if _fontdict is None:
-        _fontdict = FontDict(config.instance['fonts'])
+        _fontdict = FontDict(config.section('fonts'))
     return template.strip().format(color=_colordict, font=_fontdict)
 
 
@@ -59,7 +60,7 @@ def set_register_stylesheet(obj):
              Must have a STYLESHEET attribute.
     """
     obj.setStyleSheet(get_stylesheet(obj.STYLESHEET))
-    config.instance.changed.connect(partial(_update_stylesheet, obj))
+    config.instance().changed.connect(partial(_update_stylesheet, obj))
 
 
 def _update_stylesheet(obj, _section, _option):

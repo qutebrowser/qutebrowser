@@ -106,7 +106,7 @@ class CrashDialog(QDialog):
             ("Commandline args", ' '.join(sys.argv[1:])),
         ]
         try:
-            outputs.append(("Config", config.instance.dump_userconfig()))
+            outputs.append(("Config", config.instance().dump_userconfig()))
         except AttributeError:
             pass
         chunks = []

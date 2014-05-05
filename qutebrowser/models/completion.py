@@ -119,7 +119,7 @@ class CommandCompletionModel(BaseCompletionModel):
         for obj in set(cmd_dict.values()):
             if not obj.hide:
                 cmdlist.append((obj.name, obj.desc))
-        for name, cmd in config.instance['aliases'].items():
+        for name, cmd in config.section('aliases').items():
             cmdlist.append((name, "Alias for \"{}\"".format(cmd)))
         cat = self.new_category("Commands")
         for (name, desc) in sorted(cmdlist):

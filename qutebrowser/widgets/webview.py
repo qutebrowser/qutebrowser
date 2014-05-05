@@ -30,7 +30,6 @@ import qutebrowser.config.config as config
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.message as message
 import qutebrowser.utils.webelem as webelem
-import qutebrowser.network.networkmanager as networkmanager
 from qutebrowser.browser.webpage import BrowserPage
 from qutebrowser.browser.hints import HintManager
 from qutebrowser.utils.signals import SignalCache
@@ -210,7 +209,7 @@ class WebView(QWebView):
         self.destroyed.connect(functools.partial(self._on_destroyed, self))
         self.deleteLater()
 
-        netman = networkmanager.networkmanager
+        netman = QApplication.instance().networkmanager
         self._destroyed[netman] = False
         netman.abort_requests()
         netman.destroyed.connect(functools.partial(self._on_destroyed, netman))

@@ -23,19 +23,6 @@ from qutebrowser.config.lineparser import LineConfigParser
 from PyQt5.QtNetwork import QNetworkCookie, QNetworkCookieJar
 
 
-cookiejar = None
-
-
-def init(datadir):
-    """Initialize the global cookie jar.
-
-    Args:
-        datadir: The directory to store the cookie file in.
-    """
-    global cookiejar
-    cookiejar = CookieJar(datadir)
-
-
 class CookieJar(QNetworkCookieJar):
 
     """Our own cookie jar to save cookies to disk if desired."""

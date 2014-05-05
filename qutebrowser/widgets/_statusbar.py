@@ -175,13 +175,13 @@ class StatusBar(QWidget):
     @pyqtSlot(str)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
-        if mode in modeman.manager.passthrough:
+        if mode in modeman.instance().passthrough:
             self.txt.normaltext = "-- {} MODE --".format(mode.upper())
 
     @pyqtSlot(str)
     def on_mode_left(self, mode):
         """Clear marked mode."""
-        if mode in modeman.manager.passthrough:
+        if mode in modeman.instance().passthrough:
             self.txt.normaltext = ""
 
     def resizeEvent(self, e):

@@ -15,51 +15,40 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Message singleton so we don't have to define unneeded signals.
-
-Module attributes:
-    bridge: The MessageBridge instance.
-"""
+"""Message singleton so we don't have to define unneeded signals."""
 
 from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtWidgets import QApplication
 
 
-bridge = None
-
-
-def init():
-    """Initialize the global MessageBridge.
-
-    This needs to be done by hand because the import time is before Qt is ready
-    for everything.
-    """
-    global bridge
-    bridge = MessageBridge()
+def instance():
+    """Get the global messagebridge instance."""
+    return QApplication.instance().messagebridge
 
 
 def error(message):
     """Display an error message in the statusbar."""
-    bridge.error.emit(message)
+    instance().error.emit(message)
 
 
 def info(message):
     """Display a temporary info message in the statusbar."""
-    bridge.info.emit(message)
+    instance().info.emit(message)
 
 
 def text(message):
     """Display a persistent message in the statusbar."""
-    bridge.text.emit(message)
+    instance().text.emit(message)
 
 
 def clear():
     """Clear a persistent message in the statusbar."""
-    bridge.text.emit('')
+    instance().text.emit('')
 
 
 def set_cmd_text(txt):
     """Set the statusbar command line to a preset text."""
-    bridge.set_cmd_text.emit(txt)
+    instance().set_cmd_text.emit(txt)
 
 
 class MessageBridge(QObject):

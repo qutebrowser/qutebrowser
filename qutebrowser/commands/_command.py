@@ -23,6 +23,7 @@ from qutebrowser.commands._exceptions import (ArgumentCountError,
                                               PrerequisitesError)
 
 from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebSettings
 
 
@@ -82,13 +83,14 @@ class Command(QObject):
             ArgumentCountError if the argument count is wrong.
             PrerequisitesError if the command can't be called currently.
         """
-        import qutebrowser.keyinput.modeman as modeman
-        if self.modes is not None and modeman.manager.mode not in self.modes:
+        # We don't use modeman.instance() here to avoid a circular import
+        # of qutebrowser.keyinput.modeman.
+        curmode = QApplication.instance().modeman.mode
+        if self.modes is not None and curmode not in self.modes:
             raise PrerequisitesError("{}: This command is only allowed in {} "
                                      "mode.".format(self.name,
                                                     '/'.join(self.modes)))
-        elif (self.not_modes is not None and
-              modeman.manager.mode in self.not_modes):
+        elif self.not_modes is not None and curmode in self.not_modes:
             raise PrerequisitesError("{}: This command is not allowed in {} "
                                      "mode.".format(self.name,
                                                     '/'.join(self.not_modes)))

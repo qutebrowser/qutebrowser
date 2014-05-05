@@ -49,16 +49,19 @@ import qutebrowser.commands.utils as cmdutils
 import qutebrowser.config.style as style
 import qutebrowser.config.config as config
 import qutebrowser.network.qutescheme as qutescheme
-import qutebrowser.keyinput.modeman as modeman
-import qutebrowser.utils.message as message
 import qutebrowser.config.websettings as websettings
-import qutebrowser.network.networkmanager as networkmanager
-import qutebrowser.browser.cookies as cookies
+from qutebrowser.network.networkmanager import NetworkManager
+from qutebrowser.config.config import ConfigManager
+from qutebrowser.keyinput.modeman import ModeManager
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
 from qutebrowser.keyinput.modeparsers import NormalKeyParser, HintKeyParser
 from qutebrowser.keyinput.keyparser import PassthroughKeyParser
 from qutebrowser.commands.managers import CommandManager, SearchManager
+from qutebrowser.config.iniparsers import ReadWriteConfigParser
+from qutebrowser.config.lineparser import LineConfigParser
+from qutebrowser.browser.cookies import CookieJar
+from qutebrowser.utils.message import MessageBridge
 from qutebrowser.utils.appdirs import AppDirs
 from qutebrowser.utils.misc import dotted_getattr
 from qutebrowser.utils.debug import set_trace  # pylint: disable=unused-import
@@ -77,6 +80,13 @@ class QuteBrowser(QApplication):
         mainwindow: The MainWindow QWidget.
         commandmanager: The main CommandManager instance.
         searchmanager: The main SearchManager instance.
+        config: The main ConfigManager
+        stateconfig: The "state" ReadWriteConfigParser instance.
+        cmd_history: The "cmd_history" LineConfigParser instance.
+        messagebridge: The global MessageBridge instance.
+        modeman: The global ModeManager instance.
+        networkmanager: The global NetworkManager instance.
+        cookiejar: The global CookieJar instance.
         _keyparsers: A mapping from modes to keyparsers.
         _dirs: AppDirs instance for config/cache directories.
         _args: ArgumentParser instance.
@@ -86,12 +96,22 @@ class QuteBrowser(QApplication):
         _opened_urls: List of opened URLs.
     """
 
+    # This also holds all our globals, so we're a bit over the top here.
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(self):
         super().__init__(sys.argv)
         self._quit_status = {}
         self._timers = []
         self._opened_urls = []
         self._shutting_down = False
+        self._keyparsers = None
+        self._dirs = None
+        self.messagebridge = None
+        self.stateconfig = None
+        self.modeman = None
+        self.cmd_history = None
+        self.config = None
 
         sys.excepthook = self._exception_hook
 
@@ -101,18 +121,18 @@ class QuteBrowser(QApplication):
         self._init_config()
         self._init_modes()
         websettings.init(self._dirs.user_cache_dir)
-        cookies.init(self._dirs.user_data_dir)
-        networkmanager.init(cookies.cookiejar)
+        self.cookiejar = CookieJar(self._dirs.user_data_dir)
+        self.networkmanager = NetworkManager(self.cookiejar)
         self.commandmanager = CommandManager()
         self.searchmanager = SearchManager()
         self._init_cmds()
         self.mainwindow = MainWindow()
 
-        self.installEventFilter(modeman.manager)
+        self.installEventFilter(self.modeman)
         self.setQuitOnLastWindowClosed(False)
 
         self._connect_signals()
-        modeman.enter('normal')
+        self.modeman.enter('normal')
 
         self.mainwindow.show()
         self._python_hacks()
@@ -148,7 +168,7 @@ class QuteBrowser(QApplication):
         else:
             confdir = self._args.confdir
         try:
-            config.init(confdir)
+            self.config = ConfigManager(confdir, 'qutebrowser.conf')
         except (config.ValidationError,
                 config.NoOptionError,
                 configparser.InterpolationError,
@@ -165,7 +185,9 @@ class QuteBrowser(QApplication):
             msgbox.exec_()
             # We didn't really initialize much so far, so we just quit hard.
             sys.exit(1)
-        self.config = config.instance
+        self.stateconfig = ReadWriteConfigParser(confdir, 'state')
+        self.cmd_history = LineConfigParser(confdir, 'cmd_history',
+                                            ('completion', 'history-length'))
 
     def _init_modes(self):
         """Inizialize the mode manager and the keyparsers."""
@@ -176,17 +198,16 @@ class QuteBrowser(QApplication):
             'passthrough': PassthroughKeyParser('keybind.passthrough', self),
             'command': PassthroughKeyParser('keybind.command', self),
         }
-        modeman.init(self)
-        modeman.manager.register('normal', self._keyparsers['normal'].handle)
-        modeman.manager.register('hint', self._keyparsers['hint'].handle)
-        modeman.manager.register('insert', self._keyparsers['insert'].handle,
-                                 passthrough=True)
-        modeman.manager.register('passthrough',
-                                 self._keyparsers['passthrough'].handle,
-                                 passthrough=True)
-        modeman.manager.register('command', self._keyparsers['command'].handle,
-                                 passthrough=True)
-        self.modeman = modeman.manager  # for commands
+        self.modeman = ModeManager()
+        self.modeman.register('normal', self._keyparsers['normal'].handle)
+        self.modeman.register('hint', self._keyparsers['hint'].handle)
+        self.modeman.register('insert', self._keyparsers['insert'].handle,
+                              passthrough=True)
+        self.modeman.register('passthrough',
+                              self._keyparsers['passthrough'].handle,
+                              passthrough=True)
+        self.modeman.register('command', self._keyparsers['command'].handle,
+                              passthrough=True)
 
     def _init_log(self):
         """Initialisation of the logging output.
@@ -210,7 +231,7 @@ class QuteBrowser(QApplication):
             os.environ['QT_FATAL_WARNINGS'] = '1'
         self.setApplicationName("qutebrowser")
         self.setApplicationVersion(qutebrowser.__version__)
-        message.init()
+        self.messagebridge = MessageBridge()
 
     def _init_cmds(self):
         """Initialisation of the qutebrowser commands.
@@ -247,7 +268,7 @@ class QuteBrowser(QApplication):
 
         if self.mainwindow.tabs.count() == 0:
             logging.debug("Opening startpage")
-            for url in config.get('general', 'startpage'):
+            for url in self.config.get('general', 'startpage'):
                 self.mainwindow.tabs.tabopen(url)
 
     def _python_hacks(self):
@@ -278,10 +299,10 @@ class QuteBrowser(QApplication):
         tabs.currentChanged.connect(self.mainwindow.update_inspector)
 
         # status bar
-        modeman.manager.entered.connect(status.on_mode_entered)
-        modeman.manager.left.connect(status.on_mode_left)
-        modeman.manager.left.connect(status.cmd.on_mode_left)
-        modeman.manager.key_pressed.connect(status.on_key_pressed)
+        self.modeman.entered.connect(status.on_mode_entered)
+        self.modeman.left.connect(status.on_mode_left)
+        self.modeman.left.connect(status.cmd.on_mode_left)
+        self.modeman.key_pressed.connect(status.on_key_pressed)
 
         # commands
         cmd.got_cmd.connect(self.commandmanager.run_safely)
@@ -298,15 +319,15 @@ class QuteBrowser(QApplication):
         tabs.hint_strings_updated.connect(kp['hint'].on_hint_strings_updated)
 
         # messages
-        message.bridge.error.connect(status.disp_error)
-        message.bridge.info.connect(status.txt.set_temptext)
-        message.bridge.text.connect(status.txt.set_normaltext)
-        message.bridge.set_cmd_text.connect(cmd.set_cmd_text)
+        self.messagebridge.error.connect(status.disp_error)
+        self.messagebridge.info.connect(status.txt.set_temptext)
+        self.messagebridge.text.connect(status.txt.set_normaltext)
+        self.messagebridge.set_cmd_text.connect(cmd.set_cmd_text)
 
         # config
         self.config.style_changed.connect(style.invalidate_caches)
-        for obj in [tabs, completion, self.mainwindow, config.cmd_history,
-                    websettings, kp['normal'], modeman.manager]:
+        for obj in [tabs, completion, self.mainwindow, self.cmd_history,
+                    websettings, kp['normal'], self.modeman]:
             self.config.changed.connect(obj.on_config_changed)
 
         # statusbar
@@ -320,7 +341,7 @@ class QuteBrowser(QApplication):
         tabs.cur_link_hovered.connect(status.url.set_hover_url)
 
         # command input / completion
-        modeman.manager.left.connect(tabs.on_mode_left)
+        self.modeman.left.connect(tabs.on_mode_left)
         cmd.clear_completion_selection.connect(
             completion.on_clear_completion_selection)
         cmd.hide_completion.connect(completion.hide)
@@ -353,10 +374,10 @@ class QuteBrowser(QApplication):
         """Save the window geometry to the state config."""
         geom = b64encode(bytes(self.mainwindow.saveGeometry())).decode('ASCII')
         try:
-            config.state.add_section('geometry')
+            self.stateconfig.add_section('geometry')
         except configparser.DuplicateSectionError:
             pass
-        config.state['geometry']['mainwindow'] = geom
+        self.stateconfig['geometry']['mainwindow'] = geom
 
     def _exception_hook(self, exctype, excvalue, tb):
         """Handle uncaught python exceptions.
@@ -473,22 +494,22 @@ class QuteBrowser(QApplication):
             return
         self._shutting_down = True
         logging.debug("Shutting down... (do_quit={})".format(do_quit))
-        if config.get('general', 'auto-save-config'):
+        if self.config.get('general', 'auto-save-config'):
             try:
-                config.instance.save()
+                self.config.save()
             except AttributeError:
                 logging.exception("Could not save config.")
         try:
-            config.cmd_history.save()
+            self.cmd_history.save()
         except AttributeError:
             logging.exception("Could not save command history.")
         try:
             self._save_geometry()
-            config.state.save()
+            self.stateconfig.save()
         except AttributeError:
             logging.exception("Could not save window geometry.")
         try:
-            cookies.cookiejar.save()
+            self.cookiejar.save()
         except AttributeError:
             logging.exception("Could not save cookies.")
         try:

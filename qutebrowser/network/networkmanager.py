@@ -23,21 +23,6 @@ import qutebrowser.config.config as config
 from qutebrowser.network.qutescheme import QuteSchemeHandler
 
 
-networkmanager = None
-
-
-def init(cookiejar):
-    """Initialize the global NetworkManager.
-
-    Args:
-        cookiejar: The QCookieJar to use.
-    """
-    global networkmanager
-    networkmanager = NetworkManager()
-    networkmanager.setCookieJar(cookiejar)
-    cookiejar.setParent(None)
-
-
 class NetworkManager(QNetworkAccessManager):
 
     """Our own QNetworkAccessManager.
@@ -48,12 +33,14 @@ class NetworkManager(QNetworkAccessManager):
                           schemes.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, cookiejar=None, parent=None):
         super().__init__(parent)
         self._requests = {}
         self._scheme_handlers = {
             'qute': QuteSchemeHandler(),
         }
+        if cookiejar is not None:
+            self.setCookieJar(cookiejar)
 
     def abort_requests(self):
         """Abort all running requests."""

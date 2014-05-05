@@ -20,11 +20,6 @@
 This borrows a lot of ideas from configparser, but also has some things that
 are fundamentally different. This is why nothing inherts from configparser, but
 we borrow some methods and classes from there where it makes sense.
-
-Module attributes:
-    instance: The "qutebrowser.conf" Config instance.
-    state: The "state" ReadWriteConfigParser instance.
-    cmd_history: The "cmd_history" LineConfigParser instance.
 """
 
 import os
@@ -36,37 +31,28 @@ from configparser import ExtendedInterpolation
 from collections.abc import MutableMapping
 
 from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtWidgets import QApplication
 
 import qutebrowser.config.configdata as configdata
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.message as message
+from qutebrowser.config.iniparsers import ReadConfigParser
 from qutebrowser.config._conftypes import ValidationError
-from qutebrowser.config._iniparsers import (ReadConfigParser,
-                                            ReadWriteConfigParser)
-from qutebrowser.config.lineparser import LineConfigParser
-
-instance = None
-state = None
-cmd_history = None
 
 
-def init(configdir):
-    """Initialize the global objects based on the config in configdir.
-
-    Args:
-        configdir: The directory where the configs are stored in.
-    """
-    global instance, state, cmd_history
-    logging.debug("Config init, configdir {}".format(configdir))
-    instance = ConfigManager(configdir, 'qutebrowser.conf')
-    state = ReadWriteConfigParser(configdir, 'state')
-    cmd_history = LineConfigParser(configdir, 'cmd_history',
-                                   ('completion', 'history-length'))
+def instance():
+    """Get the global config instance."""
+    return QApplication.instance().config
 
 
 def get(*args, **kwargs):
     """Convenience method to call get(...) of the config instance."""
-    return instance.get(*args, **kwargs)
+    return instance().get(*args, **kwargs)
+
+
+def section(sect):
+    """Get a config section from the global config."""
+    return instance()[sect]
 
 
 class NoSectionError(configparser.NoSectionError):
