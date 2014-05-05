@@ -742,6 +742,14 @@ class LastClose(String):
                                ('quit', "Quit qutebrowser."))
 
 
+class AcceptCookies(String):
+
+    """Whether to accept a cookie."""
+
+    valid_values = ValidValues(('default', "Default QtWebKit behaviour"),
+                               ('never', "Don't accept cookies at all."))
+
+
 class KeyBinding(Command):
 
     """The command of a keybinding."""

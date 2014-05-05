@@ -28,6 +28,8 @@ from argparse import ArgumentParser
 from base64 import b64encode
 
 import qutebrowser.config.websettings as websettings
+import qutebrowser.network.networkmanager as networkmanager
+import qutebrowser.browser.cookies as cookies
 
 # Print a nice traceback on segfault -- only available on Python 3.3+, but if
 # it's unavailable, it doesn't matter much.
@@ -126,6 +128,8 @@ class QuteBrowser(QApplication):
             sys.exit(1)
         self.config = config.instance
         websettings.init(self._dirs.user_cache_dir)
+        cookies.init(self._dirs.user_data_dir)
+        networkmanager.init(cookies.cookiejar)
 
         self.commandmanager = CommandManager()
         self.searchmanager = SearchManager()
@@ -478,6 +482,10 @@ class QuteBrowser(QApplication):
             config.state.save()
         except AttributeError:
             logging.exception("Could not save window geometry.")
+        try:
+            cookies.cookiejar.save()
+        except AttributeError:
+            logging.exception("Could not save cookies.")
         try:
             if do_quit:
                 self.mainwindow.tabs.shutdown_complete.connect(

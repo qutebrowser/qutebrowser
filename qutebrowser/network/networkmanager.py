@@ -23,6 +23,21 @@ import qutebrowser.config.config as config
 from qutebrowser.network.qutescheme import QuteSchemeHandler
 
 
+networkmanager = None
+
+
+def init(cookiejar):
+    """Initialize the global NetworkManager.
+
+    Args:
+        cookiejar: The QCookieJar to use.
+    """
+    global networkmanager
+    networkmanager = NetworkManager()
+    networkmanager.setCookieJar(cookiejar)
+    cookiejar.setParent(None)
+
+
 class NetworkManager(QNetworkAccessManager):
 
     """Our own QNetworkAccessManager.

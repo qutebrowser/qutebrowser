@@ -43,7 +43,7 @@ import qutebrowser.utils.message as message
 from qutebrowser.config._conftypes import ValidationError
 from qutebrowser.config._iniparsers import (ReadConfigParser,
                                             ReadWriteConfigParser)
-from qutebrowser.config._lineparser import LineConfigParser
+from qutebrowser.config.lineparser import LineConfigParser
 
 instance = None
 state = None

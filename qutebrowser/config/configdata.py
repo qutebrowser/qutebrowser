@@ -209,6 +209,14 @@ DATA = OrderedDict([
         ('user-agent',
          SettingValue(types.String(), ''),
          "User agent to send. Empty to send the default."),
+
+        ('accept-cookies',
+         SettingValue(types.AcceptCookies(), 'default'),
+         "Whether to accept cookies."),
+
+        ('store-cookies',
+         SettingValue(types.Bool(), 'false'),
+         "Whether to store cookies."),
     )),
 
     ('completion', sect.KeyValue(

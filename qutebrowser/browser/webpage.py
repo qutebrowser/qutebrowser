@@ -23,7 +23,7 @@ from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.utils.url as urlutils
 import qutebrowser.config.config as config
-from qutebrowser.network.networkmanager import NetworkManager
+import qutebrowser.network.networkmanager as networkmanager
 from qutebrowser.utils.misc import read_file
 
 
@@ -41,8 +41,7 @@ class BrowserPage(QWebPage):
         self._extension_handlers = {
             QWebPage.ErrorPageExtension: self._handle_errorpage,
         }
-        self.network_access_manager = NetworkManager(self)
-        self.setNetworkAccessManager(self.network_access_manager)
+        self.setNetworkAccessManager(networkmanager.networkmanager)
 
     def _handle_errorpage(self, opt, out):
         """Display an error page if needed.
