@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=missing-docstring
+# pylint: disable=missing-docstring,blacklisted-name,protected-access
 
 """Tests for qutebrowser.utils.misc."""
 
@@ -140,9 +140,9 @@ class ShellEscapeTests(TestCase):
             out = subprocess.check_output(cmd, shell=True).decode('ASCII')
             self.assertEqual(out, orig, cmd)
 
-
     def tearDown(self):
         sys.platform = self.platform
+
 
 if __name__ == '__main__':
     unittest.main()

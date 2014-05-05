@@ -52,7 +52,7 @@ options = {
         ],
     },
     'exclude': ['appdirs.py'],
-    'exclude_pep257': [],
+    'exclude_pep257': ['test_*'],
     'other': {
         'pylint': ['--output-format=colorized', '--reports=no',
                    '--rcfile=.pylintrc'],
