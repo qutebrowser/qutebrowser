@@ -26,11 +26,6 @@ import configparser
 from signal import signal, SIGINT
 from argparse import ArgumentParser
 from base64 import b64encode
-
-import qutebrowser.config.websettings as websettings
-import qutebrowser.network.networkmanager as networkmanager
-import qutebrowser.browser.cookies as cookies
-
 # Print a nice traceback on segfault -- only available on Python 3.3+, but if
 # it's unavailable, it doesn't matter much.
 try:
@@ -56,6 +51,9 @@ import qutebrowser.config.config as config
 import qutebrowser.network.qutescheme as qutescheme
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.message as message
+import qutebrowser.config.websettings as websettings
+import qutebrowser.network.networkmanager as networkmanager
+import qutebrowser.browser.cookies as cookies
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import CrashDialog
 from qutebrowser.keyinput.modeparsers import NormalKeyParser, HintKeyParser
@@ -97,10 +95,51 @@ class QuteBrowser(QApplication):
 
         sys.excepthook = self._exception_hook
 
-        self._args = self._parseopts()
-        self._initlog()
-        self._initmisc()
+        self._args = self._parse_args()
+        self._init_log()
+        self._init_misc()
+        self._init_config()
+        self._init_modes()
+        websettings.init(self._dirs.user_cache_dir)
+        cookies.init(self._dirs.user_data_dir)
+        networkmanager.init(cookies.cookiejar)
+        self.commandmanager = CommandManager()
+        self.searchmanager = SearchManager()
+        self._init_cmds()
+        self.mainwindow = MainWindow()
 
+        self.installEventFilter(modeman.manager)
+        self.setQuitOnLastWindowClosed(False)
+
+        self._connect_signals()
+        modeman.enter('normal')
+
+        self.mainwindow.show()
+        self._python_hacks()
+        timer = QTimer.singleShot(0, self._process_init_args)
+        self._timers.append(timer)
+
+    def _parse_args(self):
+        """Parse command line options.
+
+        Return:
+            Argument namespace from argparse.
+        """
+        parser = ArgumentParser("usage: %(prog)s [options]")
+        parser.add_argument('-l', '--log', dest='loglevel',
+                            help="Set loglevel", default='info')
+        parser.add_argument('-c', '--confdir', help="Set config directory "
+                            "(empty for no config storage)")
+        parser.add_argument('-d', '--debug', help="Turn on debugging options.",
+                            action='store_true')
+        parser.add_argument('command', nargs='*', help="Commands to execute "
+                            "on startup.", metavar=':command')
+        # URLs will actually be in command
+        parser.add_argument('url', nargs='*', help="URLs to open on startup.")
+        return parser.parse_args()
+
+    def _init_config(self):
+        """Inizialize and read the config."""
         self._dirs = AppDirs('qutebrowser')
         if self._args.confdir is None:
             confdir = self._dirs.user_config_dir
@@ -127,12 +166,9 @@ class QuteBrowser(QApplication):
             # We didn't really initialize much so far, so we just quit hard.
             sys.exit(1)
         self.config = config.instance
-        websettings.init(self._dirs.user_cache_dir)
-        cookies.init(self._dirs.user_data_dir)
-        networkmanager.init(cookies.cookiejar)
 
-        self.commandmanager = CommandManager()
-        self.searchmanager = SearchManager()
+    def _init_modes(self):
+        """Inizialize the mode manager and the keyparsers."""
         self._keyparsers = {
             'normal': NormalKeyParser(self),
             'hint': HintKeyParser(self),
@@ -140,8 +176,6 @@ class QuteBrowser(QApplication):
             'passthrough': PassthroughKeyParser('keybind.passthrough', self),
             'command': PassthroughKeyParser('keybind.command', self),
         }
-        self._init_cmds()
-        self.mainwindow = MainWindow()
         modeman.init(self)
         modeman.manager.register('normal', self._keyparsers['normal'].handle)
         modeman.manager.register('hint', self._keyparsers['hint'].handle)
@@ -153,37 +187,8 @@ class QuteBrowser(QApplication):
         modeman.manager.register('command', self._keyparsers['command'].handle,
                                  passthrough=True)
         self.modeman = modeman.manager  # for commands
-        self.installEventFilter(modeman.manager)
-        self.setQuitOnLastWindowClosed(False)
 
-        self._connect_signals()
-        modeman.enter('normal')
-
-        self.mainwindow.show()
-        self._python_hacks()
-        timer = QTimer.singleShot(0, self._process_init_args)
-        self._timers.append(timer)
-
-    def _parseopts(self):
-        """Parse command line options.
-
-        Return:
-            Argument namespace from argparse.
-        """
-        parser = ArgumentParser("usage: %(prog)s [options]")
-        parser.add_argument('-l', '--log', dest='loglevel',
-                            help="Set loglevel", default='info')
-        parser.add_argument('-c', '--confdir', help="Set config directory "
-                            "(empty for no config storage)")
-        parser.add_argument('-d', '--debug', help="Turn on debugging options.",
-                            action='store_true')
-        parser.add_argument('command', nargs='*', help="Commands to execute "
-                            "on startup.", metavar=':command')
-        # URLs will actually be in command
-        parser.add_argument('url', nargs='*', help="URLs to open on startup.")
-        return parser.parse_args()
-
-    def _initlog(self):
+    def _init_log(self):
         """Initialisation of the logging output.
 
         Raise:
@@ -199,7 +204,7 @@ class QuteBrowser(QApplication):
                    '[%(module)s:%(funcName)s:%(lineno)s] %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S')
 
-    def _initmisc(self):
+    def _init_misc(self):
         """Initialize misc things."""
         if self._args.debug:
             os.environ['QT_FATAL_WARNINGS'] = '1'
