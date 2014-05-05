@@ -17,6 +17,8 @@
 
 """Message singleton so we don't have to define unneeded signals."""
 
+import logging
+
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QApplication
 
@@ -28,16 +30,19 @@ def instance():
 
 def error(message):
     """Display an error message in the statusbar."""
+    logging.error(message)
     instance().error.emit(message)
 
 
 def info(message):
     """Display a temporary info message in the statusbar."""
+    logging.info(message)
     instance().info.emit(message)
 
 
 def text(message):
     """Display a persistent message in the statusbar."""
+    logging.debug(message)
     instance().text.emit(message)
 
 
