@@ -72,7 +72,7 @@ def _is_url_naive(url):
     Return:
         True if the url really is an URL, False otherwise.
     """
-    protocols = ['http://', 'https://']
+    protocols = ['http', 'https']
     if isinstance(url, QUrl):
         u = url
     else:
