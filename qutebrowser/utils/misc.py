@@ -82,7 +82,7 @@ def safe_shlex_split(s):
 
 def shell_escape(s):
     """Escape a string so it's safe to pass to a shell."""
-    if sys.platform == 'win32':
+    if sys.platform.startswith('win'):
         # Oh dear flying sphagetti monster please kill me now...
         if not s:
             # Is this an empty argument or a literal ""? It seems to depend on
