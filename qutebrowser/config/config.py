@@ -211,26 +211,26 @@ class ConfigManager(QObject):
                     e.option = k
                     raise
 
-    def has_option(self, sectname, option):
+    def has_option(self, sectname, optname):
         """Check if option exists in section.
 
         Args:
             sectname: The section name.
-            option: The option name
+            optname: The option name
 
         Return:
             True if the option and section exist, False otherwise.
         """
         if sectname not in self.sections:
             return False
-        return option in self.sections[sectname]
+        return optname in self.sections[sectname]
 
-    def remove_option(self, sectname, option):
+    def remove_option(self, sectname, optname):
         """Remove an option.
 
         Args:
             sectname: The section where to remove an option.
-            option: The option name to remove.
+            optname: The option name to remove.
 
         Return:
             True if the option existed, False otherwise.
@@ -239,51 +239,51 @@ class ConfigManager(QObject):
             sectdict = self.sections[sectname]
         except KeyError:
             raise NoSectionError(sectname)
-        option = self.optionxform(option)
-        existed = option in sectdict
+        optname = self.optionxform(optname)
+        existed = optname in sectdict
         if existed:
-            del sectdict[option]
+            del sectdict[optname]
         return existed
 
     @cmdutils.register(name='get', instance='config',
                        completion=['section', 'option'])
-    def get_wrapper(self, sectname, option):
+    def get_wrapper(self, sectname, optname):
         """Get the value from a section/option.
 
         Wrapper for the get-command to output the value in the status bar.
         """
         try:
-            val = self.get(sectname, option, transformed=False)
+            val = self.get(sectname, optname, transformed=False)
         except (NoOptionError, NoSectionError) as e:
             message.error("get: {} - {}".format(e.__class__.__name__, e))
         else:
-            message.info("{} {} = {}".format(sectname, option, val))
+            message.info("{} {} = {}".format(sectname, optname, val))
 
-    def get(self, sectname, option, raw=False, transformed=True):
+    def get(self, sectname, optname, raw=False, transformed=True):
         """Get the value from a section/option.
 
         Args:
             sectname: The section to get the option from.
-            option: The option name
+            optname: The option name
             raw: Whether to get the uninterpolated, untransformed value.
             transformed: Whether the value should be transformed.
 
         Return:
             The value of the option.
         """
-        logging.debug("getting {} -> {}".format(sectname, option))
+        logging.debug("getting {} -> {}".format(sectname, optname))
         try:
             sect = self.sections[sectname]
         except KeyError:
             raise NoSectionError(sectname)
         try:
-            val = sect[option]
+            val = sect[optname]
         except KeyError:
-            raise NoOptionError(option, sectname)
+            raise NoOptionError(optname, sectname)
         if raw:
             return val.value
         mapping = {key: val.value for key, val in sect.values.items()}
-        newval = self._interpolation.before_get(self, sectname, option,
+        newval = self._interpolation.before_get(self, sectname, optname,
                                                 val.value, mapping)
         logging.debug("interpolated val: {}".format(newval))
         if transformed:
@@ -292,36 +292,36 @@ class ConfigManager(QObject):
 
     @cmdutils.register(name='set', instance='config',
                        completion=['section', 'option', 'value'])
-    def set_wrapper(self, sectname, option, value):
+    def set_wrapper(self, sectname, optname, value):
         """Set an option.
 
         Wrapper for self.set() to output exceptions in the status bar.
         """
         try:
-            self.set('conf', sectname, option, value)
+            self.set('conf', sectname, optname, value)
         except (NoOptionError, NoSectionError, ValidationError,
                 ValueError) as e:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
     @cmdutils.register(name='set_temp', instance='config',
                        completion=['section', 'option', 'value'])
-    def set_temp_wrapper(self, sectname, option, value):
+    def set_temp_wrapper(self, sectname, optname, value):
         """Set a temporary option.
 
         Wrapper for self.set() to output exceptions in the status bar.
         """
         try:
-            self.set('temp', sectname, option, value)
+            self.set('temp', sectname, optname, value)
         except (NoOptionError, NoSectionError, ValidationError) as e:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
-    def set(self, layer, sectname, option, value):
+    def set(self, layer, sectname, optname, value):
         """Set an option.
 
         Args:
             layer: A layer name as string (conf/temp/default).
             sectname: The name of the section to change.
-            option: The name of the option to change.
+            optname: The name of the option to change.
             value: The new value.
 
         Raise:
@@ -332,22 +332,22 @@ class ConfigManager(QObject):
             changed: If the config was changed.
             style_changed: When style caches need to be invalidated.
         """
-        value = self._interpolation.before_set(self, sectname, option, value)
+        value = self._interpolation.before_set(self, sectname, optname, value)
         try:
             sect = self.sections[sectname]
         except KeyError:
             raise NoSectionError(sectname)
         mapping = {key: val.value for key, val in sect.values.items()}
-        interpolated = self._interpolation.before_get(self, sectname, option,
+        interpolated = self._interpolation.before_get(self, sectname, optname,
                                                       value, mapping)
         try:
-            sect.setv(layer, option, value, interpolated)
+            sect.setv(layer, optname, value, interpolated)
         except KeyError:
-            raise NoOptionError(option, sectname)
+            raise NoOptionError(optname, sectname)
         else:
             if sectname in ['colors', 'fonts']:
-                self.style_changed.emit(sectname, option)
-            self.changed.emit(sectname, option)
+                self.style_changed.emit(sectname, optname)
+            self.changed.emit(sectname, optname)
 
     @cmdutils.register(instance='config')
     def save(self):
@@ -427,18 +427,18 @@ class SectionProxy(MutableMapping):
         """Get the option keys from this section."""
         return self._conf.sections[self._name].keys()
 
-    def get(self, option, *, raw=False):
+    def get(self, optname, *, raw=False):
         """Get a value from this section.
 
         We deliberately don't support the default argument here, but have a raw
         argument instead.
 
         Args:
-            option: The option name to get.
+            optname: The option name to get.
             raw: Whether to get a raw value or not.
         """
         # pylint: disable=arguments-differ
-        return self._conf.get(self._name, option, raw=raw)
+        return self._conf.get(self._name, optname, raw=raw)
 
     @property
     def conf(self):
