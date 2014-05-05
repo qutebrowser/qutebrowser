@@ -182,3 +182,13 @@ class FakeDict:
 
     def __getitem__(self, _key):
         return self._val
+
+
+class ImmutableDict(dict):
+
+    """Dict where items only can be set once."""
+
+    def __setitem__(self, key, value):
+        if key in self:
+            raise ValueError("Key {} already has been set.".format(key))
+        super().__setitem__(key, value)
