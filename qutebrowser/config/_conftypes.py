@@ -24,6 +24,7 @@ from sre_constants import error as RegexError
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor
+from PyQt5.QtNetwork import QNetworkProxy
 
 import qutebrowser.commands.utils as cmdutils
 
@@ -536,6 +537,48 @@ class WebKitBytesList(List):
         if self.length is not None and len(vals) != self.length:
             raise ValidationError(value, "exactly {} values need to be "
                                          "set!".format(self.length))
+
+
+class Proxy(BaseType):
+
+    """A proxy URL or special value."""
+
+    valid_values = ValidValues(('system', "Use the system wide proxy."),
+                               ('none', "Don't use any proxy"))
+
+    PROXY_TYPES = {
+        'http': QNetworkProxy.HttpProxy,
+        'socks': QNetworkProxy.Socks5Proxy,
+        'socks5': QNetworkProxy.Socks5Proxy,
+    }
+
+    def validate(self, value):
+        if value in self.valid_values:
+            return
+        url = QUrl(value)
+        if (url.isValid() and not url.isEmpty() and
+                url.scheme() in self.PROXY_TYPES):
+            return
+        raise ValidationError(value, "must be a proxy URL (http://... or "
+                                     "socks://...) or system/none!")
+
+    def complete(self):
+        out = []
+        for val in self.valid_values:
+            out.append((val, self.valid_values.descriptions[val]))
+        out.append(('http://', 'HTTP proxy URL'))
+        out.append(('socks://', 'SOCKS proxy URL'))
+        return out
+
+    def transform(self, value):
+        if value == 'system':
+            return None
+        elif value == 'none':
+            return QNetworkProxy(QNetworkProxy.NoProxy)
+        url = QUrl(value)
+        typ = self.PROXY_TYPES[url.scheme()]
+        return QNetworkProxy(typ, url.host(), url.port(), url.userName(),
+                             url.password())
 
 
 class Command(BaseType):

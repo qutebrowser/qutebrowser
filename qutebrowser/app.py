@@ -50,6 +50,7 @@ import qutebrowser.config.style as style
 import qutebrowser.config.config as config
 import qutebrowser.network.qutescheme as qutescheme
 import qutebrowser.config.websettings as websettings
+import qutebrowser.network.proxy as proxy
 from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.config.config import ConfigManager
 from qutebrowser.keyinput.modeman import ModeManager
@@ -123,6 +124,7 @@ class QuteBrowser(QApplication):
         self._init_config()
         self._init_modes()
         websettings.init(self._dirs.user_cache_dir)
+        proxy.init()
         self.cookiejar = CookieJar(self._dirs.user_data_dir)
         self.networkmanager = NetworkManager(self.cookiejar)
         self.commandmanager = CommandManager()

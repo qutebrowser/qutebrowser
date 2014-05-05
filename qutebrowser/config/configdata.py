@@ -217,6 +217,10 @@ DATA = OrderedDict([
         ('store-cookies',
          SettingValue(types.Bool(), 'false'),
          "Whether to store cookies."),
+
+        ('proxy',
+         SettingValue(types.Proxy(), 'system'),
+         "The proxy to use."),
     )),
 
     ('completion', sect.KeyValue(
