@@ -30,95 +30,96 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWebKit import QWebSettings
 
 import qutebrowser.config.config as config
+from qutebrowser.utils.usertypes import enum
 
-ATTRIBUTE = 0
-SETTER = 1
-STATIC_SETTER = 2
+MapType = enum('attribute', 'setter', 'static_setter')
 
 
 MAPPINGS = {
     # noqa
     'auto-load-images':
-        (ATTRIBUTE, QWebSettings.AutoLoadImages),
+        (MapType.attribute, QWebSettings.AutoLoadImages),
     'dns-prefetch-enabled':
-        (ATTRIBUTE, QWebSettings.DnsPrefetchEnabled),
+        (MapType.attribute, QWebSettings.DnsPrefetchEnabled),
     'javascript-enabled':
-        (ATTRIBUTE, QWebSettings.JavascriptEnabled),
+        (MapType.attribute, QWebSettings.JavascriptEnabled),
     #'java-enabled':
-    #   (ATTRIBUTE, QWebSettings.JavaEnabled),
+    #   (MapType.attribute, QWebSettings.JavaEnabled),
     'plugins-enabled':
-        (ATTRIBUTE, QWebSettings.PluginsEnabled),
+        (MapType.attribute, QWebSettings.PluginsEnabled),
     'private-browsing-enabled':
-        (ATTRIBUTE, QWebSettings.PrivateBrowsingEnabled),
+        (MapType.attribute, QWebSettings.PrivateBrowsingEnabled),
     'javascript-can-open-windows':
-        (ATTRIBUTE, QWebSettings.JavascriptCanOpenWindows),
+        (MapType.attribute, QWebSettings.JavascriptCanOpenWindows),
     'javascript-can-close-windows':
-        (ATTRIBUTE, QWebSettings.JavascriptCanCloseWindows),
+        (MapType.attribute, QWebSettings.JavascriptCanCloseWindows),
     'javascript-can-access-clipboard':
-        (ATTRIBUTE, QWebSettings.JavascriptCanAccessClipboard),
+        (MapType.attribute, QWebSettings.JavascriptCanAccessClipboard),
     'developer-extras-enabled':
-        (ATTRIBUTE, QWebSettings.DeveloperExtrasEnabled),
+        (MapType.attribute, QWebSettings.DeveloperExtrasEnabled),
     'spatial-navigation-enabled':
-        (ATTRIBUTE, QWebSettings.SpatialNavigationEnabled),
+        (MapType.attribute, QWebSettings.SpatialNavigationEnabled),
     'links-included-in-focus-chain':
-        (ATTRIBUTE, QWebSettings.LinksIncludedInFocusChain),
+        (MapType.attribute, QWebSettings.LinksIncludedInFocusChain),
     'zoom-text-only':
-        (ATTRIBUTE, QWebSettings.ZoomTextOnly),
+        (MapType.attribute, QWebSettings.ZoomTextOnly),
     'print-element-backgrounds':
-        (ATTRIBUTE, QWebSettings.PrintElementBackgrounds),
+        (MapType.attribute, QWebSettings.PrintElementBackgrounds),
     'offline-storage-database-enabled':
-        (ATTRIBUTE, QWebSettings.OfflineStorageDatabaseEnabled),
+        (MapType.attribute, QWebSettings.OfflineStorageDatabaseEnabled),
     'offline-web-application-storage-enabled':
-        (ATTRIBUTE, QWebSettings.OfflineWebApplicationCacheEnabled),
+        (MapType.attribute, QWebSettings.OfflineWebApplicationCacheEnabled),
     'local-storage-enabled':
-        (ATTRIBUTE, QWebSettings.LocalStorageEnabled),
+        (MapType.attribute, QWebSettings.LocalStorageEnabled),
     'local-content-can-access-remote-urls':
-        (ATTRIBUTE, QWebSettings.LocalContentCanAccessRemoteUrls),
+        (MapType.attribute, QWebSettings.LocalContentCanAccessRemoteUrls),
     'local-content-can-access-file-urls':
-        (ATTRIBUTE, QWebSettings.LocalContentCanAccessFileUrls),
+        (MapType.attribute, QWebSettings.LocalContentCanAccessFileUrls),
     'xss-auditing-enabled':
-        (ATTRIBUTE, QWebSettings.XSSAuditingEnabled),
+        (MapType.attribute, QWebSettings.XSSAuditingEnabled),
     #'accelerated-compositing-enabled':
-    #   (ATTRIBUTE, QWebSettings.AcceleratedCompositingEnabled),
+    #   (MapType.attribute, QWebSettings.AcceleratedCompositingEnabled),
     #'tiled-backing-store-enabled':
-    #   (ATTRIBUTE, QWebSettings.TiledBackingStoreEnabled),
+    #   (MapType.attribute, QWebSettings.TiledBackingStoreEnabled),
     'frame-flattening-enabled':
-        (ATTRIBUTE, QWebSettings.FrameFlatteningEnabled),
+        (MapType.attribute, QWebSettings.FrameFlatteningEnabled),
     'site-specific-quirks-enabled':
-        (ATTRIBUTE, QWebSettings.SiteSpecificQuirksEnabled),
+        (MapType.attribute, QWebSettings.SiteSpecificQuirksEnabled),
     'user-stylesheet':
-        (SETTER, lambda qws, v: qws.setUserStyleSheetUrl(v)),
+        (MapType.setter, lambda qws, v: qws.setUserStyleSheetUrl(v)),
     'css-media-type':
-        (SETTER, lambda qws, v: qws.setCSSMediaType(v)),
+        (MapType.setter, lambda qws, v: qws.setCSSMediaType(v)),
     'default-encoding':
-        (SETTER, lambda qws, v: qws.setDefaultTextEncoding(v)),
+        (MapType.setter, lambda qws, v: qws.setDefaultTextEncoding(v)),
     'font-family-standard':
-        (SETTER, lambda qws, v:
+        (MapType.setter, lambda qws, v:
             qws.setFontFamily(QWebSettings.StandardFont, v)),
     'font-family-fixed':
-        (SETTER, lambda qws, v:
+        (MapType.setter, lambda qws, v:
             qws.setFontFamily(QWebSettings.FixedFont, v)),
     'font-family-serif':
-        (SETTER, lambda qws, v:
+        (MapType.setter, lambda qws, v:
             qws.setFontFamily(QWebSettings.SerifFont, v)),
     'font-family-sans-serif':
-        (SETTER, lambda qws, v:
+        (MapType.setter, lambda qws, v:
             qws.setFontFamily(QWebSettings.SansSerifFont, v)),
     'font-family-cursive':
-        (SETTER, lambda qws, v:
+        (MapType.setter, lambda qws, v:
             qws.setFontFamily(QWebSettings.CursiveFont, v)),
     'font-family-fantasy':
-        (SETTER, lambda qws, v:
+        (MapType.setter, lambda qws, v:
             qws.setFontFamily(QWebSettings.FantasyFont, v)),
     'maximum-pages-in-cache':
-        (STATIC_SETTER, lambda v: QWebSettings.setMaximumPagesInCache(v)),
+        (MapType.static_setter, lambda v:
+            QWebSettings.setMaximumPagesInCache(v)),
     'object-cache-capacities':
-        (STATIC_SETTER, lambda v: QWebSettings.setObjectCacheCapacities(*v)),
+        (MapType.static_setter, lambda v:
+            QWebSettings.setObjectCacheCapacities(*v)),
     'offline-storage-default-quota':
-        (STATIC_SETTER, lambda v:
+        (MapType.static_setter, lambda v:
             QWebSettings.setOfflineStorageDefaultQuota(v)),
     'offline-web-application-cache-quota':
-        (STATIC_SETTER, lambda v:
+        (MapType.static_setter, lambda v:
             QWebSettings.setOfflineWebApplicationCacheQuota(v)),
 }
 
@@ -130,15 +131,16 @@ def _set_setting(typ, arg, value):
     """Set a QWebSettings setting.
 
     Args:
-        typ: The type of the item (ATTRIBUTE/SETTER/STATIC_SETTER)
+        typ: The type of the item
+             (MapType.attribute/MapType.setter/MapType.static_setter)
         arg: The argument (attribute/handler)
         value: The value to set.
     """
-    if typ == ATTRIBUTE:
+    if typ == MapType.attribute:
         settings.setAttribute(arg, value)
-    elif typ == SETTER and value is not None:
+    elif typ == MapType.setter and value is not None:
         arg(settings, value)
-    elif typ == STATIC_SETTER and value is not None:
+    elif typ == MapType.static_setter and value is not None:
         arg(value)
 
 

@@ -133,21 +133,21 @@ class OneTests(TestCase):
         self.nl = NeighborList([1], default=1)
 
     def test_first_wrap(self):
-        self.nl._mode = NeighborList.WRAP
+        self.nl._mode = NeighborList.Modes.wrap
         self.nl.firstitem()
         self.assertEqual(self.nl.idx, 0)
         self.assertEqual(self.nl.previtem(), 1)
         self.assertEqual(self.nl.idx, 0)
 
     def test_first_block(self):
-        self.nl._mode = NeighborList.BLOCK
+        self.nl._mode = NeighborList.Modes.block
         self.nl.firstitem()
         self.assertEqual(self.nl.idx, 0)
         self.assertEqual(self.nl.previtem(), 1)
         self.assertEqual(self.nl.idx, 0)
 
     def test_first_raise(self):
-        self.nl._mode = NeighborList.RAISE
+        self.nl._mode = NeighborList.Modes.exception
         self.nl.firstitem()
         self.assertEqual(self.nl.idx, 0)
         with self.assertRaises(IndexError):
@@ -155,21 +155,21 @@ class OneTests(TestCase):
         self.assertEqual(self.nl.idx, 0)
 
     def test_last_wrap(self):
-        self.nl._mode = NeighborList.WRAP
+        self.nl._mode = NeighborList.Modes.wrap
         self.nl.lastitem()
         self.assertEqual(self.nl.idx, 0)
         self.assertEqual(self.nl.nextitem(), 1)
         self.assertEqual(self.nl.idx, 0)
 
     def test_last_block(self):
-        self.nl._mode = NeighborList.BLOCK
+        self.nl._mode = NeighborList.Modes.block
         self.nl.lastitem()
         self.assertEqual(self.nl.idx, 0)
         self.assertEqual(self.nl.nextitem(), 1)
         self.assertEqual(self.nl.idx, 0)
 
     def test_last_raise(self):
-        self.nl._mode = NeighborList.RAISE
+        self.nl._mode = NeighborList.Modes.exception
         self.nl.lastitem()
         self.assertEqual(self.nl.idx, 0)
         with self.assertRaises(IndexError):
@@ -179,11 +179,11 @@ class OneTests(TestCase):
 
 class BlockTests(TestCase):
 
-    """Tests with mode=BLOCK."""
+    """Tests with mode=block."""
 
     def setUp(self):
         self.nl = NeighborList([1, 2, 3, 4, 5], default=3,
-                               mode=NeighborList.BLOCK)
+                               mode=NeighborList.Modes.block)
 
     def test_first(self):
         self.nl.firstitem()
@@ -200,11 +200,11 @@ class BlockTests(TestCase):
 
 class WrapTests(TestCase):
 
-    """Tests with mode=WRAP."""
+    """Tests with mode=wrap."""
 
     def setUp(self):
         self.nl = NeighborList([1, 2, 3, 4, 5], default=3,
-                               mode=NeighborList.WRAP)
+                               mode=NeighborList.Modes.wrap)
 
     def test_first(self):
         self.nl.firstitem()
@@ -221,11 +221,11 @@ class WrapTests(TestCase):
 
 class RaiseTests(TestCase):
 
-    """Tests with mode=RAISE."""
+    """Tests with mode=exception."""
 
     def setUp(self):
         self.nl = NeighborList([1, 2, 3, 4, 5], default=3,
-                               mode=NeighborList.RAISE)
+                               mode=NeighborList.Modes.exception)
 
     def test_first(self):
         self.nl.firstitem()

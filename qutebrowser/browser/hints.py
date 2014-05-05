@@ -30,9 +30,14 @@ import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.message as message
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.webelem as webelem
+from qutebrowser.utils.usertypes import enum
 
 
 ElemTuple = namedtuple('ElemTuple', 'elem, label')
+
+
+Target = enum('normal', 'tab', 'bgtab', 'yank', 'yank_primary', 'cmd',
+              'cmd_tab', 'cmd_bgtab', 'rapid')
 
 
 class HintManager(QObject):
@@ -47,10 +52,10 @@ class HintManager(QObject):
         _elems: A mapping from keystrings to (elem, label) namedtuples.
         _baseurl: The URL of the current page.
         _target: What to do with the opened links.
-                 'normal'/'tab'/'bgtab': Get passed to BrowserTab.
-                 'yank'/'yank_primary': Yank to clipboard/primary selection
-                 'cmd'/'cmd_tab'/'cmd_bgtab': Enter link to commandline
-                 'rapid': Rapid mode with background tabs
+                 normal/tab/bgtab: Get passed to BrowserTab.
+                 yank/yank_primary: Yank to clipboard/primary selection
+                 cmd/cmd_tab/cmd_bgtab: Enter link to commandline
+                 rapid: Rapid mode with background tabs
         _to_follow: The link to follow when enter is pressed.
 
     Signals:
@@ -217,11 +222,11 @@ class HintManager(QObject):
         Args:
             elem: The QWebElement to click.
         """
-        if self._target == 'rapid':
-            target = 'bgtab'
+        if self._target == Target.rapid:
+            target = Target.bgtab
         else:
             target = self._target
-        self.set_open_target.emit(target)
+        self.set_open_target.emit(Target.reverse_mapping[target])
         point = elem.geometry().topLeft()
         scrollpos = self._frame.scrollPosition()
         logging.debug("Clicking on \"{}\" at {}/{} - {}/{}".format(
@@ -245,7 +250,7 @@ class HintManager(QObject):
         Args:
             link: The URL to open.
         """
-        sel = self._target == 'yank_primary'
+        sel = self._target == Target.yank_primary
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         QApplication.clipboard().setText(urlutils.urlstring(link), mode)
         message.info("URL yanked to {}".format("primary selection" if sel
@@ -258,9 +263,9 @@ class HintManager(QObject):
             link: The link to open.
         """
         commands = {
-            'cmd': 'open',
-            'cmd_tab': 'tabopen',
-            'cmd_bgtab': 'backtabopen',
+            Target.cmd: 'open',
+            Target.cmd_tab: 'tabopen',
+            Target.cmd_bgtab: 'backtabopen',
         }
         message.set_cmd_text(':{} {}'.format(commands[self._target],
                                              urlutils.urlstring(link)))
@@ -325,23 +330,20 @@ class HintManager(QObject):
             return
         self.openurl.emit(link, newtab)
 
-    def start(self, frame, baseurl, mode='all', target='normal'):
+    def start(self, frame, baseurl, group=webelem.Group.all,
+              target=Target.normal):
         """Start hinting.
 
         Args:
             frame: The QWebFrame to place hints in.
             baseurl: URL of the current page.
-            mode: The mode to be used.
+            group: Which group of elements to hint.
             target: What to do with the link. See attribute docstring.
 
         Emit:
             hint_strings_updated: Emitted to update keypraser.
         """
-        try:
-            elems = frame.findAllElements(webelem.SELECTORS[mode])
-        except KeyError:
-            message.error("Hinting mode '{}' does not exist!".format(mode))
-            return
+        elems = frame.findAllElements(webelem.SELECTORS[group])
         self._target = target
         self._baseurl = baseurl
         if frame is None:
@@ -350,7 +352,7 @@ class HintManager(QObject):
             # on_mode_left, we are extra careful here.
             raise ValueError("start() was called with frame=None")
         self._frame = frame
-        filterfunc = webelem.FILTERS.get(mode, lambda e: True)
+        filterfunc = webelem.FILTERS.get(group, lambda e: True)
         visible_elems = []
         for e in elems:
             if filterfunc(e) and webelem.is_visible(e, self._frame):
@@ -359,21 +361,17 @@ class HintManager(QObject):
             message.error("No elements found.")
             return
         texts = {
-            'normal': "Follow hint...",
-            'tab': "Follow hint in new tab...",
-            'bgtab': "Follow hint in background tab...",
-            'yank': "Yank hint to clipboard...",
-            'yank_primary': "Yank hint to primary selection...",
-            'cmd': "Set hint in commandline...",
-            'cmd_tab': "Set hint in commandline as new tab...",
-            'cmd_bgtab': "Set hint in commandline as background tab...",
-            'rapid': "Follow hint (rapid mode)...",
+            Target.normal: "Follow hint...",
+            Target.tab: "Follow hint in new tab...",
+            Target.bgtab: "Follow hint in background tab...",
+            Target.yank: "Yank hint to clipboard...",
+            Target.yank_primary: "Yank hint to primary selection...",
+            Target.cmd: "Set hint in commandline...",
+            Target.cmd_tab: "Set hint in commandline as new tab...",
+            Target.cmd_bgtab: "Set hint in commandline as background tab...",
+            Target.rapid: "Follow hint (rapid mode)...",
         }
-        try:
-            message.text(texts[target])
-        except KeyError:
-            message.error("Hinting target '{}' does not exist!".format(target))
-            return
+        message.text(texts[target])
         strings = self._hint_strings(visible_elems)
         for e, string in zip(visible_elems, strings):
             label = self._draw_label(e, string)
@@ -426,18 +424,18 @@ class HintManager(QObject):
             return
         # Handlers which take a QWebElement
         elem_handlers = {
-            'normal': self._click,
-            'tab': self._click,
-            'bgtab': self._click,
-            'rapid': self._click,
+            Target.normal: self._click,
+            Target.tab: self._click,
+            Target.bgtab: self._click,
+            Target.rapid: self._click,
         }
         # Handlers which take a link string
         link_handlers = {
-            'yank': self._yank,
-            'yank_primary': self._yank,
-            'cmd': self._preset_cmd_text,
-            'cmd_tab': self._preset_cmd_text,
-            'cmd_bgtab': self._preset_cmd_text,
+            Target.yank: self._yank,
+            Target.yank_primary: self._yank,
+            Target.cmd: self._preset_cmd_text,
+            Target.cmd_tab: self._preset_cmd_text,
+            Target.cmd_bgtab: self._preset_cmd_text,
         }
         elem = self._elems[keystr].elem
         if self._target in elem_handlers:
@@ -448,7 +446,9 @@ class HintManager(QObject):
                 message.error("No suitable link found for this element.")
                 return
             link_handlers[self._target](link)
-        if self._target != 'rapid':
+        else:
+            raise ValueError("No suitable handler found!")
+        if self._target != Target.rapid:
             modeman.leave('hint')
 
     def follow_hint(self):

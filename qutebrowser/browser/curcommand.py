@@ -33,6 +33,7 @@ import qutebrowser.utils.message as message
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.webelem as webelem
 import qutebrowser.config.config as config
+import qutebrowser.browser.hints as hints
 from qutebrowser.utils.misc import shell_escape
 
 
@@ -216,21 +217,31 @@ class CurCommandDispatcher(QObject):
                 break
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
-    def hint(self, mode='all', target='normal'):
+    def hint(self, groupstr='all', targetstr='normal'):
         """Start hinting.
 
         Command handler for :hint.
 
         Args:
-            mode: The hinting mode to use.
-            target: Where to open the links.
+            groupstr: The hinting mode to use.
+            targetstr: Where to open the links.
         """
         widget = self._tabs.currentWidget()
         frame = widget.page_.currentFrame()
         if frame is None:
             message.error("No frame focused!")
-        else:
-            widget.hintmanager.start(frame, widget.url(), mode, target)
+            return
+        try:
+            group = getattr(webelem.Group, groupstr)
+        except AttributeError:
+            message.error("Unknown hinting group {}!".format(groupstr))
+            return
+        try:
+            target = getattr(hints.Target, targetstr)
+        except AttributeError:
+            message.error("Unknown hinting target {}!".format(targetstr))
+            return
+        widget.hintmanager.start(frame, widget.url(), group, target)
 
     @cmdutils.register(instance='mainwindow.tabs.cur', hide=True)
     def follow_hint(self):

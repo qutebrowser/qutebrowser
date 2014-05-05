@@ -25,6 +25,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject, QTimer
 from PyQt5.QtGui import QKeySequence
 
 import qutebrowser.config.config as config
+from qutebrowser.utils.usertypes import enum
 
 
 class BaseKeyParser(QObject):
@@ -35,14 +36,16 @@ class BaseKeyParser(QObject):
     execute() to do whatever they want to.
 
     Class Attributes:
-        MATCH_PARTIAL: Constant for a partial match (no keychain matched yet,
-                       but it's still possible in the future.
-        MATCH_DEFINITIVE: Constant for a full match (keychain matches exactly).
-        MATCH_AMBIGUOUS: There are both a partial and a definitive match.
-        MATCH_NONE: Constant for no match (no more matches possible).
+        Match: types of a match between a binding and the keystring.
+            partial: No keychain matched yet, but it's still possible in the
+                     future.
+            definitive: Keychain matches exactly.
+            ambiguous: There are both a partial and a definitive match.
+            none: No more matches possible.
 
-        TYPE_CHAIN: execute() was called via a chain-like keybinding
-        TYPE_SPECIAL: execute() was called via a special keybinding
+        Types: type of a keybinding.
+            chain: execute() was called via a chain-like keybinding
+            special: execute() was called via a special keybinding
 
     Attributes:
         bindings: Bound keybindings
@@ -60,13 +63,8 @@ class BaseKeyParser(QObject):
 
     keystring_updated = pyqtSignal(str)
 
-    MATCH_PARTIAL = 0
-    MATCH_DEFINITIVE = 1
-    MATCH_AMBIGUOUS = 2
-    MATCH_NONE = 3
-
-    TYPE_CHAIN = 0
-    TYPE_SPECIAL = 1
+    Match = enum('partial', 'definitive', 'ambiguous', 'none')
+    Type = enum('chain', 'special')
 
     def __init__(self, parent=None, supports_count=None,
                  supports_chains=False):
@@ -134,7 +132,7 @@ class BaseKeyParser(QObject):
         except KeyError:
             logging.debug("No binding found for {}.".format(modstr + keystr))
             return False
-        self.execute(cmdstr, self.TYPE_SPECIAL)
+        self.execute(cmdstr, self.Type.special)
         return True
 
     def _handle_single_key(self, e):
@@ -173,15 +171,15 @@ class BaseKeyParser(QObject):
 
         (match, binding) = self._match_key(cmd_input)
 
-        if match == self.MATCH_DEFINITIVE:
+        if match == self.Match.definitive:
             self._keystring = ''
-            self.execute(binding, self.TYPE_CHAIN, count)
-        elif match == self.MATCH_AMBIGUOUS:
+            self.execute(binding, self.Type.chain, count)
+        elif match == self.Match.ambiguous:
             self._handle_ambiguous_match(binding, count)
-        elif match == self.MATCH_PARTIAL:
+        elif match == self.Match.partial:
             logging.debug("No match for \"{}\" (added {})".format(
                 self._keystring, txt))
-        elif match == self.MATCH_NONE:
+        elif match == self.Match.none:
             logging.debug("Giving up with \"{}\", no matches".format(
                 self._keystring))
             self._keystring = ''
@@ -196,11 +194,11 @@ class BaseKeyParser(QObject):
 
         Return:
             A tuple (matchtype, binding).
-                matchtype: MATCH_DEFINITIVE, MATCH_AMBIGUOUS, MATCH_PARTIAL or
-                           MATCH_NONE
-                binding: - None with MATCH_PARTIAL/MATCH_NONE
-                         - The found binding with MATCH_DEFINITIVE/
-                           MATCH_AMBIGUOUS
+                matchtype: Match.definitive, Match.ambiguous, Match.partial or
+                           Match.none
+                binding: - None with Match.partial/Match.none
+                         - The found binding with Match.definitive/
+                           Match.ambiguous
         """
         # A (cmd_input, binding) tuple (k, v of bindings) or None.
         definitive_match = None
@@ -219,13 +217,13 @@ class BaseKeyParser(QObject):
                 partial_match = True
                 break
         if definitive_match is not None and partial_match:
-            return (self.MATCH_AMBIGUOUS, definitive_match[1])
+            return (self.Match.ambiguous, definitive_match[1])
         elif definitive_match is not None:
-            return (self.MATCH_DEFINITIVE, definitive_match[1])
+            return (self.Match.definitive, definitive_match[1])
         elif partial_match:
-            return (self.MATCH_PARTIAL, None)
+            return (self.Match.partial, None)
         else:
-            return (self.MATCH_NONE, None)
+            return (self.Match.none, None)
 
     def _stop_delayed_exec(self):
         """Stop a delayed execution if any is running."""
@@ -246,7 +244,7 @@ class BaseKeyParser(QObject):
         if time == 0:
             # execute immediately
             self._keystring = ''
-            self.execute(binding, self.TYPE_CHAIN, count)
+            self.execute(binding, self.Type.chain, count)
         else:
             # execute in `time' ms
             logging.debug("Scheduling execution of {} in {}ms".format(binding,
@@ -271,7 +269,7 @@ class BaseKeyParser(QObject):
         self._timer = None
         self._keystring = ''
         self.keystring_updated.emit(self._keystring)
-        self.execute(command, self.TYPE_CHAIN, count)
+        self.execute(command, self.Type.chain, count)
 
     def handle(self, e):
         """Handle a new keypress and call the respective handlers.
@@ -329,7 +327,7 @@ class BaseKeyParser(QObject):
 
         Args:
             cmdstr: The command to execute as a string.
-            keytype: TYPE_CHAIN or TYPE_SPECIAL
+            keytype: Type.chain or Type.special
             count: The count if given.
         """
         raise NotImplementedError

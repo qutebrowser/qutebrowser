@@ -33,7 +33,10 @@ import qutebrowser.utils.webelem as webelem
 from qutebrowser.browser.webpage import BrowserPage
 from qutebrowser.browser.hints import HintManager
 from qutebrowser.utils.signals import SignalCache
-from qutebrowser.utils.usertypes import NeighborList
+from qutebrowser.utils.usertypes import NeighborList, enum
+
+
+Target = enum('normal', 'tab', 'bgtab')
 
 
 class WebView(QWebView):
@@ -72,7 +75,7 @@ class WebView(QWebView):
         super().__init__(parent)
         self._scroll_pos = (-1, -1)
         self._shutdown_callback = None
-        self._open_target = 'normal'
+        self._open_target = Target.normal
         self._force_open_target = None
         self._destroyed = {}
         self._zoom = None
@@ -95,7 +98,7 @@ class WebView(QWebView):
         self._zoom = NeighborList(
             config.get('general', 'zoom-levels'),
             default=config.get('general', 'default-zoom'),
-            mode=NeighborList.BLOCK)
+            mode=NeighborList.Modes.block)
 
     def _on_destroyed(self, sender):
         """Called when a subsystem has been destroyed during shutdown.
@@ -226,9 +229,9 @@ class WebView(QWebView):
         Emit:
             open_tab: Emitted if window should be opened in a new tab.
         """
-        if self._open_target == 'tab':
+        if self._open_target == Target.tab:
             self.open_tab.emit(url, False)
-        elif self._open_target == 'bgtab':
+        elif self._open_target == Target.bgtab:
             self.open_tab.emit(url, True)
         else:
             self.openurl(url)
@@ -252,7 +255,7 @@ class WebView(QWebView):
             return
         frame = self.page_.currentFrame()
         elem = frame.findFirstElement(
-            webelem.SELECTORS['editable_focused'])
+            webelem.SELECTORS[webelem.Group.editable_focused])
         logging.debug("focus element: {}".format(not elem.isNull()))
         if elem.isNull():
             modeman.maybe_leave("insert")
@@ -266,7 +269,7 @@ class WebView(QWebView):
         Args:
             target: A string to set self._force_open_target to.
         """
-        self._force_open_target = target
+        self._force_open_target = getattr(Target, target)
 
     def paintEvent(self, e):
         """Extend paintEvent to emit a signal if the scroll position changed.
@@ -339,10 +342,10 @@ class WebView(QWebView):
         elif (e.button() == Qt.MidButton or
               e.modifiers() & Qt.ControlModifier):
             if config.get('general', 'background-tabs'):
-                self._open_target = "bgtab"
+                self._open_target = Target.bgtab
             else:
-                self._open_target = "tab"
+                self._open_target = Target.tab
             logging.debug("Setting target: {}".format(self._open_target))
         else:
-            self._open_target = "normal"
+            self._open_target = Target.normal
         return super().mousePressEvent(e)

@@ -26,12 +26,31 @@ import logging
 _UNSET = object()
 
 
+def enum(*items, **named):
+
+    """Factory for simple enumerations.
+
+    We really don't need more complex things here, so we don't use python3.4's
+    enum, because we'd have to backport things to 3.3 and maybe even 3.2.
+
+    Based on: http://stackoverflow.com/a/1695250/2085149
+
+    Args:
+        *items: Items to be sequentally enumerated.
+        **named: Items to have a given position/number.
+    """
+    enums = dict(zip(items, range(len(items))), **named)
+    reverse = dict((v, k) for k, v in enums.items())
+    enums['reverse_mapping'] = reverse
+    return type('Enum', (), enums)
+
+
 class NeighborList:
 
     """A list of items which saves it current position.
 
     Class attributes:
-        BLOCK/WRAP/RAISE: Modes, see constructor documentation.
+        Modes: Different modes, see constructor documentation.
 
     Attributes:
         idx: The current position in the list.
@@ -39,20 +58,18 @@ class NeighborList:
         _mode: The current mode.
     """
 
-    BLOCK = 0
-    WRAP = 1
-    RAISE = 2
+    Modes = enum('block', 'wrap', 'exception')
 
-    def __init__(self, items=None, default=_UNSET, mode=RAISE):
+    def __init__(self, items=None, default=_UNSET, mode=Modes.exception):
         """Constructor.
 
         Args:
             items: The list of items to iterate in.
             _default: The initially selected value.
             _mode: Behaviour when the first/last item is reached.
-                   BLOCK: Stay on the selected item
-                   WRAP: Wrap around to the other end
-                   RAISE: Raise an IndexError.
+                   Modes.block: Stay on the selected item
+                   Modes.wrap: Wrap around to the other end
+                   Modes.exception: Raise an IndexError.
         """
         if items is None:
             self._items = []
@@ -80,7 +97,8 @@ class NeighborList:
             The new item.
 
         Raise:
-            IndexError if the border of the list is reached and mode is RAISE.
+            IndexError if the border of the list is reached and mode is
+                       exception.
         """
         logging.debug("{} items, idx {}, offset {}".format(len(self._items),
                                                            self.idx, offset))
@@ -92,13 +110,13 @@ class NeighborList:
             else:
                 raise IndexError
         except IndexError:
-            if self._mode == self.BLOCK:
+            if self._mode == self.Modes.block:
                 new = self.curitem()
-            elif self._mode == self.WRAP:
+            elif self._mode == self.Modes.wrap:
                 self.idx += offset
                 self.idx %= len(self.items)
                 new = self.curitem()
-            elif self._mode == self.RAISE:
+            elif self._mode == self.Modes.exception:
                 raise
         else:
             self.idx += offset

@@ -18,6 +18,7 @@
 """Utilities related to QWebElements.
 
 Module attributes:
+    Group: Enum for different kinds of groups.
     SELECTORS: CSS selectors for different groups of elements.
     FILTERS: A dictionary of filter functions for the modes.
              The filter for "links" filters javascript:-links and a-tags
@@ -25,27 +26,33 @@ Module attributes:
 """
 
 import qutebrowser.utils.url as urlutils
+from qutebrowser.utils.usertypes import enum
+
+
+Group = enum('all', 'links', 'images', 'editable', 'url', 'prevnext_rel',
+             'prevnext', 'editable_focused')
+
 
 SELECTORS = {
-    'all': ('a, textarea, select, input:not([type=hidden]), button, '
-            'frame, iframe, [onclick], [onmousedown], [role=link], '
-            '[role=option], [role=button], img'),
-    'links': 'a',
-    'images': 'img',
-    'editable': ('input[type=text], input[type=email], input[type=url], '
-                 'input[type=tel], input[type=number], '
-                 'input[type=password], input[type=search], textarea'),
-    'url': '[src], [href]',
-    'prevnext_rel': 'link, [role=link]',
-    'prevnext': 'a, button, [role=button]',
+    Group.all: ('a, textarea, select, input:not([type=hidden]), button, '
+                'frame, iframe, [onclick], [onmousedown], [role=link], '
+                '[role=option], [role=button], img'),
+    Group.links: 'a',
+    Group.images: 'img',
+    Group.editable: ('input[type=text], input[type=email], input[type=url], '
+                     'input[type=tel], input[type=number], '
+                     'input[type=password], input[type=search], textarea'),
+    Group.url: '[src], [href]',
+    Group.prevnext_rel: 'link, [role=link]',
+    Group.prevnext: 'a, button, [role=button]',
 }
 
-SELECTORS['editable_focused'] = ', '.join(
-    [sel.strip() + ':focus' for sel in SELECTORS['editable'].split(',')])
+SELECTORS[Group.editable_focused] = ', '.join(
+    [sel.strip() + ':focus' for sel in SELECTORS[Group.editable].split(',')])
 
 FILTERS = {
-    'links': (lambda e: e.hasAttribute('href') and
-              urlutils.qurl(e.attribute('href')).scheme() != 'javascript'),
+    Group.links: (lambda e: e.hasAttribute('href') and
+                  urlutils.qurl(e.attribute('href')).scheme() != 'javascript'),
 }
 
 

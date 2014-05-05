@@ -127,9 +127,9 @@ class HintKeyParser(CommandKeyParser):
         """Handle a completed keychain.
 
         Emit:
-            fire_hint: Emitted if keytype is TYPE_CHAIN
+            fire_hint: Emitted if keytype is chain
         """
-        if keytype == self.TYPE_CHAIN:
+        if keytype == self.Type.chain:
             self.fire_hint.emit(cmdstr)
         else:
             # execute as command
