@@ -1,0 +1,136 @@
+# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# This file is part of qutebrowser.
+#
+# qutebrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# qutebrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+# pylint: disable=missing-docstring
+
+"""Tests for qutebrowser.utils.misc."""
+
+import sys
+import unittest
+import os.path
+from unittest import TestCase
+
+import qutebrowser.utils.misc as utils
+
+
+class ReadFileTests(TestCase):
+
+    """Test read_file."""
+
+    def test_readfile(self):
+        content = utils.read_file(os.path.join('test', 'testfile'))
+        self.assertEqual(content.splitlines()[0], "Hello World!")
+
+
+class DottedGetattrTests(TestCase):
+
+    """Test dotted_getattr."""
+
+    class Test:
+
+        foo = None
+
+    class Test2:
+
+        bar = 1
+
+    def setUp(self):
+        self.test = self.Test()
+        self.test.foo = self.Test2()
+
+    def test_dotted_getattr(self):
+        attr = utils.dotted_getattr(self, 'test.foo.bar')
+        self.assertEqual(attr, 1)
+
+    def test_invalid_path(self):
+        with self.assertRaises(AttributeError):
+            _ = utils.dotted_getattr(self, 'test.foo.baz')
+
+
+class SafeShlexSplitTests(TestCase):
+
+    """Test safe_shlex_split."""
+
+    def test_normal(self):
+        items = utils.safe_shlex_split('one two')
+        self.assertEqual(items, ['one', 'two'])
+
+    def test_quoted(self):
+        items = utils.safe_shlex_split('one "two three" four')
+        self.assertEqual(items, ['one', 'two three', 'four'])
+
+    def test_escaped(self):
+        items = utils.safe_shlex_split(r'one "two\" three" four')
+        self.assertEqual(items, ['one', 'two" three', 'four'])
+
+    def test_unbalanced_quotes(self):
+        items = utils.safe_shlex_split(r'one "two three')
+        self.assertEqual(items, ['one', 'two three'])
+
+    def test_unfinished_escape(self):
+        items = utils.safe_shlex_split('one\\')
+        self.assertEqual(items, ['one\\'])
+
+    def test_both(self):
+        items = utils.safe_shlex_split('one "two\\')
+        self.assertEqual(items, ['one', 'two\\'])
+
+
+class ShellEscapeTests(TestCase):
+
+    def setUp(self):
+        self.platform = sys.platform
+
+    def test_linux_empty(self):
+        sys.platform = 'linux'
+        self.assertEqual(utils.shell_escape(''), "''")
+
+    def test_linux_safe(self):
+        sys.platform = 'linux'
+        self.assertEqual(utils.shell_escape('foo%bar+baz'), 'foo%bar+baz')
+
+    def test_linux_unsafe(self):
+        sys.platform = 'linux'
+        self.assertEqual(utils.shell_escape('foo$bar'), "'foo$bar'")
+
+    def test_linux_unsafe_quotes(self):
+        sys.platform = 'linux'
+        # $'b --> '$'"'"'b'
+        self.assertEqual(utils.shell_escape("$'b"), """'$'"'"'b'""")
+
+    def test_windows_empty(self):
+        sys.platform = 'win32'
+        self.assertEqual(utils.shell_escape(''), '""')
+
+    def test_windows_safe(self):
+        sys.platform = 'win32'
+        self.assertEqual(utils.shell_escape('foo*bar?baz'), 'foo*bar?baz')
+
+    def test_windows_unsafe(self):
+        sys.platform = 'win32'
+        self.assertEqual(utils.shell_escape("a&b|c^d<e>f%"),
+                         "a^&b^|c^^d^<e^>f^%")
+
+    def test_windows_unsafe_quotes(self):
+        sys.platform = 'win32'
+        self.assertEqual(utils.shell_escape('foo"bar'), 'foo"""bar')
+
+    def tearDown(self):
+        sys.platform = self.platform
+
+if __name__ == '__main__':
+    unittest.main()
