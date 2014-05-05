@@ -474,7 +474,6 @@ class HintManager(QObject):
     @pyqtSlot(str)
     def on_mode_left(self, mode):
         """Stop hinting when hinting mode was left."""
-        logging.warn("mode {} left".format(mode))
         if mode != 'hint':
             return
         for elem in self._elems.values():
