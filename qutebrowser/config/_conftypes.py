@@ -155,14 +155,22 @@ class String(BaseType):
     Attributes:
         minlen: Minimum length (inclusive).
         maxlen: Maximum length (inclusive).
+        forbidden: Forbidden chars in the string.
+        none: Whether to convert to None for an empty string.
     """
 
     typestr = 'string'
 
-    def __init__(self, minlen=None, maxlen=None, forbidden=None):
+    def __init__(self, minlen=None, maxlen=None, forbidden=None, none=False):
         self.minlen = minlen
         self.maxlen = maxlen
         self.forbidden = forbidden
+        self.none = none
+
+    def transform(self, value):
+        if self.none and not value:
+            return None
+        return value
 
     def validate(self, value):
         if self.forbidden is not None and any(c in value
@@ -175,16 +183,6 @@ class String(BaseType):
         if self.maxlen is not None and len(value) > self.maxlen:
             raise ValidationError(value, "must be at most {} long!".format(
                                   self.maxlen))
-
-
-class NoneString(String):
-
-    """String which returns None if it's empty."""
-
-    def transform(self, value):
-        if not value:
-            return None
-        return super().transform(value)
 
 
 class ShellCommand(String):
@@ -252,18 +250,24 @@ class Int(BaseType):
     Attributes:
         minval: Minimum value (inclusive).
         maxval: Maximum value (inclusive).
+        none: Whether to accept empty values as None.
     """
 
     typestr = 'int'
 
-    def __init__(self, minval=None, maxval=None):
+    def __init__(self, minval=None, maxval=None, none=False):
         self.minval = minval
         self.maxval = maxval
+        self.none = none
 
     def transform(self, value):
+        if self.none and not value:
+            return None
         return int(value)
 
     def validate(self, value):
+        if self.none and not value:
+            return
         try:
             intval = int(value)
         except ValueError:
@@ -274,22 +278,6 @@ class Int(BaseType):
         if self.maxval is not None and intval > self.maxval:
             raise ValidationError(value, "must be {} or smaller!".format(
                                   self.maxval))
-
-
-class NoneInt(BaseType):
-
-    """Int or None."""
-
-    def transform(self, value):
-        if value == '':
-            return None
-        else:
-            return super().transform(value)
-
-    def validate(self, value):
-        if value == '':
-            return
-        super().validate(value)
 
 
 class Float(BaseType):
