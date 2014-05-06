@@ -1,6 +1,3 @@
-[MASTER]
-ignore=appdirs.py
-
 [MESSAGES CONTROL]
 disable=no-self-use,
         super-on-old-class,

@@ -45,5 +45,6 @@ setup(
     package_data={'qutebrowser': ['html/*']},
     entry_points={'gui_scripts': ['qutebrowser = qutebrowser.__main__:main']},
     test_suite='qutebrowser.test',
+    install_requires=['appdirs >= 1.3.0'],
     zip_safe=True,
 )

@@ -51,7 +51,7 @@ options = {
                      # (false-positives)
         ],
     },
-    'exclude': ['appdirs.py'],
+    'exclude': [],
     'exclude_pep257': ['test_*'],
     'other': {
         'pylint': ['--output-format=colorized', '--reports=no',

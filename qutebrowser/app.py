@@ -43,6 +43,7 @@ harfbuzz.fix()
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.QtCore import pyqtSlot, QTimer, QEventLoop
+from appdirs import AppDirs
 
 import qutebrowser
 import qutebrowser.commands.utils as cmdutils
@@ -64,7 +65,6 @@ from qutebrowser.config.lineparser import LineConfigParser
 from qutebrowser.browser.cookies import CookieJar
 from qutebrowser.browser.hints import HintManager
 from qutebrowser.utils.message import MessageBridge
-from qutebrowser.utils.appdirs import AppDirs
 from qutebrowser.utils.misc import dotted_getattr
 from qutebrowser.utils.debug import set_trace  # pylint: disable=unused-import
 
