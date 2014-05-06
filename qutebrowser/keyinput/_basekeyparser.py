@@ -173,9 +173,13 @@ class BaseKeyParser(QObject):
         (match, binding) = self._match_key(cmd_input)
 
         if match == self.Match.definitive:
+            logging.debug("Definitive match for "
+                          "\"{}\".".format(self._keystring))
             self._keystring = ''
             self.execute(binding, self.Type.chain, count)
         elif match == self.Match.ambiguous:
+            logging.debug("Ambigious match for "
+                          "\"{}\".".format(self._keystring))
             self._handle_ambiguous_match(binding, count)
         elif match == self.Match.partial:
             logging.debug("No match for \"{}\" (added {})".format(
