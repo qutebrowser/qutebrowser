@@ -472,9 +472,14 @@ class HintManager(QObject):
         if mode != 'hint':
             return
         for elem in self._elems.values():
-            elem.label.removeFromDocument()
-        self._frame.contentsSizeChanged.disconnect(
-            self.on_contents_size_changed)
+            if not elem.label.isNull():
+                elem.label.removeFromDocument()
+        if self._frame is not None:
+            # The frame which was focused in start() might not be available
+            # anymore, since Qt might already have deleted it (e.g. when a new
+            # page is loaded).
+            self._frame.contentsSizeChanged.disconnect(
+                self.on_contents_size_changed)
         self._elems = {}
         self._to_follow = None
         self._target = None
