@@ -269,7 +269,9 @@ class WebView(QWebView):
         Args:
             target: A string to set self._force_open_target to.
         """
-        self._force_open_target = getattr(Target, target)
+        t = getattr(Target, target)
+        logging.debug("Setting force target to {}/{}".format(target, t))
+        self._force_open_target = t
 
     def paintEvent(self, e):
         """Extend paintEvent to emit a signal if the scroll position changed.
@@ -338,14 +340,16 @@ class WebView(QWebView):
             self._open_target = self._force_open_target
             self._force_open_target = None
             logging.debug("Setting force target: {}".format(
-                self._open_target))
+                Target[self._open_target]))
         elif (e.button() == Qt.MidButton or
               e.modifiers() & Qt.ControlModifier):
             if config.get('general', 'background-tabs'):
                 self._open_target = Target.bgtab
             else:
                 self._open_target = Target.tab
-            logging.debug("Setting target: {}".format(self._open_target))
+            logging.debug("Middle click, setting target: {}".format(
+                Target[self._open_target]))
         else:
             self._open_target = Target.normal
+            logging.debug("Normal click, setting normal target")
         return super().mousePressEvent(e)
