@@ -2,11 +2,11 @@ Before 0.1
 ==========
 
 - Check FIXMEs
-- Per domain settings
-- RequestPolicy
 - Manpage
 - Website
 - Tests for URL detection and fix corner cases
+- Fix some crashes if we can
+- Fix shutdown
 
 Crashes
 =======
@@ -63,6 +63,8 @@ Style
 Major features
 ==============
 
+- Per domain settings
+- RequestPolicy
 - Plugin architecture
     Adblock?
     RequestPolicy
@@ -82,6 +84,7 @@ Major features
 Minor features
 ==============
 
+- Make inspector height resizable
 - Enable disk caching
     QNetworkManager.setCache() and use a QNetworkDiskCache probably
 - clear cookies
