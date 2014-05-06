@@ -405,6 +405,7 @@ class HintManager(QObject):
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
+        logging.debug("Handling new keystring: '{}'".format(keystr))
         for (string, elems) in self._elems.items():
             if string.startswith(keystr):
                 matched = string[:len(keystr)]
