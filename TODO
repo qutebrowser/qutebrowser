@@ -44,6 +44,7 @@ Bugs
   It seems we don't get a linkClicked signal there.
   Maybe it does some weird js stuff?
   See also: http://qt-project.org/doc/qt-4.8/qwebpage.html#createWindow
+  Asked here: http://stackoverflow.com/q/23498666/2085149
 
 - Shutdown is still flaky.
 
@@ -130,6 +131,7 @@ Upstream Bugs
     https://bugreports.qt-project.org/browse/QTBUG-38669
 
 - Web inspector is blank unless .hide()/.show() is called.
+    Asked on SO: http://stackoverflow.com/q/23499159/2085149
 
 - Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-20973
