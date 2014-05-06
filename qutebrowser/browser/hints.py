@@ -70,6 +70,7 @@ class HintManager(QObject):
     """
 
     HINT_CSS = """
+        display: {display};
         color: {config[colors][hints.fg]};
         background: {config[colors][hints.bg]};
         font: {config[fonts][hints]};
@@ -193,6 +194,24 @@ class HintManager(QObject):
             hintstr.insert(0, chars[0])
         return ''.join(hintstr)
 
+    def _get_hint_css(self, elem, label=None):
+        """Get the hint CSS for the element given.
+
+        Args:
+            elem: The QWebElement to get the CSS for.
+            label: The label QWebElement if display: none should be preserved.
+
+        Return:
+            The CSS to set as a string.
+        """
+        if label is None or label.attribute('hidden') != 'true':
+            display = 'inline'
+        else:
+            display = 'none'
+        rect = elem.geometry()
+        return self.HINT_CSS.format(left=rect.x(), top=rect.y(),
+                                    config=config.instance(), display=display)
+
     def _draw_label(self, elem, string):
         """Draw a hint label over an element.
 
@@ -203,9 +222,7 @@ class HintManager(QObject):
         Return:
             The newly created label elment
         """
-        rect = elem.geometry()
-        css = self.HINT_CSS.format(left=rect.x(), top=rect.y(),
-                                   config=config.instance())
+        css = self._get_hint_css(elem)
         doc = self._frame.documentElement()
         # It seems impossible to create an empty QWebElement for which isNull()
         # is false so we can work with it.
@@ -388,34 +405,47 @@ class HintManager(QObject):
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
-        delete = []
         for (string, elems) in self._elems.items():
             if string.startswith(keystr):
                 matched = string[:len(keystr)]
                 rest = string[len(keystr):]
                 elems.label.setInnerXml('<font color="{}">{}</font>{}'.format(
                     config.get('colors', 'hints.fg.match'), matched, rest))
+                if elems.label.attribute('hidden') == 'true':
+                    # hidden element which matches again -> unhide it
+                    elems.label.setAttribute('hidden', 'false')
+                    css = self._get_hint_css(elems.elem, elems.label)
+                    elems.label.setAttribute('style', css)
             else:
-                elems.label.removeFromDocument()
-                delete.append(string)
-        for key in delete:
-            del self._elems[key]
+                # element doesn't match anymore -> hide it
+                elems.label.setAttribute('hidden', 'true')
+                css = self._get_hint_css(elems.elem, elems.label)
+                elems.label.setAttribute('style', css)
 
     def filter_hints(self, filterstr):
         """Filter displayed hints according to a text."""
-        delete = []
-        for (string, elems) in self._elems.items():
-            if not elems.elem.toPlainText().lower().startswith(filterstr):
-                elems.label.removeFromDocument()
-                delete.append(string)
-        for key in delete:
-            del self._elems[key]
-        if not self._elems:
+        for elems in self._elems.values():
+            if elems.elem.toPlainText().lower().startswith(filterstr):
+                if elems.label.attribute('hidden') == 'true':
+                    # hidden element which matches again -> unhide it
+                    elems.label.setAttribute('hidden', 'false')
+                    css = self._get_hint_css(elems.elem, elems.label)
+                    elems.label.setAttribute('style', css)
+            else:
+                # element doesn't match anymore -> hide it
+                elems.label.setAttribute('hidden', 'true')
+                css = self._get_hint_css(elems.elem, elems.label)
+                elems.label.setAttribute('style', css)
+        visible = {}
+        for k, e in self._elems.items():
+            if e.label.attribute('hidden') != 'true':
+                visible[k] = e
+        if not visible:
             # Whoops, filtered all hints
             modeman.leave('hint')
-        elif len(self._elems) == 1 and config.get('hints', 'auto-follow'):
+        elif len(visible) == 1 and config.get('hints', 'auto-follow'):
             # unpacking gets us the first (and only) key in the dict.
-            self.fire(*self._elems)
+            self.fire(*visible)
 
     def fire(self, keystr, force=False):
         """Fire a completed hint.
@@ -467,9 +497,7 @@ class HintManager(QObject):
     def on_contents_size_changed(self, _size):
         """Reposition hints if contents size changed."""
         for elems in self._elems.values():
-            rect = elems.elem.geometry()
-            css = self.HINT_CSS.format(left=rect.x(), top=rect.y(),
-                                       config=config.instance())
+            css = self._get_hint_css(elems.elem, elems.label)
             elems.label.setAttribute('style', css)
 
     @pyqtSlot(str)
