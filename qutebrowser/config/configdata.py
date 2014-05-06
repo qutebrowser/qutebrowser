@@ -485,7 +485,7 @@ DATA = OrderedDict([
 
         ('offline-web-application-cache-quota',
          SettingValue(types.WebKitBytes(maxsize=INT64_MAX), ''),
-         "Quota for the offline web application cache>"),
+         "Quota for the offline web application cache."),
     )),
 
     ('hints', sect.KeyValue(
