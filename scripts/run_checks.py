@@ -30,6 +30,7 @@ import subprocess
 import os
 import os.path
 import unittest
+import logging
 from collections import OrderedDict
 
 try:
@@ -39,6 +40,10 @@ except ImportError:
 else:
     do_check_257 = True
 from pkg_resources import load_entry_point, DistributionNotFound
+
+# We need to do this because pyroma is braindead enough to use logging instead
+# of print...
+logging.basicConfig(level=logging.INFO, format='%(msg)s')
 
 status = OrderedDict()
 
@@ -73,12 +78,15 @@ def run(name, args=None):
         name: Name of the checker/binary
         args: Option list of arguments to pass
     """
-    sys.argv = [name, options['target']]
+    sys.argv = [name]
+    if name != 'pyroma':
+        args.append(options['target'])
     if args is not None:
         sys.argv += args
     print("====== {} ======".format(name))
     try:
-        load_entry_point(name, 'console_scripts', name)()
+        ep = load_entry_point(name, 'console_scripts', name)
+        ep()
     except SystemExit as e:
         status[name] = e
     except DistributionNotFound:
