@@ -18,6 +18,7 @@
 """Utils regarding URL handling."""
 
 import re
+import os.path
 import logging
 import urllib.parse
 
@@ -192,6 +193,9 @@ def is_url(url):
     elif is_special_url(url):
         # Special URLs are always URLs, even with autosearch=False
         logging.debug("Is an special URL.")
+        return True
+    elif os.path.exists(url):
+        # local file
         return True
     elif autosearch == 'dns':
         logging.debug("Checking via DNS")
