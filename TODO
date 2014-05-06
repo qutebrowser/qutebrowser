@@ -28,6 +28,18 @@ Crashes
 
     @ e5000c315dd29ae9356e1b33ed041917c637c85b
 
+- When opening a hint with F:
+
+    2014-05-06 09:01:25 [DEBUG] [_tabbedbrowser:tabopen:153] Opening PyQt5.QtCore.QUrl('http://ddg.gg/')
+    Traceback (most recent call last):
+      File ".\qutebrowser\widgets\_tabbedbrowser.py", line 155, in tabopen
+        tab = WebView(self)
+      File ".\qutebrowser\widgets\webview.py", line 83, in __init__
+        self.page_ = BrowserPage(self)
+      File ".\qutebrowser\browser\webpage.py", line 44, in __init__
+        self.setNetworkAccessManager(QApplication.instance().networkmanager)
+    RuntimeError: wrapped C/C++ object of type NetworkManager has been deleted
+
 - Weird TypeError:
 
     QIODevice::read: device not open
@@ -42,6 +54,17 @@ Crashes
     TypeError: pyqtSignal must be bound to a QObject, not 'NetworkManager'
 
     @ e5000c315dd29ae9356e1b33ed041917c637c85b
+
+- When following a hint:
+
+  QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.
+
+- When enabling javascript on http://google.com/accounts and reloading:
+
+    OpenType support missing for script 12
+
+  When javascript is enabled already, hangs.
+  With minimal browser, prints error but continues to run.
 
 Bugs
 ====
