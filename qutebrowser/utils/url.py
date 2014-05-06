@@ -73,11 +73,14 @@ def _is_url_naive(url):
         True if the url really is an URL, False otherwise.
     """
     protocols = ['http', 'https']
+    u = qurl(url)
+    urlstr = urlstring(url)
     if isinstance(url, QUrl):
         u = url
     else:
         u = QUrl.fromUserInput(url)
-    if u.scheme() in protocols:
+    # We don't use u here because fromUserInput appends http:// automatically.
+    if any(urlstr.startswith(proto) for proto in protocols):
         return True
     elif '.' in u.host():
         return True
