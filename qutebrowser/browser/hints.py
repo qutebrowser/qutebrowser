@@ -244,13 +244,10 @@ class HintManager(QObject):
         else:
             target = self._target
         self.set_open_target.emit(Target[target])
-        # FIXME this is a quick & dirty fix, we should:
-        #   a) Have better heuristics where to click at (e.g. end of input
-        #      fields)
-        #   b) Check border/margin/padding to know where to click
-        # Hinting failed here for example:
-        #   https://lsf.fh-worms.de/
-        point = elem.geometry().topLeft() + QPoint(1, 1)
+        # FIXME Instead of clicking the center, we could have nicer heuristics.
+        # e.g. parse (-webkit-)border-radius correctly and click text fields at
+        # the bottom right, and everything else on the top left or so.
+        point = elem.geometry().center()
         scrollpos = self._frame.scrollPosition()
         logging.debug("Clicking on \"{}\" at {}/{} - {}/{}".format(
             elem.toPlainText(), point.x(), point.y(), scrollpos.x(),
