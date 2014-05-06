@@ -136,11 +136,11 @@ class TabbedBrowser(TabWidget):
         tab.hintmanager.openurl.connect(self.cur.openurl_slot)
         # misc
         tab.titleChanged.connect(self.on_title_changed)
-        tab.open_tab.connect(self._tabopen)
+        tab.open_tab.connect(self.tabopen)
         tab.iconChanged.connect(self.on_icon_changed)
 
     @pyqtSlot(str, bool)
-    def _tabopen(self, url, background=False):
+    def tabopen(self, url, background=False):
         """Open a new tab with a given url.
 
         Inner logic for tabopen and backtabopen.
@@ -226,15 +226,16 @@ class TabbedBrowser(TabWidget):
         elif last_close == 'blank':
             tab.openurl('about:blank')
 
-    @cmdutils.register(instance='mainwindow.tabs', split=False)
-    def tabopen(self, url):
+    @cmdutils.register(instance='mainwindow.tabs', split=False, name='tabopen')
+    def tabopen_cmd(self, url):
         """Open a new tab with a given url."""
-        self._tabopen(url, background=False)
+        self.tabopen(url, background=False)
 
-    @cmdutils.register(instance='mainwindow.tabs', split=False)
-    def backtabopen(self, url):
+    @cmdutils.register(instance='mainwindow.tabs', split=False,
+                       name='backtabopen')
+    def backtabopen_cmd(self, url):
         """Open a new tab in background."""
-        self._tabopen(url, background=True)
+        self.tabopen(url, background=True)
 
     @cmdutils.register(instance='mainwindow.tabs', hide=True)
     def tabopencur(self):
