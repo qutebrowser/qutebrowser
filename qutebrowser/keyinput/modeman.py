@@ -228,7 +228,14 @@ class ModeManager(QObject):
         Emit:
             key_pressed: When a key was actually pressed.
         """
-        if self.mode is None:
+        if not hasattr(self, 'mode'):
+            # FIXME I have no idea how this could possibly happen, but on
+            # Ubuntu it does on startup.
+            # self.mode is a simple @property and we certainly don't delete it,
+            # so this all makes no sense at all.
+            logging.warn("eventFilter called but self.mode doesn't exist!")
+            return False
+        elif self.mode is None:
             # We got events before mode is set, so just pass them through.
             return False
         typ = event.type()
