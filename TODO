@@ -63,8 +63,14 @@ Crashes
 
     OpenType support missing for script 12
 
+  Then it quits.
   When javascript is enabled already, hangs.
   With minimal browser, prints error but continues to run.
+
+  Also quits on http://de.wikipedia.org/wiki/Hallo-Welt-Programm
+
+  It seems this only happens on Windows.
+
 
 Bugs
 ====
