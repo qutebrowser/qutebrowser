@@ -20,9 +20,9 @@
 import os
 import sys
 import logging
-import functools
 import subprocess
 import configparser
+from functools import partial
 from signal import signal, SIGINT
 from argparse import ArgumentParser
 from base64 import b64encode
@@ -102,7 +102,11 @@ class QuteBrowser(QApplication):
 
     def __init__(self):
         super().__init__(sys.argv)
-        self._quit_status = {}
+        self._quit_status = {
+            'crash': True,
+            'tabs': False,
+            'networkmanager': False
+        }
         self._timers = []
         self._opened_urls = []
         self._shutting_down = False
@@ -392,6 +396,8 @@ class QuteBrowser(QApplication):
         exc = (exctype, excvalue, tb)
         sys.__excepthook__(*exc)
 
+        self._quit_status['crash'] = False
+
         if not issubclass(exctype, Exception):
             # probably a KeyboardInterrupt
             try:
@@ -399,8 +405,6 @@ class QuteBrowser(QApplication):
                 return
             except Exception:
                 self.quit()
-        self._quit_status['crash'] = False
-        self._quit_status['shutdown'] = False
         try:
             pages = self._recover_pages()
         except Exception:
@@ -483,49 +487,55 @@ class QuteBrowser(QApplication):
 
     @pyqtSlot()
     @cmdutils.register(instance='', name=['quit', 'q'], nargs=0)
-    def shutdown(self, do_quit=True):
+    def shutdown(self):
         """Try to shutdown everything cleanly.
 
         For some reason lastWindowClosing sometimes seem to get emitted twice,
         so we make sure we only run once here.
-
-        Args:
-            do_quit: Whether to quit after shutting down.
         """
         if self._shutting_down:
             return
         self._shutting_down = True
-        logging.debug("Shutting down... (do_quit={})".format(do_quit))
+        logging.debug("Shutting down...")
+        # Save config
         if self.config.get('general', 'auto-save-config'):
             try:
                 self.config.save()
             except AttributeError:
                 logging.exception("Could not save config.")
+        # Save command history
         try:
             self.cmd_history.save()
         except AttributeError:
             logging.exception("Could not save command history.")
+        # Save window state
         try:
             self._save_geometry()
             self.stateconfig.save()
         except AttributeError:
             logging.exception("Could not save window geometry.")
+        # Save cookies
         try:
             self.cookiejar.save()
         except AttributeError:
             logging.exception("Could not save cookies.")
+        # Shut down tabs
         try:
-            if do_quit:
-                self.mainwindow.tabs.shutdown_complete.connect(
-                    self.on_tab_shutdown_complete)
-            else:
-                self.mainwindow.tabs.shutdown_complete.connect(
-                    functools.partial(self._maybe_quit, 'shutdown'))
+            self.mainwindow.tabs.shutdown_complete.connect(partial(
+                self._maybe_quit, 'tabs'))
             self.mainwindow.tabs.shutdown()
         except AttributeError:  # mainwindow or tabs could still be None
             logging.exception("No mainwindow/tabs to shut down.")
-            if do_quit:
-                self.quit()
+            self._maybe_quit('tabs')
+        # Shut down networkmanager
+        try:
+            self.networkmanager.abort_requests()
+            self.networkmanager.destroyed.connect(partial(
+                self._maybe_quit, 'networkmanager'))
+            self.networkmanager.deleteLater()
+        except AttributeError:
+            logging.exception("No networkmanager to shut down.")
+            self._maybe_quit('networkmanager')
 
     @pyqtSlot()
     def on_tab_shutdown_complete(self):

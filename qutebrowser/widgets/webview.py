@@ -208,12 +208,6 @@ class WebView(QWebView):
         self._destroyed[self] = False
         self.destroyed.connect(functools.partial(self._on_destroyed, self))
         self.deleteLater()
-
-        netman = QApplication.instance().networkmanager
-        self._destroyed[netman] = False
-        netman.abort_requests()
-        netman.destroyed.connect(functools.partial(self._on_destroyed, netman))
-        netman.deleteLater()
         logging.debug("Tab shutdown scheduled")
 
     @pyqtSlot(str)

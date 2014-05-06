@@ -110,6 +110,8 @@ Major features
 Minor features
 ==============
 
+- Enable disk caching
+    QNetworkManager.setCache() and use a QNetworkDiskCache probably
 - clear cookies
 - keybind/aliases should have completion for commands/arguments
 - Hiding scrollbars
