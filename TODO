@@ -35,11 +35,6 @@ Crashes
     QHttpNetworkConnectionPrivate::_q_hostLookupFinished could not dequeu request
 
 
-- Sometimes self._frame is None in on_mode_left in HintManager
-
-    - Slot seems to be executed once.
-    - Maybe QWebPage/Qt deleted the frame as there's a race condition between deleting and on_mode_left?
-
 Bugs
 ====
 
