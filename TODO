@@ -1,56 +1,66 @@
+Before 0.1
+==========
+
+- Check FIXMEs
+- Per domain settings
+- RequestPolicy
+- Manpage
+- Website
+- Tests for URL detection and fix corner cases
+
 Bugs
 ====
 
-All kind of FIXMEs
+- All kind of FIXMEs
 
 Style
 =====
 
-initialize completion models at some nicer place (not in widget)
+- initialize completion models at some nicer place (not in widget)
 
 Major features
 ==============
 
-Plugin architecture
+- Plugin architecture
     Adblock?
     RequestPolicy
     Ghostery/Disconnect?
     NoScript
     Certificate Patrol
     https://chrome.google.com/webstore/detail/remove-google-redirects/ccenmflbeofaceccfhhggbagkblihpoh
-Downloads
-session handling / saving
-IPC, like dwb -x
-Bookmarks
-Internationalization
-more completions (URLs, ...)
-SSL handling
-history
+- Downloads
+- session handling / saving
+- IPC, like dwb -x
+- Bookmarks
+- Internationalization
+- more completions (URLs, ...)
+- SSL handling
+- history
 
 Minor features
 ==============
 
-keybind/aliases should have completion for commands/arguments
-Hiding scrollbars
-Ctrl+A/X to increase/decrease last number in URL
-logging contexts
-catch import errors for PyQt and QtWebKit
+- keybind/aliases should have completion for commands/arguments
+- Hiding scrollbars
+- Ctrl+A/X to increase/decrease last number in URL
+- logging contexts
+- catch import errors for PyQt and QtWebKit
 - Add more element-selection-detection code (with options?) based on:
       -> javascript: http://stackoverflow.com/a/2848120/2085149
       -> microFocusChanged and check active element via:
          frame = page.currentFrame()
          elem = frame.findFirstElement('*:focus')
-somehow unfocus elements (hide blinking cursor) when insert mode is left?
-tabs: some more padding?
-Really fix URL detection properly
+- somehow unfocus elements (hide blinking cursor) when insert mode is left?
+- tabs: some more padding?
+- Really fix URL detection properly
 
 hints
 -----
 
-bindings for prev/next hint
-more intelligent clicking (end of textfields)
-filter close hints when it's the same link
-ignore keypresses shortly after link following
+- bindings for prev/next hint
+- more intelligent clicking (end of textfields)
+- filter close hints when it's the same link
+- ignore keypresses shortly after link following
 
 Qt Bugs
 ========
