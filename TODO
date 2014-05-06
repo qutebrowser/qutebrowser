@@ -14,32 +14,6 @@ Crashes
 - Chosing printer in :print gives us a segfault on Linux, but :printpreview
   works...
 
-- Segfault when closing some tab:
-    QIODevice::read: device not open
-    QIODevice::read: device not open
-    QIODevice::read: device not open
-    Fatal Python error: Segmentation fault
-
-    Current thread 0x00007ff4ed080700 (most recent call first):
-      File "/home/florian/proj/qutebrowser/git/qutebrowser/__main__.py", line 29 in main
-      File "/home/florian/proj/qutebrowser/git/qutebrowser/__main__.py", line 33 in <module>
-      File "/usr/lib/python3.4/runpy.py", line 86 in _run_code
-      File "/usr/lib/python3.4/runpy.py", line 171 in _run_module_as_main
-
-    @ e5000c315dd29ae9356e1b33ed041917c637c85b
-
-- When opening a hint with F:
-
-    2014-05-06 09:01:25 [DEBUG] [_tabbedbrowser:tabopen:153] Opening PyQt5.QtCore.QUrl('http://ddg.gg/')
-    Traceback (most recent call last):
-      File ".\qutebrowser\widgets\_tabbedbrowser.py", line 155, in tabopen
-        tab = WebView(self)
-      File ".\qutebrowser\widgets\webview.py", line 83, in __init__
-        self.page_ = BrowserPage(self)
-      File ".\qutebrowser\browser\webpage.py", line 44, in __init__
-        self.setNetworkAccessManager(QApplication.instance().networkmanager)
-    RuntimeError: wrapped C/C++ object of type NetworkManager has been deleted
-
 - When following a hint:
 
   QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.
@@ -168,6 +142,41 @@ Upstream Bugs
 
 - QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.
     https://bugreports.qt-project.org/browse/QTBUG-30298
+
+
+Probably fixed crashes
+======================
+
+- Segfault when closing some tab:
+    QIODevice::read: device not open
+    QIODevice::read: device not open
+    QIODevice::read: device not open
+    Fatal Python error: Segmentation fault
+
+    Current thread 0x00007ff4ed080700 (most recent call first):
+      File "/home/florian/proj/qutebrowser/git/qutebrowser/__main__.py", line 29 in main
+      File "/home/florian/proj/qutebrowser/git/qutebrowser/__main__.py", line 33 in <module>
+      File "/usr/lib/python3.4/runpy.py", line 86 in _run_code
+      File "/usr/lib/python3.4/runpy.py", line 171 in _run_module_as_main
+
+    @ e5000c315dd29ae9356e1b33ed041917c637c85b
+
+    Probably fixed by de7c6a63b48f66e164bf4baa6e892bcbb326d6b9
+
+- When opening a hint with F:
+
+    2014-05-06 09:01:25 [DEBUG] [_tabbedbrowser:tabopen:153] Opening PyQt5.QtCore.QUrl('http://ddg.gg/')
+    Traceback (most recent call last):
+      File ".\qutebrowser\widgets\_tabbedbrowser.py", line 155, in tabopen
+        tab = WebView(self)
+      File ".\qutebrowser\widgets\webview.py", line 83, in __init__
+        self.page_ = BrowserPage(self)
+      File ".\qutebrowser\browser\webpage.py", line 44, in __init__
+        self.setNetworkAccessManager(QApplication.instance().networkmanager)
+    RuntimeError: wrapped C/C++ object of type NetworkManager has been deleted
+
+    Probably fixed by de7c6a63b48f66e164bf4baa6e892bcbb326d6b9
+
 
 
 Keybinding stuff (from dwb)
