@@ -11,9 +11,6 @@ Before 0.1
 Crashes
 =======
 
-- Chosing printer in :print gives us a segfault on Linux, but :printpreview
-  works...
-
 - When following a hint:
 
   QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.

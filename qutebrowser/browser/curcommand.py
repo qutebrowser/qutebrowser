@@ -26,7 +26,7 @@ from functools import partial
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import pyqtSlot, Qt, QObject, QProcess
 from PyQt5.QtGui import QClipboard
-from PyQt5.QtPrintSupport import QPrinter, QPrintDialog, QPrintPreviewDialog
+from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.message as message
@@ -180,8 +180,7 @@ class CurCommandDispatcher(QObject):
         # If this isn't fixed in Qt 5.3, bug should be reopened.
         tab = self._tabs.cntwidget(count)
         if tab is not None:
-            printer = QPrinter()
-            printdiag = QPrintDialog(printer, tab)
+            printdiag = QPrintDialog(tab)
             printdiag.open(lambda: tab.print(printdiag.printer()))
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
