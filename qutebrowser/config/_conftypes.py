@@ -165,6 +165,7 @@ class String(BaseType):
         self.forbidden = forbidden
 
     def transform(self, value):
+        # FIXME that .lower() probably isn't always a good idea...
         return value.lower()
 
     def validate(self, value):
@@ -178,6 +179,16 @@ class String(BaseType):
         if self.maxlen is not None and len(value) > self.maxlen:
             raise ValidationError(value, "must be at most {} long!".format(
                                   self.maxlen))
+
+
+class NoneString(String):
+
+    """String which returns None if it's empty."""
+
+    def transform(self, value):
+        if not value:
+            return None
+        return super().transform(value)
 
 
 class ShellCommand(String):

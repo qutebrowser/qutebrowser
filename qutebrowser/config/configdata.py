@@ -203,11 +203,11 @@ DATA = OrderedDict([
          "Value to send in the DNT header."),
 
         ('accept-language',
-         SettingValue(types.String(), 'en-US,en'),
+         SettingValue(types.NoneString(), 'en-US,en'),
          "Value to send in the accept-language header."),
 
         ('user-agent',
-         SettingValue(types.String(), ''),
+         SettingValue(types.NoneString(), ''),
          "User agent to send. Empty to send the default."),
 
         ('accept-cookies',
@@ -422,51 +422,51 @@ DATA = OrderedDict([
          "User stylesheet to set."),
 
         ('css-media-type',
-         SettingValue(types.String(), ''),
+         SettingValue(types.NoneString(), ''),
          "Set the CSS media type."),
 
         ('default-encoding',
-         SettingValue(types.String(), ''),
+         SettingValue(types.NoneString(), ''),
          "Default encoding to use for websites."),
 
         ('font-family-standard',
-         SettingValue(types.String(), ''),
+         SettingValue(types.NoneString(), ''),
          "Font family for standard fonts."),
 
         ('font-family-fixed',
-         SettingValue(types.String(), ''),
+         SettingValue(types.NoneString(), ''),
          "Font family for fixed fonts."),
 
         ('font-family-serif',
-         SettingValue(types.String(), ''),
+         SettingValue(types.NoneString(), ''),
          "Font family for serif fonts."),
 
         ('font-family-sans-serif',
-         SettingValue(types.String(), ''),
+         SettingValue(types.NoneString(), ''),
          "Font family for sans-serif fonts."),
 
         ('font-family-cursive',
-         SettingValue(types.String(), ''),
+         SettingValue(types.NoneString(), ''),
          "Font family for cursive fonts."),
 
         ('font-family-fantasy',
-         SettingValue(types.String(), ''),
+         SettingValue(types.NoneString(), ''),
          "Font family for fantasy fonts."),
 
         ('font-size-minimum',
-         SettingValue(types.String(), ''),
+         SettingValue(types.NoneString(), ''),
          "The hard minimum font size."),
 
         ('font-size-minimum-logical',
-         SettingValue(types.String(), ''),
+         SettingValue(types.NoneString(), ''),
          "The minimum logical font size that is applied when zooming out."),
 
         ('font-size-default',
-         SettingValue(types.String(), ''),
+         SettingValue(types.NoneString(), ''),
          "The default font size for regular text."),
 
         ('font-size-default-fixed',
-         SettingValue(types.String(), ''),
+         SettingValue(types.NoneString(), ''),
          "The default font size for fixed-pitch text."),
 
         ('maximum-pages-in-cache',

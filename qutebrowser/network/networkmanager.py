@@ -72,8 +72,10 @@ class NetworkManager(QNetworkAccessManager):
                 dnt = '0'.encode('ascii')
             req.setRawHeader('DNT'.encode('ascii'), dnt)
             req.setRawHeader('X-Do-Not-Track'.encode('ascii'), dnt)
-            req.setRawHeader('Accept-Language'.encode('ascii'),
-                             config.get('network', 'accept-language'))
+            accept_language = config.get('network', 'accept-language')
+            if accept_language is not None:
+                req.setRawHeader('Accept-Language'.encode('ascii'),
+                                 accept_language.encode('ascii'))
             reply = super().createRequest(op, req, outgoing_data)
             self._requests[id(reply)] = reply
             reply.destroyed.connect(lambda obj: self._requests.pop(id(obj)))
