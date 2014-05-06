@@ -164,10 +164,6 @@ class String(BaseType):
         self.maxlen = maxlen
         self.forbidden = forbidden
 
-    def transform(self, value):
-        # FIXME that .lower() probably isn't always a good idea...
-        return value.lower()
-
     def validate(self, value):
         if self.forbidden is not None and any(c in value
                                               for c in self.forbidden):
