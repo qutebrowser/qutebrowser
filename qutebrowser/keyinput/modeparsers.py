@@ -96,15 +96,26 @@ class HintKeyParser(CommandKeyParser):
 
         Emit:
             filter_hints: Emitted when filter string has changed.
+            keystring_updated: Emitted when keystring has been changed.
         """
         logging.debug("Got special key {} text {}".format(e.key(), e.text()))
-        if config.get('hints', 'mode') != 'number':
-            return super()._handle_special_key(e)
-        elif e.key() == Qt.Key_Backspace:
-            if self._filtertext:
+        if e.key() == Qt.Key_Backspace:
+            logging.debug("Got backspace, mode {}, filtertext \"{}\", "
+                          "keystring \"{}\"".format(
+                              LastPress[self._last_press], self._filtertext,
+                              self._keystring))
+            if self._last_press == LastPress.filtertext and self._filtertext:
                 self._filtertext = self._filtertext[:-1]
                 self.filter_hints.emit(self._filtertext)
-            return True
+                return True
+            elif self._last_press == LastPress.keystring and self._keystring:
+                self._keystring = self._keystring[:-1]
+                self.keystring_updated.emit(self._keystring)
+                return True
+            else:
+                return super()._handle_special_key(e)
+        elif config.get('hints', 'mode') != 'number':
+            return super()._handle_special_key(e)
         elif not e.text():
             return super()._handle_special_key(e)
         else:
