@@ -22,6 +22,7 @@ import sys
 import logging
 import subprocess
 import configparser
+from bdb import BdbQuit
 from functools import partial
 from signal import signal, SIGINT
 from argparse import ArgumentParser
@@ -398,8 +399,8 @@ class QuteBrowser(QApplication):
 
         self._quit_status['crash'] = False
 
-        if not issubclass(exctype, Exception):
-            # probably a KeyboardInterrupt
+        if exctype is BdbQuit or not issubclass(exctype, Exception):
+            # pdb exit, KeyboardInterrupt, ...
             try:
                 self.shutdown()
                 return
