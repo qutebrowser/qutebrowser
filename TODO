@@ -39,7 +39,6 @@ Bugs
 ====
 
 - All kind of FIXMEs
-- Wikipedia looks weird
 - F on duckduckgo result page opens in current page
 
   It seems we don't get a linkClicked signal there.
