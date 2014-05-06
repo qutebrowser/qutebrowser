@@ -71,11 +71,17 @@ Crashes
 
   It seems this only happens on Windows.
 
+- Closing some tabs and undo all them -> quits and CMD.exe hangs
+
+    QHttpNetworkConnectionPrivate::_q_hostLookupFinished could not dequeu request
+
 
 Bugs
 ====
 
 - All kind of FIXMEs
+- u opens empty URLs
+- Wikipedia looks weird
 
 Style
 =====
@@ -104,6 +110,7 @@ Major features
 Minor features
 ==============
 
+- clear cookies
 - keybind/aliases should have completion for commands/arguments
 - Hiding scrollbars
 - Ctrl+A/X to increase/decrease last number in URL
