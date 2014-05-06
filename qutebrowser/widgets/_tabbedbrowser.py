@@ -218,7 +218,9 @@ class TabbedBrowser(TabWidget):
             return
         last_close = config.get('tabbar', 'last-close')
         if self.count() > 1:
-            self._url_stack.append(tab.url())
+            url = tab.url()
+            if not url.isEmpty():
+                self._url_stack.append(url)
             self.removeTab(idx)
             tab.shutdown(callback=partial(self._cb_tab_shutdown, tab))
         elif last_close == 'quit':
