@@ -28,9 +28,11 @@ from PyQt5.QtCore import pyqtSignal, Qt
 import qutebrowser.utils.message as message
 import qutebrowser.config.config as config
 from qutebrowser.keyinput.keyparser import CommandKeyParser
+from qutebrowser.utils.usertypes import enum
 
 
 STARTCHARS = ":/?"
+LastPress = enum('none', 'filtertext', 'keystring')
 
 
 class NormalKeyParser(CommandKeyParser):
@@ -69,6 +71,7 @@ class HintKeyParser(CommandKeyParser):
 
     Attributes:
         _filtertext: The text to filter with.
+        _last_press: The nature of the last keypress, a LastPress member.
     """
 
     fire_hint = pyqtSignal(str)
@@ -77,6 +80,7 @@ class HintKeyParser(CommandKeyParser):
     def __init__(self, parent=None):
         super().__init__(parent, supports_count=False, supports_chains=True)
         self._filtertext = ''
+        self._last_press = LastPress.none
         self.read_config('keybind.hint')
 
     def _handle_special_key(self, e):
@@ -106,6 +110,7 @@ class HintKeyParser(CommandKeyParser):
         else:
             self._filtertext += e.text()
             self.filter_hints.emit(self._filtertext)
+            self._last_press = LastPress.filtertext
             return True
 
     def handle(self, e):
@@ -120,6 +125,7 @@ class HintKeyParser(CommandKeyParser):
         handled = self._handle_single_key(e)
         if handled:
             self.keystring_updated.emit(self._keystring)
+            self._last_press = LastPress.keystring
             return handled
         return self._handle_special_key(e)
 
