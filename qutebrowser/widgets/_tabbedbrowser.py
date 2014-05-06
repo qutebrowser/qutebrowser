@@ -136,9 +136,10 @@ class TabbedBrowser(TabWidget):
         tab.hintmanager.openurl.connect(self.cur.openurl_slot)
         # misc
         tab.titleChanged.connect(self.on_title_changed)
-        tab.open_tab.connect(self.tabopen)
+        tab.open_tab.connect(self._tabopen)
         tab.iconChanged.connect(self.on_icon_changed)
 
+    @pyqtSlot(str, bool)
     def _tabopen(self, url, background=False):
         """Open a new tab with a given url.
 
