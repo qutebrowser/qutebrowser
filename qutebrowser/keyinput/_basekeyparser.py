@@ -150,7 +150,8 @@ class BaseKeyParser(QObject):
         """
         logging.debug("Got key: {} / text: '{}'".format(e.key(), e.text()))
         txt = e.text().strip()
-        if not txt:
+        if not txt or e.key() == Qt.Key_Backspace:
+            # backspace is counted as text...
             logging.debug("Ignoring, no text")
             return False
 
