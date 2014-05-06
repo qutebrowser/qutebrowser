@@ -399,6 +399,13 @@ class QuteBrowser(QApplication):
 
         self._quit_status['crash'] = False
 
+        # Give key input back for crash dialog
+        try:
+            self.removeEventFilter(self.modeman)
+        except AttributeError:
+            # self.modeman could be None
+            pass
+
         if exctype is BdbQuit or not issubclass(exctype, Exception):
             # pdb exit, KeyboardInterrupt, ...
             try:
