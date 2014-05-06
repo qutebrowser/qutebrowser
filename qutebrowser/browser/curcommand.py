@@ -431,7 +431,8 @@ class CurCommandDispatcher(QObject):
         and do everything async.
         """
         frame = self._tabs.currentWidget().page_.currentFrame()
-        elem = frame.findFirstElement(webelem.SELECTORS['editable_focused'])
+        elem = frame.findFirstElement(webelem.SELECTORS[
+            webelem.Group.editable_focused])
         if elem.isNull():
             message.error("No editable element focused!")
             return
