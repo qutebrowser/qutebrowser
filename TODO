@@ -40,21 +40,6 @@ Crashes
         self.setNetworkAccessManager(QApplication.instance().networkmanager)
     RuntimeError: wrapped C/C++ object of type NetworkManager has been deleted
 
-- Weird TypeError:
-
-    QIODevice::read: device not open
-    QIODevice::read: device not open
-    Traceback (most recent call last):
-      File "/home/florian/proj/qutebrowser/git/qutebrowser/app.py", line 567, in command_handler
-        handler(*args)
-      File "/home/florian/proj/qutebrowser/git/qutebrowser/widgets/_tabbedbrowser.py", line 216, in tabclose
-        tab.shutdown(callback=partial(self._cb_tab_shutdown, tab))
-      File "/home/florian/proj/qutebrowser/git/qutebrowser/widgets/webview.py", line 215, in shutdown
-        netman.destroyed.connect(functools.partial(self._on_destroyed, netman))
-    TypeError: pyqtSignal must be bound to a QObject, not 'NetworkManager'
-
-    @ e5000c315dd29ae9356e1b33ed041917c637c85b
-
 - When following a hint:
 
   QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.
@@ -82,6 +67,23 @@ Bugs
 - All kind of FIXMEs
 - u opens empty URLs
 - Wikipedia looks weird
+- F on duckduckgo result page opens in current page
+
+  It seems we don't get a linkClicked signal there.
+  Maybe it does some weird js stuff?
+  See also: http://qt-project.org/doc/qt-4.8/qwebpage.html#createWindow
+
+- Shutdown is still flaky.
+
+  Some pointers:
+      https://code.google.com/p/webscraping/source/browse/webkit.py
+      Simply does setPage(None) in __del__ of webview.
+
+      http://www.tenox.net/out/wrp11-qt.py
+      does del self._window; del self._view; del self._page
+
+      http://pydoc.net/Python/grab/0.4.5/ghost.ghost/
+      does webview.close(); del self.manager; del self.page; del self.mainframe
 
 Style
 =====
@@ -135,8 +137,15 @@ hints
 - filter close hints when it's the same link
 - ignore keypresses shortly after link following
 
-Qt Bugs
-========
+Useful things
+=============
+
+http://www.tenox.net/out/wrp11-qt.py
+https://code.google.com/p/webscraping/source/browse/webkit.py
+https://github.com/jeanphix/Ghost.py/blob/master/ghost/ghost.py
+
+Upstream Bugs
+=============
 
 - Printing under windows produced blank pages
     https://bugreports.qt-project.org/browse/QTBUG-19571
@@ -153,6 +162,13 @@ Qt Bugs
 - Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-20973
     https://bugreports.qt-project.org/browse/QTBUG-21036
+
+- dead_actute
+    https://bugs.freedesktop.org/show_bug.cgi?id=69476
+
+- QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.
+    https://bugreports.qt-project.org/browse/QTBUG-30298
+
 
 Keybinding stuff (from dwb)
 ===========================
