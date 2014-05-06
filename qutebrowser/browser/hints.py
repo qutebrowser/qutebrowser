@@ -30,7 +30,6 @@ import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.message as message
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.webelem as webelem
-import qutebrowser.commands.utils as cmdutils
 from qutebrowser.utils.usertypes import enum
 
 
@@ -381,7 +380,6 @@ class HintManager(QObject):
         self.hint_strings_updated.emit(strings)
         modeman.enter('hint')
 
-    @pyqtSlot(str)
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
         delete = []
@@ -397,7 +395,6 @@ class HintManager(QObject):
         for key in delete:
             del self._elems[key]
 
-    @pyqtSlot(str)
     def filter_hints(self, filterstr):
         """Filter displayed hints according to a text."""
         delete = []
@@ -414,7 +411,6 @@ class HintManager(QObject):
             # unpacking gets us the first (and only) key in the dict.
             self.fire(*self._elems)
 
-    @pyqtSlot(str)
     def fire(self, keystr, force=False):
         """Fire a completed hint.
 
@@ -455,7 +451,6 @@ class HintManager(QObject):
         if self._target != Target.rapid:
             modeman.leave('hint')
 
-    @cmdutils.register(instance='hintmanager', hide=True)
     def follow_hint(self):
         """Follow the currently selected hint."""
         if not self._to_follow:
