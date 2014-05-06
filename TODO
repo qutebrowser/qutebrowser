@@ -8,6 +8,41 @@ Before 0.1
 - Website
 - Tests for URL detection and fix corner cases
 
+Crashes
+=======
+
+- Chosing printer in :print gives us a segfault on Linux, but :printpreview
+  works...
+
+- Segfault when closing some tab:
+    QIODevice::read: device not open
+    QIODevice::read: device not open
+    QIODevice::read: device not open
+    Fatal Python error: Segmentation fault
+
+    Current thread 0x00007ff4ed080700 (most recent call first):
+      File "/home/florian/proj/qutebrowser/git/qutebrowser/__main__.py", line 29 in main
+      File "/home/florian/proj/qutebrowser/git/qutebrowser/__main__.py", line 33 in <module>
+      File "/usr/lib/python3.4/runpy.py", line 86 in _run_code
+      File "/usr/lib/python3.4/runpy.py", line 171 in _run_module_as_main
+
+    @ e5000c315dd29ae9356e1b33ed041917c637c85b
+
+- Weird TypeError:
+
+    QIODevice::read: device not open
+    QIODevice::read: device not open
+    Traceback (most recent call last):
+      File "/home/florian/proj/qutebrowser/git/qutebrowser/app.py", line 567, in command_handler
+        handler(*args)
+      File "/home/florian/proj/qutebrowser/git/qutebrowser/widgets/_tabbedbrowser.py", line 216, in tabclose
+        tab.shutdown(callback=partial(self._cb_tab_shutdown, tab))
+      File "/home/florian/proj/qutebrowser/git/qutebrowser/widgets/webview.py", line 215, in shutdown
+        netman.destroyed.connect(functools.partial(self._on_destroyed, netman))
+    TypeError: pyqtSignal must be bound to a QObject, not 'NetworkManager'
+
+    @ e5000c315dd29ae9356e1b33ed041917c637c85b
+
 Bugs
 ====
 
