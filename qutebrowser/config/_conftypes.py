@@ -185,37 +185,17 @@ class String(BaseType):
                                   self.maxlen))
 
 
-class ShellCommand(String):
+class List(BaseType):
 
-    """A shellcommand which is split via shlex.
+    """Base class for a (string-)list setting."""
 
-    Attributes:
-        placeholder: If there should be a placeholder.
-    """
-
-    typestr = 'shell-cmd'
-
-    def __init__(self, placeholder=False):
-        self.placeholder = placeholder
-        super().__init__()
-
-    def validate(self, value):
-        super().validate(value)
-        if self.placeholder and '{}' not in value:
-            raise ValidationError(value, "needs to contain a {}-placeholder.")
+    typestr = 'string-list'
 
     def transform(self, value):
-        return shlex.split(value)
+        return value.split(',')
 
-
-class HintMode(BaseType):
-
-    """Base class for the hints -> mode setting."""
-
-    typestr = 'hint-mode'
-
-    valid_values = ValidValues(('number', "Use numeric hints."),
-                               ('letter', "Use the chars in hints -> chars."))
+    def validate(self, value):
+        pass
 
 
 class Bool(BaseType):
@@ -280,6 +260,23 @@ class Int(BaseType):
                                   self.maxval))
 
 
+class IntList(List):
+
+    """Base class for an int-list setting."""
+
+    typestr = 'int-list'
+
+    def transform(self, value):
+        vals = super().transform(value)
+        return map(int, vals)
+
+    def validate(self, value):
+        try:
+            self.transform(value)
+        except ValueError:
+            raise ValidationError(value, "must be a list of integers!")
+
+
 class Float(BaseType):
 
     """Base class for an float setting.
@@ -311,36 +308,6 @@ class Float(BaseType):
                                   self.maxval))
 
 
-class List(BaseType):
-
-    """Base class for a (string-)list setting."""
-
-    typestr = 'string-list'
-
-    def transform(self, value):
-        return value.split(',')
-
-    def validate(self, value):
-        pass
-
-
-class IntList(List):
-
-    """Base class for an int-list setting."""
-
-    typestr = 'int-list'
-
-    def transform(self, value):
-        vals = super().transform(value)
-        return map(int, vals)
-
-    def validate(self, value):
-        try:
-            self.transform(value)
-        except ValueError:
-            raise ValidationError(value, "must be a list of integers!")
-
-
 class Perc(BaseType):
 
     """Percentage.
@@ -349,6 +316,8 @@ class Perc(BaseType):
         minval: Minimum value (inclusive).
         maxval: Maximum value (inclusive).
     """
+
+    typestr = 'percentage'
 
     def __init__(self, minval=None, maxval=None):
         self.minval = minval
@@ -401,15 +370,6 @@ class PercList(List):
             raise ValidationError(value, "must be a list of percentages!")
 
 
-class ZoomPerc(Perc):
-
-    """A percentage which needs to be in the current zoom percentages."""
-
-    def validate(self, value):
-        super().validate(value)
-        # FIXME we should validate the percentage is in the list here.
-
-
 class PercOrInt(BaseType):
 
     """Percentage or integer.
@@ -420,6 +380,8 @@ class PercOrInt(BaseType):
         minint: Minimum value for integer (inclusive).
         maxint: Maximum value for integer (inclusive).
     """
+
+    typestr = 'percentage-or-int'
 
     def __init__(self, minperc=None, maxperc=None, minint=None, maxint=None):
         self.minperc = minperc
@@ -450,130 +412,6 @@ class PercOrInt(BaseType):
         if self.maxint is not None and intval > self.maxint:
             raise ValidationError(value, "must be {} or smaller!".format(
                                   self.maxint))
-
-
-class WebKitBytes(BaseType):
-
-    """A size with an optional suffix.
-
-    Attributes:
-        maxsize: The maximum size to be used.
-
-    Class attributes:
-        SUFFIXES: A mapping of size suffixes to multiplicators.
-    """
-
-    SUFFIXES = {
-        'k': 1024 ** 1,
-        'm': 1024 ** 2,
-        'g': 1024 ** 3,
-        't': 1024 ** 4,
-        'p': 1024 ** 5,
-        'e': 1024 ** 6,
-        'z': 1024 ** 7,
-        'y': 1024 ** 8,
-    }
-
-    def __init__(self, maxsize=None):
-        self.maxsize = maxsize
-
-    def validate(self, value):
-        if value == '':
-            return
-        try:
-            val = self.transform(value)
-        except ValueError:
-            raise ValidationError(value, "must be a valid integer with "
-                                         "optional suffix!")
-        if self.maxsize is not None and val > self.maxsize:
-            raise ValidationError(value, "must be {} "
-                                         "maximum!".format(self.maxsize))
-
-    def transform(self, value):
-        if value == '':
-            return None
-        if any(value.lower().endswith(c) for c in self.SUFFIXES):
-            suffix = value[-1].lower()
-            val = value[:-1]
-            multiplicator = self.SUFFIXES[suffix]
-        else:
-            val = value
-            multiplicator = 1
-        return int(val) * multiplicator
-
-
-class WebKitBytesList(List):
-
-    """A size with an optional suffix.
-
-    Attributes:
-        length: The length of the list.
-        bytestype: The webkit bytes type.
-    """
-
-    def __init__(self, maxsize=None, length=None):
-        self.length = length
-        self.bytestype = WebKitBytes(maxsize)
-
-    def transform(self, value):
-        if value == '':
-            return None
-        vals = super().transform(value)
-        return [self.bytestype.transform(val) for val in vals]
-
-    def validate(self, value):
-        if value == '':
-            return
-        vals = super().transform(value)
-        for val in vals:
-            self.bytestype.validate(val)
-        if any(val is None for val in vals):
-            raise ValidationError(value, "all values need to be set!")
-        if self.length is not None and len(vals) != self.length:
-            raise ValidationError(value, "exactly {} values need to be "
-                                         "set!".format(self.length))
-
-
-class Proxy(BaseType):
-
-    """A proxy URL or special value."""
-
-    valid_values = ValidValues(('system', "Use the system wide proxy."),
-                               ('none', "Don't use any proxy"))
-
-    PROXY_TYPES = {
-        'http': QNetworkProxy.HttpProxy,
-        'socks': QNetworkProxy.Socks5Proxy,
-        'socks5': QNetworkProxy.Socks5Proxy,
-    }
-
-    def validate(self, value):
-        if value in self.valid_values:
-            return
-        url = QUrl(value)
-        if (url.isValid() and not url.isEmpty() and
-                url.scheme() in self.PROXY_TYPES):
-            return
-        raise ValidationError(value, "must be a proxy URL (http://... or "
-                                     "socks://...) or system/none!")
-
-    def complete(self):
-        out = []
-        for val in self.valid_values:
-            out.append((val, self.valid_values.descriptions[val]))
-        out.append(('http://', 'HTTP proxy URL'))
-        out.append(('socks://', 'SOCKS proxy URL'))
-        return out
-
-    def transform(self, value):
-        if value == 'system':
-            return None
-        elif value == 'none':
-            return QNetworkProxy(QNetworkProxy.NoProxy)
-        url = QUrl(value)
-        typ = self.PROXY_TYPES[url.scheme()]
-        return QNetworkProxy(typ, url.host(), url.port(), url.userName(),
-                             url.password())
 
 
 class Command(BaseType):
@@ -641,6 +479,225 @@ class Font(BaseType):
         pass
 
 
+class Regex(BaseType):
+
+    """A regular expression."""
+
+    typestr = 'regex'
+
+    def __init__(self, flags=0):
+        self.flags = flags
+
+    def validate(self, value):
+        try:
+            re.compile(value, self.flags)
+        except RegexError as e:
+            raise ValidationError(value, "must be a valid regex - " + str(e))
+
+    def transform(self, value):
+        return re.compile(value, self.flags)
+
+
+class RegexList(List):
+
+    """A list of regexes."""
+
+    typestr = 'regex-list'
+
+    def __init__(self, flags=0):
+        self.flags = flags
+
+    def transform(self, value):
+        vals = super().transform(value)
+        return [re.compile(pattern, self.flags) for pattern in vals]
+
+    def validate(self, value):
+        try:
+            self.transform(value)
+        except RegexError as e:
+            raise ValidationError(value, "must be a list valid regexes - " +
+                                  str(e))
+
+
+class File(BaseType):
+
+    """A file on the local filesystem."""
+
+    typestr = 'file'
+
+    def validate(self, value):
+        if not os.path.isfile(value):
+            raise ValidationError(value, "must be a valid file!")
+
+
+class WebKitBytes(BaseType):
+
+    """A size with an optional suffix.
+
+    Attributes:
+        maxsize: The maximum size to be used.
+
+    Class attributes:
+        SUFFIXES: A mapping of size suffixes to multiplicators.
+    """
+
+    SUFFIXES = {
+        'k': 1024 ** 1,
+        'm': 1024 ** 2,
+        'g': 1024 ** 3,
+        't': 1024 ** 4,
+        'p': 1024 ** 5,
+        'e': 1024 ** 6,
+        'z': 1024 ** 7,
+        'y': 1024 ** 8,
+    }
+
+    typestr = 'bytes'
+
+    def __init__(self, maxsize=None):
+        self.maxsize = maxsize
+
+    def validate(self, value):
+        if value == '':
+            return
+        try:
+            val = self.transform(value)
+        except ValueError:
+            raise ValidationError(value, "must be a valid integer with "
+                                         "optional suffix!")
+        if self.maxsize is not None and val > self.maxsize:
+            raise ValidationError(value, "must be {} "
+                                         "maximum!".format(self.maxsize))
+
+    def transform(self, value):
+        if value == '':
+            return None
+        if any(value.lower().endswith(c) for c in self.SUFFIXES):
+            suffix = value[-1].lower()
+            val = value[:-1]
+            multiplicator = self.SUFFIXES[suffix]
+        else:
+            val = value
+            multiplicator = 1
+        return int(val) * multiplicator
+
+
+class WebKitBytesList(List):
+
+    """A size with an optional suffix.
+
+    Attributes:
+        length: The length of the list.
+        bytestype: The webkit bytes type.
+    """
+
+    typestr = 'bytes-list'
+
+    def __init__(self, maxsize=None, length=None):
+        self.length = length
+        self.bytestype = WebKitBytes(maxsize)
+
+    def transform(self, value):
+        if value == '':
+            return None
+        vals = super().transform(value)
+        return [self.bytestype.transform(val) for val in vals]
+
+    def validate(self, value):
+        if value == '':
+            return
+        vals = super().transform(value)
+        for val in vals:
+            self.bytestype.validate(val)
+        if any(val is None for val in vals):
+            raise ValidationError(value, "all values need to be set!")
+        if self.length is not None and len(vals) != self.length:
+            raise ValidationError(value, "exactly {} values need to be "
+                                         "set!".format(self.length))
+
+
+class ShellCommand(String):
+
+    """A shellcommand which is split via shlex.
+
+    Attributes:
+        placeholder: If there should be a placeholder.
+    """
+
+    typestr = 'shell-command'
+
+    def __init__(self, placeholder=False):
+        self.placeholder = placeholder
+        super().__init__()
+
+    def validate(self, value):
+        super().validate(value)
+        if self.placeholder and '{}' not in value:
+            raise ValidationError(value, "needs to contain a {}-placeholder.")
+
+    def transform(self, value):
+        return shlex.split(value)
+
+
+class ZoomPerc(Perc):
+
+    """A percentage which needs to be in the current zoom percentages."""
+
+    def validate(self, value):
+        super().validate(value)
+        # FIXME we should validate the percentage is in the list here.
+
+
+class HintMode(BaseType):
+
+    """Base class for the hints -> mode setting."""
+
+    valid_values = ValidValues(('number', "Use numeric hints."),
+                               ('letter', "Use the chars in hints -> chars."))
+
+
+class Proxy(BaseType):
+
+    """A proxy URL or special value."""
+
+    valid_values = ValidValues(('system', "Use the system wide proxy."),
+                               ('none', "Don't use any proxy"))
+
+    PROXY_TYPES = {
+        'http': QNetworkProxy.HttpProxy,
+        'socks': QNetworkProxy.Socks5Proxy,
+        'socks5': QNetworkProxy.Socks5Proxy,
+    }
+
+    def validate(self, value):
+        if value in self.valid_values:
+            return
+        url = QUrl(value)
+        if (url.isValid() and not url.isEmpty() and
+                url.scheme() in self.PROXY_TYPES):
+            return
+        raise ValidationError(value, "must be a proxy URL (http://... or "
+                                     "socks://...) or system/none!")
+
+    def complete(self):
+        out = []
+        for val in self.valid_values:
+            out.append((val, self.valid_values.descriptions[val]))
+        out.append(('http://', 'HTTP proxy URL'))
+        out.append(('socks://', 'SOCKS proxy URL'))
+        return out
+
+    def transform(self, value):
+        if value == 'system':
+            return None
+        elif value == 'none':
+            return QNetworkProxy(QNetworkProxy.NoProxy)
+        url = QUrl(value)
+        typ = self.PROXY_TYPES[url.scheme()]
+        return QNetworkProxy(typ, url.host(), url.port(), url.userName(),
+                             url.password())
+
+
 class SearchEngineName(BaseType):
 
     """A search engine name."""
@@ -668,54 +725,18 @@ class KeyBindingName(BaseType):
         pass
 
 
-class Regex(BaseType):
+class KeyBinding(Command):
 
-    """A regular expression."""
+    """The command of a keybinding."""
 
-    def __init__(self, flags=0):
-        self.flags = flags
-
-    def validate(self, value):
-        try:
-            re.compile(value, self.flags)
-        except RegexError as e:
-            raise ValidationError(value, "must be a valid regex - " + str(e))
-
-    def transform(self, value):
-        return re.compile(value, self.flags)
-
-
-class RegexList(List):
-
-    """A list of regexes."""
-
-    def __init__(self, flags=0):
-        self.flags = flags
-
-    def transform(self, value):
-        vals = super().transform(value)
-        return [re.compile(pattern, self.flags) for pattern in vals]
-
-    def validate(self, value):
-        try:
-            self.transform(value)
-        except RegexError as e:
-            raise ValidationError(value, "must be a list valid regexes - " +
-                                  str(e))
-
-
-class File(BaseType):
-
-    """A file on the local filesystem."""
-
-    def validate(self, value):
-        if not os.path.isfile(value):
-            raise ValidationError(value, "must be a valid file!")
+    pass
 
 
 class WebSettingsFile(File):
 
     """QWebSettings file which also can be none."""
+
+    typestr = 'file'
 
     def validate(self, value):
         if value == '':
@@ -786,10 +807,3 @@ class AcceptCookies(String):
 
     valid_values = ValidValues(('default', "Default QtWebKit behaviour"),
                                ('never', "Don't accept cookies at all."))
-
-
-class KeyBinding(Command):
-
-    """The command of a keybinding."""
-
-    pass
