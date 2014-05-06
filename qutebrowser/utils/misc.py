@@ -20,6 +20,8 @@
 import re
 import sys
 import shlex
+import urllib.request
+from urllib.parse import urljoin, urlencode
 from functools import reduce
 from pkg_resources import resource_string
 
@@ -110,3 +112,24 @@ def shell_escape(s):
         # use single quotes, and put single quotes into double quotes
         # the string $'b is then quoted as '$'"'"'b'
         return "'" + s.replace("'", "'\"'\"'") + "'"
+
+
+def pastebin(text):
+    """Paste the text into a pastebin and return the URL."""
+    api_url = 'http://paste.the-compiler.org/api/'
+    data = {
+        'text': text,
+        'title': "qutebrowser crash",
+        'name': "qutebrowser",
+    }
+    encoded_data = urlencode(data).encode('utf-8')
+    create_url = urljoin(api_url, 'create')
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
+    }
+    request = urllib.request.Request(create_url, encoded_data, headers)
+    response = urllib.request.urlopen(request)
+    url = response.read().decode('utf-8').rstrip()
+    if not url.startswith('http'):
+        raise ValueError("Got unexpected response: {}".format(url))
+    return url

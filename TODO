@@ -14,34 +14,26 @@ Crashes
 - Chosing printer in :print gives us a segfault on Linux, but :printpreview
   works...
 
-- Segfault when closing some tab:
-    QIODevice::read: device not open
-    QIODevice::read: device not open
-    QIODevice::read: device not open
-    Fatal Python error: Segmentation fault
+- When following a hint:
 
-    Current thread 0x00007ff4ed080700 (most recent call first):
-      File "/home/florian/proj/qutebrowser/git/qutebrowser/__main__.py", line 29 in main
-      File "/home/florian/proj/qutebrowser/git/qutebrowser/__main__.py", line 33 in <module>
-      File "/usr/lib/python3.4/runpy.py", line 86 in _run_code
-      File "/usr/lib/python3.4/runpy.py", line 171 in _run_module_as_main
+  QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.
 
-    @ e5000c315dd29ae9356e1b33ed041917c637c85b
+- When enabling javascript on http://google.com/accounts and reloading:
 
-- Weird TypeError:
+    OpenType support missing for script 12
 
-    QIODevice::read: device not open
-    QIODevice::read: device not open
-    Traceback (most recent call last):
-      File "/home/florian/proj/qutebrowser/git/qutebrowser/app.py", line 567, in command_handler
-        handler(*args)
-      File "/home/florian/proj/qutebrowser/git/qutebrowser/widgets/_tabbedbrowser.py", line 216, in tabclose
-        tab.shutdown(callback=partial(self._cb_tab_shutdown, tab))
-      File "/home/florian/proj/qutebrowser/git/qutebrowser/widgets/webview.py", line 215, in shutdown
-        netman.destroyed.connect(functools.partial(self._on_destroyed, netman))
-    TypeError: pyqtSignal must be bound to a QObject, not 'NetworkManager'
+  Then it quits.
+  When javascript is enabled already, hangs.
+  With minimal browser, prints error but continues to run.
 
-    @ e5000c315dd29ae9356e1b33ed041917c637c85b
+  Also quits on http://de.wikipedia.org/wiki/Hallo-Welt-Programm
+
+  It seems this only happens on Windows.
+
+- Closing some tabs and undo all them -> quits and CMD.exe hangs
+
+    QHttpNetworkConnectionPrivate::_q_hostLookupFinished could not dequeu request
+
 
 - Sometimes self._frame is None in on_mode_left in HintManager
 
@@ -52,6 +44,24 @@ Bugs
 ====
 
 - All kind of FIXMEs
+- F on duckduckgo result page opens in current page
+
+  It seems we don't get a linkClicked signal there.
+  Maybe it does some weird js stuff?
+  See also: http://qt-project.org/doc/qt-4.8/qwebpage.html#createWindow
+  Asked here: http://stackoverflow.com/q/23498666/2085149
+
+- Shutdown is still flaky.
+
+  Some pointers:
+      https://code.google.com/p/webscraping/source/browse/webkit.py
+      Simply does setPage(None) in __del__ of webview.
+
+      http://www.tenox.net/out/wrp11-qt.py
+      does del self._window; del self._view; del self._page
+
+      http://pydoc.net/Python/grab/0.4.5/ghost.ghost/
+      does webview.close(); del self.manager; del self.page; del self.mainframe
 
 Style
 =====
@@ -80,6 +90,9 @@ Major features
 Minor features
 ==============
 
+- Enable disk caching
+    QNetworkManager.setCache() and use a QNetworkDiskCache probably
+- clear cookies
 - keybind/aliases should have completion for commands/arguments
 - Hiding scrollbars
 - Ctrl+A/X to increase/decrease last number in URL
@@ -102,8 +115,15 @@ hints
 - filter close hints when it's the same link
 - ignore keypresses shortly after link following
 
-Qt Bugs
-========
+Useful things
+=============
+
+http://www.tenox.net/out/wrp11-qt.py
+https://code.google.com/p/webscraping/source/browse/webkit.py
+https://github.com/jeanphix/Ghost.py/blob/master/ghost/ghost.py
+
+Upstream Bugs
+=============
 
 - Printing under windows produced blank pages
     https://bugreports.qt-project.org/browse/QTBUG-19571
@@ -116,10 +136,53 @@ Qt Bugs
     https://bugreports.qt-project.org/browse/QTBUG-38669
 
 - Web inspector is blank unless .hide()/.show() is called.
+    Asked on SO: http://stackoverflow.com/q/23499159/2085149
 
 - Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-20973
     https://bugreports.qt-project.org/browse/QTBUG-21036
+
+- dead_actute
+    https://bugs.freedesktop.org/show_bug.cgi?id=69476
+
+- QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.
+    https://bugreports.qt-project.org/browse/QTBUG-30298
+
+
+Probably fixed crashes
+======================
+
+- Segfault when closing some tab:
+    QIODevice::read: device not open
+    QIODevice::read: device not open
+    QIODevice::read: device not open
+    Fatal Python error: Segmentation fault
+
+    Current thread 0x00007ff4ed080700 (most recent call first):
+      File "/home/florian/proj/qutebrowser/git/qutebrowser/__main__.py", line 29 in main
+      File "/home/florian/proj/qutebrowser/git/qutebrowser/__main__.py", line 33 in <module>
+      File "/usr/lib/python3.4/runpy.py", line 86 in _run_code
+      File "/usr/lib/python3.4/runpy.py", line 171 in _run_module_as_main
+
+    @ e5000c315dd29ae9356e1b33ed041917c637c85b
+
+    Probably fixed by de7c6a63b48f66e164bf4baa6e892bcbb326d6b9
+
+- When opening a hint with F:
+
+    2014-05-06 09:01:25 [DEBUG] [_tabbedbrowser:tabopen:153] Opening PyQt5.QtCore.QUrl('http://ddg.gg/')
+    Traceback (most recent call last):
+      File ".\qutebrowser\widgets\_tabbedbrowser.py", line 155, in tabopen
+        tab = WebView(self)
+      File ".\qutebrowser\widgets\webview.py", line 83, in __init__
+        self.page_ = BrowserPage(self)
+      File ".\qutebrowser\browser\webpage.py", line 44, in __init__
+        self.setNetworkAccessManager(QApplication.instance().networkmanager)
+    RuntimeError: wrapped C/C++ object of type NetworkManager has been deleted
+
+    Probably fixed by de7c6a63b48f66e164bf4baa6e892bcbb326d6b9
+
+
 
 Keybinding stuff (from dwb)
 ===========================

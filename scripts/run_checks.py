@@ -29,6 +29,7 @@ import sys
 import subprocess
 import os
 import os.path
+import unittest
 from collections import OrderedDict
 
 try:
@@ -107,6 +108,13 @@ def check_pep257(args=None):
         status['pep257'] = None
     print()
 
+
+def check_unittest():
+    print("====== unittest ======")
+    suite = unittest.TestLoader().discover('.')
+    result = unittest.TextTestRunner().run(suite)
+    print()
+    status['unittest'] = result.wasSuccessful()
 
 def check_line():
     """Run _check_file over a filetree."""
@@ -198,6 +206,7 @@ def _get_args(checker):
 
 if do_check_257:
     check_pep257(_get_args('pep257'))
+check_unittest()
 for checker in ['pylint', 'flake8', 'pyroma']:
     # FIXME what the hell is the flake8 exit status?
     run(checker, _get_args(checker))

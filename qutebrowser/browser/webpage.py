@@ -72,7 +72,7 @@ class BrowserPage(QWebPage):
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""
         ua = config.get('network', 'user-agent')
-        if not ua:
+        if ua is None:
             return super().userAgentForUrl(url)
         else:
             return ua

@@ -137,6 +137,7 @@ class IsUrlNaiveTests(TestCase):
         'foo bar',
         'localhost test',
         'another . test',
+        'foo',
     ]
 
     def test_urls(self):

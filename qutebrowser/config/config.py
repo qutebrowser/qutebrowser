@@ -271,7 +271,6 @@ class ConfigManager(QObject):
         Return:
             The value of the option.
         """
-        logging.debug("getting {} -> {}".format(sectname, optname))
         try:
             sect = self.sections[sectname]
         except KeyError:
@@ -285,7 +284,6 @@ class ConfigManager(QObject):
         mapping = {key: val.value for key, val in sect.values.items()}
         newval = self._interpolation.before_get(self, sectname, optname,
                                                 val.value, mapping)
-        logging.debug("interpolated val: {}".format(newval))
         if transformed:
             newval = val.typ.transform(newval)
         return newval

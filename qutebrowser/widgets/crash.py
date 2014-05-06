@@ -19,11 +19,15 @@
 
 import sys
 import traceback
+from urllib.error import URLError
 
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QClipboard
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
-                             QVBoxLayout, QHBoxLayout)
+                             QVBoxLayout, QHBoxLayout, QApplication)
 
 import qutebrowser.config.config as config
+import qutebrowser.utils.misc as utils
 from qutebrowser.utils.version import version
 
 
@@ -39,6 +43,8 @@ class CrashDialog(QDialog):
         _hbox: The QHboxLayout containing the buttons
         _btn_quit: The quit button
         _btn_restore: the restore button
+        _btn_pastebin: the pastebin button
+        _url: Pastebin URL QLabel.
     """
 
     def __init__(self, pages, cmdhist, exc):
@@ -59,7 +65,7 @@ class CrashDialog(QDialog):
         text = ("Argh! qutebrowser crashed unexpectedly.<br/>"
                 "Please review the info below to remove sensitive data and "
                 "then submit it to <a href='mailto:crash@qutebrowser.org'>"
-                "crash@qutebrowser.org</a>.<br/><br/>")
+                "crash@qutebrowser.org</a> or click 'pastebin'.<br/><br/>")
         if pages:
             text += ("You can click \"Restore tabs\" to attempt to reopen "
                      "your open tabs.")
@@ -68,15 +74,25 @@ class CrashDialog(QDialog):
         self._vbox.addWidget(self._lbl)
 
         self._txt = QTextEdit()
-        self._txt.setReadOnly(True)
+        #self._txt.setReadOnly(True)
         self._txt.setText(self._crash_info(pages, cmdhist, exc))
         self._vbox.addWidget(self._txt)
+
+        self._url = QLabel()
+        self._url.setTextInteractionFlags(Qt.TextSelectableByMouse |
+                                          Qt.TextSelectableByKeyboard |
+                                          Qt.LinksAccessibleByMouse |
+                                          Qt.LinksAccessibleByKeyboard)
+        self._vbox.addWidget(self._url)
 
         self._hbox = QHBoxLayout()
         self._hbox.addStretch()
         self._btn_quit = QPushButton()
         self._btn_quit.setText("Quit")
         self._btn_quit.clicked.connect(self.reject)
+        self._btn_pastebin = QPushButton()
+        self._btn_pastebin.setText("Pastebin")
+        self._btn_pastebin.clicked.connect(self.pastebin)
         self._hbox.addWidget(self._btn_quit)
         if pages:
             self._btn_restore = QPushButton()
@@ -84,6 +100,7 @@ class CrashDialog(QDialog):
             self._btn_restore.clicked.connect(self.accept)
             self._btn_restore.setDefault(True)
             self._hbox.addWidget(self._btn_restore)
+        self._hbox.addWidget(self._btn_pastebin)
 
         self._vbox.addLayout(self._hbox)
 
@@ -116,3 +133,15 @@ class CrashDialog(QDialog):
                 chunks.append('\n'.join([h, body]))
 
         return '\n\n'.join(chunks)
+
+    def pastebin(self):
+        """Paste the crash info into the pastebin."""
+        try:
+            url = utils.pastebin(self._txt.toPlainText())
+        except (URLError, ValueError) as e:
+            self._url.setText('Error while pasting: {}'.format(e))
+            return
+        self._btn_pastebin.setEnabled(False)
+        self._url.setText("URL copied to clipboard: "
+                          "<a href='{}'>{}</a>".format(url, url))
+        QApplication.clipboard().setText(url, QClipboard.Clipboard)
