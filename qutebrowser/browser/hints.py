@@ -21,7 +21,7 @@ import logging
 import math
 from collections import namedtuple
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent, Qt
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QPoint
 from PyQt5.QtGui import QMouseEvent, QClipboard
 from PyQt5.QtWidgets import QApplication
 
@@ -227,7 +227,13 @@ class HintManager(QObject):
         else:
             target = self._target
         self.set_open_target.emit(Target[target])
-        point = elem.geometry().topLeft()
+        # FIXME this is a quick & dirty fix, we should:
+        #   a) Have better heuristics where to click at (e.g. end of input
+        #      fields)
+        #   b) Check border/margin/padding to know where to click
+        # Hinting failed here for example:
+        #   https://lsf.fh-worms.de/
+        point = elem.geometry().topLeft() + QPoint(1, 1)
         scrollpos = self._frame.scrollPosition()
         logging.debug("Clicking on \"{}\" at {}/{} - {}/{}".format(
             elem.toPlainText(), point.x(), point.y(), scrollpos.x(),
