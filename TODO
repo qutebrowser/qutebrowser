@@ -7,6 +7,13 @@ Before 0.1
 - Tests for URL detection and fix corner cases
 - Fix some crashes if we can
 - Fix shutdown
+- Maybe test under other platforms
+- Autosave feature (against segfaults/...)
+- Save tabs feature
+- More dwb keybindings
+- Filter events in QMainWindow, not QApplication
+    or at least release them when opening other windows, e.g. print dialog
+- Use  :open engine searchterm   syntax for searching
 
 Crashes
 =======
@@ -116,6 +123,7 @@ Useful things
 http://www.tenox.net/out/wrp11-qt.py
 https://code.google.com/p/webscraping/source/browse/webkit.py
 https://github.com/jeanphix/Ghost.py/blob/master/ghost/ghost.py
+http://otter-browser.org/
 
 Upstream Bugs
 =============
@@ -179,41 +187,11 @@ Probably fixed crashes
 
 
 
-Keybinding stuff (from dwb)
-===========================
+dwb keybindings to possibly implement
+=====================================
 
-xo
-Open url in a new tab in background, the argument $URI will be repaced with the current uri (command: backopen, aliases: bopen ).
-
-xO
-Open url in a new tab in background, set current url in the navigation bar (command: backopen_url).
-
-wo
-Open url in a new instance (command: winopen, aliases: wopen, w).
-
-i
-Enter insert mode (command: insert_mode, aliases: i, insert).
-
-C-n
-Enter normal mode.
-
-[n]gc
-Clear tab n or of current tab, clears the history of the tab and loads about:blank. (command clear_tab, aliases: clear).
-
-co
-Close all tabs except for the current one (command only).
-
-C-q
-Quit (command quit, aliases: q).
-
-C-h
-Open the default startpage (command start_page, aliases: home).
-
-th
-Go back in a new tab (command tab_hist_back, aliases: tabback, tba).
-
-tl
-Go forward in a new tab (command tab_hist_forward, aliases: tabforward, tfo).
+window
+------
 
 wh
 Go back in a new window (command win_hist_back, aliases: winback, wba).
@@ -221,11 +199,45 @@ Go back in a new window (command win_hist_back, aliases: winback, wba).
 wl
 Go forward in a new window (command win_hist_forward, aliases: winforward, wfo).
 
-c/
-Find forward, ignore case (command find_forward_ic, alias: iffind).
+wB
+Show Bookmarks, open bookmark in a new window (command win_bookmarks, aliases: winmarks).
 
-c?
-Find backward, ignore case (command find_backward_ic, alias ibfind).
+wb[:graph:]
+Open quickmark in a new window (command win_quickmark, aliases: winqmarks).
+
+wf
+Show hints, open link in a new window. (command hints_win, aliases: winhints, whi).
+
+;R
+Rapid hint mode, each matching hint opens a new window. (command hints_rapid_win, aliases: wrhints, wrhi).
+
+wp
+Paste from clipboard and load in a new window (command paste_nw, aliases: winpaste).
+
+wP
+Paste from primary selection and load in a new window (command paste_primary_nw, aliases: winppaste).
+
+W
+Next navigation action will be opened in a new window (command new_win).
+
+
+downloads
+---------
+
+;d
+Download via hints (command hints_download, aliases: dhints).
+
+[n]ad
+Cancel the download with number n or the first download in the lists of running downloads if n is omitted. (command cancel_download).
+
+gd
+Download the current site. (command download).
+
+Sd
+Show download (command show_downloads, aliases: sdownloads).
+
+Bookmarks/quickmarks
+--------------------
 
 M
 Add a bookmark (command bookmark, aliases: bmark, bma).
@@ -236,9 +248,6 @@ Show Bookmarks (command bookmarks, aliases: bmarks, bmas).
 gB
 Show Bookmarks, open bookmark in a new tab (command tab_bookmarks, aliases: tabmarks).
 
-wB
-Show Bookmarks, open bookmark in a new window (command win_bookmarks, aliases: winmarks).
-
 m
 Add a quickmark (command save_quickmark, aliases: quickmark, qmark).
 
@@ -248,32 +257,11 @@ Open quickmark (command quickmark, aliases: qmarks).
 B
 Open quickmark in a new tab (command tab_quickmark, aliases: tabqmarks).
 
-wb[:graph:]
-Open quickmark in a new window (command win_quickmark, aliases: winqmarks).
+tab-handling
+------------
 
-[n]R
-Reload tab n or current tab if n is omitted without using any cached data (command reload_bypass_cache, aliases: refull).
-
-[n]C-s
-Stop loading of tab n or of current tab is [n] is omitted (command stop_loading, aliases: stop, st).
-
-[n]+
-Zoom in [n times] (command zoom_in, aliases: zi).
-
-[n]-
-Zoom out [n times] (command zoom_out, aliases: zo).
-
-[n]=
-Zoom to n percent or to 100% if n is omitted(command zoom, aliases: z).
-
-sf
-Save all configuration files (command save).
-
-ZZ
-Save current session and exit (command save_session, aliases: wq).
-
-gZZ
-Save current session with name and exit (command save_named_session, aliases: wqn).
+co
+Close all tabs except for the current one (command only).
 
 [n]T
 Focus nth tab, first tab if n is omitted or last tab if n is 0. (command focus_tab, aliases: tab).
@@ -302,71 +290,8 @@ Lock tab [n]. Locking a tab will lock this tab to the current domain, it’s not
 [n]xu
 Lock tab [n]. Locking a tab will lock this tab to the current uri, it’s not possible to navigate to another uri until unlocked. lock_uri, aliases: ulock).
 
-wf
-Show hints, open link in a new tab. (command hints_win, aliases: winhints, whi).
-
-;d
-Download via hints (command hints_download, aliases: dhints).
-
-;R
-Rapid hint mode, each matching hint opens a new window. (command hints_rapid_win, aliases: wrhints, wrhi).
-
-gf
-Toggle "view source" (command view_source, aliases: source, so).
-
-CC
-Allow persistent cookie for the current website. The domain will be saved in cookies.allow. Cookies that are allowed by the cookies.allow whitelist are stored in $XDG_CONFIG_HOME/dwb/$profilename/cookies. (command allow_cookie, aliases: cookie).
-
-CS
-Allow session cookie for the current website. The domain will be saved in cookies_session.allow. This is only useful if cookies-store-policy is set to never, see cookies-store-policy for details. (command allow_session_cookie, aliases: scookie).
-
-CT
-Allow session cookies for the current website temporarily. Only first party cookies are allowed. The domain is not saved to a whitelist and the cookies will not be saved persitently. (command allow_session_cookie_tmp, aliases: tcookie).
-
-wp
-Paste from clipboard and load in a new window (command paste_nw, aliases: winpaste).
-
-wP
-Paste from primary selection and load in a new window (command paste_primary_nw, aliases: winppaste).
-
-[n]ad
-Cancel the download with number n or the first download in the lists of running downloads if n is omitted. (command cancel_download).
-
-gs
-Add a searchengine. Textfields can be chosen with tab and a keyword must be specified. The first defined searchengine will be the default searchengine. The keyword can be used in all open commands, e.g. :open <keyword> <searchterm> (command save_search_field, aliases: search).
-
-gd
-Download the current site. (command download).
-
-Sb
-Show bookmarks (command show_bookmarks, aliases: sbookmarks).
-
-Sq
-Show quickmarks (command show_quickmarks, aliases: squickmarks).
-
-Sh
-Show history (command show_history, aliases: shistory).
-
-Sd
-Show download (command show_downloads, aliases: sdownloads).
-
-Sk
-Show keys (command show_keys, aliases: skeys).
-
-Ss
-Show settings (command show_settings, aliases: ssettings).
-
-ss
-Set setting, the interactive version of the command set, for changing settings in scripts use set instead (command set_setting).
-
-sl
-Set local setting, changes a setting but doesn’t save the setting to configuration file. The interactive version of the command local_set, for changing settings locally in scripts use local_set instead (command set_local_setting).
-
-sk
-Set keyboard shortcut (command set_key, aliases: keys).
-
-C-p
-Toggle proxy (command proxy).
+Blacklisting
+------------
 
 tsh
 Toggle scripts for current host permanently (command toggle_scripts_host, aliases: hscript).
@@ -392,14 +317,109 @@ Toggle plugins for current host temporarily (command toggle_plugins_host_tmp, al
 ptu
 Toggle plugins for current url temporarily (command toggle_plugins_uri_tmp, aliases: tuplugin).
 
-V
-Next navigation action will be opened in a new tab (command new_tab).
+CC
+Allow persistent cookie for the current website. The domain will be saved in cookies.allow. Cookies that are allowed by the cookies.allow whitelist are stored in $XDG_CONFIG_HOME/dwb/$profilename/cookies. (command allow_cookie, aliases: cookie).
 
-W
-Next navigation action will be opened in a new window (command new_win).
+CS
+Allow session cookie for the current website. The domain will be saved in cookies_session.allow. This is only useful if cookies-store-policy is set to never, see cookies-store-policy for details. (command allow_session_cookie, aliases: scookie).
+
+CT
+Allow session cookies for the current website temporarily. Only first party cookies are allowed. The domain is not saved to a whitelist and the cookies will not be saved persitently. (command allow_session_cookie_tmp, aliases: tcookie).
+
+
+Show
+----
+
+Sb
+Show bookmarks (command show_bookmarks, aliases: sbookmarks).
+
+Sq
+Show quickmarks (command show_quickmarks, aliases: squickmarks).
+
+Sh
+Show history (command show_history, aliases: shistory).
+
+Sk
+Show keys (command show_keys, aliases: skeys).
+
+Ss
+Show settings (command show_settings, aliases: ssettings).
 
 eu
 Show and execute userscripts (command execute_userscript).
+
+
+Other
+-----
+
+xo
+Open url in a new tab in background, the argument $URI will be repaced with the current uri (command: backopen, aliases: bopen ).
+
+xO
+Open url in a new tab in background, set current url in the navigation bar (command: backopen_url).
+
+wo
+Open url in a new instance (command: winopen, aliases: wopen, w).
+
+C-n
+Enter normal mode.
+
+[n]gc
+Clear tab n or of current tab, clears the history of the tab and loads about:blank. (command clear_tab, aliases: clear).
+
+C-h
+Open the default startpage (command start_page, aliases: home).
+
+th
+Go back in a new tab (command tab_hist_back, aliases: tabback, tba).
+
+tl
+Go forward in a new tab (command tab_hist_forward, aliases: tabforward, tfo).
+
+c/
+Find forward, ignore case (command find_forward_ic, alias: iffind).
+
+c?
+Find backward, ignore case (command find_backward_ic, alias ibfind).
+
+[n]R
+Reload tab n or current tab if n is omitted without using any cached data (command reload_bypass_cache, aliases: refull).
+
+[n]C-s
+Stop loading of tab n or of current tab is [n] is omitted (command stop_loading, aliases: stop, st).
+
+[n]=
+Zoom to n percent or to 100% if n is omitted(command zoom, aliases: z).
+
+sf
+Save all configuration files (command save).
+
+ZZ
+Save current session and exit (command save_session, aliases: wq).
+
+gZZ
+Save current session with name and exit (command save_named_session, aliases: wqn).
+
+gf
+Toggle "view source" (command view_source, aliases: source, so).
+
+gs
+Add a searchengine. Textfields can be chosen with tab and a keyword must be specified. The first defined searchengine will be the default searchengine. The keyword can be used in all open commands, e.g. :open <keyword> <searchterm> (command save_search_field, aliases: search).
+
+ss
+Set setting, the interactive version of the command set, for changing settings in scripts use set instead (command set_setting).
+
+sl
+Set local setting, changes a setting but doesn’t save the setting to configuration file. The interactive version of the command local_set, for changing settings locally in scripts use local_set instead (command set_local_setting).
+
+sk
+Set keyboard shortcut (command set_key, aliases: keys).
+
+C-p
+Toggle proxy (command proxy).
+
+V
+Next navigation action will be opened in a new tab (command new_tab).
 
 [n]wi
 Show the webinspector of tab n or of current tab if n is omitted. Note that enable-developer-extras has to be set. (commmand web_inspector, aliases: inspect, insp).
