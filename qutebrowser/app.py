@@ -398,8 +398,6 @@ class QuteBrowser(QApplication):
         exc = (exctype, excvalue, tb)
         sys.__excepthook__(*exc)
 
-        self._quit_status['crash'] = False
-
         if exctype is BdbQuit or not issubclass(exctype, Exception):
             # pdb exit, KeyboardInterrupt, ...
             try:
@@ -407,6 +405,9 @@ class QuteBrowser(QApplication):
                 return
             except Exception:
                 self.quit()
+
+        self._quit_status['crash'] = False
+
         try:
             pages = self._recover_pages()
         except Exception:
@@ -441,7 +442,9 @@ class QuteBrowser(QApplication):
             logging.debug("Running {} with args {}".format(sys.executable,
                                                            argv))
             subprocess.Popen(argv)
-        self._maybe_quit('crash')
+        # We might risk a segfault here, but that's better than continuing to
+        # run in some undefined state.
+        sys.exit(1)
 
     def _maybe_quit(self, sender):
         """Maybe quit qutebrowser.
