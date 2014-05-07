@@ -606,7 +606,10 @@ DATA = OrderedDict([
         ('<Down>', '${j}'),
         ('<Up>', '${k}'),
         ('<Right>', '${l}'),
+        ('<Shift-Space>', '${<Ctrl-B>}'),
         ('<Space>', '${<Ctrl-F>}'),
+        ('<PgUp>', '${<Ctrl-B>}'),
+        ('<PgDown>', '${<Ctrl-F>}'),
     )),
 
     ('keybind.insert', sect.ValueList(
