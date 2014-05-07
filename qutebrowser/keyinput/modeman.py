@@ -96,6 +96,18 @@ class ModeManager(QObject):
     @property
     def mode(self):
         """Read-only property for the current mode."""
+        # For some reason, on Ubuntu (Python 3.3.2, PyQt 5.0.1, Qt 5.0.2) there
+        # is a lingering exception here sometimes. With this construct, we
+        # clear this exception which makes no sense at all anyways.
+        # Details:
+        # http://www.riverbankcomputing.com/pipermail/pyqt/2014-May/034196.html
+        # If we wouldn't clear the exception, we would actually get an
+        # AttributeError for the mode property in eventFilter because of
+        # another PyQt oddity.
+        try:
+            raise
+        except:  # pylint: disable=bare-except
+            pass
         if not self._mode_stack:
             return None
         return self._mode_stack[-1]
@@ -230,14 +242,7 @@ class ModeManager(QObject):
         Emit:
             key_pressed: When a key was actually pressed.
         """
-        if not hasattr(self, 'mode'):
-            # FIXME I have no idea how this could possibly happen, but on
-            # Ubuntu it does on startup.
-            # self.mode is a simple @property and we certainly don't delete it,
-            # so this all makes no sense at all.
-            logging.warn("eventFilter called but self.mode doesn't exist!")
-            return False
-        elif self.mode is None:
+        if self.mode is None:
             # We got events before mode is set, so just pass them through.
             return False
         typ = event.type()
