@@ -62,6 +62,10 @@ Bugs
       http://pydoc.net/Python/grab/0.4.5/ghost.ghost/
       does webview.close(); del self.manager; del self.page; del self.mainframe
 
+- Tabbar in print dialog has same visual style as main tabbar
+
+- Sometimes there's a horizontal scrollbar in the completer
+
 Style
 =====
 
