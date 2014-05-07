@@ -11,8 +11,6 @@ Before 0.1
 - Autosave feature (against segfaults/...)
 - Save tabs feature
 - More dwb keybindings
-- Filter events in QMainWindow, not QApplication
-    or at least release them when opening other windows, e.g. print dialog
 - Use  :open engine searchterm   syntax for searching
 
 Crashes

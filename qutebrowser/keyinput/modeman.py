@@ -62,6 +62,7 @@ class ModeManager(QObject):
     Attributes:
         mode: The current mode (readonly property).
         passthrough: A list of modes in which to pass through events.
+        mainwindow: The mainwindow object
         _handlers: A dictionary of modes and their handlers.
         _mode_stack: A list of the modes we're currently in, with the active
                      one on the right.
@@ -84,6 +85,7 @@ class ModeManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.mainwindow = None
         self._handlers = {}
         self.passthrough = []
         self._mode_stack = []
@@ -248,7 +250,10 @@ class ModeManager(QObject):
             logging.debug("Ignoring event {} for {}".format(
                 debug.EVENTS[typ], obj.__class__.__name__))
             return False
-
+        if QApplication.instance().activeWindow() is not self.mainwindow:
+            # Some other window (print dialog, etc.) is focused so we pass
+            # the event through.
+            return False
         logging.debug("Got event {} for {} in mode {}".format(
             debug.EVENTS[typ], obj.__class__.__name__, self.mode))
 

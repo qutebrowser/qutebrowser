@@ -135,6 +135,7 @@ class QuteBrowser(QApplication):
         self._init_cmds()
         self.mainwindow = MainWindow()
 
+        self.modeman.mainwindow = self.mainwindow
         self.installEventFilter(self.modeman)
         self.setQuitOnLastWindowClosed(False)
 
@@ -398,13 +399,6 @@ class QuteBrowser(QApplication):
         sys.__excepthook__(*exc)
 
         self._quit_status['crash'] = False
-
-        # Give key input back for crash dialog
-        try:
-            self.removeEventFilter(self.modeman)
-        except AttributeError:
-            # self.modeman could be None
-            pass
 
         if exctype is BdbQuit or not issubclass(exctype, Exception):
             # pdb exit, KeyboardInterrupt, ...
