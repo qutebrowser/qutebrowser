@@ -62,6 +62,9 @@ Bugs
       http://pydoc.net/Python/grab/0.4.5/ghost.ghost/
       does webview.close(); del self.manager; del self.page; del self.mainframe
 
+- Eliding doesn't work correctly in tabs (cuts off start)
+  This especially happens when there's no favicon
+
 Style
 =====
 
