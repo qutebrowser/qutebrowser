@@ -12,6 +12,8 @@ Before 0.1
 - Save tabs feature
 - More dwb keybindings
 - Use  :open engine searchterm   syntax for searching
+- Basic SSL handling
+  e.g. broken on https://fsinf.fh-worms.de/
 
 Crashes
 =======
@@ -72,6 +74,14 @@ Bugs
 - Relative file paths and ~ don't work at all.
 
 - Pasting highlighted text (to mrxvt) does not work (iggy).
+
+- Text rendering errors on https://campus.fh-worms.de/~progbau/Routing/05/index.html
+  https://paste.xinu.at/vw6r/
+  This seems to happen only with ttf-ms-fonts installed.
+
+- Links to articles on https://plus.google.com/+SPIEGELONLINE/posts do not work
+
+- Hinting problems on https://bugreports.qt-project.org/secure/Dashboard.jspa
 
 Style
 =====
