@@ -807,3 +807,12 @@ class AcceptCookies(String):
 
     valid_values = ValidValues(('default', "Default QtWebKit behaviour"),
                                ('never', "Don't accept cookies at all."))
+
+
+class WindowOpenBehaviour(String):
+
+    """What to do when a webview requests a new window."""
+
+    valid_values = ValidValues(('same-tab', "Open new window in same tab."),
+                               ('new-tab', "Open new window in new tab (note: "
+                                           "history will be cleared)."))
