@@ -471,7 +471,7 @@ DATA = OrderedDict([
 
         ('maximum-pages-in-cache',
          SettingValue(types.Int(none=True), ''),
-         "The default font size for fixed-pitch text."),
+         "Sets the maximum number of pages to hold in the memory page cache."),
 
         ('object-cache-capacities',
          SettingValue(types.WebKitBytesList(length=3, maxsize=INT_MAX), ''),
