@@ -38,6 +38,9 @@ Crashes
 
     QHttpNetworkConnectionPrivate::_q_hostLookupFinished could not dequeu request
 
+- Clicking the blank area of the grey titlebar of the webinspector closed
+  qutebrowser on windows
+
 
 Bugs
 ====
@@ -114,6 +117,7 @@ Minor features
 ==============
 
 - Make inspector height resizable
+- Make inspector detachable (own window)
 - Enable disk caching
     QNetworkManager.setCache() and use a QNetworkDiskCache probably
 - clear cookies
