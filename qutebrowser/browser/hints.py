@@ -21,7 +21,7 @@ import logging
 import math
 from collections import namedtuple
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QPoint
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent, Qt
 from PyQt5.QtGui import QMouseEvent, QClipboard
 from PyQt5.QtWidgets import QApplication
 
