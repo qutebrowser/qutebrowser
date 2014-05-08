@@ -49,6 +49,9 @@ class WebView(QWebView):
         page_: The QWebPage behind the view
         signal_cache: The signal cache associated with the view.
         hintmanager: The HintManager instance for this view.
+        tabbedbrowser: The TabbedBrowser this WebView is part of.
+                       We need this rather than signals to make createWindow
+                       work.
         _zoom: A NeighborList with the zoom levels.
         _scroll_pos: The old scroll position.
         _shutdown_callback: Callback to be called after shutdown.
@@ -61,18 +64,15 @@ class WebView(QWebView):
         scroll_pos_changed: Scroll percentage of current tab changed.
                             arg 1: x-position in %.
                             arg 2: y-position in %.
-        open_tab: A new tab should be opened.
-                  arg 1: The address to open
-                  arg 2: Whether to open the tab in the background
         linkHovered: QWebPages linkHovered signal exposed.
     """
 
     scroll_pos_changed = pyqtSignal(int, int)
-    open_tab = pyqtSignal('QUrl', bool)
     linkHovered = pyqtSignal(str, str, str)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent):
         super().__init__(parent)
+        self.tabbedbrowser = parent
         self._scroll_pos = (-1, -1)
         self._shutdown_callback = None
         self._open_target = Target.normal
@@ -219,14 +219,11 @@ class WebView(QWebView):
 
         Args:
             url: The url to handle, as string or QUrl.
-
-        Emit:
-            open_tab: Emitted if window should be opened in a new tab.
         """
         if self._open_target == Target.tab:
-            self.open_tab.emit(url, False)
+            self.tabbedbrowser.tabopen(url, False)
         elif self._open_target == Target.bgtab:
-            self.open_tab.emit(url, True)
+            self.tabbedbrowser.tabopen(url, True)
         else:
             self.openurl(url)
 
@@ -266,6 +263,30 @@ class WebView(QWebView):
         t = getattr(Target, target)
         logging.debug("Setting force target to {}/{}".format(target, t))
         self._force_open_target = t
+
+    def createWindow(self, wintype):
+        """Called by Qt when a page wants to create a new window.
+
+        This function is called from the createWindow() method of the
+        associated QWebPage, each time the page wants to create a new window of
+        the given type. This might be the result, for example, of a JavaScript
+        request to open a document in a new window.
+
+        Args:
+            wintype: This enum describes the types of window that can be
+                     created by the createWindow() function.
+
+                     QWebPage::WebBrowserWindow: The window is a regular web
+                                                 browser window.
+                     QWebPage::WebModalDialog: The window acts as modal dialog.
+
+        Return:
+            The new QWebView object.
+        """
+        if wintype == QWebPage.WebModalDialog:
+            logging.warn("WebModalDialog requested, but we don't support "
+                         "that!")
+        return self.tabbedbrowser.tabopen()
 
     def paintEvent(self, e):
         """Extend paintEvent to emit a signal if the scroll position changed.

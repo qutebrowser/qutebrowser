@@ -136,11 +136,10 @@ class TabbedBrowser(TabWidget):
         tab.hintmanager.openurl.connect(self.cur.openurl_slot)
         # misc
         tab.titleChanged.connect(self.on_title_changed)
-        tab.open_tab.connect(self.tabopen)
         tab.iconChanged.connect(self.on_icon_changed)
 
     @pyqtSlot(str, bool)
-    def tabopen(self, url, background=False):
+    def tabopen(self, url=None, background=None):
         """Open a new tab with a given url.
 
         Inner logic for tabopen and backtabopen.
@@ -148,18 +147,28 @@ class TabbedBrowser(TabWidget):
 
         Args:
             url: The URL to open.
-            background: Whether to oepn the tab in the background.
+            background: Whether to open the tab in the background.
+                        if None, the background-tabs setting decides.
+
+        Return:
+            The opened WebView instance.
         """
-        logging.debug("Opening {}".format(url))
-        url = urlutils.qurl(url)
+        logging.debug("Creating new tab with url {}".format(url))
         tab = WebView(self)
         self._connect_tab_signals(tab)
         self._tabs.append(tab)
-        self.addTab(tab, urlutils.urlstring(url))
-        tab.show()
-        tab.openurl(url)
+        if url is not None:
+            url = urlutils.qurl(url)
+            self.addTab(tab, urlutils.urlstring(url))
+            tab.openurl(url)
+        else:
+            self.addTab(tab, "")
+        if background is None:
+            background = config.get('general', 'background-tabs')
         if not background:
             self.setCurrentWidget(tab)
+        tab.show()
+        return tab
 
     def cntwidget(self, count=None):
         """Return a widget based on a count/idx.

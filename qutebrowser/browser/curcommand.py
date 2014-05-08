@@ -121,7 +121,7 @@ class CurCommandDispatcher(QObject):
             newtab: True to open URL in a new tab, False otherwise.
         """
         if newtab:
-            self._tabs.tabopen(url)
+            self._tabs.tabopen(url, background=False)
         else:
             self._tabs.currentWidget().openurl(url)
 
