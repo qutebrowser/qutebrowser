@@ -67,6 +67,10 @@ Bugs
 - Eliding doesn't work correctly in tabs (cuts off start)
   This especially happens when there's no favicon
 
+- Opening via commandline / startpage doesn't work with absolute file paths.
+
+- Relative file paths and ~ don't work at all.
+
 Style
 =====
 
