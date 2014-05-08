@@ -71,6 +71,8 @@ Bugs
 
 - Relative file paths and ~ don't work at all.
 
+- Pasting highlighted text (to mrxvt) does not work (iggy).
+
 Style
 =====
 
