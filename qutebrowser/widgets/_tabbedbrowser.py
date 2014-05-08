@@ -330,25 +330,25 @@ class TabbedBrowser(TabWidget):
         self.paste(sel, True)
 
     @cmdutils.register(instance='mainwindow.tabs')
-    def focus_tab(self, idx=None, count=None):
+    def focus_tab(self, index=None, count=None):
         """Select the tab given as argument or in count.
 
         Args:
-            idx: The tab index to focus, starting with 1.
+            index: The tab index to focus, starting with 1.
         """
-        if ((idx is None and count is None) or
-                (idx is not None and count is not None)):
+        if ((index is None and count is None) or
+                (index is not None and count is not None)):
             message.error("Either argument or count must be given!")
             return
         try:
-            i = int(idx) if idx is not None else count
+            idx = int(index) if index is not None else count
         except ValueError:
-            message.error("Invalid argument: {}".format(idx))
+            message.error("Argument ({}) needs to be a number!".format(index))
             return
-        if 1 <= i <= self.count():
-            self.setCurrentIndex(i - 1)
+        if 1 <= idx <= self.count():
+            self.setCurrentIndex(idx - 1)
         else:
-            message.error("Index out of bounds!")
+            message.error("There's no tab with index {}!".format(idx))
             return
 
     @pyqtSlot(str, str)
