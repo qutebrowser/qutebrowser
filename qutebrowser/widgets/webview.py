@@ -315,9 +315,11 @@ class WebView(QWebView):
         pos = e.pos()
         frame = self.page_.frameAt(pos)
         if frame is None:
-            # I don't know why this would happen, but it did.
-            logging.warn("Clicked at {} but frame is None!".format(pos))
-            return
+            # This happens when we click inside the webview, but not actually
+            # on the QWebPage - for example when clicking the scrollbar
+            # sometimes.
+            logging.debug("Clicked at {} but frame is None!".format(pos))
+            return super().mousePressEvent(e)
         pos -= frame.geometry().topLeft()
         hitresult = frame.hitTestContent(pos)
         if self._is_editable(hitresult):
