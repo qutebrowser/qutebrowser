@@ -1,0 +1,26 @@
+# Maintainer: Florian Bruhin (The Compiler) <archlinux.org@the-compiler.org>
+
+pkgname=qutebrowser-git
+pkgver=
+pkgrel=1
+pkgdesc="A keyboard-driven, vim-like browser based on PyQt5 and QtWebKit.",
+arch=(any)
+url="http://www.qutebrowser.org/"
+license=('GPL')
+depends=('python' 'python-setuptools' 'python-appdirs' 'python-pyqt5' 'qt5-base' 'qt5-webkit')
+makedepends=('python' 'python-setuptools')
+options=(!emptydirs)
+source=('qutebrowser::git://the-compiler.org/qutebrowser')
+md5sums=('SKIP')
+
+pkgver() {
+  cd "$srcdir/qutebrowser"
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+package() {
+  cd "$srcdir/qutebrowser"
+  python setup.py install --root="$pkgdir/" --optimize=1
+}
+
+# vim:set ts=2 sw=2 et:

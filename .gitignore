@@ -3,3 +3,6 @@ __pycache__
 /build
 /dist
 /qutebrowser.egg-info
+/pkg/pkg
+/pkg/qutebrowser
+/pkg/src
