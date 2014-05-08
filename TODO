@@ -117,6 +117,7 @@ Minor features
 - somehow unfocus elements (hide blinking cursor) when insert mode is left?
 - tabs: some more padding?
 - Really fix URL detection properly
+- Make it possible to open inspector in a new window.
 
 hints
 -----
