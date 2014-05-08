@@ -17,18 +17,21 @@
 
 """Handling of HTTP cookies."""
 
+from PyQt5.QtNetwork import QNetworkCookie, QNetworkCookieJar
+from PyQt5.QtCore import QStandardPaths
+
 import qutebrowser.config.config as config
 from qutebrowser.config.lineparser import LineConfigParser
-
-from PyQt5.QtNetwork import QNetworkCookie, QNetworkCookieJar
+from qutebrowser.utils.misc import get_standard_dir
 
 
 class CookieJar(QNetworkCookieJar):
 
     """Our own cookie jar to save cookies to disk if desired."""
 
-    def __init__(self, datadir):
+    def __init__(self):
         super().__init__()
+        datadir = get_standard_dir(QStandardPaths.DataLocation)
         self._linecp = LineConfigParser(datadir, 'cookies')
         cookies = []
         for line in self._linecp.data:

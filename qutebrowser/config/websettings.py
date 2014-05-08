@@ -28,9 +28,11 @@ Module attributes:
 
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWebKit import QWebSettings
+from PyQt5.QtCore import QStandardPaths
 
 import qutebrowser.config.config as config
 from qutebrowser.utils.usertypes import enum
+from qutebrowser.utils.misc import get_standard_dir
 
 MapType = enum('attribute', 'setter', 'static_setter')
 
@@ -144,13 +146,10 @@ def _set_setting(typ, arg, value):
         arg(value)
 
 
-def init(cachedir):
-    """Initialize the global QWebSettings.
-
-    Args:
-        cachedir: Directory to save cache files in.
-    """
+def init():
+    """Initialize the global QWebSettings."""
     global settings
+    cachedir = get_standard_dir(QStandardPaths.CacheLocation)
     QWebSettings.enablePersistentStorage(cachedir)
     settings = QWebSettings.globalSettings()
     for name, (typ, arg) in MAPPINGS.items():

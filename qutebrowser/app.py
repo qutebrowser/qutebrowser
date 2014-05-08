@@ -44,7 +44,7 @@ harfbuzz.fix()
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.QtCore import pyqtSlot, QTimer, QEventLoop
-from appdirs import AppDirs
+from PyQt5.QtCore import QStandardPaths
 
 import qutebrowser
 import qutebrowser.commands.utils as cmdutils
@@ -65,7 +65,7 @@ from qutebrowser.config.iniparsers import ReadWriteConfigParser
 from qutebrowser.config.lineparser import LineConfigParser
 from qutebrowser.browser.cookies import CookieJar
 from qutebrowser.utils.message import MessageBridge
-from qutebrowser.utils.misc import dotted_getattr
+from qutebrowser.utils.misc import dotted_getattr, get_standard_dir
 from qutebrowser.utils.debug import set_trace  # pylint: disable=unused-import
 
 
@@ -90,7 +90,6 @@ class QuteBrowser(QApplication):
         networkmanager: The global NetworkManager instance.
         cookiejar: The global CookieJar instance.
         _keyparsers: A mapping from modes to keyparsers.
-        _dirs: AppDirs instance for config/cache directories.
         _args: ArgumentParser instance.
         _timers: List of used QTimers so they don't get GCed.
         _shutting_down: True if we're currently shutting down.
@@ -112,7 +111,6 @@ class QuteBrowser(QApplication):
         self._opened_urls = []
         self._shutting_down = False
         self._keyparsers = None
-        self._dirs = None
         self.messagebridge = None
         self.stateconfig = None
         self.modeman = None
@@ -126,9 +124,9 @@ class QuteBrowser(QApplication):
         self._init_misc()
         self._init_config()
         self._init_modes()
-        websettings.init(self._dirs.user_cache_dir)
+        websettings.init()
         proxy.init()
-        self.cookiejar = CookieJar(self._dirs.user_data_dir)
+        self.cookiejar = CookieJar()
         self.networkmanager = NetworkManager(self.cookiejar)
         self.commandmanager = CommandManager()
         self.searchmanager = SearchManager()
@@ -168,9 +166,8 @@ class QuteBrowser(QApplication):
 
     def _init_config(self):
         """Inizialize and read the config."""
-        self._dirs = AppDirs('qutebrowser')
         if self._args.confdir is None:
-            confdir = self._dirs.user_config_dir
+            confdir = get_standard_dir(QStandardPaths.ConfigLocation)
         elif self._args.confdir == '':
             confdir = None
         else:

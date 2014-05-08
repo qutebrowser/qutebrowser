@@ -17,13 +17,17 @@
 
 """Other utilities which don't fit anywhere else."""
 
+import os
 import re
 import sys
 import shlex
+import os.path
 import urllib.request
 from urllib.parse import urljoin, urlencode
 from functools import reduce
 from pkg_resources import resource_string
+
+from PyQt5.QtCore import QStandardPaths
 
 import qutebrowser
 
@@ -133,3 +137,21 @@ def pastebin(text):
     if not url.startswith('http'):
         raise ValueError("Got unexpected response: {}".format(url))
     return url
+
+
+def get_standard_dir(typ):
+    """Get the directory where files of the given type should be written to.
+
+    Args:
+        typ: A member of the QStandardPaths::StandardLocation enum,
+             see http://qt-project.org/doc/qt-5/qstandardpaths.html#StandardLocation-enum
+    """
+    # FIXME we could easily add some unittests for this
+    path = QStandardPaths.writableLocation(typ)
+    if (typ == QStandardPaths.ConfigLocation and
+            os.path.split(path)[-1] != 'qutebrowser'):
+        # Workaround for https://bugreports.qt-project.org/browse/QTBUG-38872
+        path = os.path.join(path, 'qutebrowser')
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return path
