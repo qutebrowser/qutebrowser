@@ -45,7 +45,7 @@ _HTML_TEMPLATE = """
 """
 
 
-pyeval_output = None
+pyeval_output = ":pyeval was never called"
 
 
 def _get_html(title, snippet):

@@ -11,8 +11,6 @@ Before 0.1
 - Autosave feature (against segfaults/...)
 - Save tabs feature
 - More dwb keybindings
-- Filter events in QMainWindow, not QApplication
-    or at least release them when opening other windows, e.g. print dialog
 - Use  :open engine searchterm   syntax for searching
 
 Crashes
@@ -65,6 +63,9 @@ Bugs
 - Tabbar in print dialog has same visual style as main tabbar
 
 - Sometimes there's a horizontal scrollbar in the completer
+
+- Eliding doesn't work correctly in tabs (cuts off start)
+  This especially happens when there's no favicon
 
 Style
 =====
