@@ -81,6 +81,9 @@ Bugs
 
 - Hinting problems on https://bugreports.qt-project.org/secure/Dashboard.jspa
 
+- scroll_page doesn't care about always visible bars, so content gets hidden
+  e.g. http://www.mtb-news.de/forum/t/welcher-schuh-five-ten-vs-oneal.529148/
+
 Style
 =====
 
