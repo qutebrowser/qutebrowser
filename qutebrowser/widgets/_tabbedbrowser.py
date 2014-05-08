@@ -130,6 +130,7 @@ class TabbedBrowser(TabWidget):
             self._filter.create(self.cur_statusbar_message))
         tab.scroll_pos_changed.connect(
             self._filter.create(self.cur_scroll_perc_changed))
+        tab.urlChanged.connect(self.on_url_changed)
         tab.urlChanged.connect(self._filter.create(self.cur_url_changed))
         # hintmanager
         tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)
@@ -159,7 +160,7 @@ class TabbedBrowser(TabWidget):
         self._tabs.append(tab)
         if url is not None:
             url = urlutils.qurl(url)
-            self.addTab(tab, urlutils.urlstring(url))
+            self.addTab(tab, "")
             tab.openurl(url)
         else:
             self.addTab(tab, "")
@@ -391,6 +392,13 @@ class TabbedBrowser(TabWidget):
             self.setTabText(self.indexOf(self.sender()), text)
         else:
             logging.debug("ignoring title change")
+
+    @pyqtSlot('QUrl')
+    def on_url_changed(self, url):
+        """Set the new URL as title if there's no title yet."""
+        idx = self.indexOf(self.sender())
+        if not self.tabText(idx):
+            self.setTabText(idx, urlutils.urlstring(url))
 
     @pyqtSlot()
     def on_icon_changed(self):
