@@ -383,9 +383,6 @@ Find backward, ignore case (command find_backward_ic, alias ibfind).
 [n]R
 Reload tab n or current tab if n is omitted without using any cached data (command reload_bypass_cache, aliases: refull).
 
-[n]C-s
-Stop loading of tab n or of current tab is [n] is omitted (command stop_loading, aliases: stop, st).
-
 [n]=
 Zoom to n percent or to 100% if n is omitted(command zoom, aliases: z).
 

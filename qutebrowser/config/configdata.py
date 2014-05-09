@@ -624,6 +624,7 @@ DATA = OrderedDict([
         ('<PgUp>', '${<Ctrl-B>}'),
         ('<PgDown>', '${<Ctrl-F>}'),
         ('<Ctrl-h>', 'home'),
+        ('<Ctrl-s>', 'stop'),
     )),
 
     ('keybind.insert', sect.ValueList(

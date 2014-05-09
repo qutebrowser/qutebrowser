@@ -184,6 +184,12 @@ class CurCommandDispatcher(QObject):
             printdiag.open(lambda: tab.print(printdiag.printer()))
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
+    def stop(self, count=None):
+        """Stop loading of tab [n] or of current tab."""
+        tab = self._tabs.cntwidget(count)
+        tab.stop()
+
+    @cmdutils.register(instance='mainwindow.tabs.cur')
     def back(self, count=1):
         """Go back in the history of the current tab.
 
