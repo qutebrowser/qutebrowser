@@ -400,23 +400,12 @@ class TabbedBrowser(TabWidget):
         Args:
             index: The tab index to focus, starting with 1.
         """
-        if index is not None and count is not None:
-            message.error("Either argument or count must be given!")
+        try:
+            idx = cmdutils.arg_or_count(index, count, default=1,
+                                        countzero=self.count())
+        except ValueError as e:
+            message.error(e)
             return
-        elif index is not None:
-            try:
-                idx = int(index)
-            except ValueError:
-                message.error("Argument ({}) needs to be a number!".format(
-                    index))
-                return
-        elif count is not None:
-            if count == 0:
-                idx = self.count()
-            else:
-                idx = count
-        else:
-            idx = 1
         if 1 <= idx <= self.count():
             self.setCurrentIndex(idx - 1)
         else:

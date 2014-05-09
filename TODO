@@ -94,7 +94,6 @@ Style
 =====
 
 - initialize completion models at some nicer place (not in widget)
-- add util function to check arg/count
 - move curcommand stuff to other places (e.g. current widget, etc.)
   maybe rename curcommand to commands or so?
   also some curcommand stuff is in tabbedbrowser, etc.

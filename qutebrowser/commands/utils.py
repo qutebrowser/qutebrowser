@@ -29,6 +29,44 @@ from qutebrowser.commands._command import Command
 cmd_dict = {}
 
 
+def arg_or_count(arg, count, default=None, countzero=None):
+
+    """Get a value based on an argument and count given to a command.
+
+    If both arg and count are set, ValueError is raised.
+    If only arg/count is set, it is used.
+    If none is set, a default is returned or ValueError is raised.
+
+    Args:
+        arg: The argument given to a command.
+        count: The count given to a command.
+        countzero: Special value if count is 0.
+
+    Return:
+        The value to use.
+
+    Raise:
+        ValueError: If nothing was set or the value couldn't be converted to
+                    an integer.
+    """
+    if count is not None and arg is not None:
+        raise ValueError("Both count and argument given!")
+    elif arg is not None:
+        try:
+            return int(arg)
+        except ValueError:
+            raise ValueError("Invalid number: {}".format(arg))
+    elif count is not None:
+        if countzero is not None and count == 0:
+            return countzero
+        else:
+            return int(count)
+    elif default is not None:
+        return int(default)
+    else:
+        raise ValueError("Either count or argument have to be set!")
+
+
 class register:  # pylint: disable=invalid-name
 
     """Decorator to register a new command handler.

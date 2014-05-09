@@ -406,19 +406,10 @@ class CurCommandDispatcher(QObject):
         Args:
             count: How many steps to take.
         """
-        if zoom is not None and count is not None:
-            message.error("Either argument or count must be given!")
-            return
-        if zoom is not None:
-            try:
-                level = int(zoom)
-            except ValueError:
-                message.error("Argument {} must be an integer!".format(zoom))
-                return
-        elif count is not None:
-            level = count
-        else:
-            level = 100
+        try:
+            level = cmdutils.arg_or_count(zoom, count, default=100)
+        except ValueError as e:
+            message.error(e)
         tab = self._tabs.currentWidget()
         tab.zoom_perc(level)
 
