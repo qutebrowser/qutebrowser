@@ -669,44 +669,52 @@ DATA = OrderedDict([
 
     ('colors', sect.KeyValue(
         ('completion.fg',
+         SettingValue(types.Color(), 'white'),
+         "Text color of the completion widget."),
+
+        ('completion.bg',
          SettingValue(types.Color(), '#333333'),
          "Text color of the completion widget."),
 
         ('completion.item.bg',
-         SettingValue(types.Color(), 'white'),
+         SettingValue(types.Color(), '${completion.bg}'),
          "Background color of completion widget items."),
+
+        ('completion.category.fg',
+         SettingValue(types.Color(), '#e6bd00'),
+         "Foreground color of completion widget category headers."),
 
         ('completion.category.bg',
          SettingValue(types.Color(), 'qlineargradient(x1:0, y1:0, x2:0, y2:1, '
-                      'stop:0 #e4e4e4, stop:1 #dbdbdb)'),
+                      'stop:0 #888888, stop:1 #505050)'),
          "Background color of the completion widget category headers."),
 
         ('completion.category.border.top',
-         SettingValue(types.Color(), '#808080'),
+         SettingValue(types.Color(), 'black'),
          "Top border color of the completion widget category headers."),
 
         ('completion.category.border.bottom',
-         SettingValue(types.Color(), '#bbbbbb'),
+         SettingValue(types.Color(), '${completion.category.border.top}'),
          "Bottom border color of the completion widget category headers."),
 
         ('completion.item.selected.fg',
-         SettingValue(types.Color(), '#333333'),
+         SettingValue(types.Color(), 'black'),
          "Foreground color of the selected completion item."),
 
         ('completion.item.selected.bg',
-         SettingValue(types.Color(), '#ffec8b'),
+         SettingValue(types.Color(), '#e8c000'),
          "Background color of the selected completion item."),
 
         ('completion.item.selected.border.top',
-         SettingValue(types.Color(), '#f2f2c0'),
+         SettingValue(types.Color(), '#bbbb00'),
          "Top border color of the completion widget category headers."),
 
         ('completion.item.selected.border.bottom',
-         SettingValue(types.Color(), '#ffec8b'),
+         SettingValue(types.Color(), '${completion.item.selected.border.top}'),
          "Bottom border color of the selected completion item."),
 
         ('completion.match.fg',
-         SettingValue(types.Color(), 'red'),
+         SettingValue(types.Color(), '#ff4444'),
          "Foreground color of the matched text in the completion."),
 
         ('statusbar.bg',

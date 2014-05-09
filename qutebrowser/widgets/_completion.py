@@ -29,7 +29,7 @@ from PyQt5.QtWidgets import (QStyle, QStyleOptionViewItem, QTreeView,
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QRectF, QSize,
                           QItemSelectionModel)
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
-                         QTextCursor)
+                         QTextCursor, QColor, QAbstractTextDocumentLayout)
 
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
@@ -75,7 +75,6 @@ class CompletionView(QTreeView):
     STYLESHEET = """
         QTreeView {{
             {font[completion]}
-            {color[completion.fg]}
             {color[completion.bg]}
             outline: 0;
         }}
@@ -102,6 +101,8 @@ class CompletionView(QTreeView):
         }}
     """
     COLUMN_WIDTHS = [20, 70, 10]
+
+    # FIXME style scrollbar
 
     change_completed_part = pyqtSignal(str)
 
@@ -474,14 +475,33 @@ class _CompletionItemDelegate(QStyledItemDelegate):
         self._draw_textdoc(text_rect)
         self._painter.restore()
 
-    def _draw_textdoc(self, text_rect):
+    def _draw_textdoc(self, rect):
         """Draw the QTextDocument of an item.
 
         Args:
-            text_rect: The QRect to clip the drawing to.
+            rect: The QRect to clip the drawing to.
         """
-        clip = QRectF(0, 0, text_rect.width(), text_rect.height())
-        self._doc.drawContents(self._painter, clip)
+        # We can't use drawContents because then the color would be ignored.
+        # See: https://qt-project.org/forums/viewthread/21492
+        clip = QRectF(0, 0, rect.width(), rect.height())
+        self._painter.save()
+        if self._opt.state & QStyle.State_Selected:
+            option = 'completion.item.selected.fg'
+        elif not self._opt.state & QStyle.State_Enabled:
+            option = 'completion.category.fg'
+        else:
+            option = 'completion.fg'
+        try:
+            self._painter.setPen(QColor(config.get('colors', option)))
+        except config.NoOptionError:
+            self._painter.setPen(QColor(config.get('colors', 'completion.fg')))
+        ctx = QAbstractTextDocumentLayout.PaintContext()
+        ctx.palette.setColor(QPalette.Text, self._painter.pen().color())
+        if clip.isValid():
+            self._painter.setClipRect(clip)
+            ctx.clip = clip
+        self._doc.documentLayout().draw(self._painter, ctx)
+        self._painter.restore()
 
     def _get_textdoc(self, index):
         """Create the QTextDocument of an item.
