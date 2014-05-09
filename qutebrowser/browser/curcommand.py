@@ -421,6 +421,11 @@ class CurCommandDispatcher(QObject):
         logging.debug("Executing: {}".format(cmd))
         subprocess.Popen(cmd, shell=True)
 
+    @cmdutils.register(instance='mainwindow.tabs.cur')
+    def home(self):
+        """Open main startpage in current tab."""
+        self.openurl(config.get('general', 'startpage')[0])
+
     @cmdutils.register(instance='mainwindow.tabs.cur', modes=['insert'],
                        name='open_editor', hide=True, needs_js=True)
     def editor(self):

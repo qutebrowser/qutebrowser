@@ -368,9 +368,6 @@ Other
 [n]gc
 Clear tab n or of current tab, clears the history of the tab and loads about:blank. (command clear_tab, aliases: clear).
 
-C-h
-Open the default startpage (command start_page, aliases: home).
-
 th
 Go back in a new tab (command tab_hist_back, aliases: tabback, tba).
 
