@@ -148,6 +148,8 @@ def get_standard_dir(typ):
     """
     # FIXME we could easily add some unittests for this
     path = QStandardPaths.writableLocation(typ)
+    # Qt seems to use '/' as path separator even on Windows...
+    path = path.replace('/', os.sep)
     appname = QCoreApplication.instance().applicationName()
     if (typ == QStandardPaths.ConfigLocation and
             os.path.split(path)[-1] != appname):
