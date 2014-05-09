@@ -18,6 +18,7 @@
 """Base class for vim-like keysequence parser."""
 
 import re
+import string
 import logging
 from functools import partial
 
@@ -148,11 +149,17 @@ class BaseKeyParser(QObject):
         Return:
             True if event has been handled, False otherwise.
         """
-        logging.debug("Got key: {} / text: '{}'".format(e.key(), e.text()))
-        txt = e.text().strip()
-        if not txt or e.key() == Qt.Key_Backspace:
-            # backspace is counted as text...
-            logging.debug("Ignoring, no text")
+        txt = e.text()
+        key = e.key()
+        logging.debug("Got key: {} / text: '{}'".format(key, txt))
+        if key == Qt.Key_Escape:
+            logging.debug("Escape pressed, discarding '{}'.".format(
+                self._keystring))
+            self._keystring = ''
+            return
+        if txt not in (string.ascii_letters + string.digits +
+                string.punctuation):
+            logging.debug("Ignoring, no text char")
             return False
 
         self._stop_delayed_exec()
