@@ -89,7 +89,8 @@ class WebView(QWebView):
         self.page_.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.page_.linkHovered.connect(self.linkHovered)
         self.linkClicked.connect(self.on_link_clicked)
-        self.loadStarted.connect(lambda: modeman.maybe_leave('insert'))
+        self.loadStarted.connect(
+            lambda: modeman.maybe_leave('insert', 'load started'))
         self.loadFinished.connect(self.on_load_finished)
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
 
@@ -260,9 +261,9 @@ class WebView(QWebView):
             webelem.SELECTORS[webelem.Group.editable_focused])
         logging.debug("focus element: {}".format(not elem.isNull()))
         if elem.isNull():
-            modeman.maybe_leave("insert")
+            modeman.maybe_leave('insert', 'load finished')
         else:
-            modeman.enter("insert")
+            modeman.enter('insert', 'load finished')
 
     @pyqtSlot(str)
     def set_force_open_target(self, target):
@@ -361,11 +362,11 @@ class WebView(QWebView):
         hitresult = frame.hitTestContent(pos)
         if self._is_editable(hitresult):
             logging.debug("Clicked editable element!")
-            modeman.enter("insert")
+            modeman.enter('insert', 'click')
         else:
             logging.debug("Clicked non-editable element!")
             try:
-                modeman.leave("insert")
+                modeman.leave('insert', 'click')
             except ValueError:
                 pass
 

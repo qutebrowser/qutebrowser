@@ -146,7 +146,7 @@ class QuteBrowser(QApplication):
         self.setQuitOnLastWindowClosed(False)
 
         self._connect_signals()
-        self.modeman.enter('normal')
+        self.modeman.enter('normal', 'init')
 
         self.mainwindow.show()
         self._python_hacks()

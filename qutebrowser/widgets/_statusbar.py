@@ -344,7 +344,7 @@ class _Command(QLineEdit):
         }
         text = self.text()
         self.history.append(text)
-        modeman.leave("command")
+        modeman.leave('command', 'cmd accept')
         if text[0] in signals:
             signals[text[0]].emit(text.lstrip(text[0]))
 
@@ -371,7 +371,7 @@ class _Command(QLineEdit):
 
     def focusInEvent(self, e):
         """Extend focusInEvent to enter command mode."""
-        modeman.enter("command")
+        modeman.enter('command', 'cmd focus')
         super().focusInEvent(e)
 
 

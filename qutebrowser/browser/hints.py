@@ -400,7 +400,7 @@ class HintManager(QObject):
             self._elems[string] = ElemTuple(e, label)
         frame.contentsSizeChanged.connect(self.on_contents_size_changed)
         self.hint_strings_updated.emit(strings)
-        modeman.enter('hint')
+        modeman.enter('hint', 'HintManager.start')
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
@@ -442,7 +442,7 @@ class HintManager(QObject):
                 visible[k] = e
         if not visible:
             # Whoops, filtered all hints
-            modeman.leave('hint')
+            modeman.leave('hint', 'all filtered')
         elif len(visible) == 1 and config.get('hints', 'auto-follow'):
             # unpacking gets us the first (and only) key in the dict.
             self.fire(*visible)
@@ -485,7 +485,7 @@ class HintManager(QObject):
         else:
             raise ValueError("No suitable handler found!")
         if self._target != Target.rapid:
-            modeman.leave('hint')
+            modeman.leave('hint', 'followed')
 
     def follow_hint(self):
         """Follow the currently selected hint."""

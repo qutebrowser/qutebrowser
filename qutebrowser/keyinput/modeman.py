@@ -37,20 +37,20 @@ def instance():
     return QApplication.instance().modeman
 
 
-def enter(mode):
+def enter(mode, reason=None):
     """Enter the mode 'mode'."""
-    instance().enter(mode)
+    instance().enter(mode, reason)
 
 
-def leave(mode):
+def leave(mode, reason=None):
     """Leave the mode 'mode'."""
-    instance().leave(mode)
+    instance().leave(mode, reason)
 
 
-def maybe_leave(mode):
+def maybe_leave(mode, reason=None):
     """Convenience method to leave 'mode' without exceptions."""
     try:
-        instance().leave(mode)
+        instance().leave(mode, reason)
     except ValueError:
         pass
 
@@ -177,16 +177,18 @@ class ModeManager(QObject):
             self.passthrough.append(mode)
 
     @cmdutils.register(instance='modeman', name='enter_mode', hide=True)
-    def enter(self, mode):
+    def enter(self, mode, reason=None):
         """Enter a new mode.
 
         Args:
-            mode; The name of the mode to enter.
+            mode: The name of the mode to enter.
+            reason: Why the mode was entered.
 
         Emit:
             entered: With the new mode name.
         """
-        logging.debug("Switching mode to {}".format(mode))
+        logging.debug("Entering mode {}{}".format(
+            mode, '' if reason is None else ' (reason: {})'.format(reason)))
         if mode not in self._handlers:
             raise ValueError("No handler for mode {}".format(mode))
         if self._mode_stack and self._mode_stack[-1] == mode:
@@ -196,11 +198,12 @@ class ModeManager(QObject):
         logging.debug("New mode stack: {}".format(self._mode_stack))
         self.entered.emit(mode)
 
-    def leave(self, mode):
+    def leave(self, mode, reason=None):
         """Leave a mode.
 
         Args:
-            mode; The name of the mode to leave.
+            mode: The name of the mode to leave.
+            reason: Why the mode was left.
 
         Emit:
             left: With the old mode name.
@@ -209,8 +212,9 @@ class ModeManager(QObject):
             self._mode_stack.remove(mode)
         except ValueError:
             raise ValueError("Mode {} not on mode stack!".format(mode))
-        logging.debug("Leaving mode {}".format(mode))
-        logging.debug("New mode stack: {}".format(self._mode_stack))
+        logging.debug("Leaving mode {}{}, new mode stack {}".format(
+            mode, '' if reason is None else ' (reason: {})'.format(reason),
+            self._mode_stack))
         self.left.emit(mode)
 
     @cmdutils.register(instance='modeman', name='leave_mode',
@@ -219,7 +223,7 @@ class ModeManager(QObject):
         """Leave the mode we're currently in."""
         if self.mode == 'normal':
             raise ValueError("Can't leave normal mode!")
-        self.leave(self.mode)
+        self.leave(self.mode, 'leave current')
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
