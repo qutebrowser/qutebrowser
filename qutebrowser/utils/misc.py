@@ -167,6 +167,7 @@ def actute_warning():
     with open('/usr/share/X11/locale/en_US.UTF-8/Compose', 'r') as f:
         for line in f:
             if '<dead_actute>' in line:
+                sys.stdout.flush()
                 print("Note: If you got a 'dead_actute' warning above, that "
                       "is not a bug in qutebrowser! See "
                       "https://bugs.freedesktop.org/show_bug.cgi?id=69476 for "
