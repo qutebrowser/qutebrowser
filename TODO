@@ -88,6 +88,9 @@ Bugs
 
 - Command history seems to be broken
 
+- font-size-* not in websettings
+
+
 Style
 =====
 
@@ -95,6 +98,10 @@ Style
 - move curcommand stuff to other places (e.g. current widget, etc.)
   maybe rename curcommand to commands or so?
   also some curcommand stuff is in tabbedbrowser, etc.
+- rename commands
+- reorder config #2
+- rework exception hierarchy for config (common base exception)
+- use exceptions for error messages in commands
 
 Major features
 ==============
@@ -120,6 +127,8 @@ Major features
 Minor features
 ==============
 
+- reload config command
+    - config changed signals for sections (optimization)
 - Display metavars for commands in input bar.
 - count support for special keys
 - --set-as-default argument
