@@ -203,7 +203,7 @@ class GetStandardDirLinuxTests(TestCase):
         with environ_set_temp('HOME', self.temp_dir):
             cur_dir = utils.get_standard_dir(QStandardPaths.CacheLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir, '.cache',
-                                                  'qutebrowser'))
+                                                   'qutebrowser'))
             self.assertTrue(os.path.exists(cur_dir))
 
     def tearDown(self):
