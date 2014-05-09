@@ -390,9 +390,6 @@ Find backward, ignore case (command find_backward_ic, alias ibfind).
 [n]R
 Reload tab n or current tab if n is omitted without using any cached data (command reload_bypass_cache, aliases: refull).
 
-[n]=
-Zoom to n percent or to 100% if n is omitted(command zoom, aliases: z).
-
 ZZ
 Save current session and exit (command save_session, aliases: wq).
 
@@ -413,9 +410,6 @@ Next navigation action will be opened in a new tab (command new_tab).
 
 [n]wi
 Show the webinspector of tab n or of current tab if n is omitted. Note that enable-developer-extras has to be set. (commmand web_inspector, aliases: inspect, insp).
-
-C-e
-Open external editor for current input/textarea (command open_editor, aliases: editor).
 
 g.
 Toggle hidden files when browsing local filesystem. (command open_editor, aliases: editor).
@@ -440,9 +434,6 @@ Toggle visibility of a tab. (command visible, aliases: vis).
 
 unbound
 Execute a javascript snippet (command execute_javascript, aliases: exja, js).
-
-unbound
-Set a setting from commandline (command set).
 
 unbound
 Toggle a boolean setting from commandline (command toggle_setting, aliases: toggle, tog).
