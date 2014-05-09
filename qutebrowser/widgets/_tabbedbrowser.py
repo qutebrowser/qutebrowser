@@ -248,6 +248,14 @@ class TabbedBrowser(TabWidget):
         elif last_close == 'blank':
             tab.openurl('about:blank')
 
+    @cmdutils.register(instance='mainwindow.tabs')
+    def only(self):
+        """Close all tabs except for the current one."""
+        for i in range(self.count() - 1):
+            if i == self.currentIndex():
+                continue
+            self._close_tab(self.widget(i))
+
     @cmdutils.register(instance='mainwindow.tabs', split=False, name='tabopen')
     def tabopen_cmd(self, url):
         """Open a new tab with a given url."""

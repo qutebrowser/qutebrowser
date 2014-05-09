@@ -284,9 +284,6 @@ Open quickmark in a new tab (command tab_quickmark, aliases: tabqmarks).
 tab-handling
 ------------
 
-co
-Close all tabs except for the current one (command only).
-
 [n]T
 Focus nth tab, first tab if n is omitted or last tab if n is 0. (command focus_tab, aliases: tab).
 
