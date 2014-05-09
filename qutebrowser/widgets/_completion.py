@@ -126,6 +126,7 @@ class CompletionView(QTreeView):
         self.setIndentation(0)
         self.setItemsExpandable(False)
         self.setExpandsOnDoubleClick(False)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         # QTBUG? This is a workaround for weird race conditions with invalid
         # item indexes leading to segfaults in Qt.
         #

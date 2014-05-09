@@ -69,8 +69,6 @@ Bugs
 
 - Tabbar in print dialog has same visual style as main tabbar
 
-- Sometimes there's a horizontal scrollbar in the completer
-
 - Eliding doesn't work correctly in tabs (cuts off start)
   This especially happens when there's no favicon
 
