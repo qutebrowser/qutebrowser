@@ -111,6 +111,18 @@ MAPPINGS = {
     'font-family-fantasy':
         (MapType.setter, lambda qws, v:
             qws.setFontFamily(QWebSettings.FantasyFont, v)),
+    'font-size-minimum':
+        (MapType.setter, lambda qws, v:
+            qws.setFontSize(QWebSettings.MinimumFontSize, v)),
+    'font-size-minimum-logical':
+        (MapType.setter, lambda qws, v:
+            qws.setFontSize(QWebSettings.MinimumLogicalFontSize, v)),
+    'font-size-default':
+        (MapType.setter, lambda qws, v:
+            qws.setFontSize(QWebSettings.DefaultFontSize, v)),
+    'font-size-default-fixed':
+        (MapType.setter, lambda qws, v:
+            qws.setFontSize(QWebSettings.DefaultFixedFontSize, v)),
     'maximum-pages-in-cache':
         (MapType.static_setter, lambda v:
             QWebSettings.setMaximumPagesInCache(v)),
