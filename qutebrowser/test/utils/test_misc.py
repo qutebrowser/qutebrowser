@@ -211,5 +211,46 @@ class GetStandardDirLinuxTests(TestCase):
         shutil.rmtree(self.temp_dir)
 
 
+class GetStandardDirWindowsTests(TestCase):
+
+    def setUp(self):
+        self.app = QCoreApplication([])
+        # We can't store the files in a temp dir, so we don't chose qutebrowser
+        self.app.setApplicationName('qutebrowser_test')
+
+    @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
+    def test_data(self):
+        cur_dir = utils.get_standard_dir(QStandardPaths.DataLocation)
+        self.assertEqual(cur_dir.split(os.sep)[-1], 'qutebrowser_test',
+                         cur_dir)
+        self.assertTrue(os.path.exists(cur_dir))
+        # We clean up here as we don't dare to clean up if the path doesn't end
+        # with qutebrowser_test - it could be *anywhere* after all.
+        shutil.rmtree(cur_dir)
+
+    @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
+    def test_config(self):
+        cur_dir = utils.get_standard_dir(QStandardPaths.ConfigLocation)
+        self.assertEqual(cur_dir.split(os.sep)[-1], 'qutebrowser_test',
+                         cur_dir)
+        self.assertTrue(os.path.exists(cur_dir))
+        # We clean up here as we don't dare to clean up if the path doesn't end
+        # with qutebrowser_test - it could be *anywhere* after all.
+        shutil.rmtree(cur_dir)
+
+    @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
+    def test_cache(self):
+        cur_dir = utils.get_standard_dir(QStandardPaths.CacheLocation)
+        self.assertEqual(cur_dir.split(os.sep)[-2:],
+                         ['qutebrowser_test', 'cache'], cur_dir)
+        self.assertTrue(os.path.exists(cur_dir))
+        # We clean up here as we don't dare to clean up if the path doesn't end
+        # with qutebrowser_test - it could be *anywhere* after all.
+        shutil.rmtree(cur_dir)
+
+    def tearDown(self):
+        self.app.quit()
+
+
 if __name__ == '__main__':
     unittest.main()
