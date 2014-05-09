@@ -23,6 +23,7 @@ Module attributes:
 
 import operator
 import logging
+import collections.abc
 
 _UNSET = object()
 
@@ -55,7 +56,7 @@ class EnumBase(type):
         return cls._mapping[key]
 
 
-class NeighborList:
+class NeighborList(collections.abc.Sequence):
 
     """A list of items which saves it current position.
 
@@ -93,6 +94,15 @@ class NeighborList:
             self.idx = None
         self._mode = mode
         self.fuzzyval = None
+
+    def __getitem__(self, key):
+        return self._items[key]
+
+    def __len__(self):
+        return len(self._items)
+
+    def __repr__(self):
+        return '{}({})'.format(self.__class__.__name__, self._items)
 
     def _snap_in(self, offset):
         """Set the current item to the closest item to self.fuzzyval.
@@ -208,3 +218,6 @@ class FakeDict:
 
     def __getitem__(self, _key):
         return self._val
+
+    def __repr__(self):
+        return "FakeDict('{}')".format(self._val)

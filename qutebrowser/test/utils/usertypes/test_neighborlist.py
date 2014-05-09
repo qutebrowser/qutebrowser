@@ -37,6 +37,19 @@ class InitTests(TestCase):
         nl = NeighborList([1, 2, 3])
         self.assertEqual(nl.items, [1, 2, 3])
 
+    def test_len(self):
+        nl = NeighborList([1, 2, 3])
+        self.assertEqual(len(nl), 3)
+
+    def test_repr(self):
+        nl = NeighborList([1, 2, 3])
+        self.assertEqual(repr(nl), 'NeighborList([1, 2, 3])')
+
+    def test_contains(self):
+        nl = NeighborList([1, 2, 3])
+        self.assertIn(2, nl)
+        self.assertNotIn(4, nl)
+
 
 class DefaultTests(TestCase):
 

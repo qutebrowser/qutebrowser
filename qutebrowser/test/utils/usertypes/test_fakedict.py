@@ -40,6 +40,9 @@ class FakeDictTests(TestCase):
         with self.assertRaises(TypeError):
             self.fd["eggs"] = "bar"
 
+    def test_repr(self):
+        self.assertEqual(repr(self.fd), "FakeDict('foo')")
+
 
 if __name__ == '__main__':
     unittest.main()
