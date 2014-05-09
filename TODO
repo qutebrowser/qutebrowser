@@ -284,9 +284,6 @@ Open quickmark in a new tab (command tab_quickmark, aliases: tabqmarks).
 tab-handling
 ------------
 
-C-Tab
-Toggle between current and last focused tab (command toggle_tab, aliases: ttab)
-
 gt
 Show all open tabs. (command buffers, aliases: bu).
 

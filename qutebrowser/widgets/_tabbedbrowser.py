@@ -54,6 +54,8 @@ class TabbedBrowser(TabWidget):
         _filter: A SignalFilter instance.
         cur: A CurCommandDispatcher instance to dispatch commands to the
              current tab.
+        last_focused: The tab which was focused last.
+        now_focused: The tab which is focused now.
 
     Signals:
         cur_progress: Progress of the current tab changed (loadProgress).
@@ -89,13 +91,14 @@ class TabbedBrowser(TabWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.currentChanged.connect(lambda idx:
-                                    self.widget(idx).signal_cache.replay())
+        self.currentChanged.connect(self.on_current_changed)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._tabs = []
         self._url_stack = []
         self._filter = SignalFilter(self)
         self.cur = CurCommandDispatcher(self)
+        self.last_focused = None
+        self.now_focused = None
         # FIXME adjust this to font size
         self.setIconSize(QSize(12, 12))
 
@@ -427,6 +430,14 @@ class TabbedBrowser(TabWidget):
         self.insertTab(new_idx, tab, icon, label)
         self.setCurrentIndex(new_idx)
 
+    @cmdutils.register(instance='mainwindow.tabs')
+    def tab_focus_last(self):
+        """Focus the tab which was last focused."""
+        idx = self.indexOf(self.last_focused)
+        if idx == -1:
+            message.error("Last focused tab vanished!")
+            return
+        self.setCurrentIndex(idx)
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
@@ -481,6 +492,14 @@ class TabbedBrowser(TabWidget):
         """Give focus to tabs if command mode was left."""
         if mode == "command":
             self.setFocus()
+
+    @pyqtSlot(int)
+    def on_current_changed(self, idx):
+        """Set last_focused and replay signal cache if focus changed."""
+        tab = self.widget(idx)
+        tab.signal_cache.replay()
+        self.last_focused = self.now_focused
+        self.now_focused = tab
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

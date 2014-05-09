@@ -593,6 +593,7 @@ DATA = OrderedDict([
         (']]', 'nextpage'),
         ('{{', 'tabprevpage'),
         ('}}', 'tabnextpage'),
+        ('<Ctrl-Tab>', 'tab_focus_last'),
         ('<Ctrl-V>', 'enter_mode passthrough'),
         ('<Ctrl-Q>', 'quit'),
         ('<Ctrl-Shift-T>', 'undo'),
