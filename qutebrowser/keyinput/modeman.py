@@ -122,7 +122,7 @@ class ModeManager(QObject):
             True if event should be filtered, False otherwise.
         """
         handler = self._handlers[self.mode]
-        logging.debug("KeyPress, calling handler {}".format(handler))
+        logging.debug("calling handler {}".format(handler.__qualname__))
         self.key_pressed.emit(event)
         handled = handler(event) if handler is not None else False
 
@@ -160,7 +160,7 @@ class ModeManager(QObject):
             filter_this = False
         else:
             filter_this = True
-        logging.debug("KeyRelease --> filter: {}".format(filter_this))
+        logging.debug("filter: {}".format(filter_this))
         return filter_this
 
     def register(self, mode, handler, passthrough=False):
