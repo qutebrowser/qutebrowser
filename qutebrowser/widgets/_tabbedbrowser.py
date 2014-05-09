@@ -157,6 +157,33 @@ class TabbedBrowser(TabWidget):
         self.removeTab(idx)
         tab.shutdown(callback=partial(self._cb_tab_shutdown, tab))
 
+    def _tab_move_absolute(self, idx):
+        """Get an index for moving a tab absolutely.
+
+        Args:
+            idx: The index to get, as passed as count.
+        """
+        if idx is None:
+            return 0
+        elif idx == 0:
+            return self.count() - 1
+        else:
+            return idx - 1
+
+    def _tab_move_relative(self, direction, delta):
+        """Get an index for moving a tab relatively.
+
+        Args:
+            direction: + or - for relative moving, None for absolute.
+            delta: Delta to the current tab.
+        """
+        if delta is None:
+            raise ValueError
+        if direction == '-':
+            return self.currentIndex() - delta
+        elif direction == '+':
+            return self.currentIndex() + delta
+
     @pyqtSlot(str, bool)
     def tabopen(self, url=None, background=None):
         """Open a new tab with a given url.
@@ -405,24 +432,14 @@ class TabbedBrowser(TabWidget):
             count: If moving absolutely: New position (or first).
                    If moving relatively: Offset.
         """
-        cur_idx = self.currentIndex()
         if direction is None:
-            # absolute move
-            if count is None:
-                new_idx = 0
-            elif count == 0:
-                new_idx = self.count() - 1
-            else:
-                new_idx = count - 1
+            new_idx = self._tab_move_absolute(count)
         elif direction in '+-':
-            # relative move
-            if count is None:
+            try:
+                new_idx = self._tab_move_relative(direction, count)
+            except ValueError:
                 message.error("Count must be given for relative moving!")
                 return
-            if direction == '-':
-                new_idx = cur_idx - count
-            elif direction == '+':
-                new_idx = cur_idx + count
         else:
             message.error("Invalid direction '{}'!".format(direction))
             return
@@ -430,6 +447,7 @@ class TabbedBrowser(TabWidget):
             message.error("Can't move tab to position {}!".format(new_idx))
             return
         tab = self.currentWidget()
+        cur_idx = self.currentIndex()
         icon = self.tabIcon(cur_idx)
         label = self.tabText(cur_idx)
         self.removeTab(cur_idx)
