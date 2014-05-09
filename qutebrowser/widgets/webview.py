@@ -252,9 +252,11 @@ class WebView(QWebView):
         QApplication.postEvent(self, evt)
 
     @pyqtSlot(bool)
-    def on_load_finished(self, _ok):
+    def on_load_finished(self, ok):
         """Handle auto-insert-mode after loading finished."""
         if not config.get('input', 'auto-insert-mode'):
+            return
+        if modeman.instance().mode == 'insert' or not ok:
             return
         frame = self.page_.currentFrame()
         elem = frame.findFirstElement(
