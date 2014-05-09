@@ -27,7 +27,7 @@ from urllib.parse import urljoin, urlencode
 from functools import reduce
 from pkg_resources import resource_string
 
-from PyQt5.QtCore import QStandardPaths
+from PyQt5.QtCore import QCoreApplication, QStandardPaths
 
 import qutebrowser
 
@@ -148,10 +148,11 @@ def get_standard_dir(typ):
     """
     # FIXME we could easily add some unittests for this
     path = QStandardPaths.writableLocation(typ)
+    appname = QCoreApplication.instance().applicationName()
     if (typ == QStandardPaths.ConfigLocation and
-            os.path.split(path)[-1] != 'qutebrowser'):
+            os.path.split(path)[-1] != appname):
         # Workaround for https://bugreports.qt-project.org/browse/QTBUG-38872
-        path = os.path.join(path, 'qutebrowser')
+        path = os.path.join(path, appname)
     if not os.path.exists(path):
         os.makedirs(path)
     return path
