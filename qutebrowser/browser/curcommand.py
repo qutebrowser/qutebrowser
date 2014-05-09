@@ -162,7 +162,7 @@ class CurCommandDispatcher(QObject):
         """
         tab = self._tabs.cntwidget(count)
         if tab is not None:
-            preview = QPrintPreviewDialog(tab)
+            preview = QPrintPreviewDialog()
             preview.paintRequested.connect(tab.print)
             preview.exec_()
 
@@ -180,7 +180,7 @@ class CurCommandDispatcher(QObject):
         # If this isn't fixed in Qt 5.3, bug should be reopened.
         tab = self._tabs.cntwidget(count)
         if tab is not None:
-            printdiag = QPrintDialog(tab)
+            printdiag = QPrintDialog()
             printdiag.open(lambda: tab.print(printdiag.printer()))
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
