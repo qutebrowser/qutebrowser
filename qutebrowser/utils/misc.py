@@ -152,7 +152,7 @@ def get_standard_dir(typ):
     path = path.replace('/', os.sep)
     appname = QCoreApplication.instance().applicationName()
     if (typ == QStandardPaths.ConfigLocation and
-            os.path.split(path)[-1] != appname):
+            path.split(os.sep)[-1] != appname):
         # Workaround for https://bugreports.qt-project.org/browse/QTBUG-38872
         path = os.path.join(path, appname)
     if not os.path.exists(path):
