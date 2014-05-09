@@ -282,6 +282,12 @@ class TabbedBrowser(TabWidget):
         url = urlutils.urlstring(self.currentWidget().url())
         message.set_cmd_text(':open ' + url)
 
+    @cmdutils.register(instance='mainwindow.tabs', hide=True)
+    def backtabopencur(self):
+        """Set the statusbar to :backtabopen and the current URL."""
+        url = urlutils.urlstring(self.currentWidget().url())
+        message.set_cmd_text(':backtabopen ' + url)
+
     @cmdutils.register(instance='mainwindow.tabs', name='undo')
     def undo_close(self):
         """Switch to the previous tab, or skip [count] tabs.

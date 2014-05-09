@@ -361,12 +361,6 @@ Show and execute userscripts (command execute_userscript).
 Other
 -----
 
-xo
-Open url in a new tab in background, the argument $URI will be repaced with the current uri (command: backopen, aliases: bopen ).
-
-xO
-Open url in a new tab in background, set current url in the navigation bar (command: backopen_url).
-
 wo
 Open url in a new instance (command: winopen, aliases: wopen, w).
 

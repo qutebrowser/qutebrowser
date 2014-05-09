@@ -545,6 +545,8 @@ DATA = OrderedDict([
         ('go', 'opencur'),
         ('O', 'tabopen'),
         ('gO', 'tabopencur'),
+        ('xo', 'backtabopen'),
+        ('xO', 'backtabopencur'),
         ('ga', 'tabopen about:blank'),
         ('d', 'tabclose'),
         ('co', 'only'),
