@@ -386,9 +386,6 @@ Reload tab n or current tab if n is omitted without using any cached data (comma
 [n]=
 Zoom to n percent or to 100% if n is omitted(command zoom, aliases: z).
 
-sf
-Save all configuration files (command save).
-
 ZZ
 Save current session and exit (command save_session, aliases: wq).
 

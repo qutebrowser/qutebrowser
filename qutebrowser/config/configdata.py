@@ -589,6 +589,7 @@ DATA = OrderedDict([
         ('pP', 'paste sel'),
         ('Pp', 'tabpaste'),
         ('PP', 'tabpaste sel'),
+        ('sf', 'save'),
         ('-', 'zoomout'),
         ('+', 'zoomin'),
         ('[[', 'prevpage'),
