@@ -260,9 +260,7 @@ class WebView(QWebView):
         elem = frame.findFirstElement(
             webelem.SELECTORS[webelem.Group.editable_focused])
         logging.debug("focus element: {}".format(not elem.isNull()))
-        if elem.isNull():
-            modeman.maybe_leave('insert', 'load finished')
-        else:
+        if not elem.isNull():
             modeman.enter('insert', 'load finished')
 
     @pyqtSlot(str)
