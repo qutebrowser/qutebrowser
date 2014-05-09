@@ -124,7 +124,6 @@ Minor features
 ==============
 
 - Display metavars for commands in input bar.
-- Use QCoreApplication instead of QApplication for .instance()
 - count support for special keys
 - --set-as-default argument
 - Make inspector height resizable

@@ -20,8 +20,8 @@
 import binascii
 from base64 import b64decode
 
-from PyQt5.QtCore import pyqtSlot, QRect, QPoint
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication
+from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QCoreApplication
+from PyQt5.QtWidgets import QWidget, QVBoxLayout
 from PyQt5.QtWebKitWidgets import QWebInspector
 
 from qutebrowser.widgets._statusbar import StatusBar
@@ -50,9 +50,9 @@ class MainWindow(QWidget):
 
         self.setWindowTitle('qutebrowser')
         try:
-            geom = b64decode(
-                QApplication.instance().stateconfig['geometry']['mainwindow'],
-                validate=True)
+            stateconf = QCoreApplication.instance().stateconfig
+            geom = b64decode(stateconf['geometry']['mainwindow'],
+                             validate=True)
         except (KeyError, binascii.Error):
             self._set_default_geometry()
         else:

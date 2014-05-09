@@ -30,8 +30,7 @@ import configparser
 from configparser import ExtendedInterpolation
 from collections.abc import MutableMapping
 
-from PyQt5.QtCore import pyqtSignal, QObject
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import pyqtSignal, QObject, QCoreApplication
 
 import qutebrowser.config.configdata as configdata
 import qutebrowser.commands.utils as cmdutils
@@ -42,7 +41,7 @@ from qutebrowser.config._conftypes import ValidationError
 
 def instance():
     """Get the global config instance."""
-    return QApplication.instance().config
+    return QCoreApplication.instance().config
 
 
 def get(*args, **kwargs):

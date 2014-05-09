@@ -19,13 +19,12 @@
 
 import logging
 
-from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication
 
 
 def instance():
     """Get the global messagebridge instance."""
-    return QApplication.instance().messagebridge
+    return QCoreApplication.instance().messagebridge
 
 
 def error(message):

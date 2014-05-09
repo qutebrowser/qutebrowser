@@ -22,8 +22,7 @@ import logging
 from qutebrowser.commands._exceptions import (ArgumentCountError,
                                               PrerequisitesError)
 
-from PyQt5.QtCore import pyqtSignal, QObject
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import pyqtSignal, QObject, QCoreApplication
 from PyQt5.QtWebKit import QWebSettings
 
 
@@ -85,7 +84,7 @@ class Command(QObject):
         """
         # We don't use modeman.instance() here to avoid a circular import
         # of qutebrowser.keyinput.modeman.
-        curmode = QApplication.instance().modeman.mode
+        curmode = QCoreApplication.instance().modeman.mode
         if self.modes is not None and curmode not in self.modes:
             raise PrerequisitesError("{}: This command is only allowed in {} "
                                      "mode.".format(self.name,

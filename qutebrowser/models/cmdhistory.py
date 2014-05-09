@@ -19,8 +19,7 @@
 
 import logging
 
-from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import pyqtSlot, QCoreApplication
 
 from qutebrowser.utils.usertypes import NeighborList
 
@@ -51,7 +50,7 @@ class History:
 
     def __init__(self):
         self._tmphist = None
-        history = QApplication.instance().cmd_history.data
+        history = QCoreApplication.instance().cmd_history.data
         if history is None:
             self._history = []
         else:
