@@ -398,15 +398,6 @@ Toggle "view source" (command view_source, aliases: source, so).
 gs
 Add a searchengine. Textfields can be chosen with tab and a keyword must be specified. The first defined searchengine will be the default searchengine. The keyword can be used in all open commands, e.g. :open <keyword> <searchterm> (command save_search_field, aliases: search).
 
-ss
-Set setting, the interactive version of the command set, for changing settings in scripts use set instead (command set_setting).
-
-sl
-Set local setting, changes a setting but doesn’t save the setting to configuration file. The interactive version of the command local_set, for changing settings locally in scripts use local_set instead (command set_local_setting).
-
-sk
-Set keyboard shortcut (command set_key, aliases: keys).
-
 C-p
 Toggle proxy (command proxy).
 
