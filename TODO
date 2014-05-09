@@ -88,6 +88,8 @@ Bugs
 
 - Hinting with multiple frames doesn't work yet
 
+- Command history seems to be broken
+
 Style
 =====
 
