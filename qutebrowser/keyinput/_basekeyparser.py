@@ -136,6 +136,21 @@ class BaseKeyParser(QObject):
         self.execute(cmdstr, self.Type.special)
         return True
 
+    def _split_count(self):
+        """Get count and command from the current keystring.
+
+        Return:
+            A (count, command) tuple.
+        """
+        if self._supports_count:
+            (countstr, cmd_input) = re.match(r'^(\d*)(.*)',
+                                             self._keystring).groups()
+            count = int(countstr) if countstr else None
+        else:
+            cmd_input = self._keystring
+            count = None
+        return count, cmd_input
+
     def _handle_single_key(self, e):
         """Handle a new keypress with a single key (no modifiers).
 
@@ -152,11 +167,13 @@ class BaseKeyParser(QObject):
         txt = e.text()
         key = e.key()
         logging.debug("Got key: {} / text: '{}'".format(key, txt))
+
         if key == Qt.Key_Escape:
             logging.debug("Escape pressed, discarding '{}'.".format(
                 self._keystring))
             self._keystring = ''
             return
+
         if txt not in (string.ascii_letters + string.digits +
                        string.punctuation):
             logging.debug("Ignoring, no text char")
@@ -165,19 +182,13 @@ class BaseKeyParser(QObject):
         self._stop_delayed_exec()
         self._keystring += txt
 
-        if self._supports_count:
-            (countstr, cmd_input) = re.match(r'^(\d*)(.*)',
-                                             self._keystring).groups()
-            count = int(countstr) if countstr else None
-        else:
-            cmd_input = self._keystring
-            count = None
+        count, cmd_input = self._split_count()
 
         if not cmd_input:
             # Only a count, no command yet, but we handled it
             return True
 
-        (match, binding) = self._match_key(cmd_input)
+        match, binding = self._match_key(cmd_input)
 
         if match == self.Match.definitive:
             logging.debug("Definitive match for "
