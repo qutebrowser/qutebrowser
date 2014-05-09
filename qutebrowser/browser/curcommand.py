@@ -405,6 +405,29 @@ class CurCommandDispatcher(QObject):
         tab = self._tabs.currentWidget()
         tab.zoom(-count)
 
+    @cmdutils.register(instance='mainwindow.tabs.cur', name='zoom')
+    def zoom_perc(self, zoom=None, count=None):
+        """Zoom the current tab to [count] or 100 percent.
+
+        Args:
+            count: How many steps to take.
+        """
+        if zoom is not None and count is not None:
+            message.error("Either argument or count must be given!")
+            return
+        if zoom is not None:
+            try:
+                level = int(zoom)
+            except ValueError:
+                message.error("Argument {} must be an integer!".format(zoom))
+                return
+        elif count is not None:
+            level = count
+        else:
+            level = 100
+        tab = self._tabs.currentWidget()
+        tab.zoom_perc(level)
+
     @cmdutils.register(instance='mainwindow.tabs.cur', split=False)
     def spawn(self, cmd):
         """Spawn a command in a shell. {} gets replaced by the current URL.

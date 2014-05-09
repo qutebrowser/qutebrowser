@@ -595,6 +595,7 @@ DATA = OrderedDict([
         ('sk', 'set keybind'),
         ('-', 'zoomout'),
         ('+', 'zoomin'),
+        ('=', 'zoom'),
         ('[[', 'prevpage'),
         (']]', 'nextpage'),
         ('{{', 'tabprevpage'),

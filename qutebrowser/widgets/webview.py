@@ -170,6 +170,18 @@ class WebView(QWebView):
         self.urlChanged.emit(urlutils.qurl(u))
         return self.load(u)
 
+    def zoom_perc(self, perc, fuzzyval=True):
+        """Zoom to a given zoom percentage.
+
+        Args:
+            perc: The zoom percentage as int.
+            fuzzyval: Whether to set the NeighborLists fuzzyval.
+        """
+        if fuzzyval:
+            self._zoom.fuzzyval = int(perc)
+        self.setZoomFactor(float(perc) / 100)
+        message.info("Zoom level: {}%".format(perc))
+
     def zoom(self, offset):
         """Increase/Decrease the zoom level.
 
@@ -177,8 +189,7 @@ class WebView(QWebView):
             offset: The offset in the zoom level list.
         """
         level = self._zoom.getitem(offset)
-        self.setZoomFactor(float(level) / 100)
-        message.info("Zoom level: {}%".format(level))
+        self.zoom_perc(level, fuzzyval=False)
 
     def shutdown(self, callback=None):
         """Shut down the tab cleanly and remove it.
