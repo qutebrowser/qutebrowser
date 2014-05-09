@@ -116,6 +116,8 @@ Major features
 Minor features
 ==============
 
+- Use QCoreApplication instead of QApplication for .instance()
+- count support for special keys
 - --set-as-default argument
 - Make inspector height resizable
 - Make inspector detachable (own window)
