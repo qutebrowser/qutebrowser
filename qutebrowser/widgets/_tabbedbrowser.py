@@ -438,7 +438,7 @@ class TabbedBrowser(TabWidget):
 
     @cmdutils.register(instance='mainwindow.tabs')
     def tab_focus_last(self):
-        """Focus the tab which was last focused."""
+        """Select the tab which was last focused."""
         idx = self.indexOf(self.last_focused)
         if idx == -1:
             message.error("Last focused tab vanished!")
