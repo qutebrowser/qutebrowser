@@ -78,10 +78,6 @@ Bugs
 
 - Pasting highlighted text (to mrxvt) does not work (iggy).
 
-- Text rendering errors on https://campus.fh-worms.de/~progbau/Routing/05/index.html
-  https://paste.xinu.at/vw6r/
-  This seems to happen only with ttf-ms-fonts installed.
-
 - Hinting problems on https://bugreports.qt-project.org/secure/Dashboard.jspa
 
 - scroll_page doesn't care about always visible bars, so content gets hidden
@@ -171,6 +167,7 @@ Upstream Bugs
 - Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-20973
     https://bugreports.qt-project.org/browse/QTBUG-21036
+    https://bugreports.qt-project.org/browse/QTBUG-38884
 
 - dead_actute
     https://bugs.freedesktop.org/show_bug.cgi?id=69476
