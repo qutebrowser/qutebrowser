@@ -56,6 +56,7 @@ def set_trace():
 
     Based on http://stackoverflow.com/a/1745965/2085149
     """
+    sys.stdout.flush()
     print()
     print("When done debugging, remember to execute:")
     print("  from PyQt5 import QtCore; QtCore.pyqtRestoreInputHook()")
