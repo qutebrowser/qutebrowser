@@ -364,15 +364,23 @@ class TabbedBrowser(TabWidget):
         Args:
             index: The tab index to focus, starting with 1.
         """
-        if ((index is None and count is None) or
-                (index is not None and count is not None)):
+        if index is not None and count is not None:
             message.error("Either argument or count must be given!")
             return
-        try:
-            idx = int(index) if index is not None else count
-        except ValueError:
-            message.error("Argument ({}) needs to be a number!".format(index))
-            return
+        elif index is not None:
+            try:
+                idx = int(index)
+            except ValueError:
+                message.error("Argument ({}) needs to be a number!".format(
+                    index))
+                return
+        elif count is not None:
+            if count == 0:
+                idx = self.count()
+            else:
+                idx = count
+        else:
+            idx = 1
         if 1 <= idx <= self.count():
             self.setCurrentIndex(idx - 1)
         else:

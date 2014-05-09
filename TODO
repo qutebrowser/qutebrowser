@@ -284,9 +284,6 @@ Open quickmark in a new tab (command tab_quickmark, aliases: tabqmarks).
 tab-handling
 ------------
 
-[n]T
-Focus nth tab, first tab if n is omitted or last tab if n is 0. (command focus_tab, aliases: tab).
-
 C-Tab
 Toggle between current and last focused tab (command toggle_tab, aliases: ttab)
 
