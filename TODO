@@ -116,6 +116,7 @@ Major features
 Minor features
 ==============
 
+- --set-as-default argument
 - Make inspector height resizable
 - Make inspector detachable (own window)
 - Enable disk caching
