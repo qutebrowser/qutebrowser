@@ -139,6 +139,21 @@ class TabbedBrowser(TabWidget):
         tab.titleChanged.connect(self.on_title_changed)
         tab.iconChanged.connect(self.on_icon_changed)
 
+    def _close_tab(self, tab):
+        """Close the given tab.
+
+        Args:
+            tab: The QTabWidget to close.
+        """
+        idx = self.indexOf(tab)
+        if idx == -1:
+            raise ValueError("tab is not contained in TabbedWidget!")
+        url = tab.url()
+        if not url.isEmpty():
+            self._url_stack.append(url)
+        self.removeTab(idx)
+        tab.shutdown(callback=partial(self._cb_tab_shutdown, tab))
+
     @pyqtSlot(str, bool)
     def tabopen(self, url=None, background=None):
         """Open a new tab with a given url.
@@ -222,17 +237,12 @@ class TabbedBrowser(TabWidget):
             quit: If last tab was closed and last-close in config is set to
                   quit.
         """
-        idx = self.currentIndex() if count is None else count - 1
         tab = self.cntwidget(count)
         if tab is None:
             return
         last_close = config.get('tabbar', 'last-close')
         if self.count() > 1:
-            url = tab.url()
-            if not url.isEmpty():
-                self._url_stack.append(url)
-            self.removeTab(idx)
-            tab.shutdown(callback=partial(self._cb_tab_shutdown, tab))
+            self._close_tab(tab)
         elif last_close == 'quit':
             self.quit.emit()
         elif last_close == 'blank':
