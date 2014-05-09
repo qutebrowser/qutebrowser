@@ -242,5 +242,41 @@ class RaiseTests(TestCase):
         self.assertEqual(self.nl.idx, 4)
 
 
+class SnapInTests(TestCase):
+
+    """Tests for the fuzzyval/_snap_in features."""
+
+    def setUp(self):
+        self.nl = NeighborList([20, 9, 1, 5])
+
+    def test_bigger(self):
+        self.nl.fuzzyval = 7
+        self.assertEqual(self.nl.nextitem(), 9)
+        self.assertEqual(self.nl.idx, 1)
+        self.assertEqual(self.nl.nextitem(), 1)
+        self.assertEqual(self.nl.idx, 2)
+
+    def test_smaller(self):
+        self.nl.fuzzyval = 7
+        self.assertEqual(self.nl.previtem(), 5)
+        self.assertEqual(self.nl.idx, 3)
+        self.assertEqual(self.nl.previtem(), 1)
+        self.assertEqual(self.nl.idx, 2)
+
+    def test_equal_bigger(self):
+        self.nl.fuzzyval = 9
+        self.assertEqual(self.nl.nextitem(), 9)
+        self.assertEqual(self.nl.idx, 1)
+        self.assertEqual(self.nl.nextitem(), 1)
+        self.assertEqual(self.nl.idx, 2)
+
+    def test_equal_smaller(self):
+        self.nl.fuzzyval = 9
+        self.assertEqual(self.nl.previtem(), 9)
+        self.assertEqual(self.nl.idx, 1)
+        self.assertEqual(self.nl.previtem(), 20)
+        self.assertEqual(self.nl.idx, 0)
+
+
 if __name__ == '__main__':
     unittest.main()

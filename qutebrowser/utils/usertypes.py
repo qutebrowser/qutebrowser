@@ -21,6 +21,7 @@ Module attributes:
     _UNSET: Used as default argument in the constructor so default can be None.
 """
 
+import operator
 import logging
 
 _UNSET = object()
@@ -63,6 +64,7 @@ class NeighborList:
 
     Attributes:
         idx: The current position in the list.
+        fuzzyval: The value which is currently set but not in the list.
         _items: A list of all items, accessed through item property.
         _mode: The current mode.
     """
@@ -90,6 +92,20 @@ class NeighborList:
         else:
             self.idx = None
         self._mode = mode
+        self.fuzzyval = None
+
+    def _snap_in(self, offset):
+        """Set the current item to the closest item to self.fuzzyval.
+
+        Args:
+            offset: negative to get the next smaller item, positive for the
+                    next bigger one.
+        """
+        op = operator.le if offset < 0 else operator.ge
+        items = [(idx, e) for (idx, e) in enumerate(self._items)
+                 if op(e, self.fuzzyval)]
+        close_item = min(items, key=lambda tpl: abs(self.fuzzyval - tpl[1]))
+        self.idx = close_item[0]
 
     @property
     def items(self):
@@ -113,6 +129,16 @@ class NeighborList:
                                                            self.idx, offset))
         if not self._items:
             raise IndexError("No items found!")
+        if self.fuzzyval is not None:
+            # Value has been set to something not in the list, so we snap in to
+            # the closest value in the right direction and count this as one
+            # step towards offset.
+            self._snap_in(offset)
+            if offset > 0:
+                offset -= 1
+            else:
+                offset += 1
+            self.fuzzyval = None
         try:
             if self.idx + offset >= 0:
                 new = self._items[self.idx + offset]
