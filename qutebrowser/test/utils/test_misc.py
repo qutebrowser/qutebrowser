@@ -19,13 +19,19 @@
 
 """Tests for qutebrowser.utils.misc."""
 
+import os
 import sys
+import shutil
 import unittest
 import os.path
 import subprocess
+from tempfile import mkdtemp
 from unittest import TestCase
 
+from PyQt5.QtCore import QStandardPaths, QCoreApplication
+
 import qutebrowser.utils.misc as utils
+from qutebrowser.test.helpers import environ_set_temp
 
 
 class ReadFileTests(TestCase):
@@ -142,6 +148,72 @@ class ShellEscapeTests(TestCase):
 
     def tearDown(self):
         sys.platform = self.platform
+
+
+class GetStandardDirLinuxTests(TestCase):
+
+    def setUp(self):
+        self.temp_dir = mkdtemp()
+        self.app = QCoreApplication([])
+        self.app.setApplicationName('qutebrowser')
+        self.cur_dir = None
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
+    def test_data_explicit(self):
+        with environ_set_temp('XDG_DATA_HOME', self.temp_dir):
+            self.cur_dir = utils.get_standard_dir(QStandardPaths.DataLocation)
+            self.assertEqual(self.cur_dir, os.path.join(self.temp_dir,
+                                                        'qutebrowser'))
+            self.assertTrue(os.path.exists(self.cur_dir))
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
+    def test_config_explicit(self):
+        with environ_set_temp('XDG_CONFIG_HOME', self.temp_dir):
+            self.cur_dir = utils.get_standard_dir(
+                QStandardPaths.ConfigLocation)
+            self.assertEqual(self.cur_dir, os.path.join(self.temp_dir,
+                                                        'qutebrowser'))
+            self.assertTrue(os.path.exists(self.cur_dir))
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
+    def test_cache_explicit(self):
+        with environ_set_temp('XDG_CACHE_HOME', self.temp_dir):
+            self.cur_dir = utils.get_standard_dir(QStandardPaths.CacheLocation)
+            self.assertEqual(self.cur_dir, os.path.join(self.temp_dir,
+                                                        'qutebrowser'))
+            self.assertTrue(os.path.exists(self.cur_dir))
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
+    def test_data(self):
+        with environ_set_temp('HOME', self.temp_dir):
+            self.cur_dir = utils.get_standard_dir(QStandardPaths.DataLocation)
+            self.assertEqual(self.cur_dir,
+                             os.path.join(self.temp_dir, '.local', 'share',
+                                          'qutebrowser'))
+            self.assertTrue(os.path.exists(self.cur_dir))
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
+    def test_config(self):
+        with environ_set_temp('HOME', self.temp_dir):
+            self.cur_dir = utils.get_standard_dir(
+                QStandardPaths.ConfigLocation)
+            self.assertEqual(self.cur_dir,
+                             os.path.join(self.temp_dir, '.config',
+                                          'qutebrowser'))
+            self.assertTrue(os.path.exists(self.cur_dir))
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
+    def test_cache(self):
+        with environ_set_temp('HOME', self.temp_dir):
+            self.cur_dir = utils.get_standard_dir(QStandardPaths.CacheLocation)
+            self.assertEqual(self.cur_dir,
+                             os.path.join(self.temp_dir, '.cache',
+                                          'qutebrowser'))
+            self.assertTrue(os.path.exists(self.cur_dir))
+
+    def tearDown(self):
+        self.app.quit()
+        shutil.rmtree(self.temp_dir)
 
 
 if __name__ == '__main__':
