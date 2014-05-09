@@ -628,6 +628,7 @@ DATA = OrderedDict([
     ('keybind.insert', sect.ValueList(
         types.KeyBindingName(), types.KeyBinding(),
         ('<Escape>', 'leave_mode'),
+        ('<Ctrl-N>', 'leave_mode'),
         ('<Ctrl-E>', 'open_editor'),
     )),
 
@@ -635,7 +636,7 @@ DATA = OrderedDict([
         types.KeyBindingName(), types.KeyBinding(),
         ('<Return>', 'follow_hint'),
         ('<Escape>', 'leave_mode'),
-        ('<Ctrl-C>', 'leave_mode'),
+        ('<Ctrl-N>', 'leave_mode'),
     )),
 
     ('keybind.passthrough', sect.ValueList(
@@ -646,6 +647,7 @@ DATA = OrderedDict([
     ('keybind.command', sect.ValueList(
         types.KeyBindingName(), types.KeyBinding(),
         ('<Escape>', 'leave_mode'),
+        ('<Ctrl-N>', 'leave_mode'),
         ('<Up>', 'command_history_prev'),
         ('<Down>', 'command_history_next'),
         ('<Shift-Tab>', 'completion_item_prev'),

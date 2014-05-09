@@ -365,9 +365,6 @@ Show and execute userscripts (command execute_userscript).
 Other
 -----
 
-C-n
-Enter normal mode.
-
 [n]gc
 Clear tab n or of current tab, clears the history of the tab and loads about:blank. (command clear_tab, aliases: clear).
 
