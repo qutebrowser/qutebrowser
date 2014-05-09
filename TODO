@@ -431,9 +431,6 @@ Toggle visibility of statusbar. (command toggle_statusbar, aliases: sbar).
 xv
 Toggle visibility of a tab. (command visible, aliases: vis).
 
-[n]C-M-p
-Print focused frame of tab n or of current tab if n is omitted. (command print, aliases: ha).
-
 unbound
 Execute a javascript snippet (command execute_javascript, aliases: exja, js).
 
