@@ -248,6 +248,9 @@ Paste from primary selection and load in a new window (command paste_primary_nw,
 W
 Next navigation action will be opened in a new window (command new_win).
 
+wo
+Open url in a new instance (command: winopen, aliases: wopen, w).
+
 
 downloads
 ---------
@@ -361,9 +364,6 @@ Show and execute userscripts (command execute_userscript).
 
 Other
 -----
-
-wo
-Open url in a new instance (command: winopen, aliases: wopen, w).
 
 C-n
 Enter normal mode.
