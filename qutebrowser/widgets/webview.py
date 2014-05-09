@@ -89,7 +89,7 @@ class WebView(QWebView):
         self.page_.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.page_.linkHovered.connect(self.linkHovered)
         self.linkClicked.connect(self.on_link_clicked)
-        self.loadStarted.connect(
+        self.page_.mainFrame().loadStarted.connect(
             lambda: modeman.maybe_leave('insert', 'load started'))
         self.loadFinished.connect(self.on_load_finished)
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
