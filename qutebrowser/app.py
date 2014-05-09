@@ -65,7 +65,8 @@ from qutebrowser.config.iniparsers import ReadWriteConfigParser
 from qutebrowser.config.lineparser import LineConfigParser
 from qutebrowser.browser.cookies import CookieJar
 from qutebrowser.utils.message import MessageBridge
-from qutebrowser.utils.misc import dotted_getattr, get_standard_dir
+from qutebrowser.utils.misc import (dotted_getattr, get_standard_dir,
+                                    actute_warning)
 from qutebrowser.utils.debug import set_trace  # pylint: disable=unused-import
 
 
@@ -122,6 +123,7 @@ class QuteBrowser(QApplication):
         self._args = self._parse_args()
         self._init_log()
         self._init_misc()
+        actute_warning()
         self._init_config()
         self._init_modes()
         websettings.init()
