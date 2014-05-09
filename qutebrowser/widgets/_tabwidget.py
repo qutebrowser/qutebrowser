@@ -49,6 +49,8 @@ class TabWidget(QTabWidget):
             {color[tab.fg]}
             padding: 0px 5px 0px 5px;
             border-right: 2px solid {color[tab.seperator]};
+            min-width: 100px;
+            max-width: 200px;
         }}
 
         QTabBar::tab:selected {{
