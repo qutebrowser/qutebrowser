@@ -287,15 +287,6 @@ tab-handling
 C-Tab
 Toggle between current and last focused tab (command toggle_tab, aliases: ttab)
 
-[n]gm
-Move current tab to position [n] or to first position if n is omitted. (command tab_move, aliases: tabm).
-
-[n]gl
-Move current tab [n] positions left. (command tab_move_left, aliases: tabl).
-
-[n]gr
-Move current tab [n] positions right. (command tab_move_right, aliases: tabr).
-
 gt
 Show all open tabs. (command buffers, aliases: bu).
 

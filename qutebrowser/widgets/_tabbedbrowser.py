@@ -387,6 +387,47 @@ class TabbedBrowser(TabWidget):
             message.error("There's no tab with index {}!".format(idx))
             return
 
+    @cmdutils.register(instance='mainwindow.tabs')
+    def tab_move(self, direction=None, count=None):
+        """Move the current tab.
+
+        Args:
+            direction: + or - for relative moving, None for absolute.
+            count: If moving absolutely: New position (or first).
+                   If moving relatively: Offset.
+        """
+        cur_idx = self.currentIndex()
+        if direction is None:
+            # absolute move
+            if count is None:
+                new_idx = 0
+            elif count == 0:
+                new_idx = self.count() - 1
+            else:
+                new_idx = count - 1
+        elif direction in '+-':
+            # relative move
+            if count is None:
+                message.error("Count must be given for relative moving!")
+                return
+            if direction == '-':
+                new_idx = cur_idx - count
+            elif direction == '+':
+                new_idx = cur_idx + count
+        else:
+            message.error("Invalid direction '{}'!".format(direction))
+            return
+        if not 0 <= new_idx < self.count():
+            message.error("Can't move tab to position {}!".format(new_idx))
+            return
+        tab = self.currentWidget()
+        icon = self.tabIcon(cur_idx)
+        label = self.tabText(cur_idx)
+        self.removeTab(cur_idx)
+        self.insertTab(new_idx, tab, icon, label)
+        self.setCurrentIndex(new_idx)
+
+
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update tab config when config was changed."""
