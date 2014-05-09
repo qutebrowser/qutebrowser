@@ -15,13 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=missing-docstring
+
 """Test test helpers."""
 
 import os
-import unittest
 from unittest import TestCase
 
 from qutebrowser.test.helpers import environ_set_temp
+
 
 class TestEnvironSetTemp(TestCase):
 

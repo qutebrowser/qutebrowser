@@ -20,6 +20,7 @@
 import os
 from contextlib import contextmanager
 
+
 @contextmanager
 def environ_set_temp(name, value):
     """Set a temporary environment variable."""
