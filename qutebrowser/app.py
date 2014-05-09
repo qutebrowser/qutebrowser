@@ -17,6 +17,26 @@
 
 """Initialization of qutebrowser and application-wide things."""
 
+### Things we want to do before normal imports ###
+
+# Print a nice traceback on segfault -- only available on Python 3.3+, but if
+# it's unavailable, it doesn't matter much.
+try:
+    import faulthandler  # pylint: disable=import-error
+except ImportError:
+    pass
+else:
+    faulthandler.enable()
+
+# See https://bugreports.qt-project.org/browse/QTBUG-36099
+# We need to do this before importing PyQt
+import qutebrowser.utils.harfbuzz as harfbuzz
+harfbuzz.fix()
+
+# Check if everything we should be able to import is there
+import qutebrowser.utils.dependencies as dependencies
+dependencies.check()
+
 import os
 import sys
 import logging
@@ -27,20 +47,6 @@ from functools import partial
 from signal import signal, SIGINT
 from argparse import ArgumentParser
 from base64 import b64encode
-# Print a nice traceback on segfault -- only available on Python 3.3+, but if
-# it's unavailable, it doesn't matter much.
-try:
-    import faulthandler  # pylint: disable=import-error
-except ImportError:
-    pass
-else:
-    faulthandler.enable()
-
-# This is a really odd place to do this, but we have to do this before
-# importing PyQt or it won't work.
-# See https://bugreports.qt-project.org/browse/QTBUG-36099
-import qutebrowser.utils.harfbuzz as harfbuzz
-harfbuzz.fix()
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.QtCore import pyqtSlot, QTimer, QEventLoop

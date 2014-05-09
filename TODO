@@ -122,7 +122,6 @@ Minor features
 - Hiding scrollbars
 - Ctrl+A/X to increase/decrease last number in URL
 - logging contexts
-- catch import errors for PyQt and QtWebKit
 - Add more element-selection-detection code (with options?) based on:
       -> javascript: http://stackoverflow.com/a/2848120/2085149
       -> microFocusChanged and check active element via:
