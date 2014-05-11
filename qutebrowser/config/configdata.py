@@ -682,7 +682,7 @@ DATA = OrderedDict([
          "Background color of completion widget items."),
 
         ('completion.category.fg',
-         SettingValue(types.Color(), '#e6bd00'),
+         SettingValue(types.Color(), 'white'),
          "Foreground color of completion widget category headers."),
 
         ('completion.category.bg',
