@@ -460,19 +460,19 @@ DATA = OrderedDict([
          "Font family for fantasy fonts."),
 
         ('font-size-minimum',
-         SettingValue(types.String(none=True), ''),
+         SettingValue(types.Int(none=True), ''),
          "The hard minimum font size."),
 
         ('font-size-minimum-logical',
-         SettingValue(types.String(none=True), ''),
+         SettingValue(types.Int(none=True), ''),
          "The minimum logical font size that is applied when zooming out."),
 
         ('font-size-default',
-         SettingValue(types.String(none=True), ''),
+         SettingValue(types.Int(none=True), ''),
          "The default font size for regular text."),
 
         ('font-size-default-fixed',
-         SettingValue(types.String(none=True), ''),
+         SettingValue(types.Int(none=True), ''),
          "The default font size for fixed-pitch text."),
 
         ('maximum-pages-in-cache',
