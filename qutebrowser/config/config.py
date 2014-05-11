@@ -187,6 +187,8 @@ class ConfigManager(QObject):
             for c in self.KEY_ESCAPE:
                 if optname.startswith(c):
                     optname = optname.replace(c, self.ESCAPE_CHAR + c, 1)
+            # configparser can't handle = in keys :(
+            optname = optname.replace('=', '<eq>')
             keyval = '{} = {}'.format(optname, value)
             lines.append(keyval)
         return lines
@@ -203,6 +205,8 @@ class ConfigManager(QObject):
             for k, v in cp[sectname].items():
                 if k.startswith(self.ESCAPE_CHAR):
                     k = k[1:]
+                # configparser can't handle = in keys :(
+                k = k.replace('<eq>', '=')
                 try:
                     self.set('conf', sectname, k, v)
                 except ValidationError as e:

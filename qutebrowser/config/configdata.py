@@ -59,6 +59,7 @@ FIRST_COMMENT = r"""
 # You will need to escape the following values:
 #   - # at the start of the line (at the first position of the key) (\#)
 #   - $ in a value ($$)
+#   - = in a value as <eq>
 """
 
 
@@ -595,7 +596,7 @@ DATA = OrderedDict([
         ('sk', 'set keybind'),
         ('-', 'zoomout'),
         ('+', 'zoomin'),
-        #('=', 'zoom'),
+        ('=', 'zoom'),
         ('[[', 'prevpage'),
         (']]', 'nextpage'),
         ('{{', 'tabprevpage'),

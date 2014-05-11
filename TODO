@@ -1,7 +1,6 @@
 Before 0.1
 ==========
 
-- Don't use configaparser for keys because we can't use = (to bind zoom)
 - Check FIXMEs
 - Manpage
 - Website
