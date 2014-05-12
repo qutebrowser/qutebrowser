@@ -58,56 +58,47 @@ FILTERS = {
 }
 
 
-def is_visible(elem):
-    """Check whether the element is currently visible in its frame.
+def is_visible(elem, mainframe):
+    """Check whether the element is currently visible on the screen.
 
     Args:
         elem: The QWebElement to check.
+        mainframe: The main QWebFrame.
 
     Return:
         True if the element is visible, False otherwise.
     """
     if elem.isNull():
         raise ValueError("Element is a null-element!")
-    ## We're starting in the innermost (element) frame and check if every frame
-    ## is visible in its parent.
-    base = elem.webFrame()
-    parent = base.parentFrame()
-    while parent is not None:
-        parentgeom = parent.geometry()
-        parentgeom.translate(parent.scrollPosition())
-        if not parentgeom.intersects(base.geometry()):
-            return False
-        base = parent
-        parent = parent.parentFrame()
-    rect = elem.geometry()
-    ## Now check if the element is visible in the frame.
-    if (not rect.isValid()) and rect.x() == 0:
+    if (not elem.geometry().isValid()) and elem.geometry().x() == 0:
         # Most likely an invisible link
         return False
-    frame = elem.webFrame()
-    framegeom = frame.geometry()
-    framegeom.moveTo(0, 0)
-    framegeom.translate(frame.scrollPosition())
-    if framegeom.intersects(rect):
-        return True
-    return False
+    # First check if the element is visible on screen
+    elem_rect = rect_on_screen(elem)
+    visible_on_screen = mainframe.geometry().intersects(elem_rect)
+    # Then check if it's visible in its frame if it's not in the main frame.
+    elem_frame = elem.webFrame()
+    if elem_frame.parentFrame() is not None:
+        framegeom = elem_frame.geometry()
+        framegeom.moveTo(0, 0)
+        framegeom.translate(elem_frame.scrollPosition())
+        visible_in_frame = framegeom.intersects(elem.geometry())
+    else:
+        visible_in_frame = visible_on_screen
+    return all([visible_on_screen, visible_in_frame])
 
 
-def pos_on_screen(elem):
-    """Get the position of the element on the screen."""
-    # FIXME Instead of clicking the center, we could have nicer heuristics.
-    # e.g. parse (-webkit-)border-radius correctly and click text fields at
-    # the bottom right, and everything else on the top left or so.
+def rect_on_screen(elem):
+    """Get the geometry of the element relative to the screen."""
     frame = elem.webFrame()
-    pos = elem.geometry().center()
+    rect = elem.geometry()
     while frame is not None:
-        pos += frame.geometry().topLeft()
-        logging.debug("After adding frame pos: {}".format(pos))
-        pos -= frame.scrollPosition()
-        logging.debug("After removing frame scrollpos: {}".format(pos))
+        rect.translate(frame.geometry().topLeft())
+        logging.debug("After adding frame pos: {}".format(rect))
+        rect.translate(frame.scrollPosition() * -1)
+        logging.debug("After removing frame scrollpos: {}".format(rect))
         frame = frame.parentFrame()
-    return pos
+    return rect
 
 
 def javascript_escape(text):

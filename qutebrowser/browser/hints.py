@@ -244,7 +244,10 @@ class HintManager(QObject):
         else:
             target = self._target
         self.set_open_target.emit(Target[target])
-        pos = webelem.pos_on_screen(elem)
+        # FIXME Instead of clicking the center, we could have nicer heuristics.
+        # e.g. parse (-webkit-)border-radius correctly and click text fields at
+        # the bottom right, and everything else on the top left or so.
+        pos = webelem.rect_on_screen(elem).center()
         logging.debug("Clicking on \"{}\" at {}/{}".format(
             elem.toPlainText(), pos.x(), pos.y()))
         events = [
@@ -346,12 +349,12 @@ class HintManager(QObject):
             return
         self.openurl.emit(link, newtab)
 
-    def start(self, frame, baseurl, group=webelem.Group.all,
+    def start(self, mainframe, baseurl, group=webelem.Group.all,
               target=Target.normal):
         """Start hinting.
 
         Args:
-            frame: The QWebFrame to place hints in.
+            mainframe: The main QWebFrame.
             baseurl: URL of the current page.
             group: Which group of elements to hint.
             target: What to do with the link. See attribute docstring.
@@ -361,19 +364,19 @@ class HintManager(QObject):
         """
         self._target = target
         self._baseurl = baseurl
-        if frame is None:
+        if mainframe is None:
             # This should never happen since we check frame before calling
             # start. But since we had a bug where frame is None in
             # on_mode_left, we are extra careful here.
             raise ValueError("start() was called with frame=None")
-        self._frames = webelem.get_child_frames(frame)
+        self._frames = webelem.get_child_frames(mainframe)
         elems = []
         for f in self._frames:
             elems += f.findAllElements(webelem.SELECTORS[group])
         filterfunc = webelem.FILTERS.get(group, lambda e: True)
         visible_elems = []
         for e in elems:
-            if filterfunc(e) and webelem.is_visible(e):
+            if filterfunc(e) and webelem.is_visible(e, mainframe):
                 visible_elems.append(e)
         if not visible_elems:
             message.error("No elements found.")
