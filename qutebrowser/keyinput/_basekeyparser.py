@@ -328,7 +328,7 @@ class BaseKeyParser(QObject):
         self.special_bindings = {}
         sect = config.section(sectname)
         if not sect.items():
-            logging.warn("No keybindings defined!")
+            logging.warning("No keybindings defined!")
         for (key, cmd) in sect.items():
             if not cmd:
                 continue
@@ -341,8 +341,8 @@ class BaseKeyParser(QObject):
                 logging.debug("registered key: {} -> {}".format(key, cmd))
                 self.bindings[key] = cmd
             else:
-                logging.warn(
-                    "Ignoring keychain '{}' in section '{}' because "
+                logging.warning(
+                    "Ignoring keychain '{}' in section '{}\" because "
                     "keychains are not supported there.".format(key, sectname))
 
     def execute(self, cmdstr, keytype, count=None):

@@ -296,8 +296,8 @@ class WebView(QWebView):
             The new QWebView object.
         """
         if wintype == QWebPage.WebModalDialog:
-            logging.warn("WebModalDialog requested, but we don't support "
-                         "that!")
+            logging.warning("WebModalDialog requested, but we don't support "
+                            "that!")
         if config.get('general', 'window-open-behaviour') == 'new-tab':
             return self.tabbedbrowser.tabopen()
         else:
