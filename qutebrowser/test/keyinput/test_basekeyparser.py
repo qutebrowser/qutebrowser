@@ -42,9 +42,9 @@ class ConfigStub:
                      'a': 'a',
                      'ba': 'ba',
                      'ax': 'ax',
-                     'ccc': 'ccc',},
-             'input': {'timeout': 100},
-             'test2': {'foo': 'bar', '<Ctrl+X>': 'ctrlx'}}
+                     'ccc': 'ccc'},
+            'input': {'timeout': 100},
+            'test2': {'foo': 'bar', '<Ctrl+X>': 'ctrlx'}}
 
     def section(self, name):
         if name not in ['test', 'test2']:
@@ -95,10 +95,6 @@ class SplitCountTests(TestCase):
     def test_onlycount(self):
         self.kp._keystring = '10'
         self.assertEqual(self.kp._split_count(), (10, ''))
-
-    def test_normalcount(self):
-        self.kp._keystring = '10foo'
-        self.assertEqual(self.kp._split_count(), (10, 'foo'))
 
     def test_normalcount(self):
         self.kp._keystring = '10foo'
@@ -165,8 +161,8 @@ class SpecialKeysTests(TestCase):
         self.kp.execute.assert_called_once_with('ctrla', self.kp.Type.special)
 
     def test_invalid_key(self):
-        self.kp.handle(FakeKeyEvent(Qt.Key_A, Qt.ControlModifier |
-                                              Qt.AltModifier))
+        self.kp.handle(FakeKeyEvent(Qt.Key_A, (Qt.ControlModifier |
+                                               Qt.AltModifier)))
         self.assertFalse(self.kp.execute.called)
 
     def test_keychain(self):
@@ -195,8 +191,8 @@ class KeyChainTests(TestCase):
         self.assertEqual(self.kp._keystring, '')
 
     def test_invalid_special_key(self):
-        self.kp.handle(FakeKeyEvent(Qt.Key_A, Qt.ControlModifier |
-                                              Qt.AltModifier))
+        self.kp.handle(FakeKeyEvent(Qt.Key_A, (Qt.ControlModifier |
+                                               Qt.AltModifier)))
         self.assertFalse(self.kp.execute.called)
         self.assertEqual(self.kp._keystring, '')
 
