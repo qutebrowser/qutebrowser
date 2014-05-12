@@ -27,6 +27,8 @@ Module attributes:
 
 import logging
 
+from PyQt5.QtWebKit import QWebElement
+
 import qutebrowser.utils.url as urlutils
 from qutebrowser.utils.usertypes import enum
 
@@ -68,8 +70,16 @@ def is_visible(elem, mainframe):
     Return:
         True if the element is visible, False otherwise.
     """
+    # CSS attributes which hide an element
+    hidden_attributes = {
+        'visibility': 'hidden',
+        'display': 'none',
+    }
     if elem.isNull():
         raise ValueError("Element is a null-element!")
+    for k, v in hidden_attributes.items():
+        if elem.styleProperty(k, QWebElement.ComputedStyle) == v:
+            return False
     if (not elem.geometry().isValid()) and elem.geometry().x() == 0:
         # Most likely an invisible link
         return False
