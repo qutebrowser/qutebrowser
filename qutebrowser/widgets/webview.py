@@ -358,7 +358,10 @@ class WebView(QWebView):
             # sometimes.
             logging.debug("Clicked at {} but frame is None!".format(pos))
             return super().mousePressEvent(e)
-        pos -= frame.geometry().topLeft()
+        # You'd think we have to subtract frame.geometry().topLeft() from the
+        # position, but it seems QWebFrame::hitTestContent wants a position
+        # relative to the QWebView, not to the frame. This makes no sense to
+        # me, but it works this way.
         hitresult = frame.hitTestContent(pos)
         if self._is_editable(hitresult):
             logging.debug("Clicked editable element!")
