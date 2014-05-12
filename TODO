@@ -50,6 +50,7 @@ Bugs
 ====
 
 - All kind of FIXMEs
+- Super key shows up as ៀ\udc53  in logs
 - Funky font rendering with tewi:
   http://a.pomf.se/ecgzlx.png
 - F on duckduckgo result page opens in current page
@@ -123,8 +124,9 @@ Major features
 Minor features
 ==============
 
+- N for prev search match
+- search highlighting
 - readline like shortcuts (like C-w) for command prompt
-- user stylesheet
 - max height for completion (be smaller if possible)
 - tab should directly insert word and space if there's only one option
 - vertical tabbar
