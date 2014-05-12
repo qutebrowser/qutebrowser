@@ -19,10 +19,29 @@
 
 from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtWidgets import QTabWidget, QTabBar, QSizePolicy
+from PyQt5.QtGui import QIcon, QPixmap
 
 import qutebrowser.config.config as config
 from qutebrowser.config.style import set_register_stylesheet
 from qutebrowser.utils.style import Style
+
+
+class EmptyTabIcon(QIcon):
+
+    """An empty icon for a tab.
+
+    Qt somehow cuts text off when padding is used for the tabbar, see
+    https://bugreports.qt-project.org/browse/QTBUG-15203
+
+    Until we find a better solution we use this hack of using a simple
+    transparent icon to get some padding, because when a real favicon is set,
+    the padding seems to be fine...
+    """
+
+    def __init__(self):
+        pix = QPixmap(2, 16)
+        pix.fill(Qt.transparent)
+        super().__init__(pix)
 
 
 class TabWidget(QTabWidget):
@@ -47,7 +66,6 @@ class TabWidget(QTabWidget):
         QTabBar::tab {{
             {color[tab.bg]}
             {color[tab.fg]}
-            padding: 0px 5px 0px 5px;
             border-right: 2px solid {color[tab.seperator]};
             min-width: {config[tabbar][min-tab-width]}px;
             max-width: {config[tabbar][max-tab-width]}px;

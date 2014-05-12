@@ -187,6 +187,9 @@ Upstream Bugs
 - QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.
     https://bugreports.qt-project.org/browse/QTBUG-30298
 
+- Tabbar texts get cut off when styled and elided
+  https://bugreports.qt-project.org/browse/QTBUG-15203
+
 
 Probably fixed crashes
 ======================

@@ -22,13 +22,13 @@ from functools import partial
 
 from PyQt5.QtWidgets import QApplication, QSizePolicy
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QSize
-from PyQt5.QtGui import QClipboard, QIcon
+from PyQt5.QtGui import QClipboard
 
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.message as message
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
-from qutebrowser.widgets._tabwidget import TabWidget
+from qutebrowser.widgets._tabwidget import TabWidget, EmptyTabIcon
 from qutebrowser.widgets.webview import WebView
 from qutebrowser.browser.signalfilter import SignalFilter
 from qutebrowser.browser.curcommand import CurCommandDispatcher
@@ -470,7 +470,7 @@ class TabbedBrowser(TabWidget):
             tab: The tab where the signal belongs to.
         """
         tab.signal_cache.clear()
-        self.setTabIcon(self.indexOf(tab), QIcon())
+        self.setTabIcon(self.indexOf(tab), EmptyTabIcon())
 
     @pyqtSlot(str)
     def on_title_changed(self, text):
