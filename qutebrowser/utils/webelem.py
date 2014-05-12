@@ -27,6 +27,7 @@ Module attributes:
 
 import logging
 
+from PyQt5.QtCore import QRect
 from PyQt5.QtWebKit import QWebElement
 
 import qutebrowser.utils.url as urlutils
@@ -95,7 +96,7 @@ def is_visible(elem, mainframe):
     elem_frame = elem.webFrame()
     elem_rect = elem.geometry()
     if elem_frame.parentFrame() is not None:
-        framegeom = elem_frame.geometry()
+        framegeom = QRect(elem_frame.geometry())
         framegeom.moveTo(0, 0)
         framegeom.translate(elem_frame.scrollPosition())
         if elem_rect.isValid():
@@ -112,7 +113,7 @@ def is_visible(elem, mainframe):
 def rect_on_view(elem):
     """Get the geometry of the element relative to the webview."""
     frame = elem.webFrame()
-    rect = elem.geometry()
+    rect = QRect(elem.geometry())
     while frame is not None:
         rect.translate(frame.geometry().topLeft())
         logging.debug("After adding frame pos: {}".format(rect))
