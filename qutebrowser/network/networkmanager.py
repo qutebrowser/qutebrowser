@@ -17,9 +17,11 @@
 
 """Our own QNetworkAccessManager."""
 
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtNetwork import QNetworkAccessManager
 
 import qutebrowser.config.config as config
+import qutebrowser.utils.message as message
 from qutebrowser.network.qutescheme import QuteSchemeHandler
 
 
@@ -41,11 +43,27 @@ class NetworkManager(QNetworkAccessManager):
         }
         if cookiejar is not None:
             self.setCookieJar(cookiejar)
+        self.sslErrors.connect(self.on_ssl_errors)
 
     def abort_requests(self):
         """Abort all running requests."""
         for request in self._requests.values():
             request.abort()
+
+    @pyqtSlot('QNetworkReply', 'QList<QSslError>')
+    def on_ssl_errors(self, reply, errors):
+        """This slot is called on SSL/TLS errors.
+
+        Args:
+            reply: The QNetworkReply that is encountering the errors.
+            errors: A list of errors.
+        """
+        if config.get('network', 'ssl-strict'):
+            return
+        for err in errors:
+            message.error('SSL error: {}'.format(err.errorString()))
+        reply.ignoreSslErrors()
+
 
     def createRequest(self, op, req, outgoing_data):
         """Return a new QNetworkReply object.

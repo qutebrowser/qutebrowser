@@ -227,6 +227,10 @@ DATA = OrderedDict([
         ('proxy',
          SettingValue(types.Proxy(), 'system'),
          "The proxy to use."),
+
+        ('ssl-strict',
+         SettingValue(types.Bool(), 'true'),
+         "Whether to validate SSL handshakes."),
     )),
 
     ('completion', sect.KeyValue(
