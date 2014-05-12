@@ -324,6 +324,8 @@ class BaseKeyParser(QObject):
             sectname = self._confsectname
         else:
             self._confsectname = sectname
+        self.bindings = {}
+        self.special_bindings = {}
         sect = config.section(sectname)
         if not sect.items():
             logging.warn("No keybindings defined!")
