@@ -605,23 +605,23 @@ class _Url(TextBase):
     """
 
     STYLESHEET = """
-        QLabel#Url[urltype="normal"] {{
+        QLabel#_Url[urltype="normal"] {{
             {color[statusbar.url.fg]}
         }}
 
-        QLabel#Url[urltype="success"] {{
+        QLabel#_Url[urltype="success"] {{
             {color[statusbar.url.fg.success]}
         }}
 
-        QLabel#Url[urltype="error"] {{
+        QLabel#_Url[urltype="error"] {{
             {color[statusbar.url.fg.error]}
         }}
 
-        QLabel#Url[urltype="warn"] {{
+        QLabel#_Url[urltype="warn"] {{
             {color[statusbar.url.fg.warn]}
         }}
 
-        QLabel#Url[urltype="hover"] {{
+        QLabel#_Url[urltype="hover"] {{
             {color[statusbar.url.fg.hover]}
         }}
     """
