@@ -74,7 +74,7 @@ def is_visible(elem, mainframe):
         # Most likely an invisible link
         return False
     # First check if the element is visible on screen
-    elem_rect = rect_on_screen(elem)
+    elem_rect = rect_on_view(elem)
     visible_on_screen = mainframe.geometry().intersects(elem_rect)
     # Then check if it's visible in its frame if it's not in the main frame.
     elem_frame = elem.webFrame()
@@ -88,8 +88,8 @@ def is_visible(elem, mainframe):
     return all([visible_on_screen, visible_in_frame])
 
 
-def rect_on_screen(elem):
-    """Get the geometry of the element relative to the screen."""
+def rect_on_view(elem):
+    """Get the geometry of the element relative to the webview."""
     frame = elem.webFrame()
     rect = elem.geometry()
     while frame is not None:
