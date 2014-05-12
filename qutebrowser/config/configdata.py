@@ -77,8 +77,8 @@ SECTION_DESC = {
         "The searchengine named DEFAULT is used when general.auto-search "
         "is true and something else than an URL was entered to be opened. "
         "Other search engines can be used via the bang-syntax, e.g. "
-        "\"qutebrowser !google\". The string \"{}\" will be replaced by the "
-        "search term, use \"{{\" and \"}}\" for literal {/} signs."),
+        '"qutebrowser !google". The string "{}" will be replaced by the '
+        'search term, use "{{" and "}}" for literal {/} signs.'),
     'keybind': (
         "Bindings from a key(chain) to a command.\n"
         "For special keys (can't be part of a keychain), enclose them in "
@@ -90,8 +90,8 @@ SECTION_DESC = {
         "  Shift:   Shift\n"
         "For simple keys (no <>-signs), a capital letter means the key is "
         "pressed with Shift. For special keys (with <>-signs), you need "
-        "to explicitely add \"Shift-\" to match a key pressed with shift. "
-        "You can bind multiple commands by separating them with \";;\"."),
+        'to explicitely add "Shift-" to match a key pressed with shift. '
+        'You can bind multiple commands by separating them with ";;".'),
     'keybind.insert': (
         "Keybindings for insert mode.\n"
         "Since normal keypresses are passed through, only special keys are "
@@ -136,11 +136,11 @@ SECTION_DESC = {
         "  - rgb(r, g, b) / rgba(r, g, b, a) (values 0-255 or "
         "percentages)\n"
         "  - hsv(h, s, v) / hsva(h, s, v, a) (values 0-255, hue 0-359)\n"
-        "  - A gradient as explained at [2] under \"Gradient\"\n"
+        '  - A gradient as explained at [2] under "Gradient"\n'
         "  [1] http://www.w3.org/TR/SVG/types.html#ColorKeywords\n"
         "  [2] http://qt-project.org/doc/qt-4.8/stylesheet-reference.html"
         "#list-of-property-types\n"
-        "The \"hints.*\" values are a special case as they're real CSS "
+        'The "hints.*" values are a special case as they\'re real CSS '
         "colors, not Qt-CSS colors. There, for a gradient, you need to use "
         "-webkit-gradient, see [3].\n"
         "  [3] https://www.webkit.org/blog/175/introducing-css-gradients/"),
@@ -150,8 +150,8 @@ SECTION_DESC = {
         "  Weight: normal, bold, 100..900\n"
         "  Size: Number + px/pt\n"
         "Note: The font for hints is a true CSS font, not a Qt-CSS one, "
-        "because of that, a general \"Monospace\" family is enough and we "
-        "don't use \"${_monospace}\" there."),
+        'because of that, a general "Monospace" family is enough and we '
+        'don\'t use "${_monospace}" there.'),
 }
 
 

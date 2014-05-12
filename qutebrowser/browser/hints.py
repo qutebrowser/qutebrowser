@@ -248,8 +248,8 @@ class HintManager(QObject):
         # e.g. parse (-webkit-)border-radius correctly and click text fields at
         # the bottom right, and everything else on the top left or so.
         pos = webelem.rect_on_view(elem).center()
-        logging.debug("Clicking on \"{}\" at {}/{}".format(
-            elem.toPlainText(), pos.x(), pos.y()))
+        logging.debug("Clicking on '{}' at {}/{}".format(elem.toPlainText(),
+                                                         pos.x(), pos.y()))
         events = [
             QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
                         Qt.NoModifier),

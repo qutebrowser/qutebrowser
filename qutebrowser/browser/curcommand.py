@@ -467,7 +467,7 @@ class CurCommandDispatcher(QObject):
         editor = config.get('general', 'editor')
         executable = editor[0]
         args = [arg.replace('{}', filename) for arg in editor[1:]]
-        logging.debug("Calling \"{}\" with args {}".format(executable, args))
+        logging.debug("Calling '{}' with args {}".format(executable, args))
         proc.start(executable, args)
 
     def _editor_cleanup(self, oshandle, filename):

@@ -191,19 +191,17 @@ class BaseKeyParser(QObject):
         match, binding = self._match_key(cmd_input)
 
         if match == self.Match.definitive:
-            logging.debug("Definitive match for "
-                          "\"{}\".".format(self._keystring))
+            logging.debug("Definitive match for '{}'.".format(self._keystring))
             self._keystring = ''
             self.execute(binding, self.Type.chain, count)
         elif match == self.Match.ambiguous:
-            logging.debug("Ambigious match for "
-                          "\"{}\".".format(self._keystring))
+            logging.debug("Ambigious match for '{}'.".format(self._keystring))
             self._handle_ambiguous_match(binding, count)
         elif match == self.Match.partial:
-            logging.debug("No match for \"{}\" (added {})".format(
+            logging.debug("No match for '{}' (added {})".format(
                 self._keystring, txt))
         elif match == self.Match.none:
-            logging.debug("Giving up with \"{}\", no matches".format(
+            logging.debug("Giving up with '{}', no matches".format(
                 self._keystring))
             self._keystring = ''
             return False
@@ -262,7 +260,7 @@ class BaseKeyParser(QObject):
             binding: The command-string to execute.
             count: The count to pass.
         """
-        logging.debug("Ambiguous match for \"{}\"".format(self._keystring))
+        logging.debug("Ambiguous match for '{}'".format(self._keystring))
         time = config.get('input', 'timeout')
         if time == 0:
             # execute immediately
@@ -342,7 +340,7 @@ class BaseKeyParser(QObject):
                 self.bindings[key] = cmd
             else:
                 logging.warn(
-                    "Ignoring keychain \"{}\" in section \"{}\" because "
+                    "Ignoring keychain '{}' in section '{}' because "
                     "keychains are not supported there.".format(key, sectname))
 
     def execute(self, cmdstr, keytype, count=None):

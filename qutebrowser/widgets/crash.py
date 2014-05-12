@@ -67,8 +67,8 @@ class CrashDialog(QDialog):
                 "then submit it to <a href='mailto:crash@qutebrowser.org'>"
                 "crash@qutebrowser.org</a> or click 'pastebin'.<br/><br/>")
         if pages:
-            text += ("You can click \"Restore tabs\" to attempt to reopen "
-                     "your open tabs.")
+            text += ("You can click 'Restore tabs' to attempt to reopen your "
+                     "open tabs.")
         self._lbl.setText(text)
         self._lbl.setWordWrap(True)
         self._vbox.addWidget(self._lbl)
