@@ -50,8 +50,13 @@ class StatusBar(QWidget):
         prog: The Progress widget in the statusbar.
         _hbox: The main QHBoxLayout.
         _stack: The QStackedLayout with cmd/txt widgets.
+
+    Class attributes:
         _error: If there currently is an error, accessed through the error
                 property.
+
+                For some reason we need to have this as class attribute so
+                pyqtProperty works correctly.
 
     Signals:
         resized: Emitted when the statusbar has resized, so the completion
@@ -64,6 +69,7 @@ class StatusBar(QWidget):
 
     resized = pyqtSignal('QRect')
     moved = pyqtSignal('QPoint')
+    _error = False
 
     STYLESHEET = """
         QWidget#StatusBar[error="false"] {{
@@ -88,7 +94,6 @@ class StatusBar(QWidget):
 
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
 
-        self._error = False
         self._option = None
 
         self._hbox = QHBoxLayout(self)
@@ -599,10 +604,17 @@ class _Url(TextBase):
     Attributes:
         _old_url: The URL displayed before the hover URL.
         _old_urltype: The type of the URL displayed before the hover URL.
+        _ssl_errors: Whether SSL errors occured while loading.
+
+    Class attributes:
         _urltype: The current URL type. One of normal/ok/error/warn/hover.
                   Accessed via the urltype property.
-        _ssl_errors: Whether SSL errors occured while loading.
+
+                  For some reason we need to have this as class attribute so
+                  pyqtProperty works correctly.
     """
+
+    _urltype = None
 
     STYLESHEET = """
         QLabel#_Url[urltype="normal"] {{
@@ -636,7 +648,6 @@ class _Url(TextBase):
         super().__init__(bar, elidemode)
         self.setObjectName(self.__class__.__name__)
         set_register_stylesheet(self)
-        self._urltype = None
         self._old_urltype = None
         self._old_url = None
         self._ssl_errors = False
