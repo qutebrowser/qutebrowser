@@ -50,6 +50,8 @@ Bugs
 ====
 
 - All kind of FIXMEs
+- Funky font rendering with tewi:
+  http://a.pomf.se/ecgzlx.png
 - F on duckduckgo result page opens in current page
 
   It seems we don't get a linkClicked signal there.
@@ -120,6 +122,7 @@ Major features
 Minor features
 ==============
 
+- vertical tabbar
 - reload config command
     - config changed signals for sections (optimization)
 - Display metavars for commands in input bar.
