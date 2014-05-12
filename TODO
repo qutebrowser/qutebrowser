@@ -75,8 +75,9 @@ Bugs
 
 - Pasting highlighted text (to mrxvt) does not work (iggy).
 
-- Hinting problems on https://bugreports.qt-project.org/secure/Dashboard.jspa
-                      http://wiki.gentoo.org/wiki/Lenovo_ThinkPad_T440s (top navbar)
+- Hinting problems on http://wiki.gentoo.org/wiki/Lenovo_ThinkPad_T440s (top navbar, e.g. lists, etc.)
+
+- clicking on text fields at https://bugreports.qt-project.org/secure/Dashboard.jspa doesn't go into insert mode. (because of iframes?)
 
 - scroll_page doesn't care about always visible bars, so content gets hidden
   e.g. http://www.mtb-news.de/forum/t/welcher-schuh-five-ten-vs-oneal.529148/

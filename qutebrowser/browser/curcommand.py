@@ -226,7 +226,7 @@ class CurCommandDispatcher(QObject):
             targetstr: Where to open the links.
         """
         widget = self._tabs.currentWidget()
-        frame = widget.page_.currentFrame()
+        frame = widget.page_.mainFrame()
         if frame is None:
             message.error("No frame focused!")
             return

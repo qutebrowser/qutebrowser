@@ -48,7 +48,7 @@ class HintManager(QObject):
         HINT_CSS: The CSS template to use for hints.
 
     Attributes:
-        _frame: The QWebFrame to use.
+        _frames: The QWebFrames to use.
         _elems: A mapping from keystrings to (elem, label) namedtuples.
         _baseurl: The URL of the current page.
         _target: What to do with the opened links.
@@ -96,10 +96,10 @@ class HintManager(QObject):
         """
         super().__init__(parent)
         self._elems = {}
-        self._frame = None
         self._target = None
         self._baseurl = None
         self._to_follow = None
+        self._frames = []
         modeman.instance().left.connect(self.on_mode_left)
 
     def _hint_strings(self, elems):
@@ -223,7 +223,7 @@ class HintManager(QObject):
             The newly created label elment
         """
         css = self._get_hint_css(elem)
-        doc = self._frame.documentElement()
+        doc = elem.webFrame().documentElement()
         # It seems impossible to create an empty QWebElement for which isNull()
         # is false so we can work with it.
         # As a workaround, we use appendInside() with markup as argument, and
@@ -244,21 +244,15 @@ class HintManager(QObject):
         else:
             target = self._target
         self.set_open_target.emit(Target[target])
-        # FIXME Instead of clicking the center, we could have nicer heuristics.
-        # e.g. parse (-webkit-)border-radius correctly and click text fields at
-        # the bottom right, and everything else on the top left or so.
-        point = elem.geometry().center()
-        scrollpos = self._frame.scrollPosition()
-        logging.debug("Clicking on \"{}\" at {}/{} - {}/{}".format(
-            elem.toPlainText(), point.x(), point.y(), scrollpos.x(),
-            scrollpos.y()))
-        point -= scrollpos
+        pos = webelem.pos_on_screen(elem)
+        logging.debug("Clicking on \"{}\" at {}/{}".format(
+            elem.toPlainText(), pos.x(), pos.y()))
         events = [
-            QMouseEvent(QEvent.MouseMove, point, Qt.NoButton, Qt.NoButton,
+            QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
                         Qt.NoModifier),
-            QMouseEvent(QEvent.MouseButtonPress, point, Qt.LeftButton,
+            QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton,
                         Qt.NoButton, Qt.NoModifier),
-            QMouseEvent(QEvent.MouseButtonRelease, point, Qt.LeftButton,
+            QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
                         Qt.NoButton, Qt.NoModifier),
         ]
         for evt in events:
@@ -365,7 +359,6 @@ class HintManager(QObject):
         Emit:
             hint_strings_updated: Emitted to update keypraser.
         """
-        elems = frame.findAllElements(webelem.SELECTORS[group])
         self._target = target
         self._baseurl = baseurl
         if frame is None:
@@ -373,11 +366,14 @@ class HintManager(QObject):
             # start. But since we had a bug where frame is None in
             # on_mode_left, we are extra careful here.
             raise ValueError("start() was called with frame=None")
-        self._frame = frame
+        self._frames = webelem.get_child_frames(frame)
+        elems = []
+        for f in self._frames:
+            elems += f.findAllElements(webelem.SELECTORS[group])
         filterfunc = webelem.FILTERS.get(group, lambda e: True)
         visible_elems = []
         for e in elems:
-            if filterfunc(e) and webelem.is_visible(e, self._frame):
+            if filterfunc(e) and webelem.is_visible(e):
                 visible_elems.append(e)
         if not visible_elems:
             message.error("No elements found.")
@@ -398,7 +394,8 @@ class HintManager(QObject):
         for e, string in zip(visible_elems, strings):
             label = self._draw_label(e, string)
             self._elems[string] = ElemTuple(e, label)
-        frame.contentsSizeChanged.connect(self.on_contents_size_changed)
+        for f in self._frames:
+            f.contentsSizeChanged.connect(self.on_contents_size_changed)
         self.hint_strings_updated.emit(strings)
         modeman.enter('hint', 'HintManager.start')
 
@@ -508,14 +505,16 @@ class HintManager(QObject):
         for elem in self._elems.values():
             if not elem.label.isNull():
                 elem.label.removeFromDocument()
-        if self._frame is not None:
-            # The frame which was focused in start() might not be available
-            # anymore, since Qt might already have deleted it (e.g. when a new
-            # page is loaded).
-            self._frame.contentsSizeChanged.disconnect(
-                self.on_contents_size_changed)
+        if self._frames is not None:
+            for frame in self._frames:
+                if frame is not None:
+                    # The frame which was focused in start() might not be
+                    # available anymore, since Qt might already have deleted it
+                    # (e.g. when a new page is loaded).
+                    frame.contentsSizeChanged.disconnect(
+                        self.on_contents_size_changed)
         self._elems = {}
         self._to_follow = None
         self._target = None
-        self._frame = None
+        self._frames = []
         message.clear()

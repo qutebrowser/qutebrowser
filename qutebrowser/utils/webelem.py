@@ -25,6 +25,8 @@ Module attributes:
              without "href".
 """
 
+import logging
+
 import qutebrowser.utils.url as urlutils
 from qutebrowser.utils.usertypes import enum
 
@@ -56,31 +58,46 @@ FILTERS = {
 }
 
 
-def is_visible(e, frame=None):
+def is_visible(elem):
     """Check whether the element is currently visible in its frame.
 
     Args:
-        e: The QWebElement to check.
-        frame: The QWebFrame in which the element should be visible in.
-               If None, the element's frame is used.
+        elem: The QWebElement to check.
 
     Return:
         True if the element is visible, False otherwise.
     """
-    if e.isNull():
+    # FIXME we should also check if the frame is visible
+    if elem.isNull():
         raise ValueError("Element is a null-element!")
-    if frame is None:
-        frame = e.webFrame()
-    rect = e.geometry()
+    frame = elem.webFrame()
+    rect = elem.geometry()
     if (not rect.isValid()) and rect.x() == 0:
         # Most likely an invisible link
         return False
     framegeom = frame.geometry()
+    framegeom.moveTo(0, 0)
     framegeom.translate(frame.scrollPosition())
-    if not framegeom.contains(rect.topLeft()):
+    if not framegeom.intersects(rect):
         # out of screen
         return False
     return True
+
+
+def pos_on_screen(elem):
+    """Get the position of the element on the screen."""
+    # FIXME Instead of clicking the center, we could have nicer heuristics.
+    # e.g. parse (-webkit-)border-radius correctly and click text fields at
+    # the bottom right, and everything else on the top left or so.
+    frame = elem.webFrame()
+    pos = elem.geometry().center()
+    while frame is not None:
+        pos += frame.geometry().topLeft()
+        logging.debug("After adding frame pos: {}".format(pos))
+        pos -= frame.scrollPosition()
+        logging.debug("After removing frame scrollpos: {}".format(pos))
+        frame = frame.parentFrame()
+    return pos
 
 
 def javascript_escape(text):
@@ -102,3 +119,25 @@ def javascript_escape(text):
     for orig, repl in replacements:
         text = text.replace(orig, repl)
     return text
+
+
+def get_child_frames(startframe):
+    """Get all children recursively of a given QWebFrame.
+
+    Loosly based on http://blog.nextgenetics.net/?e=64
+
+    Args:
+        startframe: The QWebFrame to start with.
+
+    Return:
+        A list of children QWebFrame, or an empty list.
+    """
+    results = []
+    frames = [startframe]
+    while frames:
+        new_frames = []
+        for frame in frames:
+            results.append(frame)
+            new_frames += frame.childFrames()
+        frames = new_frames
+    return results
