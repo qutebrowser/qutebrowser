@@ -441,7 +441,7 @@ class CurCommandDispatcher(QObject):
         self.openurl(config.get('general', 'startpage')[0])
 
     @cmdutils.register(instance='mainwindow.tabs.cur', modes=['insert'],
-                       name='open_editor', hide=True, needs_js=True)
+                       name='open_editor', hide=True)
     def editor(self):
         """Open an external editor with the current form field.
 
