@@ -99,6 +99,32 @@ class IsVisibleScrollTests(TestCase):
         self.assertTrue(webelem.is_visible(elem, self.frame))
 
 
+class IsVisibleCssTests(TestCase):
+
+    def setUp(self):
+        self.frame = FakeWebFrame(QRect(0, 0, 100, 100), scroll=QPoint(0, 0))
+
+    def test_visibility_visible(self):
+        elem = FakeWebElement(geometry=QRect(0, 0, 10, 10), frame=self.frame,
+                              visibility='visible')
+        self.assertTrue(webelem.is_visible(elem, self.frame))
+
+    def test_visibility_hidden(self):
+        elem = FakeWebElement(geometry=QRect(0, 0, 10, 10), frame=self.frame,
+                              visibility='hidden')
+        self.assertFalse(webelem.is_visible(elem, self.frame))
+
+    def test_display_inline(self):
+        elem = FakeWebElement(geometry=QRect(0, 0, 10, 10), frame=self.frame,
+                              display='inline')
+        self.assertTrue(webelem.is_visible(elem, self.frame))
+
+    def test_display_none(self):
+        elem = FakeWebElement(geometry=QRect(0, 0, 10, 10), frame=self.frame,
+                              display='none')
+        self.assertFalse(webelem.is_visible(elem, self.frame))
+
+
 class JavascriptEscapeTests(TestCase):
 
     def test_escape(self):
