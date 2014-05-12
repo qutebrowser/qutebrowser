@@ -20,48 +20,12 @@ Thanks to the following people for early testing:
     - meisterT_
     - hrnz
     - pedromj
+    - china
+    - Tsutsukakushi
 
-Thanks to these stackoverflow users for answering my questions, and other
-valuable ones:
-    - Pavel Strakhov
-    - ekhumoro
-    - andrean
-    - chelmuth
-    - quark
-    - Bleeding Fingers
-    - artyom.stv
-    - hank
-    - Alec Thomas
-    - Slawek Rewaj
+Thanks to everone answering my and other questions on Stackoverflow and the IRC.
 
-Thanks to these people for helpful bits and pieces in the Qt bugtracker and IRC
-channels:
-    - Allan Sandfeld Jensen
-    - bachewii
-    - Vitaliy Filippov
-    - Lisandro Damián Nicanor Pérez Meyer
-    - david_boddie
-    - jcookeman
-    - jturcotte
-    - carewolf
-    - mibrunin
-    - TheBootroo
-    - peppe
-    - HuntsMan
-    - Papierkorb
-    - hyde_
-    - Giles
-    - pvdk
-    - LBV_User
-    - Fleias
-    - richmoore1
-    - Xenakis
-    - ottoshmidt
-    - AlexWMF
-    - scummos
-    - svuorela
-    - kpj
-    - hyde
+Thanks to the people triaging bugs in the Qt bugtracker.
 
 Thanks to these projects which were essential while developing qutebrowser:
     - Python
