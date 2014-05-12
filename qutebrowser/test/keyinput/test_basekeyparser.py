@@ -201,6 +201,9 @@ class KeyChainTests(TestCase):
         self.assertEqual(self.kp._keystring, '')
 
     def test_keychain(self):
+        # Press 'x' which is ignored because of no match
+        self.kp.handle(FakeKeyEvent(Qt.Key_X, text='x'))
+        # Then start the real chain
         self.kp.handle(FakeKeyEvent(Qt.Key_B, text='b'))
         self.kp.handle(FakeKeyEvent(Qt.Key_A, text='a'))
         self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, None)
