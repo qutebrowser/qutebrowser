@@ -307,6 +307,11 @@ DATA = OrderedDict([
         ('max-tab-width',
          SettingValue(types.Int(), '200'),
          "The maximum width of a tab."),
+
+        ('show-favicons',
+         SettingValue(types.Bool(), 'true'),
+         "Whether to show favicons in the tab bar."),
+
     )),
 
     ('webkit', sect.KeyValue(

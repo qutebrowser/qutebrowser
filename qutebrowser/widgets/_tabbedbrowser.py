@@ -461,6 +461,13 @@ class TabbedBrowser(TabWidget):
         super().on_config_changed(section, option)
         for tab in self._tabs:
             tab.on_config_changed(section, option)
+        if (section, option) == ('tabbar', 'show-favicons'):
+            show = config.get('tabbar', 'show-favicons')
+            for i in range(self.count()):
+                if show:
+                    self.setTabIcon(i, self.widget(i).icon())
+                else:
+                    self.setTabIcon(i, EmptyTabIcon())
 
     @pyqtSlot()
     def on_load_started(self, tab):
@@ -500,6 +507,8 @@ class TabbedBrowser(TabWidget):
 
         Slot for the iconChanged signal of any tab.
         """
+        if not config.get('tabbar', 'show-favicons'):
+            return
         tab = self.sender()
         self.setTabIcon(self.indexOf(tab), tab.icon())
 
