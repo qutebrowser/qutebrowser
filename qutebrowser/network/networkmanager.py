@@ -50,7 +50,7 @@ class NetworkManager(QNetworkAccessManager):
         for request in self._requests.values():
             request.abort()
 
-    @pyqtSlot('QNetworkReply', 'QList<QSslError>')
+    @pyqtSlot('QNetworkReply*', 'QList<QSslError>')
     def on_ssl_errors(self, reply, errors):
         """Decide if SSL errors should be ignored or not.
 

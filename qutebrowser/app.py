@@ -346,7 +346,9 @@ class QuteBrowser(QApplication):
         # statusbar
         tabs.cur_progress.connect(status.prog.setValue)
         tabs.cur_load_finished.connect(status.prog.hide)
+        tabs.cur_load_started.connect(status.url.on_loading_started)
         tabs.cur_load_finished.connect(status.url.on_loading_finished)
+        tabs.cur_ssl_errors.connect(status.url.on_ssl_errors)
         tabs.cur_load_started.connect(status.prog.on_load_started)
         tabs.cur_scroll_perc_changed.connect(status.percentage.set_perc)
         tabs.cur_statusbar_message.connect(status.txt.on_statusbar_message)

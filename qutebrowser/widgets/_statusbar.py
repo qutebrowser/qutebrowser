@@ -601,6 +601,7 @@ class _Url(TextBase):
         _old_urltype: The type of the URL displayed before the hover URL.
         _urltype: The current URL type. One of normal/ok/error/warn/hover.
                   Accessed via the urltype property.
+        _ssl_errors: Whether SSL errors occured while loading.
     """
 
     STYLESHEET = """
@@ -638,6 +639,7 @@ class _Url(TextBase):
         self._urltype = None
         self._old_urltype = None
         self._old_url = None
+        self._ssl_errors = False
 
     @pyqtProperty(str)
     def urltype(self):
@@ -651,6 +653,15 @@ class _Url(TextBase):
         self._urltype = val
         self.setStyleSheet(get_stylesheet(self.STYLESHEET))
 
+    @pyqtSlot()
+    def on_loading_started(self):
+        """Slot to clear SSL errors when loading started."""
+        self._ssl_errors = False
+
+    @pyqtSlot('QNetworkReply*', 'QList<QSslError>')
+    def on_ssl_errors(self, _reply, _errors):
+        self._ssl_errors = True
+
     @pyqtSlot(bool)
     def on_loading_finished(self, ok):
         """Slot for cur_loading_finished. Colors the URL according to ok.
@@ -658,8 +669,12 @@ class _Url(TextBase):
         Args:
             ok: Whether loading finished successfully (True) or not (False).
         """
-        # FIXME: set color to warn if there was an SSL error
-        self.urltype = 'success' if ok else 'error'
+        if ok and not self._ssl_errors:
+            self.urltype = 'success'
+        elif ok:
+            self.urltype = 'warn'
+        else:
+            self.urltype = 'error'
 
     @pyqtSlot(str)
     def set_url(self, s):

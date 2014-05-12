@@ -61,6 +61,7 @@ class TabbedBrowser(TabWidget):
         cur_progress: Progress of the current tab changed (loadProgress).
         cur_load_started: Current tab started loading (loadStarted)
         cur_load_finished: Current tab finished loading (loadFinished)
+        cur_ssl_errors: Current tab encountered SSL errors.
         cur_statusbar_message: Current tab got a statusbar message
                                (statusBarMessage)
         cur_url_changed: Current URL changed (urlChanged)
@@ -84,6 +85,7 @@ class TabbedBrowser(TabWidget):
     cur_url_changed = pyqtSignal('QUrl')
     cur_link_hovered = pyqtSignal(str, str, str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
+    cur_ssl_errors = pyqtSignal('QNetworkReply*', 'QList<QSslError>')
     hint_strings_updated = pyqtSignal(list)
     shutdown_complete = pyqtSignal()
     quit = pyqtSignal()
@@ -126,6 +128,7 @@ class TabbedBrowser(TabWidget):
         tab.linkHovered.connect(self._filter.create(self.cur_link_hovered))
         tab.loadProgress.connect(self._filter.create(self.cur_progress))
         tab.loadFinished.connect(self._filter.create(self.cur_load_finished))
+        tab.ssl_errors.connect(self._filter.create(self.cur_ssl_errors))
         tab.page().mainFrame().loadStarted.connect(partial(
             self.on_load_started, tab))
         tab.loadStarted.connect(self._filter.create(self.cur_load_started))

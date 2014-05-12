@@ -69,6 +69,7 @@ class WebView(QWebView):
 
     scroll_pos_changed = pyqtSignal(int, int)
     linkHovered = pyqtSignal(str, str, str)
+    ssl_errors = pyqtSignal('QNetworkReply*', 'QList<QSslError>')
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -88,6 +89,7 @@ class WebView(QWebView):
         self.signal_cache = SignalCache(uncached=['linkHovered'])
         self.page_.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.page_.linkHovered.connect(self.linkHovered)
+        self.page_.networkAccessManager().sslErrors.connect(self.ssl_errors)
         self.linkClicked.connect(self.on_link_clicked)
         self.page_.mainFrame().loadStarted.connect(
             lambda: modeman.maybe_leave('insert', 'load started'))
