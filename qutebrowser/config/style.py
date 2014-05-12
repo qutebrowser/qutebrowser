@@ -45,7 +45,8 @@ def get_stylesheet(template):
         _colordict = ColorDict(config.section('colors'))
     if _fontdict is None:
         _fontdict = FontDict(config.section('fonts'))
-    return template.strip().format(color=_colordict, font=_fontdict)
+    return template.strip().format(color=_colordict, font=_fontdict,
+                                   config=config.instance())
 
 
 def set_register_stylesheet(obj):

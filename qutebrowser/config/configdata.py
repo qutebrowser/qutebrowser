@@ -299,6 +299,14 @@ DATA = OrderedDict([
         ('wrap',
          SettingValue(types.Bool(), 'true'),
          "Whether to wrap when changing tabs."),
+
+        ('min-tab-width',
+         SettingValue(types.Int(), '100'),
+         "The minimum width of a tab."),
+
+        ('max-tab-width',
+         SettingValue(types.Int(), '200'),
+         "The maximum width of a tab."),
     )),
 
     ('webkit', sect.KeyValue(
