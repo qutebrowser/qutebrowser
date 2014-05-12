@@ -52,7 +52,9 @@ class NetworkManager(QNetworkAccessManager):
 
     @pyqtSlot('QNetworkReply', 'QList<QSslError>')
     def on_ssl_errors(self, reply, errors):
-        """This slot is called on SSL/TLS errors.
+        """Decide if SSL errors should be ignored or not.
+
+        This slot is called on SSL/TLS errors by the self.sslErrors signal.
 
         Args:
             reply: The QNetworkReply that is encountering the errors.
@@ -63,7 +65,6 @@ class NetworkManager(QNetworkAccessManager):
         for err in errors:
             message.error('SSL error: {}'.format(err.errorString()))
         reply.ignoreSslErrors()
-
 
     def createRequest(self, op, req, outgoing_data):
         """Return a new QNetworkReply object.
