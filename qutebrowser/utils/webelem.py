@@ -126,19 +126,18 @@ def rect_on_view(elem):
 def javascript_escape(text):
     """Escape values special to javascript in strings.
 
-    This maybe makes them work with QWebElement::evaluateJavaScript.
-    Maybe.
+    With this we should be able to use something like:
+      elem.evaluateJavaScript("this.value='{}'".format(javascript_escape(...)))
+    And all values should work.
     """
     # This is a list of tuples because order matters, and using OrderedDict
     # makes no sense because we don't actually need dict-like properties.
     replacements = [
-        ('\\', r'\\'),
-        ('\n', r'\n'),
-        ('\t', r'\t'),
-        ("'", r"\'"),
-        ('"', r'\"'),
+        ('\\', r'\\'),  # First escape all literal \ signs as \\
+        ("'", r"\'"),   # Then escape ' and " as \' and \"
+        ('"', r'\"'),   # (note it won't hurt when we escape the wrong one)
+        ('\n', r'\n'),  # We also need to escape newlines for some reason.
     ]
-    text = text.rstrip('\n')
     for orig, repl in replacements:
         text = text.replace(orig, repl)
     return text
