@@ -67,21 +67,31 @@ def is_visible(elem):
     Return:
         True if the element is visible, False otherwise.
     """
-    # FIXME we should also check if the frame is visible
     if elem.isNull():
         raise ValueError("Element is a null-element!")
-    frame = elem.webFrame()
+    ## We're starting in the innermost (element) frame and check if every frame
+    ## is visible in its parent.
+    base = elem.webFrame()
+    parent = base.parentFrame()
+    while parent is not None:
+        parentgeom = parent.geometry()
+        parentgeom.translate(parent.scrollPosition())
+        if not parentgeom.intersects(base.geometry()):
+            return False
+        base = parent
+        parent = parent.parentFrame()
     rect = elem.geometry()
+    ## Now check if the element is visible in the frame.
     if (not rect.isValid()) and rect.x() == 0:
         # Most likely an invisible link
         return False
+    frame = elem.webFrame()
     framegeom = frame.geometry()
     framegeom.moveTo(0, 0)
     framegeom.translate(frame.scrollPosition())
-    if not framegeom.intersects(rect):
-        # out of screen
-        return False
-    return True
+    if framegeom.intersects(rect):
+        return True
+    return False
 
 
 def pos_on_screen(elem):
