@@ -85,14 +85,25 @@ def is_visible(elem, mainframe):
         return False
     # First check if the element is visible on screen
     elem_rect = rect_on_view(elem)
-    visible_on_screen = mainframe.geometry().intersects(elem_rect)
+    if elem_rect.isValid():
+        visible_on_screen = mainframe.geometry().intersects(elem_rect)
+    else:
+        # We got an invalid rectangle (width/height 0/0 probably), but this can
+        # still be a valid link.
+        visible_on_screen = mainframe.geometry().contains(elem_rect.topLeft())
     # Then check if it's visible in its frame if it's not in the main frame.
     elem_frame = elem.webFrame()
+    elem_rect = elem.geometry()
     if elem_frame.parentFrame() is not None:
         framegeom = elem_frame.geometry()
         framegeom.moveTo(0, 0)
         framegeom.translate(elem_frame.scrollPosition())
-        visible_in_frame = framegeom.intersects(elem.geometry())
+        if elem_rect.isValid():
+            visible_in_frame = framegeom.intersects(elem_rect)
+        else:
+            # We got an invalid rectangle (width/height 0/0 probably), but this
+            # can still be a valid link.
+            visible_in_frame = framegeom.contains(elem_rect.topLeft())
     else:
         visible_in_frame = visible_on_screen
     return all([visible_on_screen, visible_in_frame])
