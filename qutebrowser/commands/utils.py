@@ -30,7 +30,6 @@ cmd_dict = {}
 
 
 def arg_or_count(arg, count, default=None, countzero=None):
-
     """Get a value based on an argument and count given to a command.
 
     If both arg and count are set, ValueError is raised.
@@ -122,6 +121,7 @@ class register:  # pylint: disable=invalid-name
         Return:
             The original function (unmodified).
         """
+        # pylint: disable=no-member
         names = []
         name = func.__name__.lower() if self.name is None else self.name
         if isinstance(name, str):
@@ -131,7 +131,6 @@ class register:  # pylint: disable=invalid-name
             mainname = name[0]
             names += name
         argspec = inspect.getfullargspec(func)
-        # pylint: disable=no-member
         if 'self' in argspec.args and self.instance is None:
             raise ValueError("{} is a class method, but instance was not "
                              "given!".format(mainname))
