@@ -75,12 +75,8 @@ Bugs
 
 - Pasting highlighted text (to mrxvt) does not work (iggy).
 
-- Hinting problems on http://wiki.gentoo.org/wiki/Lenovo_ThinkPad_T440s (top navbar, e.g. lists, etc.)
-
 - scroll_page doesn't care about always visible bars, so content gets hidden
   e.g. http://www.mtb-news.de/forum/t/welcher-schuh-five-ten-vs-oneal.529148/
-
-- Hinting with multiple frames doesn't work yet
 
 - Command history seems to be broken
 
