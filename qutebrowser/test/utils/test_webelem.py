@@ -96,6 +96,16 @@ class FakeWebFrame:
         self.parentFrame = Mock(return_value=parent)
 
 
+class FakeChildrenFrame:
+
+    """A stub for QWebFrame to test get_child_frames."""
+
+    def __init__(self, children=None):
+        if children is None:
+            children = []
+        self.childFrames = Mock(return_value=children)
+
+
 class IsVisibleInvalidTests(TestCase):
 
     """Tests for is_visible with invalid elements."""
@@ -267,6 +277,57 @@ class JavascriptEscapeTests(TestCase):
     def test_escape(self):
         for before, after in self.STRINGS:
             self.assertEqual(webelem.javascript_escape(before), after)
+
+
+class GetChildFramesTests(TestCase):
+
+    """Check get_child_frames."""
+
+    def test_single_frame(self):
+        """Test get_child_frames with a single frame without children."""
+        frame = FakeChildrenFrame()
+        children = webelem.get_child_frames(frame)
+        self.assertEqual(len(children), 1)
+        self.assertIs(children[0], frame)
+        frame.childFrames.assert_called_once_with()
+
+    def test_one_level(self):
+        r"""Test get_child_frames with this tree:
+
+                  o   parent
+                 / \
+        child1  o   o  child2
+        """
+        child1 = FakeChildrenFrame()
+        child2 = FakeChildrenFrame()
+        parent = FakeChildrenFrame([child1, child2])
+        children = webelem.get_child_frames(parent)
+        self.assertEqual(len(children), 3)
+        self.assertIs(children[0], parent)
+        self.assertIs(children[1], child1)
+        self.assertIs(children[2], child2)
+        parent.childFrames.assert_called_once_with()
+        child1.childFrames.assert_called_once_with()
+        child2.childFrames.assert_called_once_with()
+
+    def test_multiple_levels(self):
+        r"""Test get_child_frames with this tree:
+
+            o      root
+           / \
+          o   o    first
+         /\   /\
+        o  o o  o  second
+        """
+        second = [FakeChildrenFrame() for _ in range(4)]
+        first = [FakeChildrenFrame(second[0:2]),
+                 FakeChildrenFrame(second[2:4])]
+        root = FakeChildrenFrame(first)
+        children = webelem.get_child_frames(root)
+        self.assertEqual(len(children), 7)
+        self.assertIs(children[0], root)
+        for frame in [root] + first + second:
+            frame.childFrames.assert_called_once_with()
 
 
 if __name__ == '__main__':
