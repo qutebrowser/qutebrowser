@@ -24,46 +24,63 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from PyQt5.QtCore import QRect, QPoint
+from PyQt5.QtWebKit import QWebElement
 
 import qutebrowser.utils.webelem as webelem
 
 
 class FakeWebElement:
 
-    def __init__(self, geometry=None, frame=None, null=False):
+    def __init__(self, geometry=None, frame=None, null=False, visibility='',
+                 display=''):
         self.geometry = Mock(return_value=geometry)
         self.webFrame = Mock(return_value=frame)
         self.isNull = Mock(return_value=null)
+        self._visibility = visibility
+        self._display = display
+
+    def styleProperty(self, name, strategy):
+        if strategy != QWebElement.ComputedStyle:
+            raise ValueError("styleProperty called with strategy != "
+                             "ComputedStyle ({})!".format(strategy))
+        if name == 'visibility':
+            return self._visibility
+        elif name == 'display':
+            return self._display
+        else:
+            raise ValueError("styleProperty called with unknown name "
+                             "'{}'".format(name))
 
 
 class FakeWebFrame:
 
-    def __init__(self, geometry, scroll):
+    def __init__(self, geometry, scroll, parent=None):
         self.geometry = Mock(return_value=geometry)
         self.scrollPosition = Mock(return_value=scroll)
+        self.parentFrame = Mock(return_value=parent)
 
 
 class IsVisibleInvalidTests(TestCase):
 
     def setUp(self):
-        self.frame = FakeWebFrame(QRect(0, 0, 100, 100), QPoint(0, 0))
+        self.frame = FakeWebFrame(QRect(0, 0, 100, 100), scroll=QPoint(0, 0))
 
     def test_nullelem(self):
         elem = FakeWebElement(null=True)
         with self.assertRaises(ValueError):
-            webelem.is_visible(elem)
+            webelem.is_visible(elem, self.frame)
         elem.isNull.assert_called_once_with()
         self.assertFalse(elem.geometry.called)
         self.assertFalse(elem.webFrame.called)
 
     def test_invalid_invisible(self):
-        elem = FakeWebElement(geometry=QRect(0, 0, 0, 0))
+        elem = FakeWebElement(geometry=QRect(0, 0, 0, 0), frame=self.frame)
         self.assertFalse(elem.geometry().isValid())
         self.assertEqual(elem.geometry().x(), 0)
-        self.assertFalse(webelem.is_visible(elem))
+        self.assertFalse(webelem.is_visible(elem, self.frame))
 
     def test_invalid_visible(self):
-        elem = FakeWebElement(geometry=QRect(10, 10, 0, 0))
+        elem = FakeWebElement(geometry=QRect(10, 10, 0, 0), frame=self.frame)
         self.assertFalse(elem.geometry().isValid())
         self.assertTrue(webelem.is_visible(elem, self.frame))
 
@@ -71,14 +88,14 @@ class IsVisibleInvalidTests(TestCase):
 class IsVisibleScrollTests(TestCase):
 
     def setUp(self):
-        self.frame = FakeWebFrame(QRect(0, 0, 100, 100), QPoint(10, 10))
+        self.frame = FakeWebFrame(QRect(0, 0, 100, 100), scroll=QPoint(10, 10))
 
     def test_invisible(self):
-        elem = FakeWebElement(geometry=QRect(9, 9, 0, 0))
+        elem = FakeWebElement(geometry=QRect(5, 5, 4, 4), frame=self.frame)
         self.assertFalse(webelem.is_visible(elem, self.frame))
 
     def test_visible(self):
-        elem = FakeWebElement(geometry=QRect(10, 10, 0, 0))
+        elem = FakeWebElement(geometry=QRect(10, 10, 1, 1), frame=self.frame)
         self.assertTrue(webelem.is_visible(elem, self.frame))
 
 
