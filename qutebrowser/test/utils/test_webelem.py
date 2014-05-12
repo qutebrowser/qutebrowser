@@ -181,6 +181,77 @@ class IsVisibleCssTests(TestCase):
         self.assertFalse(webelem.is_visible(elem, self.frame))
 
 
+class IsVisibleIframeTests(TestCase):
+
+    """Tests for is_visible with a child frame."""
+
+    def setUp(self):
+        """Set up this base situation
+              0, 0                         300, 0
+               ##############################
+               #                            #
+          0,10 # iframe  100,10             #
+               #**********                  #
+               #*e       * elem1: 0, 0 in iframe (visible)
+               #*        *                  #
+               #* e      * elem2: 20,90 in iframe (visible)
+               #**********                  #
+         0,110 #.        .100,110           #
+               #.        .                  #
+               #. e      . elem3: 20,150 in iframe (not visible)
+               #..........                  #
+               #     e     elem4: 30, 180 in main frame (visible)
+               #                            #
+               #          frame             #
+               ##############################
+             300, 0                         300, 300
+        """
+        self.frame = FakeWebFrame(QRect(0, 0, 300, 300))
+        self.iframe = FakeWebFrame(QRect(0, 10, 100, 100), parent=self.frame)
+        self.elem1 = FakeWebElement(QRect(0, 0, 10, 10), self.iframe)
+        self.elem2 = FakeWebElement(QRect(20, 90, 10, 10), self.iframe)
+        self.elem3 = FakeWebElement(QRect(20, 150, 10, 10), self.iframe)
+        self.elem4 = FakeWebElement(QRect(30, 180, 10, 10), self.frame)
+
+    def test_not_scrolled(self):
+        """Test base situation."""
+        self.assertTrue(self.frame.geometry().contains(self.iframe.geometry()))
+        self.assertTrue(webelem.is_visible(self.elem1, self.frame))
+        self.assertTrue(webelem.is_visible(self.elem2, self.frame))
+        self.assertFalse(webelem.is_visible(self.elem3, self.frame))
+        self.assertTrue(webelem.is_visible(self.elem4, self.frame))
+
+    def test_iframe_scrolled(self):
+        """Scroll iframe down so elem3 gets visible and elem1/elem2 not."""
+        self.iframe.scrollPosition.return_value = QPoint(0, 100)
+        self.assertFalse(webelem.is_visible(self.elem1, self.frame))
+        self.assertFalse(webelem.is_visible(self.elem2, self.frame))
+        self.assertTrue(webelem.is_visible(self.elem3, self.frame))
+        self.assertTrue(webelem.is_visible(self.elem4, self.frame))
+
+    def test_mainframe_scrolled_iframe_visible(self):
+        """Scroll mainframe down so iframe is partly visible but elem1 not."""
+        self.frame.scrollPosition.return_value = QPoint(0, 50)
+        geom = self.frame.geometry().translated(self.frame.scrollPosition())
+        self.assertFalse(geom.contains(self.iframe.geometry()))
+        self.assertTrue(geom.intersects(self.iframe.geometry()))
+        self.assertFalse(webelem.is_visible(self.elem1, self.frame))
+        self.assertTrue(webelem.is_visible(self.elem2, self.frame))
+        self.assertFalse(webelem.is_visible(self.elem3, self.frame))
+        self.assertTrue(webelem.is_visible(self.elem4, self.frame))
+
+    def test_mainframe_scrolled_iframe_invisible(self):
+        """Scroll mainframe down so iframe is invisible."""
+        self.frame.scrollPosition.return_value = QPoint(0, 110)
+        geom = self.frame.geometry().translated(self.frame.scrollPosition())
+        self.assertFalse(geom.contains(self.iframe.geometry()))
+        self.assertFalse(geom.intersects(self.iframe.geometry()))
+        self.assertFalse(webelem.is_visible(self.elem1, self.frame))
+        self.assertFalse(webelem.is_visible(self.elem2, self.frame))
+        self.assertFalse(webelem.is_visible(self.elem3, self.frame))
+        self.assertTrue(webelem.is_visible(self.elem4, self.frame))
+
+
 class JavascriptEscapeTests(TestCase):
 
     """Check javascript_escape."""
