@@ -6,3 +6,6 @@ __pycache__
 /pkg/pkg
 /pkg/qutebrowser
 /pkg/src
+/pkg/qutebrowser-*.pkg.tar.xz
+/setuptools-*.egg
+/setuptools-*.zip
