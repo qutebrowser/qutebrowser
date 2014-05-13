@@ -193,10 +193,7 @@ class CurCommandDispatcher(QObject):
             count: How many pages to go back.
         """
         for _ in range(count):
-            if self._tabs.currentWidget().page_.history().canGoBack():
-                self._tabs.currentWidget().back()
-            else:
-                message.error("At beginning of history.")
+            if not self._tabs.currentWidget().go_back():
                 break
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
@@ -209,10 +206,7 @@ class CurCommandDispatcher(QObject):
             count: How many pages to go forward.
         """
         for _ in range(count):
-            if self._tabs.currentWidget().page_.history().canGoForward():
-                self._tabs.currentWidget().forward()
-            else:
-                message.error("At end of history.")
+            if not self._tabs.currentWidget().go_forward():
                 break
 
     @cmdutils.register(instance='mainwindow.tabs.cur')

@@ -194,6 +194,32 @@ class WebView(QWebView):
         level = self._zoom.getitem(offset)
         self.zoom_perc(level, fuzzyval=False)
 
+    def go_back(self):
+        """Go back a page in the history.
+
+        Return:
+            True if going back succeeded, False otherwise.
+        """
+        if self.page_.history().canGoBack():
+            self.back()
+            return True
+        else:
+            message.error("At beginning of history.")
+            return False
+
+    def go_forward(self):
+        """Go forward a page in the history.
+
+        Return:
+            True if going forward succeeded, False otherwise.
+        """
+        if self.page_.history().canGoForward():
+            self.forward()
+            return True
+        else:
+            message.error("At end of history.")
+            return False
+
     def shutdown(self, callback=None):
         """Shut down the tab cleanly and remove it.
 
@@ -352,6 +378,14 @@ class WebView(QWebView):
         Return:
             The superclass return value.
         """
+        if e.button() == Qt.XButton1:
+            # Back button on mice which have it.
+            self.go_back()
+            return super().mousePressEvent(e)
+        elif e.button() == Qt.XButton2:
+            # Forward button on mice which have it.
+            self.go_forward()
+            return super().mousePressEvent(e)
         pos = e.pos()
         frame = self.page_.frameAt(pos)
         if frame is None:
