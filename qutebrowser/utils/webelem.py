@@ -25,8 +25,6 @@ Module attributes:
              without "href".
 """
 
-import logging
-
 from PyQt5.QtCore import QRect
 from PyQt5.QtWebKit import QWebElement
 
@@ -116,9 +114,7 @@ def rect_on_view(elem):
     rect = QRect(elem.geometry())
     while frame is not None:
         rect.translate(frame.geometry().topLeft())
-        logging.debug("After adding frame pos: {}".format(rect))
         rect.translate(frame.scrollPosition() * -1)
-        logging.debug("After removing frame scrollpos: {}".format(rect))
         frame = frame.parentFrame()
     return rect
 
