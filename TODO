@@ -88,6 +88,9 @@ Bugs
 
 - Close buttons broken in tabs
 
+- Config errors on start shouldn't be hard errors
+  (e.g. when an user-stylesheet file is deleted)
+
 
 Style
 =====
