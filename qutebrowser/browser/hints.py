@@ -48,6 +48,7 @@ class HintManager(QObject):
         HINT_CSS: The CSS template to use for hints.
 
     Attributes:
+        _started: Whether we started hinting at the moment.
         _frames: The QWebFrames to use.
         _elems: A mapping from keystrings to (elem, label) namedtuples.
         _baseurl: The URL of the current page.
@@ -99,7 +100,9 @@ class HintManager(QObject):
         self._target = None
         self._baseurl = None
         self._to_follow = None
+        self._started = False
         self._frames = []
+        self._connected_frames = []
         modeman.instance().left.connect(self.on_mode_left)
 
     def _hint_strings(self, elems):
@@ -397,8 +400,20 @@ class HintManager(QObject):
         for e, string in zip(visible_elems, strings):
             label = self._draw_label(e, string)
             self._elems[string] = ElemTuple(e, label)
+        self._started = True
         for f in self._frames:
-            f.contentsSizeChanged.connect(self.on_contents_size_changed)
+            # For some reason we get segfaults sometimes when calling
+            # frame.contentsSizeChanged.disconnect() later, maybe because Qt
+            # already deleted the frame?
+            # We work around this by never disconnecting this signal, and here
+            # making sure we don't connect a frame which already was connected
+            # at some point earlier.
+            if f in self._connected_frames:
+                logging.debug("Frame {} already connected!".format(f))
+            else:
+                logging.debug("Connecting frame {}".format(f))
+                f.contentsSizeChanged.connect(self.on_contents_size_changed)
+                self._connected_frames.append(f)
         self.hint_strings_updated.emit(strings)
         modeman.enter('hint', 'HintManager.start')
 
@@ -496,6 +511,12 @@ class HintManager(QObject):
     @pyqtSlot('QSize')
     def on_contents_size_changed(self, _size):
         """Reposition hints if contents size changed."""
+        if not self._started:
+            # We got here because of some earlier hinting, but we can't simply
+            # disconnect frames as this leads to occasional segfaults :-/
+            logging.debug("Not hinting!")
+            return
+        logging.debug("Contents size changed...!")
         for elems in self._elems.values():
             css = self._get_hint_css(elems.elem, elems.label)
             elems.label.setAttribute('style', css)
@@ -505,17 +526,10 @@ class HintManager(QObject):
         """Stop hinting when hinting mode was left."""
         if mode != 'hint':
             return
+        self._started = False
         for elem in self._elems.values():
             if not elem.label.isNull():
                 elem.label.removeFromDocument()
-        if self._frames is not None:
-            for frame in self._frames:
-                if frame is not None:
-                    # The frame which was focused in start() might not be
-                    # available anymore, since Qt might already have deleted it
-                    # (e.g. when a new page is loaded).
-                    frame.contentsSizeChanged.disconnect(
-                        self.on_contents_size_changed)
         self._elems = {}
         self._to_follow = None
         self._target = None
