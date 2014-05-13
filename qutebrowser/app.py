@@ -18,38 +18,15 @@
 """Initialization of qutebrowser and application-wide things."""
 
 ### Things we want to do before normal imports ###
+import qutebrowser.utils.earlyinit as earlyinit
+earlyinit.check_python_version()
+earlyinit.init_faulthandler()
+earlyinit.fix_harfbuzz()
+earlyinit.check_pyqt_core()
+earlyinit.check_pyqt_webkit()
 
-import sys
-
-# Print a nice traceback on segfault -- only available on Python 3.3+, but if
-# it's unavailable, it doesn't matter much.
-try:
-    import faulthandler  # pylint: disable=import-error
-except ImportError:
-    pass
-else:
-    if sys.__stdout__ is not None:
-        # When run with pythonw.exe, sys.__stdout__ can be None:
-        # https://docs.python.org/3/library/sys.html#sys.__stdout__
-        # If we'd enable faulthandler in that case, we just get a weird
-        # exception, so we don't enable faulthandler in that case.
-        #
-        # FIXME at the point we have our config/data dirs, we probably should
-        # re-enable faulthandler to write to a file. Then we can also display
-        # crashes to the user at the next start.
-        faulthandler.enable()
-
-# See https://bugreports.qt-project.org/browse/QTBUG-36099
-# We need to do this before importing PyQt
-import qutebrowser.utils.harfbuzz as harfbuzz
-harfbuzz.fix()
-
-# Check if everything we should be able to import is there
-import qutebrowser.utils.dependencies as dependencies
-dependencies.check()
-
-# Early imports done, normal imports following now.
 import os
+import sys
 import logging
 import subprocess
 import configparser
