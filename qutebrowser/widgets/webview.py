@@ -91,8 +91,7 @@ class WebView(QWebView):
         self.page_.linkHovered.connect(self.linkHovered)
         self.page_.networkAccessManager().sslErrors.connect(self.ssl_errors)
         self.linkClicked.connect(self.on_link_clicked)
-        self.page_.mainFrame().loadStarted.connect(
-            lambda: modeman.maybe_leave('insert', 'load started'))
+        self.page_.mainFrame().loadStarted.connect(self.on_load_started)
         self.loadFinished.connect(self.on_load_finished)
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
 
@@ -278,6 +277,12 @@ class WebView(QWebView):
         """Post a new mouseevent from a hintmanager."""
         self.setFocus()
         QApplication.postEvent(self, evt)
+
+    @pyqtSlot()
+    def on_load_started(self):
+        """Leave insert/hint mode when a new page is loading."""
+        for mode in ['insert', 'hint']:
+            modeman.maybe_leave(mode, 'load started')
 
     @pyqtSlot(bool)
     def on_load_finished(self, ok):
