@@ -86,6 +86,8 @@ Bugs
 
 - Command history seems to be broken
 
+- Close buttons broken in tabs
+
 
 Style
 =====
@@ -124,6 +126,8 @@ Major features
 Minor features
 ==============
 
+- Close tabs on right click
+- Up/Down not for history
 - N for prev search match
 - search highlighting
 - readline like shortcuts (like C-w) for command prompt
