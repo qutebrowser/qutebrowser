@@ -161,6 +161,7 @@ hints
 - more intelligent clicking (end of textfields)
 - filter close hints when it's the same link
 - ignore keypresses shortly after link following
+- uppercase hint chars without requiring upper case to type (easier to distinguish)
 
 Useful things
 =============
