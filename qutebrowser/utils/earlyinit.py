@@ -13,12 +13,20 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Things which need to be done really early (e.g. before importing Qt)."""
+"""Things which need to be done really early (e.g. before importing Qt).
+
+These functions are supposed to get called in the order they're in this file.
+At the very start, we aren't even sure about the Python version used, so we
+import more exotic modules later.
+"""
 
 import os
 import sys
 
 
+# First we check the version of Python. This code should run fine with python2
+# and python3. We don't have Qt available here yet, so we just print an error
+# to stdout.
 def check_python_version():
     """Check if correct python version is run."""
     if sys.hexversion < 0x03030000:
@@ -28,23 +36,21 @@ def check_python_version():
         sys.exit(1)
 
 
+# At this point we can be sure we have all python 3.3 features available.
+# Now we initialize the faulthandler as early as possible, so we theoretically
+# could catch segfaults occuring later.
 def init_faulthandler():
     """Enable faulthandler module if available.
 
-    This print a nice traceback on segfauls. It's only available on Python
-    3.3+, but if it's unavailable, it doesn't matter much (we just ignore
-    that).
+    This print a nice traceback on segfauls.
     """
-
-    try:
-        import faulthandler  # pylint: disable=import-error
-    except ImportError:
-        return
-    if sys.__stdout__ is not None:
-        # When run with pythonw.exe, sys.__stdout__ can be None:
-        # https://docs.python.org/3/library/sys.html#sys.__stdout__
+    import faulthandler
+    from signal import SIGUSR1
+    if sys.stderr is not None:
+        # When run with pythonw.exe, sys.stderr can be None:
+        # https://docs.python.org/3/library/sys.html#sys.__stderr__
         # If we'd enable faulthandler in that case, we just get a weird
-        # exception, so we don't enable faulthandler in that case.
+        # exception, so we don't enable faulthandler if we have no stdout.
         #
         # FIXME at the point we have our config/data dirs, we probably should
         # re-enable faulthandler to write to a file. Then we can also display
@@ -53,10 +59,11 @@ def init_faulthandler():
     faulthandler.enable()
     if hasattr(faulthandler, 'register'):
         # If available, we also want a traceback on SIGUSR1.
-        from signal import SIGUSR1
         faulthandler.register(SIGUSR1)
 
 
+# Now the faulthandler is enabled we fix the Qt harfbuzzing library, before
+# importing any Qt stuff.
 def fix_harfbuzz():
     """Fix harfbuzz issues.
 
@@ -67,13 +74,17 @@ def fix_harfbuzz():
     See https://bugreports.qt-project.org/browse/QTBUG-36099
     """
     if sys.platform.startswith('linux'):
-        # Switch to old but stable font rendering engine
         os.environ['QT_HARFBUZZ'] = 'old'
 
 
+# At this point we can safely import Qt stuff, but we can't be sure it's
+# actually available.
+# Here we check if QtCore is available, and if not, print a message to the
+# console.
 def check_pyqt_core():
     """Check if PyQt core is installed."""
     import textwrap
+    import traceback
     try:
         import PyQt5.QtCore  # pylint: disable=unused-variable
     except ImportError:
@@ -98,21 +109,21 @@ def check_pyqt_core():
                 Check your package manager for similiarly named packages.
             """).strip())
         if '--debug' in sys.argv:
-            import traceback
             print()
             traceback.print_exc()
         sys.exit(1)
 
 
+# Now we can be sure QtCore is available, so we can print dialogs on errors, so
+# people only using the GUI notice them as well.
 def check_pyqt_webkit():
     """Check if PyQt WebKit is installed."""
-    # At this point we can rely on QtCore being available, so we can display an
-    # error dialog
+    from PyQt5.QtWidgets import QApplication, QMessageBox
+    import textwrap
+    import traceback
     try:
-        import PyQt5.QtWebKit
+        import PyQt5.QtWebKit  # pylint: disable=unused-variable
     except ImportError:
-        from PyQt5.QtWidgets import QApplication, QMessageBox
-        import textwrap
         app = QApplication(sys.argv)
         msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
                              textwrap.dedent("""
@@ -129,10 +140,8 @@ def check_pyqt_webkit():
                 Check your package manager for similiarly named packages.
             """).strip())
         if '--debug' in sys.argv:
-            import traceback
             print()
             traceback.print_exc()
         msgbox.resize(msgbox.sizeHint())
         msgbox.exec_()
         app.quit()
-    # At this point we have everything we need.
