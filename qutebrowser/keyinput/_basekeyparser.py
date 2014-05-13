@@ -342,7 +342,7 @@ class BaseKeyParser(QObject):
                 self.bindings[key] = cmd
             else:
                 logging.warning(
-                    "Ignoring keychain '{}' in section '{}\" because "
+                    "Ignoring keychain '{}' in section '{}' because "
                     "keychains are not supported there.".format(key, sectname))
 
     def execute(self, cmdstr, keytype, count=None):

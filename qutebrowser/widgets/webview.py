@@ -146,7 +146,7 @@ class WebView(QWebView):
                 # Let's hope flash/java stuff has an application/* mimetype OR
                 # at least a classid attribute. Oh, and let's home images/...
                 # DON"T have a classid attribute. HTML sucks.
-                logging.debug("<object type=\"{}\"> clicked.".format(objtype))
+                logging.debug("<object type='{}'> clicked.".format(objtype))
                 return True
         return False
 

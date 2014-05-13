@@ -43,7 +43,7 @@ class ValidationError(ValueError):
     option = None
 
     def __init__(self, value, msg):
-        super().__init__("Invalid value \"{}\" - {}".format(value, msg))
+        super().__init__("Invalid value '{}' - {}".format(value, msg))
 
 
 class ValidValues:
