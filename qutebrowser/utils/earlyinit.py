@@ -15,28 +15,17 @@
 
 """Things which need to be done really early (e.g. before importing Qt).
 
-These functions are supposed to get called in the order they're in this file.
-At the very start, we aren't even sure about the Python version used, so we
-import more exotic modules later.
+At this point we can be sure we have all python 3.3 features available.
 """
 
 import os
 import sys
+import faulthandler
+import textwrap
+import traceback
+from signal import SIGUSR1
 
 
-# First we check the version of Python. This code should run fine with python2
-# and python3. We don't have Qt available here yet, so we just print an error
-# to stdout.
-def check_python_version():
-    """Check if correct python version is run."""
-    if sys.hexversion < 0x03030000:
-        print("Fatal error: At least Python 3.3 is required to run "
-              "qutebrowser, but {} is installed!".format(
-                  '.'.join(map(str, sys.version_info[:3]))))
-        sys.exit(1)
-
-
-# At this point we can be sure we have all python 3.3 features available.
 # Now we initialize the faulthandler as early as possible, so we theoretically
 # could catch segfaults occuring later.
 def init_faulthandler():
@@ -44,8 +33,6 @@ def init_faulthandler():
 
     This print a nice traceback on segfauls.
     """
-    import faulthandler
-    from signal import SIGUSR1
     if sys.stderr is not None:
         # When run with pythonw.exe, sys.stderr can be None:
         # https://docs.python.org/3/library/sys.html#sys.__stderr__
@@ -83,8 +70,6 @@ def fix_harfbuzz():
 # console.
 def check_pyqt_core():
     """Check if PyQt core is installed."""
-    import textwrap
-    import traceback
     try:
         import PyQt5.QtCore  # pylint: disable=unused-variable
     except ImportError:
@@ -107,9 +92,9 @@ def check_pyqt_core():
 
             For other distributions:
                 Check your package manager for similiarly named packages.
-            """).strip())
+            """).strip(), file=sys.stderr)
         if '--debug' in sys.argv:
-            print()
+            print(file=sys.stderr)
             traceback.print_exc()
         sys.exit(1)
 
@@ -119,8 +104,6 @@ def check_pyqt_core():
 def check_pyqt_webkit():
     """Check if PyQt WebKit is installed."""
     from PyQt5.QtWidgets import QApplication, QMessageBox
-    import textwrap
-    import traceback
     try:
         import PyQt5.QtWebKit  # pylint: disable=unused-variable
     except ImportError:
@@ -140,8 +123,9 @@ def check_pyqt_webkit():
                 Check your package manager for similiarly named packages.
             """).strip())
         if '--debug' in sys.argv:
-            print()
+            print(file=sys.stderr)
             traceback.print_exc()
         msgbox.resize(msgbox.sizeHint())
         msgbox.exec_()
         app.quit()
+        sys.exit(1)

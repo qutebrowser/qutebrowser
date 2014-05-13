@@ -18,8 +18,9 @@
 """Initialization of qutebrowser and application-wide things."""
 
 ### Things we want to do before normal imports ###
+from qutebrowser.utils.checkpyver import check_python_version
+check_python_version()
 import qutebrowser.utils.earlyinit as earlyinit
-earlyinit.check_python_version()
 earlyinit.init_faulthandler()
 earlyinit.fix_harfbuzz()
 earlyinit.check_pyqt_core()
