@@ -25,7 +25,6 @@ import os.path
 import urllib.request
 from urllib.parse import urljoin, urlencode
 from functools import reduce
-from pkg_resources import resource_string
 
 from PyQt5.QtCore import QCoreApplication, QStandardPaths
 
@@ -41,7 +40,14 @@ def read_file(filename):
     Return:
         The file contents as string.
     """
-    return resource_string(qutebrowser.__name__, filename).decode('UTF-8')
+    if hasattr(sys, 'frozen'):
+        # cx_Freeze doesn't support pkg_resources :(
+        fn = os.path.join(os.path.dirname(sys.executable), filename)
+        with open(fn, 'r', encoding='UTF-8') as f:
+            return f.read()
+    else:
+        from pkg_resources import resource_string
+        return resource_string(qutebrowser.__name__, filename).decode('UTF-8')
 
 
 def dotted_getattr(obj, path):
