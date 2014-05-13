@@ -22,11 +22,13 @@ Builds a standalone executable.
 """
 
 
+import os
 import sys
 import platform
 
 from cx_Freeze import setup, Executable
 
+sys.path.insert(0, os.getcwd())
 from scripts.setupdata import setupdata
 
 

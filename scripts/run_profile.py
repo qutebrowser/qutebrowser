@@ -8,6 +8,8 @@ from tempfile import mkdtemp
 from subprocess import call
 from shutil import rmtree
 
+sys.path.insert(0, getcwd())
+
 from qutebrowser.app import QuteBrowser
 
 tempdir = mkdtemp()

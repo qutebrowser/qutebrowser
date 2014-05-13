@@ -18,6 +18,9 @@
 
 """Data used by setup.py and scripts/freeze.py"""
 
+import sys
+import os
+sys.path.insert(0, os.getcwd())
 import qutebrowser
 
 
