@@ -46,6 +46,7 @@ class HintManager(QObject):
 
     Class attributes:
         HINT_CSS: The CSS template to use for hints.
+        HINT_TEXTS: Text displayed for different hinting modes.
 
     Attributes:
         _started: Whether we started hinting at the moment.
@@ -83,6 +84,18 @@ class HintManager(QObject):
         left: {left}px;
         top: {top}px;
     """
+
+    HINT_TEXTS = {
+        Target.normal: "Follow hint...",
+        Target.tab: "Follow hint in new tab...",
+        Target.bgtab: "Follow hint in background tab...",
+        Target.yank: "Yank hint to clipboard...",
+        Target.yank_primary: "Yank hint to primary selection...",
+        Target.cmd: "Set hint in commandline...",
+        Target.cmd_tab: "Set hint in commandline as new tab...",
+        Target.cmd_bgtab: "Set hint in commandline as background tab...",
+        Target.rapid: "Follow hint (rapid mode)...",
+    }
 
     hint_strings_updated = pyqtSignal(list)
     mouse_event = pyqtSignal('QMouseEvent')
@@ -331,6 +344,22 @@ class HintManager(QObject):
                     return e
         return None
 
+    def _connect_frame_signals(self):
+        """Connect the contentsSizeChanged signals to all frames."""
+        for f in self._frames:
+            # For some reason we get segfaults sometimes when calling
+            # frame.contentsSizeChanged.disconnect() later, maybe because Qt
+            # already deleted the frame?
+            # We work around this by never disconnecting this signal, and here
+            # making sure we don't connect a frame which already was connected
+            # at some point earlier.
+            if f in self._connected_frames:
+                logging.debug("Frame {} already connected!".format(f))
+            else:
+                logging.debug("Connecting frame {}".format(f))
+                f.contentsSizeChanged.connect(self.on_contents_size_changed)
+                self._connected_frames.append(f)
+
     def follow_prevnext(self, frame, baseurl, prev=False, newtab=False):
         """Click a "previous"/"next" element on the page.
 
@@ -365,55 +394,30 @@ class HintManager(QObject):
         Emit:
             hint_strings_updated: Emitted to update keypraser.
         """
-        self._target = target
-        self._baseurl = baseurl
         if mainframe is None:
             # This should never happen since we check frame before calling
             # start. But since we had a bug where frame is None in
             # on_mode_left, we are extra careful here.
             raise ValueError("start() was called with frame=None")
-        self._frames = webelem.get_child_frames(mainframe)
         elems = []
         for f in self._frames:
             elems += f.findAllElements(webelem.SELECTORS[group])
         filterfunc = webelem.FILTERS.get(group, lambda e: True)
-        visible_elems = []
-        for e in elems:
-            if filterfunc(e) and webelem.is_visible(e, mainframe):
-                visible_elems.append(e)
+        visible_elems = [e for e in elems if filterfunc(e) and
+                         webelem.is_visible(e, mainframe)]
         if not visible_elems:
             message.error("No elements found.")
             return
-        texts = {
-            Target.normal: "Follow hint...",
-            Target.tab: "Follow hint in new tab...",
-            Target.bgtab: "Follow hint in background tab...",
-            Target.yank: "Yank hint to clipboard...",
-            Target.yank_primary: "Yank hint to primary selection...",
-            Target.cmd: "Set hint in commandline...",
-            Target.cmd_tab: "Set hint in commandline as new tab...",
-            Target.cmd_bgtab: "Set hint in commandline as background tab...",
-            Target.rapid: "Follow hint (rapid mode)...",
-        }
-        message.text(texts[target])
+        self._target = target
+        self._baseurl = baseurl
+        self._frames = webelem.get_child_frames(mainframe)
+        message.text(self.HINT_TEXTS[target])
         strings = self._hint_strings(visible_elems)
         for e, string in zip(visible_elems, strings):
             label = self._draw_label(e, string)
             self._elems[string] = ElemTuple(e, label)
         self._started = True
-        for f in self._frames:
-            # For some reason we get segfaults sometimes when calling
-            # frame.contentsSizeChanged.disconnect() later, maybe because Qt
-            # already deleted the frame?
-            # We work around this by never disconnecting this signal, and here
-            # making sure we don't connect a frame which already was connected
-            # at some point earlier.
-            if f in self._connected_frames:
-                logging.debug("Frame {} already connected!".format(f))
-            else:
-                logging.debug("Connecting frame {}".format(f))
-                f.contentsSizeChanged.connect(self.on_contents_size_changed)
-                self._connected_frames.append(f)
+        self._connect_frame_signals()
         self.hint_strings_updated.emit(strings)
         modeman.enter('hint', 'HintManager.start')
 
