@@ -1,4 +1,4 @@
-qutebrowser is a browsed based on PyQt5 which aims to be keyboard-focused with
-an input similiar to vim.
+qutebrowser is a browser based on PyQt5 which aims to be keyboard-focused with
+an input similar to vim.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
