@@ -101,6 +101,7 @@ class Url(TextBase):
 
     @pyqtSlot('QNetworkReply*', 'QList<QSslError>')
     def on_ssl_errors(self, _reply, _errors):
+        """Set a flag to get a warning when there were SSL errors."""
         self._ssl_errors = True
 
     @pyqtSlot(bool)
