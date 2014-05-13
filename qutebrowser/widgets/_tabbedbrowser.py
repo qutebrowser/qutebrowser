@@ -104,6 +104,17 @@ class TabbedBrowser(TabWidget):
         # FIXME adjust this to font size
         self.setIconSize(QSize(12, 12))
 
+    @property
+    def widgets(self):
+        """Get a list of open tab widgets.
+
+        We don't implement this as generator so we can delete tabs while
+        iterating over the list."""
+        w = []
+        for i in range(self.count()):
+            w.append(self.widget(i))
+        return w
+
     def _cb_tab_shutdown(self, tab):
         """Called after a tab has been shut down completely.
 
@@ -153,7 +164,8 @@ class TabbedBrowser(TabWidget):
         """
         idx = self.indexOf(tab)
         if idx == -1:
-            raise ValueError("tab is not contained in TabbedWidget!")
+            raise ValueError("tab {} is not contained in "
+                             "TabbedWidget!".format(tab))
         url = tab.url()
         if not url.isEmpty():
             self._url_stack.append(url)
@@ -252,9 +264,7 @@ class TabbedBrowser(TabWidget):
             logging.debug("No tabs -> shutdown complete")
             self.shutdown_complete.emit()
             return
-        for tabidx in range(tabcount):
-            logging.debug("Shutting down tab {}/{}".format(tabidx, tabcount))
-            tab = self.widget(tabidx)
+        for tab in self.widgets:
             tab.shutdown(callback=partial(self._cb_tab_shutdown, tab))
 
     @cmdutils.register(instance='mainwindow.tabs')
@@ -284,10 +294,10 @@ class TabbedBrowser(TabWidget):
     @cmdutils.register(instance='mainwindow.tabs')
     def only(self):
         """Close all tabs except for the current one."""
-        for i in range(self.count() - 1):
-            if i == self.currentIndex():
+        for tab in self.widgets:
+            if tab is self.currentWidget():
                 continue
-            self._close_tab(self.widget(i))
+            self._close_tab(tab)
 
     @cmdutils.register(instance='mainwindow.tabs', split=False, name='tabopen')
     def tabopen_cmd(self, url):
@@ -463,9 +473,9 @@ class TabbedBrowser(TabWidget):
             tab.on_config_changed(section, option)
         if (section, option) == ('tabbar', 'show-favicons'):
             show = config.get('tabbar', 'show-favicons')
-            for i in range(self.count()):
+            for i, tab in enumerate(self.widgets):
                 if show:
-                    self.setTabIcon(i, self.widget(i).icon())
+                    self.setTabIcon(i, tab.icon())
                 else:
                     self.setTabIcon(i, EmptyTabIcon())
 

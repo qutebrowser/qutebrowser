@@ -365,9 +365,9 @@ class QuteBrowser(QApplication):
             return pages
         if self.mainwindow.tabs is None:
             return pages
-        for tabidx in range(self.mainwindow.tabs.count()):
+        for tab in self.mainwindow.tabs.widgets:
             try:
-                url = self.mainwindow.tabs.widget(tabidx).url().toString()
+                url = tab.url().toString()
                 if url:
                     pages.append(url)
             except Exception:  # pylint: disable=broad-except
