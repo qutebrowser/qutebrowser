@@ -133,6 +133,7 @@ Major features
 Minor features
 ==============
 
+- Git version in :crash when frozen
 - Zoom with ctrl + mousewheel
 - Range-check count values and other values
   Underlying C functions have a maximum value which can be passed.
