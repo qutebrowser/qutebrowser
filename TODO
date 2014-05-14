@@ -128,6 +128,8 @@ Major features
 Minor features
 ==============
 
+- Range-check count values and other values
+  Underlying C functions have a maximum value which can be passed.
 - Close tabs on right click
 - Up/Down not for history
 - N for prev search match
