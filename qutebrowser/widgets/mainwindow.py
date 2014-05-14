@@ -24,11 +24,12 @@ from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QCoreApplication
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 from PyQt5.QtWebKitWidgets import QWebInspector
 
+import qutebrowser.commands.utils as cmdutils
+import qutebrowser.config.config as config
+import qutebrowser.utils.misc as utils
 from qutebrowser.widgets.statusbar.bar import StatusBar
 from qutebrowser.widgets._tabbedbrowser import TabbedBrowser
 from qutebrowser.widgets._completion import CompletionView
-import qutebrowser.commands.utils as cmdutils
-import qutebrowser.config.config as config
 
 
 class MainWindow(QWidget):
@@ -102,7 +103,9 @@ class MainWindow(QWidget):
             height = int(confheight)
         # hpoint now would be the bottom-left edge of the widget if it was on
         # the top of the main window.
-        topleft = QPoint(0, self.height() - self.status.height() - height)
+        topleft_y = self.height() - self.status.height() - height
+        topleft_y = utils.check_overflow(topleft_y, 'int', fatal=False)
+        topleft = QPoint(0, topleft_y)
         bottomright = self.status.geometry().topRight()
         if self.inspector.isVisible():
             topleft -= QPoint(0, self.inspector.height())

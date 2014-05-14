@@ -246,6 +246,7 @@ class TabbedBrowser(TabWidget):
         if count is None:
             return self.currentWidget()
         elif 1 <= count <= self.count():
+            cmdutils.check_overflow(count + 1, 'int')
             return self.widget(count - 1)
         else:
             return None
@@ -418,6 +419,7 @@ class TabbedBrowser(TabWidget):
                                         countzero=self.count())
         except ValueError as e:
             raise CommandError(e)
+        cmdutils.check_overflow(idx + 1, 'int')
         if 1 <= idx <= self.count():
             self.setCurrentIndex(idx - 1)
         else:
@@ -448,6 +450,8 @@ class TabbedBrowser(TabWidget):
         cur_idx = self.currentIndex()
         icon = self.tabIcon(cur_idx)
         label = self.tabText(cur_idx)
+        cmdutils.check_overflow(cur_idx, 'int')
+        cmdutils.check_overflow(next_idx, 'int')
         self.removeTab(cur_idx)
         self.insertTab(new_idx, tab, icon, label)
         self.setCurrentIndex(new_idx)

@@ -24,9 +24,30 @@ Module attributes:
 import inspect
 from collections import Iterable
 
+import qutebrowser.utils.misc as utils
 from qutebrowser.commands._command import Command
+from qutebrowser.commands.exceptions import CommandError
 
 cmd_dict = {}
+
+
+def check_overflow(arg, ctype):
+    """Check if the given argument is in bounds for the given type.
+
+    Args:
+        arg: The argument to check
+        ctype: The C/Qt type to check as a string.
+
+    Raise:
+        CommandError if the argument is out of bounds.
+        ValueError if the given ctype is unknown.
+    """
+    # FIXME we somehow should have nicer exceptions...
+    try:
+        utils.check_overflow(arg, ctype)
+    except OverflowError:
+        raise CommandError("Numeric argument is too large for internal {} "
+                           "representation.".format(ctype))
 
 
 def arg_or_count(arg, count, default=None, countzero=None):

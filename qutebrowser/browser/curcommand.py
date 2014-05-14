@@ -28,12 +28,13 @@ from PyQt5.QtCore import pyqtSlot, Qt, QObject, QProcess
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 
-import qutebrowser.utils.url as urlutils
-import qutebrowser.utils.message as message
 import qutebrowser.commands.utils as cmdutils
-import qutebrowser.utils.webelem as webelem
 import qutebrowser.config.config as config
 import qutebrowser.browser.hints as hints
+import qutebrowser.utils.url as urlutils
+import qutebrowser.utils.message as message
+import qutebrowser.utils.webelem as webelem
+import qutebrowser.utils.misc as utils
 from qutebrowser.utils.misc import shell_escape
 from qutebrowser.commands.exceptions import CommandError
 
@@ -75,6 +76,7 @@ class CurCommandDispatcher(QObject):
             perc = int(count)
         else:
             perc = float(perc)
+        perc = utils.check_overflow(perc, 'int', fatal=False)
         frame = self._tabs.currentWidget().page_.currentFrame()
         m = frame.scrollBarMaximum(orientation)
         if m == 0:
@@ -294,6 +296,8 @@ class CurCommandDispatcher(QObject):
         """
         dx = int(int(count) * float(dx))
         dy = int(int(count) * float(dy))
+        cmdutils.check_overflow(dx, 'int')
+        cmdutils.check_overflow(dy, 'int')
         self._tabs.currentWidget().page_.currentFrame().scroll(dx, dy)
 
     @cmdutils.register(instance='mainwindow.tabs.cur', name='scroll_perc_x',
@@ -333,8 +337,11 @@ class CurCommandDispatcher(QObject):
         """
         frame = self._tabs.currentWidget().page_.currentFrame()
         size = frame.geometry()
-        frame.scroll(int(count) * float(mx) * size.width(),
-                     int(count) * float(my) * size.height())
+        dx = int(count) * float(mx) * size.width()
+        dy = int(count) * float(my) * size.height()
+        cmdutils.check_overflow(dx, 'int')
+        cmdutils.check_overflow(dy, 'int')
+        frame.scroll(dx, dy)
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
     def yank(self, sel=False):

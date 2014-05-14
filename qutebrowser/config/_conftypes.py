@@ -568,6 +568,8 @@ class WebKitBytes(BaseType):
         if self.maxsize is not None and val > self.maxsize:
             raise ValidationError(value, "must be {} "
                                          "maximum!".format(self.maxsize))
+        if val < 0:
+            raise ValidationError(value, "must be 0 minimum!")
 
     def transform(self, value):
         if value == '':

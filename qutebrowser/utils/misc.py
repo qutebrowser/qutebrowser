@@ -15,7 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Other utilities which don't fit anywhere else."""
+"""Other utilities which don't fit anywhere else.
+
+Module attributes:
+    MAXVAL: A dictionary of C/Qt types (as string) mapped to their maximum
+            value.
+"""
 
 import os
 import re
@@ -29,6 +34,49 @@ from functools import reduce
 from PyQt5.QtCore import QCoreApplication, QStandardPaths
 
 import qutebrowser
+
+
+MAXVALS = {
+    'int': 2 ** 31 - 1,
+    'int64': 2 ** 63 - 1,
+}
+
+MINVALS = {
+    'int': -(2 ** 31),
+    'int64': -(2 ** 63),
+}
+
+
+def check_overflow(arg, ctype, fatal=True):
+    """Check if the given argument is in bounds for the given type.
+
+    Args:
+        arg: The argument to check
+        ctype: The C/Qt type to check as a string.
+        fatal: Wether to raise exceptions (True) or truncate values (False)
+
+    Return
+        The truncated argument if fatal=False
+        The original argument if it's in bounds.
+
+    Raise:
+        OverflowError if the argument is out of bounds and fatal=True.
+    """
+    # FIXME we somehow should have nicer exceptions...
+    maxval = MAXVALS[ctype]
+    minval = MINVALS[ctype]
+    if arg > maxval:
+        if fatal:
+            raise OverflowError(arg)
+        else:
+            return maxval
+    elif arg < minval:
+        if fatal:
+            raise OverflowError(arg)
+        else:
+            return minval
+    else:
+        return arg
 
 
 def read_file(filename):

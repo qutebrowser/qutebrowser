@@ -25,16 +25,12 @@ DATA: The config defaults, an OrderedDict of sections.
 """
 
 import re
-import struct
 from collections import OrderedDict
 
 from qutebrowser.config._value import SettingValue
 import qutebrowser.config._conftypes as types
 import qutebrowser.config._sections as sect
-
-
-INT_MAX = 2 ** (8 * struct.calcsize('@i')) // 2 - 1
-INT64_MAX = 2 ** 64 // 2 - 1
+from qutebrowser.utils.misc import MAXVALS
 
 
 FIRST_COMMENT = r"""
@@ -253,7 +249,7 @@ DATA = OrderedDict([
 
     ('input', sect.KeyValue(
         ('timeout',
-         SettingValue(types.Int(minval=0), '500'),
+         SettingValue(types.Int(minval=0, maxval=MAXVALS['int']), '500'),
          "Timeout for ambiguous keybindings."),
 
         ('insert-mode-on-plugins',
@@ -301,11 +297,11 @@ DATA = OrderedDict([
          "Whether to wrap when changing tabs."),
 
         ('min-tab-width',
-         SettingValue(types.Int(), '100'),
+         SettingValue(types.Int(minval=1), '100'),
          "The minimum width of a tab."),
 
         ('max-tab-width',
-         SettingValue(types.Int(), '200'),
+         SettingValue(types.Int(minval=1), '200'),
          "The maximum width of a tab."),
 
         ('show-favicons',
@@ -477,37 +473,43 @@ DATA = OrderedDict([
          "Font family for fantasy fonts."),
 
         ('font-size-minimum',
-         SettingValue(types.Int(none=True), ''),
+         SettingValue(types.Int(none=True, minval=1, maxval=MAXVALS['int']),
+                      ''),
          "The hard minimum font size."),
 
         ('font-size-minimum-logical',
-         SettingValue(types.Int(none=True), ''),
+         SettingValue(types.Int(none=True, minval=1, maxval=MAXVALS['int']),
+                      ''),
          "The minimum logical font size that is applied when zooming out."),
 
         ('font-size-default',
-         SettingValue(types.Int(none=True), ''),
+         SettingValue(types.Int(none=True, minval=1, maxval=MAXVALS['int']),
+                      ''),
          "The default font size for regular text."),
 
         ('font-size-default-fixed',
-         SettingValue(types.Int(none=True), ''),
+         SettingValue(types.Int(none=True, minval=1, maxval=MAXVALS['int']),
+                      ''),
          "The default font size for fixed-pitch text."),
 
         ('maximum-pages-in-cache',
-         SettingValue(types.Int(none=True), ''),
+         SettingValue(types.Int(none=True, minval=0, maxval=MAXVALS['int']),
+                      ''),
          "Sets the maximum number of pages to hold in the memory page cache."),
 
         ('object-cache-capacities',
-         SettingValue(types.WebKitBytesList(length=3, maxsize=INT_MAX), ''),
+         SettingValue(types.WebKitBytesList(length=3, maxsize=MAXVALS['int']),
+                      ''),
          "Specifies the capacities for the memory cache for dead objects "
          "such as stylesheets or scripts. Three values are expected: "
          "cacheMinDeadCapacity, cacheMaxDead, totalCapacity"),
 
         ('offline-storage-default-quota',
-         SettingValue(types.WebKitBytes(maxsize=INT64_MAX), ''),
+         SettingValue(types.WebKitBytes(maxsize=MAXVALS['int64']), ''),
          "Default quota for new offline storage databases."),
 
         ('offline-web-application-cache-quota',
-         SettingValue(types.WebKitBytes(maxsize=INT64_MAX), ''),
+         SettingValue(types.WebKitBytes(maxsize=MAXVALS['int64']), ''),
          "Quota for the offline web application cache."),
     )),
 

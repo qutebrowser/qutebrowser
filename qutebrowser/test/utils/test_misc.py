@@ -34,6 +34,48 @@ import qutebrowser.utils.misc as utils
 from qutebrowser.test.helpers import environ_set_temp
 
 
+class CheckOverflowTests(TestCase):
+
+    """Test check_overflow."""
+
+    INT32_MIN = -(2 ** 31)
+    INT32_MAX = 2 ** 31 - 1
+    INT64_MIN = -(2 ** 63)
+    INT64_MAX = 2 ** 63 - 1
+
+    GOOD_VALUES = {
+        'int': [-1, 0, 1, 23.42, INT32_MIN, INT32_MAX],
+        'int64': [-1, 0, 1, 23.42, INT64_MIN, INT64_MAX],
+    }
+
+    BAD_VALUES = {
+        'int': [(INT32_MIN - 1, INT32_MIN),
+                (INT32_MAX + 1, INT32_MAX),
+                (float(INT32_MAX + 1), INT32_MAX)],
+        'int64': [(INT64_MIN - 1, INT64_MIN),
+                  (INT64_MAX + 1, INT64_MAX),
+                  (float(INT64_MAX + 1), INT64_MAX)],
+    }
+
+    def test_good_values(self):
+        for ctype, vals in self.GOOD_VALUES.items():
+            for val in vals:
+                utils.check_overflow(val, ctype)
+
+    def test_bad_values_fatal(self):
+        for ctype, vals in self.BAD_VALUES.items():
+            for (val, _) in vals:
+                with self.assertRaises(OverflowError, msg=ctype):
+                    utils.check_overflow(val, ctype)
+
+    def test_bad_values_nonfatal(self):
+        for ctype, vals in self.BAD_VALUES.items():
+            for (val, replacement) in vals:
+                newval = utils.check_overflow(val, ctype, fatal=False)
+                self.assertEqual(newval, replacement,
+                                 "{}: {}".format(ctype, val))
+
+
 class ReadFileTests(TestCase):
 
     """Test read_file."""
