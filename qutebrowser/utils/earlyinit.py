@@ -46,7 +46,7 @@ def init_faulthandler():
     faulthandler.enable()
     if hasattr(faulthandler, 'register') and hasattr(signal, 'SIGUSR1'):
         # If available, we also want a traceback on SIGUSR1.
-        faulthandler.register(signal.SIGUSR1)
+        faulthandler.register(signal.SIGUSR1)  # pylint: disable=no-member
 
 
 # Now the faulthandler is enabled we fix the Qt harfbuzzing library, before
