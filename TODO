@@ -50,6 +50,8 @@ Bugs
 ====
 
 - All kind of FIXMEs
+- restart sometimes abort()s on QApplication __init__
+- qutebrowser :restart  loops endlessly
 - Super key shows up as ៀ\udc53  in logs
 - Funky font rendering with tewi:
   http://a.pomf.se/ecgzlx.png
