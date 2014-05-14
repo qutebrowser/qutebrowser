@@ -297,8 +297,8 @@ class CurCommandDispatcher(QObject):
             dy: How much to scroll in x-direction.
             count: multiplier
         """
-        dx = int(count) * float(dx)
-        dy = int(count) * float(dy)
+        dx = int(int(count) * float(dx))
+        dy = int(int(count) * float(dy))
         self._tabs.currentWidget().page_.currentFrame().scroll(dx, dy)
 
     @cmdutils.register(instance='mainwindow.tabs.cur', name='scroll_perc_x',
