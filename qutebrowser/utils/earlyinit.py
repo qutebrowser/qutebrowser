@@ -33,7 +33,7 @@ def init_faulthandler():
 
     This print a nice traceback on segfauls.
     """
-    if sys.stderr is not None:
+    if sys.stderr is None:
         # When run with pythonw.exe, sys.stderr can be None:
         # https://docs.python.org/3/library/sys.html#sys.__stderr__
         # If we'd enable faulthandler in that case, we just get a weird
