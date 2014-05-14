@@ -23,7 +23,7 @@ import sys
 import faulthandler
 import textwrap
 import traceback
-from signal import SIGUSR1
+import signal
 
 
 # Now we initialize the faulthandler as early as possible, so we theoretically
@@ -44,9 +44,9 @@ def init_faulthandler():
         # crashes to the user at the next start.
         return
     faulthandler.enable()
-    if hasattr(faulthandler, 'register'):
+    if hasattr(faulthandler, 'register') and hasattr(signal, 'SIGUSR1'):
         # If available, we also want a traceback on SIGUSR1.
-        faulthandler.register(SIGUSR1)
+        faulthandler.register(signal.SIGUSR1)
 
 
 # Now the faulthandler is enabled we fix the Qt harfbuzzing library, before
