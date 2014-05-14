@@ -399,6 +399,7 @@ class HintManager(QObject):
             # on_mode_left, we are extra careful here.
             raise ValueError("start() was called with frame=None")
         elems = []
+        self._frames = webelem.get_child_frames(mainframe)
         for f in self._frames:
             elems += f.findAllElements(webelem.SELECTORS[group])
         filterfunc = webelem.FILTERS.get(group, lambda e: True)
@@ -408,7 +409,6 @@ class HintManager(QObject):
             raise CommandError("No elements found.")
         self._target = target
         self._baseurl = baseurl
-        self._frames = webelem.get_child_frames(mainframe)
         message.text(self.HINT_TEXTS[target])
         strings = self._hint_strings(visible_elems)
         for e, string in zip(visible_elems, strings):
