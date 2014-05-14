@@ -50,6 +50,10 @@ Bugs
 ====
 
 - All kind of FIXMEs
+- When opening DDG the input field should be focused when JS is active, but
+  only is sometimes.
+- When opening 111.111.111.111 sometimes there's no loading bar and link in
+  statusbar points to the old page.
 - restart sometimes abort()s on QApplication __init__
 - qutebrowser :restart  loops endlessly
 - Super key shows up as ៀ\udc53  in logs
@@ -129,6 +133,7 @@ Major features
 Minor features
 ==============
 
+- Zoom with ctrl + mousewheel
 - Range-check count values and other values
   Underlying C functions have a maximum value which can be passed.
 - Close tabs on right click
