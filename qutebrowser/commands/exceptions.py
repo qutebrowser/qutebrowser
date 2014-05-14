@@ -23,24 +23,31 @@ Defined here to avoid circular dependency hell.
 
 class CommandError(Exception):
 
-    """Common base class for all command exceptions."""
+    """Raised when a command encounters a error while running."""
+
+    pass
 
 
-class NoSuchCommandError(CommandError):
+class CommandMetaError(Exception):
+
+    """Common base class for exceptions occuring before a command is run."""
+
+
+class NoSuchCommandError(CommandMetaError):
 
     """Raised when a command wasn't found."""
 
     pass
 
 
-class ArgumentCountError(CommandError):
+class ArgumentCountError(CommandMetaError):
 
     """Raised when a command was called with an invalid count of arguments."""
 
     pass
 
 
-class PrerequisitesError(CommandError):
+class PrerequisitesError(CommandMetaError):
 
     """Raised when a cmd can't be used because some prerequisites aren't met.
 

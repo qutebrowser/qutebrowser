@@ -25,7 +25,8 @@ from PyQt5.QtWebKitWidgets import QWebPage
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.message as message
-from qutebrowser.commands._exceptions import NoSuchCommandError, CommandError
+from qutebrowser.commands.exceptions import (NoSuchCommandError,
+                                             CommandMetaError, CommandError)
 from qutebrowser.utils.misc import safe_shlex_split
 
 
@@ -227,5 +228,5 @@ class CommandManager:
         """Run a command and display exceptions in the statusbar."""
         try:
             self.run(text, count)
-        except CommandError as e:
-            message.error(str(e))
+        except (CommandMetaError, CommandError) as e:
+            message.error(e)

@@ -48,6 +48,7 @@ import qutebrowser.config.config as config
 import qutebrowser.network.qutescheme as qutescheme
 import qutebrowser.config.websettings as websettings
 import qutebrowser.network.proxy as proxy
+import qutebrowser.utils.message as message
 from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.config.config import ConfigManager
 from qutebrowser.keyinput.modeman import ModeManager
@@ -56,6 +57,7 @@ from qutebrowser.widgets.crash import CrashDialog
 from qutebrowser.keyinput.modeparsers import NormalKeyParser, HintKeyParser
 from qutebrowser.keyinput.keyparser import PassthroughKeyParser
 from qutebrowser.commands.managers import CommandManager, SearchManager
+from qutebrowser.commands.exceptions import CommandError
 from qutebrowser.config.iniparsers import ReadWriteConfigParser
 from qutebrowser.config.lineparser import LineConfigParser
 from qutebrowser.browser.cookies import CookieJar
@@ -581,7 +583,10 @@ class QuteBrowser(QApplication):
         else:
             obj = dotted_getattr(self, instance)
         handler = getattr(obj, func)
-        if count is not None:
-            handler(*args, count=count)
-        else:
-            handler(*args)
+        try:
+            if count is not None:
+                handler(*args, count=count)
+            else:
+                handler(*args)
+        except CommandError as e:
+            message.error(e)

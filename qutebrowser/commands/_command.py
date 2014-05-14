@@ -19,8 +19,8 @@
 
 import logging
 
-from qutebrowser.commands._exceptions import (ArgumentCountError,
-                                              PrerequisitesError)
+from qutebrowser.commands.exceptions import (ArgumentCountError,
+                                             PrerequisitesError)
 
 from PyQt5.QtCore import pyqtSignal, QObject, QCoreApplication
 from PyQt5.QtWebKit import QWebSettings
@@ -113,6 +113,8 @@ class Command(QObject):
 
     def run(self, args=None, count=None):
         """Run the command.
+
+        Note we don't catch CommandError here as it might happen async.
 
         Args:
             args: Arguments to the command.

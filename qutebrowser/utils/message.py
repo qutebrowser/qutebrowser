@@ -29,18 +29,21 @@ def instance():
 
 def error(message):
     """Display an error message in the statusbar."""
+    message = str(message)
     logging.error(message)
     instance().error.emit(message)
 
 
 def info(message):
     """Display a temporary info message in the statusbar."""
+    message = str(message)
     logging.info(message)
     instance().info.emit(message)
 
 
 def text(message):
     """Display a persistent message in the statusbar."""
+    message = str(message)
     logging.debug(message)
     instance().text.emit(message)
 

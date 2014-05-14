@@ -23,7 +23,8 @@ from qutebrowser.keyinput._basekeyparser import BaseKeyParser
 import qutebrowser.utils.message as message
 
 from qutebrowser.commands.managers import CommandManager
-from qutebrowser.commands._exceptions import ArgumentCountError, CommandError
+from qutebrowser.commands.exceptions import (
+    ArgumentCountError, CommandMetaError, CommandError)
 
 
 class CommandKeyParser(BaseKeyParser):
@@ -52,8 +53,8 @@ class CommandKeyParser(BaseKeyParser):
             logging.debug("Filling statusbar with partial command {}".format(
                 cmdstr))
             message.set_cmd_text(':{} '.format(cmdstr))
-        except CommandError as e:
-            message.error(str(e))
+        except (CommandMetaError, CommandError) as e:
+            message.error(e)
 
     def execute(self, cmdstr, _keytype, count=None):
         self._run_or_fill(cmdstr, count)

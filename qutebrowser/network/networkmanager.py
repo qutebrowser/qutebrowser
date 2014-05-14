@@ -63,6 +63,7 @@ class NetworkManager(QNetworkAccessManager):
         if config.get('network', 'ssl-strict'):
             return
         for err in errors:
+            # FIXME we might want to use warn here (non-fatal error)
             message.error('SSL error: {}'.format(err.errorString()))
         reply.ignoreSslErrors()
 

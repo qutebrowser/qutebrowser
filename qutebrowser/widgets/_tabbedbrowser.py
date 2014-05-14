@@ -32,6 +32,7 @@ from qutebrowser.widgets._tabwidget import TabWidget, EmptyTabIcon
 from qutebrowser.widgets.webview import WebView
 from qutebrowser.browser.signalfilter import SignalFilter
 from qutebrowser.browser.curcommand import CurCommandDispatcher
+from qutebrowser.commands.exceptions import CommandError
 
 
 class TabbedBrowser(TabWidget):
@@ -337,7 +338,7 @@ class TabbedBrowser(TabWidget):
         if self._url_stack:
             self.tabopen(self._url_stack.pop())
         else:
-            message.error("Nothing to undo!")
+            raise CommandError("Nothing to undo!")
 
     @cmdutils.register(instance='mainwindow.tabs', name='tabprev')
     def switch_prev(self, count=1):
@@ -354,7 +355,7 @@ class TabbedBrowser(TabWidget):
         elif config.get('tabbar', 'wrap'):
             self.setCurrentIndex(newidx % self.count())
         else:
-            message.error("First tab")
+            raise CommandError("First tab")
 
     @cmdutils.register(instance='mainwindow.tabs', name='tabnext')
     def switch_next(self, count=1):
@@ -371,7 +372,7 @@ class TabbedBrowser(TabWidget):
         elif config.get('tabbar', 'wrap'):
             self.setCurrentIndex(newidx % self.count())
         else:
-            message.error("Last tab")
+            raise CommandError("Last tab")
 
     @cmdutils.register(instance='mainwindow.tabs', nargs=(0, 1))
     def paste(self, sel=False, tab=False):
@@ -387,8 +388,7 @@ class TabbedBrowser(TabWidget):
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         url = clip.text(mode)
         if not url:
-            message.error("Clipboard is empty.")
-            return
+            raise CommandError("Clipboard is empty.")
         logging.debug("Clipboard contained: '{}'".format(url))
         if tab:
             self.tabopen(url)
@@ -417,13 +417,11 @@ class TabbedBrowser(TabWidget):
             idx = cmdutils.arg_or_count(index, count, default=1,
                                         countzero=self.count())
         except ValueError as e:
-            message.error(e)
-            return
+            raise CommandError(e)
         if 1 <= idx <= self.count():
             self.setCurrentIndex(idx - 1)
         else:
-            message.error("There's no tab with index {}!".format(idx))
-            return
+            raise CommandError("There's no tab with index {}!".format(idx))
 
     @cmdutils.register(instance='mainwindow.tabs')
     def tab_move(self, direction=None, count=None):
@@ -440,14 +438,12 @@ class TabbedBrowser(TabWidget):
             try:
                 new_idx = self._tab_move_relative(direction, count)
             except ValueError:
-                message.error("Count must be given for relative moving!")
-                return
+                raise CommandError("Count must be given for relative moving!")
         else:
-            message.error("Invalid direction '{}'!".format(direction))
-            return
+            raise CommandError("Invalid direction '{}'!".format(direction))
         if not 0 <= new_idx < self.count():
-            message.error("Can't move tab to position {}!".format(new_idx))
-            return
+            raise CommandError("Can't move tab to position {}!".format(
+                new_idx))
         tab = self.currentWidget()
         cur_idx = self.currentIndex()
         icon = self.tabIcon(cur_idx)
@@ -461,8 +457,7 @@ class TabbedBrowser(TabWidget):
         """Select the tab which was last focused."""
         idx = self.indexOf(self.last_focused)
         if idx == -1:
-            message.error("Last focused tab vanished!")
-            return
+            raise CommandError("Last focused tab vanished!")
         self.setCurrentIndex(idx)
 
     @pyqtSlot(str, str)

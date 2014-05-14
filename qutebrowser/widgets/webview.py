@@ -34,6 +34,7 @@ from qutebrowser.browser.webpage import BrowserPage
 from qutebrowser.browser.hints import HintManager
 from qutebrowser.utils.signals import SignalCache
 from qutebrowser.utils.usertypes import NeighborList, enum
+from qutebrowser.commands.exceptions import CommandError
 
 
 Target = enum('normal', 'tab', 'bgtab')
@@ -165,8 +166,7 @@ class WebView(QWebView):
         try:
             u = urlutils.fuzzy_url(url)
         except urlutils.SearchEngineError as e:
-            message.error(str(e))
-            return
+            raise CommandError(e)
         logging.debug("New title: {}".format(urlutils.urlstring(u)))
         self.titleChanged.emit(urlutils.urlstring(u))
         self.urlChanged.emit(urlutils.qurl(u))
@@ -194,30 +194,18 @@ class WebView(QWebView):
         self.zoom_perc(level, fuzzyval=False)
 
     def go_back(self):
-        """Go back a page in the history.
-
-        Return:
-            True if going back succeeded, False otherwise.
-        """
+        """Go back a page in the history."""
         if self.page_.history().canGoBack():
             self.back()
-            return True
         else:
-            message.error("At beginning of history.")
-            return False
+            raise CommandError("At beginning of history.")
 
     def go_forward(self):
-        """Go forward a page in the history.
-
-        Return:
-            True if going forward succeeded, False otherwise.
-        """
+        """Go forward a page in the history."""
         if self.page_.history().canGoForward():
             self.forward()
-            return True
         else:
-            message.error("At end of history.")
-            return False
+            raise CommandError("At end of history.")
 
     def shutdown(self, callback=None):
         """Shut down the tab cleanly and remove it.
@@ -385,11 +373,17 @@ class WebView(QWebView):
         """
         if e.button() == Qt.XButton1:
             # Back button on mice which have it.
-            self.go_back()
+            try:
+                self.go_back()
+            except CommandError as ex:
+                message.error(ex)
             return super().mousePressEvent(e)
         elif e.button() == Qt.XButton2:
             # Forward button on mice which have it.
-            self.go_forward()
+            try:
+                self.go_forward()
+            except CommandError as ex:
+                message.error(ex)
             return super().mousePressEvent(e)
         pos = e.pos()
         frame = self.page_.frameAt(pos)

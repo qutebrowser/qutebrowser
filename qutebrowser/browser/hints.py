@@ -30,6 +30,7 @@ import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.message as message
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.webelem as webelem
+from qutebrowser.commands.exceptions import CommandError
 from qutebrowser.utils.usertypes import enum
 
 
@@ -371,14 +372,12 @@ class HintManager(QObject):
         """
         elem = self._find_prevnext(frame, prev)
         if elem is None:
-            message.error("No {} links found!".format("prev" if prev
-                                                      else "forward"))
-            return
+            raise CommandError("No {} links found!".format(
+                "prev" if prev else "forward"))
         link = self._resolve_link(elem, baseurl)
         if link is None:
-            message.error("No {} links found!".format("prev" if prev
-                                                      else "forward"))
-            return
+            raise CommandError("No {} links found!".format(
+                "prev" if prev else "forward"))
         self.openurl.emit(link, newtab)
 
     def start(self, mainframe, baseurl, group=webelem.Group.all,
@@ -406,8 +405,7 @@ class HintManager(QObject):
         visible_elems = [e for e in elems if filterfunc(e) and
                          webelem.is_visible(e, mainframe)]
         if not visible_elems:
-            message.error("No elements found.")
-            return
+            raise CommandError("No elements found.")
         self._target = target
         self._baseurl = baseurl
         self._frames = webelem.get_child_frames(mainframe)
@@ -498,8 +496,7 @@ class HintManager(QObject):
         elif self._target in link_handlers:
             link = self._resolve_link(elem)
             if link is None:
-                message.error("No suitable link found for this element.")
-                return
+                raise CommandError("No suitable link found for this element.")
             link_handlers[self._target](link)
         else:
             raise ValueError("No suitable handler found!")
@@ -509,8 +506,7 @@ class HintManager(QObject):
     def follow_hint(self):
         """Follow the currently selected hint."""
         if not self._to_follow:
-            message.error("No hint to follow")
-            return
+            raise CommandError("No hint to follow")
         self.fire(self._to_follow, force=True)
 
     @pyqtSlot('QSize')

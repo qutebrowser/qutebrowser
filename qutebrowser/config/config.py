@@ -37,6 +37,7 @@ import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.message as message
 from qutebrowser.config.iniparsers import ReadConfigParser
 from qutebrowser.config._conftypes import ValidationError
+from qutebrowser.commands.exceptions import CommandError
 
 
 def instance():
@@ -258,7 +259,7 @@ class ConfigManager(QObject):
         try:
             val = self.get(sectname, optname, transformed=False)
         except (NoOptionError, NoSectionError) as e:
-            message.error("get: {} - {}".format(e.__class__.__name__, e))
+            raise CommandError("get: {} - {}".format(e.__class__.__name__, e))
         else:
             message.info("{} {} = {}".format(sectname, optname, val))
 

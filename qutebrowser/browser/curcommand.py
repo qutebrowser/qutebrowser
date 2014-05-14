@@ -35,6 +35,7 @@ import qutebrowser.utils.webelem as webelem
 import qutebrowser.config.config as config
 import qutebrowser.browser.hints as hints
 from qutebrowser.utils.misc import shell_escape
+from qutebrowser.commands.exceptions import CommandError
 
 
 class CurCommandDispatcher(QObject):
@@ -85,8 +86,7 @@ class CurCommandDispatcher(QObject):
         widget = self._tabs.currentWidget()
         frame = widget.page_.currentFrame()
         if frame is None:
-            message.error("No frame focused!")
-            return
+            raise CommandError("No frame focused!")
         widget.hintmanager.follow_prevnext(frame, widget.url(), prev, newtab)
 
     @cmdutils.register(instance='mainwindow.tabs.cur', name='open',
@@ -193,8 +193,7 @@ class CurCommandDispatcher(QObject):
             count: How many pages to go back.
         """
         for _ in range(count):
-            if not self._tabs.currentWidget().go_back():
-                break
+            self._tabs.currentWidget().go_back()
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
     def forward(self, count=1):
@@ -206,8 +205,7 @@ class CurCommandDispatcher(QObject):
             count: How many pages to go forward.
         """
         for _ in range(count):
-            if not self._tabs.currentWidget().go_forward():
-                break
+            self._tabs.currentWidget().go_forward()
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
     def hint(self, groupstr='all', targetstr='normal'):
@@ -222,18 +220,15 @@ class CurCommandDispatcher(QObject):
         widget = self._tabs.currentWidget()
         frame = widget.page_.mainFrame()
         if frame is None:
-            message.error("No frame focused!")
-            return
+            raise CommandError("No frame focused!")
         try:
             group = getattr(webelem.Group, groupstr)
         except AttributeError:
-            message.error("Unknown hinting group {}!".format(groupstr))
-            return
+            raise CommandError("Unknown hinting group {}!".format(groupstr))
         try:
             target = getattr(hints.Target, targetstr)
         except AttributeError:
-            message.error("Unknown hinting target {}!".format(targetstr))
-            return
+            raise CommandError("Unknown hinting target {}!".format(targetstr))
         widget.hintmanager.start(frame, widget.url(), group, target)
 
     @cmdutils.register(instance='mainwindow.tabs.cur', hide=True)
@@ -403,7 +398,7 @@ class CurCommandDispatcher(QObject):
         try:
             level = cmdutils.arg_or_count(zoom, count, default=100)
         except ValueError as e:
-            message.error(e)
+            raise CommandError(e)
         tab = self._tabs.currentWidget()
         tab.zoom_perc(level)
 
@@ -447,8 +442,7 @@ class CurCommandDispatcher(QObject):
         elem = frame.findFirstElement(webelem.SELECTORS[
             webelem.Group.editable_focused])
         if elem.isNull():
-            message.error("No editable element focused!")
-            return
+            raise CommandError("No editable element focused!")
         oshandle, filename = mkstemp(text=True)
         text = elem.evaluateJavaScript('this.value')
         if text:
@@ -470,7 +464,7 @@ class CurCommandDispatcher(QObject):
         try:
             os.remove(filename)
         except PermissionError:
-            message.error("Failed to delete tempfile...")
+            raise CommandError("Failed to delete tempfile...")
 
     def on_editor_closed(self, elem, oshandle, filename, exitcode,
                          exitstatus):
@@ -480,15 +474,13 @@ class CurCommandDispatcher(QObject):
         """
         logging.debug("Editor closed")
         if exitcode != 0:
-            message.error("Editor did quit abnormally (status {})!".format(
-                exitcode))
-            return
+            raise CommandError("Editor did quit abnormally (status "
+                               "{})!".format(exitcode))
         if exitstatus != QProcess.NormalExit:
             # No error here, since we already handle this in on_editor_error
             return
         if elem.isNull():
-            message.error("Element vanished while editing!")
-            return
+            raise CommandError("Element vanished while editing!")
         with open(filename, 'r', encoding='utf-8') as f:
             text = ''.join(f.readlines())
             text = webelem.javascript_escape(text)
@@ -508,5 +500,6 @@ class CurCommandDispatcher(QObject):
                                  "from the process."),
             QProcess.UnknownError: "An unknown error occurred.",
         }
-        message.error("Error while calling editor: {}".format(messages[error]))
         self._editor_cleanup(oshandle, filename)
+        raise CommandError("Error while calling editor: {}".format(
+            messages[error]))

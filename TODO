@@ -102,7 +102,6 @@ Style
 - rename commands
 - reorder config #2
 - rework exception hierarchy for config (common base exception)
-- use exceptions for error messages in commands
 
 Major features
 ==============
