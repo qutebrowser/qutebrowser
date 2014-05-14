@@ -94,6 +94,7 @@ class TabbedBrowser(TabWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.tabCloseRequested.connect(self.on_tab_close_requested)
         self.currentChanged.connect(self.on_current_changed)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._tabs = []
@@ -157,21 +158,40 @@ class TabbedBrowser(TabWidget):
         tab.titleChanged.connect(self.on_title_changed)
         tab.iconChanged.connect(self.on_icon_changed)
 
-    def _close_tab(self, tab):
-        """Close the given tab.
+    def _close_tab(self, tab_or_idx):
+        """Close a tab with either index or tab given.
 
         Args:
-            tab: The QTabWidget to close.
+            tab_or_index: Either the QWebView to be closed or an index.
         """
-        idx = self.indexOf(tab)
-        if idx == -1:
-            raise ValueError("tab {} is not contained in "
-                             "TabbedWidget!".format(tab))
-        url = tab.url()
-        if not url.isEmpty():
-            self._url_stack.append(url)
-        self.removeTab(idx)
-        tab.shutdown(callback=partial(self._cb_tab_shutdown, tab))
+        try:
+            idx = int(tab_or_idx)
+        except TypeError:
+            tab = tab_or_idx
+            idx = self.indexOf(tab_or_idx)
+            if idx == -1:
+                raise ValueError("tab {} is not contained in "
+                                 "TabbedWidget!".format(tab))
+        else:
+            tab = self.widget(idx)
+            if tab is None:
+                raise ValueError("invalid index {}!".format(idx))
+        last_close = config.get('tabbar', 'last-close')
+        if self.count() > 1:
+            url = tab.url()
+            if not url.isEmpty():
+                self._url_stack.append(url)
+            self.removeTab(idx)
+            tab.shutdown(callback=partial(self._cb_tab_shutdown, tab))
+        elif last_close == 'quit':
+            self.quit.emit()
+        elif last_close == 'blank':
+            tab.openurl('about:blank')
+
+    @pyqtSlot(int)
+    def on_tab_close_requested(self, idx):
+        """Close a tab via an index."""
+        self._close_tab(idx)
 
     def _tab_move_absolute(self, idx):
         """Get an index for moving a tab absolutely.
@@ -285,13 +305,7 @@ class TabbedBrowser(TabWidget):
         tab = self.cntwidget(count)
         if tab is None:
             return
-        last_close = config.get('tabbar', 'last-close')
-        if self.count() > 1:
-            self._close_tab(tab)
-        elif last_close == 'quit':
-            self.quit.emit()
-        elif last_close == 'blank':
-            tab.openurl('about:blank')
+        self._close_tab(tab)
 
     @cmdutils.register(instance='mainwindow.tabs')
     def only(self):
