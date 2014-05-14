@@ -465,7 +465,7 @@ class TabbedBrowser(TabWidget):
         icon = self.tabIcon(cur_idx)
         label = self.tabText(cur_idx)
         cmdutils.check_overflow(cur_idx, 'int')
-        cmdutils.check_overflow(next_idx, 'int')
+        cmdutils.check_overflow(new_idx, 'int')
         self.removeTab(cur_idx)
         self.insertTab(new_idx, tab, icon, label)
         self.setCurrentIndex(new_idx)
