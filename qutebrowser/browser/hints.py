@@ -510,6 +510,7 @@ class HintManager(QObject):
         """Follow the currently selected hint."""
         if not self._to_follow:
             message.error("No hint to follow")
+            return
         self.fire(self._to_follow, force=True)
 
     @pyqtSlot('QSize')
