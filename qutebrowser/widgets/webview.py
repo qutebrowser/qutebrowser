@@ -151,6 +151,75 @@ class WebView(QWebView):
                 return True
         return False
 
+    def _mousepress_backforward(self, e):
+        """Handle back/forward mouse button presses.
+
+        Args:
+            e: The QMouseEvent.
+        """
+        if e.button() == Qt.XButton1:
+            # Back button on mice which have it.
+            try:
+                self.go_back()
+            except CommandError as ex:
+                message.error(ex)
+        elif e.button() == Qt.XButton2:
+            # Forward button on mice which have it.
+            try:
+                self.go_forward()
+            except CommandError as ex:
+                message.error(ex)
+            return super().mousePressEvent(e)
+
+    def _mousepress_insertmode(self, e):
+        """Switch to insert mode when an editable element was clicked.
+
+        Args:
+            e: The QMouseEvent.
+        """
+        pos = e.pos()
+        frame = self.page_.frameAt(pos)
+        if frame is None:
+            # This happens when we click inside the webview, but not actually
+            # on the QWebPage - for example when clicking the scrollbar
+            # sometimes.
+            logging.debug("Clicked at {} but frame is None!".format(pos))
+            return
+        # You'd think we have to subtract frame.geometry().topLeft() from the
+        # position, but it seems QWebFrame::hitTestContent wants a position
+        # relative to the QWebView, not to the frame. This makes no sense to
+        # me, but it works this way.
+        hitresult = frame.hitTestContent(pos)
+        if self._is_editable(hitresult):
+            logging.debug("Clicked editable element!")
+            modeman.enter('insert', 'click')
+        else:
+            logging.debug("Clicked non-editable element!")
+            modeman.maybe_leave('insert', 'click')
+
+    def _mousepress_opentarget(self, e):
+        """Set the open target when something was clicked.
+
+        Args:
+            e: The QMouseEvent.
+        """
+        if self._force_open_target is not None:
+            self._open_target = self._force_open_target
+            self._force_open_target = None
+            logging.debug("Setting force target: {}".format(
+                Target[self._open_target]))
+        elif (e.button() == Qt.MidButton or
+              e.modifiers() & Qt.ControlModifier):
+            if config.get('general', 'background-tabs'):
+                self._open_target = Target.bgtab
+            else:
+                self._open_target = Target.tab
+            logging.debug("Middle click, setting target: {}".format(
+                Target[self._open_target]))
+        else:
+            self._open_target = Target.normal
+            logging.debug("Normal click, setting normal target")
+
     def openurl(self, url):
         """Open an URL in the browser.
 
@@ -371,57 +440,9 @@ class WebView(QWebView):
         Return:
             The superclass return value.
         """
-        if e.button() == Qt.XButton1:
-            # Back button on mice which have it.
-            try:
-                self.go_back()
-            except CommandError as ex:
-                message.error(ex)
+        if e.button() in [Qt.XButton1, Qt.XButton2]:
+            self._mousepress_backforward(e)
             return super().mousePressEvent(e)
-        elif e.button() == Qt.XButton2:
-            # Forward button on mice which have it.
-            try:
-                self.go_forward()
-            except CommandError as ex:
-                message.error(ex)
-            return super().mousePressEvent(e)
-        pos = e.pos()
-        frame = self.page_.frameAt(pos)
-        if frame is None:
-            # This happens when we click inside the webview, but not actually
-            # on the QWebPage - for example when clicking the scrollbar
-            # sometimes.
-            logging.debug("Clicked at {} but frame is None!".format(pos))
-            return super().mousePressEvent(e)
-        # You'd think we have to subtract frame.geometry().topLeft() from the
-        # position, but it seems QWebFrame::hitTestContent wants a position
-        # relative to the QWebView, not to the frame. This makes no sense to
-        # me, but it works this way.
-        hitresult = frame.hitTestContent(pos)
-        if self._is_editable(hitresult):
-            logging.debug("Clicked editable element!")
-            modeman.enter('insert', 'click')
-        else:
-            logging.debug("Clicked non-editable element!")
-            try:
-                modeman.leave('insert', 'click')
-            except ValueError:
-                pass
-
-        if self._force_open_target is not None:
-            self._open_target = self._force_open_target
-            self._force_open_target = None
-            logging.debug("Setting force target: {}".format(
-                Target[self._open_target]))
-        elif (e.button() == Qt.MidButton or
-              e.modifiers() & Qt.ControlModifier):
-            if config.get('general', 'background-tabs'):
-                self._open_target = Target.bgtab
-            else:
-                self._open_target = Target.tab
-            logging.debug("Middle click, setting target: {}".format(
-                Target[self._open_target]))
-        else:
-            self._open_target = Target.normal
-            logging.debug("Normal click, setting normal target")
+        self._mousepress_insertmode(e)
+        self._mousepress_opentarget(e)
         return super().mousePressEvent(e)
