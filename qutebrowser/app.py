@@ -408,7 +408,7 @@ class QuteBrowser(QApplication):
         tabs.cur_statusbar_message.connect(status.txt.on_statusbar_message)
 
         tabs.currentChanged.connect(status.url.on_tab_changed)
-        tabs.cur_url_changed.connect(status.url.set_url)
+        tabs.cur_url_text_changed.connect(status.url.set_url)
         tabs.cur_link_hovered.connect(status.url.set_hover_url)
 
         # command input / completion

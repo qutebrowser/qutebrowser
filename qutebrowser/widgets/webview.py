@@ -54,7 +54,8 @@ class WebView(QWebView):
                        work.
         progress: loading progress of this page.
         scroll_pos: The current scroll position as (x%, y%) tuple.
-        url: The current URL as QUrl.
+        _url_text: The current URL as string.
+                   Accessed via url_text property.
         _load_status: loading status of this page (index into LoadStatus)
                       Accessed via load_status property.
         _has_ssl_errors: Whether SSL errors occured during loading.
@@ -72,11 +73,13 @@ class WebView(QWebView):
                             arg 2: y-position in %.
         linkHovered: QWebPages linkHovered signal exposed.
         load_status_changed: The loading status changed
+        url_text_changed: Current URL string changed.
     """
 
     scroll_pos_changed = pyqtSignal(int, int)
     linkHovered = pyqtSignal(str, str, str)
     load_status_changed = pyqtSignal(str)
+    url_text_changed = pyqtSignal(str)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -91,6 +94,7 @@ class WebView(QWebView):
         self._zoom = None
         self._has_ssl_errors = False
         self._init_neighborlist()
+        self._url_text = ''
         self.progress = 0
         self.page_ = BrowserPage(self)
         self.setPage(self.page_)
@@ -101,6 +105,7 @@ class WebView(QWebView):
         self.page_.linkHovered.connect(self.linkHovered)
         self.linkClicked.connect(self.on_link_clicked)
         self.page_.mainFrame().loadStarted.connect(self.on_load_started)
+        self.urlChanged.connect(self.on_url_changed)
         self.loadFinished.connect(self.on_load_finished)
         self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
         self.page_.networkAccessManager().sslErrors.connect(
@@ -121,6 +126,21 @@ class WebView(QWebView):
         """
         self._load_status = val
         self.load_status_changed.emit(LoadStatus[val])
+
+    @property
+    def url_text(self):
+        """Getter for url_text."""
+        return self._url_text
+
+    @url_text.setter
+    def url_text(self, val):
+        """Setter for url_text.
+
+        Emit:
+            url_text_changed
+        """
+        self._url_text = val
+        self.url_text_changed.emit(val)
 
     def _init_neighborlist(self):
         """Initialize the _zoom neighborlist."""
@@ -256,7 +276,7 @@ class WebView(QWebView):
             Return status of self.load
 
         Emit:
-            titleChanged and urlChanged
+            titleChanged
         """
         try:
             u = urlutils.fuzzy_url(url)
@@ -264,7 +284,7 @@ class WebView(QWebView):
             raise CommandError(e)
         logging.debug("New title: {}".format(urlutils.urlstring(u)))
         self.titleChanged.emit(urlutils.urlstring(u))
-        self.urlChanged.emit(urlutils.qurl(u))
+        self.url_text = urlutils.urlstring(u)
         return self.load(u)
 
     def zoom_perc(self, perc, fuzzyval=True):
@@ -333,6 +353,11 @@ class WebView(QWebView):
         self.destroyed.connect(functools.partial(self._on_destroyed, self))
         self.deleteLater()
         logging.debug("Tab shutdown scheduled")
+
+    @pyqtSlot('QUrl')
+    def on_url_changed(self, url):
+        """Update url_text when URL has changed."""
+        self.url_text = urlutils.urlstring(url)
 
     @pyqtSlot(str)
     def on_link_clicked(self, url):

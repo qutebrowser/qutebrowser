@@ -62,7 +62,7 @@ class TabbedBrowser(TabWidget):
         cur_load_finished: Current tab finished loading (loadFinished)
         cur_statusbar_message: Current tab got a statusbar message
                                (statusBarMessage)
-        cur_url_changed: Current URL changed (urlChanged)
+        cur_url_text_changed: Current URL text changed.
         cur_link_hovered: Link hovered in current tab (linkHovered)
         cur_scroll_perc_changed: Scroll percentage of current tab changed.
                                  arg 1: x-position in %.
@@ -80,7 +80,7 @@ class TabbedBrowser(TabWidget):
     cur_load_started = pyqtSignal()
     cur_load_finished = pyqtSignal(bool)
     cur_statusbar_message = pyqtSignal(str)
-    cur_url_changed = pyqtSignal('QUrl')
+    cur_url_text_changed = pyqtSignal(str)
     cur_link_hovered = pyqtSignal(str, str, str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
     hint_strings_updated = pyqtSignal(list)
@@ -144,8 +144,9 @@ class TabbedBrowser(TabWidget):
             self._filter.create(self.cur_statusbar_message))
         tab.scroll_pos_changed.connect(
             self._filter.create(self.cur_scroll_perc_changed))
-        tab.urlChanged.connect(self.on_url_changed)
-        tab.urlChanged.connect(self._filter.create(self.cur_url_changed))
+        tab.url_text_changed.connect(
+            self._filter.create(self.cur_url_text_changed))
+        tab.url_text_changed.connect(self.on_url_text_changed)
         # hintmanager
         tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)
         tab.hintmanager.openurl.connect(self.cur.openurl_slot)
@@ -234,12 +235,10 @@ class TabbedBrowser(TabWidget):
         tab = WebView(self)
         self._connect_tab_signals(tab)
         self._tabs.append(tab)
+        self.addTab(tab, "")
         if url is not None:
             url = urlutils.qurl(url)
-            self.addTab(tab, "")
             tab.openurl(url)
-        else:
-            self.addTab(tab, "")
         if background is None:
             background = config.get('general', 'background-tabs')
         if not background:
@@ -489,7 +488,7 @@ class TabbedBrowser(TabWidget):
 
     @pyqtSlot()
     def on_load_started(self, tab):
-        """Clear signal cache and icon when a tab started loading.
+        """Clear icon when a tab started loading.
 
         Args:
             tab: The tab where the signal belongs to.
@@ -511,12 +510,12 @@ class TabbedBrowser(TabWidget):
         else:
             logging.debug("ignoring title change")
 
-    @pyqtSlot('QUrl')
-    def on_url_changed(self, url):
+    @pyqtSlot(str)
+    def on_url_text_changed(self, url):
         """Set the new URL as title if there's no title yet."""
         idx = self.indexOf(self.sender())
         if not self.tabText(idx):
-            self.setTabText(idx, urlutils.urlstring(url))
+            self.setTabText(idx, url)
 
     @pyqtSlot()
     def on_icon_changed(self):
@@ -537,7 +536,7 @@ class TabbedBrowser(TabWidget):
 
     @pyqtSlot(int)
     def on_current_changed(self, idx):
-        """Set last_focused and replay signal cache if focus changed."""
+        """Set last_focused when focus changed."""
         tab = self.widget(idx)
         self.last_focused = self.now_focused
         self.now_focused = tab

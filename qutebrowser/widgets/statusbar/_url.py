@@ -112,9 +112,9 @@ class Url(TextBase):
         """Setter to be used as a Qt slot.
 
         Args:
-            s: The URL to set.
+            s: The URL to set as string.
         """
-        self.setText(urlstring(s))
+        self.setText(s)
         self.urltype = 'normal'
 
     @pyqtSlot(str, str, str)
@@ -146,7 +146,7 @@ class Url(TextBase):
     def on_tab_changed(self, idx):
         """Update URL if the tab changed."""
         tab = self.sender().widget(idx)
-        self.setText(urlstring(tab.url()))
+        self.setText(tab.url_text)
         status = LoadStatus[tab.load_status]
         if status in ['success', 'error', 'warn']:
             self.urltype = status
