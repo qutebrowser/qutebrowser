@@ -59,7 +59,7 @@ class WebView(QWebView):
                       Accessed via load_status property.
         _has_ssl_errors: Whether SSL errors occured during loading.
         _zoom: A NeighborList with the zoom levels.
-        _scroll_pos: The old scroll position.
+        _old_scroll_pos: The old scroll position.
         _shutdown_callback: Callback to be called after shutdown.
         _open_target: Where to open the next tab ("normal", "tab", "bgtab")
         _force_open_target: Override for _open_target.
@@ -82,7 +82,8 @@ class WebView(QWebView):
         super().__init__(parent)
         self._load_status = LoadStatus.none
         self.tabbedbrowser = parent
-        self._scroll_pos = (-1, -1)
+        self.scroll_pos = (-1, -1)
+        self._old_scroll_pos = (-1, -1)
         self._shutdown_callback = None
         self._open_target = Target.normal
         self._force_open_target = None
@@ -90,9 +91,6 @@ class WebView(QWebView):
         self._zoom = None
         self._init_neighborlist()
         self.progress = 0
-        self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
-        self.page_.networkAccessManager().sslErrors.connect(
-            lambda *args: setattr(self, '_has_ssl_errors', True))
         self.page_ = BrowserPage(self)
         self.setPage(self.page_)
         self.hintmanager = HintManager(self)
@@ -103,6 +101,9 @@ class WebView(QWebView):
         self.linkClicked.connect(self.on_link_clicked)
         self.page_.mainFrame().loadStarted.connect(self.on_load_started)
         self.loadFinished.connect(self.on_load_finished)
+        self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
+        self.page_.networkAccessManager().sslErrors.connect(
+            lambda *args: setattr(self, '_has_ssl_errors', True))
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
 
     @property
@@ -374,11 +375,11 @@ class WebView(QWebView):
     def on_load_finished(self, ok):
         """Handle auto-insert-mode after loading finished."""
         if ok and not self._has_ssl_errors:
-            self.urltype = 'success'
+            self.load_status = LoadStatus.success
         elif ok:
-            self.urltype = 'warn'
+            self.load_status = LoadStatus.warn
         else:
-            self.urltype = 'error'
+            self.load_status = LoadStatus.error
         if not config.get('input', 'auto-insert-mode'):
             return
         if modeman.instance().mode == 'insert' or not ok:
@@ -449,8 +450,8 @@ class WebView(QWebView):
         frame = self.page_.mainFrame()
         new_pos = (frame.scrollBarValue(Qt.Horizontal),
                    frame.scrollBarValue(Qt.Vertical))
-        if self._scroll_pos != new_pos:
-            self._scroll_pos = new_pos
+        if self._old_scroll_pos != new_pos:
+            self._old_scroll_pos = new_pos
             logging.debug("Updating scroll position")
             m = (frame.scrollBarMaximum(Qt.Horizontal),
                  frame.scrollBarMaximum(Qt.Vertical))

@@ -397,17 +397,17 @@ class QuteBrowser(QApplication):
             self.config.changed.connect(obj.on_config_changed)
 
         # statusbar
-        tabs.currentChanged.connect(status.prog.current_changed)
+        tabs.currentChanged.connect(status.prog.on_tab_changed)
         tabs.cur_progress.connect(status.prog.setValue)
         tabs.cur_load_finished.connect(status.prog.hide)
         tabs.cur_load_started.connect(status.prog.on_load_started)
 
-        tabs.currentChanged.connect(status.percentage.current_changed)
+        tabs.currentChanged.connect(status.percentage.on_tab_changed)
         tabs.cur_scroll_perc_changed.connect(status.percentage.set_perc)
 
         tabs.cur_statusbar_message.connect(status.txt.on_statusbar_message)
 
-        tabs.currentChanged.connect(status.url.current_changed)
+        tabs.currentChanged.connect(status.url.on_tab_changed)
         tabs.cur_url_changed.connect(status.url.set_url)
         tabs.cur_link_hovered.connect(status.url.set_hover_url)
 

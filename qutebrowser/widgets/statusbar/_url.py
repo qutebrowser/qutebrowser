@@ -19,6 +19,7 @@
 
 from PyQt5.QtCore import pyqtSlot, pyqtProperty, Qt
 
+from qutebrowser.widgets.webview import LoadStatus
 from qutebrowser.widgets.statusbar._textbase import TextBase
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 from qutebrowser.utils.url import urlstring
@@ -140,3 +141,14 @@ class Url(TextBase):
             self.urltype = self._old_urltype
             self._old_url = None
             self._old_urltype = None
+
+    @pyqtSlot(int)
+    def on_tab_changed(self, idx):
+        """Update URL if the tab changed."""
+        tab = self.sender().widget(idx)
+        self.setText(urlstring(tab.url()))
+        status = LoadStatus[tab.load_status]
+        if status in ['success', 'error', 'warn']:
+            self.urltype = status
+        else:
+            self.urltype = 'normal'

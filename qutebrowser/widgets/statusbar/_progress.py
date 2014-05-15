@@ -20,6 +20,7 @@
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QProgressBar, QSizePolicy
 
+from qutebrowser.widgets.webview import LoadStatus
 from qutebrowser.config.style import set_register_stylesheet
 
 
@@ -57,3 +58,12 @@ class Progress(QProgressBar):
         """Clear old error and show progress, used as slot to loadStarted."""
         self.setValue(0)
         self.show()
+
+    @pyqtSlot(int)
+    def on_tab_changed(self, idx):
+        tab = self.sender().widget(idx)
+        self.setValue(tab.progress)
+        if tab.load_status == LoadStatus.loading:
+            self.show()
+        else:
+            self.hide()
