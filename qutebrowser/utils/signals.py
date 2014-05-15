@@ -18,10 +18,6 @@
 """Utilities regarding signals."""
 
 import re
-import logging
-from collections import OrderedDict
-
-from PyQt5.QtCore import QObject
 
 
 def signal_name(sig):

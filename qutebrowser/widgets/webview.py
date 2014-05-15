@@ -89,6 +89,7 @@ class WebView(QWebView):
         self._force_open_target = None
         self._destroyed = {}
         self._zoom = None
+        self._has_ssl_errors = False
         self._init_neighborlist()
         self.progress = 0
         self.page_ = BrowserPage(self)
