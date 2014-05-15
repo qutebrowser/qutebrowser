@@ -15,6 +15,7 @@ Before 0.1
 - Basic SSL handling
     e.g. broken on https://fsinf.fh-worms.de/
     at least ssl-strict setting and default certs
+    SSL-symbol in statusbar
 - Authentification (for websites/proxy)
    - prompt in statusbar
    - ssl-strict=ask
