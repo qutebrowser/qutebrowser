@@ -5,7 +5,7 @@ Before 0.1
 - Manpage
 - Website
 - Tests for URL detection and fix corner cases
-- Fix some crashes if we can
+- Fix some crashes + bugs if we can
 - Fix shutdown
 - Maybe test under other platforms
 - Autosave feature (against segfaults/...)
@@ -18,6 +18,7 @@ Before 0.1
 - Authentification (for websites/proxy)
    - prompt in statusbar
    - ssl-strict=ask
+- Downloads (at least calling a handler)
 
 Crashes
 =======
@@ -51,10 +52,11 @@ Bugs
 
 - All kind of FIXMEs
 - When opening DDG the input field should be focused when JS is active, but
-  only is sometimes.
+  only is sometimes. (seir)
 - When opening 111.111.111.111 sometimes there's no loading bar and link in
-  statusbar points to the old page.
-- restart sometimes abort()s on QApplication __init__
+  statusbar points to the old page. (seir)
+- Current URL displayed in the statusbar is weird and sometimes wrong (seir)
+- restart sometimes abort()s on QApplication __init__ (V155)
 - qutebrowser :restart  loops endlessly
 - Super key shows up as ៀ\udc53  in logs
 - Funky font rendering with tewi:
@@ -131,11 +133,14 @@ Major features
 Minor features
 ==============
 
+- We probably should rewrite all the signal cache stuff to save state
+  internally instead. (also see bugs)
+- Save cookies in Netscape format so it can be used by wget.
+    http://www.cookiecentral.com/faq/#3.5
+    https://docs.python.org/3.4/library/http.cookies.html
+    http://qt-project.org/doc/qt-4.8/qnetworkcookie.html
 - Signal cache: truncate printed signals (length + 1 line)
-- Git version in :crash when frozen
 - Zoom with ctrl + mousewheel
-- Range-check count values and other values
-  Underlying C functions have a maximum value which can be passed.
 - Close tabs on right click
 - Up/Down not for history
 - N for prev search match
