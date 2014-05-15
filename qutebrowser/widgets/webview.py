@@ -87,7 +87,8 @@ class WebView(QWebView):
         self.hintmanager = HintManager(self)
         self.hintmanager.mouse_event.connect(self.on_mouse_event)
         self.hintmanager.set_open_target.connect(self.set_force_open_target)
-        self.signal_cache = SignalCache(uncached=['linkHovered'])
+        self.signal_cache = SignalCache(
+            uncached=['linkHovered', 'cur_ssl_errors'])
         self.page_.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.page_.linkHovered.connect(self.linkHovered)
         self.page_.networkAccessManager().sslErrors.connect(self.ssl_errors)
