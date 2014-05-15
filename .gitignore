@@ -9,3 +9,4 @@ __pycache__
 /pkg/qutebrowser-*.pkg.tar.xz
 /setuptools-*.egg
 /setuptools-*.zip
+/qutebrowser/git-commit-id
