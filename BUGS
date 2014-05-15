@@ -1,6 +1,15 @@
 Crashes
 =======
 
+- Segfault when opening an SSL page and then switching the tab to a non-SSL
+  page.
+
+  This happens because we don't filter the ssl_errors command correctly per tab
+  and then re-emit it for the wrong tab which doesn't even use SSL.
+
+  Will be fixed by using a QNetworkAccessManager per tab again, which is a good
+  idea (for per-tab-proxy) anyways.
+
 - When following a hint:
 
   QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.
