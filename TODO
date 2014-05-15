@@ -57,6 +57,7 @@ New big features
 Improvements / minor features
 =============================
 
+- Hide statusbar messages after timeout, not on keypress
 - Reimplement tabbar to paint it by ourselves to look like dwb
 - We probably should rewrite all the signal cache stuff to save state
   internally instead. (also see bugs)

@@ -10,6 +10,8 @@ Crashes
   Will be fixed by using a QNetworkAccessManager per tab again, which is a good
   idea (for per-tab-proxy) anyways.
 
+  Workaround in 5a6326922ee770cca721539ad71b048896f7d4af
+
 - When following a hint:
 
   QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.
