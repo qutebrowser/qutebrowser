@@ -61,9 +61,6 @@ class SignalFilter(QObject):
         The original signal does not matter, since we get the new signal and
         all args.
 
-        The current value of the signal is also stored in tab.signal_cache so
-        it can be emitted later when the tab changes to the current tab.
-
         Args:
             signal: The signal to emit if the sender was the current widget.
             *args: The args to pass to the signal.
@@ -81,7 +78,6 @@ class SignalFilter(QObject):
             logging.warn("Got signal {} by {} which is no tab!".format(
                 dbg_signal(signal, args), sender))
             return
-        sender.signal_cache.add(signal, args)
         if self._tabs.currentWidget() == sender:
             if log_signal:
                 logging.debug("  emitting")

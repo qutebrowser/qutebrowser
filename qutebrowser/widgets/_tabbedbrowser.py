@@ -44,8 +44,6 @@ class TabbedBrowser(TabWidget):
     in the currently visible tab.
 
     For all tab-specific signals (cur_*) emitted by a tab, this happens:
-       - the signal gets added to a signal_cache of the tab, so it can be
-         emitted again if the current tab changes.
        - the signal gets filtered with _filter_signals and self.cur_* gets
          emitted if the signal occured in the current tab.
 
@@ -62,7 +60,6 @@ class TabbedBrowser(TabWidget):
         cur_progress: Progress of the current tab changed (loadProgress).
         cur_load_started: Current tab started loading (loadStarted)
         cur_load_finished: Current tab finished loading (loadFinished)
-        cur_ssl_errors: Current tab encountered SSL errors.
         cur_statusbar_message: Current tab got a statusbar message
                                (statusBarMessage)
         cur_url_changed: Current URL changed (urlChanged)
@@ -86,7 +83,6 @@ class TabbedBrowser(TabWidget):
     cur_url_changed = pyqtSignal('QUrl')
     cur_link_hovered = pyqtSignal(str, str, str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
-    cur_ssl_errors = pyqtSignal('QNetworkReply*', 'QList<QSslError>')
     hint_strings_updated = pyqtSignal(list)
     shutdown_complete = pyqtSignal()
     quit = pyqtSignal()
@@ -141,7 +137,6 @@ class TabbedBrowser(TabWidget):
         tab.linkHovered.connect(self._filter.create(self.cur_link_hovered))
         tab.loadProgress.connect(self._filter.create(self.cur_progress))
         tab.loadFinished.connect(self._filter.create(self.cur_load_finished))
-        tab.ssl_errors.connect(self._filter.create(self.cur_ssl_errors))
         tab.page().mainFrame().loadStarted.connect(partial(
             self.on_load_started, tab))
         tab.loadStarted.connect(self._filter.create(self.cur_load_started))
@@ -499,7 +494,6 @@ class TabbedBrowser(TabWidget):
         Args:
             tab: The tab where the signal belongs to.
         """
-        tab.signal_cache.clear()
         self.setTabIcon(self.indexOf(tab), EmptyTabIcon())
 
     @pyqtSlot(str)
@@ -545,7 +539,6 @@ class TabbedBrowser(TabWidget):
     def on_current_changed(self, idx):
         """Set last_focused and replay signal cache if focus changed."""
         tab = self.widget(idx)
-        tab.signal_cache.replay()
         self.last_focused = self.now_focused
         self.now_focused = tab
 

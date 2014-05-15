@@ -32,12 +32,12 @@ import qutebrowser.utils.message as message
 import qutebrowser.utils.webelem as webelem
 from qutebrowser.browser.webpage import BrowserPage
 from qutebrowser.browser.hints import HintManager
-from qutebrowser.utils.signals import SignalCache
 from qutebrowser.utils.usertypes import NeighborList, enum
 from qutebrowser.commands.exceptions import CommandError
 
 
 Target = enum('normal', 'tab', 'bgtab')
+LoadStatus = enum('none', 'success', 'error', 'warn', 'loading')
 
 
 class WebView(QWebView):
@@ -48,11 +48,16 @@ class WebView(QWebView):
 
     Attributes:
         page_: The QWebPage behind the view
-        signal_cache: The signal cache associated with the view.
         hintmanager: The HintManager instance for this view.
         tabbedbrowser: The TabbedBrowser this WebView is part of.
                        We need this rather than signals to make createWindow
                        work.
+        progress: loading progress of this page.
+        scroll_pos: The current scroll position as (x%, y%) tuple.
+        url: The current URL as QUrl.
+        _load_status: loading status of this page (index into LoadStatus)
+                      Accessed via load_status property.
+        _has_ssl_errors: Whether SSL errors occured during loading.
         _zoom: A NeighborList with the zoom levels.
         _scroll_pos: The old scroll position.
         _shutdown_callback: Callback to be called after shutdown.
@@ -66,14 +71,16 @@ class WebView(QWebView):
                             arg 1: x-position in %.
                             arg 2: y-position in %.
         linkHovered: QWebPages linkHovered signal exposed.
+        load_status_changed: The loading status changed
     """
 
     scroll_pos_changed = pyqtSignal(int, int)
     linkHovered = pyqtSignal(str, str, str)
-    ssl_errors = pyqtSignal('QNetworkReply*', 'QList<QSslError>')
+    load_status_changed = pyqtSignal(str)
 
     def __init__(self, parent):
         super().__init__(parent)
+        self._load_status = LoadStatus.none
         self.tabbedbrowser = parent
         self._scroll_pos = (-1, -1)
         self._shutdown_callback = None
@@ -82,20 +89,36 @@ class WebView(QWebView):
         self._destroyed = {}
         self._zoom = None
         self._init_neighborlist()
+        self.progress = 0
+        self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
+        self.page_.networkAccessManager().sslErrors.connect(
+            lambda *args: setattr(self, '_has_ssl_errors', True))
         self.page_ = BrowserPage(self)
         self.setPage(self.page_)
         self.hintmanager = HintManager(self)
         self.hintmanager.mouse_event.connect(self.on_mouse_event)
         self.hintmanager.set_open_target.connect(self.set_force_open_target)
-        self.signal_cache = SignalCache(
-            uncached=['linkHovered', 'cur_ssl_errors'])
         self.page_.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.page_.linkHovered.connect(self.linkHovered)
-        self.page_.networkAccessManager().sslErrors.connect(self.ssl_errors)
         self.linkClicked.connect(self.on_link_clicked)
         self.page_.mainFrame().loadStarted.connect(self.on_load_started)
         self.loadFinished.connect(self.on_load_finished)
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
+
+    @property
+    def load_status(self):
+        """Getter for load_status."""
+        return self._load_status
+
+    @load_status.setter
+    def load_status(self, val):
+        """Setter for load_status.
+
+        Emit:
+            load_status_changed
+        """
+        self._load_status = val
+        self.load_status_changed.emit(LoadStatus[val])
 
     def _init_neighborlist(self):
         """Initialize the _zoom neighborlist."""
@@ -340,13 +363,22 @@ class WebView(QWebView):
 
     @pyqtSlot()
     def on_load_started(self):
-        """Leave insert/hint mode when a new page is loading."""
+        """Leave insert/hint mode and set vars when a new page is loading."""
         for mode in ['insert', 'hint']:
             modeman.maybe_leave(mode, 'load started')
+        self.progress = 0
+        self._has_ssl_errors = False
+        self.load_status = LoadStatus.loading
 
     @pyqtSlot(bool)
     def on_load_finished(self, ok):
         """Handle auto-insert-mode after loading finished."""
+        if ok and not self._has_ssl_errors:
+            self.urltype = 'success'
+        elif ok:
+            self.urltype = 'warn'
+        else:
+            self.urltype = 'error'
         if not config.get('input', 'auto-insert-mode'):
             return
         if modeman.instance().mode == 'insert' or not ok:
@@ -424,6 +456,7 @@ class WebView(QWebView):
                  frame.scrollBarMaximum(Qt.Vertical))
             perc = (round(100 * new_pos[0] / m[0]) if m[0] != 0 else 0,
                     round(100 * new_pos[1] / m[1]) if m[1] != 0 else 0)
+            self.scroll_pos = perc
             self.scroll_pos_changed.emit(*perc)
         # Let superclass handle the event
         return super().paintEvent(e)

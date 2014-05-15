@@ -94,29 +94,17 @@ class Url(TextBase):
         self._urltype = val
         self.setStyleSheet(get_stylesheet(self.STYLESHEET))
 
-    @pyqtSlot()
-    def on_loading_started(self):
-        """Slot to clear SSL errors when loading started."""
-        self._ssl_errors = False
-
-    @pyqtSlot('QNetworkReply*', 'QList<QSslError>')
-    def on_ssl_errors(self, _reply, _errors):
-        """Set a flag to get a warning when there were SSL errors."""
-        self._ssl_errors = True
-
-    @pyqtSlot(bool)
-    def on_loading_finished(self, ok):
-        """Slot for cur_loading_finished. Colors the URL according to ok.
+    @pyqtSlot(str)
+    def on_load_status_changed(self, status):
+        """Slot for load_status_changed. Sets URL color accordingly.
 
         Args:
-            ok: Whether loading finished successfully (True) or not (False).
+            status: The LoadStatus as string.
         """
-        if ok and not self._ssl_errors:
-            self.urltype = 'success'
-        elif ok:
-            self.urltype = 'warn'
+        if status in ['success', 'error', 'warn']:
+            self.urltype = status
         else:
-            self.urltype = 'error'
+            self.urltype = 'normal'
 
     @pyqtSlot(str)
     def set_url(self, s):

@@ -32,7 +32,6 @@ class FakeSignal:
 
     def __init__(self, name='fake'):
         self.signal = '2{}(int, int)'.format(name)
-        self.emit = Mock()
 
 
 class TestDebug(TestCase):
@@ -48,51 +47,6 @@ class TestDebug(TestCase):
     def test_dbg_signal(self):
         self.assertEqual(sigutils.dbg_signal(self.signal, [23, 42]),
                          'fake(23, 42)')
-
-
-class TestSignalCache(TestCase):
-
-    """SignalCache tests."""
-
-    def setUp(self):
-        self.signal1 = FakeSignal('fake1')
-        self.signal2 = FakeSignal('fake2')
-        self.cache = sigutils.SignalCache()
-
-    def test_replay(self):
-        """Test simple replaying."""
-        self.cache.add(self.signal1, [1, 2])
-        self.cache.add(self.signal2, [3, 4])
-        self.cache.replay()
-        self.signal1.emit.assert_called_once_with(1, 2)
-        self.signal2.emit.assert_called_once_with(3, 4)
-
-    def test_update(self):
-        """Test replaying when a signal was updated."""
-        self.cache.add(self.signal1, [1, 2])
-        self.cache.add(self.signal2, [3, 4])
-        self.cache.add(self.signal1, [5, 6])
-        self.cache.replay()
-        self.signal1.emit.assert_called_once_with(5, 6)
-        self.signal2.emit.assert_called_once_with(3, 4)
-
-    def test_clear(self):
-        """Test clearing the signal cache."""
-        self.cache.add(self.signal1, [1, 2])
-        self.cache.add(self.signal2, [3, 4])
-        self.cache.clear()
-        self.cache.add(self.signal1, [5, 6])
-        self.cache.replay()
-        self.signal1.emit.assert_called_once_with(5, 6)
-
-    def test_uncached(self):
-        """Test that uncached signals actually are uncached."""
-        cache = sigutils.SignalCache(uncached=['fake2'])
-        cache.add(self.signal1, [1, 2])
-        cache.add(self.signal2, [3, 4])
-        cache.replay()
-        self.signal1.emit.assert_called_once_with(1, 2)
-        self.assertFalse(self.signal2.emit.called)
 
 
 if __name__ == '__main__':
