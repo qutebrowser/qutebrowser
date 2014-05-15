@@ -122,6 +122,37 @@ class NeighborList(collections.abc.Sequence):
         self.idx = close_item[0]
         return self.fuzzyval not in self._items
 
+    def _get_new_item(self, offset):
+        """Logic for getitem to get the item at offset.
+
+        Args:
+            offset: The offset of the current item, relative to the last one.
+
+        Return:
+            The new item.
+
+        Raise:
+            IndexError if the border of the list is reached and mode is
+                       exception.
+        """
+        try:
+            if self.idx + offset >= 0:
+                new = self._items[self.idx + offset]
+            else:
+                raise IndexError
+        except IndexError:
+            if self._mode == self.Modes.block:
+                new = self.curitem()
+            elif self._mode == self.Modes.wrap:
+                self.idx += offset
+                self.idx %= len(self.items)
+                new = self.curitem()
+            elif self._mode == self.Modes.exception:
+                raise
+        else:
+            self.idx += offset
+        return new
+
     @property
     def items(self):
         """Getter for items, which should not be set."""
@@ -154,23 +185,7 @@ class NeighborList(collections.abc.Sequence):
             elif snapped:
                 offset += 1
             self.fuzzyval = None
-        try:
-            if self.idx + offset >= 0:
-                new = self._items[self.idx + offset]
-            else:
-                raise IndexError
-        except IndexError:
-            if self._mode == self.Modes.block:
-                new = self.curitem()
-            elif self._mode == self.Modes.wrap:
-                self.idx += offset
-                self.idx %= len(self.items)
-                new = self.curitem()
-            elif self._mode == self.Modes.exception:
-                raise
-        else:
-            self.idx += offset
-        return new
+        return self._get_new_item(offset)
 
     def curitem(self):
         """Get the current item in the list."""
