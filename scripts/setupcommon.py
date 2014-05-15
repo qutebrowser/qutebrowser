@@ -16,7 +16,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
-"""Data used by setup.py and scripts/freeze.py"""
+"""Data used by setup.py and scripts/freeze.py."""
 
 import sys
 import os
@@ -34,6 +34,7 @@ except NameError:
 
 
 def read_file(name):
+    """Get the string contained in the file named name."""
     with open(name, encoding='utf-8') as f:
         return f.read()
 
@@ -58,6 +59,7 @@ def _git_str():
 
 
 def write_git_file():
+    """Write the git-commit-id file with the current commit."""
     gitstr = _git_str()
     if gitstr is None:
         gitstr = ''

@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=broad-except
+
 """ Run different codecheckers over a codebase.
 
 Runs flake8, pylint, pep257, a CRLF/whitespace/conflict-checker and pyroma by
@@ -71,6 +73,7 @@ if os.name == 'nt':
     # arrows in configdata.py
     options['exclude_pep257'].append('configdata.py')
 
+
 def run(name, target, args=None):
     """Run a checker via distutils with optional args.
 
@@ -122,18 +125,20 @@ def check_pep257(target, args=None):
 
 
 def check_unittest():
+    """Run the unittest checker."""
     print("==================== unittest ====================")
     suite = unittest.TestLoader().discover('.')
     result = unittest.TextTestRunner().run(suite)
     print()
     status['unittest'] = result.wasSuccessful()
 
+
 def check_line(target):
     """Run _check_file over a filetree."""
     print("------ line ------")
     ret = []
     try:
-        for (dirpath, dirnames, filenames) in os.walk(target):
+        for (dirpath, _dirnames, filenames) in os.walk(target):
             for name in (e for e in filenames if e.endswith('.py')):
                 fn = os.path.join(dirpath, name)
                 ret.append(_check_file(fn))
@@ -170,6 +175,7 @@ def _get_args(checker):
     Return:
         A list of commandline arguments.
     """
+    # pylint: disable=too-many-branches
     args = []
     if checker == 'pylint':
         try:
@@ -206,7 +212,7 @@ def _get_args(checker):
         except KeyError:
             pass
         try:
-            args += ['--match=(?!{}).*\.py'.format('|'.join(
+            args += [r'--match=(?!{}).*\.py'.format('|'.join(
                 options['exclude'] + options['exclude_pep257']))]
         except KeyError:
             pass
@@ -220,14 +226,14 @@ def _get_args(checker):
 
 
 check_unittest()
-for target in options['targets']:
-    print("==================== {} ====================".format(target))
+for trg in options['targets']:
+    print("==================== {} ====================".format(trg))
     if do_check_257:
-        check_pep257(target, _get_args('pep257'))
-    for checker in ['pylint', 'flake8', 'pyroma']:
+        check_pep257(trg, _get_args('pep257'))
+    for chk in ['pylint', 'flake8', 'pyroma']:
         # FIXME what the hell is the flake8 exit status?
-        run(checker, target, _get_args(checker))
-    check_line(target, )
+        run(chk, trg, _get_args(chk))
+    check_line(trg, )
 
 print("Exit status values:")
 for (k, v) in status.items():

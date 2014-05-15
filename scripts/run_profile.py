@@ -10,7 +10,7 @@ from shutil import rmtree
 
 sys.path.insert(0, getcwd())
 
-from qutebrowser.app import QuteBrowser
+from qutebrowser.app import QuteBrowser  # pylint: disable=unused-import
 
 tempdir = mkdtemp()
 

@@ -80,8 +80,8 @@ executable = Executable('qutebrowser/__main__.py', base=base,
 try:
     write_git_file()
     setup(
-        executables = [executable],
-        options = {
+        executables=[executable],
+        options={
             'build_exe': build_exe_options,
             'bdist_msi': bdist_msi_options,
         },
