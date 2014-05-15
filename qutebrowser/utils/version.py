@@ -27,6 +27,7 @@ from PyQt5.QtCore import QT_VERSION_STR, PYQT_VERSION_STR, qVersion
 from PyQt5.QtWebKit import qWebKitVersion
 
 import qutebrowser
+from qutebrowser.utils.misc import read_file
 
 
 def _git_str():
@@ -36,13 +37,34 @@ def _git_str():
         string containing the git commit ID.
         None if there was an error or we're not in a git repo.
     """
-    if hasattr(sys, "frozen"):
-        return None
+    # First try via subprocess if possible
+    commit = None
+    if not hasattr(sys, "frozen"):
+        try:
+            gitpath = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                   os.path.pardir, os.path.pardir)
+        except NameError:
+            pass
+        else:
+            commit = _git_str_subprocess(gitpath)
+    if commit is not None:
+        return commit
+    # If that fails, check the git-commit-id file.
     try:
-        gitpath = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                               os.path.pardir, os.path.pardir)
-    except NameError:
+        return read_file('git-commit-id')
+    except (FileNotFoundError, ImportError):
         return None
+
+
+def _git_str_subprocess(gitpath):
+    """Try to get the git commit ID by calling git.
+
+    Args:
+        gitpath: The path where the .git folder is.
+
+    Return:
+        The path on success, None on failure.
+    """
     if not os.path.isdir(os.path.join(gitpath, ".git")):
         return None
     try:

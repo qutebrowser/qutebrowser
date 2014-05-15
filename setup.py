@@ -18,20 +18,36 @@
 
 """setuptools installer script for qutebrowser"""
 
+import os
+import os.path
 
-from scripts.setupcommon import setupdata
+from scripts.setupcommon import setupdata, write_git_file
 
 from scripts.ez_setup import use_setuptools
 use_setuptools()
 from setuptools import setup, find_packages
 
 
-setup(
-    packages=find_packages(exclude=['qutebrowser.test']),
-    include_package_data=True,
-    package_data={'qutebrowser': ['html/*']},
-    entry_points={'gui_scripts': ['qutebrowser = qutebrowser.__main__:main']},
-    test_suite='qutebrowser.test',
-    zip_safe=True,
-    **setupdata
-)
+try:
+    BASEDIR = os.path.dirname(os.path.realpath(__file__))
+except NameError:
+    BASEDIR = None
+
+
+try:
+    write_git_file()
+    setup(
+        packages=find_packages(exclude=['qutebrowser.test']),
+        include_package_data=True,
+        package_data={'qutebrowser': ['html/*', 'git-commit-id']},
+        entry_points={'gui_scripts':
+                      ['qutebrowser = qutebrowser.__main__:main']},
+        test_suite='qutebrowser.test',
+        zip_safe=True,
+        **setupdata
+    )
+finally:
+    if BASEDIR is not None:
+        path = os.path.join(BASEDIR, 'qutebrowser', 'git-commit-id')
+        if os.path.exists(path):
+            os.remove(path)

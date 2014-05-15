@@ -20,13 +20,49 @@
 
 import sys
 import os
+import os.path
+import subprocess
 sys.path.insert(0, os.getcwd())
 import qutebrowser
+
+
+try:
+    BASEDIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                           os.path.pardir)
+except NameError:
+    BASEDIR = None
 
 
 def read_file(name):
     with open(name, encoding='utf-8') as f:
         return f.read()
+
+
+def _git_str():
+    """Try to find out git version.
+
+    Return:
+        string containing the git commit ID.
+        None if there was an error or we're not in a git repo.
+    """
+    if BASEDIR is None:
+        return None
+    if not os.path.isdir(os.path.join(BASEDIR, ".git")):
+        return None
+    try:
+        return subprocess.check_output(
+            ['git', 'describe', '--tags', '--dirty', '--always'],
+            cwd=BASEDIR).decode('UTF-8').strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
+def write_git_file():
+    gitstr = _git_str()
+    if gitstr is None:
+        gitstr = ''
+    with open(os.path.join(BASEDIR, 'qutebrowser', 'git-commit-id'), 'w') as f:
+        f.write(gitstr)
 
 
 setupdata = {

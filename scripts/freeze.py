@@ -23,13 +23,21 @@ Builds a standalone executable.
 
 
 import os
+import os.path
 import sys
 import platform
 
 from cx_Freeze import setup, Executable
 
 sys.path.insert(0, os.getcwd())
-from scripts.setupcommon import setupdata
+from scripts.setupcommon import setupdata, write_git_file
+
+
+try:
+    BASEDIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                           os.path.pardir)
+except NameError:
+    BASEDIR = None
 
 
 def get_egl_path():
@@ -47,6 +55,7 @@ def get_egl_path():
 build_exe_options = {
     'include_files': [
         ('qutebrowser/html', 'html'),
+        ('qutebrowser/git-commit-id', 'git-commit-id'),
     ],
     'include_msvcr': True,
 }
@@ -68,11 +77,18 @@ executable = Executable('qutebrowser/__main__.py', base=base,
                         shortcutName='qutebrowser',
                         shortcutDir='ProgramMenuFolder')
 
-setup(
-    executables = [executable],
-    options = {
-        'build_exe': build_exe_options,
-        'bdist_msi': bdist_msi_options,
-    },
-    **setupdata
-)
+try:
+    write_git_file()
+    setup(
+        executables = [executable],
+        options = {
+            'build_exe': build_exe_options,
+            'bdist_msi': bdist_msi_options,
+        },
+        **setupdata
+    )
+finally:
+    if BASEDIR is not None:
+        path = os.path.join(BASEDIR, 'qutebrowser', 'git-commit-id')
+        if os.path.exists(path):
+            os.remove(path)
