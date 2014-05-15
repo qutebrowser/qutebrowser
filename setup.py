@@ -19,7 +19,7 @@
 """setuptools installer script for qutebrowser"""
 
 
-from scripts.setupdata import setupdata
+from scripts.setupcommon import setupdata
 
 from scripts.ez_setup import use_setuptools
 use_setuptools()
