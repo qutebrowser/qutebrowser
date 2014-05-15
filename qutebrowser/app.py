@@ -107,7 +107,8 @@ class QuteBrowser(QApplication):
         self._quit_status = {
             'crash': True,
             'tabs': False,
-            'networkmanager': False
+            'networkmanager': False,
+            'main': False,
         }
         self._timers = []
         self._opened_urls = []
@@ -249,23 +250,54 @@ class QuteBrowser(QApplication):
 
     def _handle_segfault(self):
         """Handle a segfault from a previous run."""
+        # FIXME If an empty logfile exists, we log to stdout instead, which is
+        # the only way to not break multiple instances.
+        # However this also means if the logfile is there for some weird
+        # reason, we'll *always* log to stderr, but that's still better than no
+        # dialogs at all.
         logname = os.path.join(get_standard_dir(QStandardPaths.DataLocation),
                                'crash.log')
         # First check if an old logfile exists.
         if os.path.exists(logname):
             with open(logname, 'r') as f:
                 data = f.read()
-            # Just in case FatalCrashDialog crashes... -.-
-            os.remove(logname)
             if data:
+                # Crashlog exists and has data in it, so something crashed
+                # previously.
+                try:
+                    os.remove(logname)
+                except PermissionError:
+                    logging.warn("Could not remove crash log!")
+                else:
+                    self._init_crashlogfile()
                 self._crashdlg = FatalCrashDialog(data)
                 self._crashdlg.show()
-        # Start a new logfile and redirect faulthandler to it
-        self._crashlogfile = open(logname, 'w')  # This also truncates.
+            else:
+                # Crashlog exists but without data.
+                # This means another instance is probably still running and
+                # didn't remove the file. As we can't write to the same file,
+                # we just leave faulthandler as it is and log to stderr.
+                logging.warn("Empty crash.log detected. This means either "
+                             "another instance is running (then ignore this "
+                             "warning) or the file is lying here because "
+                             "of some earlier crash (then delete it).")
+                self._crashlogfile = None
+        else:
+            # There's no log file, so we can use this to display crashes to the
+            # user on the next start.
+            self._init_crashlogfile()
+
+    def _init_crashlogfile(self):
+        """Start a new logfile and redirect faulthandler to it."""
+        logname = os.path.join(get_standard_dir(QStandardPaths.DataLocation),
+                               'crash.log')
+        self._crashlogfile = open(logname, 'w')
         faulthandler.enable(self._crashlogfile)
-        if hasattr(faulthandler, 'register') and hasattr(signal, 'SIGUSR1'):
+        if (hasattr(faulthandler, 'register') and
+                hasattr(signal, 'SIGUSR1')):
             # If available, we also want a traceback on SIGUSR1.
-            faulthandler.register(signal.SIGUSR1)  # pylint: disable=no-member
+            # pylint: disable=no-member
+            faulthandler.register(signal.SIGUSR1)
 
     def _init_cmds(self):
         """Initialisation of the qutebrowser commands.
@@ -595,6 +627,15 @@ class QuteBrowser(QApplication):
         except AttributeError:
             logging.exception("No networkmanager to shut down.")
             self._maybe_quit('networkmanager')
+        if self._crashlogfile is not None:
+            # Re-enable faulthandler to stdout, then remove crash log
+            faulthandler.enable()
+            self._crashlogfile.close()
+            try:
+                os.remove(self._crashlogfile.name)
+            except PermissionError:
+                pass
+        self._maybe_quit('main')
 
     @pyqtSlot()
     def on_tab_shutdown_complete(self):
