@@ -48,7 +48,7 @@ logging.basicConfig(level=logging.INFO, format='%(msg)s')
 status = OrderedDict()
 
 options = {
-    'target': 'qutebrowser',
+    'targets': ['qutebrowser', 'scripts'],
     'disable': {
         'pep257': [
             'D102',  # Docstring missing, will be handled by others
@@ -57,8 +57,8 @@ options = {
                      # (false-positives)
         ],
     },
-    'exclude': [],
-    'exclude_pep257': ['test_*'],
+    'exclude': ['scripts.ez_setup'],
+    'exclude_pep257': ['test_*'],  # FIXME exclude ez_setup
     'other': {
         'pylint': ['--output-format=colorized', '--reports=no',
                    '--rcfile=.pylintrc'],
@@ -71,72 +71,74 @@ if os.name == 'nt':
     # arrows in configdata.py
     options['exclude_pep257'].append('configdata.py')
 
-def run(name, args=None):
+def run(name, target, args=None):
     """Run a checker via distutils with optional args.
 
     Arguments:
         name: Name of the checker/binary
+        target: The package to check
         args: Option list of arguments to pass
     """
     sys.argv = [name]
+    status_key = '{}_{}'.format(name, target)
     if name != 'pyroma':
-        args.append(options['target'])
+        args.append(target)
     if args is not None:
         sys.argv += args
-    print("====== {} ======".format(name))
+    print("------ {} ------".format(name))
     try:
         ep = load_entry_point(name, 'console_scripts', name)
         ep()
     except SystemExit as e:
-        status[name] = e
+        status[status_key] = e
     except DistributionNotFound:
         if args is None:
             args = []
         try:
-            status[name] = subprocess.call([name] + args)
+            status[status_key] = subprocess.call([name] + args)
         except FileNotFoundError as e:
             print('{}: {}'.format(e.__class__.__name__, e))
-            status[name] = None
+            status[status_key] = None
     except Exception as e:
         print('{}: {}'.format(e.__class__.__name__, e))
-        status[name] = None
+        status[status_key] = None
     print()
 
 
-def check_pep257(args=None):
+def check_pep257(target, args=None):
     """Run pep257 checker with args passed."""
-    sys.argv = ['pep257', options['target']]
+    sys.argv = ['pep257', target]
     if args is not None:
         sys.argv += args
-    print("====== pep257 ======")
+    print("------ pep257 ------")
     try:
-        status['pep257'] = pep257.main(*pep257.parse_options())
+        status['pep257_' + target] = pep257.main(*pep257.parse_options())
     except Exception as e:
         print('{}: {}'.format(e.__class__.__name__, e))
-        status['pep257'] = None
+        status['pep257_' + target] = None
     print()
 
 
 def check_unittest():
-    print("====== unittest ======")
+    print("==================== unittest ====================")
     suite = unittest.TestLoader().discover('.')
     result = unittest.TextTestRunner().run(suite)
     print()
     status['unittest'] = result.wasSuccessful()
 
-def check_line():
+def check_line(target):
     """Run _check_file over a filetree."""
-    print("====== line ======")
+    print("------ line ------")
     ret = []
     try:
-        for (dirpath, dirnames, filenames) in os.walk(options['target']):
+        for (dirpath, dirnames, filenames) in os.walk(target):
             for name in (e for e in filenames if e.endswith('.py')):
                 fn = os.path.join(dirpath, name)
                 ret.append(_check_file(fn))
-        status['line'] = all(ret)
+        status['line_' + target] = all(ret)
     except Exception as e:
         print('{}: {}'.format(e.__class__.__name__, e))
-        status['line'] = None
+        status['line_' + target] = None
     print()
 
 
@@ -212,13 +214,16 @@ def _get_args(checker):
         args = ['.']
     return args
 
-if do_check_257:
-    check_pep257(_get_args('pep257'))
+
 check_unittest()
-for checker in ['pylint', 'flake8', 'pyroma']:
-    # FIXME what the hell is the flake8 exit status?
-    run(checker, _get_args(checker))
-check_line()
+for target in options['targets']:
+    print("==================== {} ====================".format(target))
+    if do_check_257:
+        check_pep257(target, _get_args('pep257'))
+    for checker in ['pylint', 'flake8', 'pyroma']:
+        # FIXME what the hell is the flake8 exit status?
+        run(checker, target, _get_args(checker))
+    check_line(target, )
 
 print("Exit status values:")
 for (k, v) in status.items():
