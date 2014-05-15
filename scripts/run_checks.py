@@ -83,6 +83,8 @@ def run(name, target, args=None):
     status_key = '{}_{}'.format(name, target)
     if name != 'pyroma':
         args.append(target)
+    elif name == 'pyroma' and target != 'qutebrowser':
+        return
     if args is not None:
         sys.argv += args
     print("------ {} ------".format(name))
