@@ -20,7 +20,6 @@ Before 0.1
    - prompt in statusbar
    - ssl-strict=ask
 - Downloads (at least calling a handler)
-- Log faulthandler foo to file and read it again on next start.
 
 Style
 =====
@@ -57,6 +56,7 @@ New big features
 Improvements / minor features
 =============================
 
+- configurable warning when closing window with multiple tabs open
 - Hide statusbar messages after timeout, not on keypress
 - Reimplement tabbar to paint it by ourselves to look like dwb
 - We probably should rewrite all the signal cache stuff to save state
