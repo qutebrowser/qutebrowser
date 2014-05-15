@@ -316,14 +316,18 @@ class TabbedBrowser(TabWidget):
             self._close_tab(tab)
 
     @cmdutils.register(instance='mainwindow.tabs', split=False, name='tabopen')
-    def tabopen_cmd(self, url):
+    def tabopen_cmd(self, url=None):
         """Open a new tab with a given url."""
+        if url is None:
+            url = config.get('general', 'startpage')[0]
         self.tabopen(url, background=False)
 
     @cmdutils.register(instance='mainwindow.tabs', split=False,
                        name='backtabopen')
-    def backtabopen_cmd(self, url):
+    def backtabopen_cmd(self, url=None):
         """Open a new tab in background."""
+        if url is None:
+            url = config.get('general', 'startpage')[0]
         self.tabopen(url, background=True)
 
     @cmdutils.register(instance='mainwindow.tabs', hide=True)
