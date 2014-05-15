@@ -110,12 +110,17 @@ class NeighborList(collections.abc.Sequence):
         Args:
             offset: negative to get the next smaller item, positive for the
                     next bigger one.
+
+        Return:
+            True if the value snapped in (changed),
+            False when the value already was in the list.
         """
         op = operator.le if offset < 0 else operator.ge
         items = [(idx, e) for (idx, e) in enumerate(self._items)
                  if op(e, self.fuzzyval)]
         close_item = min(items, key=lambda tpl: abs(self.fuzzyval - tpl[1]))
         self.idx = close_item[0]
+        return self.fuzzyval not in self._items
 
     @property
     def items(self):
@@ -143,10 +148,10 @@ class NeighborList(collections.abc.Sequence):
             # Value has been set to something not in the list, so we snap in to
             # the closest value in the right direction and count this as one
             # step towards offset.
-            self._snap_in(offset)
-            if offset > 0:
+            snapped = self._snap_in(offset)
+            if snapped and offset > 0:
                 offset -= 1
-            else:
+            elif snapped:
                 offset += 1
             self.fuzzyval = None
         try:

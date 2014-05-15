@@ -277,18 +277,14 @@ class SnapInTests(TestCase):
         self.assertEqual(self.nl.idx, 2)
 
     def test_equal_bigger(self):
-        self.nl.fuzzyval = 9
+        self.nl.fuzzyval = 20
         self.assertEqual(self.nl.nextitem(), 9)
         self.assertEqual(self.nl.idx, 1)
-        self.assertEqual(self.nl.nextitem(), 1)
-        self.assertEqual(self.nl.idx, 2)
 
     def test_equal_smaller(self):
-        self.nl.fuzzyval = 9
-        self.assertEqual(self.nl.previtem(), 9)
-        self.assertEqual(self.nl.idx, 1)
-        self.assertEqual(self.nl.previtem(), 20)
-        self.assertEqual(self.nl.idx, 0)
+        self.nl.fuzzyval = 5
+        self.assertEqual(self.nl.previtem(), 1)
+        self.assertEqual(self.nl.idx, 2)
 
 
 if __name__ == '__main__':
