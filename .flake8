@@ -8,3 +8,4 @@
 # F841: unused variable
 ignore=E241,E265,F401,E501,F821,F841
 max_complexity = 10
+exclude = ez_setup.py

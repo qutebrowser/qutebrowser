@@ -57,8 +57,8 @@ options = {
                      # (false-positives)
         ],
     },
-    'exclude': ['scripts.ez_setup'],
-    'exclude_pep257': ['test_*'],  # FIXME exclude ez_setup
+    'exclude': [],
+    'exclude_pep257': ['test_*', 'ez_setup'],
     'other': {
         'pylint': ['--output-format=colorized', '--reports=no',
                    '--rcfile=.pylintrc'],
@@ -174,10 +174,11 @@ def _get_args(checker):
             args += ['--disable=' + ','.join(options['disable']['pylint'])]
         except KeyError:
             pass
-        try:
-            args += ['--ignore=' + ','.join(options['exclude'])]
-        except KeyError:
-            pass
+        if options['exclude']:
+            try:
+                args += ['--ignore=' + ','.join(options['exclude'])]
+            except KeyError:
+                pass
         try:
             args += options['other']['pylint']
         except KeyError:
@@ -187,10 +188,11 @@ def _get_args(checker):
             args += ['--ignore=' + ','.join(options['disable']['flake8'])]
         except KeyError:
             pass
-        try:
-            args += ['--exclude=' + ','.join(options['exclude'])]
-        except KeyError:
-            pass
+        if options['exclude']:
+            try:
+                args += ['--exclude=' + ','.join(options['exclude'])]
+            except KeyError:
+                pass
         try:
             args += options['other']['flake8']
         except KeyError:

@@ -1,3 +1,6 @@
+[MASTER]
+ignore=ez_setup.py
+
 [MESSAGES CONTROL]
 disable=no-self-use,
         super-on-old-class,
