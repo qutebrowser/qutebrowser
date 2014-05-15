@@ -65,13 +65,13 @@ def _get_search_url(txt):
 
 
 def _is_url_naive(url):
-    """Naive check if given url is really an url.
+    """Naive check if given URL is really a URL.
 
     Args:
         url: The URL to check for.
 
     Return:
-        True if the url really is an URL, False otherwise.
+        True if the URL really is a URL, False otherwise.
     """
     protocols = ['http', 'https']
     u = qurl(url)
@@ -92,13 +92,13 @@ def _is_url_naive(url):
 
 
 def _is_url_dns(url):
-    """Check if an url (QUrl) is really an url via DNS.
+    """Check if a URL (QUrl) is really a URL via DNS.
 
     Args:
         url: The URL to check for.
 
     Return:
-        True if the url really is an URL, False otherwise.
+        True if the URL really is a URL, False otherwise.
     """
     host = url.host()
     logging.debug("DNS request for {}".format(host))
@@ -109,7 +109,7 @@ def _is_url_dns(url):
 
 
 def qurl(url):
-    """Get a QUrl from an url string.
+    """Get a QUrl from a URL string.
 
     Args:
         The URL as string or QUrl.
@@ -144,15 +144,15 @@ def fuzzy_url(url):
     urlstr = urlstring(url)
     if is_url(urlstr):
         # probably an address
-        logging.debug("url is a fuzzy address")
+        logging.debug("URL is a fuzzy address")
         newurl = QUrl.fromUserInput(urlstr)
     else:  # probably a search term
-        logging.debug("url is a fuzzy search term")
+        logging.debug("URL is a fuzzy search term")
         try:
             newurl = _get_search_url(urlstr)
         except ValueError:  # invalid search engine
             newurl = QUrl.fromUserInput(urlstr)
-    logging.debug("Converting fuzzy term {} to url -> {}".format(
+    logging.debug("Converting fuzzy term {} to URL -> {}".format(
         urlstr, urlstring(newurl)))
     return newurl
 
@@ -170,7 +170,7 @@ def is_url(url):
         url: The URL as QUrl or string.
 
     Return:
-        True if it is a valid url, False otherwise.
+        True if it is a valid URL, False otherwise.
 
     Raise:
         ValueError if the autosearch config value is invalid.
@@ -179,16 +179,16 @@ def is_url(url):
 
     autosearch = config.get('general', 'auto-search')
 
-    logging.debug("Checking if '{}' is an URL (autosearch={}).".format(
+    logging.debug("Checking if '{}' is a URL (autosearch={}).".format(
         urlstr, autosearch))
 
     if not autosearch:
-        # no autosearch, so everything is an URL.
+        # no autosearch, so everything is a URL.
         return True
 
     if ' ' in urlstr:
-        # An URL will never contain a space
-        logging.debug("Contains space -> no url")
+        # A URL will never contain a space
+        logging.debug("Contains space -> no URL")
         return False
     elif is_special_url(url):
         # Special URLs are always URLs, even with autosearch=False

@@ -328,7 +328,7 @@ class QuteBrowser(QApplication):
                 logging.debug("Startup cmd {}".format(e))
                 self.commandmanager.run_safely(e.lstrip(':'))
             else:
-                logging.debug("Startup url {}".format(e))
+                logging.debug("Startup URL {}".format(e))
                 self._opened_urls.append(e)
                 self.mainwindow.tabs.tabopen(e)
 

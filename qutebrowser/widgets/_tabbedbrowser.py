@@ -222,7 +222,7 @@ class TabbedBrowser(TabWidget):
 
     @pyqtSlot(str, bool)
     def tabopen(self, url=None, background=None):
-        """Open a new tab with a given url.
+        """Open a new tab with a given URL.
 
         Inner logic for tabopen and backtabopen.
         Also connect all the signals we need to _filter_signals.
@@ -235,7 +235,7 @@ class TabbedBrowser(TabWidget):
         Return:
             The opened WebView instance.
         """
-        logging.debug("Creating new tab with url {}".format(url))
+        logging.debug("Creating new tab with URL {}".format(url))
         tab = WebView(self)
         self._connect_tab_signals(tab)
         self._tabs.append(tab)
@@ -346,7 +346,7 @@ class TabbedBrowser(TabWidget):
 
     @cmdutils.register(instance='mainwindow.tabs', name='undo')
     def undo_close(self):
-        """Switch to the previous tab, or skip [count] tabs.
+        """Re-open a closed tab (optionally skipping [count] tabs).
 
         Command handler for :undo.
         """
@@ -357,7 +357,7 @@ class TabbedBrowser(TabWidget):
 
     @cmdutils.register(instance='mainwindow.tabs', name='tabprev')
     def switch_prev(self, count=1):
-        """Switch to the ([count]th) previous tab.
+        """Switch to the previous tab, or skip [count] tabs.
 
         Command handler for :tabprev.
 
@@ -423,7 +423,7 @@ class TabbedBrowser(TabWidget):
 
     @cmdutils.register(instance='mainwindow.tabs')
     def focus_tab(self, index=None, count=None):
-        """Select the tab given as argument or in count.
+        """Select the tab given as argument/[count].
 
         Args:
             index: The tab index to focus, starting with 1.

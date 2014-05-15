@@ -755,7 +755,7 @@ class WebSettingsFile(File):
 
 class AutoSearch(BaseType):
 
-    """Whether to start a search when something else than an URL is entered."""
+    """Whether to start a search when something else than a URL is entered."""
 
     valid_values = ValidValues(('naive', "Use simple/naive check."),
                                ('dns', "Use DNS requests (might be slow!)."),

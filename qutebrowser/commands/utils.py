@@ -157,7 +157,7 @@ class register:  # pylint: disable=invalid-name
                              "given!".format(mainname))
         count, nargs = self._get_nargs_count(argspec)
         if func.__doc__ is not None:
-            desc = func.__doc__.splitlines()[0].strip().rstrip('.')
+            desc = func.__doc__.splitlines()[0].strip()
         else:
             desc = ""
         cmd = Command(name=mainname, split=self.split,

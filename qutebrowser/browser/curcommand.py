@@ -94,7 +94,7 @@ class CurCommandDispatcher(QObject):
     @cmdutils.register(instance='mainwindow.tabs.cur', name='open',
                        split=False)
     def openurl(self, url, count=None):
-        """Open an url in the current/[count]th tab.
+        """Open a URL in the current/[count]th tab.
 
         Command handler for :open.
 
@@ -105,7 +105,7 @@ class CurCommandDispatcher(QObject):
         tab = self._tabs.cntwidget(count)
         if tab is None:
             if count is None:
-                # We want to open an URL in the current tab, but none exists
+                # We want to open a URL in the current tab, but none exists
                 # yet.
                 self._tabs.tabopen(url)
             else:
@@ -116,7 +116,7 @@ class CurCommandDispatcher(QObject):
 
     @pyqtSlot('QUrl', bool)
     def openurl_slot(self, url, newtab):
-        """Open an URL, used as a slot.
+        """Open a URL, used as a slot.
 
         Args:
             url: The URL to open.
@@ -345,7 +345,7 @@ class CurCommandDispatcher(QObject):
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
     def yank(self, sel=False):
-        """Yank the current url to the clipboard or primary selection.
+        """Yank the current URL to the clipboard or primary selection.
 
         Command handler for :yank.
 
@@ -377,7 +377,7 @@ class CurCommandDispatcher(QObject):
 
     @cmdutils.register(instance='mainwindow.tabs.cur', name='zoomin')
     def zoom_in(self, count=1):
-        """Zoom in in the current tab.
+        """Increase the zoom level for the current tab.
 
         Args:
             count: How many steps to take.
@@ -387,7 +387,7 @@ class CurCommandDispatcher(QObject):
 
     @cmdutils.register(instance='mainwindow.tabs.cur', name='zoomout')
     def zoom_out(self, count=1):
-        """Zoom out in the current tab.
+        """Decrease the zoom level for the current tab.
 
         Args:
             count: How many steps to take.
@@ -397,7 +397,7 @@ class CurCommandDispatcher(QObject):
 
     @cmdutils.register(instance='mainwindow.tabs.cur', name='zoom')
     def zoom_perc(self, zoom=None, count=None):
-        """Zoom the current tab to [count] or 100 percent.
+        """Set the zoom level for the current tab to [count] or 100 percent.
 
         Args:
             count: How many steps to take.

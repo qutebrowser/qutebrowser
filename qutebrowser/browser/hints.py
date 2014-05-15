@@ -66,7 +66,7 @@ class HintManager(QObject):
                               arg: A list of hint strings.
         mouse_event: Mouse event to be posted in the web view.
                      arg: A QMouseEvent
-        openurl: Open a new url
+        openurl: Open a new URL
                  arg 0: URL to open as QUrl.
                  arg 1: True if it should be opened in a new tab, else False.
         set_open_target: Set a new target to open the links in.

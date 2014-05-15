@@ -60,10 +60,10 @@ FIRST_COMMENT = r"""
 
 
 SECTION_DESC = {
-    'general': "General/misc. options",
+    'general': "General/misc. options.",
     'input': "Options related to input modes.",
     'network': "Settings related to the network.",
-    'completion': "Options related to completion and command history .",
+    'completion': "Options related to completion and command history.",
     'tabbar': "Configuration of the tab bar.",
     'webkit': "Webkit settings.",
     'hints': "Hinting settings.",
@@ -71,7 +71,7 @@ SECTION_DESC = {
         "Definitions of search engines which can be used via the address "
         "bar.\n"
         "The searchengine named DEFAULT is used when general.auto-search "
-        "is true and something else than an URL was entered to be opened. "
+        "is true and something else than a URL was entered to be opened. "
         "Other search engines can be used via the bang-syntax, e.g. "
         '"qutebrowser !google". The string "{}" will be replaced by the '
         'search term, use "{{" and "}}" for literal {/} signs.'),
@@ -103,7 +103,7 @@ SECTION_DESC = {
         "  follow_hint: Follow the currently selected hint.\n"
         "  leave_mode: Leave the command mode."),
     'keybind.passthrough': (
-        "Keybindings for hint mode.\n"
+        "Keybindings for passthrough mode.\n"
         "Since normal keypresses are passed through, only special keys are "
         "supported in this mode.\n"
         "An useful command to map here is the hidden command leave_mode."),
@@ -163,11 +163,11 @@ DATA = OrderedDict([
 
         ('startpage',
          SettingValue(types.List(), 'http://www.duckduckgo.com'),
-         "The default page(s) to open at the start, separated with commas."),
+         "The default page(s) to open at the start, separated by commas."),
 
         ('auto-search',
          SettingValue(types.AutoSearch(), 'naive'),
-         "Whether to start a search when something else than an URL is "
+         "Whether to start a search when something else than a URL is "
          "entered."),
 
         ('zoom-levels',
@@ -186,12 +186,12 @@ DATA = OrderedDict([
 
         ('background-tabs',
          SettingValue(types.Bool(), 'false'),
-         "Whether to open new tabs (middleclick/ctrl+click) in background"),
+         "Whether to open new tabs (middleclick/ctrl+click) in background."),
 
         ('window-open-behaviour',
          SettingValue(types.WindowOpenBehaviour(), 'new-tab'),
          "What to do when the WebView requests a new window to be opened "
-         "(e.g.  via javascript)"),
+         "(e.g.  via javascript)."),
 
         ('editor',
          SettingValue(types.ShellCommand(placeholder=True), 'gvim -f "{}"'),
@@ -331,7 +331,7 @@ DATA = OrderedDict([
 
         ('plugins-enabled',
          SettingValue(types.Bool(), 'false'),
-         "Enables or disables plugins in Web pages"),
+         "Enables or disables plugins in Web pages."),
 
         ('private-browsing-enabled',
          SettingValue(types.Bool(), 'false'),
@@ -353,7 +353,7 @@ DATA = OrderedDict([
 
         ('developer-extras-enabled',
          SettingValue(types.Bool(), 'false'),
-         "Enables extra tools for Web developers (e.g. webinspector)"),
+         "Enables extra tools for Web developers (e.g. webinspector)."),
 
         ('spatial-navigation-enabled',
          SettingValue(types.Bool(), 'false'),
@@ -375,17 +375,17 @@ DATA = OrderedDict([
         ('print-element-backgrounds',
          SettingValue(types.Bool(), 'true'),
          "Specifies whether the background color and images are also drawn "
-         "when the page is printed. "),
+         "when the page is printed."),
 
         ('offline-storage-database-enabled',
          SettingValue(types.Bool(), 'false'),
          "Specifies whether support for the HTML 5 offline storage feature is "
-         "enabled or not. "),
+         "enabled or not."),
 
         ('offline-web-application-storage-enabled',
          SettingValue(types.Bool(), 'false'),
          "Specifies whether support for the HTML 5 web application cache "
-         "feature is enabled or not. "),
+         "feature is enabled or not."),
 
         ('local-storage-enabled',
          SettingValue(types.Bool(), 'false'),
@@ -414,7 +414,7 @@ DATA = OrderedDict([
         # "This feature, when used in conjunction with QGraphicsWebView, "
         # "accelerates animations of web content. CSS animations of the "
         # "transform and opacity properties will be rendered by composing the "
-        # "cached content of the animated elements. "),
+        # "cached content of the animated elements."),
 
         #('tiled-backing-store-enabled',
         # SettingValue(types.Bool(), 'false'),
@@ -502,7 +502,7 @@ DATA = OrderedDict([
                       ''),
          "Specifies the capacities for the memory cache for dead objects "
          "such as stylesheets or scripts. Three values are expected: "
-         "cacheMinDeadCapacity, cacheMaxDead, totalCapacity"),
+         "cacheMinDeadCapacity, cacheMaxDead, totalCapacity."),
 
         ('offline-storage-default-quota',
          SettingValue(types.WebKitBytes(maxsize=MAXVALS['int64']), ''),
@@ -524,7 +524,7 @@ DATA = OrderedDict([
 
         ('mode',
          SettingValue(types.HintMode(), 'letter'),
-         "Mode to use for hints, 'number' or 'letter'."),
+         "Mode to use for hints."),
 
         ('chars',
          SettingValue(types.String(minlen=2), 'asdfghjkl'),

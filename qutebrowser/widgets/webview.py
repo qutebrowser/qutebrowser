@@ -222,7 +222,7 @@ class WebView(QWebView):
             logging.debug("Normal click, setting normal target")
 
     def openurl(self, url):
-        """Open an URL in the browser.
+        """Open a URL in the browser.
 
         Args:
             url: The URL to load, as string or QUrl.
@@ -317,7 +317,7 @@ class WebView(QWebView):
         tab (middle-click or control) or not, and does so.
 
         Args:
-            url: The url to handle, as string or QUrl.
+            url: The URL to handle, as string or QUrl.
         """
         if self._open_target == Target.tab:
             self.tabbedbrowser.tabopen(url, False)
