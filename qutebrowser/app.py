@@ -28,6 +28,7 @@ earlyinit.check_pyqt_webkit()
 
 import os
 import sys
+import types
 import logging
 import subprocess
 import configparser
@@ -493,15 +494,26 @@ class QuteBrowser(QApplication):
         self.mainwindow.tabs.cur.openurl('qute:pyeval')
 
     @cmdutils.register(instance='', hide=True)
-    def crash(self):
+    def crash(self, typ='exception'):
         """Crash for debugging purposes.
 
         :crash command handler.
 
+        Args:
+            typ: either 'exception' or 'segfault'
+
         Raises:
-            Always raises Exception.
+            raises Exception when typ is not segfault.
+            segfaults when typ is (you don't say...)
         """
-        raise Exception("Forced crash")
+        if typ == 'segfault':
+            # From python's Lib/test/crashers/bogus_code_obj.py
+            co = types.CodeType(0, 0, 0, 0, 0, b'\x04\x71\x00\x00', (), (), (),
+                                '', '', 1, b'')
+            exec(co)
+            raise Exception("Segfault failed (wat.)")
+        else:
+            raise Exception("Forced crash")
 
     @pyqtSlot()
     @cmdutils.register(instance='', name=['quit', 'q'], nargs=0)
