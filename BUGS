@@ -1,0 +1,143 @@
+Crashes
+=======
+
+- When following a hint:
+
+  QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.
+
+- When enabling javascript on http://google.com/accounts and reloading:
+
+    OpenType support missing for script 12
+
+  Then it quits.
+  When javascript is enabled already, hangs.
+  With minimal browser, prints error but continues to run.
+
+  Also quits on http://de.wikipedia.org/wiki/Hallo-Welt-Programm
+
+  It seems this only happens on Windows.
+
+- Closing some tabs and undo all them -> quits and CMD.exe hangs
+
+    QHttpNetworkConnectionPrivate::_q_hostLookupFinished could not dequeu request
+
+- Clicking the blank area of the grey titlebar of the webinspector closed
+  qutebrowser on windows
+
+Bugs
+====
+
+- All kind of FIXMEs
+- When opening DDG the input field should be focused when JS is active, but
+  only is sometimes. (seir)
+- When opening 111.111.111.111 sometimes there's no loading bar and link in
+  statusbar points to the old page. (seir)
+- Current URL displayed in the statusbar is weird and sometimes wrong (seir)
+- restart sometimes abort()s on QApplication __init__ (V155)
+- qutebrowser :restart  loops endlessly
+- Super key shows up as ៀ\udc53  in logs
+- Funky font rendering with tewi:
+  http://a.pomf.se/ecgzlx.png
+- F on duckduckgo result page opens in current page
+
+  It seems we don't get a linkClicked signal there.
+  Maybe it does some weird js stuff?
+  See also: http://qt-project.org/doc/qt-4.8/qwebpage.html#createWindow
+  Asked here: http://stackoverflow.com/q/23498666/2085149
+
+- Shutdown is still flaky.
+
+  Some pointers:
+      https://code.google.com/p/webscraping/source/browse/webkit.py
+      Simply does setPage(None) in __del__ of webview.
+
+      http://www.tenox.net/out/wrp11-qt.py
+      does del self._window; del self._view; del self._page
+
+      http://pydoc.net/Python/grab/0.4.5/ghost.ghost/
+      does webview.close(); del self.manager; del self.page; del self.mainframe
+
+- Eliding doesn't work correctly in tabs (cuts off start)
+  This especially happens when there's no favicon
+
+- Opening via commandline / startpage doesn't work with absolute file paths.
+
+- Relative file paths and ~ don't work at all.
+
+- Pasting highlighted text (to mrxvt) does not work (iggy).
+
+- scroll_page doesn't care about always visible bars, so content gets hidden
+  e.g. http://www.mtb-news.de/forum/t/welcher-schuh-five-ten-vs-oneal.529148/
+
+- Command history seems to be broken
+
+- Config errors on start shouldn't be hard errors
+  (e.g. when an user-stylesheet file is deleted)
+
+
+Upstream Bugs
+=============
+
+- Printing under windows produced blank pages
+    https://bugreports.qt-project.org/browse/QTBUG-19571
+    If this isn't fixed in Qt 5.3, bug should be reopened.
+
+- QWebElement needs geometries()
+    https://bugreports.qt-project.org/browse/QTBUG-38698
+
+- Impossible to retrieve user value of QWebElement:
+    https://bugreports.qt-project.org/browse/QTBUG-38669
+
+- Web inspector is blank unless .hide()/.show() is called.
+    Asked on SO: http://stackoverflow.com/q/23499159/2085149
+
+- Weird font rendering
+    https://bugreports.qt-project.org/browse/QTBUG-20973
+    https://bugreports.qt-project.org/browse/QTBUG-21036
+    https://bugreports.qt-project.org/browse/QTBUG-38884
+
+- dead_actute
+    https://bugs.freedesktop.org/show_bug.cgi?id=69476
+
+- QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.
+    https://bugreports.qt-project.org/browse/QTBUG-30298
+
+- Tabbar texts get cut off when styled and elided
+  https://bugreports.qt-project.org/browse/QTBUG-15203
+
+
+Probably fixed crashes
+======================
+
+- Segfault when closing some tab:
+    QIODevice::read: device not open
+    QIODevice::read: device not open
+    QIODevice::read: device not open
+    Fatal Python error: Segmentation fault
+
+    Current thread 0x00007ff4ed080700 (most recent call first):
+      File "/home/florian/proj/qutebrowser/git/qutebrowser/__main__.py", line 29 in main
+      File "/home/florian/proj/qutebrowser/git/qutebrowser/__main__.py", line 33 in <module>
+      File "/usr/lib/python3.4/runpy.py", line 86 in _run_code
+      File "/usr/lib/python3.4/runpy.py", line 171 in _run_module_as_main
+
+    @ e5000c315dd29ae9356e1b33ed041917c637c85b
+
+    Probably fixed by de7c6a63b48f66e164bf4baa6e892bcbb326d6b9
+
+- When opening a hint with F:
+
+    2014-05-06 09:01:25 [DEBUG] [_tabbedbrowser:tabopen:153] Opening PyQt5.QtCore.QUrl('http://ddg.gg/')
+    Traceback (most recent call last):
+      File ".\qutebrowser\widgets\_tabbedbrowser.py", line 155, in tabopen
+        tab = WebView(self)
+      File ".\qutebrowser\widgets\webview.py", line 83, in __init__
+        self.page_ = BrowserPage(self)
+      File ".\qutebrowser\browser\webpage.py", line 44, in __init__
+        self.setNetworkAccessManager(QApplication.instance().networkmanager)
+    RuntimeError: wrapped C/C++ object of type NetworkManager has been deleted
+
+    Probably fixed by de7c6a63b48f66e164bf4baa6e892bcbb326d6b9
+
+
+
