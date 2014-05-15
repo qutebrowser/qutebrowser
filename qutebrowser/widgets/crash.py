@@ -176,29 +176,64 @@ class ExceptionCrashDialog(_CrashDialog):
         self._btn_quit = QPushButton()
         self._btn_quit.setText("Quit")
         self._btn_quit.clicked.connect(self.reject)
+        self._hbox.addWidget(self._btn_quit)
         self._btn_pastebin = QPushButton()
         self._btn_pastebin.setText("Pastebin")
         self._btn_pastebin.clicked.connect(self.pastebin)
-        self._hbox.addWidget(self._btn_quit)
+        self._hbox.addWidget(self._btn_pastebin)
         if self._pages:
             self._btn_restore = QPushButton()
             self._btn_restore.setText("Restore tabs")
             self._btn_restore.clicked.connect(self.accept)
             self._btn_restore.setDefault(True)
             self._hbox.addWidget(self._btn_restore)
-        self._hbox.addWidget(self._btn_pastebin)
 
     def _gather_crash_info(self):
-        """Gather crash information to display.
-
-        Args:
-            pages: A list of the open pages (URLs as strings)
-            cmdhist: A list with the command history (as strings)
-            exc: An exception tuple (type, value, traceback)
-        """
         super()._gather_crash_info()
         self._crash_info += [
             ("Exception", ''.join(traceback.format_exception(*self._exc))),
             ("Open Pages", '\n'.join(self._pages)),
             ("Command history", '\n'.join(self._cmdhist)),
+        ]
+
+
+class FatalCrashDialog(_CrashDialog):
+
+    """Dialog which gets shown when a fatal error occured.
+
+    Attributes:
+        _log: The log text to display.
+        _btn_ok: The OK button.
+        _btn_pastebin: The pastebin button.
+    """
+
+    def __init__(self, log):
+        self._log = log
+        self._btn_ok = None
+        self._btn_pastebin = None
+        super().__init__()
+
+    def _init_text(self):
+        super()._init_text()
+        text = ("qutebrowser was restarted after a fatal crash.<br/>"
+                "Please click on 'pastebin' or send the data below to "
+                "<a href='mailto:crash@qutebrowser.org'>"
+                "crash@qutebrowser.org</a>.<br/><br/>")
+        self._lbl.setText(text)
+
+    def _init_buttons(self):
+        super()._init_buttons()
+        self._btn_ok = QPushButton()
+        self._btn_ok.setText("OK")
+        self._btn_ok.clicked.connect(self.accept)
+        self._hbox.addWidget(self._btn_ok)
+        self._btn_pastebin = QPushButton()
+        self._btn_pastebin.setText("Pastebin")
+        self._btn_pastebin.clicked.connect(self.pastebin)
+        self._hbox.addWidget(self._btn_pastebin)
+
+    def _gather_crash_info(self):
+        super()._gather_crash_info()
+        self._crash_info += [
+            ("Fault log", self._log),
         ]

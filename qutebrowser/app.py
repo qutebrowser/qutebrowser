@@ -31,6 +31,7 @@ import sys
 import types
 import logging
 import subprocess
+import faulthandler
 import configparser
 from bdb import BdbQuit
 from functools import partial
@@ -54,7 +55,7 @@ from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.config.config import ConfigManager
 from qutebrowser.keyinput.modeman import ModeManager
 from qutebrowser.widgets.mainwindow import MainWindow
-from qutebrowser.widgets.crash import ExceptionCrashDialog
+from qutebrowser.widgets.crash import ExceptionCrashDialog, FatalCrashDialog
 from qutebrowser.keyinput.modeparsers import NormalKeyParser, HintKeyParser
 from qutebrowser.keyinput.keyparser import PassthroughKeyParser
 from qutebrowser.commands.managers import CommandManager, SearchManager
@@ -94,6 +95,8 @@ class QuteBrowser(QApplication):
         _shutting_down: True if we're currently shutting down.
         _quit_status: The current quitting status.
         _opened_urls: List of opened URLs.
+        _crashdlg: The crash dialog currently open.
+        _crashlogfile: A file handler to the fatal crash logfile.
     """
 
     # This also holds all our globals, so we're a bit over the top here.
@@ -110,6 +113,8 @@ class QuteBrowser(QApplication):
         self._opened_urls = []
         self._shutting_down = False
         self._keyparsers = None
+        self._crashdlg = None
+        self._crashlogfile = None
         self.messagebridge = None
         self.stateconfig = None
         self.modeman = None
@@ -123,6 +128,7 @@ class QuteBrowser(QApplication):
         self._init_misc()
         actute_warning()
         self._init_config()
+        self._handle_segfault()
         self._init_modes()
         websettings.init()
         proxy.init()
@@ -144,6 +150,9 @@ class QuteBrowser(QApplication):
         self._python_hacks()
         timer = QTimer.singleShot(0, self._process_init_args)
         self._timers.append(timer)
+
+        if self._crashdlg is not None:
+            self._crashdlg.raise_()
 
     def _parse_args(self):
         """Parse command line options.
@@ -237,6 +246,26 @@ class QuteBrowser(QApplication):
         self.setApplicationName("qutebrowser")
         self.setApplicationVersion(qutebrowser.__version__)
         self.messagebridge = MessageBridge()
+
+    def _handle_segfault(self):
+        """Handle a segfault from a previous run."""
+        logname = os.path.join(get_standard_dir(QStandardPaths.DataLocation),
+                               'crash.log')
+        # First check if an old logfile exists.
+        if os.path.exists(logname):
+            with open(logname, 'r') as f:
+                data = f.read()
+            # Just in case FatalCrashDialog crashes... -.-
+            os.remove(logname)
+            if data:
+                self._crashdlg = FatalCrashDialog(data)
+                self._crashdlg.show()
+        # Start a new logfile and redirect faulthandler to it
+        self._crashlogfile = open(logname, 'w')  # This also truncates.
+        faulthandler.enable(self._crashlogfile)
+        if hasattr(faulthandler, 'register') and hasattr(signal, 'SIGUSR1'):
+            # If available, we also want a traceback on SIGUSR1.
+            faulthandler.register(signal.SIGUSR1)  # pylint: disable=no-member
 
     def _init_cmds(self):
         """Initialisation of the qutebrowser commands.
@@ -427,8 +456,8 @@ class QuteBrowser(QApplication):
         except TypeError:
             logging.exception("Preventing shutdown failed.")
         QApplication.closeAllWindows()
-        dlg = ExceptionCrashDialog(pages, history, exc)
-        ret = dlg.exec_()
+        self._crashdlg = ExceptionCrashDialog(pages, history, exc)
+        ret = self._crashdlg.exec_()
         if ret == QDialog.Accepted:  # restore
             self.restart(shutdown=False, pages=pages)
         # We might risk a segfault here, but that's better than continuing to

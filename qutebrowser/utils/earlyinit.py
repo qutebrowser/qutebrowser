@@ -39,9 +39,9 @@ def init_faulthandler():
         # If we'd enable faulthandler in that case, we just get a weird
         # exception, so we don't enable faulthandler if we have no stdout.
         #
-        # FIXME at the point we have our config/data dirs, we probably should
-        # re-enable faulthandler to write to a file. Then we can also display
-        # crashes to the user at the next start.
+        # Later when we have our data dir available we re-enable faulthandler
+        # to write to a file so we can display a crash to the user at the next
+        # start.
         return
     faulthandler.enable()
     if hasattr(faulthandler, 'register') and hasattr(signal, 'SIGUSR1'):
