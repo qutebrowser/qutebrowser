@@ -101,6 +101,7 @@ Improvements / minor features
 - Really fix URL detection properly
 - Make it possible to open inspector in a new window.
 - Copy link location on crash mail should not copy mailto:
+- Drag&Drop of tabs to other windows
 
 hints
 -----
