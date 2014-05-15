@@ -131,6 +131,7 @@ Major features
 Minor features
 ==============
 
+- Signal cache: truncate printed signals (length + 1 line)
 - Git version in :crash when frozen
 - Zoom with ctrl + mousewheel
 - Range-check count values and other values
