@@ -510,7 +510,7 @@ class QuteBrowser(QApplication):
             # From python's Lib/test/crashers/bogus_code_obj.py
             co = types.CodeType(0, 0, 0, 0, 0, b'\x04\x71\x00\x00', (), (), (),
                                 '', '', 1, b'')
-            exec(co)
+            exec(co)  # pylint: disable=exec-used
             raise Exception("Segfault failed (wat.)")
         else:
             raise Exception("Forced crash")
