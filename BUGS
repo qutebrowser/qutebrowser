@@ -95,6 +95,8 @@ Bugs
 - Config errors on start shouldn't be hard errors
   (e.g. when an user-stylesheet file is deleted)
 
+- Clicking links/email in crash dialog should open browser/mailclient under
+  windows
 
 Upstream Bugs
 =============
