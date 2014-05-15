@@ -71,6 +71,7 @@ class CrashDialog(QDialog):
                      "open tabs.")
         self._lbl.setText(text)
         self._lbl.setWordWrap(True)
+        self._set_text_flags(self._lbl)
         self._vbox.addWidget(self._lbl)
 
         self._txt = QTextEdit()
@@ -79,10 +80,7 @@ class CrashDialog(QDialog):
         self._vbox.addWidget(self._txt)
 
         self._url = QLabel()
-        self._url.setTextInteractionFlags(Qt.TextSelectableByMouse |
-                                          Qt.TextSelectableByKeyboard |
-                                          Qt.LinksAccessibleByMouse |
-                                          Qt.LinksAccessibleByKeyboard)
+        self._set_text_flags(self._url)
         self._vbox.addWidget(self._url)
 
         self._hbox = QHBoxLayout()
@@ -103,6 +101,17 @@ class CrashDialog(QDialog):
         self._hbox.addWidget(self._btn_pastebin)
 
         self._vbox.addLayout(self._hbox)
+
+    def _set_text_flags(self, obj):
+        """Set text interaction flags of a widget to allow link clicking.
+
+        Args:
+            obj: A QLabel.
+        """
+        obj.setTextInteractionFlags(Qt.TextSelectableByMouse |
+                                    Qt.TextSelectableByKeyboard |
+                                    Qt.LinksAccessibleByMouse |
+                                    Qt.LinksAccessibleByKeyboard)
 
     def _crash_info(self, pages, cmdhist, exc):
         """Gather crash information to display.
