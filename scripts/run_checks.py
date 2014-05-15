@@ -19,8 +19,8 @@
 
 """ Run different codecheckers over a codebase.
 
-Runs flake8, pylint, pep257, a CRLF/whitespace/conflict-checker and pyroma by
-default.
+Runs flake8, pylint, pep257, a CRLF/whitespace/conflict-checker and
+pyroma/check-manifest by default.
 
 Module attributes:
     status: An OrderedDict for return status values.
@@ -74,7 +74,7 @@ if os.name == 'nt':
     options['exclude_pep257'].append('configdata.py')
 
 
-def run(name, target, args=None):
+def run(name, target=None, args=None):
     """Run a checker via distutils with optional args.
 
     Arguments:
@@ -83,11 +83,11 @@ def run(name, target, args=None):
         args: Option list of arguments to pass
     """
     sys.argv = [name]
-    status_key = '{}_{}'.format(name, target)
-    if name != 'pyroma':
+    if target is None:
+        status_key = name
+    else:
+        status_key = '{}_{}'.format(name, target)
         args.append(target)
-    elif name == 'pyroma' and target != 'qutebrowser':
-        return
     if args is not None:
         sys.argv += args
     print("------ {} ------".format(name))
@@ -222,18 +222,26 @@ def _get_args(checker):
             pass
     elif checker == 'pyroma':
         args = ['.']
+    elif checker == 'check-manifest':
+        args = []
     return args
 
 
+argv = sys.argv[:]
 check_unittest()
 for trg in options['targets']:
     print("==================== {} ====================".format(trg))
     if do_check_257:
         check_pep257(trg, _get_args('pep257'))
-    for chk in ['pylint', 'flake8', 'pyroma']:
+    for chk in ['pylint', 'flake8']:
         # FIXME what the hell is the flake8 exit status?
         run(chk, trg, _get_args(chk))
     check_line(trg, )
+
+if '--setup' in argv:
+    print("==================== Setup checks ====================")
+    for chk in ['pyroma', 'check-manifest']:
+        run(chk, args=_get_args(chk))
 
 print("Exit status values:")
 for (k, v) in status.items():
