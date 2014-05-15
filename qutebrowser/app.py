@@ -54,7 +54,7 @@ from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.config.config import ConfigManager
 from qutebrowser.keyinput.modeman import ModeManager
 from qutebrowser.widgets.mainwindow import MainWindow
-from qutebrowser.widgets.crash import CrashDialog
+from qutebrowser.widgets.crash import ExceptionCrashDialog
 from qutebrowser.keyinput.modeparsers import NormalKeyParser, HintKeyParser
 from qutebrowser.keyinput.keyparser import PassthroughKeyParser
 from qutebrowser.commands.managers import CommandManager, SearchManager
@@ -427,7 +427,7 @@ class QuteBrowser(QApplication):
         except TypeError:
             logging.exception("Preventing shutdown failed.")
         QApplication.closeAllWindows()
-        dlg = CrashDialog(pages, history, exc)
+        dlg = ExceptionCrashDialog(pages, history, exc)
         ret = dlg.exec_()
         if ret == QDialog.Accepted:  # restore
             self.restart(shutdown=False, pages=pages)
@@ -438,8 +438,8 @@ class QuteBrowser(QApplication):
     def _maybe_quit(self, sender):
         """Maybe quit qutebrowser.
 
-        This only quits if both the CrashDialog was ready to quit AND the
-        shutdown is complete.
+        This only quits if both the ExceptionCrashDialog was ready to quit AND
+        the shutdown is complete.
 
         Args:
             The sender of the quit signal (string)

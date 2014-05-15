@@ -31,7 +31,7 @@ import qutebrowser.utils.misc as utils
 from qutebrowser.utils.version import version
 
 
-class CrashDialog(QDialog):
+class _CrashDialog(QDialog):
 
     """Dialog which gets shown after there was a crash.
 
@@ -41,65 +41,45 @@ class CrashDialog(QDialog):
         _lbl: The QLabel with the static text
         _txt: The QTextEdit with the crash information
         _hbox: The QHboxLayout containing the buttons
-        _btn_quit: The quit button
-        _btn_restore: the restore button
-        _btn_pastebin: the pastebin button
         _url: Pastebin URL QLabel.
+        _crash_info: A list of tuples with title and crash information.
     """
 
-    def __init__(self, pages, cmdhist, exc):
-        """Constructor for CrashDialog.
-
-        Args:
-            pages: A list of the open pages (URLs as strings)
-            cmdhist: A list with the command history (as strings)
-            exc: An exception tuple (type, value, traceback)
-        """
+    def __init__(self):
+        """Constructor for CrashDialog."""
         super().__init__()
+        self._crash_info = None
+        self._hbox = None
+        self._lbl = None
+        self._gather_crash_info()
         self.setFixedSize(500, 350)
         self.setWindowTitle("Whoops!")
-        self.setModal(True)
-
         self._vbox = QVBoxLayout(self)
+        self._init_text()
+        self._txt = QTextEdit()
+        self._txt.setText(self._format_crash_info())
+        self._vbox.addWidget(self._txt)
+        self._url = QLabel()
+        self._set_text_flags(self._url)
+        self._vbox.addWidget(self._url)
+        self._init_buttons()
+
+    def _init_text(self):
+        """Initialize the main text to be displayed on an exception.
+
+        Should be extended by superclass to set the actual text."""
         self._lbl = QLabel()
-        text = ("Argh! qutebrowser crashed unexpectedly.<br/>"
-                "Please review the info below to remove sensitive data and "
-                "then submit it to <a href='mailto:crash@qutebrowser.org'>"
-                "crash@qutebrowser.org</a> or click 'pastebin'.<br/><br/>")
-        if pages:
-            text += ("You can click 'Restore tabs' to attempt to reopen your "
-                     "open tabs.")
-        self._lbl.setText(text)
         self._lbl.setWordWrap(True)
         self._set_text_flags(self._lbl)
         self._vbox.addWidget(self._lbl)
 
-        self._txt = QTextEdit()
-        #self._txt.setReadOnly(True)
-        self._txt.setText(self._crash_info(pages, cmdhist, exc))
-        self._vbox.addWidget(self._txt)
+    def _init_buttons(self):
+        """Initialize the buttons.
 
-        self._url = QLabel()
-        self._set_text_flags(self._url)
-        self._vbox.addWidget(self._url)
-
+        Should be extended by superclass to provide the actual buttons.
+        """
         self._hbox = QHBoxLayout()
         self._hbox.addStretch()
-        self._btn_quit = QPushButton()
-        self._btn_quit.setText("Quit")
-        self._btn_quit.clicked.connect(self.reject)
-        self._btn_pastebin = QPushButton()
-        self._btn_pastebin.setText("Pastebin")
-        self._btn_pastebin.clicked.connect(self.pastebin)
-        self._hbox.addWidget(self._btn_quit)
-        if pages:
-            self._btn_restore = QPushButton()
-            self._btn_restore.setText("Restore tabs")
-            self._btn_restore.clicked.connect(self.accept)
-            self._btn_restore.setDefault(True)
-            self._hbox.addWidget(self._btn_restore)
-        self._hbox.addWidget(self._btn_pastebin)
-
         self._vbox.addLayout(self._hbox)
 
     def _set_text_flags(self, obj):
@@ -113,34 +93,35 @@ class CrashDialog(QDialog):
                                     Qt.LinksAccessibleByMouse |
                                     Qt.LinksAccessibleByKeyboard)
 
-    def _crash_info(self, pages, cmdhist, exc):
+    def _gather_crash_info(self):
         """Gather crash information to display.
 
         Args:
             pages: A list of the open pages (URLs as strings)
             cmdhist: A list with the command history (as strings)
             exc: An exception tuple (type, value, traceback)
+        """
+        self._crash_info = [
+            ("Version info", version()),
+            ("Commandline args", ' '.join(sys.argv[1:])),
+        ]
+        try:
+            self._crash_info.append(("Config",
+                                     config.instance().dump_userconfig()))
+        except AttributeError:
+            pass
+
+    def _format_crash_info(self):
+        """Format the gathered crash info to be displayed.
 
         Return:
             The string to display.
         """
-        outputs = [
-            ("Version info", version()),
-            ("Exception", ''.join(traceback.format_exception(*exc))),
-            ("Open Pages", '\n'.join(pages)),
-            ("Command history", '\n'.join(cmdhist)),
-            ("Commandline args", ' '.join(sys.argv[1:])),
-        ]
-        try:
-            outputs.append(("Config", config.instance().dump_userconfig()))
-        except AttributeError:
-            pass
         chunks = []
-        for (header, body) in outputs:
+        for (header, body) in self._crash_info:
             if body is not None:
                 h = '==== {} ===='.format(header)
                 chunks.append('\n'.join([h, body]))
-
         return '\n\n'.join(chunks)
 
     def pastebin(self):
@@ -154,3 +135,70 @@ class CrashDialog(QDialog):
         self._url.setText("URL copied to clipboard: "
                           "<a href='{}'>{}</a>".format(url, url))
         QApplication.clipboard().setText(url, QClipboard.Clipboard)
+
+
+class ExceptionCrashDialog(_CrashDialog):
+
+    """Dialog which gets shown on an exception.
+
+    Attributes:
+        _btn_quit: The quit button
+        _btn_restore: the restore button
+        _btn_pastebin: the pastebin button
+        _pages: A list of the open pages (URLs as strings)
+        _cmdhist: A list with the command history (as strings)
+        _exc: An exception tuple (type, value, traceback)
+    """
+
+    def __init__(self, pages, cmdhist, exc):
+        self._pages = pages
+        self._cmdhist = cmdhist
+        self._exc = exc
+        self._btn_quit = None
+        self._btn_restore = None
+        self._btn_pastebin = None
+        super().__init__()
+        self.setModal(True)
+
+    def _init_text(self):
+        super()._init_text()
+        text = ("Argh! qutebrowser crashed unexpectedly.<br/>"
+                "Please review the info below to remove sensitive data and "
+                "then submit it to <a href='mailto:crash@qutebrowser.org'>"
+                "crash@qutebrowser.org</a> or click 'pastebin'.<br/><br/>")
+        if self._pages:
+            text += ("You can click 'Restore tabs' to attempt to reopen your "
+                     "open tabs.")
+        self._lbl.setText(text)
+
+    def _init_buttons(self):
+        super()._init_buttons()
+        self._btn_quit = QPushButton()
+        self._btn_quit.setText("Quit")
+        self._btn_quit.clicked.connect(self.reject)
+        self._btn_pastebin = QPushButton()
+        self._btn_pastebin.setText("Pastebin")
+        self._btn_pastebin.clicked.connect(self.pastebin)
+        self._hbox.addWidget(self._btn_quit)
+        if self._pages:
+            self._btn_restore = QPushButton()
+            self._btn_restore.setText("Restore tabs")
+            self._btn_restore.clicked.connect(self.accept)
+            self._btn_restore.setDefault(True)
+            self._hbox.addWidget(self._btn_restore)
+        self._hbox.addWidget(self._btn_pastebin)
+
+    def _gather_crash_info(self):
+        """Gather crash information to display.
+
+        Args:
+            pages: A list of the open pages (URLs as strings)
+            cmdhist: A list with the command history (as strings)
+            exc: An exception tuple (type, value, traceback)
+        """
+        super()._gather_crash_info()
+        self._crash_info += [
+            ("Exception", ''.join(traceback.format_exception(*self._exc))),
+            ("Open Pages", '\n'.join(self._pages)),
+            ("Command history", '\n'.join(self._cmdhist)),
+        ]
