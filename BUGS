@@ -28,16 +28,25 @@ Bugs
 ====
 
 - All kind of FIXMEs
+
 - When opening DDG the input field should be focused when JS is active, but
   only is sometimes. (seir)
+
 - When opening 111.111.111.111 sometimes there's no loading bar and link in
   statusbar points to the old page. (seir)
+
 - Current URL displayed in the statusbar is weird and sometimes wrong (seir)
+
 - restart sometimes abort()s on QApplication __init__ (V155)
-- qutebrowser :restart  loops endlessly
+
+- qutebrowser :restart loops endlessly
+    We should refuse to do :restart when executing init commands
+
 - Super key shows up as ៀ\udc53  in logs
+
 - Funky font rendering with tewi:
   http://a.pomf.se/ecgzlx.png
+
 - F on duckduckgo result page opens in current page
 
   It seems we don't get a linkClicked signal there.
@@ -59,6 +68,7 @@ Bugs
 
 - Eliding doesn't work correctly in tabs (cuts off start)
   This especially happens when there's no favicon
+  (will be solved by tabbar reimplementation)
 
 - Opening via commandline / startpage doesn't work with absolute file paths.
 
@@ -78,6 +88,10 @@ Bugs
 Upstream Bugs
 =============
 
+- Web inspector is blank unless .hide()/.show() is called.
+    Asked on SO: http://stackoverflow.com/q/23499159/2085149
+    TODO: report Qt bug
+
 - Printing under windows produced blank pages
     https://bugreports.qt-project.org/browse/QTBUG-19571
     If this isn't fixed in Qt 5.3, bug should be reopened.
@@ -88,9 +102,6 @@ Upstream Bugs
 - Impossible to retrieve user value of QWebElement:
     https://bugreports.qt-project.org/browse/QTBUG-38669
 
-- Web inspector is blank unless .hide()/.show() is called.
-    Asked on SO: http://stackoverflow.com/q/23499159/2085149
-
 - Weird font rendering
     https://bugreports.qt-project.org/browse/QTBUG-20973
     https://bugreports.qt-project.org/browse/QTBUG-21036
@@ -99,11 +110,12 @@ Upstream Bugs
 - dead_actute
     https://bugs.freedesktop.org/show_bug.cgi?id=69476
 
-- QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.
+- QNetworkReplyImplPrivate::error: Internal problem, this method must only be
+  called once.
     https://bugreports.qt-project.org/browse/QTBUG-30298
 
 - Tabbar texts get cut off when styled and elided
-  https://bugreports.qt-project.org/browse/QTBUG-15203
+    https://bugreports.qt-project.org/browse/QTBUG-15203
 
 
 Probably fixed crashes
@@ -138,6 +150,3 @@ Probably fixed crashes
     RuntimeError: wrapped C/C++ object of type NetworkManager has been deleted
 
     Probably fixed by de7c6a63b48f66e164bf4baa6e892bcbb326d6b9
-
-
-

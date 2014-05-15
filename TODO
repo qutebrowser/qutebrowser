@@ -13,26 +13,27 @@ Before 0.1
 - More dwb keybindings
 - Use  :open engine searchterm   syntax for searching
 - Basic SSL handling
-  e.g. broken on https://fsinf.fh-worms.de/
-  at least ssl-strict setting and default certs
+    e.g. broken on https://fsinf.fh-worms.de/
+    at least ssl-strict setting and default certs
 - Authentification (for websites/proxy)
    - prompt in statusbar
    - ssl-strict=ask
 - Downloads (at least calling a handler)
+- Log faulthandler foo to file and read it again on next start.
 
 Style
 =====
 
 - initialize completion models at some nicer place (not in widget)
 - move curcommand stuff to other places (e.g. current widget, etc.)
-  maybe rename curcommand to commands or so?
-  also some curcommand stuff is in tabbedbrowser, etc.
+    maybe rename curcommand to commands or so?
+    also some curcommand stuff is in tabbedbrowser, etc.
 - rename commands
 - reorder config #2
 - rework exception hierarchy for config (common base exception)
 
-Major features
-==============
+New big features
+================
 
 - Per domain settings
 - RequestPolicy
@@ -52,15 +53,18 @@ Major features
 - SSL handling
 - history
 
-Minor features
-==============
+Improvements / minor features
+=============================
 
+- Reimplement tabbar to paint it by ourselves to look like dwb
 - We probably should rewrite all the signal cache stuff to save state
   internally instead. (also see bugs)
 - Save cookies in Netscape format so it can be used by wget.
     http://www.cookiecentral.com/faq/#3.5
     https://docs.python.org/3.4/library/http.cookies.html
     http://qt-project.org/doc/qt-4.8/qnetworkcookie.html
+    - Second column (flag): TRUE if domain starts with ., else FALSE
+    - if a cookie is a http-only cookie domain is prepended with a #HttpOnly_
 - Signal cache: truncate printed signals (length + 1 line)
 - Zoom with ctrl + mousewheel
 - Close tabs on right click
@@ -75,12 +79,12 @@ Minor features
     - config changed signals for sections (optimization)
 - Display metavars for commands in input bar.
 - count support for special keys
-- --set-as-default argument
+- set-as-default argument/command
 - Make inspector height resizable
 - Make inspector detachable (own window)
 - Enable disk caching
     QNetworkManager.setCache() and use a QNetworkDiskCache probably
-- clear cookies
+- clear cookies command
 - keybind/aliases should have completion for commands/arguments
 - Hiding scrollbars
 - Ctrl+A/X to increase/decrease last number in URL
@@ -102,7 +106,8 @@ hints
 - more intelligent clicking (end of textfields)
 - filter close hints when it's the same link
 - ignore keypresses shortly after link following
-- uppercase hint chars without requiring upper case to type (easier to distinguish)
+- uppercase hint chars without requiring upper case to type (easier to
+  distinguish)
 
 Useful things
 =============
