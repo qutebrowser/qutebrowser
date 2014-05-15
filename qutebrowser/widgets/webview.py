@@ -251,6 +251,8 @@ class WebView(QWebView):
         """
         if fuzzyval:
             self._zoom.fuzzyval = int(perc)
+        if perc < 0:
+            raise CommandError("Can't zoom {}%!".format(perc))
         self.setZoomFactor(float(perc) / 100)
         message.info("Zoom level: {}%".format(perc))
 
