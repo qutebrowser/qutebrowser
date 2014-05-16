@@ -19,6 +19,8 @@
 
 import re
 
+from qutebrowser.utils.misc import elide
+
 
 def signal_name(sig):
     """Get a cleaned up name of a signal.
@@ -43,4 +45,5 @@ def dbg_signal(sig, args):
     Return:
         A human-readable string representation of signal/args.
     """
-    return '{}({})'.format(signal_name(sig), ', '.join(map(str, args)))
+    argstr = ', '.join([elide(str(a).replace('\n', ' '), 20) for a in args])
+    return '{}({})'.format(signal_name(sig), argstr)

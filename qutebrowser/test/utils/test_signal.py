@@ -47,6 +47,15 @@ class TestDebug(TestCase):
         self.assertEqual(sigutils.dbg_signal(self.signal, [23, 42]),
                          'fake(23, 42)')
 
+    def test_dbg_signal_eliding(self):
+        self.assertEqual(sigutils.dbg_signal(self.signal,
+                                             [12345678901234567890123]),
+                         'fake(1234567890123456789\u2026)')
+
+    def test_dbg_signal_newline(self):
+        self.assertEqual(sigutils.dbg_signal(self.signal, ['foo\nbar']),
+                         'fake(foo bar)')
+
 
 if __name__ == '__main__':
     unittest.main()

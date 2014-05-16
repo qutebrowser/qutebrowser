@@ -70,9 +70,6 @@ class SignalFilter(QObject):
         """
         sender = self.sender()
         log_signal = not signal.signal.startswith('2cur_progress')
-        if log_signal:
-            logging.debug("signal {} (tab {})".format(
-                dbg_signal(signal, args), self._tabs.indexOf(sender)))
         if not isinstance(sender, WebView):
             # BUG? This should never happen, but it does regularely...
             logging.warn("Got signal {} by {} which is no tab!".format(
@@ -80,8 +77,10 @@ class SignalFilter(QObject):
             return
         if self._tabs.currentWidget() == sender:
             if log_signal:
-                logging.debug("  emitting")
+                logging.debug("emitting: {} (tab {})".format(
+                    dbg_signal(signal, args), self._tabs.indexOf(sender)))
             signal.emit(*args)
         else:
             if log_signal:
-                logging.debug("  ignoring")
+                logging.debug("ignoring: {} (tab {})".format(
+                    dbg_signal(signal, args), self._tabs.indexOf(sender)))
