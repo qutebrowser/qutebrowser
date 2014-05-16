@@ -67,6 +67,7 @@ class TabbedBrowser(TabWidget):
         cur_scroll_perc_changed: Scroll percentage of current tab changed.
                                  arg 1: x-position in %.
                                  arg 2: y-position in %.
+        cur_load_status_changed: Loading status of current tab changed.
         hint_strings_updated: Hint strings were updated.
                               arg: A list of hint strings.
         shutdown_complete: The shuttdown is completed.
@@ -83,6 +84,7 @@ class TabbedBrowser(TabWidget):
     cur_url_text_changed = pyqtSignal(str)
     cur_link_hovered = pyqtSignal(str, str, str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
+    cur_load_status_changed = pyqtSignal(str)
     hint_strings_updated = pyqtSignal(list)
     shutdown_complete = pyqtSignal()
     quit = pyqtSignal()
@@ -137,8 +139,6 @@ class TabbedBrowser(TabWidget):
         tab.linkHovered.connect(self._filter.create(self.cur_link_hovered))
         tab.loadProgress.connect(self._filter.create(self.cur_progress))
         tab.loadFinished.connect(self._filter.create(self.cur_load_finished))
-        tab.page().mainFrame().loadStarted.connect(partial(
-            self.on_load_started, tab))
         tab.loadStarted.connect(self._filter.create(self.cur_load_started))
         tab.statusBarMessage.connect(
             self._filter.create(self.cur_statusbar_message))
@@ -147,12 +147,16 @@ class TabbedBrowser(TabWidget):
         tab.url_text_changed.connect(
             self._filter.create(self.cur_url_text_changed))
         tab.url_text_changed.connect(self.on_url_text_changed)
+        tab.load_status_changed.connect(
+            self._filter.create(self.cur_load_status_changed))
         # hintmanager
         tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)
         tab.hintmanager.openurl.connect(self.cur.openurl_slot)
         # misc
         tab.titleChanged.connect(self.on_title_changed)
         tab.iconChanged.connect(self.on_icon_changed)
+        tab.page().mainFrame().loadStarted.connect(partial(
+            self.on_load_started, tab))
 
     def _close_tab(self, tab_or_idx):
         """Close a tab with either index or tab given.

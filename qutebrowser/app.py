@@ -410,6 +410,7 @@ class QuteBrowser(QApplication):
         tabs.currentChanged.connect(status.url.on_tab_changed)
         tabs.cur_url_text_changed.connect(status.url.set_url)
         tabs.cur_link_hovered.connect(status.url.set_hover_url)
+        tabs.cur_load_status_changed.connect(status.url.on_load_status_changed)
 
         # command input / completion
         self.modeman.left.connect(tabs.on_mode_left)
