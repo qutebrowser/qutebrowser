@@ -200,7 +200,14 @@ class StatusBar(QWidget):
             logging.debug("Displaying immediately")
             self.error = error
             self.txt.temptext = text
+        elif self._text_queue and self._text_queue[-1] == (error, text):
+            # If we get the same message multiple times in a row and we're
+            # still displaying it *anyways* we ignore the new one
+            logging.debug("ignoring")
+            return
         else:
+            # There are still some messages to be displayed, so we queue this
+            # up.
             logging.debug("queueing")
             self._text_queue.append((error, text))
         self._text_pop_timer.start()
