@@ -144,13 +144,18 @@ class register:  # pylint: disable=invalid-name
         """
         # pylint: disable=no-member
         names = []
-        name = func.__name__.lower() if self.name is None else self.name
+        if self.name is None:
+            name = func.__name__.lower().replace('_', '-')
+        else:
+            name = self.name
         if isinstance(name, str):
             mainname = name
             names.append(name)
         else:
             mainname = name[0]
             names += name
+        if mainname in cmd_dict:
+            raise ValueError("{} is already registered!".format(name))
         argspec = inspect.getfullargspec(func)
         if 'self' in argspec.args and self.instance is None:
             raise ValueError("{} is a class method, but instance was not "

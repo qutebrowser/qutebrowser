@@ -162,11 +162,11 @@ class CurCommandDispatcher(QObject):
         if tab is not None:
             tab.stop()
 
-    @cmdutils.register(instance='mainwindow.tabs.cur', name='printpreview')
-    def printpreview(self, count=None):
+    @cmdutils.register(instance='mainwindow.tabs.cur')
+    def print_preview(self, count=None):
         """Preview printing of the current/[count]th tab.
 
-        Command handler for :printpreview.
+        Command handler for :print-preview.
 
         Args:
             count: The tab index to print, or None.
@@ -233,11 +233,11 @@ class CurCommandDispatcher(QObject):
         if frame is None:
             raise CommandError("No frame focused!")
         try:
-            group = getattr(webelem.Group, groupstr)
+            group = getattr(webelem.Group, groupstr.replace('-', '_'))
         except AttributeError:
             raise CommandError("Unknown hinting group {}!".format(groupstr))
         try:
-            target = getattr(hints.Target, targetstr)
+            target = getattr(hints.Target, targetstr.replace('-', '_'))
         except AttributeError:
             raise CommandError("Unknown hinting target {}!".format(targetstr))
         widget.hintmanager.start(frame, widget.url(), group, target)
@@ -263,22 +263,22 @@ class CurCommandDispatcher(QObject):
         self._tabs.currentWidget().hintmanager.filter_hints(filterstr)
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
-    def prevpage(self):
+    def prev_page(self):
         """Open a "previous" link."""
         self._prevnext(prev=True, newtab=False)
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
-    def nextpage(self):
+    def next_page(self):
         """Open a "next" link."""
         self._prevnext(prev=False, newtab=False)
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
-    def tabprevpage(self):
+    def prev_page_tab(self):
         """Open a "previous" link in a new tab."""
         self._prevnext(prev=True, newtab=True)
 
     @cmdutils.register(instance='mainwindow.tabs.cur')
-    def tabnextpage(self):
+    def next_page_tab(self):
         """Open a "next" link in a new tab."""
         self._prevnext(prev=False, newtab=True)
 
@@ -309,7 +309,7 @@ class CurCommandDispatcher(QObject):
         cmdutils.check_overflow(dy, 'int')
         self._tabs.currentWidget().page_.currentFrame().scroll(dx, dy)
 
-    @cmdutils.register(instance='mainwindow.tabs.cur', name='scroll_perc_x',
+    @cmdutils.register(instance='mainwindow.tabs.cur', name='scroll-perc-x',
                        hide=True)
     def scroll_percent_x(self, perc=None, count=None):
         """Scroll the current tab to a specific percent of the page (horiz).
@@ -322,7 +322,7 @@ class CurCommandDispatcher(QObject):
         """
         self._scroll_percent(perc, count, Qt.Horizontal)
 
-    @cmdutils.register(instance='mainwindow.tabs.cur', name='scroll_perc_y',
+    @cmdutils.register(instance='mainwindow.tabs.cur', name='scroll-perc-y',
                        hide=True)
     def scroll_percent_y(self, perc=None, count=None):
         """Scroll the current tab to a specific percent of the page (vert).
@@ -368,11 +368,11 @@ class CurCommandDispatcher(QObject):
         message.info("URL yanked to {}".format("primary selection" if sel
                                                else "clipboard"))
 
-    @cmdutils.register(instance='mainwindow.tabs.cur', name='yanktitle')
+    @cmdutils.register(instance='mainwindow.tabs.cur')
     def yank_title(self, sel=False):
         """Yank the current title to the clipboard or primary selection.
 
-        Command handler for :yanktitle.
+        Command handler for :yank-title.
 
         Args:
             sel: True to use primary selection, False to use clipboard
@@ -384,7 +384,7 @@ class CurCommandDispatcher(QObject):
         message.info("Title yanked to {}".format("primary selection" if sel
                                                  else "clipboard"))
 
-    @cmdutils.register(instance='mainwindow.tabs.cur', name='zoomin')
+    @cmdutils.register(instance='mainwindow.tabs.cur')
     def zoom_in(self, count=1):
         """Increase the zoom level for the current tab.
 
@@ -394,7 +394,7 @@ class CurCommandDispatcher(QObject):
         tab = self._tabs.currentWidget()
         tab.zoom(count)
 
-    @cmdutils.register(instance='mainwindow.tabs.cur', name='zoomout')
+    @cmdutils.register(instance='mainwindow.tabs.cur')
     def zoom_out(self, count=1):
         """Decrease the zoom level for the current tab.
 

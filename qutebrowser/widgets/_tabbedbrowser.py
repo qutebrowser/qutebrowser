@@ -224,7 +224,7 @@ class TabbedBrowser(TabWidget):
     def tabopen(self, url=None, background=None):
         """Open a new tab with a given URL.
 
-        Inner logic for tabopen and backtabopen.
+        Inner logic for open-tab and open-tab-bg.
         Also connect all the signals we need to _filter_signals.
 
         Args:
@@ -287,11 +287,11 @@ class TabbedBrowser(TabWidget):
         for tab in self.widgets:
             tab.shutdown(callback=partial(self._cb_tab_shutdown, tab))
 
-    @cmdutils.register(instance='mainwindow.tabs')
+    @cmdutils.register(instance='mainwindow.tabs', name='tab-close')
     def tabclose(self, count=None):
         """Close the current/[count]th tab.
 
-        Command handler for :close.
+        Command handler for :tab-close.
 
         Args:
             count: The tab index to close, or None
@@ -306,41 +306,40 @@ class TabbedBrowser(TabWidget):
         self._close_tab(tab)
 
     @cmdutils.register(instance='mainwindow.tabs')
-    def only(self):
+    def tab_only(self):
         """Close all tabs except for the current one."""
         for tab in self.widgets:
             if tab is self.currentWidget():
                 continue
             self._close_tab(tab)
 
-    @cmdutils.register(instance='mainwindow.tabs', split=False, name='tabopen')
-    def tabopen_cmd(self, url):
+    @cmdutils.register(instance='mainwindow.tabs', split=False)
+    def open_tab(self, url):
         """Open a new tab with a given url."""
         self.tabopen(url, background=False)
 
-    @cmdutils.register(instance='mainwindow.tabs', split=False,
-                       name='backtabopen')
-    def backtabopen_cmd(self, url):
+    @cmdutils.register(instance='mainwindow.tabs', split=False)
+    def open_tab_bg(self, url):
         """Open a new tab in background."""
         self.tabopen(url, background=True)
 
     @cmdutils.register(instance='mainwindow.tabs', hide=True)
-    def tabopencur(self):
+    def open_tab_cur(self):
         """Set the statusbar to :tabopen and the current URL."""
         url = urlutils.urlstring(self.currentWidget().url())
-        message.set_cmd_text(':tabopen ' + url)
+        message.set_cmd_text(':open-tab ' + url)
 
     @cmdutils.register(instance='mainwindow.tabs', hide=True)
-    def opencur(self):
+    def open_cur(self):
         """Set the statusbar to :open and the current URL."""
         url = urlutils.urlstring(self.currentWidget().url())
         message.set_cmd_text(':open ' + url)
 
     @cmdutils.register(instance='mainwindow.tabs', hide=True)
-    def backtabopencur(self):
-        """Set the statusbar to :backtabopen and the current URL."""
+    def open_tab_bg_cur(self):
+        """Set the statusbar to :tabopen-bg and the current URL."""
         url = urlutils.urlstring(self.currentWidget().url())
-        message.set_cmd_text(':backtabopen ' + url)
+        message.set_cmd_text(':open-tab-bg ' + url)
 
     @cmdutils.register(instance='mainwindow.tabs', name='undo')
     def undo_close(self):
@@ -353,11 +352,11 @@ class TabbedBrowser(TabWidget):
         else:
             raise CommandError("Nothing to undo!")
 
-    @cmdutils.register(instance='mainwindow.tabs', name='tabprev')
+    @cmdutils.register(instance='mainwindow.tabs', name='tab-prev')
     def switch_prev(self, count=1):
         """Switch to the previous tab, or skip [count] tabs.
 
-        Command handler for :tabprev.
+        Command handler for :tab-prev.
 
         Args:
             count: How many tabs to switch back.
@@ -370,11 +369,11 @@ class TabbedBrowser(TabWidget):
         else:
             raise CommandError("First tab")
 
-    @cmdutils.register(instance='mainwindow.tabs', name='tabnext')
+    @cmdutils.register(instance='mainwindow.tabs', name='tab-next')
     def switch_next(self, count=1):
         """Switch to the next tab, or skip [count] tabs.
 
-        Command handler for :tabnext.
+        Command handler for :tab-next.
 
         Args:
             count: How many tabs to switch forward.
@@ -409,7 +408,7 @@ class TabbedBrowser(TabWidget):
             self.cur.openurl(url)
 
     @cmdutils.register(instance='mainwindow.tabs')
-    def tabpaste(self, sel=False):
+    def paste_tab(self, sel=False):
         """Open a page from the clipboard in a new tab.
 
         Command handler for :paste.
@@ -420,7 +419,7 @@ class TabbedBrowser(TabWidget):
         self.paste(sel, True)
 
     @cmdutils.register(instance='mainwindow.tabs')
-    def focus_tab(self, index=None, count=None):
+    def tab_focus(self, index=None, count=None):
         """Select the tab given as argument/[count].
 
         Args:

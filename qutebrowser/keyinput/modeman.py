@@ -173,7 +173,7 @@ class ModeManager(QObject):
         if passthrough:
             self.passthrough.append(mode)
 
-    @cmdutils.register(instance='modeman', name='enter_mode', hide=True)
+    @cmdutils.register(instance='modeman', name='enter-mode', hide=True)
     def enter(self, mode, reason=None):
         """Enter a new mode.
 
@@ -214,7 +214,7 @@ class ModeManager(QObject):
             self._mode_stack))
         self.left.emit(mode)
 
-    @cmdutils.register(instance='modeman', name='leave_mode',
+    @cmdutils.register(instance='modeman', name='leave-mode',
                        not_modes=['normal'], hide=True)
     def leave_current_mode(self):
         """Leave the mode we're currently in."""

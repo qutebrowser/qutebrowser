@@ -28,7 +28,6 @@ Style
 - move curcommand stuff to other places (e.g. current widget, etc.)
     maybe rename curcommand to commands or so?
     also some curcommand stuff is in tabbedbrowser, etc.
-- rename commands
 - reorder config #2
 - rework exception hierarchy for config (common base exception)
 

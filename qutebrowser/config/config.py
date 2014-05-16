@@ -305,7 +305,7 @@ class ConfigManager(QObject):
                 ValueError) as e:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
-    @cmdutils.register(name='set_temp', instance='config',
+    @cmdutils.register(name='set-temp', instance='config',
                        completion=['section', 'option', 'value'])
     def set_temp_wrapper(self, sectname, optname, value):
         """Set a temporary option.

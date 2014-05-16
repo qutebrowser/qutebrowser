@@ -37,7 +37,7 @@ from qutebrowser.utils.usertypes import NeighborList, enum
 from qutebrowser.commands.exceptions import CommandError
 
 
-Target = enum('normal', 'tab', 'bgtab')
+Target = enum('normal', 'tab', 'tab_bg')
 LoadStatus = enum('none', 'success', 'error', 'warn', 'loading')
 
 
@@ -63,7 +63,7 @@ class WebView(QWebView):
         _zoom: A NeighborList with the zoom levels.
         _old_scroll_perc: The old scroll position.
         _shutdown_callback: Callback to be called after shutdown.
-        _open_target: Where to open the next tab ("normal", "tab", "bgtab")
+        _open_target: Where to open the next tab ("normal", "tab", "tab_bg")
         _force_open_target: Override for _open_target.
         _shutdown_callback: The callback to call after shutting down.
         _destroyed: Dict of all items to be destroyed on shtudown.
@@ -267,7 +267,7 @@ class WebView(QWebView):
         elif (e.button() == Qt.MidButton or
               e.modifiers() & Qt.ControlModifier):
             if config.get('general', 'background-tabs'):
-                self._open_target = Target.bgtab
+                self._open_target = Target.tab_bg
             else:
                 self._open_target = Target.tab
             logging.debug("Middle click, setting target: {}".format(
@@ -381,7 +381,7 @@ class WebView(QWebView):
         """
         if self._open_target == Target.tab:
             self.tabbedbrowser.tabopen(url, False)
-        elif self._open_target == Target.bgtab:
+        elif self._open_target == Target.tab_bg:
             self.tabbedbrowser.tabopen(url, True)
         else:
             self.openurl(url)

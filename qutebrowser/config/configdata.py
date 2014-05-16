@@ -93,31 +93,31 @@ SECTION_DESC = {
         "Since normal keypresses are passed through, only special keys are "
         "supported in this mode.\n"
         "Useful hidden commands to map in this section:\n"
-        "  open_editor: Open a texteditor with the focused field.\n"
-        "  leave_mode: Leave the command mode."),
+        "  open-editor: Open a texteditor with the focused field.\n"
+        "  leave-mode: Leave the command mode."),
     'keybind.hint': (
         "Keybindings for hint mode.\n"
         "Since normal keypresses are passed through, only special keys are "
         "supported in this mode.\n"
         "Useful hidden commands to map in this section:\n"
-        "  follow_hint: Follow the currently selected hint.\n"
-        "  leave_mode: Leave the command mode."),
+        "  follow-hint: Follow the currently selected hint.\n"
+        "  leave-mode: Leave the command mode."),
     'keybind.passthrough': (
         "Keybindings for passthrough mode.\n"
         "Since normal keypresses are passed through, only special keys are "
         "supported in this mode.\n"
-        "An useful command to map here is the hidden command leave_mode."),
+        "An useful command to map here is the hidden command leave-mode."),
     'keybind.command': (
         "Keybindings for command mode.\n"
         "Since normal keypresses are passed through, only special keys are "
         "supported in this mode.\n"
         "Useful hidden commands to map in this section:\n"
-        "  command_history_prev: Switch to previous command in history.\n"
-        "  command_history_next: Switch to next command in history.\n"
-        "  completion_item_prev: Select previous item in completion.\n"
-        "  completion_item_next: Select next item in completion.\n"
-        "  command_accept: Execute the command currently in the commandline.\n"
-        "  leave_mode: Leave the command mode."),
+        "  command-history-prev: Switch to previous command in history.\n"
+        "  command-history-next: Switch to next command in history.\n"
+        "  completion-item-prev: Select previous item in completion.\n"
+        "  completion-item-next: Select next item in completion.\n"
+        "  command-accept: Execute the command currently in the commandline.\n"
+        "  leave-mode: Leave the command mode."),
     'aliases': (
         "Aliases for commands.\n"
         "By default, no aliases are defined. Example which adds a new command "
@@ -195,7 +195,7 @@ DATA = OrderedDict([
 
         ('editor',
          SettingValue(types.ShellCommand(placeholder=True), 'gvim -f "{}"'),
-         "The editor (and arguments) to use for the open_editor binding. "
+         "The editor (and arguments) to use for the open-editor binding. "
          "Use {} for the filename. Gets split via shutils."),
 
         ('show-scroll-bar-horizontal',
@@ -578,83 +578,83 @@ DATA = OrderedDict([
     ('keybind', sect.ValueList(
         types.KeyBindingName(), types.KeyBinding(),
         ('o', 'open'),
-        ('go', 'opencur'),
-        ('O', 'tabopen'),
-        ('gO', 'tabopencur'),
-        ('xo', 'backtabopen'),
-        ('xO', 'backtabopencur'),
-        ('ga', 'tabopen about:blank'),
-        ('d', 'tabclose'),
-        ('co', 'only'),
-        ('T', 'focus_tab'),
-        ('gm', 'tab_move'),
-        ('gl', 'tab_move -'),
-        ('gr', 'tab_move +'),
-        ('J', 'tabnext'),
-        ('K', 'tabprev'),
+        ('go', 'open-cur'),
+        ('O', 'open-tab'),
+        ('gO', 'open-tab-cur'),
+        ('xo', 'open-tab-bg'),
+        ('xO', 'open-tab-bg-cur'),
+        ('ga', 'open-tab about:blank'),
+        ('d', 'tab-close'),
+        ('co', 'tab-only'),
+        ('T', 'tab-focus'),
+        ('gm', 'tab-move'),
+        ('gl', 'tab-move -'),
+        ('gr', 'tab-move +'),
+        ('J', 'tab-next'),
+        ('K', 'tab-prev'),
         ('r', 'reload'),
         ('H', 'back'),
         ('L', 'forward'),
         ('f', 'hint'),
         ('F', 'hint all tab'),
-        (';b', 'hint all bgtab'),
+        (';b', 'hint all tab-bg'),
         (';i', 'hint images'),
         (';I', 'hint images tab'),
-        ('.i', 'hint images bgtab'),
+        ('.i', 'hint images tab-bg'),
         (';e', 'hint editable'),
         (';o', 'hint links cmd'),
-        (';O', 'hint links cmd_tab'),
-        ('.o', 'hint links cmd_bgtab'),
+        (';O', 'hint links cmd-tab'),
+        ('.o', 'hint links cmd-tab-bg'),
         (';y', 'hint links yank'),
-        (';Y', 'hint links yank_primary'),
+        (';Y', 'hint links yank-primary'),
         (';r', 'hint links rapid'),
         ('h', 'scroll -50 0'),
         ('j', 'scroll 0 50'),
         ('k', 'scroll 0 -50'),
         ('l', 'scroll 50 0'),
         ('u', 'undo'),
-        ('gg', 'scroll_perc_y 0'),
-        ('G', 'scroll_perc_y'),
+        ('gg', 'scroll-perc-y 0'),
+        ('G', 'scroll-perc-y'),
         ('n', 'nextsearch'),
-        ('i', 'enter_mode insert'),
+        ('i', 'enter-mode insert'),
         ('yy', 'yank'),
         ('yY', 'yank sel'),
-        ('yt', 'yanktitle'),
-        ('yT', 'yanktitle sel'),
+        ('yt', 'yank-title'),
+        ('yT', 'yank-title sel'),
         ('pp', 'paste'),
         ('pP', 'paste sel'),
-        ('Pp', 'tabpaste'),
-        ('PP', 'tabpaste sel'),
+        ('Pp', 'paste-tab'),
+        ('PP', 'paste-tab sel'),
         ('sf', 'save'),
         ('ss', 'set'),
-        ('sl', 'set_temp'),
+        ('sl', 'set-temp'),
         ('sk', 'set keybind'),
-        ('-', 'zoomout'),
-        ('+', 'zoomin'),
+        ('-', 'zoom-out'),
+        ('+', 'zoom-in'),
         ('=', 'zoom'),
-        ('[[', 'prevpage'),
-        (']]', 'nextpage'),
-        ('{{', 'tabprevpage'),
-        ('}}', 'tabnextpage'),
-        ('<Ctrl-Tab>', 'tab_focus_last'),
-        ('<Ctrl-V>', 'enter_mode passthrough'),
+        ('[[', 'prev-page'),
+        (']]', 'next-page'),
+        ('{{', 'prev-page-tab'),
+        ('}}', 'next-page-tab'),
+        ('<Ctrl-Tab>', 'tab-focus-last'),
+        ('<Ctrl-V>', 'enter-mode passthrough'),
         ('<Ctrl-Q>', 'quit'),
         ('<Ctrl-Shift-T>', 'undo'),
-        ('<Ctrl-W>', 'tabclose'),
-        ('<Ctrl-T>', 'tabopen about:blank'),
-        ('<Ctrl-F>', 'scroll_page 0 1'),
-        ('<Ctrl-B>', 'scroll_page 0 -1'),
-        ('<Ctrl-D>', 'scroll_page 0 0.5'),
-        ('<Ctrl-U>', 'scroll_page 0 -0.5'),
-        ('<Alt-1>', 'focus_tab 1'),
-        ('<Alt-2>', 'focus_tab 2'),
-        ('<Alt-3>', 'focus_tab 3'),
-        ('<Alt-4>', 'focus_tab 4'),
-        ('<Alt-5>', 'focus_tab 5'),
-        ('<Alt-6>', 'focus_tab 6'),
-        ('<Alt-7>', 'focus_tab 7'),
-        ('<Alt-8>', 'focus_tab 8'),
-        ('<Alt-9>', 'focus_tab 9'),
+        ('<Ctrl-W>', 'tab-close'),
+        ('<Ctrl-T>', 'open-tab about:blank'),
+        ('<Ctrl-F>', 'scroll-page 0 1'),
+        ('<Ctrl-B>', 'scroll-page 0 -1'),
+        ('<Ctrl-D>', 'scroll-page 0 0.5'),
+        ('<Ctrl-U>', 'scroll-page 0 -0.5'),
+        ('<Alt-1>', 'tab-focus 1'),
+        ('<Alt-2>', 'tab-focus 2'),
+        ('<Alt-3>', 'tab-focus 3'),
+        ('<Alt-4>', 'tab-focus 4'),
+        ('<Alt-5>', 'tab-focus 5'),
+        ('<Alt-6>', 'tab-focus 6'),
+        ('<Alt-7>', 'tab-focus 7'),
+        ('<Alt-8>', 'tab-focus 8'),
+        ('<Alt-9>', 'tab-focus 9'),
         ('<Backspace>', 'back'),
         ('<Left>', '${h}'),
         ('<Down>', '${j}'),
@@ -671,32 +671,32 @@ DATA = OrderedDict([
 
     ('keybind.insert', sect.ValueList(
         types.KeyBindingName(), types.KeyBinding(),
-        ('<Escape>', 'leave_mode'),
-        ('<Ctrl-N>', 'leave_mode'),
-        ('<Ctrl-E>', 'open_editor'),
+        ('<Escape>', 'leave-mode'),
+        ('<Ctrl-N>', 'leave-mode'),
+        ('<Ctrl-E>', 'open-editor'),
     )),
 
     ('keybind.hint', sect.ValueList(
         types.KeyBindingName(), types.KeyBinding(),
-        ('<Return>', 'follow_hint'),
-        ('<Escape>', 'leave_mode'),
-        ('<Ctrl-N>', 'leave_mode'),
+        ('<Return>', 'follow-hint'),
+        ('<Escape>', 'leave-mode'),
+        ('<Ctrl-N>', 'leave-mode'),
     )),
 
     ('keybind.passthrough', sect.ValueList(
         types.KeyBindingName(), types.KeyBinding(),
-        ('<Escape>', 'leave_mode'),
+        ('<Escape>', 'leave-mode'),
     )),
 
     ('keybind.command', sect.ValueList(
         types.KeyBindingName(), types.KeyBinding(),
-        ('<Escape>', 'leave_mode'),
-        ('<Ctrl-N>', 'leave_mode'),
-        ('<Up>', 'command_history_prev'),
-        ('<Down>', 'command_history_next'),
-        ('<Shift-Tab>', 'completion_item_prev'),
-        ('<Tab>', 'completion_item_next'),
-        ('<Return>', 'command_accept'),
+        ('<Escape>', 'leave-mode'),
+        ('<Ctrl-N>', 'leave-mode'),
+        ('<Up>', 'command-history-prev'),
+        ('<Down>', 'command-history-next'),
+        ('<Shift-Tab>', 'completion-item-prev'),
+        ('<Tab>', 'completion-item-next'),
+        ('<Return>', 'command-accept'),
     )),
 
     ('aliases', sect.ValueList(

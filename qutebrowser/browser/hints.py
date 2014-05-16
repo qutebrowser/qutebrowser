@@ -37,8 +37,8 @@ from qutebrowser.utils.usertypes import enum
 ElemTuple = namedtuple('ElemTuple', 'elem, label')
 
 
-Target = enum('normal', 'tab', 'bgtab', 'yank', 'yank_primary', 'cmd',
-              'cmd_tab', 'cmd_bgtab', 'rapid')
+Target = enum('normal', 'tab', 'tab_bg', 'yank', 'yank_primary', 'cmd',
+              'cmd_tab', 'cmd_tab_bg', 'rapid')
 
 
 class HintManager(QObject):
@@ -55,9 +55,9 @@ class HintManager(QObject):
         _elems: A mapping from keystrings to (elem, label) namedtuples.
         _baseurl: The URL of the current page.
         _target: What to do with the opened links.
-                 normal/tab/bgtab: Get passed to BrowserTab.
+                 normal/tab/tab_bg: Get passed to BrowserTab.
                  yank/yank_primary: Yank to clipboard/primary selection
-                 cmd/cmd_tab/cmd_bgtab: Enter link to commandline
+                 cmd/cmd_tab/cmd_tab_bg: Enter link to commandline
                  rapid: Rapid mode with background tabs
         _to_follow: The link to follow when enter is pressed.
 
@@ -89,12 +89,12 @@ class HintManager(QObject):
     HINT_TEXTS = {
         Target.normal: "Follow hint...",
         Target.tab: "Follow hint in new tab...",
-        Target.bgtab: "Follow hint in background tab...",
+        Target.tab_bg: "Follow hint in background tab...",
         Target.yank: "Yank hint to clipboard...",
         Target.yank_primary: "Yank hint to primary selection...",
         Target.cmd: "Set hint in commandline...",
         Target.cmd_tab: "Set hint in commandline as new tab...",
-        Target.cmd_bgtab: "Set hint in commandline as background tab...",
+        Target.cmd_tab_bg: "Set hint in commandline as background tab...",
         Target.rapid: "Follow hint (rapid mode)...",
     }
 
@@ -257,7 +257,7 @@ class HintManager(QObject):
             elem: The QWebElement to click.
         """
         if self._target == Target.rapid:
-            target = Target.bgtab
+            target = Target.tab_bg
         else:
             target = self._target
         self.set_open_target.emit(Target[target])
@@ -298,8 +298,8 @@ class HintManager(QObject):
         """
         commands = {
             Target.cmd: 'open',
-            Target.cmd_tab: 'tabopen',
-            Target.cmd_bgtab: 'backtabopen',
+            Target.cmd_tab: 'open-tab',
+            Target.cmd_tab_bg: 'open-tab-bg',
         }
         message.set_cmd_text(':{} {}'.format(commands[self._target],
                                              urlutils.urlstring(link)))
@@ -479,7 +479,7 @@ class HintManager(QObject):
         elem_handlers = {
             Target.normal: self._click,
             Target.tab: self._click,
-            Target.bgtab: self._click,
+            Target.tab_bg: self._click,
             Target.rapid: self._click,
         }
         # Handlers which take a link string
@@ -488,7 +488,7 @@ class HintManager(QObject):
             Target.yank_primary: self._yank,
             Target.cmd: self._preset_cmd_text,
             Target.cmd_tab: self._preset_cmd_text,
-            Target.cmd_bgtab: self._preset_cmd_text,
+            Target.cmd_tab_bg: self._preset_cmd_text,
         }
         elem = self._elems[keystr].elem
         if self._target in elem_handlers:

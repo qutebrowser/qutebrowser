@@ -181,7 +181,7 @@ class StatusBar(QWidget):
             self._text_pop_timer.start()
         self._stack.setCurrentWidget(self.txt)
 
-    def _disp_text(self, text, error, immediate):
+    def _disp_text(self, text, error, immediate=False):
         """Inner logic for disp_error and disp_temp_text.
 
         Args:
@@ -219,7 +219,7 @@ class StatusBar(QWidget):
         self._text_pop_timer.start()
 
     @pyqtSlot(str, bool)
-    def disp_error(self, text, immediate):
+    def disp_error(self, text, immediate=False):
         """Display an error in the statusbar.
 
         Args:
