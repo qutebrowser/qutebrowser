@@ -34,6 +34,26 @@ import qutebrowser.utils.misc as utils
 from qutebrowser.test.helpers import environ_set_temp
 
 
+class ElidingTests(TestCase):
+
+    """Test elide."""
+
+    ELLIPSIS = '\u2026'
+
+    def test_too_small(self):
+        with self.assertRaises(ValueError):
+            utils.elide('foo', 0)
+
+    def test_length_one(self):
+        self.assertEqual(utils.elide('foo', 1), self.ELLIPSIS)
+
+    def test_fits(self):
+        self.assertEqual(utils.elide('foo', 3), 'foo')
+
+    def test_elided(self):
+        self.assertEqual(utils.elide('foobar', 3), 'fo' + self.ELLIPSIS)
+
+
 class CheckOverflowTests(TestCase):
 
     """Test check_overflow."""

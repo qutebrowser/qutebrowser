@@ -47,6 +47,16 @@ MINVALS = {
 }
 
 
+def elide(text, length):
+    """Elide text so it uses a maximum of length chars."""
+    if length < 1:
+        raise ValueError("length must be >= 1!")
+    if len(text) <= length:
+        return text
+    else:
+        return text[:length-1] + '\u2026'
+
+
 def check_overflow(arg, ctype, fatal=True):
     """Check if the given argument is in bounds for the given type.
 
