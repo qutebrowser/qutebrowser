@@ -54,7 +54,7 @@ def elide(text, length):
     if len(text) <= length:
         return text
     else:
-        return text[:length-1] + '\u2026'
+        return text[:length - 1] + '\u2026'
 
 
 def check_overflow(arg, ctype, fatal=True):

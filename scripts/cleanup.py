@@ -36,11 +36,11 @@ def remove(path):
     """Remove either a file or directory unless --dry-run is given."""
     if os.path.isdir(path):
         print("rm -r '{}'".format(path))
-        if not '--dry-run' in sys.argv:
+        if '--dry-run' not in sys.argv:
             shutil.rmtree(path)
     else:
         print("rm '{}'".format(path))
-        if not '--dry-run' in sys.argv:
+        if '--dry-run' not in sys.argv:
             os.remove(path)
 
 
