@@ -86,7 +86,6 @@ Improvements / minor features
     QNetworkManager.setCache() and use a QNetworkDiskCache probably
 - clear cookies command
 - keybind/aliases should have completion for commands/arguments
-- Hiding scrollbars
 - Ctrl+A/X to increase/decrease last number in URL
 - logging contexts
 - Add more element-selection-detection code (with options?) based on:

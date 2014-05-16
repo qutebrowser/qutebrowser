@@ -197,6 +197,14 @@ DATA = OrderedDict([
          SettingValue(types.ShellCommand(placeholder=True), 'gvim -f "{}"'),
          "The editor (and arguments) to use for the open_editor binding. "
          "Use {} for the filename. Gets split via shutils."),
+
+        ('show-scroll-bar-horizontal',
+         SettingValue(types.ScrollBarPolicy(), 'never'),
+         "Whether to show horizontal scrollbar for web content."),
+
+        ('show-scroll-bar-vertical',
+         SettingValue(types.ScrollBarPolicy(), 'never'),
+         "Whether to show vertical scrollbar for web content."),
     )),
 
     ('network', sect.KeyValue(

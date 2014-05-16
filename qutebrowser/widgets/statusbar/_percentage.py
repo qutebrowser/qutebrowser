@@ -50,4 +50,4 @@ class Percentage(TextBase):
     def on_tab_changed(self, idx):
         """Update scroll position when tab changed."""
         tab = self.sender().widget(idx)
-        self.set_perc(*tab.scroll_pos)
+        self.set_perc(*tab.scroll_perc)
