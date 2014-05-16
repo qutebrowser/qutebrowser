@@ -27,18 +27,30 @@ def instance():
     return QCoreApplication.instance().messagebridge
 
 
-def error(message):
-    """Display an error message in the statusbar."""
+def error(message, immediate=False):
+    """Display an error message in the statusbar.
+
+    Args:
+        message: The message to display.
+        immediate: If set, message gets displayed immediately rather than
+                   getting queued.
+    """
     message = str(message)
     logging.error(message)
-    instance().error.emit(message)
+    instance().error.emit(message, immediate)
 
 
-def info(message):
-    """Display a temporary info message in the statusbar."""
+def info(message, immediate=False):
+    """Display a temporary info message in the statusbar.
+
+    Args:
+        message: The message to display.
+        immediate: If set, message gets displayed immediately rather than
+                   getting queued.
+    """
     message = str(message)
     logging.info(message)
-    instance().info.emit(message)
+    instance().info.emit(message, immediate)
 
 
 def text(message):
@@ -62,7 +74,7 @@ class MessageBridge(QObject):
 
     """Bridge for messages to be shown in the statusbar."""
 
-    error = pyqtSignal(str)
-    info = pyqtSignal(str)
+    error = pyqtSignal(str, bool)
+    info = pyqtSignal(str, bool)
     text = pyqtSignal(str)
     set_cmd_text = pyqtSignal(str)

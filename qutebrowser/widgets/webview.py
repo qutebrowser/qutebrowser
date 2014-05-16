@@ -309,7 +309,7 @@ class WebView(QWebView):
         if perc < 0:
             raise CommandError("Can't zoom {}%!".format(perc))
         self.setZoomFactor(float(perc) / 100)
-        message.info("Zoom level: {}%".format(perc))
+        message.info("Zoom level: {}%".format(perc), immediate=True)
 
     def zoom(self, offset):
         """Increase/Decrease the zoom level.

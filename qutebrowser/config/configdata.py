@@ -207,7 +207,7 @@ DATA = OrderedDict([
          "Whether to show vertical scrollbar for web content."),
 
         ('message-timeout',
-         SettingValue(types.Int(), '3000'),
+         SettingValue(types.Int(), '2000'),
          "Time (in ms) to show messages in the statusbar for."),
     )),
 
