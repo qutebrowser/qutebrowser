@@ -98,6 +98,9 @@ Bugs
 - Clicking links/email in crash dialog should open browser/mailclient under
   windows
 
+- ok is always True in WebPage:on_load_status_changed, even when an error page
+  is loaded.
+
 Upstream Bugs
 =============
 
