@@ -19,6 +19,7 @@
 
 import logging
 from collections import deque
+from datetime import datetime
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QTimer
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
@@ -53,6 +54,7 @@ class StatusBar(QWidget):
         _text_queue: A deque of (error, text) tuples to be displayed.
                      error: True if message is an error, False otherwise
         _text_pop_timer: A QTimer displaying the error messages.
+        _last_text_time: The timestamp where a message was last displayed.
 
     Class attributes:
         _error: If there currently is an error, accessed through the error
@@ -98,6 +100,7 @@ class StatusBar(QWidget):
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
 
         self._option = None
+        self._last_text_time = None
 
         self._hbox = QHBoxLayout(self)
         self._hbox.setContentsMargins(0, 0, 0, 0)
@@ -179,16 +182,38 @@ class StatusBar(QWidget):
         self._stack.setCurrentWidget(self.txt)
 
     @pyqtSlot(str)
+    def _disp_text(self, text, error):
+        """Inner logic for disp_error and disp_temp_text."""
+        logging.debug("Displaying text: {} (error={})".format(text, error))
+        now = datetime.now()
+        mindelta = config.get('general', 'message-timeout')
+        delta = (None if self._last_text_time is None
+                 else now - self._last_text_time)
+        self._last_text_time = now
+        logging.debug("queue: {} / delta: {}".format(self._text_queue, delta))
+        if not self._text_queue and (
+                delta is None or delta.total_seconds() * 1000.0 > mindelta):
+            # If the queue is empty and we didn't print messages for long
+            # enough, we can take the short route and display the message
+            # immediately. We then start the pop_timer only to restore the
+            # normal state in 2 seconds.
+            logging.debug("Displaying immediately")
+            self.error = error
+            self.txt.temptext = text
+        else:
+            logging.debug("queueing")
+            self._text_queue.append((error, text))
+        self._text_pop_timer.start()
+
+    @pyqtSlot(str)
     def disp_error(self, text):
         """Display an error in the statusbar."""
-        self._text_queue.append((True, text))
-        self._text_pop_timer.start()
+        self._disp_text(text, True)
 
     @pyqtSlot(str)
     def disp_temp_text(self, text):
         """Add a temporary text to the queue."""
-        self._text_queue.append((False, text))
-        self._text_pop_timer.start()
+        self._disp_text(text, False)
 
     @pyqtSlot(str)
     def set_text(self, val):
