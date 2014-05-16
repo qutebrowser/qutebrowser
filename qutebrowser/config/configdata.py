@@ -205,6 +205,10 @@ DATA = OrderedDict([
         ('show-scroll-bar-vertical',
          SettingValue(types.ScrollBarPolicy(), 'never'),
          "Whether to show vertical scrollbar for web content."),
+
+        ('message-timeout',
+         SettingValue(types.Int(), '3000'),
+         "Time (in ms) to show messages in the statusbar for."),
     )),
 
     ('network', sect.KeyValue(

@@ -17,8 +17,6 @@
 
 """Text displayed in the statusbar."""
 
-from PyQt5.QtCore import pyqtSlot
-
 from qutebrowser.widgets.statusbar._textbase import TextBase
 
 
@@ -28,15 +26,12 @@ class Text(TextBase):
 
     Attributes:
         normaltext: The "permanent" text. Never automatically cleared.
-        temptext: The temporary text. Cleared on a keystroke.
-        errortext: The error text. Cleared on a keystroke.
+        temptext: The temporary text to display.
         _initializing: True if we're currently in __init__ and no text should
                        be updated yet.
 
-        The errortext has the highest priority, i.e. it will always be shown
-        when it is set. The temptext is shown when there is no error, and the
-        (permanent) text is shown when there is neither a temporary text nor an
-        error.
+        The temptext is shown from StatusBar when a temporary text or error is
+        available. If not, the permanent text is shown.
     """
 
     def __init__(self, parent=None):
@@ -44,7 +39,6 @@ class Text(TextBase):
         self._initializing = True
         self.normaltext = ''
         self.temptext = ''
-        self.errortext = ''
         self._initializing = False
 
     def __setattr__(self, name, val):
@@ -58,30 +52,9 @@ class Text(TextBase):
 
         Called from __setattr__ if a text property changed.
         """
-        for text in [self.errortext, self.temptext, self.normaltext]:
+        for text in [self.temptext, self.normaltext]:
             if text:
                 self.setText(text)
                 break
         else:
             self.setText('')
-
-    @pyqtSlot(str)
-    def set_normaltext(self, val):
-        """Setter for normaltext, to be used as Qt slot."""
-        self.normaltext = val
-
-    @pyqtSlot(str)
-    def on_statusbar_message(self, val):
-        """Called when javascript tries to set a statusbar message.
-
-        For some reason, this is emitted a lot with an empty string during page
-        load, so we currently ignore these and thus don't support clearing the
-        message, which is a bit unfortunate...
-        """
-        if val:
-            self.temptext = val
-
-    @pyqtSlot(str)
-    def set_temptext(self, val):
-        """Setter for temptext, to be used as Qt slot."""
-        self.temptext = val

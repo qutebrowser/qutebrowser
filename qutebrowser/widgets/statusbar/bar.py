@@ -17,10 +17,14 @@
 
 """The main statusbar widget."""
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt
+import logging
+from collections import deque
+
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QTimer
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 import qutebrowser.keyinput.modeman as modeman
+import qutebrowser.config.config as config
 from qutebrowser.widgets.statusbar._command import Command
 from qutebrowser.widgets.statusbar._progress import Progress
 from qutebrowser.widgets.statusbar._text import Text
@@ -46,6 +50,9 @@ class StatusBar(QWidget):
         prog: The Progress widget in the statusbar.
         _hbox: The main QHBoxLayout.
         _stack: The QStackedLayout with cmd/txt widgets.
+        _text_queue: A deque of (error, text) tuples to be displayed.
+                     error: True if message is an error, False otherwise
+        _text_pop_timer: A QTimer displaying the error messages.
 
     Class attributes:
         _error: If there currently is an error, accessed through the error
@@ -104,6 +111,11 @@ class StatusBar(QWidget):
 
         self.txt = Text(self)
         self._stack.addWidget(self.txt)
+        self._text_queue = deque()
+        self._text_pop_timer = QTimer()
+        self._text_pop_timer.setInterval(
+            config.get('general', 'message-timeout'))
+        self._text_pop_timer.timeout.connect(self._pop_text)
 
         self.cmd.show_cmd.connect(self._show_cmd_widget)
         self.cmd.hide_cmd.connect(self._hide_cmd_widget)
@@ -139,39 +151,49 @@ class StatusBar(QWidget):
         self._error = val
         self.setStyleSheet(get_stylesheet(self.STYLESHEET))
 
+    def _pop_text(self):
+        """Display a text in the statusbar and pop it from _text_queue."""
+        try:
+            error, text = self._text_queue.popleft()
+        except IndexError:
+            self.error = False
+            self.txt.temptext = ''
+            self._text_pop_timer.stop()
+            return
+        logging.debug("Displaying {} message: {}".format(
+            'error' if error else 'text', text))
+        logging.debug("Remaining: {}".format(self._text_queue))
+        self.error = error
+        self.txt.temptext = text
+
     def _show_cmd_widget(self):
         """Show command widget instead of temporary text."""
+        self._text_pop_timer.stop()
         self._stack.setCurrentWidget(self.cmd)
-        self.clear_error()
 
     def _hide_cmd_widget(self):
         """Show temporary text instead of command widget."""
+        if self._text_queue and not self._text_pop_timer.isActive():
+            self._pop_text()
+            self._text_pop_timer.start()
         self._stack.setCurrentWidget(self.txt)
 
     @pyqtSlot(str)
     def disp_error(self, text):
         """Display an error in the statusbar."""
-        self.error = True
-        self.txt.errortext = text
+        self._text_queue.append((True, text))
+        self._text_pop_timer.start()
 
-    @pyqtSlot()
-    def clear_error(self):
-        """Clear a displayed error from the status bar."""
-        self.error = False
-        self.txt.errortext = ''
+    @pyqtSlot(str)
+    def disp_temp_text(self, text):
+        """Add a temporary text to the queue."""
+        self._text_queue.append((False, text))
+        self._text_pop_timer.start()
 
-    @pyqtSlot('QKeyEvent')
-    def on_key_pressed(self, e):
-        """Hide temporary error message if a key was pressed.
-
-        Args:
-            e: The original QKeyEvent.
-        """
-        if e.key() in [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta]:
-            # Only modifier pressed, don't hide yet.
-            return
-        self.txt.set_temptext('')
-        self.clear_error()
+    @pyqtSlot(str)
+    def set_text(self, val):
+        """Set a normal (persistent) text in the status bar."""
+        self.txt.normaltext = val
 
     @pyqtSlot(str)
     def on_mode_entered(self, mode):
@@ -184,6 +206,24 @@ class StatusBar(QWidget):
         """Clear marked mode."""
         if mode in modeman.instance().passthrough:
             self.txt.normaltext = ""
+
+    @pyqtSlot(str)
+    def on_statusbar_message(self, val):
+        """Called when javascript tries to set a statusbar message.
+
+        For some reason, this is emitted a lot with an empty string during page
+        load, so we currently ignore these and thus don't support clearing the
+        message, which is a bit unfortunate...
+        """
+        if val:
+            self.txt.temptext = val
+
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
+        """Update message timeout when config changed."""
+        if section == 'general' and option == 'message-timeout':
+            self._text_pop_timer.setInterval(
+                config.get('general', 'message-timeout'))
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

@@ -368,7 +368,6 @@ class QuteBrowser(QApplication):
         self.modeman.entered.connect(status.on_mode_entered)
         self.modeman.left.connect(status.on_mode_left)
         self.modeman.left.connect(status.cmd.on_mode_left)
-        self.modeman.key_pressed.connect(status.on_key_pressed)
 
         # commands
         cmd.got_cmd.connect(self.commandmanager.run_safely)
@@ -386,14 +385,14 @@ class QuteBrowser(QApplication):
 
         # messages
         self.messagebridge.error.connect(status.disp_error)
-        self.messagebridge.info.connect(status.txt.set_temptext)
-        self.messagebridge.text.connect(status.txt.set_normaltext)
+        self.messagebridge.info.connect(status.disp_temp_text)
+        self.messagebridge.text.connect(status.set_text)
         self.messagebridge.set_cmd_text.connect(cmd.set_cmd_text)
 
         # config
         self.config.style_changed.connect(style.invalidate_caches)
         for obj in [tabs, completion, self.mainwindow, self.cmd_history,
-                    websettings, kp['normal'], self.modeman]:
+                    websettings, kp['normal'], self.modeman, status]:
             self.config.changed.connect(obj.on_config_changed)
 
         # statusbar
@@ -405,7 +404,7 @@ class QuteBrowser(QApplication):
         tabs.currentChanged.connect(status.percentage.on_tab_changed)
         tabs.cur_scroll_perc_changed.connect(status.percentage.set_perc)
 
-        tabs.cur_statusbar_message.connect(status.txt.on_statusbar_message)
+        tabs.cur_statusbar_message.connect(status.on_statusbar_message)
 
         tabs.currentChanged.connect(status.url.on_tab_changed)
         tabs.cur_url_text_changed.connect(status.url.set_url)

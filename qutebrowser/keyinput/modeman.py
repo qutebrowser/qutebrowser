@@ -76,12 +76,10 @@ class ModeManager(QObject):
                  arg: Name of the entered mode.
         left:  Emitted when a mode is left.
                  arg: Name of the left mode.
-        key_pressed: A key was pressed.
     """
 
     entered = pyqtSignal(str)
     left = pyqtSignal(str)
-    key_pressed = pyqtSignal('QKeyEvent')
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -123,7 +121,6 @@ class ModeManager(QObject):
         """
         handler = self._handlers[self.mode]
         logging.debug("calling handler {}".format(handler.__qualname__))
-        self.key_pressed.emit(event)
         handled = handler(event) if handler is not None else False
 
         if handled:
@@ -242,9 +239,6 @@ class ModeManager(QObject):
 
         Return:
             True if event should be filtered, False otherwise.
-
-        Emit:
-            key_pressed: When a key was actually pressed.
         """
         if self.mode is None:
             # We got events before mode is set, so just pass them through.
