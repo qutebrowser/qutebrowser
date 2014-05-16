@@ -101,6 +101,10 @@ Bugs
 - ok is always True in WebPage:on_load_status_changed, even when an error page
   is loaded.
 
+- When tabbar -> scroll-buttons is disabled and there are too many tabs, the
+  window has a bigger size hint instead of tabs getting smaller than the
+  minimum size (iggy)
+
 Upstream Bugs
 =============
 
