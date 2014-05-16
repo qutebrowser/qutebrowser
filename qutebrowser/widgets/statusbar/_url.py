@@ -47,23 +47,23 @@ class Url(TextBase):
     _urltype = None
 
     STYLESHEET = """
-        QLabel#_Url[urltype="normal"] {{
+        QLabel#Url[urltype="normal"] {{
             {color[statusbar.url.fg]}
         }}
 
-        QLabel#_Url[urltype="success"] {{
+        QLabel#Url[urltype="success"] {{
             {color[statusbar.url.fg.success]}
         }}
 
-        QLabel#_Url[urltype="error"] {{
+        QLabel#Url[urltype="error"] {{
             {color[statusbar.url.fg.error]}
         }}
 
-        QLabel#_Url[urltype="warn"] {{
+        QLabel#Url[urltype="warn"] {{
             {color[statusbar.url.fg.warn]}
         }}
 
-        QLabel#_Url[urltype="hover"] {{
+        QLabel#Url[urltype="hover"] {{
             {color[statusbar.url.fg.hover]}
         }}
     """
