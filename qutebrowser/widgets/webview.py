@@ -30,6 +30,7 @@ import qutebrowser.config.config as config
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.message as message
 import qutebrowser.utils.webelem as webelem
+import qutebrowser.utils.misc as utils
 from qutebrowser.browser.webpage import BrowserPage
 from qutebrowser.browser.hints import HintManager
 from qutebrowser.utils.usertypes import NeighborList, enum
@@ -112,6 +113,10 @@ class WebView(QWebView):
             lambda *args: setattr(self, '_has_ssl_errors', True))
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
 
+    def __repr__(self):
+        return "WebView(url='{}')".format(
+            utils.elide(urlutils.urlstring(self.url()), 50))
+
     @property
     def load_status(self):
         """Getter for load_status."""
@@ -124,6 +129,8 @@ class WebView(QWebView):
         Emit:
             load_status_changed
         """
+        logging.debug("load status for {}: {}".format(
+            repr(self), LoadStatus[val]))
         self._load_status = val
         self.load_status_changed.emit(LoadStatus[val])
 
