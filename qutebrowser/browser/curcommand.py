@@ -139,8 +139,6 @@ class CurCommandDispatcher(QObject):
     def tab_close(self, count=None):
         """Close the current/[count]th tab.
 
-        Command handler for :tab-close.
-
         Args:
             count: The tab index to close, or None
 
@@ -157,8 +155,6 @@ class CurCommandDispatcher(QObject):
                        split=False)
     def openurl(self, url, count=None):
         """Open a URL in the current/[count]th tab.
-
-        Command handler for :open.
 
         Args:
             url: The URL to open.
@@ -180,8 +176,6 @@ class CurCommandDispatcher(QObject):
     def reloadpage(self, count=None):
         """Reload the current/[count]th tab.
 
-        Command handler for :reload.
-
         Args:
             count: The tab index to reload, or None.
         """
@@ -193,8 +187,6 @@ class CurCommandDispatcher(QObject):
     def stop(self, count=None):
         """Stop loading in the current/[count]th tab.
 
-        Command handler for :stop.
-
         Args:
             count: The tab index to stop, or None.
         """
@@ -205,8 +197,6 @@ class CurCommandDispatcher(QObject):
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def print_preview(self, count=None):
         """Preview printing of the current/[count]th tab.
-
-        Command handler for :print-preview.
 
         Args:
             count: The tab index to print, or None.
@@ -220,8 +210,6 @@ class CurCommandDispatcher(QObject):
     @cmdutils.register(instance='mainwindow.tabs.cmd', name='print')
     def printpage(self, count=None):
         """Print the current/[count]th tab.
-
-        Command handler for :print.
 
         Args:
             count: The tab index to print, or None.
@@ -238,8 +226,6 @@ class CurCommandDispatcher(QObject):
     def back(self, count=1):
         """Go back in the history of the current tab.
 
-        Command handler for :back.
-
         Args:
             count: How many pages to go back.
         """
@@ -250,8 +236,6 @@ class CurCommandDispatcher(QObject):
     def forward(self, count=1):
         """Go forward in the history of the current tab.
 
-        Command handler for :forward.
-
         Args:
             count: How many pages to go forward.
         """
@@ -261,8 +245,6 @@ class CurCommandDispatcher(QObject):
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def hint(self, groupstr='all', targetstr='normal'):
         """Start hinting.
-
-        Command handler for :hint.
 
         Args:
             groupstr: The hinting mode to use.
@@ -311,8 +293,6 @@ class CurCommandDispatcher(QObject):
     def scroll(self, dx, dy, count=1):
         """Scroll the current tab by count * dx/dy.
 
-        Command handler for :scroll.
-
         Args:
             dx: How much to scroll in x-direction.
             dy: How much to scroll in x-direction.
@@ -324,12 +304,9 @@ class CurCommandDispatcher(QObject):
         cmdutils.check_overflow(dy, 'int')
         self._tabs.currentWidget().page_.currentFrame().scroll(dx, dy)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd', name='scroll-perc-x',
-                       hide=True)
-    def scroll_percent_x(self, perc=None, count=None):
+    @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
+    def scroll_perc_x(self, perc=None, count=None):
         """Scroll the current tab to a specific percent of the page (horiz).
-
-        Command handler for :scroll_perc_x.
 
         Args:
             perc: Percentage to scroll.
@@ -337,12 +314,9 @@ class CurCommandDispatcher(QObject):
         """
         self._scroll_percent(perc, count, Qt.Horizontal)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd', name='scroll-perc-y',
-                       hide=True)
-    def scroll_percent_y(self, perc=None, count=None):
+    @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
+    def scroll_perc_y(self, perc=None, count=None):
         """Scroll the current tab to a specific percent of the page (vert).
-
-        Command handler for :scroll_perc_y
 
         Args:
             perc: Percentage to scroll.
@@ -370,24 +344,6 @@ class CurCommandDispatcher(QObject):
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def yank(self, sel=False):
         """Yank the current URL to the clipboard or primary selection.
-
-        Command handler for :yank.
-
-        Args:
-            sel: True to use primary selection, False to use clipboard
-        """
-        clip = QApplication.clipboard()
-        url = urlutils.urlstring(self._tabs.currentWidget().url())
-        mode = QClipboard.Selection if sel else QClipboard.Clipboard
-        clip.setText(url, mode)
-        message.info("URL yanked to {}".format("primary selection" if sel
-                                               else "clipboard"))
-
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
-    def yank_title(self, sel=False):
-        """Yank the current title to the clipboard or primary selection.
-
-        Command handler for :yank-title.
 
         Args:
             sel: True to use primary selection, False to use clipboard
@@ -419,8 +375,8 @@ class CurCommandDispatcher(QObject):
         tab = self._tabs.currentWidget()
         tab.zoom(-count)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd', name='zoom')
-    def zoom_perc(self, zoom=None, count=None):
+    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    def zoom(self, zoom=None, count=None):
         """Set the zoom level for the current tab to [count] or 100 percent.
 
         Args:
@@ -469,22 +425,17 @@ class CurCommandDispatcher(QObject):
         url = urlutils.urlstring(self._tabs.currentWidget().url())
         message.set_cmd_text(':open-tab-bg ' + url)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd', name='undo')
-    def undo_close(self):
-        """Re-open a closed tab (optionally skipping [count] tabs).
-
-        Command handler for :undo.
-        """
+    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    def undo(self):
+        """Re-open a closed tab (optionally skipping [count] tabs)."""
         if self._tabs.url_stack:
             self.tabopen(self._tabs.url_stack.pop())
         else:
             raise CommandError("Nothing to undo!")
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd', name='tab-prev')
-    def switch_prev(self, count=1):
+    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    def tab_prev(self, count=1):
         """Switch to the previous tab, or skip [count] tabs.
-
-        Command handler for :tab-prev.
 
         Args:
             count: How many tabs to switch back.
@@ -497,11 +448,9 @@ class CurCommandDispatcher(QObject):
         else:
             raise CommandError("First tab")
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd', name='tab-next')
-    def switch_next(self, count=1):
+    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    def tab_next(self, count=1):
         """Switch to the next tab, or skip [count] tabs.
-
-        Command handler for :tab-next.
 
         Args:
             count: How many tabs to switch forward.
@@ -517,8 +466,6 @@ class CurCommandDispatcher(QObject):
     @cmdutils.register(instance='mainwindow.tabs.cmd', nargs=(0, 1))
     def paste(self, sel=False, tab=False):
         """Open a page from the clipboard.
-
-        Command handler for :paste.
 
         Args:
             sel: True to use primary selection, False to use clipboard
@@ -538,8 +485,6 @@ class CurCommandDispatcher(QObject):
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def paste_tab(self, sel=False):
         """Open a page from the clipboard in a new tab.
-
-        Command handler for :paste.
 
         Args:
             sel: True to use primary selection, False to use clipboard
@@ -631,8 +576,8 @@ class CurCommandDispatcher(QObject):
         self.openurl(config.get('general', 'startpage')[0])
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', modes=['insert'],
-                       name='open_editor', hide=True)
-    def editor(self):
+                       hide=True)
+    def open_editor(self):
         """Open an external editor with the current form field.
 
         We use QProcess rather than subprocess here because it makes it a lot

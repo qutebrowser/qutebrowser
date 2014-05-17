@@ -50,7 +50,7 @@ def log_events(klass):
     return klass
 
 
-@cmdutils.register(name='set-trace', hide=True)
+@cmdutils.register(hide=True)
 def set_trace():
     """Set a tracepoint in the Python debugger that works with Qt.
 
