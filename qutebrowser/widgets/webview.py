@@ -112,9 +112,9 @@ class WebView(QWebView):
         self.page_.networkAccessManager().sslErrors.connect(
             lambda *args: setattr(self, '_has_ssl_errors', True))
         self.page_.mainFrame().setScrollBarPolicy(
-            Qt.Horizontal, config.get('general', 'show-scroll-bar-horizontal'))
+            Qt.Horizontal, config.get('ui', 'show-scroll-bar-horizontal'))
         self.page_.mainFrame().setScrollBarPolicy(
-            Qt.Vertical, config.get('general', 'show-scroll-bar-vertical'))
+            Qt.Vertical, config.get('ui', 'show-scroll-bar-vertical'))
 
     def __repr__(self):
         return "WebView(url='{}')".format(
@@ -155,8 +155,8 @@ class WebView(QWebView):
     def _init_neighborlist(self):
         """Initialize the _zoom neighborlist."""
         self._zoom = NeighborList(
-            config.get('general', 'zoom-levels'),
-            default=config.get('general', 'default-zoom'),
+            config.get('ui', 'zoom-levels'),
+            default=config.get('ui', 'default-zoom'),
             mode=NeighborList.Modes.block)
 
     def _on_destroyed(self, sender):
@@ -399,17 +399,17 @@ class WebView(QWebView):
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update tab config when config was changed."""
-        if section == 'general':
+        if section == 'ui':
             if option in ['zoom-levels', 'default-zoom']:
                 self._init_neighborlist()
             elif option == 'show-scroll-bar-horizontal':
                 self.page_.mainFrame().setScrollBarPolicy(
                     Qt.Horizontal,
-                    config.get('general', 'show-scroll-bar-horizontal'))
+                    config.get('ui', 'show-scroll-bar-horizontal'))
             elif option == 'show-scroll-bar-vertical':
                 self.page_.mainFrame().setScrollBarPolicy(
                     Qt.Vertical,
-                    config.get('general', 'show-scroll-bar-vertical'))
+                    config.get('ui', 'show-scroll-bar-vertical'))
 
     @pyqtSlot('QMouseEvent')
     def on_mouse_event(self, evt):

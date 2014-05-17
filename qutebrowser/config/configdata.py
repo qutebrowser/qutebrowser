@@ -61,6 +61,7 @@ FIRST_COMMENT = r"""
 
 SECTION_DESC = {
     'general': "General/misc. options.",
+    'ui': "General options related to the user interface.",
     'input': "Options related to input modes.",
     'network': "Settings related to the network.",
     'completion': "Options related to completion and command history.",
@@ -170,16 +171,6 @@ DATA = OrderedDict([
          "Whether to start a search when something else than a URL is "
          "entered."),
 
-        ('zoom-levels',
-         SettingValue(types.PercList(minval=0),
-                      '25%,33%,50%,67%,75%,90%,100%,110%,125%,150%,175%,200%,'
-                      '250%,300%,400%,500%'),
-         "The available zoom levels, separated by commas."),
-
-        ('default-zoom',
-         SettingValue(types.ZoomPerc(), '100%'),
-         "The default zoom level."),
-
         ('auto-save-config',
          SettingValue(types.Bool(), 'true'),
          "Whether to save the config automatically on quit."),
@@ -197,6 +188,18 @@ DATA = OrderedDict([
          SettingValue(types.ShellCommand(placeholder=True), 'gvim -f "{}"'),
          "The editor (and arguments) to use for the open-editor binding. "
          "Use {} for the filename. Gets split via shutils."),
+    )),
+
+    ('ui', sect.KeyValue(
+        ('zoom-levels',
+         SettingValue(types.PercList(minval=0),
+                      '25%,33%,50%,67%,75%,90%,100%,110%,125%,150%,175%,200%,'
+                      '250%,300%,400%,500%'),
+         "The available zoom levels, separated by commas."),
+
+        ('default-zoom',
+         SettingValue(types.ZoomPerc(), '100%'),
+         "The default zoom level."),
 
         ('show-scroll-bar-horizontal',
          SettingValue(types.ScrollBarPolicy(), 'never'),

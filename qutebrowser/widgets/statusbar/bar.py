@@ -117,7 +117,7 @@ class StatusBar(QWidget):
         self._text_queue = deque()
         self._text_pop_timer = QTimer()
         self._text_pop_timer.setInterval(
-            config.get('general', 'message-timeout'))
+            config.get('ui', 'message-timeout'))
         self._text_pop_timer.timeout.connect(self._pop_text)
 
         self.cmd.show_cmd.connect(self._show_cmd_widget)
@@ -192,7 +192,7 @@ class StatusBar(QWidget):
         """
         logging.debug("Displaying text: {} (error={})".format(text, error))
         now = datetime.now()
-        mindelta = config.get('general', 'message-timeout')
+        mindelta = config.get('ui', 'message-timeout')
         delta = (None if self._last_text_time is None
                  else now - self._last_text_time)
         self._last_text_time = now
@@ -271,9 +271,9 @@ class StatusBar(QWidget):
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update message timeout when config changed."""
-        if section == 'general' and option == 'message-timeout':
+        if section == 'ui' and option == 'message-timeout':
             self._text_pop_timer.setInterval(
-                config.get('general', 'message-timeout'))
+                config.get('ui', 'message-timeout'))
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
