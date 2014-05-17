@@ -332,7 +332,6 @@ class TabbedBrowser(TabWidget):
         else:
             logging.debug("ignoring title change")
 
-
     @pyqtSlot(str)
     def on_url_text_changed(self, url):
         """Set the new URL as title if there's no title yet."""
