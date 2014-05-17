@@ -154,6 +154,43 @@ class TabbedBrowser(TabWidget):
         tab.page().mainFrame().loadStarted.connect(partial(
             self.on_load_started, tab))
 
+    def cntwidget(self, count=None):
+        """Return a widget based on a count/idx.
+
+        Args:
+            count: The tab index, or None.
+
+        Return:
+            The current widget if count is None.
+            The widget with the given tab ID if count is given.
+            None if no widget was found.
+        """
+        if count is None:
+            return self.currentWidget()
+        elif 1 <= count <= self.count():
+            cmdutils.check_overflow(count + 1, 'int')
+            return self.widget(count - 1)
+        else:
+            return None
+
+    def shutdown(self):
+        """Try to shut down all tabs cleanly.
+
+        Emit:
+            shutdown_complete if the shutdown completed successfully.
+        """
+        try:
+            self.currentChanged.disconnect()
+        except TypeError:
+            pass
+        tabcount = self.count()
+        if tabcount == 0:
+            logging.debug("No tabs -> shutdown complete")
+            self.shutdown_complete.emit()
+            return
+        for tab in self.widgets:
+            tab.shutdown(callback=partial(self._cb_tab_shutdown, tab))
+
     def close_tab(self, tab_or_idx):
         """Close a tab with either index or tab given.
 
@@ -231,43 +268,6 @@ class TabbedBrowser(TabWidget):
             self.setCurrentWidget(tab)
         tab.show()
         return tab
-
-    def cntwidget(self, count=None):
-        """Return a widget based on a count/idx.
-
-        Args:
-            count: The tab index, or None.
-
-        Return:
-            The current widget if count is None.
-            The widget with the given tab ID if count is given.
-            None if no widget was found.
-        """
-        if count is None:
-            return self.currentWidget()
-        elif 1 <= count <= self.count():
-            cmdutils.check_overflow(count + 1, 'int')
-            return self.widget(count - 1)
-        else:
-            return None
-
-    def shutdown(self):
-        """Try to shut down all tabs cleanly.
-
-        Emit:
-            shutdown_complete if the shutdown completed successfully.
-        """
-        try:
-            self.currentChanged.disconnect()
-        except TypeError:
-            pass
-        tabcount = self.count()
-        if tabcount == 0:
-            logging.debug("No tabs -> shutdown complete")
-            self.shutdown_complete.emit()
-            return
-        for tab in self.widgets:
-            tab.shutdown(callback=partial(self._cb_tab_shutdown, tab))
 
     @pyqtSlot(str, int)
     def search(self, text, flags):
