@@ -30,7 +30,7 @@ import qutebrowser.config.config as config
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.message as message
 import qutebrowser.utils.webelem as webelem
-import qutebrowser.utils.misc as utils
+from qutebrowser.utils.misc import elide
 from qutebrowser.browser.webpage import BrowserPage
 from qutebrowser.browser.hints import HintManager
 from qutebrowser.utils.usertypes import NeighborList, enum
@@ -118,7 +118,7 @@ class WebView(QWebView):
 
     def __repr__(self):
         return "WebView(url='{}')".format(
-            utils.elide(urlutils.urlstring(self.url()), 50))
+            elide(urlutils.urlstring(self.url()), 50))
 
     @property
     def load_status(self):
@@ -319,6 +319,16 @@ class WebView(QWebView):
         """
         level = self._zoom.getitem(offset)
         self.zoom_perc(level, fuzzyval=False)
+
+    @pyqtSlot(str, int)
+    def search(self, text, flags):
+        """Search for text in the current page.
+
+        Args:
+            text: The text to search for.
+            flags: The QWebPage::FindFlags.
+        """
+        self._tabs.currentWidget().findText(text, flags)
 
     def go_back(self):
         """Go back a page in the history."""

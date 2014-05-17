@@ -374,13 +374,13 @@ class QuteBrowser(QApplication):
         cmd.got_search.connect(self.searchmanager.search)
         cmd.got_search_rev.connect(self.searchmanager.search_rev)
         cmd.returnPressed.connect(tabs.setFocus)
-        self.searchmanager.do_search.connect(tabs.cur.search)
+        self.searchmanager.do_search.connect(tabs.search)
         kp['normal'].keystring_updated.connect(status.keystring.setText)
 
         # hints
-        kp['hint'].fire_hint.connect(tabs.cur.fire_hint)
-        kp['hint'].filter_hints.connect(tabs.cur.filter_hints)
-        kp['hint'].keystring_updated.connect(tabs.cur.handle_hint_key)
+        kp['hint'].fire_hint.connect(tabs.fire_hint)
+        kp['hint'].filter_hints.connect(tabs.filter_hints)
+        kp['hint'].keystring_updated.connect(tabs.handle_hint_key)
         tabs.hint_strings_updated.connect(kp['hint'].on_hint_strings_updated)
 
         # messages
@@ -555,7 +555,7 @@ class QuteBrowser(QApplication):
         except Exception as e:  # pylint: disable=broad-except
             out = ': '.join([e.__class__.__name__, str(e)])
         qutescheme.pyeval_output = out
-        self.mainwindow.tabs.cur.openurl('qute:pyeval')
+        self.mainwindow.tabs.cmd.openurl('qute:pyeval')
 
     @cmdutils.register(instance='', hide=True)
     def crash(self, typ='exception'):

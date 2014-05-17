@@ -20,19 +20,16 @@
 import logging
 from functools import partial
 
-from PyQt5.QtWidgets import QApplication, QSizePolicy
+from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QSize
-from PyQt5.QtGui import QClipboard
 
 import qutebrowser.utils.url as urlutils
-import qutebrowser.utils.message as message
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.widgets._tabwidget import TabWidget, EmptyTabIcon
 from qutebrowser.widgets.webview import WebView
 from qutebrowser.browser.signalfilter import SignalFilter
 from qutebrowser.browser.curcommand import CurCommandDispatcher
-from qutebrowser.commands.exceptions import CommandError
 
 
 class TabbedBrowser(TabWidget):
@@ -48,11 +45,10 @@ class TabbedBrowser(TabWidget):
          emitted if the signal occured in the current tab.
 
     Attributes:
-        _url_stack: Stack of URLs of closed tabs.
         _tabs: A list of open tabs.
         _filter: A SignalFilter instance.
-        cur: A CurCommandDispatcher instance to dispatch commands to the
-             current tab.
+        url_stack: Stack of URLs of closed tabs.
+        cmd: A TabCommandDispatcher instance.
         last_focused: The tab which was focused last.
         now_focused: The tab which is focused now.
 
@@ -96,9 +92,9 @@ class TabbedBrowser(TabWidget):
         self.currentChanged.connect(self.on_current_changed)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._tabs = []
-        self._url_stack = []
+        self.url_stack = []
         self._filter = SignalFilter(self)
-        self.cur = CurCommandDispatcher(self)
+        self.cmd = CurCommandDispatcher(self)
         self.last_focused = None
         self.now_focused = None
         # FIXME adjust this to font size
@@ -151,14 +147,14 @@ class TabbedBrowser(TabWidget):
             self._filter.create(self.cur_load_status_changed))
         # hintmanager
         tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)
-        tab.hintmanager.openurl.connect(self.cur.openurl_slot)
+        tab.hintmanager.openurl.connect(self.cmd.openurl)
         # misc
         tab.titleChanged.connect(self.on_title_changed)
         tab.iconChanged.connect(self.on_icon_changed)
         tab.page().mainFrame().loadStarted.connect(partial(
             self.on_load_started, tab))
 
-    def _close_tab(self, tab_or_idx):
+    def close_tab(self, tab_or_idx):
         """Close a tab with either index or tab given.
 
         Args:
@@ -180,7 +176,7 @@ class TabbedBrowser(TabWidget):
         if self.count() > 1:
             url = tab.url()
             if not url.isEmpty():
-                self._url_stack.append(url)
+                self.url_stack.append(url)
             self.removeTab(idx)
             tab.shutdown(callback=partial(self._cb_tab_shutdown, tab))
         elif last_close == 'quit':
@@ -188,37 +184,23 @@ class TabbedBrowser(TabWidget):
         elif last_close == 'blank':
             tab.openurl('about:blank')
 
+    @pyqtSlot('QUrl', bool)
+    def openurl(self, url, newtab):
+        """Open a URL, used as a slot.
+
+        Args:
+            url: The URL to open.
+            newtab: True to open URL in a new tab, False otherwise.
+        """
+        if newtab:
+            self.tabopen(url, background=False)
+        else:
+            self.currentWidget().openurl(url)
+
     @pyqtSlot(int)
     def on_tab_close_requested(self, idx):
         """Close a tab via an index."""
-        self._close_tab(idx)
-
-    def _tab_move_absolute(self, idx):
-        """Get an index for moving a tab absolutely.
-
-        Args:
-            idx: The index to get, as passed as count.
-        """
-        if idx is None:
-            return 0
-        elif idx == 0:
-            return self.count() - 1
-        else:
-            return idx - 1
-
-    def _tab_move_relative(self, direction, delta):
-        """Get an index for moving a tab relatively.
-
-        Args:
-            direction: + or - for relative moving, None for absolute.
-            delta: Delta to the current tab.
-        """
-        if delta is None:
-            raise ValueError
-        if direction == '-':
-            return self.currentIndex() - delta
-        elif direction == '+':
-            return self.currentIndex() + delta
+        self.close_tab(idx)
 
     @pyqtSlot(str, bool)
     def tabopen(self, url=None, background=None):
@@ -287,193 +269,30 @@ class TabbedBrowser(TabWidget):
         for tab in self.widgets:
             tab.shutdown(callback=partial(self._cb_tab_shutdown, tab))
 
-    @cmdutils.register(instance='mainwindow.tabs', name='tab-close')
-    def tabclose(self, count=None):
-        """Close the current/[count]th tab.
-
-        Command handler for :tab-close.
+    @pyqtSlot(str, int)
+    def search(self, text, flags):
+        """Search for text in the current page.
 
         Args:
-            count: The tab index to close, or None
-
-        Emit:
-            quit: If last tab was closed and last-close in config is set to
-                  quit.
+            text: The text to search for.
+            flags: The QWebPage::FindFlags.
         """
-        tab = self.cntwidget(count)
-        if tab is None:
-            return
-        self._close_tab(tab)
+        self._tabs.currentWidget().findText(text, flags)
 
-    @cmdutils.register(instance='mainwindow.tabs')
-    def tab_only(self):
-        """Close all tabs except for the current one."""
-        for tab in self.widgets:
-            if tab is self.currentWidget():
-                continue
-            self._close_tab(tab)
+    @pyqtSlot(str)
+    def handle_hint_key(self, keystr):
+        """Handle a new hint keypress."""
+        self.currentWidget().hintmanager.handle_partial_key(keystr)
 
-    @cmdutils.register(instance='mainwindow.tabs', split=False)
-    def open_tab(self, url):
-        """Open a new tab with a given url."""
-        self.tabopen(url, background=False)
+    @pyqtSlot(str)
+    def fire_hint(self, keystr):
+        """Fire a completed hint."""
+        self.currentWidget().hintmanager.fire(keystr)
 
-    @cmdutils.register(instance='mainwindow.tabs', split=False)
-    def open_tab_bg(self, url):
-        """Open a new tab in background."""
-        self.tabopen(url, background=True)
-
-    @cmdutils.register(instance='mainwindow.tabs', hide=True)
-    def open_tab_cur(self):
-        """Set the statusbar to :tabopen and the current URL."""
-        url = urlutils.urlstring(self.currentWidget().url())
-        message.set_cmd_text(':open-tab ' + url)
-
-    @cmdutils.register(instance='mainwindow.tabs', hide=True)
-    def open_cur(self):
-        """Set the statusbar to :open and the current URL."""
-        url = urlutils.urlstring(self.currentWidget().url())
-        message.set_cmd_text(':open ' + url)
-
-    @cmdutils.register(instance='mainwindow.tabs', hide=True)
-    def open_tab_bg_cur(self):
-        """Set the statusbar to :tabopen-bg and the current URL."""
-        url = urlutils.urlstring(self.currentWidget().url())
-        message.set_cmd_text(':open-tab-bg ' + url)
-
-    @cmdutils.register(instance='mainwindow.tabs', name='undo')
-    def undo_close(self):
-        """Re-open a closed tab (optionally skipping [count] tabs).
-
-        Command handler for :undo.
-        """
-        if self._url_stack:
-            self.tabopen(self._url_stack.pop())
-        else:
-            raise CommandError("Nothing to undo!")
-
-    @cmdutils.register(instance='mainwindow.tabs', name='tab-prev')
-    def switch_prev(self, count=1):
-        """Switch to the previous tab, or skip [count] tabs.
-
-        Command handler for :tab-prev.
-
-        Args:
-            count: How many tabs to switch back.
-        """
-        newidx = self.currentIndex() - count
-        if newidx >= 0:
-            self.setCurrentIndex(newidx)
-        elif config.get('tabbar', 'wrap'):
-            self.setCurrentIndex(newidx % self.count())
-        else:
-            raise CommandError("First tab")
-
-    @cmdutils.register(instance='mainwindow.tabs', name='tab-next')
-    def switch_next(self, count=1):
-        """Switch to the next tab, or skip [count] tabs.
-
-        Command handler for :tab-next.
-
-        Args:
-            count: How many tabs to switch forward.
-        """
-        newidx = self.currentIndex() + count
-        if newidx < self.count():
-            self.setCurrentIndex(newidx)
-        elif config.get('tabbar', 'wrap'):
-            self.setCurrentIndex(newidx % self.count())
-        else:
-            raise CommandError("Last tab")
-
-    @cmdutils.register(instance='mainwindow.tabs', nargs=(0, 1))
-    def paste(self, sel=False, tab=False):
-        """Open a page from the clipboard.
-
-        Command handler for :paste.
-
-        Args:
-            sel: True to use primary selection, False to use clipboard
-            tab: True to open in a new tab.
-        """
-        clip = QApplication.clipboard()
-        mode = QClipboard.Selection if sel else QClipboard.Clipboard
-        url = clip.text(mode)
-        if not url:
-            raise CommandError("Clipboard is empty.")
-        logging.debug("Clipboard contained: '{}'".format(url))
-        if tab:
-            self.tabopen(url)
-        else:
-            self.cur.openurl(url)
-
-    @cmdutils.register(instance='mainwindow.tabs')
-    def paste_tab(self, sel=False):
-        """Open a page from the clipboard in a new tab.
-
-        Command handler for :paste.
-
-        Args:
-            sel: True to use primary selection, False to use clipboard
-        """
-        self.paste(sel, True)
-
-    @cmdutils.register(instance='mainwindow.tabs')
-    def tab_focus(self, index=None, count=None):
-        """Select the tab given as argument/[count].
-
-        Args:
-            index: The tab index to focus, starting with 1.
-        """
-        try:
-            idx = cmdutils.arg_or_count(index, count, default=1,
-                                        countzero=self.count())
-        except ValueError as e:
-            raise CommandError(e)
-        cmdutils.check_overflow(idx + 1, 'int')
-        if 1 <= idx <= self.count():
-            self.setCurrentIndex(idx - 1)
-        else:
-            raise CommandError("There's no tab with index {}!".format(idx))
-
-    @cmdutils.register(instance='mainwindow.tabs')
-    def tab_move(self, direction=None, count=None):
-        """Move the current tab.
-
-        Args:
-            direction: + or - for relative moving, None for absolute.
-            count: If moving absolutely: New position (or first).
-                   If moving relatively: Offset.
-        """
-        if direction is None:
-            new_idx = self._tab_move_absolute(count)
-        elif direction in '+-':
-            try:
-                new_idx = self._tab_move_relative(direction, count)
-            except ValueError:
-                raise CommandError("Count must be given for relative moving!")
-        else:
-            raise CommandError("Invalid direction '{}'!".format(direction))
-        if not 0 <= new_idx < self.count():
-            raise CommandError("Can't move tab to position {}!".format(
-                new_idx))
-        tab = self.currentWidget()
-        cur_idx = self.currentIndex()
-        icon = self.tabIcon(cur_idx)
-        label = self.tabText(cur_idx)
-        cmdutils.check_overflow(cur_idx, 'int')
-        cmdutils.check_overflow(new_idx, 'int')
-        self.removeTab(cur_idx)
-        self.insertTab(new_idx, tab, icon, label)
-        self.setCurrentIndex(new_idx)
-
-    @cmdutils.register(instance='mainwindow.tabs')
-    def tab_focus_last(self):
-        """Select the tab which was last focused."""
-        idx = self.indexOf(self.last_focused)
-        if idx == -1:
-            raise CommandError("Last focused tab vanished!")
-        self.setCurrentIndex(idx)
+    @pyqtSlot(str)
+    def filter_hints(self, filterstr):
+        """Filter displayed hints."""
+        self.currentWidget().hintmanager.filter_hints(filterstr)
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
@@ -512,6 +331,7 @@ class TabbedBrowser(TabWidget):
             self.setTabText(self.indexOf(self.sender()), text)
         else:
             logging.debug("ignoring title change")
+
 
     @pyqtSlot(str)
     def on_url_text_changed(self, url):
