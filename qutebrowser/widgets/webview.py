@@ -154,10 +154,9 @@ class WebView(QWebView):
 
     def _init_neighborlist(self):
         """Initialize the _zoom neighborlist."""
-        self._zoom = NeighborList(
-            config.get('ui', 'zoom-levels'),
-            default=config.get('ui', 'default-zoom'),
-            mode=NeighborList.Modes.block)
+        self._zoom = NeighborList(config.get('ui', 'zoom-levels'),
+                                  default=config.get('ui', 'default-zoom'),
+                                  mode=NeighborList.Modes.block)
 
     def _on_destroyed(self, sender):
         """Called when a subsystem has been destroyed during shutdown.
