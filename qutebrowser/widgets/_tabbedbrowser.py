@@ -277,7 +277,7 @@ class TabbedBrowser(TabWidget):
             text: The text to search for.
             flags: The QWebPage::FindFlags.
         """
-        self._tabs.currentWidget().findText(text, flags)
+        self.currentWidget().findText(text, flags)
 
     @pyqtSlot(str)
     def handle_hint_key(self, keystr):
