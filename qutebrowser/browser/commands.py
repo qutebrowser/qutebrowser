@@ -443,7 +443,7 @@ class CommandDispatcher(QObject):
     def undo(self):
         """Re-open a closed tab (optionally skipping [count] tabs)."""
         if self._tabs.url_stack:
-            self.tabopen(self._tabs.url_stack.pop())
+            self._tabs.tabopen(self._tabs.url_stack.pop())
         else:
             raise CommandError("Nothing to undo!")
 
