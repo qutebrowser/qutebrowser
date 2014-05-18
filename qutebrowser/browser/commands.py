@@ -349,6 +349,20 @@ class CommandDispatcher(QObject):
             sel: True to use primary selection, False to use clipboard
         """
         clip = QApplication.clipboard()
+        url = urlutils.urlstring(self._tabs.currentWidget().url())
+        mode = QClipboard.Selection if sel else QClipboard.Clipboard
+        clip.setText(url, mode)
+        message.info("URL yanked to {}".format("primary selection" if sel
+                                               else "clipboard"))
+
+    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    def yank_title(self, sel=False):
+        """Yank the current title to the clipboard or primary selection.
+
+        Args:
+            sel: True to use primary selection, False to use clipboard
+        """
+        clip = QApplication.clipboard()
         title = self._tabs.tabText(self._tabs.currentIndex())
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         clip.setText(title, mode)
