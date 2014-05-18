@@ -170,6 +170,7 @@ class StatusBar(QWidget):
 
     def _show_cmd_widget(self):
         """Show command widget instead of temporary text."""
+        self.error = False
         self._text_pop_timer.stop()
         self._stack.setCurrentWidget(self.cmd)
 

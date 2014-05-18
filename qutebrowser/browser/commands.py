@@ -39,7 +39,7 @@ from qutebrowser.utils.misc import shell_escape
 from qutebrowser.commands.exceptions import CommandError
 
 
-class CurCommandDispatcher(QObject):
+class CommandDispatcher(QObject):
 
     """Command dispatcher for TabbedBrowser.
 

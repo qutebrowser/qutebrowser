@@ -29,7 +29,7 @@ import qutebrowser.commands.utils as cmdutils
 from qutebrowser.widgets._tabwidget import TabWidget, EmptyTabIcon
 from qutebrowser.widgets.webview import WebView
 from qutebrowser.browser.signalfilter import SignalFilter
-from qutebrowser.browser.curcommand import CurCommandDispatcher
+from qutebrowser.browser.commands import CommandDispatcher
 
 
 class TabbedBrowser(TabWidget):
@@ -94,7 +94,7 @@ class TabbedBrowser(TabWidget):
         self._tabs = []
         self.url_stack = []
         self._filter = SignalFilter(self)
-        self.cmd = CurCommandDispatcher(self)
+        self.cmd = CommandDispatcher(self)
         self.last_focused = None
         self.now_focused = None
         # FIXME adjust this to font size
