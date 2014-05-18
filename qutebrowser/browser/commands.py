@@ -149,7 +149,7 @@ class CommandDispatcher(QObject):
         tab = self._tabs.cntwidget(count)
         if tab is None:
             return
-        self._tabs._close_tab(tab)
+        self._tabs.close_tab(tab)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', name='open',
                        split=False)
