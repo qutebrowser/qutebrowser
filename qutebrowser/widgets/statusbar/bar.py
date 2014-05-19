@@ -329,6 +329,19 @@ class StatusBar(QWidget):
             authenticator.setUser(user)
             authenticator.setPassword(password)
 
+    @pyqtSlot('QNetworkProxy', 'QAuthenticator')
+    def on_proxy_authentication_required(self, proxy, authenticator):
+        q = Question()
+        q.mode = PromptMode.user_pwd
+        q.text = "Proxy username ({}):".format(authenticator.realm())
+        self.prompt.question = q
+        answer = self.prompt.exec_()
+        if answer is not None:
+            user, password = answer
+            logging.debug("user: {} / pwd: {}".format(user, password))
+            authenticator.setUser(user)
+            authenticator.setPassword(password)
+
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
 

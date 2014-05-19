@@ -368,6 +368,8 @@ class QuteBrowser(QApplication):
         tabs.currentChanged.connect(self.mainwindow.update_inspector)
         self.networkmanager.authenticationRequired.connect(
             status.on_authentication_required)
+        self.networkmanager.proxyAuthenticationRequired.connect(
+            status.on_proxy_authentication_required)
 
         # status bar
         self.modeman.entered.connect(status.on_mode_entered)
