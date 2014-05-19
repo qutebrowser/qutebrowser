@@ -138,7 +138,7 @@ class TabbedBrowser(TabWidget):
         tab.loadStarted.connect(self._filter.create(self.cur_load_started))
         tab.statusBarMessage.connect(
             self._filter.create(self.cur_statusbar_message))
-        tab.scroll_perc_changed.connect(
+        tab.scroll_pos_changed.connect(
             self._filter.create(self.cur_scroll_perc_changed))
         tab.url_text_changed.connect(
             self._filter.create(self.cur_url_text_changed))

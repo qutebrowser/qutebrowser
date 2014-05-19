@@ -54,14 +54,14 @@ class WebView(QWebView):
                        We need this rather than signals to make createWindow
                        work.
         progress: loading progress of this page.
-        scroll_perc: The current scroll position as (x%, y%) tuple.
+        scroll_pos: The current scroll position as (x%, y%) tuple.
         _url_text: The current URL as string.
                    Accessed via url_text property.
         _load_status: loading status of this page (index into LoadStatus)
                       Accessed via load_status property.
         _has_ssl_errors: Whether SSL errors occured during loading.
         _zoom: A NeighborList with the zoom levels.
-        _old_scroll_perc: The old scroll position.
+        _old_scroll_pos: The old scroll position.
         _shutdown_callback: Callback to be called after shutdown.
         _open_target: Where to open the next tab ("normal", "tab", "tab_bg")
         _force_open_target: Override for _open_target.
@@ -69,7 +69,7 @@ class WebView(QWebView):
         _destroyed: Dict of all items to be destroyed on shtudown.
 
     Signals:
-        scroll_perc_changed: Scroll percentage of current tab changed.
+        scroll_pos_changed: Scroll percentage of current tab changed.
                             arg 1: x-position in %.
                             arg 2: y-position in %.
         linkHovered: QWebPages linkHovered signal exposed.
@@ -77,7 +77,7 @@ class WebView(QWebView):
         url_text_changed: Current URL string changed.
     """
 
-    scroll_perc_changed = pyqtSignal(int, int)
+    scroll_pos_changed = pyqtSignal(int, int)
     linkHovered = pyqtSignal(str, str, str)
     load_status_changed = pyqtSignal(str)
     url_text_changed = pyqtSignal(str)
@@ -86,8 +86,8 @@ class WebView(QWebView):
         super().__init__(parent)
         self._load_status = LoadStatus.none
         self.tabbedbrowser = parent
-        self.scroll_perc = (-1, -1)
-        self._old_scroll_perc = (-1, -1)
+        self.scroll_pos = (-1, -1)
+        self._old_scroll_pos = (-1, -1)
         self._shutdown_callback = None
         self._open_target = Target.normal
         self._force_open_target = None
@@ -111,10 +111,7 @@ class WebView(QWebView):
         self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
         self.page_.networkAccessManager().sslErrors.connect(
             lambda *args: setattr(self, '_has_ssl_errors', True))
-        self.page_.mainFrame().setScrollBarPolicy(
-            Qt.Horizontal, config.get('ui', 'show-scroll-bar-horizontal'))
-        self.page_.mainFrame().setScrollBarPolicy(
-            Qt.Vertical, config.get('ui', 'show-scroll-bar-vertical'))
+        # FIXME find some way to hide scrollbars without setScrollBarPolicy
 
     def __repr__(self):
         return "WebView(url='{}')".format(
@@ -398,17 +395,8 @@ class WebView(QWebView):
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update tab config when config was changed."""
-        if section == 'ui':
-            if option in ['zoom-levels', 'default-zoom']:
-                self._init_neighborlist()
-            elif option == 'show-scroll-bar-horizontal':
-                self.page_.mainFrame().setScrollBarPolicy(
-                    Qt.Horizontal,
-                    config.get('ui', 'show-scroll-bar-horizontal'))
-            elif option == 'show-scroll-bar-vertical':
-                self.page_.mainFrame().setScrollBarPolicy(
-                    Qt.Vertical,
-                    config.get('ui', 'show-scroll-bar-vertical'))
+        if section == 'ui' and option in ['zoom-levels', 'default-zoom']:
+            self._init_neighborlist()
 
     @pyqtSlot('QMouseEvent')
     def on_mouse_event(self, evt):
@@ -496,21 +484,23 @@ class WebView(QWebView):
             e: The QPaintEvent.
 
         Emit:
-            scroll_perc_changed; If the scroll position changed.
+            scroll_pos_changed; If the scroll position changed.
 
         Return:
             The superclass event return value.
         """
         frame = self.page_.mainFrame()
-        new_pos = frame.scrollPosition()
-        if self._old_scroll_perc != new_pos:
-            self._old_scroll_perc = new_pos
-            max_x = frame.contentsSize().width() - frame.geometry().width()
-            max_y = frame.contentsSize().height() - frame.geometry().height()
-            perc = (round(100 * new_pos.x() / max_x) if max_x != 0 else 0,
-                    round(100 * new_pos.y() / max_y) if max_y != 0 else 0)
-            self.scroll_perc = perc
-            self.scroll_perc_changed.emit(*perc)
+        new_pos = (frame.scrollBarValue(Qt.Horizontal),
+                   frame.scrollBarValue(Qt.Vertical))
+        if self._old_scroll_pos != new_pos:
+            self._old_scroll_pos = new_pos
+            logging.debug("Updating scroll position")
+            m = (frame.scrollBarMaximum(Qt.Horizontal),
+                 frame.scrollBarMaximum(Qt.Vertical))
+            perc = (round(100 * new_pos[0] / m[0]) if m[0] != 0 else 0,
+                    round(100 * new_pos[1] / m[1]) if m[1] != 0 else 0)
+            self.scroll_pos = perc
+            self.scroll_pos_changed.emit(*perc)
         # Let superclass handle the event
         return super().paintEvent(e)
 

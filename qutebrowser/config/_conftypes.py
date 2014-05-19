@@ -22,7 +22,7 @@ import shlex
 import os.path
 from sre_constants import error as RegexError
 
-from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor
 from PyQt5.QtNetwork import QNetworkProxy
 
@@ -648,25 +648,6 @@ class ZoomPerc(Perc):
     def validate(self, value):
         super().validate(value)
         # FIXME we should validate the percentage is in the list here.
-
-
-class ScrollBarPolicy(BaseType):
-
-    """Base class for scroll bar policies."""
-
-    valid_values = ValidValues(
-        ('as-needed', "Show a scroll bar when the content is too large."),
-        ('always', "Always show a scroll bar."),
-        ('never', "Never show a scroll bar."),
-    )
-
-    def transform(self, value):
-        mapping = {
-            'as-needed': Qt.ScrollBarAsNeeded,
-            'always': Qt.ScrollBarAlwaysOn,
-            'never': Qt.ScrollBarAlwaysOff,
-        }
-        return mapping[value]
 
 
 class HintMode(BaseType):

@@ -201,14 +201,6 @@ DATA = OrderedDict([
          SettingValue(types.ZoomPerc(), '100%'),
          "The default zoom level."),
 
-        ('show-scroll-bar-horizontal',
-         SettingValue(types.ScrollBarPolicy(), 'never'),
-         "Whether to show horizontal scrollbar for web content."),
-
-        ('show-scroll-bar-vertical',
-         SettingValue(types.ScrollBarPolicy(), 'never'),
-         "Whether to show vertical scrollbar for web content."),
-
         ('message-timeout',
          SettingValue(types.Int(), '2000'),
          "Time (in ms) to show messages in the statusbar for."),

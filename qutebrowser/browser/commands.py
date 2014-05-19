@@ -24,7 +24,7 @@ from tempfile import mkstemp
 from functools import partial
 
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt, QObject, QProcess, QPoint
+from PyQt5.QtCore import Qt, QObject, QProcess
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 
@@ -78,19 +78,10 @@ class CommandDispatcher(QObject):
             perc = float(perc)
         perc = check_overflow(perc, 'int', fatal=False)
         frame = self._tabs.currentWidget().page_.currentFrame()
-        if orientation == Qt.Horizontal:
-            right = frame.contentsSize().width()
-            viewsize = frame.geometry().width()
-            x = (right - viewsize) * perc / 100
-            y = frame.scrollPosition().y()
-        elif orientation == Qt.Vertical:
-            bottom = frame.contentsSize().height()
-            viewsize = frame.geometry().height()
-            x = frame.scrollPosition().x()
-            y = (bottom - viewsize) * perc / 100
-        else:
-            raise ValueError("Invalid orientation {}".format(orientation))
-        frame.setScrollPosition(QPoint(x, y))
+        m = frame.scrollBarMaximum(orientation)
+        if m == 0:
+            return
+        frame.setScrollBarValue(orientation, int(m * perc / 100))
 
     def _prevnext(self, prev, newtab):
         """Inner logic for {tab,}{prev,next}page."""
