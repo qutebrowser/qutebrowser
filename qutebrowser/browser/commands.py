@@ -340,10 +340,15 @@ class CommandDispatcher(QObject):
             sel: True to use primary selection, False to use clipboard
         """
         url = urlutils.urlstring(self._tabs.currentWidget().url())
-        mode = QClipboard.Selection if sel else QClipboard.Clipboard
+        if sel:
+            mode = QClipboard.Selection
+            target = "primary selection"
+        else:
+            mode = QClipboard.Clipboard
+            target = "clipboard"
+        logging.debug("Yanking to {}: '{}'".format(target, url))
         QApplication.clipboard().setText(url, mode)
-        message.info("URL yanked to {}".format("primary selection" if sel
-                                               else "clipboard"))
+        message.info("URL yanked to {}".format(target))
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def yank_title(self, sel=False):
@@ -354,9 +359,15 @@ class CommandDispatcher(QObject):
         """
         title = self._tabs.tabText(self._tabs.currentIndex())
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
+        if sel:
+            mode = QClipboard.Selection
+            target = "primary selection"
+        else:
+            mode = QClipboard.Clipboard
+            target = "clipboard"
+        logging.debug("Yanking to {}: '{}'".format(target, title))
         QApplication.clipboard().setText(title, mode)
-        message.info("Title yanked to {}".format("primary selection" if sel
-                                                 else "clipboard"))
+        message.info("Title yanked to {}".format(target))
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def zoom_in(self, count=1):
