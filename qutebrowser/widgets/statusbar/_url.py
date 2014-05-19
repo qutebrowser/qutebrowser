@@ -32,12 +32,13 @@ class Url(TextBase):
         STYLESHEET: The stylesheet template.
 
     Attributes:
-        _old_url: The URL displayed before the hover URL.
-        _old_urltype: The type of the URL displayed before the hover URL.
+        normal_url: The normal URL to be displayed.
+        normal_url_type: The type of the normal URL.
+        hover_url: The URL we're currently hovering over.
         _ssl_errors: Whether SSL errors occured while loading.
 
     Class attributes:
-        _urltype: The current URL type. One of normal/ok/error/warn/hover.
+        _urltype: The URL type to show currently (normal/ok/error/warn/hover).
                   Accessed via the urltype property.
 
                   For some reason we need to have this as class attribute so
@@ -78,9 +79,9 @@ class Url(TextBase):
         super().__init__(bar, elidemode)
         self.setObjectName(self.__class__.__name__)
         set_register_stylesheet(self)
-        self._old_urltype = None
-        self._old_url = None
-        self._ssl_errors = False
+        self._hover_url = None
+        self._normal_url = None
+        self._normal_url_type = 'normal'
 
     @pyqtProperty(str)
     def urltype(self):
@@ -90,9 +91,54 @@ class Url(TextBase):
 
     @urltype.setter
     def urltype(self, val):
-        """Setter for self.urltype, so it can be used as Qt property."""
+        """Setter for self.urltype to update stylesheets after it is set."""
         self._urltype = val
         self.setStyleSheet(get_stylesheet(self.STYLESHEET))
+
+    @property
+    def hover_url(self):
+        """Getter so we can define a setter."""
+        return self._hover_url
+
+    @hover_url.setter
+    def hover_url(self, val):
+        """Setter to update displayed URL when hover_url was set."""
+        self._hover_url = val
+        self._update_url()
+
+    @property
+    def normal_url(self):
+        """Getter so we can define a setter."""
+        return self._normal_url
+
+    @normal_url.setter
+    def normal_url(self, val):
+        """Setter to update displayed URL when normal_url was set."""
+        self._normal_url = val
+        self._update_url()
+
+    @property
+    def normal_url_type(self):
+        """Getter so we can define a setter."""
+        return self._normal_url_type
+
+    @normal_url_type.setter
+    def normal_url_type(self, val):
+        """Setter to update displayed URL when normal_url_type was set."""
+        self._normal_url_type = val
+        self._update_url()
+
+    def _update_url(self):
+        """Update the displayed URL if the url or the hover url changed."""
+        if self.hover_url is not None:
+            self.setText(self.hover_url)
+            self.urltype = 'hover'
+        elif self.normal_url is not None:
+            self.setText(self.normal_url)
+            self.urltype = self.normal_url_type
+        else:
+            self.setText('')
+            self.urltype = 'normal'
 
     @pyqtSlot(str)
     def on_load_status_changed(self, status):
@@ -102,9 +148,9 @@ class Url(TextBase):
             status: The LoadStatus as string.
         """
         if status in ['success', 'error', 'warn']:
-            self.urltype = status
+            self.normal_url_type = status
         else:
-            self.urltype = 'normal'
+            self.normal_url_type = 'normal'
 
     @pyqtSlot(str)
     def set_url(self, s):
@@ -113,8 +159,8 @@ class Url(TextBase):
         Args:
             s: The URL to set as string.
         """
-        self.setText(s)
-        self.urltype = 'normal'
+        self.normal_url = s
+        self.normal_url_type = 'normal'
 
     @pyqtSlot(str, str, str)
     def set_hover_url(self, link, _title, _text):
@@ -129,25 +175,17 @@ class Url(TextBase):
             _text: The text of the hovered link (string)
         """
         if link:
-            if self._old_url is None:
-                self._old_url = self.text()
-            if self._old_urltype is None:
-                self._old_urltype = self._urltype
-            self.urltype = 'hover'
-            self.setText(link)
+            self.hover_url = link
         else:
-            self.setText(self._old_url)
-            self.urltype = self._old_urltype
-            self._old_url = None
-            self._old_urltype = None
+            self.hover_url = None
 
     @pyqtSlot(int)
     def on_tab_changed(self, idx):
         """Update URL if the tab changed."""
         tab = self.sender().widget(idx)
-        self.setText(tab.url_text)
+        self.normal_url = tab.url_text
         status = LoadStatus[tab.load_status]
         if status in ['success', 'error', 'warn']:
-            self.urltype = status
+            self.normal_url_type = status
         else:
-            self.urltype = 'normal'
+            self.normal_url_type = 'normal'
