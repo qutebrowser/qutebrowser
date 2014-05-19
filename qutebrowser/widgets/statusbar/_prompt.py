@@ -37,6 +37,7 @@ class Question(QObject):
         self.mode = None
         self.default = None
         self.text = None
+        self.user = None
         self._answer = None
 
     @property
@@ -58,7 +59,6 @@ class Prompt(TextBase):
         super().__init__(parent)
 
         self.question = None
-        self._user = None
         self.loop = QEventLoop()
 
         self._hbox = QHBoxLayout(self)
@@ -82,16 +82,17 @@ class Prompt(TextBase):
                        modes=['prompt'])
     def prompt_accept(self):
         """Accept the prompt. """
-        if self.question.mode == PromptMode.user_pwd and self._user is None:
+        if (self.question.mode == PromptMode.user_pwd and
+                self.question.user is None):
             # User just entered an username
-            self._user = self._input.text()
+            self.question.user = self._input.text()
             self._txt.setText("Password:")
             self._input.clear()
             self._input.setEchoMode(QLineEdit.Password)
         elif self.question.mode == PromptMode.user_pwd:
             # User just entered a password
             password = self._input.text()
-            self.question.answer = (self._user, password)
+            self.question.answer = (self.question.user, password)
             modeman.leave('prompt', 'prompt accept')
             self.hide_prompt.emit()
         else:
@@ -100,7 +101,6 @@ class Prompt(TextBase):
             modeman.leave('prompt', 'prompt accept')
 
     def display(self):
-        self._user = None
         q = self.question
         if q.mode == PromptMode.yesno:
             if q.default is None:
