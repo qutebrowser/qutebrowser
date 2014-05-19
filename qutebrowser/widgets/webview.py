@@ -188,7 +188,7 @@ class WebView(QWebView):
             return False
         elem = hitresult.element()
         tag = elem.tagName().lower()
-        if tag in ['embed', 'applet']:
+        if tag in ['embed', 'applet', 'select']:
             # Flash/Java/...
             return True
         if tag == 'object':
