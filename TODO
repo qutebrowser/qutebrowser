@@ -25,8 +25,6 @@ Style
 =====
 
 - initialize completion models at some nicer place (not in widget)
-- reorder config #2
-- rework exception hierarchy for config (common base exception)
 
 New big features
 ================
@@ -60,7 +58,6 @@ Improvements / minor features
     http://qt-project.org/doc/qt-4.8/qnetworkcookie.html
     - Second column (flag): TRUE if domain starts with ., else FALSE
     - if a cookie is a http-only cookie domain is prepended with a #HttpOnly_
-- Signal cache: truncate printed signals (length + 1 line)
 - Zoom with ctrl + mousewheel
 - Close tabs on right click
 - Up/Down not for history
