@@ -129,6 +129,29 @@ class SearchManager(QObject):
             for _ in range(count):
                 self.do_search.emit(self._text, self._flags)
 
+    @cmdutils.register(instance='searchmanager', hide=True)
+    def search_prev(self, count=1):
+        """Continue the search to the ([count]th) previous term.
+
+        Args:
+            count: How many elements to ignore.
+
+        Emit:
+            do_search: If a search should be started.
+        """
+        if self._text is None:
+            return
+        # The int() here serves as a QFlags constructor to create a copy of the
+        # QFlags instance rather as a reference. I don't know why it works this
+        # way, but it does.
+        flags = int(self._flags)
+        if flags & QWebPage.FindBackward:
+            flags &= ~QWebPage.FindBackward
+        else:
+            flags |= QWebPage.FindBackward
+        for _ in range(count):
+            self.do_search.emit(self._text, flags)
+
 
 class CommandManager:
 

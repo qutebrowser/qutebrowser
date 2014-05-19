@@ -61,7 +61,6 @@ Improvements / minor features
 - Zoom with ctrl + mousewheel
 - Close tabs on right click
 - Up/Down not for history
-- N for prev search match
 - search highlighting
 - readline like shortcuts (like C-w) for command prompt
 - max height for completion (be smaller if possible)
