@@ -17,7 +17,8 @@ disable=no-self-use,
         too-many-public-methods,
         cyclic-import,
         bad-option-value,
-        bad-continuation
+        bad-continuation,
+        too-many-instance-attributes
 
 [BASIC]
 module-rgx=[a-z_]*$
@@ -45,4 +46,3 @@ defining-attr-methods=__init__,__new__,setUp
 
 [DESIGN]
 max-args=10
-max-attributes=12
