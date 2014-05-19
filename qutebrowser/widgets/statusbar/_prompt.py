@@ -51,7 +51,6 @@ class Question(QObject):
 
 class Prompt(TextBase):
 
-    accepted = pyqtSignal()
     show_prompt = pyqtSignal()
     hide_prompt = pyqtSignal()
 
@@ -59,6 +58,7 @@ class Prompt(TextBase):
         super().__init__(parent)
 
         self.question = None
+        self._user = None
         self.loop = QEventLoop()
 
         self._hbox = QHBoxLayout(self)
@@ -71,26 +71,6 @@ class Prompt(TextBase):
         self._input = _QueryInput()
         self._hbox.addWidget(self._input)
 
-    def _user_entered(self):
-        self._user = self._input.text()
-        self._txt.setText("Password:")
-        self._input.clear()
-        self._input.setEchoMode(QLineEdit.Password)
-        self.accepted.disconnect(self._user_entered)
-        self.accepted.connect(self._password_entered)
-
-    def _password_entered(self):
-        self.accepted.disconnect(self._password_entered)
-        password = self._input.text()
-        self.question.answer = (self._user, password)
-        modeman.leave('prompt', 'prompt accept')
-        self.hide_prompt.emit()
-
-    def on_return_pressed(self):
-        self.accepted.disconnect(self.on_return_pressed)
-        self.question.answer = self._input.text()
-        modeman.leave('prompt', 'prompt accept')
-
     def on_mode_left(self, mode):
         if mode == 'prompt':
             self._txt.setText('')
@@ -102,9 +82,25 @@ class Prompt(TextBase):
                        modes=['prompt'])
     def prompt_accept(self):
         """Accept the prompt. """
-        self.accepted.emit()
+        if self.question.mode == PromptMode.user_pwd and self._user is None:
+            # User just entered an username
+            self._user = self._input.text()
+            self._txt.setText("Password:")
+            self._input.clear()
+            self._input.setEchoMode(QLineEdit.Password)
+        elif self.question.mode == PromptMode.user_pwd:
+            # User just entered a password
+            password = self._input.text()
+            self.question.answer = (self._user, password)
+            modeman.leave('prompt', 'prompt accept')
+            self.hide_prompt.emit()
+        else:
+            # User just entered all information needed in some other mode.
+            self.question.answer = self._input.text()
+            modeman.leave('prompt', 'prompt accept')
 
     def display(self):
+        self._user = None
         q = self.question
         if q.mode == PromptMode.yesno:
             if q.default is None:
@@ -120,13 +116,11 @@ class Prompt(TextBase):
             if q.default:
                 self._input.setText(q.default)
             self._input.show()
-            self.accepted.connect(self.on_return_pressed)
         elif q.mode == PromptMode.user_pwd:
             self._txt.setText(q.text)
             if q.default:
                 self._input.setText(q.default)
             self._input.show()
-            self.accepted.connect(self._user_entered)
         else:
             raise ValueError("Invalid prompt mode!")
         self._input.setFocus()
