@@ -502,7 +502,7 @@ class CommandDispatcher(QObject):
         Args:
             sel: True to use primary selection, False to use clipboard
         """
-        self._tabs.paste(sel, True)
+        self.paste(sel, True)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def tab_focus(self, index=None, count=None):
