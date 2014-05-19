@@ -183,6 +183,7 @@ class Url(TextBase):
     def on_tab_changed(self, idx):
         """Update URL if the tab changed."""
         tab = self.sender().widget(idx)
+        self.hover_url = None
         self.normal_url = tab.url_text
         status = LoadStatus[tab.load_status]
         if status in ['success', 'error', 'warn']:
