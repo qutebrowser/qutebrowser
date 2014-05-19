@@ -36,8 +36,8 @@ class TextBase(QLabel):
         _elided_text: The current elided text.
     """
 
-    def __init__(self, bar, elidemode=Qt.ElideRight):
-        super().__init__(bar)
+    def __init__(self, parent=None, elidemode=Qt.ElideRight):
+        super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
         self._elidemode = elidemode
         self._elided_text = ''
@@ -48,8 +48,9 @@ class TextBase(QLabel):
         Args:
             width: The maximal width the text should take.
         """
-        self._elided_text = self.fontMetrics().elidedText(
-            self.text(), self._elidemode, width, Qt.TextShowMnemonic)
+        if self.text is not None:
+            self._elided_text = self.fontMetrics().elidedText(
+                self.text(), self._elidemode, width, Qt.TextShowMnemonic)
 
     def setText(self, txt):
         """Extend QLabel::setText.

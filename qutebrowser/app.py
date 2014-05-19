@@ -212,6 +212,7 @@ class QuteBrowser(QApplication):
             'insert': PassthroughKeyParser('keybind.insert', self),
             'passthrough': PassthroughKeyParser('keybind.passthrough', self),
             'command': PassthroughKeyParser('keybind.command', self),
+            'prompt': PassthroughKeyParser('keybind.prompt', self),
         }
         self.modeman = ModeManager()
         self.modeman.register('normal', self._keyparsers['normal'].handle)
@@ -222,6 +223,8 @@ class QuteBrowser(QApplication):
                               self._keyparsers['passthrough'].handle,
                               passthrough=True)
         self.modeman.register('command', self._keyparsers['command'].handle,
+                              passthrough=True)
+        self.modeman.register('prompt', self._keyparsers['prompt'].handle,
                               passthrough=True)
 
     def _init_log(self):
@@ -363,6 +366,8 @@ class QuteBrowser(QApplication):
         self.lastWindowClosed.connect(self.shutdown)
         tabs.quit.connect(self.shutdown)
         tabs.currentChanged.connect(self.mainwindow.update_inspector)
+        self.networkmanager.authenticationRequired.connect(
+            status.on_authentication_required)
 
         # status bar
         self.modeman.entered.connect(status.on_mode_entered)

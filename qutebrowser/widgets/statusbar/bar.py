@@ -32,6 +32,7 @@ from qutebrowser.widgets.statusbar._text import Text
 from qutebrowser.widgets.statusbar._keystring import KeyString
 from qutebrowser.widgets.statusbar._percentage import Percentage
 from qutebrowser.widgets.statusbar._url import Url
+from qutebrowser.widgets.statusbar._prompt import Prompt, PromptMode
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 
 
@@ -122,9 +123,14 @@ class StatusBar(QWidget):
         self._text_pop_timer.setInterval(config.get('ui', 'message-timeout'))
         self._text_pop_timer.timeout.connect(self._pop_text)
 
+        self.prompt = Prompt(self)
+        self._stack.addWidget(self.prompt)
+
         self.cmd.show_cmd.connect(self._show_cmd_widget)
         self.cmd.hide_cmd.connect(self._hide_cmd_widget)
         self._hide_cmd_widget()
+        self.prompt.hide_prompt.connect(self._hide_prompt_widget)
+        self._hide_prompt_widget()
 
         self._hbox.addLayout(self._stack)
 
@@ -182,6 +188,24 @@ class StatusBar(QWidget):
     def _hide_cmd_widget(self):
         """Show temporary text instead of command widget."""
         logging.debug("Hiding cmd widget, queue: {}".format(self._text_queue))
+        if self._timer_was_active:
+            # Restart the text pop timer if it was active before hiding.
+            self._pop_text()
+            self._text_pop_timer.start()
+            self._timer_was_active = False
+        self._stack.setCurrentWidget(self.txt)
+
+    def _show_prompt_widget(self):
+        """Show prompt widget instead of temporary text."""
+        self.error = False
+        if self._text_pop_timer.isActive():
+            self._timer_was_active = True
+        self._text_pop_timer.stop()
+        self._stack.setCurrentWidget(self.prompt)
+
+    def _hide_prompt_widget(self):
+        """Show temporary text instead of prompt widget."""
+        logging.debug("Hiding prompt widget, queue: {}".format(self._text_queue))
         if self._timer_was_active:
             # Restart the text pop timer if it was active before hiding.
             self._pop_text()
@@ -291,6 +315,17 @@ class StatusBar(QWidget):
         if section == 'ui' and option == 'message-timeout':
             self._text_pop_timer.setInterval(config.get('ui',
                                                         'message-timeout'))
+
+    @pyqtSlot('QNetworkReply', 'QAuthenticator')
+    def on_authentication_required(self, reply, authenticator):
+        self._show_prompt_widget()
+        self.prompt.mode = PromptMode.user_pwd
+        self.prompt.text = "Username ({}):".format(authenticator.realm())
+        user, password = self.prompt.exec_()
+        self._hide_prompt_widget()
+        authenticator.setUser(user)
+        authenticator.setPassword(password)
+        logging.debug("user: {} / password: {}".format(user, password))
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

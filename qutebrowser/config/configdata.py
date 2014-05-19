@@ -119,6 +119,11 @@ SECTION_DESC = {
         "  completion-item-next: Select next item in completion.\n"
         "  command-accept: Execute the command currently in the commandline.\n"
         "  leave-mode: Leave the command mode."),
+    'keybind.prompt': (
+        "Keybindings for prompts in the status line.\n"
+        "Useful hidden commands to map in this section:\n"
+        "  prompt-accept: Confirm the entered value\n"
+        "  leave-mode: Leave the prompt mode."),
     'aliases': (
         "Aliases for commands.\n"
         "By default, no aliases are defined. Example which adds a new command "
@@ -689,6 +694,13 @@ DATA = OrderedDict([
         ('<Shift-Tab>', 'completion-item-prev'),
         ('<Tab>', 'completion-item-next'),
         ('<Return>', 'command-accept'),
+    )),
+
+    ('keybind.prompt', sect.ValueList(
+        types.KeyBindingName(), types.KeyBinding(),
+        #('<Escape>', 'leave-mode'),
+        #('<Ctrl-N>', 'leave-mode'),
+        ('<Return>', 'prompt-accept'),
     )),
 
     ('aliases', sect.ValueList(
