@@ -116,7 +116,7 @@ class SearchManager(QObject):
         self._search(text, rev=True)
 
     @cmdutils.register(instance='searchmanager', hide=True)
-    def nextsearch(self, count=1):
+    def search_next(self, count=1):
         """Continue the search to the ([count]th) next term.
 
         Args:
