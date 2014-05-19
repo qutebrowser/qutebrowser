@@ -54,6 +54,7 @@ class Prompt(TextBase):
 
     show_prompt = pyqtSignal()
     hide_prompt = pyqtSignal()
+    cancelled = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -77,6 +78,8 @@ class Prompt(TextBase):
             self._input.clear()
             self._input.setEchoMode(QLineEdit.Normal)
             self.hide_prompt.emit()
+            if self.question.answer is None:
+                self.cancelled.emit()
 
     @cmdutils.register(instance='mainwindow.status.prompt', hide=True,
                        modes=['prompt'])
@@ -129,6 +132,7 @@ class Prompt(TextBase):
     def exec_(self):
         self.display()
         self.question.answered.connect(self.loop.quit)
+        self.cancelled.connect(self.loop.quit)
         self.loop.exec_()
         return self.question.answer
 

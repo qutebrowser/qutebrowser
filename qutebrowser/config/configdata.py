@@ -698,8 +698,8 @@ DATA = OrderedDict([
 
     ('keybind.prompt', sect.ValueList(
         types.KeyBindingName(), types.KeyBinding(),
-        #('<Escape>', 'leave-mode'),
-        #('<Ctrl-N>', 'leave-mode'),
+        ('<Escape>', 'leave-mode'),
+        ('<Ctrl-N>', 'leave-mode'),
         ('<Return>', 'prompt-accept'),
     )),
 

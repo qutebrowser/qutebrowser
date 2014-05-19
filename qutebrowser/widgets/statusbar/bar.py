@@ -323,9 +323,11 @@ class StatusBar(QWidget):
         q.mode = PromptMode.user_pwd
         q.text = "Username ({}):".format(authenticator.realm())
         self.prompt.question = q
-        user, password = self.prompt.exec_()
-        authenticator.setUser(user)
-        authenticator.setPassword(password)
+        answer = self.prompt.exec_()
+        if answer is not None:
+            user, password = answer
+            authenticator.setUser(user)
+            authenticator.setPassword(password)
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
