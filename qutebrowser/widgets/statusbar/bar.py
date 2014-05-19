@@ -181,14 +181,14 @@ class StatusBar(QWidget):
             self._text_pop_timer.start()
         self._stack.setCurrentWidget(self.txt)
 
-    def _disp_text(self, text, error, immediate=False):
+    def _disp_text(self, text, error, queue=False):
         """Inner logic for disp_error and disp_temp_text.
 
         Args:
             text: The message to display.
             error: Whether it's an error message (True) or normal text (False)
-            immediate: If set, message gets displayed immediately rather than
-                       getting queued.
+            queue: If set, message gets queued rather than being displayed
+                   immediately.
         """
         logging.debug("Displaying text: {} (error={})".format(text, error))
         now = datetime.now()
@@ -197,7 +197,7 @@ class StatusBar(QWidget):
                  else now - self._last_text_time)
         self._last_text_time = now
         logging.debug("queue: {} / delta: {}".format(self._text_queue, delta))
-        if immediate or (not self._text_queue and (
+        if (not queue) or (not self._text_queue and (
                 delta is None or delta.total_seconds() * 1000.0 > mindelta)):
             # If the queue is empty and we didn't print messages for long
             # enough, we can take the short route and display the message
@@ -219,26 +219,26 @@ class StatusBar(QWidget):
         self._text_pop_timer.start()
 
     @pyqtSlot(str, bool)
-    def disp_error(self, text, immediate=False):
+    def disp_error(self, text, queue=False):
         """Display an error in the statusbar.
 
         Args:
             text: The message to display.
-            immediate: If set, message gets displayed immediately rather than
-                       getting queued.
+            queue: If set, message gets queued rather than being displayed
+                   immediately.
         """
-        self._disp_text(text, True, immediate)
+        self._disp_text(text, True, queue)
 
     @pyqtSlot(str, bool)
-    def disp_temp_text(self, text, immediate):
+    def disp_temp_text(self, text, queue):
         """Display a temporary text in the statusbar.
 
         Args:
             text: The message to display.
-            immediate: If set, message gets displayed immediately rather than
-                       getting queued.
+            queue: If set, message gets queued rather than being displayed
+                   immediately.
         """
-        self._disp_text(text, False, immediate)
+        self._disp_text(text, False, queue)
 
     @pyqtSlot(str)
     def set_text(self, val):

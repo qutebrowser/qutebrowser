@@ -64,7 +64,8 @@ class NetworkManager(QNetworkAccessManager):
             return
         for err in errors:
             # FIXME we might want to use warn here (non-fatal error)
-            message.error('SSL error: {}'.format(err.errorString()))
+            message.error('SSL error: {}'.format(err.errorString()),
+                          queue=True)
         reply.ignoreSslErrors()
 
     def createRequest(self, op, req, outgoing_data):

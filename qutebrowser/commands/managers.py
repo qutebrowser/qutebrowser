@@ -230,3 +230,14 @@ class CommandManager:
             self.run(text, count)
         except (CommandMetaError, CommandError) as e:
             message.error(e)
+
+    @pyqtSlot(str, int)
+    def run_safely_init(self, text, count=None):
+        """Run a command and display exceptions in the statusbar.
+
+        Contrary to run_safely, error messages are queued so this is more
+        suitable to use while initializing."""
+        try:
+            self.run(text, count)
+        except (CommandMetaError, CommandError) as e:
+            message.error(e, queue=True)

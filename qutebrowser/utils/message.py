@@ -27,30 +27,30 @@ def instance():
     return QCoreApplication.instance().messagebridge
 
 
-def error(message, immediate=False):
+def error(message, queue=False):
     """Display an error message in the statusbar.
 
     Args:
         message: The message to display.
-        immediate: If set, message gets displayed immediately rather than
-                   getting queued.
+        queue: If set, message gets queued rather than being displayed
+               immediately.
     """
     message = str(message)
     logging.error(message)
-    instance().error.emit(message, immediate)
+    instance().error.emit(message, queue)
 
 
-def info(message, immediate=False):
+def info(message, queue=False):
     """Display a temporary info message in the statusbar.
 
     Args:
         message: The message to display.
-        immediate: If set, message gets displayed immediately rather than
-                   getting queued.
+        queue: If set, message gets queued rather than being displayed
+               immediately.
     """
     message = str(message)
     logging.info(message)
-    instance().info.emit(message, immediate)
+    instance().info.emit(message, queue)
 
 
 def text(message):
