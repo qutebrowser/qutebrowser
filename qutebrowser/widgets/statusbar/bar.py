@@ -55,6 +55,8 @@ class StatusBar(QWidget):
                      error: True if message is an error, False otherwise
         _text_pop_timer: A QTimer displaying the error messages.
         _last_text_time: The timestamp where a message was last displayed.
+        _timer_was_active: Whether the _text_pop_timer was active before hiding
+                           the command widget.
 
     Class attributes:
         _error: If there currently is an error, accessed through the error
@@ -114,6 +116,7 @@ class StatusBar(QWidget):
 
         self.txt = Text(self)
         self._stack.addWidget(self.txt)
+        self._timer_was_active = False
         self._text_queue = deque()
         self._text_pop_timer = QTimer()
         self._text_pop_timer.setInterval(config.get('ui', 'message-timeout'))
@@ -171,14 +174,19 @@ class StatusBar(QWidget):
     def _show_cmd_widget(self):
         """Show command widget instead of temporary text."""
         self.error = False
+        if self._text_pop_timer.isActive():
+            self._timer_was_active = True
         self._text_pop_timer.stop()
         self._stack.setCurrentWidget(self.cmd)
 
     def _hide_cmd_widget(self):
         """Show temporary text instead of command widget."""
-        if self._text_queue and not self._text_pop_timer.isActive():
+        logging.debug("Hiding cmd widget, queue: {}".format(self._text_queue))
+        if self._timer_was_active:
+            # Restart the text pop timer if it was active before hiding.
             self._pop_text()
             self._text_pop_timer.start()
+            self._timer_was_active = False
         self._stack.setCurrentWidget(self.txt)
 
     def _disp_text(self, text, error, queue=False):
