@@ -197,8 +197,8 @@ class StatusBar(QWidget):
                  else now - self._last_text_time)
         self._last_text_time = now
         logging.debug("queue: {} / delta: {}".format(self._text_queue, delta))
-        if (not queue) or (not self._text_queue and (
-                delta is None or delta.total_seconds() * 1000.0 > mindelta)):
+        if not self._text_queue and (delta is None or delta.total_seconds() *
+                                     1000.0 > mindelta):
             # If the queue is empty and we didn't print messages for long
             # enough, we can take the short route and display the message
             # immediately. We then start the pop_timer only to restore the
@@ -206,17 +206,26 @@ class StatusBar(QWidget):
             logging.debug("Displaying immediately")
             self.error = error
             self.txt.temptext = text
+            self._text_pop_timer.start()
         elif self._text_queue and self._text_queue[-1] == (error, text):
             # If we get the same message multiple times in a row and we're
             # still displaying it *anyways* we ignore the new one
             logging.debug("ignoring")
-            return
+        elif not queue:
+            # This message is a reaction to a keypress and should be displayed
+            # immediately, temporarely interrupting the message queue.
+            # We display this immediately and restart the timer.to clear it and
+            # display the rest of the queue later.
+            logging.debug("Moving to beginning of queue")
+            self.error = error
+            self.txt.temptext = text
+            self._text_pop_timer.start()
         else:
             # There are still some messages to be displayed, so we queue this
             # up.
             logging.debug("queueing")
             self._text_queue.append((error, text))
-        self._text_pop_timer.start()
+            self._text_pop_timer.start()
 
     @pyqtSlot(str, bool)
     def disp_error(self, text, queue=False):
