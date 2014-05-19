@@ -373,6 +373,7 @@ class QuteBrowser(QApplication):
         self.modeman.entered.connect(status.on_mode_entered)
         self.modeman.left.connect(status.on_mode_left)
         self.modeman.left.connect(status.cmd.on_mode_left)
+        self.modeman.left.connect(status.prompt.on_mode_left)
 
         # commands
         cmd.got_cmd.connect(self.commandmanager.run_safely)

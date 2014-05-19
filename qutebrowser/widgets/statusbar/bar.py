@@ -32,7 +32,7 @@ from qutebrowser.widgets.statusbar._text import Text
 from qutebrowser.widgets.statusbar._keystring import KeyString
 from qutebrowser.widgets.statusbar._percentage import Percentage
 from qutebrowser.widgets.statusbar._url import Url
-from qutebrowser.widgets.statusbar._prompt import Prompt, PromptMode
+from qutebrowser.widgets.statusbar._prompt import Prompt, PromptMode, Question
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 
 
@@ -129,6 +129,7 @@ class StatusBar(QWidget):
         self.cmd.show_cmd.connect(self._show_cmd_widget)
         self.cmd.hide_cmd.connect(self._hide_cmd_widget)
         self._hide_cmd_widget()
+        self.prompt.show_prompt.connect(self._show_prompt_widget)
         self.prompt.hide_prompt.connect(self._hide_prompt_widget)
         self._hide_prompt_widget()
 
@@ -318,14 +319,13 @@ class StatusBar(QWidget):
 
     @pyqtSlot('QNetworkReply', 'QAuthenticator')
     def on_authentication_required(self, reply, authenticator):
-        self._show_prompt_widget()
-        self.prompt.mode = PromptMode.user_pwd
-        self.prompt.text = "Username ({}):".format(authenticator.realm())
+        q = Question()
+        q.mode = PromptMode.user_pwd
+        q.text = "Username ({}):".format(authenticator.realm())
+        self.prompt.question = q
         user, password = self.prompt.exec_()
-        self._hide_prompt_widget()
         authenticator.setUser(user)
         authenticator.setPassword(password)
-        logging.debug("user: {} / password: {}".format(user, password))
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
