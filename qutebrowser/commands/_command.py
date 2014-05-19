@@ -108,8 +108,8 @@ class Command(QObject):
                 argcnt = '{}-inf'.format(self.nargs[0])
             else:
                 argcnt = '{}-{}'.format(self.nargs[0], self.nargs[1])
-            raise ArgumentCountError("{} args expected, but got {}".format(
-                argcnt, len(args)))
+            raise ArgumentCountError("{}: {} args expected, but got {}".format(
+                self.name, argcnt, len(args)))
 
     def run(self, args=None, count=None):
         """Run the command.
