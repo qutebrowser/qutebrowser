@@ -339,10 +339,9 @@ class CommandDispatcher(QObject):
         Args:
             sel: True to use primary selection, False to use clipboard
         """
-        clip = QApplication.clipboard()
         url = urlutils.urlstring(self._tabs.currentWidget().url())
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
-        clip.setText(url, mode)
+        QApplication.clipboard().setText(url, mode)
         message.info("URL yanked to {}".format("primary selection" if sel
                                                else "clipboard"))
 
@@ -353,10 +352,9 @@ class CommandDispatcher(QObject):
         Args:
             sel: True to use primary selection, False to use clipboard
         """
-        clip = QApplication.clipboard()
         title = self._tabs.tabText(self._tabs.currentIndex())
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
-        clip.setText(title, mode)
+        QApplication.clipboard().setText(title, mode)
         message.info("Title yanked to {}".format("primary selection" if sel
                                                  else "clipboard"))
 
@@ -476,9 +474,8 @@ class CommandDispatcher(QObject):
             sel: True to use primary selection, False to use clipboard
             tab: True to open in a new tab.
         """
-        clip = QApplication.clipboard()
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
-        url = clip.text(mode)
+        url = QApplication.clipboard().text(mode)
         if not url:
             raise CommandError("Clipboard is empty.")
         logging.debug("Clipboard contained: '{}'".format(url))
