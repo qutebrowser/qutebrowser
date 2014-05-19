@@ -25,10 +25,10 @@ class Text(TextBase):
     """Text displayed in the statusbar.
 
     Attributes:
-        normaltext: The "permanent" text. Never automatically cleared.
-        temptext: The temporary text to display.
-        _initializing: True if we're currently in __init__ and no text should
-                       be updated yet.
+        _normaltext: The "permanent" text. Never automatically cleared.
+                     Accessed via normaltext property.
+        _temptext: The temporary text to display.
+                   Accessed via temptext property.
 
         The temptext is shown from StatusBar when a temporary text or error is
         available. If not, the permanent text is shown.
@@ -36,22 +36,33 @@ class Text(TextBase):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._initializing = True
-        self.normaltext = ''
-        self.temptext = ''
-        self._initializing = False
+        self._normaltext = ''
+        self._temptext = ''
 
-    def __setattr__(self, name, val):
-        """Overwrite __setattr__ to call _update_text when needed."""
-        super().__setattr__(name, val)
-        if not name.startswith('_') and not self._initializing:
-            self._update_text()
+    @property
+    def normaltext(self):
+        """Getter for normaltext so we can define a setter."""
+        return self._normaltext
+
+    @normaltext.setter
+    def normaltext(self, val):
+        """Setter for normaltext to update text display after setting."""
+        self._normaltext = val
+        self._update_text()
+
+    @property
+    def temptext(self):
+        """Getter for temptext so we can define a setter."""
+        return self._temptext
+
+    @temptext.setter
+    def temptext(self, val):
+        """Setter for temptext to update text display after setting."""
+        self._temptext = val
+        self._update_text()
 
     def _update_text(self):
-        """Update QLabel text when needed.
-
-        Called from __setattr__ if a text property changed.
-        """
+        """Update QLabel text when needed."""
         for text in [self.temptext, self.normaltext]:
             if text:
                 self.setText(text)
