@@ -280,10 +280,6 @@ DATA = OrderedDict([
         ('forward-unbound-keys',
          SettingValue(types.Bool(), 'false'),
          "Whether to forward unbound keys to the website in normal mode."),
-
-        ('scroll-amount',
-         SettingValue(types.Float(minval=0), '0.5'),
-         "How many pixels to scroll per 1/8 degree mousewheel delta."),
     )),
 
     ('tabbar', sect.KeyValue(

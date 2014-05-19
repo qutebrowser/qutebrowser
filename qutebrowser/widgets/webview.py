@@ -20,7 +20,7 @@
 import logging
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
@@ -535,17 +535,3 @@ class WebView(QWebView):
         self._mousepress_insertmode(e)
         self._mousepress_opentarget(e)
         return super().mousePressEvent(e)
-
-    def wheelEvent(self, e):
-        """Override wheelEvent because we handle scrolling ourselves.
-
-        WebKit's scrolling doesn't allow us to scroll while scrollbars are
-        enabled...
-        """
-        if not e.pixelDelta().isNull():
-            delta = QPoint(e.pixelDelta())
-        else:
-            delta = e.angleDelta() * config.get('input', 'scroll-amount')
-        frame = self.page_.currentFrame()
-        pos = frame.scrollPosition() - delta
-        frame.setScrollPosition(pos)
