@@ -18,11 +18,12 @@
 """Prompt shown in the statusbar."""
 
 from PyQt5.QtCore import pyqtSignal, QEventLoop, QObject
-from PyQt5.QtWidgets import QLineEdit, QHBoxLayout, QWidget
+from PyQt5.QtWidgets import QHBoxLayout, QWidget, QLineEdit
 
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.widgets.statusbar._textbase import TextBase
+from qutebrowser.widgets.misc import MinimalLineEdit
 from qutebrowser.utils.usertypes import enum
 
 PromptMode = enum('yesno', 'text', 'user_pwd')
@@ -193,19 +194,9 @@ class Prompt(QWidget):
         return self.question.answer
 
 
-class _QueryInput(QLineEdit):
+class _QueryInput(MinimalLineEdit):
 
-    """Minimal QLineEdit used for input."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setStyleSheet("""
-            QLineEdit {
-                border: 0px;
-                padding-left: 1px;
-                background-color: transparent;
-            }
-        """)
+    """QLineEdit used for input."""
 
     def focusInEvent(self, e):
         """Extend focusInEvent to enter command mode."""

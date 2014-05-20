@@ -20,24 +20,24 @@
 import logging
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5.QtWidgets import QLineEdit, QSizePolicy
+from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtGui import QValidator
 
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.commands.utils as cmdutils
+from qutebrowser.widgets.misc import MinimalLineEdit
 from qutebrowser.commands.managers import split_cmdline
 from qutebrowser.keyinput.modeparsers import STARTCHARS
 from qutebrowser.models.cmdhistory import (History, HistoryEmptyError,
                                            HistoryEndReachedError)
 
 
-class Command(QLineEdit):
+class Command(MinimalLineEdit):
 
     """The commandline part of the statusbar.
 
     Attributes:
         history: The command history object.
-        _statusbar: The statusbar (parent) QWidget.
         _validator: The current command validator.
 
     Signals:
@@ -66,16 +66,8 @@ class Command(QLineEdit):
     # See http://www.saltycrane.com/blog/2008/01/how-to-capture-tab-key-press-event-with/
     # for a possible fix.
 
-    def __init__(self, statusbar):
-        super().__init__(statusbar)
-        self._statusbar = statusbar
-        self.setStyleSheet("""
-            QLineEdit {
-                border: 0px;
-                padding-left: 1px;
-                background-color: transparent;
-            }
-        """)
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.history = History()
         self._validator = _CommandValidator(self)
         self.setValidator(self._validator)
