@@ -677,9 +677,16 @@ class Proxy(BaseType):
         url = QUrl(value)
         if (url.isValid() and not url.isEmpty() and
                 url.scheme() in self.PROXY_TYPES):
-            return
-        raise ValidationError(value, "must be a proxy URL (http://... or "
-                                     "socks://...) or system/none!")
+            if url.userName() and url.password():
+                pass
+            elif not url.userName() and not url.password():
+                pass
+            else:
+                raise ValidationError(value, "must either have user and "
+                                             "password or none of both")
+        else:
+            raise ValidationError(value, "must be a proxy URL (http://... or "
+                                         "socks://...) or system/none!")
 
     def complete(self):
         out = []
@@ -696,8 +703,14 @@ class Proxy(BaseType):
             return QNetworkProxy(QNetworkProxy.NoProxy)
         url = QUrl(value)
         typ = self.PROXY_TYPES[url.scheme()]
-        return QNetworkProxy(typ, url.host(), url.port(), url.userName(),
-                             url.password())
+        proxy = QNetworkProxy(typ, url.host())
+        if url.port() != -1:
+            proxy.setPort(url.port())
+        if url.userName():
+            proxy.setUser(url.userName())
+        if url.password():
+            proxy.setPassword(url.password())
+        return proxy
 
 
 class SearchEngineName(BaseType):
