@@ -18,7 +18,7 @@
 """Prompt shown in the statusbar."""
 
 from PyQt5.QtCore import pyqtSignal, QEventLoop, QObject
-from PyQt5.QtWidgets import QLineEdit, QHBoxLayout
+from PyQt5.QtWidgets import QLineEdit, QHBoxLayout, QWidget
 
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.commands.utils as cmdutils
@@ -71,7 +71,7 @@ class Question(QObject):
         self.answered.emit()
 
 
-class Prompt(TextBase):
+class Prompt(QWidget):
 
     """The prompt widget shown in the statusbar.
 
