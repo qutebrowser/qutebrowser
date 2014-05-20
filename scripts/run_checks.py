@@ -64,7 +64,7 @@ options = {
     'other': {
         'pylint': ['--output-format=colorized', '--reports=no',
                    '--rcfile=.pylintrc'],
-        'flake8': ['--max-complexity=10', '--config=.flake8'],
+        'flake8': ['--config=.flake8'],
     },
 }
 
