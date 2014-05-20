@@ -51,6 +51,8 @@ class BaseKeyParser(QObject):
     Attributes:
         bindings: Bound keybindings
         special_bindings: Bound special bindings (<Foo>).
+        warn_on_keychains: Whether a warning should be logged when binding
+                           keychains in a section which does not support them.
         _keystring: The currently entered key sequence
         _timer: QTimer for delayed execution.
         _confsectname: The name of the configsection.
@@ -77,6 +79,7 @@ class BaseKeyParser(QObject):
             supports_count = supports_chains
         self._supports_count = supports_count
         self._supports_chains = supports_chains
+        self.warn_on_keychains = True
         self.bindings = {}
         self.special_bindings = {}
 
@@ -340,7 +343,7 @@ class BaseKeyParser(QObject):
             elif self._supports_chains:
                 logging.debug("registered key: {} -> {}".format(key, cmd))
                 self.bindings[key] = cmd
-            else:
+            elif self.warn_on_keychains:
                 logging.warning(
                     "Ignoring keychain '{}' in section '{}' because "
                     "keychains are not supported there.".format(key, sectname))

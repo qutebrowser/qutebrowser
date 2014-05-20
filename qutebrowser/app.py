@@ -212,7 +212,7 @@ class QuteBrowser(QApplication):
             'insert': PassthroughKeyParser('keybind.insert', self),
             'passthrough': PassthroughKeyParser('keybind.passthrough', self),
             'command': PassthroughKeyParser('keybind.command', self),
-            'prompt': PassthroughKeyParser('keybind.prompt', self),
+            'prompt': PassthroughKeyParser('keybind.prompt', self, warn=False),
             'yesno': PromptKeyParser(self),
         }
         self.modeman = ModeManager()

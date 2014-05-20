@@ -67,11 +67,15 @@ class PassthroughKeyParser(CommandKeyParser):
     Used for insert/passthrough modes.
     """
 
-    def __init__(self, confsect, parent=None):
+    def __init__(self, confsect, parent=None, warn=True):
         """Constructor.
 
         Args:
             confsect: The config section to use.
+            parent: Qt parent.
+            warn: Whether to warn if an ignored key was bound.
         """
         super().__init__(parent, supports_chains=False)
+        if not warn:
+            self.warn_on_keychains = False
         self.read_config(confsect)
