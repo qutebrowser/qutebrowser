@@ -30,6 +30,25 @@ PromptMode = enum('yesno', 'text', 'user_pwd')
 
 class Question(QObject):
 
+    """A question asked to the user via the status bar.
+
+    Attributes:
+        mode: A PromptMode enum member.
+              yesno: A question which can be answered with yes/no.
+              text: A question which requires a free text answer.
+              user_pwd: A question for an username and password.
+        default: The default value.
+                 For yesno, None (no default), True or False.
+                 For text, a default text as string.
+                 For user_pwd, a default username as string.
+        text: The prompt text to display to the user.
+        user: The value the user entered as username.
+        answer: The value the user entered (as password for user_pwd).
+
+    Signals:
+        answered: Emitted when the question has been answered by the user.
+    """
+
     answered = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -42,15 +61,32 @@ class Question(QObject):
 
     @property
     def answer(self):
+        """Getter for answer so we can define a setter."""
         return self._answer
 
     @answer.setter
     def answer(self, val):
+        """Setter for answer to emit the answered signal after setting."""
         self._answer = val
         self.answered.emit()
 
 
 class Prompt(TextBase):
+
+    """The prompt widget shown in the statusbar.
+
+    Attributes:
+        question: A Question object with the question to be asked to the user.
+        loop: A local QEventLoop to spin in exec_.
+        _hbox: The QHBoxLayout used to display the text and prompt.
+        _txt: The TextBase instance (QLabel) used to display the prompt text.
+        _input: The QueryInput instance (QLineEdit) used for the input.
+
+    Signals:
+        show_prompt: Emitted when the prompt widget wants to be shown.
+        hide_prompt: Emitted when the prompt widget wants to be hidden.
+        cancelled: Emitted when the prompt was cancelled by the user.
+    """
 
     show_prompt = pyqtSignal()
     hide_prompt = pyqtSignal()
@@ -73,6 +109,12 @@ class Prompt(TextBase):
         self._hbox.addWidget(self._input)
 
     def on_mode_left(self, mode):
+        """Clear and reset input when the mode was left.
+
+        Emit:
+            cancelled: Emitted when the mode was forcibly left by the user
+                       without answering the question.
+        """
         if mode == 'prompt':
             self._txt.setText('')
             self._input.clear()
@@ -84,7 +126,11 @@ class Prompt(TextBase):
     @cmdutils.register(instance='mainwindow.status.prompt', hide=True,
                        modes=['prompt'])
     def prompt_accept(self):
-        """Accept the prompt. """
+        """Accept the prompt.
+
+        This executes the next action depending on the question mode, e.g. asks
+        for the password or leaves the mode.
+        """
         if (self.question.mode == PromptMode.user_pwd and
                 self.question.user is None):
             # User just entered an username
@@ -104,6 +150,11 @@ class Prompt(TextBase):
             modeman.leave('prompt', 'prompt accept')
 
     def display(self):
+        """Display the question in self.question in the widget.
+
+        Raise:
+            ValueError if the set PromptMode is invalid.
+        """
         q = self.question
         if q.mode == PromptMode.yesno:
             if q.default is None:
@@ -130,6 +181,11 @@ class Prompt(TextBase):
         self.show_prompt.emit()
 
     def exec_(self):
+        """Local eventloop to spin in for a blocking question.
+
+        Return:
+            The answer to the question. No, it's not always 42.
+        """
         self.display()
         self.question.answered.connect(self.loop.quit)
         self.cancelled.connect(self.loop.quit)
