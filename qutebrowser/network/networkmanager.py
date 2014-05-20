@@ -23,6 +23,7 @@ from PyQt5.QtNetwork import QNetworkAccessManager
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
 from qutebrowser.network.qutescheme import QuteSchemeHandler
+from qutebrowser.utils.usertypes import PromptMode
 
 
 class NetworkManager(QNetworkAccessManager):
@@ -44,6 +45,9 @@ class NetworkManager(QNetworkAccessManager):
         if cookiejar is not None:
             self.setCookieJar(cookiejar)
         self.sslErrors.connect(self.on_ssl_errors)
+        self.authenticationRequired.connect(self.on_authentication_required)
+        self.proxyAuthenticationRequired.connect(
+            self.on_proxy_authentication_required)
 
     def abort_requests(self):
         """Abort all running requests."""
@@ -67,6 +71,27 @@ class NetworkManager(QNetworkAccessManager):
             message.error('SSL error: {}'.format(err.errorString()),
                           queue=True)
         reply.ignoreSslErrors()
+
+    @pyqtSlot('QNetworkReply', 'QAuthenticator')
+    def on_authentication_required(self, reply, authenticator):
+        """Called when a website needs authentication."""
+        answer = message.modular_question(
+            text="Username ({}):".format(authenticator.realm()),
+            mode=PromptMode.user_pwd)
+        if answer is not None:
+            user, password = answer
+            authenticator.setUser(user)
+            authenticator.setPassword(password)
+
+    @pyqtSlot('QNetworkProxy', 'QAuthenticator')
+    def on_proxy_authentication_required(self, proxy, authenticator):
+        answer = message.modular_question(
+            text="Proxy username ({}):".format(authenticator.realm()),
+            mode=PromptMode.user_pwd)
+        if answer is not None:
+            user, password = answer
+            authenticator.setUser(user)
+            authenticator.setPassword(password)
 
     def createRequest(self, op, req, outgoing_data):
         """Return a new QNetworkReply object.

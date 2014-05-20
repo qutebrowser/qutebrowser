@@ -17,59 +17,14 @@
 
 """Prompt shown in the statusbar."""
 
-from PyQt5.QtCore import pyqtSignal, QEventLoop, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QEventLoop
 from PyQt5.QtWidgets import QHBoxLayout, QWidget, QLineEdit
 
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.widgets.statusbar._textbase import TextBase
 from qutebrowser.widgets.misc import MinimalLineEdit
-from qutebrowser.utils.usertypes import enum
-
-PromptMode = enum('yesno', 'text', 'user_pwd')
-
-
-class Question(QObject):
-
-    """A question asked to the user via the status bar.
-
-    Attributes:
-        mode: A PromptMode enum member.
-              yesno: A question which can be answered with yes/no.
-              text: A question which requires a free text answer.
-              user_pwd: A question for an username and password.
-        default: The default value.
-                 For yesno, None (no default), True or False.
-                 For text, a default text as string.
-                 For user_pwd, a default username as string.
-        text: The prompt text to display to the user.
-        user: The value the user entered as username.
-        answer: The value the user entered (as password for user_pwd).
-
-    Signals:
-        answered: Emitted when the question has been answered by the user.
-    """
-
-    answered = pyqtSignal()
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.mode = None
-        self.default = None
-        self.text = None
-        self.user = None
-        self._answer = None
-
-    @property
-    def answer(self):
-        """Getter for answer so we can define a setter."""
-        return self._answer
-
-    @answer.setter
-    def answer(self, val):
-        """Setter for answer to emit the answered signal after setting."""
-        self._answer = val
-        self.answered.emit()
+from qutebrowser.utils.usertypes import PromptMode, Question
 
 
 class Prompt(QWidget):
@@ -181,13 +136,29 @@ class Prompt(QWidget):
         self._input.setFocus()
         self.show_prompt.emit()
 
+    @pyqtSlot(Question, bool)
+    def ask_question(self, question, blocking):
+        """Slot which is called when there's a question to ask to the user.
+
+        Return:
+            The answer of the user when blocking=True.
+            None if blocking=False.
+
+        Args:
+            question: The Question object to ask.
+            blocking: If True, exec_ is called and the result is returned.
+        """
+        self.question = question
+        self.display()
+        if blocking:
+            return self.exec_()
+
     def exec_(self):
         """Local eventloop to spin in for a blocking question.
 
         Return:
             The answer to the question. No, it's not always 42.
         """
-        self.display()
         self.question.answered.connect(self.loop.quit)
         self.cancelled.connect(self.loop.quit)
         self.loop.exec_()

@@ -25,6 +25,9 @@ import operator
 import logging
 import collections.abc
 
+from PyQt5.QtCore import pyqtSignal, QObject
+
+
 _UNSET = object()
 
 
@@ -241,3 +244,50 @@ class FakeDict:
 
     def __repr__(self):
         return "FakeDict('{}')".format(self._val)
+
+
+# The mode of a Question.
+PromptMode = enum('yesno', 'text', 'user_pwd')
+
+
+class Question(QObject):
+
+    """A question asked to the user, e.g. via the status bar.
+
+    Attributes:
+        mode: A PromptMode enum member.
+              yesno: A question which can be answered with yes/no.
+              text: A question which requires a free text answer.
+              user_pwd: A question for an username and password.
+        default: The default value.
+                 For yesno, None (no default), True or False.
+                 For text, a default text as string.
+                 For user_pwd, a default username as string.
+        text: The prompt text to display to the user.
+        user: The value the user entered as username.
+        answer: The value the user entered (as password for user_pwd).
+
+    Signals:
+        answered: Emitted when the question has been answered by the user.
+    """
+
+    answered = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.mode = None
+        self.default = None
+        self.text = None
+        self.user = None
+        self._answer = None
+
+    @property
+    def answer(self):
+        """Getter for answer so we can define a setter."""
+        return self._answer
+
+    @answer.setter
+    def answer(self, val):
+        """Setter for answer to emit the answered signal after setting."""
+        self._answer = val
+        self.answered.emit()

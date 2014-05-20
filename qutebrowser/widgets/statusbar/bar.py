@@ -32,7 +32,7 @@ from qutebrowser.widgets.statusbar._text import Text
 from qutebrowser.widgets.statusbar._keystring import KeyString
 from qutebrowser.widgets.statusbar._percentage import Percentage
 from qutebrowser.widgets.statusbar._url import Url
-from qutebrowser.widgets.statusbar._prompt import Prompt, PromptMode, Question
+from qutebrowser.widgets.statusbar._prompt import Prompt
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 
 
@@ -316,18 +316,6 @@ class StatusBar(QWidget):
         if section == 'ui' and option == 'message-timeout':
             self._text_pop_timer.setInterval(config.get('ui',
                                                         'message-timeout'))
-
-    @pyqtSlot('QNetworkReply', 'QAuthenticator')
-    def on_authentication_required(self, reply, authenticator):
-        q = Question()
-        q.mode = PromptMode.user_pwd
-        q.text = "Username ({}):".format(authenticator.realm())
-        self.prompt.question = q
-        answer = self.prompt.exec_()
-        if answer is not None:
-            user, password = answer
-            authenticator.setUser(user)
-            authenticator.setPassword(password)
 
     @pyqtSlot('QNetworkProxy', 'QAuthenticator')
     def on_proxy_authentication_required(self, proxy, authenticator):

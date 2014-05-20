@@ -40,8 +40,7 @@ from argparse import ArgumentParser
 from base64 import b64encode
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
-from PyQt5.QtCore import pyqtSlot, QTimer, QEventLoop
-from PyQt5.QtCore import QStandardPaths
+from PyQt5.QtCore import pyqtSlot, QTimer, QEventLoop, Qt, QStandardPaths
 
 import qutebrowser
 import qutebrowser.commands.utils as cmdutils
@@ -366,10 +365,6 @@ class QuteBrowser(QApplication):
         self.lastWindowClosed.connect(self.shutdown)
         tabs.quit.connect(self.shutdown)
         tabs.currentChanged.connect(self.mainwindow.update_inspector)
-        self.networkmanager.authenticationRequired.connect(
-            status.on_authentication_required)
-        self.networkmanager.proxyAuthenticationRequired.connect(
-            status.on_proxy_authentication_required)
 
         # status bar
         self.modeman.entered.connect(status.on_mode_entered)
@@ -396,6 +391,8 @@ class QuteBrowser(QApplication):
         self.messagebridge.info.connect(status.disp_temp_text)
         self.messagebridge.text.connect(status.set_text)
         self.messagebridge.set_cmd_text.connect(cmd.set_cmd_text)
+        self.messagebridge.question.connect(status.prompt.ask_question,
+                                            Qt.DirectConnection)
 
         # config
         self.config.style_changed.connect(style.invalidate_caches)

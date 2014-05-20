@@ -21,6 +21,8 @@ import logging
 
 from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication
 
+from qutebrowser.utils.usertypes import Question
+
 
 def instance():
     """Get the global messagebridge instance."""
@@ -60,6 +62,25 @@ def text(message):
     instance().text.emit(message)
 
 
+def modular_question(text, mode, default=None):
+    """Ask a modular question in the statusbar.
+
+    Args:
+        text: The message to display to the user.
+        mode: A PromptMode.
+        default: The default value to display.
+
+    Return:
+        The answer the user gave or None if the prompt was cancelled.
+    """
+    q = Question()
+    q.text = text
+    q.mode = mode
+    q.default = default
+    instance().question.emit(q, True)
+    return q.answer
+
+
 def clear():
     """Clear a persistent message in the statusbar."""
     instance().text.emit('')
@@ -78,3 +99,4 @@ class MessageBridge(QObject):
     info = pyqtSignal(str, bool)
     text = pyqtSignal(str)
     set_cmd_text = pyqtSignal(str)
+    question = pyqtSignal(Question, bool)
