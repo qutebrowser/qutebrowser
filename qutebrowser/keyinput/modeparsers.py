@@ -59,6 +59,17 @@ class NormalKeyParser(CommandKeyParser):
         return super()._handle_single_key(e)
 
 
+class PromptKeyParser(CommandKeyParser):
+
+    """KeyParser for yes/no prompts."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent, supports_count=False, supports_chains=True)
+        # We don't want an extra section for this in the config, so we just
+        # abuse the keybind.prompt section.
+        self.read_config('keybind.prompt')
+
+
 class HintKeyParser(CommandKeyParser):
 
     """KeyChainParser for hints.

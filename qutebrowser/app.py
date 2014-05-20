@@ -55,7 +55,8 @@ from qutebrowser.config.config import ConfigManager
 from qutebrowser.keyinput.modeman import ModeManager
 from qutebrowser.widgets.mainwindow import MainWindow
 from qutebrowser.widgets.crash import ExceptionCrashDialog, FatalCrashDialog
-from qutebrowser.keyinput.modeparsers import NormalKeyParser, HintKeyParser
+from qutebrowser.keyinput.modeparsers import (NormalKeyParser, HintKeyParser,
+                                              PromptKeyParser)
 from qutebrowser.keyinput.keyparser import PassthroughKeyParser
 from qutebrowser.commands.managers import CommandManager, SearchManager
 from qutebrowser.commands.exceptions import CommandError
@@ -212,6 +213,7 @@ class QuteBrowser(QApplication):
             'passthrough': PassthroughKeyParser('keybind.passthrough', self),
             'command': PassthroughKeyParser('keybind.command', self),
             'prompt': PassthroughKeyParser('keybind.prompt', self),
+            'yesno': PromptKeyParser(self),
         }
         self.modeman = ModeManager()
         self.modeman.register('normal', self._keyparsers['normal'].handle)
@@ -225,6 +227,7 @@ class QuteBrowser(QApplication):
                               passthrough=True)
         self.modeman.register('prompt', self._keyparsers['prompt'].handle,
                               passthrough=True)
+        self.modeman.register('yesno', self._keyparsers['yesno'].handle)
 
     def _init_log(self):
         """Initialisation of the logging output.

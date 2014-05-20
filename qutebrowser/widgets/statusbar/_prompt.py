@@ -22,6 +22,7 @@ from PyQt5.QtWidgets import QHBoxLayout, QWidget, QLineEdit
 
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.commands.utils as cmdutils
+import qutebrowser.config.config as config
 from qutebrowser.widgets.statusbar._textbase import TextBase
 from qutebrowser.widgets.misc import MinimalLineEdit
 from qutebrowser.utils.usertypes import PromptMode, Question
@@ -36,7 +37,7 @@ class Prompt(QWidget):
         loop: A local QEventLoop to spin in exec_.
         _hbox: The QHBoxLayout used to display the text and prompt.
         _txt: The TextBase instance (QLabel) used to display the prompt text.
-        _input: The QueryInput instance (QLineEdit) used for the input.
+        _input: The MinimalLineEdit instance (QLineEdit) used for the input.
 
     Signals:
         show_prompt: Emitted when the prompt widget wants to be shown.
@@ -61,7 +62,7 @@ class Prompt(QWidget):
         self._txt = TextBase()
         self._hbox.addWidget(self._txt)
 
-        self._input = _QueryInput()
+        self._input = MinimalLineEdit()
         self._hbox.addWidget(self._input)
 
     def on_mode_left(self, mode):
@@ -71,7 +72,7 @@ class Prompt(QWidget):
             cancelled: Emitted when the mode was forcibly left by the user
                        without answering the question.
         """
-        if mode == 'prompt':
+        if mode in ['prompt', 'yesno']:
             self._txt.setText('')
             self._input.clear()
             self._input.setEchoMode(QLineEdit.Normal)
@@ -100,10 +101,36 @@ class Prompt(QWidget):
             self.question.answer = (self.question.user, password)
             modeman.leave('prompt', 'prompt accept')
             self.hide_prompt.emit()
-        else:
-            # User just entered all information needed in some other mode.
+        elif self.question.mode == PromptMode.text:
+            # User just entered text.
             self.question.answer = self._input.text()
             modeman.leave('prompt', 'prompt accept')
+        elif self.question.mode == PromptMode.yesno:
+            # User wants to accept the default of a yes/no question.
+            self.question.answer = self.question.default
+            modeman.leave('yesno', 'yesno accept')
+        else:
+            raise ValueError("Invalid question mode!")
+
+    @cmdutils.register(instance='mainwindow.status.prompt', hide=True,
+                       modes=['yesno'])
+    def prompt_yes(self):
+        """Answer yes to a yes/no prompt."""
+        if self.question.mode != PromptMode.yesno:
+            # We just ignore this if we don't have a yes/no question.
+            return
+        self.question.answer = True
+        modeman.leave('yesno', 'yesno accept')
+
+    @cmdutils.register(instance='mainwindow.status.prompt', hide=True,
+                       modes=['yesno'])
+    def prompt_no(self):
+        """Answer no to a yes/no prompt."""
+        if self.question.mode != PromptMode.yesno:
+            # We just ignore this if we don't have a yes/no question.
+            return
+        self.question.answer = False
+        modeman.leave('yesno', 'prompt accept')
 
     def display(self):
         """Display the question in self.question in the widget.
@@ -114,27 +141,31 @@ class Prompt(QWidget):
         q = self.question
         if q.mode == PromptMode.yesno:
             if q.default is None:
-                suffix = " [y/n]"
+                suffix = ""
             elif q.default:
-                suffix = " [Y/n]"
+                suffix = " (yes)"
             else:
-                suffix = " [y/N]"
+                suffix = " (no)"
             self._txt.setText(q.text + suffix)
             self._input.hide()
+            mode = 'yesno'
         elif q.mode == PromptMode.text:
             self._txt.setText(q.text)
             if q.default:
                 self._input.setText(q.default)
             self._input.show()
+            mode = 'prompt'
         elif q.mode == PromptMode.user_pwd:
             self._txt.setText(q.text)
             if q.default:
                 self._input.setText(q.default)
             self._input.show()
+            mode = 'prompt'
         else:
             raise ValueError("Invalid prompt mode!")
         self._input.setFocus()
         self.show_prompt.emit()
+        modeman.enter(mode, 'question asked')
 
     @pyqtSlot(Question, bool)
     def ask_question(self, question, blocking):
@@ -163,13 +194,3 @@ class Prompt(QWidget):
         self.cancelled.connect(self.loop.quit)
         self.loop.exec_()
         return self.question.answer
-
-
-class _QueryInput(MinimalLineEdit):
-
-    """QLineEdit used for input."""
-
-    def focusInEvent(self, e):
-        """Extend focusInEvent to enter command mode."""
-        modeman.enter('prompt', 'auth focus')
-        super().focusInEvent(e)

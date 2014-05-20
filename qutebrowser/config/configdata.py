@@ -121,8 +121,13 @@ SECTION_DESC = {
         "  leave-mode: Leave the command mode."),
     'keybind.prompt': (
         "Keybindings for prompts in the status line.\n"
+        "You can bind normal keys in this mode, but they will be only active "
+        "when a yes/no-prompt is asked. For other prompt modes, you can only "
+        "bind special keys.\n"
         "Useful hidden commands to map in this section:\n"
-        "  prompt-accept: Confirm the entered value\n"
+        "  prompt-accept: Confirm the entered value.\n"
+        "  prompt-yes: Answer yes to a yes/no question.\n"
+        "  prompt-no: Answer no to a yes/no question.\n"
         "  leave-mode: Leave the prompt mode."),
     'aliases': (
         "Aliases for commands.\n"
@@ -701,6 +706,8 @@ DATA = OrderedDict([
         ('<Escape>', 'leave-mode'),
         ('<Ctrl-N>', 'leave-mode'),
         ('<Return>', 'prompt-accept'),
+        ('y', 'prompt-yes'),
+        ('n', 'prompt-no'),
     )),
 
     ('aliases', sect.ValueList(
