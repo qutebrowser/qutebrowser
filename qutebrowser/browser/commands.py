@@ -34,7 +34,7 @@ import qutebrowser.browser.hints as hints
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.message as message
 import qutebrowser.utils.webelem as webelem
-from qutebrowser.utils.misc import check_overflow
+from qutebrowser.utils.misc import check_overflow, shell_escape, ExternalEditor
 from qutebrowser.utils.misc import shell_escape
 from qutebrowser.commands.exceptions import CommandError
 
@@ -51,6 +51,7 @@ class CommandDispatcher(QObject):
 
     Attributes:
         _tabs: The TabbedBrowser object.
+        _editor: The ExternalEditor object.
     """
 
     def __init__(self, parent):
@@ -61,6 +62,7 @@ class CommandDispatcher(QObject):
         """
         super().__init__(parent)
         self._tabs = parent
+        self._editor = None
 
     def _scroll_percent(self, perc=None, count=None, orientation=None):
         """Inner logic for scroll_percent_(x|y).
@@ -601,56 +603,24 @@ class CommandDispatcher(QObject):
         elem = frame.findFirstElement(webelem.SELECTORS[
             webelem.Group.editable_focused])
         if elem.isNull():
-            raise CommandError("No editable element focused!")
-        oshandle, filename = mkstemp(text=True)
+            message.error("No editable element focused!")
+            return
         text = elem.evaluateJavaScript('this.value')
-        if text:
-            with open(filename, 'w', encoding='utf-8') as f:
-                f.write(text)
-        proc = QProcess(self)
-        proc.finished.connect(partial(self.on_editor_closed, elem, oshandle,
-                                      filename))
-        proc.error.connect(partial(self.on_editor_error, oshandle, filename))
-        editor = config.get('general', 'editor')
-        executable = editor[0]
-        args = [arg.replace('{}', filename) for arg in editor[1:]]
-        logging.debug("Calling '{}' with args {}".format(executable, args))
-        proc.start(executable, args)
+        self._editor = ExternalEditor()
+        self._editor.editing_finished.connect(partial(self.on_editing_finished, elem))
+        self._editor.edit(text)
 
-    def on_editor_closed(self, elem, oshandle, filename, exitcode,
-                         exitstatus):
+    def on_editing_finished(self, elem, text):
         """Write the editor text into the form field and clean up tempfile.
 
         Callback for QProcess when the editor was closed.
-        """
-        logging.debug("Editor closed")
-        if exitcode != 0:
-            raise CommandError("Editor did quit abnormally (status "
-                               "{})!".format(exitcode))
-        if exitstatus != QProcess.NormalExit:
-            # No error here, since we already handle this in on_editor_error
-            return
-        if elem.isNull():
-            raise CommandError("Element vanished while editing!")
-        with open(filename, 'r', encoding='utf-8') as f:
-            text = ''.join(f.readlines())
-            text = webelem.javascript_escape(text)
-        logging.debug("Read back: {}".format(text))
-        elem.evaluateJavaScript("this.value='{}'".format(text))
-        self._editor_cleanup(oshandle, filename)
 
-    def on_editor_error(self, oshandle, filename, error):
-        """Display an error message and clean up when editor crashed."""
-        messages = {
-            QProcess.FailedToStart: "The process failed to start.",
-            QProcess.Crashed: "The process crashed.",
-            QProcess.Timedout: "The last waitFor...() function timed out.",
-            QProcess.WriteError: ("An error occurred when attempting to write "
-                                  "to the process."),
-            QProcess.ReadError: ("An error occurred when attempting to read "
-                                 "from the process."),
-            QProcess.UnknownError: "An unknown error occurred.",
-        }
-        self._editor_cleanup(oshandle, filename)
-        raise CommandError("Error while calling editor: {}".format(
-            messages[error]))
+        Args:
+            elem: The QWebElement which was modified.
+            text: The new text to insert.
+        """
+        if elem.isNull():
+            message.error("Element vanished while editing!")
+            return
+        text = webelem.javascript_escape(text)
+        elem.evaluateJavaScript("this.value='{}'".format(text))
