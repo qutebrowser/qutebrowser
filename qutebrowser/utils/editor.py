@@ -100,7 +100,7 @@ class ExternalEditor(QObject):
             raise ValueError("Already editing a file!")
         self.text = text
         self.oshandle, self.filename = mkstemp(text=True)
-        if not text:
+        if text:
             with open(self.filename, 'w') as f:
                 f.write(text)
         self.proc = QProcess(self)
