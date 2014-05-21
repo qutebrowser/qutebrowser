@@ -353,13 +353,17 @@ class CurCommandDispatcher(QObject):
             return
         text = elem.evaluateJavaScript('this.value')
         self._editor = ExternalEditor()
-        self._editor.editing_finished.connect(self.on_editing_finished)
+        self._editor.editing_finished.connect(partial(self.on_editing_finished, elem))
         self._editor.edit(text)
 
-    def on_editing_finished(self, text):
+    def on_editing_finished(self, elem, text):
         """Write the editor text into the form field and clean up tempfile.
 
         Callback for QProcess when the editor was closed.
+
+        Args:
+            elem: The QWebElement which was modified.
+            text: The new text to insert.
         """
         if elem.isNull():
             message.error("Element vanished while editing!")
