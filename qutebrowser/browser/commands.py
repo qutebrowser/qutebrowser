@@ -20,11 +20,10 @@
 import os
 import logging
 import subprocess
-from tempfile import mkstemp
 from functools import partial
 
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt, QObject, QProcess
+from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 
@@ -607,7 +606,8 @@ class CommandDispatcher(QObject):
             return
         text = elem.evaluateJavaScript('this.value')
         self._editor = ExternalEditor()
-        self._editor.editing_finished.connect(partial(self.on_editing_finished, elem))
+        self._editor.editing_finished.connect(
+            partial(self.on_editing_finished, elem))
         self._editor.edit(text)
 
     def on_editing_finished(self, elem, text):

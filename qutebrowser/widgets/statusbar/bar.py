@@ -206,7 +206,8 @@ class StatusBar(QWidget):
 
     def _hide_prompt_widget(self):
         """Show temporary text instead of prompt widget."""
-        logging.debug("Hiding prompt widget, queue: {}".format(self._text_queue))
+        logging.debug("Hiding prompt widget, queue: {}".format(
+            self._text_queue))
         if self._timer_was_active:
             # Restart the text pop timer if it was active before hiding.
             self._pop_text()
@@ -316,19 +317,6 @@ class StatusBar(QWidget):
         if section == 'ui' and option == 'message-timeout':
             self._text_pop_timer.setInterval(config.get('ui',
                                                         'message-timeout'))
-
-    @pyqtSlot('QNetworkProxy', 'QAuthenticator')
-    def on_proxy_authentication_required(self, proxy, authenticator):
-        q = Question()
-        q.mode = PromptMode.user_pwd
-        q.text = "Proxy username ({}):".format(authenticator.realm())
-        self.prompt.question = q
-        answer = self.prompt.exec_()
-        if answer is not None:
-            user, password = answer
-            logging.debug("user: {} / pwd: {}".format(user, password))
-            authenticator.setUser(user)
-            authenticator.setPassword(password)
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

@@ -62,11 +62,11 @@ def text(message):
     instance().text.emit(message)
 
 
-def modular_question(text, mode, default=None):
+def modular_question(message, mode, default=None):
     """Ask a modular question in the statusbar.
 
     Args:
-        text: The message to display to the user.
+        message: The message to display to the user.
         mode: A PromptMode.
         default: The default value to display.
 
@@ -74,7 +74,7 @@ def modular_question(text, mode, default=None):
         The answer the user gave or None if the prompt was cancelled.
     """
     q = Question()
-    q.text = text
+    q.text = message
     q.mode = mode
     q.default = default
     instance().question.emit(q, True)

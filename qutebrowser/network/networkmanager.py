@@ -49,6 +49,16 @@ class NetworkManager(QNetworkAccessManager):
         self.proxyAuthenticationRequired.connect(
             self.on_proxy_authentication_required)
 
+    def _fill_authenticator(self, authenticator, answer):
+        """Fill a given QAuthenticator object with an answer."""
+        if answer is not None:
+            # Since the answer could be something else than (user, password)
+            # pylint seems to think we're unpacking a non-sequence. However we
+            # *did* explicitely ask for a tuple, so it *will* always be one.
+            user, password = answer  # pylint: disable=unpacking-non-sequence
+            authenticator.setUser(user)
+            authenticator.setPassword(password)
+
     def abort_requests(self):
         """Abort all running requests."""
         for request in self._requests.values():
@@ -73,25 +83,20 @@ class NetworkManager(QNetworkAccessManager):
         reply.ignoreSslErrors()
 
     @pyqtSlot('QNetworkReply', 'QAuthenticator')
-    def on_authentication_required(self, reply, authenticator):
+    def on_authentication_required(self, _reply, authenticator):
         """Called when a website needs authentication."""
         answer = message.modular_question(
-            text="Username ({}):".format(authenticator.realm()),
+            "Username ({}):".format(authenticator.realm()),
             mode=PromptMode.user_pwd)
-        if answer is not None:
-            user, password = answer
-            authenticator.setUser(user)
-            authenticator.setPassword(password)
+        self._fill_authenticator(authenticator, answer)
 
     @pyqtSlot('QNetworkProxy', 'QAuthenticator')
-    def on_proxy_authentication_required(self, proxy, authenticator):
+    def on_proxy_authentication_required(self, _proxy, authenticator):
+        """Called when a proxy needs authentication."""
         answer = message.modular_question(
-            text="Proxy username ({}):".format(authenticator.realm()),
+            "Proxy username ({}):".format(authenticator.realm()),
             mode=PromptMode.user_pwd)
-        if answer is not None:
-            user, password = answer
-            authenticator.setUser(user)
-            authenticator.setPassword(password)
+        self._fill_authenticator(authenticator, answer)
 
     def createRequest(self, op, req, outgoing_data):
         """Return a new QNetworkReply object.

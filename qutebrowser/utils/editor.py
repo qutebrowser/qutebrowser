@@ -24,6 +24,7 @@ from tempfile import mkstemp
 from PyQt5.QtCore import pyqtSignal, QProcess, QObject
 
 import qutebrowser.config.config as config
+import qutebrowser.utils.message as message
 
 
 class ExternalEditor(QObject):
@@ -40,6 +41,7 @@ class ExternalEditor(QObject):
         self.proc = None
 
     def _cleanup(self):
+        """Clean up temporary files after the editor closed."""
         os.close(self.oshandle)
         try:
             os.remove(self.filename)
@@ -81,7 +83,7 @@ class ExternalEditor(QObject):
             QProcess.WriteError: ("An error occurred when attempting to write "
                                   "to the process."),
             QProcess.ReadError: ("An error occurred when attempting to read "
-                                "from the process."),
+                                 "from the process."),
             QProcess.UnknownError: "An unknown error occurred.",
         }
         message.error("Error while calling editor: {}".format(messages[error]))

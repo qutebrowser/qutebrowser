@@ -22,7 +22,6 @@ from PyQt5.QtWidgets import QHBoxLayout, QWidget, QLineEdit
 
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.commands.utils as cmdutils
-import qutebrowser.config.config as config
 from qutebrowser.widgets.statusbar._textbase import TextBase
 from qutebrowser.widgets.misc import MinimalLineEdit
 from qutebrowser.utils.usertypes import PromptMode, Question

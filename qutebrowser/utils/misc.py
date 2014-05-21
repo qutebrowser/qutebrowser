@@ -35,7 +35,6 @@ from PyQt5.QtCore import QCoreApplication, QStandardPaths
 from pkg_resources import resource_string
 
 import qutebrowser
-import qutebrowser.utils.message as message
 
 
 MAXVALS = {
@@ -106,7 +105,6 @@ def read_file(filename):
         with open(fn, 'r', encoding='UTF-8') as f:
             return f.read()
     else:
-        from pkg_resources import resource_string
         return resource_string(qutebrowser.__name__, filename).decode('UTF-8')
 
 
