@@ -34,8 +34,8 @@ import qutebrowser.browser.hints as hints
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.message as message
 import qutebrowser.utils.webelem as webelem
-from qutebrowser.utils.misc import check_overflow, shell_escape, ExternalEditor
-from qutebrowser.utils.misc import shell_escape
+from qutebrowser.utils.misc import check_overflow, shell_escape
+from qutebrowser.utils.editor import ExternalEditor
 from qutebrowser.commands.exceptions import CommandError
 
 
