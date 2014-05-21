@@ -47,6 +47,7 @@ class CurCommandDispatcher(QObject):
 
     Attributes:
         _tabs: The TabbedBrowser object.
+        _editor: The ExternalEditor object.
     """
 
     def __init__(self, parent):
@@ -57,6 +58,7 @@ class CurCommandDispatcher(QObject):
         """
         super().__init__(parent)
         self._tabs = parent
+        self._editor = None
 
     def _scroll_percent(self, perc=None, count=None, orientation=None):
         """Inner logic for scroll_percent_(x|y).
@@ -350,10 +352,9 @@ class CurCommandDispatcher(QObject):
             message.error("No editable element focused!")
             return
         text = elem.evaluateJavaScript('this.value')
-        editor = ExternalEditor()
-        editor.editing_finished.connect(self.on_editing_finished)
-        from qutebrowser.utils.debug import trace_lines; trace_lines(True)
-        editor.edit(text)
+        self._editor = ExternalEditor()
+        self._editor.editing_finished.connect(self.on_editing_finished)
+        self._editor.edit(text)
 
     def on_editing_finished(self, text):
         """Write the editor text into the form field and clean up tempfile.
