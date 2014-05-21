@@ -382,6 +382,7 @@ class QuteBrowser(QApplication):
         cmd.returnPressed.connect(tabs.setFocus)
         self.searchmanager.do_search.connect(tabs.search)
         kp['normal'].keystring_updated.connect(status.keystring.setText)
+        tabs.got_cmd.connect(self.commandmanager.run_safely)
 
         # hints
         kp['hint'].fire_hint.connect(tabs.fire_hint)

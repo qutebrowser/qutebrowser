@@ -85,6 +85,7 @@ class TabbedBrowser(TabWidget):
     shutdown_complete = pyqtSignal()
     quit = pyqtSignal()
     resized = pyqtSignal('QRect')
+    got_cmd = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)

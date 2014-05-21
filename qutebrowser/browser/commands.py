@@ -36,6 +36,7 @@ import qutebrowser.utils.webelem as webelem
 from qutebrowser.utils.misc import check_overflow, shell_escape
 from qutebrowser.utils.editor import ExternalEditor
 from qutebrowser.commands.exceptions import CommandError
+from qutebrowser.commands.userscripts import UserscriptRunner
 
 
 class CommandDispatcher(QObject):
@@ -51,6 +52,7 @@ class CommandDispatcher(QObject):
     Attributes:
         _tabs: The TabbedBrowser object.
         _editor: The ExternalEditor object.
+        _userscript_runners: A list of userscript runners.
     """
 
     def __init__(self, parent):
@@ -60,6 +62,7 @@ class CommandDispatcher(QObject):
             parent: The TabbedBrowser for this dispatcher.
         """
         super().__init__(parent)
+        self._userscript_runners = []
         self._tabs = parent
         self._editor = None
 
@@ -588,6 +591,15 @@ class CommandDispatcher(QObject):
     def home(self):
         """Open main startpage in current tab."""
         self.openurl(config.get('general', 'startpage')[0])
+
+    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    def run_userscript(self, cmd, *args):
+        """Run an userscript given as argument."""
+        url = urlutils.urlstring(self._tabs.currentWidget().url())
+        runner = UserscriptRunner()
+        runner.got_cmd.connect(self._tabs.got_cmd)
+        runner.run(cmd, *args, env={'QUTE_URL': url})
+        self._userscript_runners.append(runner)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', modes=['insert'],
                        hide=True)
