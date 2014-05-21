@@ -210,6 +210,7 @@ def get_standard_dir(typ):
         typ: A member of the QStandardPaths::StandardLocation enum,
              see http://qt-project.org/doc/qt-5/qstandardpaths.html#StandardLocation-enum
     """
+    # FIXME RuntimeLocation "can be empty on some systems", wat.
     path = QStandardPaths.writableLocation(typ)
     # Qt seems to use '/' as path separator even on Windows...
     path = path.replace('/', os.sep)
