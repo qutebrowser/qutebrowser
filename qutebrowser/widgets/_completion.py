@@ -265,7 +265,7 @@ class CompletionView(QTreeView):
     def set_model(self, model):
         """Switch completion to a new model.
 
-        Called from cmd_text_changed().
+        Called from on_update_completion().
 
         Args:
             model: The model to use.
@@ -285,7 +285,7 @@ class CompletionView(QTreeView):
             self._init_command_completion()
 
     @pyqtSlot(str)
-    def on_cmd_text_changed(self, text):
+    def on_update_completion(self, text):
         """Check if completions are available and activate them.
 
         Slot for the textChanged signal of the statusbar command widget.

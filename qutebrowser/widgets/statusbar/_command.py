@@ -50,6 +50,8 @@ class Command(MinimalLineEdit):
         clear_completion_selection: Emitted before the completion widget is
                                     hidden.
         hide_completion: Emitted when the completion widget should be hidden.
+        update_completion: Emitted when the completion should be shown/updated.
+                           arg: The new text which was set.
         show_cmd: Emitted when command input should be shown.
         hide_cmd: Emitted when command input can be hidden.
     """
@@ -59,6 +61,7 @@ class Command(MinimalLineEdit):
     got_search_rev = pyqtSignal(str)
     clear_completion_selection = pyqtSignal()
     hide_completion = pyqtSignal()
+    update_completion = pyqtSignal(str)
     show_cmd = pyqtSignal()
     hide_cmd = pyqtSignal()
 
@@ -72,6 +75,7 @@ class Command(MinimalLineEdit):
         self._validator = _CommandValidator(self)
         self.setValidator(self._validator)
         self.textEdited.connect(self.history.stop)
+        self.textEdited.connect(self.update_completion)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
 
     @pyqtSlot(str)
@@ -82,13 +86,13 @@ class Command(MinimalLineEdit):
             text: The text to set (string).
 
         Emit:
-            textEdited: Emitted if the text changed.
+            update_completion: Emitted if the text changed.
         """
         old_text = self.text()
         self.setText(text)
         if old_text != text:
             # We want the completion to pop out here.
-            self.textEdited.emit(text)
+            self.update_completion.emit(text)
         self.setFocus()
         self.show_cmd.emit()
 

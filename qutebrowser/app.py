@@ -424,7 +424,7 @@ class QuteBrowser(QApplication):
         cmd.clear_completion_selection.connect(
             completion.on_clear_completion_selection)
         cmd.hide_completion.connect(completion.hide)
-        cmd.textEdited.connect(completion.on_cmd_text_changed)
+        cmd.update_completion.connect(completion.on_update_completion)
         completion.change_completed_part.connect(cmd.on_change_completed_part)
 
     def _recover_pages(self):
