@@ -118,6 +118,7 @@ class HintManager(QObject):
         self._frames = []
         self._connected_frames = []
         modeman.instance().left.connect(self.on_mode_left)
+        modeman.instance().entered.connect(self.on_mode_entered)
 
     def _hint_strings(self, elems):
         """Calculate the hint strings for elems.
@@ -501,7 +502,7 @@ class HintManager(QObject):
         else:
             raise ValueError("No suitable handler found!")
         if self._target != Target.rapid:
-            modeman.leave('hint', 'followed')
+            modeman.maybe_leave('hint', 'followed')
 
     def follow_hint(self):
         """Follow the currently selected hint."""
@@ -521,6 +522,12 @@ class HintManager(QObject):
         for elems in self._elems.values():
             css = self._get_hint_css(elems.elem, elems.label)
             elems.label.setAttribute('style', css)
+
+    @pyqtSlot(str)
+    def on_mode_entered(self, mode):
+        """Stop hinting when insert mode was entered."""
+        if mode == 'insert':
+            modeman.maybe_leave('hint', 'insert mode')
 
     @pyqtSlot(str)
     def on_mode_left(self, mode):
