@@ -643,7 +643,10 @@ class QuteBrowser(QApplication):
             self._maybe_quit('networkmanager')
         if self._crashlogfile is not None:
             # Re-enable faulthandler to stdout, then remove crash log
-            faulthandler.enable()
+            if sys.stderr is not None:
+                faulthandler.enable()
+            else:
+                faulthandler.disable()
             self._crashlogfile.close()
             try:
                 os.remove(self._crashlogfile.name)
