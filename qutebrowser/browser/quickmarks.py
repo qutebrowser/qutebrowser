@@ -37,7 +37,7 @@ linecp = None
 
 def init():
     """Read quickmarks from the config file."""
-    global marks, linecp
+    global linecp
     confdir = get_standard_dir(QStandardPaths.ConfigLocation)
     linecp = LineConfigParser(confdir, 'quickmarks')
     for line in linecp:
@@ -71,6 +71,7 @@ def quickmark_add(url, name):
         raise CommandError("Can't set mark with empty URL!")
 
     def set_mark():
+        """Really set the quickmark."""
         marks[name] = urlstring(url)
 
     if name in marks:

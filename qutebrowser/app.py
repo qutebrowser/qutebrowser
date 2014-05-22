@@ -91,6 +91,7 @@ class QuteBrowser(QApplication):
         modeman: The global ModeManager instance.
         networkmanager: The global NetworkManager instance.
         cookiejar: The global CookieJar instance.
+        rl_bridge: The ReadlineBridge being used.
         _keyparsers: A mapping from modes to keyparsers.
         _args: ArgumentParser instance.
         _timers: List of used QTimers so they don't get GCed.
@@ -118,6 +119,7 @@ class QuteBrowser(QApplication):
         self._keyparsers = None
         self._crashdlg = None
         self._crashlogfile = None
+        self.rl_bridge = None
         self.messagebridge = None
         self.stateconfig = None
         self.modeman = None
@@ -600,6 +602,7 @@ class QuteBrowser(QApplication):
         For some reason lastWindowClosing sometimes seem to get emitted twice,
         so we make sure we only run once here.
         """
+        # pylint: disable=too-many-branches
         if self._shutting_down:
             return
         self._shutting_down = True

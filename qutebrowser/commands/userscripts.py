@@ -282,6 +282,7 @@ class _DummyUserscriptRunner:
     """
 
     def run(self, _cmd, *_args, _env=None):
+        """Print an error as userscripts are not supported."""
         message.error("Userscripts are not supported on this platform!")
 
 

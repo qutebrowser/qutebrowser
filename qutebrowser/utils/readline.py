@@ -20,7 +20,6 @@
 from PyQt5.QtWidgets import QApplication, QLineEdit
 
 import qutebrowser.commands.utils as cmd
-import qutebrowser.keyinput.modeman as modeman
 
 
 class ReadlineBridge:
