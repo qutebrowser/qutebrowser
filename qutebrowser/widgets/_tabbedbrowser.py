@@ -26,6 +26,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QSize
 import qutebrowser.utils.url as urlutils
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
+import qutebrowser.keyinput.modeman as modeman
 from qutebrowser.widgets._tabwidget import TabWidget, EmptyTabIcon
 from qutebrowser.widgets.webview import WebView
 from qutebrowser.browser.signalfilter import SignalFilter
@@ -359,7 +360,8 @@ class TabbedBrowser(TabWidget):
 
     @pyqtSlot(int)
     def on_current_changed(self, idx):
-        """Set last_focused when focus changed."""
+        """Set last_focused and leave hinting mode when focus changed."""
+        modeman.maybe_leave('hint', 'tab changed')
         tab = self.widget(idx)
         self.last_focused = self.now_focused
         self.now_focused = tab
