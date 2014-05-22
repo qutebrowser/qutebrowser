@@ -690,6 +690,9 @@ DATA = OrderedDict([
         ('<Escape>', 'leave-mode'),
     )),
 
+    # FIXME we should probably have a common section for input modes with a
+    # text field.
+
     ('keybind.command', sect.ValueList(
         types.KeyBindingName(), types.KeyBinding(),
         ('<Escape>', 'leave-mode'),
@@ -699,6 +702,17 @@ DATA = OrderedDict([
         ('<Shift-Tab>', 'completion-item-prev'),
         ('<Tab>', 'completion-item-next'),
         ('<Return>', 'command-accept'),
+        ('<Ctrl-B>', 'rl-backward-char'),
+        ('<Ctrl-F>', 'rl-forward-char'),
+        ('<Alt-B>', 'rl-backward-word'),
+        ('<Alt-F>', 'rl-forward-word'),
+        ('<Ctrl-A>', 'rl-beginning-of-line'),
+        ('<Ctrl-E>', 'rl-end-of-line'),
+        ('<Ctrl-U>', 'rl-unix-line-discard'),
+        ('<Ctrl-K>', 'rl-kill-line'),
+        ('<Alt-D>', 'rl-kill-word'),
+        ('<Ctrl-W>', 'rl-unix-word-rubout'),
+        ('<Ctrl-Y>', 'rl-yank'),
     )),
 
     ('keybind.prompt', sect.ValueList(
@@ -708,6 +722,17 @@ DATA = OrderedDict([
         ('<Return>', 'prompt-accept'),
         ('y', 'prompt-yes'),
         ('n', 'prompt-no'),
+        ('<Ctrl-B>', 'rl-backward-char'),
+        ('<Ctrl-F>', 'rl-forward-char'),
+        ('<Alt-B>', 'rl-backward-word'),
+        ('<Alt-F>', 'rl-forward-word'),
+        ('<Ctrl-A>', 'rl-beginning-of-line'),
+        ('<Ctrl-E>', 'rl-end-of-line'),
+        ('<Ctrl-U>', 'rl-unix-line-discard'),
+        ('<Ctrl-K>', 'rl-kill-line'),
+        ('<Alt-D>', 'rl-kill-word'),
+        ('<Ctrl-W>', 'rl-unix-word-rubout'),
+        ('<Ctrl-Y>', 'rl-yank'),
     )),
 
     ('aliases', sect.ValueList(

@@ -58,7 +58,6 @@ Improvements / minor features
 - Close tabs on right click
 - Up/Down not for history
 - search highlighting
-- readline like shortcuts (like C-w) for command prompt
 - max height for completion (be smaller if possible)
 - tab should directly insert word and space if there's only one option
 - vertical tabbar

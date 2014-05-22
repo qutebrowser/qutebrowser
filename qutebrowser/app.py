@@ -66,6 +66,7 @@ from qutebrowser.browser.cookies import CookieJar
 from qutebrowser.utils.message import MessageBridge
 from qutebrowser.utils.misc import (dotted_getattr, get_standard_dir,
                                     actute_warning)
+from qutebrowser.utils.readline import ReadlineBridge
 from qutebrowser.utils.debug import set_trace  # pylint: disable=unused-import
 
 
@@ -252,6 +253,7 @@ class QuteBrowser(QApplication):
         self.setApplicationName("qutebrowser")
         self.setApplicationVersion(qutebrowser.__version__)
         self.messagebridge = MessageBridge()
+        self.rl_bridge = ReadlineBridge()
 
     def _handle_segfault(self):
         """Handle a segfault from a previous run."""
