@@ -32,22 +32,39 @@ from qutebrowser.utils.misc import get_standard_dir
 
 class _BlockingFIFOReader(QObject):
 
-    """A worker which reads commands from a FIFO endlessly."""
+    """A worker which reads commands from a FIFO endlessly.
+
+    This is intended to be run in a separate QThread. It reads from the given
+    FIFO even across EOF so an userscript can write to it multiple times.
+
+    It uses select() so it can timeout once per second, checking if termination
+    was requested.
+
+    Attributes:
+        filepath: The filename of the FIFO to read.
+        fifo: The file object which is being read.
+
+    Signals:
+        got_line: Emitted when a new line arrived.
+        finished: Emitted when the read loop realized it should terminate and
+                  is about to do so.
+    """
 
     got_line = pyqtSignal(str)
     finished = pyqtSignal()
 
-    def __init__(self, filename):
+    def __init__(self, filepath):
         super().__init__()
-        self.filename = filename
+        self.filepath = filepath
         self.fifo = None
 
     def read(self):
+        """Blocking read loop which emits got_line when a new line arrived."""
         # We open as R/W so we never get EOF and have to reopen the pipe.
         # See http://www.outflux.net/blog/archives/2008/03/09/using-select-on-a-fifo/
         # We also use os.open and os.fdopen rather than built-in open so we can
         # add O_NONBLOCK.
-        fd = os.open(self.filename, os.O_RDWR | os.O_NONBLOCK)
+        fd = os.open(self.filepath, os.O_RDWR | os.O_NONBLOCK)
         self.fifo = os.fdopen(fd, 'r')
         while True:
             logging.debug("thread loop")
@@ -62,7 +79,21 @@ class _BlockingFIFOReader(QObject):
                 return
 
 
-class _AbstractUserscriptRunner(QObject):
+class _BaseUserscriptRunner(QObject):
+
+    """Common part between the Windows and the POSIX userscript runners.
+
+    Attributes:
+        filepath: The path of the file/FIFO which is being read.
+        proc: The QProcess which is being executed.
+
+    Class attributes:
+        PROCESS_MESSAGES: A mapping of QProcess::ProcessError members to
+                          human-readable error strings.
+
+    Signals:
+        got_cmd: Emitted when a new command arrived and should be executed.
+    """
 
     got_cmd = pyqtSignal(str)
 
@@ -83,6 +114,13 @@ class _AbstractUserscriptRunner(QObject):
         self.proc = None
 
     def _run_process(self, cmd, *args, env):
+        """Start the given command via QProcess.
+
+        Args:
+            cmd: The command to be started.
+            *args: The arguments to hand to the command
+            env: A dictionary of environment variables to add.
+        """
         self.proc = QProcess()
         procenv = QProcessEnvironment.systemEnvironment()
         procenv.insert('QUTE_FIFO', self.filepath)
@@ -95,29 +133,55 @@ class _AbstractUserscriptRunner(QObject):
         self.proc.start(cmd, args)
 
     def _cleanup(self):
+        """Clean up the temporary file."""
         try:
             os.remove(self.filepath)
         except PermissionError:
             message.error("Failed to delete tempfile...")
+        self.filepath = None
+        self.proc = None
 
     def run(self, cmd, *args, env=None):
+        """Run the userscript given.
+
+        Needs to be overridden by superclasses.
+
+        Args:
+            cmd: The command to be started.
+            *args: The arguments to hand to the command
+            env: A dictionary of environment variables to add.
+        """
         raise NotImplementedError
 
     def on_proc_finished(self):
+        """Called when the process has finished.
+
+        Needs to be overridden by superclasses.
+        """
         raise NotImplementedError
 
     def on_proc_error(self, error):
+        """Called when the process encountered an error."""
         msg = self.PROCESS_MESSAGES[error]
         message.error("Error while calling userscript: {}".format(msg))
 
 
-class _POSIXUserscriptRunner(_AbstractUserscriptRunner):
+class _POSIXUserscriptRunner(_BaseUserscriptRunner):
+
+    """Userscript runner to be used on POSIX. Uses _BlockingFIFOReader.
+
+    The OS must have support for named pipes and select(). Commands are
+    executed immediately when they arrive in the FIFO.
+
+    Attributes:
+        reader: The _BlockingFIFOReader instance.
+        thread: The QThread where reader runs.
+    """
 
     def __init__(self):
         super().__init__()
         self.reader = None
         self.thread = None
-        self.proc = None
 
     def run(self, cmd, *args, env=None):
         rundir = get_standard_dir(QStandardPaths.RuntimeLocation)
@@ -141,14 +205,17 @@ class _POSIXUserscriptRunner(_AbstractUserscriptRunner):
         self.thread.start()
 
     def on_proc_finished(self):
+        """Interrupt the reader when the process finished."""
         logging.debug("proc finished")
         self.thread.requestInterruption()
 
     def on_proc_error(self, error):
+        """Interrupt the reader when the process had an error."""
         super().on_proc_error(error)
         self.thread.requestInterruption()
 
     def on_reader_finished(self):
+        """Quit the thread and clean up when the reader finished."""
         logging.debug("reader finished")
         self.thread.quit()
         self.reader.fifo.close()
@@ -156,25 +223,40 @@ class _POSIXUserscriptRunner(_AbstractUserscriptRunner):
         super()._cleanup()
 
     def on_thread_finished(self):
+        """Clean up the QThread object when the thread finished."""
         logging.debug("thread finished")
         self.thread.deleteLater()
 
 
-class _WindowsUserscriptRunner(_AbstractUserscriptRunner):
+class _WindowsUserscriptRunner(_BaseUserscriptRunner):
+
+    """Userscript runner to be used on Windows.
+
+    This is a much more dumb implementation compared to POSIXUserscriptRunner.
+    It uses a normal flat file for commands and executes them all at once when
+    the process has finished, as Windows doesn't really understand the concept
+    of using files as named pipes.
+
+    This also means the userscript *has* to use >> (append) rather than >
+    (overwrite) to write to the file!
+    """
 
     def __init__(self):
         super().__init__()
         self.oshandle = None
-        self.proc = None
 
     def _cleanup(self):
         """Clean up temporary files after the userscript finished."""
         os.close(self.oshandle)
         super()._cleanup()
         self.oshandle = None
-        self.proc = None
 
     def on_proc_finished(self):
+        """Read back the commands when the process finished.
+
+        Emit:
+            got_cmd: Emitted for every command in the file.
+        """
         logging.debug("proc finished")
         with open(self.filepath, 'r') as f:
             for line in f:
@@ -182,6 +264,7 @@ class _WindowsUserscriptRunner(_AbstractUserscriptRunner):
         self._cleanup()
 
     def on_proc_error(self, error):
+        """Clean up when the process had an error."""
         super().on_proc_error(error)
         self._cleanup()
 
@@ -192,23 +275,21 @@ class _WindowsUserscriptRunner(_AbstractUserscriptRunner):
 
 class _DummyUserscriptRunner:
 
+    """Simple dummy runner which displays an error when using userscripts.
+
+    Used on unknown systems since we don't know what (or if any) approach will
+    work there.
+    """
+
     def run(self, _cmd, *_args, _env=None):
         message.error("Userscripts are not supported on this platform!")
 
 
-class UserscriptRunner(QObject):
-
-    got_cmd = pyqtSignal(str)
-
-    def __init__(self):
-        super().__init__()
-        if os.name == 'posix':
-            self.runner = _POSIXUserscriptRunner()
-        elif os.name == 'nt':
-            self.runner = _WindowsUserscriptRunner()
-        else:
-            self.runner = _DummyUserscriptRunner()
-        self.runner.got_cmd.connect(self.got_cmd)
-
-    def run(self, *args, **kwargs):
-        return self.runner.run(*args, **kwargs)
+# Here we basically just assign a generic UserscriptRunner class which does the
+# right thing depending on the platform.
+if os.name == 'posix':
+    UserscriptRunner = _POSIXUserscriptRunner
+elif os.name == 'nt':
+    UserscriptRunner = _WindowsUserscriptRunner
+else:
+    UserscriptRunner = _DummyUserscriptRunner
