@@ -49,7 +49,6 @@ import qutebrowser.config.config as config
 import qutebrowser.network.qutescheme as qutescheme
 import qutebrowser.config.websettings as websettings
 import qutebrowser.network.proxy as proxy
-import qutebrowser.utils.message as message
 import qutebrowser.browser.quickmarks as quickmarks
 from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.config.config import ConfigManager
@@ -60,13 +59,11 @@ from qutebrowser.keyinput.modeparsers import (NormalKeyParser, HintKeyParser,
                                               PromptKeyParser)
 from qutebrowser.keyinput.keyparser import PassthroughKeyParser
 from qutebrowser.commands.managers import CommandManager, SearchManager
-from qutebrowser.commands.exceptions import CommandError
 from qutebrowser.config.iniparsers import ReadWriteConfigParser
 from qutebrowser.config.lineparser import LineConfigParser
 from qutebrowser.browser.cookies import CookieJar
 from qutebrowser.utils.message import MessageBridge
-from qutebrowser.utils.misc import (dotted_getattr, get_standard_dir,
-                                    actute_warning)
+from qutebrowser.utils.misc import get_standard_dir, actute_warning
 from qutebrowser.utils.readline import ReadlineBridge
 from qutebrowser.utils.debug import set_trace  # pylint: disable=unused-import
 
@@ -142,7 +139,6 @@ class QuteBrowser(QApplication):
         self.networkmanager = NetworkManager(self.cookiejar)
         self.commandmanager = CommandManager()
         self.searchmanager = SearchManager()
-        self._init_cmds()
         self.mainwindow = MainWindow()
 
         self.modeman.mainwindow = self.mainwindow
@@ -309,20 +305,6 @@ class QuteBrowser(QApplication):
             # If available, we also want a traceback on SIGUSR1.
             # pylint: disable=no-member
             faulthandler.register(signal.SIGUSR1)
-
-    def _init_cmds(self):
-        """Initialisation of the qutebrowser commands.
-
-        Registers all commands and connects their signals.
-        """
-        for key, cmd in sorted(cmdutils.cmd_dict.items()):
-            cmd.signal.connect(self.command_handler)
-            if cmd.instance is not None:
-                func = '.'.join([cmd.instance if cmd.instance else 'app',
-                                 cmd.handler.__name__])
-            else:
-                func = cmd.handler.__name__
-            logging.debug("Registered command: {} -> {}".format(key, func))
 
     def _process_init_args(self):
         """Process initial positional args.
@@ -672,30 +654,3 @@ class QuteBrowser(QApplication):
         """
         logging.debug("Shutdown complete, quitting.")
         self.quit()
-
-    @pyqtSlot(tuple)
-    def command_handler(self, tpl):
-        """Handle commands which need an instance..
-
-        Args:
-            tpl: An (instance, func, count, args) tuple.
-                instance: How to get the current instance of the target object
-                          from app.py, as a dotted string, e.g.
-                          'mainwindow.tabs.cur'.
-                func:     The function name to be called (as string).
-                count:    The count given to the command, or None.
-                args:     A list of arguments given to the command.
-        """
-        (instance, func, count, args) = tpl
-        if instance == '':
-            obj = self
-        else:
-            obj = dotted_getattr(self, instance)
-        handler = getattr(obj, func)
-        try:
-            if count is not None:
-                handler(*args, count=count)
-            else:
-                handler(*args)
-        except CommandError as e:
-            message.error(e)

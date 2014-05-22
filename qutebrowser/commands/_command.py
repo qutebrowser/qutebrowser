@@ -21,12 +21,13 @@ import logging
 
 from qutebrowser.commands.exceptions import (ArgumentCountError,
                                              PrerequisitesError)
+from qutebrowser.utils.misc import dotted_getattr
 
-from PyQt5.QtCore import pyqtSignal, QObject, QCoreApplication
+from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWebKit import QWebSettings
 
 
-class Command(QObject):
+class Command:
 
     """Base skeleton for a command.
 
@@ -42,17 +43,11 @@ class Command(QObject):
         handler: The handler function to call.
         completion: Completions to use for arguments, as a list of strings.
         needs_js: Whether the command needs javascript enabled
-
-    Signals:
-        signal: Gets emitted when something should be called via handle_command
-                from the app.py context.
     """
 
     # TODO:
     # we should probably have some kind of typing / argument casting for args
     # this might be combined with help texts or so as well
-
-    signal = pyqtSignal(tuple)
 
     def __init__(self, name, split, hide, nargs, count, desc, instance,
                  handler, completion, modes, not_modes, needs_js):
@@ -119,10 +114,6 @@ class Command(QObject):
         Args:
             args: Arguments to the command.
             count: Command repetition count.
-
-        Emit:
-            signal: When the command has an instance and should be handled from
-                    the app.py context.
         """
         dbgout = ["command called:", self.name]
         if args:
@@ -131,13 +122,18 @@ class Command(QObject):
             dbgout.append("(count={})".format(count))
         logging.debug(' '.join(dbgout))
 
-        if self.instance is not None and self.count and count is not None:
-            self.signal.emit((self.instance, self.handler.__name__, count,
-                              args))
-        elif self.instance is not None:
-            self.signal.emit((self.instance, self.handler.__name__, None,
-                              args))
-        elif count is not None and self.count:
-            self.handler(*args, count=count)
-        else:
-            self.handler(*args)
+        kwargs = {}
+        app = QCoreApplication.instance()
+
+        if self.instance is not None:
+            # Add the 'self' parameter.
+            if self.instance == '':
+                obj = app
+            else:
+                obj = dotted_getattr(app, self.instance)
+            args.insert(0, obj)
+
+        if count is not None and self.count:
+            kwargs = {'count': count}
+
+        self.handler(*args, **kwargs)
