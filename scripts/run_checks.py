@@ -133,6 +133,30 @@ def check_unittest():
     status['unittest'] = result.wasSuccessful()
 
 
+def check_git():
+    """Check for uncommited git files.."""
+    print("==================== git ====================")
+    if not os.path.isdir(".git"):
+        print("No .git dir, ignoring")
+        status['git'] = False
+        print()
+        return
+    untracked = []
+    gitst = subprocess.check_output(['git', 'status', '--porcelain'])
+    gitst = gitst.decode('UTF-8').strip()
+    for line in gitst.splitlines():
+        s, name = line.split()
+        if s == '??':
+            untracked.append(name)
+    if untracked:
+        status['git'] = False
+        print("Untracked files:")
+        print('\n'.join(untracked))
+    else:
+        status['git'] = True
+    print()
+
+
 def check_line(target):
     """Run _check_file over a filetree."""
     print("------ line ------")
@@ -229,6 +253,7 @@ def _get_args(checker):
 
 argv = sys.argv[:]
 check_unittest()
+check_git()
 for trg in options['targets']:
     print("==================== {} ====================".format(trg))
     if do_check_257:
