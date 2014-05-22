@@ -51,6 +51,10 @@ class LineConfigParser:
             logging.debug("Reading config from {}".format(self._configfile))
             self.read(self._configfile)
 
+    def __iter__(self):
+        """Iterate over the set data."""
+        return self.data.__iter__()
+
     def read(self, filename):
         """Read the data from a file."""
         with open(filename, 'r', encoding='utf-8') as f:

@@ -34,7 +34,7 @@ class CookieJar(QNetworkCookieJar):
         datadir = get_standard_dir(QStandardPaths.DataLocation)
         self._linecp = LineConfigParser(datadir, 'cookies')
         cookies = []
-        for line in self._linecp.data:
+        for line in self._linecp:
             cookies += QNetworkCookie.parseCookies(line.encode('utf-8'))
         self.setAllCookies(cookies)
 
