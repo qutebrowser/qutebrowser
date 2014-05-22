@@ -124,6 +124,7 @@ class Prompt(QWidget):
         self.question.answer = True
         modeman.leave('yesno', 'yesno accept')
         self.question.answered.emit()
+        self.question.answered_yes.emit()
 
     @cmdutils.register(instance='mainwindow.status.prompt', hide=True,
                        modes=['yesno'])
@@ -135,6 +136,7 @@ class Prompt(QWidget):
         self.question.answer = False
         modeman.leave('yesno', 'prompt accept')
         self.question.answered.emit()
+        self.question.answered_no.emit()
 
     def display(self):
         """Display the question in self.question in the widget.
