@@ -12,4 +12,5 @@ exclude scripts/generate_authors.sh
 exclude .flake8
 exclude .pylintrc
 exclude TODO
+exclude BUGS
 prune pkg
