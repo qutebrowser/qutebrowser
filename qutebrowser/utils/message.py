@@ -21,7 +21,7 @@ import logging
 
 from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication
 
-from qutebrowser.utils.usertypes import Question
+from qutebrowser.utils.usertypes import PromptMode, Question
 
 
 def instance():
@@ -79,6 +79,42 @@ def modular_question(message, mode, default=None):
     q.default = default
     instance().question.emit(q, True)
     return q.answer
+
+
+def question(message, mode, handler, default=None):
+    """Ask an async question in the statusbar.
+
+    Args:
+        message: The message to display to the user.
+        mode: A PromptMode.
+        handler: The function to get called with the answer as argument.
+        default: The default value to display.
+    """
+    q = Question()
+    q.text = message
+    q.mode = mode
+    q.default = default
+    q.answered.connect(lambda: handler(q.answer))
+    instance().question.emit(q, True)
+
+
+def confirm_action(message, yes_action, no_action=None, default=None):
+    """Ask a yes/no question to the user and execute the given actions.
+
+    Args:
+        message: The message to display to the user.
+        yes_action: Callable to be called when the user answered yes.
+        no_action: Callable to be called when the user answered no.
+        default: True/False to set a default value, or None.
+    """
+    q = Question()
+    q.text = message
+    q.mode = PromptMode.yesno
+    q.default = default
+    q.answered_yes.connect(yes_action)
+    if no_action is not None:
+        q.answered_no.connect(no_action)
+    instance().question.emit(q, False)
 
 
 def clear():
