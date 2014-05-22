@@ -696,11 +696,12 @@ DATA = OrderedDict([
     ('keybind.command', sect.ValueList(
         types.KeyBindingName(), types.KeyBinding(),
         ('<Escape>', 'leave-mode'),
-        ('<Ctrl-N>', 'leave-mode'),
-        ('<Up>', 'command-history-prev'),
-        ('<Down>', 'command-history-next'),
+        ('<Ctrl-P>', 'command-history-prev'),
+        ('<Ctrl-N>', 'command-history-next'),
         ('<Shift-Tab>', 'completion-item-prev'),
+        ('<Up>', 'completion-item-prev'),
         ('<Tab>', 'completion-item-next'),
+        ('<Down>', 'completion-item-next'),
         ('<Return>', 'command-accept'),
         ('<Ctrl-B>', 'rl-backward-char'),
         ('<Ctrl-F>', 'rl-forward-char'),
@@ -718,7 +719,6 @@ DATA = OrderedDict([
     ('keybind.prompt', sect.ValueList(
         types.KeyBindingName(), types.KeyBinding(),
         ('<Escape>', 'leave-mode'),
-        ('<Ctrl-N>', 'leave-mode'),
         ('<Return>', 'prompt-accept'),
         ('y', 'prompt-yes'),
         ('n', 'prompt-no'),
