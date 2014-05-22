@@ -279,15 +279,4 @@ class Question(QObject):
         self.default = None
         self.text = None
         self.user = None
-        self._answer = None
-
-    @property
-    def answer(self):
-        """Getter for answer so we can define a setter."""
-        return self._answer
-
-    @answer.setter
-    def answer(self, val):
-        """Setter for answer to emit the answered signal after setting."""
-        self._answer = val
-        self.answered.emit()
+        self.answer = None
