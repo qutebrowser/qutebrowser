@@ -160,15 +160,6 @@ Show Bookmarks (command bookmarks, aliases: bmarks, bmas).
 gB
 Show Bookmarks, open bookmark in a new tab (command tab_bookmarks, aliases: tabmarks).
 
-m
-Add a quickmark (command save_quickmark, aliases: quickmark, qmark).
-
-b
-Open quickmark (command quickmark, aliases: qmarks).
-
-B
-Open quickmark in a new tab (command tab_quickmark, aliases: tabqmarks).
-
 tab-handling
 ------------
 

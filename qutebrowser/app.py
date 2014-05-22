@@ -50,6 +50,7 @@ import qutebrowser.network.qutescheme as qutescheme
 import qutebrowser.config.websettings as websettings
 import qutebrowser.network.proxy as proxy
 import qutebrowser.utils.message as message
+import qutebrowser.browser.quickmarks as quickmarks
 from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.config.config import ConfigManager
 from qutebrowser.keyinput.modeman import ModeManager
@@ -133,6 +134,7 @@ class QuteBrowser(QApplication):
         self._handle_segfault()
         self._init_modes()
         websettings.init()
+        quickmarks.init()
         proxy.init()
         self.cookiejar = CookieJar()
         self.networkmanager = NetworkManager(self.cookiejar)
@@ -624,6 +626,11 @@ class QuteBrowser(QApplication):
             self.cookiejar.save()
         except AttributeError:
             logging.exception("Could not save cookies.")
+        # Save quickmarks
+        try:
+            quickmarks.save()
+        except AttributeError:
+            logging.exception("Could not save quickmarks.")
         # Shut down tabs
         try:
             self.mainwindow.tabs.shutdown_complete.connect(partial(

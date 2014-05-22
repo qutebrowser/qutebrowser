@@ -33,6 +33,7 @@ import qutebrowser.browser.hints as hints
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.message as message
 import qutebrowser.utils.webelem as webelem
+import qutebrowser.browser.quickmarks as quickmarks
 from qutebrowser.utils.misc import check_overflow, shell_escape
 from qutebrowser.utils.editor import ExternalEditor
 from qutebrowser.commands.exceptions import CommandError
@@ -600,6 +601,29 @@ class CommandDispatcher(QObject):
         runner.got_cmd.connect(self._tabs.got_cmd)
         runner.run(cmd, *args, env={'QUTE_URL': url})
         self._userscript_runners.append(runner)
+
+    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    def quickmark_save(self):
+        """Save the current page as a quickmark."""
+        quickmarks.prompt_save(self._tabs.currentWidget().url())
+
+    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    def quickmark_load(self, name):
+        """Load a quickmark."""
+        url = quickmarks.get(name)
+        self._tabs.currentWidget().openurl(url)
+
+    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    def quickmark_load_tab(self, name):
+        """Load a quickmark in a new tab."""
+        url = quickmarks.get(name)
+        self._tabs.tabopen(url, background=False)
+
+    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    def quickmark_load_tab_bg(self, name):
+        """Load a quickmark in a new background tab."""
+        url = quickmarks.get(name)
+        self._tabs.tabopen(url, background=True)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', modes=['insert'],
                        hide=True)
