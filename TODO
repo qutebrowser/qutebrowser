@@ -12,13 +12,10 @@ Before 0.1
 - Save tabs feature
 - More dwb keybindings
 - Use  :open engine searchterm   syntax for searching
-- Basic SSL handling
-    e.g. broken on https://fsinf.fh-worms.de/
-    at least ssl-strict setting and default certs
-    SSL-symbol in statusbar
-- Authentification (for websites/proxy)
-   - prompt in statusbar
-   - ssl-strict=ask
+- SSL handling
+    - do we have default certs?
+    - ssl-strict=ask
+    - SSL-symbol in statusbar?
 - Downloads (at least calling a handler)
 
 Style
@@ -44,8 +41,7 @@ New big features
 - Bookmarks
 - Internationalization
 - more completions (URLs, ...)
-- SSL handling
-- history
+- proper webpage history
 
 Improvements / minor features
 =============================
@@ -87,10 +83,10 @@ Improvements / minor features
          elem = frame.findFirstElement('*:focus')
 - somehow unfocus elements (hide blinking cursor) when insert mode is left?
 - tabs: some more padding?
-- Really fix URL detection properly
 - Make it possible to open inspector in a new window.
 - Copy link location on crash mail should not copy mailto:
 - Drag&Drop of tabs to other windows
+- Use QNetworkAccessManager per QWebPage again so we can set proxy per tab.
 
 hints
 -----
@@ -101,14 +97,6 @@ hints
 - ignore keypresses shortly after link following
 - uppercase hint chars without requiring upper case to type (easier to
   distinguish)
-
-Useful things
-=============
-
-http://www.tenox.net/out/wrp11-qt.py
-https://code.google.com/p/webscraping/source/browse/webkit.py
-https://github.com/jeanphix/Ghost.py/blob/master/ghost/ghost.py
-http://otter-browser.org/
 
 dwb keybindings to possibly implement
 =====================================
