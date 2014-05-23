@@ -18,7 +18,7 @@
 """The tab widget used for TabbedBrowser from browser.py."""
 
 from PyQt5.QtCore import pyqtSlot, Qt
-from PyQt5.QtWidgets import QTabWidget, QTabBar, QSizePolicy
+from PyQt5.QtWidgets import QTabWidget, QTabBar, QSizePolicy, QTabBar
 from PyQt5.QtGui import QIcon, QPixmap
 
 import qutebrowser.config.config as config
@@ -78,12 +78,14 @@ class TabWidget(QTabWidget):
 
     def __init__(self, parent):
         super().__init__(parent)
+        self.setTabBar(TabBar())
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setStyle(Style(self.style()))
         set_register_stylesheet(self)
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
         self.tabBar().setDrawBase(False)
+        self.tabBar().tabCloseRequested.connect(self.tabCloseRequested)
         self._init_config()
 
     def _init_config(self):
@@ -115,3 +117,17 @@ class TabWidget(QTabWidget):
         """Update attributes when config changed."""
         if section == 'tabbar':
             self._init_config()
+
+
+class TabBar(QTabBar):
+
+    """Custom tabbar to close tabs on right click."""
+
+    def mousePressEvent(self, e):
+        """Override mousePressEvent to emit tabCloseRequested on rightclick."""
+        if e.button() != Qt.RightButton:
+            return super().mousePressEvent(e)
+        idx = self.tabAt(e.pos())
+        if idx == -1:
+            return super().mousePressEvent(e)
+        self.tabCloseRequested.emit(idx)

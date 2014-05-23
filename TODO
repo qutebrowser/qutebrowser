@@ -56,7 +56,6 @@ Improvements / minor features
     - Second column (flag): TRUE if domain starts with ., else FALSE
     - if a cookie is a http-only cookie domain is prepended with a #HttpOnly_
 - Zoom with ctrl + mousewheel
-- Close tabs on right click
 - search highlighting
 - max height for completion (be smaller if possible)
 - tab should directly insert word and space if there's only one option
