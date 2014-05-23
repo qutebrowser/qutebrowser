@@ -42,14 +42,26 @@ def init_log(args):
     """Init loggers based on the argparse namespace passed."""
     logfilter = LogFilter(None if args.logfilter is None
                           else args.logfilter.split(','))
+    level = 'DEBUG' if args.debug else args.loglevel.upper()
+    try:
+        numeric_level = logging._nameToLevel[level]
+    except KeyError:
+        raise ValueError("Invalid log level: {}".format(args.loglevel))
+    if numeric_level <= logging.DEBUG:
+        fmt = ('{asctime} [{levelname}] [{name}|{module}:{funcName}:{lineno}] '
+               '{message}')
+        datefmt = '%Y-%m-%d %H:%M:%S'
+    else:
+        fmt = '{levelname}: {message}'
+        datefmt = None
+    formatter = logging.Formatter(fmt, datefmt, '{')
     console_handler = logging.StreamHandler()
     console_handler.addFilter(logfilter)
-    logging.basicConfig(
-        level='DEBUG' if args.debug else args.loglevel.upper(),
-        format='%(asctime)s [%(levelname)s] [%(name)s|'
-               '%(module)s:%(funcName)s:%(lineno)s] %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-        handlers=[console_handler])
+    console_handler.setLevel(level)
+    console_handler.setFormatter(formatter)
+    root = getLogger()
+    root.addHandler(console_handler)
+    root.setLevel(logging.NOTSET)
 
 
 class LogFilter(logging.Filter):
