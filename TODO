@@ -13,7 +13,6 @@ Before 0.1
 - More dwb keybindings
 - Use  :open engine searchterm   syntax for searching
 - SSL handling
-    - do we have default certs?
     - ssl-strict=ask
     - SSL-symbol in statusbar?
 - Downloads (at least calling a handler)
