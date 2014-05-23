@@ -29,7 +29,6 @@ earlyinit.check_pyqt_webkit()
 import os
 import sys
 import types
-import logging
 import subprocess
 import faulthandler
 import configparser
@@ -127,7 +126,7 @@ class QuteBrowser(QApplication):
         sys.excepthook = self._exception_hook
 
         self._args = self._parse_args()
-        self._init_log()
+        log.init_log(self._args)
         self._init_misc()
         actute_warning()
         self._init_config()
@@ -166,6 +165,8 @@ class QuteBrowser(QApplication):
         parser = ArgumentParser("usage: %(prog)s [options]")
         parser.add_argument('-l', '--log', dest='loglevel',
                             help="Set loglevel", default='info')
+        parser.add_argument('-f', '--logfilter',
+                            help="Comma-separated list of things to be logged")
         parser.add_argument('-c', '--confdir', help="Set config directory "
                             "(empty for no config storage)")
         parser.add_argument('-d', '--debug', help="Turn on debugging options.",
@@ -230,22 +231,6 @@ class QuteBrowser(QApplication):
         self.modeman.register('prompt', self._keyparsers['prompt'].handle,
                               passthrough=True)
         self.modeman.register('yesno', self._keyparsers['yesno'].handle)
-
-    def _init_log(self):
-        """Initialisation of the logging output.
-
-        Raise:
-            ValueError if there was an invalid loglevel.
-        """
-        loglevel = 'debug' if self._args.debug else self._args.loglevel
-        numeric_level = getattr(logging, loglevel.upper(), None)
-        if not isinstance(numeric_level, int):
-            raise ValueError("Invalid log level: {}".format(loglevel))
-        logging.basicConfig(
-            level=numeric_level,
-            format='%(asctime)s [%(levelname)s] [%(name)s|'
-                   '%(module)s:%(funcName)s:%(lineno)s] %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S')
 
     def _init_misc(self):
         """Initialize misc things."""
