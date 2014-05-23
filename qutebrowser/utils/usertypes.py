@@ -22,10 +22,11 @@ Module attributes:
 """
 
 import operator
-import logging
 import collections.abc
 
 from PyQt5.QtCore import pyqtSignal, QObject
+
+from qutebrowser.utils.log import misc as logger
 
 
 _UNSET = object()
@@ -174,8 +175,8 @@ class NeighborList(collections.abc.Sequence):
             IndexError if the border of the list is reached and mode is
                        exception.
         """
-        logging.debug("{} items, idx {}, offset {}".format(len(self._items),
-                                                           self.idx, offset))
+        logger.debug("{} items, idx {}, offset {}".format(len(self._items),
+                                                          self.idx, offset))
         if not self._items:
             raise IndexError("No items found!")
         if self.fuzzyval is not None:

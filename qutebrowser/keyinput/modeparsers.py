@@ -21,14 +21,13 @@ Module attributes:
     STARTCHARS: Possible chars for starting a commandline input.
 """
 
-import logging
-
 from PyQt5.QtCore import pyqtSignal, Qt
 
 import qutebrowser.utils.message as message
 import qutebrowser.config.config as config
 from qutebrowser.keyinput.keyparser import CommandKeyParser
 from qutebrowser.utils.usertypes import enum
+from qutebrowser.utils.log import keyboard as logger
 
 
 STARTCHARS = ":/?"
@@ -109,11 +108,11 @@ class HintKeyParser(CommandKeyParser):
             filter_hints: Emitted when filter string has changed.
             keystring_updated: Emitted when keystring has been changed.
         """
-        logging.debug("Got special key {} text {}".format(e.key(), e.text()))
+        logger.debug("Got special key {} text {}".format(e.key(), e.text()))
         if e.key() == Qt.Key_Backspace:
-            logging.debug("Got backspace, mode {}, filtertext '{}', keystring "
-                          "'{}'".format(LastPress[self._last_press],
-                                        self._filtertext, self._keystring))
+            logger.debug("Got backspace, mode {}, filtertext '{}', keystring "
+                         "'{}'".format(LastPress[self._last_press],
+                                       self._filtertext, self._keystring))
             if self._last_press == LastPress.filtertext and self._filtertext:
                 self._filtertext = self._filtertext[:-1]
                 self.filter_hints.emit(self._filtertext)

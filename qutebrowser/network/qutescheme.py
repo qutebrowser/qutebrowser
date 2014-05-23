@@ -22,13 +22,13 @@ Module attributes:
     pyeval_output: The output of the last :pyeval command.
 """
 
-import logging
 import cgi
 
 from qutebrowser.network._schemehandler import (SchemeHandler,
                                                 SpecialNetworkReply)
 from qutebrowser.utils.version import version
 from qutebrowser.utils.url import urlstring
+from qutebrowser.utils.log import misc as logger
 
 
 _HTML_TEMPLATE = """
@@ -87,7 +87,7 @@ class QuteSchemeHandler(SchemeHandler):
         Return:
             A QNetworkReply.
         """
-        logging.debug("request: {}".format(request))
+        logger.debug("request: {}".format(request))
         url = urlstring(request.url())
         try:
             handler = getattr(QuteHandlers, self._transform_url(url))

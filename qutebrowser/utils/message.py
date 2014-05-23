@@ -17,11 +17,10 @@
 
 """Message singleton so we don't have to define unneeded signals."""
 
-import logging
-
 from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication
 
 from qutebrowser.utils.usertypes import PromptMode, Question
+from qutebrowser.utils.log import misc as logger
 
 
 def instance():
@@ -38,7 +37,7 @@ def error(message, queue=False):
                immediately.
     """
     message = str(message)
-    logging.error(message)
+    logger.error(message)
     instance().error.emit(message, queue)
 
 
@@ -51,14 +50,14 @@ def info(message, queue=False):
                immediately.
     """
     message = str(message)
-    logging.info(message)
+    logger.info(message)
     instance().info.emit(message, queue)
 
 
 def text(message):
     """Display a persistent message in the statusbar."""
     message = str(message)
-    logging.debug(message)
+    logger.debug(message)
     instance().text.emit(message)
 
 

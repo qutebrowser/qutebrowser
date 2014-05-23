@@ -21,8 +21,6 @@ Defines a CompletionView which uses CompletionFiterModel and CompletionModel
 subclasses to provide completions.
 """
 
-import logging
-
 from PyQt5.QtWidgets import QStyle, QTreeView, QSizePolicy
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel
 
@@ -38,6 +36,7 @@ from qutebrowser.models.completion import (
     CommandCompletionModel, SettingSectionCompletionModel,
     SettingOptionCompletionModel, SettingValueCompletionModel)
 from qutebrowser.utils.usertypes import FakeDict
+from qutebrowser.utils.log import completion as logger
 
 
 class CompletionView(QTreeView):
@@ -216,14 +215,14 @@ class CompletionView(QTreeView):
         except KeyError:
             # entering an unknown command
             return None
-        logging.debug("completions: {}".format(completions))
+        logger.debug("completions: {}".format(completions))
         if completions is None:
             # command without any available completions
             return None
         try:
             idx = len(parts[1:]) - 1
             completion_name = completions[idx]
-            logging.debug('partlen: {}, modelname {}'.format(
+            logger.debug('partlen: {}, modelname {}'.format(
                 len(parts[1:]), completion_name))
         except IndexError:
             # More arguments than completions
@@ -270,7 +269,7 @@ class CompletionView(QTreeView):
         Args:
             model: The model to use.
         """
-        logging.debug("Setting model to {}".format(model.__class__.__name__))
+        logger.debug("Setting model to {}".format(model.__class__.__name__))
         self.setModel(model)
         self._model = model
         self.expandAll()
@@ -307,9 +306,9 @@ class CompletionView(QTreeView):
 
         model = self._get_new_completion(parts)
         if model is None:
-            logging.debug("No completion model for {}.".format(parts))
+            logger.debug("No completion model for {}.".format(parts))
         else:
-            logging.debug("New completion: {} / last: {}".format(
+            logger.debug("New completion: {} / last: {}".format(
                 model.srcmodel.__class__.__name__,
                 self._lastmodel.srcmodel.__class__.__name__ if self._lastmodel
                 is not None else "None"))

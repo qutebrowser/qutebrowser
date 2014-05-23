@@ -19,9 +19,10 @@
 
 import os
 import os.path
-import logging
 
 from PyQt5.QtCore import pyqtSlot
+
+import qutebrowser.utils.log as log
 
 
 class LineConfigParser:
@@ -48,7 +49,7 @@ class LineConfigParser:
         if not os.path.isfile(self._configfile):
             self.data = []
         else:
-            logging.debug("Reading config from {}".format(self._configfile))
+            log.init.debug("Reading config from {}".format(self._configfile))
             self.read(self._configfile)
 
     def __iter__(self):
@@ -76,7 +77,7 @@ class LineConfigParser:
     def save(self):
         """Save the config file."""
         if not self.data:
-            logging.debug("No data to save.")
+            log.destroy.debug("No data to save.")
             return
         # We need to import this here because config needs LineConfigParser.
         import qutebrowser.config.config as config
@@ -85,7 +86,7 @@ class LineConfigParser:
             return
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
-        logging.debug("Saving config to {}".format(self._configfile))
+        log.destroy.debug("Saving config to {}".format(self._configfile))
         with open(self._configfile, 'w', encoding='utf-8') as f:
             self.write(f, limit)
 

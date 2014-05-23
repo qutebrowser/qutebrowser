@@ -17,11 +17,10 @@
 
 """Command history for the status bar."""
 
-import logging
-
 from PyQt5.QtCore import pyqtSlot, QCoreApplication
 
 from qutebrowser.utils.usertypes import NeighborList
+from qutebrowser.utils.log import statusbar as logger
 
 
 class HistoryEmptyError(Exception):
@@ -70,7 +69,7 @@ class History:
         Args:
             text: The preset text.
         """
-        logging.debug("Preset text: '{}'".format(text))
+        logger.debug("Preset text: '{}'".format(text))
         if text:
             items = [e for e in self._history if e.startswith(text)]
         else:

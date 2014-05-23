@@ -17,14 +17,13 @@
 
 """Advanced keyparsers."""
 
-import logging
-
 from qutebrowser.keyinput._basekeyparser import BaseKeyParser
 import qutebrowser.utils.message as message
 
 from qutebrowser.commands.managers import CommandManager
 from qutebrowser.commands.exceptions import (
     ArgumentCountError, CommandMetaError, CommandError)
+from qutebrowser.utils.log import keyboard as logger
 
 
 class CommandKeyParser(BaseKeyParser):
@@ -50,7 +49,7 @@ class CommandKeyParser(BaseKeyParser):
         try:
             self.commandmanager.run(cmdstr, count=count)
         except ArgumentCountError:
-            logging.debug("Filling statusbar with partial command {}".format(
+            logger.debug("Filling statusbar with partial command {}".format(
                 cmdstr))
             message.set_cmd_text(':{} '.format(cmdstr))
         except (CommandMetaError, CommandError) as e:

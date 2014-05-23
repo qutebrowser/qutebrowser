@@ -17,7 +17,6 @@
 
 """A HintManager to draw hints over links."""
 
-import logging
 import math
 from collections import namedtuple
 
@@ -32,6 +31,7 @@ import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.webelem as webelem
 from qutebrowser.commands.exceptions import CommandError
 from qutebrowser.utils.usertypes import enum
+from qutebrowser.utils.log import hints as logger
 
 
 ElemTuple = namedtuple('ElemTuple', 'elem, label')
@@ -266,8 +266,8 @@ class HintManager(QObject):
         # e.g. parse (-webkit-)border-radius correctly and click text fields at
         # the bottom right, and everything else on the top left or so.
         pos = webelem.rect_on_view(elem).center()
-        logging.debug("Clicking on '{}' at {}/{}".format(elem.toPlainText(),
-                                                         pos.x(), pos.y()))
+        logger.debug("Clicking on '{}' at {}/{}".format(elem.toPlainText(),
+                                                        pos.x(), pos.y()))
         events = [
             QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
                         Qt.NoModifier),
@@ -356,9 +356,9 @@ class HintManager(QObject):
             # making sure we don't connect a frame which already was connected
             # at some point earlier.
             if f in self._connected_frames:
-                logging.debug("Frame {} already connected!".format(f))
+                logger.debug("Frame {} already connected!".format(f))
             else:
-                logging.debug("Connecting frame {}".format(f))
+                logger.debug("Connecting frame {}".format(f))
                 f.contentsSizeChanged.connect(self.on_contents_size_changed)
                 self._connected_frames.append(f)
 
@@ -422,7 +422,7 @@ class HintManager(QObject):
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
-        logging.debug("Handling new keystring: '{}'".format(keystr))
+        logger.debug("Handling new keystring: '{}'".format(keystr))
         for (string, elems) in self._elems.items():
             if string.startswith(keystr):
                 matched = string[:len(keystr)]
@@ -516,9 +516,9 @@ class HintManager(QObject):
         if not self._started:
             # We got here because of some earlier hinting, but we can't simply
             # disconnect frames as this leads to occasional segfaults :-/
-            logging.debug("Not hinting!")
+            logger.debug("Not hinting!")
             return
-        logging.debug("Contents size changed...!")
+        logger.debug("Contents size changed...!")
         for elems in self._elems.values():
             css = self._get_hint_css(elems.elem, elems.label)
             elems.label.setAttribute('style', css)

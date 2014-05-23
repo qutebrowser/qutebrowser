@@ -17,8 +17,6 @@
 
 """The commandline in the statusbar."""
 
-import logging
-
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtGui import QValidator
@@ -28,6 +26,7 @@ import qutebrowser.commands.utils as cmdutils
 from qutebrowser.widgets.misc import MinimalLineEdit
 from qutebrowser.commands.managers import split_cmdline
 from qutebrowser.keyinput.modeparsers import STARTCHARS
+from qutebrowser.utils.log import completion as logger
 from qutebrowser.models.cmdhistory import (History, HistoryEmptyError,
                                            HistoryEndReachedError)
 
@@ -111,7 +110,7 @@ class Command(MinimalLineEdit):
         else:
             prefix = ''
         parts = split_cmdline(text)
-        logging.debug("Old text: '{}' - parts: '{}', changing to '{}".format(
+        logger.debug("Old text: '{}' - parts: '{}', changing to '{}".format(
             text, parts, newtext))
         parts[-1] = newtext
         self.setText(prefix + ' '.join(parts))

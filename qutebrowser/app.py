@@ -50,6 +50,7 @@ import qutebrowser.network.qutescheme as qutescheme
 import qutebrowser.config.websettings as websettings
 import qutebrowser.network.proxy as proxy
 import qutebrowser.browser.quickmarks as quickmarks
+import qutebrowser.utils.log as log
 from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.config.config import ConfigManager
 from qutebrowser.keyinput.modeman import ModeManager
@@ -242,8 +243,8 @@ class QuteBrowser(QApplication):
             raise ValueError("Invalid log level: {}".format(loglevel))
         logging.basicConfig(
             level=numeric_level,
-            format='%(asctime)s [%(levelname)s] '
-                   '[%(module)s:%(funcName)s:%(lineno)s] %(message)s',
+            format='%(asctime)s [%(levelname)s] [%(name)s|'
+                   '%(module)s:%(funcName)s:%(lineno)s] %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S')
 
     def _init_misc(self):
@@ -274,7 +275,7 @@ class QuteBrowser(QApplication):
                 try:
                     os.remove(logname)
                 except PermissionError:
-                    logging.warn("Could not remove crash log!")
+                    log.init.warn("Could not remove crash log!")
                 else:
                     self._init_crashlogfile()
                 self._crashdlg = FatalCrashDialog(data)
@@ -284,10 +285,10 @@ class QuteBrowser(QApplication):
                 # This means another instance is probably still running and
                 # didn't remove the file. As we can't write to the same file,
                 # we just leave faulthandler as it is and log to stderr.
-                logging.warn("Empty crash.log detected. This means either "
-                             "another instance is running (then ignore this "
-                             "warning) or the file is lying here because "
-                             "of some earlier crash (then delete it).")
+                log.init.warn("Empty crash.log detected. This means either "
+                              "another instance is running (then ignore this "
+                              "warning) or the file is lying here because "
+                              "of some earlier crash (then delete it).")
                 self._crashlogfile = None
         else:
             # There's no log file, so we can use this to display crashes to the
@@ -318,15 +319,15 @@ class QuteBrowser(QApplication):
 
         for e in self._args.command:
             if e.startswith(':'):
-                logging.debug("Startup cmd {}".format(e))
+                log.init.debug("Startup cmd {}".format(e))
                 self.commandmanager.run_safely_init(e.lstrip(':'))
             else:
-                logging.debug("Startup URL {}".format(e))
+                log.init.debug("Startup URL {}".format(e))
                 self._opened_urls.append(e)
                 self.mainwindow.tabs.tabopen(e)
 
         if self.mainwindow.tabs.count() == 0:
-            logging.debug("Opening startpage")
+            log.init.debug("Opening startpage")
             for url in self.config.get('general', 'startpage'):
                 self.mainwindow.tabs.tabopen(url)
 
@@ -486,7 +487,7 @@ class QuteBrowser(QApplication):
         try:
             self.lastWindowClosed.disconnect(self.shutdown)
         except TypeError:
-            logging.exception("Preventing shutdown failed.")
+            log.destroy.exception("Preventing shutdown failed.")
         QApplication.closeAllWindows()
         self._crashdlg = ExceptionCrashDialog(pages, history, exc)
         ret = self._crashdlg.exec_()
@@ -506,10 +507,10 @@ class QuteBrowser(QApplication):
             The sender of the quit signal (string)
         """
         self._quit_status[sender] = True
-        logging.debug("maybe_quit called from {}, quit status {}".format(
+        log.destroy.debug("maybe_quit called from {}, quit status {}".format(
             sender, self._quit_status))
         if all(self._quit_status.values()):
-            logging.debug("maybe_quit quitting.")
+            log.destroy.debug("maybe_quit quitting.")
             self.quit()
 
     @cmdutils.register(instance='', nargs=0)
@@ -531,8 +532,8 @@ class QuteBrowser(QApplication):
             except ValueError:
                 pass
         argv = [sys.executable] + argv + pages
-        logging.debug("Running {} with args {}".format(sys.executable,
-                                                       argv))
+        log.procs.debug("Running {} with args {}".format(sys.executable,
+                                                         argv))
         subprocess.Popen(argv)
         if shutdown:
             self.shutdown()
@@ -588,41 +589,41 @@ class QuteBrowser(QApplication):
         if self._shutting_down:
             return
         self._shutting_down = True
-        logging.debug("Shutting down...")
+        log.destroy.debug("Shutting down...")
         # Save config
         if self.config.get('general', 'auto-save-config'):
             try:
                 self.config.save()
             except AttributeError:
-                logging.exception("Could not save config.")
+                log.destroy.exception("Could not save config.")
         # Save command history
         try:
             self.cmd_history.save()
         except AttributeError:
-            logging.exception("Could not save command history.")
+            log.destroy.exception("Could not save command history.")
         # Save window state
         try:
             self._save_geometry()
             self.stateconfig.save()
         except AttributeError:
-            logging.exception("Could not save window geometry.")
+            log.destroy.exception("Could not save window geometry.")
         # Save cookies
         try:
             self.cookiejar.save()
         except AttributeError:
-            logging.exception("Could not save cookies.")
+            log.destroy.exception("Could not save cookies.")
         # Save quickmarks
         try:
             quickmarks.save()
         except AttributeError:
-            logging.exception("Could not save quickmarks.")
+            log.destroy.exception("Could not save quickmarks.")
         # Shut down tabs
         try:
             self.mainwindow.tabs.shutdown_complete.connect(partial(
                 self._maybe_quit, 'tabs'))
             self.mainwindow.tabs.shutdown()
         except AttributeError:  # mainwindow or tabs could still be None
-            logging.exception("No mainwindow/tabs to shut down.")
+            log.destroy.exception("No mainwindow/tabs to shut down.")
             self._maybe_quit('tabs')
         # Shut down networkmanager
         try:
@@ -631,7 +632,7 @@ class QuteBrowser(QApplication):
                 self._maybe_quit, 'networkmanager'))
             self.networkmanager.deleteLater()
         except AttributeError:
-            logging.exception("No networkmanager to shut down.")
+            log.destroy.exception("No networkmanager to shut down.")
             self._maybe_quit('networkmanager')
         if self._crashlogfile is not None:
             # Re-enable faulthandler to stdout, then remove crash log
@@ -652,5 +653,5 @@ class QuteBrowser(QApplication):
 
         Gets called when all tabs finished shutting down after shutdown().
         """
-        logging.debug("Shutdown complete, quitting.")
+        log.destroy.debug("Shutdown complete, quitting.")
         self.quit()

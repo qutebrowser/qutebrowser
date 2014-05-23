@@ -17,8 +17,6 @@
 
 """Module containing command managers (SearchManager and CommandManager)."""
 
-import logging
-
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 from PyQt5.QtWebKitWidgets import QWebPage
 
@@ -28,6 +26,7 @@ import qutebrowser.utils.message as message
 from qutebrowser.commands.exceptions import (NoSuchCommandError,
                                              CommandMetaError, CommandError)
 from qutebrowser.utils.misc import safe_shlex_split
+from qutebrowser.utils.log import commands as logger
 
 
 def split_cmdline(text):
@@ -39,7 +38,7 @@ def split_cmdline(text):
     Return:
         A list of strings.
     """
-    logging.debug("Splitting '{}'".format(text))
+    logger.debug("Splitting '{}'".format(text))
     manager = CommandManager()
     original_cmd = text.strip().split(maxsplit=1)
     try:
@@ -48,7 +47,7 @@ def split_cmdline(text):
         parts = text.split(' ')
         if text.endswith(' '):
             parts.append('')
-    logging.debug("Split parts: {}".format(parts))
+    logger.debug("Split parts: {}".format(parts))
     if len(parts) == 1 and parts[0]:
         parts = original_cmd
     return parts
@@ -195,7 +194,7 @@ class CommandManager:
                     new_cmd = alias
                 if text.endswith(' '):
                     new_cmd += ' '
-                logging.debug("Re-parsing with '{}'.".format(new_cmd))
+                logger.debug("Re-parsing with '{}'.".format(new_cmd))
                 return self.parse(new_cmd, aliases=False)
         try:
             cmd = cmdutils.cmd_dict[cmdstr]

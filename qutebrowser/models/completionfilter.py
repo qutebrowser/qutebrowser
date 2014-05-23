@@ -21,9 +21,9 @@ Contains:
     CompletionFilterModel -- A QSortFilterProxyModel subclass for completions.
 """
 
-import logging
-
 from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex
+
+from qutebrowser.utils.log import completion as logger
 
 
 class CompletionFilterModel(QSortFilterProxyModel):
@@ -85,7 +85,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
 
     def setSourceModel(self, model):
         """Override QSortFilterProxyModel's setSourceModel to clear pattern."""
-        logging.debug("Setting source model: {}".format(model))
+        logger.debug("Setting source model: {}".format(model))
         self.pattern = ''
         self.srcmodel = model
         super().setSourceModel(model)

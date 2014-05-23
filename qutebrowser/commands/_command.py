@@ -17,14 +17,13 @@
 
 """Contains the Command class, a skeleton for a command."""
 
-import logging
+from PyQt5.QtCore import QCoreApplication
+from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.commands.exceptions import (ArgumentCountError,
                                              PrerequisitesError)
 from qutebrowser.utils.misc import dotted_getattr
-
-from PyQt5.QtCore import QCoreApplication
-from PyQt5.QtWebKit import QWebSettings
+from qutebrowser.utils.log import commands as logger
 
 
 class Command:
@@ -120,7 +119,7 @@ class Command:
             dbgout += args
         if count is not None:
             dbgout.append("(count={})".format(count))
-        logging.debug(' '.join(dbgout))
+        logger.debug(' '.join(dbgout))
 
         kwargs = {}
         app = QCoreApplication.instance()

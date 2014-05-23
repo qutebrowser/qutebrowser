@@ -17,7 +17,6 @@
 
 """The main statusbar widget."""
 
-import logging
 from collections import deque
 from datetime import datetime
 
@@ -26,6 +25,7 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.config.config as config
+from qutebrowser.utils.log import statusbar as logger
 from qutebrowser.widgets.statusbar._command import Command
 from qutebrowser.widgets.statusbar._progress import Progress
 from qutebrowser.widgets.statusbar._text import Text
@@ -172,9 +172,9 @@ class StatusBar(QWidget):
             self.txt.temptext = ''
             self._text_pop_timer.stop()
             return
-        logging.debug("Displaying {} message: {}".format(
+        logger.debug("Displaying {} message: {}".format(
             'error' if error else 'text', text))
-        logging.debug("Remaining: {}".format(self._text_queue))
+        logger.debug("Remaining: {}".format(self._text_queue))
         self.error = error
         self.txt.temptext = text
 
@@ -188,7 +188,7 @@ class StatusBar(QWidget):
 
     def _hide_cmd_widget(self):
         """Show temporary text instead of command widget."""
-        logging.debug("Hiding cmd widget, queue: {}".format(self._text_queue))
+        logger.debug("Hiding cmd widget, queue: {}".format(self._text_queue))
         if self._timer_was_active:
             # Restart the text pop timer if it was active before hiding.
             self._pop_text()
@@ -206,7 +206,7 @@ class StatusBar(QWidget):
 
     def _hide_prompt_widget(self):
         """Show temporary text instead of prompt widget."""
-        logging.debug("Hiding prompt widget, queue: {}".format(
+        logger.debug("Hiding prompt widget, queue: {}".format(
             self._text_queue))
         if self._timer_was_active:
             # Restart the text pop timer if it was active before hiding.
@@ -224,40 +224,40 @@ class StatusBar(QWidget):
             queue: If set, message gets queued rather than being displayed
                    immediately.
         """
-        logging.debug("Displaying text: {} (error={})".format(text, error))
+        logger.debug("Displaying text: {} (error={})".format(text, error))
         now = datetime.now()
         mindelta = config.get('ui', 'message-timeout')
         delta = (None if self._last_text_time is None
                  else now - self._last_text_time)
         self._last_text_time = now
-        logging.debug("queue: {} / delta: {}".format(self._text_queue, delta))
+        logger.debug("queue: {} / delta: {}".format(self._text_queue, delta))
         if not self._text_queue and (delta is None or delta.total_seconds() *
                                      1000.0 > mindelta):
             # If the queue is empty and we didn't print messages for long
             # enough, we can take the short route and display the message
             # immediately. We then start the pop_timer only to restore the
             # normal state in 2 seconds.
-            logging.debug("Displaying immediately")
+            logger.debug("Displaying immediately")
             self.error = error
             self.txt.temptext = text
             self._text_pop_timer.start()
         elif self._text_queue and self._text_queue[-1] == (error, text):
             # If we get the same message multiple times in a row and we're
             # still displaying it *anyways* we ignore the new one
-            logging.debug("ignoring")
+            logger.debug("ignoring")
         elif not queue:
             # This message is a reaction to a keypress and should be displayed
             # immediately, temporarely interrupting the message queue.
             # We display this immediately and restart the timer.to clear it and
             # display the rest of the queue later.
-            logging.debug("Moving to beginning of queue")
+            logger.debug("Moving to beginning of queue")
             self.error = error
             self.txt.temptext = text
             self._text_pop_timer.start()
         else:
             # There are still some messages to be displayed, so we queue this
             # up.
-            logging.debug("queueing")
+            logger.debug("queueing")
             self._text_queue.append((error, text))
             self._text_pop_timer.start()
 

@@ -17,7 +17,6 @@
 
 """The main browser widgets."""
 
-import logging
 import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
@@ -30,6 +29,7 @@ import qutebrowser.config.config as config
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.message as message
 import qutebrowser.utils.webelem as webelem
+import qutebrowser.utils.log as log
 from qutebrowser.utils.misc import elide
 from qutebrowser.browser.webpage import BrowserPage
 from qutebrowser.browser.hints import HintManager
@@ -129,7 +129,7 @@ class WebView(QWebView):
         Emit:
             load_status_changed
         """
-        logging.debug("load status for {}: {}".format(
+        log.webview.debug("load status for {}: {}".format(
             repr(self), LoadStatus[val]))
         self._load_status = val
         self.load_status_changed.emit(LoadStatus[val])
@@ -164,11 +164,11 @@ class WebView(QWebView):
         self._destroyed[sender] = True
         dbgout = '\n'.join(['{}: {}'.format(k.__class__.__name__, v)
                            for (k, v) in self._destroyed.items()])
-        logging.debug("{} has been destroyed, new status:\n{}".format(
+        log.destroy.debug("{} has been destroyed, new status:\n{}".format(
             sender.__class__.__name__, dbgout))
         if all(self._destroyed.values()):
             if self._shutdown_callback is not None:
-                logging.debug("Everything destroyed, calling callback")
+                log.destroy.debug("Everything destroyed, calling callback")
                 self._shutdown_callback()
 
     def _is_editable(self, hitresult):
@@ -191,7 +191,7 @@ class WebView(QWebView):
         if tag == 'object':
             # Could be Flash/Java/..., could be image/audio/...
             if not elem.hasAttribute('type'):
-                logging.debug("<object> without type clicked...")
+                log.mouse.debug("<object> without type clicked...")
                 return False
             objtype = elem.attribute('type')
             if (objtype.startswith('application/') or
@@ -199,7 +199,7 @@ class WebView(QWebView):
                 # Let's hope flash/java stuff has an application/* mimetype OR
                 # at least a classid attribute. Oh, and let's home images/...
                 # DON"T have a classid attribute. HTML sucks.
-                logging.debug("<object type='{}'> clicked.".format(objtype))
+                log.mouse.debug("<object type='{}'> clicked.".format(objtype))
                 return True
         return False
 
@@ -235,7 +235,7 @@ class WebView(QWebView):
             # This happens when we click inside the webview, but not actually
             # on the QWebPage - for example when clicking the scrollbar
             # sometimes.
-            logging.debug("Clicked at {} but frame is None!".format(pos))
+            log.mouse.debug("Clicked at {} but frame is None!".format(pos))
             return
         # You'd think we have to subtract frame.geometry().topLeft() from the
         # position, but it seems QWebFrame::hitTestContent wants a position
@@ -243,10 +243,10 @@ class WebView(QWebView):
         # me, but it works this way.
         hitresult = frame.hitTestContent(pos)
         if self._is_editable(hitresult):
-            logging.debug("Clicked editable element!")
+            log.mouse.debug("Clicked editable element!")
             modeman.enter('insert', 'click')
         else:
-            logging.debug("Clicked non-editable element!")
+            log.mouse.debug("Clicked non-editable element!")
             modeman.maybe_leave('insert', 'click')
 
     def _mousepress_opentarget(self, e):
@@ -258,7 +258,7 @@ class WebView(QWebView):
         if self._force_open_target is not None:
             self._open_target = self._force_open_target
             self._force_open_target = None
-            logging.debug("Setting force target: {}".format(
+            log.mouse.debug("Setting force target: {}".format(
                 Target[self._open_target]))
         elif (e.button() == Qt.MidButton or
               e.modifiers() & Qt.ControlModifier):
@@ -266,11 +266,11 @@ class WebView(QWebView):
                 self._open_target = Target.tab_bg
             else:
                 self._open_target = Target.tab
-            logging.debug("Middle click, setting target: {}".format(
+            log.mouse.debug("Middle click, setting target: {}".format(
                 Target[self._open_target]))
         else:
             self._open_target = Target.normal
-            logging.debug("Normal click, setting normal target")
+            log.mouse.debug("Normal click, setting normal target")
 
     def openurl(self, url):
         """Open a URL in the browser.
@@ -288,7 +288,7 @@ class WebView(QWebView):
             u = urlutils.fuzzy_url(url)
         except urlutils.SearchEngineError as e:
             raise CommandError(e)
-        logging.debug("New title: {}".format(urlutils.urlstring(u)))
+        log.webview.debug("New title: {}".format(urlutils.urlstring(u)))
         self.titleChanged.emit(urlutils.urlstring(u))
         self.url_text = urlutils.urlstring(u)
         return self.load(u)
@@ -355,7 +355,7 @@ class WebView(QWebView):
             # Avoid loading finished signal when stopping
             self.loadFinished.disconnect()
         except TypeError:
-            logging.exception("This should never happen.")
+            log.destroy.exception("This should never happen.")
         self.stop()
         self.close()
         self.settings().setAttribute(QWebSettings.JavascriptEnabled, False)
@@ -368,7 +368,7 @@ class WebView(QWebView):
         self._destroyed[self] = False
         self.destroyed.connect(functools.partial(self._on_destroyed, self))
         self.deleteLater()
-        logging.debug("Tab shutdown scheduled")
+        log.destroy.debug("Tab shutdown scheduled")
 
     @pyqtSlot('QUrl')
     def on_url_changed(self, url):
@@ -429,7 +429,7 @@ class WebView(QWebView):
         frame = self.page_.currentFrame()
         elem = frame.findFirstElement(
             webelem.SELECTORS[webelem.Group.editable_focused])
-        logging.debug("focus element: {}".format(not elem.isNull()))
+        log.modes.debug("focus element: {}".format(not elem.isNull()))
         if not elem.isNull():
             modeman.enter('insert', 'load finished')
 
@@ -441,7 +441,7 @@ class WebView(QWebView):
             target: A string to set self._force_open_target to.
         """
         t = getattr(Target, target)
-        logging.debug("Setting force target to {}/{}".format(target, t))
+        log.webview.debug("Setting force target to {}/{}".format(target, t))
         self._force_open_target = t
 
     def createWindow(self, wintype):
@@ -464,8 +464,8 @@ class WebView(QWebView):
             The new QWebView object.
         """
         if wintype == QWebPage.WebModalDialog:
-            logging.warning("WebModalDialog requested, but we don't support "
-                            "that!")
+            log.webview.warning("WebModalDialog requested, but we don't "
+                                "support that!")
         if config.get('general', 'window-open-behaviour') == 'new-tab':
             return self.tabbedbrowser.tabopen()
         else:
@@ -494,7 +494,7 @@ class WebView(QWebView):
                    frame.scrollBarValue(Qt.Vertical))
         if self._old_scroll_pos != new_pos:
             self._old_scroll_pos = new_pos
-            logging.debug("Updating scroll position")
+            log.webview.debug("Updating scroll position")
             m = (frame.scrollBarMaximum(Qt.Horizontal),
                  frame.scrollBarMaximum(Qt.Vertical))
             perc = (round(100 * new_pos[0] / m[0]) if m[0] != 0 else 0,

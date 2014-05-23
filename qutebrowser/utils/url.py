@@ -19,13 +19,13 @@
 
 import re
 import os.path
-import logging
 import urllib.parse
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QHostInfo
 
 import qutebrowser.config.config as config
+from qutebrowser.utils.log import url as logger
 
 
 # FIXME: we probably could raise some exceptions on invalid URLs
@@ -43,7 +43,7 @@ def _get_search_url(txt):
     Raise:
         SearchEngineError if there is no template or no search term was found.
     """
-    logging.debug("Finding search engine for '{}'".format(txt))
+    logger.debug("Finding search engine for '{}'".format(txt))
     r = re.compile(r'(^|\s+)!(\w+)($|\s+)')
     m = r.search(txt)
     if m:
@@ -54,11 +54,11 @@ def _get_search_url(txt):
             raise SearchEngineError("Search engine {} not found!".format(
                 engine))
         term = r.sub('', txt)
-        logging.debug("engine {}, term '{}'".format(engine, term))
+        logger.debug("engine {}, term '{}'".format(engine, term))
     else:
         template = config.get('searchengines', 'DEFAULT')
         term = txt
-        logging.debug("engine: default, term '{}'".format(txt))
+        logger.debug("engine: default, term '{}'".format(txt))
     if not term:
         raise SearchEngineError("No search term given")
     return QUrl.fromUserInput(template.format(urllib.parse.quote(term)))
@@ -101,7 +101,7 @@ def _is_url_dns(url):
         True if the URL really is a URL, False otherwise.
     """
     host = url.host()
-    logging.debug("DNS request for {}".format(host))
+    logger.debug("DNS request for {}".format(host))
     if not host:
         return False
     info = QHostInfo.fromName(host)
@@ -144,16 +144,16 @@ def fuzzy_url(url):
     urlstr = urlstring(url)
     if is_url(urlstr):
         # probably an address
-        logging.debug("URL is a fuzzy address")
+        logger.debug("URL is a fuzzy address")
         newurl = QUrl.fromUserInput(urlstr)
     else:  # probably a search term
-        logging.debug("URL is a fuzzy search term")
+        logger.debug("URL is a fuzzy search term")
         try:
             newurl = _get_search_url(urlstr)
         except ValueError:  # invalid search engine
             newurl = QUrl.fromUserInput(urlstr)
-    logging.debug("Converting fuzzy term {} to URL -> {}".format(
-        urlstr, urlstring(newurl)))
+    logger.debug("Converting fuzzy term {} to URL -> {}".format(
+                 urlstr, urlstring(newurl)))
     return newurl
 
 
@@ -179,8 +179,8 @@ def is_url(url):
 
     autosearch = config.get('general', 'auto-search')
 
-    logging.debug("Checking if '{}' is a URL (autosearch={}).".format(
-        urlstr, autosearch))
+    logger.debug("Checking if '{}' is a URL (autosearch={}).".format(
+                 urlstr, autosearch))
 
     if not autosearch:
         # no autosearch, so everything is a URL.
@@ -188,20 +188,20 @@ def is_url(url):
 
     if ' ' in urlstr:
         # A URL will never contain a space
-        logging.debug("Contains space -> no URL")
+        logger.debug("Contains space -> no URL")
         return False
     elif is_special_url(url):
         # Special URLs are always URLs, even with autosearch=False
-        logging.debug("Is an special URL.")
+        logger.debug("Is an special URL.")
         return True
     elif os.path.exists(url):
         # local file
         return True
     elif autosearch == 'dns':
-        logging.debug("Checking via DNS")
+        logger.debug("Checking via DNS")
         return _is_url_dns(QUrl.fromUserInput(urlstr))
     elif autosearch == 'naive':
-        logging.debug("Checking via naive check")
+        logger.debug("Checking via naive check")
         return _is_url_naive(url)
     else:
         raise ValueError("Invalid autosearch value")

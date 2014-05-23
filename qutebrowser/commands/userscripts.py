@@ -19,7 +19,6 @@
 
 import os
 import os.path
-import logging
 import tempfile
 from select import select
 
@@ -28,6 +27,7 @@ from PyQt5.QtCore import (pyqtSignal, QObject, QThread, QStandardPaths,
 
 import qutebrowser.utils.message as message
 from qutebrowser.utils.misc import get_standard_dir
+from qutebrowser.utils.log import procs as logger
 
 
 class _BlockingFIFOReader(QObject):
@@ -67,10 +67,10 @@ class _BlockingFIFOReader(QObject):
         fd = os.open(self.filepath, os.O_RDWR | os.O_NONBLOCK)
         self.fifo = os.fdopen(fd, 'r')
         while True:
-            logging.debug("thread loop")
+            logger.debug("thread loop")
             ready_r, _ready_w, _ready_e = select([self.fifo], [], [], 1)
             if ready_r:
-                logging.debug("reading data")
+                logger.debug("reading data")
                 for line in self.fifo:
                     self.got_line.emit(line.rstrip())
             if QThread.currentThread().isInterruptionRequested():
@@ -206,7 +206,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
 
     def on_proc_finished(self):
         """Interrupt the reader when the process finished."""
-        logging.debug("proc finished")
+        logger.debug("proc finished")
         self.thread.requestInterruption()
 
     def on_proc_error(self, error):
@@ -216,7 +216,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
 
     def on_reader_finished(self):
         """Quit the thread and clean up when the reader finished."""
-        logging.debug("reader finished")
+        logger.debug("reader finished")
         self.thread.quit()
         self.reader.fifo.close()
         self.reader.deleteLater()
@@ -224,7 +224,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
 
     def on_thread_finished(self):
         """Clean up the QThread object when the thread finished."""
-        logging.debug("thread finished")
+        logger.debug("thread finished")
         self.thread.deleteLater()
 
 
@@ -257,7 +257,7 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
         Emit:
             got_cmd: Emitted for every command in the file.
         """
-        logging.debug("proc finished")
+        logger.debug("proc finished")
         with open(self.filepath, 'r') as f:
             for line in f:
                 self.got_cmd.emit(line.rstrip())

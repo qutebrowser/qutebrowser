@@ -18,10 +18,12 @@
 """Utilities used for debugging."""
 
 import sys
-import logging
 from functools import wraps
 
 from PyQt5.QtCore import pyqtRemoveInputHook, QEvent
+
+from qutebrowser.utils.log import misc as logger
+
 
 try:
     # pylint: disable=import-error
@@ -42,8 +44,8 @@ def log_events(klass):
     @wraps(old_event)
     def new_event(self, e, *args, **kwargs):
         """Wrapper for event() which logs events."""
-        logging.debug("Event in {}: {}".format(klass.__name__,
-                                               EVENTS[e.type()]))
+        logger.debug("Event in {}: {}".format(klass.__name__,
+                                              EVENTS[e.type()]))
         return old_event(self, e, *args, **kwargs)
 
     klass.event = new_event

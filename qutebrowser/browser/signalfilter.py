@@ -17,13 +17,13 @@
 
 """A filter for signals which either filters or passes them."""
 
-import logging
 from functools import partial
 
 from PyQt5.QtCore import QObject
 
 from qutebrowser.utils.signals import dbg_signal
 from qutebrowser.widgets.webview import WebView
+from qutebrowser.utils.log import signals as logger
 
 
 class SignalFilter(QObject):
@@ -72,15 +72,15 @@ class SignalFilter(QObject):
         log_signal = not signal.signal.startswith('2cur_progress')
         if not isinstance(sender, WebView):
             # BUG? This should never happen, but it does regularely...
-            logging.warn("Got signal {} by {} which is no tab!".format(
+            logger.warn("Got signal {} by {} which is no tab!".format(
                 dbg_signal(signal, args), sender))
             return
         if self._tabs.currentWidget() == sender:
             if log_signal:
-                logging.debug("emitting: {} (tab {})".format(
+                logger.debug("emitting: {} (tab {})".format(
                     dbg_signal(signal, args), self._tabs.indexOf(sender)))
             signal.emit(*args)
         else:
             if log_signal:
-                logging.debug("ignoring: {} (tab {})".format(
+                logger.debug("ignoring: {} (tab {})".format(
                     dbg_signal(signal, args), self._tabs.indexOf(sender)))

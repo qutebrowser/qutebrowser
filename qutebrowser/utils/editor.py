@@ -18,13 +18,13 @@
 """Launcher for an external editor."""
 
 import os
-import logging
 from tempfile import mkstemp
 
 from PyQt5.QtCore import pyqtSignal, QProcess, QObject
 
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
+from qutebrowser.utils.log import procs as logger
 
 
 class ExternalEditor(QObject):
@@ -60,7 +60,7 @@ class ExternalEditor(QObject):
         Emit:
             editing_finished: If process exited normally.
         """
-        logging.debug("Editor closed")
+        logger.debug("Editor closed")
         if exitcode != 0:
             message.error("Editor did quit abnormally (status {})!".format(
                 exitcode))
@@ -70,7 +70,7 @@ class ExternalEditor(QObject):
             return
         with open(self.filename, 'r') as f:
             text = ''.join(f.readlines())
-        logging.debug("Read back: {}".format(text))
+        logger.debug("Read back: {}".format(text))
         self._cleanup()
         self.editing_finished.emit(text)
 
@@ -111,5 +111,5 @@ class ExternalEditor(QObject):
         editor = config.get('general', 'editor')
         executable = editor[0]
         args = [arg.replace('{}', self.filename) for arg in editor[1:]]
-        logging.debug("Calling \"{}\" with args {}".format(executable, args))
+        logger.debug("Calling \"{}\" with args {}".format(executable, args))
         self.proc.start(executable, args)

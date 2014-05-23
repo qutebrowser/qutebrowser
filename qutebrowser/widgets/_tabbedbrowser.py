@@ -17,7 +17,6 @@
 
 """The main tabbed browser widget."""
 
-import logging
 from functools import partial
 
 from PyQt5.QtWidgets import QSizePolicy
@@ -27,6 +26,7 @@ import qutebrowser.utils.url as urlutils
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.keyinput.modeman as modeman
+import qutebrowser.utils.log as log
 from qutebrowser.widgets._tabwidget import TabWidget, EmptyTabIcon
 from qutebrowser.widgets.webview import WebView
 from qutebrowser.browser.signalfilter import SignalFilter
@@ -125,10 +125,10 @@ class TabbedBrowser(TabWidget):
         try:
             self._tabs.remove(tab)
         except ValueError:
-            logging.exception("tab {} could not be removed".format(tab))
-        logging.debug("Tabs after removing: {}".format(self._tabs))
+            log.destroy.exception("tab {} could not be removed".format(tab))
+        log.destroy.debug("Tabs after removing: {}".format(self._tabs))
         if not self._tabs:  # all tabs shut down
-            logging.debug("Tab shutdown complete.")
+            log.destroy.debug("Tab shutdown complete.")
             self.shutdown_complete.emit()
 
     def _connect_tab_signals(self, tab):
@@ -187,7 +187,7 @@ class TabbedBrowser(TabWidget):
             pass
         tabcount = self.count()
         if tabcount == 0:
-            logging.debug("No tabs -> shutdown complete")
+            log.destroy.debug("No tabs -> shutdown complete")
             self.shutdown_complete.emit()
             return
         for tab in self.widgets:
@@ -256,7 +256,7 @@ class TabbedBrowser(TabWidget):
         Return:
             The opened WebView instance.
         """
-        logging.debug("Creating new tab with URL {}".format(url))
+        log.webview.debug("Creating new tab with URL {}".format(url))
         tab = WebView(self)
         self._connect_tab_signals(tab)
         self._tabs.append(tab)
@@ -328,11 +328,11 @@ class TabbedBrowser(TabWidget):
         Args:
             text: The text to set.
         """
-        logging.debug("title changed to '{}'".format(text))
+        log.webview.debug("title changed to '{}'".format(text))
         if text:
             self.setTabText(self.indexOf(self.sender()), text)
         else:
-            logging.debug("ignoring title change")
+            log.webview.debug("ignoring title change")
 
     @pyqtSlot(str)
     def on_url_text_changed(self, url):

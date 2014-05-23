@@ -18,7 +18,6 @@
 """The main tabbed browser widget."""
 
 import os
-import logging
 import subprocess
 from functools import partial
 
@@ -34,6 +33,7 @@ import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.message as message
 import qutebrowser.utils.webelem as webelem
 import qutebrowser.browser.quickmarks as quickmarks
+import qutebrowser.utils.log as log
 from qutebrowser.utils.misc import check_overflow, shell_escape
 from qutebrowser.utils.editor import ExternalEditor
 from qutebrowser.commands.exceptions import CommandError
@@ -351,7 +351,7 @@ class CommandDispatcher(QObject):
         else:
             mode = QClipboard.Clipboard
             target = "clipboard"
-        logging.debug("Yanking to {}: '{}'".format(target, url))
+        log.misc.debug("Yanking to {}: '{}'".format(target, url))
         QApplication.clipboard().setText(url, mode)
         message.info("URL yanked to {}".format(target))
 
@@ -370,7 +370,7 @@ class CommandDispatcher(QObject):
         else:
             mode = QClipboard.Clipboard
             target = "clipboard"
-        logging.debug("Yanking to {}: '{}'".format(target, title))
+        log.misc.debug("Yanking to {}: '{}'".format(target, title))
         QApplication.clipboard().setText(title, mode)
         message.info("Title yanked to {}".format(target))
 
@@ -494,7 +494,7 @@ class CommandDispatcher(QObject):
         url = QApplication.clipboard().text(mode)
         if not url:
             raise CommandError("Clipboard is empty.")
-        logging.debug("Clipboard contained: '{}'".format(url))
+        log.misc.debug("Clipboard contained: '{}'".format(url))
         if tab:
             self._tabs.tabopen(url)
         else:
@@ -585,7 +585,7 @@ class CommandDispatcher(QObject):
         """
         url = urlutils.urlstring(self._tabs.currentWidget().url())
         cmd = cmd.replace('{}', shell_escape(url))
-        logging.debug("Executing: {}".format(cmd))
+        log.procs.debug("Executing: {}".format(cmd))
         subprocess.Popen(cmd, shell=True)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')

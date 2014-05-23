@@ -24,7 +24,6 @@ we borrow some methods and classes from there where it makes sense.
 
 import os
 import os.path
-import logging
 import textwrap
 import configparser
 from configparser import ExtendedInterpolation
@@ -35,6 +34,7 @@ from PyQt5.QtCore import pyqtSignal, QObject, QCoreApplication
 import qutebrowser.config.configdata as configdata
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.message as message
+import qutebrowser.utils.log as log
 from qutebrowser.config.iniparsers import ReadConfigParser
 from qutebrowser.config._conftypes import ValidationError
 from qutebrowser.commands.exceptions import CommandError
@@ -356,7 +356,7 @@ class ConfigManager(QObject):
         """Save the config file."""
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
-        logging.debug("Saving config to {}".format(self._configfile))
+        log.destroy.debug("Saving config to {}".format(self._configfile))
         with open(self._configfile, 'w', encoding='utf-8') as f:
             f.write(str(self))
 

@@ -19,8 +19,9 @@
 
 import os
 import os.path
-import logging
 from configparser import ConfigParser
+
+import qutebrowser.utils.log as log
 
 
 class ReadConfigParser(ConfigParser):
@@ -45,7 +46,7 @@ class ReadConfigParser(ConfigParser):
         self._configfile = os.path.join(self._configdir, fname)
         if not os.path.isfile(self._configfile):
             return
-        logging.debug("Reading config from {}".format(self._configfile))
+        log.init.debug("Reading config from {}".format(self._configfile))
         self.read(self._configfile, encoding='utf-8')
 
 
@@ -57,6 +58,6 @@ class ReadWriteConfigParser(ReadConfigParser):
         """Save the config file."""
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
-        logging.debug("Saving config to {}".format(self._configfile))
+        log.destroy.debug("Saving config to {}".format(self._configfile))
         with open(self._configfile, 'w', encoding='utf-8') as f:
             self.write(f)

@@ -21,8 +21,6 @@ Module attributes:
     manager: The ModeManager instance.
 """
 
-import logging
-
 from PyQt5.QtGui import QWindow
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent,
                           QCoreApplication)
@@ -30,6 +28,7 @@ from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent,
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.debug as debug
+from qutebrowser.utils.log import modes as logger
 
 
 def instance():
@@ -120,7 +119,7 @@ class ModeManager(QObject):
             True if event should be filtered, False otherwise.
         """
         handler = self._handlers[self.mode]
-        logging.debug("calling handler {}".format(handler.__qualname__))
+        logger.debug("calling handler {}".format(handler.__qualname__))
         handled = handler(event) if handler is not None else False
 
         if handled:
@@ -133,11 +132,11 @@ class ModeManager(QObject):
         if not filter_this:
             self._releaseevents_to_pass.append(event)
 
-        logging.debug("handled: {}, forward-unbound-keys: {}, passthrough: {} "
-                      "--> filter: {}".format(handled,
-                                              self._forward_unbound_keys,
-                                              self.mode in self.passthrough,
-                                              filter_this))
+        logger.debug("handled: {}, forward-unbound-keys: {}, passthrough: {} "
+                     "--> filter: {}".format(handled,
+                                             self._forward_unbound_keys,
+                                             self.mode in self.passthrough,
+                                             filter_this))
         return filter_this
 
     def _eventFilter_keyrelease(self, event):
@@ -157,7 +156,7 @@ class ModeManager(QObject):
             filter_this = False
         else:
             filter_this = True
-        logging.debug("filter: {}".format(filter_this))
+        logger.debug("filter: {}".format(filter_this))
         return filter_this
 
     def register(self, mode, handler, passthrough=False):
@@ -184,15 +183,15 @@ class ModeManager(QObject):
         Emit:
             entered: With the new mode name.
         """
-        logging.debug("Entering mode {}{}".format(
+        logger.debug("Entering mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
         if mode not in self._handlers:
             raise ValueError("No handler for mode {}".format(mode))
         if self._mode_stack and self._mode_stack[-1] == mode:
-            logging.debug("Already at end of stack, doing nothing")
+            logger.debug("Already at end of stack, doing nothing")
             return
         self._mode_stack.append(mode)
-        logging.debug("New mode stack: {}".format(self._mode_stack))
+        logger.debug("New mode stack: {}".format(self._mode_stack))
         self.entered.emit(mode)
 
     def leave(self, mode, reason=None):
@@ -209,7 +208,7 @@ class ModeManager(QObject):
             self._mode_stack.remove(mode)
         except ValueError:
             raise ValueError("Mode {} not on mode stack!".format(mode))
-        logging.debug("Leaving mode {}{}, new mode stack {}".format(
+        logger.debug("Leaving mode {}{}, new mode stack {}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason),
             self._mode_stack))
         self.left.emit(mode)
@@ -250,14 +249,14 @@ class ModeManager(QObject):
         if not isinstance(obj, QWindow):
             # We already handled this same event at some point earlier, so
             # we're not interested in it anymore.
-            logging.debug("Ignoring event {} for {}".format(
+            logger.debug("Ignoring event {} for {}".format(
                 debug.EVENTS[typ], obj.__class__.__name__))
             return False
         if QCoreApplication.instance().activeWindow() is not self.mainwindow:
             # Some other window (print dialog, etc.) is focused so we pass
             # the event through.
             return False
-        logging.debug("Got event {} for {} in mode {}".format(
+        logger.debug("Got event {} for {} in mode {}".format(
             debug.EVENTS[typ], obj.__class__.__name__, self.mode))
 
         if typ == QEvent.KeyPress:
