@@ -58,7 +58,8 @@ def _get_html(title, snippet):
     Return:
         HTML content as bytes.
     """
-    return _HTML_TEMPLATE.format(title=title, body=snippet).encode('UTF-8')
+    return _HTML_TEMPLATE.format(title=title, body=snippet).encode(
+        'UTF-8', errors='xmlcharrefreplace')
 
 
 class QuteSchemeHandler(SchemeHandler):
