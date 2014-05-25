@@ -13,7 +13,6 @@ Before 0.1
 - More dwb keybindings
 - Use  :open engine searchterm   syntax for searching
 - SSL handling
-    - do we have default certs?
     - ssl-strict=ask
     - SSL-symbol in statusbar?
 - Downloads (at least calling a handler)
@@ -314,3 +313,38 @@ Execute a javascript snippet that uses the the internal javascript api. This com
 
 Tab (S-Tab)
 In normal mode Tab shows the next (previous) shortcut, that matches the currently entered keysequence. When opening a url, the next (previous) item in command history, bookmarks or history will be completed. In hint mode the next (previous) hint will get focus. Tab also completes settings and shortcut-settings. When initiating a download, full paths (downloads and spawning programs) and binaries (spawning programs) in PATH will be completed. In command mode tab will complete builtin commands and urls if the command accepts an url.
+
+
+
+henk's thoughts
+===============
+
+1. Power to the user! Protect privacy!
+Things the browser should only do with explicit consent from the user, if
+applicable the user should be able to choose which protocol/host/port triplets
+to white/blacklist:
+
+- load/run executable code, like js, flash, java applets, ... (think NoScript)
+- requests to other domains, ports or using a different protocol than what the
+  user requested (think RequestPolicy)
+- accept cookies
+- storing/saving/caching things, e.g. open tabs ("session"), cookies, page
+  contents, browsing/download history, form data, ...
+- send referrer
+- disclose any (presence, type, version, settings, capabilities, etc.)
+  information about OS, browser, installed fonts, plugins, addons, etc.
+
+2. Be efficient!
+I tend to leave a lot of tabs open and nobody can deny that some websites
+simply suck, so the browser should, unless told otherwise by the user:
+
+- load tabs only when needed
+- run code in tabs only when needed, i.e. when the tab is currently being
+  used/viewed (background tabs doing some JS magic even when they are not being
+  used can create a lot of unnecessary load on the machine)
+- finish requests to the domain the user requested (e.g. www.example.org)
+  before doing any requests to other subdomains (e.g. images.example.org) and
+  finish those before doing requests to thirdparty domains (e.g. example.com)
+
+3. Be stable!
+- one site should not make the complete browser crash, only that site's tab
