@@ -24,11 +24,11 @@ Module attributes:
 
 import cgi
 
+import qutebrowser.utils.log as log
 from qutebrowser.network._schemehandler import (SchemeHandler,
                                                 SpecialNetworkReply)
 from qutebrowser.utils.version import version
 from qutebrowser.utils.url import urlstring
-from qutebrowser.utils.log import misc as logger
 
 
 _HTML_TEMPLATE = """
@@ -88,7 +88,7 @@ class QuteSchemeHandler(SchemeHandler):
         Return:
             A QNetworkReply.
         """
-        logger.debug("request: {}".format(request))
+        log.misc.debug("request: {}".format(request))
         url = urlstring(request.url())
         try:
             handler = getattr(QuteHandlers, self._transform_url(url))
@@ -114,3 +114,9 @@ class QuteHandlers:
         """Handler for qute:version. Return HTML content as bytes."""
         text = cgi.escape(version())
         return _get_html('Version', '<pre>{}</pre>'.format(text))
+
+    @classmethod
+    def qute_log(cls):
+        """Handler for qute:log. Return HTML content as bytes."""
+        text = cgi.escape(log.ram_handler.dump_log())
+        return _get_html('log', '<pre>{}</pre>'.format(text))
