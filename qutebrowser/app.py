@@ -171,6 +171,8 @@ class QuteBrowser(QApplication):
                             "(empty for no config storage)")
         parser.add_argument('-d', '--debug', help="Turn on debugging options.",
                             action='store_true')
+        parser.add_argument('--nocolor', help="Turn off colored logging.",
+                            action='store_false', dest='color')
         parser.add_argument('command', nargs='*', help="Commands to execute "
                             "on startup.", metavar=':command')
         # URLs will actually be in command

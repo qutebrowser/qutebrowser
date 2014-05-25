@@ -17,6 +17,8 @@
 
 """Loggers and utilities related to logging."""
 
+import os
+import sys
 import logging
 from logging import getLogger
 from collections import deque
@@ -70,16 +72,15 @@ def init_log(args):
     datefmt = '%H:%M:%S'
 
     if numeric_level <= logging.DEBUG:
-        console_fmt = (extended_fmt if ColoredFormatter is None
-                       else extended_fmt_colored)
+        console_fmt = extended_fmt
+        console_fmt_colored = extended_fmt_colored
     else:
-        console_fmt = (simple_fmt if ColoredFormatter is None
-                       else simple_fmt_colored)
-    if ColoredFormatter is None:
-        console_formatter = logging.Formatter(console_fmt, datefmt, '{')
-    else:
-        console_formatter = ColoredFormatter(console_fmt, datefmt,
-            log_colors={
+        console_fmt = simple_fmt
+        console_fmt_colored = simple_fmt_colored
+    if (ColoredFormatter is not None and os.name == 'posix' and
+            sys.stderr.isatty() and args.color):
+        console_formatter = ColoredFormatter(
+            console_fmt_colored, datefmt, log_colors={
                 'DEBUG':    'cyan',
                 'INFO':     'green',
                 'WARNING':  'yellow',
@@ -87,6 +88,8 @@ def init_log(args):
                 'CRITICAL': 'red',
             }
         )
+    else:
+        console_formatter = logging.Formatter(console_fmt, datefmt, '{')
     console_handler = logging.StreamHandler()
     console_handler.addFilter(logfilter)
     console_handler.setLevel(level)
