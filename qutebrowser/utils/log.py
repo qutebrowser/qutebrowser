@@ -62,12 +62,12 @@ def init_log(args):
     except KeyError:
         raise ValueError("Invalid log level: {}".format(args.loglevel))
     simple_fmt = '{levelname}: {message}'
-    extended_fmt = ('{asctime} [{levelname}] [{name}|{module}:{funcName}:'
-                    '{lineno}] {message}')
+    extended_fmt = ('{asctime:8} {levelname:8} {name:10} {module}:{funcName}:'
+                    '{lineno} {message}')
     simple_fmt_colored = '%(log_color)s%(levelname)s%(reset)s: %(message)s'
-    extended_fmt_colored = ('%(green)s%(asctime)s%(reset)s '
-                            '%(log_color)s%(levelname)s%(reset)s '
-                            '%(yellow)s%(name)s|%(module)s:%(funcName)s:'
+    extended_fmt_colored = ('%(green)s%(asctime)-8s%(reset)s '
+                            '%(log_color)s%(levelname)-8s%(reset)s '
+                            '%(yellow)s%(name)-10s %(module)s:%(funcName)s:'
                             '%(lineno)s%(reset)s %(message)s')
     datefmt = '%H:%M:%S'
 
