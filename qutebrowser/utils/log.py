@@ -19,6 +19,7 @@
 
 import logging
 from logging import getLogger
+from collections import deque
 
 # The different loggers used.
 
@@ -38,29 +39,44 @@ hints = getLogger('hints')
 keyboard = getLogger('keyboard')
 
 
+ram_handler = None
+
+
 def init_log(args):
     """Init loggers based on the argparse namespace passed."""
+    global ram_handler
     logfilter = LogFilter(None if args.logfilter is None
                           else args.logfilter.split(','))
     level = 'DEBUG' if args.debug else args.loglevel.upper()
     try:
+        # pylint: disable=protected-access
         numeric_level = logging._nameToLevel[level]
     except KeyError:
         raise ValueError("Invalid log level: {}".format(args.loglevel))
+    extended_fmt = ('{asctime} [{levelname}] [{name}|{module}:{funcName}:'
+                    '{lineno}] {message}')
+    extended_datefmt = '%H:%M:%S'
+    simple_fmt = '{levelname}: {message}'
+    simple_datefmt = None
+
     if numeric_level <= logging.DEBUG:
-        fmt = ('{asctime} [{levelname}] [{name}|{module}:{funcName}:{lineno}] '
-               '{message}')
-        datefmt = '%Y-%m-%d %H:%M:%S'
+        console_formatter = logging.Formatter(extended_fmt, extended_datefmt,
+                                              '{')
     else:
-        fmt = '{levelname}: {message}'
-        datefmt = None
-    formatter = logging.Formatter(fmt, datefmt, '{')
+        console_formatter = logging.Formatter(simple_fmt, simple_datefmt, '{')
     console_handler = logging.StreamHandler()
     console_handler.addFilter(logfilter)
     console_handler.setLevel(level)
-    console_handler.setFormatter(formatter)
+    console_handler.setFormatter(console_formatter)
+
+    ram_formatter = logging.Formatter(extended_fmt, extended_datefmt, '{')
+    ram_handler = RAMHandler(capacity=200)
+    ram_handler.setLevel(logging.NOTSET)
+    ram_handler.setFormatter(ram_formatter)
+
     root = getLogger()
     root.addHandler(console_handler)
+    root.addHandler(ram_handler)
     root.setLevel(logging.NOTSET)
 
 
@@ -91,3 +107,29 @@ class LogFilter(logging.Filter):
             elif record.name[len(name)] == '.':
                 return True
         return False
+
+
+class RAMHandler(logging.Handler):
+
+    """Logging handler which keeps the messages in a deque in RAM.
+
+    Loosly based on logging.BufferingHandler which is unsuitable because it
+    uses a simple list rather than a deque.
+
+    Attributes:
+        data: A deque containing the logging records.
+    """
+
+    def __init__(self, capacity):
+        super().__init__()
+        self.data = deque(maxlen=capacity)
+
+    def emit(self, record):
+        self.data.append(record)
+
+    def dump_log(self):
+        """Dump the complete formatted log data as as string."""
+        lines = []
+        for record in self.data:
+            lines.append(self.format(record))
+        return '\n'.join(lines)

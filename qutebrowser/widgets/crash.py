@@ -21,13 +21,14 @@ import sys
 import traceback
 from urllib.error import URLError
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QApplication)
 
 import qutebrowser.config.config as config
 import qutebrowser.utils.misc as utils
+import qutebrowser.utils.log as logutils
 from qutebrowser.utils.version import version
 
 
@@ -52,8 +53,8 @@ class _CrashDialog(QDialog):
         self._hbox = None
         self._lbl = None
         self._gather_crash_info()
-        self.setFixedSize(500, 350)
         self.setWindowTitle("Whoops!")
+        self.resize(QSize(800, 600))
         self._vbox = QVBoxLayout(self)
         self._init_text()
         self._txt = QTextEdit()
@@ -108,6 +109,11 @@ class _CrashDialog(QDialog):
         try:
             self._crash_info.append(("Config",
                                      config.instance().dump_userconfig()))
+        except AttributeError:
+            pass
+        try:
+            self._crash_info.append(("Debug log",
+                                     logutils.ram_handler.dump_log()))
         except AttributeError:
             pass
 
