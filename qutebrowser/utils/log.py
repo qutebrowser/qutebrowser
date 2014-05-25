@@ -96,7 +96,7 @@ def init_log(args):
     console_handler.setFormatter(console_formatter)
 
     ram_formatter = logging.Formatter(extended_fmt, datefmt, '{')
-    ram_handler = RAMHandler(capacity=200)
+    ram_handler = RAMHandler(capacity=500)
     ram_handler.setLevel(logging.NOTSET)
     ram_handler.setFormatter(ram_formatter)
 
