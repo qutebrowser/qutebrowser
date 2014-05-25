@@ -81,10 +81,10 @@ def init_log(args):
             sys.stderr.isatty() and args.color):
         console_formatter = ColoredFormatter(
             console_fmt_colored, datefmt, log_colors={
-                'DEBUG':    'cyan',
-                'INFO':     'green',
-                'WARNING':  'yellow',
-                'ERROR':    'red',
+                'DEBUG': 'cyan',
+                'INFO': 'green',
+                'WARNING': 'yellow',
+                'ERROR': 'red',
                 'CRITICAL': 'red',
             }
         )
