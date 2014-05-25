@@ -21,6 +21,12 @@ import logging
 from logging import getLogger
 from collections import deque
 
+try:
+    # pylint: disable=import-error
+    from colorlog import ColoredFormatter
+except ImportError:
+    ColoredFormatter = None
+
 # The different loggers used.
 
 statusbar = getLogger('statusbar')
@@ -53,23 +59,40 @@ def init_log(args):
         numeric_level = logging._nameToLevel[level]
     except KeyError:
         raise ValueError("Invalid log level: {}".format(args.loglevel))
+    simple_fmt = '{levelname}: {message}'
     extended_fmt = ('{asctime} [{levelname}] [{name}|{module}:{funcName}:'
                     '{lineno}] {message}')
-    extended_datefmt = '%H:%M:%S'
-    simple_fmt = '{levelname}: {message}'
-    simple_datefmt = None
+    simple_fmt_colored = '%(log_color)s%(levelname)s%(reset)s: %(message)s'
+    extended_fmt_colored = ('%(green)s%(asctime)s%(reset)s '
+                            '%(log_color)s%(levelname)s%(reset)s '
+                            '%(yellow)s%(name)s|%(module)s:%(funcName)s:'
+                            '%(lineno)s%(reset)s %(message)s')
+    datefmt = '%H:%M:%S'
 
     if numeric_level <= logging.DEBUG:
-        console_formatter = logging.Formatter(extended_fmt, extended_datefmt,
-                                              '{')
+        console_fmt = (extended_fmt if ColoredFormatter is None
+                       else extended_fmt_colored)
     else:
-        console_formatter = logging.Formatter(simple_fmt, simple_datefmt, '{')
+        console_fmt = (simple_fmt if ColoredFormatter is None
+                       else simple_fmt_colored)
+    if ColoredFormatter is None:
+        console_formatter = logging.Formatter(console_fmt, datefmt, '{')
+    else:
+        console_formatter = ColoredFormatter(console_fmt, datefmt,
+            log_colors={
+                'DEBUG':    'cyan',
+                'INFO':     'green',
+                'WARNING':  'yellow',
+                'ERROR':    'red',
+                'CRITICAL': 'red',
+            }
+        )
     console_handler = logging.StreamHandler()
     console_handler.addFilter(logfilter)
     console_handler.setLevel(level)
     console_handler.setFormatter(console_formatter)
 
-    ram_formatter = logging.Formatter(extended_fmt, extended_datefmt, '{')
+    ram_formatter = logging.Formatter(extended_fmt, datefmt, '{')
     ram_handler = RAMHandler(capacity=200)
     ram_handler.setLevel(logging.NOTSET)
     ram_handler.setFormatter(ram_formatter)
