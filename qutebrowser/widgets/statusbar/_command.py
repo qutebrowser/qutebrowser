@@ -110,7 +110,7 @@ class Command(MinimalLineEdit):
         else:
             prefix = ''
         parts = split_cmdline(text)
-        logger.debug("Old text: '{}' - parts: '{}', changing to '{}".format(
+        logger.debug("Old text: '{}' - parts: {}, changing to '{}'".format(
             text, parts, newtext))
         parts[-1] = newtext
         self.setText(prefix + ' '.join(parts))
