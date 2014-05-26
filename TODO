@@ -81,6 +81,9 @@ Improvements / minor features
 - Copy link location on crash mail should not copy mailto:
 - Drag&Drop of tabs to other windows
 - Use QNetworkAccessManager per QWebPage again so we can set proxy per tab.
+- How do we handle webinspector and tabswitching? One inspector per tab?
+  The current approach has the problem the webinspector tab gets switched
+  because we need to hide/show it.
 
 hints
 -----
