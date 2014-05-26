@@ -214,6 +214,10 @@ DATA = OrderedDict([
         ('message-timeout',
          SettingValue(types.Int(), '2000'),
          "Time (in ms) to show messages in the statusbar for."),
+
+        ('detach-inspector',
+         SettingValue(types.Bool(), 'false'),
+         "Whether to show the webinspector as own window."),
     )),
 
     ('network', sect.KeyValue(

@@ -76,8 +76,10 @@ class MainWindow(QWidget):
         self.completion = CompletionView(self)
         self.inspector = QWebInspector()
         self.inspector.hide()
-        self._splitter.addWidget(self.inspector)
-        self._splitter.setStretchFactor(0, 50)
+
+        if not config.get('ui', 'detach-inspector'):
+            self._splitter.addWidget(self.inspector)
+            self._splitter.setStretchFactor(0, 50)
 
         self._vbox.addWidget(self._splitter)
 
@@ -97,6 +99,16 @@ class MainWindow(QWidget):
         """Resize completion if config changed."""
         if section == 'completion' and option == 'height':
             self.resize_completion()
+        if section == 'ui' and option == 'detach-inspector':
+            detach = config.get('ui', 'detach-inspector')
+            if detach and self.inspector.parent() is not None:
+                shown = self.inspector.isVisible()
+                self.inspector.setParent(None)
+                if shown:
+                    self.inspector.show()
+            elif not detach and self.inspector.parent() is None:
+                self._splitter.addWidget(self.inspector)
+                self._splitter.setStretchFactor(0, 50)
 
     def resize_completion(self):
         """Adjust completion according to config."""
