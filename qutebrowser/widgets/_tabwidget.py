@@ -18,7 +18,7 @@
 """The tab widget used for TabbedBrowser from browser.py."""
 
 from PyQt5.QtCore import pyqtSlot, Qt
-from PyQt5.QtWidgets import QTabWidget, QTabBar, QSizePolicy, QTabBar
+from PyQt5.QtWidgets import QTabWidget, QTabBar, QSizePolicy
 from PyQt5.QtGui import QIcon, QPixmap
 
 import qutebrowser.config.config as config
