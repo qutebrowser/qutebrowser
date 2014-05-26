@@ -20,8 +20,8 @@
 import binascii
 from base64 import b64decode
 
-from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QCoreApplication, Qt
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter
+from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QCoreApplication
+from PyQt5.QtWidgets import QWidget, QVBoxLayout
 from PyQt5.QtWebKitWidgets import QWebInspector
 
 import qutebrowser.commands.utils as cmdutils
@@ -70,18 +70,13 @@ class MainWindow(QWidget):
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
 
-        self._splitter = QSplitter(self, orientation=Qt.Vertical)
-
         self.tabs = TabbedBrowser()
-        self._splitter.addWidget(self.tabs)
+        self._vbox.addWidget(self.tabs)
 
         self.completion = CompletionView(self)
         self.inspector = QWebInspector()
         self.inspector.hide()
-        self._splitter.addWidget(self.inspector)
-        self._splitter.setStretchFactor(0, 50)
-
-        self._vbox.addWidget(self._splitter)
+        self._vbox.addWidget(self.inspector)
 
         self.status = StatusBar()
         self._vbox.addWidget(self.status)
