@@ -57,9 +57,8 @@ def init_log(args):
                           else args.logfilter.split(','))
     level = 'DEBUG' if args.debug else args.loglevel.upper()
     try:
-        # pylint: disable=protected-access
-        numeric_level = logging._nameToLevel[level]
-    except KeyError:
+        numeric_level = getattr(logging, level)
+    except AttributeError:
         raise ValueError("Invalid log level: {}".format(args.loglevel))
     simple_fmt = '{levelname}: {message}'
     extended_fmt = ('{asctime:8} {levelname:8} {name:10} {module}:{funcName}:'
