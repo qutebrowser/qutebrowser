@@ -45,6 +45,7 @@ init = getLogger('init')
 signals = getLogger('signals')
 hints = getLogger('hints')
 keyboard = getLogger('keyboard')
+js = getLogger('js')
 
 
 ram_handler = None

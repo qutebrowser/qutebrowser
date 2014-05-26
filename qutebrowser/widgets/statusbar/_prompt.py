@@ -111,6 +111,11 @@ class Prompt(QWidget):
             self.question.answer = self.question.default
             modeman.leave('yesno', 'yesno accept')
             self.question.answered.emit()
+        elif self.question.mode == PromptMode.alert:
+            # User acknowledged an alert
+            self.question.answer = None
+            modeman.leave('prompt', 'alert accept')
+            self.question.answered.emit()
         else:
             raise ValueError("Invalid question mode!")
 
@@ -166,6 +171,10 @@ class Prompt(QWidget):
             if q.default:
                 self._input.setText(q.default)
             self._input.show()
+            mode = 'prompt'
+        elif q.mode == PromptMode.alert:
+            self._txt.setText(q.text + ' (ok)')
+            self._input.hide()
             mode = 'prompt'
         else:
             raise ValueError("Invalid prompt mode!")

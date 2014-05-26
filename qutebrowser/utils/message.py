@@ -80,6 +80,14 @@ def modular_question(message, mode, default=None):
     return q.answer
 
 
+def alert(message):
+    """Display an alert which needs to be confirmed."""
+    q = Question()
+    q.text = message
+    q.mode = PromptMode.alert
+    instance().question.emit(q, True)
+
+
 def question(message, mode, handler, default=None):
     """Ask an async question in the statusbar.
 

@@ -248,7 +248,7 @@ class FakeDict:
 
 
 # The mode of a Question.
-PromptMode = enum('yesno', 'text', 'user_pwd')
+PromptMode = enum('yesno', 'text', 'user_pwd', 'alert')
 
 
 class Question(QObject):

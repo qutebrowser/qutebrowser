@@ -22,9 +22,12 @@ from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtNetwork import QNetworkReply
 from PyQt5.QtWebKitWidgets import QWebPage
 
+import qutebrowser.utils.message as message
 import qutebrowser.utils.url as urlutils
 import qutebrowser.config.config as config
+import qutebrowser.utils.log as log
 from qutebrowser.utils.misc import read_file
+from qutebrowser.utils.usertypes import PromptMode
 
 
 class BrowserPage(QWebPage):
@@ -105,3 +108,24 @@ class BrowserPage(QWebPage):
         except KeyError:
             return super().extension(ext, opt, out)
         return handler(opt, out)
+
+    def javaScriptAlert(self, _frame, msg):
+        """Override javaScriptAlert to use the statusbar."""
+        message.modular_question("js: {}".format(msg), PromptMode.alert)
+
+    def javaScriptConfirm(self, _frame, msg):
+        """Override javaScriptConfirm to use the statusbar."""
+        return message.modular_question("js: {}".format(msg), PromptMode.yesno)
+
+    def javaScriptConsoleMessage(self, msg, line, source):
+        """Override javaScriptConsoleMessage to use debug log."""
+        log.js.info("[{}:{}] {}".format(source, line, msg))
+
+    def javaScriptPrompt(self, _frame, msg, default):
+        """Override javaScriptConfirm to use the statusbar."""
+        answer = message.modular_question(
+            "js: {}".format(msg), PromptMode.text, default)
+        if answer is None:
+            return (False, "")
+        else:
+            return (True, answer)
