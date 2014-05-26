@@ -646,6 +646,7 @@ DATA = OrderedDict([
         (']]', 'next-page'),
         ('{{', 'prev-page-tab'),
         ('}}', 'next-page-tab'),
+        ('wi', 'inspector'),
         ('<Ctrl-Tab>', 'tab-focus-last'),
         ('<Ctrl-V>', 'enter-mode passthrough'),
         ('<Ctrl-Q>', 'quit'),

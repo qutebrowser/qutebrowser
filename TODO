@@ -269,9 +269,6 @@ Toggle proxy (command proxy).
 V
 Next navigation action will be opened in a new tab (command new_tab).
 
-[n]wi
-Show the webinspector of tab n or of current tab if n is omitted. Note that enable-developer-extras has to be set. (commmand web_inspector, aliases: inspect, insp).
-
 g.
 Toggle hidden files when browsing local filesystem. (command open_editor, aliases: editor).
 
