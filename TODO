@@ -63,15 +63,12 @@ Improvements / minor features
 - Display metavars for commands in input bar.
 - count support for special keys
 - set-as-default argument/command
-- Make inspector height resizable
-- Make inspector detachable (own window)
 - Enable disk caching
     QNetworkManager.setCache() and use a QNetworkDiskCache probably
 - clear cookies command
 - keybind/aliases should have completion for commands/arguments
 - Hiding scrollbars
 - Ctrl+A/X to increase/decrease last number in URL
-- logging contexts
 - Add more element-selection-detection code (with options?) based on:
       -> javascript: http://stackoverflow.com/a/2848120/2085149
       -> microFocusChanged and check active element via:
@@ -79,13 +76,11 @@ Improvements / minor features
          elem = frame.findFirstElement('*:focus')
 - somehow unfocus elements (hide blinking cursor) when insert mode is left?
 - tabs: some more padding?
-- Make it possible to open inspector in a new window.
 - Copy link location on crash mail should not copy mailto:
 - Drag&Drop of tabs to other windows
 - Use QNetworkAccessManager per QWebPage again so we can set proxy per tab.
-- How do we handle webinspector and tabswitching? One inspector per tab?
-  The current approach has the problem the webinspector tab gets switched
-  because we need to hide/show it.
+- Multi-line statusbar or own widget for long messages?
+- :messages command to view past messages
 
 hints
 -----

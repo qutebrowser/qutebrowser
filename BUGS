@@ -21,9 +21,6 @@ Crashes
 
     QHttpNetworkConnectionPrivate::_q_hostLookupFinished could not dequeu request
 
-- Clicking the blank area of the grey titlebar of the webinspector closed
-  qutebrowser on windows
-
 Bugs
 ====
 
