@@ -17,13 +17,12 @@
 
 """Our own QNetworkAccessManager."""
 
-import logging
-
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtNetwork import QNetworkAccessManager
 
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
+import qutebrowser.utils.log as log
 from qutebrowser.network.qutescheme import QuteSchemeHandler
 from qutebrowser.utils.usertypes import PromptMode
 
@@ -39,7 +38,7 @@ class NetworkManager(QNetworkAccessManager):
     """
 
     def __init__(self, cookiejar=None, parent=None):
-        logging.debug("Initializing NetworkManager")
+        log.init.debug("Initializing NetworkManager")
         super().__init__(parent)
         self._requests = {}
         self._scheme_handlers = {
@@ -51,7 +50,7 @@ class NetworkManager(QNetworkAccessManager):
         self.authenticationRequired.connect(self.on_authentication_required)
         self.proxyAuthenticationRequired.connect(
             self.on_proxy_authentication_required)
-        logging.debug("NetworkManager init done")
+        log.init.debug("NetworkManager init done")
 
     def _fill_authenticator(self, authenticator, answer):
         """Fill a given QAuthenticator object with an answer."""
