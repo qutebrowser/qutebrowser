@@ -564,7 +564,6 @@ class QuteBrowser(QApplication):
             raise Exception("Forced crash")
 
     @pyqtSlot()
-    @cmdutils.register(instance='', name=['quit', 'q'], nargs=0)
     def shutdown(self):
         """Try to shutdown everything cleanly.
 

@@ -831,3 +831,13 @@ class WindowOpenBehaviour(String):
     valid_values = ValidValues(('same-tab', "Open new window in same tab."),
                                ('new-tab', "Open new window in new tab (note: "
                                            "history will be cleared)."))
+
+
+class ConfirmQuit(String):
+
+    """Whether to display a confirmation when the window is closed."""
+
+    valid_values = ValidValues(('always', "Always show a confirmation."),
+                               ('multiple-tabs', "Show a confirmation if "
+                                                 "multiple tabs are opened."),
+                               ('never', "Never show a confirmation."))

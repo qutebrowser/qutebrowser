@@ -27,9 +27,11 @@ from PyQt5.QtWebKitWidgets import QWebInspector
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.config.config as config
 import qutebrowser.utils.misc as utils
+import qutebrowser.utils.message as message
 from qutebrowser.widgets.statusbar.bar import StatusBar
 from qutebrowser.widgets._tabbedbrowser import TabbedBrowser
 from qutebrowser.widgets._completion import CompletionView
+from qutebrowser.utils.usertypes import PromptMode
 
 
 class MainWindow(QWidget):
@@ -150,6 +152,11 @@ class MainWindow(QWidget):
             self.inspector.hide()
             self.inspector.show()
 
+    @cmdutils.register(instance='mainwindow', name=['quit', 'q'], nargs=0)
+    def close(self):
+        """Extend close() so we can register it as a command."""
+        super().close()
+
     def resizeEvent(self, e):
         """Extend resizewindow's resizeEvent to adjust completion.
 
@@ -158,3 +165,21 @@ class MainWindow(QWidget):
         """
         super().resizeEvent(e)
         self.resize_completion()
+
+    def closeEvent(self, e):
+        """Override closeEvent to display a confirmation if needed."""
+        confirm_quit = config.get('ui', 'confirm-quit')
+        count = self.tabs.count()
+        if confirm_quit == 'never':
+            e.accept()
+        elif confirm_quit == 'multiple-tabs' and count <= 1:
+            e.accept()
+        else:
+            text = "Close {} {}?".format(
+                count, "tab" if count == 1 else "tabs")
+            confirmed = message.modular_question(text, PromptMode.yesno,
+                                                 default=True)
+            if confirmed:
+                e.accept()
+            else:
+                e.ignore()

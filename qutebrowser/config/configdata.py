@@ -218,6 +218,10 @@ DATA = OrderedDict([
         ('detach-inspector',
          SettingValue(types.Bool(), 'false'),
          "Whether to show the webinspector as own window."),
+
+        ('confirm-quit',
+         SettingValue(types.ConfirmQuit(), 'never'),
+         "Whether to confirm quitting the application."),
     )),
 
     ('network', sect.KeyValue(
