@@ -25,6 +25,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
+from PyQt5.QtWebKitWidgets import QWebInspector
 
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.config.config as config
@@ -624,6 +625,29 @@ class CommandDispatcher(QObject):
         """Load a quickmark in a new background tab."""
         url = quickmarks.get(name)
         self._tabs.tabopen(url, background=True)
+
+    @cmdutils.register(instance='mainwindow.tabs.cmd', name='inspector')
+    def toggle_inspector(self):
+        """Toggle the web inspector."""
+        cur = self._tabs.currentWidget()
+        if cur.inspector is None:
+            if not config.get('webkit', 'developer-extras-enabled'):
+                message.error("Please enable developer-extras before using "
+                              "the webinspector!")
+                return
+            cur.inspector = QWebInspector()
+            cur.inspector.setPage(cur.page_)
+            cur.inspector.show()
+        elif cur.inspector.isVisible():
+            cur.inspector.hide()
+        else:
+            if not config.get('webkit', 'developer-extras-enabled'):
+                message.error("Please enable developer-extras before using "
+                              "the webinspector!")
+                return
+            else:
+                cur.inspector.show()
+
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', modes=['insert'],
                        hide=True)

@@ -22,7 +22,6 @@ from base64 import b64decode
 
 from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QCoreApplication
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
-from PyQt5.QtWebKitWidgets import QWebInspector
 
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.config.config as config
@@ -44,7 +43,6 @@ class MainWindow(QWidget):
     Attributes:
         tabs: The TabbedBrowser widget.
         status: The StatusBar widget.
-        inspector: The QWebInspector.
         _vbox: The main QVBoxLayout.
     """
 
@@ -74,9 +72,6 @@ class MainWindow(QWidget):
         self._vbox.addWidget(self.tabs)
 
         self.completion = CompletionView(self)
-        self.inspector = QWebInspector()
-        self.inspector.hide()
-        self._vbox.addWidget(self.inspector)
 
         self.status = StatusBar()
         self._vbox.addWidget(self.status)
@@ -110,30 +105,6 @@ class MainWindow(QWidget):
         topleft = QPoint(0, topleft_y)
         bottomright = self.status.geometry().topRight()
         self.completion.setGeometry(QRect(topleft, bottomright))
-
-    @cmdutils.register(instance='mainwindow', name='inspector')
-    def toggle_inspector(self):
-        """Toggle the web inspector."""
-        if self.inspector.isVisible():
-            self.inspector.hide()
-            self.resize_completion()
-        else:
-            if not config.get('webkit', 'developer-extras-enabled'):
-                self.status.disp_error("Please enable developer-extras before "
-                                       "using the webinspector!")
-            else:
-                self.inspector.show()
-                self.resize_completion()
-
-    @pyqtSlot()
-    def update_inspector(self):
-        """Update the web inspector if the page changed."""
-        self.inspector.setPage(self.tabs.currentWidget().page())
-        if self.inspector.isVisible():
-            # For some odd reason, we need to do this so the inspector actually
-            # shows some content...
-            self.inspector.hide()
-            self.inspector.show()
 
     @cmdutils.register(instance='mainwindow', name=['quit', 'q'], nargs=0)
     def close(self):

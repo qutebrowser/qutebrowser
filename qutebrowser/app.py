@@ -342,7 +342,6 @@ class QuteBrowser(QApplication):
         # misc
         self.lastWindowClosed.connect(self.shutdown)
         tabs.quit.connect(self.shutdown)
-        tabs.currentChanged.connect(self.mainwindow.update_inspector)
 
         # status bar
         self.modeman.entered.connect(status.on_mode_entered)

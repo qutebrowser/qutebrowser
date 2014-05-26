@@ -55,6 +55,7 @@ class WebView(QWebView):
                        work.
         progress: loading progress of this page.
         scroll_pos: The current scroll position as (x%, y%) tuple.
+        inspector: The QWebInspector used for this webview.
         _url_text: The current URL as string.
                    Accessed via url_text property.
         _load_status: loading status of this page (index into LoadStatus)
@@ -86,6 +87,7 @@ class WebView(QWebView):
         super().__init__(parent)
         self._load_status = LoadStatus.none
         self.tabbedbrowser = parent
+        self.inspector = None
         self.scroll_pos = (-1, -1)
         self._old_scroll_pos = (-1, -1)
         self._shutdown_callback = None
