@@ -164,9 +164,9 @@ class WebView(QWebView):
             sender: The object which called the callback.
         """
         self._destroyed[sender] = True
-        dbgout = '\n'.join(['{}: {}'.format(k.__class__.__name__, v)
-                           for (k, v) in self._destroyed.items()])
-        log.destroy.debug("{} has been destroyed, new status:\n{}".format(
+        dbgout = ' / '.join(['{}: {}'.format(k.__class__.__name__, v)
+                            for (k, v) in self._destroyed.items()])
+        log.destroy.debug("{} has been destroyed, new status: {}".format(
             sender.__class__.__name__, dbgout))
         if all(self._destroyed.values()):
             if self._shutdown_callback is not None:
