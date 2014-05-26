@@ -163,13 +163,13 @@ class QuteBrowser(QApplication):
             Argument namespace from argparse.
         """
         parser = ArgumentParser("usage: %(prog)s [options]")
-        parser.add_argument('-l', '--log', dest='loglevel',
+        parser.add_argument('-l', '--loglevel', dest='loglevel',
                             help="Set loglevel", default='info')
-        parser.add_argument('-f', '--logfilter',
+        parser.add_argument('--logfilter',
                             help="Comma-separated list of things to be logged")
         parser.add_argument('-c', '--confdir', help="Set config directory "
                             "(empty for no config storage)")
-        parser.add_argument('-d', '--debug', help="Turn on debugging options.",
+        parser.add_argument('--debug', help="Turn on debugging options.",
                             action='store_true')
         parser.add_argument('--nocolor', help="Turn off colored logging.",
                             action='store_false', dest='color')
