@@ -18,7 +18,7 @@
 """Handling of HTTP cookies."""
 
 from PyQt5.QtNetwork import QNetworkCookie, QNetworkCookieJar
-from PyQt5.QtCore import QStandardPaths
+from PyQt5.QtCore import QStandardPaths, QDateTime
 
 import qutebrowser.config.config as config
 from qutebrowser.config.lineparser import LineConfigParser
@@ -38,6 +38,15 @@ class CookieJar(QNetworkCookieJar):
             cookies += QNetworkCookie.parseCookies(line.encode('utf-8'))
         self.setAllCookies(cookies)
 
+    def purge_old_cookies(self):
+        """Purge expired cookies from the cookie jar."""
+        # Based on:
+        # http://qt-project.org/doc/qt-5/qtwebkitexamples-webkitwidgets-browser-cookiejar-cpp.html
+        now = QDateTime.currentDateTime()
+        cookies = [c for c in self.allCookies()
+                   if c.isSessionCookie() or c.expirationDate() >= now]
+        self.setAllCookies(cookies)
+
     def setCookiesFromUrl(self, cookies, url):
         """Add the cookies in the cookies list to this cookie jar.
 
@@ -55,6 +64,7 @@ class CookieJar(QNetworkCookieJar):
 
     def save(self):
         """Save cookies to disk."""
+        self.purge_old_cookies()
         lines = []
         for cookie in self.allCookies():
             if not cookie.isSessionCookie():
