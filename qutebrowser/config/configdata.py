@@ -818,6 +818,10 @@ DATA = OrderedDict([
          SettingValue(types.Color(), '${statusbar.fg}'),
          "Foreground color of the statusbar if there was an error."),
 
+        ('statusbar.bg.prompt',
+         SettingValue(types.Color(), 'darkblue'),
+         "Background color of the statusbar if there is a prompt."),
+
         ('statusbar.progress.bg',
          SettingValue(types.Color(), 'white'),
          "Background color of the progress bar."),

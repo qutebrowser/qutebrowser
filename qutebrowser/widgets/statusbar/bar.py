@@ -66,6 +66,12 @@ class StatusBar(QWidget):
                 For some reason we need to have this as class attribute so
                 pyqtProperty works correctly.
 
+        _prompt_active: If we're currently in prompt-mode, accessed through the
+                        prompt_active property.
+
+                        For some reason we need to have this as class attribute
+                        so pyqtProperty works correctly.
+
     Signals:
         resized: Emitted when the statusbar has resized, so the completion
                  widget can adjust its size to it.
@@ -78,14 +84,19 @@ class StatusBar(QWidget):
     resized = pyqtSignal('QRect')
     moved = pyqtSignal('QPoint')
     _error = False
+    _prompt_active = False
 
     STYLESHEET = """
-        QWidget#StatusBar[error="false"] {{
+        QWidget#StatusBar {{
             {color[statusbar.bg]}
         }}
 
         QWidget#StatusBar[error="true"] {{
             {color[statusbar.bg.error]}
+        }}
+
+        QWidget#StatusBar[prompt_active="true"] {{
+            {color[statusbar.bg.prompt]}
         }}
 
         QWidget {{
@@ -163,6 +174,22 @@ class StatusBar(QWidget):
         self._error = val
         self.setStyleSheet(get_stylesheet(self.STYLESHEET))
 
+    @pyqtProperty(bool)
+    def prompt_active(self):
+        """Getter for self.prompt, so it can be used as Qt property."""
+        # pylint: disable=method-hidden
+        return self._prompt_active
+
+    @prompt_active.setter
+    def prompt_active(self, val):
+        """Setter for self.prompt, so it can be used as Qt property.
+
+        Re-set the stylesheet after setting the value, so everything gets
+        updated by Qt properly.
+        """
+        self._prompt_active = val
+        self.setStyleSheet(get_stylesheet(self.STYLESHEET))
+
     def _pop_text(self):
         """Display a text in the statusbar and pop it from _text_queue."""
         try:
@@ -199,6 +226,7 @@ class StatusBar(QWidget):
     def _show_prompt_widget(self):
         """Show prompt widget instead of temporary text."""
         self.error = False
+        self.prompt_active = True
         if self._text_pop_timer.isActive():
             self._timer_was_active = True
         self._text_pop_timer.stop()
@@ -206,6 +234,7 @@ class StatusBar(QWidget):
 
     def _hide_prompt_widget(self):
         """Show temporary text instead of prompt widget."""
+        self.prompt_active = False
         logger.debug("Hiding prompt widget, queue: {}".format(
             self._text_queue))
         if self._timer_was_active:
