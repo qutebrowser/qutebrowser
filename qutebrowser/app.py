@@ -236,8 +236,6 @@ class QuteBrowser(QApplication):
 
     def _init_misc(self):
         """Initialize misc things."""
-        if self._args.debug:
-            os.environ['QT_FATAL_WARNINGS'] = '1'
         self.setApplicationName("qutebrowser")
         self.setApplicationVersion(qutebrowser.__version__)
         self.messagebridge = MessageBridge()
