@@ -210,18 +210,28 @@ def get_standard_dir(typ):
         typ: A member of the QStandardPaths::StandardLocation enum,
              see http://qt-project.org/doc/qt-5/qstandardpaths.html#StandardLocation-enum
     """
-    # FIXME RuntimeLocation "can be empty on some systems", wat.
-    path = QStandardPaths.writableLocation(typ)
-    # Qt seems to use '/' as path separator even on Windows...
-    path = path.replace('/', os.sep)
-    appname = QCoreApplication.instance().applicationName()
-    if (typ == QStandardPaths.ConfigLocation and
-            path.split(os.sep)[-1] != appname):
-        # Workaround for https://bugreports.qt-project.org/browse/QTBUG-38872
-        path = os.path.join(path, appname)
-    if not os.path.exists(path):
-        os.makedirs(path)
-    return path
+    qapp = QCoreApplication.instance()
+    orgname = qapp.organizationName()
+    # We need to temporarely unset the organisationname here since the
+    # webinspector wants it to be set to store its persistent data correctly,
+    # but we don't want that to happen.
+    qapp.setOrganizationName(None)
+    try:
+        # FIXME RuntimeLocation "can be empty on some systems", wat.
+        path = QStandardPaths.writableLocation(typ)
+        # Qt seems to use '/' as path separator even on Windows...
+        path = path.replace('/', os.sep)
+        appname = qapp.applicationName()
+        if (typ == QStandardPaths.ConfigLocation and
+                path.split(os.sep)[-1] != appname):
+            # Workaround for
+            # https://bugreports.qt-project.org/browse/QTBUG-38872
+            path = os.path.join(path, appname)
+        if not os.path.exists(path):
+            os.makedirs(path)
+        return path
+    finally:
+        qapp.setOrganizationName(orgname)
 
 
 def actute_warning():

@@ -236,6 +236,7 @@ class QuteBrowser(QApplication):
 
     def _init_misc(self):
         """Initialize misc things."""
+        self.setOrganizationName("qutebrowser")
         self.setApplicationName("qutebrowser")
         self.setApplicationVersion(qutebrowser.__version__)
         self.messagebridge = MessageBridge()
