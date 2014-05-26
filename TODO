@@ -81,6 +81,7 @@ Improvements / minor features
 - Use QNetworkAccessManager per QWebPage again so we can set proxy per tab.
 - Multi-line statusbar or own widget for long messages?
 - :messages command to view past messages
+- How long should javascript statusbar messages be displayed?!
 
 hints
 -----
