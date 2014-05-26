@@ -112,9 +112,6 @@ class MainWindow(QWidget):
         topleft_y = utils.check_overflow(topleft_y, 'int', fatal=False)
         topleft = QPoint(0, topleft_y)
         bottomright = self.status.geometry().topRight()
-        if self.inspector.isVisible():
-            topleft -= QPoint(0, self.inspector.height())
-            bottomright -= QPoint(0, self.inspector.height())
         self.completion.setGeometry(QRect(topleft, bottomright))
 
     @cmdutils.register(instance='mainwindow', name='inspector')
