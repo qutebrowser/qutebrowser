@@ -73,14 +73,18 @@ class ArgTests(TestCase):
 
     def setUp(self):
         self.editor = editor.ExternalEditor()
-        self.editor.editing_finished = Mock()
 
-    def test_simple_start(self):
+    def test_simple_start_args(self):
+        """Test starting editor without arguments."""
+        editor.config = ConfigStub(editor=["executable"])
+        self.editor.edit("")
+        self.editor.proc.start.assert_called_with("executable", [])
+
+    def test_start_args(self):
         """Test starting editor with static arguments."""
         editor.config = ConfigStub(editor=["executable", "foo", "bar"])
         self.editor.edit("")
         self.editor.proc.start.assert_called_with("executable", ["foo", "bar"])
-        self.editor.on_proc_closed(0, QProcess.NormalExit)
 
     def test_placeholder(self):
         """Test starting editor with placeholder argument."""
@@ -89,7 +93,6 @@ class ArgTests(TestCase):
         filename = self.editor.filename
         self.editor.proc.start.assert_called_with(
             "executable", ["foo", filename, "bar"])
-        self.editor.on_proc_closed(0, QProcess.NormalExit)
 
     def test_in_arg_placeholder(self):
         """Test starting editor with placeholder argument inside argument."""
@@ -97,7 +100,9 @@ class ArgTests(TestCase):
         self.editor.edit("")
         filename = self.editor.filename
         self.editor.proc.start.assert_called_with("executable", ["foo{}bar"])
-        self.editor.on_proc_closed(0, QProcess.NormalExit)
+
+    def tearDown(self):
+        self.editor._cleanup()
 
 
 class FileHandlingTests(TestCase):
@@ -106,7 +111,6 @@ class FileHandlingTests(TestCase):
 
     def setUp(self):
         self.editor = editor.ExternalEditor()
-        self.editor.editing_finished = Mock()
         editor.config = ConfigStub(editor=[""])
 
     def test_file_handling_closed_ok(self):
