@@ -98,7 +98,7 @@ class ReadlineBridge:
         """Readline: Kill the text from point to the end of the line."""
         if self.widget is None:
             return
-        self.widget.home(True)
+        self.widget.end(True)
         self.deleted[self.widget] = self.widget.selectedText()
         self.widget.del_()
 
