@@ -79,5 +79,54 @@ class LogFilterTests(TestCase):
         self.assertTrue(logfilter.filter(record))
 
 
+class RAMHandlerTests(TestCase):
+
+    """Tests for RAMHandler.
+
+    Attributes:
+        level: The level the root logger had before executing the test.
+        logger: The logger we use to log to the handler.
+        handler: The RAMHandler we're testing.
+    """
+
+    def setUp(self):
+        root = logging.getLogger()
+        self.level = root.level
+        root.setLevel(logging.NOTSET)
+        self.handler = log.RAMHandler(capacity=2)
+        self.handler.setLevel(logging.NOTSET)
+        self.logger = logging.getLogger("foo")
+        self.logger.addHandler(self.handler)
+        self.logger.setLevel(logging.NOTSET)
+
+    def test_filled(self):
+        """Test handler with exactly as much records as it can hold."""
+        self.logger.debug("One")
+        self.logger.debug("Two")
+        self.assertEqual(len(self.handler.data), 2)
+        self.assertEqual(self.handler.data[0].msg, "One")
+        self.assertEqual(self.handler.data[1].msg, "Two")
+
+    def test_overflow(self):
+        """Test handler with more records as it can hold."""
+        self.logger.debug("One")
+        self.logger.debug("Two")
+        self.logger.debug("Three")
+        self.assertEqual(len(self.handler.data), 2)
+        self.assertEqual(self.handler.data[0].msg, "Two")
+        self.assertEqual(self.handler.data[1].msg, "Three")
+
+    def test_dump_log(self):
+        """Test dump_log()."""
+        self.logger.debug("One")
+        self.logger.debug("Two")
+        self.logger.debug("Three")
+        self.assertEqual(self.handler.dump_log(), "Two\nThree")
+
+    def tearDown(self):
+        """Restore the original root logger level."""
+        logging.getLogger().level = self.level
+
+
 if __name__ == '__main__':
     unittest.main()
