@@ -31,7 +31,11 @@ import qutebrowser.utils.editor as editor
 
 class ConfigStub:
 
-    """Stub for editor.config."""
+    """Stub for editor.config.
+
+    Attributes:
+        editor: The editor to return for general -> editor.
+    """
 
     def __init__(self, editor):
         self.editor = editor
@@ -44,6 +48,11 @@ class ConfigStub:
 
 
 class FakeQProcess:
+
+    """QProcess stub.
+
+    Gets some enum values from the real QProcess and uses mocks for signals.
+    """
 
     NormalExit = QProcess.NormalExit
     CrashExit = QProcess.CrashExit
@@ -62,6 +71,7 @@ class FakeQProcess:
 
 
 def setUpModule():
+    """Mock some things imported in the editor module."""
     editor.message = Mock()
     editor.logger = Mock()
     editor.QProcess = FakeQProcess
