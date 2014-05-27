@@ -647,7 +647,6 @@ class CommandDispatcher:
             else:
                 cur.inspector.show()
 
-
     @cmdutils.register(instance='mainwindow.tabs.cmd', modes=['insert'],
                        hide=True)
     def open_editor(self):
