@@ -25,10 +25,11 @@ Module attributes:
 import cgi
 
 import qutebrowser.utils.log as log
+import qutebrowser.utils.version as version
 from qutebrowser.network._schemehandler import (SchemeHandler,
                                                 SpecialNetworkReply)
-from qutebrowser.utils.version import version
 from qutebrowser.utils.url import urlstring
+from qutebrowser.utils.misc import read_file
 
 
 _HTML_TEMPLATE = """
@@ -112,11 +113,17 @@ class QuteHandlers:
     @classmethod
     def qute_version(cls):
         """Handler for qute:version. Return HTML content as bytes."""
-        text = cgi.escape(version())
-        return _get_html('Version', '<pre>{}</pre>'.format(text))
+        text = cgi.escape(version.version())
+        html = '<pre>{}</pre>'.format(text) + version.GPL_BOILERPLATE_HTML
+        return _get_html('Version', html)
 
     @classmethod
     def qute_log(cls):
         """Handler for qute:log. Return HTML content as bytes."""
         text = cgi.escape(log.ram_handler.dump_log())
         return _get_html('log', '<pre>{}</pre>'.format(text))
+
+    @classmethod
+    def qute_gpl(cls):
+        """Handler for qute:gpl. Return HTML content as bytes."""
+        return read_file('html/COPYING.html').encode('ASCII')
