@@ -217,8 +217,9 @@ def get_standard_dir(typ):
     # but we don't want that to happen.
     qapp.setOrganizationName(None)
     try:
-        # FIXME RuntimeLocation "can be empty on some systems", wat.
         path = QStandardPaths.writableLocation(typ)
+        if not path:
+            raise ValueError("QStandardPaths returned an empty value!")
         # Qt seems to use '/' as path separator even on Windows...
         path = path.replace('/', os.sep)
         appname = qapp.applicationName()
