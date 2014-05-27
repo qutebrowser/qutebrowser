@@ -84,20 +84,22 @@ class RAMHandlerTests(TestCase):
     """Tests for RAMHandler.
 
     Attributes:
-        level: The level the root logger had before executing the test.
         logger: The logger we use to log to the handler.
         handler: The RAMHandler we're testing.
+        old_level: The level the root logger had before executing the test.
+        old_handlers: The handlers the root logger had before executing the
+                      test.
     """
 
     def setUp(self):
-        root = logging.getLogger()
-        self.level = root.level
-        root.setLevel(logging.NOTSET)
+        self.logger = logging.getLogger()
+        self.old_level = self.logger.level
+        self.old_handlers = self.logger.handlers
+        self.logger.handlers = []
+        self.logger.setLevel(logging.NOTSET)
         self.handler = log.RAMHandler(capacity=2)
         self.handler.setLevel(logging.NOTSET)
-        self.logger = logging.getLogger("foo")
         self.logger.addHandler(self.handler)
-        self.logger.setLevel(logging.NOTSET)
 
     def test_filled(self):
         """Test handler with exactly as much records as it can hold."""
@@ -124,8 +126,9 @@ class RAMHandlerTests(TestCase):
         self.assertEqual(self.handler.dump_log(), "Two\nThree")
 
     def tearDown(self):
-        """Restore the original root logger level."""
-        logging.getLogger().level = self.level
+        """Restore the original root logger level and handlers."""
+        self.logger.level = self.old_level
+        self.logger.handlers = self.old_handlers
 
 
 if __name__ == '__main__':
