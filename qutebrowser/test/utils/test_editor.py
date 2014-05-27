@@ -45,9 +45,6 @@ class ConfigStub:
 
 class FakeQProcess:
 
-    finished = Mock()
-    error = Mock()
-
     NormalExit = QProcess.NormalExit
     CrashExit = QProcess.CrashExit
 
@@ -58,17 +55,10 @@ class FakeQProcess:
     ReadError = QProcess.ReadError
     UnknownError = QProcess.UnknownError
 
-    def __init__(self, parent):
-        self.executable = None
-        self.args = None
-
-    def start(self, executable, args):
-        self.executable = executable
-        self.args = args
-        self.on_started()
-
-    def on_started(self):
-        pass
+    def __init__(self, parent=None):
+        self.finished = Mock()
+        self.error = Mock()
+        self.start = Mock()
 
 
 def setUpModule():
@@ -84,7 +74,7 @@ class FileHandlingTests(TestCase):
     def setUp(self):
         self.editor = editor.ExternalEditor()
         self.editor.editing_finished = Mock()
-        editor.config = ConfigStub([""])
+        editor.config = ConfigStub(editor=[""])
 
     def test_file_handling_closed_ok(self):
         """Test file handling when closing with an exitstatus == 0."""
@@ -110,10 +100,6 @@ class FileHandlingTests(TestCase):
         self.editor.on_proc_error(QProcess.Crashed)
         self.editor.on_proc_closed(0, QProcess.CrashExit)
         self.assertFalse(os.path.exists(filename))
-
-
-        #self.editor.proc.start.assert_called_with("")
-        #self.assertTrue(self.editor.proc.
 
 
 if __name__ == '__main__':
