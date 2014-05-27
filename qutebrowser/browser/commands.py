@@ -22,7 +22,7 @@ import subprocess
 from functools import partial
 
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt, QObject
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebInspector
@@ -41,7 +41,7 @@ from qutebrowser.commands.exceptions import CommandError
 from qutebrowser.commands.userscripts import UserscriptRunner
 
 
-class CommandDispatcher(QObject):
+class CommandDispatcher:
 
     """Command dispatcher for TabbedBrowser.
 
@@ -63,7 +63,6 @@ class CommandDispatcher(QObject):
         Args:
             parent: The TabbedBrowser for this dispatcher.
         """
-        super().__init__(parent)
         self._userscript_runners = []
         self._tabs = parent
         self._editor = None
