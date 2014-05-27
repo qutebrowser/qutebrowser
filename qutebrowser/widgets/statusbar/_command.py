@@ -50,7 +50,8 @@ class Command(MinimalLineEdit):
                                     hidden.
         hide_completion: Emitted when the completion widget should be hidden.
         update_completion: Emitted when the completion should be shown/updated.
-                           arg: The new text which was set.
+                           arg 0: The new text which was set.
+                           arg 1: The part the cursor is currently in.
         show_cmd: Emitted when command input should be shown.
         hide_cmd: Emitted when command input can be hidden.
     """
@@ -60,7 +61,7 @@ class Command(MinimalLineEdit):
     got_search_rev = pyqtSignal(str)
     clear_completion_selection = pyqtSignal()
     hide_completion = pyqtSignal()
-    update_completion = pyqtSignal(str)
+    update_completion = pyqtSignal(str, int)
     show_cmd = pyqtSignal()
     hide_cmd = pyqtSignal()
 
@@ -73,9 +74,34 @@ class Command(MinimalLineEdit):
         self.history = History()
         self._validator = _CommandValidator(self)
         self.setValidator(self._validator)
-        self.textEdited.connect(self.history.stop)
-        self.textEdited.connect(self.update_completion)
+        self.textEdited.connect(self.on_text_edited)
+        self.cursorPositionChanged.connect(self.on_cursor_position_changed)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
+
+    def _cursor_part(self):
+        """Get the part index of the commandline where the cursor is over."""
+        prefix, parts = self._split()
+        cursor_pos = self.cursorPosition()
+        cursor_pos -= len(prefix)
+        for i, part in enumerate(parts):
+            logger.debug("part {}, len {}, pos {}".format(i, len(part),
+                cursor_pos))
+            if cursor_pos <= len(part):
+                # foo| bar
+                return i
+            cursor_pos -= (len(part) + 1)  # FIXME are spaces always 1 char?
+
+    def _split(self):
+        text = self.text()
+        if not text:
+            return '', []
+        if text[0] in STARTCHARS:
+            prefix = text[0]
+            text = text[1:]
+        else:
+            prefix = ''
+        parts = split_cmdline(text)
+        return prefix, parts
 
     @pyqtSlot(str)
     def set_cmd_text(self, text):
@@ -91,7 +117,7 @@ class Command(MinimalLineEdit):
         self.setText(text)
         if old_text != text:
             # We want the completion to pop out here.
-            self.update_completion.emit(text)
+            self.update_completion.emit(text, self._cursor_part())
         self.setFocus()
         self.show_cmd.emit()
 
@@ -102,18 +128,14 @@ class Command(MinimalLineEdit):
         Args:
             text: The text to set (string).
         """
-        # FIXME we should consider the cursor position.
-        text = self.text()
-        if text[0] in STARTCHARS:
-            prefix = text[0]
-            text = text[1:]
-        else:
-            prefix = ''
-        parts = split_cmdline(text)
-        logger.debug("Old text: '{}' - parts: {}, changing to '{}'".format(
-            text, parts, newtext))
-        parts[-1] = newtext
+        prefix, parts = self._split()
+        cursor_part = self._cursor_part()
+        logger.debug("parts: {}, changing {} to '{}'".format(
+            parts, cursor_part, newtext))
+        parts[cursor_part] = newtext
+        self.blockSignals(True)
         self.setText(prefix + ' '.join(parts))
+        self.blockSignals(False)
         self.setFocus()
         self.show_cmd.emit()
 
@@ -164,6 +186,17 @@ class Command(MinimalLineEdit):
         modeman.leave('command', 'cmd accept')
         if text[0] in signals:
             signals[text[0]].emit(text.lstrip(text[0]))
+
+    @pyqtSlot(str)
+    def on_text_edited(self, text):
+        """Slot for textEdited. Stop history and update completion."""
+        self.history.stop()
+        self.update_completion.emit(text, self._cursor_part())
+
+    @pyqtSlot(int, int)
+    def on_cursor_position_changed(self, _old, _new):
+        """Slot for cursorPositionChanged to update completion."""
+        self.update_completion.emit(self.text(), self._cursor_part())
 
     def on_mode_left(self, mode):
         """Clear up when ommand mode was left.

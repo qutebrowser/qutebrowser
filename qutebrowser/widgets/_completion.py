@@ -65,6 +65,7 @@ class CompletionView(QTreeView):
     Signals:
         change_completed_part: Text which should be substituted for the word
                                we're currently completing.
+                               arg: The text to change to.
     """
 
     STYLESHEET = """
@@ -201,13 +202,16 @@ class CompletionView(QTreeView):
                 # Item is a real item, not a category header -> success
                 return idx
 
-    def _get_new_completion(self, parts):
+    def _get_new_completion(self, parts, cursor_part):
         """Get a new completion model.
 
-        parts: The command chunks to get a completion for.
+        Args:
+            parts: The command chunks to get a completion for.
+            cursor_part: The part the cursor is over currently.
         """
-        if len(parts) == 1:
-            # parts = [''] or something like ['set']
+        logger.debug("cursor part: {}".format(cursor_part))
+        if cursor_part == 0:
+            # '|' or 'set|'
             return self._models['command']
         # delegate completion to command
         try:
@@ -220,19 +224,18 @@ class CompletionView(QTreeView):
             # command without any available completions
             return None
         try:
-            idx = len(parts[1:]) - 1
+            idx = cursor_part - 1
             completion_name = completions[idx]
-            logger.debug('partlen: {}, modelname {}'.format(
-                len(parts[1:]), completion_name))
+            logger.debug('modelname {}'.format(completion_name))
         except IndexError:
             # More arguments than completions
             return None
         if completion_name == 'option':
-            section = parts[-2]
+            section = parts[cursor_part - 1]
             model = self._models['option'].get(section)
         elif completion_name == 'value':
-            section = parts[-3]
-            option = parts[-2]
+            section = parts[cursor_part - 2]
+            option = parts[cursor_part - 1]
             try:
                 model = self._models['value'][section][option]
             except KeyError:
@@ -249,9 +252,6 @@ class CompletionView(QTreeView):
 
         Args:
             prev: True for prev item, False for next one.
-
-        Emit:
-            change_completed_part: When a completion took place.
         """
         if not self._completing:
             # No completion running at the moment, ignore keypress
@@ -283,16 +283,16 @@ class CompletionView(QTreeView):
         elif section == 'aliases':
             self._init_command_completion()
 
-    @pyqtSlot(str)
-    def on_update_completion(self, text):
+    @pyqtSlot(str, int)
+    def on_update_completion(self, text, cursor_part):
         """Check if completions are available and activate them.
 
         Slot for the textChanged signal of the statusbar command widget.
 
         Args:
             text: The new text
+            cursor_part: The part the cursor is currently over.
         """
-        # FIXME we should also consider the cursor position
         if not text.startswith(':'):
             # This is a search or gibberish, so we don't need to complete
             # anything (yet)
@@ -304,7 +304,7 @@ class CompletionView(QTreeView):
         text = text.lstrip(':')
         parts = split_cmdline(text)
 
-        model = self._get_new_completion(parts)
+        model = self._get_new_completion(parts, cursor_part)
         if model is None:
             logger.debug("No completion model for {}.".format(parts))
         else:
@@ -324,7 +324,8 @@ class CompletionView(QTreeView):
         if model is None:
             return
 
-        pattern = parts[-1] if parts else ''
+        pattern = parts[cursor_part] if parts else ''
+        logger.debug("pattern: {}".format(pattern))
         self._model.pattern = pattern
         self._model.srcmodel.mark_all_items(pattern)
         if self._enabled:
