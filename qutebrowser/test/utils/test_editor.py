@@ -139,5 +139,81 @@ class FileHandlingTests(TestCase):
         self.assertFalse(os.path.exists(filename))
 
 
+class TextModifyTests(TestCase):
+
+    """Tests to test if the text gets saved/loaded correctly."""
+
+    def setUp(self):
+        self.editor = editor.ExternalEditor()
+        self.editor.editing_finished = Mock()
+        editor.config = ConfigStub(editor=[""])
+
+    def _write(self, text):
+        """Write a text to the file opened in the fake editor."""
+        filename = self.editor.filename
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(text)
+
+    def _read(self):
+        """Read a text from the file opened in the fake editor."""
+        filename = self.editor.filename
+        with open(filename, 'r', encoding='utf-8') as f:
+            data = f.read()
+        return data
+
+    def test_empty_input(self):
+        """Test if an empty input gets modified correctly."""
+        self.editor.edit("")
+        self.assertEqual(self._read(), "")
+        self._write("Hello")
+        self.editor.on_proc_closed(0, QProcess.NormalExit)
+        self.editor.editing_finished.emit.assert_called_with("Hello")
+
+    def test_simple_input(self):
+        """Test if an empty input gets modified correctly."""
+        self.editor.edit("Hello")
+        self.assertEqual(self._read(), "Hello")
+        self._write("World")
+        self.editor.on_proc_closed(0, QProcess.NormalExit)
+        self.editor.editing_finished.emit.assert_called_with("World")
+
+    def test_umlaut(self):
+        """Test if umlauts works correctly."""
+        self.editor.edit("Hällö Wörld")
+        self.assertEqual(self._read(), "Hällö Wörld")
+        self._write("Überprüfung")
+        self.editor.on_proc_closed(0, QProcess.NormalExit)
+        self.editor.editing_finished.emit.assert_called_with("Überprüfung")
+
+    def test_unicode(self):
+        """Test if other UTF8 chars work correctly."""
+        self.editor.edit("\u2603")  # Unicode snowman
+        self.assertEqual(self._read(), "\u2603")
+        self._write("\u2601")  # Cloud
+        self.editor.on_proc_closed(0, QProcess.NormalExit)
+        self.editor.editing_finished.emit.assert_called_with("\u2601")
+
+
+class ErrorMessageTests(TestCase):
+
+    """Test if statusbar error messages get emitted correctly."""
+
+    def setUp(self):
+        self.editor = editor.ExternalEditor()
+        editor.config = ConfigStub(editor=[""])
+
+    def test_proc_error(self):
+        """Test on_proc_error."""
+        self.editor.edit("")
+        self.editor.on_proc_error(QProcess.Crashed)
+        self.assertTrue(editor.message.error.called)
+
+    def test_proc_return(self):
+        """Test on_proc_finished with a bad exit status."""
+        self.editor.edit("")
+        self.editor.on_proc_closed(1, QProcess.NormalExit)
+        self.assertTrue(editor.message.error.called)
+
+
 if __name__ == '__main__':
     unittest.main()
