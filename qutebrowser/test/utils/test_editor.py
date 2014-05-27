@@ -67,6 +67,39 @@ def setUpModule():
     editor.QProcess = FakeQProcess
 
 
+class ArgTests(TestCase):
+
+    """Test argument handling."""
+
+    def setUp(self):
+        self.editor = editor.ExternalEditor()
+        self.editor.editing_finished = Mock()
+
+    def test_simple_start(self):
+        """Test starting editor with static arguments."""
+        editor.config = ConfigStub(editor=["executable", "foo", "bar"])
+        self.editor.edit("")
+        self.editor.proc.start.assert_called_with("executable", ["foo", "bar"])
+        self.editor.on_proc_closed(0, QProcess.NormalExit)
+
+    def test_placeholder(self):
+        """Test starting editor with placeholder argument."""
+        editor.config = ConfigStub(editor=["executable", "foo", "{}", "bar"])
+        self.editor.edit("")
+        filename = self.editor.filename
+        self.editor.proc.start.assert_called_with(
+            "executable", ["foo", filename, "bar"])
+        self.editor.on_proc_closed(0, QProcess.NormalExit)
+
+    def test_in_arg_placeholder(self):
+        """Test starting editor with placeholder argument inside argument."""
+        editor.config = ConfigStub(editor=["executable", "foo{}bar"])
+        self.editor.edit("")
+        filename = self.editor.filename
+        self.editor.proc.start.assert_called_with("executable", ["foo{}bar"])
+        self.editor.on_proc_closed(0, QProcess.NormalExit)
+
+
 class FileHandlingTests(TestCase):
 
     """Test creation/deletion of tempfile."""
