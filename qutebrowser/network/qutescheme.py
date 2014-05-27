@@ -22,6 +22,7 @@ Module attributes:
     pyeval_output: The output of the last :pyeval command.
 """
 
+import qutebrowser
 import cgi
 
 import qutebrowser.utils.log as log
@@ -114,7 +115,11 @@ class QuteHandlers:
     def qute_version(cls):
         """Handler for qute:version. Return HTML content as bytes."""
         text = cgi.escape(version.version())
-        html = '<pre>{}</pre>'.format(text) + version.GPL_BOILERPLATE_HTML
+        html = '<h1>Version info</h1>'
+        html += '<p>{}</p>'.format(text.replace('\n', '<br/>'))
+        html += '<h1>Copyright info</h1>'
+        html += '<p>{}</p>'.format(qutebrowser.__copyright__)
+        html += version.GPL_BOILERPLATE_HTML
         return _get_html('Version', html)
 
     @classmethod
