@@ -48,7 +48,6 @@ class WebView(QWebView):
     Our own subclass of a QWebView with some added bells and whistles.
 
     Attributes:
-        page_: The QWebPage behind the view
         hintmanager: The HintManager instance for this view.
         tabbedbrowser: The TabbedBrowser this WebView is part of.
                        We need this rather than signals to make createWindow
@@ -56,6 +55,7 @@ class WebView(QWebView):
         progress: loading progress of this page.
         scroll_pos: The current scroll position as (x%, y%) tuple.
         inspector: The QWebInspector used for this webview.
+        _page: The QWebPage behind the view
         _url_text: The current URL as string.
                    Accessed via url_text property.
         _load_status: loading status of this page (index into LoadStatus)
@@ -99,19 +99,19 @@ class WebView(QWebView):
         self._init_neighborlist()
         self._url_text = ''
         self.progress = 0
-        self.page_ = BrowserPage(self)
-        self.setPage(self.page_)
+        self._page = BrowserPage(self)
+        self.setPage(self._page)
         self.hintmanager = HintManager(self)
         self.hintmanager.mouse_event.connect(self.on_mouse_event)
         self.hintmanager.set_open_target.connect(self.set_force_open_target)
-        self.page_.setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
-        self.page_.linkHovered.connect(self.linkHovered)
+        self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
+        self.page().linkHovered.connect(self.linkHovered)
         self.linkClicked.connect(self.on_link_clicked)
-        self.page_.mainFrame().loadStarted.connect(self.on_load_started)
+        self.page().mainFrame().loadStarted.connect(self.on_load_started)
         self.urlChanged.connect(self.on_url_changed)
         self.loadFinished.connect(self.on_load_finished)
         self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
-        self.page_.networkAccessManager().sslErrors.connect(
+        self.page().networkAccessManager().sslErrors.connect(
             lambda *args: setattr(self, '_has_ssl_errors', True))
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
 
@@ -232,7 +232,7 @@ class WebView(QWebView):
             e: The QMouseEvent.
         """
         pos = e.pos()
-        frame = self.page_.frameAt(pos)
+        frame = self.page().frameAt(pos)
         if frame is None:
             # This happens when we click inside the webview, but not actually
             # on the QWebPage - for example when clicking the scrollbar
@@ -330,14 +330,14 @@ class WebView(QWebView):
 
     def go_back(self):
         """Go back a page in the history."""
-        if self.page_.history().canGoBack():
+        if self.page().history().canGoBack():
             self.back()
         else:
             raise CommandError("At beginning of history.")
 
     def go_forward(self):
         """Go forward a page in the history."""
-        if self.page_.history().canGoForward():
+        if self.page().history().canGoForward():
             self.forward()
         else:
             raise CommandError("At end of history.")
@@ -362,10 +362,10 @@ class WebView(QWebView):
         self.close()
         self.settings().setAttribute(QWebSettings.JavascriptEnabled, False)
 
-        self._destroyed[self.page_] = False
-        self.page_.destroyed.connect(functools.partial(self._on_destroyed,
-                                                       self.page_))
-        self.page_.deleteLater()
+        self._destroyed[self.page()] = False
+        self.page().destroyed.connect(functools.partial(self._on_destroyed,
+                                                        self.page()))
+        self.page().deleteLater()
 
         self._destroyed[self] = False
         self.destroyed.connect(functools.partial(self._on_destroyed, self))
@@ -428,7 +428,7 @@ class WebView(QWebView):
             return
         if modeman.instance().mode == 'insert' or not ok:
             return
-        frame = self.page_.currentFrame()
+        frame = self.page().currentFrame()
         elem = frame.findFirstElement(
             webelem.SELECTORS[webelem.Group.editable_focused])
         log.modes.debug("focus element: {}".format(not elem.isNull()))
@@ -491,7 +491,7 @@ class WebView(QWebView):
         Return:
             The superclass event return value.
         """
-        frame = self.page_.mainFrame()
+        frame = self.page().mainFrame()
         new_pos = (frame.scrollBarValue(Qt.Horizontal),
                    frame.scrollBarValue(Qt.Vertical))
         if self._old_scroll_pos != new_pos:

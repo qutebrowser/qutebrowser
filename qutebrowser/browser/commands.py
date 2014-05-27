@@ -82,7 +82,7 @@ class CommandDispatcher:
         else:
             perc = float(perc)
         perc = check_overflow(perc, 'int', fatal=False)
-        frame = self._tabs.currentWidget().page_.currentFrame()
+        frame = self._tabs.currentWidget().page().currentFrame()
         m = frame.scrollBarMaximum(orientation)
         if m == 0:
             return
@@ -91,7 +91,7 @@ class CommandDispatcher:
     def _prevnext(self, prev, newtab):
         """Inner logic for {tab,}{prev,next}page."""
         widget = self._tabs.currentWidget()
-        frame = widget.page_.currentFrame()
+        frame = widget.page().currentFrame()
         if frame is None:
             raise CommandError("No frame focused!")
         widget.hintmanager.follow_prevnext(frame, widget.url(), prev, newtab)
@@ -247,7 +247,7 @@ class CommandDispatcher:
             targetstr: Where to open the links.
         """
         widget = self._tabs.currentWidget()
-        frame = widget.page_.mainFrame()
+        frame = widget.page().mainFrame()
         if frame is None:
             raise CommandError("No frame focused!")
         try:
@@ -298,7 +298,7 @@ class CommandDispatcher:
         dy = int(int(count) * float(dy))
         cmdutils.check_overflow(dx, 'int')
         cmdutils.check_overflow(dy, 'int')
-        self._tabs.currentWidget().page_.currentFrame().scroll(dx, dy)
+        self._tabs.currentWidget().page().currentFrame().scroll(dx, dy)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def scroll_perc_x(self, perc=None, count=None):
@@ -329,7 +329,7 @@ class CommandDispatcher:
             my: How many pages to scroll down.
             count: multiplier
         """
-        frame = self._tabs.currentWidget().page_.currentFrame()
+        frame = self._tabs.currentWidget().page().currentFrame()
         size = frame.geometry()
         dx = int(count) * float(mx) * size.width()
         dy = int(count) * float(my) * size.height()
@@ -635,7 +635,7 @@ class CommandDispatcher:
                               "the webinspector!")
                 return
             cur.inspector = QWebInspector()
-            cur.inspector.setPage(cur.page_)
+            cur.inspector.setPage(cur.page())
             cur.inspector.show()
         elif cur.inspector.isVisible():
             cur.inspector.hide()
@@ -657,7 +657,7 @@ class CommandDispatcher:
         easier to execute some code as soon as the process has been finished
         and do everything async.
         """
-        frame = self._tabs.currentWidget().page_.currentFrame()
+        frame = self._tabs.currentWidget().page().currentFrame()
         elem = frame.findFirstElement(webelem.SELECTORS[
             webelem.Group.editable_focused])
         if elem.isNull():
