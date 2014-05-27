@@ -41,22 +41,35 @@ class ElidingTests(TestCase):
     ELLIPSIS = '\u2026'
 
     def test_too_small(self):
+        """Test eliding to 0 chars which should fail."""
         with self.assertRaises(ValueError):
             utils.elide('foo', 0)
 
     def test_length_one(self):
+        """Test eliding to 1 char which should yield ..."""
         self.assertEqual(utils.elide('foo', 1), self.ELLIPSIS)
 
     def test_fits(self):
+        """Test eliding with a string which fits exactly."""
         self.assertEqual(utils.elide('foo', 3), 'foo')
 
     def test_elided(self):
+        """Test eliding with a string which should get elided."""
         self.assertEqual(utils.elide('foobar', 3), 'fo' + self.ELLIPSIS)
 
 
 class CheckOverflowTests(TestCase):
 
-    """Test check_overflow."""
+    """Test check_overflow.
+
+    Class attributes:
+        INT32_MIN: Minimum valid value for a signed int32.
+        INT32_MAX: Maximum valid value for a signed int32.
+        INT64_MIN: Minimum valid value for a signed int64.
+        INT64_MAX: Maximum valid value for a signed int64.
+        GOOD_VALUES: A dict of types mapped to a list of good values.
+        BAD_VALUES: A dict of types mapped to a list of bad values.
+    """
 
     INT32_MIN = -(2 ** 31)
     INT32_MAX = 2 ** 31 - 1
@@ -78,17 +91,20 @@ class CheckOverflowTests(TestCase):
     }
 
     def test_good_values(self):
+        """Test values which are inside bounds."""
         for ctype, vals in self.GOOD_VALUES.items():
             for val in vals:
                 utils.check_overflow(val, ctype)
 
     def test_bad_values_fatal(self):
+        """Test values which are outside bounds with fatal=True."""
         for ctype, vals in self.BAD_VALUES.items():
             for (val, _) in vals:
                 with self.assertRaises(OverflowError, msg=ctype):
                     utils.check_overflow(val, ctype)
 
     def test_bad_values_nonfatal(self):
+        """Test values which are outside bounds with fatal=False."""
         for ctype, vals in self.BAD_VALUES.items():
             for (val, replacement) in vals:
                 newval = utils.check_overflow(val, ctype, fatal=False)
@@ -101,19 +117,28 @@ class ReadFileTests(TestCase):
     """Test read_file."""
 
     def test_readfile(self):
+        """Read a testfile."""
         content = utils.read_file(os.path.join('test', 'testfile'))
         self.assertEqual(content.splitlines()[0], "Hello World!")
 
 
 class DottedGetattrTests(TestCase):
 
-    """Test dotted_getattr."""
+    """Test dotted_getattr.
+
+    Attributes:
+        test: Test class instance for getattr.
+    """
 
     class Test:
+
+        """Sample class used to test dotted_getattr."""
 
         foo = None
 
     class Test2:
+
+        """Sample class used to test dotted_getattr."""
 
         bar = 1
 
@@ -122,10 +147,12 @@ class DottedGetattrTests(TestCase):
         self.test.foo = self.Test2()
 
     def test_dotted_getattr(self):
+        """Test dotted_getattr with a valid path."""
         attr = utils.dotted_getattr(self, 'test.foo.bar')
         self.assertEqual(attr, 1)
 
     def test_invalid_path(self):
+        """Test dotted_getattr with an invalid path."""
         with self.assertRaises(AttributeError):
             _ = utils.dotted_getattr(self, 'test.foo.baz')
 
@@ -135,31 +162,47 @@ class SafeShlexSplitTests(TestCase):
     """Test safe_shlex_split."""
 
     def test_normal(self):
+        """Test safe_shlex_split with a simple string."""
         items = utils.safe_shlex_split('one two')
         self.assertEqual(items, ['one', 'two'])
 
     def test_quoted(self):
+        """Test safe_shlex_split with a normally quoted string."""
         items = utils.safe_shlex_split('one "two three" four')
         self.assertEqual(items, ['one', 'two three', 'four'])
 
     def test_escaped(self):
+        """Test safe_shlex_split with a normal escaped string."""
         items = utils.safe_shlex_split(r'one "two\" three" four')
         self.assertEqual(items, ['one', 'two" three', 'four'])
 
     def test_unbalanced_quotes(self):
+        """Test safe_shlex_split with unbalanded quotes."""
         items = utils.safe_shlex_split(r'one "two three')
         self.assertEqual(items, ['one', 'two three'])
 
     def test_unfinished_escape(self):
+        """Test safe_shlex_split with an unfinished escape."""
         items = utils.safe_shlex_split('one\\')
         self.assertEqual(items, ['one\\'])
 
     def test_both(self):
+        """Test safe_shlex_split with an unfinished escape and quotes.."""
         items = utils.safe_shlex_split('one "two\\')
         self.assertEqual(items, ['one', 'two\\'])
 
 
 class ShellEscapeTests(TestCase):
+
+    """Tests for shell_escape.
+
+    Class attributes:
+        TEXTS_LINUX: A list of (input, output) of expected texts for Linux.
+        TEXTS_WINDOWS: A list of (input, output) of expected texts for Windows.
+
+    Attributes:
+        platform: The saved sys.platform value.
+    """
 
     TEXTS_LINUX = [
         ('', "''"),
@@ -214,6 +257,13 @@ class ShellEscapeTests(TestCase):
 
 class GetStandardDirLinuxTests(TestCase):
 
+    """Tests for get_standard_dir under Linux.
+
+    Attributes:
+        temp_dir: A temporary directory.
+        app: The QCoreApplication used.
+    """
+
     def setUp(self):
         self.temp_dir = mkdtemp()
         self.app = QCoreApplication([])
@@ -221,6 +271,7 @@ class GetStandardDirLinuxTests(TestCase):
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_data_explicit(self):
+        """Test data dir with XDG_DATA_HOME explicitely set."""
         with environ_set_temp('XDG_DATA_HOME', self.temp_dir):
             cur_dir = utils.get_standard_dir(QStandardPaths.DataLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir,
@@ -229,6 +280,7 @@ class GetStandardDirLinuxTests(TestCase):
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_config_explicit(self):
+        """Test config dir with XDG_CONFIG_HOME explicitely set."""
         with environ_set_temp('XDG_CONFIG_HOME', self.temp_dir):
             cur_dir = utils.get_standard_dir(QStandardPaths.ConfigLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir,
@@ -237,6 +289,7 @@ class GetStandardDirLinuxTests(TestCase):
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_cache_explicit(self):
+        """Test cache dir with XDG_CACHE_HOME explicitely set."""
         with environ_set_temp('XDG_CACHE_HOME', self.temp_dir):
             cur_dir = utils.get_standard_dir(QStandardPaths.CacheLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir,
@@ -245,6 +298,7 @@ class GetStandardDirLinuxTests(TestCase):
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_data(self):
+        """Test data dir with XDG_DATA_HOME not set."""
         with environ_set_temp('HOME', self.temp_dir):
             cur_dir = utils.get_standard_dir(QStandardPaths.DataLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir, '.local',
@@ -253,6 +307,7 @@ class GetStandardDirLinuxTests(TestCase):
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_config(self):
+        """Test config dir with XDG_CONFIG_HOME not set."""
         with environ_set_temp('HOME', self.temp_dir):
             cur_dir = utils.get_standard_dir(
                 QStandardPaths.ConfigLocation)
@@ -262,6 +317,7 @@ class GetStandardDirLinuxTests(TestCase):
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_cache(self):
+        """Test cache dir with XDG_CACHE_HOME not set."""
         with environ_set_temp('HOME', self.temp_dir):
             cur_dir = utils.get_standard_dir(QStandardPaths.CacheLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir, '.cache',
@@ -275,6 +331,12 @@ class GetStandardDirLinuxTests(TestCase):
 
 class GetStandardDirWindowsTests(TestCase):
 
+    """Tests for get_standard_dir under Windows.
+
+    Attributes:
+        app: The QCoreApplication used.
+    """
+
     def setUp(self):
         self.app = QCoreApplication([])
         # We can't store the files in a temp dir, so we don't chose qutebrowser
@@ -282,6 +344,7 @@ class GetStandardDirWindowsTests(TestCase):
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
     def test_data(self):
+        """Test data dir."""
         cur_dir = utils.get_standard_dir(QStandardPaths.DataLocation)
         self.assertEqual(cur_dir.split(os.sep)[-1], 'qutebrowser_test',
                          cur_dir)
@@ -292,6 +355,7 @@ class GetStandardDirWindowsTests(TestCase):
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
     def test_config(self):
+        """Test config dir."""
         cur_dir = utils.get_standard_dir(QStandardPaths.ConfigLocation)
         self.assertEqual(cur_dir.split(os.sep)[-1], 'qutebrowser_test',
                          cur_dir)
@@ -302,6 +366,7 @@ class GetStandardDirWindowsTests(TestCase):
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
     def test_cache(self):
+        """Test cache dir."""
         cur_dir = utils.get_standard_dir(QStandardPaths.CacheLocation)
         self.assertEqual(cur_dir.split(os.sep)[-2:],
                          ['qutebrowser_test', 'cache'], cur_dir)

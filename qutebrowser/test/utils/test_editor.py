@@ -79,7 +79,11 @@ def setUpModule():
 
 class ArgTests(TestCase):
 
-    """Test argument handling."""
+    """Test argument handling.
+
+    Attributes:
+        editor: The ExternalEditor instance to test.
+    """
 
     def setUp(self):
         self.editor = editor.ExternalEditor()
@@ -117,7 +121,11 @@ class ArgTests(TestCase):
 
 class FileHandlingTests(TestCase):
 
-    """Test creation/deletion of tempfile."""
+    """Test creation/deletion of tempfile.
+
+    Attributes:
+        editor: The ExternalEditor instance to test.
+    """
 
     def setUp(self):
         self.editor = editor.ExternalEditor()
@@ -151,7 +159,11 @@ class FileHandlingTests(TestCase):
 
 class TextModifyTests(TestCase):
 
-    """Tests to test if the text gets saved/loaded correctly."""
+    """Tests to test if the text gets saved/loaded correctly.
+
+    Attributes:
+        editor: The ExternalEditor instance to test.
+    """
 
     def setUp(self):
         self.editor = editor.ExternalEditor()
@@ -159,13 +171,21 @@ class TextModifyTests(TestCase):
         editor.config = ConfigStub(editor=[""])
 
     def _write(self, text):
-        """Write a text to the file opened in the fake editor."""
+        """Write a text to the file opened in the fake editor.
+
+        Args:
+            text: The text to write to the file.
+        """
         filename = self.editor.filename
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(text)
 
     def _read(self):
-        """Read a text from the file opened in the fake editor."""
+        """Read a text from the file opened in the fake editor.
+
+        Return:
+            The text which was read.
+        """
         filename = self.editor.filename
         with open(filename, 'r', encoding='utf-8') as f:
             data = f.read()
@@ -206,7 +226,11 @@ class TextModifyTests(TestCase):
 
 class ErrorMessageTests(TestCase):
 
-    """Test if statusbar error messages get emitted correctly."""
+    """Test if statusbar error messages get emitted correctly.
+
+    Attributes:
+        editor: The ExternalEditor instance to test.
+    """
 
     def setUp(self):
         self.editor = editor.ExternalEditor()

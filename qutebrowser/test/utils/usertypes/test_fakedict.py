@@ -27,20 +27,27 @@ from qutebrowser.utils.usertypes import FakeDict
 
 class FakeDictTests(TestCase):
 
-    """Test the FakeDict usertype."""
+    """Test the FakeDict usertype.
+
+    Attributes:
+        fd: The FakeDict we're testing.
+    """
 
     def setUp(self):
         self.fd = FakeDict("foo")
 
-    def test_getattr(self):
+    def test_getitem(self):
+        """Test getting items of the fakedict."""
         self.assertEqual(self.fd["eggs"], "foo")
         self.assertEqual(self.fd["bacon"], "foo")
 
-    def test_setattr(self):
+    def test_setitem(self):
+        """Test setting items of the FakeDict which should raise TypeError."""
         with self.assertRaises(TypeError):
             self.fd["eggs"] = "bar"
 
     def test_repr(self):
+        """Test repr() on the FakeDict."""
         self.assertEqual(repr(self.fd), "FakeDict('foo')")
 
 

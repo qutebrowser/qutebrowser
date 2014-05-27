@@ -27,13 +27,17 @@ from qutebrowser.test.helpers import environ_set_temp
 
 class TestEnvironSetTemp(TestCase):
 
+    """Test the environ_set_temp helper."""
+
     def test_environ_set(self):
+        """Test environ_set_temp with something which was set already."""
         os.environ['QUTEBROWSER_ENVIRON_TEST'] = 'oldval'
         with environ_set_temp('QUTEBROWSER_ENVIRON_TEST', 'newval'):
             self.assertEqual(os.environ['QUTEBROWSER_ENVIRON_TEST'], 'newval')
         self.assertEqual(os.environ['QUTEBROWSER_ENVIRON_TEST'], 'oldval')
 
     def test_environ_unset(self):
+        """Test environ_set_temp with something which wasn't set yet."""
         with environ_set_temp('QUTEBROWSER_ENVIRON_TEST', 'newval'):
             self.assertEqual(os.environ['QUTEBROWSER_ENVIRON_TEST'], 'newval')
         self.assertNotIn('QUTEBROWSER_ENVIRON_TEST', os.environ)

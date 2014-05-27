@@ -108,7 +108,11 @@ class FakeChildrenFrame:
 
 class IsVisibleInvalidTests(TestCase):
 
-    """Tests for is_visible with invalid elements."""
+    """Tests for is_visible with invalid elements.
+
+    Attributes:
+        frame: The FakeWebFrame we're using to test.
+    """
 
     def setUp(self):
         self.frame = FakeWebFrame(QRect(0, 0, 100, 100))
@@ -146,23 +150,33 @@ class IsVisibleInvalidTests(TestCase):
 
 class IsVisibleScrollTests(TestCase):
 
-    """Tests for is_visible when the frame is scrolled."""
+    """Tests for is_visible when the frame is scrolled.
+
+    Attributes:
+        frame: The FakeWebFrame we're using to test.
+    """
 
     def setUp(self):
         self.frame = FakeWebFrame(QRect(0, 0, 100, 100), scroll=QPoint(10, 10))
 
     def test_invisible(self):
+        """Test elements which should be invisible due to scrolling."""
         elem = FakeWebElement(QRect(5, 5, 4, 4), self.frame)
         self.assertFalse(webelem.is_visible(elem, self.frame))
 
     def test_visible(self):
+        """Test elements which still should be visible after scrolling."""
         elem = FakeWebElement(QRect(10, 10, 1, 1), self.frame)
         self.assertTrue(webelem.is_visible(elem, self.frame))
 
 
 class IsVisibleCssTests(TestCase):
 
-    """Tests for is_visible with CSS attributes."""
+    """Tests for is_visible with CSS attributes.
+
+    Attributes:
+        frame: The FakeWebFrame we're using to test.
+    """
 
     def setUp(self):
         self.frame = FakeWebFrame(QRect(0, 0, 100, 100))
@@ -193,7 +207,13 @@ class IsVisibleCssTests(TestCase):
 
 class IsVisibleIframeTests(TestCase):
 
-    """Tests for is_visible with a child frame."""
+    """Tests for is_visible with a child frame.
+
+    Attributes:
+        frame: The FakeWebFrame we're using to test.
+        iframe: The iframe inside frame.
+        elem1-elem4: FakeWebElements to test.
+    """
 
     def setUp(self):
         """Set up this base situation
@@ -264,7 +284,11 @@ class IsVisibleIframeTests(TestCase):
 
 class JavascriptEscapeTests(TestCase):
 
-    """Check javascript_escape."""
+    """Check javascript_escape.
+
+    Class attributes:
+        STRINGS: A list of (input, output) tuples.
+    """
 
     STRINGS = [
         ('foo\\bar', r'foo\\bar'),

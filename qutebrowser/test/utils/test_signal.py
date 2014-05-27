@@ -35,7 +35,11 @@ class FakeSignal:
 
 class TestDebug(TestCase):
 
-    """Test signal debug output functions."""
+    """Test signal debug output functions.
+
+    Attributes:
+        signal: The FakeSignal to be tested.
+    """
 
     def setUp(self):
         self.signal = FakeSignal()

@@ -27,24 +27,32 @@ from qutebrowser.utils.usertypes import enum
 
 class EnumTests(TestCase):
 
-    """Test simple enums."""
+    """Test simple enums.
+
+    Attributes:
+        enum: The enum we're testing.
+    """
 
     def setUp(self):
         self.enum = enum('zero', 'one')
 
     def test_values(self):
+        """Test if enum members resolve to the right values."""
         self.assertEqual(self.enum.zero, 0)
         self.assertEqual(self.enum.one, 1)
 
     def test_reverse(self):
+        """Test reverse mapping."""
         self.assertEqual(self.enum[0], 'zero')
         self.assertEqual(self.enum[1], 'one')
 
     def test_unknown(self):
+        """Test invalid values which should raise an AttributeError."""
         with self.assertRaises(AttributeError):
             _ = self.enum.two
 
     def test_unknown_reverse(self):
+        """Test reverse mapping with invalid value ."""
         with self.assertRaises(KeyError):
             _ = self.enum['two']
 

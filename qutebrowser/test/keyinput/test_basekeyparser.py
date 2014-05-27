@@ -30,13 +30,18 @@ from PyQt5.QtCore import Qt
 
 
 def setUpModule():
+    """Mock out some imports in basekeyparser."""
     basekeyparser.QObject = Mock()
     logging.disable(logging.ERROR)
 
 
 class ConfigStub:
 
-    """Stub for basekeyparser.config."""
+    """Stub for basekeyparser.config.
+
+    Class attributes:
+        DATA: The config data to return.
+    """
 
     DATA = {'test': {'<Ctrl-a>': 'ctrla',
                      'a': 'a',
@@ -47,11 +52,23 @@ class ConfigStub:
             'test2': {'foo': 'bar', '<Ctrl+X>': 'ctrlx'}}
 
     def section(self, name):
+        """Get a section from the config.
+
+        Args:
+            name: The section name to get.
+
+        Raise:
+            ValueError if section isn't test1/test2.
+
+        Return:
+            The section as dict.
+        """
         if name not in ['test', 'test2']:
             raise ValueError("section called with section '{}'!".format(name))
         return self.DATA[name]
 
     def get(self, sect, opt):
+        """Get a value from the config."""
         return self.DATA[sect][opt]
 
 
@@ -73,6 +90,7 @@ class NormalizeTests(TestCase):
         self.kp = basekeyparser.BaseKeyParser()
 
     def test_normalize(self):
+        """Test normalize with some strings."""
         STRINGS = [
             ('Control+x', 'Ctrl+X'),
             ('Windows+x', 'Meta+X'),
@@ -87,32 +105,42 @@ class NormalizeTests(TestCase):
 
 class SplitCountTests(TestCase):
 
-    """Test the _split_count method."""
+    """Test the _split_count method.
+
+    Attributes:
+        kp: The BaseKeyParser we're testing.
+    """
 
     def setUp(self):
         self.kp = basekeyparser.BaseKeyParser(supports_count=True)
 
     def test_onlycount(self):
+        """Test split_count with only a count."""
         self.kp._keystring = '10'
         self.assertEqual(self.kp._split_count(), (10, ''))
 
     def test_normalcount(self):
+        """Test split_count with count and text."""
         self.kp._keystring = '10foo'
         self.assertEqual(self.kp._split_count(), (10, 'foo'))
 
     def test_minuscount(self):
+        """Test split_count with a negative count."""
         self.kp._keystring = '-1foo'
         self.assertEqual(self.kp._split_count(), (None, '-1foo'))
 
     def test_expcount(self):
+        """Test split_count with an exponential count."""
         self.kp._keystring = '10e4foo'
         self.assertEqual(self.kp._split_count(), (10, 'e4foo'))
 
     def test_nocount(self):
+        """Test split_count with only a command."""
         self.kp._keystring = 'foo'
         self.assertEqual(self.kp._split_count(), (None, 'foo'))
 
     def test_nosupport(self):
+        """Test split_count with a count when counts aren't supported."""
         self.kp._supports_count = False
         self.kp._keystring = '10foo'
         self.assertEqual(self.kp._split_count(), (None, '10foo'))
@@ -127,11 +155,13 @@ class ReadConfigTests(TestCase):
         basekeyparser.QTimer = Mock()
 
     def test_read_config_invalid(self):
+        """Test reading config without setting it before."""
         kp = basekeyparser.BaseKeyParser()
         with self.assertRaises(ValueError):
             kp.read_config()
 
     def test_read_config_valid(self):
+        """Test reading config."""
         kp = basekeyparser.BaseKeyParser(supports_count=True,
                                          supports_chains=True)
         kp.read_config('test')
@@ -146,7 +176,11 @@ class ReadConfigTests(TestCase):
 
 class SpecialKeysTests(TestCase):
 
-    """Check execute() with special keys."""
+    """Check execute() with special keys.
+
+    Attributes:
+        kp: The BaseKeyParser to be tested.
+    """
 
     def setUp(self):
         basekeyparser.config = ConfigStub()
@@ -156,16 +190,19 @@ class SpecialKeysTests(TestCase):
         self.kp.read_config('test')
 
     def test_valid_key(self):
+        """Test a valid special keyevent."""
         self.kp.handle(FakeKeyEvent(Qt.Key_A, Qt.ControlModifier))
         self.kp.handle(FakeKeyEvent(Qt.Key_X, Qt.ControlModifier))
         self.kp.execute.assert_called_once_with('ctrla', self.kp.Type.special)
 
     def test_invalid_key(self):
+        """Test an invalid special keyevent."""
         self.kp.handle(FakeKeyEvent(Qt.Key_A, (Qt.ControlModifier |
                                                Qt.AltModifier)))
         self.assertFalse(self.kp.execute.called)
 
     def test_keychain(self):
+        """Test a keychain."""
         self.kp.handle(FakeKeyEvent(Qt.Key_B))
         self.kp.handle(FakeKeyEvent(Qt.Key_A))
         self.assertFalse(self.kp.execute.called)
@@ -173,9 +210,15 @@ class SpecialKeysTests(TestCase):
 
 class KeyChainTests(TestCase):
 
-    """Test execute() with keychain support."""
+    """Test execute() with keychain support.
+
+    Attributes:
+        kp: The BaseKeyParser to be tested.
+        timermock: The mock to be used as timer.
+    """
 
     def setUp(self):
+        """Set up mocks and read the test config."""
         basekeyparser.config = ConfigStub()
         self.timermock = Mock()
         basekeyparser.QTimer = Mock(return_value=self.timermock)
@@ -185,18 +228,21 @@ class KeyChainTests(TestCase):
         self.kp.read_config('test')
 
     def test_valid_special_key(self):
+        """Test valid special key."""
         self.kp.handle(FakeKeyEvent(Qt.Key_A, Qt.ControlModifier))
         self.kp.handle(FakeKeyEvent(Qt.Key_X, Qt.ControlModifier))
         self.kp.execute.assert_called_once_with('ctrla', self.kp.Type.special)
         self.assertEqual(self.kp._keystring, '')
 
     def test_invalid_special_key(self):
+        """Test invalid special key."""
         self.kp.handle(FakeKeyEvent(Qt.Key_A, (Qt.ControlModifier |
                                                Qt.AltModifier)))
         self.assertFalse(self.kp.execute.called)
         self.assertEqual(self.kp._keystring, '')
 
     def test_keychain(self):
+        """Test valid keychain."""
         # Press 'x' which is ignored because of no match
         self.kp.handle(FakeKeyEvent(Qt.Key_X, text='x'))
         # Then start the real chain
@@ -206,6 +252,7 @@ class KeyChainTests(TestCase):
         self.assertEqual(self.kp._keystring, '')
 
     def test_ambigious_keychain(self):
+        """Test ambigious keychain."""
         # We start with 'a' where the keychain gives us an ambigious result.
         # Then we check if the timer has been set up correctly
         self.kp.handle(FakeKeyEvent(Qt.Key_A, text='a'))
@@ -224,6 +271,7 @@ class KeyChainTests(TestCase):
         self.assertEqual(self.kp._keystring, '')
 
     def test_invalid_keychain(self):
+        """Test invalid keychain."""
         self.kp.handle(FakeKeyEvent(Qt.Key_B, text='b'))
         self.kp.handle(FakeKeyEvent(Qt.Key_C, text='c'))
         self.assertEqual(self.kp._keystring, '')
@@ -242,12 +290,14 @@ class CountTests(TestCase):
         self.kp.read_config('test')
 
     def test_no_count(self):
+        """Test with no count added."""
         self.kp.handle(FakeKeyEvent(Qt.Key_B, text='b'))
         self.kp.handle(FakeKeyEvent(Qt.Key_A, text='a'))
         self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, None)
         self.assertEqual(self.kp._keystring, '')
 
     def test_count_0(self):
+        """Test with count=0."""
         self.kp.handle(FakeKeyEvent(Qt.Key_0, text='0'))
         self.kp.handle(FakeKeyEvent(Qt.Key_B, text='b'))
         self.kp.handle(FakeKeyEvent(Qt.Key_A, text='a'))
@@ -255,6 +305,7 @@ class CountTests(TestCase):
         self.assertEqual(self.kp._keystring, '')
 
     def test_count_42(self):
+        """Test with count=42."""
         self.kp.handle(FakeKeyEvent(Qt.Key_4, text='4'))
         self.kp.handle(FakeKeyEvent(Qt.Key_2, text='2'))
         self.kp.handle(FakeKeyEvent(Qt.Key_B, text='b'))
@@ -263,6 +314,7 @@ class CountTests(TestCase):
         self.assertEqual(self.kp._keystring, '')
 
     def test_count_42_invalid(self):
+        """Test with count=42 and invalid command."""
         # Invalid call with ccx gets ignored
         self.kp.handle(FakeKeyEvent(Qt.Key_4, text='4'))
         self.kp.handle(FakeKeyEvent(Qt.Key_2, text='2'))

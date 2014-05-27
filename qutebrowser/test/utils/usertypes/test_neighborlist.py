@@ -27,25 +27,34 @@ from qutebrowser.utils.usertypes import NeighborList
 
 class InitTests(TestCase):
 
-    """Just try to init some neighborlists."""
+    """Just try to init some neighborlists.
+
+    Attributes:
+        nl: The NeighborList we're testing.
+    """
 
     def test_empty(self):
+        """Test constructing an empty NeighborList."""
         nl = NeighborList()
         self.assertEqual(nl.items, [])
 
     def test_items(self):
+        """Test constructing an NeighborList with items."""
         nl = NeighborList([1, 2, 3])
         self.assertEqual(nl.items, [1, 2, 3])
 
     def test_len(self):
+        """Test len() on NeighborList."""
         nl = NeighborList([1, 2, 3])
         self.assertEqual(len(nl), 3)
 
     def test_repr(self):
+        """Test repr() on NeighborList."""
         nl = NeighborList([1, 2, 3])
         self.assertEqual(repr(nl), 'NeighborList([1, 2, 3])')
 
     def test_contains(self):
+        """Test 'in' on NeighborList."""
         nl = NeighborList([1, 2, 3])
         self.assertIn(2, nl)
         self.assertNotIn(4, nl)
@@ -53,84 +62,110 @@ class InitTests(TestCase):
 
 class DefaultTests(TestCase):
 
-    """Test the default argument."""
+    """Test the default argument.
+
+    Attributes:
+        nl: The NeighborList we're testing.
+    """
 
     def test_simple(self):
+        """Test default with a numeric argument."""
         nl = NeighborList([1, 2, 3], default=2)
         self.assertEqual(nl.idx, 1)
 
     def test_none(self):
+        """Test default 'None'."""
         nl = NeighborList([1, 2, None], default=None)
         self.assertEqual(nl.idx, 2)
 
     def test_unset(self):
+        """Test unset default value."""
         nl = NeighborList([1, 2, 3])
         self.assertIsNone(nl.idx)
 
 
 class EmptyTests(TestCase):
 
-    """Tests with no items."""
+    """Tests with no items.
+
+    Attributes:
+        nl: The NeighborList we're testing.
+    """
 
     def setUp(self):
         self.nl = NeighborList()
 
     def test_curitem(self):
+        """Test curitem with no item."""
         with self.assertRaises(IndexError):
             self.nl.curitem()
 
     def test_firstitem(self):
+        """Test firstitem with no item."""
         with self.assertRaises(IndexError):
             self.nl.firstitem()
 
     def test_lastitem(self):
+        """Test lastitem with no item."""
         with self.assertRaises(IndexError):
             self.nl.lastitem()
 
     def test_getitem(self):
+        """Test getitem with no item."""
         with self.assertRaises(IndexError):
             self.nl.getitem(1)
 
 
 class ItemTests(TestCase):
 
-    """Tests with items."""
+    """Tests with items.
+
+    Attributes:
+        nl: The NeighborList we're testing.
+    """
 
     def setUp(self):
         self.nl = NeighborList([1, 2, 3, 4, 5], default=3)
 
     def test_curitem(self):
+        """Test curitem()."""
         self.assertEqual(self.nl.idx, 2)
         self.assertEqual(self.nl.curitem(), 3)
         self.assertEqual(self.nl.idx, 2)
 
     def test_nextitem(self):
+        """Test nextitem()."""
         self.assertEqual(self.nl.nextitem(), 4)
         self.assertEqual(self.nl.idx, 3)
         self.assertEqual(self.nl.nextitem(), 5)
         self.assertEqual(self.nl.idx, 4)
 
     def test_previtem(self):
+        """Test previtem()."""
         self.assertEqual(self.nl.previtem(), 2)
         self.assertEqual(self.nl.idx, 1)
         self.assertEqual(self.nl.previtem(), 1)
         self.assertEqual(self.nl.idx, 0)
 
     def test_firstitem(self):
+        """Test firstitem()."""
         self.assertEqual(self.nl.firstitem(), 1)
         self.assertEqual(self.nl.idx, 0)
 
     def test_lastitem(self):
+        """Test lastitem()."""
         self.assertEqual(self.nl.lastitem(), 5)
         self.assertEqual(self.nl.idx, 4)
 
     def test_reset(self):
+        """Test reset()."""
         self.nl.nextitem()
         self.assertEqual(self.nl.idx, 3)
         self.nl.reset()
         self.assertEqual(self.nl.idx, 2)
 
     def test_getitem(self):
+        """Test getitem()."""
         self.assertEqual(self.nl.getitem(2), 5)
         self.assertEqual(self.nl.idx, 4)
         self.nl.reset()
@@ -140,12 +175,17 @@ class ItemTests(TestCase):
 
 class OneTests(TestCase):
 
-    """Tests with a list with only one item."""
+    """Tests with a list with only one item.
+
+    Attributes:
+        nl: The NeighborList we're testing.
+    """
 
     def setUp(self):
         self.nl = NeighborList([1], default=1)
 
     def test_first_wrap(self):
+        """Test out of bounds previtem() with mode=wrap."""
         self.nl._mode = NeighborList.Modes.wrap
         self.nl.firstitem()
         self.assertEqual(self.nl.idx, 0)
@@ -153,6 +193,7 @@ class OneTests(TestCase):
         self.assertEqual(self.nl.idx, 0)
 
     def test_first_block(self):
+        """Test out of bounds previtem() with mode=block."""
         self.nl._mode = NeighborList.Modes.block
         self.nl.firstitem()
         self.assertEqual(self.nl.idx, 0)
@@ -160,6 +201,7 @@ class OneTests(TestCase):
         self.assertEqual(self.nl.idx, 0)
 
     def test_first_raise(self):
+        """Test out of bounds previtem() with mode=raise."""
         self.nl._mode = NeighborList.Modes.exception
         self.nl.firstitem()
         self.assertEqual(self.nl.idx, 0)
@@ -168,6 +210,7 @@ class OneTests(TestCase):
         self.assertEqual(self.nl.idx, 0)
 
     def test_last_wrap(self):
+        """Test out of bounds nextitem() with mode=wrap."""
         self.nl._mode = NeighborList.Modes.wrap
         self.nl.lastitem()
         self.assertEqual(self.nl.idx, 0)
@@ -175,6 +218,7 @@ class OneTests(TestCase):
         self.assertEqual(self.nl.idx, 0)
 
     def test_last_block(self):
+        """Test out of bounds nextitem() with mode=block."""
         self.nl._mode = NeighborList.Modes.block
         self.nl.lastitem()
         self.assertEqual(self.nl.idx, 0)
@@ -182,6 +226,7 @@ class OneTests(TestCase):
         self.assertEqual(self.nl.idx, 0)
 
     def test_last_raise(self):
+        """Test out of bounds nextitem() with mode=raise."""
         self.nl._mode = NeighborList.Modes.exception
         self.nl.lastitem()
         self.assertEqual(self.nl.idx, 0)
@@ -192,19 +237,25 @@ class OneTests(TestCase):
 
 class BlockTests(TestCase):
 
-    """Tests with mode=block."""
+    """Tests with mode=block.
+
+    Attributes:
+        nl: The NeighborList we're testing.
+    """
 
     def setUp(self):
         self.nl = NeighborList([1, 2, 3, 4, 5], default=3,
                                mode=NeighborList.Modes.block)
 
     def test_first(self):
+        """Test ouf of bounds previtem()."""
         self.nl.firstitem()
         self.assertEqual(self.nl.idx, 0)
         self.assertEqual(self.nl.previtem(), 1)
         self.assertEqual(self.nl.idx, 0)
 
     def test_last(self):
+        """Test ouf of bounds nextitem()."""
         self.nl.lastitem()
         self.assertEqual(self.nl.idx, 4)
         self.assertEqual(self.nl.nextitem(), 5)
@@ -213,19 +264,25 @@ class BlockTests(TestCase):
 
 class WrapTests(TestCase):
 
-    """Tests with mode=wrap."""
+    """Tests with mode=wrap.
+
+    Attributes:
+        nl: The NeighborList we're testing.
+    """
 
     def setUp(self):
         self.nl = NeighborList([1, 2, 3, 4, 5], default=3,
                                mode=NeighborList.Modes.wrap)
 
     def test_first(self):
+        """Test ouf of bounds previtem()."""
         self.nl.firstitem()
         self.assertEqual(self.nl.idx, 0)
         self.assertEqual(self.nl.previtem(), 5)
         self.assertEqual(self.nl.idx, 4)
 
     def test_last(self):
+        """Test ouf of bounds nextitem()."""
         self.nl.lastitem()
         self.assertEqual(self.nl.idx, 4)
         self.assertEqual(self.nl.nextitem(), 1)
@@ -234,13 +291,18 @@ class WrapTests(TestCase):
 
 class RaiseTests(TestCase):
 
-    """Tests with mode=exception."""
+    """Tests with mode=exception.
+
+    Attributes:
+        nl: The NeighborList we're testing.
+    """
 
     def setUp(self):
         self.nl = NeighborList([1, 2, 3, 4, 5], default=3,
                                mode=NeighborList.Modes.exception)
 
     def test_first(self):
+        """Test ouf of bounds previtem()."""
         self.nl.firstitem()
         self.assertEqual(self.nl.idx, 0)
         with self.assertRaises(IndexError):
@@ -248,6 +310,7 @@ class RaiseTests(TestCase):
         self.assertEqual(self.nl.idx, 0)
 
     def test_last(self):
+        """Test ouf of bounds nextitem()."""
         self.nl.lastitem()
         self.assertEqual(self.nl.idx, 4)
         with self.assertRaises(IndexError):
@@ -257,12 +320,17 @@ class RaiseTests(TestCase):
 
 class SnapInTests(TestCase):
 
-    """Tests for the fuzzyval/_snap_in features."""
+    """Tests for the fuzzyval/_snap_in features.
+
+    Attributes:
+        nl: The NeighborList we're testing.
+    """
 
     def setUp(self):
         self.nl = NeighborList([20, 9, 1, 5])
 
     def test_bigger(self):
+        """Test fuzzyval with snapping to a bigger value."""
         self.nl.fuzzyval = 7
         self.assertEqual(self.nl.nextitem(), 9)
         self.assertEqual(self.nl.idx, 1)
@@ -270,6 +338,7 @@ class SnapInTests(TestCase):
         self.assertEqual(self.nl.idx, 2)
 
     def test_smaller(self):
+        """Test fuzzyval with snapping to a smaller value."""
         self.nl.fuzzyval = 7
         self.assertEqual(self.nl.previtem(), 5)
         self.assertEqual(self.nl.idx, 3)
@@ -277,11 +346,13 @@ class SnapInTests(TestCase):
         self.assertEqual(self.nl.idx, 2)
 
     def test_equal_bigger(self):
+        """Test fuzzyval with matching value, snapping to a bigger value."""
         self.nl.fuzzyval = 20
         self.assertEqual(self.nl.nextitem(), 9)
         self.assertEqual(self.nl.idx, 1)
 
     def test_equal_smaller(self):
+        """Test fuzzyval with matching value, snapping to a smaller value."""
         self.nl.fuzzyval = 5
         self.assertEqual(self.nl.previtem(), 1)
         self.assertEqual(self.nl.idx, 2)
