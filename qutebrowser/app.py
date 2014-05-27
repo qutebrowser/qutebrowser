@@ -50,6 +50,7 @@ import qutebrowser.config.websettings as websettings
 import qutebrowser.network.proxy as proxy
 import qutebrowser.browser.quickmarks as quickmarks
 import qutebrowser.utils.log as log
+import qutebrowser.utils.version as version
 from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.config.config import ConfigManager
 from qutebrowser.keyinput.modeman import ModeManager
@@ -173,6 +174,8 @@ class QuteBrowser(QApplication):
                             action='store_true')
         parser.add_argument('--nocolor', help="Turn off colored logging.",
                             action='store_false', dest='color')
+        parser.add_argument('-V', '--version', help="Show version and quit.",
+                            action='store_true')
         parser.add_argument('command', nargs='*', help="Commands to execute "
                             "on startup.", metavar=':command')
         # URLs will actually be in command
@@ -236,6 +239,14 @@ class QuteBrowser(QApplication):
 
     def _init_misc(self):
         """Initialize misc things."""
+        if self._args.version:
+            print(version.version())
+            print()
+            print()
+            print(qutebrowser.__copyright__)
+            print()
+            print(version.GPL_BOILERPLATE.strip())
+            sys.exit(0)
         self.setOrganizationName("qutebrowser")
         self.setApplicationName("qutebrowser")
         self.setApplicationVersion(qutebrowser.__version__)
