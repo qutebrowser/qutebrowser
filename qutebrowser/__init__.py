@@ -19,6 +19,11 @@
 
 import os.path
 
+__author__ = "Florian Bruhin"
+__copyright__ = "Copyright 2014 Florian Bruhin (The Compiler)"
+__license__ = "GPL"
+__maintainer__ = __author__
+__email__ = "mail@qutebrowser.org"
 __version_info__ = (0, 0, 0)
 __version__ = '.'.join(map(str, __version_info__))
 

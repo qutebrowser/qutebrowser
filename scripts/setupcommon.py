@@ -74,9 +74,9 @@ setupdata = {
                     "QtWebKit."),
     'long_description': read_file('README'),
     'url': 'http://www.qutebrowser.org/',
-    'author': "Florian Bruhin",
-    'author_email': 'me@qutebrowser.org',
-    'license': 'GPL',
+    'author': qutebrowser.__author__,
+    'author_email': qutebrowser.__email__,
+    'license': qutebrowser.__license__,
     'classifiers': [
         'Development Status :: 3 - Alpha',
         'Environment :: X11 Applications :: Qt',
