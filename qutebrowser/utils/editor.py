@@ -61,18 +61,21 @@ class ExternalEditor(QObject):
             editing_finished: If process exited normally.
         """
         logger.debug("Editor closed")
-        if exitcode != 0:
-            message.error("Editor did quit abnormally (status {})!".format(
-                exitcode))
-            return
         if exitstatus != QProcess.NormalExit:
-            # No error here, since we already handle this in on_editor_error
+            # No error/cleanup here, since we already handle this in
+            # on_proc_error
             return
-        with open(self.filename, 'r') as f:
-            text = ''.join(f.readlines())
-        logger.debug("Read back: {}".format(text))
-        self._cleanup()
-        self.editing_finished.emit(text)
+        try:
+            if exitcode != 0:
+                message.error("Editor did quit abnormally (status {})!".format(
+                    exitcode))
+                return
+            with open(self.filename, 'r') as f:
+                text = ''.join(f.readlines())
+            logger.debug("Read back: {}".format(text))
+            self.editing_finished.emit(text)
+        finally:
+            self._cleanup()
 
     def on_proc_error(self, error):
         """Display an error message and clean up when editor crashed."""
