@@ -79,17 +79,35 @@ def parse_docstring(func):
     return (short_desc, long_desc, arg_descs)
 
 
-def get_command_doc(name, func):
+def get_cmd_syntax(name, cmd):
+    words = []
+    argspec = inspect.getfullargspec(cmd.handler)
+    words.append(name)
+    minargs, maxargs = cmd.nargs
+    i = 1
+    for arg in argspec.args:
+        if arg in ['self', 'count']:
+            continue
+        if minargs is not None and i <= minargs:
+            words.append('_<{}>_'.format(arg))
+        elif maxargs is None or i <= maxargs:
+            words.append('_[<{}>]_'.format(arg))
+        i += 1
+    return ' '.join(words)
+
+def get_command_doc(name, cmd):
     output = ['==== {}'.format(name)]
-    short_desc, long_desc, arg_descs = parse_docstring(func)
+    syntax = get_cmd_syntax(name, cmd)
+    output.append('+:{}+'.format(syntax))
+    output.append("")
+    short_desc, long_desc, arg_descs = parse_docstring(cmd.handler)
     output.append(' '.join(short_desc))
     output.append("")
     output.append(' '.join(long_desc))
     if arg_descs:
         output.append("")
         for arg, desc in arg_descs.items():
-            output.append("* +{}+: {}".format(arg, ' '.join(desc)))
-
+            output.append("* +_{}_+: {}".format(arg, ' '.join(desc)))
         output.append("")
     output.append("")
     return '\n'.join(output)
@@ -99,7 +117,7 @@ def generate_commands():
     print("== Commands")
     print("=== Category")
     for name, cmd in cmdutils.cmd_dict.items():
-        print(get_command_doc(name, cmd.handler))
+        print(get_command_doc(name, cmd))
 
 
 generate_commands()
