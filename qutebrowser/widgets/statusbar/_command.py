@@ -37,6 +37,9 @@ class Command(MinimalLineEdit):
 
     Attributes:
         history: The command history object.
+        cursor_part: The part the cursor is currently over.
+        parts: A list of strings with the split commandline
+        prefix: The prefix currently entered.
         _validator: The current command validator.
 
     Signals:
@@ -50,8 +53,11 @@ class Command(MinimalLineEdit):
                                     hidden.
         hide_completion: Emitted when the completion widget should be hidden.
         update_completion: Emitted when the completion should be shown/updated.
-                           arg 0: The new text which was set.
-                           arg 1: The part the cursor is currently in.
+                           arg 0: The prefix used.
+                           arg 1: A list of strings (commandline separated into
+                           parts)
+                           arg 2: The part the cursor is currently in.
+        cursor_part_changed: The command part where the cursor is over changed.
         show_cmd: Emitted when command input should be shown.
         hide_cmd: Emitted when command input can be hidden.
     """
@@ -61,7 +67,8 @@ class Command(MinimalLineEdit):
     got_search_rev = pyqtSignal(str)
     clear_completion_selection = pyqtSignal()
     hide_completion = pyqtSignal()
-    update_completion = pyqtSignal(str, int)
+    update_completion = pyqtSignal(str, list, int)
+    cursor_part_changed = pyqtSignal(int)
     show_cmd = pyqtSignal()
     hide_cmd = pyqtSignal()
 
@@ -71,37 +78,52 @@ class Command(MinimalLineEdit):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.cursor_part = 0
         self.history = History()
         self._validator = _CommandValidator(self)
         self.setValidator(self._validator)
         self.textEdited.connect(self.on_text_edited)
-        self.cursorPositionChanged.connect(self.on_cursor_position_changed)
+        self.cursorPositionChanged.connect(self._update_cursor_part)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
 
-    def _cursor_part(self):
+    @property
+    def prefix(self):
+        text = self.text()
+        if not text:
+            return ''
+        elif text[0] in STARTCHARS:
+            return text[0]
+        else:
+            return ''
+
+    @property
+    def parts(self):
+        text = self.text()
+        if not text:
+            return []
+        text = text[len(self.prefix):]
+        return split_cmdline(text)
+
+    @pyqtSlot()
+    def _update_cursor_part(self):
         """Get the part index of the commandline where the cursor is over."""
-        prefix, parts = self._split()
+        old_cursor_part = self.cursor_part
         cursor_pos = self.cursorPosition()
-        cursor_pos -= len(prefix)
-        for i, part in enumerate(parts):
+        cursor_pos -= len(self.prefix)
+        for i, part in enumerate(self.parts):
             logger.debug("part {}, len {}, pos {}".format(i, len(part),
                 cursor_pos))
             if cursor_pos <= len(part):
                 # foo| bar
-                return i
+                self.cursor_part = i
+                if old_cursor_part != i:
+                    self.cursor_part_changed.emit(i)
+                    # FIXME do we really want to emit this here?
+                    self.update_completion.emit(self.prefix, self.parts,
+                                                self.cursor_part)
+                return
             cursor_pos -= (len(part) + 1)  # FIXME are spaces always 1 char?
-
-    def _split(self):
-        text = self.text()
-        if not text:
-            return '', []
-        if text[0] in STARTCHARS:
-            prefix = text[0]
-            text = text[1:]
-        else:
-            prefix = ''
-        parts = split_cmdline(text)
-        return prefix, parts
+        return None
 
     @pyqtSlot(str)
     def set_cmd_text(self, text):
@@ -117,7 +139,8 @@ class Command(MinimalLineEdit):
         self.setText(text)
         if old_text != text:
             # We want the completion to pop out here.
-            self.update_completion.emit(text, self._cursor_part())
+            self.update_completion.emit(self.prefix, self.parts,
+                                        self.cursor_part)
         self.setFocus()
         self.show_cmd.emit()
 
@@ -128,14 +151,11 @@ class Command(MinimalLineEdit):
         Args:
             text: The text to set (string).
         """
-        prefix, parts = self._split()
-        cursor_part = self._cursor_part()
+        parts = self.parts[:]
         logger.debug("parts: {}, changing {} to '{}'".format(
-            parts, cursor_part, newtext))
-        parts[cursor_part] = newtext
-        self.blockSignals(True)
-        self.setText(prefix + ' '.join(parts))
-        self.blockSignals(False)
+            parts, self.cursor_part, newtext))
+        parts[self.cursor_part] = newtext
+        self.setText(self.prefix + ' '.join(parts))
         self.setFocus()
         self.show_cmd.emit()
 
@@ -191,12 +211,8 @@ class Command(MinimalLineEdit):
     def on_text_edited(self, text):
         """Slot for textEdited. Stop history and update completion."""
         self.history.stop()
-        self.update_completion.emit(text, self._cursor_part())
-
-    @pyqtSlot(int, int)
-    def on_cursor_position_changed(self, _old, _new):
-        """Slot for cursorPositionChanged to update completion."""
-        self.update_completion.emit(self.text(), self._cursor_part())
+        self.update_completion.emit(self.prefix, self.parts,
+                                    self.cursor_part)
 
     def on_mode_left(self, mode):
         """Clear up when ommand mode was left.

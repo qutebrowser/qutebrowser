@@ -30,7 +30,6 @@ import qutebrowser.config.configdata as configdata
 from qutebrowser.widgets._completiondelegate import CompletionItemDelegate
 from qutebrowser.models.basecompletion import NoCompletionsError
 from qutebrowser.config.style import set_register_stylesheet
-from qutebrowser.commands.managers import split_cmdline
 from qutebrowser.models.completionfilter import CompletionFilterModel as CFM
 from qutebrowser.models.completion import (
     CommandCompletionModel, SettingSectionCompletionModel,
@@ -283,8 +282,8 @@ class CompletionView(QTreeView):
         elif section == 'aliases':
             self._init_command_completion()
 
-    @pyqtSlot(str, int)
-    def on_update_completion(self, text, cursor_part):
+    @pyqtSlot(str, list, int)
+    def on_update_completion(self, prefix, parts, cursor_part):
         """Check if completions are available and activate them.
 
         Slot for the textChanged signal of the statusbar command widget.
@@ -293,16 +292,13 @@ class CompletionView(QTreeView):
             text: The new text
             cursor_part: The part the cursor is currently over.
         """
-        if not text.startswith(':'):
+        if prefix != ':':
             # This is a search or gibberish, so we don't need to complete
             # anything (yet)
             # FIXME complete searchs
             self.hide()
             self._completing = False
             return
-
-        text = text.lstrip(':')
-        parts = split_cmdline(text)
 
         model = self._get_new_completion(parts, cursor_part)
         if model is None:
