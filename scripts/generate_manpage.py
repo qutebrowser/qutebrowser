@@ -100,6 +100,35 @@ def get_cmd_syntax(name, cmd):
         i += 1
     return (' '.join(words), defaults)
 
+
+def get_command_quickref(cmds):
+    out = []
+    out.append('[options="header",width="75%"]')
+    out.append('|==============')
+    out.append('|Command|Description')
+    for name, cmd in cmds:
+        desc = inspect.getdoc(cmd.handler).splitlines()[0]
+        out.append('|{}|{}'.format(name, desc))
+    out.append('|==============')
+    return '\n'.join(out)
+
+
+def get_setting_quickref():
+    out = []
+    for sectname, sect in configdata.DATA.items():
+        if not getattr(sect, 'descriptions'):
+            continue
+        out.append(".Quick reference for section ``{}''".format(sectname))
+        out.append('[options="header",width="75%"]')
+        out.append('|==============')
+        out.append('|Setting|Description')
+        for optname, option in sect.items():
+            desc = sect.descriptions[optname]
+            out.append('|{}|{}'.format(optname, desc))
+        out.append('|==============')
+    return '\n'.join(out)
+
+
 def get_command_doc(name, cmd):
     output = ['==== {}'.format(name)]
     syntax, defaults = get_cmd_syntax(name, cmd)
@@ -135,10 +164,14 @@ def generate_commands():
     hidden_cmds.sort()
     print()
     print("=== Normal commands")
+    print(".Quick reference")
+    print(get_command_quickref(normal_cmds))
     for name, cmd in normal_cmds:
         print(get_command_doc(name, cmd))
     print()
     print("=== Hidden commands")
+    print(".Quick reference")
+    print(get_command_quickref(hidden_cmds))
     for name, cmd in hidden_cmds:
         print(get_command_doc(name, cmd))
 
@@ -146,6 +179,7 @@ def generate_commands():
 def generate_settings():
     print()
     print("== Settings")
+    print(get_setting_quickref())
     for sectname, sect in configdata.DATA.items():
         print()
         print("=== {}".format(sectname))
