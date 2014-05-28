@@ -56,6 +56,11 @@ class SettingValue:
         return self.get_first_value()
 
     @property
+    def default(self):
+        """Get the default value."""
+        return self._values['default']
+
+    @property
     def values(self):
         """Readonly property for _values."""
         return self._values

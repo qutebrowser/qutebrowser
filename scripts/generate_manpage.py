@@ -122,6 +122,7 @@ def get_command_doc(name, cmd):
 
 
 def generate_commands():
+    print()
     print("== Commands")
     normal_cmds = []
     hidden_cmds = []
@@ -132,15 +133,18 @@ def generate_commands():
             normal_cmds.append((name, cmd))
     normal_cmds.sort()
     hidden_cmds.sort()
+    print()
     print("=== Normal commands")
     for name, cmd in normal_cmds:
         print(get_command_doc(name, cmd))
+    print()
     print("=== Hidden commands")
     for name, cmd in hidden_cmds:
         print(get_command_doc(name, cmd))
 
 
 def generate_settings():
+    print()
     print("== Settings")
     for sectname, sect in configdata.DATA.items():
         print()
@@ -161,9 +165,14 @@ def generate_settings():
                     for val in valid_values:
                         try:
                             desc = valid_values.descriptions[val]
-                            print(" * _{}_: {}".format(val, desc))
+                            print(" * +{}+: {}".format(val, desc))
                         except KeyError:
-                            print(" * _{}_".format(val))
+                            print(" * +{}+".format(val))
+                    print()
+                if option.default:
+                    print("Default: +pass:[{}]+".format(option.default))
+                else:
+                    print("Default: empty")
 
 
 

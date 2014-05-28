@@ -74,38 +74,39 @@ SECTION_DESC = {
     'searchengines': (
         "Definitions of search engines which can be used via the address "
         "bar.\n"
-        "The searchengine named DEFAULT is used when general.auto-search "
-        "is true and something else than a URL was entered to be opened. "
-        "Other search engines can be used via the bang-syntax, e.g. "
-        "+:open qutebrowser !google+. The string +{}+ will be replaced by the "
-        "search term, use +{{+ and +}}+ for literal +{+/+}+ signs."),
+        "The searchengine named `DEFAULT` is used when "
+        "`general -> auto-search` is true and something else than a URL was "
+        "entered to be opened. Other search engines can be used via the "
+        "bang-syntax, e.g. `:open qutebrowser !google`. The string `{}` will "
+        "be replaced by the search term, use `{{` and `}}` for literal "
+        "`{`/`}` signs."),
     'keybind': (
         "Bindings from a key(chain) to a command.\n"
         "For special keys (can't be part of a keychain), enclose them in "
-        "+<+_..._+>+. For modifiers, you can use either +-+ or +++ as "
+        "`<`...`>`. For modifiers, you can use either `-` or `+` as "
         "delimiters, and these names:\n\n"
-        " * Control: +Control+, +Ctrl+\n"
-        " * Meta:    +Meta+, +Windows+, +Mod4+\n"
-        " * Alt:     +Alt+, +Mod1+\n"
-        " * Shift:   +Shift+\n\n"
-        "For simple keys (no +<>+-signs), a capital letter means the key is "
-        "pressed with Shift. For special keys (with +<>+-signs), you need "
-        "to explicitely add +Shift-+ to match a key pressed with shift. "
-        "You can bind multiple commands by separating them with +;;+."),
+        " * Control: `Control`, `Ctrl`\n"
+        " * Meta:    `Meta`, `Windows`, `Mod4`\n"
+        " * Alt:     `Alt`, `Mod1`\n"
+        " * Shift:   `Shift`\n\n"
+        "For simple keys (no `<>`-signs), a capital letter means the key is "
+        "pressed with Shift. For special keys (with `<>`-signs), you need "
+        "to explicitely add `Shift-` to match a key pressed with shift. "
+        "You can bind multiple commands by separating them with `;;`."),
     'keybind.insert': (
         "Keybindings for insert mode.\n"
         "Since normal keypresses are passed through, only special keys are "
         "supported in this mode.\n"
         "Useful hidden commands to map in this section:\n\n"
-        " * +open-editor+: Open a texteditor with the focused field.\n"
-        " * +leave-mode+: Leave the command mode."),
+        " * `open-editor`: Open a texteditor with the focused field.\n"
+        " * `leave-mode`: Leave the command mode."),
     'keybind.hint': (
         "Keybindings for hint mode.\n"
         "Since normal keypresses are passed through, only special keys are "
         "supported in this mode.\n"
         "Useful hidden commands to map in this section:\n\n"
-        " * +follow-hint+: Follow the currently selected hint.\n"
-        " * +leave-mode+: Leave the command mode."),
+        " * `follow-hint`: Follow the currently selected hint.\n"
+        " * `leave-mode`: Leave the command mode."),
     'keybind.passthrough': (
         "Keybindings for passthrough mode.\n"
         "Since normal keypresses are passed through, only special keys are "
@@ -116,53 +117,53 @@ SECTION_DESC = {
         "Since normal keypresses are passed through, only special keys are "
         "supported in this mode.\n"
         "Useful hidden commands to map in this section:\n\n"
-        " * +command-history-prev+: Switch to previous command in history.\n"
-        " * +command-history-next+: Switch to next command in history.\n"
-        " * +completion-item-prev+: Select previous item in completion.\n"
-        " * +completion-item-next+: Select next item in completion.\n"
-        " * +command-accept+: Execute the command currently in the "
+        " * `command-history-prev`: Switch to previous command in history.\n"
+        " * `command-history-next`: Switch to next command in history.\n"
+        " * `completion-item-prev`: Select previous item in completion.\n"
+        " * `completion-item-next`: Select next item in completion.\n"
+        " * `command-accept`: Execute the command currently in the "
         "commandline.\n"
-        " * +leave-mode+: Leave the command mode."),
+        " * `leave-mode`: Leave the command mode."),
     'keybind.prompt': (
         "Keybindings for prompts in the status line.\n"
         "You can bind normal keys in this mode, but they will be only active "
         "when a yes/no-prompt is asked. For other prompt modes, you can only "
         "bind special keys.\n"
         "Useful hidden commands to map in this section:\n\n"
-        " * +prompt-accept+: Confirm the entered value.\n"
-        " * +prompt-yes+: Answer yes to a yes/no question.\n"
-        " * +prompt-no+: Answer no to a yes/no question.\n"
-        " * +leave-mode+: Leave the prompt mode."),
+        " * `prompt-accept`: Confirm the entered value.\n"
+        " * `prompt-yes`: Answer yes to a yes/no question.\n"
+        " * `prompt-no`: Answer no to a yes/no question.\n"
+        " * `leave-mode`: Leave the prompt mode."),
     'aliases': (
         "Aliases for commands.\n"
         "By default, no aliases are defined. Example which adds a new command "
-        "+:qtb+ to open qutebrowsers website:\n\n"
-        "+qtb = open http://www.qutebrowser.org/+"),
+        "`:qtb` to open qutebrowsers website:\n\n"
+        "`qtb = open http://www.qutebrowser.org/`"),
     'colors': (
         "Colors used in the UI.\n"
         "A value can be in one of the following format:\n\n"
-        " * +#RGB+/+#RRGGBB+/+#RRRGGGBBB+/+#RRRRGGGGBBBB+\n"
+        " * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB`\n"
         " * A SVG color name as specified in http://www.w3.org/TR/SVG/"
         "types.html#ColorKeywords[the W3C specification].\n"
         " * transparent (no color)\n"
-        " * +rgb(r, g, b)+ / +rgba(r, g, b, a)+ (values 0-255 or "
+        " * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or "
         "percentages)\n"
-        " * +hsv(h, s, v)+ / +hsva(h, s, v, a)+ (values 0-255, hue 0-359)\n"
+        " * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)\n"
         " * A gradient as explained in http://qt-project.org/doc/qt-4.8/"
         "stylesheet-reference.html#list-of-property-types[the Qt "
         "documentation] under ``Gradient''.\n\n"
-        "The +hints.*+ values are a special case as they're real CSS "
+        "The `hints.*` values are a special case as they're real CSS "
         "colors, not Qt-CSS colors. There, for a gradient, you need to use "
-        "+-webkit-gradient+, see https://www.webkit.org/blog/175/introducing-"
+        "`-webkit-gradient`, see https://www.webkit.org/blog/175/introducing-"
         "css-gradients/[the WebKit documentation].\n"),
     'fonts': (
         "Fonts used for the UI, with optional style/weight/size.\n\n"
-        " * Style: +normal+/+italic+/+oblique+\n"
-        " * Weight: +normal+, +bold+, 100..900\n"
-        " * Size: Number + +px+/+pt+\n"
+        " * Style: `normal`/`italic`/`oblique`\n"
+        " * Weight: `normal`, `bold`, 100..900\n"
+        " * Size: _number_ `px`/`pt`\n\n"
         "Note: The font for hints is a true CSS font, not a Qt-CSS one, "
         "because of that, a general ``Monospace'' family is enough and we "
-        "don't use +${_monospace}+ there."),
+        "don't use `${_monospace}` there."),
 }
 
 
@@ -201,7 +202,7 @@ DATA = OrderedDict([
         ('editor',
          SettingValue(types.ShellCommand(placeholder=True), 'gvim -f "{}"'),
          "The editor (and arguments) to use for the open-editor binding. "
-         "Use +{}+ for the filename. Gets split via shutils."),
+         "Use `{}` for the filename. Gets split via shutils."),
 
         ('private-browsing',
          SettingValue(types.Bool(), 'false'),
