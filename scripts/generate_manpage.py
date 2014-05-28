@@ -122,9 +122,20 @@ def get_command_doc(name, cmd):
 
 def generate_commands():
     print("== Commands")
-    print("=== Category")
+    normal_cmds = []
+    hidden_cmds = []
     for name, cmd in cmdutils.cmd_dict.items():
+        if cmd.hide:
+            hidden_cmds.append((name, cmd))
+        else:
+            normal_cmds.append((name, cmd))
+    normal_cmds.sort()
+    hidden_cmds.sort()
+    print("=== Normal commands")
+    for name, cmd in normal_cmds:
         print(get_command_doc(name, cmd))
-
+    print("=== Hidden commands")
+    for name, cmd in hidden_cmds:
+        print(get_command_doc(name, cmd))
 
 generate_commands()
