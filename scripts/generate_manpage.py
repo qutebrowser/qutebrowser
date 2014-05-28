@@ -150,6 +150,13 @@ def get_command_doc(name, cmd):
     return '\n'.join(output)
 
 
+def generate_header():
+    print('= qutebrowser manpage')
+    print('Florian Bruhin <mail@qutebrowser.org>')
+    print(':toc:')
+    print(':hoempage: http://www.qutebrowser.org/')
+
+
 def generate_commands():
     print()
     print("== Commands")
@@ -209,6 +216,6 @@ def generate_settings():
                     print("Default: empty")
 
 
-
+generate_header()
 generate_settings()
 generate_commands()
