@@ -82,6 +82,10 @@ def parse_docstring(func):
 def get_cmd_syntax(name, cmd):
     words = []
     argspec = inspect.getfullargspec(cmd.handler)
+    if argspec.defaults is not None:
+        defaults = dict(zip(reversed(argspec.args), reversed(list(argspec.defaults))))
+    else:
+        defaults = {}
     words.append(name)
     minargs, maxargs = cmd.nargs
     i = 1
@@ -93,11 +97,11 @@ def get_cmd_syntax(name, cmd):
         elif maxargs is None or i <= maxargs:
             words.append('_[<{}>]_'.format(arg))
         i += 1
-    return ' '.join(words)
+    return (' '.join(words), defaults)
 
 def get_command_doc(name, cmd):
     output = ['==== {}'.format(name)]
-    syntax = get_cmd_syntax(name, cmd)
+    syntax, defaults = get_cmd_syntax(name, cmd)
     output.append('+:{}+'.format(syntax))
     output.append("")
     short_desc, long_desc, arg_descs = parse_docstring(cmd.handler)
@@ -107,7 +111,10 @@ def get_command_doc(name, cmd):
     if arg_descs:
         output.append("")
         for arg, desc in arg_descs.items():
-            output.append("* +_{}_+: {}".format(arg, ' '.join(desc)))
+            item = "* +_{}_+: {}".format(arg, ' '.join(desc))
+            if arg in defaults:
+                item += " (default: +{}+)".format(defaults[arg])
+            output.append(item)
         output.append("")
     output.append("")
     return '\n'.join(output)
