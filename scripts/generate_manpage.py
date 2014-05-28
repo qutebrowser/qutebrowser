@@ -28,13 +28,18 @@ import qutebrowser.commands.utils as cmdutils
 from qutebrowser.utils.usertypes import enum
 
 
-def get_command_doc(name, func):
+def parse_docstring(func):
     """Generates documentation based on a docstring of a command handler.
 
     The docstring needs to follow the format described in HACKING.
+
+    Args:
+        func: The function to generate the docstring for.
+
+    Return:
+        A (short_desc, long_desc, arg_descs) tuple.
     """
     State = enum('short', 'desc', 'arg_start', 'arg_inside')
-
     doc = inspect.getdoc(func)
     lines = doc.splitlines()
 
@@ -71,14 +76,19 @@ def get_command_doc(name, func):
                 cur_arg_name = cur_arg_name.strip()
                 arg_descs[cur_arg_name] = [argdesc.strip()]
 
+    return (short_desc, long_desc, arg_descs)
+
+
+def get_command_doc(name, func):
     output = ['==== {}'.format(name)]
+    short_desc, long_desc, arg_descs = parse_docstring(func)
     output.append(' '.join(short_desc))
     output.append("")
     output.append(' '.join(long_desc))
     if arg_descs:
         output.append("")
         for arg, desc in arg_descs.items():
-            output.append("* {}: {}".format(arg, ' '.join(desc)))
+            output.append("* +{}+: {}".format(arg, ' '.join(desc)))
 
         output.append("")
     output.append("")
