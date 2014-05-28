@@ -25,6 +25,7 @@ sys.path.insert(0, os.getcwd())
 
 import qutebrowser.app
 import qutebrowser.commands.utils as cmdutils
+import qutebrowser.config.configdata as configdata
 from qutebrowser.utils.usertypes import enum
 
 
@@ -138,4 +139,33 @@ def generate_commands():
     for name, cmd in hidden_cmds:
         print(get_command_doc(name, cmd))
 
+
+def generate_settings():
+    print("== Settings")
+    for sectname, sect in configdata.DATA.items():
+        print()
+        print("=== {}".format(sectname))
+        print(configdata.SECTION_DESC[sectname])
+        if not getattr(sect, 'descriptions'):
+            pass
+        else:
+            for optname, option in sect.items():
+                print()
+                print("==== {}".format(optname))
+                print(sect.descriptions[optname])
+                print()
+                valid_values = option.typ.valid_values
+                if valid_values is not None:
+                    print("Valid values:")
+                    print()
+                    for val in valid_values:
+                        try:
+                            desc = valid_values.descriptions[val]
+                            print(" * _{}_: {}".format(val, desc))
+                        except KeyError:
+                            print(" * _{}_".format(val))
+
+
+
+generate_settings()
 generate_commands()
