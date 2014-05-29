@@ -108,7 +108,7 @@ def get_command_quickref(cmds):
     out.append('|Command|Description')
     for name, cmd in cmds:
         desc = inspect.getdoc(cmd.handler).splitlines()[0]
-        out.append('|{}|{}'.format(name, desc))
+        out.append('|<<cmd-{},{}>>|{}'.format(name, name, desc))
     out.append('|==============')
     return '\n'.join(out)
 
@@ -124,13 +124,15 @@ def get_setting_quickref():
         out.append('|Setting|Description')
         for optname, option in sect.items():
             desc = sect.descriptions[optname]
-            out.append('|{}|{}'.format(optname, desc))
+            out.append('|<<setting-{}-{},{}>>|{}'.format(
+                sectname, optname, optname, desc))
         out.append('|==============')
     return '\n'.join(out)
 
 
 def get_command_doc(name, cmd):
-    output = ['==== {}'.format(name)]
+    output = ['[[cmd-{}]]'.format(name)]
+    output += ['==== {}'.format(name)]
     syntax, defaults = get_cmd_syntax(name, cmd)
     output.append('+:{}+'.format(syntax))
     output.append("")
@@ -196,6 +198,7 @@ def generate_settings():
         else:
             for optname, option in sect.items():
                 print()
+                print('[[setting-{}-{}]]'.format(sectname, optname))
                 print("==== {}".format(optname))
                 print(sect.descriptions[optname])
                 print()
