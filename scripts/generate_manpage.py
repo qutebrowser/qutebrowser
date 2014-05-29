@@ -103,7 +103,7 @@ def get_cmd_syntax(name, cmd):
 
 def get_command_quickref(cmds):
     out = []
-    out.append('[options="header",width="75%"]')
+    out.append('[options="header",width="75%",cols="25%,75%"]')
     out.append('|==============')
     out.append('|Command|Description')
     for name, cmd in cmds:
@@ -119,7 +119,7 @@ def get_setting_quickref():
         if not getattr(sect, 'descriptions'):
             continue
         out.append(".Quick reference for section ``{}''".format(sectname))
-        out.append('[options="header",width="75%"]')
+        out.append('[options="header",width="75%",cols="25%,75%"]')
         out.append('|==============')
         out.append('|Setting|Description')
         for optname, option in sect.items():
