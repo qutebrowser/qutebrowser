@@ -30,8 +30,9 @@ import os.path
 import urllib.request
 from urllib.parse import urljoin, urlencode
 from functools import reduce
+from distutils.version import StrictVersion as Version
 
-from PyQt5.QtCore import QCoreApplication, QStandardPaths
+from PyQt5.QtCore import QCoreApplication, QStandardPaths, qVersion
 from pkg_resources import resource_string
 
 import qutebrowser
@@ -237,9 +238,18 @@ def get_standard_dir(typ):
 
 def actute_warning():
     """Display a warning about the dead_actute issue if needed."""
-    if not (sys.platform.startswith('linux') and
-            os.path.exists('/usr/share/X11/locale/en_US.UTF-8/Compose')):
+    # Non linux OS' aren't affected
+    if not sys.platform.startswith('linux'):
         return
+    # If no compose file exists for some reason, we're not affected
+    if not os.path.exists('/usr/share/X11/locale/en_US.UTF-8/Compose'):
+        return
+    # Qt >= 5.3 doesn't seem to be affected
+    try:
+        if Version(qVersion()) >= Version('5.3.0'):
+            return
+    except ValueError:
+        pass
     with open('/usr/share/X11/locale/en_US.UTF-8/Compose', 'r') as f:
         for line in f:
             if '<dead_actute>' in line:
