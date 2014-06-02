@@ -157,7 +157,7 @@ def generate_header():
     print('= qutebrowser manpage')
     print('Florian Bruhin <mail@qutebrowser.org>')
     print(':toc:')
-    print(':hoempage: http://www.qutebrowser.org/')
+    print(':homepage: http://www.qutebrowser.org/')
 
 
 def generate_commands():
