@@ -86,6 +86,7 @@ class Command(MinimalLineEdit):
 
     @property
     def prefix(self):
+        """Property to get the current command prefix entered."""
         text = self.text()
         if not text:
             return ''
@@ -96,6 +97,7 @@ class Command(MinimalLineEdit):
 
     @property
     def parts(self):
+        """Property to get the text split up in parts."""
         text = self.text()
         if not text:
             return []
@@ -220,7 +222,7 @@ class Command(MinimalLineEdit):
             signals[text[0]].emit(text.lstrip(text[0]))
 
     @pyqtSlot(str)
-    def on_text_edited(self, text):
+    def on_text_edited(self, _text):
         """Slot for textEdited. Stop history and update completion."""
         self.history.stop()
         self._update_cursor_part()
