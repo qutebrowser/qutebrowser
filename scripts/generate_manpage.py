@@ -19,6 +19,7 @@
 
 import os
 import sys
+import cgi
 import inspect
 
 sys.path.insert(0, os.getcwd())
@@ -214,7 +215,8 @@ def generate_settings():
                             print(" * +{}+".format(val))
                     print()
                 if option.default:
-                    print("Default: +pass:[{}]+".format(option.default))
+                    print("Default: +pass:[{}]+".format(cgi.escape(
+                        option.default)))
                 else:
                     print("Default: empty")
 
