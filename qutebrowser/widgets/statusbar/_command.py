@@ -115,7 +115,6 @@ class Command(MinimalLineEdit):
                 # foo| bar
                 self.cursor_part = i
                 if old_cursor_part != i:
-                    # FIXME do we really want to emit this here?
                     self.update_completion.emit(self.prefix, self.parts,
                                                 self.cursor_part)
                 return

@@ -52,6 +52,7 @@ class CompletionView(QTreeView):
         COLUMN_WIDTHS: A list of column widths, in percent.
 
     Attributes:
+        _ignore_change: Whether to ignore the next completion update.
         _model: The currently active filter model.
         _lastmodel: The model set in the last iteration.
         _models: dict of available completion models.
@@ -104,6 +105,7 @@ class CompletionView(QTreeView):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._enabled = config.get('completion', 'show')
+        self._ignore_change = False
         self._model = None
         self._lastmodel = None
         self._models = {
@@ -292,6 +294,10 @@ class CompletionView(QTreeView):
             text: The new text
             cursor_part: The part the cursor is currently over.
         """
+        if self._ignore_change:
+            logger.debug("Ignoring completion update")
+            return
+
         if prefix != ':':
             # This is a search or gibberish, so we don't need to complete
             # anything (yet)
@@ -361,7 +367,9 @@ class CompletionView(QTreeView):
         if indexes:
             data = self._model.data(indexes[0])
             if data is not None:
+                self._ignore_change = True
                 self.change_completed_part.emit(data)
+                self._ignore_change = False
         super().selectionChanged(selected, deselected)
 
     def resizeEvent(self, e):
