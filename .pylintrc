@@ -22,6 +22,7 @@ disable=no-self-use,
 
 [BASIC]
 module-rgx=[a-z_]*$
+function-rgx=([a-z_][a-z0-9_]{2,30}|setUpModule|tearDownModule)$
 const-rgx=[A-Za-z_][A-Za-z0-9_]{0,30}$
 method-rgx=[a-z_][A-Za-z0-9_]{2,40}$
 attr-rgx=[a-z_][a-z0-9_]{0,30}$
