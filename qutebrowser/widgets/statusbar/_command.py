@@ -57,7 +57,6 @@ class Command(MinimalLineEdit):
                            arg 1: A list of strings (commandline separated into
                            parts)
                            arg 2: The part the cursor is currently in.
-        cursor_part_changed: The command part where the cursor is over changed.
         show_cmd: Emitted when command input should be shown.
         hide_cmd: Emitted when command input can be hidden.
     """
@@ -68,7 +67,6 @@ class Command(MinimalLineEdit):
     clear_completion_selection = pyqtSignal()
     hide_completion = pyqtSignal()
     update_completion = pyqtSignal(str, list, int)
-    cursor_part_changed = pyqtSignal(int)
     show_cmd = pyqtSignal()
     hide_cmd = pyqtSignal()
 
@@ -117,7 +115,6 @@ class Command(MinimalLineEdit):
                 # foo| bar
                 self.cursor_part = i
                 if old_cursor_part != i:
-                    self.cursor_part_changed.emit(i)
                     # FIXME do we really want to emit this here?
                     self.update_completion.emit(self.prefix, self.parts,
                                                 self.cursor_part)
