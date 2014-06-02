@@ -155,7 +155,10 @@ class Command(MinimalLineEdit):
         logger.debug("parts: {}, changing {} to '{}'".format(
             parts, self.cursor_part, newtext))
         parts[self.cursor_part] = newtext
+        cursor_str = self.prefix + ' '.join(parts[:self.cursor_part + 1])
         self.setText(self.prefix + ' '.join(parts))
+        logger.debug("Placing cursor after '{}'".format(cursor_str))
+        self.setCursorPosition(len(cursor_str))
         self.setFocus()
         self.show_cmd.emit()
 
