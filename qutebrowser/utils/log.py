@@ -105,6 +105,8 @@ def init_log(args):
     root.addHandler(ram_handler)
     root.setLevel(logging.NOTSET)
 
+    logging.captureWarnings(True)
+
 
 class LogFilter(logging.Filter):
 
