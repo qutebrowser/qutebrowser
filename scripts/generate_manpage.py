@@ -95,9 +95,9 @@ def get_cmd_syntax(name, cmd):
         if arg in ['self', 'count']:
             continue
         if minargs is not None and i <= minargs:
-            words.append('_<{}>_'.format(arg))
+            words.append('<{}>'.format(arg))
         elif maxargs is None or i <= maxargs:
-            words.append('_[<{}>]_'.format(arg))
+            words.append('[<{}>]'.format(arg))
         i += 1
     return (' '.join(words), defaults)
 
@@ -144,7 +144,7 @@ def get_command_doc(name, cmd):
     if arg_descs:
         output.append("")
         for arg, desc in arg_descs.items():
-            item = "* +_{}_+: {}".format(arg, ' '.join(desc))
+            item = "* +{}+: {}".format(arg, ' '.join(desc))
             if arg in defaults:
                 item += " (default: +{}+)".format(defaults[arg])
             output.append(item)
