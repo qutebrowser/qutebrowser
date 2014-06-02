@@ -211,6 +211,7 @@ class Command(MinimalLineEdit):
     def on_text_edited(self, text):
         """Slot for textEdited. Stop history and update completion."""
         self.history.stop()
+        self._update_cursor_part()
         self.update_completion.emit(self.prefix, self.parts,
                                     self.cursor_part)
 
