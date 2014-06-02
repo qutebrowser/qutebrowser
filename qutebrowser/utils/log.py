@@ -138,7 +138,8 @@ def qt_message_handler(msg_type, context, msg):
     # We get something like "void qt_png_warning(png_structp, png_const_charp)"
     # from Qt, but only want "qt_png_warning".
     func = re.match(r'\w* (\w*)\(.*\)', context.function).group(1)
-    record = qt.makeRecord('qt', QT_TO_LOGGING[msg_type], context.file,
+    name = 'qt' if context.category == 'default' else 'qt-' + context.category
+    record = qt.makeRecord(name, QT_TO_LOGGING[msg_type], context.file,
                            context.line, msg, None, None, func)
     qt.handle(record)
 
