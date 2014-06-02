@@ -130,6 +130,11 @@ def qt_message_handler(msg_type, context, msg):
         QtCriticalMsg: logging.ERROR,
         QtFatalMsg: logging.CRITICAL,
     }
+    # Suppress some messages because they're well-known.
+    SUPPRESSED_MSGS = ['libpng warning: iCCP: Not recognizing known sRGB '
+                       'profile that has been edited']
+    if msg in SUPPRESSED_MSGS:
+        return
     # We get something like "void qt_png_warning(png_structp, png_const_charp)"
     # from Qt, but only want "qt_png_warning".
     func = re.match(r'\w* (\w*)\(.*\)', context.function).group(1)
