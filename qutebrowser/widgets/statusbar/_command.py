@@ -140,19 +140,32 @@ class Command(MinimalLineEdit):
         self.setFocus()
         self.show_cmd.emit()
 
-    @pyqtSlot(str)
-    def on_change_completed_part(self, newtext):
+    @pyqtSlot(str, bool)
+    def on_change_completed_part(self, newtext, immediate):
         """Change the part we're currently completing in the commandline.
 
         Args:
             text: The text to set (string).
+            immediate: True if the text should be completed immediately
+                       including a trailing space and we shouldn't continue
+                       completing the current item.
         """
         parts = self.parts[:]
         logger.debug("parts: {}, changing {} to '{}'".format(
             parts, self.cursor_part, newtext))
         parts[self.cursor_part] = newtext
+        # We want to place the cursor directly after the part we just changed.
         cursor_str = self.prefix + ' '.join(parts[:self.cursor_part + 1])
-        self.setText(self.prefix + ' '.join(parts))
+        if immediate:
+            # If we should complete immediately, we want to move the cursor by
+            # one more char, to get to the next field.
+            cursor_str += ' '
+        text = self.prefix + ' '.join(parts)
+        if immediate and self.cursor_part == len(parts) - 1:
+            # If we should complete immediately and we're completing the last
+            # part in the commandline, we automatically add a space.
+            text += ' '
+        self.setText(text)
         logger.debug("Placing cursor after '{}'".format(cursor_str))
         self.setCursorPosition(len(cursor_str))
         self.setFocus()

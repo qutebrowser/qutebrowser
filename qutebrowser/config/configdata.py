@@ -266,6 +266,10 @@ DATA = OrderedDict([
          "How many commands to save in the history. 0: no history / -1: "
          "unlimited"),
 
+        ('quick-complete',
+         SettingValue(types.Bool(), 'true'),
+         "Whether to move on to the next part when there's only one possible "
+         "completion left."),
     )),
 
     ('input', sect.KeyValue(

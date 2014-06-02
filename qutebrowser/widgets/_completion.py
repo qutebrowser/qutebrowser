@@ -65,7 +65,10 @@ class CompletionView(QTreeView):
     Signals:
         change_completed_part: Text which should be substituted for the word
                                we're currently completing.
-                               arg: The text to change to.
+                               arg 0: The text to change to.
+                               arg 1: True if the text should be set
+                                      immediately, without continuing
+                                      completing the current field.
     """
 
     STYLESHEET = """
@@ -100,7 +103,7 @@ class CompletionView(QTreeView):
 
     # FIXME style scrollbar
 
-    change_completed_part = pyqtSignal(str)
+    change_completed_part = pyqtSignal(str, bool)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -367,9 +370,15 @@ class CompletionView(QTreeView):
         if indexes:
             data = self._model.data(indexes[0])
             if data is not None:
-                self._ignore_change = True
-                self.change_completed_part.emit(data)
-                self._ignore_change = False
+                if (self._model.rowCount(indexes[0].parent()) == 1 and
+                        config.get('completion', 'quick-complete')):
+                    # If we only have one item, we want to apply it immediately
+                    # and go on to the next part.
+                    self.change_completed_part.emit(data, True)
+                else:
+                    self._ignore_change = True
+                    self.change_completed_part.emit(data, False)
+                    self._ignore_change = False
         super().selectionChanged(selected, deselected)
 
     def resizeEvent(self, e):

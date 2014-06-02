@@ -56,7 +56,6 @@ Improvements / minor features
 - Zoom with ctrl + mousewheel
 - search highlighting
 - max height for completion (be smaller if possible)
-- tab should directly insert word and space if there's only one option
 - vertical tabbar
 - reload config command
     - config changed signals for sections (optimization)
