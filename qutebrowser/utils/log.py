@@ -17,12 +17,15 @@
 
 """Loggers and utilities related to logging."""
 
+import re
 import os
 import sys
 import logging
 from logging import getLogger
 from collections import deque
 
+from PyQt5.QtCore import (QtDebugMsg, QtWarningMsg, QtCriticalMsg, QtFatalMsg,
+                          qInstallMessageHandler)
 try:
     # pylint: disable=import-error
     from colorlog import ColoredFormatter
@@ -46,6 +49,7 @@ signals = getLogger('signals')
 hints = getLogger('hints')
 keyboard = getLogger('keyboard')
 js = getLogger('js')
+qt = getLogger('qt')
 
 
 ram_handler = None
@@ -106,6 +110,32 @@ def init_log(args):
     root.setLevel(logging.NOTSET)
 
     logging.captureWarnings(True)
+    qInstallMessageHandler(qt_message_handler)
+
+
+def qt_message_handler(msg_type, context, msg):
+    """Qt message handler to redirect qWarning etc. to the logging system.
+
+    Args:
+        QtMsgType msg_type: The level of the message.
+        QMessageLogContext context: The source code location of the message.
+        msg: The message text.
+    """
+    # Mapping from Qt logging levels to the matching logging module levels.
+    # Note we map critical to ERROR as it's actually "just" an error, and fatal
+    # to critical.
+    QT_TO_LOGGING = {
+        QtDebugMsg: logging.DEBUG,
+        QtWarningMsg: logging.WARNING,
+        QtCriticalMsg: logging.ERROR,
+        QtFatalMsg: logging.CRITICAL,
+    }
+    # We get something like "void qt_png_warning(png_structp, png_const_charp)"
+    # from Qt, but only want "qt_png_warning".
+    func = re.match(r'\w* (\w*)\(.*\)', context.function).group(1)
+    record = qt.makeRecord('qt', QT_TO_LOGGING[msg_type], context.file,
+                           context.line, msg, None, None, func)
+    qt.handle(record)
 
 
 class LogFilter(logging.Filter):
