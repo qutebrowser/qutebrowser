@@ -15,18 +15,19 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=maybe-no-member
+
 """Tests for qutebrowser.utils.editor."""
 
 import os
 import os.path
-import logging
 import unittest
 from unittest import TestCase
 from unittest.mock import Mock
 
 from PyQt5.QtCore import QProcess
 
-import qutebrowser.utils.editor as editor
+import qutebrowser.utils.editor as editorutils
 
 
 class ConfigStub:
@@ -41,6 +42,7 @@ class ConfigStub:
         self.editor = editor
 
     def get(self, sect, opt):
+        """Get the configured value for sect/opt."""
         if sect == 'general' and opt == 'editor':
             return self.editor
         else:
@@ -64,7 +66,7 @@ class FakeQProcess:
     ReadError = QProcess.ReadError
     UnknownError = QProcess.UnknownError
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None):  # pylint: disable=unused-argument
         self.finished = Mock()
         self.error = Mock()
         self.start = Mock()
@@ -72,9 +74,9 @@ class FakeQProcess:
 
 def setUpModule():
     """Mock some things imported in the editor module."""
-    editor.message = Mock()
-    editor.logger = Mock()
-    editor.QProcess = FakeQProcess
+    editorutils.message = Mock()
+    editorutils.logger = Mock()
+    editorutils.QProcess = FakeQProcess
 
 
 class ArgTests(TestCase):
@@ -86,37 +88,36 @@ class ArgTests(TestCase):
     """
 
     def setUp(self):
-        self.editor = editor.ExternalEditor()
+        self.editor = editorutils.ExternalEditor()
 
     def test_simple_start_args(self):
         """Test starting editor without arguments."""
-        editor.config = ConfigStub(editor=["executable"])
+        editorutils.config = ConfigStub(editor=["bin"])
         self.editor.edit("")
-        self.editor.proc.start.assert_called_with("executable", [])
+        self.editor.proc.start.assert_called_with("bin", [])
 
     def test_start_args(self):
         """Test starting editor with static arguments."""
-        editor.config = ConfigStub(editor=["executable", "foo", "bar"])
+        editorutils.config = ConfigStub(editor=["bin", "foo", "bar"])
         self.editor.edit("")
-        self.editor.proc.start.assert_called_with("executable", ["foo", "bar"])
+        self.editor.proc.start.assert_called_with("bin", ["foo", "bar"])
 
     def test_placeholder(self):
         """Test starting editor with placeholder argument."""
-        editor.config = ConfigStub(editor=["executable", "foo", "{}", "bar"])
+        editorutils.config = ConfigStub(editor=["bin", "foo", "{}", "bar"])
         self.editor.edit("")
         filename = self.editor.filename
-        self.editor.proc.start.assert_called_with(
-            "executable", ["foo", filename, "bar"])
+        self.editor.proc.start.assert_called_with("bin",
+                                                  ["foo", filename, "bar"])
 
     def test_in_arg_placeholder(self):
         """Test starting editor with placeholder argument inside argument."""
-        editor.config = ConfigStub(editor=["executable", "foo{}bar"])
+        editorutils.config = ConfigStub(editor=["bin", "foo{}bar"])
         self.editor.edit("")
-        filename = self.editor.filename
-        self.editor.proc.start.assert_called_with("executable", ["foo{}bar"])
+        self.editor.proc.start.assert_called_with("bin", ["foo{}bar"])
 
     def tearDown(self):
-        self.editor._cleanup()
+        self.editor._cleanup()  # pylint: disable=protected-access
 
 
 class FileHandlingTests(TestCase):
@@ -128,8 +129,8 @@ class FileHandlingTests(TestCase):
     """
 
     def setUp(self):
-        self.editor = editor.ExternalEditor()
-        editor.config = ConfigStub(editor=[""])
+        self.editor = editorutils.ExternalEditor()
+        editorutils.config = ConfigStub(editor=[""])
 
     def test_file_handling_closed_ok(self):
         """Test file handling when closing with an exitstatus == 0."""
@@ -166,9 +167,9 @@ class TextModifyTests(TestCase):
     """
 
     def setUp(self):
-        self.editor = editor.ExternalEditor()
+        self.editor = editorutils.ExternalEditor()
         self.editor.editing_finished = Mock()
-        editor.config = ConfigStub(editor=[""])
+        editorutils.config = ConfigStub(editor=[""])
 
     def _write(self, text):
         """Write a text to the file opened in the fake editor.
@@ -233,20 +234,20 @@ class ErrorMessageTests(TestCase):
     """
 
     def setUp(self):
-        self.editor = editor.ExternalEditor()
-        editor.config = ConfigStub(editor=[""])
+        self.editor = editorutils.ExternalEditor()
+        editorutils.config = ConfigStub(editor=[""])
 
     def test_proc_error(self):
         """Test on_proc_error."""
         self.editor.edit("")
         self.editor.on_proc_error(QProcess.Crashed)
-        self.assertTrue(editor.message.error.called)
+        self.assertTrue(editorutils.message.error.called)
 
     def test_proc_return(self):
         """Test on_proc_finished with a bad exit status."""
         self.editor.edit("")
         self.editor.on_proc_closed(1, QProcess.NormalExit)
-        self.assertTrue(editor.message.error.called)
+        self.assertTrue(editorutils.message.error.called)
 
 
 if __name__ == '__main__':

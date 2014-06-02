@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=missing-docstring
+
 """Tests for qutebrowser.utils.readline."""
 
 import inspect
@@ -32,6 +34,7 @@ class FakeQApplication:
     """Stub to insert as QApplication module."""
 
     def __init__(self, focus):
+        # pylint: disable=invalid-name
         self.focusWidget = Mock(return_value=focus)
         self.instance = Mock(return_value=self)
 

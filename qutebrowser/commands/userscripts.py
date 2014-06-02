@@ -64,7 +64,8 @@ class _BlockingFIFOReader(QObject):
         # See http://www.outflux.net/blog/archives/2008/03/09/using-select-on-a-fifo/
         # We also use os.open and os.fdopen rather than built-in open so we can
         # add O_NONBLOCK.
-        fd = os.open(self.filepath, os.O_RDWR | os.O_NONBLOCK)
+        fd = os.open(self.filepath, os.O_RDWR |
+                     os.O_NONBLOCK)  # pylint: disable=no-member
         self.fifo = os.fdopen(fd, 'r')
         while True:
             logger.debug("thread loop")
@@ -191,7 +192,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         # raise an exception anyways when the path doesn't exist, it shouldn't
         # be a big issue.
         self.filepath = tempfile.mktemp(prefix='userscript-', dir=rundir)
-        os.mkfifo(self.filepath)
+        os.mkfifo(self.filepath)  # pylint: disable=no-member
 
         self.reader = _BlockingFIFOReader(self.filepath)
         self.thread = QThread()
