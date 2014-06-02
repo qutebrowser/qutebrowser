@@ -110,7 +110,7 @@ class Command(MinimalLineEdit):
         cursor_pos -= len(self.prefix)
         for i, part in enumerate(self.parts):
             logger.debug("part {}, len {}, pos {}".format(i, len(part),
-                cursor_pos))
+                                                          cursor_pos))
             if cursor_pos <= len(part):
                 # foo| bar
                 self.cursor_part = i
