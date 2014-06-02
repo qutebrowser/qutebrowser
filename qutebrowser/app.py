@@ -452,9 +452,6 @@ class QuteBrowser(QApplication):
         """
         # pylint: disable=broad-except
 
-        exc = (exctype, excvalue, tb)
-        sys.__excepthook__(*exc)
-
         if exctype is BdbQuit or not issubclass(exctype, Exception):
             # pdb exit, KeyboardInterrupt, ...
             try:
@@ -462,6 +459,10 @@ class QuteBrowser(QApplication):
                 return
             except Exception:
                 self.quit()
+                return
+
+        exc = (exctype, excvalue, tb)
+        sys.__excepthook__(*exc)
 
         self._quit_status['crash'] = False
 
@@ -483,7 +484,7 @@ class QuteBrowser(QApplication):
         try:
             self.lastWindowClosed.disconnect(self.shutdown)
         except TypeError:
-            log.destroy.exception("Preventing shutdown failed.")
+            log.destroy.warning("Preventing shutdown failed.")
         QApplication.closeAllWindows()
         self._crashdlg = ExceptionCrashDialog(pages, history, exc)
         ret = self._crashdlg.exec_()
@@ -590,35 +591,35 @@ class QuteBrowser(QApplication):
             try:
                 self.config.save()
             except AttributeError:
-                log.destroy.exception("Could not save config.")
+                log.destroy.warning("Could not save config.")
         # Save command history
         try:
             self.cmd_history.save()
         except AttributeError:
-            log.destroy.exception("Could not save command history.")
+            log.destroy.warning("Could not save command history.")
         # Save window state
         try:
             self._save_geometry()
             self.stateconfig.save()
         except AttributeError:
-            log.destroy.exception("Could not save window geometry.")
+            log.destroy.warning("Could not save window geometry.")
         # Save cookies
         try:
             self.cookiejar.save()
         except AttributeError:
-            log.destroy.exception("Could not save cookies.")
+            log.destroy.warning("Could not save cookies.")
         # Save quickmarks
         try:
             quickmarks.save()
         except AttributeError:
-            log.destroy.exception("Could not save quickmarks.")
+            log.destroy.warning("Could not save quickmarks.")
         # Shut down tabs
         try:
             self.mainwindow.tabs.shutdown_complete.connect(partial(
                 self._maybe_quit, 'tabs'))
             self.mainwindow.tabs.shutdown()
         except AttributeError:  # mainwindow or tabs could still be None
-            log.destroy.exception("No mainwindow/tabs to shut down.")
+            log.destroy.warning("No mainwindow/tabs to shut down.")
             self._maybe_quit('tabs')
         # Shut down networkmanager
         try:
@@ -627,7 +628,7 @@ class QuteBrowser(QApplication):
                 self._maybe_quit, 'networkmanager'))
             self.networkmanager.deleteLater()
         except AttributeError:
-            log.destroy.exception("No networkmanager to shut down.")
+            log.destroy.warning("No networkmanager to shut down.")
             self._maybe_quit('networkmanager')
         if self._crashlogfile is not None:
             # Re-enable faulthandler to stdout, then remove crash log
