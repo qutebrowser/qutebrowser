@@ -205,6 +205,8 @@ class Completer(QObject):
             if model is None:
                 self.view.hide()
                 return
+            logger.debug("Setting model to {}".format(
+                model.__class__.__name__))
             self.view.set_model(model)
 
         if model is None:

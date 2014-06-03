@@ -28,7 +28,6 @@ import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.widgets._completiondelegate import CompletionItemDelegate
 from qutebrowser.config.style import set_register_stylesheet
-from qutebrowser.utils.log import completion as logger
 from qutebrowser.utils.completer import Completer
 
 
@@ -176,7 +175,6 @@ class CompletionView(QTreeView):
         Args:
             model: The model to use.
         """
-        logger.debug("Setting model to {}".format(model.__class__.__name__))
         self.setModel(model)
         self.expandAll()
         self._resize_columns()
