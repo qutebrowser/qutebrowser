@@ -218,6 +218,10 @@ DATA = OrderedDict([
         ('confirm-quit',
          SettingValue(types.ConfirmQuit(), 'never'),
          "Whether to confirm quitting the application."),
+
+        ('display-statusbar-messages',
+         SettingValue(types.Bool(), 'false'),
+         "Whether to display javascript statusbar messages."),
     )),
 
     ('network', sect.KeyValue(

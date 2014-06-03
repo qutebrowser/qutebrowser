@@ -19,6 +19,7 @@
 
 from PyQt5.QtCore import pyqtSlot
 
+import qutebrowser.config.config as config
 from qutebrowser.widgets.statusbar.textbase import TextBase
 
 
@@ -79,10 +80,12 @@ class Text(TextBase):
 
     def _update_text(self):
         """Update QLabel text when needed."""
-        for text in [self.temptext, self.jstext, self.normaltext]:
-            if text:
-                self.setText(text)
-                break
+        if self.temptext:
+            self.setText(self.temptext)
+        elif self.jstext and config.get('ui', 'display-statusbar-messages'):
+            self.setText(self.jstext)
+        elif self.normaltext:
+            self.setText(self.normaltext)
         else:
             self.setText('')
 
@@ -101,3 +104,9 @@ class Text(TextBase):
         """Set the correct jstext when the current tab changed."""
         tab = self.sender().widget(idx)
         self.jstext = tab.statusbar_message
+
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
+        """Update text if display-statusbar-messages option changed."""
+        if (section, option) == ('ui', 'display-statusbar-messages'):
+            self._update_text()
