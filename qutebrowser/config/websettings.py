@@ -119,7 +119,8 @@ MAPPINGS = {
         'offline-storage-database':
             (MapType.attribute, QWebSettings.OfflineStorageDatabaseEnabled),
         'offline-web-application-storage':
-            (MapType.attribute, QWebSettings.OfflineWebApplicationCacheEnabled),
+            (MapType.attribute,
+             QWebSettings.OfflineWebApplicationCacheEnabled),
         'local-storage':
             (MapType.attribute, QWebSettings.LocalStorageEnabled),
         'maximum-pages-in-cache':
