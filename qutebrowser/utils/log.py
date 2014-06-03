@@ -130,12 +130,15 @@ def qt_message_handler(msg_type, context, msg):
         QtCriticalMsg: logging.ERROR,
         QtFatalMsg: logging.CRITICAL,
     }
-    # Suppress some messages because they're well-known.
+    # Change levels of some well-known messages to debug so they don't get
+    # shown to the user.
     suppressed_msgs = ["libpng warning: iCCP: Not recognizing known sRGB "
                        "profile that has been edited",
                        "OpenType support missing for script 19"]
     if msg.strip() in suppressed_msgs:
-        return
+        level = logging.DEBUG
+    else:
+        level = qt_to_logging[msg_type]
     # We get something like "void qt_png_warning(png_structp, png_const_charp)"
     # from Qt, but only want "qt_png_warning".
     match = re.match(r'.* (\w*)\(.*\)', context.function)
@@ -144,8 +147,8 @@ def qt_message_handler(msg_type, context, msg):
     else:
         func = context.function
     name = 'qt' if context.category == 'default' else 'qt-' + context.category
-    record = qt.makeRecord(name, qt_to_logging[msg_type], context.file,
-                           context.line, msg, None, None, func)
+    record = qt.makeRecord(name, level, context.file, context.line, msg, None,
+                           None, func)
     qt.handle(record)
 
 
