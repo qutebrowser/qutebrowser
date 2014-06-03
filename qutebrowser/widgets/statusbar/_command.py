@@ -118,7 +118,8 @@ class Command(MinimalLineEdit):
     def _update_cursor_part(self):
         """Get the part index of the commandline where the cursor is over."""
         cursor_pos = self.cursorPosition()
-        if self.text()[cursor_pos-1:cursor_pos+1] == '  ':
+        snippet = slice(cursor_pos - 1, cursor_pos + 1)
+        if self.text()[snippet] == '  ':
             logger.debug("Cursor between spaces")
             spaces = True
         else:
