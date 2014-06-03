@@ -583,38 +583,26 @@ class QuteBrowser(QApplication):
         For some reason lastWindowClosing sometimes seem to get emitted twice,
         so we make sure we only run once here.
         """
-        # pylint: disable=too-many-branches
         if self._shutting_down:
             return
         self._shutting_down = True
         log.destroy.debug("Shutting down...")
-        # Save config
+        to_save = []
+        # Save everything
         if self.config.get('general', 'auto-save-config'):
+            to_save.append(("config", self.config.save))
+        to_save += [("command history", self.cmd_history.save),
+                    ("window geometry", self._save_geometry),
+                    ("window geometry", self.stateconfig.save),
+                    ("cookies", self.cookiejar.save),
+                    ("quickmarks", quickmarks.save)]
+        for what, handler in to_save:
+            log.destroy.debug("Saving {} (handler: {})".format(
+                what, handler.__qualname__))
             try:
-                self.config.save()
+                handler()
             except AttributeError:
-                log.destroy.warning("Could not save config.")
-        # Save command history
-        try:
-            self.cmd_history.save()
-        except AttributeError:
-            log.destroy.warning("Could not save command history.")
-        # Save window state
-        try:
-            self._save_geometry()
-            self.stateconfig.save()
-        except AttributeError:
-            log.destroy.warning("Could not save window geometry.")
-        # Save cookies
-        try:
-            self.cookiejar.save()
-        except AttributeError:
-            log.destroy.warning("Could not save cookies.")
-        # Save quickmarks
-        try:
-            quickmarks.save()
-        except AttributeError:
-            log.destroy.warning("Could not save quickmarks.")
+                log.destroy.warning("Could not save {}.".format(what))
         # Shut down tabs
         try:
             self.mainwindow.tabs.shutdown_complete.connect(partial(
@@ -632,8 +620,8 @@ class QuteBrowser(QApplication):
         except AttributeError:
             log.destroy.warning("No networkmanager to shut down.")
             self._maybe_quit('networkmanager')
+        # Re-enable faulthandler to stdout, then remove crash log
         if self._crashlogfile is not None:
-            # Re-enable faulthandler to stdout, then remove crash log
             if sys.stderr is not None:
                 faulthandler.enable()
             else:
