@@ -48,7 +48,6 @@ class CompletionView(QTreeView):
     Attributes:
         completer: The Completer instance to use.
         _ignore_change: Whether to ignore the next completion update.
-        _model: The currently active filter model.
         _lastmodel: The model set in the last iteration.
         _enabled: Whether showing the CompletionView is enabled.
         _height: The height to use for the CompletionView.
@@ -105,7 +104,6 @@ class CompletionView(QTreeView):
         self.completer = Completer(self)
         self._enabled = config.get('completion', 'show')
         self._ignore_change = False
-        self._model = None
         self._lastmodel = None
 
         self._delegate = CompletionItemDelegate(self)
@@ -150,14 +148,14 @@ class CompletionView(QTreeView):
         idx = self.selectionModel().currentIndex()
         if not idx.isValid():
             # No item selected yet
-            return self._model.first_item()
+            return self.model().first_item()
         while True:
             idx = self.indexAbove(idx) if upwards else self.indexBelow(idx)
             # wrap around if we arrived at beginning/end
             if not idx.isValid() and upwards:
-                return self._model.last_item()
+                return self.model().last_item()
             elif not idx.isValid() and not upwards:
-                idx = self._model.first_item()
+                idx = self.model().first_item()
                 self.scrollTo(idx.parent())
                 return idx
             elif idx.parent().isValid():
@@ -191,11 +189,10 @@ class CompletionView(QTreeView):
         """
         logger.debug("Setting model to {}".format(model.__class__.__name__))
         self.setModel(model)
-        self._model = model
         self.expandAll()
         self._resize_columns()
-        self._model.rowsRemoved.connect(self.resize_completion)
-        self._model.rowsInserted.connect(self.resize_completion)
+        model.rowsRemoved.connect(self.resize_completion)
+        model.rowsInserted.connect(self.resize_completion)
         self.resize_completion.emit()
 
     @pyqtSlot(str, str)
@@ -250,13 +247,13 @@ class CompletionView(QTreeView):
 
         pattern = parts[cursor_part] if parts else ''
         logger.debug("pattern: {}".format(pattern))
-        self._model.pattern = pattern
+        self.model().pattern = pattern
 
-        if self._model.item_count == 0:
+        if self.model().item_count == 0:
             self.hide()
             return
 
-        self._model.mark_all_items(pattern)
+        self.model().mark_all_items(pattern)
         if self._enabled:
             self.show()
 
@@ -292,9 +289,9 @@ class CompletionView(QTreeView):
         """
         indexes = selected.indexes()
         if indexes:
-            data = self._model.data(indexes[0])
+            data = self.model().data(indexes[0])
             if data is not None:
-                if self._model.item_count == 1 and config.get(
+                if self.model().item_count == 1 and config.get(
                         'completion', 'quick-complete'):
                     # If we only have one item, we want to apply it immediately
                     # and go on to the next part.
