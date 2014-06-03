@@ -131,9 +131,10 @@ def qt_message_handler(msg_type, context, msg):
         QtFatalMsg: logging.CRITICAL,
     }
     # Suppress some messages because they're well-known.
-    suppressed_msgs = ['libpng warning: iCCP: Not recognizing known sRGB '
-                       'profile that has been edited']
-    if msg in suppressed_msgs:
+    suppressed_msgs = ["libpng warning: iCCP: Not recognizing known sRGB "
+                       "profile that has been edited",
+                       "OpenType support missing for script 19"]
+    if msg.strip() in suppressed_msgs:
         return
     # We get something like "void qt_png_warning(png_structp, png_const_charp)"
     # from Qt, but only want "qt_png_warning".
