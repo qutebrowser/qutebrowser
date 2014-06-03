@@ -301,6 +301,8 @@ class CompletionView(QTreeView):
             logger.debug("Ignoring completion update")
             return
 
+        logger.debug("Updating completion, parts: {}, cursor_part {}".format(parts, cursor_part))
+
         if prefix != ':':
             # This is a search or gibberish, so we don't need to complete
             # anything (yet)

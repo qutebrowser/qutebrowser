@@ -121,6 +121,7 @@ class Command(MinimalLineEdit):
             logger.debug("Cursor between spaces")
             spaces = True
         else:
+            logger.debug("Cursor not between spaces")
             spaces = False
             self._empty_item_idx = None
         cursor_pos -= len(self.prefix)
