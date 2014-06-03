@@ -39,7 +39,6 @@ class Completer(QObject):
         view: The CompletionView associated with this completer.
         ignore_change: Whether to ignore the next completion update.
         _models: dict of available completion models.
-        _lastmodel: The model set in the last iteration.
 
     Signals:
         change_completed_part: Text which should be substituted for the word
@@ -56,7 +55,6 @@ class Completer(QObject):
         super().__init__(view)
         self.view = view
         self.ignore_change = False
-        self._lastmodel = None
 
         self._models = {
             'option': {},
@@ -195,12 +193,9 @@ class Completer(QObject):
         if model is None:
             logger.debug("No completion model for {}.".format(parts))
         else:
-            logger.debug("New completion: {} / last: {}".format(
-                model.srcmodel.__class__.__name__,
-                self._lastmodel.srcmodel.__class__.__name__ if self._lastmodel
-                is not None else "None"))
-        if model != self._lastmodel:
-            self._lastmodel = model
+            logger.debug("New completion: {}".format(
+                model.srcmodel.__class__.__name__))
+        if model != self.view.model():
             if model is None:
                 self.view.hide()
                 return
