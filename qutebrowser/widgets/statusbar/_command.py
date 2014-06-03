@@ -83,6 +83,7 @@ class Command(MinimalLineEdit):
         self.setValidator(self._validator)
         self.textEdited.connect(self.on_text_edited)
         self.cursorPositionChanged.connect(self._update_cursor_part)
+        self.cursorPositionChanged.connect(self.on_cursor_position_changed)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
 
     @property
@@ -116,7 +117,6 @@ class Command(MinimalLineEdit):
     @pyqtSlot()
     def _update_cursor_part(self):
         """Get the part index of the commandline where the cursor is over."""
-        old_cursor_part = self.cursor_part
         cursor_pos = self.cursorPosition()
         if self.text()[cursor_pos-1:cursor_pos+1] == '  ':
             logger.debug("Cursor between spaces")
@@ -131,9 +131,6 @@ class Command(MinimalLineEdit):
             if cursor_pos <= len(part):
                 # foo| bar
                 self.cursor_part = i
-                if old_cursor_part != i:
-                    self.update_completion.emit(self.prefix, self.parts,
-                                                self.cursor_part)
                 logger.debug("Cursor part: {}".format(i))
                 if spaces:
                     logger.debug("Cursor between spaces -> queueing empty "
@@ -144,6 +141,11 @@ class Command(MinimalLineEdit):
                 return
             cursor_pos -= (len(part) + 1)  # FIXME are spaces always 1 char?
         return None
+
+    @pyqtSlot()
+    def on_cursor_position_changed(self):
+        """Update completion when the cursor position changed."""
+        self.update_completion.emit(self.prefix, self.parts, self.cursor_part)
 
     @pyqtSlot(str)
     def set_cmd_text(self, text):
