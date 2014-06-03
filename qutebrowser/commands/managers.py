@@ -141,12 +141,42 @@ class CommandManager:
         self._cmd = None
         self._args = []
 
-    def parse(self, text, aliases=True):
+    def _get_alias(self, text, alias_no_args):
+        """Get an alias from the config.
+
+        Args:
+            text: The text to parse.
+            alias_no_args: Whether to apply an alias if there are no arguments.
+
+        Return:
+            None if no alias was found.
+            The new command string if an alias was found.
+        """
+        parts = text.strip().split(maxsplit=1)
+        try:
+            alias = config.get('aliases', parts[0])
+        except (config.NoOptionError, config.NoSectionError):
+            return None
+        try:
+            new_cmd = '{} {}'.format(alias, parts[1])
+        except IndexError:
+            if alias_no_args:
+                new_cmd = alias
+            else:
+                new_cmd = parts[0]
+        if text.endswith(' '):
+            new_cmd += ' '
+        return new_cmd
+
+    def parse(self, text, aliases=True, fallback=False, alias_no_args=True):
         """Split the commandline text into command and arguments.
 
         Args:
             text: Text to parse.
             aliases: Whether to handle aliases.
+            fallback: Whether to do a fallback splitting when the command was
+                      unknown.
+            alias_no_args: Whether to apply an alias if there are no arguments.
 
         Raise:
             NoSuchCommandError if a command wasn't found.
@@ -159,24 +189,20 @@ class CommandManager:
             raise NoSuchCommandError("No command given")
         cmdstr = parts[0]
         if aliases:
-            try:
-                alias = config.get('aliases', cmdstr)
-            except (config.NoOptionError, config.NoSectionError):
-                pass
-            else:
-                try:
-                    new_cmd = '{} {}'.format(alias, parts[1])
-                except IndexError:
-                    new_cmd = alias
-                if text.endswith(' '):
-                    new_cmd += ' '
+            new_cmd = self._get_alias(text, alias_no_args)
+            if new_cmd is not None:
                 logger.debug("Re-parsing with '{}'.".format(new_cmd))
                 return self.parse(new_cmd, aliases=False)
         try:
             cmd = cmdutils.cmd_dict[cmdstr]
         except KeyError:
-            raise NoSuchCommandError('{}: no such command'.format(cmdstr))
-
+            if fallback:
+                parts = text.split(' ')
+                if text.endswith(' '):
+                    parts.append('')
+                return parts
+            else:
+                raise NoSuchCommandError('{}: no such command'.format(cmdstr))
         if len(parts) == 1:
             args = []
         elif cmd.split:
