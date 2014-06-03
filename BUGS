@@ -1,28 +1,13 @@
-Crashes
-=======
+Bugs
+====
 
 - When following a hint:
 
   QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.
 
-- When enabling javascript on http://google.com/accounts and reloading:
-
-    OpenType support missing for script 12
-
-  Then it quits.
-  When javascript is enabled already, hangs.
-  With minimal browser, prints error but continues to run.
-
-  Also quits on http://de.wikipedia.org/wiki/Hallo-Welt-Programm
-
-  It seems this only happens on Windows.
-
 - Closing some tabs and undo all them -> quits and CMD.exe hangs
 
     QHttpNetworkConnectionPrivate::_q_hostLookupFinished could not dequeu request
-
-Bugs
-====
 
 - All kind of FIXMEs
 

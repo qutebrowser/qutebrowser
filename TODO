@@ -1,12 +1,10 @@
 Before 0.1
 ==========
 
-- Check FIXMEs
+- Check BUGS
 - Manpage
 - Website
 - Tests for URL detection and fix corner cases
-- Fix some crashes + bugs if we can
-- Fix shutdown
 - Maybe test under other platforms
 - Autosave feature (against segfaults/...)
 - Save tabs feature
@@ -16,6 +14,7 @@ Before 0.1
     - ssl-strict=ask
     - SSL-symbol in statusbar?
 - Downloads (at least calling a handler)
+- How long should javascript statusbar messages be displayed?!
 
 Style
 =====
@@ -50,6 +49,7 @@ Improvements / minor features
     http://qt-project.org/doc/qt-4.8/qnetworkcookie.html
     - Second column (flag): TRUE if domain starts with ., else FALSE
     - if a cookie is a http-only cookie domain is prepended with a #HttpOnly_
+    - Python's http.cookiejar.MozillaCookieJar might help
 - Zoom with ctrl + mousewheel
 - search highlighting
 - vertical tabbar
@@ -76,7 +76,6 @@ Improvements / minor features
 - Use QNetworkAccessManager per QWebPage again so we can set proxy per tab.
 - Multi-line statusbar or own widget for long messages?
 - :messages command to view past messages
-- How long should javascript statusbar messages be displayed?!
 
 hints
 -----
