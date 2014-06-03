@@ -66,7 +66,8 @@ SECTION_DESC = {
     'network': "Settings related to the network.",
     'completion': "Options related to completion and command history.",
     'tabbar': "Configuration of the tab bar.",
-    'webkit': "Webkit settings.",
+    'storage': "Settings related to cache and storage.",
+    'permissions': "Loaded plugins/scripts and allowed actions.",
     'hints': "Hinting settings.",
     'searchengines': (
         "Definitions of search engines which can be used via the address "
@@ -198,6 +199,35 @@ DATA = OrderedDict([
          SettingValue(types.ShellCommand(placeholder=True), 'gvim -f "{}"'),
          "The editor (and arguments) to use for the open-editor binding. "
          "Use {} for the filename. Gets split via shutils."),
+
+        ('private-browsing',
+         SettingValue(types.Bool(), 'false'),
+         "Private browsing prevents WebKit from recording visited pages in "
+         "the history and storing web page icons."),
+
+        ('developer-extras',
+         SettingValue(types.Bool(), 'false'),
+         "Enables extra tools for Web developers (e.g. webinspector)."),
+
+        ('print-element-backgrounds',
+         SettingValue(types.Bool(), 'true'),
+         "Specifies whether the background color and images are also drawn "
+         "when the page is printed."),
+
+        ('xss-auditing',
+         SettingValue(types.Bool(), 'false'),
+         "Specifies whether load requests should be monitored for cross-site "
+         "scripting attempts. Suspicious scripts will be blocked and reported "
+         "in the inspector's JavaScript console. Enabling this feature might "
+         "have an impact on performance."),
+
+        ('site-specific-quirks',
+         SettingValue(types.Bool(), 'true'),
+         "This setting enables WebKit's workaround for broken sites."),
+
+        ('default-encoding',
+         SettingValue(types.String(none=True), ''),
+         "Default encoding to use for websites."),
     )),
 
     ('ui', sect.KeyValue(
@@ -222,6 +252,56 @@ DATA = OrderedDict([
         ('display-statusbar-messages',
          SettingValue(types.Bool(), 'false'),
          "Whether to display javascript statusbar messages."),
+
+        ('zoom-text-only',
+         SettingValue(types.Bool(), 'false'),
+         "Specifies whether the zoom factor on a frame applies only to the "
+         "text or to all content."),
+
+        ('frame-flattening',
+         SettingValue(types.Bool(), 'false'),
+         "With this setting each subframe is expanded to its contents. This "
+         "will flatten all the frames to become one scrollable "
+         "page."),
+
+        ('frame-flattening',
+         SettingValue(types.Bool(), 'false'),
+         "With this setting each subframe is expanded to its contents. This "
+         "will flatten all the frames to become one scrollable "
+         "page."),
+
+        ('user-stylesheet',
+         SettingValue(types.WebSettingsFile(), ''),
+         "User stylesheet to set."),
+
+        ('user-stylesheet',
+         SettingValue(types.WebSettingsFile(), ''),
+         "User stylesheet to set."),
+
+        ('css-media-type',
+         SettingValue(types.String(none=True), ''),
+         "Set the CSS media type."),
+
+        ('css-media-type',
+         SettingValue(types.String(none=True), ''),
+         "Set the CSS media type."),
+
+        #('accelerated-compositing',
+        # SettingValue(types.Bool(), 'true'),
+        # "This feature, when used in conjunction with QGraphicsWebView, "
+        # "accelerates animations of web content. CSS animations of the "
+        # "transform and opacity properties will be rendered by composing the "
+        # "cached content of the animated elements."),
+
+        #('tiled-backing-store',
+        # SettingValue(types.Bool(), 'false'),
+        # "This setting enables the tiled backing store feature for a "
+        # "QGraphicsWebView. With the tiled backing store enabled, the web "
+        # "page contents in and around the current visible area is "
+        # "speculatively cached to bitmap tiles. The tiles are automatically "
+        # "kept in sync with the web page as it changes. Enabling tiling can "
+        # "significantly speed up painting heavy operations like scrolling. "
+        # "Enabling the feature increases memory consuption."),
     )),
 
     ('network', sect.KeyValue(
@@ -237,14 +317,6 @@ DATA = OrderedDict([
          SettingValue(types.String(none=True), ''),
          "User agent to send. Empty to send the default."),
 
-        ('accept-cookies',
-         SettingValue(types.AcceptCookies(), 'default'),
-         "Whether to accept cookies."),
-
-        ('store-cookies',
-         SettingValue(types.Bool(), 'false'),
-         "Whether to store cookies."),
-
         ('proxy',
          SettingValue(types.Proxy(), 'system'),
          "The proxy to use."),
@@ -252,6 +324,11 @@ DATA = OrderedDict([
         ('ssl-strict',
          SettingValue(types.Bool(), 'true'),
          "Whether to validate SSL handshakes."),
+
+        ('dns-prefetch',
+         SettingValue(types.Bool(), 'false'),
+         "Specifies whether QtWebkit will try to pre-fetch DNS entries to "
+         "speed up browsing."),
     )),
 
     ('completion', sect.KeyValue(
@@ -299,6 +376,18 @@ DATA = OrderedDict([
         ('forward-unbound-keys',
          SettingValue(types.Bool(), 'false'),
          "Whether to forward unbound keys to the website in normal mode."),
+
+        ('spatial-navigation',
+         SettingValue(types.Bool(), 'false'),
+         "Enables or disables the Spatial Navigation feature, which consists "
+         "in the ability to navigate between focusable elements in a Web "
+         "page, such as hyperlinks and form controls, by using Left, Right, "
+         "Up and Down arrow keys."),
+
+        ('links-included-in-focus-chain',
+         SettingValue(types.Bool(), 'true'),
+         "Specifies whether hyperlinks should be included in the keyboard "
+         "focus chain."),
     )),
 
     ('tabbar', sect.KeyValue(
@@ -344,188 +433,7 @@ DATA = OrderedDict([
 
     )),
 
-    ('webkit', sect.KeyValue(
-        ('auto-load-images',
-         SettingValue(types.Bool(), 'true'),
-         "Specifies whether images are automatically loaded in web pages."),
-
-        ('dns-prefetch-enabled',
-         SettingValue(types.Bool(), 'false'),
-         "Specifies whether QtWebkit will try to pre-fetch DNS entries to "
-         "speed up browsing."),
-
-        ('javascript-enabled',
-         SettingValue(types.Bool(), 'true'),
-         "Enables or disables the running of JavaScript programs."),
-
-        #('java-enabled',
-        # SettingValue(types.Bool(), 'true'),
-        # "Enables or disables Java applets. Currently Java applets are "
-        # "not supported"),
-
-        ('plugins-enabled',
-         SettingValue(types.Bool(), 'false'),
-         "Enables or disables plugins in Web pages."),
-
-        ('private-browsing-enabled',
-         SettingValue(types.Bool(), 'false'),
-         "Private browsing prevents WebKit from recording visited pages in "
-         "the history and storing web page icons."),
-
-        ('javascript-can-open-windows',
-         SettingValue(types.Bool(), 'false'),
-         "Specifies whether JavaScript programs can open new windows."),
-
-        ('javascript-can-close-windows',
-         SettingValue(types.Bool(), 'false'),
-         "Specifies whether JavaScript programs can close windows."),
-
-        ('javascript-can-access-clipboard',
-         SettingValue(types.Bool(), 'false'),
-         "Specifies whether JavaScript programs can read or write to the "
-         "clipboard."),
-
-        ('developer-extras-enabled',
-         SettingValue(types.Bool(), 'false'),
-         "Enables extra tools for Web developers (e.g. webinspector)."),
-
-        ('spatial-navigation-enabled',
-         SettingValue(types.Bool(), 'false'),
-         "Enables or disables the Spatial Navigation feature, which consists "
-         "in the ability to navigate between focusable elements in a Web "
-         "page, such as hyperlinks and form controls, by using Left, Right, "
-         "Up and Down arrow keys."),
-
-        ('links-included-in-focus-chain',
-         SettingValue(types.Bool(), 'true'),
-         "Specifies whether hyperlinks should be included in the keyboard "
-         "focus chain."),
-
-        ('zoom-text-only',
-         SettingValue(types.Bool(), 'false'),
-         "Specifies whether the zoom factor on a frame applies only to the "
-         "text or to all content."),
-
-        ('print-element-backgrounds',
-         SettingValue(types.Bool(), 'true'),
-         "Specifies whether the background color and images are also drawn "
-         "when the page is printed."),
-
-        ('offline-storage-database-enabled',
-         SettingValue(types.Bool(), 'false'),
-         "Specifies whether support for the HTML 5 offline storage feature is "
-         "enabled or not."),
-
-        ('offline-web-application-storage-enabled',
-         SettingValue(types.Bool(), 'false'),
-         "Specifies whether support for the HTML 5 web application cache "
-         "feature is enabled or not."),
-
-        ('local-storage-enabled',
-         SettingValue(types.Bool(), 'false'),
-         "Specifies whether support for the HTML 5 local storage feature is "
-         "enabled or not."),
-
-        ('local-content-can-access-remote-urls',
-         SettingValue(types.Bool(), 'false'),
-         "Specifies whether locally loaded documents are allowed to access "
-         "remote urls."),
-
-        ('local-content-can-access-file-urls',
-         SettingValue(types.Bool(), 'true'),
-         "Specifies whether locally loaded documents are allowed to access "
-         "other local urls."),
-
-        ('xss-auditing-enabled',
-         SettingValue(types.Bool(), 'false'),
-         "Specifies whether load requests should be monitored for cross-site "
-         "scripting attempts. Suspicious scripts will be blocked and reported "
-         "in the inspector's JavaScript console. Enabling this feature might "
-         "have an impact on performance."),
-
-        #('accelerated-compositing-enabled',
-        # SettingValue(types.Bool(), 'true'),
-        # "This feature, when used in conjunction with QGraphicsWebView, "
-        # "accelerates animations of web content. CSS animations of the "
-        # "transform and opacity properties will be rendered by composing the "
-        # "cached content of the animated elements."),
-
-        #('tiled-backing-store-enabled',
-        # SettingValue(types.Bool(), 'false'),
-        # "This setting enables the tiled backing store feature for a "
-        # "QGraphicsWebView. With the tiled backing store enabled, the web "
-        # "page contents in and around the current visible area is "
-        # "speculatively cached to bitmap tiles. The tiles are automatically "
-        # "kept in sync with the web page as it changes. Enabling tiling can "
-        # "significantly speed up painting heavy operations like scrolling. "
-        # "Enabling the feature increases memory consuption."),
-
-        ('frame-flattening-enabled',
-         SettingValue(types.Bool(), 'false'),
-         "With this setting each subframe is expanded to its contents. This "
-         "will flatten all the frames to become one scrollable "
-         "page."),
-
-        ('site-specific-quirks-enabled',
-         SettingValue(types.Bool(), 'true'),
-         "This setting enables WebKit's workaround for broken sites."),
-
-        ('user-stylesheet',
-         SettingValue(types.WebSettingsFile(), ''),
-         "User stylesheet to set."),
-
-        ('css-media-type',
-         SettingValue(types.String(none=True), ''),
-         "Set the CSS media type."),
-
-        ('default-encoding',
-         SettingValue(types.String(none=True), ''),
-         "Default encoding to use for websites."),
-
-        ('font-family-standard',
-         SettingValue(types.String(none=True), ''),
-         "Font family for standard fonts."),
-
-        ('font-family-fixed',
-         SettingValue(types.String(none=True), ''),
-         "Font family for fixed fonts."),
-
-        ('font-family-serif',
-         SettingValue(types.String(none=True), ''),
-         "Font family for serif fonts."),
-
-        ('font-family-sans-serif',
-         SettingValue(types.String(none=True), ''),
-         "Font family for sans-serif fonts."),
-
-        ('font-family-cursive',
-         SettingValue(types.String(none=True), ''),
-         "Font family for cursive fonts."),
-
-        ('font-family-fantasy',
-         SettingValue(types.String(none=True), ''),
-         "Font family for fantasy fonts."),
-
-        ('font-size-minimum',
-         SettingValue(types.Int(none=True, minval=1, maxval=MAXVALS['int']),
-                      ''),
-         "The hard minimum font size."),
-
-        ('font-size-minimum-logical',
-         SettingValue(types.Int(none=True, minval=1, maxval=MAXVALS['int']),
-                      ''),
-         "The minimum logical font size that is applied when zooming out."),
-
-        ('font-size-default',
-         SettingValue(types.Int(none=True, minval=1, maxval=MAXVALS['int']),
-                      ''),
-         "The default font size for regular text."),
-
-        ('font-size-default-fixed',
-         SettingValue(types.Int(none=True, minval=1, maxval=MAXVALS['int']),
-                      ''),
-         "The default font size for fixed-pitch text."),
-
+    ('storage', sect.KeyValue(
         ('maximum-pages-in-cache',
          SettingValue(types.Int(none=True, minval=0, maxval=MAXVALS['int']),
                       ''),
@@ -545,6 +453,85 @@ DATA = OrderedDict([
         ('offline-web-application-cache-quota',
          SettingValue(types.WebKitBytes(maxsize=MAXVALS['int64']), ''),
          "Quota for the offline web application cache."),
+
+        ('offline-storage-database',
+         SettingValue(types.Bool(), 'false'),
+         "Specifies whether support for the HTML 5 offline storage feature is "
+         "enabled or not."),
+
+        ('offline-web-application-storage',
+         SettingValue(types.Bool(), 'false'),
+         "Specifies whether support for the HTML 5 web application cache "
+         "feature is enabled or not."),
+
+        ('local-storage',
+         SettingValue(types.Bool(), 'false'),
+         "Specifies whether support for the HTML 5 local storage feature is "
+         "enabled or not."),
+    )),
+
+    ('permissions', sect.KeyValue(
+        ('allow-images',
+         SettingValue(types.Bool(), 'true'),
+         "Specifies whether images are automatically loaded in web pages."),
+
+        ('allow-javascript',
+         SettingValue(types.Bool(), 'true'),
+         "Enables or disables the running of JavaScript programs."),
+
+        #('allow-java',
+        # SettingValue(types.Bool(), 'true'),
+        # "Enables or disables Java applets. Currently Java applets are "
+        # "not supported"),
+
+        ('allow-plugins',
+         SettingValue(types.Bool(), 'false'),
+         "Enables or disables plugins in Web pages."),
+
+        ('allow-javascript',
+         SettingValue(types.Bool(), 'true'),
+         "Enables or disables the running of JavaScript programs."),
+
+        #('allow-java',
+        # SettingValue(types.Bool(), 'true'),
+        # "Enables or disables Java applets. Currently Java applets are "
+        # "not supported"),
+
+        ('allow-plugins',
+         SettingValue(types.Bool(), 'false'),
+         "Enables or disables plugins in Web pages."),
+
+        ('javascript-can-open-windows',
+         SettingValue(types.Bool(), 'false'),
+         "Specifies whether JavaScript programs can open new windows."),
+
+        ('javascript-can-close-windows',
+         SettingValue(types.Bool(), 'false'),
+         "Specifies whether JavaScript programs can close windows."),
+
+        ('javascript-can-access-clipboard',
+         SettingValue(types.Bool(), 'false'),
+         "Specifies whether JavaScript programs can read or write to the "
+         "clipboard."),
+
+        ('local-content-can-access-remote-urls',
+         SettingValue(types.Bool(), 'false'),
+         "Specifies whether locally loaded documents are allowed to access "
+         "remote urls."),
+
+        ('local-content-can-access-file-urls',
+         SettingValue(types.Bool(), 'true'),
+         "Specifies whether locally loaded documents are allowed to access "
+         "other local urls."),
+
+        ('cookies-accept',
+         SettingValue(types.AcceptCookies(), 'default'),
+         "Whether to accept cookies."),
+
+        ('cookies-store',
+         SettingValue(types.Bool(), 'false'),
+         "Whether to store cookies."),
+
     )),
 
     ('hints', sect.KeyValue(
@@ -912,5 +899,49 @@ DATA = OrderedDict([
         ('hints',
          SettingValue(types.Font(), 'bold 12px Monospace'),
          "Font used for the hints."),
+
+        ('web-family-standard',
+         SettingValue(types.String(none=True), ''),
+         "Font family for standard fonts."),
+
+        ('web-family-fixed',
+         SettingValue(types.String(none=True), ''),
+         "Font family for fixed fonts."),
+
+        ('web-family-serif',
+         SettingValue(types.String(none=True), ''),
+         "Font family for serif fonts."),
+
+        ('web-family-sans-serif',
+         SettingValue(types.String(none=True), ''),
+         "Font family for sans-serif fonts."),
+
+        ('web-family-cursive',
+         SettingValue(types.String(none=True), ''),
+         "Font family for cursive fonts."),
+
+        ('web-family-fantasy',
+         SettingValue(types.String(none=True), ''),
+         "Font family for fantasy fonts."),
+
+        ('web-size-minimum',
+         SettingValue(types.Int(none=True, minval=1, maxval=MAXVALS['int']),
+                      ''),
+         "The hard minimum font size."),
+
+        ('web-size-minimum-logical',
+         SettingValue(types.Int(none=True, minval=1, maxval=MAXVALS['int']),
+                      ''),
+         "The minimum logical font size that is applied when zooming out."),
+
+        ('web-size-default',
+         SettingValue(types.Int(none=True, minval=1, maxval=MAXVALS['int']),
+                      ''),
+         "The default font size for regular text."),
+
+        ('web-size-default-fixed',
+         SettingValue(types.Int(none=True, minval=1, maxval=MAXVALS['int']),
+                      ''),
+         "The default font size for fixed-pitch text."),
     )),
 ])

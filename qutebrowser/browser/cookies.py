@@ -57,7 +57,7 @@ class CookieJar(QNetworkCookieJar):
         Return:
             True if one or more cookies are set for 'url', otherwise False.
         """
-        if config.get('network', 'accept-cookies') == 'never':
+        if config.get('permissions', 'cookies-accept') == 'never':
             return False
         else:
             return super().setCookiesFromUrl(cookies, url)

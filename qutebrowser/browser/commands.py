@@ -630,7 +630,7 @@ class CommandDispatcher:
         """Toggle the web inspector."""
         cur = self._tabs.currentWidget()
         if cur.inspector is None:
-            if not config.get('webkit', 'developer-extras-enabled'):
+            if not config.get('general', 'developer-extras'):
                 message.error("Please enable developer-extras before using "
                               "the webinspector!")
                 return
@@ -640,7 +640,7 @@ class CommandDispatcher:
         elif cur.inspector.isVisible():
             cur.inspector.hide()
         else:
-            if not config.get('webkit', 'developer-extras-enabled'):
+            if not config.get('general', 'developer-extras'):
                 message.error("Please enable developer-extras before using "
                               "the webinspector!")
                 return

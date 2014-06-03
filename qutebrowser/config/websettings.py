@@ -39,102 +39,116 @@ MapType = enum('attribute', 'setter', 'static_setter')
 
 MAPPINGS = {
     # noqa
-    'auto-load-images':
-        (MapType.attribute, QWebSettings.AutoLoadImages),
-    'dns-prefetch-enabled':
-        (MapType.attribute, QWebSettings.DnsPrefetchEnabled),
-    'javascript-enabled':
-        (MapType.attribute, QWebSettings.JavascriptEnabled),
-    #'java-enabled':
-    #   (MapType.attribute, QWebSettings.JavaEnabled),
-    'plugins-enabled':
-        (MapType.attribute, QWebSettings.PluginsEnabled),
-    'private-browsing-enabled':
-        (MapType.attribute, QWebSettings.PrivateBrowsingEnabled),
-    'javascript-can-open-windows':
-        (MapType.attribute, QWebSettings.JavascriptCanOpenWindows),
-    'javascript-can-close-windows':
-        (MapType.attribute, QWebSettings.JavascriptCanCloseWindows),
-    'javascript-can-access-clipboard':
-        (MapType.attribute, QWebSettings.JavascriptCanAccessClipboard),
-    'developer-extras-enabled':
-        (MapType.attribute, QWebSettings.DeveloperExtrasEnabled),
-    'spatial-navigation-enabled':
-        (MapType.attribute, QWebSettings.SpatialNavigationEnabled),
-    'links-included-in-focus-chain':
-        (MapType.attribute, QWebSettings.LinksIncludedInFocusChain),
-    'zoom-text-only':
-        (MapType.attribute, QWebSettings.ZoomTextOnly),
-    'print-element-backgrounds':
-        (MapType.attribute, QWebSettings.PrintElementBackgrounds),
-    'offline-storage-database-enabled':
-        (MapType.attribute, QWebSettings.OfflineStorageDatabaseEnabled),
-    'offline-web-application-storage-enabled':
-        (MapType.attribute, QWebSettings.OfflineWebApplicationCacheEnabled),
-    'local-storage-enabled':
-        (MapType.attribute, QWebSettings.LocalStorageEnabled),
-    'local-content-can-access-remote-urls':
-        (MapType.attribute, QWebSettings.LocalContentCanAccessRemoteUrls),
-    'local-content-can-access-file-urls':
-        (MapType.attribute, QWebSettings.LocalContentCanAccessFileUrls),
-    'xss-auditing-enabled':
-        (MapType.attribute, QWebSettings.XSSAuditingEnabled),
-    #'accelerated-compositing-enabled':
-    #   (MapType.attribute, QWebSettings.AcceleratedCompositingEnabled),
-    #'tiled-backing-store-enabled':
-    #   (MapType.attribute, QWebSettings.TiledBackingStoreEnabled),
-    'frame-flattening-enabled':
-        (MapType.attribute, QWebSettings.FrameFlatteningEnabled),
-    'site-specific-quirks-enabled':
-        (MapType.attribute, QWebSettings.SiteSpecificQuirksEnabled),
-    'user-stylesheet':
-        (MapType.setter, lambda qws, v: qws.setUserStyleSheetUrl(v)),
-    'css-media-type':
-        (MapType.setter, lambda qws, v: qws.setCSSMediaType(v)),
-    'default-encoding':
-        (MapType.setter, lambda qws, v: qws.setDefaultTextEncoding(v)),
-    'font-family-standard':
-        (MapType.setter, lambda qws, v:
-            qws.setFontFamily(QWebSettings.StandardFont, v)),
-    'font-family-fixed':
-        (MapType.setter, lambda qws, v:
-            qws.setFontFamily(QWebSettings.FixedFont, v)),
-    'font-family-serif':
-        (MapType.setter, lambda qws, v:
-            qws.setFontFamily(QWebSettings.SerifFont, v)),
-    'font-family-sans-serif':
-        (MapType.setter, lambda qws, v:
-            qws.setFontFamily(QWebSettings.SansSerifFont, v)),
-    'font-family-cursive':
-        (MapType.setter, lambda qws, v:
-            qws.setFontFamily(QWebSettings.CursiveFont, v)),
-    'font-family-fantasy':
-        (MapType.setter, lambda qws, v:
-            qws.setFontFamily(QWebSettings.FantasyFont, v)),
-    'font-size-minimum':
-        (MapType.setter, lambda qws, v:
-            qws.setFontSize(QWebSettings.MinimumFontSize, v)),
-    'font-size-minimum-logical':
-        (MapType.setter, lambda qws, v:
-            qws.setFontSize(QWebSettings.MinimumLogicalFontSize, v)),
-    'font-size-default':
-        (MapType.setter, lambda qws, v:
-            qws.setFontSize(QWebSettings.DefaultFontSize, v)),
-    'font-size-default-fixed':
-        (MapType.setter, lambda qws, v:
-            qws.setFontSize(QWebSettings.DefaultFixedFontSize, v)),
-    'maximum-pages-in-cache':
-        (MapType.static_setter, lambda v:
-            QWebSettings.setMaximumPagesInCache(v)),
-    'object-cache-capacities':
-        (MapType.static_setter, lambda v:
-            QWebSettings.setObjectCacheCapacities(*v)),
-    'offline-storage-default-quota':
-        (MapType.static_setter, lambda v:
-            QWebSettings.setOfflineStorageDefaultQuota(v)),
-    'offline-web-application-cache-quota':
-        (MapType.static_setter, lambda v:
-            QWebSettings.setOfflineWebApplicationCacheQuota(v)),
+    'permissions': {
+        'allow-images':
+            (MapType.attribute, QWebSettings.AutoLoadImages),
+        'allow-javascript':
+            (MapType.attribute, QWebSettings.JavascriptEnabled),
+        'javascript-can-open-windows':
+            (MapType.attribute, QWebSettings.JavascriptCanOpenWindows),
+        'javascript-can-close-windows':
+            (MapType.attribute, QWebSettings.JavascriptCanCloseWindows),
+        'javascript-can-access-clipboard':
+            (MapType.attribute, QWebSettings.JavascriptCanAccessClipboard),
+        #'allow-java':
+        #   (MapType.attribute, QWebSettings.JavaEnabled),
+        'allow-plugins':
+            (MapType.attribute, QWebSettings.PluginsEnabled),
+        'local-content-can-access-remote-urls':
+            (MapType.attribute, QWebSettings.LocalContentCanAccessRemoteUrls),
+        'local-content-can-access-file-urls':
+            (MapType.attribute, QWebSettings.LocalContentCanAccessFileUrls),
+    },
+    'network': {
+        'dns-prefetch':
+            (MapType.attribute, QWebSettings.DnsPrefetchEnabled),
+    },
+    'input': {
+        'spatial-navigation':
+            (MapType.attribute, QWebSettings.SpatialNavigationEnabled),
+        'links-included-in-focus-chain':
+            (MapType.attribute, QWebSettings.LinksIncludedInFocusChain),
+    },
+    'fonts': {
+        'web-family-standard':
+            (MapType.setter, lambda qws, v:
+                qws.setFontFamily(QWebSettings.StandardFont, v)),
+        'web-family-fixed':
+            (MapType.setter, lambda qws, v:
+                qws.setFontFamily(QWebSettings.FixedFont, v)),
+        'web-family-serif':
+            (MapType.setter, lambda qws, v:
+                qws.setFontFamily(QWebSettings.SerifFont, v)),
+        'web-family-sans-serif':
+            (MapType.setter, lambda qws, v:
+                qws.setFontFamily(QWebSettings.SansSerifFont, v)),
+        'web-family-cursive':
+            (MapType.setter, lambda qws, v:
+                qws.setFontFamily(QWebSettings.CursiveFont, v)),
+        'web-family-fantasy':
+            (MapType.setter, lambda qws, v:
+                qws.setFontFamily(QWebSettings.FantasyFont, v)),
+        'web-size-minimum':
+            (MapType.setter, lambda qws, v:
+                qws.setFontSize(QWebSettings.MinimumFontSize, v)),
+        'web-size-minimum-logical':
+            (MapType.setter, lambda qws, v:
+                qws.setFontSize(QWebSettings.MinimumLogicalFontSize, v)),
+        'web-size-default':
+            (MapType.setter, lambda qws, v:
+                qws.setFontSize(QWebSettings.DefaultFontSize, v)),
+        'web-size-default-fixed':
+            (MapType.setter, lambda qws, v:
+                qws.setFontSize(QWebSettings.DefaultFixedFontSize, v)),
+    },
+    'ui': {
+        'zoom-text-only':
+            (MapType.attribute, QWebSettings.ZoomTextOnly),
+        'frame-flattening':
+            (MapType.attribute, QWebSettings.FrameFlatteningEnabled),
+        'user-stylesheet':
+            (MapType.setter, lambda qws, v: qws.setUserStyleSheetUrl(v)),
+        'css-media-type':
+            (MapType.setter, lambda qws, v: qws.setCSSMediaType(v)),
+        #'accelerated-compositing':
+        #   (MapType.attribute, QWebSettings.AcceleratedCompositingEnabled),
+        #'tiled-backing-store':
+        #   (MapType.attribute, QWebSettings.TiledBackingStoreEnabled),
+    },
+    'storage': {
+        'offline-storage-database':
+            (MapType.attribute, QWebSettings.OfflineStorageDatabaseEnabled),
+        'offline-web-application-storage':
+            (MapType.attribute, QWebSettings.OfflineWebApplicationCacheEnabled),
+        'local-storage':
+            (MapType.attribute, QWebSettings.LocalStorageEnabled),
+        'maximum-pages-in-cache':
+            (MapType.static_setter, lambda v:
+                QWebSettings.setMaximumPagesInCache(v)),
+        'object-cache-capacities':
+            (MapType.static_setter, lambda v:
+                QWebSettings.setObjectCacheCapacities(*v)),
+        'offline-storage-default-quota':
+            (MapType.static_setter, lambda v:
+                QWebSettings.setOfflineStorageDefaultQuota(v)),
+        'offline-web-application-cache-quota':
+            (MapType.static_setter, lambda v:
+                QWebSettings.setOfflineWebApplicationCacheQuota(v)),
+    },
+    'general': {
+        'private-browsing':
+            (MapType.attribute, QWebSettings.PrivateBrowsingEnabled),
+        'developer-extras':
+            (MapType.attribute, QWebSettings.DeveloperExtrasEnabled),
+        'print-element-backgrounds':
+            (MapType.attribute, QWebSettings.PrintElementBackgrounds),
+        'xss-auditing':
+            (MapType.attribute, QWebSettings.XSSAuditingEnabled),
+        'site-specific-quirks':
+            (MapType.attribute, QWebSettings.SiteSpecificQuirksEnabled),
+        'default-encoding':
+            (MapType.setter, lambda qws, v: qws.setDefaultTextEncoding(v)),
+    }
 }
 
 
@@ -164,15 +178,18 @@ def init():
     cachedir = get_standard_dir(QStandardPaths.CacheLocation)
     QWebSettings.enablePersistentStorage(cachedir)
     settings = QWebSettings.globalSettings()
-    for name, (typ, arg) in MAPPINGS.items():
-        value = config.get('webkit', name)
-        _set_setting(typ, arg, value)
+    for sectname, section in MAPPINGS.items():
+        for optname, (typ, arg) in section.items():
+            value = config.get(sectname, optname)
+            _set_setting(typ, arg, value)
 
 
 @pyqtSlot(str, str)
 def on_config_changed(section, option):
     """Update global settings when qwebsettings changed."""
-    if section == 'webkit':
-        value = config.get(section, option)
-        typ, arg = MAPPINGS[option]
-        _set_setting(typ, arg, value)
+    try:
+        typ, arg = MAPPINGS[section][option]
+    except KeyError:
+        return
+    value = config.get(section, option)
+    _set_setting(typ, arg, value)
