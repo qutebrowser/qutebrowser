@@ -17,7 +17,7 @@
 
 """Completer attached to a CompletionView."""
 
-from PyQt5.QtCore import QObject, pyqtSlot
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
 import qutebrowser.config.config as config
 import qutebrowser.config.configdata as configdata
@@ -41,7 +41,17 @@ class Completer(QObject):
         ignore_change: Whether to ignore the next completion update.
         _models: dict of available completion models.
         _lastmodel: The model set in the last iteration.
+
+    Signals:
+        change_completed_part: Text which should be substituted for the word
+                               we're currently completing.
+                               arg 0: The text to change to.
+                               arg 1: True if the text should be set
+                                      immediately, without continuing
+                                      completing the current field.
     """
+
+    change_completed_part = pyqtSignal(str, bool)
 
     def __init__(self, view):
         super().__init__(view)
@@ -128,6 +138,35 @@ class Completer(QObject):
         else:
             model = self._models.get(completion_name)
         return model
+
+    def selection_changed(self, selected, deselected):
+        """Emit change_completed_part if a new item was selected.
+
+        Called from the views selectionChanged method.
+
+        Args:
+            selected: New selection.
+            delected: Previous selection.
+
+        Emit:
+            change_completed_part: Emitted when there's data for the new item.
+        """
+        indexes = selected.indexes()
+        if not indexes:
+            return
+        model = self.view.model()
+        data = model.data(indexes[0])
+        if data is None:
+            return
+        if model.item_count == 1 and config.get('completion',
+                                                'quick-complete'):
+            # If we only have one item, we want to apply it immediately
+            # and go on to the next part.
+            self.change_completed_part.emit(data, True)
+        else:
+            self.ignore_change = True
+            self.change_completed_part.emit(data, False)
+            self.ignore_change = False
 
     @pyqtSlot(str, list, int)
     def on_update_completion(self, prefix, parts, cursor_part):

@@ -47,19 +47,12 @@ class CompletionView(QTreeView):
 
     Attributes:
         completer: The Completer instance to use.
-        _lastmodel: The model set in the last iteration.
         _enabled: Whether showing the CompletionView is enabled.
         _height: The height to use for the CompletionView.
         _height_perc: Either None or a percentage if height should be relative.
         _delegate: The item delegate used.
 
     Signals:
-        change_completed_part: Text which should be substituted for the word
-                               we're currently completing.
-                               arg 0: The text to change to.
-                               arg 1: True if the text should be set
-                                      immediately, without continuing
-                                      completing the current field.
         resize_completion: Emitted when the completion should be resized.
     """
 
@@ -95,14 +88,12 @@ class CompletionView(QTreeView):
 
     # FIXME style scrollbar
 
-    change_completed_part = pyqtSignal(str, bool)
     resize_completion = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.completer = Completer(self)
         self._enabled = config.get('completion', 'show')
-        self._lastmodel = None
 
         self._delegate = CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
@@ -222,29 +213,9 @@ class CompletionView(QTreeView):
         self._next_prev_item(prev=False)
 
     def selectionChanged(self, selected, deselected):
-        """Extend selectionChanged to emit change_completed_part if necessary.
-
-        Args:
-            selected: New selection.
-            delected: Previous selection.
-
-        Emit:
-            change_completed_part: Emitted when there's data for the new item.
-        """
-        indexes = selected.indexes()
-        if indexes:
-            data = self.model().data(indexes[0])
-            if data is not None:
-                if self.model().item_count == 1 and config.get(
-                        'completion', 'quick-complete'):
-                    # If we only have one item, we want to apply it immediately
-                    # and go on to the next part.
-                    self.change_completed_part.emit(data, True)
-                else:
-                    self.completer.ignore_change = True
-                    self.change_completed_part.emit(data, False)
-                    self.completer.ignore_change = False
+        """Extend selectionChanged to call completers selection_changed."""
         super().selectionChanged(selected, deselected)
+        self.completer.selection_changed(selected, deselected)
 
     def resizeEvent(self, e):
         """Extend resizeEvent to adjust column size."""

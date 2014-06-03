@@ -349,6 +349,7 @@ class QuteBrowser(QApplication):
         completion = self.mainwindow.completion
         tabs = self.mainwindow.tabs
         cmd = self.mainwindow.status.cmd
+        completer = self.mainwindow.completion.completer
 
         # misc
         self.lastWindowClosed.connect(self.shutdown)
@@ -410,9 +411,8 @@ class QuteBrowser(QApplication):
         cmd.clear_completion_selection.connect(
             completion.on_clear_completion_selection)
         cmd.hide_completion.connect(completion.hide)
-        cmd.update_completion.connect(
-            completion.completer.on_update_completion)
-        completion.change_completed_part.connect(cmd.on_change_completed_part)
+        cmd.update_completion.connect(completer.on_update_completion)
+        completer.change_completed_part.connect(cmd.on_change_completed_part)
 
     def _recover_pages(self):
         """Try to recover all open pages.
