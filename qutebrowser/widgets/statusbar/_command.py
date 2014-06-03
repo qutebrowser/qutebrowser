@@ -79,6 +79,7 @@ class Command(MinimalLineEdit):
         self.cursor_part = 0
         self.history = History()
         self._validator = _CommandValidator(self)
+        self._empty_item_idx = None
         self.setValidator(self._validator)
         self.textEdited.connect(self.on_text_edited)
         self.cursorPositionChanged.connect(self._update_cursor_part)
@@ -123,7 +124,6 @@ class Command(MinimalLineEdit):
         else:
             logger.debug("Cursor not between spaces")
             spaces = False
-            self._empty_item_idx = None
         cursor_pos -= len(self.prefix)
         for i, part in enumerate(self.parts):
             logger.debug("part {}, len {}, pos {}".format(i, len(part),
@@ -139,6 +139,8 @@ class Command(MinimalLineEdit):
                     logger.debug("Cursor between spaces -> queueing empty "
                                  "element at {}.".format(i))
                     self._empty_item_idx = i
+                else:
+                    self._empty_item_idx = None
                 return
             cursor_pos -= (len(part) + 1)  # FIXME are spaces always 1 char?
         return None
