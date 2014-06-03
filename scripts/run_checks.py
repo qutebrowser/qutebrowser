@@ -190,6 +190,10 @@ def _check_file(fn):
             elif b' \t' in line or b'\t ' in line:
                 print("Found tab-space mix in {}".format(fn))
                 return False
+            elif b'set_trace()' in line and not (
+                    fn.endswith('debug.py') or fn.endswith('run_checks.py')):
+                print("Found set_trace in {}".format(fn))
+                return False
     return True
 
 
