@@ -137,7 +137,7 @@ def qt_message_handler(msg_type, context, msg):
         return
     # We get something like "void qt_png_warning(png_structp, png_const_charp)"
     # from Qt, but only want "qt_png_warning".
-    match = re.match(r'\w* (\w*)\(.*\)', context.function)
+    match = re.match(r'.* (\w*)\(.*\)', context.function)
     if match is not None:
         func = match.group(1)
     else:
