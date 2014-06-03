@@ -124,16 +124,16 @@ def qt_message_handler(msg_type, context, msg):
     # Mapping from Qt logging levels to the matching logging module levels.
     # Note we map critical to ERROR as it's actually "just" an error, and fatal
     # to critical.
-    QT_TO_LOGGING = {
+    qt_to_logging = {
         QtDebugMsg: logging.DEBUG,
         QtWarningMsg: logging.WARNING,
         QtCriticalMsg: logging.ERROR,
         QtFatalMsg: logging.CRITICAL,
     }
     # Suppress some messages because they're well-known.
-    SUPPRESSED_MSGS = ['libpng warning: iCCP: Not recognizing known sRGB '
+    suppressed_msgs = ['libpng warning: iCCP: Not recognizing known sRGB '
                        'profile that has been edited']
-    if msg in SUPPRESSED_MSGS:
+    if msg in suppressed_msgs:
         return
     # We get something like "void qt_png_warning(png_structp, png_const_charp)"
     # from Qt, but only want "qt_png_warning".
@@ -143,7 +143,7 @@ def qt_message_handler(msg_type, context, msg):
     else:
         func = context.function
     name = 'qt' if context.category == 'default' else 'qt-' + context.category
-    record = qt.makeRecord(name, QT_TO_LOGGING[msg_type], context.file,
+    record = qt.makeRecord(name, qt_to_logging[msg_type], context.file,
                            context.line, msg, None, None, func)
     qt.handle(record)
 
