@@ -26,16 +26,10 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel
 
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
-import qutebrowser.config.configdata as configdata
 from qutebrowser.widgets._completiondelegate import CompletionItemDelegate
-from qutebrowser.models.basecompletion import NoCompletionsError
 from qutebrowser.config.style import set_register_stylesheet
-from qutebrowser.models.completionfilter import CompletionFilterModel as CFM
-from qutebrowser.models.completion import (
-    CommandCompletionModel, SettingSectionCompletionModel,
-    SettingOptionCompletionModel, SettingValueCompletionModel)
-from qutebrowser.utils.usertypes import FakeDict
 from qutebrowser.utils.log import completion as logger
+from qutebrowser.utils.completer import Completer
 
 
 class CompletionView(QTreeView):
@@ -52,10 +46,10 @@ class CompletionView(QTreeView):
         COLUMN_WIDTHS: A list of column widths, in percent.
 
     Attributes:
+        completer: The Completer instance to use.
         _ignore_change: Whether to ignore the next completion update.
         _model: The currently active filter model.
         _lastmodel: The model set in the last iteration.
-        _models: dict of available completion models.
         _enabled: Whether showing the CompletionView is enabled.
         _height: The height to use for the CompletionView.
         _height_perc: Either None or a percentage if height should be relative.
@@ -108,16 +102,11 @@ class CompletionView(QTreeView):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.completer = Completer(self)
         self._enabled = config.get('completion', 'show')
         self._ignore_change = False
         self._model = None
         self._lastmodel = None
-        self._models = {
-            'option': {},
-            'value': {},
-        }
-        self._init_command_completion()
-        self._init_setting_completions()
 
         self._delegate = CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
@@ -136,37 +125,6 @@ class CompletionView(QTreeView):
         self.setUniformRowHeights(True)
         self.hide()
         # FIXME set elidemode
-
-    def _init_command_completion(self):
-        """Initialize the command completion model."""
-        self._models['command'] = CFM(CommandCompletionModel(self))
-
-    def _init_setting_completions(self):
-        """Initialize setting completion models."""
-        self._models['section'] = CFM(SettingSectionCompletionModel(self))
-        self._models['option'] = {}
-        self._models['value'] = {}
-        for sectname, sect in configdata.DATA.items():
-            optmodel = CFM(SettingOptionCompletionModel(sectname, self))
-            self._models['option'][sectname] = optmodel
-            config.instance().changed.connect(
-                optmodel.srcmodel.on_config_changed)
-            if hasattr(sect, 'valtype'):
-                # Same type for all values (ValueList)
-                try:
-                    model = CFM(SettingValueCompletionModel(
-                        sectname, parent=self))
-                    self._models['value'][sectname] = FakeDict(model)
-                except NoCompletionsError:
-                    pass
-            else:
-                self._models['value'][sectname] = {}
-                for opt in configdata.DATA[sectname].keys():
-                    try:
-                        self._models['value'][sectname][opt] = CFM(
-                            SettingValueCompletionModel(sectname, opt, self))
-                    except NoCompletionsError:
-                        pass
 
     def _resize_columns(self):
         """Resize the completion columns based on COLUMN_WIDTHS."""
@@ -205,48 +163,6 @@ class CompletionView(QTreeView):
             elif idx.parent().isValid():
                 # Item is a real item, not a category header -> success
                 return idx
-
-    def _get_new_completion(self, parts, cursor_part):
-        """Get a new completion model.
-
-        Args:
-            parts: The command chunks to get a completion for.
-            cursor_part: The part the cursor is over currently.
-        """
-        logger.debug("cursor part: {}".format(cursor_part))
-        if cursor_part == 0:
-            # '|' or 'set|'
-            return self._models['command']
-        # delegate completion to command
-        try:
-            completions = cmdutils.cmd_dict[parts[0]].completion
-        except KeyError:
-            # entering an unknown command
-            return None
-        logger.debug("completions: {}".format(completions))
-        if completions is None:
-            # command without any available completions
-            return None
-        try:
-            idx = cursor_part - 1
-            completion_name = completions[idx]
-            logger.debug('modelname {}'.format(completion_name))
-        except IndexError:
-            # More arguments than completions
-            return None
-        if completion_name == 'option':
-            section = parts[cursor_part - 1]
-            model = self._models['option'].get(section)
-        elif completion_name == 'value':
-            section = parts[cursor_part - 2]
-            option = parts[cursor_part - 1]
-            try:
-                model = self._models['value'][section][option]
-            except KeyError:
-                model = None
-        else:
-            model = self._models.get(completion_name)
-        return model
 
     def _next_prev_item(self, prev):
         """Handle a tab press for the CompletionView.
@@ -314,7 +230,7 @@ class CompletionView(QTreeView):
             self.hide()
             return
 
-        model = self._get_new_completion(parts, cursor_part)
+        model = self.completer._get_new_completion(parts, cursor_part)
         if model is None:
             logger.debug("No completion model for {}.".format(parts))
         else:
