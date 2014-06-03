@@ -68,19 +68,16 @@ class BaseCompletionModel(QStandardItemModel):
             marks.append((pos1, pos2))
         return marks
 
-    def mark_all_items(self, needle):
-        """Mark a string in all items (children of root-children).
+    def mark_item(self, index, needle):
+        """Mark a string in the givem item.
 
         Args:
+            index: A QModelIndex of the item to mark.
             needle: The string to mark.
         """
-        for i in range(self.rowCount()):
-            cat = self.index(i, 0)
-            for k in range(self.rowCount(cat)):
-                idx = self.index(k, 0, cat)
-                old = self.data(idx)
-                marks = self._get_marks(needle, old)
-                self.setData(idx, marks, ROLE_MARKS)
+        haystack = self.data(index)
+        marks = self._get_marks(needle, haystack)
+        self.setData(index, marks, ROLE_MARKS)
 
     def new_category(self, name):
         """Add a new category to the model.

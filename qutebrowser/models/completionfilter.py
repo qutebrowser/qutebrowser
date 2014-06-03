@@ -95,6 +95,14 @@ class CompletionFilterModel(QSortFilterProxyModel):
             count += self.rowCount(cat)
         return count
 
+    def mark_all_items(self, text):
+        """Mark the given text in all visible items."""
+        for i in range(self.rowCount()):
+            cat = self.index(i, 0)
+            for k in range(self.rowCount(cat)):
+                index = self.mapToSource(self.index(k, 0, cat))
+                self.srcmodel.mark_item(index, text)
+
     def setSourceModel(self, model):
         """Override QSortFilterProxyModel's setSourceModel to clear pattern."""
         logger.debug("Setting source model: {}".format(model))
