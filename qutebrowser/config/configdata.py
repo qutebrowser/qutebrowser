@@ -529,7 +529,7 @@ DATA = OrderedDict([
          "Whether to accept cookies."),
 
         ('cookies-store',
-         SettingValue(types.Bool(), 'false'),
+         SettingValue(types.Bool(), 'true'),
          "Whether to store cookies."),
 
     )),

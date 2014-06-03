@@ -64,6 +64,9 @@ class CookieJar(QNetworkCookieJar):
 
     def save(self):
         """Save cookies to disk."""
+        if not config.get('permissions', 'cookies-store'):
+            # FIXME if this changed to false we should delete the old cookies
+            return
         self.purge_old_cookies()
         lines = []
         for cookie in self.allCookies():
