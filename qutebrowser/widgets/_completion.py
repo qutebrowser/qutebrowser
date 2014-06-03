@@ -57,7 +57,6 @@ class CompletionView(QTreeView):
         _lastmodel: The model set in the last iteration.
         _models: dict of available completion models.
         _enabled: Whether showing the CompletionView is enabled.
-        _completing: Whether we're currently completing something.
         _height: The height to use for the CompletionView.
         _height_perc: Either None or a percentage if height should be relative.
         _delegate: The item delegate used.
@@ -117,7 +116,6 @@ class CompletionView(QTreeView):
         }
         self._init_command_completion()
         self._init_setting_completions()
-        self._completing = False
 
         self._delegate = CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
@@ -257,7 +255,7 @@ class CompletionView(QTreeView):
         Args:
             prev: True for prev item, False for next one.
         """
-        if not self._completing:
+        if not self.isVisible():
             # No completion running at the moment, ignore keypress
             return
         idx = self._next_idx(prev)
@@ -308,7 +306,6 @@ class CompletionView(QTreeView):
             # anything (yet)
             # FIXME complete searchs
             self.hide()
-            self._completing = False
             return
 
         model = self._get_new_completion(parts, cursor_part)
@@ -323,10 +320,8 @@ class CompletionView(QTreeView):
             self._lastmodel = model
             if model is None:
                 self.hide()
-                self._completing = False
                 return
             self.set_model(model)
-            self._completing = True
 
         if model is None:
             return
