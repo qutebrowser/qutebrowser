@@ -142,9 +142,9 @@ def qt_message_handler(msg_type, context, msg):
         level = qt_to_logging[msg_type]
     # We get something like "void qt_png_warning(png_structp, png_const_charp)"
     # from Qt, but only want "qt_png_warning".
-    match = re.match(r'.* (\w*)\(.*\)', context.function)
+    match = re.match(r'.*( |::)(\w*)\(.*\)', context.function)
     if match is not None:
-        func = match.group(1)
+        func = match.group(2)
     else:
         func = context.function
     name = 'qt' if context.category == 'default' else 'qt-' + context.category
