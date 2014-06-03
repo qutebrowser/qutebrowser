@@ -17,7 +17,7 @@
 
 """Completer attached to a CompletionView."""
 
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject, pyqtSlot
 
 import qutebrowser.config.config as config
 import qutebrowser.config.configdata as configdata
@@ -37,11 +37,17 @@ class Completer(QObject):
     """Completer which manages completions in a CompletionView.
 
     Attributes:
+        view: The CompletionView associated with this completer.
+        ignore_change: Whether to ignore the next completion update.
         _models: dict of available completion models.
+        _lastmodel: The model set in the last iteration.
     """
 
     def __init__(self, view):
         super().__init__(view)
+        self.view = view
+        self.ignore_change = False
+        self._lastmodel = None
 
         self._models = {
             'option': {},
@@ -122,3 +128,58 @@ class Completer(QObject):
         else:
             model = self._models.get(completion_name)
         return model
+
+    @pyqtSlot(str, list, int)
+    def on_update_completion(self, prefix, parts, cursor_part):
+        """Check if completions are available and activate them.
+
+        Slot for the textChanged signal of the statusbar command widget.
+
+        Args:
+            text: The new text
+            cursor_part: The part the cursor is currently over.
+        """
+        if self.ignore_change:
+            logger.debug("Ignoring completion update")
+            return
+
+        logger.debug("Updating completion, parts: {}, cursor_part {}".format(
+            parts, cursor_part))
+
+        if prefix != ':':
+            # This is a search or gibberish, so we don't need to complete
+            # anything (yet)
+            # FIXME complete searchs
+            self.view.hide()
+            return
+
+        model = self._get_new_completion(parts, cursor_part)
+        if model is None:
+            logger.debug("No completion model for {}.".format(parts))
+        else:
+            logger.debug("New completion: {} / last: {}".format(
+                model.srcmodel.__class__.__name__,
+                self._lastmodel.srcmodel.__class__.__name__ if self._lastmodel
+                is not None else "None"))
+        if model != self._lastmodel:
+            self._lastmodel = model
+            if model is None:
+                self.view.hide()
+                return
+            self.view.set_model(model)
+
+        if model is None:
+            return
+
+        pattern = parts[cursor_part] if parts else ''
+        logger.debug("pattern: {}".format(pattern))
+        self.view.model().pattern = pattern
+
+        if self.view.model().item_count == 0:
+            self.view.hide()
+            return
+
+        self.view.model().mark_all_items(pattern)
+        if self.view._enabled:
+            self.view.show()
+

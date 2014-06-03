@@ -47,7 +47,6 @@ class CompletionView(QTreeView):
 
     Attributes:
         completer: The Completer instance to use.
-        _ignore_change: Whether to ignore the next completion update.
         _lastmodel: The model set in the last iteration.
         _enabled: Whether showing the CompletionView is enabled.
         _height: The height to use for the CompletionView.
@@ -103,7 +102,6 @@ class CompletionView(QTreeView):
         super().__init__(parent)
         self.completer = Completer(self)
         self._enabled = config.get('completion', 'show')
-        self._ignore_change = False
         self._lastmodel = None
 
         self._delegate = CompletionItemDelegate(self)
@@ -203,60 +201,6 @@ class CompletionView(QTreeView):
         elif section == 'aliases':
             self._init_command_completion()
 
-    @pyqtSlot(str, list, int)
-    def on_update_completion(self, prefix, parts, cursor_part):
-        """Check if completions are available and activate them.
-
-        Slot for the textChanged signal of the statusbar command widget.
-
-        Args:
-            text: The new text
-            cursor_part: The part the cursor is currently over.
-        """
-        if self._ignore_change:
-            logger.debug("Ignoring completion update")
-            return
-
-        logger.debug("Updating completion, parts: {}, cursor_part {}".format(
-            parts, cursor_part))
-
-        if prefix != ':':
-            # This is a search or gibberish, so we don't need to complete
-            # anything (yet)
-            # FIXME complete searchs
-            self.hide()
-            return
-
-        model = self.completer._get_new_completion(parts, cursor_part)
-        if model is None:
-            logger.debug("No completion model for {}.".format(parts))
-        else:
-            logger.debug("New completion: {} / last: {}".format(
-                model.srcmodel.__class__.__name__,
-                self._lastmodel.srcmodel.__class__.__name__ if self._lastmodel
-                is not None else "None"))
-        if model != self._lastmodel:
-            self._lastmodel = model
-            if model is None:
-                self.hide()
-                return
-            self.set_model(model)
-
-        if model is None:
-            return
-
-        pattern = parts[cursor_part] if parts else ''
-        logger.debug("pattern: {}".format(pattern))
-        self.model().pattern = pattern
-
-        if self.model().item_count == 0:
-            self.hide()
-            return
-
-        self.model().mark_all_items(pattern)
-        if self._enabled:
-            self.show()
-
     @pyqtSlot()
     def on_clear_completion_selection(self):
         """Clear the selection model when an item is activated."""
@@ -297,9 +241,9 @@ class CompletionView(QTreeView):
                     # and go on to the next part.
                     self.change_completed_part.emit(data, True)
                 else:
-                    self._ignore_change = True
+                    self.completer.ignore_change = True
                     self.change_completed_part.emit(data, False)
-                    self._ignore_change = False
+                    self.completer.ignore_change = False
         super().selectionChanged(selected, deselected)
 
     def resizeEvent(self, e):
