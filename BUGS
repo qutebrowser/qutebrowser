@@ -98,3 +98,7 @@ Upstream Bugs
 
 - Tabbar texts get cut off when styled and elided
     https://bugreports.qt-project.org/browse/QTBUG-15203
+
+- Crash with the-compiler.org/phoronix.org
+    https://bugreports.qt-project.org/browse/QTBUG-39428
+    https://bugreports.qt-project.org/browse/QTBUG-39278

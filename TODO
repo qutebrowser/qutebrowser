@@ -32,6 +32,7 @@ New big features
     https://chrome.google.com/webstore/detail/remove-google-redirects/ccenmflbeofaceccfhhggbagkblihpoh
 - Downloads
 - session handling / saving
+- multi window
 - IPC, like dwb -x
 - Bookmarks
 - Internationalization
@@ -41,8 +42,7 @@ New big features
 Improvements / minor features
 =============================
 
-- Get rid of webkit config section
-      http://paste.the-compiler.org/view/542f9b74
+- Add current value as completion item for settings
 - Reimplement tabbar to paint it by ourselves to look like dwb
 - Save cookies in Netscape format so it can be used by wget.
     http://www.cookiecentral.com/faq/#3.5
