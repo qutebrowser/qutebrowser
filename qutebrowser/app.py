@@ -39,7 +39,8 @@ from argparse import ArgumentParser
 from base64 import b64encode
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
-from PyQt5.QtCore import pyqtSlot, QTimer, QEventLoop, Qt, QStandardPaths
+from PyQt5.QtCore import (pyqtSlot, QTimer, QEventLoop, Qt, QStandardPaths,
+                          qInstallMessageHandler)
 
 import qutebrowser
 import qutebrowser.commands.utils as cmdutils
@@ -642,6 +643,8 @@ class QuteBrowser(QApplication):
                 os.remove(self._crashlogfile.name)
             except PermissionError:
                 pass
+        # If we don't kill our custom handler here we might get segfaults
+        qInstallMessageHandler(None)
         self._maybe_quit('main')
 
     @pyqtSlot()
