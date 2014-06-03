@@ -103,10 +103,9 @@ class Command(MinimalLineEdit):
             # When only ":" is entered, we already have one imaginary part,
             # which just is empty at the moment.
             return ['']
-        logger.debug("Splitting '{}'".format(text))
         manager = CommandManager()
         parts = manager.parse(text, fallback=True, alias_no_args=False)
-        logger.debug("Split parts: {}".format(parts))
+        logger.debug("Splitting '{}' -> {}".format(text, parts))
         return parts
 
     @pyqtSlot()
@@ -124,6 +123,7 @@ class Command(MinimalLineEdit):
                 if old_cursor_part != i:
                     self.update_completion.emit(self.prefix, self.parts,
                                                 self.cursor_part)
+                logger.debug("Cursor part: {}".format(i))
                 return
             cursor_pos -= (len(part) + 1)  # FIXME are spaces always 1 char?
         return None
@@ -158,8 +158,8 @@ class Command(MinimalLineEdit):
                        completing the current item.
         """
         parts = self.parts[:]
-        logger.debug("parts: {}, changing {} to '{}'".format(
-            parts, self.cursor_part, newtext))
+        logger.debug("changing part {} to '{}'".format(self.cursor_part,
+                                                       newtext))
         parts[self.cursor_part] = newtext
         # We want to place the cursor directly after the part we just changed.
         cursor_str = self.prefix + ' '.join(parts[:self.cursor_part + 1])
