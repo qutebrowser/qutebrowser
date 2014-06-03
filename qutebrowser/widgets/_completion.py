@@ -331,7 +331,7 @@ class CompletionView(QTreeView):
         logger.debug("pattern: {}".format(pattern))
         self._model.pattern = pattern
 
-        if self._model.item_count() == 0:
+        if self._model.item_count == 0:
             self.hide()
             return
 
@@ -373,7 +373,7 @@ class CompletionView(QTreeView):
         if indexes:
             data = self._model.data(indexes[0])
             if data is not None:
-                if self._model.item_count() == 1 and config.get(
+                if self._model.item_count == 1 and config.get(
                         'completion', 'quick-complete'):
                     # If we only have one item, we want to apply it immediately
                     # and go on to the next part.
