@@ -100,7 +100,9 @@ class Command(MinimalLineEdit):
         """Property to get the text split up in parts."""
         text = self.text()[len(self.prefix):]
         if not text:
-            return []
+            # When only ":" is entered, we already have one imaginary part,
+            # which just is empty at the moment.
+            return ['']
         logger.debug("Splitting '{}'".format(text))
         manager = CommandManager()
         parts = manager.parse(text, fallback=True, alias_no_args=False)
