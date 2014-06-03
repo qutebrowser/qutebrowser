@@ -105,6 +105,10 @@ class Command(MinimalLineEdit):
             return ['']
         manager = CommandManager()
         parts = manager.parse(text, fallback=True, alias_no_args=False)
+        if self._empty_item_idx is not None:
+            logger.debug("Empty element queued at {}, inserting.".format(
+                self._empty_item_idx))
+            parts.insert(self._empty_item_idx, '')
         logger.debug("Splitting '{}' -> {}".format(text, parts))
         return parts
 
@@ -113,6 +117,12 @@ class Command(MinimalLineEdit):
         """Get the part index of the commandline where the cursor is over."""
         old_cursor_part = self.cursor_part
         cursor_pos = self.cursorPosition()
+        if self.text()[cursor_pos-1:cursor_pos+1] == '  ':
+            logger.debug("Cursor between spaces")
+            spaces = True
+        else:
+            spaces = False
+            self._empty_item_idx = None
         cursor_pos -= len(self.prefix)
         for i, part in enumerate(self.parts):
             logger.debug("part {}, len {}, pos {}".format(i, len(part),
@@ -124,6 +134,10 @@ class Command(MinimalLineEdit):
                     self.update_completion.emit(self.prefix, self.parts,
                                                 self.cursor_part)
                 logger.debug("Cursor part: {}".format(i))
+                if spaces:
+                    logger.debug("Cursor between spaces -> queueing empty "
+                                 "element at {}.".format(i))
+                    self._empty_item_idx = i
                 return
             cursor_pos -= (len(part) + 1)  # FIXME are spaces always 1 char?
         return None
@@ -230,6 +244,7 @@ class Command(MinimalLineEdit):
     def on_text_edited(self, _text):
         """Slot for textEdited. Stop history and update completion."""
         self.history.stop()
+        self._empty_item_idx = None
         self._update_cursor_part()
         self.update_completion.emit(self.prefix, self.parts,
                                     self.cursor_part)
