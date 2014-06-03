@@ -330,6 +330,11 @@ class CompletionView(QTreeView):
         pattern = parts[cursor_part] if parts else ''
         logger.debug("pattern: {}".format(pattern))
         self._model.pattern = pattern
+
+        if self._model.item_count() == 0:
+            self.hide()
+            return
+
         self._model.mark_all_items(pattern)
         if self._enabled:
             self.show()
