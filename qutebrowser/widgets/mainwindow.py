@@ -28,8 +28,8 @@ import qutebrowser.config.config as config
 import qutebrowser.utils.misc as utils
 import qutebrowser.utils.message as message
 from qutebrowser.widgets.statusbar.bar import StatusBar
-from qutebrowser.widgets._tabbedbrowser import TabbedBrowser
-from qutebrowser.widgets._completion import CompletionView
+from qutebrowser.widgets.tabbedbrowser import TabbedBrowser
+from qutebrowser.widgets.completion import CompletionView
 from qutebrowser.utils.usertypes import PromptMode
 
 

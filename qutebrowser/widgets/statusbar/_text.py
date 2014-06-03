@@ -17,7 +17,7 @@
 
 """Text displayed in the statusbar."""
 
-from qutebrowser.widgets.statusbar._textbase import TextBase
+from qutebrowser.widgets.statusbar.textbase import TextBase
 
 
 class Text(TextBase):

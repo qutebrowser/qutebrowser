@@ -27,8 +27,8 @@ import cgi
 
 import qutebrowser.utils.log as log
 import qutebrowser.utils.version as version
-from qutebrowser.network._schemehandler import (SchemeHandler,
-                                                SpecialNetworkReply)
+from qutebrowser.network.schemehandler import (SchemeHandler,
+                                               SpecialNetworkReply)
 from qutebrowser.utils.url import urlstring
 from qutebrowser.utils.misc import read_file
 

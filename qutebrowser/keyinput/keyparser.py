@@ -17,7 +17,7 @@
 
 """Advanced keyparsers."""
 
-from qutebrowser.keyinput._basekeyparser import BaseKeyParser
+from qutebrowser.keyinput.basekeyparser import BaseKeyParser
 import qutebrowser.utils.message as message
 
 from qutebrowser.commands.managers import CommandManager

@@ -27,9 +27,9 @@ DATA: The config defaults, an OrderedDict of sections.
 import re
 from collections import OrderedDict
 
-from qutebrowser.config._value import SettingValue
-import qutebrowser.config._conftypes as types
-import qutebrowser.config._sections as sect
+from qutebrowser.config.value import SettingValue
+import qutebrowser.config.conftypes as types
+import qutebrowser.config.sections as sect
 from qutebrowser.utils.misc import MAXVALS
 
 

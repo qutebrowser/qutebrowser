@@ -20,7 +20,7 @@
 from PyQt5.QtCore import pyqtSlot, pyqtProperty, Qt
 
 from qutebrowser.widgets.webview import LoadStatus
-from qutebrowser.widgets.statusbar._textbase import TextBase
+from qutebrowser.widgets.statusbar.textbase import TextBase
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 
 

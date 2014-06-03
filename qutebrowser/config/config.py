@@ -36,7 +36,7 @@ import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.message as message
 import qutebrowser.utils.log as log
 from qutebrowser.config.iniparsers import ReadConfigParser
-from qutebrowser.config._conftypes import ValidationError
+from qutebrowser.config.conftypes import ValidationError
 from qutebrowser.commands.exceptions import CommandError
 
 

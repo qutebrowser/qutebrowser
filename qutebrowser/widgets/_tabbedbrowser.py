@@ -27,7 +27,7 @@ import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.log as log
-from qutebrowser.widgets._tabwidget import TabWidget, EmptyTabIcon
+from qutebrowser.widgets.tabwidget import TabWidget, EmptyTabIcon
 from qutebrowser.widgets.webview import WebView
 from qutebrowser.browser.signalfilter import SignalFilter
 from qutebrowser.browser.commands import CommandDispatcher

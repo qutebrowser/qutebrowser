@@ -26,13 +26,13 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.config.config as config
 from qutebrowser.utils.log import statusbar as logger
-from qutebrowser.widgets.statusbar._command import Command
-from qutebrowser.widgets.statusbar._progress import Progress
-from qutebrowser.widgets.statusbar._text import Text
-from qutebrowser.widgets.statusbar._keystring import KeyString
-from qutebrowser.widgets.statusbar._percentage import Percentage
-from qutebrowser.widgets.statusbar._url import Url
-from qutebrowser.widgets.statusbar._prompt import Prompt
+from qutebrowser.widgets.statusbar.command import Command
+from qutebrowser.widgets.statusbar.progress import Progress
+from qutebrowser.widgets.statusbar.text import Text
+from qutebrowser.widgets.statusbar.keystring import KeyString
+from qutebrowser.widgets.statusbar.percentage import Percentage
+from qutebrowser.widgets.statusbar.url import Url
+from qutebrowser.widgets.statusbar.prompt import Prompt
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 
 

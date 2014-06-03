@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel
 
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
-from qutebrowser.widgets._completiondelegate import CompletionItemDelegate
+from qutebrowser.widgets.completiondelegate import CompletionItemDelegate
 from qutebrowser.config.style import set_register_stylesheet
 from qutebrowser.utils.completer import Completer
 

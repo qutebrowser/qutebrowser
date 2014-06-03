@@ -24,7 +24,7 @@ import logging
 from unittest import TestCase
 from unittest.mock import Mock
 
-import qutebrowser.keyinput._basekeyparser as basekeyparser
+import qutebrowser.keyinput.basekeyparser as basekeyparser
 
 from PyQt5.QtCore import Qt
 

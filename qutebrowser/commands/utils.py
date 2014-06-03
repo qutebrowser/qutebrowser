@@ -25,7 +25,7 @@ import inspect
 from collections import Iterable
 
 import qutebrowser.utils.misc as utils
-from qutebrowser.commands._command import Command
+from qutebrowser.commands.command import Command
 from qutebrowser.commands.exceptions import CommandError
 
 cmd_dict = {}
