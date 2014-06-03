@@ -270,6 +270,11 @@ DATA = OrderedDict([
          SettingValue(types.Bool(), 'true'),
          "Whether to move on to the next part when there's only one possible "
          "completion left."),
+
+        ('shrink',
+         SettingValue(types.Bool(), 'false'),
+         "Whether to shrink the completion to be smaller than the configured "
+         "size if there are no scrollbars."),
     )),
 
     ('input', sect.KeyValue(

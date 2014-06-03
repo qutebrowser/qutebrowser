@@ -55,7 +55,6 @@ Improvements / minor features
     - if a cookie is a http-only cookie domain is prepended with a #HttpOnly_
 - Zoom with ctrl + mousewheel
 - search highlighting
-- max height for completion (be smaller if possible)
 - vertical tabbar
 - reload config command
     - config changed signals for sections (optimization)

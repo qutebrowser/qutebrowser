@@ -72,10 +72,12 @@ class MainWindow(QWidget):
         self._vbox.addWidget(self.tabs)
 
         self.completion = CompletionView(self)
+        self.completion.resize_completion.connect(self.resize_completion)
 
         self.status = StatusBar()
         self._vbox.addWidget(self.status)
 
+        self.resize_completion()
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -87,17 +89,26 @@ class MainWindow(QWidget):
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Resize completion if config changed."""
-        if section == 'completion' and option == 'height':
+        if section == 'completion' and option in ['height', 'shrink']:
             self.resize_completion()
 
+    @pyqtSlot()
     def resize_completion(self):
         """Adjust completion according to config."""
+        # Get the configured height/percentage.
         confheight = str(config.get('completion', 'height'))
         if confheight.endswith('%'):
             perc = int(confheight.rstrip('%'))
             height = self.height() * perc / 100
         else:
             height = int(confheight)
+        # Shrink to content size if needed and shrinking is enabled
+        if config.get('completion', 'shrink'):
+            contents_height = (
+                self.completion.viewportSizeHint().height() +
+                self.completion.horizontalScrollBar().sizeHint().height())
+            if contents_height <= height:
+                height = contents_height
         # hpoint now would be the bottom-left edge of the widget if it was on
         # the top of the main window.
         topleft_y = self.height() - self.status.height() - height

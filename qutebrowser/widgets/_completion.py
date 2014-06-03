@@ -68,6 +68,7 @@ class CompletionView(QTreeView):
                                arg 1: True if the text should be set
                                       immediately, without continuing
                                       completing the current field.
+        resize_completion: Emitted when the completion should be resized.
     """
 
     STYLESHEET = """
@@ -103,6 +104,7 @@ class CompletionView(QTreeView):
     # FIXME style scrollbar
 
     change_completed_part = pyqtSignal(str, bool)
+    resize_completion = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -276,6 +278,9 @@ class CompletionView(QTreeView):
         self._model = model
         self.expandAll()
         self._resize_columns()
+        self._model.rowsRemoved.connect(self.resize_completion)
+        self._model.rowsInserted.connect(self.resize_completion)
+        self.resize_completion.emit()
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
