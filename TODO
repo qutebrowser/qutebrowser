@@ -14,7 +14,6 @@ Before 0.1
     - ssl-strict=ask
     - SSL-symbol in statusbar?
 - Downloads (at least calling a handler)
-- How long should javascript statusbar messages be displayed?!
 
 Style
 =====

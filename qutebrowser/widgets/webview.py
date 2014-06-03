@@ -54,6 +54,7 @@ class WebView(QWebView):
                        work.
         progress: loading progress of this page.
         scroll_pos: The current scroll position as (x%, y%) tuple.
+        statusbar_message: The current javscript statusbar message.
         inspector: The QWebInspector used for this webview.
         _page: The QWebPage behind the view
         _url_text: The current URL as string.
@@ -89,6 +90,7 @@ class WebView(QWebView):
         self.tabbedbrowser = parent
         self.inspector = None
         self.scroll_pos = (-1, -1)
+        self.statusbar_message = ''
         self._old_scroll_pos = (-1, -1)
         self._shutdown_callback = None
         self._open_target = Target.normal
@@ -111,6 +113,8 @@ class WebView(QWebView):
         self.urlChanged.connect(self.on_url_changed)
         self.loadFinished.connect(self.on_load_finished)
         self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
+        self.page().statusBarMessage.connect(
+            lambda msg: setattr(self, 'statusbar_message', msg))
         self.page().networkAccessManager().sslErrors.connect(
             lambda *args: setattr(self, '_has_ssl_errors', True))
         # FIXME find some way to hide scrollbars without setScrollBarPolicy

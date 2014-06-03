@@ -329,17 +329,6 @@ class StatusBar(QWidget):
         if mode in modeman.instance().passthrough:
             self.txt.normaltext = ""
 
-    @pyqtSlot(str)
-    def on_statusbar_message(self, val):
-        """Called when javascript tries to set a statusbar message.
-
-        For some reason, this is emitted a lot with an empty string during page
-        load, so we currently ignore these and thus don't support clearing the
-        message, which is a bit unfortunate...
-        """
-        if val:
-            self.txt.temptext = val
-
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update message timeout when config changed."""

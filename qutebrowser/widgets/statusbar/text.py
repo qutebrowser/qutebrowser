@@ -17,6 +17,8 @@
 
 """Text displayed in the statusbar."""
 
+from PyQt5.QtCore import pyqtSlot
+
 from qutebrowser.widgets.statusbar.textbase import TextBase
 
 
@@ -29,6 +31,8 @@ class Text(TextBase):
                      Accessed via normaltext property.
         _temptext: The temporary text to display.
                    Accessed via temptext property.
+        _jstext: The text javascript wants to display.
+                 Accessed via jstext property.
 
         The temptext is shown from StatusBar when a temporary text or error is
         available. If not, the permanent text is shown.
@@ -38,6 +42,7 @@ class Text(TextBase):
         super().__init__(parent)
         self._normaltext = ''
         self._temptext = ''
+        self._jstext = ''
 
     @property
     def normaltext(self):
@@ -61,11 +66,38 @@ class Text(TextBase):
         self._temptext = val
         self._update_text()
 
+    @property
+    def jstext(self):
+        """Getter for jstext so we can define a setter."""
+        return self._jstext
+
+    @jstext.setter
+    def jstext(self, val):
+        """Setter for jstext to update text display after setting."""
+        self._jstext = val
+        self._update_text()
+
     def _update_text(self):
         """Update QLabel text when needed."""
-        for text in [self.temptext, self.normaltext]:
+        for text in [self.temptext, self.jstext, self.normaltext]:
             if text:
                 self.setText(text)
                 break
         else:
             self.setText('')
+
+    @pyqtSlot(str)
+    def on_statusbar_message(self, val):
+        """Called when javascript tries to set a statusbar message."""
+        self.jstext = val
+
+    @pyqtSlot()
+    def on_load_started(self):
+        """Clear jstext when page loading started."""
+        self.jstext = ''
+
+    @pyqtSlot(int)
+    def on_tab_changed(self, idx):
+        """Set the correct jstext when the current tab changed."""
+        tab = self.sender().widget(idx)
+        self.jstext = tab.statusbar_message
