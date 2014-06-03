@@ -29,7 +29,6 @@ from qutebrowser.models.completion import (
     SettingOptionCompletionModel, SettingValueCompletionModel)
 from qutebrowser.models.basecompletion import NoCompletionsError
 from qutebrowser.utils.usertypes import FakeDict
-from qutebrowser.utils.log import completion as logger
 
 
 class Completer(QObject):
@@ -139,14 +138,14 @@ class Completer(QObject):
             model = self._models.get(completion_name)
         return model
 
-    def selection_changed(self, selected, deselected):
+    def selection_changed(self, selected, _deselected):
         """Emit change_completed_part if a new item was selected.
 
         Called from the views selectionChanged method.
 
         Args:
             selected: New selection.
-            delected: Previous selection.
+            _delected: Previous selection.
 
         Emit:
             change_completed_part: Emitted when there's data for the new item.
@@ -221,6 +220,5 @@ class Completer(QObject):
             return
 
         self.view.model().mark_all_items(pattern)
-        if self.view._enabled:
+        if self.view.enabled:
             self.view.show()
-

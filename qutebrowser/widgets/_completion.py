@@ -46,7 +46,7 @@ class CompletionView(QTreeView):
 
     Attributes:
         completer: The Completer instance to use.
-        _enabled: Whether showing the CompletionView is enabled.
+        enabled: Whether showing the CompletionView is enabled.
         _height: The height to use for the CompletionView.
         _height_perc: Either None or a percentage if height should be relative.
         _delegate: The item delegate used.
@@ -92,7 +92,7 @@ class CompletionView(QTreeView):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.completer = Completer(self)
-        self._enabled = config.get('completion', 'show')
+        self.enabled = config.get('completion', 'show')
 
         self._delegate = CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
@@ -184,9 +184,9 @@ class CompletionView(QTreeView):
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
-        """Update self._enabled when the config changed."""
+        """Update self.enabled when the config changed."""
         if section == 'completion' and option == 'show':
-            self._enabled = config.get('completion', 'show')
+            self.enabled = config.get('completion', 'show')
         elif section == 'aliases':
             self._init_command_completion()
 

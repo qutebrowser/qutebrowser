@@ -20,7 +20,6 @@ Before 0.1
 Style
 =====
 
-- initialize completion models at some nicer place (not in widget)
 - somehow clean up init() and save() calls
 
 New big features
