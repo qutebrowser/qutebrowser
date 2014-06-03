@@ -24,7 +24,8 @@ from PyQt5.QtGui import QValidator
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.widgets.misc import MinimalLineEdit
-from qutebrowser.commands.managers import split_cmdline
+from qutebrowser.commands.managers import CommandManager
+from qutebrowser.commands.exceptions import NoSuchCommandError
 from qutebrowser.keyinput.modeparsers import STARTCHARS
 from qutebrowser.utils.log import completion as logger
 from qutebrowser.models.cmdhistory import (History, HistoryEmptyError,
@@ -102,7 +103,20 @@ class Command(MinimalLineEdit):
         if not text:
             return []
         text = text[len(self.prefix):]
-        return split_cmdline(text)
+        logger.debug("Splitting '{}'".format(text))
+        manager = CommandManager()
+        original_cmd = text.strip().split(maxsplit=1)
+        try:
+            parts = manager.parse(text)
+        except NoSuchCommandError:
+            parts = text.split(' ')
+            if text.endswith(' '):
+                parts.append('')
+        logger.debug("Split parts: {}".format(parts))
+        if len(parts) == 1 and parts[0]:
+            parts = original_cmd
+        return parts
+
 
     @pyqtSlot()
     def _update_cursor_part(self):

@@ -29,30 +29,6 @@ from qutebrowser.utils.misc import safe_shlex_split
 from qutebrowser.utils.log import commands as logger
 
 
-def split_cmdline(text):
-    """Convenience function to split a commandline into it's logical parts.
-
-    Args:
-        text: The string to split.
-
-    Return:
-        A list of strings.
-    """
-    logger.debug("Splitting '{}'".format(text))
-    manager = CommandManager()
-    original_cmd = text.strip().split(maxsplit=1)
-    try:
-        parts = manager.parse(text)
-    except NoSuchCommandError:
-        parts = text.split(' ')
-        if text.endswith(' '):
-            parts.append('')
-    logger.debug("Split parts: {}".format(parts))
-    if len(parts) == 1 and parts[0]:
-        parts = original_cmd
-    return parts
-
-
 class SearchManager(QObject):
 
     """Manage qutebrowser searches.
