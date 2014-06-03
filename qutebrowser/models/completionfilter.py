@@ -83,6 +83,18 @@ class CompletionFilterModel(QSortFilterProxyModel):
                 return self.index(self.rowCount(cat) - 1, 0, cat)
         return QModelIndex()
 
+    def item_count(self):
+        """Get the count of non-toplevel items currently visible.
+
+        Note this only iterates one level deep, as we only need root items
+        (categories) and children (items) in our model.
+        """
+        count = 0
+        for i in range(self.rowCount()):
+            cat = self.index(i, 0)
+            count += self.rowCount(cat)
+        return count
+
     def setSourceModel(self, model):
         """Override QSortFilterProxyModel's setSourceModel to clear pattern."""
         logger.debug("Setting source model: {}".format(model))

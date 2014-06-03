@@ -367,8 +367,8 @@ class CompletionView(QTreeView):
         if indexes:
             data = self._model.data(indexes[0])
             if data is not None:
-                if (self._model.rowCount(indexes[0].parent()) == 1 and
-                        config.get('completion', 'quick-complete')):
+                if self._model.item_count() == 1 and config.get(
+                        'completion', 'quick-complete'):
                     # If we only have one item, we want to apply it immediately
                     # and go on to the next part.
                     self.change_completed_part.emit(data, True)
