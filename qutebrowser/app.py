@@ -128,7 +128,6 @@ class Application(QApplication):
         sys.excepthook = self._exception_hook
 
         self._args = args
-        log.init_log(self._args)
         self._init_misc()
         actute_warning()
         self._init_config()
@@ -662,5 +661,6 @@ def crash(typ='exception'):
 def main():
     """Main entry point for qutebrowser."""
     args = _parse_args()
+    log.init_log(args)
     app = Application(args)
     return app.exec_()
