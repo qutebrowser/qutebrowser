@@ -32,7 +32,7 @@ from qutebrowser.utils.log import misc as logger
 _UNSET = object()
 
 
-def enum(*items, **named):
+def enum(*items, start=0):
     """Factory for simple enumerations.
 
     We really don't need more complex things here, so we don't use python3.4's
@@ -42,9 +42,10 @@ def enum(*items, **named):
 
     Args:
         *items: Items to be sequentally enumerated.
-        **named: Items to have a given position/number.
+        start: The number to use for the first value.
     """
-    enums = dict(zip(items, range(len(items))), **named)
+    numbers = range(start, len(items) + start)
+    enums = dict(zip(items, numbers))
     return EnumBase('Enum', (), enums)
 
 

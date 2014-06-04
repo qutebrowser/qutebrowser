@@ -56,6 +56,12 @@ class EnumTests(TestCase):
         with self.assertRaises(KeyError):
             _ = self.enum['two']
 
+    def test_start(self):
+        """Test the start= argument."""
+        e = enum('three', 'four', start=3)
+        self.assertEqual(e.three, 3)
+        self.assertEqual(e.four, 4)
+
 
 if __name__ == '__main__':
     unittest.main()
