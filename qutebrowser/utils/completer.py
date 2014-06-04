@@ -80,6 +80,7 @@ class Completer(QObject):
             for opt in configdata.DATA[sectname].keys():
                 model = SettingValueCompletionModel(sectname, opt, self)
                 self._models['value'][sectname][opt] = CFM(model)
+                config.instance().changed.connect(model.on_config_changed)
 
     def _get_new_completion(self, parts, cursor_part):
         """Get a new completion model.

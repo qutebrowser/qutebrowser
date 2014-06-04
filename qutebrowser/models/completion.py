@@ -89,6 +89,11 @@ class SettingValueCompletionModel(BaseCompletionModel):
 
     def __init__(self, section, option=None, parent=None):
         super().__init__(parent)
+        cur_cat = self.new_category("Current")
+        value = config.get(section, option, raw=True)
+        if not value:
+            value = '""'
+        self.cur_item = self.new_item(cur_cat, value, "Current value")
         if hasattr(configdata.DATA[section], 'valtype'):
             # Same type for all values (ValueList)
             vals = configdata.DATA[section].valtype.complete()
@@ -99,9 +104,17 @@ class SettingValueCompletionModel(BaseCompletionModel):
             # Different type for each value (KeyValue)
             vals = configdata.DATA[section][option].typ.complete()
         if vals is not None:
-            cat = self.new_category(section)
+            cat = self.new_category("Allowed")
             for (val, desc) in vals:
                 self.new_item(cat, val, desc)
+
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
+        """Update current value when config changed."""
+        value = config.get(section, option)
+        if not value:
+            value = '""'
+        self.setData(self.cur_item.index(), value, Qt.DisplayRole)
 
 
 class CommandCompletionModel(BaseCompletionModel):
