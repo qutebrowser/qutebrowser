@@ -177,8 +177,15 @@ class QuteBrowser(QApplication):
                             action='store_false', dest='color')
         parser.add_argument('-V', '--version', help="Show version and quit.",
                             action='store_true')
-        parser.add_argument('command', nargs='*', help="Commands to execute "
-                            "on startup.", metavar=':command')
+        # Note this will be checked hardcoded via sys.argv before _parse_args
+        # is even run. That's also why we don't use --harfbuzz=(old|new).
+        group = parser.add_mutually_exclusive_group()
+        group.add_argument('--system-harfbuzz', help="Force system harfbuzz "
+                           "engine", action='store_true')
+        group.add_argument('--new-harfbuzz', help="Force new harfbuzz engine",
+                           action='store_true')
+        group.add_argument('--old-harfbuzz', help="Force old harfbuzz engine",
+                           action='store_true')
         # URLs will actually be in command
         parser.add_argument('url', nargs='*', help="URLs to open on startup.")
         return parser.parse_args()
