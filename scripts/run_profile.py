@@ -19,11 +19,15 @@ if '--profile-keep' in sys.argv:
     profilefile = os.path.join(getcwd(), 'profile')
 else:
     profilefile = os.path.join(tempdir, 'profile')
-callgraphfile = os.path.join(tempdir, 'callgraph')
+if '--profile-noconv' in sys.argv:
+    sys.argv.remove('--profile-noconv')
+    noconv = True
 
+callgraphfile = os.path.join(tempdir, 'callgraph')
 profiler = cProfile.Profile()
 profiler.run('qutebrowser.qutebrowser.main()')
 profiler.dump_stats(profilefile)
 
-call(['pyprof2calltree', '-k', '-i', profilefile, '-o', callgraphfile])
+if not noconv:
+    call(['pyprof2calltree', '-k', '-i', profilefile, '-o', callgraphfile])
 rmtree(tempdir)
