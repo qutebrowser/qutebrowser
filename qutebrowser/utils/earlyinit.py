@@ -24,7 +24,6 @@ import faulthandler
 import textwrap
 import traceback
 import signal
-import warnings
 
 
 # Now we initialize the faulthandler as early as possible, so we theoretically
@@ -61,11 +60,15 @@ def fix_harfbuzz(args):
     This fixes crashes on various sites.
     See https://bugreports.qt-project.org/browse/QTBUG-36099
 
+    IMPORTANT: This needs to be done before QWidgets is imported in any way!
+
     Args:
         args: The argparse namespace.
     """
-    if 'PyQt5' in sys.modules:
-        warnings.warn("Harfbuzz fix attempted but PyQt5 is already imported!")
+    from qutebrowser.utils.log import init as logger
+    if 'PyQt5.QtWidgets' in sys.modules:
+        logger.warning("Harfbuzz fix attempted but QtWidgets is already "
+                       "imported!")
     if sys.platform.startswith('linux') and args.harfbuzz == 'auto':
         os.environ['QT_HARFBUZZ'] = 'old'
     elif args.harfbuzz == 'old':

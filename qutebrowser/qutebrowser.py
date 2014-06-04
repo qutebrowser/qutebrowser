@@ -58,12 +58,14 @@ def main():
     """Main entry point for qutebrowser."""
     earlyinit.init_faulthandler()
     args = _parse_args()
-    earlyinit.fix_harfbuzz(args)
     earlyinit.check_pyqt_core()
-    earlyinit.check_pyqt_webkit()
-    # We do these imports late as we need to do the early init first.
+    # We do this import late as we need to do the version checking first.
+    # Note we may not import webkit stuff yet as fix_harfbuzz didn't run.
     import qutebrowser.utils.log as log
-    from qutebrowser.app import Application
     log.init_log(args)
+    earlyinit.fix_harfbuzz(args)
+    earlyinit.check_pyqt_webkit()
+    # We do this import late as we need to fix harfbuzz first.
+    from qutebrowser.app import Application
     app = Application(args)
     return app.exec_()
