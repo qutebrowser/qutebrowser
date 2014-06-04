@@ -24,6 +24,7 @@ import faulthandler
 import textwrap
 import traceback
 import signal
+import warnings
 
 
 # Now we initialize the faulthandler as early as possible, so we theoretically
@@ -63,6 +64,8 @@ def fix_harfbuzz(args):
     Args:
         args: The argparse namespace.
     """
+    if 'PyQt5' in sys.modules:
+        warnings.warn("Harfbuzz fix attempted but PyQt5 is already imported!")
     if sys.platform.startswith('linux') and args.harfbuzz == 'auto':
         os.environ['QT_HARFBUZZ'] = 'old'
     elif args.harfbuzz == 'old':
