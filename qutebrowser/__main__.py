@@ -19,15 +19,9 @@
 
 """Entry point for qutebrowser. Simply execute qutebrowser."""
 
-from qutebrowser.app import QuteBrowser
+import qutebrowser.app as app
 import sys
 
 
-def main():
-    """Main entry point for qutebrowser."""
-    app = QuteBrowser()
-    return app.exec_()
-
-
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.exit(app.main())

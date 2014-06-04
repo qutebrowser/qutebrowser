@@ -70,14 +70,9 @@ from qutebrowser.utils.readline import ReadlineBridge
 from qutebrowser.utils.debug import set_trace  # pylint: disable=unused-import
 
 
-class QuteBrowser(QApplication):
+class Application(QApplication):
 
-    """Main object for qutebrowser.
-
-    Can be used like this:
-
-    >>> app = QuteBrowser()
-    >>> sys.exit(app.exec_())
+    """Main application instance.
 
     Attributes:
         mainwindow: The MainWindow QWidget.
@@ -657,3 +652,9 @@ class QuteBrowser(QApplication):
         """
         log.destroy.debug("Shutdown complete, quitting.")
         self.quit()
+
+
+def main():
+    """Main entry point for qutebrowser."""
+    app = Application()
+    return app.exec_()

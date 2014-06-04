@@ -41,7 +41,7 @@ try:
         include_package_data=True,
         package_data={'qutebrowser': ['html/*', 'git-commit-id']},
         entry_points={'gui_scripts':
-                      ['qutebrowser = qutebrowser.__main__:main']},
+                      ['qutebrowser = qutebrowser.app:main']},
         test_suite='qutebrowser.test',
         zip_safe=True,
         **setupdata
