@@ -16,6 +16,8 @@ Bugs
 
 - restart sometimes abort()s on QApplication __init__ (V155)
 
+- restart is broken entirely since init refactoring (around af19e6d~1)
+
 - qutebrowser :restart loops endlessly
     We should refuse to do :restart when executing init commands
 

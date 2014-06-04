@@ -481,31 +481,31 @@ class Application(QApplication):
             log.destroy.debug("maybe_quit quitting.")
             self.quit()
 
-    @cmdutils.register(instance='', nargs=0)
-    def restart(self, shutdown=True, pages=None):
-        """Restart qutebrowser while keeping existing tabs open."""
-        # We don't use _recover_pages here as it's too forgiving when
-        # exceptions occur.
-        if pages is None:
-            pages = []
-            for tab in self.mainwindow.tabs.widgets:
-                url = tab.url().toString()
-                if url:
-                    pages.append(url)
-        pythonpath = os.pathsep.join(sys.path)
-        os.environ['PYTHONPATH'] = pythonpath
-        argv = sys.argv[:]
-        for page in self._opened_urls:
-            try:
-                argv.remove(page)
-            except ValueError:
-                pass
-        argv = [sys.executable] + argv + pages
-        log.procs.debug("Running {} with args {} (PYTHONPATH={})".format(
-            sys.executable, argv, pythonpath))
-        subprocess.Popen(argv)
-        if shutdown:
-            self.shutdown()
+    #@cmdutils.register(instance='', nargs=0)
+    #def restart(self, shutdown=True, pages=None):
+    #    """Restart qutebrowser while keeping existing tabs open."""
+    #    # We don't use _recover_pages here as it's too forgiving when
+    #    # exceptions occur.
+    #    if pages is None:
+    #        pages = []
+    #        for tab in self.mainwindow.tabs.widgets:
+    #            url = tab.url().toString()
+    #            if url:
+    #                pages.append(url)
+    #    pythonpath = os.pathsep.join(sys.path)
+    #    os.environ['PYTHONPATH'] = pythonpath
+    #    argv = sys.argv[:]
+    #    for page in self._opened_urls:
+    #        try:
+    #            argv.remove(page)
+    #        except ValueError:
+    #            pass
+    #    argv = [sys.executable] + argv + pages
+    #    log.procs.debug("Running {} with args {} (PYTHONPATH={})".format(
+    #        sys.executable, argv, pythonpath))
+    #    subprocess.Popen(argv)
+    #    if shutdown:
+    #        self.shutdown()
 
     @cmdutils.register(instance='', split=False)
     def pyeval(self, s):
