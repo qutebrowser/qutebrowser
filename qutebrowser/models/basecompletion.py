@@ -18,13 +18,16 @@
 """The base completion model for completion in the command line.
 
 Module attributes:
-    ROLE_MARKS: The role index used for marks.
+    Role: An enum of user defined model roles.
 """
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
-ROLE_MARKS = Qt.UserRole
+from qutebrowser.utils.usertypes import enum
+
+
+Role = enum('marks', 'sort', start=Qt.UserRole)
 
 
 class NoCompletionsError(Exception):
@@ -77,7 +80,7 @@ class BaseCompletionModel(QStandardItemModel):
         """
         haystack = self.data(index)
         marks = self._get_marks(needle, haystack)
-        self.setData(index, marks, ROLE_MARKS)
+        self.setData(index, marks, Role.marks)
 
     def new_category(self, name):
         """Add a new category to the model.

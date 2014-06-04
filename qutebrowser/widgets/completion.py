@@ -38,7 +38,7 @@ class CompletionView(QTreeView):
     Based on QTreeView but heavily customized so root elements show as category
     headers, and children show as flat list.
 
-    Highlights completions based on marks in the ROLE_MARKS data.
+    Highlights completions based on marks in the Role.marks data.
 
     Class attributes:
         STYLESHEET: The stylesheet template for the CompletionView.

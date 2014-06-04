@@ -27,7 +27,7 @@ from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QTextCursor, QColor, QAbstractTextDocumentLayout)
 
 import qutebrowser.config.config as config
-from qutebrowser.models.basecompletion import ROLE_MARKS
+from qutebrowser.models.basecompletion import Role
 from qutebrowser.config.style import get_stylesheet
 
 
@@ -188,7 +188,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self._doc.setDocumentMargin(2)
 
         if index.column() == 0:
-            marks = index.data(ROLE_MARKS)
+            marks = index.data(Role.marks)
             if marks is None:
                 return
             for mark in marks:
