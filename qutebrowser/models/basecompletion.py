@@ -82,16 +82,19 @@ class BaseCompletionModel(QStandardItemModel):
         marks = self._get_marks(needle, haystack)
         self.setData(index, marks, Role.marks)
 
-    def new_category(self, name):
+    def new_category(self, name, sort=None):
         """Add a new category to the model.
 
         Args:
             name: The name of the category to add.
+            sort: The value to use for the sort role.
 
         Return:
             The created QStandardItem.
         """
         cat = QStandardItem(name)
+        if sort is not None:
+            cat.setData(sort, Role.sort)
         self.appendRow(cat)
         return cat
 

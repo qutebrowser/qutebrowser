@@ -89,7 +89,7 @@ class SettingValueCompletionModel(BaseCompletionModel):
 
     def __init__(self, section, option=None, parent=None):
         super().__init__(parent)
-        cur_cat = self.new_category("Current")
+        cur_cat = self.new_category("Current", sort=0)
         value = config.get(section, option, raw=True)
         if not value:
             value = '""'
@@ -104,7 +104,7 @@ class SettingValueCompletionModel(BaseCompletionModel):
             # Different type for each value (KeyValue)
             vals = configdata.DATA[section][option].typ.complete()
         if vals is not None:
-            cat = self.new_category("Allowed")
+            cat = self.new_category("Allowed", sort=1)
             for (val, desc) in vals:
                 self.new_item(cat, val, desc)
 

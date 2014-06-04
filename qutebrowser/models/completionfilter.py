@@ -23,6 +23,7 @@ Contains:
 
 from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex
 
+from qutebrowser.models.basecompletion import Role
 from qutebrowser.utils.log import completion as logger
 
 
@@ -146,6 +147,12 @@ class CompletionFilterModel(QSortFilterProxyModel):
         Return:
             True if left < right, else False
         """
+        left_sort = self.srcmodel.data(lindex, role=Role.sort)
+        right_sort = self.srcmodel.data(rindex, role=Role.sort)
+
+        if left_sort is not None and right_sort is not None:
+            return left_sort < right_sort
+
         left = self.srcmodel.data(lindex)
         right = self.srcmodel.data(rindex)
 
