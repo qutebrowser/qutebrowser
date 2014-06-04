@@ -31,17 +31,7 @@ Bugs
   See also: http://qt-project.org/doc/qt-4.8/qwebpage.html#createWindow
   Asked here: http://stackoverflow.com/q/23498666/2085149
 
-- Shutdown is still flaky.
-
-  Some pointers:
-      https://code.google.com/p/webscraping/source/browse/webkit.py
-      Simply does setPage(None) in __del__ of webview.
-
-      http://www.tenox.net/out/wrp11-qt.py
-      does del self._window; del self._view; del self._page
-
-      http://pydoc.net/Python/grab/0.4.5/ghost.ghost/
-      does webview.close(); del self.manager; del self.page; del self.mainframe
+- Shutdown is still flaky. (see notes)
 
 - Eliding doesn't work correctly in tabs (cuts off start)
   This especially happens when there's no favicon
