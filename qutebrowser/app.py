@@ -99,7 +99,12 @@ class Application(QApplication):
     # This also holds all our globals, so we're a bit over the top here.
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self):
+    def __init__(self, args):
+        """Constructor.
+
+        Args:
+            Argument namespace from argparse.
+        """
         super().__init__(sys.argv)
         self._quit_status = {
             'crash': True,
@@ -122,7 +127,7 @@ class Application(QApplication):
 
         sys.excepthook = self._exception_hook
 
-        self._args = self._parse_args()
+        self._args = args
         log.init_log(self._args)
         self._init_misc()
         actute_warning()
@@ -152,40 +157,6 @@ class Application(QApplication):
 
         if self._crashdlg is not None:
             self._crashdlg.raise_()
-
-    def _parse_args(self):
-        """Parse command line options.
-
-        Return:
-            Argument namespace from argparse.
-        """
-        parser = ArgumentParser("usage: %(prog)s [options]")
-        parser.add_argument('-l', '--loglevel', dest='loglevel',
-                            help="Set loglevel", default='info')
-        parser.add_argument('--logfilter',
-                            help="Comma-separated list of things to be logged")
-        parser.add_argument('-c', '--confdir', help="Set config directory "
-                            "(empty for no config storage)")
-        parser.add_argument('--debug', help="Turn on debugging options.",
-                            action='store_true')
-        parser.add_argument('--nocolor', help="Turn off colored logging.",
-                            action='store_false', dest='color')
-        parser.add_argument('-V', '--version', help="Show version and quit.",
-                            action='store_true')
-        # Note this will be checked hardcoded via sys.argv before _parse_args
-        # is even run. That's also why we don't use --harfbuzz=(old|new).
-        group = parser.add_mutually_exclusive_group()
-        group.add_argument('--system-harfbuzz', help="Force system harfbuzz "
-                           "engine", action='store_true')
-        group.add_argument('--new-harfbuzz', help="Force new harfbuzz engine",
-                           action='store_true')
-        group.add_argument('--old-harfbuzz', help="Force old harfbuzz engine",
-                           action='store_true')
-        parser.add_argument('command', nargs='*', help="Commands to execute "
-                            "on startup.", metavar=':command')
-        # URLs will actually be in command
-        parser.add_argument('url', nargs='*', help="URLs to open on startup.")
-        return parser.parse_args()
 
     def _init_config(self):
         """Inizialize and read the config."""
@@ -563,28 +534,6 @@ class Application(QApplication):
         qutescheme.pyeval_output = out
         self.mainwindow.tabs.cmd.openurl('qute:pyeval')
 
-    @cmdutils.register(instance='', hide=True)
-    def crash(self, typ='exception'):
-        """Crash for debugging purposes.
-
-        :crash command handler.
-
-        Args:
-            typ: either 'exception' or 'segfault'
-
-        Raises:
-            raises Exception when typ is not segfault.
-            segfaults when typ is (you don't say...)
-        """
-        if typ == 'segfault':
-            # From python's Lib/test/crashers/bogus_code_obj.py
-            co = types.CodeType(0, 0, 0, 0, 0, b'\x04\x71\x00\x00', (), (), (),
-                                '', '', 1, b'')
-            exec(co)  # pylint: disable=exec-used
-            raise Exception("Segfault failed (wat.)")
-        else:
-            raise Exception("Forced crash")
-
     @pyqtSlot()
     def shutdown(self):
         """Try to shutdown everything cleanly.
@@ -654,7 +603,64 @@ class Application(QApplication):
         self.quit()
 
 
+def _parse_args():
+    """Parse command line options.
+
+    Return:
+        Argument namespace from argparse.
+    """
+    parser = ArgumentParser("usage: %(prog)s [options]")
+    parser.add_argument('-l', '--loglevel', dest='loglevel',
+                        help="Set loglevel", default='info')
+    parser.add_argument('--logfilter',
+                        help="Comma-separated list of things to be logged")
+    parser.add_argument('-c', '--confdir', help="Set config directory (empty "
+                        "for no config storage)")
+    parser.add_argument('--debug', help="Turn on debugging options.",
+                        action='store_true')
+    parser.add_argument('--nocolor', help="Turn off colored logging.",
+                        action='store_false', dest='color')
+    parser.add_argument('-V', '--version', help="Show version and quit.",
+                        action='store_true')
+    # Note this will be checked hardcoded via sys.argv before _parse_args
+    # is even run. That's also why we don't use --harfbuzz=(old|new).
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--system-harfbuzz', help="Force system harfbuzz "
+                       "engine", action='store_true')
+    group.add_argument('--new-harfbuzz', help="Force new harfbuzz engine",
+                       action='store_true')
+    group.add_argument('--old-harfbuzz', help="Force old harfbuzz engine",
+                       action='store_true')
+    parser.add_argument('command', nargs='*', help="Commands to execute on "
+                        "startup.", metavar=':command')
+    # URLs will actually be in command
+    parser.add_argument('url', nargs='*', help="URLs to open on startup.")
+    return parser.parse_args()
+
+
+@cmdutils.register(hide=True)
+def crash(typ='exception'):
+    """Crash for debugging purposes.
+
+    Args:
+        typ: either 'exception' or 'segfault'
+
+    Raises:
+        raises Exception when typ is not segfault.
+        segfaults when typ is (you don't say...)
+    """
+    if typ == 'segfault':
+        # From python's Lib/test/crashers/bogus_code_obj.py
+        co = types.CodeType(0, 0, 0, 0, 0, b'\x04\x71\x00\x00', (), (), (),
+                            '', '', 1, b'')
+        exec(co)  # pylint: disable=exec-used
+        raise Exception("Segfault failed (wat.)")
+    else:
+        raise Exception("Forced crash")
+
+
 def main():
     """Main entry point for qutebrowser."""
-    app = Application()
+    args = _parse_args()
+    app = Application(args)
     return app.exec_()
