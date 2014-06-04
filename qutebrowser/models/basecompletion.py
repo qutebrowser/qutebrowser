@@ -30,13 +30,6 @@ from qutebrowser.utils.usertypes import enum
 Role = enum('marks', 'sort', start=Qt.UserRole)
 
 
-class NoCompletionsError(Exception):
-
-    """Gets raised when there are no completions available."""
-
-    pass
-
-
 class BaseCompletionModel(QStandardItemModel):
 
     """A simple QStandardItemModel adopted for completions.

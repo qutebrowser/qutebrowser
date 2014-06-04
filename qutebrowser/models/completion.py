@@ -21,8 +21,7 @@ from PyQt5.QtCore import pyqtSlot, Qt
 
 import qutebrowser.config.config as config
 import qutebrowser.config.configdata as configdata
-from qutebrowser.models.basecompletion import (BaseCompletionModel,
-                                               NoCompletionsError)
+from qutebrowser.models.basecompletion import BaseCompletionModel
 from qutebrowser.commands.utils import cmd_dict
 
 

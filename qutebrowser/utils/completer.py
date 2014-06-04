@@ -27,7 +27,6 @@ from qutebrowser.models.completionfilter import CompletionFilterModel as CFM
 from qutebrowser.models.completion import (
     CommandCompletionModel, SettingSectionCompletionModel,
     SettingOptionCompletionModel, SettingValueCompletionModel)
-from qutebrowser.models.basecompletion import NoCompletionsError
 
 
 class Completer(QObject):
