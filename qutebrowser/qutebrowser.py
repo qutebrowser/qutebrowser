@@ -44,15 +44,8 @@ def _parse_args():
                         action='store_false', dest='color')
     parser.add_argument('-V', '--version', help="Show version and quit.",
                         action='store_true')
-    # Note this will be checked hardcoded via sys.argv before _parse_args
-    # is even run. That's also why we don't use --harfbuzz=(old|new).
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument('--system-harfbuzz', help="Force system harfbuzz "
-                       "engine", action='store_true')
-    group.add_argument('--new-harfbuzz', help="Force new harfbuzz engine",
-                       action='store_true')
-    group.add_argument('--old-harfbuzz', help="Force old harfbuzz engine",
-                       action='store_true')
+    parser.add_argument('--harfbuzz', choices=['old', 'new', 'system', 'auto'],
+                        default='auto')
     parser.add_argument('command', nargs='*', help="Commands to execute on "
                         "startup.", metavar=':command')
     # URLs will actually be in command
@@ -64,7 +57,7 @@ def main():
     """Main entry point for qutebrowser."""
     earlyinit.init_faulthandler()
     args = _parse_args()
-    earlyinit.fix_harfbuzz()
+    earlyinit.fix_harfbuzz(args)
     earlyinit.check_pyqt_core()
     earlyinit.check_pyqt_webkit()
     # We do these imports late as we need to do the early init first.

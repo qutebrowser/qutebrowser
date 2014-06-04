@@ -51,7 +51,7 @@ def init_faulthandler():
 
 # Now the faulthandler is enabled we fix the Qt harfbuzzing library, before
 # importing any Qt stuff.
-def fix_harfbuzz():
+def fix_harfbuzz(args):
     """Fix harfbuzz issues.
 
     This switches to an older (but more stable) harfbuzz font rendering engine
@@ -59,14 +59,17 @@ def fix_harfbuzz():
 
     This fixes crashes on various sites.
     See https://bugreports.qt-project.org/browse/QTBUG-36099
+
+    Args:
+        args: The argparse namespace.
     """
-    if (sys.platform.startswith('linux') and
-            '--system-harfbuzz' not in sys.argv):
+    if sys.platform.startswith('linux') and args.harfbuzz == 'auto':
         os.environ['QT_HARFBUZZ'] = 'old'
-    elif '--old-harfbuzz' in sys.argv:
+    elif args.harfbuzz == 'old':
         os.environ['QT_HARFBUZZ'] = 'old'
-    elif '--new-harfbuzz' in sys.argv:
+    elif args.harfbuzz == 'new':
         os.environ['QT_HARFBUZZ'] = 'new'
+    # else: use system default harfbuzz
 
 
 # At this point we can safely import Qt stuff, but we can't be sure it's
