@@ -10,7 +10,7 @@ from shutil import rmtree
 
 sys.path.insert(0, getcwd())
 
-from qutebrowser.app import QuteBrowser  # pylint: disable=unused-import
+import qutebrowser.qutebrowser  # pylint: disable=unused-import
 
 tempdir = mkdtemp()
 
@@ -22,7 +22,7 @@ else:
 callgraphfile = os.path.join(tempdir, 'callgraph')
 
 profiler = cProfile.Profile()
-profiler.run('app = QuteBrowser(); app.exec_()')
+profiler.run('qutebrowser.qutebrowser.main()')
 profiler.dump_stats(profilefile)
 
 call(['pyprof2calltree', '-k', '-i', profilefile, '-o', callgraphfile])
