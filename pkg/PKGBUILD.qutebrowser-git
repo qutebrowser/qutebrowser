@@ -7,7 +7,8 @@ pkgdesc="A keyboard-driven, vim-like browser based on PyQt5 and QtWebKit.",
 arch=(any)
 url="http://www.qutebrowser.org/"
 license=('GPL')
-depends=('python' 'python-setuptools' 'python-pyqt5' 'qt5-base' 'qt5-webkit')
+depends=('python' 'python-setuptools' 'python-pyqt5' 'qt5-base' 'qt5-webkit'
+         'libxkbcommon-x11')
 makedepends=('python' 'python-setuptools')
 optdepends=('python-colorlog: colored logging output')
 options=(!emptydirs)
