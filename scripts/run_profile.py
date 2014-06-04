@@ -14,8 +14,8 @@ import qutebrowser.qutebrowser  # pylint: disable=unused-import
 
 tempdir = mkdtemp()
 
-if '--keep' in sys.argv:
-    sys.argv.remove('--keep')
+if '--profile-keep' in sys.argv:
+    sys.argv.remove('--profile-keep')
     profilefile = os.path.join(getcwd(), 'profile')
 else:
     profilefile = os.path.join(tempdir, 'profile')
