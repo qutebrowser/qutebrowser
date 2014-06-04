@@ -17,15 +17,6 @@
 
 """Initialization of qutebrowser and application-wide things."""
 
-### Things we want to do before normal imports ###
-from qutebrowser.utils.checkpyver import check_python_version
-check_python_version()
-import qutebrowser.utils.earlyinit as earlyinit
-earlyinit.init_faulthandler()
-earlyinit.fix_harfbuzz()
-earlyinit.check_pyqt_core()
-earlyinit.check_pyqt_webkit()
-
 import os
 import sys
 import types
@@ -35,7 +26,6 @@ import configparser
 from bdb import BdbQuit
 from functools import partial
 from signal import signal, SIGINT
-from argparse import ArgumentParser
 from base64 import b64encode
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
@@ -602,41 +592,6 @@ class Application(QApplication):
         self.quit()
 
 
-def _parse_args():
-    """Parse command line options.
-
-    Return:
-        Argument namespace from argparse.
-    """
-    parser = ArgumentParser("usage: %(prog)s [options]")
-    parser.add_argument('-l', '--loglevel', dest='loglevel',
-                        help="Set loglevel", default='info')
-    parser.add_argument('--logfilter',
-                        help="Comma-separated list of things to be logged")
-    parser.add_argument('-c', '--confdir', help="Set config directory (empty "
-                        "for no config storage)")
-    parser.add_argument('--debug', help="Turn on debugging options.",
-                        action='store_true')
-    parser.add_argument('--nocolor', help="Turn off colored logging.",
-                        action='store_false', dest='color')
-    parser.add_argument('-V', '--version', help="Show version and quit.",
-                        action='store_true')
-    # Note this will be checked hardcoded via sys.argv before _parse_args
-    # is even run. That's also why we don't use --harfbuzz=(old|new).
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument('--system-harfbuzz', help="Force system harfbuzz "
-                       "engine", action='store_true')
-    group.add_argument('--new-harfbuzz', help="Force new harfbuzz engine",
-                       action='store_true')
-    group.add_argument('--old-harfbuzz', help="Force old harfbuzz engine",
-                       action='store_true')
-    parser.add_argument('command', nargs='*', help="Commands to execute on "
-                        "startup.", metavar=':command')
-    # URLs will actually be in command
-    parser.add_argument('url', nargs='*', help="URLs to open on startup.")
-    return parser.parse_args()
-
-
 @cmdutils.register(hide=True)
 def crash(typ='exception'):
     """Crash for debugging purposes.
@@ -656,11 +611,3 @@ def crash(typ='exception'):
         raise Exception("Segfault failed (wat.)")
     else:
         raise Exception("Forced crash")
-
-
-def main():
-    """Main entry point for qutebrowser."""
-    args = _parse_args()
-    log.init_log(args)
-    app = Application(args)
-    return app.exec_()

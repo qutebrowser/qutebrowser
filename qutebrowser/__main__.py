@@ -19,9 +19,9 @@
 
 """Entry point for qutebrowser. Simply execute qutebrowser."""
 
-import qutebrowser.app as app
+import qutebrowser.qutebrowser
 import sys
 
 
 if __name__ == '__main__':
-    sys.exit(app.main())
+    sys.exit(qutebrowser.qutebrowser.main())
