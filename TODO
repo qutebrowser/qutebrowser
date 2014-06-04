@@ -44,7 +44,6 @@ Improvements / minor features
 
 - Print nicer error message when platform plugin is missing
   (on Arch: libxkbcommon-x11)
-- Force new harfbuzz engine with linux and 5.3.0
 - Add harfbuzz forcing to version info
 - Print some meaningful message (via qInstallMsgHandler) when platform plugins
   are missing, especially with xcb (on Arch: libxkbcommon-x11)
