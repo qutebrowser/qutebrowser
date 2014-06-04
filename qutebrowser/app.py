@@ -492,7 +492,8 @@ class Application(QApplication):
                 url = tab.url().toString()
                 if url:
                     pages.append(url)
-        os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
+        pythonpath = os.pathsep.join(sys.path)
+        os.environ['PYTHONPATH'] = pythonpath
         argv = sys.argv[:]
         for page in self._opened_urls:
             try:
@@ -500,8 +501,8 @@ class Application(QApplication):
             except ValueError:
                 pass
         argv = [sys.executable] + argv + pages
-        log.procs.debug("Running {} with args {}".format(sys.executable,
-                                                         argv))
+        log.procs.debug("Running {} with args {} (PYTHONPATH={})".format(
+            sys.executable, argv, pythonpath))
         subprocess.Popen(argv)
         if shutdown:
             self.shutdown()
