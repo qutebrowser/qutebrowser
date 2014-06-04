@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""The main window of QuteBrowser."""
+"""The main window of qutebrowser."""
 
 import binascii
 from base64 import b64decode
@@ -35,7 +35,7 @@ from qutebrowser.utils.usertypes import PromptMode
 
 class MainWindow(QWidget):
 
-    """The main window of QuteBrowser.
+    """The main window of qutebrowser.
 
     Adds all needed components to a vbox, initializes subwidgets and connects
     signals.
