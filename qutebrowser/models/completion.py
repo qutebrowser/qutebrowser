@@ -91,19 +91,17 @@ class SettingValueCompletionModel(BaseCompletionModel):
         super().__init__(parent)
         if hasattr(configdata.DATA[section], 'valtype'):
             # Same type for all values (ValueList)
-            cat = self.new_category(section)
             vals = configdata.DATA[section].valtype.complete()
         else:
             if option is None:
                 raise ValueError("option may only be None for ValueList "
                                  "sections, but {} is not!".format(section))
             # Different type for each value (KeyValue)
-            cat = self.new_category(option)
             vals = configdata.DATA[section][option].typ.complete()
-        if vals is None:
-            raise NoCompletionsError
-        for (val, desc) in vals:
-            self.new_item(cat, val, desc)
+        if vals is not None:
+            cat = self.new_category(section)
+            for (val, desc) in vals:
+                self.new_item(cat, val, desc)
 
 
 class CommandCompletionModel(BaseCompletionModel):

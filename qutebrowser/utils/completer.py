@@ -73,26 +73,13 @@ class Completer(QObject):
         self._models['option'] = {}
         self._models['value'] = {}
         for sectname, sect in configdata.DATA.items():
-            optmodel = CFM(SettingOptionCompletionModel(sectname, self))
-            self._models['option'][sectname] = optmodel
-            config.instance().changed.connect(
-                optmodel.srcmodel.on_config_changed)
-            if hasattr(sect, 'valtype'):
-                # Same type for all values (ValueList)
-                try:
-                    model = CFM(SettingValueCompletionModel(
-                        sectname, parent=self))
-                    self._models['value'][sectname] = FakeDict(model)
-                except NoCompletionsError:
-                    pass
-            else:
-                self._models['value'][sectname] = {}
-                for opt in configdata.DATA[sectname].keys():
-                    try:
-                        self._models['value'][sectname][opt] = CFM(
-                            SettingValueCompletionModel(sectname, opt, self))
-                    except NoCompletionsError:
-                        pass
+            model = SettingOptionCompletionModel(sectname, self)
+            self._models['option'][sectname] = CFM(model)
+            config.instance().changed.connect(model.on_config_changed)
+            self._models['value'][sectname] = {}
+            for opt in configdata.DATA[sectname].keys():
+                model = SettingValueCompletionModel(sectname, opt, self)
+                self._models['value'][sectname][opt] = CFM(model)
 
     def _get_new_completion(self, parts, cursor_part):
         """Get a new completion model.
