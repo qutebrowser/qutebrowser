@@ -70,7 +70,7 @@ class Completer(QObject):
         self._models['section'] = CFM(SettingSectionCompletionModel(self))
         self._models['option'] = {}
         self._models['value'] = {}
-        for sectname, sect in configdata.DATA.items():
+        for sectname in configdata.DATA:
             model = SettingOptionCompletionModel(sectname, self)
             self._models['option'][sectname] = CFM(model)
             config.instance().changed.connect(model.on_config_changed)
