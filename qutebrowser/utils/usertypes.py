@@ -230,24 +230,6 @@ class NeighborList(collections.abc.Sequence):
             return self.curitem()
 
 
-class FakeDict:
-
-    """A fake dictionary which always returns the same value.
-
-    Attributes:
-        _val: The value to return.
-    """
-
-    def __init__(self, val):
-        self._val = val
-
-    def __getitem__(self, _key):
-        return self._val
-
-    def __repr__(self):
-        return "FakeDict('{}')".format(self._val)
-
-
 # The mode of a Question.
 PromptMode = enum('yesno', 'text', 'user_pwd', 'alert')
 

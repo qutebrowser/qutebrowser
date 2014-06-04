@@ -28,7 +28,6 @@ from qutebrowser.models.completion import (
     CommandCompletionModel, SettingSectionCompletionModel,
     SettingOptionCompletionModel, SettingValueCompletionModel)
 from qutebrowser.models.basecompletion import NoCompletionsError
-from qutebrowser.utils.usertypes import FakeDict
 
 
 class Completer(QObject):
