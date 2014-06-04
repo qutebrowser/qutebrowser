@@ -45,7 +45,8 @@ def _parse_args():
     parser.add_argument('-V', '--version', help="Show version and quit.",
                         action='store_true')
     parser.add_argument('--harfbuzz', choices=['old', 'new', 'system', 'auto'],
-                        default='auto')
+                        default='auto', help="HarfBuzz engine version to use. "
+                        "Default: auto.")
     parser.add_argument('command', nargs='*', help="Commands to execute on "
                         "startup.", metavar=':command')
     # URLs will actually be in command
