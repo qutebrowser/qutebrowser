@@ -76,7 +76,7 @@ class SettingOptionCompletionModel(BaseCompletionModel):
         except KeyError:
             # changed before init
             return
-        val = config.get(section, option)
+        val = config.get(section, option, raw=True)
         self.setData(item.index(), val, Qt.DisplayRole)
 
 
@@ -111,7 +111,7 @@ class SettingValueCompletionModel(BaseCompletionModel):
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update current value when config changed."""
-        value = config.get(section, option)
+        value = config.get(section, option, raw=True)
         if not value:
             value = '""'
         self.setData(self.cur_item.index(), value, Qt.DisplayRole)
