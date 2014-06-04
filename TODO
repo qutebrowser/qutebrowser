@@ -42,6 +42,8 @@ New big features
 Improvements / minor features
 =============================
 
+- Print some meaningful message (via qInstallMsgHandler) when platform plugins
+  are missing, especially with xcb (on Arch: libxkbcommon-x11)
 - Reimplement tabbar to paint it by ourselves to look like dwb
 - Save cookies in Netscape format so it can be used by wget.
     http://www.cookiecentral.com/faq/#3.5
