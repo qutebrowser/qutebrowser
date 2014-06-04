@@ -186,6 +186,8 @@ class QuteBrowser(QApplication):
                            action='store_true')
         group.add_argument('--old-harfbuzz', help="Force old harfbuzz engine",
                            action='store_true')
+        parser.add_argument('command', nargs='*', help="Commands to execute "
+                            "on startup.", metavar=':command')
         # URLs will actually be in command
         parser.add_argument('url', nargs='*', help="URLs to open on startup.")
         return parser.parse_args()
