@@ -20,7 +20,6 @@
 import os
 import sys
 import types
-import subprocess
 import faulthandler
 import configparser
 from bdb import BdbQuit

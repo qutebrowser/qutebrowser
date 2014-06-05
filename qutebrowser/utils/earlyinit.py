@@ -97,7 +97,6 @@ def fix_harfbuzz(args):
     else:
         # use system default harfbuzz
         logger.debug("Using system harfbuzz engine")
-        pass
 
 
 # At this point we can safely import Qt stuff, but we can't be sure it's
