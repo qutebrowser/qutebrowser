@@ -92,6 +92,14 @@ class ReadlineBridgeTest(TestCase):
         self.bridge.rl_end_of_line()
         self.qle.end.assert_called_with(False)
 
+    def test_rl_delete_char(self):
+        self.bridge.rl_delete_char()
+        self.qle.del_.assert_called_with()
+
+    def test_rl_backward_delete_char(self):
+        self.bridge.rl_backward_delete_char()
+        self.qle.backspace.assert_called_with()
+
     def test_rl_unix_line_discard(self):
         """Set a selected text, delete it, see if it comes back with yank."""
         self._set_selected_text("delete test")

@@ -685,6 +685,7 @@ DATA = OrderedDict([
         ('<Escape>', 'leave-mode'),
         ('<Ctrl-N>', 'leave-mode'),
         ('<Ctrl-E>', 'open-editor'),
+        ('<Ctrl-[>', '${<Escape>}'),
     )),
 
     ('keybind.hint', sect.ValueList(
@@ -692,11 +693,13 @@ DATA = OrderedDict([
         ('<Return>', 'follow-hint'),
         ('<Escape>', 'leave-mode'),
         ('<Ctrl-N>', 'leave-mode'),
+        ('<Ctrl-[>', '${<Escape>}'),
     )),
 
     ('keybind.passthrough', sect.ValueList(
         types.KeyBindingName(), types.KeyBinding(),
         ('<Escape>', 'leave-mode'),
+        ('<Ctrl-[>', '${<Escape>}'),
     )),
 
     # FIXME we should probably have a common section for input modes with a
@@ -723,6 +726,10 @@ DATA = OrderedDict([
         ('<Alt-D>', 'rl-kill-word'),
         ('<Ctrl-W>', 'rl-unix-word-rubout'),
         ('<Ctrl-Y>', 'rl-yank'),
+        ('<Ctrl-?>', 'rl-delete-char'),
+        ('<Ctrl-H>', 'rl-backward-delete-char'),
+        ('<Ctrl-J>', '${<Return>}'),
+        ('<Ctrl-[>', '${<Escape>}'),
     )),
 
     ('keybind.prompt', sect.ValueList(
@@ -742,6 +749,10 @@ DATA = OrderedDict([
         ('<Alt-D>', 'rl-kill-word'),
         ('<Ctrl-W>', 'rl-unix-word-rubout'),
         ('<Ctrl-Y>', 'rl-yank'),
+        ('<Ctrl-?>', 'rl-delete-char'),
+        ('<Ctrl-H>', 'rl-backward-delete-char'),
+        ('<Ctrl-J>', '${<Return>}'),
+        ('<Ctrl-[>', '${<Escape>}'),
     )),
 
     ('aliases', sect.ValueList(

@@ -126,3 +126,17 @@ class ReadlineBridge:
         if self.widget is None or self.widget not in self.deleted:
             return
         self.widget.insert(self.deleted[self.widget])
+
+    @cmd.register(instance='rl_bridge', hide=True, modes=['command', 'prompt'])
+    def rl_delete_char(self):
+        """Readline: Delete the character at point."""
+        if self.widget is None:
+            return
+        self.widget.del_()
+
+    @cmd.register(instance='rl_bridge', hide=True, modes=['command', 'prompt'])
+    def rl_backward_delete_char(self):
+        """Readline: Delete the character behind the cursor."""
+        if self.widget is None:
+            return
+        self.widget.backspace()
