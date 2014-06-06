@@ -19,24 +19,42 @@
 """Data used by setup.py and scripts/freeze.py."""
 
 import sys
+import re
+import ast
 import os
 import os.path
 import subprocess
 sys.path.insert(0, os.getcwd())
-import qutebrowser
 
 
-try:
-    BASEDIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                           os.path.pardir)
-except NameError:
-    BASEDIR = None
+BASEDIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                       os.path.pardir)
 
 
 def read_file(name):
     """Get the string contained in the file named name."""
     with open(name, encoding='utf-8') as f:
         return f.read()
+
+
+def _get_constant(name):
+    """Read a __magic__ constant from qutebrowser/__init__.py.
+
+    We don't import qutebrowser here because it can go wrong for multiple
+    reasons. Instead we use re/ast to get the value directly from the source
+    file.
+
+    Args:
+        name: The name of the argument to get.
+
+    Return:
+        The value of the argument.
+    """
+    field_re = re.compile(r'__{}__\s+=\s+(.*)'.format(re.escape(name)))
+    path = os.path.join(BASEDIR, 'qutebrowser', '__init__.py')
+    line = field_re.search(read_file(path)).group(1)
+    value = str(ast.literal_eval(line))
+    return value
 
 
 def _git_str():
@@ -69,14 +87,14 @@ def write_git_file():
 
 setupdata = {
     'name': 'qutebrowser',
-    'version': qutebrowser.__version__,
+    'version': '.'.join(map(str, _get_constant('version_info'))),
     'description': ("A keyboard-driven, vim-like browser based on PyQt5 and "
                     "QtWebKit."),
     'long_description': read_file('README'),
     'url': 'http://www.qutebrowser.org/',
-    'author': qutebrowser.__author__,
-    'author_email': qutebrowser.__email__,
-    'license': qutebrowser.__license__,
+    'author': _get_constant('author'),
+    'author_email': _get_constant('email'),
+    'license': _get_constant('license'),
     'extras_require': {'nice-debugging': ['colorlog', 'colorama', 'ipdb']},
     'classifiers': [
         'Development Status :: 3 - Alpha',
