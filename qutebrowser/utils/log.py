@@ -82,7 +82,7 @@ def init_log(args):
         raise ValueError("Invalid log level: {}".format(args.loglevel))
 
     console, ram = _init_handlers(numeric_level, args.color)
-    if args.logfilter is not None:
+    if args.logfilter is not None and numeric_level <= logging.DEBUG:
         console.addFilter(args.logfilter.split(','))
     root = getLogger()
     root.addHandler(console)
@@ -215,6 +215,9 @@ class LogFilter(logging.Filter):
     def filter(self, record):
         """Determine if the specified record is to be logged."""
         if self.names is None:
+            return True
+        if record.levelno <= logging.DEBUG:
+            # DEBUG or more important, so we won't filter at all
             return True
         for name in self.names:
             if record.name == name:

@@ -35,7 +35,8 @@ def _parse_args():
     parser.add_argument('-l', '--loglevel', dest='loglevel',
                         help="Set loglevel", default='info')
     parser.add_argument('--logfilter',
-                        help="Comma-separated list of things to be logged")
+                        help="Comma-separated list of things to be logged "
+                        "to the debug log on stdout.")
     parser.add_argument('-c', '--confdir', help="Set config directory (empty "
                         "for no config storage)")
     parser.add_argument('--debug', help="Turn on debugging options.",
