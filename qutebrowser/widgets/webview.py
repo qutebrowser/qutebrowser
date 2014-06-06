@@ -191,7 +191,7 @@ class WebView(QWebView):
             return False
         elem = hitresult.element()
         tag = elem.tagName().lower()
-        if tag in ['embed', 'applet', 'select']:
+        if tag in ('embed', 'applet', 'select'):
             # Flash/Java/...
             return True
         if tag == 'object':
@@ -401,7 +401,7 @@ class WebView(QWebView):
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update tab config when config was changed."""
-        if section == 'ui' and option in ['zoom-levels', 'default-zoom']:
+        if section == 'ui' and option in ('zoom-levels', 'default-zoom'):
             self._init_neighborlist()
 
     @pyqtSlot('QMouseEvent')
@@ -413,7 +413,7 @@ class WebView(QWebView):
     @pyqtSlot()
     def on_load_started(self):
         """Leave insert/hint mode and set vars when a new page is loading."""
-        for mode in ['insert', 'hint']:
+        for mode in ('insert', 'hint'):
             modeman.maybe_leave(mode, 'load started')
         self.progress = 0
         self._has_ssl_errors = False
@@ -525,7 +525,7 @@ class WebView(QWebView):
         Return:
             The superclass return value.
         """
-        if e.button() in [Qt.XButton1, Qt.XButton2]:
+        if e.button() in (Qt.XButton1, Qt.XButton2):
             self._mousepress_backforward(e)
             return super().mousePressEvent(e)
         self._mousepress_insertmode(e)

@@ -177,9 +177,9 @@ def qt_message_handler(msg_type, context, msg):
     # Change levels of some well-known messages to debug so they don't get
     # shown to the user.
     # suppressed_msgs is a list of regexes matching the message texts to hide.
-    suppressed_msgs = ["libpng warning: iCCP: Not recognizing known sRGB "
+    suppressed_msgs = ("libpng warning: iCCP: Not recognizing known sRGB "
                        "profile that has been edited",
-                       "OpenType support missing for script [0-9]*"]
+                       "OpenType support missing for script [0-9]*")
     if any(re.match(pattern, msg.strip()) for pattern in suppressed_msgs):
         level = logging.DEBUG
     else:

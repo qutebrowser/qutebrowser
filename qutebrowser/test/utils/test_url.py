@@ -106,16 +106,16 @@ class SpecialURLTests(TestCase):
         NORMAL_URLS: URLs which are not special.
     """
 
-    SPECIAL_URLS = [
+    SPECIAL_URLS = (
         'file:///tmp/foo',
         'about:blank',
         'qute:version'
-    ]
+    )
 
-    NORMAL_URLS = [
+    NORMAL_URLS = (
         'http://www.qutebrowser.org/',
         'www.qutebrowser.org'
-    ]
+    )
 
     def test_special_urls(self):
         """Test special URLs."""
@@ -176,18 +176,18 @@ class IsUrlNaiveTests(TestCase):
         NOT_URLS: A list of strings which aren't URLs.
     """
 
-    URLS = [
+    URLS = (
         'http://foobar',
         'localhost:8080',
         'qutebrowser.org',
-    ]
+    )
 
-    NOT_URLS = [
+    NOT_URLS = (
         'foo bar',
         'localhost test',
         'another . test',
         'foo',
-    ]
+    )
 
     def test_urls(self):
         """Test things which are URLs."""

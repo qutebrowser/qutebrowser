@@ -262,21 +262,21 @@ for trg in options['targets']:
     print("==================== {} ====================".format(trg))
     if do_check_257:
         check_pep257(trg, _get_args('pep257'))
-    for chk in ['pylint', 'flake8']:
+    for chk in ('pylint', 'flake8'):
         # FIXME what the hell is the flake8 exit status?
         run(chk, trg, _get_args(chk))
     check_line(trg, )
 
 if '--setup' in argv:
     print("==================== Setup checks ====================")
-    for chk in ['pyroma', 'check-manifest']:
+    for chk in ('pyroma', 'check-manifest'):
         run(chk, args=_get_args(chk))
 
 print("Exit status values:")
 for (k, v) in status.items():
     print('  {} - {}'.format(k, v))
 
-if all(val in [True, 0] for val in status):
+if all(val in (True, 0) for val in status):
     sys.exit(0)
 else:
     sys.exit(1)

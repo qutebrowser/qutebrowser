@@ -147,7 +147,7 @@ class Url(TextBase):
         Args:
             status: The LoadStatus as string.
         """
-        if status in ['success', 'error', 'warn']:
+        if status in ('success', 'error', 'warn'):
             self.normal_url_type = status
         else:
             self.normal_url_type = 'normal'
@@ -186,7 +186,7 @@ class Url(TextBase):
         self.hover_url = None
         self.normal_url = tab.url_text
         status = LoadStatus[tab.load_status]
-        if status in ['success', 'error', 'warn']:
+        if status in ('success', 'error', 'warn'):
             self.normal_url_type = status
         else:
             self.normal_url_type = 'normal'

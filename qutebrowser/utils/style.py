@@ -50,12 +50,12 @@ class Style(QCommonStyle):
             style: The base/"parent" style.
         """
         self._style = style
-        for method in ['drawComplexControl', 'drawControl', 'drawItemPixmap',
+        for method in ('drawComplexControl', 'drawControl', 'drawItemPixmap',
                        'drawItemText', 'generatedIconPixmap',
                        'hitTestComplexControl', 'itemPixmapRect',
                        'itemTextRect', 'pixelMetric', 'polish', 'styleHint',
                        'subControlRect', 'subElementRect', 'unpolish',
-                       'sizeFromContents']:
+                       'sizeFromContents'):
             target = getattr(self._style, method)
             setattr(self, method, functools.partial(target))
         super().__init__()

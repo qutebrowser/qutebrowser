@@ -268,14 +268,14 @@ class HintManager(QObject):
         pos = webelem.rect_on_view(elem).center()
         logger.debug("Clicking on '{}' at {}/{}".format(elem.toPlainText(),
                                                         pos.x(), pos.y()))
-        events = [
+        events = (
             QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
                         Qt.NoModifier),
             QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton,
                         Qt.NoButton, Qt.NoModifier),
             QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
                         Qt.NoButton, Qt.NoModifier),
-        ]
+        )
         for evt in events:
             self.mouse_event.emit(evt)
 
@@ -330,7 +330,7 @@ class HintManager(QObject):
         # First check for <link rel="prev(ious)|next">
         elems = frame.findAllElements(
             webelem.SELECTORS[webelem.Group.prevnext_rel])
-        rel_values = ['prev', 'previous'] if prev else ['next']
+        rel_values = ('prev', 'previous') if prev else ('next')
         for e in elems:
             if e.attribute('rel') in rel_values:
                 return e

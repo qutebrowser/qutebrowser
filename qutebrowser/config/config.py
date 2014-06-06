@@ -347,7 +347,7 @@ class ConfigManager(QObject):
         except KeyError:
             raise NoOptionError(optname, sectname)
         else:
-            if sectname in ['colors', 'fonts']:
+            if sectname in ('colors', 'fonts'):
                 self.style_changed.emit(sectname, optname)
             self.changed.emit(sectname, optname)
 

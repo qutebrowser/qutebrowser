@@ -92,15 +92,15 @@ class BaseKeyParser(QObject):
         Return:
             The normalized keystring.
         """
-        replacements = [
+        replacements = (
             ('Control', 'Ctrl'),
             ('Windows', 'Meta'),
             ('Mod1', 'Alt'),
             ('Mod4', 'Meta'),
-        ]
+        )
         for (orig, repl) in replacements:
             keystr = keystr.replace(orig, repl)
-        for mod in ['Ctrl', 'Meta', 'Alt', 'Shift']:
+        for mod in ('Ctrl', 'Meta', 'Alt', 'Shift'):
             keystr = keystr.replace(mod + '-', mod + '+')
         keystr = QKeySequence(keystr).toString()
         return keystr
@@ -122,7 +122,7 @@ class BaseKeyParser(QObject):
             Qt.MetaModifier: 'Meta',
             Qt.ShiftModifier: 'Shift'
         }
-        if e.key() in [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta]:
+        if e.key() in (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta):
             # Only modifier pressed
             return False
         mod = e.modifiers()

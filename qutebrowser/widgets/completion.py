@@ -83,7 +83,7 @@ class CompletionView(QTreeView):
             {color[completion.item.selected.fg]}
         }}
     """
-    COLUMN_WIDTHS = [20, 70, 10]
+    COLUMN_WIDTHS = (20, 70, 10)
 
     # FIXME style scrollbar
 

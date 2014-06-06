@@ -459,7 +459,7 @@ class Color(CssColor):
 
     typestr = 'color'
 
-    _GRADIENTS = ['qlineargradient', 'qradialgradient', 'qconicalgradient']
+    _GRADIENTS = ('qlineargradient', 'qradialgradient', 'qconicalgradient')
 
     def validate(self, value):
         if any([value.startswith(start) for start in Color._GRADIENTS]):
@@ -775,13 +775,13 @@ class AutoSearch(BaseType):
                                ('false', "Never search automatically."))
 
     def validate(self, value):
-        if value.lower() in ['naive', 'dns']:
+        if value.lower() in ('naive', 'dns'):
             pass
         else:
             Bool.validate(self, value)
 
     def transform(self, value):
-        if value.lower() in ['naive', 'dns']:
+        if value.lower() in ('naive', 'dns'):
             return value.lower()
         elif super().transform(value):
             # boolean true is an alias for naive matching

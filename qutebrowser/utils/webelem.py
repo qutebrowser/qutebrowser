@@ -128,12 +128,12 @@ def javascript_escape(text):
     """
     # This is a list of tuples because order matters, and using OrderedDict
     # makes no sense because we don't actually need dict-like properties.
-    replacements = [
+    replacements = (
         ('\\', r'\\'),  # First escape all literal \ signs as \\.
         ("'", r"\'"),   # Then escape ' and " as \' and \".
         ('"', r'\"'),   # (note it won't hurt when we escape the wrong one).
         ('\n', r'\n'),  # We also need to escape newlines for some reason.
-    ]
+    )
     for orig, repl in replacements:
         text = text.replace(orig, repl)
     return text

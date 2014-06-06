@@ -290,12 +290,12 @@ class JavascriptEscapeTests(TestCase):
         STRINGS: A list of (input, output) tuples.
     """
 
-    STRINGS = [
+    STRINGS = (
         ('foo\\bar', r'foo\\bar'),
         ('foo\nbar', r'foo\nbar'),
         ("foo'bar", r"foo\'bar"),
         ('foo"bar', r'foo\"bar'),
-    ]
+    )
 
     def test_fake_escape(self):
         for before, after in self.STRINGS:

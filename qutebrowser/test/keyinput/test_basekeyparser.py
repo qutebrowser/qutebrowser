@@ -1,4 +1,4 @@
-# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>:
 #
 # This file is part of qutebrowser.
 #
@@ -63,7 +63,7 @@ class ConfigStub:
         Return:
             The section as dict.
         """
-        if name not in ['test', 'test2']:
+        if name not in ('test', 'test2'):
             raise ValueError("section called with section '{}'!".format(name))
         return self.DATA[name]
 
@@ -91,14 +91,14 @@ class NormalizeTests(TestCase):
 
     def test_normalize(self):
         """Test normalize with some strings."""
-        STRINGS = [
+        STRINGS = (
             ('Control+x', 'Ctrl+X'),
             ('Windows+x', 'Meta+X'),
             ('Mod1+x', 'Alt+X'),
             ('Mod4+x', 'Meta+X'),
             ('Control--', 'Ctrl+-'),
             ('Windows++', 'Meta++'),
-        ]
+        )
         for orig, repl in STRINGS:
             self.assertEqual(self.kp._normalize_keystr(orig), repl, orig)
 

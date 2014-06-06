@@ -204,19 +204,19 @@ class ShellEscapeTests(TestCase):
         platform: The saved sys.platform value.
     """
 
-    TEXTS_LINUX = [
+    TEXTS_LINUX = (
         ('', "''"),
         ('foo%bar+baz', 'foo%bar+baz'),
         ('foo$bar', "'foo$bar'"),
         ("$'b", """'$'"'"'b'"""),
-    ]
+    )
 
-    TEXTS_WINDOWS = [
+    TEXTS_WINDOWS = (
         ('', '""'),
         ('foo*bar?baz', 'foo*bar?baz'),
         ("a&b|c^d<e>f%", "a^&b^|c^^d^<e^>f^%"),
         ('foo"bar', 'foo"""bar'),
-    ]
+    )
 
     def setUp(self):
         self.platform = sys.platform

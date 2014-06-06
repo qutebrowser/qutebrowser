@@ -156,8 +156,8 @@ class Application(QApplication):
             The argv list to be passed to Qt.
         """
         argv = [sys.argv[0]]
-        qt_args = ['style', 'stylesheet', 'widget-count', 'reverse',
-                   'qmljsdebugger']
+        qt_args = ('style', 'stylesheet', 'widget-count', 'reverse',
+                   'qmljsdebugger')
         for argname in qt_args:
             val = getattr(namespace, 'qt_' + argname, None)
             if val is None:
@@ -375,9 +375,9 @@ class Application(QApplication):
 
         # config
         self.config.style_changed.connect(style.invalidate_caches)
-        for obj in [tabs, completion, self.mainwindow, self.cmd_history,
+        for obj in (tabs, completion, self.mainwindow, self.cmd_history,
                     websettings, kp['normal'], self.modeman, status,
-                    status.txt]:
+                    status.txt):
             self.config.changed.connect(obj.on_config_changed)
 
         # statusbar

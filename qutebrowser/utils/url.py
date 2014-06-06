@@ -73,7 +73,7 @@ def _is_url_naive(url):
     Return:
         True if the URL really is a URL, False otherwise.
     """
-    protocols = ['http', 'https']
+    protocols = ('http', 'https')
     u = qurl(url)
     urlstr = urlstring(url)
     if isinstance(url, QUrl):
@@ -159,7 +159,7 @@ def fuzzy_url(url):
 
 def is_special_url(url):
     """Return True if url is an about:... or other special URL."""
-    special_schemes = ['about', 'qute', 'file']
+    special_schemes = ('about', 'qute', 'file')
     return qurl(url).scheme() in special_schemes
 
 

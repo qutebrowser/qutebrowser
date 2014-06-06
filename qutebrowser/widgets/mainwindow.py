@@ -89,7 +89,7 @@ class MainWindow(QWidget):
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Resize completion if config changed."""
-        if section == 'completion' and option in ['height', 'shrink']:
+        if section == 'completion' and option in ('height', 'shrink'):
             self.resize_completion()
 
     @pyqtSlot()

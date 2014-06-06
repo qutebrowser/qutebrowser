@@ -71,7 +71,7 @@ class Prompt(QWidget):
             cancelled: Emitted when the mode was forcibly left by the user
                        without answering the question.
         """
-        if mode in ['prompt', 'yesno']:
+        if mode in ('prompt', 'yesno'):
             self._txt.setText('')
             self._input.clear()
             self._input.setEchoMode(QLineEdit.Normal)
