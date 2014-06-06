@@ -631,9 +631,8 @@ class CommandDispatcher:
         cur = self._tabs.currentWidget()
         if cur.inspector is None:
             if not config.get('general', 'developer-extras'):
-                message.error("Please enable developer-extras before using "
-                              "the webinspector!")
-                return
+                raise CommandError("Please enable developer-extras before "
+                                   "using the webinspector!")
             cur.inspector = QWebInspector()
             cur.inspector.setPage(cur.page())
             cur.inspector.show()
@@ -641,9 +640,8 @@ class CommandDispatcher:
             cur.inspector.hide()
         else:
             if not config.get('general', 'developer-extras'):
-                message.error("Please enable developer-extras before using "
-                              "the webinspector!")
-                return
+                raise CommandError("Please enable developer-extras before "
+                                   "using the webinspector!")
             else:
                 cur.inspector.show()
 
@@ -660,8 +658,7 @@ class CommandDispatcher:
         elem = frame.findFirstElement(webelem.SELECTORS[
             webelem.Group.editable_focused])
         if elem.isNull():
-            message.error("No editable element focused!")
-            return
+            raise CommandError("No editable element focused!")
         text = elem.evaluateJavaScript('this.value')
         self._editor = ExternalEditor()
         self._editor.editing_finished.connect(
@@ -678,7 +675,6 @@ class CommandDispatcher:
             text: The new text to insert.
         """
         if elem.isNull():
-            message.error("Element vanished while editing!")
-            return
+            raise CommandError("Element vanished while editing!")
         text = webelem.javascript_escape(text)
         elem.evaluateJavaScript("this.value='{}'".format(text))

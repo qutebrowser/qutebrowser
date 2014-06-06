@@ -303,7 +303,7 @@ class ConfigManager(QObject):
             self.set('conf', sectname, optname, value)
         except (NoOptionError, NoSectionError, ValidationError,
                 ValueError) as e:
-            message.error("set: {} - {}".format(e.__class__.__name__, e))
+            raise CommandError("set: {} - {}".format(e.__class__.__name__, e))
 
     @cmdutils.register(name='set-temp', instance='config',
                        completion=['section', 'option', 'value'])
@@ -315,7 +315,7 @@ class ConfigManager(QObject):
         try:
             self.set('temp', sectname, optname, value)
         except (NoOptionError, NoSectionError, ValidationError) as e:
-            message.error("set: {} - {}".format(e.__class__.__name__, e))
+            raise CommandError("set: {} - {}".format(e.__class__.__name__, e))
 
     def set(self, layer, sectname, optname, value):
         """Set an option.

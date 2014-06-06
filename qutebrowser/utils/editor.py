@@ -46,6 +46,8 @@ class ExternalEditor(QObject):
         try:
             os.remove(self.filename)
         except PermissionError:
+            # NOTE: Do not replace this with "raise CommandError" as it's
+            # executed async.
             message.error("Failed to delete tempfile...")
         self.text = None
         self.oshandle = None
@@ -67,6 +69,8 @@ class ExternalEditor(QObject):
             return
         try:
             if exitcode != 0:
+                # NOTE: Do not replace this with "raise CommandError" as it's
+                # executed async.
                 message.error("Editor did quit abnormally (status {})!".format(
                     exitcode))
                 return
@@ -89,6 +93,8 @@ class ExternalEditor(QObject):
                                  "from the process."),
             QProcess.UnknownError: "An unknown error occurred.",
         }
+        # NOTE: Do not replace this with "raise CommandError" as it's
+        # executed async.
         message.error("Error while calling editor: {}".format(messages[error]))
         self._cleanup()
 

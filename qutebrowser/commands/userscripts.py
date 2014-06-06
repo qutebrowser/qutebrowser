@@ -28,6 +28,7 @@ from PyQt5.QtCore import (pyqtSignal, QObject, QThread, QStandardPaths,
 import qutebrowser.utils.message as message
 from qutebrowser.utils.misc import get_standard_dir
 from qutebrowser.utils.log import procs as logger
+from qutebrowser.commands.exceptions import CommandError
 
 
 class _BlockingFIFOReader(QObject):
@@ -138,6 +139,8 @@ class _BaseUserscriptRunner(QObject):
         try:
             os.remove(self.filepath)
         except PermissionError:
+            # NOTE: Do not replace this with "raise CommandError" as it's
+            # executed async.
             message.error("Failed to delete tempfile...")
         self.filepath = None
         self.proc = None
@@ -164,6 +167,8 @@ class _BaseUserscriptRunner(QObject):
     def on_proc_error(self, error):
         """Called when the process encountered an error."""
         msg = self.PROCESS_MESSAGES[error]
+        # NOTE: Do not replace this with "raise CommandError" as it's
+        # executed async.
         message.error("Error while calling userscript: {}".format(msg))
 
 
@@ -284,7 +289,7 @@ class _DummyUserscriptRunner:
 
     def run(self, _cmd, *_args, _env=None):
         """Print an error as userscripts are not supported."""
-        message.error("Userscripts are not supported on this platform!")
+        raise CommandError("Userscripts are not supported on this platform!")
 
 
 # Here we basically just assign a generic UserscriptRunner class which does the
