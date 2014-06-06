@@ -49,6 +49,20 @@ def _parse_args():
     debug.add_argument('--harfbuzz', choices=['old', 'new', 'system', 'auto'],
                         default='auto', help="HarfBuzz engine version to use. "
                         "Default: auto.")
+    debug.add_argument('--qt-style', help="Set the Qt GUI style to use.",
+                       metavar='STYLE')
+    debug.add_argument('--qt-stylesheet', help="Override the Qt application "
+                       "stylesheet.", metavar='STYLESHEET')
+    debug.add_argument('--qt-widget-count', help="Print debug message at the "
+                       "end about number of widgets left undestroyed and "
+                       "maximum number of widgets existed at the same time.",
+                       action='store_true')
+    debug.add_argument('--qt-reverse', help="Set the application's layout "
+                       "direction to right-to-left.", action='store_true')
+    debug.add_argument('--qt-qmljsdebugger', help="Activate the QML/JS "
+                       "debugger with a specified port. 'block' is optional "
+                       "and will make the application wait until a debugger "
+                       "connects to it.", metavar='port:PORT[,block]')
     parser.add_argument('command', nargs='*', help="Commands to execute on "
                         "startup.", metavar=':command')
     # URLs will actually be in command

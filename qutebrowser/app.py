@@ -94,7 +94,7 @@ class Application(QApplication):
         Args:
             Argument namespace from argparse.
         """
-        super().__init__(sys.argv)
+        super().__init__(self._get_qt_args(args))
         self._quit_status = {
             'crash': True,
             'tabs': False,
@@ -145,6 +145,35 @@ class Application(QApplication):
 
         if self._crashdlg is not None:
             self._crashdlg.raise_()
+
+    def _get_qt_args(self, namespace):
+        """Get the Qt QApplication arguments based on an argparse namespace.
+
+        Args:
+            namespace: The argparse namespace.
+
+        Return:
+            The argv list to be passed to Qt.
+        """
+        argv = [sys.argv[0]]
+        qt_args = ['style', 'stylesheet', 'widget-count', 'reverse',
+                   'qmljsdebugger']
+        for argname in qt_args:
+            try:
+                val = getattr(namespace, 'qt_' + argname)
+            except AttributeError:
+                pass
+            else:
+                if val is True:
+                    argv.append('-' + argname)
+                elif val in [False, None]:
+                    # flag/argument not given
+                    pass
+                else:
+                    argv.append('-' + argname)
+                    argv.append(val)
+        log.init.debug("Qt arguments: {}, based on {}".format(argv, namespace))
+        return argv
 
     def _init_config(self):
         """Inizialize and read the config."""
