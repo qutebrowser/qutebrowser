@@ -10,7 +10,8 @@ license=('GPL')
 depends=('python' 'python-setuptools' 'python-pyqt5' 'qt5-base' 'qt5-webkit'
          'libxkbcommon-x11')
 makedepends=('python' 'python-setuptools')
-optdepends=('python-colorlog: colored logging output')
+optdepends=('python-colorlog: colored logging output'
+            'python-ipdb: better debugging')
 options=(!emptydirs)
 source=('qutebrowser::git://the-compiler.org/qutebrowser')
 md5sums=('SKIP')
