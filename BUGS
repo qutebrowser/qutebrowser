@@ -59,6 +59,9 @@ Bugs
   window has a bigger size hint instead of tabs getting smaller than the
   minimum size (iggy)
 
+- Directly opening a webm video (e.g.
+  http://fat.gfycat.com/AlienatedMaleAplomadofalcon.webm ) prints a webkit error.
+
 Upstream Bugs
 =============
 

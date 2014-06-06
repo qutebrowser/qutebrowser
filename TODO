@@ -42,6 +42,7 @@ New big features
 Improvements / minor features
 =============================
 
+- Improve error pages (print error domain/code/...)
 - Print nicer error message when platform plugin is missing
   (on Arch: libxkbcommon-x11)
 - Add harfbuzz forcing to version info
@@ -86,6 +87,11 @@ hints
 - ignore keypresses shortly after link following
 - uppercase hint chars without requiring upper case to type (easier to
   distinguish)
+
+Style
+=====
+
+- Use context managers (e.g. editor/hintmanager/...)
 
 dwb keybindings to possibly implement
 =====================================
