@@ -35,7 +35,7 @@ class LogFilterTests(TestCase):
     def setUp(self):
         self.logger = logging.getLogger("foo")
 
-    def _make_record(self, name, level=logging.INFO):
+    def _make_record(self, name, level=logging.DEBUG):
         """Create a bogus logging record with the supplied logger name."""
         return self.logger.makeRecord(name, level=level, fn=None, lno=0,
                                       msg="", args=None, exc_info=None)
@@ -82,9 +82,9 @@ class LogFilterTests(TestCase):
         """Test if messages more important than debug are never filtered."""
         logfilter = log.LogFilter(["eggs"])
         # First check if the filter works as intended with debug messages
-        record = self._make_record("eggs", level=logging.DEBUG)
+        record = self._make_record("eggs")
         self.assertTrue(logfilter.filter(record))
-        record = self._make_record("bacon", level=logging.DEBUG)
+        record = self._make_record("bacon")
         self.assertFalse(logfilter.filter(record))
         # Then check if info is not filtered
         record = self._make_record("eggs", level=logging.INFO)
