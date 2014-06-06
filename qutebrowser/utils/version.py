@@ -162,8 +162,35 @@ def version():
     except ImportError:
         pass
     else:
-        lines.append('SIP {}'.format(
-            sipconfig.Configuration().sip_version_str))
+        try:
+            lines.append('SIP {}'.format(
+                sipconfig.Configuration().sip_version_str))
+        except (AttributeError, TypeError):
+            lines.append('SIP ?')
+
+    try:
+        import ipdb  # pylint: disable=import-error
+        import IPython
+    except ImportError:
+        pass
+    else:
+        version = getattr(IPython, '__version__', 'yes')
+        lines.append('ipdb/IPython {}'.format(IPython.__version__))
+
+    try:
+        import colorlog  # pylint: disable=import-error
+    except ImportError:
+        pass
+    else:
+        lines.append('colorlog: yes')
+
+    try:
+        import colorama  # pylint: disable=import-error
+    except ImportError:
+        pass
+    else:
+        version = getattr(colorama, 'VERSION', 'yes')
+        lines.append('colorama: {}'.format(version))
 
     lines += [
         'Webkit {}'.format(qWebKitVersion()),
