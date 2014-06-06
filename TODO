@@ -18,6 +18,11 @@ Before 0.1
 Style
 =====
 
+- Get rid of start()/stop() mess.
+  - Use a Context obj which maybe is a contextmanager
+  - Just use multiple HintManagers
+
+
 New big features
 ================
 
