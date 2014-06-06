@@ -72,6 +72,10 @@ Improvements / minor features
 - :messages command to view past messages
 - Maybe the completion widget shouldn't be a QTreeView with tree models as
   there are many hacks involved by now (see notes).
+- :%! like feature to pipe current page through a filter.
+- Add FIFOHandler based on asyncio if it's available
+- Maybe we should depend on Python >= 3.4 and Qt >= 5.1?
+  In general we should check our requirements.
 
 hints
 -----
