@@ -77,6 +77,7 @@ setupdata = {
     'author': qutebrowser.__author__,
     'author_email': qutebrowser.__email__,
     'license': qutebrowser.__license__,
+    'extras_require': {'colorlog': ['colorlog', 'colorama']},
     'classifiers': [
         'Development Status :: 3 - Alpha',
         'Environment :: X11 Applications :: Qt',

@@ -26,11 +26,17 @@ from collections import deque
 
 from PyQt5.QtCore import (QtDebugMsg, QtWarningMsg, QtCriticalMsg, QtFatalMsg,
                           qInstallMessageHandler)
+# Optional imports
 try:
     # pylint: disable=import-error
     from colorlog import ColoredFormatter
 except ImportError:
     ColoredFormatter = None
+try:
+    # pylint: disable=import-error
+    import colorama
+except ImportError:
+    colorama = None
 
 # The different loggers used.
 
@@ -81,7 +87,8 @@ def init_log(args):
     else:
         console_fmt = simple_fmt
         console_fmt_colored = simple_fmt_colored
-    if (ColoredFormatter is not None and os.name == 'posix' and
+    stream = sys.stderr  # Gets overwritten if we use colorama
+    if (ColoredFormatter is not None and (os.name == 'posix' or colorama) and
             sys.stderr.isatty() and args.color):
         console_formatter = ColoredFormatter(
             console_fmt_colored, datefmt, log_colors={
@@ -92,9 +99,13 @@ def init_log(args):
                 'CRITICAL': 'red',
             }
         )
+        if colorama:
+            colorama.init()
+            stream = colorama.AnsiToWin32(sys.stderr)
     else:
         console_formatter = logging.Formatter(console_fmt, datefmt, '{')
-    console_handler = logging.StreamHandler()
+
+    console_handler = logging.StreamHandler(stream)
     console_handler.addFilter(logfilter)
     console_handler.setLevel(level)
     console_handler.setFormatter(console_formatter)
