@@ -38,17 +38,22 @@ def _parse_args():
                         action='store_true')
     debug = parser.add_argument_group('debug arguments')
     debug.add_argument('-l', '--loglevel', dest='loglevel',
-                        help="Set loglevel", default='info')
+                       help="Set loglevel", default='info')
     debug.add_argument('--logfilter',
-                        help="Comma-separated list of things to be logged "
-                        "to the debug log on stdout.")
+                       help="Comma-separated list of things to be logged "
+                       "to the debug log on stdout.")
     debug.add_argument('--debug', help="Turn on debugging options.",
-                        action='store_true')
+                       action='store_true')
     debug.add_argument('--nocolor', help="Turn off colored logging.",
-                        action='store_false', dest='color')
+                       action='store_false', dest='color')
     debug.add_argument('--harfbuzz', choices=['old', 'new', 'system', 'auto'],
-                        default='auto', help="HarfBuzz engine version to use. "
-                        "Default: auto.")
+                       default='auto', help="HarfBuzz engine version to use. "
+                       "Default: auto.")
+    # Some notes on the Qt options:
+    #  - If a new option is added, it also needs to be added to _get_qt_args in
+    #    app.py.
+    #  - We use store_const with const=True rather than store_true because we
+    #    want the default to be None.
     debug.add_argument('--qt-style', help="Set the Qt GUI style to use.",
                        metavar='STYLE')
     debug.add_argument('--qt-stylesheet', help="Override the Qt application "
@@ -56,9 +61,10 @@ def _parse_args():
     debug.add_argument('--qt-widget-count', help="Print debug message at the "
                        "end about number of widgets left undestroyed and "
                        "maximum number of widgets existed at the same time.",
-                       action='store_true')
+                       action='store_const', const=True)
     debug.add_argument('--qt-reverse', help="Set the application's layout "
-                       "direction to right-to-left.", action='store_true')
+                       "direction to right-to-left.", action='store_const',
+                       const=True)
     debug.add_argument('--qt-qmljsdebugger', help="Activate the QML/JS "
                        "debugger with a specified port. 'block' is optional "
                        "and will make the application wait until a debugger "

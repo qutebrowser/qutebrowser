@@ -159,19 +159,15 @@ class Application(QApplication):
         qt_args = ['style', 'stylesheet', 'widget-count', 'reverse',
                    'qmljsdebugger']
         for argname in qt_args:
-            try:
-                val = getattr(namespace, 'qt_' + argname)
-            except AttributeError:
-                pass
+            val = getattr(namespace, 'qt_' + argname, None)
+            if val is None:
+                # flag/argument not given
+                continue
+            elif val is True:
+                argv.append('-' + argname)
             else:
-                if val is True:
-                    argv.append('-' + argname)
-                elif val in [False, None]:
-                    # flag/argument not given
-                    pass
-                else:
-                    argv.append('-' + argname)
-                    argv.append(val)
+                argv.append('-' + argname)
+                argv.append(val)
         log.init.debug("Qt arguments: {}, based on {}".format(argv, namespace))
         return argv
 
