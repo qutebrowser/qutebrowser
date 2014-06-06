@@ -127,38 +127,16 @@ def _release_info():
     return data
 
 
-def version():
-    """Return a string with various version informations."""
-    releaseinfo = None
-    if sys.platform == 'linux':
-        osver = ', '.join([e for e in platform.dist() if e])
-        releaseinfo = _release_info()
-    elif sys.platform == 'win32':
-        osver = ', '.join(platform.win32_ver())
-    elif sys.platform == 'darwin':
-        osver = ', '.join(platform.mac_ver())
-    else:
-        osver = '?'
+def _module_versions():
+    """Get versions of optional modules.
 
-    gitver = _git_str()
-
-    lines = [
-        "qutebrowser v{}".format(qutebrowser.__version__),
-    ]
-
-    if gitver is not None:
-        lines.append("Git commit: {}".format(gitver))
-
-    lines += [
-        '',
-        '{} {}'.format(platform.python_implementation(),
-                       platform.python_version()),
-        'Qt {}, runtime {}'.format(QT_VERSION_STR, qVersion()),
-        'PyQt {}'.format(PYQT_VERSION_STR),
-    ]
-
+    Return:
+        A list of lines with version info.
+    """
+    # pylint: disable=import-error, unused-variable
+    lines = []
     try:
-        import sipconfig  # pylint: disable=import-error
+        import sipconfig
     except ImportError:
         pass
     else:
@@ -169,39 +147,75 @@ def version():
             lines.append('SIP ?')
 
     try:
-        import ipdb  # pylint: disable=import-error
+        import ipdb
         import IPython
     except ImportError:
         pass
     else:
-        version = getattr(IPython, '__version__', 'yes')
-        lines.append('ipdb/IPython {}'.format(IPython.__version__))
+        ver = getattr(IPython, '__version__', 'yes')
+        lines.append('ipdb/IPython {}'.format(ver))
 
     try:
-        import colorlog  # pylint: disable=import-error
+        import colorlog
     except ImportError:
         pass
     else:
         lines.append('colorlog: yes')
 
     try:
-        import colorama  # pylint: disable=import-error
+        import colorama
     except ImportError:
         pass
     else:
-        version = getattr(colorama, 'VERSION', 'yes')
-        lines.append('colorama: {}'.format(version))
+        ver = getattr(colorama, 'VERSION', 'yes')
+        lines.append('colorama: {}'.format(ver))
 
+    return lines
+
+
+def _os_info():
+    """Get operating system info.
+
+    Return:
+        A list of lines with version info.
+    """
+    lines = []
+    releaseinfo = None
+    if sys.platform == 'linux':
+        osver = ', '.join([e for e in platform.dist() if e])
+        releaseinfo = _release_info()
+    elif sys.platform == 'win32':
+        osver = ', '.join(platform.win32_ver())
+    elif sys.platform == 'darwin':
+        osver = ', '.join(platform.mac_ver())
+    else:
+        osver = '?'
+    lines.append('OS Version: {}'.format(osver))
+    if releaseinfo is not None:
+        for (fn, data) in releaseinfo:
+            lines += ['', '--- {} ---'.format(fn), data]
+    return lines
+
+
+def version():
+    """Return a string with various version informations."""
+    lines = ["qutebrowser v{}".format(qutebrowser.__version__)]
+    gitver = _git_str()
+    if gitver is not None:
+        lines.append("Git commit: {}".format(gitver))
+    lines += [
+        '',
+        '{} {}'.format(platform.python_implementation(),
+                       platform.python_version()),
+        'Qt {}, runtime {}'.format(QT_VERSION_STR, qVersion()),
+        'PyQt {}'.format(PYQT_VERSION_STR),
+    ]
+    lines += _module_versions()
     lines += [
         'Webkit {}'.format(qWebKitVersion()),
         '',
         'Platform: {}, {}'.format(platform.platform(),
                                   platform.architecture()[0]),
-        'OS Version: {}'.format(osver),
     ]
-
-    if releaseinfo is not None:
-        for (fn, data) in releaseinfo:
-            lines += ['', '--- {} ---'.format(fn), data]
-
+    lines += _os_info()
     return '\n'.join(lines)
