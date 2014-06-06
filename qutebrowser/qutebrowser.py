@@ -32,20 +32,21 @@ def _parse_args():
         Argument namespace from argparse.
     """
     parser = ArgumentParser("usage: %(prog)s [options]")
-    parser.add_argument('-l', '--loglevel', dest='loglevel',
-                        help="Set loglevel", default='info')
-    parser.add_argument('--logfilter',
-                        help="Comma-separated list of things to be logged "
-                        "to the debug log on stdout.")
     parser.add_argument('-c', '--confdir', help="Set config directory (empty "
                         "for no config storage)")
-    parser.add_argument('--debug', help="Turn on debugging options.",
-                        action='store_true')
-    parser.add_argument('--nocolor', help="Turn off colored logging.",
-                        action='store_false', dest='color')
     parser.add_argument('-V', '--version', help="Show version and quit.",
                         action='store_true')
-    parser.add_argument('--harfbuzz', choices=['old', 'new', 'system', 'auto'],
+    debug = parser.add_argument_group('debug arguments')
+    debug.add_argument('-l', '--loglevel', dest='loglevel',
+                        help="Set loglevel", default='info')
+    debug.add_argument('--logfilter',
+                        help="Comma-separated list of things to be logged "
+                        "to the debug log on stdout.")
+    debug.add_argument('--debug', help="Turn on debugging options.",
+                        action='store_true')
+    debug.add_argument('--nocolor', help="Turn off colored logging.",
+                        action='store_false', dest='color')
+    debug.add_argument('--harfbuzz', choices=['old', 'new', 'system', 'auto'],
                         default='auto', help="HarfBuzz engine version to use. "
                         "Default: auto.")
     parser.add_argument('command', nargs='*', help="Commands to execute on "
