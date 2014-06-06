@@ -38,6 +38,18 @@ try:
 except ImportError:
     colorama = None
 
+# Log formats to use.
+SIMPLE_FMT = '{levelname}: {message}'
+EXTENDED_FMT = ('{asctime:8} {levelname:8} {name:10} {module}:{funcName}:'
+                '{lineno} {message}')
+SIMPLE_FMT_COLORED = '%(log_color)s%(levelname)s%(reset)s: %(message)s'
+EXTENDED_FMT_COLORED = ('%(green)s%(asctime)-8s%(reset)s %(log_color)'
+                        's%(levelname)-8s%(reset)s %(yellow)s%(name)-10s '
+                        '%(module)s:%(funcName)s:%(lineno)s%(reset)s '
+                        '%(message)s')
+DATEFMT = '%H:%M:%S'
+
+
 # The different loggers used.
 
 statusbar = getLogger('statusbar')
@@ -63,35 +75,72 @@ ram_handler = None
 
 def init_log(args):
     """Init loggers based on the argparse namespace passed."""
-    global ram_handler
-    logfilter = LogFilter(None if args.logfilter is None
-                          else args.logfilter.split(','))
     level = 'DEBUG' if args.debug else args.loglevel.upper()
     try:
         numeric_level = getattr(logging, level)
     except AttributeError:
         raise ValueError("Invalid log level: {}".format(args.loglevel))
-    simple_fmt = '{levelname}: {message}'
-    extended_fmt = ('{asctime:8} {levelname:8} {name:10} {module}:{funcName}:'
-                    '{lineno} {message}')
-    simple_fmt_colored = '%(log_color)s%(levelname)s%(reset)s: %(message)s'
-    extended_fmt_colored = ('%(green)s%(asctime)-8s%(reset)s '
-                            '%(log_color)s%(levelname)-8s%(reset)s '
-                            '%(yellow)s%(name)-10s %(module)s:%(funcName)s:'
-                            '%(lineno)s%(reset)s %(message)s')
-    datefmt = '%H:%M:%S'
 
-    if numeric_level <= logging.DEBUG:
-        console_fmt = extended_fmt
-        console_fmt_colored = extended_fmt_colored
+    console, ram = _init_handlers(numeric_level, args.color)
+    if args.logfilter is not None:
+        console.addFilter(args.logfilter.split(','))
+    root = getLogger()
+    root.addHandler(console)
+    root.addHandler(ram)
+    root.setLevel(logging.NOTSET)
+    logging.captureWarnings(True)
+    qInstallMessageHandler(qt_message_handler)
+
+
+def _init_handlers(level, color):
+    """Init log handlers.
+
+    Args:
+        level: The numeric logging level.
+        color: Whether to use color if available.
+    """
+    global ram_handler
+    console_formatter, ram_formatter, use_colorama = _init_formatters(
+        level, color)
+
+    if use_colorama:
+        stream = colorama.AnsiToWin32(sys.stderr)
     else:
-        console_fmt = simple_fmt
-        console_fmt_colored = simple_fmt_colored
-    stream = sys.stderr  # Gets overwritten if we use colorama
+        stream = sys.stderr
+    console_handler = logging.StreamHandler(stream)
+    console_handler.setLevel(level)
+    console_handler.setFormatter(console_formatter)
+
+    ram_handler = RAMHandler(capacity=500)
+    ram_handler.setLevel(logging.NOTSET)
+    ram_handler.setFormatter(ram_formatter)
+
+    return console_handler, ram_handler
+
+
+def _init_formatters(level, color):
+    """Init log formatters.
+
+    Args:
+        level: The numeric logging level.
+        color: Whether to use color if available.
+
+    Return:
+        A (console_formatter, ram_formatter, use_colorama) tuple.
+        console_formatter/ram_formatter: logging.Formatter instances.
+        use_colorama: Whether to use colorama.
+    """
+    if level <= logging.DEBUG:
+        console_fmt = EXTENDED_FMT
+        console_fmt_colored = EXTENDED_FMT_COLORED
+    else:
+        console_fmt = SIMPLE_FMT
+        console_fmt_colored = SIMPLE_FMT_COLORED
+    use_colorama = False
     if (ColoredFormatter is not None and (os.name == 'posix' or colorama) and
-            sys.stderr.isatty() and args.color):
+            sys.stderr.isatty() and color):
         console_formatter = ColoredFormatter(
-            console_fmt_colored, datefmt, log_colors={
+            console_fmt_colored, DATEFMT, log_colors={
                 'DEBUG': 'cyan',
                 'INFO': 'green',
                 'WARNING': 'yellow',
@@ -101,27 +150,11 @@ def init_log(args):
         )
         if colorama:
             colorama.init()
-            stream = colorama.AnsiToWin32(sys.stderr)
+            use_colorama = True
     else:
-        console_formatter = logging.Formatter(console_fmt, datefmt, '{')
-
-    console_handler = logging.StreamHandler(stream)
-    console_handler.addFilter(logfilter)
-    console_handler.setLevel(level)
-    console_handler.setFormatter(console_formatter)
-
-    ram_formatter = logging.Formatter(extended_fmt, datefmt, '{')
-    ram_handler = RAMHandler(capacity=500)
-    ram_handler.setLevel(logging.NOTSET)
-    ram_handler.setFormatter(ram_formatter)
-
-    root = getLogger()
-    root.addHandler(console_handler)
-    root.addHandler(ram_handler)
-    root.setLevel(logging.NOTSET)
-
-    logging.captureWarnings(True)
-    qInstallMessageHandler(qt_message_handler)
+        console_formatter = logging.Formatter(console_fmt, DATEFMT, '{')
+    ram_formatter = logging.Formatter(EXTENDED_FMT, DATEFMT, '{')
+    return console_formatter, ram_formatter, use_colorama
 
 
 def qt_message_handler(msg_type, context, msg):
