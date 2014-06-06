@@ -79,17 +79,17 @@ class LogFilterTests(TestCase):
         self.assertTrue(logfilter.filter(record))
 
     def test_debug(self):
-        """Test if debug messages are never filtered."""
+        """Test if messages more important than debug are never filtered."""
         logfilter = log.LogFilter(["eggs"])
-        # First check if the filter works as intended with non-debug messages
-        record = self._make_record("eggs", level=logging.INFO)
-        self.assertTrue(logfilter.filter(record))
-        record = self._make_record("bacon", level=logging.INFO)
-        self.assertFalse(logfilter.filter(record))
-        # Then check if debug is not filtered
+        # First check if the filter works as intended with debug messages
         record = self._make_record("eggs", level=logging.DEBUG)
         self.assertTrue(logfilter.filter(record))
         record = self._make_record("bacon", level=logging.DEBUG)
+        self.assertFalse(logfilter.filter(record))
+        # Then check if info is not filtered
+        record = self._make_record("eggs", level=logging.INFO)
+        self.assertTrue(logfilter.filter(record))
+        record = self._make_record("bacon", level=logging.INFO)
         self.assertTrue(logfilter.filter(record))
 
 
