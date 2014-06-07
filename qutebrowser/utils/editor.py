@@ -49,10 +49,6 @@ class ExternalEditor(QObject):
             # NOTE: Do not replace this with "raise CommandError" as it's
             # executed async.
             message.error("Failed to delete tempfile...")
-        self.text = None
-        self.oshandle = None
-        self.filename = None
-        self.proc = None
 
     def on_proc_closed(self, exitcode, exitstatus):
         """Write the editor text into the form field and clean up tempfile.
