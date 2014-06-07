@@ -15,14 +15,6 @@ Before 0.1
     - SSL-symbol in statusbar?
 - Downloads (at least calling a handler)
 
-Style
-=====
-
-- Get rid of start()/stop() mess.
-  - Use a Context obj which maybe is a contextmanager
-  - Just use multiple HintManagers
-
-
 New big features
 ================
 
@@ -92,11 +84,6 @@ hints
 - ignore keypresses shortly after link following
 - uppercase hint chars without requiring upper case to type (easier to
   distinguish)
-
-Style
-=====
-
-- Use context managers (e.g. editor/hintmanager/...)
 
 dwb keybindings to possibly implement
 =====================================
