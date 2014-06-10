@@ -192,6 +192,18 @@ def qt_message_handler(msg_type, context, msg):
     else:
         func = context.function
     name = 'qt' if context.category == 'default' else 'qt-' + context.category
+    if msg.splitlines()[0] == ('This application failed to start because it '
+                               'could not find or load the Qt platform plugin '
+                               '"xcb".'):
+        # Handle this message specially.
+        msg += ("\n\nOn Archlinux, this should fix the problem:\n"
+                "    pacman -S libxkbcommon-x11")
+        try:
+            import faulthandler
+        except ImportError:
+            pass
+        else:
+            faulthandler.disable()
     record = qt.makeRecord(name, level, context.file, context.line, msg, None,
                            None, func)
     qt.handle(record)
