@@ -66,6 +66,7 @@ init = getLogger('init')
 signals = getLogger('signals')
 hints = getLogger('hints')
 keyboard = getLogger('keyboard')
+downloads = getLogger('downloads')
 js = getLogger('js')
 qt = getLogger('qt')
 

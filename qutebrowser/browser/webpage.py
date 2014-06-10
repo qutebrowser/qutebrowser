@@ -18,7 +18,7 @@
 """The main browser widgets."""
 
 import sip
-from PyQt5.QtCore import QCoreApplication
+from PyQt5.QtCore import QCoreApplication, pyqtSignal, pyqtSlot
 from PyQt5.QtNetwork import QNetworkReply
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtPrintSupport import QPrintDialog
@@ -39,7 +39,12 @@ class BrowserPage(QWebPage):
     Attributes:
         _extension_handlers: Mapping of QWebPage extensions to their handlers.
         network_access_manager: The QNetworkAccessManager used.
+
+    Signals:
+        start_download: Emitted when a file should be downloaded.
     """
+
+    start_download = pyqtSignal('QNetworkReply*')
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -50,6 +55,7 @@ class BrowserPage(QWebPage):
         self.setNetworkAccessManager(
             QCoreApplication.instance().networkmanager)
         self.printRequested.connect(self.on_print_requested)
+        self.downloadRequested.connect(self.on_download_requested)
 
     def _handle_errorpage(self, opt, out):
         """Display an error page if needed.
@@ -117,6 +123,17 @@ class BrowserPage(QWebPage):
         """Handle printing when requested via javascript."""
         printdiag = QPrintDialog()
         printdiag.open(lambda: frame.print(printdiag.printer()))
+
+    @pyqtSlot('QNetworkRequest')
+    def on_download_requested(self, request):
+        """Called when the user wants to download a link.
+
+        Emit:
+            start_download: Emitted with the QNetworkReply associated with the
+                            passed request.
+        """
+        reply = self.networkAccessManager().get(request)
+        self.start_download.emit(reply)
 
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""
