@@ -22,6 +22,7 @@
 import os
 import sys
 import shutil
+import argparse
 import unittest
 import os.path
 import subprocess
@@ -377,6 +378,62 @@ class GetStandardDirWindowsTests(TestCase):
 
     def tearDown(self):
         self.app.quit()
+
+
+class GetQtArgsTests(TestCase):
+
+    """Tests for get_qt_args."""
+
+    def setUp(self):
+        self.parser = argparse.ArgumentParser()
+
+    def _namespace(self, cmdline, flags=None, args=None):
+        """Get an argparse namespace object based on arguments given.
+
+        Args:
+            cmdline: The given commandline.
+            flags: A list of strings (argument names) for flags without an
+                   argument.
+            args: A list of arguemnt names for flags with an argument.
+        """
+        if flags is not None:
+            for e in flags:
+                self.parser.add_argument(e, action='store_true')
+        if args is not None:
+            for e in args:
+                self.parser.add_argument(e, nargs=1)
+        return self.parser.parse_args(cmdline)
+
+    def test_no_qt_args(self):
+        """Test commandline with no Qt arguments given."""
+        ns = self._namespace(['--foo'], flags=['--foo'])
+        self.assertEqual(utils.get_qt_args(ns), [sys.argv[0]])
+
+    def test_qt_flag(self):
+        """Test commandline with a Qt flag."""
+        ns = self._namespace(['--foo', '--qt-reverse', '--bar'],
+                             flags=['--foo', '--qt-reverse', '--bar'])
+        self.assertEqual(utils.get_qt_args(ns), [sys.argv[0], '-reverse'])
+
+    def test_qt_arg(self):
+        """Test commandline with a Qt argument."""
+        ns = self._namespace(['--qt-stylesheet', 'foobar'],
+                             args=['--qt-stylesheet'])
+        self.assertEqual(utils.get_qt_args(ns), [sys.argv[0], '-stylesheet',
+                                                 'foobar'])
+
+    def test_qt_both(self):
+        """Test commandline with a Qt argument and flag."""
+        ns = self._namespace(['--qt-stylesheet', 'foobar', '--qt-reverse'],
+                             flags=['--qt-reverse'], args=['--qt-stylesheet'])
+        self.assertEqual(utils.get_qt_args(ns), [sys.argv[0],
+                                                 '-stylesheet', 'foobar',
+                                                 '-reverse'])
+
+    def test_qt_unknown(self):
+        """Test commandline with unknown Qt argument."""
+        ns = self._namespace(['--qt-foo'], flags=['--qt-foo'])
+        self.assertEqual(utils.get_qt_args(ns), [sys.argv[0]])
 
 
 if __name__ == '__main__':
