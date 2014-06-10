@@ -283,5 +283,5 @@ def get_qt_args(namespace):
             argv.append('-' + argname)
         else:
             argv.append('-' + argname)
-            argv.append(val)
+            argv.append(val[0])
     return argv
