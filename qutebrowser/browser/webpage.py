@@ -67,7 +67,7 @@ class BrowserPage(QWebPage):
         """
         ignored_errors = [
             (QWebPage.QtNetwork, QNetworkReply.OperationCanceledError),
-            (QWebPage.WebKit, 203), # "Loading is handled by the media engine"
+            (QWebPage.WebKit, 203),  # "Loading is handled by the media engine"
         ]
         info = sip.cast(opt, QWebPage.ErrorPageExtensionOption)
         errpage = sip.cast(out, QWebPage.ErrorPageExtensionReturn)
@@ -190,5 +190,5 @@ class BrowserPage(QWebPage):
         answer = message.modular_question("Interrupt long-running javascript?",
                                           PromptMode.yesno)
         if answer is None:
-            answer == True
+            answer = True
         return answer
