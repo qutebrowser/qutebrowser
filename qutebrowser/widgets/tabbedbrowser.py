@@ -155,6 +155,8 @@ class TabbedBrowser(TabWidget):
         tab.iconChanged.connect(self.on_icon_changed)
         tab.page().mainFrame().loadStarted.connect(partial(
             self.on_load_started, tab))
+        tab.page().windowCloseRequested.connect(partial(
+            self.on_window_close_requested, tab))
 
     def cntwidget(self, count=None):
         """Return a widget based on a count/idx.
@@ -240,6 +242,11 @@ class TabbedBrowser(TabWidget):
     def on_tab_close_requested(self, idx):
         """Close a tab via an index."""
         self.close_tab(idx)
+
+    @pyqtSlot(WebView)
+    def on_window_close_requested(self, widget):
+        """Close a tab with a widget given."""
+        self.close_tab(widget)
 
     @pyqtSlot(str, bool)
     def tabopen(self, url=None, background=None):
