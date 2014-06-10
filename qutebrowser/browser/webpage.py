@@ -21,6 +21,7 @@ import sip
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtNetwork import QNetworkReply
 from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.utils.message as message
@@ -48,6 +49,7 @@ class BrowserPage(QWebPage):
         }
         self.setNetworkAccessManager(
             QCoreApplication.instance().networkmanager)
+        self.printRequested.connect(self.on_print_requested)
 
     def _handle_errorpage(self, opt, out):
         """Display an error page if needed.
@@ -110,6 +112,11 @@ class BrowserPage(QWebPage):
         files.fileNames, _ = QFileDialog.getOpenFileNames(None, None,
                                                           suggested_file)
         return True
+
+    def on_print_requested(self, frame):
+        """Handle printing when requested via javascript."""
+        printdiag = QPrintDialog()
+        printdiag.open(lambda: frame.print(printdiag.printer()))
 
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""
