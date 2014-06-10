@@ -141,10 +141,10 @@ def _module_versions():
         pass
     else:
         try:
-            lines.append('SIP {}'.format(
+            lines.append('SIP: {}'.format(
                 sipconfig.Configuration().sip_version_str))
         except (AttributeError, TypeError):
-            lines.append('SIP ?')
+            lines.append('SIP: ?')
 
     try:
         import ipdb
@@ -153,7 +153,7 @@ def _module_versions():
         pass
     else:
         ver = getattr(IPython, '__version__', 'yes')
-        lines.append('ipdb/IPython {}'.format(ver))
+        lines.append('ipdb/IPython: {}'.format(ver))
 
     try:
         import colorlog
@@ -205,14 +205,15 @@ def version():
         lines.append("Git commit: {}".format(gitver))
     lines += [
         '',
-        '{} {}'.format(platform.python_implementation(),
+        '{}: {}'.format(platform.python_implementation(),
                        platform.python_version()),
-        'Qt {}, runtime {}'.format(QT_VERSION_STR, qVersion()),
-        'PyQt {}'.format(PYQT_VERSION_STR),
+        'Qt: {}, runtime: {}'.format(QT_VERSION_STR, qVersion()),
+        'PyQt: {}'.format(PYQT_VERSION_STR),
     ]
     lines += _module_versions()
     lines += [
-        'Webkit {}'.format(qWebKitVersion()),
+        'Webkit: {}'.format(qWebKitVersion()),
+        'Harfbuzz: {}'.format(os.environ.get('QT_HARFBUZZ', 'system')),
         '',
         'Platform: {}, {}'.format(platform.platform(),
                                   platform.architecture()[0]),
