@@ -65,6 +65,7 @@ class BrowserPage(QWebPage):
         """
         ignored_errors = [
             (QWebPage.QtNetwork, QNetworkReply.OperationCanceledError),
+            (QWebPage.WebKit, 203), # "Loading is handled by the media engine"
         ]
         info = sip.cast(opt, QWebPage.ErrorPageExtensionOption)
         errpage = sip.cast(out, QWebPage.ErrorPageExtensionReturn)
