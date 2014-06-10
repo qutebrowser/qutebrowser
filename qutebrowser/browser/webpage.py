@@ -61,13 +61,23 @@ class BrowserPage(QWebPage):
         Return:
             False if no error page should be displayed, True otherwise.
         """
+        ignored_errors = [
+            (QWebPage.QtNetwork, QNetworkReply.OperationCanceledError),
+        ]
         info = sip.cast(opt, QWebPage.ErrorPageExtensionOption)
         errpage = sip.cast(out, QWebPage.ErrorPageExtensionReturn)
         errpage.baseUrl = info.url
-        if (info.domain == QWebPage.QtNetwork and
-                info.error == QNetworkReply.OperationCanceledError):
-            return False
         urlstr = urlutils.urlstring(info.url)
+        if (info.domain, info.error) in ignored_errors:
+            log.webview.debug("Ignored error on {}: {} (error domain: {}, "
+                              "error code: {})".format(
+                                  urlstr, info.errorString, info.domain,
+                                  info.error))
+            return False
+        log.webview.error("Error while loading {}: {}".format(
+            urlstr, info.errorString))
+        log.webview.debug("Error domain: {}, error code: {}".format(
+            info.domain, info.error))
         title = "Error loading page: {}".format(urlstr)
         errpage.content = read_file('html/error.html').format(
             title=title, url=urlstr, error=info.errorString, icon='')
