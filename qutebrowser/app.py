@@ -54,7 +54,8 @@ from qutebrowser.config.iniparsers import ReadWriteConfigParser
 from qutebrowser.config.lineparser import LineConfigParser
 from qutebrowser.browser.cookies import CookieJar
 from qutebrowser.utils.message import MessageBridge
-from qutebrowser.utils.misc import get_standard_dir, actute_warning
+from qutebrowser.utils.misc import (get_standard_dir, actute_warning,
+                                    get_qt_args)
 from qutebrowser.utils.readline import ReadlineBridge
 from qutebrowser.utils.debug import set_trace  # pylint: disable=unused-import
 
@@ -94,7 +95,9 @@ class Application(QApplication):
         Args:
             Argument namespace from argparse.
         """
-        super().__init__(self._get_qt_args(args))
+        qt_args = get_qt_args(args)
+        log.init.debug("Qt arguments: {}, based on {}".format(qt_args, args))
+        super().__init__(get_qt_args(args))
         self._quit_status = {
             'crash': True,
             'tabs': False,
@@ -145,31 +148,6 @@ class Application(QApplication):
 
         if self._crashdlg is not None:
             self._crashdlg.raise_()
-
-    def _get_qt_args(self, namespace):
-        """Get the Qt QApplication arguments based on an argparse namespace.
-
-        Args:
-            namespace: The argparse namespace.
-
-        Return:
-            The argv list to be passed to Qt.
-        """
-        argv = [sys.argv[0]]
-        qt_args = ('style', 'stylesheet', 'widget-count', 'reverse',
-                   'qmljsdebugger')
-        for argname in qt_args:
-            val = getattr(namespace, 'qt_' + argname, None)
-            if val is None:
-                # flag/argument not given
-                continue
-            elif val is True:
-                argv.append('-' + argname)
-            else:
-                argv.append('-' + argname)
-                argv.append(val)
-        log.init.debug("Qt arguments: {}, based on {}".format(argv, namespace))
-        return argv
 
     def _init_config(self):
         """Inizialize and read the config."""
