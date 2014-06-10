@@ -431,6 +431,10 @@ DATA = OrderedDict([
          SettingValue(types.Bool(), 'true'),
          "Whether to show favicons in the tab bar."),
 
+        ('expand',
+         SettingValue(types.Bool(), 'false'),
+         "Whether to expand tabs to use the full window width."),
+
     )),
 
     ('storage', sect.KeyValue(

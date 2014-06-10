@@ -17,7 +17,7 @@
 
 """The tab widget used for TabbedBrowser from browser.py."""
 
-from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtCore import pyqtSlot, Qt, QSize
 from PyQt5.QtWidgets import QTabWidget, QTabBar, QSizePolicy
 from PyQt5.QtGui import QIcon, QPixmap
 
@@ -131,3 +131,14 @@ class TabBar(QTabBar):
         if idx == -1:
             return super().mousePressEvent(e)
         self.tabCloseRequested.emit(idx)
+
+    def tabSizeHint(self, index):
+        """Override tabSizeHint so all tabs are the same size.
+
+        https://wiki.python.org/moin/PyQt/Customising%20tab%20bars
+        """
+        if config.get('tabbar', 'expand'):
+            height = super().tabSizeHint(index).height()
+            return QSize(self.width() / self.count(), height)
+        else:
+            return super().tabSizeHint(index)
