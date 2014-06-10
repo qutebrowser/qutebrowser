@@ -20,6 +20,7 @@
 import sip
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtNetwork import QNetworkReply
+from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.utils.message as message
@@ -43,6 +44,7 @@ class BrowserPage(QWebPage):
         super().__init__(parent)
         self._extension_handlers = {
             QWebPage.ErrorPageExtension: self._handle_errorpage,
+            QWebPage.ChooseMultipleFilesExtension: self._handle_multiple_files,
         }
         self.setNetworkAccessManager(
             QCoreApplication.instance().networkmanager)
@@ -81,6 +83,31 @@ class BrowserPage(QWebPage):
         title = "Error loading page: {}".format(urlstr)
         errpage.content = read_file('html/error.html').format(
             title=title, url=urlstr, error=info.errorString, icon='')
+        return True
+
+    def _handle_multiple_files(self, opt, files):
+        """Handle uploading of multiple files.
+
+        Loosly based on Helpviewer/HelpBrowserWV.py from eric5.
+
+        Args:
+            opt: The ChooseMultipleFilesExtensionOption instance.
+            files: The ChooseMultipleFilesExtensionReturn instance to write
+                   return values to.
+
+        Return:
+            True on success, the superclass return value on failure.
+        """
+        info = sip.cast(opt, QWebPage.ChooseMultipleFilesExtensionOption)
+        files = sip.cast(files, QWebPage.ChooseMultipleFilesExtensionReturn)
+        if info is None or files is None:
+            return super().extension(QWebPage.ChooseMultipleFilesExtension,
+                                     opt, files)
+        suggested_file = ""
+        if opt.suggestedFileNames:
+            suggested_file = opt.suggestedFileNames[0]
+        files.fileNames, _ = QFileDialog.getOpenFileNames(None, None,
+                                                          suggested_file)
         return True
 
     def userAgentForUrl(self, url):
@@ -139,3 +166,13 @@ class BrowserPage(QWebPage):
             return (False, "")
         else:
             return (True, answer)
+
+    def chooseFile(self, _frame, suggested_file):
+        """Override QWebPage's chooseFile to be able to chose a file to upload.
+
+        Args:
+            frame: The parent QWebFrame.
+            suggested_file: A suggested filename.
+        """
+        filename, _ = QFileDialog.getOpenFileName(None, None, suggested_file)
+        return filename
