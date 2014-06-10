@@ -260,3 +260,28 @@ def actute_warning():
                       "https://bugs.freedesktop.org/show_bug.cgi?id=69476 for "
                       "details.")
                 break
+
+
+def get_qt_args(namespace):
+    """Get the Qt QApplication arguments based on an argparse namespace.
+
+    Args:
+        namespace: The argparse namespace.
+
+    Return:
+        The argv list to be passed to Qt.
+    """
+    argv = [sys.argv[0]]
+    qt_args = ('style', 'stylesheet', 'widget-count', 'reverse',
+               'qmljsdebugger')
+    for argname in qt_args:
+        val = getattr(namespace, 'qt_' + argname, None)
+        if val is None:
+            # flag/argument not given
+            continue
+        elif val is True:
+            argv.append('-' + argname)
+        else:
+            argv.append('-' + argname)
+            argv.append(val[0])
+    return argv
