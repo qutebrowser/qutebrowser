@@ -39,9 +39,6 @@ New big features
 Improvements / minor features
 =============================
 
-- Improve error pages (print error domain/code/...)
-- Print nicer error message when platform plugin is missing
-  (on Arch: libxkbcommon-x11)
 - Print some meaningful message (via qInstallMsgHandler) when platform plugins
   are missing, especially with xcb (on Arch: libxkbcommon-x11)
 - Reimplement tabbar to paint it by ourselves to look like dwb
