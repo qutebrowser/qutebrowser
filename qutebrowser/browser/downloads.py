@@ -52,7 +52,7 @@ class DownloadItem(QObject):
                             arg: The new percentage, -1 if unknown.
     """
 
-    REFRESH_INTERVAL = 1000
+    REFRESH_INTERVAL = 200
     speed_changed = pyqtSignal(float)
     percentage_changed = pyqtSignal(int)
 
@@ -131,7 +131,7 @@ class DownloadItem(QObject):
             delta = self.bytes_done
         else:
             delta = self.bytes_done - self._last_done
-        self.speed = delta / self.REFRESH_INTERVAL / 1000
+        self.speed = delta * 1000 / self.REFRESH_INTERVAL
         logger.debug("Download speed: {} bytes/sec".format(self.speed))
         self._last_done = self.bytes_done
         self.speed_changed.emit(self.speed)
