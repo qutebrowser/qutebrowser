@@ -103,6 +103,7 @@ class DownloadItem(QObject):
         self.bytes_total = bytes_total
         perc = round(self.percentage)
         if perc != self._last_percentage:
+            logger.debug("{}% downloaded".format(perc))
             self.percentage_changed.emit(perc)
             self._last_percentage = perc
 
@@ -115,6 +116,7 @@ class DownloadItem(QObject):
         self.fileobj.close()
         self.reply.close()
         self.reply.deleteLater()
+        logger.debug("Download finished")
 
     @pyqtSlot()
     def on_ready_read(self):
