@@ -19,7 +19,7 @@
 
 import os.path
 
-from PyQt5.QtCore import pyqtSlot, QObject, QTimer
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer
 
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
@@ -43,9 +43,18 @@ class DownloadItem(QObject):
         fileobj: The file object to download the file to.
         _last_done: The count of bytes which where downloaded when calculating
                     the speed the last time.
+        _last_percentage: The remembered percentage for percentage_changed.
+
+    Signals:
+        speed_changed: The download speed changed.
+                       arg: The speed in bytes/s
+        percentage_changed: The download percentage changed.
+                            arg: The new percentage, -1 if unknown.
     """
 
     REFRESH_INTERVAL = 1000
+    speed_changed = pyqtSignal(float)
+    percentage_changed = pyqtSignal(int)
 
     def __init__(self, reply, filename, parent=None):
         """Constructor.
@@ -60,6 +69,7 @@ class DownloadItem(QObject):
         self.bytes_total = None
         self.speed = None
         self._last_done = None
+        self._last_percentage = None
         # FIXME exceptions
         self.fileobj = open(filename, 'wb')
         reply.downloadProgress.connect(self.on_download_progress)
@@ -91,6 +101,10 @@ class DownloadItem(QObject):
         """
         self.bytes_done = bytes_done
         self.bytes_total = bytes_total
+        perc = round(self.percentage)
+        if perc != self._last_percentage:
+            self.percentage_changed.emit(perc)
+            self._last_percentage = perc
 
     @pyqtSlot()
     def on_finished(self):
@@ -118,6 +132,7 @@ class DownloadItem(QObject):
         self.speed = delta / self.REFRESH_INTERVAL / 1000
         logger.debug("Download speed: {} bytes/sec".format(self.speed))
         self._last_done = self.bytes_done
+        self.speed_changed.emit(self.speed)
 
 
 class DownloadManager(QObject):
