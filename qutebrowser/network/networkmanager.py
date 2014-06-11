@@ -18,12 +18,20 @@
 """Our own QNetworkAccessManager."""
 
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtNetwork import QNetworkAccessManager
+from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply
+
+try:
+    from PyQt5.QtNetwork import QSslSocket
+except ImportError:
+    SSL_AVAILABLE = False
+else:
+    SSL_AVAILABLE = QSslSocket.supportsSsl()
 
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
 import qutebrowser.utils.log as log
 from qutebrowser.network.qutescheme import QuteSchemeHandler
+from qutebrowser.network.schemehandler import ErrorNetworkReply
 from qutebrowser.utils.usertypes import PromptMode
 
 
@@ -46,7 +54,8 @@ class NetworkManager(QNetworkAccessManager):
         }
         if cookiejar is not None:
             self.setCookieJar(cookiejar)
-        self.sslErrors.connect(self.on_ssl_errors)
+        if SSL_AVAILABLE:
+            self.sslErrors.connect(self.on_ssl_errors)
         self.authenticationRequired.connect(self.on_authentication_required)
         self.proxyAuthenticationRequired.connect(
             self.on_proxy_authentication_required)
@@ -116,7 +125,11 @@ class NetworkManager(QNetworkAccessManager):
             A QNetworkReply.
         """
         scheme = req.url().scheme()
-        if scheme in self._scheme_handlers:
+        if scheme == 'https' and not SSL_AVAILABLE:
+            return ErrorNetworkReply(
+                "SSL is not supported by the installed Qt library!",
+                QNetworkReply.ProtocolUnknownError)
+        elif scheme in self._scheme_handlers:
             reply = self._scheme_handlers[scheme].createRequest(
                 op, req, outgoing_data)
         else:
