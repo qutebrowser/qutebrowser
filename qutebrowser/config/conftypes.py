@@ -22,11 +22,12 @@ import shlex
 import os.path
 from sre_constants import error as RegexError
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QStandardPaths
 from PyQt5.QtGui import QColor
 from PyQt5.QtNetwork import QNetworkProxy
 
 import qutebrowser.commands.utils as cmdutils
+from qutebrowser.utils.misc import get_standard_dir
 
 
 class ValidationError(ValueError):
@@ -528,6 +529,31 @@ class File(BaseType):
     def validate(self, value):
         if not os.path.isfile(value):
             raise ValidationError(value, "must be a valid file!")
+
+
+class Directory(BaseType):
+
+    """A directory on the local filesystem.
+
+    Attributes:
+        none: Whether to accept empty values as None.
+    """
+
+    typestr = 'directory'
+
+    def __init__(self, none=False):
+        self.none = none
+
+    def validate(self, value):
+        if self.none and not value:
+            return
+        if not os.path.isdir(value):
+            raise ValidationError(value, "must be a valid directory!")
+
+    def transform(self, value):
+        if not value:
+            return get_standard_dir(QStandardPaths.DownloadLocation)
+        return value
 
 
 class WebKitBytes(BaseType):

@@ -438,6 +438,11 @@ DATA = OrderedDict([
     )),
 
     ('storage', sect.KeyValue(
+        ('download-directory',
+         SettingValue(types.Directory(none=True), ''),
+         "The directory to save downloads to. An empty value selects a "
+         "sensible os-specific default."),
+
         ('maximum-pages-in-cache',
          SettingValue(types.Int(none=True, minval=0, maxval=MAXVALS['int']),
                       ''),

@@ -19,33 +19,98 @@
 
 import os.path
 
-from PyQt5.QtCore import pyqtSlot, QObject
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer
 
+import qutebrowser.config.config as config
+import qutebrowser.utils.message as message
 from qutebrowser.utils.log import downloads as logger
+from qutebrowser.utils.usertypes import PromptMode
 
 
 class DownloadItem(QObject):
 
     """A single download currently running.
 
+    Class attributes:
+        REFRESH_INTERVAL: How often to refresh the speed, in msec.
+
     Attributes:
         reply: The QNetworkReply associated with this download.
         percentage: How many percent were downloaded successfully.
+        bytes_done: How many bytes there are already downloaded.
+        bytes_total: The total count of bytes.
+        speed: The current download speed, in bytes per second.
+        fileobj: The file object to download the file to.
+        _last_done: The count of bytes which where downloaded when calculating
+                    the speed the last time.
     """
 
-    def __init__(self, reply, parent=None):
+    REFRESH_INTERVAL = 1000
+
+    def __init__(self, reply, filename, parent=None):
+        """Constructor.
+
+        Args:
+            reply: The QNetworkReply to download.
+            filename: The full filename to save the download to.
+        """
         super().__init__(parent)
         self.reply = reply
-        self.percentage = None
+        self.bytes_done = None
+        self.bytes_total = None
+        self.speed = None
+        self._last_done = None
+        # FIXME exceptions
+        self.fileobj = open(filename, 'wb')
+        reply.downloadProgress.connect(self.on_download_progress)
+        reply.finished.connect(self.on_finished)
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_speed)
+        self.timer.setInterval(self.REFRESH_INTERVAL)
+        self.timer.start()
+
+    @property
+    def percentage(self):
+        if self.bytes_total == -1:
+            return -1
+        elif self.bytes_total == 0:
+            return 0
+        elif self.bytes_done is None or self.bytes_total is None:
+            return None
+        else:
+            return 100 * self.bytes_done / self.bytes_total
 
     @pyqtSlot(int, int)
-    def on_download_progress(self, done, total):
-        if total == -1:
-            perc = -1
+    def on_download_progress(self, bytes_done, bytes_total):
+        self.bytes_done = bytes_done
+        self.bytes_total = bytes_total
+
+    @pyqtSlot()
+    def on_finished(self):
+        """Clean up when the download was finished."""
+        self.bytes_done = self.bytes_total
+        self.timer.stop()
+        self.fileobj.write(self.reply.readAll())
+        self.fileobj.close()
+        self.reply.close()
+        self.reply.deleteLater()
+
+    @pyqtSlot()
+    def on_ready_read(self):
+        """Read available data and save file when ready to read."""
+        # FIXME exceptions
+        self.fileobj.write(self.reply.readAll())
+
+    @pyqtSlot()
+    def update_speed(self):
+        """Recalculate the current download speed."""
+        if self._last_done is None:
+            delta = self.bytes_done
         else:
-            perc = 100 * done / total
-        logger.debug("{}% done".format(perc))
-        self.percentage = perc
+            delta = self.bytes_done - self._last_done
+        self.speed = delta / self.REFRESH_INTERVAL / 1000
+        logger.debug("Download speed: {} bytes/sec".format(self.speed))
+        self._last_done = self.bytes_done
 
 
 class DownloadManager(QObject):
@@ -88,25 +153,12 @@ class DownloadManager(QObject):
         Args:
             reply: The QNetworkReply to download.
         """
-        filename = self._get_filename(reply)
-        logger.debug("fetch: {} -> {}".format(reply.url(), filename))
-        reply.downloadProgress.connect(self.on_download_progress)
-        reply.readyRead.connect(self.on_ready_read)
-        reply.finished.connect(self.on_finished)
-
-    @pyqtSlot(int, int)
-    def on_download_progress(self, done, total):
-        if total == -1:
-            perc = '???'
-        else:
-            perc = 100 * done / total
-        logger.debug("{}% done".format(perc))
-
-    @pyqtSlot()
-    def on_ready_read(self):
-        logger.debug("readyread")
-        self.sender().readAll()
-
-    @pyqtSlot()
-    def on_finished(self):
-        logger.debug("finished")
+        suggested_filename = self._get_filename(reply)
+        download_location = config.get('storage', 'download-directory')
+        suggested_filename = os.path.join(download_location,
+                                          suggested_filename)
+        logger.debug("fetch: {} -> {}".format(reply.url(), suggested_filename))
+        filename = message.modular_question("Save file to:", PromptMode.text,
+                                            suggested_filename)
+        if filename is not None:
+            self.downloads.append(DownloadItem(reply, filename))
