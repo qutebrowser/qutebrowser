@@ -24,6 +24,30 @@ from PyQt5.QtCore import pyqtSlot, QObject
 from qutebrowser.utils.log import downloads as logger
 
 
+class DownloadItem(QObject):
+
+    """A single download currently running.
+
+    Attributes:
+        reply: The QNetworkReply associated with this download.
+        percentage: How many percent were downloaded successfully.
+    """
+
+    def __init__(self, reply, parent=None):
+        super().__init__(parent)
+        self.reply = reply
+        self.percentage = None
+
+    @pyqtSlot(int, int)
+    def on_download_progress(self, done, total):
+        if total == -1:
+            perc = -1
+        else:
+            perc = 100 * done / total
+        logger.debug("{}% done".format(perc))
+        self.percentage = perc
+
+
 class DownloadManager(QObject):
 
     """Manager for running downloads."""
