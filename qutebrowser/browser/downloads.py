@@ -19,7 +19,7 @@
 
 import os.path
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer
+from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
@@ -71,6 +71,7 @@ class DownloadItem(QObject):
 
     @property
     def percentage(self):
+        """Property to get the current download percentage."""
         if self.bytes_total == -1:
             return -1
         elif self.bytes_total == 0:
@@ -82,6 +83,12 @@ class DownloadItem(QObject):
 
     @pyqtSlot(int, int)
     def on_download_progress(self, bytes_done, bytes_total):
+        """Upload local variables when the download progress changed.
+
+        Args:
+            bytes_done: How many bytes are downloaded.
+            bytes_total: How many bytes there are to download in total.
+        """
         self.bytes_done = bytes_done
         self.bytes_total = bytes_total
 
@@ -125,7 +132,8 @@ class DownloadManager(QObject):
         """Get a suitable filename to download a file to.
 
         Args:
-            reply: The QNetworkReply to get a filename for."""
+            reply: The QNetworkReply to get a filename for.
+        """
         filename = None
         # First check if the Content-Disposition header has a filename
         # attribute.
