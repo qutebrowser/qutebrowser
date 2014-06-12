@@ -54,6 +54,7 @@ class BrowserPage(QWebPage):
         }
         self.setNetworkAccessManager(
             QCoreApplication.instance().networkmanager)
+        self.setForwardUnsupportedContent(True)
         self.printRequested.connect(self.on_print_requested)
         self.downloadRequested.connect(self.on_download_requested)
 
