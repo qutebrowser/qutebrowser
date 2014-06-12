@@ -58,7 +58,11 @@ class DownloadModel(QAbstractListModel):
             item = self.downloadmanager.downloads[index.row()]
         except IndexError:
             return QVariant()
-        return str(item.percentage)  # FIXME
+        perc = item.percentage
+        if perc is None:
+            return QVariant()
+        else:
+            return str(round(perc))  # FIXME
 
     def rowCount(self, parent):
         if parent.isValid():
