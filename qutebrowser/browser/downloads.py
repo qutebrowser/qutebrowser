@@ -78,6 +78,7 @@ class DownloadItem(QObject):
         reply.finished.connect(self.on_finished)
         reply.finished.connect(self.finished)
         reply.error.connect(self.on_error)
+        reply.readyRead.connect(self.on_ready_read)
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_speed)
         self.timer.setInterval(self.REFRESH_INTERVAL)
