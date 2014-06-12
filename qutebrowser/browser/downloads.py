@@ -20,6 +20,7 @@
 import os.path
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer
+from PyQt5.QtNetwork import QNetworkReply
 
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
@@ -51,38 +52,52 @@ class DownloadItem(QObject):
         percentage_changed: The download percentage changed.
                             arg: The new percentage, -1 if unknown.
         finished: The download was finished.
+        error: An error with the download occured.
+               arg: The error message as string.
     """
 
     REFRESH_INTERVAL = 200
     speed_changed = pyqtSignal(float)
     percentage_changed = pyqtSignal(int)
     finished = pyqtSignal()
+    error = pyqtSignal(str)
 
-    def __init__(self, reply, filename, parent=None):
+    def __init__(self, reply, parent=None):
         """Constructor.
 
         Args:
             reply: The QNetworkReply to download.
-            filename: The full filename to save the download to.
         """
         super().__init__(parent)
         self.reply = reply
         self.bytes_done = None
         self.bytes_total = None
         self.speed = None
+        self.fileobj = None
+        self._do_delayed_write = False
         self._last_done = None
         self._last_percentage = None
-        # FIXME exceptions
-        self.fileobj = open(filename, 'wb')
+        reply.setReadBufferSize(16 * 1024 * 1024)
         reply.downloadProgress.connect(self.on_download_progress)
-        reply.finished.connect(self.on_finished)
-        reply.finished.connect(self.finished)
-        reply.error.connect(self.on_error)
+        reply.finished.connect(self.on_reply_finished)
+        reply.error.connect(self.on_reply_error)
         reply.readyRead.connect(self.on_ready_read)
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_speed)
         self.timer.setInterval(self.REFRESH_INTERVAL)
         self.timer.start()
+
+    def _die(self, msg):
+        """Abort the download and emit an error."""
+        self.error.emit(msg)
+        self.reply.abort()
+        self.reply.deleteLater()
+        if self.fileobj is not None:
+            try:
+                self.fileobj.close()
+            except OSError as e:
+                self.error.emit(e.strerror)
+        self.finished.emit()
 
     @property
     def percentage(self):
@@ -95,6 +110,48 @@ class DownloadItem(QObject):
             return None
         else:
             return 100 * self.bytes_done / self.bytes_total
+
+    def cancel(self):
+        """Cancel the download."""
+        logger.debug("cancelled")
+        self.reply.abort()
+        self.reply.deleteLater()
+        self.finished.emit()
+
+    def set_filename(self, filename):
+        """Set the filename to save the download to.
+
+        Args:
+            filename: The full filename to save the download to.
+                      None: special value to stop the download.
+        """
+        if self.fileobj is not None:
+            raise ValueError("Filename was already set! filename: {}, "
+                             "existing: {}".format(filename, self.fileobj))
+        try:
+            self.fileobj = open(filename, 'wb')
+            if self._do_delayed_write:
+                # Downloading to the buffer in RAM has already finished so we
+                # write out the data and clean up now.
+                self.delayed_write()
+            else:
+                # Since the buffer already might be full, on_ready_read might
+                # not be called at all anymore, so we force it here to flush
+                # the buffer and continue receiving new data.
+                self.on_ready_read()
+        except OSError as e:
+            self._die(e.strerror)
+
+    def delayed_write(self):
+        """Write buffered data to disk and finish the QNetworkReply."""
+        logger.debug("Doing delayed write...")
+        self._do_delayed_write = False
+        self.fileobj.write(self.reply.readAll())
+        self.fileobj.close()
+        self.reply.close()
+        self.reply.deleteLater()
+        self.finished.emit()
+        logger.debug("Download finished")
 
     @pyqtSlot(int, int)
     def on_download_progress(self, bytes_done, bytes_total):
@@ -113,21 +170,43 @@ class DownloadItem(QObject):
             self._last_percentage = perc
 
     @pyqtSlot()
-    def on_finished(self):
-        """Clean up when the download was finished."""
+    def on_reply_finished(self):
+        """Clean up when the download was finished.
+
+        Note when this gets called, only the QNetworkReply has finished. This
+        doesn't mean the download (i.e. writing data to the disk) is finished
+        as well. Therefore, we can't close() the QNetworkReply in here yet.
+        """
         self.bytes_done = self.bytes_total
         self.timer.stop()
-        self.fileobj.write(self.reply.readAll())
-        self.fileobj.close()
-        self.reply.close()
-        self.reply.deleteLater()
-        logger.debug("Download finished")
+        logger.debug("Reply finished, fileobj {}".format(self.fileobj))
+        if self.fileobj is None:
+            # We'll handle emptying the buffer and cleaning up as soon as the
+            # filename is set.
+            self._do_delayed_write = True
+        else:
+            # We can do a "delayed" write immediately to empty the buffer and
+            # clean up.
+            self.delayed_write()
 
     @pyqtSlot()
     def on_ready_read(self):
         """Read available data and save file when ready to read."""
-        # FIXME exceptions
-        self.fileobj.write(self.reply.readAll())
+        if self.fileobj is None:
+            # No filename has been set yet, so we don't empty the buffer.
+            return
+        try:
+            self.fileobj.write(self.reply.readAll())
+        except OSError as e:
+            self._die(e.strerror)
+
+    @pyqtSlot(int)
+    def on_reply_error(self, code):
+        """Handle QNetworkReply errors."""
+        if code == QNetworkReply.OperationCanceledError:
+            return
+        else:
+            self.error.emit(self.reply.errorString())
 
     @pyqtSlot()
     def update_speed(self):
@@ -144,10 +223,6 @@ class DownloadItem(QObject):
         logger.debug("Download speed: {} bytes/sec".format(self.speed))
         self._last_done = self.bytes_done
         self.speed_changed.emit(self.speed)
-
-    @pyqtSlot(int)
-    def on_error(self, code):
-        logger.debug("Error {} in download".format(code))
 
 
 class DownloadManager(QObject):
@@ -213,16 +288,18 @@ class DownloadManager(QObject):
         suggested_filename = os.path.join(download_location,
                                           suggested_filename)
         logger.debug("fetch: {} -> {}".format(reply.url(), suggested_filename))
-        filename = message.modular_question("Save file to:", PromptMode.text,
-                                            suggested_filename)
-        if filename is not None:
-            download = DownloadItem(reply, filename)
-            download.finished.connect(self.on_finished)
-            download.percentage_changed.connect(self.on_data_changed)
-            download.speed_changed.connect(self.on_data_changed)
-            self.download_about_to_be_added.emit(len(self.downloads) + 1)
-            self.downloads.append(download)
-            self.download_added.emit()
+        download = DownloadItem(reply)
+        download.finished.connect(self.on_finished)
+        download.percentage_changed.connect(self.on_data_changed)
+        download.speed_changed.connect(self.on_data_changed)
+        download.error.connect(self.on_error)
+        self.download_about_to_be_added.emit(len(self.downloads) + 1)
+        self.downloads.append(download)
+        self.download_added.emit()
+        message.question("Save file to:", mode=PromptMode.text,
+                         handler=download.set_filename,
+                         cancelled_handler=download.cancel,
+                         default=suggested_filename)
 
     @pyqtSlot()
     def on_finished(self):
@@ -235,3 +312,7 @@ class DownloadManager(QObject):
     def on_data_changed(self):
         idx = self.downloads.index(self.sender())
         self.data_changed.emit(idx)
+
+    @pyqtSlot(str)
+    def on_error(self, msg):
+        message.error("Download error: {}".format(msg), queue=True)
