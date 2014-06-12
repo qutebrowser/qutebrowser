@@ -26,6 +26,7 @@ import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
 from qutebrowser.utils.log import downloads as logger
 from qutebrowser.utils.usertypes import PromptMode
+from qutebrowser.utils.misc import interpolate_color
 
 
 class DownloadItem(QObject):
@@ -110,6 +111,16 @@ class DownloadItem(QObject):
             return None
         else:
             return 100 * self.bytes_done / self.bytes_total
+
+    def bg_color(self):
+        """Background color to be shown."""
+        start = config.get('colors', 'download.bg.start')
+        stop = config.get('colors', 'download.bg.stop')
+        system = config.get('colors', 'download.bg.system')
+        if self.percentage is None:
+            return start
+        else:
+            return interpolate_color(start, stop, self.percentage, system)
 
     def cancel(self):
         """Cancel the download."""

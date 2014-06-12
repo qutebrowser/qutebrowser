@@ -21,6 +21,8 @@ from PyQt5.QtCore import (pyqtSlot, Qt, QVariant, QAbstractListModel,
                           QModelIndex)
 from PyQt5.QtWidgets import QApplication
 
+import qutebrowser.config.config as config
+
 
 class DownloadModel(QAbstractListModel):
 
@@ -59,19 +61,26 @@ class DownloadModel(QAbstractListModel):
         """Download data from DownloadManager."""
         if not index.isValid():
             return QVariant()
-        elif role != Qt.DisplayRole:
-            return QVariant()
         elif index.parent().isValid() or index.column() != 0:
             return QVariant()
+
         try:
             item = self.downloadmanager.downloads[index.row()]
         except IndexError:
             return QVariant()
-        perc = item.percentage
-        if perc is None:
-            return QVariant()
+        if role == Qt.DisplayRole:
+            perc = item.percentage
+            if perc is None:
+                data = QVariant()
+            else:
+                data = str(round(perc))  # FIXME
+        elif role == Qt.ForegroundRole:
+            data = config.get('colors', 'download.fg')
+        elif role == Qt.BackgroundRole:
+            data = item.bg_color()
         else:
-            return str(round(perc))  # FIXME
+            data = QVariant()
+        return data
 
     def rowCount(self, parent):
         """Get count of active downloads."""

@@ -434,6 +434,42 @@ class Command(BaseType):
         return out
 
 
+class ColorSystem(BaseType):
+
+    """Color systems for interpolation."""
+
+    valid_values = ValidValues(('rgb', "Interpolate in the RGB color system."),
+                               ('hsv', "Interpolate in the HSV color system."),
+                               ('hsl', "Interpolate in the HSV color system."))
+
+    def validate(self, value):
+        super().validate(value.lower())
+
+    def transform(self, value):
+        mapping = {
+            'rgb': QColor.Rgb,
+            'hsv': QColor.Hsv,
+            'hsl': QColor.Hsl,
+        }
+        return mapping[value.lower()]
+
+
+class QtColor(BaseType):
+
+    """Base class for QColor."""
+
+    typestr = 'qcolor'
+
+    def validate(self, value):
+        if QColor.isValidColor(value):
+            pass
+        else:
+            raise ValidationError(value, "must be a valid color")
+
+    def transform(self, value):
+        return QColor(value)
+
+
 class CssColor(BaseType):
 
     """Base class for a CSS color value."""

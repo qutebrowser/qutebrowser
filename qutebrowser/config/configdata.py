@@ -894,6 +894,22 @@ DATA = OrderedDict([
                                         'left bottom, color-stop(0%,#FFF785), '
                                         'color-stop(100%,#FFC542))'),
          "Background color for hints."),
+
+        ('download.fg',
+         SettingValue(types.QtColor(), '#ffffff'),
+         "Foreground color for downloads."),
+
+        ('download.bg.start',
+         SettingValue(types.QtColor(), '#0000aa'),
+         "Color gradient start for downloads."),
+
+        ('download.bg.stop',
+         SettingValue(types.QtColor(), '#00aa00'),
+         "Color gradient end for downloads."),
+
+        ('download.bg.system',
+         SettingValue(types.ColorSystem(), 'rgb'),
+         "Color gradient interpolation system for downloads."),
     )),
 
     ('fonts', sect.KeyValue(

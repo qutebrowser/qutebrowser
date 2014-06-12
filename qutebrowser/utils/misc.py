@@ -33,6 +33,7 @@ from functools import reduce
 from distutils.version import StrictVersion as Version
 
 from PyQt5.QtCore import QCoreApplication, QStandardPaths, qVersion
+from PyQt5.QtGui import QColor
 from pkg_resources import resource_string
 
 import qutebrowser
@@ -285,3 +286,71 @@ def get_qt_args(namespace):
             argv.append('-' + argname)
             argv.append(val[0])
     return argv
+
+
+def _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3, percent):
+    """Get a color which is percent% interpolated between start and end.
+
+    Args:
+        a_c1, a_c2, a_c3: Start color components (R, G, B / H, S, V / H, S, L)
+        b_c1, b_c2, b_c3: End color components (R, G, B / H, S, V / H, S, L)
+        percent: Percentage to interpolate, 0-100.
+                 0: Start color will be returned.
+                 100: End color will be returned.
+
+    Return:
+        A (c1, c2, c3) tuple with the interpolated color components.
+
+    Raise:
+        ValueError if the percentage was invalid.
+    """
+    if not 0 <= percent <= 100:
+        raise ValueError("percent needs to be between 0 and 100!")
+    out_c1 = round(a_c1 + (b_c1 - a_c1) * percent / 100)
+    out_c2 = round(a_c2 + (b_c2 - a_c2) * percent / 100)
+    out_c3 = round(a_c3 + (b_c3 - a_c3) * percent / 100)
+    return (out_c1, out_c2, out_c3)
+
+
+def interpolate_color(start, end, percent, colorspace=QColor.Rgb):
+    """Get an interpolated color value.
+
+    Args:
+        start: The start color.
+        end: The end color.
+        percent: Which value to get (0 - 100)
+        colorspace: The desired interpolation colorsystem,
+                    QColor::{Rgb,Hsv,Hsl} (from QColor::Spec enum)
+
+    Return:
+        The interpolated QColor, with the same spec as the given start color.
+
+    Raise:
+        ValueError if invalid parameters are passed.
+    """
+    if not start.isValid():
+        raise ValueError("Invalid start color")
+    if not end.isValid():
+        raise ValueError("Invalid end color")
+    out = QColor()
+    if colorspace == QColor.Rgb:
+        a_c1, a_c2, a_c3, _alpha = start.getRgb()
+        b_c1, b_c2, b_c3, _alpha = end.getRgb()
+        components = _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3,
+                                           percent)
+        out.setRgb(*components)
+    elif colorspace == QColor.Hsv:
+        a_c1, a_c2, a_c3, _alpha = start.getHsv()
+        b_c1, b_c2, b_c3, _alpha = end.getHsv()
+        components = _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3,
+                                           percent)
+        out.setHsv(*components)
+    elif colorspace == QColor.Hsl:
+        a_c1, a_c2, a_c3, _alpha = start.getHsl()
+        b_c1, b_c2, b_c3, _alpha = end.getHsl()
+        components = _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3,
+                                           percent)
+        out.setHsl(*components)
+    else:
+        raise ValueError("Invalid colorspace!")
+    return out.convertTo(start.spec())
