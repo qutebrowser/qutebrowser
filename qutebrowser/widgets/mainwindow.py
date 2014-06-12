@@ -70,12 +70,12 @@ class MainWindow(QWidget):
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
 
-        self.tabs = TabbedBrowser()
-        self._vbox.addWidget(self.tabs)
-
         self.downloadview = DownloadView()
         self._vbox.addWidget(self.downloadview)
         self.downloadview.show()
+
+        self.tabs = TabbedBrowser()
+        self._vbox.addWidget(self.tabs)
 
         self.completion = CompletionView(self)
         self.completion.resize_completion.connect(self.resize_completion)
