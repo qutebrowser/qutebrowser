@@ -17,7 +17,8 @@
 
 """Glue code for qutebrowser.{browser,widgets}.download."""
 
-from PyQt5.QtCore import Qt, QVariant, QAbstractListModel
+from PyQt5.QtCore import (pyqtSlot, Qt, QVariant, QAbstractListModel,
+                          QModelIndex)
 from PyQt5.QtWidgets import QApplication
 
 
@@ -26,6 +27,18 @@ class DownloadModel(QAbstractListModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.downloadmanager = QApplication.instance().downloadmanager
+        self.downloadmanager.download_about_to_be_added.connect(
+            lambda idx: self.beginInsertRows(QModelIndex(), idx, idx))
+        self.downloadmanager.download_added.connect(self.endInsertRows)
+        self.downloadmanager.download_about_to_be_finished.connect(
+            lambda idx: self.beginRemoveRows(QModelIndex(), idx, idx))
+        self.downloadmanager.download_finished.connect(self.endRemoveRows)
+        self.downloadmanager.data_changed.connect(self.on_data_changed)
+
+    @pyqtSlot(int)
+    def on_data_changed(self, idx):
+        model_idx = self.index(idx, 0)
+        self.dataChanged.emit(model_idx, model_idx)
 
     def headerData(self, section, orientation, role):
         if (section == 0 and orientation == Qt.Horizontal and
