@@ -17,6 +17,7 @@
 
 """The ListView to display downloads in."""
 
+from PyQt5.QtCore import QSize
 from PyQt5.QtWidgets import QListView, QSizePolicy
 
 from qutebrowser.models.downloadmodel import DownloadModel
@@ -29,4 +30,17 @@ class DownloadView(QListView):
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         self.setFlow(QListView.LeftToRight)
         self._model = DownloadModel()
+        self._model.rowsInserted.connect(self.updateGeometry)
+        self._model.rowsRemoved.connect(self.updateGeometry)
         self.setModel(self._model)
+        self.setWrapping(True)
+
+    def minimumSizeHint(self):
+        return self.sizeHint()
+
+    def sizeHint(self):
+        height = self.sizeHintForRow(0)
+        if height != -1:
+            return QSize(0, height + 2)
+        else:
+            return QSize(0, 0)
