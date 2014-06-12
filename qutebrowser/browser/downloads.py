@@ -77,6 +77,7 @@ class DownloadItem(QObject):
         reply.downloadProgress.connect(self.on_download_progress)
         reply.finished.connect(self.on_finished)
         reply.finished.connect(self.finished)
+        reply.error.connect(self.on_error)
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_speed)
         self.timer.setInterval(self.REFRESH_INTERVAL)
@@ -138,6 +139,10 @@ class DownloadItem(QObject):
         logger.debug("Download speed: {} bytes/sec".format(self.speed))
         self._last_done = self.bytes_done
         self.speed_changed.emit(self.speed)
+
+    @pyqtSlot(int)
+    def on_error(self, code):
+        logger.debug("Error {} in download".format(code))
 
 
 class DownloadManager(QObject):
