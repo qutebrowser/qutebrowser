@@ -17,7 +17,7 @@
 
 """The ListView to display downloads in."""
 
-from PyQt5.QtWidgets import QListView
+from PyQt5.QtWidgets import QListView, QSizePolicy
 
 from qutebrowser.models.downloadmodel import DownloadModel
 
@@ -26,6 +26,7 @@ class DownloadView(QListView):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         self.setFlow(QListView.LeftToRight)
         self._model = DownloadModel()
         self.setModel(self._model)
