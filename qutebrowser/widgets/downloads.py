@@ -25,6 +25,8 @@ from qutebrowser.models.downloadmodel import DownloadModel
 
 class DownloadView(QListView):
 
+    """QListView which shows currently running downloads as a bar."""
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
@@ -36,9 +38,11 @@ class DownloadView(QListView):
         self.setWrapping(True)
 
     def minimumSizeHint(self):
+        """Override minimumSizeHint so the size is correct in a layout."""
         return self.sizeHint()
 
     def sizeHint(self):
+        """Return sizeHint based on the view contents."""
         height = self.sizeHintForRow(0)
         if height != -1:
             return QSize(0, height + 2)

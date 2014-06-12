@@ -24,6 +24,12 @@ from PyQt5.QtWidgets import QApplication
 
 class DownloadModel(QAbstractListModel):
 
+    """Glue model to show downloads in a QListView.
+
+    Glue between qutebrowser.browser.download (DownloadManager) and
+    qutebrowser.widgets.download (DownloadView).
+    """
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.downloadmanager = QApplication.instance().downloadmanager
@@ -37,10 +43,12 @@ class DownloadModel(QAbstractListModel):
 
     @pyqtSlot(int)
     def on_data_changed(self, idx):
+        """Update view when DownloadManager data changed."""
         model_idx = self.index(idx, 0)
         self.dataChanged.emit(model_idx, model_idx)
 
     def headerData(self, section, orientation, role):
+        """Simple constant header."""
         if (section == 0 and orientation == Qt.Horizontal and
                 role == Qt.DisplayRole):
             return "Downloads"
@@ -48,6 +56,7 @@ class DownloadModel(QAbstractListModel):
             return ""
 
     def data(self, index, role):
+        """Download data from DownloadManager."""
         if not index.isValid():
             return QVariant()
         elif role != Qt.DisplayRole:
@@ -65,6 +74,7 @@ class DownloadModel(QAbstractListModel):
             return str(round(perc))  # FIXME
 
     def rowCount(self, parent):
+        """Get count of active downloads."""
         if parent.isValid():
             # We don't have children
             return 0

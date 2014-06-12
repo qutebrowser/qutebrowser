@@ -303,6 +303,7 @@ class DownloadManager(QObject):
 
     @pyqtSlot()
     def on_finished(self):
+        """Remove finished download."""
         idx = self.downloads.index(self.sender())
         self.download_about_to_be_finished.emit(idx)
         del self.downloads[idx]
@@ -310,9 +311,11 @@ class DownloadManager(QObject):
 
     @pyqtSlot()
     def on_data_changed(self):
+        """Emit data_changed signal when download data changed."""
         idx = self.downloads.index(self.sender())
         self.data_changed.emit(idx)
 
     @pyqtSlot(str)
     def on_error(self, msg):
+        """Display error message on download errors."""
         message.error("Download error: {}".format(msg), queue=True)
