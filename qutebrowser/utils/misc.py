@@ -272,16 +272,15 @@ def get_qt_args(namespace):
         The argv list to be passed to Qt.
     """
     argv = [sys.argv[0]]
-    qt_args = ('style', 'stylesheet', 'widget-count', 'reverse',
-               'qmljsdebugger')
-    for argname in qt_args:
-        val = getattr(namespace, 'qt_' + argname, None)
+    for argname, val in vars(namespace).items():
+        if not argname.startswith('qt_'):
+            pass
         if val is None:
             # flag/argument not given
             continue
         elif val is True:
-            argv.append('-' + argname)
+            argv.append('-' + argname[3:])
         else:
-            argv.append('-' + argname)
+            argv.append('-' + argname[3:])
             argv.append(val[0])
     return argv

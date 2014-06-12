@@ -430,11 +430,6 @@ class GetQtArgsTests(TestCase):
                                                  '-stylesheet', 'foobar',
                                                  '-reverse'])
 
-    def test_qt_unknown(self):
-        """Test commandline with unknown Qt argument."""
-        ns = self._namespace(['--qt-foo'], flags=['--qt-foo'])
-        self.assertEqual(utils.get_qt_args(ns), [sys.argv[0]])
-
 
 if __name__ == '__main__':
     unittest.main()
