@@ -161,12 +161,15 @@ class DownloadManager(QObject):
         download_about_to_be_finished: A download will be finished and removed.
                                        arg: The index of the new download.
         download_finished: A download was finished and removed.
+        data_changed: The data to be displayed in a model changed.
+                      arg: The index of the download which changed.
     """
 
     download_about_to_be_added = pyqtSignal(int)
     download_added = pyqtSignal()
     download_about_to_be_finished = pyqtSignal(int)
     download_finished = pyqtSignal()
+    data_changed = pyqtSignal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -215,6 +218,8 @@ class DownloadManager(QObject):
         if filename is not None:
             download = DownloadItem(reply, filename)
             download.finished.connect(self.on_finished)
+            download.percentage_changed.connect(self.on_data_changed)
+            download.speed_changed.connect(self.on_data_changed)
             self.download_about_to_be_added.emit(len(self.downloads) + 1)
             self.downloads.append(download)
             self.download_added.emit()
@@ -225,3 +230,8 @@ class DownloadManager(QObject):
         self.download_about_to_be_finished.emit(idx)
         del self.downloads[idx]
         self.download_finished.emit()
+
+    @pyqtSlot()
+    def on_data_changed(self):
+        idx = self.downloads.index(self.sender())
+        self.data_changed.emit(idx)
