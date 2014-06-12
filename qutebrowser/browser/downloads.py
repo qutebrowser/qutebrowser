@@ -133,10 +133,14 @@ class DownloadItem(QObject):
     def update_speed(self):
         """Recalculate the current download speed."""
         if self._last_done is None:
-            delta = self.bytes_done
+            if self.bytes_done is None:
+                self.speed = 0
+            else:
+                delta = self.bytes_done
+                self.speed = delta * 1000 / self.REFRESH_INTERVAL
         else:
             delta = self.bytes_done - self._last_done
-        self.speed = delta * 1000 / self.REFRESH_INTERVAL
+            self.speed = delta * 1000 / self.REFRESH_INTERVAL
         logger.debug("Download speed: {} bytes/sec".format(self.speed))
         self._last_done = self.bytes_done
         self.speed_changed.emit(self.speed)
