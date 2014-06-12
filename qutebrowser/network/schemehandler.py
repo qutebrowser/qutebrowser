@@ -126,11 +126,15 @@ class ErrorNetworkReply(QNetworkReply):
         """
         super().__init__(parent)
         self.setError(error, errorstring)
+        # For some reason, a segfault will be triggered if these lambdas aren't
+        # there.        pylint: disable=unnecessary-lambda
         QTimer.singleShot(0, lambda: self.error.emit(error))
         QTimer.singleShot(0, lambda: self.finished.emit())
 
     def abort(self):
+        """Do nothing since it's a fake reply."""
         pass
 
     def bytesAvailable(self):
+        """We always have 0 bytes available."""
         return 0

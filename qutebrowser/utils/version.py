@@ -206,7 +206,7 @@ def version():
     lines += [
         '',
         '{}: {}'.format(platform.python_implementation(),
-                       platform.python_version()),
+                        platform.python_version()),
         'Qt: {}, runtime: {}'.format(QT_VERSION_STR, qVersion()),
         'PyQt: {}'.format(PYQT_VERSION_STR),
     ]
