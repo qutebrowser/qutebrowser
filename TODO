@@ -79,6 +79,11 @@ hints
 - uppercase hint chars without requiring upper case to type (easier to
   distinguish)
 
+style
+=====
+
+- Add a global none attribute/setting to every ConfigType
+
 dwb keybindings to possibly implement
 =====================================
 

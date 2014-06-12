@@ -110,3 +110,31 @@ class SpecialNetworkReply(QNetworkReply):
     def isFinished(self):
         """Check if the reply is finished."""
         return True
+
+
+class ErrorNetworkReply(QNetworkReply):
+
+    """QNetworkReply which always returns an error."""
+
+    def __init__(self, errorstring, error, parent=None):
+        """Constructor.
+
+        Args:
+            errorstring: The error string to print.
+            error: The numerical error value.
+            parent: The parent to pass to QNetworkReply.
+        """
+        super().__init__(parent)
+        self.setError(error, errorstring)
+        # For some reason, a segfault will be triggered if these lambdas aren't
+        # there.        pylint: disable=unnecessary-lambda
+        QTimer.singleShot(0, lambda: self.error.emit(error))
+        QTimer.singleShot(0, lambda: self.finished.emit())
+
+    def abort(self):
+        """Do nothing since it's a fake reply."""
+        pass
+
+    def bytesAvailable(self):
+        """We always have 0 bytes available."""
+        return 0
