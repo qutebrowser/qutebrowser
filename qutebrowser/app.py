@@ -54,6 +54,7 @@ from qutebrowser.config.iniparsers import ReadWriteConfigParser
 from qutebrowser.config.lineparser import LineConfigParser
 from qutebrowser.browser.cookies import CookieJar
 from qutebrowser.browser.downloads import DownloadManager
+from qutebrowser.models.downloadmodel import DownloadModel
 from qutebrowser.utils.message import MessageBridge
 from qutebrowser.utils.misc import (get_standard_dir, actute_warning,
                                     get_qt_args)
@@ -134,6 +135,7 @@ class Application(QApplication):
         self.commandmanager = CommandManager()
         self.searchmanager = SearchManager()
         self.downloadmanager = DownloadManager()
+        self.downloadmodel = DownloadModel(self.downloadmanager)
         self.mainwindow = MainWindow()
 
         self.modeman.mainwindow = self.mainwindow

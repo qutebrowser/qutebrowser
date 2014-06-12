@@ -50,11 +50,13 @@ class DownloadItem(QObject):
                        arg: The speed in bytes/s
         percentage_changed: The download percentage changed.
                             arg: The new percentage, -1 if unknown.
+        finished: The download was finished.
     """
 
     REFRESH_INTERVAL = 200
     speed_changed = pyqtSignal(float)
     percentage_changed = pyqtSignal(int)
+    finished = pyqtSignal()
 
     def __init__(self, reply, filename, parent=None):
         """Constructor.
@@ -74,6 +76,7 @@ class DownloadItem(QObject):
         self.fileobj = open(filename, 'wb')
         reply.downloadProgress.connect(self.on_download_progress)
         reply.finished.connect(self.on_finished)
+        reply.finished.connect(self.finished)
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_speed)
         self.timer.setInterval(self.REFRESH_INTERVAL)
@@ -139,7 +142,21 @@ class DownloadItem(QObject):
 
 class DownloadManager(QObject):
 
-    """Manager for running downloads."""
+    """Manager for running downloads.
+
+    Signals:
+        download_about_to_be_added: A new download will be added.
+                                    arg: The index of the new download.
+        download_added: A new download was added.
+        download_about_to_be_finished: A download will be finished and removed.
+                                       arg: The index of the new download.
+        download_finished: A download was finished and removed.
+    """
+
+    download_about_to_be_added = pyqtSignal(int)
+    download_added = pyqtSignal()
+    download_about_to_be_finished = pyqtSignal(int)
+    download_finished = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -186,4 +203,15 @@ class DownloadManager(QObject):
         filename = message.modular_question("Save file to:", PromptMode.text,
                                             suggested_filename)
         if filename is not None:
-            self.downloads.append(DownloadItem(reply, filename))
+            download = DownloadItem(reply, filename)
+            download.finished.connect(self.on_finished)
+            self.download_about_to_be_added.emit(len(self.downloads) + 1)
+            self.downloads.append(download)
+            self.download_added.emit()
+
+    @pyqtSlot()
+    def on_finished(self):
+        idx = self.downloads.index(self.sender())
+        self.download_about_to_be_finished.emit(idx)
+        del self.downloads[idx]
+        self.download_finished.emit()

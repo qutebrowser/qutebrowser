@@ -30,6 +30,7 @@ import qutebrowser.utils.message as message
 from qutebrowser.widgets.statusbar.bar import StatusBar
 from qutebrowser.widgets.tabbedbrowser import TabbedBrowser
 from qutebrowser.widgets.completion import CompletionView
+from qutebrowser.widgets.downloads import DownloadView
 from qutebrowser.utils.usertypes import PromptMode
 
 
@@ -43,6 +44,7 @@ class MainWindow(QWidget):
     Attributes:
         tabs: The TabbedBrowser widget.
         status: The StatusBar widget.
+        downloadview: The DownloadView widget.
         _vbox: The main QVBoxLayout.
     """
 
@@ -70,6 +72,10 @@ class MainWindow(QWidget):
 
         self.tabs = TabbedBrowser()
         self._vbox.addWidget(self.tabs)
+
+        self.downloadview = DownloadView()
+        self._vbox.addWidget(self.downloadview)
+        self.downloadview.show()
 
         self.completion = CompletionView(self)
         self.completion.resize_completion.connect(self.resize_completion)
