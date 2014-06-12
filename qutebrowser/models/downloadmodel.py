@@ -69,11 +69,7 @@ class DownloadModel(QAbstractListModel):
         except IndexError:
             return QVariant()
         if role == Qt.DisplayRole:
-            perc = item.percentage
-            if perc is None:
-                data = QVariant()
-            else:
-                data = str(round(perc))  # FIXME
+            data = str(item)
         elif role == Qt.ForegroundRole:
             data = config.get('colors', 'download.fg')
         elif role == Qt.BackgroundRole:

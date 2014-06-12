@@ -354,3 +354,19 @@ def interpolate_color(start, end, percent, colorspace=QColor.Rgb):
     else:
         raise ValueError("Invalid colorspace!")
     return out.convertTo(start.spec())
+
+
+def format_seconds(total_seconds):
+    """Format a count of seconds to get a [H:]M:SS string."""
+    prefix = '-' if total_seconds < 0 else ''
+    hours, rem = divmod(abs(round(total_seconds)), 3600)
+    minutes, seconds = divmod(rem, 60)
+    chunks = []
+    if hours:
+        chunks.append(str(hours))
+        min_format = '{:02}'
+    else:
+        min_format = '{}'
+    chunks.append(min_format.format(minutes))
+    chunks.append('{:02}'.format(seconds))
+    return prefix + ':'.join(chunks)

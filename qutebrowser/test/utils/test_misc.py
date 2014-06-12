@@ -525,5 +525,33 @@ class InterpolateColorTests(TestCase):
         self.assertEqual(color, expected)
 
 
+class FormatSecondsTests(TestCase):
+
+    """Tests for format_seconds.
+
+    Class attributes:
+        TESTS: A list of (input, output) tuples.
+    """
+
+    TESTS = [
+        (-1, '-0:01'),
+        (0, '0:00'),
+        (59, '0:59'),
+        (60, '1:00'),
+        (60.4, '1:00'),
+        (61, '1:01'),
+        (-61, '-1:01'),
+        (3599, '59:59'),
+        (3600, '1:00:00'),
+        (3601, '1:00:01'),
+        (36000, '10:00:00'),
+    ]
+
+    def test_format_seconds(self):
+        """Test format_seconds with several tests."""
+        for seconds, out in self.TESTS:
+            self.assertEqual(utils.format_seconds(seconds), out, seconds)
+
+
 if __name__ == '__main__':
     unittest.main()

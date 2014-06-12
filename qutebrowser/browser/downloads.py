@@ -26,7 +26,7 @@ import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
 from qutebrowser.utils.log import downloads as logger
 from qutebrowser.utils.usertypes import PromptMode
-from qutebrowser.utils.misc import interpolate_color
+from qutebrowser.utils.misc import interpolate_color, format_seconds
 
 
 class DownloadItem(QObject):
@@ -45,21 +45,17 @@ class DownloadItem(QObject):
         fileobj: The file object to download the file to.
         _last_done: The count of bytes which where downloaded when calculating
                     the speed the last time.
-        _last_percentage: The remembered percentage for percentage_changed.
+        _last_percentage: The remembered percentage for data_changed.
 
     Signals:
-        speed_changed: The download speed changed.
-                       arg: The speed in bytes/s
-        percentage_changed: The download percentage changed.
-                            arg: The new percentage, -1 if unknown.
+        data_changed: The downloads metadata changed.
         finished: The download was finished.
         error: An error with the download occured.
                arg: The error message as string.
     """
 
     REFRESH_INTERVAL = 200
-    speed_changed = pyqtSignal(float)
-    percentage_changed = pyqtSignal(int)
+    data_changed = pyqtSignal()
     finished = pyqtSignal()
     error = pyqtSignal(str)
 
@@ -74,6 +70,7 @@ class DownloadItem(QObject):
         self.bytes_done = None
         self.bytes_total = None
         self.speed = None
+        self.basename = '???'
         self.fileobj = None
         self._do_delayed_write = False
         self._last_done = None
@@ -87,6 +84,19 @@ class DownloadItem(QObject):
         self.timer.timeout.connect(self.update_speed)
         self.timer.setInterval(self.REFRESH_INTERVAL)
         self.timer.start()
+
+    def __str__(self):
+        """Get the download as a string.
+
+        Example: foo.pdf [699.2K/s|0.34|16%|4.253/25.124]
+        """
+        perc = 0 if self.percentage is None else round(self.percentage)
+        remaining = (format_seconds(self.remaining_time)
+                     if self.remaining_time is not None else
+                     '?')
+        return '{name} [{speed}|{remaining}|{perc: 2}%|{down}/{total}]'.format(
+            name=self.basename, speed=self.speed, remaining=remaining,
+            perc=perc, down=self.bytes_done, total=self.bytes_total)
 
     def _die(self, msg):
         """Abort the download and emit an error."""
@@ -111,6 +121,15 @@ class DownloadItem(QObject):
             return None
         else:
             return 100 * self.bytes_done / self.bytes_total
+
+    @property
+    def remaining_time(self):
+        """Property to get the remaining download time in seconds."""
+        if (self.bytes_total is None or self.bytes_total <= 0 or
+                self.speed is None or self.speed == 0):
+            return None
+        return (self.bytes_total - self.bytes_done) / self.speed
+
 
     def bg_color(self):
         """Background color to be shown."""
@@ -139,6 +158,7 @@ class DownloadItem(QObject):
         if self.fileobj is not None:
             raise ValueError("Filename was already set! filename: {}, "
                              "existing: {}".format(filename, self.fileobj))
+        self.basename = os.path.basename(filename)
         try:
             self.fileobj = open(filename, 'wb')
             if self._do_delayed_write:
@@ -174,11 +194,7 @@ class DownloadItem(QObject):
         """
         self.bytes_done = bytes_done
         self.bytes_total = bytes_total
-        perc = round(self.percentage)
-        if perc != self._last_percentage:
-            logger.debug("{}% downloaded".format(perc))
-            self.percentage_changed.emit(perc)
-            self._last_percentage = perc
+        self.data_changed.emit()
 
     @pyqtSlot()
     def on_reply_finished(self):
@@ -233,7 +249,7 @@ class DownloadItem(QObject):
             self.speed = delta * 1000 / self.REFRESH_INTERVAL
         logger.debug("Download speed: {} bytes/sec".format(self.speed))
         self._last_done = self.bytes_done
-        self.speed_changed.emit(self.speed)
+        self.data_changed.emit()
 
 
 class DownloadManager(QObject):
@@ -296,21 +312,21 @@ class DownloadManager(QObject):
         """
         suggested_filename = self._get_filename(reply)
         download_location = config.get('storage', 'download-directory')
-        suggested_filename = os.path.join(download_location,
+        suggested_filepath = os.path.join(download_location,
                                           suggested_filename)
-        logger.debug("fetch: {} -> {}".format(reply.url(), suggested_filename))
+        logger.debug("fetch: {} -> {}".format(reply.url(), suggested_filepath))
         download = DownloadItem(reply)
         download.finished.connect(self.on_finished)
-        download.percentage_changed.connect(self.on_data_changed)
-        download.speed_changed.connect(self.on_data_changed)
+        download.data_changed.connect(self.on_data_changed)
         download.error.connect(self.on_error)
+        download.basename = suggested_filename
         self.download_about_to_be_added.emit(len(self.downloads) + 1)
         self.downloads.append(download)
         self.download_added.emit()
         message.question("Save file to:", mode=PromptMode.text,
                          handler=download.set_filename,
                          cancelled_handler=download.cancel,
-                         default=suggested_filename)
+                         default=suggested_filepath)
 
     @pyqtSlot()
     def on_finished(self):
