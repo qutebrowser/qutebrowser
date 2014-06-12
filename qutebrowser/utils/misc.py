@@ -274,8 +274,8 @@ def get_qt_args(namespace):
     argv = [sys.argv[0]]
     for argname, val in vars(namespace).items():
         if not argname.startswith('qt_'):
-            pass
-        if val is None:
+            continue
+        elif val is None:
             # flag/argument not given
             continue
         elif val is True:
