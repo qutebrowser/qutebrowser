@@ -1,6 +1,10 @@
 Bugs
 ====
 
+- URL detection and encoded spaces
+
+  e.g. when trying to open a link with %20 interactively, or even via click.
+
 - When following a hint:
 
   QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.
