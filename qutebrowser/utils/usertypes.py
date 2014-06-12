@@ -255,6 +255,7 @@ class Question(QObject):
         answered: Emitted when the question has been answered by the user.
                   This is emitted from qutebrowser.widgets.statusbar._prompt so
                   it can be emitted after the mode is left.
+        cancelled: Emitted when the question has been cancelled by the user.
         answered_yes: Convienience signal emitted when a yesno question was
                       answered with yes.
         answered_no: Convienience signal emitted when a yesno question was
@@ -262,6 +263,7 @@ class Question(QObject):
     """
 
     answered = pyqtSignal()
+    cancelled = pyqtSignal()
     answered_yes = pyqtSignal()
     answered_no = pyqtSignal()
 

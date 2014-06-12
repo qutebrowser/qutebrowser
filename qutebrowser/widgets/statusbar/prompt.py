@@ -41,12 +41,10 @@ class Prompt(QWidget):
     Signals:
         show_prompt: Emitted when the prompt widget wants to be shown.
         hide_prompt: Emitted when the prompt widget wants to be hidden.
-        cancelled: Emitted when the prompt was cancelled by the user.
     """
 
     show_prompt = pyqtSignal()
     hide_prompt = pyqtSignal()
-    cancelled = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -65,19 +63,14 @@ class Prompt(QWidget):
         self._hbox.addWidget(self._input)
 
     def on_mode_left(self, mode):
-        """Clear and reset input when the mode was left.
-
-        Emit:
-            cancelled: Emitted when the mode was forcibly left by the user
-                       without answering the question.
-        """
+        """Clear and reset input when the mode was left."""
         if mode in ('prompt', 'yesno'):
             self._txt.setText('')
             self._input.clear()
             self._input.setEchoMode(QLineEdit.Normal)
             self.hide_prompt.emit()
             if self.question.answer is None:
-                self.cancelled.emit()
+                self.question.cancelled.emit()
 
     @cmdutils.register(instance='mainwindow.status.prompt', hide=True,
                        modes=['prompt'])
@@ -206,6 +199,6 @@ class Prompt(QWidget):
             The answer to the question. No, it's not always 42.
         """
         self.question.answered.connect(self.loop.quit)
-        self.cancelled.connect(self.loop.quit)
+        self.question.cancelled.connect(self.loop.quit)
         self.loop.exec_()
         return self.question.answer
