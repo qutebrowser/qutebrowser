@@ -26,7 +26,7 @@ from PyQt5.QtNetwork import QNetworkReply
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
 from qutebrowser.utils.log import downloads as logger
-from qutebrowser.utils.usertypes import PromptMode
+from qutebrowser.utils.usertypes import PromptMode, Question
 from qutebrowser.utils.misc import (interpolate_color, format_seconds,
                                     format_size)
 
@@ -46,7 +46,7 @@ class DownloadItem(QObject):
         speed: The current download speed, in bytes per second.
         fileobj: The file object to download the file to.
         filename: The filename of the download.
-        cancelled: Whether the download was cancelled.
+        is_cancelled: Whether the download was cancelled.
         _last_done: The count of bytes which where downloaded when calculating
                     the speed the last time.
         _last_percentage: The remembered percentage for data_changed.
@@ -54,6 +54,7 @@ class DownloadItem(QObject):
     Signals:
         data_changed: The downloads metadata changed.
         finished: The download was finished.
+        cancelled: The download was cancelled.
         error: An error with the download occured.
                arg: The error message as string.
     """
@@ -62,6 +63,7 @@ class DownloadItem(QObject):
     data_changed = pyqtSignal()
     finished = pyqtSignal()
     error = pyqtSignal(str)
+    cancelled = pyqtSignal()
 
     def __init__(self, reply, parent=None):
         """Constructor.
@@ -77,7 +79,7 @@ class DownloadItem(QObject):
         self.basename = '???'
         self.fileobj = None
         self.filename = None
-        self.cancelled = False
+        self.is_cancelled = False
         self._do_delayed_write = False
         self._last_done = None
         self._last_percentage = None
@@ -152,7 +154,8 @@ class DownloadItem(QObject):
     def cancel(self):
         """Cancel the download."""
         logger.debug("cancelled")
-        self.cancelled = True
+        self.cancelled.emit()
+        self.is_cancelled = True
         self.reply.abort()
         self.reply.deleteLater()
         if self.fileobj is not None:
@@ -221,7 +224,7 @@ class DownloadItem(QObject):
         """
         self.bytes_done = self.bytes_total
         self.timer.stop()
-        if self.cancelled:
+        if self.is_cancelled:
             return
         logger.debug("Reply finished, fileobj {}".format(self.fileobj))
         if self.fileobj is None:
@@ -340,10 +343,15 @@ class DownloadManager(QObject):
         self.download_about_to_be_added.emit(len(self.downloads) + 1)
         self.downloads.append(download)
         self.download_added.emit()
-        message.question("Save file to:", mode=PromptMode.text,
-                         handler=download.set_filename,
-                         cancelled_handler=download.cancel,
-                         default=suggested_filepath)
+
+        q = Question()
+        q.text = "Save file to:"
+        q.mode = PromptMode.text
+        q.default = suggested_filepath
+        q.answered.connect(download.set_filename)
+        q.cancelled.connect(download.cancel)
+        download.cancelled.connect(q.abort)
+        message.instance().question.emit(q, False)
 
     @pyqtSlot()
     def on_finished(self):

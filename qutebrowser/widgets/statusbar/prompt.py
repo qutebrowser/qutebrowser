@@ -69,7 +69,7 @@ class Prompt(QWidget):
             self._input.clear()
             self._input.setEchoMode(QLineEdit.Normal)
             self.hide_prompt.emit()
-            if self.question.answer is None:
+            if self.question.answer is None and not self.question.is_aborted:
                 self.question.cancelled.emit()
 
     @cmdutils.register(instance='mainwindow.status.prompt', hide=True,
@@ -173,6 +173,7 @@ class Prompt(QWidget):
             raise ValueError("Invalid prompt mode!")
         self._input.setFocus()
         self.show_prompt.emit()
+        q.aborted.connect(lambda: modeman.maybe_leave(mode, 'aborted'))
         modeman.enter(mode, 'question asked')
 
     @pyqtSlot(Question, bool)
@@ -200,5 +201,6 @@ class Prompt(QWidget):
         """
         self.question.answered.connect(self.loop.quit)
         self.question.cancelled.connect(self.loop.quit)
+        self.question.aborted.connect(self.loop.quit)
         self.loop.exec_()
         return self.question.answer

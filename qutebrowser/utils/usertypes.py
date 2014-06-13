@@ -250,6 +250,7 @@ class Question(QObject):
         text: The prompt text to display to the user.
         user: The value the user entered as username.
         answer: The value the user entered (as password for user_pwd).
+        is_aborted: Whether the question was aborted.
 
     Signals:
         answered: Emitted when the question has been answered by the user.
@@ -257,6 +258,8 @@ class Question(QObject):
                   it can be emitted after the mode is left.
                   arg: The answer to the question.
         cancelled: Emitted when the question has been cancelled by the user.
+        aborted: Emitted when the question was aborted programatically.
+                 In this case, cancelled is not emitted.
         answered_yes: Convienience signal emitted when a yesno question was
                       answered with yes.
         answered_no: Convienience signal emitted when a yesno question was
@@ -265,6 +268,7 @@ class Question(QObject):
 
     answered = pyqtSignal(str)
     cancelled = pyqtSignal()
+    aborted = pyqtSignal()
     answered_yes = pyqtSignal()
     answered_no = pyqtSignal()
 
@@ -275,3 +279,13 @@ class Question(QObject):
         self.text = None
         self.user = None
         self.answer = None
+        self.is_aborted = False
+
+    def abort(self):
+        """Abort the question.
+
+        Emit:
+            aborted: Always emitted.
+        """
+        self.is_aborted = True
+        self.aborted.emit()
