@@ -45,6 +45,7 @@ class DownloadView(QListView):
         set_register_stylesheet(self)
         self.setResizeMode(QListView.Adjust)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setSpacing(2)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         self.setFlow(QListView.LeftToRight)
         self._menu = None
