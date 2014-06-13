@@ -1,7 +1,8 @@
 Bugs
 ====
 
-- When quitting while being asked for a filename: segfault / memory corruption
+- When quitting while being asked for a download filename: segfault / memory
+  corruption
 
 - When following a hint:
 
