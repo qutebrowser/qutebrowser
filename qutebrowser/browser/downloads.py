@@ -134,12 +134,11 @@ class DownloadItem(QObject):
             return None
         return (self.bytes_total - self.bytes_done) / self.speed
 
-
     def bg_color(self):
         """Background color to be shown."""
-        start = config.get('colors', 'download.bg.start')
-        stop = config.get('colors', 'download.bg.stop')
-        system = config.get('colors', 'download.bg.system')
+        start = config.get('colors', 'downloads.bg.start')
+        stop = config.get('colors', 'downloads.bg.stop')
+        system = config.get('colors', 'downloads.bg.system')
         if self.percentage is None:
             return start
         else:

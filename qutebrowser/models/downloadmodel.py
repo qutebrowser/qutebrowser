@@ -71,7 +71,7 @@ class DownloadModel(QAbstractListModel):
         if role == Qt.DisplayRole:
             data = str(item)
         elif role == Qt.ForegroundRole:
-            data = config.get('colors', 'download.fg')
+            data = config.get('colors', 'downloads.fg')
         elif role == Qt.BackgroundRole:
             data = item.bg_color()
         else:

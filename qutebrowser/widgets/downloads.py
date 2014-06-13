@@ -30,8 +30,8 @@ class DownloadView(QListView):
 
     STYLESHEET = """
         QListView {{
-            {color[download.bg.bar]}
-            {font[download]}
+            {color[downloads.bg.bar]}
+            {font[downloads]}
         }}
     """
 
