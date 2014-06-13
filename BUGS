@@ -1,6 +1,8 @@
 Bugs
 ====
 
+- Segfaults when trying to load http://cmpl.cc/downloads/hlwm-tablet.mkv
+
 - URL detection and encoded spaces
 
   e.g. when trying to open a link with %20 interactively, or even via click.
