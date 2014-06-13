@@ -43,6 +43,7 @@ class DownloadView(QListView):
     def __init__(self, parent=None):
         super().__init__(parent)
         set_register_stylesheet(self)
+        self.setResizeMode(QListView.Adjust)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         self.setFlow(QListView.LeftToRight)
         self._menu = None
