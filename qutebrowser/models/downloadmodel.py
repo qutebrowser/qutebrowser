@@ -84,6 +84,12 @@ class DownloadModel(QAbstractListModel):
             data = QVariant()
         return data
 
+    def flags(self, index):
+        """Override flags so items aren't selectable.
+
+        The default would be Qt.ItemIsEnabled | Qt.ItemIsSelectable."""
+        return Qt.ItemIsEnabled
+
     def rowCount(self, parent):
         """Get count of active downloads."""
         if parent.isValid():
