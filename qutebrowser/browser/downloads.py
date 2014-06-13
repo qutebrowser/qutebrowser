@@ -176,7 +176,6 @@ class DownloadItem(QObject):
             os.remove(self.filename)
         self.finished.emit()
 
-
     def set_filename(self, filename):
         """Set the filename to save the download to.
 

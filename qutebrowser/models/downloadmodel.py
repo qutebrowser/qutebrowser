@@ -88,7 +88,7 @@ class DownloadModel(QAbstractListModel):
             data = QVariant()
         return data
 
-    def flags(self, index):
+    def flags(self, _index):
         """Override flags so items aren't selectable.
 
         The default would be Qt.ItemIsEnabled | Qt.ItemIsSelectable."""
