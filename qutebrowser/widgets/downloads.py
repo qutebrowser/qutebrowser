@@ -38,6 +38,10 @@ class DownloadView(QListView):
             {color[downloads.bg.bar]}
             {font[downloads]}
         }}
+
+        QListView::item {{
+            padding-right: 2px;
+        }}
     """
 
     def __init__(self, parent=None):
@@ -45,7 +49,6 @@ class DownloadView(QListView):
         set_register_stylesheet(self)
         self.setResizeMode(QListView.Adjust)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setSpacing(2)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         self.setFlow(QListView.LeftToRight)
         self._menu = None
