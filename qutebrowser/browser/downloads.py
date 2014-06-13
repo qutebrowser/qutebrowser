@@ -19,6 +19,7 @@
 
 import os
 import os.path
+from collections import deque
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer
 from PyQt5.QtNetwork import QNetworkReply
@@ -37,6 +38,8 @@ class DownloadItem(QObject):
 
     Class attributes:
         SPEED_REFRESH_INTERVAL: How often to refresh the speed, in msec.
+        SPEED_AVG_WINDOW: How many seconds of speed data to average to
+                          estimate the remaining time.
 
     Attributes:
         reply: The QNetworkReply associated with this download.
@@ -47,6 +50,7 @@ class DownloadItem(QObject):
         fileobj: The file object to download the file to.
         filename: The filename of the download.
         is_cancelled: Whether the download was cancelled.
+        speed_avg: A rolling average of speeds.
         _last_done: The count of bytes which where downloaded when calculating
                     the speed the last time.
         _last_percentage: The remembered percentage for data_changed.
@@ -60,6 +64,7 @@ class DownloadItem(QObject):
     """
 
     SPEED_REFRESH_INTERVAL = 500
+    SPEED_AVG_WINDOW = 30
     data_changed = pyqtSignal()
     finished = pyqtSignal()
     error = pyqtSignal(str)
@@ -77,6 +82,9 @@ class DownloadItem(QObject):
         self.bytes_total = None
         self.speed = None
         self.basename = '???'
+        samples = int(self.SPEED_AVG_WINDOW *
+                      (1000 / self.SPEED_REFRESH_INTERVAL))
+        self.speed_avg = deque(maxlen=samples)
         self.fileobj = None
         self.filename = None
         self.is_cancelled = False
@@ -137,9 +145,11 @@ class DownloadItem(QObject):
     def remaining_time(self):
         """Property to get the remaining download time in seconds."""
         if (self.bytes_total is None or self.bytes_total <= 0 or
-                self.speed is None or self.speed == 0):
+                self.speed is None or not self.speed_avg):
             return None
-        return (self.bytes_total - self.bytes_done) / self.speed
+        remaining_bytes = self.bytes_total - self.bytes_done
+        speed = sum(self.speed_avg) / len(self.speed_avg)
+        return remaining_bytes / speed
 
     def bg_color(self):
         """Background color to be shown."""
@@ -267,7 +277,7 @@ class DownloadItem(QObject):
         else:
             delta = self.bytes_done - self._last_done
             self.speed = delta * 1000 / self.SPEED_REFRESH_INTERVAL
-        logger.debug("Download speed: {} bytes/sec".format(self.speed))
+        self.speed_avg.append(self.speed)
         self._last_done = self.bytes_done
         self.data_changed.emit()
 
