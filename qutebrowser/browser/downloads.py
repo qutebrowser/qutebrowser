@@ -44,16 +44,19 @@ class DownloadItem(QObject):
     Attributes:
         reply: The QNetworkReply associated with this download.
         percentage: How many percent were downloaded successfully.
+                    None if unknown.
         bytes_done: How many bytes there are already downloaded.
         bytes_total: The total count of bytes.
+                     None if the total is unknown.
         speed: The current download speed, in bytes per second.
+        remaining_time: The time remaining for the download.
+                        None if not enough data is available yet.
         fileobj: The file object to download the file to.
         filename: The filename of the download.
         is_cancelled: Whether the download was cancelled.
         speed_avg: A rolling average of speeds.
         _last_done: The count of bytes which where downloaded when calculating
                     the speed the last time.
-        _last_percentage: The remembered percentage for data_changed.
 
     Signals:
         data_changed: The downloads metadata changed.
@@ -78,9 +81,8 @@ class DownloadItem(QObject):
         """
         super().__init__(parent)
         self.reply = reply
-        self.bytes_done = None
         self.bytes_total = None
-        self.speed = None
+        self.speed = 0
         self.basename = '???'
         samples = int(self.SPEED_AVG_WINDOW *
                       (1000 / self.SPEED_REFRESH_INTERVAL))
@@ -89,8 +91,8 @@ class DownloadItem(QObject):
         self.filename = None
         self.is_cancelled = False
         self._do_delayed_write = False
-        self._last_done = None
-        self._last_percentage = None
+        self.bytes_done = 0
+        self._last_done = 0
         reply.setReadBufferSize(16 * 1024 * 1024)
         reply.downloadProgress.connect(self.on_download_progress)
         reply.finished.connect(self.on_reply_finished)
@@ -132,11 +134,7 @@ class DownloadItem(QObject):
     @property
     def percentage(self):
         """Property to get the current download percentage."""
-        if self.bytes_total == -1:
-            return -1
-        elif self.bytes_total == 0:
-            return 0
-        elif self.bytes_done is None or self.bytes_total is None:
+        if self.bytes_total == 0 or self.bytes_total is None:
             return None
         else:
             return 100 * self.bytes_done / self.bytes_total
@@ -144,12 +142,16 @@ class DownloadItem(QObject):
     @property
     def remaining_time(self):
         """Property to get the remaining download time in seconds."""
-        if (self.bytes_total is None or self.bytes_total <= 0 or
-                self.speed is None or not self.speed_avg):
+        if self.bytes_total is None or not self.speed_avg:
+            # No average yet or we don't know the total size.
             return None
         remaining_bytes = self.bytes_total - self.bytes_done
-        speed = sum(self.speed_avg) / len(self.speed_avg)
-        return remaining_bytes / speed
+        avg = sum(self.speed_avg) / len(self.speed_avg)
+        if avg == 0:
+            # Download stalled
+            return None
+        else:
+            return remaining_bytes / avg
 
     def bg_color(self):
         """Background color to be shown."""
@@ -220,6 +222,8 @@ class DownloadItem(QObject):
             bytes_done: How many bytes are downloaded.
             bytes_total: How many bytes there are to download in total.
         """
+        if bytes_total == -1:
+            bytes_total = None
         self.bytes_done = bytes_done
         self.bytes_total = bytes_total
         self.data_changed.emit()
@@ -268,15 +272,8 @@ class DownloadItem(QObject):
     @pyqtSlot()
     def update_speed(self):
         """Recalculate the current download speed."""
-        if self._last_done is None:
-            if self.bytes_done is None:
-                self.speed = 0
-            else:
-                delta = self.bytes_done
-                self.speed = delta * 1000 / self.SPEED_REFRESH_INTERVAL
-        else:
-            delta = self.bytes_done - self._last_done
-            self.speed = delta * 1000 / self.SPEED_REFRESH_INTERVAL
+        delta = self.bytes_done - self._last_done
+        self.speed = delta * 1000 / self.SPEED_REFRESH_INTERVAL
         self.speed_avg.append(self.speed)
         self._last_done = self.bytes_done
         self.data_changed.emit()
