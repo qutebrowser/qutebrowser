@@ -370,3 +370,18 @@ def format_seconds(total_seconds):
     chunks.append(min_format.format(minutes))
     chunks.append('{:02}'.format(seconds))
     return prefix + ':'.join(chunks)
+
+
+def format_size(size, base=1024, suffix=''):
+    """Format a byte size so it's human readable.
+
+    Inspired by http://stackoverflow.com/q/1094841
+    """
+    prefixes = ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+    if size is None:
+        return '?.??' + suffix
+    for p in prefixes:
+        if -base < size < base:
+            return '{:.02f}{}{}'.format(size, p, suffix)
+        size /= base
+    return '{:.02f}{}{}'.format(size, prefixes[-1], suffix)

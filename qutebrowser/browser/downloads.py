@@ -26,7 +26,8 @@ import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
 from qutebrowser.utils.log import downloads as logger
 from qutebrowser.utils.usertypes import PromptMode
-from qutebrowser.utils.misc import interpolate_color, format_seconds
+from qutebrowser.utils.misc import (interpolate_color, format_seconds,
+                                    format_size)
 
 
 class DownloadItem(QObject):
@@ -94,9 +95,12 @@ class DownloadItem(QObject):
         remaining = (format_seconds(self.remaining_time)
                      if self.remaining_time is not None else
                      '?')
+        speed = format_size(self.speed, suffix='B/s')
+        down = format_size(self.bytes_done, suffix='B')
+        total = format_size(self.bytes_total, suffix='B')
         return '{name} [{speed}|{remaining}|{perc: 2}%|{down}/{total}]'.format(
-            name=self.basename, speed=self.speed, remaining=remaining,
-            perc=perc, down=self.bytes_done, total=self.bytes_total)
+            name=self.basename, speed=speed, remaining=remaining, perc=perc,
+            down=down, total=total)
 
     def _die(self, msg):
         """Abort the download and emit an error."""

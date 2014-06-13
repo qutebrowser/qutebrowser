@@ -553,5 +553,43 @@ class FormatSecondsTests(TestCase):
             self.assertEqual(utils.format_seconds(seconds), out, seconds)
 
 
+class FormatSizeTests(TestCase):
+
+    """Tests for format_size.
+
+    Class attributes:
+        TESTS: A list of (input, output) tuples.
+    """
+
+    TESTS = [
+        (-1024, '-1.00k'),
+        (-1, '-1.00'),
+        (0, '0.00'),
+        (1023, '1023.00'),
+        (1024, '1.00k'),
+        (1034.24, '1.01k'),
+        (1024 * 1024 * 2, '2.00M'),
+        (1024 ** 10, '1024.00Y'),
+        (None, '?.??'),
+    ]
+
+    def test_format_size(self):
+        """Test format_size with several tests."""
+        for size, out in self.TESTS:
+            self.assertEqual(utils.format_size(size), out, size)
+
+    def test_suffix(self):
+        """Test the suffix option."""
+        for size, out in self.TESTS:
+            self.assertEqual(utils.format_size(size, suffix='B'), out + 'B',
+                             size)
+
+    def test_base(self):
+        """Test with an alternative base."""
+        kilo_tests = [(999, '999.00'), (1000, '1.00k'), (1010, '1.01k')]
+        for size, out in kilo_tests:
+            self.assertEqual(utils.format_size(size, base=1000), out, size)
+
+
 if __name__ == '__main__':
     unittest.main()
