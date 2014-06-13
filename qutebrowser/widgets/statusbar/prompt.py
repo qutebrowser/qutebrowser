@@ -136,60 +136,54 @@ class Prompt(QWidget):
         self.question.answered.emit(self.question.answer)
         self.question.answered_no.emit()
 
-    def display(self):
-        """Display the question in self.question in the widget.
+    @pyqtSlot(Question, bool)
+    def ask_question(self, question, blocking):
+        """Dispkay a question in the statusbar.
+
+        Args:
+            question: The Question object to ask.
+            blocking: If True, exec_ is called and the result is returned.
+
+        Return:
+            The answer of the user when blocking=True.
+            None if blocking=False.
 
         Raise:
             ValueError if the set PromptMode is invalid.
         """
-        q = self.question
-        if q.mode == PromptMode.yesno:
-            if q.default is None:
+        self.question = question
+        if question.mode == PromptMode.yesno:
+            if question.default is None:
                 suffix = ""
-            elif q.default:
+            elif question.default:
                 suffix = " (yes)"
             else:
                 suffix = " (no)"
-            self._txt.setText(q.text + suffix)
+            self._txt.setText(question.text + suffix)
             self._input.hide()
             mode = 'yesno'
-        elif q.mode == PromptMode.text:
-            self._txt.setText(q.text)
-            if q.default:
-                self._input.setText(q.default)
+        elif question.mode == PromptMode.text:
+            self._txt.setText(question.text)
+            if question.default:
+                self._input.setText(question.default)
             self._input.show()
             mode = 'prompt'
-        elif q.mode == PromptMode.user_pwd:
-            self._txt.setText(q.text)
-            if q.default:
-                self._input.setText(q.default)
+        elif question.mode == PromptMode.user_pwd:
+            self._txt.setText(question.text)
+            if question.default:
+                self._input.setText(question.default)
             self._input.show()
             mode = 'prompt'
-        elif q.mode == PromptMode.alert:
-            self._txt.setText(q.text + ' (ok)')
+        elif question.mode == PromptMode.alert:
+            self._txt.setText(question.text + ' (ok)')
             self._input.hide()
             mode = 'prompt'
         else:
             raise ValueError("Invalid prompt mode!")
         self._input.setFocus()
         self.show_prompt.emit()
-        q.aborted.connect(lambda: modeman.maybe_leave(mode, 'aborted'))
+        question.aborted.connect(lambda: modeman.maybe_leave(mode, 'aborted'))
         modeman.enter(mode, 'question asked')
-
-    @pyqtSlot(Question, bool)
-    def ask_question(self, question, blocking):
-        """Slot which is called when there's a question to ask to the user.
-
-        Return:
-            The answer of the user when blocking=True.
-            None if blocking=False.
-
-        Args:
-            question: The Question object to ask.
-            blocking: If True, exec_ is called and the result is returned.
-        """
-        self.question = question
-        self.display()
         if blocking:
             return self.exec_()
 
