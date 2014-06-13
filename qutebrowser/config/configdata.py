@@ -438,6 +438,11 @@ DATA = OrderedDict([
     )),
 
     ('storage', sect.KeyValue(
+        ('download-directory',
+         SettingValue(types.Directory(none=True), ''),
+         "The directory to save downloads to. An empty value selects a "
+         "sensible os-specific default."),
+
         ('maximum-pages-in-cache',
          SettingValue(types.Int(none=True, minval=0, maxval=MAXVALS['int']),
                       ''),
@@ -889,6 +894,26 @@ DATA = OrderedDict([
                                         'left bottom, color-stop(0%,#FFF785), '
                                         'color-stop(100%,#FFC542))'),
          "Background color for hints."),
+
+        ('downloads.fg',
+         SettingValue(types.QtColor(), '#ffffff'),
+         "Foreground color for downloads."),
+
+        ('downloads.bg.bar',
+         SettingValue(types.Color(), 'black'),
+         "Background color for the download bar."),
+
+        ('downloads.bg.start',
+         SettingValue(types.QtColor(), '#0000aa'),
+         "Color gradient start for downloads."),
+
+        ('downloads.bg.stop',
+         SettingValue(types.QtColor(), '#00aa00'),
+         "Color gradient end for downloads."),
+
+        ('downloads.bg.system',
+         SettingValue(types.ColorSystem(), 'rgb'),
+         "Color gradient interpolation system for downloads."),
     )),
 
     ('fonts', sect.KeyValue(
@@ -910,6 +935,10 @@ DATA = OrderedDict([
         ('statusbar',
          SettingValue(types.Font(), '8pt ${_monospace}'),
          "Font used in the statusbar."),
+
+        ('downloads',
+         SettingValue(types.Font(), '8pt ${_monospace}'),
+         "Font used for the downloadbar."),
 
         ('hints',
          SettingValue(types.Font(), 'bold 12px Monospace'),

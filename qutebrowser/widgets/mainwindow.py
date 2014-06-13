@@ -30,6 +30,7 @@ import qutebrowser.utils.message as message
 from qutebrowser.widgets.statusbar.bar import StatusBar
 from qutebrowser.widgets.tabbedbrowser import TabbedBrowser
 from qutebrowser.widgets.completion import CompletionView
+from qutebrowser.widgets.downloads import DownloadView
 from qutebrowser.utils.usertypes import PromptMode
 
 
@@ -43,6 +44,7 @@ class MainWindow(QWidget):
     Attributes:
         tabs: The TabbedBrowser widget.
         status: The StatusBar widget.
+        downloadview: The DownloadView widget.
         _vbox: The main QVBoxLayout.
     """
 
@@ -67,6 +69,10 @@ class MainWindow(QWidget):
         self._vbox = QVBoxLayout(self)
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
+
+        self.downloadview = DownloadView()
+        self._vbox.addWidget(self.downloadview)
+        self.downloadview.show()
 
         self.tabs = TabbedBrowser()
         self._vbox.addWidget(self.tabs)
@@ -130,6 +136,7 @@ class MainWindow(QWidget):
         """
         super().resizeEvent(e)
         self.resize_completion()
+        self.downloadview.updateGeometry()
 
     def closeEvent(self, e):
         """Override closeEvent to display a confirmation if needed."""

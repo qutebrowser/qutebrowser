@@ -88,21 +88,25 @@ def alert(message):
     instance().question.emit(q, True)
 
 
-def question(message, mode, handler, default=None):
+def question(message, mode, handler, cancelled_handler=None, default=None):
     """Ask an async question in the statusbar.
 
     Args:
         message: The message to display to the user.
         mode: A PromptMode.
         handler: The function to get called with the answer as argument.
+        cancelled_handler: The function to get called when the prompt was
+                           cancelled by the user, or None.
         default: The default value to display.
     """
     q = Question()
     q.text = message
     q.mode = mode
     q.default = default
-    q.answered.connect(lambda: handler(q.answer))
-    instance().question.emit(q, True)
+    q.answered.connect(handler)
+    if cancelled_handler is not None:
+        q.cancelled.connect(cancelled_handler)
+    instance().question.emit(q, False)
 
 
 def confirm_action(message, yes_action, no_action=None, default=None):

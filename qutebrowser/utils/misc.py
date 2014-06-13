@@ -33,6 +33,7 @@ from functools import reduce
 from distutils.version import StrictVersion as Version
 
 from PyQt5.QtCore import QCoreApplication, QStandardPaths, qVersion
+from PyQt5.QtGui import QColor
 from pkg_resources import resource_string
 
 import qutebrowser
@@ -284,3 +285,102 @@ def get_qt_args(namespace):
             argv.append('-' + argname[3:])
             argv.append(val[0])
     return argv
+
+
+def _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3, percent):
+    """Get a color which is percent% interpolated between start and end.
+
+    Args:
+        a_c1, a_c2, a_c3: Start color components (R, G, B / H, S, V / H, S, L)
+        b_c1, b_c2, b_c3: End color components (R, G, B / H, S, V / H, S, L)
+        percent: Percentage to interpolate, 0-100.
+                 0: Start color will be returned.
+                 100: End color will be returned.
+
+    Return:
+        A (c1, c2, c3) tuple with the interpolated color components.
+
+    Raise:
+        ValueError if the percentage was invalid.
+    """
+    if not 0 <= percent <= 100:
+        raise ValueError("percent needs to be between 0 and 100!")
+    out_c1 = round(a_c1 + (b_c1 - a_c1) * percent / 100)
+    out_c2 = round(a_c2 + (b_c2 - a_c2) * percent / 100)
+    out_c3 = round(a_c3 + (b_c3 - a_c3) * percent / 100)
+    return (out_c1, out_c2, out_c3)
+
+
+def interpolate_color(start, end, percent, colorspace=QColor.Rgb):
+    """Get an interpolated color value.
+
+    Args:
+        start: The start color.
+        end: The end color.
+        percent: Which value to get (0 - 100)
+        colorspace: The desired interpolation colorsystem,
+                    QColor::{Rgb,Hsv,Hsl} (from QColor::Spec enum)
+
+    Return:
+        The interpolated QColor, with the same spec as the given start color.
+
+    Raise:
+        ValueError if invalid parameters are passed.
+    """
+    if not start.isValid():
+        raise ValueError("Invalid start color")
+    if not end.isValid():
+        raise ValueError("Invalid end color")
+    out = QColor()
+    if colorspace == QColor.Rgb:
+        a_c1, a_c2, a_c3, _alpha = start.getRgb()
+        b_c1, b_c2, b_c3, _alpha = end.getRgb()
+        components = _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3,
+                                           percent)
+        out.setRgb(*components)
+    elif colorspace == QColor.Hsv:
+        a_c1, a_c2, a_c3, _alpha = start.getHsv()
+        b_c1, b_c2, b_c3, _alpha = end.getHsv()
+        components = _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3,
+                                           percent)
+        out.setHsv(*components)
+    elif colorspace == QColor.Hsl:
+        a_c1, a_c2, a_c3, _alpha = start.getHsl()
+        b_c1, b_c2, b_c3, _alpha = end.getHsl()
+        components = _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3,
+                                           percent)
+        out.setHsl(*components)
+    else:
+        raise ValueError("Invalid colorspace!")
+    return out.convertTo(start.spec())
+
+
+def format_seconds(total_seconds):
+    """Format a count of seconds to get a [H:]M:SS string."""
+    prefix = '-' if total_seconds < 0 else ''
+    hours, rem = divmod(abs(round(total_seconds)), 3600)
+    minutes, seconds = divmod(rem, 60)
+    chunks = []
+    if hours:
+        chunks.append(str(hours))
+        min_format = '{:02}'
+    else:
+        min_format = '{}'
+    chunks.append(min_format.format(minutes))
+    chunks.append('{:02}'.format(seconds))
+    return prefix + ':'.join(chunks)
+
+
+def format_size(size, base=1024, suffix=''):
+    """Format a byte size so it's human readable.
+
+    Inspired by http://stackoverflow.com/q/1094841
+    """
+    prefixes = ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+    if size is None:
+        return '?.??' + suffix
+    for p in prefixes:
+        if -base < size < base:
+            return '{:.02f}{}{}'.format(size, p, suffix)
+        size /= base
+    return '{:.02f}{}{}'.format(size, prefixes[-1], suffix)

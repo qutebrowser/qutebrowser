@@ -53,6 +53,8 @@ from qutebrowser.commands.managers import CommandManager, SearchManager
 from qutebrowser.config.iniparsers import ReadWriteConfigParser
 from qutebrowser.config.lineparser import LineConfigParser
 from qutebrowser.browser.cookies import CookieJar
+from qutebrowser.browser.downloads import DownloadManager
+from qutebrowser.models.downloadmodel import DownloadModel
 from qutebrowser.utils.message import MessageBridge
 from qutebrowser.utils.misc import (get_standard_dir, actute_warning,
                                     get_qt_args)
@@ -132,6 +134,8 @@ class Application(QApplication):
         self.networkmanager = NetworkManager(self.cookiejar)
         self.commandmanager = CommandManager()
         self.searchmanager = SearchManager()
+        self.downloadmanager = DownloadManager()
+        self.downloadmodel = DownloadModel(self.downloadmanager)
         self.mainwindow = MainWindow()
 
         self.modeman.mainwindow = self.mainwindow
@@ -385,6 +389,9 @@ class Application(QApplication):
         cmd.hide_completion.connect(completion.hide)
         cmd.update_completion.connect(completer.on_update_completion)
         completer.change_completed_part.connect(cmd.on_change_completed_part)
+
+        # downloads
+        tabs.start_download.connect(self.downloadmanager.fetch)
 
     def _recover_pages(self):
         """Try to recover all open pages.

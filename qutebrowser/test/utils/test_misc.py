@@ -30,6 +30,7 @@ from tempfile import mkdtemp
 from unittest import TestCase
 
 from PyQt5.QtCore import QStandardPaths, QCoreApplication
+from PyQt5.QtGui import QColor
 
 import qutebrowser.utils.misc as utils
 from qutebrowser.test.helpers import environ_set_temp
@@ -431,6 +432,160 @@ class GetQtArgsTests(TestCase):
         self.assertIn('-reverse', qt_args)
         self.assertIn('-stylesheet', qt_args)
         self.assertIn('foobar', qt_args)
+
+
+class InterpolateColorTests(TestCase):
+
+    """Tests for interpolate_color.
+
+    Attributes:
+        white: The QColor white as a valid QColor for tests.
+        white: The QColor black as a valid QColor for tests.
+    """
+
+    def setUp(self):
+        self.white = QColor('white')
+        self.black = QColor('black')
+
+    def test_invalid_start(self):
+        """Test an invalid start color."""
+        with self.assertRaises(ValueError):
+            utils.interpolate_color(QColor(), self.white, 0)
+
+    def test_invalid_end(self):
+        """Test an invalid end color."""
+        with self.assertRaises(ValueError):
+            utils.interpolate_color(self.white, QColor(), 0)
+
+    def test_invalid_percentage(self):
+        """Test an invalid percentage."""
+        with self.assertRaises(ValueError):
+            utils.interpolate_color(self.white, self.white, -1)
+        with self.assertRaises(ValueError):
+            utils.interpolate_color(self.white, self.white, 101)
+
+    def test_invalid_colorspace(self):
+        """Test an invalid colorspace."""
+        with self.assertRaises(ValueError):
+            utils.interpolate_color(self.white, self.black, 10, QColor.Cmyk)
+
+    def test_valid_percentages_rgb(self):
+        """Test 0% and 100% in the RGB colorspace."""
+        white = utils.interpolate_color(self.white, self.black, 0, QColor.Rgb)
+        black = utils.interpolate_color(self.white, self.black, 100,
+                                        QColor.Rgb)
+        self.assertEqual(white, self.white)
+        self.assertEqual(black, self.black)
+
+    def test_valid_percentages_hsv(self):
+        """Test 0% and 100% in the HSV colorspace."""
+        white = utils.interpolate_color(self.white, self.black, 0, QColor.Hsv)
+        black = utils.interpolate_color(self.white, self.black, 100,
+                                        QColor.Hsv)
+        self.assertEqual(white, self.white)
+        self.assertEqual(black, self.black)
+
+    def test_valid_percentages_hsl(self):
+        """Test 0% and 100% in the HSL colorspace."""
+        white = utils.interpolate_color(self.white, self.black, 0, QColor.Hsl)
+        black = utils.interpolate_color(self.white, self.black, 100,
+                                        QColor.Hsl)
+        self.assertEqual(white, self.white)
+        self.assertEqual(black, self.black)
+
+    def test_interpolation_rgb(self):
+        """Test an interpolation in the RGB colorspace."""
+        color = utils.interpolate_color(QColor(0, 40, 100), QColor(0, 20, 200),
+                                        50, QColor.Rgb)
+        self.assertEqual(color, QColor(0, 30, 150))
+
+    def test_interpolation_hsv(self):
+        """Test an interpolation in the HSV colorspace."""
+        start = QColor()
+        stop = QColor()
+        start.setHsv(0, 40, 100)
+        stop.setHsv(0, 20, 200)
+        color = utils.interpolate_color(start, stop, 50, QColor.Hsv)
+        expected = QColor()
+        expected.setHsv(0, 30, 150)
+        self.assertEqual(color, expected)
+
+    def test_interpolation_hsl(self):
+        """Test an interpolation in the HSL colorspace."""
+        start = QColor()
+        stop = QColor()
+        start.setHsl(0, 40, 100)
+        stop.setHsl(0, 20, 200)
+        color = utils.interpolate_color(start, stop, 50, QColor.Hsl)
+        expected = QColor()
+        expected.setHsl(0, 30, 150)
+        self.assertEqual(color, expected)
+
+
+class FormatSecondsTests(TestCase):
+
+    """Tests for format_seconds.
+
+    Class attributes:
+        TESTS: A list of (input, output) tuples.
+    """
+
+    TESTS = [
+        (-1, '-0:01'),
+        (0, '0:00'),
+        (59, '0:59'),
+        (60, '1:00'),
+        (60.4, '1:00'),
+        (61, '1:01'),
+        (-61, '-1:01'),
+        (3599, '59:59'),
+        (3600, '1:00:00'),
+        (3601, '1:00:01'),
+        (36000, '10:00:00'),
+    ]
+
+    def test_format_seconds(self):
+        """Test format_seconds with several tests."""
+        for seconds, out in self.TESTS:
+            self.assertEqual(utils.format_seconds(seconds), out, seconds)
+
+
+class FormatSizeTests(TestCase):
+
+    """Tests for format_size.
+
+    Class attributes:
+        TESTS: A list of (input, output) tuples.
+    """
+
+    TESTS = [
+        (-1024, '-1.00k'),
+        (-1, '-1.00'),
+        (0, '0.00'),
+        (1023, '1023.00'),
+        (1024, '1.00k'),
+        (1034.24, '1.01k'),
+        (1024 * 1024 * 2, '2.00M'),
+        (1024 ** 10, '1024.00Y'),
+        (None, '?.??'),
+    ]
+
+    def test_format_size(self):
+        """Test format_size with several tests."""
+        for size, out in self.TESTS:
+            self.assertEqual(utils.format_size(size), out, size)
+
+    def test_suffix(self):
+        """Test the suffix option."""
+        for size, out in self.TESTS:
+            self.assertEqual(utils.format_size(size, suffix='B'), out + 'B',
+                             size)
+
+    def test_base(self):
+        """Test with an alternative base."""
+        kilo_tests = [(999, '999.00'), (1000, '1.00k'), (1010, '1.01k')]
+        for size, out in kilo_tests:
+            self.assertEqual(utils.format_size(size, base=1000), out, size)
 
 
 if __name__ == '__main__':
