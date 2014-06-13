@@ -25,6 +25,7 @@ Module attributes:
 from functools import partial
 
 import qutebrowser.config.config as config
+from qutebrowser.utils.log import style as logger
 
 
 _colordict = None
@@ -60,7 +61,9 @@ def set_register_stylesheet(obj):
         obj: The object to set the stylesheet for and register.
              Must have a STYLESHEET attribute.
     """
-    obj.setStyleSheet(get_stylesheet(obj.STYLESHEET))
+    qss = get_stylesheet(obj.STYLESHEET)
+    logger.debug("stylesheet for {}:\n{}".format(obj.__class__.__name__, qss))
+    obj.setStyleSheet(qss)
     config.instance().changed.connect(partial(_update_stylesheet, obj))
 
 

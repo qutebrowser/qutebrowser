@@ -69,6 +69,7 @@ keyboard = getLogger('keyboard')
 downloads = getLogger('downloads')
 js = getLogger('js')
 qt = getLogger('qt')
+style = getLogger('style')
 
 
 ram_handler = None
