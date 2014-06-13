@@ -53,6 +53,10 @@ class DownloadModel(QAbstractListModel):
         model_idx = self.index(idx, 0)
         self.dataChanged.emit(model_idx, model_idx)
 
+    def last_index(self):
+        """Get the last index in the model."""
+        return self.index(self.rowCount() - 1)
+
     def headerData(self, section, orientation, role):
         """Simple constant header."""
         if (section == 0 and orientation == Qt.Horizontal and

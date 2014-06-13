@@ -72,7 +72,8 @@ class DownloadView(QListView):
 
     def sizeHint(self):
         """Return sizeHint based on the view contents."""
-        height = self.sizeHintForRow(0)
+        idx = self.model().last_index()
+        height = self.visualRect(idx).bottom()
         if height != -1:
             return QSize(0, height + 2)
         else:
