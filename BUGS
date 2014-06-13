@@ -1,6 +1,8 @@
 Bugs
 ====
 
+- When quitting while being asked for a filename: segfault / memory corruption
+
 - When following a hint:
 
   QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.
