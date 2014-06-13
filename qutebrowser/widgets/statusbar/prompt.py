@@ -93,22 +93,22 @@ class Prompt(QWidget):
             self.question.answer = (self.question.user, password)
             modeman.leave('prompt', 'prompt accept')
             self.hide_prompt.emit()
-            self.question.answered.emit()
+            self.question.answered.emit(self.question.answer)
         elif self.question.mode == PromptMode.text:
             # User just entered text.
             self.question.answer = self._input.text()
             modeman.leave('prompt', 'prompt accept')
-            self.question.answered.emit()
+            self.question.answered.emit(self.question.answer)
         elif self.question.mode == PromptMode.yesno:
             # User wants to accept the default of a yes/no question.
             self.question.answer = self.question.default
             modeman.leave('yesno', 'yesno accept')
-            self.question.answered.emit()
+            self.question.answered.emit(self.question.answer)
         elif self.question.mode == PromptMode.alert:
             # User acknowledged an alert
             self.question.answer = None
             modeman.leave('prompt', 'alert accept')
-            self.question.answered.emit()
+            self.question.answered.emit(self.question.answer)
         else:
             raise ValueError("Invalid question mode!")
 
@@ -121,7 +121,7 @@ class Prompt(QWidget):
             return
         self.question.answer = True
         modeman.leave('yesno', 'yesno accept')
-        self.question.answered.emit()
+        self.question.answered.emit(self.question.answer)
         self.question.answered_yes.emit()
 
     @cmdutils.register(instance='mainwindow.status.prompt', hide=True,
@@ -133,7 +133,7 @@ class Prompt(QWidget):
             return
         self.question.answer = False
         modeman.leave('yesno', 'prompt accept')
-        self.question.answered.emit()
+        self.question.answered.emit(self.question.answer)
         self.question.answered_no.emit()
 
     def display(self):

@@ -103,7 +103,7 @@ def question(message, mode, handler, cancelled_handler=None, default=None):
     q.text = message
     q.mode = mode
     q.default = default
-    q.answered.connect(lambda: handler(q.answer))
+    q.answered.connect(handler)
     if cancelled_handler is not None:
         q.cancelled.connect(cancelled_handler)
     instance().question.emit(q, True)
