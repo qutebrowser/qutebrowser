@@ -143,11 +143,19 @@ class HintKeyParser(CommandKeyParser):
             keystring_updated: If a new keystring should be set.
         """
         handled = self._handle_single_key(e)
-        if handled:
+        if handled and self._keystring:
+            # A key has been added to the keystring (Match.partial)
             self.keystring_updated.emit(self._keystring)
             self._last_press = LastPress.keystring
             return handled
-        return self._handle_special_key(e)
+        elif handled:
+            # We handled the key but the keystring is empty. This happens when
+            # match is Match.definitive, so a keychain has been completed.
+            self._last_press = LastPress.none
+            return handled
+        else:
+            # We couldn't find a keychain so we check if it's a special key.
+            return self._handle_special_key(e)
 
     def execute(self, cmdstr, keytype, count=None):
         """Handle a completed keychain.
