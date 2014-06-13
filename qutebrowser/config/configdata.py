@@ -900,7 +900,7 @@ DATA = OrderedDict([
          "Foreground color for downloads."),
 
         ('downloads.bg.bar',
-         SettingValue(types.Color(), '#555555'),
+         SettingValue(types.Color(), 'black'),
          "Background color for the download bar."),
 
         ('downloads.bg.start',
