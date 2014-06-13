@@ -106,7 +106,7 @@ def question(message, mode, handler, cancelled_handler=None, default=None):
     q.answered.connect(handler)
     if cancelled_handler is not None:
         q.cancelled.connect(cancelled_handler)
-    instance().question.emit(q, True)
+    instance().question.emit(q, False)
 
 
 def confirm_action(message, yes_action, no_action=None, default=None):
