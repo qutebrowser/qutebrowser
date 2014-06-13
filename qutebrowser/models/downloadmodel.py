@@ -90,7 +90,7 @@ class DownloadModel(QAbstractListModel):
         The default would be Qt.ItemIsEnabled | Qt.ItemIsSelectable."""
         return Qt.ItemIsEnabled
 
-    def rowCount(self, parent):
+    def rowCount(self, parent=QModelIndex()):
         """Get count of active downloads."""
         if parent.isValid():
             # We don't have children
