@@ -17,6 +17,7 @@
 
 """Download manager."""
 
+import os
 import os.path
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer
@@ -44,6 +45,8 @@ class DownloadItem(QObject):
         bytes_total: The total count of bytes.
         speed: The current download speed, in bytes per second.
         fileobj: The file object to download the file to.
+        filename: The filename of the download.
+        cancelled: Whether the download was cancelled.
         _last_done: The count of bytes which where downloaded when calculating
                     the speed the last time.
         _last_percentage: The remembered percentage for data_changed.
@@ -73,6 +76,8 @@ class DownloadItem(QObject):
         self.speed = None
         self.basename = '???'
         self.fileobj = None
+        self.filename = None
+        self.cancelled = False
         self._do_delayed_write = False
         self._last_done = None
         self._last_percentage = None
@@ -147,9 +152,15 @@ class DownloadItem(QObject):
     def cancel(self):
         """Cancel the download."""
         logger.debug("cancelled")
+        self.cancelled = True
         self.reply.abort()
         self.reply.deleteLater()
+        if self.fileobj is not None:
+            self.fileobj.close()
+        if self.filename is not None:
+            os.remove(self.filename)
         self.finished.emit()
+
 
     def set_filename(self, filename):
         """Set the filename to save the download to.
@@ -158,9 +169,10 @@ class DownloadItem(QObject):
             filename: The full filename to save the download to.
                       None: special value to stop the download.
         """
-        if self.fileobj is not None:
+        if self.filename is not None:
             raise ValueError("Filename was already set! filename: {}, "
-                             "existing: {}".format(filename, self.fileobj))
+                             "existing: {}".format(filename, self.filename))
+        self.filename = filename
         self.basename = os.path.basename(filename)
         try:
             self.fileobj = open(filename, 'wb')
@@ -209,6 +221,8 @@ class DownloadItem(QObject):
         """
         self.bytes_done = self.bytes_total
         self.timer.stop()
+        if self.cancelled:
+            return
         logger.debug("Reply finished, fileobj {}".format(self.fileobj))
         if self.fileobj is None:
             # We'll handle emptying the buffer and cleaning up as soon as the
@@ -334,6 +348,7 @@ class DownloadManager(QObject):
     @pyqtSlot()
     def on_finished(self):
         """Remove finished download."""
+        logger.debug("on_finished: {}".format(self.sender()))
         idx = self.downloads.index(self.sender())
         self.download_about_to_be_finished.emit(idx)
         del self.downloads[idx]

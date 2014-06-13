@@ -17,16 +17,21 @@
 
 """The ListView to display downloads in."""
 
-from PyQt5.QtCore import QSize
-from PyQt5.QtWidgets import QListView, QSizePolicy
+from PyQt5.QtCore import pyqtSlot, QSize, Qt
+from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu
 
-from qutebrowser.models.downloadmodel import DownloadModel
+from qutebrowser.models.downloadmodel import DownloadModel, Role
 from qutebrowser.config.style import set_register_stylesheet
 
 
 class DownloadView(QListView):
 
-    """QListView which shows currently running downloads as a bar."""
+    """QListView which shows currently running downloads as a bar.
+
+    Attributes:
+        _menu: The QMenu which is currently displayed.
+        _model: The currently set model.
+    """
 
     STYLESHEET = """
         QListView {{
@@ -40,11 +45,26 @@ class DownloadView(QListView):
         set_register_stylesheet(self)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         self.setFlow(QListView.LeftToRight)
+        self._menu = None
         self._model = DownloadModel()
         self._model.rowsInserted.connect(self.updateGeometry)
         self._model.rowsRemoved.connect(self.updateGeometry)
         self.setModel(self._model)
         self.setWrapping(True)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.show_context_menu)
+
+    @pyqtSlot('QPoint')
+    def show_context_menu(self, point):
+        """Show the context menu."""
+        index = self.indexAt(point)
+        if not index.isValid():
+            return
+        item = self.model().data(index, Role.item)
+        self._menu = QMenu()
+        cancel = self._menu.addAction("Cancel")
+        cancel.triggered.connect(item.cancel)
+        self._menu.popup(self.viewport().mapToGlobal(point))
 
     def minimumSizeHint(self):
         """Override minimumSizeHint so the size is correct in a layout."""

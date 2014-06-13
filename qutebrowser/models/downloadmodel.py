@@ -22,6 +22,10 @@ from PyQt5.QtCore import (pyqtSlot, Qt, QVariant, QAbstractListModel,
 from PyQt5.QtWidgets import QApplication
 
 import qutebrowser.config.config as config
+from qutebrowser.utils.usertypes import enum
+
+
+Role = enum('item', start=Qt.UserRole)
 
 
 class DownloadModel(QAbstractListModel):
@@ -74,6 +78,8 @@ class DownloadModel(QAbstractListModel):
             data = config.get('colors', 'downloads.fg')
         elif role == Qt.BackgroundRole:
             data = item.bg_color()
+        elif role == Role.item:
+            data = item
         else:
             data = QVariant()
         return data
