@@ -36,7 +36,7 @@ class DownloadItem(QObject):
     """A single download currently running.
 
     Class attributes:
-        REFRESH_INTERVAL: How often to refresh the speed, in msec.
+        SPEED_REFRESH_INTERVAL: How often to refresh the speed, in msec.
 
     Attributes:
         reply: The QNetworkReply associated with this download.
@@ -59,7 +59,7 @@ class DownloadItem(QObject):
                arg: The error message as string.
     """
 
-    REFRESH_INTERVAL = 200
+    SPEED_REFRESH_INTERVAL = 500
     data_changed = pyqtSignal()
     finished = pyqtSignal()
     error = pyqtSignal(str)
@@ -90,7 +90,7 @@ class DownloadItem(QObject):
         reply.readyRead.connect(self.on_ready_read)
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_speed)
-        self.timer.setInterval(self.REFRESH_INTERVAL)
+        self.timer.setInterval(self.SPEED_REFRESH_INTERVAL)
         self.timer.start()
 
     def __str__(self):
@@ -263,10 +263,10 @@ class DownloadItem(QObject):
                 self.speed = 0
             else:
                 delta = self.bytes_done
-                self.speed = delta * 1000 / self.REFRESH_INTERVAL
+                self.speed = delta * 1000 / self.SPEED_REFRESH_INTERVAL
         else:
             delta = self.bytes_done - self._last_done
-            self.speed = delta * 1000 / self.REFRESH_INTERVAL
+            self.speed = delta * 1000 / self.SPEED_REFRESH_INTERVAL
         logger.debug("Download speed: {} bytes/sec".format(self.speed))
         self._last_done = self.bytes_done
         self.data_changed.emit()
