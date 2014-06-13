@@ -21,14 +21,23 @@ from PyQt5.QtCore import QSize
 from PyQt5.QtWidgets import QListView, QSizePolicy
 
 from qutebrowser.models.downloadmodel import DownloadModel
+from qutebrowser.config.style import set_register_stylesheet
 
 
 class DownloadView(QListView):
 
     """QListView which shows currently running downloads as a bar."""
 
+    STYLESHEET = """
+        QListView {{
+            {color[download.bg.bar]}
+            {font[download]}
+        }}
+    """
+
     def __init__(self, parent=None):
         super().__init__(parent)
+        set_register_stylesheet(self)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         self.setFlow(QListView.LeftToRight)
         self._model = DownloadModel()

@@ -899,6 +899,10 @@ DATA = OrderedDict([
          SettingValue(types.QtColor(), '#ffffff'),
          "Foreground color for downloads."),
 
+        ('download.bg.bar',
+         SettingValue(types.Color(), '#555555'),
+         "Background color for the download bar."),
+
         ('download.bg.start',
          SettingValue(types.QtColor(), '#0000aa'),
          "Color gradient start for downloads."),
@@ -931,6 +935,10 @@ DATA = OrderedDict([
         ('statusbar',
          SettingValue(types.Font(), '8pt ${_monospace}'),
          "Font used in the statusbar."),
+
+        ('download',
+         SettingValue(types.Font(), '8pt ${_monospace}'),
+         "Font used for the downloadbar."),
 
         ('hints',
          SettingValue(types.Font(), 'bold 12px Monospace'),
