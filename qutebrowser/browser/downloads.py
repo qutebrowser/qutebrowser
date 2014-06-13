@@ -276,6 +276,10 @@ class DownloadManager(QObject):
 
     """Manager for running downloads.
 
+    Attributes:
+        downloads: A list of active DownloadItems.
+        questions: A list of Question objects to not GC them.
+
     Signals:
         download_about_to_be_added: A new download will be added.
                                     arg: The index of the new download.
@@ -296,6 +300,7 @@ class DownloadManager(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.downloads = []
+        self.questions = []
 
     def _get_filename(self, reply):
         """Get a suitable filename to download a file to.
@@ -350,6 +355,7 @@ class DownloadManager(QObject):
         q.default = suggested_filepath
         q.answered.connect(download.set_filename)
         q.cancelled.connect(download.cancel)
+        self.questions.append(q)
         download.cancelled.connect(q.abort)
         message.instance().question.emit(q, False)
 
