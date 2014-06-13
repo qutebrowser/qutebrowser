@@ -1,6 +1,9 @@
 Bugs
 ====
 
+- Because restart is broken, using "restore tabs" in crash dialog doesn't work
+  anymore.
+
 - When following a hint:
 
   QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.
