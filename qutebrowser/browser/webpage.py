@@ -184,14 +184,18 @@ class BrowserPage(QWebPage):
         """Override javaScriptConsoleMessage to use debug log."""
         log.js.debug("[{}:{}] {}".format(source, line, msg))
 
-    def javaScriptPrompt(self, _frame, msg, default):
-        """Override javaScriptConfirm to use the statusbar."""
-        answer = message.modular_question(
-            "js: {}".format(msg), PromptMode.text, default)
-        if answer is None:
-            return (False, "")
-        else:
-            return (True, answer)
+    # We don't overwrite javaScriptPrompt as it's completely broken at least in
+    # PyQt 5.2.1 and 5.3.0:
+    #   http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034385.html
+
+    #def javaScriptPrompt(self, _frame, msg, default):
+    #    """Override javaScriptConfirm to use the statusbar."""
+    #    answer = message.modular_question(
+    #        "js: {}".format(msg), PromptMode.text, default)
+    #    if answer is None:
+    #        return (False, "")
+    #    else:
+    #        return (True, answer)
 
     def chooseFile(self, _frame, suggested_file):
         """Override QWebPage's chooseFile to be able to chose a file to upload.
