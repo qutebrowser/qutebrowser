@@ -266,7 +266,7 @@ class Question(QObject):
                      answered with no.
     """
 
-    answered = pyqtSignal(str)
+    answered = pyqtSignal(object)
     cancelled = pyqtSignal()
     aborted = pyqtSignal()
     answered_yes = pyqtSignal()
