@@ -32,7 +32,7 @@ from urllib.parse import urljoin, urlencode
 from functools import reduce
 from distutils.version import StrictVersion as Version
 
-from PyQt5.QtCore import QCoreApplication, QStandardPaths, qVersion
+from PyQt5.QtCore import QCoreApplication, QStandardPaths, QEventLoop, qVersion
 from PyQt5.QtGui import QColor
 from pkg_resources import resource_string
 
@@ -384,3 +384,21 @@ def format_size(size, base=1024, suffix=''):
             return '{:.02f}{}{}'.format(size, p, suffix)
         size /= base
     return '{:.02f}{}{}'.format(size, prefixes[-1], suffix)
+
+
+class EventLoop(QEventLoop):
+
+    """A thin wrapper around QEventLoop which raises an exception when doing
+    exec_() multiple times.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._executing = False
+
+    def exec_(self, flags=QEventLoop.AllEvents):
+        if self._executing:
+            raise AssertionError("Eventloop is already running!")
+        self._executing = True
+        super().exec_(flags)
+        self._executing = False

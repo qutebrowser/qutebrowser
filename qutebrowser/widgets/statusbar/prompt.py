@@ -17,7 +17,7 @@
 
 """Prompt shown in the statusbar."""
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QEventLoop
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QHBoxLayout, QWidget, QLineEdit
 
 import qutebrowser.keyinput.modeman as modeman
@@ -25,6 +25,7 @@ import qutebrowser.commands.utils as cmdutils
 from qutebrowser.widgets.statusbar.textbase import TextBase
 from qutebrowser.widgets.misc import MinimalLineEdit
 from qutebrowser.utils.usertypes import PromptMode, Question
+from qutebrowser.utils.misc import EventLoop
 
 
 class Prompt(QWidget):
@@ -33,7 +34,7 @@ class Prompt(QWidget):
 
     Attributes:
         question: A Question object with the question to be asked to the user.
-        loop: A local QEventLoop to spin in exec_.
+        loop: A local EventLoop to spin in exec_.
         _hbox: The QHBoxLayout used to display the text and prompt.
         _txt: The TextBase instance (QLabel) used to display the prompt text.
         _input: The MinimalLineEdit instance (QLineEdit) used for the input.
@@ -50,7 +51,7 @@ class Prompt(QWidget):
         super().__init__(parent)
 
         self.question = None
-        self.loop = QEventLoop()
+        self.loop = EventLoop()
 
         self._hbox = QHBoxLayout(self)
         self._hbox.setContentsMargins(0, 0, 0, 0)
