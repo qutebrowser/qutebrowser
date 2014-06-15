@@ -39,8 +39,13 @@ New big features
 Improvements / minor features
 =============================
 
+- Settings dialog
+- Don't use pkg_resources if unavailable, or detect it on start.
+  Debian: python3-pkg-resources
 - Use argparse and do something like click for command arguments, then we can
   have flags etc.
+- Make it more clear that it's possible to edit the crash info, e.g. to provide
+  more information.
 - Reimplement tabbar to paint it by ourselves to look like dwb
 - Save cookies in Netscape format so it can be used by wget. (see notes)
 - Zoom with ctrl + mousewheel
