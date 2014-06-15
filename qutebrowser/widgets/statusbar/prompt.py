@@ -34,7 +34,7 @@ class Prompt(QWidget):
 
     Attributes:
         question: A Question object with the question to be asked to the user.
-        loop: A local EventLoop to spin in exec_.
+        loops: A list of local EventLoops to spin into in exec_.
         _hbox: The QHBoxLayout used to display the text and prompt.
         _txt: The TextBase instance (QLabel) used to display the prompt text.
         _input: The MinimalLineEdit instance (QLineEdit) used for the input.
@@ -51,7 +51,7 @@ class Prompt(QWidget):
         super().__init__(parent)
 
         self.question = None
-        self.loop = EventLoop()
+        self.loops = []
 
         self._hbox = QHBoxLayout(self)
         self._hbox.setContentsMargins(0, 0, 0, 0)
@@ -194,8 +194,11 @@ class Prompt(QWidget):
         Return:
             The answer to the question. No, it's not always 42.
         """
-        self.question.answered.connect(self.loop.quit)
-        self.question.cancelled.connect(self.loop.quit)
-        self.question.aborted.connect(self.loop.quit)
-        self.loop.exec_()
+        loop = EventLoop()
+        self.loops.append(loop)
+        loop.destroyed.connect(lambda: self.loops.remove(loop))
+        self.question.answered.connect(loop.quit)
+        self.question.cancelled.connect(loop.quit)
+        self.question.aborted.connect(loop.quit)
+        loop.exec_()
         return self.question.answer
