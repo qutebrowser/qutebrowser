@@ -105,6 +105,10 @@ class Command(MinimalLineEdit):
             # When only ":" is entered, we already have one imaginary part,
             # which just is empty at the moment.
             return ['']
+        if not text.strip():
+            # Text is only whitespace so we treat this as a single element with
+            # the whitespace.
+            return [text]
         manager = CommandManager()
         parts = manager.parse(text, fallback=True, alias_no_args=False)
         if self._empty_item_idx is not None:
