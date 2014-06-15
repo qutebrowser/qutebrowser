@@ -388,8 +388,9 @@ def format_size(size, base=1024, suffix=''):
 
 class EventLoop(QEventLoop):
 
-    """A thin wrapper around QEventLoop which raises an exception when doing
-    exec_() multiple times.
+    """A thin wrapper around QEventLoop.
+
+    Raises an exception when doing exec_() multiple times.
     """
 
     def __init__(self, parent=None):
@@ -397,6 +398,7 @@ class EventLoop(QEventLoop):
         self._executing = False
 
     def exec_(self, flags=QEventLoop.AllEvents):
+        """Override exec_ to raise an exception when re-running."""
         if self._executing:
             raise AssertionError("Eventloop is already running!")
         self._executing = True
