@@ -36,7 +36,7 @@ class Prompt(QWidget):
 
     Attributes:
         question: A Question object with the question to be asked to the user.
-        loops: A list of local EventLoops to spin into in exec_.
+        loops: A list of local EventLoops to spin into in _spin.
         _hbox: The QHBoxLayout used to display the text and prompt.
         _txt: The TextBase instance (QLabel) used to display the prompt text.
         _input: The MinimalLineEdit instance (QLineEdit) used for the input.
@@ -65,16 +65,23 @@ class Prompt(QWidget):
         self._input = MinimalLineEdit()
         self._hbox.addWidget(self._input)
 
+        self._old_input = self._input.text()
+        self._old_echo_mode = self._input.echoMode()
+        self._old_text = self._txt.text()
+        self._old_visible = None
+        self.visible = False
+
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
 
     def on_mode_left(self, mode):
         """Clear and reset input when the mode was left."""
         if mode in ('prompt', 'yesno'):
-            self._txt.setText('')
-            self._input.clear()
-            self._input.setEchoMode(QLineEdit.Normal)
-            self.hide_prompt.emit()
+            self._txt.setText(self._old_text)
+            self._input.setText(self._old_input)
+            self._input.setEchoMode(self._old_echo_mode)
+            if not self._old_visible:
+                self.hide_prompt.emit()
             if self.question.answer is None and not self.question.is_aborted:
                 self.question.cancel()
 
@@ -146,7 +153,7 @@ class Prompt(QWidget):
 
         Args:
             question: The Question object to ask.
-            blocking: If True, exec_ is called and the result is returned.
+            blocking: If True, _spin is called and the result is returned.
 
         Return:
             The answer of the user when blocking=True.
@@ -155,6 +162,10 @@ class Prompt(QWidget):
         Raise:
             ValueError if the set PromptMode is invalid.
         """
+        self._old_input = self._input.text()
+        self._old_echo_mode = self._input.echoMode()
+        self._old_text = self._txt.text()
+        self._old_visible = self.visible
         self.question = question
         if question.mode == PromptMode.yesno:
             if question.default is None:
@@ -189,19 +200,11 @@ class Prompt(QWidget):
         question.aborted.connect(lambda: modeman.maybe_leave(mode, 'aborted'))
         modeman.enter(mode, 'question asked')
         if blocking:
-            return self.exec_()
-
-    def exec_(self):
-        """Local eventloop to spin in for a blocking question.
-
-        Return:
-            The answer to the question. No, it's not always 42.
-        """
-        loop = EventLoop(self)
-        self.loops.append(loop)
-        loop.destroyed.connect(lambda: self.loops.remove(loop))
-        self.question.answered.connect(loop.quit)
-        self.question.cancelled.connect(loop.quit)
-        self.question.aborted.connect(loop.quit)
-        loop.exec_()
-        return self.question.answer
+            loop = EventLoop()
+            self.loops.append(loop)
+            loop.destroyed.connect(lambda: self.loops.remove(loop))
+            self.question.answered.connect(loop.quit)
+            self.question.cancelled.connect(loop.quit)
+            self.question.aborted.connect(loop.quit)
+            loop.exec_()
+            return self.question.answer

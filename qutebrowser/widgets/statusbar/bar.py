@@ -262,6 +262,7 @@ class StatusBar(QWidget):
         """Show prompt widget instead of temporary text."""
         self.error = False
         self.prompt_active = True
+        self.prompt.visible = True
         if self._text_pop_timer.isActive():
             self._timer_was_active = True
         self._text_pop_timer.stop()
@@ -270,6 +271,7 @@ class StatusBar(QWidget):
     def _hide_prompt_widget(self):
         """Show temporary text instead of prompt widget."""
         self.prompt_active = False
+        self.prompt.visible = False
         logger.debug("Hiding prompt widget, queue: {}".format(
             self._text_queue))
         if self._timer_was_active:
