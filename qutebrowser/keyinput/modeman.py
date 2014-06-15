@@ -250,14 +250,14 @@ class ModeManager(QObject):
             # We already handled this same event at some point earlier, so
             # we're not interested in it anymore.
             logger.debug("Ignoring event {} for {}".format(
-                debug.EVENTS[typ], obj.__class__.__name__))
+                debug.qenum_key(QEvent, typ), obj.__class__.__name__))
             return False
         if QCoreApplication.instance().activeWindow() is not self.mainwindow:
             # Some other window (print dialog, etc.) is focused so we pass
             # the event through.
             return False
         logger.debug("Got event {} for {} in mode {}".format(
-            debug.EVENTS[typ], obj.__class__.__name__, self.mode))
+            debug.qenum_key(QEvent, typ), obj.__class__.__name__, self.mode))
 
         if typ == QEvent.KeyPress:
             return self._eventFilter_keypress(event)

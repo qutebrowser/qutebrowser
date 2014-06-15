@@ -33,9 +33,6 @@ except ImportError:
 
 import qutebrowser.commands.utils as cmdutils
 
-EVENTS = {n: x for x, n in vars(QEvent).items()
-          if isinstance(n, QEvent.Type)}
-
 
 def log_events(klass):
     """Class decorator to log Qt events."""
@@ -45,7 +42,7 @@ def log_events(klass):
     def new_event(self, e, *args, **kwargs):
         """Wrapper for event() which logs events."""
         logger.debug("Event in {}: {}".format(klass.__name__,
-                                              EVENTS[e.type()]))
+                                              qenum_key(QEvent, e.type())))
         return old_event(self, e, *args, **kwargs)
 
     klass.event = new_event
@@ -87,3 +84,27 @@ def trace_lines(do_trace):
         sys.settrace(trace)
     else:
         sys.settrace(None)
+
+
+def qenum_key(base, value):
+    """Convert a Qt Enum value to its key as a string.
+
+    Args:
+        base: The object the enum is in, e.g. QFrame.
+        value: The value to get.
+
+    Return:
+        The key associated with the value as a string, or None.
+    """
+    klass = value.__class__
+    try:
+        idx = klass.staticMetaObject.indexOfEnumerator(klass.__name__)
+    except AttributeError:
+        idx = -1
+    if idx != -1:
+        return klass.staticMetaObject.enumerator(idx).valueToKey(value)
+    else:
+        for name, obj in vars(base).items():
+            if isinstance(obj, klass) and obj == value:
+                return name
+        return None
