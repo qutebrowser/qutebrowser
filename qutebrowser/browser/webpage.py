@@ -18,7 +18,7 @@
 """The main browser widgets."""
 
 import sip
-from PyQt5.QtCore import QCoreApplication, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QCoreApplication, pyqtSignal, pyqtSlot, PYQT_VERSION
 from PyQt5.QtNetwork import QNetworkReply
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtPrintSupport import QPrintDialog
@@ -57,6 +57,27 @@ class BrowserPage(QWebPage):
         self.setForwardUnsupportedContent(True)
         self.printRequested.connect(self.on_print_requested)
         self.downloadRequested.connect(self.on_download_requested)
+
+        if PYQT_VERSION > 0x050300:
+            # This breaks in <= 5.3.0, but in anything later it hopefully
+            # works.
+            # FIXME confirm this as soon as 5.3.1 is out!
+            self.javaScriptPrompt = self._javascript_prompt
+
+    def _javascript_prompt(self, _frame, msg, default):
+        """Override javaScriptPrompt to use the statusbar.
+
+        We use this approach and override the method conditionally in __init__
+        because overriding javaScriptPrompt was broken in 5.3.0.
+
+        http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034385.html
+        """
+        answer = message.modular_question(
+            "js: {}".format(msg), PromptMode.text, default)
+        if answer is None:
+            return (False, "")
+        else:
+            return (True, answer)
 
     def _handle_errorpage(self, opt, out):
         """Display an error page if needed.
@@ -183,19 +204,6 @@ class BrowserPage(QWebPage):
     def javaScriptConsoleMessage(self, msg, line, source):
         """Override javaScriptConsoleMessage to use debug log."""
         log.js.debug("[{}:{}] {}".format(source, line, msg))
-
-    # We don't overwrite javaScriptPrompt as it's completely broken at least in
-    # PyQt 5.2.1 and 5.3.0:
-    #   http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034385.html
-
-    #def javaScriptPrompt(self, _frame, msg, default):
-    #    """Override javaScriptConfirm to use the statusbar."""
-    #    answer = message.modular_question(
-    #        "js: {}".format(msg), PromptMode.text, default)
-    #    if answer is None:
-    #        return (False, "")
-    #    else:
-    #        return (True, answer)
 
     def chooseFile(self, _frame, suggested_file):
         """Override QWebPage's chooseFile to be able to chose a file to upload.
