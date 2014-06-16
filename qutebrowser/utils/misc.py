@@ -397,6 +397,11 @@ def format_size(size, base=1024, suffix=''):
     return '{:.02f}{}{}'.format(size, prefixes[-1], suffix)
 
 
+def check_print_compat():
+    """Check if printing should work in the given Qt version."""
+    return not (os.name == 'nt' and qt_version_check('5.3.0', operator.lt))
+
+
 class EventLoop(QEventLoop):
 
     """A thin wrapper around QEventLoop.

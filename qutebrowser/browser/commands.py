@@ -35,7 +35,8 @@ import qutebrowser.utils.message as message
 import qutebrowser.utils.webelem as webelem
 import qutebrowser.browser.quickmarks as quickmarks
 import qutebrowser.utils.log as log
-from qutebrowser.utils.misc import check_overflow, shell_escape
+from qutebrowser.utils.misc import (check_overflow, shell_escape,
+                                    check_print_compat)
 from qutebrowser.utils.editor import ExternalEditor
 from qutebrowser.commands.exceptions import CommandError
 from qutebrowser.commands.userscripts import UserscriptRunner
@@ -197,6 +198,9 @@ class CommandDispatcher:
         Args:
             count: The tab index to print, or None.
         """
+        if not check_print_compat():
+            raise CommandError("Printing on Qt < 5.3.0 on Windows is broken, "
+                               "please upgrade!")
         tab = self._tabs.cntwidget(count)
         if tab is not None:
             preview = QPrintPreviewDialog()
@@ -210,9 +214,9 @@ class CommandDispatcher:
         Args:
             count: The tab index to print, or None.
         """
-        # QTBUG: We only get blank pages.
-        # https://bugreports.qt-project.org/browse/QTBUG-19571
-        # If this isn't fixed in Qt 5.3, bug should be reopened.
+        if not check_print_compat():
+            raise CommandError("Printing on Qt < 5.3.0 on Windows is broken, "
+                               "please upgrade!")
         tab = self._tabs.cntwidget(count)
         if tab is not None:
             printdiag = QPrintDialog()

@@ -30,7 +30,7 @@ import qutebrowser.utils.message as message
 import qutebrowser.utils.url as urlutils
 import qutebrowser.config.config as config
 import qutebrowser.utils.log as log
-from qutebrowser.utils.misc import read_file
+from qutebrowser.utils.misc import read_file, check_print_compat
 from qutebrowser.utils.usertypes import PromptMode
 
 
@@ -145,6 +145,10 @@ class BrowserPage(QWebPage):
 
     def on_print_requested(self, frame):
         """Handle printing when requested via javascript."""
+        if not check_print_compat():
+            message.error("Printing on Qt < 5.3.0 on Windows is broken, "
+                          "please upgrade!")
+            return
         printdiag = QPrintDialog()
         printdiag.open(lambda: frame.print(printdiag.printer()))
 

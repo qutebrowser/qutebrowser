@@ -78,10 +78,6 @@ Upstream Bugs
     Asked on SO: http://stackoverflow.com/q/23499159/2085149
     TODO: report Qt bug
 
-- Printing under windows produced blank pages
-    https://bugreports.qt-project.org/browse/QTBUG-19571
-    If this isn't fixed in Qt 5.3, bug should be reopened.
-
 - QWebElement needs geometries()
     https://bugreports.qt-project.org/browse/QTBUG-38698
 
