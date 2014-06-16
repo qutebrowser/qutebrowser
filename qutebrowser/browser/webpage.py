@@ -17,6 +17,8 @@
 
 """The main browser widgets."""
 
+import operator
+
 import sip
 from PyQt5.QtCore import QCoreApplication, pyqtSignal, pyqtSlot, PYQT_VERSION
 from PyQt5.QtNetwork import QNetworkReply

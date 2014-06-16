@@ -27,11 +27,12 @@ import re
 import sys
 import shlex
 import os.path
+import operator
 import urllib.request
 from urllib.parse import urljoin, urlencode
 from functools import reduce
-from distutils.version import StrictVersion as Version
 
+from distutils.version import StrictVersion as Version
 from PyQt5.QtCore import QCoreApplication, QStandardPaths, QEventLoop, qVersion
 from PyQt5.QtGui import QColor
 from pkg_resources import resource_string
@@ -48,6 +49,16 @@ MINVALS = {
     'int': -(2 ** 31),
     'int64': -(2 ** 63),
 }
+
+
+def qt_version_check(version, op=operator.ge):
+    """Check if the Qt runtime version is the version supplied or newer.
+
+    Args:
+        version: The version to check against.
+        op: The operator to use for the check.
+    """
+    return op(Version(qVersion()), Version(version))
 
 
 def elide(text, length):
@@ -247,7 +258,7 @@ def actute_warning():
         return
     # Qt >= 5.3 doesn't seem to be affected
     try:
-        if Version(qVersion()) >= Version('5.3.0'):
+        if qt_version_check('5.3.0'):
             return
     except ValueError:
         pass
