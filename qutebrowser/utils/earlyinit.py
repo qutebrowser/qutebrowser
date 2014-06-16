@@ -136,6 +136,24 @@ def check_pyqt_core():
 
 # Now we can be sure QtCore is available, so we can print dialogs on errors, so
 # people only using the GUI notice them as well.
+def check_qt_version():
+    """Check if the Qt version is recent enough."""
+    # We don't use qutebrowser.utils.misc:qt_version_check because we didn't
+    # check for pkg_resources yet.
+    from PyQt5.QtWidgets import QApplication, QMessageBox
+    from PyQt5.QtCore import qVersion
+    from distutils.version import StrictVersion as Version
+    if Version(qVersion()) < Version('5.2.0'):
+        app = QApplication(sys.argv)
+        msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
+                             textwrap.dedent("""
+            Fatal error: Qt and PyQt >= 5.2.0 are required, but {} is
+            installed.""").strip().format(qVersion()))
+        msgbox.resize(msgbox.sizeHint())
+        msgbox.exec_()
+        app.quit()
+        sys.exit(1)
+
 def check_pyqt_webkit():
     """Check if PyQt WebKit is installed."""
     from PyQt5.QtWidgets import QApplication, QMessageBox
