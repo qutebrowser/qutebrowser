@@ -42,6 +42,7 @@ class Command:
         handler: The handler function to call.
         completion: Completions to use for arguments, as a list of strings.
         needs_js: Whether the command needs javascript enabled
+        debug: Whether this is a debugging command (only shown with --debug).
     """
 
     # TODO:
@@ -49,7 +50,7 @@ class Command:
     # this might be combined with help texts or so as well
 
     def __init__(self, name, split, hide, nargs, count, desc, instance,
-                 handler, completion, modes, not_modes, needs_js):
+                 handler, completion, modes, not_modes, needs_js, debug):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-arguments
         super().__init__()
@@ -65,6 +66,7 @@ class Command:
         self.modes = modes
         self.not_modes = not_modes
         self.needs_js = needs_js
+        self.debug = debug
 
     def check(self, args):
         """Check if the argument count is valid and the command is permitted.

@@ -78,8 +78,8 @@ class Application(QApplication):
         networkmanager: The global NetworkManager instance.
         cookiejar: The global CookieJar instance.
         rl_bridge: The ReadlineBridge being used.
+        args: ArgumentParser instance.
         _keyparsers: A mapping from modes to keyparsers.
-        _args: ArgumentParser instance.
         _timers: List of used QTimers so they don't get GCed.
         _shutting_down: True if we're currently shutting down.
         _quit_status: The current quitting status.
@@ -121,7 +121,7 @@ class Application(QApplication):
 
         sys.excepthook = self._exception_hook
 
-        self._args = args
+        self.args = args
         self._init_misc()
         actute_warning()
         self._init_config()
@@ -155,12 +155,12 @@ class Application(QApplication):
 
     def _init_config(self):
         """Inizialize and read the config."""
-        if self._args.confdir is None:
+        if self.args.confdir is None:
             confdir = get_standard_dir(QStandardPaths.ConfigLocation)
-        elif self._args.confdir == '':
+        elif self.args.confdir == '':
             confdir = None
         else:
-            confdir = self._args.confdir
+            confdir = self.args.confdir
         try:
             self.config = ConfigManager(confdir, 'qutebrowser.conf')
         except (config.ValidationError,
@@ -210,7 +210,7 @@ class Application(QApplication):
 
     def _init_misc(self):
         """Initialize misc things."""
-        if self._args.version:
+        if self.args.version:
             print(version.version())
             print()
             print()
@@ -285,7 +285,7 @@ class Application(QApplication):
         self.processEvents(QEventLoop.ExcludeUserInputEvents |
                            QEventLoop.ExcludeSocketNotifiers)
 
-        for e in self._args.command:
+        for e in self.args.command:
             if e.startswith(':'):
                 log.init.debug("Startup cmd {}".format(e))
                 self.commandmanager.run_safely_init(e.lstrip(':'))
@@ -516,7 +516,7 @@ class Application(QApplication):
     #    if shutdown:
     #        self.shutdown()
 
-    @cmdutils.register(instance='', split=False)
+    @cmdutils.register(instance='', split=False, debug=True)
     def pyeval(self, s):
         """Evaluate a python string and display the results as a webpage.
 
@@ -602,7 +602,7 @@ class Application(QApplication):
         self.quit()
 
 
-@cmdutils.register(hide=True)
+@cmdutils.register(debug=True)
 def crash(typ='exception'):
     """Crash for debugging purposes.
 

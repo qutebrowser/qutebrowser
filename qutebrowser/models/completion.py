@@ -17,7 +17,7 @@
 
 """CompletionModels for different usages."""
 
-from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtCore import pyqtSlot, Qt, QCoreApplication
 
 import qutebrowser.config.config as config
 import qutebrowser.config.configdata as configdata
@@ -128,7 +128,10 @@ class CommandCompletionModel(BaseCompletionModel):
         assert cmd_dict
         cmdlist = []
         for obj in set(cmd_dict.values()):
-            if not obj.hide:
+            if obj.hide or (obj.debug and not
+                            QCoreApplication.instance().args.debug):
+                pass
+            else:
                 cmdlist.append((obj.name, obj.desc))
         for name, cmd in config.section('aliases').items():
             cmdlist.append((name, "Alias for '{}'".format(cmd)))
