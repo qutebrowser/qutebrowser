@@ -50,15 +50,26 @@ def init_faulthandler():
 
 
 # Now the faulthandler is enabled we fix the Qt harfbuzzing library, before
-# importing any Qt stuff.
+# importing QtWidgets.
 def fix_harfbuzz(args):
     """Fix harfbuzz issues.
 
-    This switches to an older (but more stable) harfbuzz font rendering engine
-    instead of using the system wide one.
+    This switches to the most stable harfbuzz font rendering engine available
+    on the platform instead of using the system wide one.
 
     This fixes crashes on various sites.
-    See https://bugreports.qt-project.org/browse/QTBUG-36099
+
+    - On Qt 5.2 (and probably earlier) the new engine probably has more
+      crashes and is also experimental.
+
+      e.g. https://bugreports.qt-project.org/browse/QTBUG-36099
+
+    - On Qt 5.3.0 there's a bug that affects a lot of websites:
+      https://bugreports.qt-project.org/browse/QTBUG-39278
+      So the new engine will be more stable.
+
+    - On Qt 5.3.1 this bug hopefully will be fixed and the old engine
+      will be the more stable one again.
 
     IMPORTANT: This needs to be done before QWidgets is imported in any way!
 
@@ -71,17 +82,6 @@ def fix_harfbuzz(args):
         logger.warning("Harfbuzz fix attempted but QtWidgets is already "
                        "imported!")
     if sys.platform.startswith('linux') and args.harfbuzz == 'auto':
-        # Lets use the most stable variant.
-        #
-        # - On Qt 5.2 (and probably earlier) the new engine probably has more
-        #   crashes and is also experimental.
-        #
-        # - On Qt 5.3.0 there's a bug that affects a lot of websites:
-        #   https://bugreports.qt-project.org/browse/QTBUG-39278
-        #   So the new engine will be more stable.
-        #
-        # - On Qt 5.3.1 this bug hopefully will be fixed and the old engine
-        #   will be the more stable one again.
         if qVersion() == '5.3.0':
             logger.debug("Using new harfbuzz engine (auto)")
             os.environ['QT_HARFBUZZ'] = 'new'
@@ -95,7 +95,6 @@ def fix_harfbuzz(args):
         logger.debug("Using {} harfbuzz engine (forced)".format(args.harfbuzz))
         os.environ['QT_HARFBUZZ'] = args.harfbuzz
     else:
-        # use system default harfbuzz
         logger.debug("Using system harfbuzz engine")
 
 
