@@ -180,9 +180,8 @@ class Url(TextBase):
             self.hover_url = None
 
     @pyqtSlot(int)
-    def on_tab_changed(self, idx):
+    def on_tab_changed(self, tab):
         """Update URL if the tab changed."""
-        tab = self.sender().widget(idx)
         self.hover_url = None
         self.normal_url = tab.url_text
         status = LoadStatus[tab.load_status]

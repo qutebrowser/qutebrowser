@@ -100,9 +100,8 @@ class Text(TextBase):
         self.jstext = ''
 
     @pyqtSlot(int)
-    def on_tab_changed(self, idx):
+    def on_tab_changed(self, tab):
         """Set the correct jstext when the current tab changed."""
-        tab = self.sender().widget(idx)
         self.jstext = tab.statusbar_message
 
     @pyqtSlot(str, str)

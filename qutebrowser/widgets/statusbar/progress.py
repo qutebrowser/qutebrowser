@@ -60,9 +60,8 @@ class Progress(QProgressBar):
         self.show()
 
     @pyqtSlot(int)
-    def on_tab_changed(self, idx):
+    def on_tab_changed(self, tab):
         """Set the correct value when the current tab changed."""
-        tab = self.sender().widget(idx)
         self.setValue(tab.progress)
         if tab.load_status == LoadStatus.loading:
             self.show()

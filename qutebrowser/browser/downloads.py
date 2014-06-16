@@ -19,6 +19,7 @@
 
 import os
 import os.path
+from functools import partial
 from collections import deque
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer
@@ -347,8 +348,8 @@ class DownloadManager(QObject):
                                           suggested_filename)
         logger.debug("fetch: {} -> {}".format(reply.url(), suggested_filepath))
         download = DownloadItem(reply)
-        download.finished.connect(self.on_finished)
-        download.data_changed.connect(self.on_data_changed)
+        download.finished.connect(partial(self.on_finished, download))
+        download.data_changed.connect(partial(self.on_data_changed, download))
         download.error.connect(self.on_error)
         download.basename = suggested_filename
         self.download_about_to_be_added.emit(len(self.downloads) + 1)
@@ -365,19 +366,19 @@ class DownloadManager(QObject):
         download.cancelled.connect(q.abort)
         message.instance().question.emit(q, False)
 
-    @pyqtSlot()
-    def on_finished(self):
+    @pyqtSlot(DownloadItem)
+    def on_finished(self, download):
         """Remove finished download."""
-        logger.debug("on_finished: {}".format(self.sender()))
-        idx = self.downloads.index(self.sender())
+        logger.debug("on_finished: {}".format(download))
+        idx = self.downloads.index(download)
         self.download_about_to_be_finished.emit(idx)
         del self.downloads[idx]
         self.download_finished.emit()
 
-    @pyqtSlot()
-    def on_data_changed(self):
+    @pyqtSlot(DownloadItem)
+    def on_data_changed(self, download):
         """Emit data_changed signal when download data changed."""
-        idx = self.downloads.index(self.sender())
+        idx = self.downloads.index(download)
         self.data_changed.emit(idx)
 
     @pyqtSlot(str)

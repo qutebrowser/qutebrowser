@@ -365,19 +365,19 @@ class Application(QApplication):
         # statusbar
         # FIXME some of these probably only should be triggered on mainframe
         # loadStarted.
-        tabs.currentChanged.connect(status.prog.on_tab_changed)
+        tabs.current_tab_changed.connect(status.prog.on_tab_changed)
         tabs.cur_progress.connect(status.prog.setValue)
         tabs.cur_load_finished.connect(status.prog.hide)
         tabs.cur_load_started.connect(status.prog.on_load_started)
 
-        tabs.currentChanged.connect(status.percentage.on_tab_changed)
+        tabs.current_tab_changed.connect(status.percentage.on_tab_changed)
         tabs.cur_scroll_perc_changed.connect(status.percentage.set_perc)
 
-        tabs.currentChanged.connect(status.txt.on_tab_changed)
+        tabs.current_tab_changed.connect(status.txt.on_tab_changed)
         tabs.cur_statusbar_message.connect(status.txt.on_statusbar_message)
         tabs.cur_load_started.connect(status.txt.on_load_started)
 
-        tabs.currentChanged.connect(status.url.on_tab_changed)
+        tabs.current_tab_changed.connect(status.url.on_tab_changed)
         tabs.cur_url_text_changed.connect(status.url.set_url)
         tabs.cur_link_hovered.connect(status.url.set_hover_url)
         tabs.cur_load_status_changed.connect(status.url.on_load_status_changed)

@@ -74,6 +74,7 @@ class TabbedBrowser(TabWidget):
                  arg: The new size.
         start_download: Emitted when any tab wants to start downloading
                         something.
+        current_tab_changed: The current tab changed to the emitted WebView.
     """
 
     cur_progress = pyqtSignal(int)
@@ -90,6 +91,7 @@ class TabbedBrowser(TabWidget):
     quit = pyqtSignal()
     resized = pyqtSignal('QRect')
     got_cmd = pyqtSignal(str)
+    current_tab_changed = pyqtSignal(WebView)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -147,7 +149,7 @@ class TabbedBrowser(TabWidget):
             self._filter.create(self.cur_scroll_perc_changed))
         tab.url_text_changed.connect(
             self._filter.create(self.cur_url_text_changed))
-        tab.url_text_changed.connect(self.on_url_text_changed)
+        tab.url_text_changed.connect(partial(self.on_url_text_changed, tab))
         tab.load_status_changed.connect(
             self._filter.create(self.cur_load_status_changed))
         # hintmanager
@@ -157,8 +159,8 @@ class TabbedBrowser(TabWidget):
         tab.page().unsupportedContent.connect(self.start_download)
         tab.page().start_download.connect(self.start_download)
         # misc
-        tab.titleChanged.connect(self.on_title_changed)
-        tab.iconChanged.connect(self.on_icon_changed)
+        tab.titleChanged.connect(partial(self.on_title_changed, tab))
+        tab.iconChanged.connect(partial(self.on_icon_changed, tab))
         tab.page().mainFrame().loadStarted.connect(partial(
             self.on_load_started, tab))
         tab.page().windowCloseRequested.connect(partial(
@@ -332,37 +334,45 @@ class TabbedBrowser(TabWidget):
         """
         self.setTabIcon(self.indexOf(tab), EmptyTabIcon())
 
-    @pyqtSlot(str)
-    def on_title_changed(self, text):
+    @pyqtSlot(WebView, str)
+    def on_title_changed(self, tab, text):
         """Set the title of a tab.
 
         Slot for the titleChanged signal of any tab.
 
         Args:
+            tab: The WebView where the title was changed.
             text: The text to set.
         """
         log.webview.debug("title changed to '{}'".format(text))
         if text:
-            self.setTabText(self.indexOf(self.sender()), text)
+            self.setTabText(self.indexOf(tab), text)
         else:
             log.webview.debug("ignoring title change")
 
-    @pyqtSlot(str)
-    def on_url_text_changed(self, url):
-        """Set the new URL as title if there's no title yet."""
-        idx = self.indexOf(self.sender())
+    @pyqtSlot(WebView, str)
+    def on_url_text_changed(self, tab, url):
+        """Set the new URL as title if there's no title yet.
+
+        Args:
+            tab: The WebView where the title was changed.
+            url: The new URL.
+        """
+        idx = self.indexOf(tab)
         if not self.tabText(idx):
             self.setTabText(idx, url)
 
-    @pyqtSlot()
-    def on_icon_changed(self):
+    @pyqtSlot(WebView)
+    def on_icon_changed(self, tab):
         """Set the icon of a tab.
 
         Slot for the iconChanged signal of any tab.
+
+        Args:
+            tab: The WebView where the title was changed.
         """
         if not config.get('tabbar', 'show-favicons'):
             return
-        tab = self.sender()
         self.setTabIcon(self.indexOf(tab), tab.icon())
 
     @pyqtSlot(str)
@@ -378,6 +388,7 @@ class TabbedBrowser(TabWidget):
         tab = self.widget(idx)
         self.last_focused = self.now_focused
         self.now_focused = tab
+        self.current_tab_changed.emit(tab)
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
