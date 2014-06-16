@@ -17,8 +17,6 @@
 
 """The main browser widgets."""
 
-import operator
-
 import sip
 from PyQt5.QtCore import QCoreApplication, pyqtSignal, pyqtSlot, PYQT_VERSION
 from PyQt5.QtNetwork import QNetworkReply
@@ -64,6 +62,7 @@ class BrowserPage(QWebPage):
             # This breaks in <= 5.3.0, but in anything later it hopefully
             # works.
             # FIXME confirm this as soon as 5.3.1 is out!
+            # pylint: disable=invalid-name
             self.javaScriptPrompt = self._javascript_prompt
 
     def _javascript_prompt(self, _frame, msg, default):

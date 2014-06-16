@@ -117,6 +117,7 @@ class register:  # pylint: disable=invalid-name
         Args:
             See class attributes.
         """
+        # pylint: disable=too-many-arguments
         if modes is not None and not_modes is not None:
             raise ValueError("Only modes or not_modes can be given!")
         self.name = name

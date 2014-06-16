@@ -154,6 +154,7 @@ def check_qt_version():
         app.quit()
         sys.exit(1)
 
+
 def check_pyqt_webkit():
     """Check if PyQt WebKit is installed."""
     from PyQt5.QtWidgets import QApplication, QMessageBox
@@ -182,6 +183,7 @@ def check_pyqt_webkit():
         msgbox.exec_()
         app.quit()
         sys.exit(1)
+
 
 def check_pkg_resources():
     """Check if pkg_resources is installed."""
