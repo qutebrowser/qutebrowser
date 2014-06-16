@@ -183,16 +183,7 @@ def shell_escape(s):
         # black magic Microshit is doing here.
         return s
     else:
-        # Backported from python's shlex because that's only available since
-        # 3.3 and we might want to support 3.2.
-        find_unsafe = re.compile(r'[^\w@%+=:,./-]', re.ASCII).search
-        if not s:
-            return "''"
-        if find_unsafe(s) is None:
-            return s
-        # use single quotes, and put single quotes into double quotes
-        # the string $'b is then quoted as '$'"'"'b'
-        return "'" + s.replace("'", "'\"'\"'") + "'"
+        return shlex.quote(s)
 
 
 def pastebin(text):

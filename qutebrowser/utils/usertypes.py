@@ -36,7 +36,7 @@ def enum(*items, start=0):
     """Factory for simple enumerations.
 
     We really don't need more complex things here, so we don't use python3.4's
-    enum, because we'd have to backport things to 3.3 and maybe even 3.2.
+    enum, because we'd have to backport things to 3.3.
 
     Based on: http://stackoverflow.com/a/1695250/2085149
 
