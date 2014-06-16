@@ -164,3 +164,36 @@ def check_pyqt_webkit():
         msgbox.exec_()
         app.quit()
         sys.exit(1)
+
+def check_pkg_resources():
+    """Check if pkg_resources is installed."""
+    from PyQt5.QtWidgets import QApplication, QMessageBox
+    try:
+        import pkg_resources  # pylint: disable=unused-variable
+    except ImportError:
+        app = QApplication(sys.argv)
+        msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
+                             textwrap.dedent("""
+            Fatal error: pkg_resources is required to run qutebrowser but could
+            not be imported! Maybe it's not installed?
+
+            On Debian/Ubuntu:
+                apt-get install python3-pkg-resources
+
+            On Archlinux:
+                pacman -S python-setuptools
+
+            On Windows:
+                Run   python -m ensurepip  (python >= 3.4) or
+                scripts/ez_setup.py.
+
+            For other distributions:
+                Check your package manager for similiarly named packages.
+            """).strip())
+        if '--debug' in sys.argv:
+            print(file=sys.stderr)
+            traceback.print_exc()
+        msgbox.resize(msgbox.sizeHint())
+        msgbox.exec_()
+        app.quit()
+        sys.exit(1)

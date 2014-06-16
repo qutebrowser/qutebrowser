@@ -87,6 +87,7 @@ def main():
     log.init_log(args)
     earlyinit.fix_harfbuzz(args)
     earlyinit.check_pyqt_webkit()
+    earlyinit.check_pkg_resources()
     # We do this import late as we need to fix harfbuzz first.
     from qutebrowser.app import Application
     app = Application(args)
