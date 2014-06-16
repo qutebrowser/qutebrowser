@@ -2,3 +2,40 @@ qutebrowser is a browser based on PyQt5 which aims to be keyboard-focused with
 an input similar to vim.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
+
+
+Requirements
+------------
+
+The following software and libraries are required to run qutebrowser:
+
+* Python 3.3 or newer (3.4 recommended)
+* Qt 5.2 or newer (5.3 recommended)
+* QtWebKit
+* PyQt 5.2 or newer (5.3 recommended) for Python 3
+* pkg_resources/setuptools
+
+The following libraries are optional and provide better debugging:
+
+* colorlog
+* On Windows: colorama
+* IPython/ipdb
+
+.On Debian:
+
+    apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python3-pkg-resources
+
+.On Archlinux:
+
+    pacman -S python-pyqt5 qt5-webkit python-setuptools
+
+Note an Archlinux AUR package is available.
+
+.On Windows:
+
+Use the installer from http://www.python.org/downloads[python.org] to get
+Python 3 and the installer from
+http://www.riverbankcomputing.com/software/pyqt/download5[Riverbank computing]
+to get Qt and PyQt5. Run `scripts/ez_setup.py` to get setuptools.
+
+Note a standalone .EXE is available.
