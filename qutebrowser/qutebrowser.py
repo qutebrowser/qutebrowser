@@ -58,7 +58,7 @@ def _parse_args():
                        metavar='STYLE')
     debug.add_argument('--qt-stylesheet', help="Override the Qt application "
                        "stylesheet.", metavar='STYLESHEET')
-    debug.add_argument('--qt-widget-count', help="Print debug message at the "
+    debug.add_argument('--qt-widgetcount', help="Print debug message at the "
                        "end about number of widgets left undestroyed and "
                        "maximum number of widgets existed at the same time.",
                        action='store_const', const=True)
