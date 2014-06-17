@@ -104,16 +104,10 @@ class _CrashDialog(QDialog):
         """
         self._crash_info = [
             ("Version info", version()),
-            ("Commandline args", ' '.join(sys.argv[1:])),
         ]
         try:
             self._crash_info.append(("Config",
                                      config.instance().dump_userconfig()))
-        except AttributeError:
-            pass
-        try:
-            self._crash_info.append(("Debug log",
-                                     logutils.ram_handler.dump_log()))
         except AttributeError:
             pass
 
@@ -198,9 +192,15 @@ class ExceptionCrashDialog(_CrashDialog):
         super()._gather_crash_info()
         self._crash_info += [
             ("Exception", ''.join(traceback.format_exception(*self._exc))),
+            ("Commandline args", ' '.join(sys.argv[1:])),
             ("Open Pages", '\n'.join(self._pages)),
             ("Command history", '\n'.join(self._cmdhist)),
         ]
+        try:
+            self._crash_info.append(("Debug log",
+                                     logutils.ram_handler.dump_log()))
+        except AttributeError:
+            pass
 
 
 class FatalCrashDialog(_CrashDialog):
