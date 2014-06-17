@@ -1,45 +1,53 @@
+Thanks
+======
+
 Thanks to the following projects, which were a source for great inspiration:
-    - eric5 <http://eric-ide.python-projects.org/>
-    - dwb <http://portix.bitbucket.org/dwb/>
-    - Vimperator <http://www.vimperator.org/>
-    - pentadactyl <http://5digits.org/pentadactyl/>
-    - vimb <https://github.com/fanglingsu/vimb>
-    - Vimium <http://vimium.github.io/>
-    - devicenzo <https://code.google.com/p/devicenzo/>
+
+* http://eric-ide.python-projects.org/[eric5]
+* http://portix.bitbucket.org/dwb/[dwb]
+* http://www.vimperator.org/[Vimperator]
+* http://5digits.org/pentadactyl/[Pentadactyl]
+* https://github.com/fanglingsu/vimb[vimb]
+* http://vimium.github.io/[vimium]
+* https://code.google.com/p/devicenzo/[devicenzo]
 
 Thanks to the following people for helping me with problems big and small:
-    - portix
-    - Detlev Offenbach
-    - seir
-    - nitroxleecher
+
+* portix
+* Detlev Offenbach
+* seir
+* nitroxleecher
 
 Thanks to the following people for early testing:
-    - V155
-    - eto
-    - portix
-    - iggy
-    - meisterT_
-    - hrnz
-    - pedromj
-    - china
-    - Tsutsukakushi
-    - seir
-    - raven_ch
-    - rieper
-    - thorsten`
+
+* V155
+* eto
+* portix
+* iggy
+* meisterT_
+* hrnz
+* pedromj
+* china
+* Tsutsukakushi
+* seir
+* raven_ch
+* rieper
+* thorsten`
 
 Thanks to everone answering my and other questions on Stackoverflow and the IRC.
 
 Thanks to the people triaging bugs in the Qt bugtracker.
 
-Thanks to these projects which were essential while developing qutebrowser:
-    - Python
-    - vim
-    - git
-    - Qt
-    - PyQt
-    - pylint
-    - pyflakes
-    - pep8
-    - pep257
-    - flake8
+Thanks to these projects which were essential while developing qutebrowser, and
+all their contributors:
+
+* http://www.python.org/[Python]
+* http://www.vim.org/[vim]
+* http://git-scm.com/[git]
+* http://qt-project.org/[Qt]
+* http://www.riverbankcomputing.com/software/pyqt/intro[PyQt]
+* http://www.pylint.org/[pylint]
+* https://pypi.python.org/pypi/pyflakes[pyflakes]
+* https://pypi.python.org/pypi/pep8/[pep8]
+* https://github.com/GreenSteam/pep257/[pep257]
+* https://pypi.python.org/pypi/flake8[flake8]
