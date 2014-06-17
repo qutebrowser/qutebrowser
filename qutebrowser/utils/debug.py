@@ -18,6 +18,7 @@
 """Utilities used for debugging."""
 
 import sys
+import types
 from functools import wraps
 
 from PyQt5.QtCore import (pyqtRemoveInputHook, QEvent, QCoreApplication,

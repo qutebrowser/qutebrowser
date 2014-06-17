@@ -19,7 +19,6 @@
 
 import os
 import sys
-import types
 import faulthandler
 import configparser
 from bdb import BdbQuit
