@@ -78,8 +78,9 @@ def debug_all_widgets():
     s = QCoreApplication.instance().get_all_widgets()
     logger.debug(s)
 
+
 @cmdutils.register(debug=True)
-def debug_all_objects(obj=None, depth=0):
+def debug_all_objects():
     """Dump all children of an object recursively."""
     s = QCoreApplication.instance().get_all_objects()
     logger.debug(s)
