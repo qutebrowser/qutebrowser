@@ -421,6 +421,20 @@ class Application(QApplication):
             pass
         self.stateconfig['geometry']['mainwindow'] = geom
 
+    def _destroy_crashlogfile(self):
+        """Clean up the crash log file and delete it."""
+        if self._crashlogfile is None:
+            return
+        if sys.stderr is not None:
+            faulthandler.enable()
+        else:
+            faulthandler.disable()
+        self._crashlogfile.close()
+        try:
+            os.remove(self._crashlogfile.name)
+        except PermissionError:
+            log.destroy.warn("Could not remove crash log!")
+
     def _exception_hook(self, exctype, excvalue, tb):
         """Handle uncaught python exceptions.
 
@@ -468,7 +482,10 @@ class Application(QApplication):
         if ret == QDialog.Accepted:  # restore
             self.restart(shutdown=False, pages=pages)
         # We might risk a segfault here, but that's better than continuing to
-        # run in some undefined state.
+        # run in some undefined state, so we only do the most needed shutdown
+        # here.
+        qInstallMessageHandler(None)
+        self._destroy_crashlogfile()
         sys.exit(1)
 
     def _maybe_quit(self, sender):
@@ -576,16 +593,7 @@ class Application(QApplication):
             log.destroy.warning("No networkmanager to shut down.")
             self._maybe_quit('networkmanager')
         # Re-enable faulthandler to stdout, then remove crash log
-        if self._crashlogfile is not None:
-            if sys.stderr is not None:
-                faulthandler.enable()
-            else:
-                faulthandler.disable()
-            self._crashlogfile.close()
-            try:
-                os.remove(self._crashlogfile.name)
-            except PermissionError:
-                pass
+        self._destroy_crashlogfile()
         # If we don't kill our custom handler here we might get segfaults
         qInstallMessageHandler(None)
         self._maybe_quit('main')
