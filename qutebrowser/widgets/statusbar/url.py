@@ -69,14 +69,9 @@ class Url(TextBase):
         }}
     """
 
-    def __init__(self, bar, elidemode=Qt.ElideMiddle):
-        """Override TextBase::__init__ to elide in the middle by default.
-
-        Args:
-            bar: The statusbar (parent) object.
-            elidemode: How to elide the text.
-        """
-        super().__init__(bar, elidemode)
+    def __init__(self, parent=None):
+        """Override TextBase.__init__ to elide in the middle by default."""
+        super().__init__(parent, Qt.ElideMiddle)
         self.setObjectName(self.__class__.__name__)
         set_register_stylesheet(self)
         self._hover_url = None

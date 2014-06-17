@@ -136,7 +136,7 @@ class Application(QApplication):
         self.searchmanager = SearchManager(self)
         self.downloadmanager = DownloadManager(self)
         self.downloadmodel = DownloadModel(self.downloadmanager)
-        self.mainwindow = MainWindow(self)
+        self.mainwindow = MainWindow()
 
         self.modeman.mainwindow = self.mainwindow
         self.installEventFilter(self.modeman)

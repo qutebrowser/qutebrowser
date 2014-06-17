@@ -46,7 +46,7 @@ class Progress(QProgressBar):
         }}
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super().__init__(parent)
         set_register_stylesheet(self)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Ignored)
