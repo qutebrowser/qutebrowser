@@ -1,3 +1,9 @@
+qutebrowser readme
+==================
+
+About qutebrowser
+-----------------
+
 qutebrowser is a browser based on PyQt5 which aims to be keyboard-focused with
 an input similar to vim.
 
@@ -9,17 +15,18 @@ Requirements
 
 The following software and libraries are required to run qutebrowser:
 
-* Python 3.3 or newer (3.4 recommended)
-* Qt 5.2 or newer (5.3 recommended)
+* http://www.python.org/[Python] 3.3 or newer (3.4 recommended)
+* http://qt-project.org/[Qt] 5.2 or newer (5.3 recommended)
 * QtWebKit
-* PyQt 5.2 or newer (5.3 recommended) for Python 3
-* pkg_resources/setuptools
+* http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.2 or newer (5.3
+  recommended) for Python 3
+* https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
 
 The following libraries are optional and provide better debugging:
 
-* colorlog
-* On Windows: colorama
-* IPython/ipdb
+* https://pypi.python.org/pypi/colorlog/[colorlog]
+* On Windows: https://pypi.python.org/pypi/colorama/[colorama]
+* https://pypi.python.org/pypi/ipdb[IPython/ipdb]
 
 .On Debian:
 
