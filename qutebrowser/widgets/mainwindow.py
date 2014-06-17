@@ -88,6 +88,9 @@ class MainWindow(QWidget):
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
+    def __repr__(self):
+        return '<MainWindow>'
+
     def _set_default_geometry(self):
         """Set some sensible default geometry."""
         self.setGeometry(QRect(50, 50, 800, 600))

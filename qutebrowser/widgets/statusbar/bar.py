@@ -158,6 +158,9 @@ class StatusBar(QWidget):
         self.prog = Progress(self)
         self._hbox.addWidget(self.prog)
 
+    def __repr__(self):
+        return '<StatusBar>'
+
     @pyqtProperty(bool)
     def error(self):
         """Getter for self.error, so it can be used as Qt property."""

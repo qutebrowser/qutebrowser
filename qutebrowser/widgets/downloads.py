@@ -60,6 +60,10 @@ class DownloadView(QListView):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_context_menu)
 
+    def __repr__(self):
+        return '<DownloadView with {} downloads>'.format(
+            self.model().rowCount())
+
     @pyqtSlot('QPoint')
     def show_context_menu(self, point):
         """Show the context menu."""

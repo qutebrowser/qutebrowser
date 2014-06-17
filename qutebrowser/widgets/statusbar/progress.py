@@ -53,6 +53,9 @@ class Progress(QProgressBar):
         self.setTextVisible(False)
         self.hide()
 
+    def __repr__(self):
+        return '<Progress {}%>'.format(self.value())
+
     @pyqtSlot()
     def on_load_started(self):
         """Clear old error and show progress, used as slot to loadStarted."""

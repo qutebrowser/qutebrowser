@@ -533,6 +533,15 @@ class Application(QApplication):
         qutescheme.pyeval_output = out
         self.mainwindow.tabs.cmd.openurl('qute:pyeval')
 
+    @cmdutils.register(instance='', debug=True)
+    def all_widgets(self):
+        """Print a list of all widgets to debug log."""
+        widgets = self.allWidgets()
+        log.misc.debug("{} widgets".format(len(widgets)))
+        widgets.sort(key=lambda e: repr(e))
+        for w in widgets:
+            log.misc.debug(w)
+
     @pyqtSlot()
     def shutdown(self):
         """Try to shutdown everything cleanly.

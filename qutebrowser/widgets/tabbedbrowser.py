@@ -107,6 +107,9 @@ class TabbedBrowser(TabWidget):
         # FIXME adjust this to font size
         self.setIconSize(QSize(12, 12))
 
+    def __repr__(self):
+        return '<TabbedBrowser with {} tabs>'.format(self.count())
+
     @property
     def widgets(self):
         """Get a list of open tab widgets.

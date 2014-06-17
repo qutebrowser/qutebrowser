@@ -42,6 +42,9 @@ class TextBase(QLabel):
         self._elidemode = elidemode
         self._elided_text = ''
 
+    def __repr__(self):
+        return '<{} "{}">'.format(self.__class__.__name__, self.text())
+
     def _update_elided_text(self, width):
         """Update the elided text when necessary.
 

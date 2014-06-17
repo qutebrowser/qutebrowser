@@ -112,6 +112,9 @@ class CompletionView(QTreeView):
         self.hide()
         # FIXME set elidemode
 
+    def __repr__(self):
+        return '<CompletionView>'
+
     def _resize_columns(self):
         """Resize the completion columns based on COLUMN_WIDTHS."""
         width = self.size().width()
