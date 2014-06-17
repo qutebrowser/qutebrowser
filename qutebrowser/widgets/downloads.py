@@ -52,7 +52,7 @@ class DownloadView(QListView):
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         self.setFlow(QListView.LeftToRight)
         self._menu = None
-        self._model = DownloadModel()
+        self._model = DownloadModel(self)
         self._model.rowsInserted.connect(self.updateGeometry)
         self._model.rowsRemoved.connect(self.updateGeometry)
         self.setModel(self._model)
@@ -71,7 +71,7 @@ class DownloadView(QListView):
         if not index.isValid():
             return
         item = self.model().data(index, Role.item)
-        self._menu = QMenu()
+        self._menu = QMenu(self)
         cancel = self._menu.addAction("Cancel")
         cancel.triggered.connect(item.cancel)
         self._menu.popup(self.viewport().mapToGlobal(point))

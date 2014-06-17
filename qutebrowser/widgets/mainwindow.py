@@ -48,8 +48,8 @@ class MainWindow(QWidget):
         _vbox: The main QVBoxLayout.
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
         self.setWindowTitle('qutebrowser')
         try:

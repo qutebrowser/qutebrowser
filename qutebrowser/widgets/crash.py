@@ -46,9 +46,9 @@ class _CrashDialog(QDialog):
         _crash_info: A list of tuples with title and crash information.
     """
 
-    def __init__(self):
+    def __init__(self, parent=None):
         """Constructor for CrashDialog."""
-        super().__init__()
+        super().__init__(parent)
         self._crash_info = None
         self._hbox = None
         self._lbl = None
@@ -79,7 +79,7 @@ class _CrashDialog(QDialog):
 
         Should be extended by superclass to provide the actual buttons.
         """
-        self._hbox = QHBoxLayout()
+        self._hbox = QHBoxLayout(self)
         self._hbox.addStretch()
         self._vbox.addLayout(self._hbox)
 
@@ -156,14 +156,14 @@ class ExceptionCrashDialog(_CrashDialog):
         _exc: An exception tuple (type, value, traceback)
     """
 
-    def __init__(self, pages, cmdhist, exc):
+    def __init__(self, pages, cmdhist, exc, parent=None):
         self._pages = pages
         self._cmdhist = cmdhist
         self._exc = exc
         self._btn_quit = None
         self._btn_restore = None
         self._btn_pastebin = None
-        super().__init__()
+        super().__init__(parent)
         self.setModal(True)
 
     def _init_text(self):
@@ -213,11 +213,11 @@ class FatalCrashDialog(_CrashDialog):
         _btn_pastebin: The pastebin button.
     """
 
-    def __init__(self, log):
+    def __init__(self, log, parent=None):
         self._log = log
         self._btn_ok = None
         self._btn_pastebin = None
-        super().__init__()
+        super().__init__(parent)
 
     def _init_text(self):
         super()._init_text()

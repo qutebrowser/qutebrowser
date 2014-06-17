@@ -53,7 +53,6 @@ class Command:
                  handler, completion, modes, not_modes, needs_js, debug):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-arguments
-        super().__init__()
         self.name = name
         self.split = split
         self.hide = hide

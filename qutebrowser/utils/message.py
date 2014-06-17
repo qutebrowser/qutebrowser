@@ -77,6 +77,7 @@ def modular_question(message, mode, default=None):
     q.mode = mode
     q.default = default
     instance().question.emit(q, True)
+    q.deleteLater()
     return q.answer
 
 
@@ -86,6 +87,7 @@ def alert(message):
     q.text = message
     q.mode = PromptMode.alert
     instance().question.emit(q, True)
+    q.deleteLater()
 
 
 def question(message, mode, handler, cancelled_handler=None, default=None):
@@ -99,7 +101,7 @@ def question(message, mode, handler, cancelled_handler=None, default=None):
                            cancelled by the user, or None.
         default: The default value to display.
     """
-    q = Question()
+    q = Question(instance())
     q.text = message
     q.mode = mode
     q.default = default
@@ -118,7 +120,7 @@ def confirm_action(message, yes_action, no_action=None, default=None):
         no_action: Callable to be called when the user answered no.
         default: True/False to set a default value, or None.
     """
-    q = Question()
+    q = Question(instance())
     q.text = message
     q.mode = PromptMode.yesno
     q.default = default

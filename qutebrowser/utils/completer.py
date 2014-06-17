@@ -63,21 +63,22 @@ class Completer(QObject):
 
     def _init_command_completion(self):
         """Initialize the command completion model."""
-        self._models['command'] = CFM(CommandCompletionModel(self))
+        self._models['command'] = CFM(CommandCompletionModel(self), self)
 
     def _init_setting_completions(self):
         """Initialize setting completion models."""
-        self._models['section'] = CFM(SettingSectionCompletionModel(self))
+        self._models['section'] = CFM(SettingSectionCompletionModel(self),
+                                      self)
         self._models['option'] = {}
         self._models['value'] = {}
         for sectname in configdata.DATA:
             model = SettingOptionCompletionModel(sectname, self)
-            self._models['option'][sectname] = CFM(model)
+            self._models['option'][sectname] = CFM(model, self)
             config.instance().changed.connect(model.on_config_changed)
             self._models['value'][sectname] = {}
             for opt in configdata.DATA[sectname].keys():
                 model = SettingValueCompletionModel(sectname, opt, self)
-                self._models['value'][sectname][opt] = CFM(model)
+                self._models['value'][sectname][opt] = CFM(model, self)
                 config.instance().changed.connect(model.on_config_changed)
 
     def _get_new_completion(self, parts, cursor_part):

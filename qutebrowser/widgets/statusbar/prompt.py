@@ -197,7 +197,7 @@ class Prompt(QWidget):
         Return:
             The answer to the question. No, it's not always 42.
         """
-        loop = EventLoop()
+        loop = EventLoop(self)
         self.loops.append(loop)
         loop.destroyed.connect(lambda: self.loops.remove(loop))
         self.question.answered.connect(loop.quit)

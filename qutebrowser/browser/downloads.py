@@ -99,7 +99,7 @@ class DownloadItem(QObject):
         reply.finished.connect(self.on_reply_finished)
         reply.error.connect(self.on_reply_error)
         reply.readyRead.connect(self.on_ready_read)
-        self.timer = QTimer()
+        self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_speed)
         self.timer.setInterval(self.SPEED_REFRESH_INTERVAL)
         self.timer.start()
@@ -347,7 +347,7 @@ class DownloadManager(QObject):
         suggested_filepath = os.path.join(download_location,
                                           suggested_filename)
         logger.debug("fetch: {} -> {}".format(reply.url(), suggested_filepath))
-        download = DownloadItem(reply)
+        download = DownloadItem(reply, self)
         download.finished.connect(partial(self.on_finished, download))
         download.data_changed.connect(partial(self.on_data_changed, download))
         download.error.connect(self.on_error)
@@ -356,7 +356,7 @@ class DownloadManager(QObject):
         self.downloads.append(download)
         self.download_added.emit()
 
-        q = Question()
+        q = Question(self)
         q.text = "Save file to:"
         q.mode = PromptMode.text
         q.default = suggested_filepath

@@ -163,6 +163,7 @@ class String(BaseType):
     typestr = 'string'
 
     def __init__(self, minlen=None, maxlen=None, forbidden=None, none=False):
+        super().__init__()
         self.minlen = minlen
         self.maxlen = maxlen
         self.forbidden = forbidden
@@ -237,6 +238,7 @@ class Int(BaseType):
     typestr = 'int'
 
     def __init__(self, minval=None, maxval=None, none=False):
+        super().__init__()
         self.minval = minval
         self.maxval = maxval
         self.none = none
@@ -290,6 +292,7 @@ class Float(BaseType):
     typestr = 'float'
 
     def __init__(self, minval=None, maxval=None):
+        super().__init__()
         self.minval = minval
         self.maxval = maxval
 
@@ -321,6 +324,7 @@ class Perc(BaseType):
     typestr = 'percentage'
 
     def __init__(self, minval=None, maxval=None):
+        super().__init__()
         self.minval = minval
         self.maxval = maxval
 
@@ -354,6 +358,7 @@ class PercList(List):
     typestr = 'perc-list'
 
     def __init__(self, minval=None, maxval=None):
+        super().__init__()
         self.minval = minval
         self.maxval = maxval
 
@@ -385,6 +390,7 @@ class PercOrInt(BaseType):
     typestr = 'percentage-or-int'
 
     def __init__(self, minperc=None, maxperc=None, minint=None, maxint=None):
+        super().__init__()
         self.minperc = minperc
         self.maxperc = maxperc
         self.minint = minint
@@ -523,6 +529,7 @@ class Regex(BaseType):
     typestr = 'regex'
 
     def __init__(self, flags=0):
+        super().__init__()
         self.flags = flags
 
     def validate(self, value):
@@ -542,6 +549,7 @@ class RegexList(List):
     typestr = 'regex-list'
 
     def __init__(self, flags=0):
+        super().__init__()
         self.flags = flags
 
     def transform(self, value):
@@ -578,6 +586,7 @@ class Directory(BaseType):
     typestr = 'directory'
 
     def __init__(self, none=False):
+        super().__init__()
         self.none = none
 
     def validate(self, value):
@@ -617,6 +626,7 @@ class WebKitBytes(BaseType):
     typestr = 'bytes'
 
     def __init__(self, maxsize=None):
+        super().__init__()
         self.maxsize = maxsize
 
     def validate(self, value):
@@ -658,6 +668,7 @@ class WebKitBytesList(List):
     typestr = 'bytes-list'
 
     def __init__(self, maxsize=None, length=None):
+        super().__init__()
         self.length = length
         self.bytestype = WebKitBytes(maxsize)
 

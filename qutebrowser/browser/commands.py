@@ -601,7 +601,7 @@ class CommandDispatcher:
     def run_userscript(self, cmd, *args):
         """Run an userscript given as argument."""
         url = urlutils.urlstring(self._tabs.currentWidget().url())
-        runner = UserscriptRunner()
+        runner = UserscriptRunner(self._tabs)
         runner.got_cmd.connect(self._tabs.got_cmd)
         runner.run(cmd, *args, env={'QUTE_URL': url})
         self._userscript_runners.append(runner)
@@ -664,7 +664,7 @@ class CommandDispatcher:
         if elem.isNull():
             raise CommandError("No editable element focused!")
         text = elem.evaluateJavaScript('this.value')
-        self._editor = ExternalEditor()
+        self._editor = ExternalEditor(self._tabs)
         self._editor.editing_finished.connect(
             partial(self.on_editing_finished, elem))
         self._editor.edit(text)

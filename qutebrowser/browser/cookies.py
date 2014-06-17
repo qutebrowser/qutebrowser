@@ -29,8 +29,8 @@ class CookieJar(QNetworkCookieJar):
 
     """Our own cookie jar to save cookies to disk if desired."""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         datadir = get_standard_dir(QStandardPaths.DataLocation)
         self._linecp = LineConfigParser(datadir, 'cookies')
         cookies = []

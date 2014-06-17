@@ -54,8 +54,8 @@ class _BlockingFIFOReader(QObject):
     got_line = pyqtSignal(str)
     finished = pyqtSignal()
 
-    def __init__(self, filepath):
-        super().__init__()
+    def __init__(self, filepath, parent=None):
+        super().__init__(parent)
         self.filepath = filepath
         self.fifo = None
 
@@ -110,8 +110,8 @@ class _BaseUserscriptRunner(QObject):
         QProcess.UnknownError: "An unknown error occurred.",
     }
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.filepath = None
         self.proc = None
 
@@ -123,7 +123,7 @@ class _BaseUserscriptRunner(QObject):
             *args: The arguments to hand to the command
             env: A dictionary of environment variables to add.
         """
-        self.proc = QProcess()
+        self.proc = QProcess(self)
         procenv = QProcessEnvironment.systemEnvironment()
         procenv.insert('QUTE_FIFO', self.filepath)
         if env is not None:
@@ -184,8 +184,8 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         thread: The QThread where reader runs.
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.reader = None
         self.thread = None
 
@@ -200,7 +200,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         os.mkfifo(self.filepath)  # pylint: disable=no-member
 
         self.reader = _BlockingFIFOReader(self.filepath)
-        self.thread = QThread()
+        self.thread = QThread(self)
         self.reader.moveToThread(self.thread)
         self.reader.got_line.connect(self.got_cmd)
         self.thread.started.connect(self.reader.read)
@@ -247,8 +247,8 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
     (overwrite) to write to the file!
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.oshandle = None
 
     def _cleanup(self):

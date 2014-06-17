@@ -120,21 +120,21 @@ class StatusBar(QWidget):
         self._hbox.setContentsMargins(0, 0, 0, 0)
         self._hbox.setSpacing(5)
 
-        self._stack = QStackedLayout()
+        self._stack = QStackedLayout(self)
         self._stack.setContentsMargins(0, 0, 0, 0)
 
-        self.cmd = Command(self)
+        self.cmd = Command()
         self._stack.addWidget(self.cmd)
 
-        self.txt = Text(self)
+        self.txt = Text()
         self._stack.addWidget(self.txt)
         self._timer_was_active = False
         self._text_queue = deque()
-        self._text_pop_timer = QTimer()
+        self._text_pop_timer = QTimer(self)
         self._text_pop_timer.setInterval(config.get('ui', 'message-timeout'))
         self._text_pop_timer.timeout.connect(self._pop_text)
 
-        self.prompt = Prompt(self)
+        self.prompt = Prompt()
         self._stack.addWidget(self.prompt)
 
         self.cmd.show_cmd.connect(self._show_cmd_widget)
@@ -146,16 +146,16 @@ class StatusBar(QWidget):
 
         self._hbox.addLayout(self._stack)
 
-        self.keystring = KeyString(self)
+        self.keystring = KeyString()
         self._hbox.addWidget(self.keystring)
 
-        self.url = Url(self)
+        self.url = Url()
         self._hbox.addWidget(self.url)
 
-        self.percentage = Percentage(self)
+        self.percentage = Percentage()
         self._hbox.addWidget(self.percentage)
 
-        self.prog = Progress(self)
+        self.prog = Progress()
         self._hbox.addWidget(self.prog)
 
     def __repr__(self):

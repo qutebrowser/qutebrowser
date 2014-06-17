@@ -130,13 +130,13 @@ class Application(QApplication):
         websettings.init()
         quickmarks.init()
         proxy.init()
-        self.cookiejar = CookieJar()
+        self.cookiejar = CookieJar(self)
         self.networkmanager = NetworkManager(self.cookiejar)
         self.commandmanager = CommandManager()
-        self.searchmanager = SearchManager()
-        self.downloadmanager = DownloadManager()
+        self.searchmanager = SearchManager(self)
+        self.downloadmanager = DownloadManager(self)
         self.downloadmodel = DownloadModel(self.downloadmanager)
-        self.mainwindow = MainWindow()
+        self.mainwindow = MainWindow(self)
 
         self.modeman.mainwindow = self.mainwindow
         self.installEventFilter(self.modeman)
@@ -162,7 +162,7 @@ class Application(QApplication):
         else:
             confdir = self.args.confdir
         try:
-            self.config = ConfigManager(confdir, 'qutebrowser.conf')
+            self.config = ConfigManager(confdir, 'qutebrowser.conf', self)
         except (config.ValidationError,
                 config.NoOptionError,
                 configparser.InterpolationError,
@@ -194,7 +194,7 @@ class Application(QApplication):
             'prompt': PassthroughKeyParser('keybind.prompt', self, warn=False),
             'yesno': PromptKeyParser(self),
         }
-        self.modeman = ModeManager()
+        self.modeman = ModeManager(self)
         self.modeman.register('normal', self._keyparsers['normal'].handle)
         self.modeman.register('hint', self._keyparsers['hint'].handle)
         self.modeman.register('insert', self._keyparsers['insert'].handle,
@@ -221,7 +221,7 @@ class Application(QApplication):
         self.setOrganizationName("qutebrowser")
         self.setApplicationName("qutebrowser")
         self.setApplicationVersion(qutebrowser.__version__)
-        self.messagebridge = MessageBridge()
+        self.messagebridge = MessageBridge(self)
         self.rl_bridge = ReadlineBridge()
 
     def _handle_segfault(self):
@@ -307,7 +307,7 @@ class Application(QApplication):
         Python interpreter once all 500ms.
         """
         signal(SIGINT, lambda *args: self.exit(128 + SIGINT))
-        timer = QTimer()
+        timer = QTimer(self)
         timer.start(500)
         timer.timeout.connect(lambda: None)
         self._timers.append(timer)
