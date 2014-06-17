@@ -119,6 +119,15 @@ def rect_on_view(elem):
     return rect
 
 
+def is_writable(elem):
+    """Check wheter an element is writable.
+
+    Args:
+        elem: The QWebElement to check.
+    """
+    return not (elem.hasAttribute('disabled') or elem.hasAttribute('readonly'))
+
+
 def javascript_escape(text):
     """Escape values special to javascript in strings.
 

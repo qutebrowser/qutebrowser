@@ -184,12 +184,12 @@ class WebView(QWebView):
             hitresult: A QWebHitTestResult
         """
         # FIXME is this algorithm accurate?
-        if hitresult.isContentEditable():
+        elem = hitresult.element()
+        if hitresult.isContentEditable() and webelem.is_writable(elem):
             # text fields and the like
             return True
         if not config.get('input', 'insert-mode-on-plugins'):
             return False
-        elem = hitresult.element()
         tag = elem.tagName().lower()
         if tag in ('embed', 'applet', 'select'):
             # Flash/Java/...

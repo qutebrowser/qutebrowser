@@ -34,7 +34,7 @@ class FakeWebElement:
     """A stub for QWebElement."""
 
     def __init__(self, geometry=None, frame=None, null=False, visibility='',
-                 display=''):
+                 display='', attributes=None):
         """Constructor.
 
         Args:
@@ -43,18 +43,17 @@ class FakeWebElement:
             null: Whether the element is null or not.
             visibility: The CSS visibility style property calue.
             display: The CSS display style property calue.
+            attributes: Boolean HTML attributes to be added.
 
         Raise:
             ValueError if element is not null and geometry/frame are not given.
         """
-        if (not null) and (geometry is None or frame is None):
-            raise ValueError("geometry and frame have to be set if element "
-                             "is not null!")
         self.geometry = Mock(return_value=geometry)
         self.webFrame = Mock(return_value=frame)
         self.isNull = Mock(return_value=null)
         self._visibility = visibility
         self._display = display
+        self._attributes = attributes
 
     def styleProperty(self, name, strategy):
         """Return the CSS style property named name.
@@ -75,6 +74,13 @@ class FakeWebElement:
         else:
             raise ValueError("styleProperty called with unknown name "
                              "'{}'".format(name))
+
+    def hasAttribute(self, name):
+        """Check if the element has an attribute named name."""
+        if self._attributes is None:
+            return False
+        else:
+            return name in self._attributes
 
 
 class FakeWebFrame:
@@ -280,6 +286,26 @@ class IsVisibleIframeTests(TestCase):
         self.assertFalse(webelem.is_visible(self.elem2, self.frame))
         self.assertFalse(webelem.is_visible(self.elem3, self.frame))
         self.assertTrue(webelem.is_visible(self.elem4, self.frame))
+
+
+class IsWritableTests(TestCase):
+
+    """Check is_writable."""
+
+    def test_writable(self):
+        """Test a normal element."""
+        elem = FakeWebElement()
+        self.assertTrue(webelem.is_writable(elem))
+
+    def test_disabled(self):
+        """Test a disabled element."""
+        elem = FakeWebElement(attributes=['disabled'])
+        self.assertFalse(webelem.is_writable(elem))
+
+    def test_readonly(self):
+        """Test a readonly element."""
+        elem = FakeWebElement(attributes=['readonly'])
+        self.assertFalse(webelem.is_writable(elem))
 
 
 class JavascriptEscapeTests(TestCase):
