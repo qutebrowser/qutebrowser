@@ -368,6 +368,8 @@ class DownloadManager(QObject):
         q.default = suggested_filepath
         q.answered.connect(download.set_filename)
         q.cancelled.connect(download.cancel)
+        q.answered.connect(q.deleteLater)
+        q.cancelled.connect(q.deleteLater)
         self.questions.append(q)
         download.cancelled.connect(q.abort)
         message.instance().question.emit(q, False)
@@ -380,6 +382,7 @@ class DownloadManager(QObject):
         self.download_about_to_be_finished.emit(idx)
         del self.downloads[idx]
         self.download_finished.emit()
+        download.deleteLater()
 
     @pyqtSlot(DownloadItem)
     def on_data_changed(self, download):
