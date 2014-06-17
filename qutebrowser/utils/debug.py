@@ -36,8 +36,8 @@ except ImportError:
 import qutebrowser.commands.utils as cmdutils
 
 
-@cmdutils.register(debug=True)
-def debug_set_trace():
+@cmdutils.register(debug=True, name='debug-set-trace')
+def set_trace():
     """Set a tracepoint in the Python debugger that works with Qt.
 
     Based on http://stackoverflow.com/a/1745965/2085149
