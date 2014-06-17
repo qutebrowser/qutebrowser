@@ -75,7 +75,7 @@ class SpecialNetworkReply(QNetworkReply):
         self.setAttribute(QNetworkRequest.HttpStatusCodeAttribute, 200)
         self.setAttribute(QNetworkRequest.HttpReasonPhraseAttribute, 'OK')
         # For some reason, a segfault will be triggered if these lambdas aren't
-        # there.        pylint: disable=unnecessary-lambda
+        # there.
         QTimer.singleShot(0, lambda: self.metaDataChanged.emit())
         QTimer.singleShot(0, lambda: self.readyRead.emit())
         QTimer.singleShot(0, lambda: self.finished.emit())
@@ -127,7 +127,7 @@ class ErrorNetworkReply(QNetworkReply):
         super().__init__(parent)
         self.setError(error, errorstring)
         # For some reason, a segfault will be triggered if these lambdas aren't
-        # there.        pylint: disable=unnecessary-lambda
+        # there.
         QTimer.singleShot(0, lambda: self.error.emit(error))
         QTimer.singleShot(0, lambda: self.finished.emit())
 

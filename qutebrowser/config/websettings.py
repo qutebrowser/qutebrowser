@@ -24,8 +24,6 @@ Module attributes:
     settings: The global QWebSettings singleton instance.
 """
 
-# pylint: disable=unnecessary-lambda
-
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtCore import QStandardPaths

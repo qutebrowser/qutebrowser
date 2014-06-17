@@ -18,7 +18,8 @@ disable=no-self-use,
         cyclic-import,
         bad-option-value,
         bad-continuation,
-        too-many-instance-attributes
+        too-many-instance-attributes,
+        unnecessary-lambda
 
 [BASIC]
 module-rgx=[a-z_]*$
