@@ -80,6 +80,7 @@ class ConfigManager(QObject):
 
     Attributes:
         sections: The configuration data as an OrderedDict.
+        _fname: The filename to be opened.
         _configparser: A ReadConfigParser instance to load the config.
         _wrapper_args: A dict with the default kwargs for the config wrappers.
         _configdir: The dictionary to read the config from and save it in.
@@ -112,6 +113,7 @@ class ConfigManager(QObject):
             'break_on_hyphens': False,
         }
         self._configdir = configdir
+        self._fname = fname
         self._interpolation = ExtendedInterpolation()
         self._proxies = {}
         for sectname in self.sections.keys():
@@ -121,6 +123,9 @@ class ConfigManager(QObject):
     def __getitem__(self, key):
         """Get a section from the config."""
         return self._proxies[key]
+
+    def __repr__(self):
+        return '<{} {}>'.format(self.__class__.__name__, self._fname)
 
     def __str__(self):
         """Get the whole config as a string."""
@@ -401,7 +406,7 @@ class SectionProxy(MutableMapping):
         self._name = name
 
     def __repr__(self):
-        return '<Section: {}>'.format(self._name)
+        return '<{} {}>'.format(self.__class__.__name__, self._name)
 
     def __getitem__(self, key):
         if not self._conf.has_option(self._name, key):

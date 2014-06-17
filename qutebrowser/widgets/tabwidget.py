@@ -124,7 +124,8 @@ class TabBar(QTabBar):
     """Custom tabbar to close tabs on right click."""
 
     def __repr__(self):
-        return '<TabBar with {} tabs>'.format(self.count())
+        return '<{} with {} tabs>'.format(self.__class__.__name__,
+                                          self.count())
 
     def mousePressEvent(self, e):
         """Override mousePressEvent to emit tabCloseRequested on rightclick."""

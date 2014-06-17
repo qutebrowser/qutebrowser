@@ -22,13 +22,13 @@ import os.path
 from functools import partial
 from collections import deque
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 from PyQt5.QtNetwork import QNetworkReply
 
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
 from qutebrowser.utils.log import downloads as logger
-from qutebrowser.utils.usertypes import PromptMode, Question
+from qutebrowser.utils.usertypes import PromptMode, Question, Timer
 from qutebrowser.utils.misc import (interpolate_color, format_seconds,
                                     format_size)
 
@@ -99,10 +99,13 @@ class DownloadItem(QObject):
         reply.finished.connect(self.on_reply_finished)
         reply.error.connect(self.on_reply_error)
         reply.readyRead.connect(self.on_ready_read)
-        self.timer = QTimer(self)
+        self.timer = Timer(self, 'speed_refresh')
         self.timer.timeout.connect(self.update_speed)
         self.timer.setInterval(self.SPEED_REFRESH_INTERVAL)
         self.timer.start()
+
+    def __repr__(self):
+        return '<{} "{}">'.format(self.__class__.__name__, self.basename)
 
     def __str__(self):
         """Get the download as a string.
@@ -308,6 +311,9 @@ class DownloadManager(QObject):
         super().__init__(parent)
         self.downloads = []
         self.questions = []
+
+    def __repr__(self):
+        return '<{}>'.format(self.__class__.__name__)
 
     def _get_filename(self, reply):
         """Get a suitable filename to download a file to.

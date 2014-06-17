@@ -89,7 +89,7 @@ class MainWindow(QWidget):
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def __repr__(self):
-        return '<MainWindow>'
+        return '<{}>'.format(self.__class__.__name__)
 
     def _set_default_geometry(self):
         """Set some sensible default geometry."""

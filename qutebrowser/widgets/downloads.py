@@ -61,8 +61,8 @@ class DownloadView(QListView):
         self.customContextMenuRequested.connect(self.show_context_menu)
 
     def __repr__(self):
-        return '<DownloadView with {} downloads>'.format(
-            self.model().rowCount())
+        return '<{} with {} downloads>'.format(self.__class__.__name__,
+                                               self.model().rowCount())
 
     @pyqtSlot('QPoint')
     def show_context_menu(self, point):

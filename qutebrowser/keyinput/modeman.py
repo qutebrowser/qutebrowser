@@ -90,6 +90,9 @@ class ModeManager(QObject):
         self._forward_unbound_keys = config.get('input',
                                                 'forward-unbound-keys')
 
+    def __repr__(self):
+        return '<{} mode={}>'.format(self.__class__.__name__, self.mode)
+
     @property
     def mode(self):
         """Read-only property for the current mode."""

@@ -24,7 +24,7 @@ Module attributes:
 import operator
 import collections.abc
 
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject, QTimer
 
 from qutebrowser.utils.log import misc as logger
 
@@ -281,6 +281,9 @@ class Question(QObject):
         self.answer = None
         self.is_aborted = False
 
+    def __repr__(self):
+        return '<{} "{}">'.format(self.__class__.__name__, self.text)
+
     def abort(self):
         """Abort the question.
 
@@ -289,3 +292,23 @@ class Question(QObject):
         """
         self.is_aborted = True
         self.aborted.emit()
+
+
+class Timer(QTimer):
+
+    """A timer which has a name to show in __repr__.
+
+    Attributes:
+        _name: The name of the timer.
+    """
+
+    def __init__(self, parent=None, name=None):
+        super().__init__(parent)
+        if name is None:
+            self._name = "unnamed"
+        else:
+            self.setObjectName(name)
+            self._name = name
+
+    def __repr__(self):
+        return '<{} {}>'.format(self.__class__.__name__, self._name)

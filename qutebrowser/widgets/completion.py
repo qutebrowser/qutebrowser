@@ -113,7 +113,7 @@ class CompletionView(QTreeView):
         # FIXME set elidemode
 
     def __repr__(self):
-        return '<CompletionView>'
+        return '<{}>'.format(self.__class__.__name__)
 
     def _resize_columns(self):
         """Resize the completion columns based on COLUMN_WIDTHS."""

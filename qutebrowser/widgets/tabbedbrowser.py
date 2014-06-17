@@ -108,7 +108,8 @@ class TabbedBrowser(TabWidget):
         self.setIconSize(QSize(12, 12))
 
     def __repr__(self):
-        return '<TabbedBrowser with {} tabs>'.format(self.count())
+        return '<{} with {} tabs>'.format(self.__class__.__name__,
+                                          self.count())
 
     @property
     def widgets(self):

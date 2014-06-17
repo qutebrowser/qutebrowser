@@ -54,7 +54,7 @@ class Progress(QProgressBar):
         self.hide()
 
     def __repr__(self):
-        return '<Progress {}%>'.format(self.value())
+        return '<{} {}%>'.format(self.__class__.__name__, self.value())
 
     @pyqtSlot()
     def on_load_started(self):

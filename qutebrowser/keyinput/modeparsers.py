@@ -42,6 +42,9 @@ class NormalKeyParser(CommandKeyParser):
         super().__init__(parent, supports_count=True, supports_chains=True)
         self.read_config('keybind')
 
+    def __repr__(self):
+        return '<{}>'.format(self.__class__.__name__)
+
     def _handle_single_key(self, e):
         """Override _handle_single_key to abort if the key is a startchar.
 
@@ -67,6 +70,9 @@ class PromptKeyParser(CommandKeyParser):
         # We don't want an extra section for this in the config, so we just
         # abuse the keybind.prompt section.
         self.read_config('keybind.prompt')
+
+    def __repr__(self):
+        return '<{}>'.format(self.__class__.__name__)
 
 
 class HintKeyParser(CommandKeyParser):

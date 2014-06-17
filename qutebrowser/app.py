@@ -29,7 +29,7 @@ from base64 import b64encode
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.QtCore import (pyqtSlot, QTimer, QEventLoop, Qt, QStandardPaths,
-                          qInstallMessageHandler)
+                          qInstallMessageHandler, QObject)
 
 import qutebrowser
 import qutebrowser.commands.utils as cmdutils
@@ -54,11 +54,11 @@ from qutebrowser.config.iniparsers import ReadWriteConfigParser
 from qutebrowser.config.lineparser import LineConfigParser
 from qutebrowser.browser.cookies import CookieJar
 from qutebrowser.browser.downloads import DownloadManager
-from qutebrowser.models.downloadmodel import DownloadModel
 from qutebrowser.utils.message import MessageBridge
 from qutebrowser.utils.misc import (get_standard_dir, actute_warning,
                                     get_qt_args)
 from qutebrowser.utils.readline import ReadlineBridge
+from qutebrowser.utils.usertypes import Timer
 from qutebrowser.utils.debug import set_trace  # pylint: disable=unused-import
 
 
@@ -135,7 +135,6 @@ class Application(QApplication):
         self.commandmanager = CommandManager()
         self.searchmanager = SearchManager(self)
         self.downloadmanager = DownloadManager(self)
-        self.downloadmodel = DownloadModel(self.downloadmanager)
         self.mainwindow = MainWindow()
 
         self.modeman.mainwindow = self.mainwindow
@@ -307,7 +306,7 @@ class Application(QApplication):
         Python interpreter once all 500ms.
         """
         signal(SIGINT, lambda *args: self.exit(128 + SIGINT))
-        timer = QTimer(self)
+        timer = Timer(self, 'python_hacks')
         timer.start(500)
         timer.timeout.connect(lambda: None)
         self._timers.append(timer)
@@ -540,7 +539,17 @@ class Application(QApplication):
         log.misc.debug("{} widgets".format(len(widgets)))
         widgets.sort(key=lambda e: repr(e))
         for w in widgets:
-            log.misc.debug(w)
+            log.misc.debug(repr(w))
+
+    @cmdutils.register(instance='', debug=True)
+    def all_objects(self, obj=None, depth=0):
+        """Dump all children of an object recursively."""
+        if obj is None:
+            obj = self
+        for kid in obj.findChildren(QObject):
+            log.misc.debug('    ' * depth + repr(kid))
+            self.all_objects(kid, depth + 1)
+
 
     @pyqtSlot()
     def shutdown(self):

@@ -149,3 +149,6 @@ class MessageBridge(QObject):
     text = pyqtSignal(str)
     set_cmd_text = pyqtSignal(str)
     question = pyqtSignal(Question, bool)
+
+    def __repr__(self):
+        return '<{}>'.format(self.__class__.__name__)

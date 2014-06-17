@@ -20,7 +20,7 @@
 from collections import deque
 from datetime import datetime
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 import qutebrowser.keyinput.modeman as modeman
@@ -34,6 +34,7 @@ from qutebrowser.widgets.statusbar.percentage import Percentage
 from qutebrowser.widgets.statusbar.url import Url
 from qutebrowser.widgets.statusbar.prompt import Prompt
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
+from qutebrowser.utils.usertypes import Timer
 
 
 class StatusBar(QWidget):
@@ -54,7 +55,7 @@ class StatusBar(QWidget):
         _stack: The QStackedLayout with cmd/txt widgets.
         _text_queue: A deque of (error, text) tuples to be displayed.
                      error: True if message is an error, False otherwise
-        _text_pop_timer: A QTimer displaying the error messages.
+        _text_pop_timer: A Timer displaying the error messages.
         _last_text_time: The timestamp where a message was last displayed.
         _timer_was_active: Whether the _text_pop_timer was active before hiding
                            the command widget.
@@ -130,7 +131,7 @@ class StatusBar(QWidget):
         self._stack.addWidget(self.txt)
         self._timer_was_active = False
         self._text_queue = deque()
-        self._text_pop_timer = QTimer(self)
+        self._text_pop_timer = Timer(self, 'statusbar_text_pop')
         self._text_pop_timer.setInterval(config.get('ui', 'message-timeout'))
         self._text_pop_timer.timeout.connect(self._pop_text)
 
@@ -159,7 +160,7 @@ class StatusBar(QWidget):
         self._hbox.addWidget(self.prog)
 
     def __repr__(self):
-        return '<StatusBar>'
+        return '<{}>'.format(self.__class__.__name__)
 
     @pyqtProperty(bool)
     def error(self):

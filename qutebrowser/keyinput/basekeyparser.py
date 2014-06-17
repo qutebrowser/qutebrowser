@@ -21,11 +21,11 @@ import re
 import string
 from functools import partial
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject
 from PyQt5.QtGui import QKeySequence
 
 import qutebrowser.config.config as config
-from qutebrowser.utils.usertypes import enum
+from qutebrowser.utils.usertypes import enum, Timer
 from qutebrowser.utils.log import keyboard as logger
 
 
@@ -54,7 +54,7 @@ class BaseKeyParser(QObject):
         warn_on_keychains: Whether a warning should be logged when binding
                            keychains in a section which does not support them.
         _keystring: The currently entered key sequence
-        _timer: QTimer for delayed execution.
+        _timer: Timer for delayed execution.
         _confsectname: The name of the configsection.
         _supports_count: Whether count is supported
         _supports_chains: Whether keychains are supported
@@ -82,6 +82,11 @@ class BaseKeyParser(QObject):
         self.warn_on_keychains = True
         self.bindings = {}
         self.special_bindings = {}
+
+    def __repr__(self):
+        return '<{} supports_count={}, supports_chains={}>'.format(
+            self.__class__.__name__, self._supports_count,
+            self._supports_chains)
 
     def _normalize_keystr(self, keystr):
         """Normalize a keystring like Ctrl-Q to a keystring like Ctrl+Q.
@@ -273,7 +278,7 @@ class BaseKeyParser(QObject):
             # execute in `time' ms
             logger.debug("Scheduling execution of {} in {}ms".format(binding,
                                                                      time))
-            self._timer = QTimer(self)
+            self._timer = Timer(self, 'ambigious_match')
             self._timer.setSingleShot(True)
             self._timer.setInterval(time)
             self._timer.timeout.connect(partial(self.delayed_exec, binding,

@@ -64,7 +64,7 @@ class Prompt(QWidget):
         self._hbox.addWidget(self._input)
 
     def __repr__(self):
-        return '<Prompt>'
+        return '<{}>'.format(self.__class__.__name__)
 
     def on_mode_left(self, mode):
         """Clear and reset input when the mode was left."""

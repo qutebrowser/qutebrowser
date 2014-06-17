@@ -47,6 +47,9 @@ class DownloadModel(QAbstractListModel):
         self.downloadmanager.download_finished.connect(self.endRemoveRows)
         self.downloadmanager.data_changed.connect(self.on_data_changed)
 
+    def __repr__(self):
+        return '<{}>'.format(self.__class__.__name__)
+
     @pyqtSlot(int)
     def on_data_changed(self, idx):
         """Update view when DownloadManager data changed."""

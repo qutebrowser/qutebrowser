@@ -50,6 +50,9 @@ class SearchManager(QObject):
         self._text = None
         self._flags = 0
 
+    def __repr__(self):
+        return '<{} text={}>'.format(self.__class__.__name__, self._text)
+
     def _search(self, text, rev=False):
         """Search for a text on the current page.
 

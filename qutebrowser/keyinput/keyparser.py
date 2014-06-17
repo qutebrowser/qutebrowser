@@ -64,6 +64,9 @@ class PassthroughKeyParser(CommandKeyParser):
     """KeyChainParser which passes through normal keys.
 
     Used for insert/passthrough modes.
+
+    Attributes:
+        _confsect: The config section to use.
     """
 
     def __init__(self, confsect, parent=None, warn=True):
@@ -75,6 +78,10 @@ class PassthroughKeyParser(CommandKeyParser):
             warn: Whether to warn if an ignored key was bound.
         """
         super().__init__(parent, supports_chains=False)
-        if not warn:
-            self.warn_on_keychains = False
+        self.warn_on_keychains = warn
         self.read_config(confsect)
+        self._confsect = confsect
+
+    def __repr__(self):
+        return '<{} confsect={}, warn={})'.format(
+            self.__class__.__name__, self._confsect, self.warn_on_keychains)
