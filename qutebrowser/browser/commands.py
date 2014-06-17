@@ -204,6 +204,7 @@ class CommandDispatcher:
         tab = self._tabs.cntwidget(count)
         if tab is not None:
             preview = QPrintPreviewDialog()
+            preview.setAttribute(Qt.WA_DeleteOnClose)
             preview.paintRequested.connect(tab.print)
             preview.exec_()
 
@@ -220,6 +221,7 @@ class CommandDispatcher:
         tab = self._tabs.cntwidget(count)
         if tab is not None:
             printdiag = QPrintDialog()
+            printdiag.setAttribute(Qt.WA_DeleteOnClose)
             printdiag.open(lambda: tab.print(printdiag.printer()))
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')

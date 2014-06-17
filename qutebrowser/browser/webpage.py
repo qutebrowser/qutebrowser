@@ -18,7 +18,8 @@
 """The main browser widgets."""
 
 import sip
-from PyQt5.QtCore import QCoreApplication, pyqtSignal, pyqtSlot, PYQT_VERSION
+from PyQt5.QtCore import (QCoreApplication, pyqtSignal, pyqtSlot, PYQT_VERSION,
+                          Qt)
 from PyQt5.QtNetwork import QNetworkReply
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtPrintSupport import QPrintDialog
@@ -149,6 +150,7 @@ class BrowserPage(QWebPage):
                           "please upgrade!")
             return
         printdiag = QPrintDialog()
+        printdiag.setAttribute(Qt.WA_DeleteOnClose)
         printdiag.open(lambda: frame.print(printdiag.printer()))
 
     @pyqtSlot('QNetworkRequest')
