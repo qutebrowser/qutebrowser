@@ -21,8 +21,7 @@ import sys
 import types
 from functools import wraps
 
-from PyQt5.QtCore import (pyqtRemoveInputHook, QEvent, QCoreApplication,
-                          QObject)
+from PyQt5.QtCore import pyqtRemoveInputHook, QEvent, QCoreApplication
 
 from qutebrowser.utils.log import misc as logger
 
@@ -76,21 +75,14 @@ def debug_crash(typ='exception'):
 @cmdutils.register(debug=True)
 def debug_all_widgets():
     """Print a list of all widgets to debug log."""
-    widgets = QCoreApplication.instance().allWidgets()
-    logger.debug("{} widgets".format(len(widgets)))
-    widgets.sort(key=lambda e: repr(e))
-    for w in widgets:
-        logger.debug(repr(w))
-
+    s = QCoreApplication.instance().get_all_widgets()
+    logger.debug(s)
 
 @cmdutils.register(debug=True)
 def debug_all_objects(obj=None, depth=0):
     """Dump all children of an object recursively."""
-    if obj is None:
-        obj = QCoreApplication.instance()
-    for kid in obj.findChildren(QObject):
-        logger.debug('    ' * depth + repr(kid))
-        debug_all_objects(kid, depth + 1)
+    s = QCoreApplication.instance().get_all_objects()
+    logger.debug(s)
 
 
 def log_events(klass):

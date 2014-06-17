@@ -28,7 +28,7 @@ from base64 import b64encode
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.QtCore import (pyqtSlot, QTimer, QEventLoop, Qt, QStandardPaths,
-                          qInstallMessageHandler)
+                          qInstallMessageHandler, QObject)
 
 import qutebrowser
 import qutebrowser.commands.utils as cmdutils
@@ -390,6 +390,29 @@ class Application(QApplication):
         # downloads
         tabs.start_download.connect(self.downloadmanager.fetch)
 
+    def get_all_widgets(self):
+        """Get a string list of all widgets."""
+        lines = []
+        widgets = self.allWidgets()
+        widgets.sort(key=lambda e: repr(e))
+        lines.append("{} widgets".format(len(widgets)))
+        for w in widgets:
+            lines.append(repr(w))
+        return '\n'.join(lines)
+
+    def get_all_objects(self, obj=None, depth=0, lines=None):
+        """Get all children of an object recursively as a string."""
+        if lines is None:
+            lines = []
+        if obj is None:
+            obj = self
+        for kid in obj.findChildren(QObject):
+            lines.append('    ' * depth + repr(kid))
+            self.get_all_objects(kid, depth + 1, lines)
+        if depth == 0:
+            lines.insert(0, '{} objects:'.format(len(lines)))
+        return '\n'.join(lines)
+
     def _recover_pages(self):
         """Try to recover all open pages.
 
@@ -467,6 +490,16 @@ class Application(QApplication):
         except Exception:
             history = []
 
+        try:
+            widgets = self.get_all_widgets()
+        except Exception:
+            widgets = ""
+
+        try:
+            objects = self.get_all_objects()
+        except Exception:
+            objects = ""
+
         # Try to shutdown gracefully
         try:
             self.shutdown(do_quit=False)
@@ -477,7 +510,8 @@ class Application(QApplication):
         except TypeError:
             log.destroy.warning("Preventing shutdown failed.")
         QApplication.closeAllWindows()
-        self._crashdlg = ExceptionCrashDialog(pages, history, exc)
+        self._crashdlg = ExceptionCrashDialog(pages, history, exc, widgets,
+                                              objects)
         ret = self._crashdlg.exec_()
         if ret == QDialog.Accepted:  # restore
             self.restart(shutdown=False, pages=pages)
