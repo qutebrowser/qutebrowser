@@ -20,7 +20,8 @@
 import sys
 from functools import wraps
 
-from PyQt5.QtCore import pyqtRemoveInputHook, QEvent
+from PyQt5.QtCore import (pyqtRemoveInputHook, QEvent, QCoreApplication,
+                          QObject)
 
 from qutebrowser.utils.log import misc as logger
 
@@ -32,6 +33,63 @@ except ImportError:
     from pdb import set_trace as pdb_set_trace
 
 import qutebrowser.commands.utils as cmdutils
+
+
+@cmdutils.register(debug=True)
+def debug_set_trace():
+    """Set a tracepoint in the Python debugger that works with Qt.
+
+    Based on http://stackoverflow.com/a/1745965/2085149
+    """
+    if sys.stdout is not None:
+        sys.stdout.flush()
+    print()
+    print("When done debugging, remember to execute:")
+    print("  from PyQt5 import QtCore; QtCore.pyqtRestoreInputHook()")
+    print("before executing c(ontinue).")
+    pyqtRemoveInputHook()
+    pdb_set_trace()
+
+
+@cmdutils.register(debug=True)
+def debug_crash(typ='exception'):
+    """Crash for debugging purposes.
+
+    Args:
+        typ: either 'exception' or 'segfault'
+
+    Raises:
+        raises Exception when typ is not segfault.
+        segfaults when typ is (you don't say...)
+    """
+    if typ == 'segfault':
+        # From python's Lib/test/crashers/bogus_code_obj.py
+        co = types.CodeType(0, 0, 0, 0, 0, b'\x04\x71\x00\x00', (), (), (),
+                            '', '', 1, b'')
+        exec(co)  # pylint: disable=exec-used
+        raise Exception("Segfault failed (wat.)")
+    else:
+        raise Exception("Forced crash")
+
+
+@cmdutils.register(debug=True)
+def debug_all_widgets():
+    """Print a list of all widgets to debug log."""
+    widgets = QCoreApplication.instance().allWidgets()
+    logger.debug("{} widgets".format(len(widgets)))
+    widgets.sort(key=lambda e: repr(e))
+    for w in widgets:
+        logger.debug(repr(w))
+
+
+@cmdutils.register(debug=True)
+def debug_all_objects(obj=None, depth=0):
+    """Dump all children of an object recursively."""
+    if obj is None:
+        obj = QCoreApplication.instance()
+    for kid in obj.findChildren(QObject):
+        logger.debug('    ' * depth + repr(kid))
+        debug_all_objects(kid, depth + 1)
 
 
 def log_events(klass):
@@ -47,22 +105,6 @@ def log_events(klass):
 
     klass.event = new_event
     return klass
-
-
-@cmdutils.register(debug=True)
-def set_trace():
-    """Set a tracepoint in the Python debugger that works with Qt.
-
-    Based on http://stackoverflow.com/a/1745965/2085149
-    """
-    if sys.stdout is not None:
-        sys.stdout.flush()
-    print()
-    print("When done debugging, remember to execute:")
-    print("  from PyQt5 import QtCore; QtCore.pyqtRestoreInputHook()")
-    print("before executing c(ontinue).")
-    pyqtRemoveInputHook()
-    pdb_set_trace()
 
 
 def trace_lines(do_trace):

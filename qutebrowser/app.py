@@ -29,7 +29,7 @@ from base64 import b64encode
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.QtCore import (pyqtSlot, QTimer, QEventLoop, Qt, QStandardPaths,
-                          qInstallMessageHandler, QObject)
+                          qInstallMessageHandler)
 
 import qutebrowser
 import qutebrowser.commands.utils as cmdutils
@@ -59,7 +59,6 @@ from qutebrowser.utils.misc import (get_standard_dir, actute_warning,
                                     get_qt_args)
 from qutebrowser.utils.readline import ReadlineBridge
 from qutebrowser.utils.usertypes import Timer
-from qutebrowser.utils.debug import set_trace  # pylint: disable=unused-import
 
 
 class Application(QApplication):
@@ -516,10 +515,11 @@ class Application(QApplication):
     #        self.shutdown()
 
     @cmdutils.register(instance='', split=False, debug=True)
-    def pyeval(self, s):
+    def debug_pyeval(self, s):
         """Evaluate a python string and display the results as a webpage.
 
-        :pyeval command handler.
+        We have this here rather in utils.debug so the context of eval makes
+        more sense and because we don't want to import much stuff in the utils.
 
         Args:
             s: The string to evaluate.
@@ -531,25 +531,6 @@ class Application(QApplication):
             out = ': '.join([e.__class__.__name__, str(e)])
         qutescheme.pyeval_output = out
         self.mainwindow.tabs.cmd.openurl('qute:pyeval')
-
-    @cmdutils.register(instance='', debug=True)
-    def all_widgets(self):
-        """Print a list of all widgets to debug log."""
-        widgets = self.allWidgets()
-        log.misc.debug("{} widgets".format(len(widgets)))
-        widgets.sort(key=lambda e: repr(e))
-        for w in widgets:
-            log.misc.debug(repr(w))
-
-    @cmdutils.register(instance='', debug=True)
-    def all_objects(self, obj=None, depth=0):
-        """Dump all children of an object recursively."""
-        if obj is None:
-            obj = self
-        for kid in obj.findChildren(QObject):
-            log.misc.debug('    ' * depth + repr(kid))
-            self.all_objects(kid, depth + 1)
-
 
     @pyqtSlot()
     def shutdown(self):
@@ -618,24 +599,3 @@ class Application(QApplication):
         """
         log.destroy.debug("Shutdown complete, quitting.")
         self.quit()
-
-
-@cmdutils.register(debug=True)
-def crash(typ='exception'):
-    """Crash for debugging purposes.
-
-    Args:
-        typ: either 'exception' or 'segfault'
-
-    Raises:
-        raises Exception when typ is not segfault.
-        segfaults when typ is (you don't say...)
-    """
-    if typ == 'segfault':
-        # From python's Lib/test/crashers/bogus_code_obj.py
-        co = types.CodeType(0, 0, 0, 0, 0, b'\x04\x71\x00\x00', (), (), (),
-                            '', '', 1, b'')
-        exec(co)  # pylint: disable=exec-used
-        raise Exception("Segfault failed (wat.)")
-    else:
-        raise Exception("Forced crash")
