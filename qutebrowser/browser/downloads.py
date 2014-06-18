@@ -30,7 +30,7 @@ import qutebrowser.utils.message as message
 from qutebrowser.utils.log import downloads as logger
 from qutebrowser.utils.usertypes import PromptMode, Question, Timer
 from qutebrowser.utils.misc import (interpolate_color, format_seconds,
-                                    format_size)
+                                    format_size, get_http_header)
 
 
 class DownloadItem(QObject):
@@ -321,18 +321,10 @@ class DownloadManager(QObject):
         Args:
             reply: The QNetworkReply to get a filename for.
         """
-        filename = None
         # First check if the Content-Disposition header has a filename
         # attribute.
-        if reply.hasRawHeader('Content-Disposition'):
-            header = reply.rawHeader('Content-Disposition')
-            data = header.split(':', maxsplit=1)[1].strip()
-            for pair in data.split(';'):
-                if '=' in pair:
-                    key, value = pair.split('=')
-                    if key == 'filename':
-                        filename = value.strip('"')
-                        break
+        from qutebrowser.utils.debug import set_trace; set_trace()
+        filename = get_http_header(reply, 'Content-Disposition', 'filename')
         # Then try to get filename from url
         if not filename:
             filename = reply.url().path()
