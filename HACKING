@@ -1,79 +1,128 @@
-== Use the scripts! ==
+qutebrowser HACKING
+===================
 
-In the scripts/ subfolder, there are a run_checks.py and a run_profile.py.
+Run checks!
+-----------
 
-run_checks runs the flake8/pylint/pep257 checkers on all source files. Please
-makes this script complete without any messages with your patch. There are some
-techniques to handle "wrong" error messages:
+In the _scripts/_ subfolder, there are a `run_checks.py`.
 
-  - Use _foo for unused parameters (not '_')
+`run_checks.py` runs a bunch of static checks on all source files. It uses the
+following checkers to do so:
 
-  - If you think you have a good reason to suppress a message, use:
-      # pylint: disable=message-name
-    in the innermost-scope (line/function/class) possible.
+* unittests using the Python
+https://docs.python.org/3.4/library/unittest.html[unittest] framework
+* https://pypi.python.org/pypi/flake8/1.3.1[flake8]
+* https://github.com/GreenSteam/pep257/[pep257]
+* http://pylint.org/[pylint]
+* Custom checkers for untracked git files, whitespace/CRLF problems,
+* `set_trace` invocations and VCS conflict markers.
 
-  - If you really think a check shouldn't be done, let me know! I'm still
-    tweaking the parameters.
+If you changed `setup.py`/`MANIFEST.in` and add the `--setup` argument, the
+following additional checkers are run:
 
-run_profile needs pyprof2calltree and KCacheGrind and runs qutebrowser under a
-profiler to show you what uses the most time. This might come in handy when
-something is slow and you don't know what.
+* https://pypi.python.org/pypi/pyroma/0.9.3[pyroma]
+* https://github.com/mgedmin/check-manifest[check-manifest]
 
-== Useful utilities ==
+Please make sure this script runs without any warnings on your new
+contributions. There's of course the possibility of false-positives, and the
+following techniques are useful to handle these:
 
-In the qutebrowser.utils.debug and -signal modules there are some useful
-functions for debugging. In particular you should use set_trace from
-qutebrowser.utils.debug instead of pdb to set breakpoints or you'll get
-annoying Qt error messages.
+* Use `_foo` for unused parameters, with `foo` being a descriptive name. Using
+`_` is discouraged.
+* If you think you have a good reason to suppress a message, add the following
+comment:
++
+----
+# pylint: disable=message-name
+----
++
+Note you can add this per line, per function/class, or per file. Please use the
+smallest scope which makes sense. Most of the time, this will be line scope.
++
+* If you really think a check shouldn't be done globally as it yields a lot of
+false-positives, let me know! I'm still tweaking the parameters.
 
-== Style conventions ==
+Profiling
+---------
+
+In the _scripts/_ subfolder there's a `run_profile.py` which profiles the code
+and shows a graphical representation of what takes how much time.
+
+It needs https://pypi.python.org/pypi/pyprof2calltree/[pyprof2calltree] and
+http://kcachegrind.sourceforge.net/html/Home.html[KCacheGrind]. It uses the
+built-in Python https://docs.python.org/3.4/library/profile.html[cProfile]
+module.
+
+Useful utilities
+----------------
+
+In the `qutebrowser.utils.debug` and `qutebrowser.utils.signal` modules there
+are some useful functions for debugging. In particular you should use
+`set_trace` from `qutebrowser.utils.debug` instead of `pdb` to set breakpoints
+or you'll get annoying Qt error messages.
+
+When starting qutebrowser with the `--debug` flag you also get useful debug
+logs. You can add `--logfilter category[,category,...]` to restrict logging to
+the given categories.
+
+With `--debug` there are also some additional `debug-*` commands available, for
+example `debug-all-objects` and `debug-all-widgets` which prints a list of all
+Qt objects or widgets to the debug log -- this is very useful for finding
+memory leaks.
+
+Style conventions
+-----------------
 
 As you might have noticed, I *really* like clean and consistent code. While I
 won't reject your contribution when you don't follow the guidelines, I'd be
 really glad if you'd do so.
 
-qutebrowser's coding conventions are based on [PEP8][1] and the [Google Python
-style guidelines][2] with some additions:
+qutebrowser's coding conventions are based on
+http://legacy.python.org/dev/peps/pep-0008/[PEP8] and the https://google-styleguide.googlecode.com/svn/trunk/pyguide.html[Google Python style guidelines] with some additions:
 
-- Methods overriding Qt methods (obviously!) don't follow the naming schemes.
+* Methods overriding Qt methods (obviously!) don't follow the naming schemes.
+* Everything else does though, even slots.
+* Docstring are like described in
+http://legacy.python.org/dev/peps/pep-0257/[PEP257] and the google guidelines.
+* Class docstrings have additional `Attributes:`, `Class attributes:` and
+  `Signals:` sections, method/function docstrings have an `Emit:` section.
++
+Example for a class docstring:
++
+[source,python]
+----
+"""Some object.
 
-- Everything else does though, even slots.
+Attributes:
+  blub: The current thing to handle.
 
-- Docstring are like described in [PEP257][3] and the google guidelines.
-  Class docstrings have additional "Attributes", "Class attributes" and
-  "Signals" sections, method/function docstrings have an "Emit" section.
+Signals:
+  valueChanged: When a value changed.
+                arg: The new value
+"""
+----
++
+Example for a method/function docstring:
++
+[source,python]
+----
+"""Do something special.
 
-  Example for a class docstring:
+Args:
+  foo: ...
 
-  """Some object.
+Return:
+  True if something, False if something else.
 
-  Attributes:
-      blub: The current thing to handle.
+Raise:
+  ValueError if foo is None
 
-  Signals:
-      valueChanged: When a value changed.
-                    arg: The new value
-  """
-
-  Example for a method/function docstring:
-
-  """Do something special.
-
-  Args:
-      foo: ...
-
-  Return:
-      True if something, False if something else.
-
-  Raise:
-      ValueError if foo is None
-
-  Emit:
-      value_changed
-  """
-
-- The layout of a module should be like this:
-
+Emit:
+  value_changed
+"""
+----
++
+* The layout of a module should be roughly like this:
   - Copyright
   - GPL boilerplate
   - Module docstring
@@ -82,18 +131,11 @@ style guidelines][2] with some additions:
   - qutebrowser imports
   - functions
   - classes
-
-- The layout of a class should be like this:
-
+* The layout of a class should be like this:
   - docstring
-  - __magic__ methods
+  - `__magic__` methods
   - properties
   - _private methods
   - public methods
-  - on_* methods
+  - `on_*` methods
   - overrides of Qt methods
-
-
-[1] http://legacy.python.org/dev/peps/pep-0008/
-[2] https://google-styleguide.googlecode.com/svn/trunk/pyguide.html
-[3] http://legacy.python.org/dev/peps/pep-0257/
