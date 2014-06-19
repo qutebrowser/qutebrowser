@@ -127,9 +127,13 @@ class ModeManager(QObject):
         logger.debug("calling handler {}".format(handler.__qualname__))
         handled = handler(event) if handler is not None else False
 
+        is_non_alnum = event.modifiers() or not event.text().strip()
+
         if handled:
             filter_this = True
-        elif self.mode in self.passthrough or self._forward_unbound_keys:
+        elif (self.mode in self.passthrough or
+                self._forward_unbound_keys == 'all' or
+                (self._forward_unbound_keys == 'auto' and is_non_alnum)):
             filter_this = False
         else:
             filter_this = True
@@ -137,11 +141,11 @@ class ModeManager(QObject):
         if not filter_this:
             self._releaseevents_to_pass.append(event)
 
-        logger.debug("handled: {}, forward-unbound-keys: {}, passthrough: {} "
-                     "--> filter: {}".format(handled,
-                                             self._forward_unbound_keys,
-                                             self.mode in self.passthrough,
-                                             filter_this))
+        logger.debug("handled: {}, forward-unbound-keys: {}, passthrough: {}, "
+                     "is_non_alnum: {} --> filter: {}".format(
+                         handled, self._forward_unbound_keys,
+                         self.mode in self.passthrough, is_non_alnum,
+                         filter_this))
         return filter_this
 
     def _eventFilter_keyrelease(self, event):

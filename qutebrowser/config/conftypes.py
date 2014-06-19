@@ -916,3 +916,13 @@ class ConfirmQuit(String):
                                ('multiple-tabs', "Show a confirmation if "
                                                  "multiple tabs are opened."),
                                ('never', "Never show a confirmation."))
+
+
+class ForwardUnboundKeys(String):
+
+    """Whether to forward unbound keys."""
+
+    valid_values = ValidValues(('all', "Forward all unbound keys."),
+                               ('auto', "Forward unbound non-alphanumeric "
+                                        "keys."),
+                               ('none', "Don't forward any keys."))

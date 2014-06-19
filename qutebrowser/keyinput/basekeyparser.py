@@ -184,8 +184,8 @@ class BaseKeyParser(QObject):
             self._keystring = ''
             return
 
-        if txt not in (string.ascii_letters + string.digits +
-                       string.punctuation):
+        if (not txt) or txt not in (string.ascii_letters + string.digits +
+                                    string.punctuation):
             logger.debug("Ignoring, no text char")
             return False
 
