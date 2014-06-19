@@ -53,7 +53,7 @@ def _get_constant(name):
     field_re = re.compile(r'__{}__\s+=\s+(.*)'.format(re.escape(name)))
     path = os.path.join(BASEDIR, 'qutebrowser', '__init__.py')
     line = field_re.search(read_file(path)).group(1)
-    value = str(ast.literal_eval(line))
+    value = ast.literal_eval(line)
     return value
 
 
