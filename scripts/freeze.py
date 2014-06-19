@@ -28,7 +28,6 @@ Builds a standalone executable.
 import os
 import os.path
 import sys
-import platform
 from distutils.sysconfig import get_python_lib
 
 from cx_Freeze import setup, Executable
