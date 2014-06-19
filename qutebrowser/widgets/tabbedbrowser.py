@@ -290,6 +290,7 @@ class TabbedBrowser(TabWidget):
         if not background:
             self.setCurrentWidget(tab)
         tab.show()
+        tab.setFocus()
         return tab
 
     @pyqtSlot(str, int)
@@ -383,9 +384,9 @@ class TabbedBrowser(TabWidget):
 
     @pyqtSlot(str)
     def on_mode_left(self, mode):
-        """Give focus to tabs if command mode was left."""
+        """Give focus to current tab if command mode was left."""
         if mode == "command":
-            self.setFocus()
+            self.currentWidget().setFocus()
 
     @pyqtSlot(int)
     def on_current_changed(self, idx):

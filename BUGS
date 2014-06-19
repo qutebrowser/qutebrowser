@@ -23,9 +23,6 @@ Bugs
 
 - All kind of FIXMEs
 
-- When opening DDG the input field should be focused when JS is active, but
-  only is sometimes. (seir)
-
 - restart sometimes abort()s on QApplication __init__ (V155)
 
 - restart is broken entirely since init refactoring (around af19e6d~1)
