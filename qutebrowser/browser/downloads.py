@@ -344,8 +344,12 @@ class DownloadManager(QObject):
         if reply.hasRawHeader('Content-Disposition'):
             # We use the unsafe variant of the filename as we sanitize it via
             # os.path.basename later.
-            filename = rfc6266.parse_headers(
-                bytes(reply.rawHeader('Content-Disposition'))).filename_unsafe
+            try:
+                content_disposition = rfc6266.parse_headers(
+                    bytes(reply.rawHeader('Content-Disposition')))
+                filename = content_disposition.filename_unsafe
+            except UnicodeDecodeError:
+                filename = None
         else:
             filename = None
         # Then try to get filename from url
