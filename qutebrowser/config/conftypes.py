@@ -865,14 +865,14 @@ class AutoSearch(BaseType):
             return False
 
 
-class Position(String):
+class Position(BaseType):
 
     """The position of the tab bar."""
 
     valid_values = ValidValues('north', 'south', 'east', 'west')
 
 
-class SelectOnRemove(String):
+class SelectOnRemove(BaseType):
 
     """Which tab to select when the focused tab is removed."""
 
@@ -882,7 +882,7 @@ class SelectOnRemove(String):
         ('previous', "Select the previously selected tab."))
 
 
-class LastClose(String):
+class LastClose(BaseType):
 
     """Behaviour when the last tab is closed."""
 
@@ -891,7 +891,7 @@ class LastClose(String):
                                ('quit', "Quit qutebrowser."))
 
 
-class AcceptCookies(String):
+class AcceptCookies(BaseType):
 
     """Whether to accept a cookie."""
 
@@ -899,7 +899,7 @@ class AcceptCookies(String):
                                ('never', "Don't accept cookies at all."))
 
 
-class WindowOpenBehaviour(String):
+class WindowOpenBehaviour(BaseType):
 
     """What to do when a webview requests a new window."""
 
@@ -908,7 +908,7 @@ class WindowOpenBehaviour(String):
                                            "history will be cleared)."))
 
 
-class ConfirmQuit(String):
+class ConfirmQuit(BaseType):
 
     """Whether to display a confirmation when the window is closed."""
 
@@ -918,7 +918,7 @@ class ConfirmQuit(String):
                                ('never', "Never show a confirmation."))
 
 
-class ForwardUnboundKeys(String):
+class ForwardUnboundKeys(BaseType):
 
     """Whether to forward unbound keys."""
 
