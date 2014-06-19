@@ -22,9 +22,8 @@ import traceback
 from urllib.error import URLError
 
 from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtGui import QClipboard
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
-                             QVBoxLayout, QHBoxLayout, QApplication)
+                             QVBoxLayout, QHBoxLayout)
 
 import qutebrowser.config.config as config
 import qutebrowser.utils.misc as utils
@@ -44,7 +43,17 @@ class _CrashDialog(QDialog):
         _hbox: The QHboxLayout containing the buttons
         _url: Pastebin URL QLabel.
         _crash_info: A list of tuples with title and crash information.
+
+    Class attributes:
+        CRASHTEXT: The text to be displayed in the dialog.
     """
+
+    CRASHTEXT = ("Please review and edit the info below, then either submit "
+                 "it to <a href='mailto:crash@qutebrowser.org'>"
+                 "crash@qutebrowser.org</a> or click 'Report'.<br/><br/>"
+                 "<i>Note that without your help, I can't fix the bug you "
+                 "encountered. With the report, I most probably will."
+                 "</i><br/><br/>")
 
     def __init__(self, parent=None):
         """Constructor for CrashDialog."""
@@ -103,6 +112,8 @@ class _CrashDialog(QDialog):
             exc: An exception tuple (type, value, traceback)
         """
         self._crash_info = [
+            ("How did it happen?", ""),
+            ("Contact info", ""),
             ("Version info", version()),
         ]
         try:
@@ -117,7 +128,10 @@ class _CrashDialog(QDialog):
         Return:
             The string to display.
         """
-        chunks = []
+        chunks = ["Please edit this crash report to remove sensitive info, "
+                  "and add as much info as possible about how it happened.\n"
+                  "If it's okay if I contact you about this bug report, "
+                  "please also add your contact info (Mail/IRC/Jabber)."]
         for (header, body) in self._crash_info:
             if body is not None:
                 h = '==== {} ===='.format(header)
@@ -129,12 +143,10 @@ class _CrashDialog(QDialog):
         try:
             url = utils.pastebin(self._txt.toPlainText())
         except (URLError, ValueError) as e:
-            self._url.setText('Error while pasting: {}'.format(e))
+            self._url.setText('Error while reporting: {}'.format(str(e)))
             return
         self._btn_pastebin.setEnabled(False)
-        self._url.setText("URL copied to clipboard: "
-                          "<a href='{}'>{}</a>".format(url, url))
-        QApplication.clipboard().setText(url, QClipboard.Clipboard)
+        self._url.setText("Reported to: <a href='{}'>{}</a>".format(url, url))
 
 
 class ExceptionCrashDialog(_CrashDialog):
@@ -166,13 +178,11 @@ class ExceptionCrashDialog(_CrashDialog):
 
     def _init_text(self):
         super()._init_text()
-        text = ("Argh! qutebrowser crashed unexpectedly.<br/>"
-                "Please review the info below to remove sensitive data and "
-                "then submit it to <a href='mailto:crash@qutebrowser.org'>"
-                "crash@qutebrowser.org</a> or click 'pastebin'.<br/><br/>")
+        text = ("<b>Argh! qutebrowser crashed unexpectedly.</b><br/><br/>" +
+                self.CRASHTEXT)
         if self._pages:
-            text += ("You can click 'Restore tabs' to attempt to reopen your "
-                     "open tabs.")
+            text += ("You can click 'Restore tabs' after reporting to attempt "
+                     "to reopen your open tabs.")
         self._lbl.setText(text)
 
     def _init_buttons(self):
@@ -181,16 +191,16 @@ class ExceptionCrashDialog(_CrashDialog):
         self._btn_quit.setText("Quit")
         self._btn_quit.clicked.connect(self.reject)
         self._hbox.addWidget(self._btn_quit)
-        self._btn_pastebin = QPushButton()
-        self._btn_pastebin.setText("Pastebin")
-        self._btn_pastebin.clicked.connect(self.pastebin)
-        self._hbox.addWidget(self._btn_pastebin)
         if self._pages:
             self._btn_restore = QPushButton()
             self._btn_restore.setText("Restore tabs")
             self._btn_restore.clicked.connect(self.accept)
-            self._btn_restore.setDefault(True)
             self._hbox.addWidget(self._btn_restore)
+        self._btn_pastebin = QPushButton()
+        self._btn_pastebin.setText("Report")
+        self._btn_pastebin.clicked.connect(self.pastebin)
+        self._btn_pastebin.setDefault(True)
+        self._hbox.addWidget(self._btn_pastebin)
 
     def _gather_crash_info(self):
         super()._gather_crash_info()
@@ -227,10 +237,8 @@ class FatalCrashDialog(_CrashDialog):
 
     def _init_text(self):
         super()._init_text()
-        text = ("qutebrowser was restarted after a fatal crash.<br/>"
-                "Please click on 'pastebin' or send the data below to "
-                "<a href='mailto:crash@qutebrowser.org'>"
-                "crash@qutebrowser.org</a>.<br/><br/>")
+        text = ("<b>qutebrowser was restarted after a fatal crash.<b><br/>"
+                "<br/>" + self.CRASHTEXT)
         self._lbl.setText(text)
 
     def _init_buttons(self):
@@ -240,8 +248,9 @@ class FatalCrashDialog(_CrashDialog):
         self._btn_ok.clicked.connect(self.accept)
         self._hbox.addWidget(self._btn_ok)
         self._btn_pastebin = QPushButton()
-        self._btn_pastebin.setText("Pastebin")
+        self._btn_pastebin.setText("Report")
         self._btn_pastebin.clicked.connect(self.pastebin)
+        self._btn_pastebin.setDefault(True)
         self._hbox.addWidget(self._btn_pastebin)
 
     def _gather_crash_info(self):
