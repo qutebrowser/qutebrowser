@@ -1,6 +1,10 @@
 Bugs
 ====
 
+- Ugly font rendering on Windows on http://support.sigasi.com/Knowledgebase/List
+
+- utils.style:Style is simply ignored, even though it's used in tabwidget?!?
+
 - On doodle, when modifying something on http://doodle.com/create and clicking
   a link to leave the page, the message is suboptimal. Also, with some random
   clicking it's somehow possible to get out of yesno mode.

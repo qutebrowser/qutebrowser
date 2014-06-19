@@ -37,6 +37,7 @@ New big features
 Improvements / minor features
 =============================
 
+- Add a debug style, see http://stackoverflow.com/q/5909907/2085149
 - Commandline argument to delete config
 - Settings dialog
 - Use argparse and do something like click for command arguments, then we can
