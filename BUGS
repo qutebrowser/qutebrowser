@@ -1,10 +1,22 @@
 Bugs
 ====
 
+- On doodle, when modifying something on http://doodle.com/create and clicking
+  a link to leave the page, the message is suboptimal. Also, with some random
+  clicking it's somehow possible to get out of yesno mode.
+
+- Holding ^ and then @ in command input produces a surprising result on seir's
+  machine on e595e42:
+
+  expected: ^^^^^^^^^^^^^^@@@@@@@@@@@@
+  reality:  ^^^^^^^^^^^^^^@^^^^^^^^^^^
+
 - Because restart is broken, using "restore tabs" in crash dialog doesn't work
   anymore.
 
 - Segfaults when trying to load http://cmpl.cc/downloads/hlwm-tablet.mkv
+
+- Segfaults with youtube HTML5 player
 
 - URL detection and encoded spaces
 

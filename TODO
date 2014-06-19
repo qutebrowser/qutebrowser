@@ -13,7 +13,6 @@ Before 0.1
 - SSL handling
     - ssl-strict=ask
     - SSL-symbol in statusbar?
-- Downloads (at least calling a handler)
 
 New big features
 ================
@@ -27,7 +26,6 @@ New big features
     NoScript
     Certificate Patrol
     https://chrome.google.com/webstore/detail/remove-google-redirects/ccenmflbeofaceccfhhggbagkblihpoh
-- Downloads
 - session handling / saving
 - multi window (see notes)
 - IPC, like dwb -x (see notes)
@@ -39,9 +37,8 @@ New big features
 Improvements / minor features
 =============================
 
+- Commandline argument to delete config
 - Settings dialog
-- Don't use pkg_resources if unavailable, or detect it on start.
-  Debian: python3-pkg-resources
 - Use argparse and do something like click for command arguments, then we can
   have flags etc.
 - Reimplement tabbar to paint it by ourselves to look like dwb
