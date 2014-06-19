@@ -27,11 +27,16 @@ import functools
 from PyQt5.QtWidgets import QCommonStyle, QStyle
 
 
-class ProxyStyle(QCommonStyle):
+class Style(QCommonStyle):
 
-    """Helper to create a Qt proxy style as PyQt doesn't support QProxyStyle.
+    """Qt style to remove Ubuntu focus rectangle uglyness.
+
+    Unfortunately PyQt doesn't support QProxyStyle, so we need to do this the
+    hard way...
 
     Based on:
+
+    http://stackoverflow.com/a/17294081
     https://code.google.com/p/makehuman/source/browse/trunk/makehuman/lib/qtgui.py
 
     Attributes:
@@ -52,19 +57,10 @@ class ProxyStyle(QCommonStyle):
                        'hitTestComplexControl', 'itemPixmapRect',
                        'itemTextRect', 'pixelMetric', 'polish', 'styleHint',
                        'subControlRect', 'subElementRect', 'unpolish',
-                       'sizeFromContents', 'drawPrimitive'):
-            if not getattr(self, method):
-                target = getattr(self._style, method)
-                setattr(self, method, functools.partial(target))
+                       'sizeFromContents'):
+            target = getattr(self._style, method)
+            setattr(self, method, functools.partial(target))
         super().__init__()
-
-
-class NoFocusRectStyle(ProxyStyle):
-
-    """Qt style to remove Ubuntu focus rectangle uglyness.
-
-    Based on http://stackoverflow.com/a/17294081
-    """
 
     def drawPrimitive(self, element, option, painter, widget=None):
         """Override QCommonStyle.drawPrimitive.

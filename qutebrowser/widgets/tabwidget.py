@@ -25,7 +25,7 @@ from PyQt5.QtGui import QIcon, QPixmap
 
 import qutebrowser.config.config as config
 from qutebrowser.config.style import set_register_stylesheet
-from qutebrowser.utils.style import NoFocusRectStyle
+from qutebrowser.utils.style import Style
 
 
 class EmptyTabIcon(QIcon):
@@ -80,9 +80,9 @@ class TabWidget(QTabWidget):
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.setStyle(NoFocusRectStyle(self.style()))
         self.setTabBar(TabBar())
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setStyle(Style(self.style()))
         set_register_stylesheet(self)
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
