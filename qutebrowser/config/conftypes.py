@@ -122,7 +122,7 @@ class BaseType:
         if self.valid_values is not None:
             if value not in self.valid_values:
                 raise ValidationError(value, "valid values: {}".format(
-                    ','.join(self.valid_values)))
+                    ', '.join(self.valid_values)))
             else:
                 return
         else:
