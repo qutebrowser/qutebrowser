@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -177,26 +179,32 @@ def check_line(target):
 
 def _check_file(fn):
     """Check a single file for CRLFs, conflict markers and weird whitespace."""
+    has_modeline = False
+    ok = True
     with open(fn, 'rb') as f:
         for line in f:
             if b'\r\n' in line:
                 print("Found CRLF in {}".format(fn))
-                return False
+                ok = False
             elif any(line.decode('UTF-8').startswith(c * 7) for c in "<>=|"):
                 print("Found conflict marker in {}".format(fn))
-                return False
+                ok = False
             elif any([line.decode('UTF-8').rstrip('\r\n').endswith(c)
                       for c in " \t"]):
                 print("Found whitespace at line ending in {}".format(fn))
-                return False
+                ok = False
             elif b' \t' in line or b'\t ' in line:
                 print("Found tab-space mix in {}".format(fn))
-                return False
+                ok = False
             elif b'set_trace()' in line and not (
                     fn.endswith('debug.py') or fn.endswith('run_checks.py')):
                 print("Found set_trace in {}".format(fn))
-                return False
-    return True
+                ok = False
+            elif line.startswith(b'# vim:'):
+                has_modeline = True
+    if not has_modeline:
+        ok = False
+    return ok
 
 
 def _get_args(checker):

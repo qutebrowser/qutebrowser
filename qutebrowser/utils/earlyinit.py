@@ -1,3 +1,5 @@
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+
 # This file is part of qutebrowser.
 #
 # qutebrowser is free software: you can redistribute it and/or modify

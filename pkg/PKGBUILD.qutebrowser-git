@@ -1,4 +1,5 @@
 # Maintainer: Florian Bruhin (The Compiler) <archlinux.org@the-compiler.org>
+# vim: set ts=2 sw=2 et:
 
 pkgname=qutebrowser-git
 pkgver=
@@ -25,5 +26,3 @@ package() {
   cd "$srcdir/qutebrowser"
   python setup.py install --root="$pkgdir/" --optimize=1
 }
-
-# vim:set ts=2 sw=2 et:

@@ -1,3 +1,5 @@
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et
+
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -35,11 +37,7 @@ class FakeSignal:
 
 class TestDebug(TestCase):
 
-    """Test signal debug output functions.
-
-    Attributes:
-        signal: The FakeSignal to be tested.
-    """
+    """Test signal debug output functions."""
 
     def setUp(self):
         self.signal = FakeSignal()

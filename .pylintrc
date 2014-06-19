@@ -1,3 +1,5 @@
+# vim: ft=dosini fileencoding=utf-8:
+
 [MASTER]
 ignore=ez_setup.py
 

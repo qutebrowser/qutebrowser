@@ -1,3 +1,5 @@
+# vim: ft=dosini fileencoding=utf-8:
+
 [flake8]
 # E241: Multiple spaces after ,
 # E265: Block comment should start with '#'
