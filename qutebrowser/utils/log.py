@@ -89,7 +89,8 @@ def init_log(args):
     if args.logfilter is not None and numeric_level <= logging.DEBUG:
         console.addFilter(LogFilter(args.logfilter.split(',')))
     root = getLogger()
-    root.addHandler(console)
+    if console is not None:
+        root.addHandler(console)
     root.addHandler(ram)
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
@@ -107,13 +108,16 @@ def _init_handlers(level, color):
     console_formatter, ram_formatter, use_colorama = _init_formatters(
         level, color)
 
-    if use_colorama:
-        stream = colorama.AnsiToWin32(sys.stderr)
+    if sys.stderr is None:
+        console_handler = None
     else:
-        stream = sys.stderr
-    console_handler = logging.StreamHandler(stream)
-    console_handler.setLevel(level)
-    console_handler.setFormatter(console_formatter)
+        if use_colorama:
+            stream = colorama.AnsiToWin32(sys.stderr)
+        else:
+            stream = sys.stderr
+        console_handler = logging.StreamHandler(stream)
+        console_handler.setLevel(level)
+        console_handler.setFormatter(console_formatter)
 
     ram_handler = RAMHandler(capacity=500)
     ram_handler.setLevel(logging.NOTSET)
@@ -140,6 +144,9 @@ def _init_formatters(level, color):
     else:
         console_fmt = SIMPLE_FMT
         console_fmt_colored = SIMPLE_FMT_COLORED
+    ram_formatter = logging.Formatter(EXTENDED_FMT, DATEFMT, '{')
+    if sys.stderr is None:
+        return None, ram_formatter, False
     use_colorama = False
     if (ColoredFormatter is not None and (os.name == 'posix' or colorama) and
             sys.stderr.isatty() and color):
@@ -157,7 +164,6 @@ def _init_formatters(level, color):
             use_colorama = True
     else:
         console_formatter = logging.Formatter(console_fmt, DATEFMT, '{')
-    ram_formatter = logging.Formatter(EXTENDED_FMT, DATEFMT, '{')
     return console_formatter, ram_formatter, use_colorama
 
 
