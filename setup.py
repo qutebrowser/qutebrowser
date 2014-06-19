@@ -47,6 +47,7 @@ try:
                       ['qutebrowser = qutebrowser.qutebrowser:main']},
         test_suite='qutebrowser.test',
         zip_safe=True,
+        extras_require={'nice-debugging': ['colorlog', 'colorama', 'ipdb']},
         **setupdata
     )
 finally:

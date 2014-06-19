@@ -95,7 +95,6 @@ setupdata = {
     'author': _get_constant('author'),
     'author_email': _get_constant('email'),
     'license': _get_constant('license'),
-    'extras_require': {'nice-debugging': ['colorlog', 'colorama', 'ipdb']},
     'classifiers': [
         'Development Status :: 3 - Alpha',
         'Environment :: X11 Applications :: Qt',
