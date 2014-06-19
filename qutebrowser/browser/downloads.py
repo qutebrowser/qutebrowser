@@ -186,7 +186,7 @@ class DownloadItem(QObject):
         self.reply.deleteLater()
         if self.fileobj is not None:
             self.fileobj.close()
-        if self.filename is not None:
+        if self.filename is not None and os.path.exists(self.filename):
             os.remove(self.filename)
         self.finished.emit()
 
