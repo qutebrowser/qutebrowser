@@ -29,6 +29,7 @@ import os
 import os.path
 import sys
 import platform
+from distutils.sysconfig import get_python_lib
 
 from cx_Freeze import setup, Executable
 
@@ -47,13 +48,7 @@ def get_egl_path():
     """Get the path for PyQt5's libEGL.dll."""
     if not sys.platform.startswith('win'):
         return None
-    bits = platform.architecture()[0]
-    if bits == '32bit':
-        return r'C:\Python33_x32\Lib\site-packages\PyQt5\libEGL.dll'
-    elif bits == '64bit':
-        return r'C:\Python33\Lib\site-packages\PyQt5\libEGL.dll'
-    else:
-        raise ValueError("Unknown architecture")
+    return os.path.join(get_python_lib(), r'PyQt5\libEGL.dll')
 
 build_exe_options = {
     'include_files': [
