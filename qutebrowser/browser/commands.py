@@ -653,6 +653,13 @@ class CommandDispatcher:
             else:
                 cur.inspector.show()
 
+    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    def download_page(self):
+        """Download the current page."""
+        widget = self._tabs.currentWidget()
+        url = urlutils.urlstring(widget.url())
+        QApplication.instance().downloadmanager.get(url)
+
     @cmdutils.register(instance='mainwindow.tabs.cmd', modes=['insert'],
                        hide=True)
     def open_editor(self):

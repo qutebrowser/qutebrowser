@@ -123,21 +123,6 @@ wo
 Open url in a new instance (command: winopen, aliases: wopen, w).
 
 
-downloads
----------
-
-;d
-Download via hints (command hints_download, aliases: dhints).
-
-[n]ad
-Cancel the download with number n or the first download in the lists of running downloads if n is omitted. (command cancel_download).
-
-gd
-Download the current site. (command download).
-
-Sd
-Show download (command show_downloads, aliases: sdownloads).
-
 Bookmarks/quickmarks
 --------------------
 
@@ -222,6 +207,9 @@ Show settings (command show_settings, aliases: ssettings).
 
 eu
 Show and execute userscripts (command execute_userscript).
+
+Sd
+Show download (command show_downloads, aliases: sdownloads).
 
 
 Other

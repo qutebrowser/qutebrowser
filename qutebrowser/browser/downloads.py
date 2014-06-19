@@ -24,15 +24,18 @@ import os.path
 from functools import partial
 from collections import deque
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
-from PyQt5.QtNetwork import QNetworkReply
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QCoreApplication
+from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
+import qutebrowser.utils.url as urlutils
+import qutebrowser.commands.utils as cmdutils
 from qutebrowser.utils.log import downloads as logger
 from qutebrowser.utils.usertypes import PromptMode, Question, Timer
 from qutebrowser.utils.misc import (interpolate_color, format_seconds,
                                     format_size, get_http_header)
+from qutebrowser.commands.exceptions import CommandError
 
 
 class DownloadItem(QObject):
@@ -333,6 +336,27 @@ class DownloadManager(QObject):
         if not filename:
             filename = 'qutebrowser-download'
         return os.path.basename(filename)
+
+    def get(self, link):
+        """Start a download with a link URL.
+
+        Args:
+            link: The link URL as a string.
+        """
+        req = QNetworkRequest(urlutils.qurl(link))
+        reply = QCoreApplication.instance().networkmanager.get(req)
+        self.fetch(reply)
+
+    @cmdutils.register(instance='downloadmanager')
+    def cancel_download(self, count=1):
+        """Cancel the first/[count]th download."""
+        if count == 0:
+            return
+        try:
+            download = self.downloads[count - 1]
+        except IndexError:
+            raise CommandError("There's no download {}!".format(count))
+        download.cancel()
 
     @pyqtSlot('QNetworkReply')
     def fetch(self, reply):

@@ -40,7 +40,7 @@ ElemTuple = namedtuple('ElemTuple', 'elem, label')
 
 
 Target = enum('normal', 'tab', 'tab_bg', 'yank', 'yank_primary', 'cmd',
-              'cmd_tab', 'cmd_tab_bg', 'rapid')
+              'cmd_tab', 'cmd_tab_bg', 'rapid', 'download')
 
 
 class HintContext:
@@ -56,6 +56,7 @@ class HintContext:
                 yank/yank_primary: Yank to clipboard/primary selection
                 cmd/cmd_tab/cmd_tab_bg: Enter link to commandline
                 rapid: Rapid mode with background tabs
+                download: Download the link.
         to_follow: The link to follow when enter is pressed.
         connected_frames: The QWebFrames which are connected to a signal.
     """
@@ -115,6 +116,7 @@ class HintManager(QObject):
         Target.cmd_tab: "Set hint in commandline as new tab...",
         Target.cmd_tab_bg: "Set hint in commandline as background tab...",
         Target.rapid: "Follow hint (rapid mode)...",
+        Target.download: "Download hint...",
     }
 
     hint_strings_updated = pyqtSignal(list)
@@ -318,6 +320,14 @@ class HintManager(QObject):
         message.set_cmd_text(':{} {}'.format(commands[self._context.target],
                                              urlutils.urlstring(link)))
 
+    def _download(self, link):
+        """Download a hint URL.
+
+        Args:
+            link: The link to download.
+        """
+        QApplication.instance().downloadmanager.get(link)
+
     def _resolve_link(self, elem, baseurl=None):
         """Resolve a link and check if we want to keep it.
 
@@ -505,6 +515,7 @@ class HintManager(QObject):
             Target.cmd: self._preset_cmd_text,
             Target.cmd_tab: self._preset_cmd_text,
             Target.cmd_tab_bg: self._preset_cmd_text,
+            Target.download: self._download,
         }
         elem = self._context.elems[keystr].elem
         if self._context.target in elem_handlers:
