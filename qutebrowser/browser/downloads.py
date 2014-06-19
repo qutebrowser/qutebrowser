@@ -338,6 +338,8 @@ class DownloadManager(QObject):
             # os.path.basename later.
             filename = rfc6266.parse_headers(
                 bytes(reply.rawHeader('Content-Disposition'))).filename_unsafe
+        else:
+            filename = None
         # Then try to get filename from url
         if not filename:
             filename = reply.url().path()
