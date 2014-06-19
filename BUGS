@@ -9,12 +9,6 @@ Bugs
   a link to leave the page, the message is suboptimal. Also, with some random
   clicking it's somehow possible to get out of yesno mode.
 
-- Holding ^ and then @ in command input produces a surprising result on seir's
-  machine on e595e42:
-
-  expected: ^^^^^^^^^^^^^^@@@@@@@@@@@@
-  reality:  ^^^^^^^^^^^^^^@^^^^^^^^^^^
-
 - Because restart is broken, using "restore tabs" in crash dialog doesn't work
   anymore.
 
