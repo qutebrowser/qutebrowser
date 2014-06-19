@@ -90,9 +90,9 @@ class _CrashDialog(QDialog):
 
         Should be extended by superclass to provide the actual buttons.
         """
-        self._hbox = QHBoxLayout(self)
-        self._hbox.addStretch()
+        self._hbox = QHBoxLayout()
         self._vbox.addLayout(self._hbox)
+        self._hbox.addStretch()
 
     def _set_text_flags(self, obj):
         """Set text interaction flags of a widget to allow link clicking.

@@ -123,7 +123,8 @@ class StatusBar(QWidget):
         self._hbox.setContentsMargins(0, 0, 0, 0)
         self._hbox.setSpacing(5)
 
-        self._stack = QStackedLayout(self)
+        self._stack = QStackedLayout()
+        self._hbox.addLayout(self._stack)
         self._stack.setContentsMargins(0, 0, 0, 0)
 
         self.cmd = Command()
@@ -147,8 +148,6 @@ class StatusBar(QWidget):
         self.prompt.hide_prompt.connect(self._hide_prompt_widget)
         self._hide_prompt_widget()
 
-        self._hbox.addLayout(self._stack)
-
         self.keystring = KeyString()
         self._hbox.addWidget(self.keystring)
 
@@ -158,7 +157,10 @@ class StatusBar(QWidget):
         self.percentage = Percentage()
         self._hbox.addWidget(self.percentage)
 
-        self.prog = Progress()
+        # We add a parent to Progress here because it calls self.show() based
+        # on some signals, and if that happens before it's added to the layout,
+        # it will quickly blink up as independent window.
+        self.prog = Progress(self)
         self._hbox.addWidget(self.prog)
 
     def __repr__(self):
