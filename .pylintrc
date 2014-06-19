@@ -24,7 +24,7 @@ disable=no-self-use,
         unnecessary-lambda
 
 [BASIC]
-module-rgx=[a-z_]*$
+module-rgx=(__)?[a-z][a-z0-9_]*(__)?$
 function-rgx=([a-z_][a-z0-9_]{2,30}|setUpModule|tearDownModule)$
 const-rgx=[A-Za-z_][A-Za-z0-9_]{0,30}$
 method-rgx=[a-z_][A-Za-z0-9_]{2,40}$
