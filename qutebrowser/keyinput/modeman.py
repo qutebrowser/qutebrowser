@@ -24,8 +24,8 @@ Module attributes:
 """
 
 from PyQt5.QtGui import QWindow
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent,
-                          QCoreApplication)
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
+from PyQt5.QtWidgets import QApplication
 
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
@@ -35,7 +35,7 @@ from qutebrowser.utils.log import modes as logger
 
 def instance():
     """Get the global modeman instance."""
-    return QCoreApplication.instance().modeman
+    return QApplication.instance().modeman
 
 
 def enter(mode, reason=None):
@@ -257,7 +257,7 @@ class ModeManager(QObject):
             logger.debug("Ignoring event {} for {}".format(
                 debug.qenum_key(QEvent, typ), obj.__class__.__name__))
             return False
-        if QCoreApplication.instance().activeWindow() is not self.mainwindow:
+        if QApplication.instance().activeWindow() is not self.mainwindow:
             # Some other window (print dialog, etc.) is focused so we pass
             # the event through.
             return False
