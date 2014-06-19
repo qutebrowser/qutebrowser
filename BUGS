@@ -1,6 +1,17 @@
 Bugs
 ====
 
+- Problems since the reparenting commits:
+
+    - QLayout: Attempting to add QLayout "" to StatusBar "StatusBar", which already has a layout
+    - QLayout: Attempting to add QLayout "" to ExceptionCrashDialog "", which already has a layout
+    - Small empty window spawning at start
+
+- QWindowsWindow::setGeometry: Unable to set geometry 5x13+-959+505 on
+  QWidgetWindow/'TextClassWindow'. Resulting geometry:  116x13+-959+505 (frame:
+  8, 30, 8, 8, custom margin: 0, 0, 0, 0, minimum size: 0x0, maximum size:
+  16777215x16777215).
+
 - On doodle, when modifying something on http://doodle.com/create and clicking
   a link to leave the page, the message is suboptimal. Also, with some random
   clicking it's somehow possible to get out of yesno mode.
