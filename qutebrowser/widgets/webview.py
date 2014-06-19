@@ -412,7 +412,8 @@ class WebView(QWebView):
         focused = QApplication.focusWidget()
         self.setFocus()
         QApplication.postEvent(self, evt)
-        focused.setFocus()
+        if focused is not None:
+            focused.setFocus()
 
     @pyqtSlot()
     def on_load_started(self):
