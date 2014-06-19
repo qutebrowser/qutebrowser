@@ -85,19 +85,20 @@ def init_log(args):
     except AttributeError:
         raise ValueError("Invalid log level: {}".format(args.loglevel))
 
-    console, ram = _init_handlers(numeric_level, args.color)
+    console, ram = _init_handlers(numeric_level, args.color, args.loglines)
     if args.logfilter is not None and numeric_level <= logging.DEBUG:
         console.addFilter(LogFilter(args.logfilter.split(',')))
     root = getLogger()
     if console is not None:
         root.addHandler(console)
-    root.addHandler(ram)
+    if ram is not None:
+        root.addHandler(ram)
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
     qInstallMessageHandler(qt_message_handler)
 
 
-def _init_handlers(level, color):
+def _init_handlers(level, color, ram_capacity):
     """Init log handlers.
 
     Args:
@@ -119,9 +120,12 @@ def _init_handlers(level, color):
         console_handler.setLevel(level)
         console_handler.setFormatter(console_formatter)
 
-    ram_handler = RAMHandler(capacity=500)
-    ram_handler.setLevel(logging.NOTSET)
-    ram_handler.setFormatter(ram_formatter)
+    if ram_capacity == 0:
+        ram_handler = None
+    else:
+        ram_handler = RAMHandler(capacity=ram_capacity)
+        ram_handler.setLevel(logging.NOTSET)
+        ram_handler.setFormatter(ram_formatter)
 
     return console_handler, ram_handler
 
@@ -264,7 +268,10 @@ class RAMHandler(logging.Handler):
 
     def __init__(self, capacity):
         super().__init__()
-        self.data = deque(maxlen=capacity)
+        if capacity != -1:
+            self.data = deque(maxlen=capacity)
+        else:
+            self.data = deque()
 
     def emit(self, record):
         self.data.append(record)

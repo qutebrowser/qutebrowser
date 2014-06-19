@@ -127,7 +127,10 @@ class QuteHandlers:
     @classmethod
     def qute_log(cls):
         """Handler for qute:log. Return HTML content as bytes."""
-        text = cgi.escape(log.ram_handler.dump_log())
+        if log.ram_handler is None:
+            text = "Log output was disabled."
+        else:
+            text = cgi.escape(log.ram_handler.dump_log())
         return _get_html('log', '<pre>{}</pre>'.format(text))
 
     @classmethod

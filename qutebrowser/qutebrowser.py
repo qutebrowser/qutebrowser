@@ -42,6 +42,10 @@ def _parse_args():
     debug.add_argument('--logfilter',
                        help="Comma-separated list of things to be logged "
                        "to the debug log on stdout.")
+    debug.add_argument('--loglines',
+                       help="How many lines of the debug log to keep in RAM "
+                       "(-1: unlimited).",
+                       default=1000, type=int)
     debug.add_argument('--debug', help="Turn on debugging options.",
                        action='store_true')
     debug.add_argument('--nocolor', help="Turn off colored logging.",
