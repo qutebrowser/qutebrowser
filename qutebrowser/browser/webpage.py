@@ -208,7 +208,8 @@ class BrowserPage(QWebPage):
 
     def javaScriptConfirm(self, _frame, msg):
         """Override javaScriptConfirm to use the statusbar."""
-        return message.modular_question("js: {}".format(msg), PromptMode.yesno)
+        ans = message.modular_question("js: {}".format(msg), PromptMode.yesno)
+        return bool(ans)
 
     def javaScriptConsoleMessage(self, msg, line, source):
         """Override javaScriptConsoleMessage to use debug log."""
