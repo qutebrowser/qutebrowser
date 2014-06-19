@@ -149,7 +149,7 @@ def check_git():
     gitst = subprocess.check_output(['git', 'status', '--porcelain'])
     gitst = gitst.decode('UTF-8').strip()
     for line in gitst.splitlines():
-        s, name = line.split()
+        s, name = line.split(maxsplit=1)
         if s == '??':
             untracked.append(name)
     if untracked:
