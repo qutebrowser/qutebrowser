@@ -323,7 +323,6 @@ class DownloadManager(QObject):
         """
         # First check if the Content-Disposition header has a filename
         # attribute.
-        from qutebrowser.utils.debug import set_trace; set_trace()
         filename = get_http_header(reply, 'Content-Disposition', 'filename')
         # Then try to get filename from url
         if not filename:
