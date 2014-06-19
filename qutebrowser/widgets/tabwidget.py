@@ -87,7 +87,6 @@ class TabWidget(QTabWidget):
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
         self.tabBar().setDrawBase(False)
-        self.tabBar().tabCloseRequested.connect(self.tabCloseRequested)
         self._init_config()
 
     def _init_config(self):
