@@ -28,8 +28,6 @@ import os
 import re
 import sys
 import shlex
-import email
-import email.policy
 import os.path
 import operator
 import urllib.request
@@ -395,33 +393,6 @@ def format_size(size, base=1024, suffix=''):
 def check_print_compat():
     """Check if printing should work in the given Qt version."""
     return not (os.name == 'nt' and qt_version_check('5.3.0', operator.lt))
-
-
-def get_http_header(reply, headername, param=None):
-    """Get a parameter from a HTTP header.
-
-    Note we use the email value to get a HTTP header, because they're both MIME
-    headers and email supports that.
-
-    Args:
-        reply: The QNetworkReply to get the header from.
-        headername: The name of the header.
-        param: The name of the param to get, or None to get the whole contents.
-
-    Return:
-        The data as a string, or None if the data wasn't found.
-
-    FIXME add tests
-    """
-    if not reply.hasRawHeader(headername):
-        return None
-    header = (headername.encode('ascii') + b': ' +
-              bytes(reply.rawHeader(headername)))
-    msg = email.message_from_bytes(header, policy=email.policy.HTTP)
-    if param is not None:
-        return msg.get_param(param, header=headername)
-    else:
-        return msg.get(headername, None)
 
 
 class EventLoop(QEventLoop):

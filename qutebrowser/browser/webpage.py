@@ -163,6 +163,7 @@ class BrowserPage(QWebPage):
             start_download: Emitted with the QNetworkReply associated with the
                             passed request.
         """
+        from qutebrowser.utils.debug import set_trace; set_trace()
         reply = self.networkAccessManager().get(request)
         self.start_download.emit(reply)
 

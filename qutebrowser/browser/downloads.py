@@ -24,6 +24,7 @@ import os.path
 from functools import partial
 from collections import deque
 
+import rfc6266
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QCoreApplication
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
@@ -32,10 +33,14 @@ import qutebrowser.utils.message as message
 import qutebrowser.utils.url as urlutils
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.utils.log import downloads as logger
+from qutebrowser.utils.log import fix_rfc2622
 from qutebrowser.utils.usertypes import PromptMode, Question, Timer
 from qutebrowser.utils.misc import (interpolate_color, format_seconds,
-                                    format_size, get_http_header)
+                                    format_size)
 from qutebrowser.commands.exceptions import CommandError
+
+
+fix_rfc2622()
 
 
 class DownloadItem(QObject):
@@ -328,7 +333,11 @@ class DownloadManager(QObject):
         """
         # First check if the Content-Disposition header has a filename
         # attribute.
-        filename = get_http_header(reply, 'Content-Disposition', 'filename')
+        if reply.hasRawHeader('Content-Disposition'):
+            # We use the unsafe variant of the filename as we sanitize it via
+            # os.path.basename later.
+            filename = rfc6266.parse_headers(
+                bytes(reply.rawHeader('Content-Disposition'))).filename_unsafe
         # Then try to get filename from url
         if not filename:
             filename = reply.url().path()

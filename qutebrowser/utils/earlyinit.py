@@ -218,3 +218,37 @@ def check_pkg_resources():
         msgbox.exec_()
         app.quit()
         sys.exit(1)
+
+
+def check_rfc6266():
+    """Check if rfc6266 is installed."""
+    from PyQt5.QtWidgets import QApplication, QMessageBox
+    try:
+        import rfc6266  # pylint: disable=unused-variable
+    except ImportError:
+        app = QApplication(sys.argv)
+        msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
+                             textwrap.dedent("""
+            Fatal error: rfc6266 is required to run qutebrowser but could
+            not be imported! Maybe it's not installed?
+
+            On Debian/Ubuntu:
+                No package available, try:
+                pip install rfc6266
+
+            On Archlinux:
+                pacman -S python-rfc6266
+
+            On Windows:
+                pip install rfc6266
+
+            For other distributions:
+                Check your package manager for similiarly named packages.
+            """).strip())
+        if '--debug' in sys.argv:
+            print(file=sys.stderr)
+            traceback.print_exc()
+        msgbox.resize(msgbox.sizeHint())
+        msgbox.exec_()
+        app.quit()
+        sys.exit(1)
