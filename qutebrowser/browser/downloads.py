@@ -25,7 +25,8 @@ from functools import partial
 from collections import deque
 
 import rfc6266
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QCoreApplication
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QCoreApplication,
+                          QTimer)
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
 import qutebrowser.config.config as config
@@ -109,6 +110,13 @@ class DownloadItem(QObject):
         reply.finished.connect(self.on_reply_finished)
         reply.error.connect(self.on_reply_error)
         reply.readyRead.connect(self.on_ready_read)
+        # We could have got signals before we connected slots to them.
+        # Here no signals are connected to the DownloadItem yet, so we use a
+        # singleShot QTimer to emit them after they are connected.
+        if reply.error() != QNetworkReply.NoError:
+            QTimer.singleShot(0, lambda: self.error.emit(reply.errorString()))
+        if reply.isFinished():
+            QTimer.singleShot(0, self.finished.emit)
         self.timer = Timer(self, 'speed_refresh')
         self.timer.timeout.connect(self.update_speed)
         self.timer.setInterval(self.SPEED_REFRESH_INTERVAL)
