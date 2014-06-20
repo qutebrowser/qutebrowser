@@ -26,7 +26,7 @@ from qutebrowser.widgets.statusbar.textbase import TextBase
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 
 
-class Url(TextBase):
+class UrlText(TextBase):
 
     """URL displayed in the statusbar.
 
@@ -50,23 +50,23 @@ class Url(TextBase):
     _urltype = None
 
     STYLESHEET = """
-        QLabel#Url[urltype="normal"] {{
+        QLabel#UrlText[urltype="normal"] {{
             {color[statusbar.url.fg]}
         }}
 
-        QLabel#Url[urltype="success"] {{
+        QLabel#UrlText[urltype="success"] {{
             {color[statusbar.url.fg.success]}
         }}
 
-        QLabel#Url[urltype="error"] {{
+        QLabel#UrlText[urltype="error"] {{
             {color[statusbar.url.fg.error]}
         }}
 
-        QLabel#Url[urltype="warn"] {{
+        QLabel#UrlText[urltype="warn"] {{
             {color[statusbar.url.fg.warn]}
         }}
 
-        QLabel#Url[urltype="hover"] {{
+        QLabel#UrlText[urltype="hover"] {{
             {color[statusbar.url.fg.hover]}
         }}
     """

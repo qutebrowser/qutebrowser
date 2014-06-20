@@ -33,7 +33,7 @@ from qutebrowser.widgets.statusbar.progress import Progress
 from qutebrowser.widgets.statusbar.text import Text
 from qutebrowser.widgets.statusbar.keystring import KeyString
 from qutebrowser.widgets.statusbar.percentage import Percentage
-from qutebrowser.widgets.statusbar.url import Url
+from qutebrowser.widgets.statusbar.url import UrlText
 from qutebrowser.widgets.statusbar.prompt import Prompt
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
 from qutebrowser.utils.usertypes import Timer
@@ -51,7 +51,7 @@ class StatusBar(QWidget):
         txt: The Text widget in the statusbar.
         keystring: The KeyString widget in the statusbar.
         percentage: The Percentage widget in the statusbar.
-        url: The Url widget in the statusbar.
+        url: The UrlText widget in the statusbar.
         prog: The Progress widget in the statusbar.
         _hbox: The main QHBoxLayout.
         _stack: The QStackedLayout with cmd/txt widgets.
@@ -151,7 +151,7 @@ class StatusBar(QWidget):
         self.keystring = KeyString()
         self._hbox.addWidget(self.keystring)
 
-        self.url = Url()
+        self.url = UrlText()
         self._hbox.addWidget(self.url)
 
         self.percentage = Percentage()
