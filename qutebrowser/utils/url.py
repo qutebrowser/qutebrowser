@@ -126,7 +126,7 @@ def fuzzy_url(urlstr):
         except ValueError:  # invalid search engine
             url = QUrl.fromUserInput(urlstr)
     logger.debug("Converting fuzzy term {} to URL -> {}".format(
-                 urlstr, url.toString()))
+                 urlstr, url.toDisplayString()))
     return url
 
 

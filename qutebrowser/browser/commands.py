@@ -449,19 +449,19 @@ class CommandDispatcher:
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def open_tab_cur(self):
         """Set the statusbar to :tabopen and the current URL."""
-        urlstr = self._tabs.currentWidget().url().toString()
+        urlstr = self._tabs.currentWidget().url().toDisplayString()
         message.set_cmd_text(':open-tab ' + urlstr)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def open_cur(self):
         """Set the statusbar to :open and the current URL."""
-        urlstr = self._tabs.currentWidget().url().toString()
+        urlstr = self._tabs.currentWidget().url().toDisplayString()
         message.set_cmd_text(':open ' + urlstr)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def open_tab_bg_cur(self):
         """Set the statusbar to :tabopen-bg and the current URL."""
-        urlstr = self._tabs.currentWidget().url().toString()
+        urlstr = self._tabs.currentWidget().url().toDisplayString()
         message.set_cmd_text(':open-tab-bg ' + urlstr)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')

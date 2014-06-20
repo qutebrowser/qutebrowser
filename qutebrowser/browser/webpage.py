@@ -103,7 +103,7 @@ class BrowserPage(QWebPage):
         info = sip.cast(opt, QWebPage.ErrorPageExtensionOption)
         errpage = sip.cast(out, QWebPage.ErrorPageExtensionReturn)
         errpage.baseUrl = info.url
-        urlstr = info.url.toString()
+        urlstr = info.url.toDisplayString()
         if (info.domain, info.error) in ignored_errors:
             log.webview.debug("Ignored error on {}: {} (error domain: {}, "
                               "error code: {})".format(

@@ -82,8 +82,8 @@ class QuteSchemeHandler(SchemeHandler):
         """
         path = request.url().path()
         # An url like "qute:foo" is split as "scheme:path", not "scheme:host".
-        log.misc.debug("url: {}, path: {}".format(request.url().toString(),
-                                                  path))
+        log.misc.debug("url: {}, path: {}".format(
+            request.url().toDisplayString(), path))
         try:
             handler = getattr(QuteHandlers, path)
         except AttributeError:

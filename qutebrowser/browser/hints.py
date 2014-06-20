@@ -318,7 +318,7 @@ class HintManager(QObject):
             Target.cmd_tab_bg: 'open-tab-bg',
         }
         message.set_cmd_text(':{} {}'.format(commands[self._context.target],
-                                             url.toString(QUrl.FullyEncoded)))
+                                             url.toDisplayString()))
 
     def _download(self, url):
         """Download a hint URL.

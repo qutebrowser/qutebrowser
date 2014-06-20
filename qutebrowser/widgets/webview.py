@@ -121,7 +121,8 @@ class WebView(QWebView):
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
 
     def __repr__(self):
-        return "WebView(url='{}')".format(elide(self.url().toString(), 50))
+        url = self.url().toDisplayString()
+        return "WebView(url='{}')".format(elide(url, 50))
 
     @property
     def load_status(self):
@@ -292,7 +293,7 @@ class WebView(QWebView):
         Emit:
             titleChanged
         """
-        urlstr = url.toString()
+        urlstr = url.toDisplayString()
         log.webview.debug("New title: {}".format(urlstr))
         self.titleChanged.emit(urlstr)
         self.url_text = urlstr
