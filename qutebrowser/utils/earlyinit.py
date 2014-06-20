@@ -234,13 +234,13 @@ def check_rfc6266():
 
             On Debian/Ubuntu:
                 No package available, try:
-                pip install rfc6266
+                pip3 install rfc6266
 
             On Archlinux:
                 pacman -S python-rfc6266
 
             On Windows:
-                pip install rfc6266
+                pip install rfc6266    (using python3)
 
             For other distributions:
                 Check your package manager for similiarly named packages.
