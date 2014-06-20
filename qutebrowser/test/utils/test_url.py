@@ -24,6 +24,8 @@
 import unittest
 from unittest import TestCase
 
+from PyQt5.QtCore import QUrl
+
 import qutebrowser.utils.url as urlutils
 
 
@@ -85,12 +87,14 @@ class SpecialURLTests(TestCase):
     def test_special_urls(self):
         """Test special URLs."""
         for url in self.SPECIAL_URLS:
-            self.assertTrue(urlutils.is_special_url(url))
+            u = QUrl(url)
+            self.assertTrue(urlutils.is_special_url(u))
 
     def test_normal_urls(self):
         """Test non-special URLs."""
         for url in self.NORMAL_URLS:
-            self.assertFalse(urlutils.is_special_url(url))
+            u = QUrl(url)
+            self.assertFalse(urlutils.is_special_url(u))
 
 
 class SearchUrlTests(TestCase):

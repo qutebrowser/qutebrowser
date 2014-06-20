@@ -131,9 +131,13 @@ def fuzzy_url(urlstr):
 
 
 def is_special_url(url):
-    """Return True if url is an about:... or other special URL."""
+    """Return True if url is an about:... or other special URL.
+
+    Args:
+        url: The URL as QUrl.
+    """
     special_schemes = ('about', 'qute', 'file')
-    return QUrl(url).scheme() in special_schemes
+    return url.scheme() in special_schemes
 
 
 def is_url(urlstr):
