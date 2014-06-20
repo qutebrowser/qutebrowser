@@ -522,7 +522,8 @@ class CommandDispatcher:
         if tab:
             self._tabs.tabopen(url)
         else:
-            self.openurl(url)
+            widget = self._tabs.currentWidget()
+            widget.openurl(url)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def paste_tab(self, sel=False):
