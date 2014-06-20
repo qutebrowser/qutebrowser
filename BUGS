@@ -4,9 +4,6 @@ Bugs
 - Handle it correctly when a new statusbar question is asked while another is
   still active. (see notes)
 
-- On https://www.google.com/intl/en/drive/ - "WARNING:
-  QCommonStyle::drawComplexControl: Control 1 not handled" (on Windows)
-
 - iggy: qutebrowser gets out of insert mode a lot on Google Drive/Docs
 
 - Ugly font rendering on Windows on http://support.sigasi.com/Knowledgebase/List
