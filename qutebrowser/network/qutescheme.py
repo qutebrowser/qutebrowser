@@ -31,7 +31,6 @@ import qutebrowser.utils.log as log
 import qutebrowser.utils.version as version
 from qutebrowser.network.schemehandler import (SchemeHandler,
                                                SpecialNetworkReply)
-from qutebrowser.utils.url import urlstring
 from qutebrowser.utils.misc import read_file
 
 
@@ -70,17 +69,6 @@ class QuteSchemeHandler(SchemeHandler):
 
     """Scheme handler for qute: URLs."""
 
-    def _transform_url(self, url):
-        """Transform a special URL to an QuteHandlers method name.
-
-        Args:
-            url: The URL as string.
-
-        Return:
-            The method name qute_*
-        """
-        return url.replace('http://', '').replace('qute:', 'qute_')
-
     def createRequest(self, _op, request, _outgoing_data):
         """Create a new request.
 
@@ -92,10 +80,12 @@ class QuteSchemeHandler(SchemeHandler):
         Return:
             A QNetworkReply.
         """
-        log.misc.debug("request: {}".format(request))
-        url = urlstring(request.url())
+        path = request.url().path()
+        # An url like "qute:foo" is split as "scheme:path", not "scheme:host".
+        log.misc.debug("url: {}, path: {}".format(request.url().toString(),
+                                                  path))
         try:
-            handler = getattr(QuteHandlers, self._transform_url(url))
+            handler = getattr(QuteHandlers, path)
         except AttributeError:
             data = bytes()
         else:
@@ -108,13 +98,13 @@ class QuteHandlers:
     """Handlers for qute:... pages."""
 
     @classmethod
-    def qute_pyeval(cls):
+    def pyeval(cls):
         """Handler for qute:pyeval. Return HTML content as bytes."""
         text = cgi.escape(pyeval_output)
         return _get_html('pyeval', '<pre>{}</pre>'.format(text))
 
     @classmethod
-    def qute_version(cls):
+    def version(cls):
         """Handler for qute:version. Return HTML content as bytes."""
         text = cgi.escape(version.version())
         html = '<h1>Version info</h1>'
@@ -125,7 +115,7 @@ class QuteHandlers:
         return _get_html('Version', html)
 
     @classmethod
-    def qute_log(cls):
+    def log(cls):
         """Handler for qute:log. Return HTML content as bytes."""
         if log.ram_handler is None:
             text = "Log output was disabled."
@@ -134,6 +124,6 @@ class QuteHandlers:
         return _get_html('log', '<pre>{}</pre>'.format(text))
 
     @classmethod
-    def qute_gpl(cls):
+    def gpl(cls):
         """Handler for qute:gpl. Return HTML content as bytes."""
         return read_file('html/COPYING.html').encode('ASCII')

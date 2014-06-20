@@ -24,8 +24,6 @@
 import unittest
 from unittest import TestCase
 
-from PyQt5.QtCore import QUrl
-
 import qutebrowser.utils.url as urlutils
 
 
@@ -62,41 +60,6 @@ class ConfigStub:
             return sect[option]
         except KeyError:
             raise self.NoOptionError
-
-
-class ConversionTests(TestCase):
-
-    """Test conversions between QUrl and url string.
-
-    Attributes:
-        URL: The URL to check conversion with.
-    """
-
-    URL = 'http://www.qutebrowser.org/'
-
-    def test_qurl2qurl(self):
-        """Test converting a QUrl to a QUrl."""
-        q = urlutils.qurl(QUrl(self.URL))
-        self.assertIsInstance(q, QUrl)
-        self.assertFalse(q.isEmpty())
-
-    def test_str2qurl(self):
-        """Test converting a string to a QUrl."""
-        q = urlutils.qurl(self.URL)
-        self.assertIsInstance(q, QUrl)
-        self.assertFalse(q.isEmpty())
-
-    def test_str2str(self):
-        """Test converting a string to a string."""
-        s = urlutils.urlstring(self.URL)
-        self.assertIsInstance(s, str)
-        self.assertEqual(s, self.URL)
-
-    def test_qurl2str(self):
-        """Test converting a QUrl to a string."""
-        s = urlutils.urlstring(QUrl(self.URL))
-        self.assertIsInstance(s, str)
-        self.assertEqual(s, self.URL)
 
 
 class SpecialURLTests(TestCase):

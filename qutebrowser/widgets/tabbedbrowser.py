@@ -24,7 +24,6 @@ from functools import partial
 from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QSize
 
-import qutebrowser.utils.url as urlutils
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.keyinput.modeman as modeman
@@ -160,7 +159,7 @@ class TabbedBrowser(TabWidget):
             self._filter.create(self.cur_load_status_changed))
         # hintmanager
         tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)
-        tab.hintmanager.openurl.connect(self.cmd.openurl)
+        tab.hintmanager.openurl.connect(self.openurl)
         # downloads
         tab.page().unsupportedContent.connect(self.start_download)
         tab.page().start_download.connect(self.start_download)
@@ -244,7 +243,7 @@ class TabbedBrowser(TabWidget):
         """Open a URL, used as a slot.
 
         Args:
-            url: The URL to open.
+            url: The URL to open as QUrl.
             newtab: True to open URL in a new tab, False otherwise.
         """
         if newtab:
@@ -262,7 +261,7 @@ class TabbedBrowser(TabWidget):
         """Close a tab with a widget given."""
         self.close_tab(widget)
 
-    @pyqtSlot(str, bool)
+    @pyqtSlot('QUrl', bool)
     def tabopen(self, url=None, background=None):
         """Open a new tab with a given URL.
 
@@ -270,7 +269,7 @@ class TabbedBrowser(TabWidget):
         Also connect all the signals we need to _filter_signals.
 
         Args:
-            url: The URL to open.
+            url: The URL to open as QUrl or None for an empty tab.
             background: Whether to open the tab in the background.
                         if None, the background-tabs setting decides.
 
@@ -283,7 +282,6 @@ class TabbedBrowser(TabWidget):
         self._tabs.append(tab)
         self.addTab(tab, "")
         if url is not None:
-            url = urlutils.qurl(url)
             tab.openurl(url)
         if background is None:
             background = config.get('general', 'background-tabs')

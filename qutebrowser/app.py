@@ -30,7 +30,7 @@ from base64 import b64encode
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.QtCore import (pyqtSlot, QTimer, QEventLoop, Qt, QStandardPaths,
-                          qInstallMessageHandler, QObject)
+                          qInstallMessageHandler, QObject, QUrl)
 
 import qutebrowser
 import qutebrowser.commands.utils as cmdutils
@@ -42,6 +42,8 @@ import qutebrowser.network.proxy as proxy
 import qutebrowser.browser.quickmarks as quickmarks
 import qutebrowser.utils.log as log
 import qutebrowser.utils.version as version
+import qutebrowser.utils.url as urlutils
+import qutebrowser.utils.message as message
 from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.config.config import ConfigManager
 from qutebrowser.keyinput.modeman import ModeManager
@@ -55,7 +57,6 @@ from qutebrowser.config.iniparsers import ReadWriteConfigParser
 from qutebrowser.config.lineparser import LineConfigParser
 from qutebrowser.browser.cookies import CookieJar
 from qutebrowser.browser.downloads import DownloadManager
-from qutebrowser.utils.message import MessageBridge
 from qutebrowser.utils.misc import (get_standard_dir, actute_warning,
                                     get_qt_args)
 from qutebrowser.utils.readline import ReadlineBridge
@@ -83,7 +84,7 @@ class Application(QApplication):
         _timers: List of used QTimers so they don't get GCed.
         _shutting_down: True if we're currently shutting down.
         _quit_status: The current quitting status.
-        _opened_urls: List of opened URLs.
+        _opened_urls: List of opened URLs, string as passed to the application.
         _crashdlg: The crash dialog currently open.
         _crashlogfile: A file handler to the fatal crash logfile.
     """
@@ -220,7 +221,7 @@ class Application(QApplication):
         self.setOrganizationName("qutebrowser")
         self.setApplicationName("qutebrowser")
         self.setApplicationVersion(qutebrowser.__version__)
-        self.messagebridge = MessageBridge(self)
+        self.messagebridge = message.MessageBridge(self)
         self.rl_bridge = ReadlineBridge()
 
     def _handle_segfault(self):
@@ -284,19 +285,30 @@ class Application(QApplication):
         self.processEvents(QEventLoop.ExcludeUserInputEvents |
                            QEventLoop.ExcludeSocketNotifiers)
 
-        for e in self.args.command:
-            if e.startswith(':'):
-                log.init.debug("Startup cmd {}".format(e))
-                self.commandmanager.run_safely_init(e.lstrip(':'))
+        for cmd in self.args.command:
+            if cmd.startswith(':'):
+                log.init.debug("Startup cmd {}".format(cmd))
+                self.commandmanager.run_safely_init(cmd.lstrip(':'))
             else:
-                log.init.debug("Startup URL {}".format(e))
-                self._opened_urls.append(e)
-                self.mainwindow.tabs.tabopen(e)
+                log.init.debug("Startup URL {}".format(cmd))
+                self._opened_urls.append(cmd)
+                try:
+                    url = urlutils.fuzzy_url(cmd)
+                except urlutils.SearchEngineError as e:
+                    message.error("Error in startup argument '{}': {}".format(
+                        cmd, e))
+                else:
+                    self.mainwindow.tabs.tabopen(url)
 
         if self.mainwindow.tabs.count() == 0:
             log.init.debug("Opening startpage")
-            for url in self.config.get('general', 'startpage'):
-                self.mainwindow.tabs.tabopen(url)
+            for urlstr in self.config.get('general', 'startpage'):
+                try:
+                    url = urlutils.fuzzy_url(urlstr)
+                except urlutils.SearchEngineError as e:
+                    message.error("Error when opening startpage: {}".format(e))
+                else:
+                    self.mainwindow.tabs.tabopen(url)
 
     def _python_hacks(self):
         """Get around some PyQt-oddities by evil hacks.
@@ -548,9 +560,9 @@ class Application(QApplication):
     #    if pages is None:
     #        pages = []
     #        for tab in self.mainwindow.tabs.widgets:
-    #            url = tab.url().toString()
-    #            if url:
-    #                pages.append(url)
+    #            urlstr = tab.url().toString()
+    #            if urlstr:
+    #                pages.append(urlstr)
     #    pythonpath = os.pathsep.join(sys.path)
     #    os.environ['PYTHONPATH'] = pythonpath
     #    argv = sys.argv[:]
@@ -582,7 +594,7 @@ class Application(QApplication):
         except Exception as e:  # pylint: disable=broad-except
             out = ': '.join([e.__class__.__name__, str(e)])
         qutescheme.pyeval_output = out
-        self.mainwindow.tabs.cmd.openurl('qute:pyeval')
+        self.mainwindow.tabs.openurl(QUrl('qute:pyeval'), newtab=True)
 
     @pyqtSlot()
     def shutdown(self):

@@ -22,14 +22,13 @@
 from functools import partial
 from collections import OrderedDict
 
-from PyQt5.QtCore import QStandardPaths
+from PyQt5.QtCore import QStandardPaths, QUrl
 
 import qutebrowser.utils.message as message
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.utils.usertypes import PromptMode
 from qutebrowser.config.lineparser import LineConfigParser
 from qutebrowser.utils.misc import get_standard_dir
-from qutebrowser.utils.url import urlstring
 from qutebrowser.commands.exceptions import CommandError
 
 
@@ -54,9 +53,14 @@ def save():
 
 
 def prompt_save(url):
-    """Prompt for a new quickmark name to be added and add it."""
+    """Prompt for a new quickmark name to be added and add it.
+
+    Args:
+        url: The quickmark url as a QUrl.
+    """
+    urlstr = url.toString(QUrl.FullyEncoded)
     message.question("Add quickmark:", PromptMode.text,
-                     partial(quickmark_add, url))
+                     partial(quickmark_add, urlstr))
 
 
 @cmdutils.register()
@@ -64,7 +68,7 @@ def quickmark_add(url, name):
     """Add a new quickmark.
 
     Args:
-        url: The url to add as quickmark.
+        url: The url to add as quickmark, as QUrl.
         name: The name for the new quickmark.
     """
     if not name:
@@ -74,7 +78,7 @@ def quickmark_add(url, name):
 
     def set_mark():
         """Really set the quickmark."""
-        marks[name] = urlstring(url)
+        marks[name] = url
 
     if name in marks:
         message.confirm_action("Override existing quickmark?", set_mark,

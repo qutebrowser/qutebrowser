@@ -28,7 +28,6 @@ from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.utils.message as message
-import qutebrowser.utils.url as urlutils
 import qutebrowser.config.config as config
 import qutebrowser.utils.log as log
 from qutebrowser.utils.misc import read_file, check_print_compat
@@ -104,7 +103,7 @@ class BrowserPage(QWebPage):
         info = sip.cast(opt, QWebPage.ErrorPageExtensionOption)
         errpage = sip.cast(out, QWebPage.ErrorPageExtensionReturn)
         errpage.baseUrl = info.url
-        urlstr = urlutils.urlstring(info.url)
+        urlstr = info.url.toString()
         if (info.domain, info.error) in ignored_errors:
             log.webview.debug("Ignored error on {}: {} (error domain: {}, "
                               "error code: {})".format(

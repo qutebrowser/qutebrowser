@@ -24,7 +24,7 @@ import subprocess
 from functools import partial
 
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebInspector
@@ -32,11 +32,11 @@ from PyQt5.QtWebKitWidgets import QWebInspector
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.config.config as config
 import qutebrowser.browser.hints as hints
-import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.message as message
 import qutebrowser.utils.webelem as webelem
 import qutebrowser.browser.quickmarks as quickmarks
 import qutebrowser.utils.log as log
+import qutebrowser.utils.url as urlutils
 from qutebrowser.utils.misc import (check_overflow, shell_escape,
                                     check_print_compat)
 from qutebrowser.utils.editor import ExternalEditor
@@ -152,14 +152,18 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', name='open',
                        split=False)
-    def openurl(self, url, count=None):
+    def openurl(self, urlstr, count=None):
         """Open a URL in the current/[count]th tab.
 
         Args:
-            url: The URL to open.
+            urlstr: The URL to open, as string.
             count: The tab index to open the URL in, or None.
         """
         tab = self._tabs.cntwidget(count)
+        try:
+            url = urlutils.fuzzy_url(urlstr)
+        except urlutils.SearchEngineError as e:
+            raise CommandError(e)
         if tab is None:
             if count is None:
                 # We want to open a URL in the current tab, but none exists
@@ -352,15 +356,15 @@ class CommandDispatcher:
         Args:
             sel: True to use primary selection, False to use clipboard
         """
-        url = urlutils.urlstring(self._tabs.currentWidget().url())
+        urlstr = self._tabs.currentWidget().url().toString(QUrl.FullyEncoded)
         if sel:
             mode = QClipboard.Selection
             target = "primary selection"
         else:
             mode = QClipboard.Clipboard
             target = "clipboard"
-        log.misc.debug("Yanking to {}: '{}'".format(target, url))
-        QApplication.clipboard().setText(url, mode)
+        log.misc.debug("Yanking to {}: '{}'".format(target, urlstr))
+        QApplication.clipboard().setText(urlstr, mode)
         message.info("URL yanked to {}".format(target))
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
@@ -425,32 +429,40 @@ class CommandDispatcher:
             self._tabs.close_tab(tab)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', split=False)
-    def open_tab(self, url):
+    def open_tab(self, urlstr):
         """Open a new tab with a given url."""
+        try:
+            url = urlutils.fuzzy_url(urlstr)
+        except urlutils.SearchEngineError as e:
+            raise CommandError(e)
         self._tabs.tabopen(url, background=False)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', split=False)
-    def open_tab_bg(self, url):
+    def open_tab_bg(self, urlstr):
         """Open a new tab in background."""
+        try:
+            url = urlutils.fuzzy_url(urlstr)
+        except urlutils.SearchEngineError as e:
+            raise CommandError(e)
         self._tabs.tabopen(url, background=True)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def open_tab_cur(self):
         """Set the statusbar to :tabopen and the current URL."""
-        url = urlutils.urlstring(self._tabs.currentWidget().url())
-        message.set_cmd_text(':open-tab ' + url)
+        urlstr = self._tabs.currentWidget().url().toString()
+        message.set_cmd_text(':open-tab ' + urlstr)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def open_cur(self):
         """Set the statusbar to :open and the current URL."""
-        url = urlutils.urlstring(self._tabs.currentWidget().url())
-        message.set_cmd_text(':open ' + url)
+        urlstr = self._tabs.currentWidget().url().toString()
+        message.set_cmd_text(':open ' + urlstr)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def open_tab_bg_cur(self):
         """Set the statusbar to :tabopen-bg and the current URL."""
-        url = urlutils.urlstring(self._tabs.currentWidget().url())
-        message.set_cmd_text(':open-tab-bg ' + url)
+        urlstr = self._tabs.currentWidget().url().toString()
+        message.set_cmd_text(':open-tab-bg ' + urlstr)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def undo(self):
@@ -499,10 +511,14 @@ class CommandDispatcher:
             tab: True to open in a new tab.
         """
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
-        url = QApplication.clipboard().text(mode)
-        if not url:
+        text = QApplication.clipboard().text(mode)
+        if not text:
             raise CommandError("Clipboard is empty.")
-        log.misc.debug("Clipboard contained: '{}'".format(url))
+        log.misc.debug("Clipboard contained: '{}'".format(text))
+        try:
+            url = urlutils.fuzzy_url(text)
+        except urlutils.SearchEngineError as e:
+            raise CommandError(e)
         if tab:
             self._tabs.tabopen(url)
         else:
@@ -591,8 +607,8 @@ class CommandDispatcher:
         Args:
             cmd: The command to execute.
         """
-        url = urlutils.urlstring(self._tabs.currentWidget().url())
-        cmd = cmd.replace('{}', shell_escape(url))
+        urlstr = self._tabs.currentWidget().url().toString(QUrl.FullyEncoded)
+        cmd = cmd.replace('{}', shell_escape(urlstr))
         log.procs.debug("Executing: {}".format(cmd))
         subprocess.Popen(cmd, shell=True)
 
@@ -604,10 +620,10 @@ class CommandDispatcher:
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def run_userscript(self, cmd, *args):
         """Run an userscript given as argument."""
-        url = urlutils.urlstring(self._tabs.currentWidget().url())
+        urlstr = self._tabs.currentWidget().url().toString(QUrl.FullyEncoded)
         runner = UserscriptRunner(self._tabs)
         runner.got_cmd.connect(self._tabs.got_cmd)
-        runner.run(cmd, *args, env={'QUTE_URL': url})
+        runner.run(cmd, *args, env={'QUTE_URL': urlstr})
         self._userscript_runners.append(runner)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
@@ -656,8 +672,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def download_page(self):
         """Download the current page."""
-        widget = self._tabs.currentWidget()
-        url = urlutils.urlstring(widget.url())
+        url = self._tabs.currentWidget().url()
         QApplication.instance().downloadmanager.get(url)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', modes=['insert'],

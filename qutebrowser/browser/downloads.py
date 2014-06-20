@@ -31,7 +31,6 @@ from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
-import qutebrowser.utils.url as urlutils
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.utils.log import downloads as logger
 from qutebrowser.utils.log import fix_rfc2622
@@ -360,13 +359,13 @@ class DownloadManager(QObject):
             filename = 'qutebrowser-download'
         return os.path.basename(filename)
 
-    def get(self, link):
+    def get(self, url):
         """Start a download with a link URL.
 
         Args:
-            link: The link URL as a string.
+            url: The URL to get, as QUrl
         """
-        req = QNetworkRequest(urlutils.qurl(link))
+        req = QNetworkRequest(url)
         reply = QCoreApplication.instance().networkmanager.get(req)
         self.fetch(reply)
 

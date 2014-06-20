@@ -21,12 +21,11 @@
 
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QUrl
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
-import qutebrowser.utils.url as urlutils
 import qutebrowser.config.config as config
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.message as message
@@ -122,8 +121,7 @@ class WebView(QWebView):
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
 
     def __repr__(self):
-        return "WebView(url='{}')".format(
-            elide(urlutils.urlstring(self.url()), 50))
+        return "WebView(url='{}')".format(elide(self.url().toString(), 50))
 
     @property
     def load_status(self):
@@ -284,7 +282,7 @@ class WebView(QWebView):
         """Open a URL in the browser.
 
         Args:
-            url: The URL to load, as string or QUrl.
+            url: The URL to load as QUrl
 
         Return:
             Return status of self.load
@@ -292,14 +290,11 @@ class WebView(QWebView):
         Emit:
             titleChanged
         """
-        try:
-            u = urlutils.fuzzy_url(url)
-        except urlutils.SearchEngineError as e:
-            raise CommandError(e)
-        log.webview.debug("New title: {}".format(urlutils.urlstring(u)))
-        self.titleChanged.emit(urlutils.urlstring(u))
-        self.url_text = urlutils.urlstring(u)
-        return self.load(u)
+        urlstr = url.toString()
+        log.webview.debug("New title: {}".format(urlstr))
+        self.titleChanged.emit(urlstr)
+        self.url_text = urlstr
+        return self.load(url)
 
     def zoom_perc(self, perc, fuzzyval=True):
         """Zoom to a given zoom percentage.
@@ -381,18 +376,19 @@ class WebView(QWebView):
     @pyqtSlot('QUrl')
     def on_url_changed(self, url):
         """Update url_text when URL has changed."""
-        self.url_text = urlutils.urlstring(url)
+        self.url_text = url.toString()
 
     @pyqtSlot(str)
-    def on_link_clicked(self, url):
+    def on_link_clicked(self, urlstr):
         """Handle a link.
 
         Called from the linkClicked signal. Checks if it should open it in a
         tab (middle-click or control) or not, and does so.
 
         Args:
-            url: The URL to handle, as string or QUrl.
+            urlstr: The URL to handle, as string.
         """
+        url = QUrl(urlstr)
         if self._open_target == Target.tab:
             self.tabbedbrowser.tabopen(url, False)
         elif self._open_target == Target.tab_bg:

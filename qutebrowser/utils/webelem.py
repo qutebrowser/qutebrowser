@@ -27,10 +27,9 @@ Module attributes:
              without "href".
 """
 
-from PyQt5.QtCore import QRect
+from PyQt5.QtCore import QRect, QUrl
 from PyQt5.QtWebKit import QWebElement
 
-import qutebrowser.utils.url as urlutils
 from qutebrowser.utils.usertypes import enum
 
 
@@ -57,7 +56,7 @@ SELECTORS[Group.editable_focused] = ', '.join(
 
 FILTERS = {
     Group.links: (lambda e: e.hasAttribute('href') and
-                  urlutils.qurl(e.attribute('href')).scheme() != 'javascript'),
+                  QUrl(e.attribute('href')).scheme() != 'javascript'),
 }
 
 

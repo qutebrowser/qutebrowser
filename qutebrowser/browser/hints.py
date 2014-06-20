@@ -22,14 +22,13 @@
 import math
 from collections import namedtuple
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent, Qt
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl
 from PyQt5.QtGui import QMouseEvent, QClipboard
 from PyQt5.QtWidgets import QApplication
 
 import qutebrowser.config.config as config
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.message as message
-import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.webelem as webelem
 from qutebrowser.commands.exceptions import CommandError
 from qutebrowser.utils.usertypes import enum
@@ -294,23 +293,24 @@ class HintManager(QObject):
         for evt in events:
             self.mouse_event.emit(evt)
 
-    def _yank(self, link):
+    def _yank(self, url):
         """Yank an element to the clipboard or primary selection.
 
         Args:
-            link: The URL to open.
+            url: The URL to open as a QURL.
         """
         sel = self._context.target == Target.yank_primary
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
-        QApplication.clipboard().setText(urlutils.urlstring(link), mode)
+        urlstr = url.toString(QUrl.FullyEncoded)
+        QApplication.clipboard().setText(urlstr, mode)
         message.info("URL yanked to {}".format("primary selection" if sel
                                                else "clipboard"))
 
-    def _preset_cmd_text(self, link):
+    def _preset_cmd_text(self, url):
         """Preset a commandline text based on a hint URL.
 
         Args:
-            link: The link to open.
+            url: The URL to open as a QUrl.
         """
         commands = {
             Target.cmd: 'open',
@@ -318,36 +318,36 @@ class HintManager(QObject):
             Target.cmd_tab_bg: 'open-tab-bg',
         }
         message.set_cmd_text(':{} {}'.format(commands[self._context.target],
-                                             urlutils.urlstring(link)))
+                                             url.toString(QUrl.FullyEncoded)))
 
-    def _download(self, link):
+    def _download(self, url):
         """Download a hint URL.
 
         Args:
-            link: The link to download.
+            url: The URL to download, as a QUrl.
         """
-        QApplication.instance().downloadmanager.get(link)
+        QApplication.instance().downloadmanager.get(url)
 
-    def _resolve_link(self, elem, baseurl=None):
-        """Resolve a link and check if we want to keep it.
+    def _resolve_url(self, elem, baseurl=None):
+        """Resolve a URL and check if we want to keep it.
 
         Args:
-            elem: The QWebElement to get the link of.
+            elem: The QWebElement to get the URL of.
             baseurl: The baseurl of the current tab (overrides baseurl from
                      self._context).
 
         Return:
-            A QUrl with the absolute link, or None.
+            A QUrl with the absolute URL, or None.
         """
-        link = elem.attribute('href')
-        if not link:
+        text = elem.attribute('href')
+        if not text:
             return None
         if baseurl is None:
             baseurl = self._context.baseurl
-        link = urlutils.qurl(link)
-        if link.isRelative():
-            link = baseurl.resolved(link)
-        return link
+        url = QUrl(text)
+        if url.isRelative():
+            url = baseurl.resolved(url)
+        return url
 
     def _find_prevnext(self, frame, prev=False):
         """Find a prev/next element in frame."""
@@ -399,11 +399,11 @@ class HintManager(QObject):
         if elem is None:
             raise CommandError("No {} links found!".format(
                 "prev" if prev else "forward"))
-        link = self._resolve_link(elem, baseurl)
-        if link is None:
+        url = self._resolve_url(elem, baseurl)
+        if url is None:
             raise CommandError("No {} links found!".format(
                 "prev" if prev else "forward"))
-        self.openurl.emit(link, newtab)
+        self.openurl.emit(url, newtab)
 
     def start(self, mainframe, baseurl, group=webelem.Group.all,
               target=Target.normal):
@@ -508,8 +508,8 @@ class HintManager(QObject):
             Target.tab_bg: self._click,
             Target.rapid: self._click,
         }
-        # Handlers which take a link string
-        link_handlers = {
+        # Handlers which take a QUrl
+        url_handlers = {
             Target.yank: self._yank,
             Target.yank_primary: self._yank,
             Target.cmd: self._preset_cmd_text,
@@ -520,11 +520,11 @@ class HintManager(QObject):
         elem = self._context.elems[keystr].elem
         if self._context.target in elem_handlers:
             elem_handlers[self._context.target](elem)
-        elif self._context.target in link_handlers:
-            link = self._resolve_link(elem)
-            if link is None:
+        elif self._context.target in url_handlers:
+            url = self._resolve_url(elem)
+            if url is None:
                 raise CommandError("No suitable link found for this element.")
-            link_handlers[self._context.target](link)
+            url_handlers[self._context.target](url)
         else:
             raise ValueError("No suitable handler found!")
         if self._context.target != Target.rapid:
