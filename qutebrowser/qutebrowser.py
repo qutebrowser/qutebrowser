@@ -53,11 +53,9 @@ def _parse_args():
     debug.add_argument('--harfbuzz', choices=['old', 'new', 'system', 'auto'],
                        default='auto', help="HarfBuzz engine version to use. "
                        "Default: auto.")
-    # Some notes on the Qt options:
-    #  - If a new option is added, it also needs to be added to _get_qt_args in
-    #    app.py.
-    #  - We use store_const with const=True rather than store_true because we
-    #    want the default to be None.
+    # For the Qt args, we use store_const with const=True rather than
+    # store_true because we want the default to be None, to make
+    # utils.misc:get_qt_args easier.
     debug.add_argument('--qt-style', help="Set the Qt GUI style to use.",
                        metavar='STYLE')
     debug.add_argument('--qt-stylesheet', help="Override the Qt application "
