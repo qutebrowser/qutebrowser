@@ -1,0 +1,91 @@
+Frequently asked questions
+==========================
+The Compiler <mail@qutebrowser.org>
+
+[qanda]
+What is qutebrowser based on?::
+    qutebrowser uses http://www.python.org/[Python], http://qt-project.org/[Qt]
+    and http://www.riverbankcomputing.com/software/pyqt/intro[PyQt].
+    +
+    The concept of it is largely inspired by
+    http://portix.bitbucket.org/dwb/[dwb] and
+    http://www.vimperator.org/vimperator[Vimperator]. Many actions and
+    keybindings are similiar to dwb.
+
+Why another browser?::
+    It might be hard to believe, but I didn't find any browser which I was
+    happy with, so I started to write my own. Also, I needed a project to get
+    into writing GUI applications with Python and
+    http://qt-project.org/[Qt]/http://www.riverbankcomputing.com/software/pyqt/intro[PyQt].
+    +
+    Read the next few questions to find out why I was unhappy with existing
+    software.
+
+What's wrong with http://portix.bitbucket.org/dwb/[dwb]/http://sourceforge.net/projects/vimprobable/[vimprobable]/https://mason-larobina.github.io/luakit/[luakit]/http://pwmt.org/projects/jumanji/[jumanji]/... (projects based on WebKitGTK)?::
+    Most of them are based on the http://webkitgtk.org/[WebKitGTK+]
+    http://webkitgtk.org/reference/webkitgtk/stable/index.html[WebKit1] API,
+    which causes a lot of crashes. As the API is
+    https://lists.webkit.org/pipermail/webkit-gtk/2014-March/001821.html[deprecated],
+    these bugs are never going to be fixed.
+    +
+    The newer
+    http://webkitgtk.org/reference/webkit2gtk/stable/index.html[WebKit2 API]
+    seems to lack basic features like proxy support, and almost no projects
+    seem to have started porting to WebKit2 (I only know of
+    http://www.uzbl.org/[uzbl]).
+    +
+    qutebrowser uses http://qt-project.org/[Qt] and
+    http://qt-project.org/wiki/QtWebKit[QtWebKit] instead, which suffers from
+    far less such crashes. It might switch to
+    http://qt-project.org/wiki/QtWebEngine[QtWebEngine] in the feature, which
+    is based on Google's
+    https://en.wikipedia.org/wiki/Blink_(layout_engine)[Blink] rendering
+    engine.
+
+What's wrong with https://www.mozilla.org/en-US/firefox/new/[Firefox] and http://5digits.org/pentadactyl/[Pentadactyl]/http://www.vimperator.org/vimperator[Vimperator]?::
+    Firefox likes to break compatibility with addons on each upgrade, gets
+    slower and more bloated with every upgrade, and has some
+    https://blog.mozilla.org/advancingcontent/2014/02/11/publisher-transformation-with-users-at-the-center/[horrible
+    ideas] lately.
+    +
+    Also, developing addons for it is a nightmare.
+
+What's wrong with http://www.chromium.org/Home[Chromium] and https://vimium.github.io/[Vimium]?::
+    The Chrome plugin API doesn't seem to allow much freedom for plugin
+    writers, which results in Vimium not really having all the features you'd
+    expect from a proper minimal, vim-like browser.
+
+Why Python?::
+    I enjoy writing Python since 2011, which made it one of the possible
+    choices. I wanted to use http://qt-project.org/[Qt] because of 
+    http://qt-project.org/wiki/QtWebKit[QtWebKit] so I didn't have
+    http://qt-project.org/wiki/Category:LanguageBindings[many other choices]. I
+    don't like C++ and can't write it very well, so that wasn't an alternative.
+
+But isn't Python too slow for a browser?::
+    http://www.infoworld.com/d/application-development/van-rossum-python-not-too-slow-188715[No.]
+    I believe efficency while coding is a lot more important than efficency
+    while running. Also, most of the heavy lifting of qutebrowser is done by Qt
+    and WebKit in C++, with the
+    https://wiki.python.org/moin/GlobalInterpreterLock[GIL] released.
+
+Is there an adblocker?::
+    Not yet. Adblocking has a
+    http://www.reddit.com/r/programming/comments/25j41u/adblock_pluss_effect_on_firefoxs_memory_usage/chhpomw[big
+    impact] on browsing speed and
+    https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/[RAM
+    usage], so implementing it properly might take some time and won't be done
+    for v0.1.
+    +
+    However, there are some alternatives you could use to block ads:
+    +
+    * You can use a hosts file to block ads. Examples:
+      http://someonewhocares.org/hosts/[1],
+      http://winhelp2002.mvps.org/hosts.htm[2],
+      http://www.hosts-file.net/[3]
+    * Set up a http://www.privoxy.org/[Privoxy] proxy server and use it to
+      filter ads before they even get to the browser.
+    * Use the https://www.requestpolicy.com/[RequestPolicy] functionality to
+      block ads, which currently isn't implemented either.
+    +
+    If you think you can add ad blocking or request policy, please contribute!
