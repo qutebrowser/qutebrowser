@@ -7,13 +7,16 @@ The Compiler <mail@qutebrowser.org>
 
 I `&lt;3` footnote:[Of course, that says `<3` in HTML.] contributors!
 
-If anything in this document would prevent you from contributing, please let
-me know, and contribute anyways! This is only meant to make it easier for me,
-but if you don't follow anything in here, I won't be mad at you. I will
+This document contains guidelines for contributing to qutebrowser, as well as
+useful hints when doing so.
+
+If anything mentioned here would prevent you from contributing, please let me
+know, and contribute anyways! The guidelines are only meant to make life easier
+for me, but if you don't follow anything in here, I won't be mad at you. I will
 probably change it for you then, though.
 
-If you have any problems and need help, I'm more than happy to help you! You
-can get help in several ways:
+If you have any problems, I'm more than happy to help! You can get help in
+several ways:
 
 * Send a mail to the mailing list at qutebrowser@lists.qutebrowser.org
 (optionally
@@ -25,16 +28,16 @@ Finding something to work on
 ----------------------------
 
 Chances are you already know something to improve or add when you're reading
-this. It might be a good idea to ask on the ML or IRC channel to make sure I
-agree with your idea -- though I most likely will be okay with it.
+this. It might be a good idea to ask on the mailing list or IRC channel to make
+sure nobody else started working on the same thing already.
 
 If you want to find something useful to do, check the `BUGS` and `TODO` files.
 
 There are also some things to do if you don't want to write code:
 
-* Help the community, e.g. on the mailinglist and IRC channel.
+* Help the community, e.g. on the mailinglist and the IRC channel.
 * Improve the documentation.
-* Help on the website and graphics (logo, etc.)
+* Help on the website and graphics (logo, etc.).
 
 Using git
 ---------
@@ -59,22 +62,23 @@ are used by me occasionally and pushed as a backup, but frequently
 force-pushed. Do *not* base your work on any of the feature branches, use
 `master` instead.
 
-After v0.1, an additional `development` branch will be added. Then, base new
-features on the `development` branch, and bugfixes on the `master` branch.
+After v0.1 is released, an additional `development` branch will be added. Then,
+base new features on the `development` branch, and bugfixes on the `master`
+branch.
 
 You can then checkout the correct branch via:
 
 ----
 git checkout base-branch <1>
 ----
-<1> Of course replace `base-branch` by `development`/`master`.
+<1> Of course replace `base-branch` by `development` or `master`.
 
 
 Getting patches
 ~~~~~~~~~~~~~~~
 
-After you finished your work and did run `git commit`, you can get patches of
-the changes like this:
+After you finished your work and did `git commit`, you can get patches of your
+changes like this:
 
 ----
 git format-patch origin/master <1>
@@ -88,21 +92,24 @@ Useful utilities
 Checkers
 ~~~~~~~~
 
-In the _scripts/_ subfolder, there are a `run_checks.py`.
+In the _scripts/_ subfolder, there is a `run_checks.py` script.
 
-`run_checks.py` runs a bunch of static checks on all source files. It uses the
-following checkers to do so:
+It runs a bunch of static checks on all source files, using the following
+checkers:
 
-* unittests using the Python
+* Unit tests using the Python
 https://docs.python.org/3.4/library/unittest.html[unittest] framework
 * https://pypi.python.org/pypi/flake8/1.3.1[flake8]
 * https://github.com/GreenSteam/pep257/[pep257]
 * http://pylint.org/[pylint]
-* Custom checkers for untracked git files, whitespace/CRLF problems,
-`set_trace` invocations and VCS conflict markers.
+* A custom checker for the following things:
+    - untracked git files
+    - whitespace/CRLF problems
+    - `set_trace` invocations
+    - VCS conflict markers.
 
-If you changed `setup.py`/`MANIFEST.in` and add the `--setup` argument, the
-following additional checkers are run:
+If you changed `setup.py` or `MANIFEST.in`, add the `--setup` argument to run
+the following additional checkers:
 
 * https://pypi.python.org/pypi/pyroma/0.9.3[pyroma]
 * https://github.com/mgedmin/check-manifest[check-manifest]
@@ -146,12 +153,12 @@ are some useful functions for debugging. In particular you should use
 or you'll get annoying Qt error messages.
 
 When starting qutebrowser with the `--debug` flag you also get useful debug
-logs. You can add `--logfilter category[,category,...]` to restrict logging to
-the given categories.
+logs. You can add +--logfilter _category[,category,...]_+ to restrict logging
+to the given categories.
 
-With `--debug` there are also some additional `debug-*` commands available, for
-example `debug-all-objects` and `debug-all-widgets` which prints a list of all
-Qt objects or widgets to the debug log -- this is very useful for finding
+With `--debug` there are also some additional +debug-_*_+ commands available,
+for example `:debug-all-objects` and `:debug-all-widgets` which print a list of
+all Qt objects/widgets to the debug log -- this is very useful for finding
 memory leaks.
 
 Useful websites
@@ -169,19 +176,15 @@ header]
 Style conventions
 -----------------
 
-As you might have noticed, I *really* like clean and consistent code. While I
-won't reject your contribution when you don't follow the guidelines, I'd be
-really glad if you'd do so.
-
 qutebrowser's coding conventions are based on
 http://legacy.python.org/dev/peps/pep-0008/[PEP8] and the https://google-styleguide.googlecode.com/svn/trunk/pyguide.html[Google Python style guidelines] with some additions:
 
 * Methods overriding Qt methods (obviously!) don't follow the naming schemes.
 * Everything else does though, even slots.
-* Docstring are like described in
+* Docstrings should look like described in
 http://legacy.python.org/dev/peps/pep-0257/[PEP257] and the google guidelines.
-* Class docstrings have additional `Attributes:`, `Class attributes:` and
-  `Signals:` sections, method/function docstrings have an `Emit:` section.
+* Class docstrings have additional _Attributes:_, _Class attributes:_ and
+  _Signals:_ sections, method/function docstrings have an _Emit:_ section.
 +
 Example for a class docstring:
 +
@@ -190,11 +193,11 @@ Example for a class docstring:
 """Some object.
 
 Attributes:
-  blub: The current thing to handle.
+    blub: The current thing to handle.
 
 Signals:
-  valueChanged: When a value changed.
-                arg: The new value
+    valueChanged: Emitted when a value changed.
+                  arg: The new value
 """
 ----
 +
@@ -205,16 +208,16 @@ Example for a method/function docstring:
 """Do something special.
 
 Args:
-  foo: ...
+    foo: ...
 
 Return:
-  True if something, False if something else.
+    True if something, False if something else.
 
 Raise:
-  ValueError if foo is None
+    ValueError if foo is None
 
 Emit:
-  value_changed
+    value_changed
 """
 ----
 +
