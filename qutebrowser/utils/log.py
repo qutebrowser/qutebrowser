@@ -95,7 +95,7 @@ def init_log(args):
         root.addHandler(console)
     if ram is not None:
         root.addHandler(ram)
-        console.addFilter(LeplFilter())
+        ram.addFilter(LeplFilter())
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
     qInstallMessageHandler(qt_message_handler)
