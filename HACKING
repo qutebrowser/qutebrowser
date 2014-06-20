@@ -1,8 +1,92 @@
 qutebrowser HACKING
 ===================
+The Compiler <mail@qutebrowser.org>
+:icons:
+:data-uri:
+:toc:
 
-Run checks!
------------
+I `&lt;3` footnote:[Of course, that says `<3` in HTML.] contributors!
+
+If anything in this document would prevent you from contributing, please let
+me know, and contribute anyways! This is only meant to make it easier for me,
+but if you don't follow anything in here, I won't be mad at you. I will
+probably change it for you then, though.
+
+If you have any problems and need help, I'm more than happy to help you! You
+can get help in several ways:
+
+* Send a mail to the mailing list at qutebrowser@lists.qutebrowser.org
+(optionally
+https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[subscribe]
+first).
+* Join the IRC channel `#qutebrowser` on http://www.freenode.org/[Freenode].
+
+Finding something to work on
+----------------------------
+
+Chances are you already know something to improve or add when you're reading
+this. It might be a good idea to ask on the ML or IRC channel to make sure I
+agree with your idea -- though I most likely will be okay with it.
+
+If you want to find something useful to do, check the `BUGS` and `TODO` files.
+
+There are also some things to do if you don't want to write code:
+
+* Help the community, e.g. on the mailinglist and IRC channel.
+* Improve the documentation.
+* Help on the website and graphics (logo, etc.)
+
+Using git
+---------
+
+qutebrowser uses http://git-scm.com/[git] for its development. You can clone
+the repo like this:
+
+----
+git clone git://the-compiler.org/qutebrowser
+----
+
+If you don't know git, a http://git-scm.com/[git cheatsheet] might come in
+handy. Of course, if using git is the issue which prevents you from
+contributing, feel free to send normal patches instead, e.g. generated via
+`diff -Nur`.
+
+Finding the correct branch
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Currently, qutebrowser is developed in the `master` branch. Feature branches
+are used by me occasionally and pushed as a backup, but frequently
+force-pushed. Do *not* base your work on any of the feature branches, use
+`master` instead.
+
+After v0.1, an additional `development` branch will be added. Then, base new
+features on the `development` branch, and bugfixes on the `master` branch.
+
+You can then checkout the correct branch via:
+
+----
+git checkout base-branch <1>
+----
+<1> Of course replace `base-branch` by `development`/`master`.
+
+
+Getting patches
+~~~~~~~~~~~~~~~
+
+After you finished your work and did run `git commit`, you can get patches of
+the changes like this:
+
+----
+git format-patch origin/master <1>
+----
+<1> Replace `master` by the branch your work was based on, e.g.
+`origin/develop`.
+
+Useful utilities
+----------------
+
+Checkers
+~~~~~~~~
 
 In the _scripts/_ subfolder, there are a `run_checks.py`.
 
@@ -15,7 +99,7 @@ https://docs.python.org/3.4/library/unittest.html[unittest] framework
 * https://github.com/GreenSteam/pep257/[pep257]
 * http://pylint.org/[pylint]
 * Custom checkers for untracked git files, whitespace/CRLF problems,
-* `set_trace` invocations and VCS conflict markers.
+`set_trace` invocations and VCS conflict markers.
 
 If you changed `setup.py`/`MANIFEST.in` and add the `--setup` argument, the
 following additional checkers are run:
@@ -43,7 +127,7 @@ smallest scope which makes sense. Most of the time, this will be line scope.
 false-positives, let me know! I'm still tweaking the parameters.
 
 Profiling
----------
+~~~~~~~~~
 
 In the _scripts/_ subfolder there's a `run_profile.py` which profiles the code
 and shows a graphical representation of what takes how much time.
@@ -53,8 +137,8 @@ http://kcachegrind.sourceforge.net/html/Home.html[KCacheGrind]. It uses the
 built-in Python https://docs.python.org/3.4/library/profile.html[cProfile]
 module.
 
-Useful utilities
-----------------
+Debugging
+~~~~~~~~~
 
 In the `qutebrowser.utils.debug` and `qutebrowser.utils.signal` modules there
 are some useful functions for debugging. In particular you should use
@@ -69,6 +153,18 @@ With `--debug` there are also some additional `debug-*` commands available, for
 example `debug-all-objects` and `debug-all-widgets` which prints a list of all
 Qt objects or widgets to the debug log -- this is very useful for finding
 memory leaks.
+
+Useful websites
+~~~~~~~~~~~~~~~
+
+Some resources which might be handy:
+
+* http://qt-project.org/doc/qt-5/classes.html[The Qt5 reference]
+* https://docs.python.org/3/library/index.html[The Python reference]
+* http://httpbin.org/[httpbin, a test service for HTTP requests/responses]
+* http://requestb.in/[RequestBin, a service to inspect HTTP requests]
+* http://greenbytes.de/tech/tc2231/[Test cases for the `Content-Disposition`
+header]
 
 Style conventions
 -----------------
