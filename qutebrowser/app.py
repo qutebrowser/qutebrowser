@@ -621,8 +621,9 @@ class Application(QApplication):
                 what, handler.__qualname__))
             try:
                 handler()
-            except AttributeError:
+            except AttributeError as e:
                 log.destroy.warning("Could not save {}.".format(what))
+                log.destroy.debug(e)
         # Shut down tabs
         try:
             self.mainwindow.tabs.shutdown_complete.connect(partial(
