@@ -216,6 +216,7 @@ you need more than one category, use the second approach instead.
 
 The following logging levels are available for every logger:
 
+[width="75%",cols="25%,75%"]
 |=======================================================================
 |criticial |Critical issue, qutebrowser can't continue to run.
 |error     |There was an issue and some kind of operation was abandoned.
