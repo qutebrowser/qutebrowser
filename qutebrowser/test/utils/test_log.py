@@ -23,6 +23,8 @@
 
 import logging
 import unittest
+import argparse
+import sys
 from unittest import TestCase
 
 import qutebrowser.utils.log as log
@@ -191,6 +193,21 @@ class RAMHandlerTests(BaseTest):
         self.assertEqual(self.handler.dump_log(), "Two\nThree")
 
 
+class InitLogTests(BaseTest):
+
+    """Tests for init_log."""
+
+    def setUp(self):
+        super().setUp()
+        self.args = argparse.Namespace(debug=True, loglevel=logging.DEBUG,
+                                       color=True, loglines=10, logfilter="")
+
+    def test_stderr_none(self):
+        """Test init_log with sys.stderr = None."""
+        old_stderr = sys.stderr
+        sys.stderr = None
+        log.init_log(self.args)
+        sys.stderr = old_stderr
 
 if __name__ == '__main__':
     unittest.main()
