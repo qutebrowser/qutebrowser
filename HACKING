@@ -173,6 +173,99 @@ Some resources which might be handy:
 * http://greenbytes.de/tech/tc2231/[Test cases for the `Content-Disposition`
 header]
 
+Hints
+-----
+
+Logging
+~~~~~~~
+
+Logging is used at various places throughout the qutebrowser code. If you add a
+new feature, you should also add some strategic debug logging.
+
+Unless other Python projects, qutebrowser doesn't use a logger per file,
+instead it uses custom-named loggers.
+
+The existing loggers are defined in `qutebrowser.utils.log`. If your feature
+doesn't fit in any of the logging categories, simply add a new line like this:
+
+[source,python]
+----
+foo = getLogger('foo')
+----
+
+Then in your source files, you have two different possibilities:
+
+[source,python]
+----
+from qutebrowser.utils.log import foo as logger
+...
+logger.debug("Hello World")
+----
+
+or
+
+[source,python]
+----
+import qutebrowser.utils.log as log
+...
+log.foo.debug("Hello World")
+----
+
+Use the first approach if you only need to use a single logging category. If
+you need more than one category, use the second approach instead.
+
+The following logging levels are available for every logger:
+
+|=======================================================================
+|criticial |Critical issue, qutebrowser can't continue to run.
+|error     |There was an issue and some kind of operation was abandoned.
+|warning   |There was an issue but the operation can continue running.
+|info      |General informational messages.
+|debug     |Verbose debugging informations.
+|=======================================================================
+
+Commands
+~~~~~~~~
+
+qutebrowser has the concept of functions which are exposed to the user as
+commands.
+
+Creating a new command is straightforward:
+
+[source,python]
+----
+import qutebrowser.commands.utils as cmdutils
+
+...
+
+@cmdutils.register(...)
+def foo():
+    ...
+----
+
+The commands arguments are automatically deduced by inspecting your function.
+
+If your function has a `count` argument with a default, the command will
+support a count which will be passed in the argument.
+
+If the function is a method of a class, the `@cmdutils.register` decorator
+needs to have an `instance=...` parameter which points to the (single/main)
+instance of the class. Registering commands with multiple instances is not
+supported. For an example on how to solve that problem, see
+`qutebrowser.browser.command` which dispatches commands to the currently active
+tab.
+
+The `instance` parameter is a dotted attribute-path, leading from the main
+Application instance to your object instance.
+For example, if the Application object has an attribute `status`, which then
+has an attribute `prompt` and commands are registered there, the parameter
+would be `status.prompt`.
+
+There are also other arguments to customize the way the command is registered,
+see the class documentation for `register` in `qutebrowser.commands.utils` for
+details.
+
+
 Style conventions
 -----------------
 
