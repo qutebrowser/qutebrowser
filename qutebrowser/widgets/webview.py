@@ -185,16 +185,14 @@ class WebView(QWebView):
         """
         # FIXME is this algorithm accurate?
         elem = hitresult.element()
+        tag = elem.tagName().lower()
         if hitresult.isContentEditable() and webelem.is_writable(elem):
             # text fields and the like
             return True
-        if not config.get('input', 'insert-mode-on-plugins'):
-            return False
-        tag = elem.tagName().lower()
-        if tag in ('embed', 'applet', 'select'):
+        elif tag in ('embed', 'applet', 'select'):
             # Flash/Java/...
-            return True
-        if tag == 'object':
+            return config.get('input', 'insert-mode-on-plugins')
+        elif tag == 'object':
             # Could be Flash/Java/..., could be image/audio/...
             if not elem.hasAttribute('type'):
                 log.mouse.debug("<object> without type clicked...")
@@ -206,8 +204,12 @@ class WebView(QWebView):
                 # at least a classid attribute. Oh, and let's home images/...
                 # DON"T have a classid attribute. HTML sucks.
                 log.mouse.debug("<object type='{}'> clicked.".format(objtype))
+                return config.get('input', 'insert-mode-on-plugins')
+        elif tag == 'div':
+            if any([c.startswith('CodeMirror') for c in elem.classes()]):
                 return True
-        return False
+        else:
+            return False
 
     def _mousepress_backforward(self, e):
         """Handle back/forward mouse button presses.
