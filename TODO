@@ -2,17 +2,21 @@ Before 0.1
 ==========
 
 - Check BUGS
-- Manpage
-- Website
+- Docs
+    - Manpage
+    - Website
+    - FAQ
 - Tests for URL detection and fix corner cases
 - Maybe test under other platforms
 - Autosave feature (against segfaults/...)
 - Save tabs feature
 - More dwb keybindings
 - Use  :open engine searchterm   syntax for searching
-- SSL handling
-    - ssl-strict=ask
-    - SSL-symbol in statusbar?
+- ssl-strict=ask
+- Use argparse and do something like click for command arguments, then we can
+  have flags etc.
+- Implement some optional stuff from http://greenbytes.de/tech/tc2231/
+  (especially filename with Content-Disposition: inline)
 
 New big features
 ================
@@ -37,10 +41,9 @@ New big features
 Improvements / minor features
 =============================
 
+- SSL-symbol in statusbar?
 - Commandline argument to delete config
 - Settings dialog
-- Use argparse and do something like click for command arguments, then we can
-  have flags etc.
 - Reimplement tabbar to paint it by ourselves to look like dwb
 - Save cookies in Netscape format so it can be used by wget. (see notes)
 - Zoom with ctrl + mousewheel
@@ -50,7 +53,7 @@ Improvements / minor features
     - config changed signals for sections (optimization)
 - Display metavars for commands in input bar.
 - count support for special keys
-- set-as-default argument/command
+- set-as-default argument/command (to set qute as system default browser)
 - Enable disk caching (see notes)
 - clear cookies command
 - keybind/aliases should have completion for commands/arguments
@@ -68,8 +71,6 @@ Improvements / minor features
   there are many hacks involved by now (see notes).
 - :%! like feature to pipe current page through a filter.
 - Add FIFOHandler based on asyncio if it's available
-- Maybe we should depend on Python >= 3.4 and Qt >= 5.1?
-  In general we should check our requirements.
 
 hints
 -----
@@ -85,6 +86,7 @@ style
 =====
 
 - Add a global none attribute/setting to every ConfigType
+- Clean up the package checking mess in earlyinit.py
 
 dwb keybindings to possibly implement
 =====================================

@@ -1,3 +1,14 @@
+multiple questions
+==================
+
+For modular mode, we should implement a kind of stack: Save the current
+question if any is available, then after exec_() restore it.
+
+For async questions, we check if we're currently asking *any* question
+(sync/async), and if so, add the question to a deque instead. After a question
+gets hidden (e.g. in on_mode_left?), we check if another question is in the
+deque, and if so pop and ask it.
+
 click inspirations
 ===================
 
