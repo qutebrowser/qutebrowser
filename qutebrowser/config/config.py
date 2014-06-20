@@ -170,7 +170,8 @@ class ConfigManager(QObject):
             lines.append("# {}{}:".format(optname, typestr))
             try:
                 desc = self.sections[sectname].descriptions[optname]
-            except KeyError:
+            except KeyError as e:
+                log.misc.debug(e)
                 continue
             for descline in desc.splitlines():
                 lines += wrapper.wrap(descline)

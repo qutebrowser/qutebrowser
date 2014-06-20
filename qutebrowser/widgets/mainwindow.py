@@ -34,6 +34,7 @@ from qutebrowser.widgets.tabbedbrowser import TabbedBrowser
 from qutebrowser.widgets.completion import CompletionView
 from qutebrowser.widgets.downloads import DownloadView
 from qutebrowser.utils.usertypes import PromptMode
+from qutebrowser.utils.log import init as logger
 
 
 class MainWindow(QWidget):
@@ -58,12 +59,14 @@ class MainWindow(QWidget):
             stateconf = QCoreApplication.instance().stateconfig
             geom = b64decode(stateconf['geometry']['mainwindow'],
                              validate=True)
-        except (KeyError, binascii.Error):
+        except (KeyError, binascii.Error) as e:
+            logger.warn(e)
             self._set_default_geometry()
         else:
             try:
                 ok = self.restoreGeometry(geom)
             except KeyError:
+                logger.warn(e)
                 self._set_default_geometry()
             if not ok:
                 self._set_default_geometry()

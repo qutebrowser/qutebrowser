@@ -25,6 +25,7 @@ from PyQt5.QtWidgets import QApplication
 
 import qutebrowser.config.config as config
 from qutebrowser.utils.usertypes import enum
+from qutebrowser.utils.log import downloads as logger
 
 
 Role = enum('item', start=Qt.UserRole)
@@ -79,7 +80,8 @@ class DownloadModel(QAbstractListModel):
 
         try:
             item = self.downloadmanager.downloads[index.row()]
-        except IndexError:
+        except IndexError as e:
+            logger.debug(e)
             return QVariant()
         if role == Qt.DisplayRole:
             data = str(item)

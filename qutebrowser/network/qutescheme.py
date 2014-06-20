@@ -27,7 +27,7 @@ Module attributes:
 import qutebrowser
 import cgi
 
-import qutebrowser.utils.log as log
+import qutebrowser.utils.log as logutils
 import qutebrowser.utils.version as version
 from qutebrowser.network.schemehandler import (SchemeHandler,
                                                SpecialNetworkReply)
@@ -82,11 +82,12 @@ class QuteSchemeHandler(SchemeHandler):
         """
         path = request.url().path()
         # An url like "qute:foo" is split as "scheme:path", not "scheme:host".
-        log.misc.debug("url: {}, path: {}".format(
+        logutils.misc.debug("url: {}, path: {}".format(
             request.url().toDisplayString(), path))
         try:
             handler = getattr(QuteHandlers, path)
-        except AttributeError:
+        except AttributeError as e:
+            logutils.misc.debug(e)
             data = bytes()
         else:
             data = handler()
@@ -117,10 +118,10 @@ class QuteHandlers:
     @classmethod
     def log(cls):
         """Handler for qute:log. Return HTML content as bytes."""
-        if log.ram_handler is None:
+        if logutils.ram_handler is None:
             text = "Log output was disabled."
         else:
-            text = cgi.escape(log.ram_handler.dump_log())
+            text = cgi.escape(logutils.ram_handler.dump_log())
         return _get_html('log', '<pre>{}</pre>'.format(text))
 
     @classmethod

@@ -47,10 +47,10 @@ class ExternalEditor(QObject):
         os.close(self.oshandle)
         try:
             os.remove(self.filename)
-        except PermissionError:
+        except PermissionError as e:
             # NOTE: Do not replace this with "raise CommandError" as it's
             # executed async.
-            message.error("Failed to delete tempfile...")
+            message.error("Failed to delete tempfile... ({})".format(e))
 
     def on_proc_closed(self, exitcode, exitstatus):
         """Write the editor text into the form field and clean up tempfile.

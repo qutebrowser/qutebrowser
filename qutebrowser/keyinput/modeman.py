@@ -52,8 +52,8 @@ def maybe_leave(mode, reason=None):
     """Convenience method to leave 'mode' without exceptions."""
     try:
         instance().leave(mode, reason)
-    except ValueError:
-        pass
+    except ValueError as e:
+        logger.debug(e)
 
 
 class ModeManager(QObject):

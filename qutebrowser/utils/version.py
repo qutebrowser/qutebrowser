@@ -30,6 +30,7 @@ from PyQt5.QtWebKit import qWebKitVersion
 
 import qutebrowser
 from qutebrowser.utils.misc import read_file
+from qutebrowser.utils.log import misc as logger
 
 
 GPL_BOILERPLATE = """
@@ -81,8 +82,8 @@ def _git_str():
         try:
             gitpath = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    os.path.pardir, os.path.pardir)
-        except NameError:
-            pass
+        except NameError as e:
+            logger.debug(e)
         else:
             commit = _git_str_subprocess(gitpath)
     if commit is not None:
@@ -124,8 +125,8 @@ def _release_info():
         try:
             with open(fn, 'r') as f:
                 data.append((fn, ''.join(f.readlines())))
-        except IOError:
-            pass
+        except IOError as e:
+            logger.warn(e)
     return data
 
 
@@ -145,7 +146,8 @@ def _module_versions():
         try:
             lines.append('SIP: {}'.format(
                 sipconfig.Configuration().sip_version_str))
-        except (AttributeError, TypeError):
+        except (AttributeError, TypeError) as e:
+            logger.warn(e)
             lines.append('SIP: ?')
 
     try:

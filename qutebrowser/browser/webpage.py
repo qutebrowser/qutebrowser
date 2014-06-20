@@ -197,7 +197,8 @@ class BrowserPage(QWebPage):
         """
         try:
             handler = self._extension_handlers[ext]
-        except KeyError:
+        except KeyError as e:
+            log.webview.warning(e)
             return super().extension(ext, opt, out)
         return handler(opt, out)
 

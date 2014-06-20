@@ -25,6 +25,7 @@ import qutebrowser.config.config as config
 import qutebrowser.config.configdata as configdata
 from qutebrowser.models.basecompletion import BaseCompletionModel
 from qutebrowser.commands.utils import cmd_dict
+from qutebrowser.utils.log import completion as logger
 
 
 class SettingSectionCompletionModel(BaseCompletionModel):
@@ -61,7 +62,8 @@ class SettingOptionCompletionModel(BaseCompletionModel):
         for name, _ in sectdata.items():
             try:
                 desc = sectdata.descriptions[name]
-            except (KeyError, AttributeError):
+            except (KeyError, AttributeError) as e:
+                logger.debug(e)
                 desc = ""
             value = config.get(section, name, raw=True)
             _valitem, _descitem, miscitem = self.new_item(cat, name, desc,
@@ -75,7 +77,8 @@ class SettingOptionCompletionModel(BaseCompletionModel):
             return
         try:
             item = self._misc_items[option]
-        except KeyError:
+        except KeyError as e:
+            logger.debug(e)
             # changed before init
             return
         val = config.get(section, option, raw=True)

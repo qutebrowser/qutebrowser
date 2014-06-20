@@ -140,10 +140,10 @@ class _BaseUserscriptRunner(QObject):
         """Clean up the temporary file."""
         try:
             os.remove(self.filepath)
-        except PermissionError:
+        except PermissionError as e:
             # NOTE: Do not replace this with "raise CommandError" as it's
             # executed async.
-            message.error("Failed to delete tempfile...")
+            message.error("Failed to delete tempfile... ({})".format(e))
         self.filepath = None
         self.proc = None
 

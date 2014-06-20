@@ -120,6 +120,7 @@ class Completer(QObject):
             try:
                 model = self._models['value'][section][option]
             except KeyError:
+                # No completion model for this section/option.
                 model = None
         else:
             model = self._models.get(completion_name)

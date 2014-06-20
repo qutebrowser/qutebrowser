@@ -121,8 +121,8 @@ class _CrashDialog(QDialog):
         try:
             self._crash_info.append(("Config",
                                      config.instance().dump_userconfig()))
-        except AttributeError:
-            pass
+        except AttributeError as e:
+            self._crash_info.append(("Config", str(e)))
 
     def _format_crash_info(self):
         """Format the gathered crash info to be displayed.
@@ -217,8 +217,8 @@ class ExceptionCrashDialog(_CrashDialog):
         try:
             self._crash_info.append(("Debug log",
                                      logutils.ram_handler.dump_log()))
-        except AttributeError:
-            pass
+        except AttributeError as e:
+            self._crash_info.append(("Debug log", str(e)))
 
 
 class FatalCrashDialog(_CrashDialog):

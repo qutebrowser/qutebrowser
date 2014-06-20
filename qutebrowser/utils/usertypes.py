@@ -295,11 +295,11 @@ class Question(QObject):
         self.is_aborted = True
         try:
             self.aborted.emit()
-        except TypeError:
+        except TypeError as e:
             # FIXME
             # We seem to get "pyqtSignal must be bound to a QObject, not
             # 'Question' here, which makes no sense at all..."
-            pass
+            logger.debug(e)
 
 
 class Timer(QTimer):

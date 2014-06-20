@@ -347,7 +347,8 @@ class DownloadManager(QObject):
                 content_disposition = rfc6266.parse_headers(
                     bytes(reply.rawHeader('Content-Disposition')))
                 filename = content_disposition.filename_unsafe
-            except UnicodeDecodeError:
+            except UnicodeDecodeError as e:
+                logger.warning(e)
                 filename = None
         else:
             filename = None

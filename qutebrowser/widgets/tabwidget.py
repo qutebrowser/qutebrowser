@@ -24,6 +24,7 @@ from PyQt5.QtWidgets import QTabWidget, QTabBar, QSizePolicy
 from PyQt5.QtGui import QIcon, QPixmap
 
 import qutebrowser.config.config as config
+import qutebrowser.utils.log as log
 from qutebrowser.config.style import set_register_stylesheet
 from qutebrowser.utils.style import Style
 
@@ -110,8 +111,8 @@ class TabWidget(QTabWidget):
         try:
             self.setTabPosition(position_conv[posstr])
             self.tabBar().setSelectionBehaviorOnRemove(select_conv[selstr])
-        except KeyError:
-            pass
+        except KeyError as e:
+            log.init.warn(e)
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, _option):

@@ -104,7 +104,8 @@ class ColorDict(dict):
         """
         try:
             val = super().__getitem__(key)
-        except KeyError:
+        except KeyError as e:
+            logger.warning(e)
             return ''
         if 'fg' in key.split('.'):
             return 'color: {};'.format(val)

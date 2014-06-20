@@ -30,6 +30,7 @@ from PyQt5.QtNetwork import QNetworkProxy
 
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.utils.misc import get_standard_dir
+from qutebrowser.utils.log import misc as logger
 
 
 class ValidationError(ValueError):
@@ -155,7 +156,8 @@ class BaseType:
             for val in self.valid_values:
                 try:
                     desc = self.valid_values.descriptions[val]
-                except KeyError:
+                except KeyError as e:
+                    logger.warning(e)
                     desc = ""
                 out.append((val, desc))
             return out

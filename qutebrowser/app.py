@@ -445,8 +445,8 @@ class Application(QApplication):
                 url = tab.url().toString()
                 if url:
                     pages.append(url)
-            except Exception:  # pylint: disable=broad-except
-                pass
+            except Exception as e:  # pylint: disable=broad-except
+                log.init.debug(e)
         return pages
 
     def _save_geometry(self):
@@ -469,8 +469,8 @@ class Application(QApplication):
         self._crashlogfile.close()
         try:
             os.remove(self._crashlogfile.name)
-        except PermissionError:
-            log.destroy.warn("Could not remove crash log!")
+        except PermissionError as e:
+            log.destroy.warn("Could not remove crash log ({})!".format(e))
 
     def _exception_hook(self, exctype, excvalue, tb):
         """Handle uncaught python exceptions.
@@ -485,7 +485,8 @@ class Application(QApplication):
             try:
                 self.shutdown()
                 return
-            except Exception:
+            except Exception as e:
+                log.destroy.debug(e)
                 self.quit()
                 return
 
@@ -496,33 +497,37 @@ class Application(QApplication):
 
         try:
             pages = self._recover_pages()
-        except Exception:
+        except Exception as e:
+            log.destroy.debug(e)
             pages = []
 
         try:
             history = self.mainwindow.status.cmd.history[-5:]
-        except Exception:
+        except Exception as e:
+            log.destroy.debug(e)
             history = []
 
         try:
             widgets = self.get_all_widgets()
-        except Exception:
+        except Exception as e:
+            log.destroy.debug(e)
             widgets = ""
 
         try:
             objects = self.get_all_objects()
-        except Exception:
+        except Exception as e:
+            log.destroy.debug(e)
             objects = ""
 
         # Try to shutdown gracefully
         try:
             self.shutdown(do_quit=False)
-        except Exception:
-            pass
+        except Exception as e:
+            log.destroy.debug(e)
         try:
             self.lastWindowClosed.disconnect(self.shutdown)
-        except TypeError:
-            log.destroy.warning("Preventing shutdown failed.")
+        except TypeError as e:
+            log.destroy.warning("Preventing shutdown failed ({}).")
         QApplication.closeAllWindows()
         self._crashdlg = ExceptionCrashDialog(pages, history, exc, widgets,
                                               objects)
@@ -569,8 +574,8 @@ class Application(QApplication):
     #    for page in self._opened_urls:
     #        try:
     #            argv.remove(page)
-    #        except ValueError:
-    #            pass
+    #        except ValueError as e:
+    #            logger.destroy.debug(e)
     #    argv = [sys.executable] + argv + pages
     #    log.procs.debug("Running {} with args {} (PYTHONPATH={})".format(
     #        sys.executable, argv, pythonpath))
@@ -629,8 +634,9 @@ class Application(QApplication):
             self.mainwindow.tabs.shutdown_complete.connect(partial(
                 self._maybe_quit, 'tabs'))
             self.mainwindow.tabs.shutdown()
-        except AttributeError:  # mainwindow or tabs could still be None
-            log.destroy.warning("No mainwindow/tabs to shut down.")
+        except AttributeError as e:  # mainwindow or tabs could still be None
+            log.destroy.warning("No mainwindow/tabs to shut down ({}).".format(
+                e))
             self._maybe_quit('tabs')
         # Shut down networkmanager
         try:
@@ -638,8 +644,9 @@ class Application(QApplication):
             self.networkmanager.destroyed.connect(partial(
                 self._maybe_quit, 'networkmanager'))
             self.networkmanager.deleteLater()
-        except AttributeError:
-            log.destroy.warning("No networkmanager to shut down.")
+        except AttributeError as e:
+            log.destroy.warning("No networkmanager to shut down ({}).".format(
+                e))
             self._maybe_quit('networkmanager')
         # Re-enable faulthandler to stdout, then remove crash log
         self._destroy_crashlogfile()
