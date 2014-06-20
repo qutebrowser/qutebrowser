@@ -392,6 +392,9 @@ class WebView(QWebView):
             urlstr: The URL to handle, as string.
         """
         url = QUrl(urlstr)
+        if not url.isValid():
+            message.error("Invalid link {} clicked!".format(urlstr))
+            return
         if self._open_target == Target.tab:
             self.tabbedbrowser.tabopen(url, False)
         elif self._open_target == Target.tab_bg:
