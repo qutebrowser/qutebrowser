@@ -639,8 +639,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def quickmark_load(self, name):
         """Load a quickmark."""
-        url = quickmarks.get(name)
-        self._tabs.currentWidget().openurl(url)
+        urlstr = quickmarks.get(name)
+        self._tabs.currentWidget().openurl(QUrl(urlstr))
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def quickmark_load_tab(self, name):

@@ -17,7 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Manager for quickmarks."""
+"""Manager for quickmarks.
+
+Note we violate our general QUrl rule by storing url strings in the marks
+OrderedDict. This is because we read them from a file at start and write them
+to a file on shutdown, so it makes semse to keep them as strings her.e
+"""
 
 from functools import partial
 from collections import OrderedDict
@@ -88,7 +93,8 @@ def quickmark_add(url, name):
 
 
 def get(name):
-    """Get the URL of the quickmark named name."""
+    """Get the URL of the quickmark named name as a QUrl."""
     if name not in marks:
         raise CommandError("Quickmark '{}' does not exist!".format(name))
-    return marks[name]
+    urlstr = marks[name]
+    return QUrl(urlstr)
