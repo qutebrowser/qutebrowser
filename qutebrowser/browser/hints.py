@@ -400,7 +400,7 @@ class HintManager(QObject):
             raise CommandError("No {} links found!".format(
                 "prev" if prev else "forward"))
         url = self._resolve_url(elem, baseurl)
-        if url is None:
+        if url is None or not url.isValid():
             raise CommandError("No {} links found!".format(
                 "prev" if prev else "forward"))
         self.openurl.emit(url, newtab)

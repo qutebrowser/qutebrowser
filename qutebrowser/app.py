@@ -294,7 +294,7 @@ class Application(QApplication):
                 self._opened_urls.append(cmd)
                 try:
                     url = urlutils.fuzzy_url(cmd)
-                except urlutils.SearchEngineError as e:
+                except urlutils.FuzzyUrlError as e:
                     message.error("Error in startup argument '{}': {}".format(
                         cmd, e))
                 else:
@@ -305,7 +305,7 @@ class Application(QApplication):
             for urlstr in self.config.get('general', 'startpage'):
                 try:
                     url = urlutils.fuzzy_url(urlstr)
-                except urlutils.SearchEngineError as e:
+                except urlutils.FuzzyUrlError as e:
                     message.error("Error when opening startpage: {}".format(e))
                 else:
                     self.mainwindow.tabs.tabopen(url)

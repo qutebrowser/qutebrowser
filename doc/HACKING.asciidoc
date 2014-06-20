@@ -276,7 +276,7 @@ following guidelines:
 * Convert a string to a QUrl object as early as possible, i.e. directly after
 the user did enter it.
     - Use `utils.url.fuzzy_url` if the URL is entered by the user somewhere.
-    - Be sure you handle `utils.url.SearchEngineError` and display an error
+    - Be sure you handle `utils.url.FuzzyError` and display an error
       message to the user.
 * Convert a `QUrl` object to a string as late as possible, e.g. before
 displaying it to the user.
@@ -288,6 +288,7 @@ displaying it to the user.
 * Name a string URL something like `urlstr`, and a `QUrl` something like `url`.
 * Mention in the docstring whether your function needs a URL string or a
 `QUrl`.
+* Call QUrl.isValid() and take appropriate action if not.
 
 
 Style conventions

@@ -43,7 +43,7 @@ def _get_search_url(txt):
         The search URL as a QUrl.
 
     Raise:
-        SearchEngineError if there is no template or no search term was found.
+        FuzzyUrlError if there is no template or no search term was found.
     """
     logger.debug("Finding search engine for '{}'".format(txt))
     r = re.compile(r'(^|\s+)!(\w+)($|\s+)')
@@ -53,7 +53,7 @@ def _get_search_url(txt):
         try:
             template = config.get('searchengines', engine)
         except config.NoOptionError:
-            raise SearchEngineError("Search engine {} not found!".format(
+            raise FuzzyUrlError("Search engine {} not found!".format(
                 engine))
         term = r.sub('', txt)
         logger.debug("engine {}, term '{}'".format(engine, term))
@@ -62,7 +62,7 @@ def _get_search_url(txt):
         term = txt
         logger.debug("engine: default, term '{}'".format(txt))
     if not term:
-        raise SearchEngineError("No search term given")
+        raise FuzzyUrlError("No search term given")
     return QUrl.fromUserInput(template.format(urllib.parse.quote(term)))
 
 
@@ -79,7 +79,9 @@ def _is_url_naive(urlstr):
     url = QUrl.fromUserInput(urlstr)
     # We don't use url here because fromUserInput appends http://
     # automatically.
-    if QUrl(urlstr).scheme() in schemes:
+    if not url.isValid():
+        return False
+    elif QUrl(urlstr).scheme() in schemes:
         return True
     elif '.' in url.host():
         return True
@@ -98,6 +100,8 @@ def _is_url_dns(url):
     Return:
         True if the URL really is a URL, False otherwise.
     """
+    if not url.isValid():
+        return False
     host = url.host()
     logger.debug("DNS request for {}".format(host))
     if not host:
@@ -136,6 +140,8 @@ def is_special_url(url):
     Args:
         url: The URL as QUrl.
     """
+    if not url.isValid():
+        return False
     special_schemes = ('about', 'qute', 'file')
     return url.scheme() in special_schemes
 
@@ -184,8 +190,8 @@ def is_url(urlstr):
         raise ValueError("Invalid autosearch value")
 
 
-class SearchEngineError(Exception):
+class FuzzyUrlError(Exception):
 
-    """Exception raised when a search engine wasn't found."""
+    """Exception raised by fuzzy_url on problems."""
 
     pass

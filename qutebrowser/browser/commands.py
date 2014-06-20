@@ -162,7 +162,7 @@ class CommandDispatcher:
         tab = self._tabs.cntwidget(count)
         try:
             url = urlutils.fuzzy_url(urlstr)
-        except urlutils.SearchEngineError as e:
+        except urlutils.FuzzyUrlError as e:
             raise CommandError(e)
         if tab is None:
             if count is None:
@@ -434,7 +434,7 @@ class CommandDispatcher:
         """Open a new tab with a given url."""
         try:
             url = urlutils.fuzzy_url(urlstr)
-        except urlutils.SearchEngineError as e:
+        except urlutils.FuzzyUrlError as e:
             raise CommandError(e)
         self._tabs.tabopen(url, background=False)
 
@@ -443,7 +443,7 @@ class CommandDispatcher:
         """Open a new tab in background."""
         try:
             url = urlutils.fuzzy_url(urlstr)
-        except urlutils.SearchEngineError as e:
+        except urlutils.FuzzyUrlError as e:
             raise CommandError(e)
         self._tabs.tabopen(url, background=True)
 
@@ -518,7 +518,7 @@ class CommandDispatcher:
         log.misc.debug("Clipboard contained: '{}'".format(text))
         try:
             url = urlutils.fuzzy_url(text)
-        except urlutils.SearchEngineError as e:
+        except urlutils.FuzzyUrlError as e:
             raise CommandError(e)
         if tab:
             self._tabs.tabopen(url)
@@ -640,7 +640,10 @@ class CommandDispatcher:
     def quickmark_load(self, name):
         """Load a quickmark."""
         urlstr = quickmarks.get(name)
-        self._tabs.currentWidget().openurl(QUrl(urlstr))
+        url = QUrl(urlstr)
+        if not url.isValid():
+            raise CommandError("Invalid URL {}".format(urlstr))
+        self._tabs.currentWidget().openurl(url)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def quickmark_load_tab(self, name):

@@ -129,7 +129,7 @@ class SearchUrlTests(TestCase):
 
     def test_engine_wrong(self):
         """Test with wrong search engine."""
-        with self.assertRaises(urlutils.SearchEngineError):
+        with self.assertRaises(urlutils.FuzzyUrlError):
             _ = urlutils._get_search_url('!blub testfoo')
 
     def tearDown(self):

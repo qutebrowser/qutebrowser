@@ -97,4 +97,8 @@ def get(name):
     if name not in marks:
         raise CommandError("Quickmark '{}' does not exist!".format(name))
     urlstr = marks[name]
-    return QUrl(urlstr)
+    url = QUrl(urlstr)
+    if not url.isValid():
+        raise CommandError("Invalid URL for quickmark {}: {}".format(
+            name, urlstr))
+    return url
