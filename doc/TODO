@@ -85,7 +85,6 @@ hints
 style
 =====
 
-- Add a global none attribute/setting to every ConfigType
 - Clean up the package checking mess in earlyinit.py
 
 dwb keybindings to possibly implement

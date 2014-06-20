@@ -81,6 +81,9 @@ class BaseType:
 
     """A type used for a setting value.
 
+    Attributes:
+        none_ok: Whether to convert to None for an empty string.
+
     Class attributes:
         valid_values: Possible values if they can be expressed as a fixed
                       string. ValidValues instance.
@@ -89,6 +92,9 @@ class BaseType:
 
     typestr = None
     valid_values = None
+
+    def __init__(self, none_ok=False):
+        self.none_ok = none_ok
 
     def transform(self, value):
         """Transform the setting value.
@@ -103,6 +109,8 @@ class BaseType:
         Return:
             The transformed value.
         """
+        if self.none_ok and not value:
+            return None
         return value
 
     def validate(self, value):
@@ -119,6 +127,8 @@ class BaseType:
             NotImplementedError if self.valid_values is not defined and this
                                 method should be overridden.
         """
+        if not value and self.none_ok:
+            return
         if self.valid_values is not None:
             if value not in self.valid_values:
                 raise ValidationError(value, "valid values: {}".format(
@@ -159,24 +169,20 @@ class String(BaseType):
         minlen: Minimum length (inclusive).
         maxlen: Maximum length (inclusive).
         forbidden: Forbidden chars in the string.
-        none: Whether to convert to None for an empty string.
     """
 
     typestr = 'string'
 
-    def __init__(self, minlen=None, maxlen=None, forbidden=None, none=False):
-        super().__init__()
+    def __init__(self, minlen=None, maxlen=None, forbidden=None,
+                 none_ok=False):
+        super().__init__(none_ok)
         self.minlen = minlen
         self.maxlen = maxlen
         self.forbidden = forbidden
-        self.none = none
-
-    def transform(self, value):
-        if self.none and not value:
-            return None
-        return value
 
     def validate(self, value):
+        if self.none_ok and not value:
+            return
         if self.forbidden is not None and any(c in value
                                               for c in self.forbidden):
             raise ValidationError(value, "may not contain the chars "
@@ -234,24 +240,22 @@ class Int(BaseType):
     Attributes:
         minval: Minimum value (inclusive).
         maxval: Maximum value (inclusive).
-        none: Whether to accept empty values as None.
     """
 
     typestr = 'int'
 
-    def __init__(self, minval=None, maxval=None, none=False):
-        super().__init__()
+    def __init__(self, minval=None, maxval=None, none_ok=False):
+        super().__init__(none_ok)
         self.minval = minval
         self.maxval = maxval
-        self.none = none
 
     def transform(self, value):
-        if self.none and not value:
+        if self.none_ok and not value:
             return None
         return int(value)
 
     def validate(self, value):
-        if self.none and not value:
+        if self.none_ok and not value:
             return
         try:
             intval = int(value)
@@ -293,8 +297,8 @@ class Float(BaseType):
 
     typestr = 'float'
 
-    def __init__(self, minval=None, maxval=None):
-        super().__init__()
+    def __init__(self, minval=None, maxval=None, none_ok=False):
+        super().__init__(none_ok)
         self.minval = minval
         self.maxval = maxval
 
@@ -325,8 +329,8 @@ class Perc(BaseType):
 
     typestr = 'percentage'
 
-    def __init__(self, minval=None, maxval=None):
-        super().__init__()
+    def __init__(self, minval=None, maxval=None, none_ok=False):
+        super().__init__(none_ok)
         self.minval = minval
         self.maxval = maxval
 
@@ -359,8 +363,8 @@ class PercList(List):
 
     typestr = 'perc-list'
 
-    def __init__(self, minval=None, maxval=None):
-        super().__init__()
+    def __init__(self, minval=None, maxval=None, none_ok=False):
+        super().__init__(none_ok)
         self.minval = minval
         self.maxval = maxval
 
@@ -391,8 +395,9 @@ class PercOrInt(BaseType):
 
     typestr = 'percentage-or-int'
 
-    def __init__(self, minperc=None, maxperc=None, minint=None, maxint=None):
-        super().__init__()
+    def __init__(self, minperc=None, maxperc=None, minint=None, maxint=None,
+                 none_ok=False):
+        super().__init__(none_ok)
         self.minperc = minperc
         self.maxperc = maxperc
         self.minint = minint
@@ -530,8 +535,8 @@ class Regex(BaseType):
 
     typestr = 'regex'
 
-    def __init__(self, flags=0):
-        super().__init__()
+    def __init__(self, flags=0, none_ok=False):
+        super().__init__(none_ok)
         self.flags = flags
 
     def validate(self, value):
@@ -550,8 +555,8 @@ class RegexList(List):
 
     typestr = 'regex-list'
 
-    def __init__(self, flags=0):
-        super().__init__()
+    def __init__(self, flags=0, none_ok=False):
+        super().__init__(none_ok)
         self.flags = flags
 
     def transform(self, value):
@@ -573,26 +578,20 @@ class File(BaseType):
     typestr = 'file'
 
     def validate(self, value):
+        if self.none_ok and not value:
+            return
         if not os.path.isfile(value):
             raise ValidationError(value, "must be a valid file!")
 
 
 class Directory(BaseType):
 
-    """A directory on the local filesystem.
-
-    Attributes:
-        none: Whether to accept empty values as None.
-    """
+    """A directory on the local filesystem."""
 
     typestr = 'directory'
 
-    def __init__(self, none=False):
-        super().__init__()
-        self.none = none
-
     def validate(self, value):
-        if self.none and not value:
+        if self.none_ok and not value:
             return
         if not os.path.isdir(value):
             raise ValidationError(value, "must be a valid directory!")
@@ -627,8 +626,8 @@ class WebKitBytes(BaseType):
 
     typestr = 'bytes'
 
-    def __init__(self, maxsize=None):
-        super().__init__()
+    def __init__(self, maxsize=None, none_ok=False):
+        super().__init__(none_ok)
         self.maxsize = maxsize
 
     def validate(self, value):
@@ -669,8 +668,8 @@ class WebKitBytesList(List):
 
     typestr = 'bytes-list'
 
-    def __init__(self, maxsize=None, length=None):
-        super().__init__()
+    def __init__(self, maxsize=None, length=None, none_ok=False):
+        super().__init__(none_ok)
         self.length = length
         self.bytestype = WebKitBytes(maxsize)
 
@@ -703,9 +702,9 @@ class ShellCommand(String):
 
     typestr = 'shell-command'
 
-    def __init__(self, placeholder=False):
+    def __init__(self, placeholder=False, none_ok=False):
+        super().__init__(none_ok=none_ok)
         self.placeholder = placeholder
-        super().__init__()
 
     def validate(self, value):
         super().validate(value)
@@ -824,18 +823,15 @@ class KeyBinding(Command):
 
 class WebSettingsFile(File):
 
-    """QWebSettings file which also can be none."""
+    """QWebSettings file."""
 
     typestr = 'file'
 
-    def validate(self, value):
-        if value == '':
-            # empty values are okay
-            return
-        super().validate(value)
+    def __init__(self):
+        super().__init__(none_ok=True)
 
     def transform(self, value):
-        if value == '':
+        if not value:
             return None
         else:
             return QUrl.fromLocalFile(value)

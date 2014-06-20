@@ -228,7 +228,7 @@ DATA = OrderedDict([
          "This setting enables WebKit's workaround for broken sites."),
 
         ('default-encoding',
-         SettingValue(types.String(none=True), ''),
+         SettingValue(types.String(none_ok=True), ''),
          "Default encoding to use for websites."),
     )),
 
@@ -281,11 +281,11 @@ DATA = OrderedDict([
          "User stylesheet to set."),
 
         ('css-media-type',
-         SettingValue(types.String(none=True), ''),
+         SettingValue(types.String(none_ok=True), ''),
          "Set the CSS media type."),
 
         ('css-media-type',
-         SettingValue(types.String(none=True), ''),
+         SettingValue(types.String(none_ok=True), ''),
          "Set the CSS media type."),
 
         #('accelerated-compositing',
@@ -312,11 +312,11 @@ DATA = OrderedDict([
          "Value to send in the DNT header."),
 
         ('accept-language',
-         SettingValue(types.String(none=True), 'en-US,en'),
+         SettingValue(types.String(none_ok=True), 'en-US,en'),
          "Value to send in the accept-language header."),
 
         ('user-agent',
-         SettingValue(types.String(none=True), ''),
+         SettingValue(types.String(none_ok=True), ''),
          "User agent to send. Empty to send the default."),
 
         ('proxy',
@@ -441,12 +441,12 @@ DATA = OrderedDict([
 
     ('storage', sect.KeyValue(
         ('download-directory',
-         SettingValue(types.Directory(none=True), ''),
+         SettingValue(types.Directory(none_ok=True), ''),
          "The directory to save downloads to. An empty value selects a "
          "sensible os-specific default."),
 
         ('maximum-pages-in-cache',
-         SettingValue(types.Int(none=True, minval=0, maxval=MAXVALS['int']),
+         SettingValue(types.Int(none_ok=True, minval=0, maxval=MAXVALS['int']),
                       ''),
          "Sets the maximum number of pages to hold in the memory page cache."),
 
@@ -942,46 +942,46 @@ DATA = OrderedDict([
          "Font used for the hints."),
 
         ('web-family-standard',
-         SettingValue(types.String(none=True), ''),
+         SettingValue(types.String(none_ok=True), ''),
          "Font family for standard fonts."),
 
         ('web-family-fixed',
-         SettingValue(types.String(none=True), ''),
+         SettingValue(types.String(none_ok=True), ''),
          "Font family for fixed fonts."),
 
         ('web-family-serif',
-         SettingValue(types.String(none=True), ''),
+         SettingValue(types.String(none_ok=True), ''),
          "Font family for serif fonts."),
 
         ('web-family-sans-serif',
-         SettingValue(types.String(none=True), ''),
+         SettingValue(types.String(none_ok=True), ''),
          "Font family for sans-serif fonts."),
 
         ('web-family-cursive',
-         SettingValue(types.String(none=True), ''),
+         SettingValue(types.String(none_ok=True), ''),
          "Font family for cursive fonts."),
 
         ('web-family-fantasy',
-         SettingValue(types.String(none=True), ''),
+         SettingValue(types.String(none_ok=True), ''),
          "Font family for fantasy fonts."),
 
         ('web-size-minimum',
-         SettingValue(types.Int(none=True, minval=1, maxval=MAXVALS['int']),
+         SettingValue(types.Int(none_ok=True, minval=1, maxval=MAXVALS['int']),
                       ''),
          "The hard minimum font size."),
 
         ('web-size-minimum-logical',
-         SettingValue(types.Int(none=True, minval=1, maxval=MAXVALS['int']),
+         SettingValue(types.Int(none_ok=True, minval=1, maxval=MAXVALS['int']),
                       ''),
          "The minimum logical font size that is applied when zooming out."),
 
         ('web-size-default',
-         SettingValue(types.Int(none=True, minval=1, maxval=MAXVALS['int']),
+         SettingValue(types.Int(none_ok=True, minval=1, maxval=MAXVALS['int']),
                       ''),
          "The default font size for regular text."),
 
         ('web-size-default-fixed',
-         SettingValue(types.Int(none=True, minval=1, maxval=MAXVALS['int']),
+         SettingValue(types.Int(none_ok=True, minval=1, maxval=MAXVALS['int']),
                       ''),
          "The default font size for fixed-pitch text."),
     )),
