@@ -301,7 +301,7 @@ class HintManager(QObject):
         """
         sel = self._context.target == Target.yank_primary
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
-        urlstr = url.toString(QUrl.FullyEncoded)
+        urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
         QApplication.clipboard().setText(urlstr, mode)
         message.info("URL yanked to {}".format("primary selection" if sel
                                                else "clipboard"))

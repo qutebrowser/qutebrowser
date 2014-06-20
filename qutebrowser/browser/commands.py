@@ -356,7 +356,8 @@ class CommandDispatcher:
         Args:
             sel: True to use primary selection, False to use clipboard
         """
-        urlstr = self._tabs.currentWidget().url().toString(QUrl.FullyEncoded)
+        urlstr = self._tabs.currentWidget().url().toString(
+            QUrl.FullyEncoded | QUrl.RemovePassword)
         if sel:
             mode = QClipboard.Selection
             target = "primary selection"
@@ -608,7 +609,8 @@ class CommandDispatcher:
         Args:
             cmd: The command to execute.
         """
-        urlstr = self._tabs.currentWidget().url().toString(QUrl.FullyEncoded)
+        urlstr = self._tabs.currentWidget().url().toString(
+            QUrl.FullyEncoded | QUrl.RemovePassword)
         cmd = cmd.replace('{}', shell_escape(urlstr))
         log.procs.debug("Executing: {}".format(cmd))
         subprocess.Popen(cmd, shell=True)
@@ -621,6 +623,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def run_userscript(self, cmd, *args):
         """Run an userscript given as argument."""
+        # We don't remove the password in the URL here, as it's probably safe
+        # to pass via env variable.
         urlstr = self._tabs.currentWidget().url().toString(QUrl.FullyEncoded)
         runner = UserscriptRunner(self._tabs)
         runner.got_cmd.connect(self._tabs.got_cmd)
