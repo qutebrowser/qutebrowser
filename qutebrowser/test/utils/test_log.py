@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=protected-access,invalid-name
+
 """Tests for qutebrowser.utils.log."""
 
 import logging
@@ -24,6 +26,54 @@ import unittest
 from unittest import TestCase
 
 import qutebrowser.utils.log as log
+
+
+class BaseTest(TestCase):
+
+    """Base class for logging tests.
+
+    Based on CPython's Lib/test/test_logging.py.
+    """
+
+    def setUp(self):
+        """Save the old logging configuration."""
+        logger_dict = logging.getLogger().manager.loggerDict
+        logging._acquireLock()
+        try:
+            self.saved_handlers = logging._handlers.copy()
+            self.saved_handler_list = logging._handlerList[:]
+            self.saved_loggers = saved_loggers = logger_dict.copy()
+            self.logger_states = {}
+            for name in saved_loggers:
+                self.logger_states[name] = getattr(saved_loggers[name],
+                                                   'disabled', None)
+        finally:
+            logging._releaseLock()
+
+        self.root_logger = logging.getLogger("")
+        self.original_logging_level = self.root_logger.getEffectiveLevel()
+
+    def tearDown(self):
+        """Restore the original logging configuration."""
+        while self.root_logger.handlers:
+            h = self.root_logger.handlers[0]
+            self.root_logger.removeHandler(h)
+            h.close()
+        self.root_logger.setLevel(self.original_logging_level)
+        logging._acquireLock()
+        try:
+            logging._handlers.clear()
+            logging._handlers.update(self.saved_handlers)
+            logging._handlerList[:] = self.saved_handler_list
+            loggerDict = logging.getLogger().manager.loggerDict
+            loggerDict.clear()
+            loggerDict.update(self.saved_loggers)
+            logger_states = self.logger_states
+            for name in self.logger_states:
+                if logger_states[name] is not None:
+                    self.saved_loggers[name].disabled = logger_states[name]
+        finally:
+            logging._releaseLock()
 
 
 class LogFilterTests(TestCase):
@@ -95,7 +145,7 @@ class LogFilterTests(TestCase):
         self.assertTrue(logfilter.filter(record))
 
 
-class RAMHandlerTests(TestCase):
+class RAMHandlerTests(BaseTest):
 
     """Tests for RAMHandler.
 
@@ -108,9 +158,8 @@ class RAMHandlerTests(TestCase):
     """
 
     def setUp(self):
+        super().setUp()
         self.logger = logging.getLogger()
-        self.old_level = self.logger.level
-        self.old_handlers = self.logger.handlers
         self.logger.handlers = []
         self.logger.setLevel(logging.NOTSET)
         self.handler = log.RAMHandler(capacity=2)
@@ -141,10 +190,6 @@ class RAMHandlerTests(TestCase):
         self.logger.debug("Three")
         self.assertEqual(self.handler.dump_log(), "Two\nThree")
 
-    def tearDown(self):
-        """Restore the original root logger level and handlers."""
-        self.logger.level = self.old_level
-        self.logger.handlers = self.old_handlers
 
 
 if __name__ == '__main__':
