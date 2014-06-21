@@ -17,10 +17,6 @@ Bugs
 - Segfaults when trying to load http://cmpl.cc/downloads/hlwm-tablet.mkv and
   with youtube HTML5 player.
 
-- URL detection and encoded spaces
-
-  e.g. when trying to open a link with %20 interactively, or even via click.
-
 - When quitting while being asked for a download filename: segfault / memory
   corruption
 
