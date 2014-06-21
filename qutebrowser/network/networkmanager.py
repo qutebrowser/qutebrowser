@@ -50,7 +50,7 @@ class NetworkManager(QNetworkAccessManager):
     def __init__(self, cookiejar=None, parent=None):
         log.init.debug("Initializing NetworkManager")
         super().__init__(parent)
-        self._requests = {}
+        self._requests = []
         self._scheme_handlers = {
             'qute': QuteSchemeHandler(),
         }
@@ -75,7 +75,7 @@ class NetworkManager(QNetworkAccessManager):
 
     def abort_requests(self):
         """Abort all running requests."""
-        for request in self._requests.values():
+        for request in self._requests:
             request.abort()
 
     @pyqtSlot('QNetworkReply*', 'QList<QSslError>')
@@ -146,6 +146,6 @@ class NetworkManager(QNetworkAccessManager):
                 req.setRawHeader('Accept-Language'.encode('ascii'),
                                  accept_language.encode('ascii'))
             reply = super().createRequest(op, req, outgoing_data)
-            self._requests[id(reply)] = reply
-            reply.destroyed.connect(lambda obj: self._requests.pop(id(obj)))
+            self._requests.append(reply)
+            reply.destroyed.connect(lambda obj: self._requests.remove(obj))
         return reply
