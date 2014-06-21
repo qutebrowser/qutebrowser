@@ -70,7 +70,6 @@ class CompletionView(QTreeView):
         }}
 
         QTreeView::item:disabled {{
-            {color[completion.category.fg]}
             {color[completion.category.bg]}
             border-top: 1px solid {color[completion.category.border.top]};
             border-bottom: 1px solid
