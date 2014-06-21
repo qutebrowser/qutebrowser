@@ -107,7 +107,7 @@ class ColorDict(dict):
         try:
             val = super().__getitem__(key)
         except KeyError as e:
-            logger.warning(e)
+            logger.warning("No color defined for {}!".format(e))
             return ''
         if isinstance(val, QColor):
             # This could happen when accidentaly declarding something as

@@ -1,4 +1,4 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:)
 
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
@@ -63,7 +63,9 @@ class SettingOptionCompletionModel(BaseCompletionModel):
             try:
                 desc = sectdata.descriptions[name]
             except (KeyError, AttributeError) as e:
-                logger.debug(e)
+                logger.debug("Error while getting setting description for "
+                             "{}.{}: {}: {}".format(section, name,
+                                                    e.__class__.__name__, e))
                 desc = ""
             value = config.get(section, name, raw=True)
             _valitem, _descitem, miscitem = self.new_item(cat, name, desc,
@@ -77,8 +79,9 @@ class SettingOptionCompletionModel(BaseCompletionModel):
             return
         try:
             item = self._misc_items[option]
-        except KeyError as e:
-            logger.debug(e)
+        except KeyError:
+            logger.debug("Couldn't get item {}.{} from model!".format(
+                section, option))
             # changed before init
             return
         val = config.get(section, option, raw=True)

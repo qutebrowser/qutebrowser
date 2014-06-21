@@ -299,7 +299,8 @@ class Question(QObject):
             # FIXME
             # We seem to get "pyqtSignal must be bound to a QObject, not
             # 'Question' here, which makes no sense at all..."
-            logger.debug(e)
+            logger.debug("Error while aborting question: {}: {}".format(
+                e.__class__.__name__, e))
 
 
 class Timer(QTimer):

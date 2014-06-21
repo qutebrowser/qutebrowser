@@ -86,8 +86,8 @@ class QuteSchemeHandler(SchemeHandler):
             request.url().toDisplayString(), path))
         try:
             handler = getattr(QuteHandlers, path)
-        except AttributeError as e:
-            logutils.misc.debug(e)
+        except AttributeError:
+            logutils.misc.warning("No handler found for {}!".format(path))
             data = bytes()
         else:
             data = handler()

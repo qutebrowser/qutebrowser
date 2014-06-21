@@ -135,9 +135,8 @@ class TabbedBrowser(TabWidget):
         """
         try:
             self._tabs.remove(tab)
-        except ValueError as e:
-            log.destroy.exception("tab {} could not be removed ({})".format(
-                tab, e))
+        except ValueError:
+            log.destroy.exception("tab {} could not be removed")
         log.destroy.debug("Tabs after removing: {}".format(self._tabs))
         if not self._tabs:  # all tabs shut down
             log.destroy.debug("Tab shutdown complete.")
@@ -201,7 +200,8 @@ class TabbedBrowser(TabWidget):
         try:
             self.currentChanged.disconnect()
         except TypeError as e:
-            log.destroy.debug(e)
+            log.destroy.debug("Error while shutting down tabs: {}: {}".format(
+                e.__class__.__name__, e))
         tabcount = self.count()
         if tabcount == 0:
             log.destroy.debug("No tabs -> shutdown complete")

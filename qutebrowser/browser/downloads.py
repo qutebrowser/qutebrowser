@@ -348,7 +348,8 @@ class DownloadManager(QObject):
                     bytes(reply.rawHeader('Content-Disposition')))
                 filename = content_disposition.filename_unsafe
             except UnicodeDecodeError as e:
-                logger.warning(e)
+                logger.warning("Error while getting filename: {}: {}".format(
+                    e.__class__.__name__, e))
                 filename = None
         else:
             filename = None

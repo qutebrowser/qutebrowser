@@ -122,7 +122,8 @@ class _CrashDialog(QDialog):
             self._crash_info.append(("Config",
                                      config.instance().dump_userconfig()))
         except AttributeError as e:
-            self._crash_info.append(("Config", str(e)))
+            self._crash_info.append(("Config", "{}: {}".format(
+                e.__class__.__name__, e)))
 
     def _format_crash_info(self):
         """Format the gathered crash info to be displayed.
@@ -145,7 +146,8 @@ class _CrashDialog(QDialog):
         try:
             url = utils.pastebin(self._txt.toPlainText())
         except (URLError, ValueError) as e:
-            self._url.setText('Error while reporting: {}'.format(str(e)))
+            self._url.setText('Error while reporting: {}: {}'.format(
+                e.__class__.__name__, e))
             return
         self._btn_pastebin.setEnabled(False)
         self._url.setText("Reported to: <a href='{}'>{}</a>".format(url, url))
@@ -218,7 +220,8 @@ class ExceptionCrashDialog(_CrashDialog):
             self._crash_info.append(("Debug log",
                                      logutils.ram_handler.dump_log()))
         except AttributeError as e:
-            self._crash_info.append(("Debug log", str(e)))
+            self._crash_info.append(("Debug log", "{}: {}".format(
+                e.__class__.__name__, e)))
 
 
 class FatalCrashDialog(_CrashDialog):

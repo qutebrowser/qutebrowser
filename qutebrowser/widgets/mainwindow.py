@@ -60,15 +60,18 @@ class MainWindow(QWidget):
             geom = b64decode(stateconf['geometry']['mainwindow'],
                              validate=True)
         except (KeyError, binascii.Error) as e:
-            logger.warn(e)
+            logger.warn("Error while reading geometry: {}: {}".format(
+                e.__class__.__name__, e))
             self._set_default_geometry()
         else:
             try:
                 ok = self.restoreGeometry(geom)
             except KeyError:
-                logger.warn(e)
+                logger.warn("Error while restoring geometry: {}: {}".format(
+                    e.__class__.__name__, e))
                 self._set_default_geometry()
             if not ok:
+                logger.warn("Error while restoring geometry.")
                 self._set_default_geometry()
 
         self._vbox = QVBoxLayout(self)

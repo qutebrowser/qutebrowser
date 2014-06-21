@@ -83,7 +83,8 @@ def _git_str():
             gitpath = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    os.path.pardir, os.path.pardir)
         except NameError as e:
-            logger.debug(e)
+            logger.debug("Error while getting git path: {}: {}".format(
+                e.__class__.__name__, e))
         else:
             commit = _git_str_subprocess(gitpath)
     if commit is not None:
@@ -126,7 +127,8 @@ def _release_info():
             with open(fn, 'r') as f:
                 data.append((fn, ''.join(f.readlines())))
         except IOError as e:
-            logger.warn(e)
+            logger.warn("Error while reading {}: {}: {}".format(
+                fn, e.__class__.__name__, e))
     return data
 
 
@@ -147,7 +149,8 @@ def _module_versions():
             lines.append('SIP: {}'.format(
                 sipconfig.Configuration().sip_version_str))
         except (AttributeError, TypeError) as e:
-            logger.warn(e)
+            logger.warn("Error while getting SIP version: {}: {}".format(
+                e.__class__.__name__, e))
             lines.append('SIP: ?')
 
     try:

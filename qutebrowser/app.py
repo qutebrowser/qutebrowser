@@ -253,10 +253,11 @@ class Application(QApplication):
                 # This means another instance is probably still running and
                 # didn't remove the file. As we can't write to the same file,
                 # we just leave faulthandler as it is and log to stderr.
-                log.init.warn("Empty crash.log detected. This means either "
+                log.init.warn("Empty crash log detected. This means either "
                               "another instance is running (then ignore this "
                               "warning) or the file is lying here because "
-                              "of some earlier crash (then delete it).")
+                              "of some earlier crash (then delete {}).".format(
+                                  logname))
                 self._crashlogfile = None
         else:
             # There's no log file, so we can use this to display crashes to the
@@ -446,7 +447,8 @@ class Application(QApplication):
                 if url:
                     pages.append(url)
             except Exception as e:  # pylint: disable=broad-except
-                log.init.debug(e)
+                log.destroy.debug("Error while recovering tab: {}: {}".format(
+                    e.__class__.__name__, e))
         return pages
 
     def _save_geometry(self):
@@ -486,7 +488,8 @@ class Application(QApplication):
                 self.shutdown()
                 return
             except Exception as e:
-                log.destroy.debug(e)
+                log.init.debug("Error while shutting down: {}: {}".format(
+                    e.__class__.__name__, e))
                 self.quit()
                 return
 
@@ -498,36 +501,42 @@ class Application(QApplication):
         try:
             pages = self._recover_pages()
         except Exception as e:
-            log.destroy.debug(e)
+            log.destroy.debug("Error while recovering pages: {}: {}".format(
+                e.__class__.__name__, e))
             pages = []
 
         try:
             history = self.mainwindow.status.cmd.history[-5:]
         except Exception as e:
-            log.destroy.debug(e)
+            log.destroy.debug("Error while getting history: {}: {}".format(
+                e.__class__.__name__, e))
             history = []
 
         try:
             widgets = self.get_all_widgets()
         except Exception as e:
-            log.destroy.debug(e)
+            log.destroy.debug("Error while getting widgets: {}: {}".format(
+                e.__class__.__name__, e))
             widgets = ""
 
         try:
             objects = self.get_all_objects()
         except Exception as e:
-            log.destroy.debug(e)
+            log.destroy.debug("Error while getting objects: {}: {}".format(
+                e.__class__.__name__, e))
             objects = ""
 
         # Try to shutdown gracefully
         try:
             self.shutdown(do_quit=False)
         except Exception as e:
-            log.destroy.debug(e)
+            log.destroy.debug("Error while shutting down: {}: {}".format(
+                e.__class__.__name__, e))
         try:
             self.lastWindowClosed.disconnect(self.shutdown)
         except TypeError as e:
-            log.destroy.warning("Preventing shutdown failed ({}).")
+            log.destroy.debug("Error while preventing shutdown: {}: {}".format(
+                e.__class__.__name__, e))
         QApplication.closeAllWindows()
         self._crashdlg = ExceptionCrashDialog(pages, history, exc, widgets,
                                               objects)
@@ -575,7 +584,8 @@ class Application(QApplication):
     #        try:
     #            argv.remove(page)
     #        except ValueError as e:
-    #            logger.destroy.debug(e)
+    #            logger.destroy.debug("Error while removing page: {}: "
+    #                                 "{}".format(e.__class__.__name__, e))
     #    argv = [sys.executable] + argv + pages
     #    log.procs.debug("Running {} with args {} (PYTHONPATH={})".format(
     #        sys.executable, argv, pythonpath))
