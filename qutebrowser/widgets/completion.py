@@ -57,16 +57,13 @@ class CompletionView(QTreeView):
         resize_completion: Emitted when the completion should be resized.
     """
 
+    # Drawing the item foreground will be done by CompletionItemDelegate, so we
+    # don't define that in this stylesheet.
     STYLESHEET = """
         QTreeView {{
             {font[completion]}
             {color[completion.bg]}
             outline: 0;
-        }}
-
-        QTreeView::item:enabled {{
-            {color[completion.item.fg]}
-            {color[completion.item.bg]}
         }}
 
         QTreeView::item:disabled {{
@@ -81,7 +78,6 @@ class CompletionView(QTreeView):
             border-bottom: 1px solid
                 {color[completion.item.selected.border.bottom]};
             {color[completion.item.selected.bg]}
-            {color[completion.item.selected.fg]}
         }}
     """
     COLUMN_WIDTHS = (20, 70, 10)
