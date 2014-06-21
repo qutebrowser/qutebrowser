@@ -132,7 +132,7 @@ class NetworkManager(QNetworkAccessManager):
                 "SSL is not supported by the installed Qt library!",
                 QNetworkReply.ProtocolUnknownError)
         elif scheme in self._scheme_handlers:
-            reply = self._scheme_handlers[scheme].createRequest(
+            return self._scheme_handlers[scheme].createRequest(
                 op, req, outgoing_data)
         else:
             if config.get('network', 'do-not-track'):
