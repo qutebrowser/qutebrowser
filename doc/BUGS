@@ -1,6 +1,8 @@
 Bugs
 ====
 
+- No hints for "Mehr..." links on heise
+
 - foo@bar:baz.com  is handled as search term
 
 - Handle it correctly when a new statusbar question is asked while another is

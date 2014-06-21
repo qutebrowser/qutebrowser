@@ -41,6 +41,7 @@ New big features
 Improvements / minor features
 =============================
 
+- Completion in statusbar like dwb
 - SSL-symbol in statusbar?
 - Commandline argument to delete config
 - Settings dialog
