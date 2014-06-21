@@ -528,7 +528,8 @@ class HintManager(QObject):
         elif self._context.target in url_handlers:
             url = self._resolve_url(elem)
             if url is None:
-                raise CommandError("No suitable link found for this element.")
+                message.error("No suitable link found for this element.")
+                return
             url_handlers[self._context.target](url)
         else:
             raise ValueError("No suitable handler found!")
