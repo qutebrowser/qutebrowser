@@ -24,13 +24,16 @@ Module attributes:
     pyeval_output: The output of the last :pyeval command.
 """
 
-import qutebrowser
 import cgi
 
+from PyQt5.QtNetwork import QNetworkReply
+
+import qutebrowser
 import qutebrowser.utils.log as logutils
 import qutebrowser.utils.version as version
 from qutebrowser.network.schemehandler import (SchemeHandler,
-                                               SpecialNetworkReply)
+                                               SpecialNetworkReply,
+                                               ErrorNetworkReply)
 from qutebrowser.utils.misc import read_file
 
 
@@ -87,8 +90,9 @@ class QuteSchemeHandler(SchemeHandler):
         try:
             handler = getattr(QuteHandlers, path)
         except AttributeError:
-            logutils.misc.warning("No handler found for {}!".format(path))
-            data = bytes()
+            return ErrorNetworkReply(
+                request, "No handler found for {}!".format(path),
+                QNetworkReply.ContentNotFoundError, self.parent())
         else:
             data = handler()
         return SpecialNetworkReply(request, data, 'text/html', self.parent())
