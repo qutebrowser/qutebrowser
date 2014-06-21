@@ -69,6 +69,7 @@ class SpecialNetworkReply(QNetworkReply):
         self._data = fileData
 
         self.setRequest(request)
+        self.setUrl(request.url())
         self.setOpenMode(QIODevice.ReadOnly)
 
         self.setHeader(QNetworkRequest.ContentTypeHeader, mimeType)
@@ -129,6 +130,7 @@ class ErrorNetworkReply(QNetworkReply):
         """
         super().__init__(parent)
         self.setRequest(req)
+        self.setUrl(req.url())
         self.setError(error, errorstring)
         # For some reason, a segfault will be triggered if these lambdas aren't
         # there.
