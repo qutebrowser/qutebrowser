@@ -32,6 +32,7 @@ from qutebrowser.widgets.tabwidget import TabWidget, EmptyTabIcon
 from qutebrowser.widgets.webview import WebView
 from qutebrowser.browser.signalfilter import SignalFilter
 from qutebrowser.browser.commands import CommandDispatcher
+from qutebrowser.utils.misc import qt_ensure_valid
 
 
 class TabbedBrowser(TabWidget):
@@ -247,6 +248,7 @@ class TabbedBrowser(TabWidget):
             url: The URL to open as QUrl.
             newtab: True to open URL in a new tab, False otherwise.
         """
+        qt_ensure_valid(url)
         if newtab:
             self.tabopen(url, background=False)
         else:
@@ -277,6 +279,7 @@ class TabbedBrowser(TabWidget):
         Return:
             The opened WebView instance.
         """
+        qt_ensure_valid(url)
         log.webview.debug("Creating new tab with URL {}".format(url))
         tab = WebView(self)
         self._connect_tab_signals(tab)

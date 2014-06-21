@@ -31,7 +31,7 @@ import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.message as message
 import qutebrowser.utils.webelem as webelem
 import qutebrowser.utils.log as log
-from qutebrowser.utils.misc import elide
+from qutebrowser.utils.misc import elide, qt_ensure_valid
 from qutebrowser.browser.webpage import BrowserPage
 from qutebrowser.browser.hints import HintManager
 from qutebrowser.utils.usertypes import NeighborList, enum
@@ -293,6 +293,7 @@ class WebView(QWebView):
         Emit:
             titleChanged
         """
+        qt_ensure_valid(url)
         urlstr = url.toDisplayString()
         log.webview.debug("New title: {}".format(urlstr))
         self.titleChanged.emit(urlstr)
@@ -379,6 +380,7 @@ class WebView(QWebView):
     @pyqtSlot('QUrl')
     def on_url_changed(self, url):
         """Update url_text when URL has changed."""
+        qt_ensure_valid(url)
         self.url_text = url.toString()
 
     @pyqtSlot(str)
@@ -394,6 +396,7 @@ class WebView(QWebView):
         url = QUrl(urlstr)
         if not url.isValid():
             message.error("Invalid link {} clicked!".format(urlstr))
+            log.webview.debug(url.errorString())
             return
         if self._open_target == Target.tab:
             self.tabbedbrowser.tabopen(url, False)

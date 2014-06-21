@@ -94,8 +94,10 @@ def is_visible(elem, mainframe):
     # Then check if it's visible in its frame if it's not in the main frame.
     elem_frame = elem.webFrame()
     elem_rect = elem.geometry()
-    if elem_frame.parentFrame() is not None:
-        framegeom = QRect(elem_frame.geometry())
+    framegeom = QRect(elem_frame.geometry())
+    if not framegeom.isValid():
+        visible_in_frame = False
+    elif elem_frame.parentFrame() is not None:
         framegeom.moveTo(0, 0)
         framegeom.translate(elem_frame.scrollPosition())
         if elem_rect.isValid():

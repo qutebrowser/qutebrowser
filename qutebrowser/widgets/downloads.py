@@ -24,6 +24,7 @@ from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu
 
 from qutebrowser.models.downloadmodel import DownloadModel, Role
 from qutebrowser.config.style import set_register_stylesheet
+from qutebrowser.utils.misc import qt_ensure_valid
 
 
 class DownloadView(QListView):
@@ -87,6 +88,8 @@ class DownloadView(QListView):
         idx = self.model().last_index()
         height = self.visualRect(idx).bottom()
         if height != -1:
-            return QSize(0, height + 2)
+            size = QSize(0, height + 2)
         else:
-            return QSize(0, 0)
+            size = QSize(0, 0)
+        qt_ensure_valid(size)
+        return size

@@ -33,7 +33,7 @@ import qutebrowser.utils.message as message
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.utils.usertypes import PromptMode
 from qutebrowser.config.lineparser import LineConfigParser
-from qutebrowser.utils.misc import get_standard_dir
+from qutebrowser.utils.misc import get_standard_dir, qt_ensure_valid
 from qutebrowser.commands.exceptions import CommandError
 
 
@@ -63,6 +63,7 @@ def prompt_save(url):
     Args:
         url: The quickmark url as a QUrl.
     """
+    qt_ensure_valid(url)
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     message.question("Add quickmark:", PromptMode.text,
                      partial(quickmark_add, urlstr))
@@ -80,6 +81,8 @@ def quickmark_add(url, name):
         raise CommandError("Can't set mark with empty name!")
     if not url:
         raise CommandError("Can't set mark with empty URL!")
+
+    qt_ensure_valid(url)
 
     def set_mark():
         """Really set the quickmark."""
@@ -99,6 +102,6 @@ def get(name):
     urlstr = marks[name]
     url = QUrl(urlstr)
     if not url.isValid():
-        raise CommandError("Invalid URL for quickmark {}: {}".format(
-            name, urlstr))
+        raise CommandError("Invalid URL for quickmark {}: {} ({})".format(
+            name, urlstr, url.errorString()))
     return url

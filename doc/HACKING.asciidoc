@@ -288,7 +288,8 @@ displaying it to the user.
 * Name a string URL something like `urlstr`, and a `QUrl` something like `url`.
 * Mention in the docstring whether your function needs a URL string or a
 `QUrl`.
-* Call QUrl.isValid() and take appropriate action if not.
+* Call `qt_ensure_valid` from `utils.misc` whenever getting or creating a
+`QUrl` and take appropriate action if not.
 
 
 Style conventions

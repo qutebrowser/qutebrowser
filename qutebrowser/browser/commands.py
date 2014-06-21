@@ -38,7 +38,7 @@ import qutebrowser.browser.quickmarks as quickmarks
 import qutebrowser.utils.log as log
 import qutebrowser.utils.url as urlutils
 from qutebrowser.utils.misc import (check_overflow, shell_escape,
-                                    check_print_compat)
+                                    check_print_compat, qt_ensure_valid)
 from qutebrowser.utils.editor import ExternalEditor
 from qutebrowser.commands.exceptions import CommandError
 from qutebrowser.commands.userscripts import UserscriptRunner
@@ -70,6 +70,12 @@ class CommandDispatcher:
         self._tabs = parent
         self._editor = None
 
+    def _current_url(self):
+        """Get the URL of the current tab."""
+        url = self._tabs.currentWidget().url()
+        qt_ensure_valid(url)
+        return url
+
     def _scroll_percent(self, perc=None, count=None, orientation=None):
         """Inner logic for scroll_percent_(x|y).
 
@@ -97,7 +103,8 @@ class CommandDispatcher:
         frame = widget.page().currentFrame()
         if frame is None:
             raise CommandError("No frame focused!")
-        widget.hintmanager.follow_prevnext(frame, widget.url(), prev, newtab)
+        widget.hintmanager.follow_prevnext(frame, self._current_url(), prev,
+                                           newtab)
 
     def _tab_move_absolute(self, idx):
         """Get an index for moving a tab absolutely.
@@ -270,7 +277,7 @@ class CommandDispatcher:
             target = getattr(hints.Target, targetstr.replace('-', '_'))
         except AttributeError:
             raise CommandError("Unknown hinting target {}!".format(targetstr))
-        widget.hintmanager.start(frame, widget.url(), group, target)
+        widget.hintmanager.start(frame, self._current_url(), group, target)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def follow_hint(self):
@@ -356,8 +363,8 @@ class CommandDispatcher:
         Args:
             sel: True to use primary selection, False to use clipboard
         """
-        urlstr = self._tabs.currentWidget().url().toString(
-            QUrl.FullyEncoded | QUrl.RemovePassword)
+        urlstr = self._current_url().toString(QUrl.FullyEncoded |
+                                              QUrl.RemovePassword)
         if sel:
             mode = QClipboard.Selection
             target = "primary selection"
@@ -450,19 +457,19 @@ class CommandDispatcher:
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def open_tab_cur(self):
         """Set the statusbar to :tabopen and the current URL."""
-        urlstr = self._tabs.currentWidget().url().toDisplayString()
+        urlstr = self._current_url().toDisplayString()
         message.set_cmd_text(':open-tab ' + urlstr)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def open_cur(self):
         """Set the statusbar to :open and the current URL."""
-        urlstr = self._tabs.currentWidget().url().toDisplayString()
+        urlstr = self._current_url().toDisplayString()
         message.set_cmd_text(':open ' + urlstr)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def open_tab_bg_cur(self):
         """Set the statusbar to :tabopen-bg and the current URL."""
-        urlstr = self._tabs.currentWidget().url().toDisplayString()
+        urlstr = self._current_url().toDisplayString()
         message.set_cmd_text(':open-tab-bg ' + urlstr)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
@@ -609,8 +616,8 @@ class CommandDispatcher:
         Args:
             cmd: The command to execute.
         """
-        urlstr = self._tabs.currentWidget().url().toString(
-            QUrl.FullyEncoded | QUrl.RemovePassword)
+        urlstr = self._current_url().toString(QUrl.FullyEncoded |
+                                              QUrl.RemovePassword)
         cmd = cmd.replace('{}', shell_escape(urlstr))
         log.procs.debug("Executing: {}".format(cmd))
         subprocess.Popen(cmd, shell=True)
@@ -625,7 +632,7 @@ class CommandDispatcher:
         """Run an userscript given as argument."""
         # We don't remove the password in the URL here, as it's probably safe
         # to pass via env variable.
-        urlstr = self._tabs.currentWidget().url().toString(QUrl.FullyEncoded)
+        urlstr = self._current_url().toString(QUrl.FullyEncoded)
         runner = UserscriptRunner(self._tabs)
         runner.got_cmd.connect(self._tabs.got_cmd)
         runner.run(cmd, *args, env={'QUTE_URL': urlstr})
@@ -634,7 +641,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def quickmark_save(self):
         """Save the current page as a quickmark."""
-        quickmarks.prompt_save(self._tabs.currentWidget().url())
+        quickmarks.prompt_save(self._current_url())
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def quickmark_load(self, name):
@@ -642,7 +649,8 @@ class CommandDispatcher:
         urlstr = quickmarks.get(name)
         url = QUrl(urlstr)
         if not url.isValid():
-            raise CommandError("Invalid URL {}".format(urlstr))
+            raise CommandError("Invalid URL {} ({})".format(
+                urlstr, url.errorString()))
         self._tabs.currentWidget().openurl(url)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
@@ -680,8 +688,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def download_page(self):
         """Download the current page."""
-        url = self._tabs.currentWidget().url()
-        QApplication.instance().downloadmanager.get(url)
+        QApplication.instance().downloadmanager.get(self._current_url())
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', modes=['insert'],
                        hide=True)

@@ -33,6 +33,7 @@ import qutebrowser.utils.webelem as webelem
 from qutebrowser.commands.exceptions import CommandError
 from qutebrowser.utils.usertypes import enum
 from qutebrowser.utils.log import hints as logger
+from qutebrowser.utils.misc import qt_ensure_valid
 
 
 ElemTuple = namedtuple('ElemTuple', 'elem, label')
@@ -299,6 +300,7 @@ class HintManager(QObject):
         Args:
             url: The URL to open as a QURL.
         """
+        qt_ensure_valid(url)
         sel = self._context.target == Target.yank_primary
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
@@ -312,6 +314,7 @@ class HintManager(QObject):
         Args:
             url: The URL to open as a QUrl.
         """
+        qt_ensure_valid(url)
         commands = {
             Target.cmd: 'open',
             Target.cmd_tab: 'open-tab',
@@ -326,6 +329,7 @@ class HintManager(QObject):
         Args:
             url: The URL to download, as a QUrl.
         """
+        qt_ensure_valid(url)
         QApplication.instance().downloadmanager.get(url)
 
     def _resolve_url(self, elem, baseurl=None):
@@ -347,6 +351,7 @@ class HintManager(QObject):
         url = QUrl(text)
         if url.isRelative():
             url = baseurl.resolved(url)
+        qt_ensure_valid(url)
         return url
 
     def _find_prevnext(self, frame, prev=False):

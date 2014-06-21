@@ -129,7 +129,9 @@ class MainWindow(QWidget):
         topleft_y = utils.check_overflow(topleft_y, 'int', fatal=False)
         topleft = QPoint(0, topleft_y)
         bottomright = self.status.geometry().topRight()
-        self.completion.setGeometry(QRect(topleft, bottomright))
+        rect = QRect(topleft, bottomright)
+        utils.qt_ensure_valid(rect)
+        self.completion.setGeometry(rect)
 
     @cmdutils.register(instance='mainwindow', name=['quit', 'q'], nargs=0)
     def close(self):

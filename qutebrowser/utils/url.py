@@ -28,6 +28,7 @@ from PyQt5.QtNetwork import QHostInfo
 
 import qutebrowser.config.config as config
 from qutebrowser.utils.log import url as logger
+from qutebrowser.utils.misc import qt_ensure_valid
 
 
 # FIXME: we probably could raise some exceptions on invalid URLs
@@ -63,7 +64,9 @@ def _get_search_url(txt):
         logger.debug("engine: default, term '{}'".format(txt))
     if not term:
         raise FuzzyUrlError("No search term given")
-    return QUrl.fromUserInput(template.format(urllib.parse.quote(term)))
+    url = QUrl.fromUserInput(template.format(urllib.parse.quote(term)))
+    qt_ensure_valid(url)
+    return url
 
 
 def _is_url_naive(urlstr):
@@ -131,6 +134,7 @@ def fuzzy_url(urlstr):
             url = QUrl.fromUserInput(urlstr)
     logger.debug("Converting fuzzy term {} to URL -> {}".format(
                  urlstr, url.toDisplayString()))
+    qt_ensure_valid(url)
     return url
 
 

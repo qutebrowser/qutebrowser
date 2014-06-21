@@ -331,10 +331,8 @@ def interpolate_color(start, end, percent, colorspace=QColor.Rgb):
     Raise:
         ValueError if invalid parameters are passed.
     """
-    if not start.isValid():
-        raise ValueError("Invalid start color")
-    if not end.isValid():
-        raise ValueError("Invalid end color")
+    qt_ensure_valid(start)
+    qt_ensure_valid(end)
     out = QColor()
     if colorspace == QColor.Rgb:
         a_c1, a_c2, a_c3, _alpha = start.getRgb()
@@ -356,7 +354,9 @@ def interpolate_color(start, end, percent, colorspace=QColor.Rgb):
         out.setHsl(*components)
     else:
         raise ValueError("Invalid colorspace!")
-    return out.convertTo(start.spec())
+    out = out.convertTo(start.spec())
+    qt_ensure_valid(out)
+    return out
 
 
 def format_seconds(total_seconds):
@@ -393,6 +393,31 @@ def format_size(size, base=1024, suffix=''):
 def check_print_compat():
     """Check if printing should work in the given Qt version."""
     return not (os.name == 'nt' and qt_version_check('5.3.0', operator.lt))
+
+
+def qt_ensure_valid(obj):
+    """Ensure a Qt object with an .isValid() method is valid.
+
+    Raise:
+        QtValueError if the object is invalid.
+    """
+    if not obj.isValid():
+        raise QtValueError(obj)
+
+
+class QtValueError(ValueError):
+
+    """Exception which gets raised by qt_ensure_valid."""
+
+    def __init__(self, obj):
+        try:
+            self.reason = obj.errorString()
+        except AttributeError:
+            self.reason = None
+        err = "{} is not valid".format(obj)
+        if self.reason:
+            err += ": {}".format(self.reason)
+        super().__init__(err)
 
 
 class EventLoop(QEventLoop):

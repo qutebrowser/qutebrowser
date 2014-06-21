@@ -751,7 +751,10 @@ class Proxy(BaseType):
         if value in self.valid_values:
             return
         url = QUrl(value)
-        if (url.isValid() and not url.isEmpty() and
+        if not url.isValid():
+            raise ValidationError(value, "invalid url, {}".format(
+                url.errorString()))
+        elif (url.isValid() and not url.isEmpty() and
                 url.scheme() in self.PROXY_TYPES):
             if url.userName() and url.password():
                 pass

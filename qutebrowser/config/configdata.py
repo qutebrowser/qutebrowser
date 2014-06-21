@@ -767,7 +767,7 @@ DATA = OrderedDict([
 
     ('colors', sect.KeyValue(
         ('completion.fg',
-         SettingValue(types.Color(), 'white'),
+         SettingValue(types.QtColor(), 'white'),
          "Text color of the completion widget."),
 
         ('completion.bg',
@@ -779,7 +779,7 @@ DATA = OrderedDict([
          "Background color of completion widget items."),
 
         ('completion.category.fg',
-         SettingValue(types.Color(), 'white'),
+         SettingValue(types.QtColor(), 'white'),
          "Foreground color of completion widget category headers."),
 
         ('completion.category.bg',
@@ -796,7 +796,7 @@ DATA = OrderedDict([
          "Bottom border color of the completion widget category headers."),
 
         ('completion.item.selected.fg',
-         SettingValue(types.Color(), 'black'),
+         SettingValue(types.QtColor(), 'black'),
          "Foreground color of the selected completion item."),
 
         ('completion.item.selected.bg',

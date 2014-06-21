@@ -26,7 +26,7 @@ import html
 from PyQt5.QtWidgets import QStyle, QStyleOptionViewItem, QStyledItemDelegate
 from PyQt5.QtCore import QRectF, QSize, Qt
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
-                         QTextCursor, QColor, QAbstractTextDocumentLayout)
+                         QTextCursor, QAbstractTextDocumentLayout)
 
 import qutebrowser.config.config as config
 from qutebrowser.models.basecompletion import Role
@@ -147,9 +147,9 @@ class CompletionItemDelegate(QStyledItemDelegate):
         else:
             option = 'completion.fg'
         try:
-            self._painter.setPen(QColor(config.get('colors', option)))
+            self._painter.setPen(config.get('colors', option))
         except config.NoOptionError:
-            self._painter.setPen(QColor(config.get('colors', 'completion.fg')))
+            self._painter.setPen(config.get('colors', 'completion.fg'))
         ctx = QAbstractTextDocumentLayout.PaintContext()
         ctx.palette.setColor(QPalette.Text, self._painter.pen().color())
         if clip.isValid():

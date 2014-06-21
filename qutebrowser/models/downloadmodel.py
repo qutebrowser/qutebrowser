@@ -26,6 +26,7 @@ from PyQt5.QtWidgets import QApplication
 import qutebrowser.config.config as config
 from qutebrowser.utils.usertypes import enum
 from qutebrowser.utils.log import downloads as logger
+from qutebrowser.utils.misc import qt_ensure_valid
 
 
 Role = enum('item', start=Qt.UserRole)
@@ -73,9 +74,8 @@ class DownloadModel(QAbstractListModel):
 
     def data(self, index, role):
         """Download data from DownloadManager."""
-        if not index.isValid():
-            return QVariant()
-        elif index.parent().isValid() or index.column() != 0:
+        qt_ensure_valid(index)
+        if index.parent().isValid() or index.column() != 0:
             return QVariant()
 
         try:

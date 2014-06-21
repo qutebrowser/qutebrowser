@@ -36,7 +36,7 @@ from qutebrowser.utils.log import downloads as logger
 from qutebrowser.utils.log import fix_rfc2622
 from qutebrowser.utils.usertypes import PromptMode, Question, Timer
 from qutebrowser.utils.misc import (interpolate_color, format_seconds,
-                                    format_size)
+                                    format_size, qt_ensure_valid)
 from qutebrowser.commands.exceptions import CommandError
 
 
@@ -366,6 +366,7 @@ class DownloadManager(QObject):
         Args:
             url: The URL to get, as QUrl
         """
+        qt_ensure_valid(url)
         req = QNetworkRequest(url)
         reply = QCoreApplication.instance().networkmanager.get(req)
         self.fetch(reply)
