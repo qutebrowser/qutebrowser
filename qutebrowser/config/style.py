@@ -26,6 +26,8 @@ Module attributes:
 
 from functools import partial
 
+from PyQt5.QtGui import QColor
+
 import qutebrowser.config.config as config
 from qutebrowser.utils.log import style as logger
 
@@ -107,6 +109,11 @@ class ColorDict(dict):
         except KeyError as e:
             logger.warning(e)
             return ''
+        if isinstance(val, QColor):
+            # This could happen when accidentaly declarding something as
+            # QtColor instead of Color in the config, and it'd go unnoticed as
+            # the CSS is invalid then.
+            raise TypeError("QColor passed to ColorDict!")
         if 'fg' in key.split('.'):
             return 'color: {};'.format(val)
         elif 'bg' in key.split('.'):
