@@ -90,9 +90,11 @@ class QuteSchemeHandler(SchemeHandler):
         try:
             handler = getattr(QuteHandlers, path)
         except AttributeError:
-            return ErrorNetworkReply(
-                request, "No handler found for {}!".format(path),
-                QNetworkReply.ContentNotFoundError, self.parent())
+            errorstr = "No handler found for {}!".format(
+                request.url().toDisplayString())
+            return ErrorNetworkReply(request, errorstr,
+                                     QNetworkReply.ContentNotFoundError,
+                                     self.parent())
         else:
             data = handler()
         return SpecialNetworkReply(request, data, 'text/html', self.parent())
