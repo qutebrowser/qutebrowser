@@ -118,15 +118,17 @@ class ErrorNetworkReply(QNetworkReply):
 
     """QNetworkReply which always returns an error."""
 
-    def __init__(self, errorstring, error, parent=None):
+    def __init__(self, req, errorstring, error, parent=None):
         """Constructor.
 
         Args:
+            req: The QNetworkRequest associated with this reply.
             errorstring: The error string to print.
             error: The numerical error value.
             parent: The parent to pass to QNetworkReply.
         """
         super().__init__(parent)
+        self.setRequest(req)
         self.setError(error, errorstring)
         # For some reason, a segfault will be triggered if these lambdas aren't
         # there.

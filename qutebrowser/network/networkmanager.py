@@ -129,7 +129,7 @@ class NetworkManager(QNetworkAccessManager):
         scheme = req.url().scheme()
         if scheme == 'https' and not SSL_AVAILABLE:
             return ErrorNetworkReply(
-                "SSL is not supported by the installed Qt library!",
+                req, "SSL is not supported by the installed Qt library!",
                 QNetworkReply.ProtocolUnknownError)
         elif scheme in self._scheme_handlers:
             return self._scheme_handlers[scheme].createRequest(
