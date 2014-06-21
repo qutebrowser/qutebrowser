@@ -131,6 +131,9 @@ class ErrorNetworkReply(QNetworkReply):
         super().__init__(parent)
         self.setRequest(req)
         self.setUrl(req.url())
+        # We don't actually want to read anything, but we still need to open
+        # the device to avoid getting a warning.
+        self.setOpenMode(QIODevice.ReadOnly)
         self.setError(error, errorstring)
         # For some reason, a segfault will be triggered if these lambdas aren't
         # there.
@@ -144,3 +147,7 @@ class ErrorNetworkReply(QNetworkReply):
     def bytesAvailable(self):
         """We always have 0 bytes available."""
         return 0
+
+    def readData(self):
+        """No data available."""
+        return bytes()
