@@ -156,8 +156,9 @@ class BaseType:
             for val in self.valid_values:
                 try:
                     desc = self.valid_values.descriptions[val]
-                except KeyError as e:
-                    logger.warning(e)
+                except KeyError:
+                    # Some values are self-explaining and don't need a
+                    # description.
                     desc = ""
                 out.append((val, desc))
             return out
