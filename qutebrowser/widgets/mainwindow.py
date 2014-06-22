@@ -29,12 +29,12 @@ import qutebrowser.commands.utils as cmdutils
 import qutebrowser.config.config as config
 import qutebrowser.utils.misc as utils
 import qutebrowser.utils.message as message
+import qutebrowser.utils.log as log
 from qutebrowser.widgets.statusbar.bar import StatusBar
 from qutebrowser.widgets.tabbedbrowser import TabbedBrowser
 from qutebrowser.widgets.completion import CompletionView
 from qutebrowser.widgets.downloads import DownloadView
 from qutebrowser.utils.usertypes import PromptMode
-from qutebrowser.utils.log import init as logger
 
 
 class MainWindow(QWidget):
@@ -60,18 +60,18 @@ class MainWindow(QWidget):
             geom = b64decode(stateconf['geometry']['mainwindow'],
                              validate=True)
         except (KeyError, binascii.Error) as e:
-            logger.warning("Error while reading geometry: {}: {}".format(
+            log.init.warning("Error while reading geometry: {}: {}".format(
                 e.__class__.__name__, e))
             self._set_default_geometry()
         else:
             try:
                 ok = self.restoreGeometry(geom)
             except KeyError:
-                logger.warning("Error while restoring geometry: {}: {}".format(
-                    e.__class__.__name__, e))
+                log.init.warning("Error while restoring geometry: {}: "
+                                 "{}".format(e.__class__.__name__, e))
                 self._set_default_geometry()
             if not ok:
-                logger.warning("Error while restoring geometry.")
+                log.init.warning("Error while restoring geometry.")
                 self._set_default_geometry()
 
         self._vbox = QVBoxLayout(self)
@@ -126,6 +126,8 @@ class MainWindow(QWidget):
                 self.completion.horizontalScrollBar().sizeHint().height())
             if contents_height <= height:
                 height = contents_height
+        else:
+            contents_height = -1
         # hpoint now would be the bottom-left edge of the widget if it was on
         # the top of the main window.
         topleft_y = self.height() - self.status.height() - height
@@ -133,6 +135,11 @@ class MainWindow(QWidget):
         topleft = QPoint(0, topleft_y)
         bottomright = self.status.geometry().topRight()
         rect = QRect(topleft, bottomright)
+        log.misc.debug("confheight: {}, self.height(): {}, height: {}, "
+                       "contents_height: {}, self.status.height(): {}, "
+                       "topleft: {}, bottomright: {}".format(
+                           confheight, self.height(), height, contents_height,
+                           self.status.height(), topleft, bottomright))
         utils.qt_ensure_valid(rect)
         self.completion.setGeometry(rect)
 
