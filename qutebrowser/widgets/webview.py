@@ -258,7 +258,6 @@ class WebView(QWebView):
             modeman.enter('insert', 'click')
         else:
             log.mouse.debug("Clicked non-editable element!")
-            modeman.maybe_leave('insert', 'click')
 
     def _mousepress_opentarget(self, e):
         """Set the open target when something was clicked.
