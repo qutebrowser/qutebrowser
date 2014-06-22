@@ -384,7 +384,7 @@ class WebView(QWebView):
     def on_url_changed(self, url):
         """Update url_text when URL has changed."""
         qt_ensure_valid(url)
-        self.url_text = url.toString()
+        self.url_text = url.toDisplayString()
 
     @pyqtSlot(str)
     def on_link_clicked(self, urlstr):
