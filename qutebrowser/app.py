@@ -243,7 +243,7 @@ class Application(QApplication):
                 try:
                     os.remove(logname)
                 except PermissionError:
-                    log.init.warn("Could not remove crash log!")
+                    log.init.warning("Could not remove crash log!")
                 else:
                     self._init_crashlogfile()
                 self._crashdlg = FatalCrashDialog(data)
@@ -253,11 +253,11 @@ class Application(QApplication):
                 # This means another instance is probably still running and
                 # didn't remove the file. As we can't write to the same file,
                 # we just leave faulthandler as it is and log to stderr.
-                log.init.warn("Empty crash log detected. This means either "
-                              "another instance is running (then ignore this "
-                              "warning) or the file is lying here because "
-                              "of some earlier crash (then delete {}).".format(
-                                  logname))
+                log.init.warning("Empty crash log detected. This means either "
+                                 "another instance is running (then ignore "
+                                 "this warning) or the file is lying here "
+                                 "because of some earlier crash (then delete "
+                                 "{}).".format(logname))
                 self._crashlogfile = None
         else:
             # There's no log file, so we can use this to display crashes to the
@@ -472,7 +472,7 @@ class Application(QApplication):
         try:
             os.remove(self._crashlogfile.name)
         except PermissionError as e:
-            log.destroy.warn("Could not remove crash log ({})!".format(e))
+            log.destroy.warning("Could not remove crash log ({})!".format(e))
 
     def _exception_hook(self, exctype, excvalue, tb):
         """Handle uncaught python exceptions.

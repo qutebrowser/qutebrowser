@@ -127,7 +127,7 @@ def _release_info():
             with open(fn, 'r') as f:
                 data.append((fn, ''.join(f.readlines())))
         except IOError as e:
-            logger.warn("Error while reading {}: {}: {}".format(
+            logger.warning("Error while reading {}: {}: {}".format(
                 fn, e.__class__.__name__, e))
     return data
 
@@ -149,7 +149,7 @@ def _module_versions():
             lines.append('SIP: {}'.format(
                 sipconfig.Configuration().sip_version_str))
         except (AttributeError, TypeError) as e:
-            logger.warn("Error while getting SIP version: {}: {}".format(
+            logger.warning("Error while getting SIP version: {}: {}".format(
                 e.__class__.__name__, e))
             lines.append('SIP: ?')
 

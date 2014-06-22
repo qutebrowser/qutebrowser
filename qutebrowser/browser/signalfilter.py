@@ -74,7 +74,7 @@ class SignalFilter(QObject):
         log_signal = not signal.signal.startswith('2cur_progress')
         if not isinstance(sender, WebView):
             # BUG? This should never happen, but it does regularely...
-            logger.warn("Got signal {} by {} which is no tab!".format(
+            logger.warning("Got signal {} by {} which is no tab!".format(
                 dbg_signal(signal, args), sender))
             return
         if self._tabs.currentWidget() == sender:
