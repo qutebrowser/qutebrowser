@@ -31,6 +31,7 @@ from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
 import qutebrowser.config.config as config
 from qutebrowser.models.basecompletion import Role
 from qutebrowser.config.style import get_stylesheet
+from qutebrowser.utils.misc import qt_ensure_valid
 
 
 class CompletionItemDelegate(QStyledItemDelegate):
@@ -70,6 +71,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         """Draw the icon of an ItemViewItem."""
         icon_rect = self._style.subElementRect(
             self._style.SE_ItemViewItemDecoration, self._opt, self._opt.widget)
+        qt_ensure_valid(icon_rect)
 
         mode = QIcon.Normal
         if not self._opt.state & QStyle.State_Enabled:
@@ -94,10 +96,12 @@ class CompletionItemDelegate(QStyledItemDelegate):
 
         text_rect_ = self._style.subElementRect(
             self._style.SE_ItemViewItemText, self._opt, self._opt.widget)
+        qt_ensure_valid(text_rect_)
         margin = self._style.pixelMetric(QStyle.PM_FocusFrameHMargin,
                                          self._opt, self._opt.widget) + 1
         # remove width padding
         text_rect = text_rect_.adjusted(margin, 0, -margin, 0)
+        qt_ensure_valid(text_rect)
         # move text upwards a bit
         if index.parent().isValid():
             text_rect.adjust(0, -1, 0, -1)
@@ -211,6 +215,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         o.rect = self._style.subElementRect(
             self._style.SE_ItemViewItemFocusRect, self._opt, self._opt.widget)
         o.state |= QStyle.State_KeyboardFocusChange | QStyle.State_Item
+        qt_ensure_valid(o.rect)
         if state & QStyle.State_Enabled:
             cg = QPalette.Normal
         else:
@@ -246,6 +251,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         docsize = self._doc.size().toSize()
         size = self._style.sizeFromContents(QStyle.CT_ItemViewItem, self._opt,
                                             docsize, self._opt.widget)
+        qt_ensure_valid(size)
         return size + QSize(10, 3)
 
     def paint(self, painter, option, index):

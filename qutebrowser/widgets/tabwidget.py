@@ -26,6 +26,7 @@ from PyQt5.QtGui import QIcon, QPixmap
 import qutebrowser.config.config as config
 from qutebrowser.config.style import set_register_stylesheet
 from qutebrowser.utils.style import Style
+from qutebrowser.utils.misc import qt_ensure_valid
 
 
 class EmptyTabIcon(QIcon):
@@ -141,6 +142,8 @@ class TabBar(QTabBar):
         """
         if config.get('tabbar', 'expand'):
             height = super().tabSizeHint(index).height()
-            return QSize(self.width() / self.count(), height)
+            size = QSize(self.width() / self.count(), height)
         else:
-            return super().tabSizeHint(index)
+            size = super().tabSizeHint(index)
+        qt_ensure_valid(size)
+        return size

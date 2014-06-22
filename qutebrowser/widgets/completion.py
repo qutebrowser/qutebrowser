@@ -31,6 +31,7 @@ import qutebrowser.commands.utils as cmdutils
 from qutebrowser.widgets.completiondelegate import CompletionItemDelegate
 from qutebrowser.config.style import set_register_stylesheet
 from qutebrowser.utils.completer import Completer
+from qutebrowser.utils.misc import qt_ensure_valid
 
 
 class CompletionView(QTreeView):
@@ -163,6 +164,7 @@ class CompletionView(QTreeView):
             # No completion running at the moment, ignore keypress
             return
         idx = self._next_idx(prev)
+        qt_ensure_valid(idx)
         self.selectionModel().setCurrentIndex(
             idx, QItemSelectionModel.ClearAndSelect |
             QItemSelectionModel.Rows)

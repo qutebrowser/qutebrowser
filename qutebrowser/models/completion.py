@@ -26,6 +26,7 @@ import qutebrowser.config.configdata as configdata
 from qutebrowser.models.basecompletion import BaseCompletionModel
 from qutebrowser.commands.utils import cmd_dict
 from qutebrowser.utils.log import completion as logger
+from qutebrowser.utils.misc import qt_ensure_valid
 
 
 class SettingSectionCompletionModel(BaseCompletionModel):
@@ -85,7 +86,9 @@ class SettingOptionCompletionModel(BaseCompletionModel):
             # changed before init
             return
         val = config.get(section, option, raw=True)
-        self.setData(item.index(), val, Qt.DisplayRole)
+        idx = item.index()
+        qt_ensure_valid(idx)
+        self.setData(idx, val, Qt.DisplayRole)
 
 
 class SettingValueCompletionModel(BaseCompletionModel):
@@ -122,7 +125,9 @@ class SettingValueCompletionModel(BaseCompletionModel):
         value = config.get(section, option, raw=True)
         if not value:
             value = '""'
-        self.setData(self.cur_item.index(), value, Qt.DisplayRole)
+        idx = self.cur_item.index()
+        qt_ensure_valid(idx)
+        self.setData(idx, value, Qt.DisplayRole)
 
 
 class CommandCompletionModel(BaseCompletionModel):

@@ -57,11 +57,17 @@ class DownloadModel(QAbstractListModel):
     def on_data_changed(self, idx):
         """Update view when DownloadManager data changed."""
         model_idx = self.index(idx, 0)
+        qt_ensure_valid(model_idx)
         self.dataChanged.emit(model_idx, model_idx)
 
     def last_index(self):
-        """Get the last index in the model."""
-        return self.index(self.rowCount() - 1)
+        """Get the last index in the model.
+
+        Return:
+            A (possibly invalid) QModelIndex.
+        """
+        idx = self.index(self.rowCount() - 1)
+        return idx
 
     def headerData(self, section, orientation, role):
         """Simple constant header."""
