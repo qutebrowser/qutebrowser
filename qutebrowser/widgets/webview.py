@@ -207,6 +207,8 @@ class WebView(QWebView):
                 log.mouse.debug("<object type='{}'> clicked.".format(objtype))
                 return config.get('input', 'insert-mode-on-plugins')
         elif tag == 'div':
+            # CodeMirror is some java-script editor which hides the underlying
+            # textarea, but is editable.
             if any([c.startswith('CodeMirror') for c in elem.classes()]):
                 return True
         else:
