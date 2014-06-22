@@ -253,7 +253,9 @@ class WebView(QWebView):
         # relative to the QWebView, not to the frame. This makes no sense to
         # me, but it works this way.
         hitresult = frame.hitTestContent(pos)
-        if self._is_editable(hitresult):
+        if hitresult.isNull():
+            log.mouse.debug("Hitresult is null!")
+        elif self._is_editable(hitresult):
             log.mouse.debug("Clicked editable element!")
             modeman.enter('insert', 'click')
         else:
