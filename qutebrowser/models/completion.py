@@ -64,9 +64,8 @@ class SettingOptionCompletionModel(BaseCompletionModel):
             try:
                 desc = sectdata.descriptions[name]
             except (KeyError, AttributeError) as e:
-                logger.debug("Error while getting setting description for "
-                             "{}.{}: {}: {}".format(section, name,
-                                                    e.__class__.__name__, e))
+                # Some stuff (especially ValueList items) don't have a
+                # description.
                 desc = ""
             value = config.get(section, name, raw=True)
             _valitem, _descitem, miscitem = self.new_item(cat, name, desc,
