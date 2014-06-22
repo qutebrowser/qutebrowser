@@ -232,7 +232,6 @@ class WebView(QWebView):
                 self.go_forward()
             except CommandError as ex:
                 message.error(ex)
-            return super().mousePressEvent(e)
 
     def _mousepress_insertmode(self, e):
         """Switch to insert mode when an editable element was clicked.
