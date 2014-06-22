@@ -202,8 +202,8 @@ class WebView(QWebView):
             if (objtype.startswith('application/') or
                     elem.hasAttribute('classid')):
                 # Let's hope flash/java stuff has an application/* mimetype OR
-                # at least a classid attribute. Oh, and let's home images/...
-                # DON"T have a classid attribute. HTML sucks.
+                # at least a classid attribute. Oh, and let's hope images/...
+                # DON'T have a classid attribute. HTML sucks.
                 log.mouse.debug("<object type='{}'> clicked.".format(objtype))
                 return config.get('input', 'insert-mode-on-plugins')
         elif tag == 'div':
