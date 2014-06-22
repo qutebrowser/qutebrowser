@@ -129,10 +129,10 @@ class TabBar(QTabBar):
     def mousePressEvent(self, e):
         """Override mousePressEvent to emit tabCloseRequested on rightclick."""
         if e.button() != Qt.RightButton:
-            return super().mousePressEvent(e)
+            super().mousePressEvent(e)
         idx = self.tabAt(e.pos())
         if idx == -1:
-            return super().mousePressEvent(e)
+            super().mousePressEvent(e)
         self.tabCloseRequested.emit(idx)
 
     def tabSizeHint(self, index):

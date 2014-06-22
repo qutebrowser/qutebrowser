@@ -520,7 +520,7 @@ class WebView(QWebView):
             self.scroll_pos = perc
             self.scroll_pos_changed.emit(*perc)
         # Let superclass handle the event
-        return super().paintEvent(e)
+        super().paintEvent(e)
 
     def mousePressEvent(self, e):
         """Extend QWidget::mousePressEvent().
@@ -539,7 +539,7 @@ class WebView(QWebView):
         """
         if e.button() in (Qt.XButton1, Qt.XButton2):
             self._mousepress_backforward(e)
-            return super().mousePressEvent(e)
+            super().mousePressEvent(e)
         self._mousepress_insertmode(e)
         self._mousepress_opentarget(e)
-        return super().mousePressEvent(e)
+        super().mousePressEvent(e)
