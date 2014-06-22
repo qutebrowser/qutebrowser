@@ -71,6 +71,8 @@ class CompletionItemDelegate(QStyledItemDelegate):
         """Draw the icon of an ItemViewItem."""
         icon_rect = self._style.subElementRect(
             self._style.SE_ItemViewItemDecoration, self._opt, self._opt.widget)
+        if icon_rect.isNull():
+            return
         qt_ensure_valid(icon_rect)
 
         mode = QIcon.Normal
