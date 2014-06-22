@@ -261,6 +261,7 @@ class StatusBar(QWidget):
             queue: If set, message gets queued rather than being displayed
                    immediately.
         """
+        # FIXME probably using a QTime here would be easier.
         logger.debug("Displaying text: {} (error={})".format(text, error))
         now = datetime.now()
         mindelta = config.get('ui', 'message-timeout')
