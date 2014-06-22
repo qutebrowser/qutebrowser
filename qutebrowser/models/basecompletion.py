@@ -77,7 +77,9 @@ class BaseCompletionModel(QStandardItemModel):
         qt_ensure_valid(index)
         haystack = self.data(index)
         marks = self._get_marks(needle, haystack)
-        self.setData(index, marks, Role.marks)
+        ok = self.setData(index, marks, Role.marks)
+        if not ok:
+            raise ValueError("Error while setting data!")
 
     def new_category(self, name, sort=None):
         """Add a new category to the model.

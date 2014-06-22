@@ -342,7 +342,10 @@ class TabbedBrowser(TabWidget):
         Args:
             tab: The tab where the signal belongs to.
         """
-        self.setTabIcon(self.indexOf(tab), EmptyTabIcon())
+        idx = self.indexOf(tab)
+        if idx == -1:
+            raise ValueError("Tab {} not found!".format(tab))
+        self.setTabIcon(idx, EmptyTabIcon())
 
     @pyqtSlot(WebView, str)
     def on_title_changed(self, tab, text):
@@ -356,7 +359,10 @@ class TabbedBrowser(TabWidget):
         """
         log.webview.debug("title changed to '{}'".format(text))
         if text:
-            self.setTabText(self.indexOf(tab), text)
+            idx = self.indexOf(tab)
+            if idx == -1:
+                raise ValueError("Tab {} not found!".format(tab))
+            self.setTabText(idx, text)
         else:
             log.webview.debug("ignoring title change")
 
@@ -369,6 +375,8 @@ class TabbedBrowser(TabWidget):
             url: The new URL.
         """
         idx = self.indexOf(tab)
+        if idx == -1:
+            raise ValueError("Tab {} not found!".format(tab))
         if not self.tabText(idx):
             self.setTabText(idx, url)
 
@@ -383,7 +391,10 @@ class TabbedBrowser(TabWidget):
         """
         if not config.get('tabbar', 'show-favicons'):
             return
-        self.setTabIcon(self.indexOf(tab), tab.icon())
+        idx = self.indexOf(tab)
+        if idx == -1:
+            raise ValueError("Tab {} not found!".format(tab))
+        self.setTabIcon(idx, tab.icon())
 
     @pyqtSlot(str)
     def on_mode_left(self, mode):
