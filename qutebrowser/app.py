@@ -526,12 +526,6 @@ class Application(QApplication):
                 e.__class__.__name__, e))
             objects = ""
 
-        # Try to shutdown gracefully
-        try:
-            self.shutdown(do_quit=False)
-        except Exception as e:
-            log.destroy.debug("Error while shutting down: {}: {}".format(
-                e.__class__.__name__, e))
         try:
             self.lastWindowClosed.disconnect(self.shutdown)
         except TypeError as e:
