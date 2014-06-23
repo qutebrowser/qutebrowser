@@ -344,11 +344,8 @@ class BaseKeyParser(QObject):
                 continue
             elif key.startswith('<') and key.endswith('>'):
                 keystr = self._normalize_keystr(key[1:-1])
-                logger.debug("registered special key: {} -> {}".format(keystr,
-                                                                       cmd))
                 self.special_bindings[keystr] = cmd
             elif self._supports_chains:
-                logger.debug("registered key: {} -> {}".format(key, cmd))
                 self.bindings[key] = cmd
             elif self.warn_on_keychains:
                 logger.warning(

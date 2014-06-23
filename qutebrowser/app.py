@@ -123,32 +123,51 @@ class Application(QApplication):
         sys.excepthook = self._exception_hook
 
         self.args = args
+        log.init.debug("Starting init...")
         self._init_misc()
         actute_warning()
+        log.init.debug("Initializing config...")
         self._init_config()
+        log.init.debug("Initializing crashlog...")
         self._handle_segfault()
+        log.init.debug("Initializing modes...")
         self._init_modes()
+        log.init.debug("Initializing websettings...")
         websettings.init()
+        log.init.debug("Initializing quickmarks...")
         quickmarks.init()
+        log.init.debug("Initializing proxy...")
         proxy.init()
+        log.init.debug("Initializing cookies...")
         self.cookiejar = CookieJar(self)
+        log.init.debug("Initializing NetworkManager...")
         self.networkmanager = NetworkManager(self.cookiejar)
+        log.init.debug("Initializing commands...")
         self.commandmanager = CommandManager()
+        log.init.debug("Initializing search...")
         self.searchmanager = SearchManager(self)
+        log.init.debug("Initializing downloads...")
         self.downloadmanager = DownloadManager(self)
+        log.init.debug("Initializing main window...")
         self.mainwindow = MainWindow()
 
         self.modeman.mainwindow = self.mainwindow
+        log.init.debug("Initializing eventfilter...")
         self.installEventFilter(self.modeman)
         self.setQuitOnLastWindowClosed(False)
 
+        log.init.debug("Connecting signals...")
         self._connect_signals()
         self.modeman.enter('normal', 'init')
 
+        log.init.debug("Showing mainwindow...")
         self.mainwindow.show()
+        log.init.debug("Applying python hacks...")
         self._python_hacks()
         timer = QTimer.singleShot(0, self._process_init_args)
         self._timers.append(timer)
+
+        log.init.debug("Init done!")
 
         if self._crashdlg is not None:
             self._crashdlg.raise_()

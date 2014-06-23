@@ -87,6 +87,8 @@ def main():
     # Note we may not import webkit stuff yet as fix_harfbuzz didn't run.
     import qutebrowser.utils.log as log
     log.init_log(args)
+    log.init.debug("Log initialized.")
+    log.init.debug("Doing early init.")
     earlyinit.fix_harfbuzz(args)
     earlyinit.check_qt_version()
     earlyinit.check_pyqt_webkit()
