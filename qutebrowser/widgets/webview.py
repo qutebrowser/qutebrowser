@@ -179,47 +179,6 @@ class WebView(QWebView):
                 log.destroy.debug("Everything destroyed, calling callback")
                 self._shutdown_callback()
 
-    def _is_editable(self, hitresult):
-        """Check if a hit result needs keyboard focus.
-
-        Args:
-            hitresult: A QWebHitTestResult
-        """
-        # Beginnings of div-classes which are actually some kind of editor.
-        div_classes = ['CodeMirror',  # Javascript editor over a textarea
-                       'kix-']        # Google Docs editor
-        elem = hitresult.element()
-        tag = elem.tagName().lower()
-        if hitresult.isContentEditable() and webelem.is_writable(elem):
-            # text fields and the like
-            return True
-        elif tag in ('embed', 'applet', 'select'):
-            # Flash/Java/...
-            return config.get('input', 'insert-mode-on-plugins')
-        elif tag == 'object':
-            # Could be Flash/Java/..., could be image/audio/...
-            if not elem.hasAttribute('type'):
-                log.mouse.debug("<object> without type clicked...")
-                return False
-            objtype = elem.attribute('type')
-            if (objtype.startswith('application/') or
-                    elem.hasAttribute('classid')):
-                # Let's hope flash/java stuff has an application/* mimetype OR
-                # at least a classid attribute. Oh, and let's hope images/...
-                # DON'T have a classid attribute. HTML sucks.
-                log.mouse.debug("<object type='{}'> clicked.".format(objtype))
-                return config.get('input', 'insert-mode-on-plugins')
-        elif tag == 'div':
-            log.webview.debug("div with classes {} clicked!".format(
-                elem.classes()))
-            for klass in elem.classes():
-                if any([klass.startswith(e) for e in div_classes]):
-                    return True
-        elif tag == 'span':
-            log.webview.debug("span with classes {} clicked!".format(
-                elem.classes()))
-        return False
-
     def _mousepress_backforward(self, e):
         """Handle back/forward mouse button presses.
 
@@ -258,9 +217,11 @@ class WebView(QWebView):
         # relative to the QWebView, not to the frame. This makes no sense to
         # me, but it works this way.
         hitresult = frame.hitTestContent(pos)
+        elem = hitresult.element()
         if hitresult.isNull():
             log.mouse.debug("Hitresult is null!")
-        elif self._is_editable(hitresult):
+        elif ((hitresult.isContentEditable() and webelem.is_writable(elem)) or
+                webelem.is_editable(elem)):
             log.mouse.debug("Clicked editable element!")
             modeman.enter('insert', 'click')
         else:
@@ -453,10 +414,11 @@ class WebView(QWebView):
         if modeman.instance().mode == 'insert' or not ok:
             return
         frame = self.page().currentFrame()
-        elem = frame.findFirstElement(
-            webelem.SELECTORS[webelem.Group.editable_focused])
-        log.modes.debug("focus element: {}".format(not elem.isNull()))
-        if not elem.isNull():
+        elem = frame.findFirstElement(':focus')
+        log.modes.debug("focus element: {}".format(elem.toOuterXml()))
+        if elem.isNull():
+            log.webview.debug("Focused element is null!")
+        elif webelem.is_editable(elem):
             modeman.enter('insert', 'load finished')
 
     @pyqtSlot(str)

@@ -30,6 +30,7 @@ Module attributes:
 from PyQt5.QtCore import QRect, QUrl
 from PyQt5.QtWebKit import QWebElement
 
+import qutebrowser.utils.log as log
 from qutebrowser.utils.usertypes import enum
 
 
@@ -43,16 +44,20 @@ SELECTORS = {
                 '[role=option], [role=button], img'),
     Group.links: 'a',
     Group.images: 'img',
-    Group.editable: ('input[type=text], input[type=email], input[type=url], '
-                     'input[type=tel], input[type=number], '
-                     'input[type=password], input[type=search], textarea'),
+    # This doesn't contain all the groups where we should switch to insert mode
+    # - it is just used when opening the external editor.
+    Group.editable_focused: ('input[type=text]:focus, '
+                             'input[type=email]:focus, '
+                             'input[type=url]:focus, '
+                             'input[type=tel]:focus, '
+                             'input[type=number]:focus, '
+                             'input[type=password]:focus, '
+                             'input[type=search]:focus, '
+                             'textarea:focus'),
     Group.url: '[src], [href]',
     Group.prevnext_rel: 'link, [role=link]',
     Group.prevnext: 'a, button, [role=button]',
 }
-
-SELECTORS[Group.editable_focused] = ', '.join(
-    [sel.strip() + ':focus' for sel in SELECTORS[Group.editable].split(',')])
 
 FILTERS = {
     Group.links: (lambda e: e.hasAttribute('href') and
@@ -171,3 +176,53 @@ def get_child_frames(startframe):
             new_frames += frame.childFrames()
         frames = new_frames
     return results
+
+
+def is_editable(elem):
+    """Check whether we should switch to insert mode for this element.
+
+    FIXME: add tests
+
+    Args:
+        elem: The QWebElement to check.
+
+    Return:
+        True if we should switch to insert mode, False otherwise.
+    """
+    # Beginnings of div-classes which are actually some kind of editor.
+    div_classes = ['CodeMirror',  # Javascript editor over a textarea
+                   'kix-']        # Google Docs editor
+    tag = elem.tagName().lower()
+    if tag == 'input':
+        objtype = elem.attribute('type')
+        if objtype in ['text', 'email', 'url', 'tel', 'number', 'password',
+                       'search', '']:
+            return is_writable(elem)
+    elif tag == 'textarea':
+        return is_writable(elem)
+    elif tag in ('embed', 'applet', 'select'):
+        # Flash/Java/...
+        return config.get('input', 'insert-mode-on-plugins')
+    elif tag == 'object':
+        # Could be Flash/Java/..., could be image/audio/...
+        if not elem.hasAttribute('type'):
+            log.webview.debug("<object> without type clicked...")
+            return False
+        objtype = elem.attribute('type')
+        if (objtype.startswith('application/') or
+                elem.hasAttribute('classid')):
+            # Let's hope flash/java stuff has an application/* mimetype OR
+            # at least a classid attribute. Oh, and let's hope images/...
+            # DON'T have a classid attribute. HTML sucks.
+            log.webview.debug("<object type='{}'> clicked.".format(objtype))
+            return config.get('input', 'insert-mode-on-plugins')
+    elif tag == 'div':
+        log.webview.debug("div with classes {} clicked!".format(
+            elem.classes()))
+        for klass in elem.classes():
+            if any([klass.startswith(e) for e in div_classes]):
+                return True
+    elif tag == 'span':
+        log.webview.debug("span with classes {} clicked!".format(
+            elem.classes()))
+    return False
