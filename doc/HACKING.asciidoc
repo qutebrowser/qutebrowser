@@ -208,6 +208,7 @@ value is not valid.
 +
 If a function returns something else on error, the return value should
 carefully be checked.
+
 * Methods of Qt objects have certain maximum values, based on their underlying
 C++ types.
 +
