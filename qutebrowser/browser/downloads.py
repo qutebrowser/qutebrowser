@@ -24,7 +24,6 @@ import os.path
 from functools import partial
 from collections import deque
 
-import rfc6266
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QCoreApplication,
                           QTimer)
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
@@ -36,7 +35,8 @@ from qutebrowser.utils.log import downloads as logger
 from qutebrowser.utils.log import fix_rfc2622
 from qutebrowser.utils.usertypes import PromptMode, Question, Timer
 from qutebrowser.utils.misc import (interpolate_color, format_seconds,
-                                    format_size, qt_ensure_valid)
+                                    format_size, parse_content_disposition)
+from qutebrowser.utils.qt import qt_ensure_valid
 from qutebrowser.commands.exceptions import CommandError
 
 
@@ -332,35 +332,6 @@ class DownloadManager(QObject):
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
 
-    def _get_filename(self, reply):
-        """Get a suitable filename to download a file to.
-
-        Args:
-            reply: The QNetworkReply to get a filename for.
-        """
-        # First check if the Content-Disposition header has a filename
-        # attribute.
-        if reply.hasRawHeader('Content-Disposition'):
-            # We use the unsafe variant of the filename as we sanitize it via
-            # os.path.basename later.
-            try:
-                content_disposition = rfc6266.parse_headers(
-                    bytes(reply.rawHeader('Content-Disposition')))
-                filename = content_disposition.filename_unsafe
-            except UnicodeDecodeError as e:
-                logger.warning("Error while getting filename: {}: {}".format(
-                    e.__class__.__name__, e))
-                filename = None
-        else:
-            filename = None
-        # Then try to get filename from url
-        if not filename:
-            filename = reply.url().path()
-        # If that fails as well, use a fallback
-        if not filename:
-            filename = 'qutebrowser-download'
-        return os.path.basename(filename)
-
     def get(self, url):
         """Start a download with a link URL.
 
@@ -390,7 +361,7 @@ class DownloadManager(QObject):
         Args:
             reply: The QNetworkReply to download.
         """
-        suggested_filename = self._get_filename(reply)
+        _inline, suggested_filename = parse_content_disposition(reply)
         download_location = config.get('storage', 'download-directory')
         suggested_filepath = os.path.join(download_location,
                                           suggested_filename)
