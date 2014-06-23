@@ -74,11 +74,15 @@ class CompletionView(QTreeView):
                 {color[completion.category.border.bottom]};
         }}
 
-        QTreeView::item:selected {{
+        QTreeView::item:selected, QTreeView::item:selected:hover {{
             border-top: 1px solid {color[completion.item.selected.border.top]};
             border-bottom: 1px solid
                 {color[completion.item.selected.border.bottom]};
             {color[completion.item.selected.bg]}
+        }}
+
+        QTreeView:item::hover {{
+            border: 0px;
         }}
     """
     COLUMN_WIDTHS = (20, 70, 10)
