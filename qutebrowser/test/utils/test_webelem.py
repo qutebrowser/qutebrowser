@@ -25,7 +25,7 @@ from PyQt5.QtCore import QRect, QPoint
 
 import qutebrowser.utils.webelem as webelem
 from qutebrowser.test.stubs import (FakeWebElement, FakeWebFrame,
-                                    FakeChildrenFrame)
+                                    FakeChildrenFrame, ConfigStub)
 
 
 class IsVisibleInvalidTests(unittest.TestCase):
@@ -294,6 +294,200 @@ class GetChildFramesTests(unittest.TestCase):
         self.assertIs(children[0], root)
         for frame in [root] + first + second:
             frame.childFrames.assert_called_once_with()
+
+
+class IsEditableTests(unittest.TestCase):
+
+    """Tests for is_editable."""
+
+    def setUp(self):
+        webelem.config = None
+
+    def test_input_plain(self):
+        """Test with plain input element."""
+        elem = FakeWebElement(tagname='input')
+        self.assertTrue(webelem.is_editable(elem))
+
+    def test_input_text(self):
+        """Test with text input element."""
+        elem = FakeWebElement(tagname='input', attributes={'type': 'text'})
+        self.assertTrue(webelem.is_editable(elem))
+
+    def test_input_text_caps(self):
+        """Test with text input element with caps attributes."""
+        elem = FakeWebElement(tagname='INPUT', attributes={'TYPE': 'TEXT'})
+        self.assertTrue(webelem.is_editable(elem))
+
+    def test_input_email(self):
+        """Test with email input element."""
+        elem = FakeWebElement(tagname='input', attributes={'type': 'email'})
+        self.assertTrue(webelem.is_editable(elem))
+
+    def test_input_url(self):
+        """Test with url input element."""
+        elem = FakeWebElement(tagname='input', attributes={'type': 'url'})
+        self.assertTrue(webelem.is_editable(elem))
+
+    def test_input_tel(self):
+        """Test with tel input element."""
+        elem = FakeWebElement(tagname='input', attributes={'type': 'tel'})
+        self.assertTrue(webelem.is_editable(elem))
+
+    def test_input_number(self):
+        """Test with number input element."""
+        elem = FakeWebElement(tagname='input', attributes={'type': 'number'})
+        self.assertTrue(webelem.is_editable(elem))
+
+    def test_input_password(self):
+        """Test with password input element."""
+        elem = FakeWebElement(tagname='input', attributes={'type': 'password'})
+        self.assertTrue(webelem.is_editable(elem))
+
+    def test_input_search(self):
+        """Test with search input element."""
+        elem = FakeWebElement(tagname='input', attributes={'type': 'search'})
+        self.assertTrue(webelem.is_editable(elem))
+
+    def test_input_button(self):
+        """Button should not be editable."""
+        elem = FakeWebElement(tagname='input', attributes={'type': 'button'})
+        self.assertFalse(webelem.is_editable(elem))
+
+    def test_input_checkbox(self):
+        """Checkbox should not be editable."""
+        elem = FakeWebElement(tagname='input', attributes={'type': 'checkbox'})
+        self.assertFalse(webelem.is_editable(elem))
+
+    def test_textarea(self):
+        """Test textarea element."""
+        elem = FakeWebElement(tagname='textarea')
+        self.assertTrue(webelem.is_editable(elem))
+
+    def test_select(self):
+        """Test selectbox."""
+        elem = FakeWebElement(tagname='select')
+        self.assertTrue(webelem.is_editable(elem))
+
+    def test_input_disabled(self):
+        """Test disabled input element."""
+        elem = FakeWebElement(tagname='input', attributes={'disabled': None})
+        self.assertFalse(webelem.is_editable(elem))
+
+    def test_input_readonly(self):
+        """Test readonly input element."""
+        elem = FakeWebElement(tagname='input', attributes={'readonly': None})
+        self.assertFalse(webelem.is_editable(elem))
+
+    def test_textarea_disabled(self):
+        """Test disabled textarea element."""
+        elem = FakeWebElement(tagname='textarea',
+                              attributes={'disabled': None})
+        self.assertFalse(webelem.is_editable(elem))
+
+    def test_textarea_readonly(self):
+        """Test readonly textarea element."""
+        elem = FakeWebElement(tagname='textarea',
+                              attributes={'readonly': None})
+        self.assertFalse(webelem.is_editable(elem))
+
+    def test_embed_true(self):
+        """Test embed-element with insert-mode-on-plugins true."""
+        webelem.config = ConfigStub({'input':
+                                    {'insert-mode-on-plugins': True}})
+        elem = FakeWebElement(tagname='embed')
+        self.assertTrue(webelem.is_editable(elem))
+
+    def test_applet_true(self):
+        """Test applet-element with insert-mode-on-plugins true."""
+        webelem.config = ConfigStub({'input':
+                                     {'insert-mode-on-plugins': True}})
+        elem = FakeWebElement(tagname='applet')
+        self.assertTrue(webelem.is_editable(elem))
+
+    def test_embed_false(self):
+        """Test embed-element with insert-mode-on-plugins false."""
+        webelem.config = ConfigStub({'input':
+                                    {'insert-mode-on-plugins': False}})
+        elem = FakeWebElement(tagname='embed')
+        self.assertFalse(webelem.is_editable(elem))
+
+    def test_applet_false(self):
+        """Test applet-element with insert-mode-on-plugins false."""
+        webelem.config = ConfigStub({'input':
+                                    {'insert-mode-on-plugins': False}})
+        elem = FakeWebElement(tagname='applet')
+        self.assertFalse(webelem.is_editable(elem))
+
+    def test_object_no_type(self):
+        """Test object-element without type."""
+        elem = FakeWebElement(tagname='object')
+        self.assertFalse(webelem.is_editable(elem))
+
+    def test_object_image(self):
+        """Test object-element with image type."""
+        elem = FakeWebElement(tagname='object',
+                              attributes={'type': 'image/gif'})
+        self.assertFalse(webelem.is_editable(elem))
+
+    def test_object_application(self):
+        """Test object-element with application type."""
+        webelem.config = ConfigStub({'input':
+                                    {'insert-mode-on-plugins': True}})
+        elem = FakeWebElement(tagname='object',
+                              attributes={'type': 'application/foo'})
+        self.assertTrue(webelem.is_editable(elem))
+
+    def test_object_application_false(self):
+        """Test object-element with application type but not ...-on-plugins."""
+        webelem.config = ConfigStub({'input':
+                                    {'insert-mode-on-plugins': False}})
+        elem = FakeWebElement(tagname='object',
+                              attributes={'type': 'application/foo'})
+        self.assertFalse(webelem.is_editable(elem))
+
+    def test_object_classid(self):
+        """Test object-element with classid."""
+        webelem.config = ConfigStub({'input':
+                                    {'insert-mode-on-plugins': True}})
+        elem = FakeWebElement(tagname='object',
+                              attributes={'type': 'foo', 'classid': 'foo'})
+        self.assertTrue(webelem.is_editable(elem))
+
+    def test_object_classid_false(self):
+        """Test object-element with classid but not insert-mode-on-plugins."""
+        webelem.config = ConfigStub({'input':
+                                    {'insert-mode-on-plugins': False}})
+        elem = FakeWebElement(tagname='object',
+                              attributes={'type': 'foo', 'classid': 'foo'})
+        self.assertFalse(webelem.is_editable(elem))
+
+    def test_div_empty(self):
+        """Test div-element without class."""
+        elem = FakeWebElement(tagname='div')
+        self.assertFalse(webelem.is_editable(elem))
+
+    def test_div_noneditable(self):
+        """Test div-element with non-editableclass."""
+        elem = FakeWebElement(tagname='div', classes='foo-kix-bar')
+        self.assertFalse(webelem.is_editable(elem))
+
+    def test_div_xik(self):
+        """Test div-element with xik class."""
+        elem = FakeWebElement(tagname='div', classes='foo kix-foo')
+        self.assertTrue(webelem.is_editable(elem))
+
+    def test_div_xik_caps(self):
+        """Test div-element with xik class in caps.
+
+        This tests if classes are case sensitive as they should.
+        """
+        elem = FakeWebElement(tagname='div', classes='KIX-FOO')
+        self.assertFalse(webelem.is_editable(elem))
+
+    def test_div_codemirror(self):
+        """Test div-element with codemirror class."""
+        elem = FakeWebElement(tagname='div', classes='foo CodeMirror-foo')
+        self.assertTrue(webelem.is_editable(elem))
 
 
 if __name__ == '__main__':

@@ -82,7 +82,7 @@ class FakeWebElement:
     """A stub for QWebElement."""
 
     def __init__(self, geometry=None, frame=None, null=False, visibility='',
-                 display='', attributes=None):
+                 display='', attributes=None, tagname=None, classes=None):
         """Constructor.
 
         Args:
@@ -92,6 +92,8 @@ class FakeWebElement:
             visibility: The CSS visibility style property calue.
             display: The CSS display style property calue.
             attributes: Boolean HTML attributes to be added.
+            tagname: The tag name.
+            classes: HTML classes to be added.
 
         Raise:
             ValueError if element is not null and geometry/frame are not given.
@@ -99,9 +101,11 @@ class FakeWebElement:
         self.geometry = Mock(return_value=geometry)
         self.webFrame = Mock(return_value=frame)
         self.isNull = Mock(return_value=null)
+        self.tagName = Mock(return_value=tagname)
         self._visibility = visibility
         self._display = display
         self._attributes = attributes
+        self._classes = classes
 
     def styleProperty(self, name, strategy):
         """Return the CSS style property named name.
@@ -129,6 +133,22 @@ class FakeWebElement:
             return False
         else:
             return name in self._attributes
+
+    def attribute(self, name):
+        """Get the attribute named name."""
+        if self._attributes is None:
+            return ''
+        try:
+            return self._attributes[name]
+        except KeyError:
+            return ''
+
+    def classes(self):
+        """Get the classes of the object."""
+        if self._classes is not None:
+            return self._classes.split(' ')
+        else:
+            return []
 
 
 class FakeWebFrame:
