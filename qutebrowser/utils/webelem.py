@@ -184,7 +184,7 @@ def _is_object_editable(elem):
     if not elem.hasAttribute('type'):
         log.webview.debug("<object> without type clicked...")
         return False
-    objtype = elem.attribute('type')
+    objtype = elem.attribute('type').lower()
     if objtype.startswith('application/') or elem.hasAttribute('classid'):
         # Let's hope flash/java stuff has an application/* mimetype OR
         # at least a classid attribute. Oh, and let's hope images/...
@@ -212,7 +212,7 @@ def is_editable(elem):
                    'kix-']        # Google Docs editor
     tag = elem.tagName().lower()
     if tag == 'input':
-        objtype = elem.attribute('type')
+        objtype = elem.attribute('type').lower()
         if objtype in ['text', 'email', 'url', 'tel', 'number', 'password',
                        'search', '']:
             return is_writable(elem)
