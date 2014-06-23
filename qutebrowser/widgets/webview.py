@@ -548,6 +548,7 @@ class WebView(QWebView):
         if e.button() in (Qt.XButton1, Qt.XButton2):
             self._mousepress_backforward(e)
             super().mousePressEvent(e)
+            return
         self._mousepress_insertmode(e)
         self._mousepress_opentarget(e)
         super().mousePressEvent(e)
