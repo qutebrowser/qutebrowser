@@ -401,6 +401,10 @@ DATA = OrderedDict([
          SettingValue(types.Bool(), 'true'),
          "Whether tabs should be movable."),
 
+        ('close-on-right-click',
+         SettingValue(types.Bool(), 'false'),
+         "Whether tabs should close when right-clicked."),
+
         ('close-buttons',
          SettingValue(types.Bool(), 'false'),
          "Whether tabs should have close-buttons."),
