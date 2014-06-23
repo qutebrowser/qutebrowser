@@ -120,9 +120,9 @@ class _CrashDialog(QDialog):
         try:
             self._crash_info.append(("Contact info",
                                      "User: {}".format(getuser())))
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             self._crash_info.append(("Contact info", "User: {}: {}".format(
-                                         e.__class__.__name__, e)))
+                                     e.__class__.__name__, e)))
         self._crash_info.append(("Version info", version()))
         try:
             self._crash_info.append(("Config",

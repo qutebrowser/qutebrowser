@@ -186,7 +186,7 @@ class WebView(QWebView):
             hitresult: A QWebHitTestResult
         """
         # Beginnings of div-classes which are actually some kind of editor.
-        DIV_CLASSES = ['CodeMirror',  # Javascript editor over a textarea
+        div_classes = ['CodeMirror',  # Javascript editor over a textarea
                        'kix-']        # Google Docs editor
         elem = hitresult.element()
         tag = elem.tagName().lower()
@@ -213,7 +213,7 @@ class WebView(QWebView):
             log.webview.debug("div with classes {} clicked!".format(
                 elem.classes()))
             for klass in elem.classes():
-                if any([klass.startswith(e) for e in DIV_CLASSES]):
+                if any([klass.startswith(e) for e in div_classes]):
                     return True
         elif tag == 'span':
             log.webview.debug("span with classes {} clicked!".format(
