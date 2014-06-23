@@ -259,6 +259,9 @@ class WebView(QWebView):
             log.mouse.debug("Clicked editable element!")
             modeman.enter('insert', 'click')
         else:
+            # We don't leave the insert mode here as _is_editable is just an
+            # approximation, and the user will get annoyed if insertmode is
+            # left with every click.
             log.mouse.debug("Clicked non-editable element!")
 
     def _mousepress_opentarget(self, e):
