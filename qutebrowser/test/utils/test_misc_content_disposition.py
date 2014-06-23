@@ -19,6 +19,7 @@
 
 """Tests for qutebrowser.utils.misc.parse_content_disposition."""
 
+import os
 import unittest
 from unittest import TestCase
 from unittest.mock import Mock
@@ -625,7 +626,23 @@ class AttachmentTests(AttachmentTestCase):
         """
         self._check_filename('attachment; filename="/foo.html"', 'foo.html')
 
-    def test_attabspathwin(self):
+    @unittest.skipUnless(os.name == 'posix', "requires POSIX")
+    def test_attabspathwin_unix(self):
+        """'attachment', specifying an absolute filename in the fs root.
+
+        Either ignore the filename altogether, or discard the path information.
+
+        Note that test results under Operating Systems other than Windows vary
+        (see
+        http://lists.w3.org/Archives/Public/ietf-http-wg/2011JanMar/0112.html);
+        apparently some UAs consider the backslash a legitimate filename
+        character.
+        """
+        self._check_filename(r'attachment; filename="\\foo.html"',
+                             r'\foo.html')
+
+    @unittest.skipUnless(os.name == 'nt', "requires Windows")
+    def test_attabspathwin_win(self):
         """'attachment', specifying an absolute filename in the fs root.
 
         Either ignore the filename altogether, or discard the path information.
@@ -805,7 +822,17 @@ class CharacterSetTests(AttachmentTestCase):
         self._check_filename("attachment; filename*=UTF-8''A-%2541.html",
                              'A-%41.html')
 
-    def test_attwithfn2231abspathdisguised(self):
+    @unittest.skipUnless(os.name == 'posix', "requires POSIX")
+    def test_attwithfn2231abspathdisguised_unix(self):
+        r"""'attachment', specifying a filename of \foo.html.
+
+        Using RFC2231 encoded UTF-8.
+        """
+        self._check_filename("attachment; filename*=UTF-8''%5cfoo.html",
+                             r'\foo.html')
+
+    @unittest.skipUnless(os.name == 'nt', "requires Windows")
+    def test_attwithfn2231abspathdisguised_win(self):
         r"""'attachment', specifying a filename of \foo.html.
 
         Using RFC2231 encoded UTF-8.
