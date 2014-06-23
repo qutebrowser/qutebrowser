@@ -22,7 +22,7 @@
 import binascii
 from base64 import b64decode
 
-from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QCoreApplication
+from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QCoreApplication, QTimer
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
 import qutebrowser.commands.utils as cmdutils
@@ -89,12 +89,16 @@ class MainWindow(QWidget):
         self._vbox.addWidget(self.tabs)
 
         self.completion = CompletionView(self)
-        self.completion.resize_completion.connect(self.resize_completion)
 
         self.status = StatusBar()
         self._vbox.addWidget(self.status)
 
-        self.resize_completion()
+        # When we're here the statusbar might not even really exist yet, so
+        # resizing will fail. Therefore, we use singleShot QTimers to make sure
+        # we defer this until everything else is initialized.
+        QTimer.singleShot(0, lambda: self.completion.resize_completion.connect(
+            self.resize_completion))
+        QTimer.singleShot(0, self.resize_completion)
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
