@@ -31,11 +31,10 @@ from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
 import qutebrowser.commands.utils as cmdutils
+import qutebrowser.utils.misc as utils
 from qutebrowser.utils.log import downloads as logger
 from qutebrowser.utils.log import fix_rfc2622
 from qutebrowser.utils.usertypes import PromptMode, Question, Timer
-from qutebrowser.utils.misc import (interpolate_color, format_seconds,
-                                    format_size, parse_content_disposition)
 from qutebrowser.utils.qt import qt_ensure_valid
 from qutebrowser.commands.exceptions import CommandError
 
@@ -130,11 +129,11 @@ class DownloadItem(QObject):
         Example: foo.pdf [699.2kB/s|0.34|16%|4.253/25.124]
         """
         perc = 0 if self.percentage is None else round(self.percentage)
-        remaining = (format_seconds(self.remaining_time)
+        remaining = (utils.format_seconds(self.remaining_time)
                      if self.remaining_time is not None else '?')
-        speed = format_size(self.speed, suffix='B/s')
-        down = format_size(self.bytes_done, suffix='B')
-        total = format_size(self.bytes_total, suffix='B')
+        speed = utils.format_size(self.speed, suffix='B/s')
+        down = utils.format_size(self.bytes_done, suffix='B')
+        total = utils.format_size(self.bytes_total, suffix='B')
         return ('{name} [{speed:>10}|{remaining:>5}|{perc:>2}%|'
                 '{down}/{total}]'.format(name=self.basename, speed=speed,
                                          remaining=remaining, perc=perc,
@@ -182,7 +181,8 @@ class DownloadItem(QObject):
         if self.percentage is None:
             return start
         else:
-            return interpolate_color(start, stop, self.percentage, system)
+            return utils.interpolate_color(start, stop, self.percentage,
+                                           system)
 
     def cancel(self):
         """Cancel the download."""
@@ -361,7 +361,7 @@ class DownloadManager(QObject):
         Args:
             reply: The QNetworkReply to download.
         """
-        _inline, suggested_filename = parse_content_disposition(reply)
+        _inline, suggested_filename = utils.parse_content_disposition(reply)
         download_location = config.get('storage', 'download-directory')
         suggested_filepath = os.path.join(download_location,
                                           suggested_filename)
