@@ -370,6 +370,10 @@ DATA = OrderedDict([
          "Whether to switch to insert mode when clicking flash and other "
          "plugins."),
 
+        ('auto-leave-insert-mode',
+         SettingValue(types.Bool(), 'true'),
+         "Whether to leave insert mode if a non-editable element is clicked."),
+
         ('auto-insert-mode',
          SettingValue(types.Bool(), 'true'),
          "Whether to automatically enter insert mode if an editable element "
