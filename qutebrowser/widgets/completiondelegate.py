@@ -71,9 +71,10 @@ class CompletionItemDelegate(QStyledItemDelegate):
         """Draw the icon of an ItemViewItem."""
         icon_rect = self._style.subElementRect(
             self._style.SE_ItemViewItemDecoration, self._opt, self._opt.widget)
-        if icon_rect.isNull():
+        if not icon_rect.isValid():
+            # The rect seems to be wrong in all kind of ways if no icon should
+            # be displayed.
             return
-        qt_ensure_valid(icon_rect)
 
         mode = QIcon.Normal
         if not self._opt.state & QStyle.State_Enabled:
