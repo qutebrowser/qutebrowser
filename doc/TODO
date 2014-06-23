@@ -48,7 +48,6 @@ Improvements / minor features
 - Show size of widgets in __repr__
 - Ask whether to close when downloads are running or maybe if form fields are
   unsubmitted (book page 187)
-- Update window title
 - Completion in statusbar like dwb
 - SSL-symbol in statusbar?
 - Commandline argument to delete config

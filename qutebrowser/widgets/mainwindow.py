@@ -86,6 +86,7 @@ class MainWindow(QWidget):
         self.downloadview.show()
 
         self.tabs = TabbedBrowser()
+        self.tabs.title_changed.connect(self.setWindowTitle)
         self._vbox.addWidget(self.tabs)
 
         self.completion = CompletionView(self)

@@ -77,6 +77,8 @@ class TabbedBrowser(TabWidget):
         start_download: Emitted when any tab wants to start downloading
                         something.
         current_tab_changed: The current tab changed to the emitted WebView.
+        title_changed: Emitted when the application title should be changed.
+                       arg: The new title as string.
     """
 
     cur_progress = pyqtSignal(int)
@@ -94,6 +96,7 @@ class TabbedBrowser(TabWidget):
     resized = pyqtSignal('QRect')
     got_cmd = pyqtSignal(str)
     current_tab_changed = pyqtSignal(WebView)
+    title_changed = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -364,6 +367,8 @@ class TabbedBrowser(TabWidget):
             if idx == -1:
                 raise ValueError("Tab {} not found!".format(tab))
             self.setTabText(idx, text)
+            if idx == self.currentIndex():
+                self.title_changed.emit('{} - qutebrowser'.format(text))
         else:
             log.webview.debug("ignoring title change")
 
@@ -411,6 +416,7 @@ class TabbedBrowser(TabWidget):
         self.last_focused = self.now_focused
         self.now_focused = tab
         self.current_tab_changed.emit(tab)
+        self.title_changed.emit('{} - qutebrowser'.format(self.tabText(idx)))
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
