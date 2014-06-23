@@ -22,6 +22,7 @@
 import sys
 import traceback
 from urllib.error import URLError
+from getpass import getuser
 
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
@@ -115,9 +116,14 @@ class _CrashDialog(QDialog):
         """
         self._crash_info = [
             ("How did it happen?", ""),
-            ("Contact info", ""),
-            ("Version info", version()),
         ]
+        try:
+            self._crash_info.append(("Contact info",
+                                     "User: {}".format(getuser())))
+        except Exception as e:
+            self._crash_info.append(("Contact info", "User: {}: {}".format(
+                                         e.__class__.__name__, e)))
+        self._crash_info.append(("Version info", version()))
         try:
             self._crash_info.append(("Config",
                                      config.instance().dump_userconfig()))
