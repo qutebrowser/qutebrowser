@@ -24,7 +24,7 @@ Why another browser?::
 What's wrong with http://portix.bitbucket.org/dwb/[dwb]/http://sourceforge.net/projects/vimprobable/[vimprobable]/https://mason-larobina.github.io/luakit/[luakit]/http://pwmt.org/projects/jumanji/[jumanji]/... (projects based on WebKitGTK)?::
     Most of them are based on the http://webkitgtk.org/[WebKitGTK+]
     http://webkitgtk.org/reference/webkitgtk/stable/index.html[WebKit1] API,
-    which causes a lot of crashes. As the API is
+    which causes a lot of crashes. As the GTK API using WebKit1 is
     https://lists.webkit.org/pipermail/webkit-gtk/2014-March/001821.html[deprecated],
     these bugs are never going to be fixed.
     +
