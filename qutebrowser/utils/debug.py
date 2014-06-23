@@ -19,12 +19,14 @@
 
 """Utilities used for debugging."""
 
+import re
 import sys
 import types
 from functools import wraps
 
 from PyQt5.QtCore import pyqtRemoveInputHook, QEvent, QCoreApplication
 
+from qutebrowser.utils.misc import elide
 from qutebrowser.utils.log import misc as logger
 
 
@@ -146,3 +148,30 @@ def qenum_key(base, value):
             if isinstance(obj, klass) and obj == value:
                 return name
         return None
+
+
+def signal_name(sig):
+    """Get a cleaned up name of a signal.
+
+    Args:
+        sig: The pyqtSignal
+
+    Return:
+        The cleaned up signal name.
+    """
+    m = re.match(r'[0-9]+(.*)\(.*\)', sig.signal)
+    return m.group(1)
+
+
+def dbg_signal(sig, args):
+    """Get a string representation of a signal for debugging.
+
+    Args:
+        sig: A pyqtSignal.
+        args: The arguments as list of strings.
+
+    Return:
+        A human-readable string representation of signal/args.
+    """
+    argstr = ', '.join([elide(str(a).replace('\n', ' '), 20) for a in args])
+    return '{}({})'.format(signal_name(sig), argstr)

@@ -27,6 +27,14 @@ from PyQt5.QtWidgets import QStyle, QFrame
 import qutebrowser.utils.debug as debug
 
 
+class FakeSignal:
+
+    """Fake pyqtSignal stub which uses a mock to see if it was called."""
+
+    def __init__(self, name='fake'):
+        self.signal = '2{}(int, int)'.format(name)
+
+
 class QEnumKeyTests(TestCase):
 
     """Tests for qenum_key."""
@@ -43,6 +51,34 @@ class QEnumKeyTests(TestCase):
         QFrame.staticMetaObject
         key = debug.qenum_key(QFrame, QFrame.Sunken)
         self.assertEqual(key, 'Sunken')
+
+
+class TestDebug(TestCase):
+
+    """Test signal debug output functions."""
+
+    def setUp(self):
+        self.signal = FakeSignal()
+
+    def test_signal_name(self):
+        """Test signal_name()."""
+        self.assertEqual(debug.signal_name(self.signal), 'fake')
+
+    def test_dbg_signal(self):
+        """Test dbg_signal()."""
+        self.assertEqual(debug.dbg_signal(self.signal, [23, 42]),
+                         'fake(23, 42)')
+
+    def test_dbg_signal_eliding(self):
+        """Test eliding in dbg_signal()."""
+        self.assertEqual(debug.dbg_signal(self.signal,
+                                          [12345678901234567890123]),
+                         'fake(1234567890123456789\u2026)')
+
+    def test_dbg_signal_newline(self):
+        """Test dbg_signal() with a newline."""
+        self.assertEqual(debug.dbg_signal(self.signal, ['foo\nbar']),
+                         'fake(foo bar)')
 
 
 if __name__ == '__main__':

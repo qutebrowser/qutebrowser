@@ -23,7 +23,7 @@ from functools import partial
 
 from PyQt5.QtCore import QObject
 
-from qutebrowser.utils.signals import dbg_signal
+from qutebrowser.utils.debug import dbg_signal
 from qutebrowser.widgets.webview import WebView
 from qutebrowser.utils.log import signals as logger
 
