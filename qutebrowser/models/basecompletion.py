@@ -27,7 +27,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
 from qutebrowser.utils.usertypes import enum
-from qutebrowser.utils.misc import qt_ensure_valid
+from qutebrowser.utils.qt import qt_ensure_valid
 
 
 Role = enum('marks', 'sort', start=Qt.UserRole)

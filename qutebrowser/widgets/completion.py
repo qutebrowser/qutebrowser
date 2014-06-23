@@ -31,7 +31,7 @@ import qutebrowser.commands.utils as cmdutils
 from qutebrowser.widgets.completiondelegate import CompletionItemDelegate
 from qutebrowser.config.style import set_register_stylesheet
 from qutebrowser.utils.completer import Completer
-from qutebrowser.utils.misc import qt_ensure_valid
+from qutebrowser.utils.qt import qt_ensure_valid
 
 
 class CompletionView(QTreeView):

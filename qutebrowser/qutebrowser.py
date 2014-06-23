@@ -55,7 +55,7 @@ def _parse_args():
                        "Default: auto.")
     # For the Qt args, we use store_const with const=True rather than
     # store_true because we want the default to be None, to make
-    # utils.misc:get_qt_args easier.
+    # utils.qt:get_qt_args easier.
     debug.add_argument('--qt-style', help="Set the Qt GUI style to use.",
                        metavar='STYLE')
     debug.add_argument('--qt-stylesheet', help="Override the Qt application "

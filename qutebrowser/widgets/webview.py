@@ -31,7 +31,8 @@ import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.message as message
 import qutebrowser.utils.webelem as webelem
 import qutebrowser.utils.log as log
-from qutebrowser.utils.misc import elide, qt_ensure_valid
+from qutebrowser.utils.misc import elide
+from qutebrowser.utils.qt import qt_ensure_valid
 from qutebrowser.browser.webpage import BrowserPage
 from qutebrowser.browser.hints import HintManager
 from qutebrowser.utils.usertypes import NeighborList, enum

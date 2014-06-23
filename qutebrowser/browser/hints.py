@@ -33,7 +33,7 @@ import qutebrowser.utils.webelem as webelem
 from qutebrowser.commands.exceptions import CommandError
 from qutebrowser.utils.usertypes import enum
 from qutebrowser.utils.log import hints as logger
-from qutebrowser.utils.misc import qt_ensure_valid
+from qutebrowser.utils.qt import qt_ensure_valid
 
 
 ElemTuple = namedtuple('ElemTuple', 'elem, label')

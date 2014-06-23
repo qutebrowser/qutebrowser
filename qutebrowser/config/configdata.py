@@ -32,7 +32,7 @@ from collections import OrderedDict
 from qutebrowser.config.value import SettingValue
 import qutebrowser.config.conftypes as types
 import qutebrowser.config.sections as sect
-from qutebrowser.utils.misc import MAXVALS
+from qutebrowser.utils.qt import MAXVALS
 
 
 FIRST_COMMENT = r"""

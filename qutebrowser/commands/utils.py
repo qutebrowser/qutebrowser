@@ -26,7 +26,7 @@ Module attributes:
 import inspect
 from collections import Iterable
 
-import qutebrowser.utils.misc as utils
+import qutebrowser.utils.qt as qtutils
 from qutebrowser.commands.command import Command
 from qutebrowser.commands.exceptions import CommandError
 
@@ -46,7 +46,7 @@ def check_overflow(arg, ctype):
     """
     # FIXME we somehow should have nicer exceptions...
     try:
-        utils.check_overflow(arg, ctype)
+        qtutils.check_overflow(arg, ctype)
     except OverflowError:
         raise CommandError("Numeric argument is too large for internal {} "
                            "representation.".format(ctype))

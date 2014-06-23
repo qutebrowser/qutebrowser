@@ -25,11 +25,6 @@ Before 0.1
   qt_ensure_valid and qt_check_overflow
   check return values
 
-Style
-=====
-
-- Move some stuff from utils.misc to utils.qt and move utils.signals there too.
-
 New big features
 ================
 

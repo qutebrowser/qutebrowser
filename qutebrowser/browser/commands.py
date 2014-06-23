@@ -37,8 +37,9 @@ import qutebrowser.utils.webelem as webelem
 import qutebrowser.browser.quickmarks as quickmarks
 import qutebrowser.utils.log as log
 import qutebrowser.utils.url as urlutils
-from qutebrowser.utils.misc import (check_overflow, shell_escape,
-                                    check_print_compat, qt_ensure_valid)
+from qutebrowser.utils.misc import shell_escape
+from qutebrowser.utils.qt import (check_overflow, check_print_compat,
+                                  qt_ensure_valid)
 from qutebrowser.utils.editor import ExternalEditor
 from qutebrowser.commands.exceptions import CommandError
 from qutebrowser.commands.userscripts import UserscriptRunner

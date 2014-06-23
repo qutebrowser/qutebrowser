@@ -26,7 +26,7 @@ from PyQt5.QtGui import QIcon, QPixmap
 import qutebrowser.config.config as config
 from qutebrowser.config.style import set_register_stylesheet
 from qutebrowser.utils.style import Style
-from qutebrowser.utils.misc import qt_ensure_valid
+from qutebrowser.utils.qt import qt_ensure_valid
 
 
 class EmptyTabIcon(QIcon):

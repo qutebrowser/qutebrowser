@@ -32,7 +32,7 @@ from qutebrowser.widgets.tabwidget import TabWidget, EmptyTabIcon
 from qutebrowser.widgets.webview import WebView
 from qutebrowser.browser.signalfilter import SignalFilter
 from qutebrowser.browser.commands import CommandDispatcher
-from qutebrowser.utils.misc import qt_ensure_valid
+from qutebrowser.utils.qt import qt_ensure_valid
 
 
 class TabbedBrowser(TabWidget):

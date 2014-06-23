@@ -25,7 +25,7 @@ from PyQt5.QtWidgets import QApplication
 
 import qutebrowser.config.config as config
 from qutebrowser.utils.usertypes import enum
-from qutebrowser.utils.misc import qt_ensure_valid
+from qutebrowser.utils.qt import qt_ensure_valid
 
 
 Role = enum('item', start=Qt.UserRole)

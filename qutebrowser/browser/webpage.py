@@ -30,7 +30,8 @@ from PyQt5.QtWebKitWidgets import QWebPage
 import qutebrowser.utils.message as message
 import qutebrowser.config.config as config
 import qutebrowser.utils.log as log
-from qutebrowser.utils.misc import read_file, check_print_compat
+from qutebrowser.utils.misc import read_file
+from qutebrowser.utils.qt import check_print_compat
 from qutebrowser.utils.usertypes import PromptMode
 
 

@@ -57,8 +57,8 @@ from qutebrowser.config.iniparsers import ReadWriteConfigParser
 from qutebrowser.config.lineparser import LineConfigParser
 from qutebrowser.browser.cookies import CookieJar
 from qutebrowser.browser.downloads import DownloadManager
-from qutebrowser.utils.misc import (get_standard_dir, actute_warning,
-                                    get_qt_args)
+from qutebrowser.utils.misc import get_standard_dir, actute_warning
+from qutebrowser.utils.qt import get_qt_args
 from qutebrowser.utils.readline import ReadlineBridge
 from qutebrowser.utils.usertypes import Timer
 

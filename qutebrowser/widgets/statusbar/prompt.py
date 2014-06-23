@@ -27,7 +27,7 @@ import qutebrowser.commands.utils as cmdutils
 from qutebrowser.widgets.statusbar.textbase import TextBase
 from qutebrowser.widgets.misc import MinimalLineEdit
 from qutebrowser.utils.usertypes import PromptMode, Question
-from qutebrowser.utils.misc import EventLoop
+from qutebrowser.utils.qt import EventLoop
 
 
 class Prompt(QWidget):

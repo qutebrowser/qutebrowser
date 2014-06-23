@@ -27,7 +27,6 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.config.config as config
-import qutebrowser.utils.misc as utils
 import qutebrowser.utils.message as message
 import qutebrowser.utils.log as log
 from qutebrowser.widgets.statusbar.bar import StatusBar
@@ -35,6 +34,7 @@ from qutebrowser.widgets.tabbedbrowser import TabbedBrowser
 from qutebrowser.widgets.completion import CompletionView
 from qutebrowser.widgets.downloads import DownloadView
 from qutebrowser.utils.usertypes import PromptMode
+from qutebrowser.utils.qt import check_overflow, qt_ensure_valid
 
 
 class MainWindow(QWidget):
@@ -138,7 +138,7 @@ class MainWindow(QWidget):
         # hpoint now would be the bottom-left edge of the widget if it was on
         # the top of the main window.
         topleft_y = self.height() - self.status.height() - height
-        topleft_y = utils.check_overflow(topleft_y, 'int', fatal=False)
+        topleft_y = check_overflow(topleft_y, 'int', fatal=False)
         topleft = QPoint(0, topleft_y)
         bottomright = self.status.geometry().topRight()
         rect = QRect(topleft, bottomright)
@@ -147,7 +147,7 @@ class MainWindow(QWidget):
                        "topleft: {}, bottomright: {}".format(
                            confheight, self.height(), height, contents_height,
                            self.status.height(), topleft, bottomright))
-        utils.qt_ensure_valid(rect)
+        qt_ensure_valid(rect)
         self.completion.setGeometry(rect)
 
     @cmdutils.register(instance='mainwindow', name=['quit', 'q'], nargs=0)

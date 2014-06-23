@@ -27,7 +27,7 @@ from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex
 
 from qutebrowser.models.basecompletion import Role
 from qutebrowser.utils.log import completion as logger
-from qutebrowser.utils.misc import qt_ensure_valid
+from qutebrowser.utils.qt import qt_ensure_valid
 
 
 class CompletionFilterModel(QSortFilterProxyModel):

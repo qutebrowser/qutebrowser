@@ -33,7 +33,8 @@ import qutebrowser.utils.message as message
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.utils.usertypes import PromptMode
 from qutebrowser.config.lineparser import LineConfigParser
-from qutebrowser.utils.misc import get_standard_dir, qt_ensure_valid
+from qutebrowser.utils.misc import get_standard_dir
+from qutebrowser.utils.qt import qt_ensure_valid
 from qutebrowser.commands.exceptions import CommandError
 
 

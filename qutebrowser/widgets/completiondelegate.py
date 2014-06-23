@@ -31,7 +31,7 @@ from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
 import qutebrowser.config.config as config
 from qutebrowser.models.basecompletion import Role
 from qutebrowser.config.style import get_stylesheet
-from qutebrowser.utils.misc import qt_ensure_valid
+from qutebrowser.utils.qt import qt_ensure_valid
 
 
 class CompletionItemDelegate(QStyledItemDelegate):

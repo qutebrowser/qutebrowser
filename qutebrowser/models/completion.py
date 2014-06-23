@@ -26,7 +26,7 @@ import qutebrowser.config.configdata as configdata
 from qutebrowser.models.basecompletion import BaseCompletionModel
 from qutebrowser.commands.utils import cmd_dict
 from qutebrowser.utils.log import completion as logger
-from qutebrowser.utils.misc import qt_ensure_valid
+from qutebrowser.utils.qt import qt_ensure_valid
 
 
 class SettingSectionCompletionModel(BaseCompletionModel):
