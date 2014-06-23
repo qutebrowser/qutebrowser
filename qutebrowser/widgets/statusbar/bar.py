@@ -75,6 +75,12 @@ class StatusBar(QWidget):
                         For some reason we need to have this as class attribute
                         so pyqtProperty works correctly.
 
+        _insert_active: If we're currently in insert mode, accessed through the
+                        insert_active property.
+
+                        For some reason we need to have this as class attribute
+                        so pyqtProperty works correctly.
+
     Signals:
         resized: Emitted when the statusbar has resized, so the completion
                  widget can adjust its size to it.
@@ -88,6 +94,7 @@ class StatusBar(QWidget):
     moved = pyqtSignal('QPoint')
     _error = False
     _prompt_active = False
+    _insert_active = False
 
     STYLESHEET = """
         QWidget#StatusBar {{
@@ -100,6 +107,10 @@ class StatusBar(QWidget):
 
         QWidget#StatusBar[prompt_active="true"] {{
             {color[statusbar.bg.prompt]}
+        }}
+
+        QWidget#StatusBar[insert_active="true"] {{
+            {color[statusbar.bg.insert]}
         }}
 
         QWidget {{
@@ -184,18 +195,34 @@ class StatusBar(QWidget):
 
     @pyqtProperty(bool)
     def prompt_active(self):
-        """Getter for self.prompt, so it can be used as Qt property."""
+        """Getter for self.prompt_active, so it can be used as Qt property."""
         # pylint: disable=method-hidden
         return self._prompt_active
 
     @prompt_active.setter
     def prompt_active(self, val):
-        """Setter for self.prompt, so it can be used as Qt property.
+        """Setter for self.prompt_active, so it can be used as Qt property.
 
         Re-set the stylesheet after setting the value, so everything gets
         updated by Qt properly.
         """
         self._prompt_active = val
+        self.setStyleSheet(get_stylesheet(self.STYLESHEET))
+
+    @pyqtProperty(bool)
+    def insert_active(self):
+        """Getter for self.insert_active, so it can be used as Qt property."""
+        # pylint: disable=method-hidden
+        return self._insert_active
+
+    @insert_active.setter
+    def insert_active(self, val):
+        """Setter for self.insert_active, so it can be used as Qt property.
+
+        Re-set the stylesheet after setting the value, so everything gets
+        updated by Qt properly.
+        """
+        self._insert_active = val
         self.setStyleSheet(get_stylesheet(self.STYLESHEET))
 
     def _pop_text(self):
@@ -331,12 +358,16 @@ class StatusBar(QWidget):
         """Mark certain modes in the commandline."""
         if mode in modeman.instance().passthrough:
             self.txt.normaltext = "-- {} MODE --".format(mode.upper())
+        if mode == 'insert':
+            self.insert_active = True
 
     @pyqtSlot(str)
     def on_mode_left(self, mode):
         """Clear marked mode."""
         if mode in modeman.instance().passthrough:
             self.txt.normaltext = ""
+        if mode == 'insert':
+            self.insert_active = False
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):

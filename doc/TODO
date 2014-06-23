@@ -42,7 +42,6 @@ New big features
 Improvements / minor features
 =============================
 
-- Color statusbar in insert mode
 - set_toggle to toggle setting between two states
 - Customizable statusbar
 - Show size of widgets in __repr__

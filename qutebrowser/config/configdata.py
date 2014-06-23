@@ -839,6 +839,10 @@ DATA = OrderedDict([
          SettingValue(types.Color(), 'darkblue'),
          "Background color of the statusbar if there is a prompt."),
 
+        ('statusbar.bg.insert',
+         SettingValue(types.Color(), 'darkgreen'),
+         "Background color of the statusbar in insert mode."),
+
         ('statusbar.progress.bg',
          SettingValue(types.Color(), 'white'),
          "Background color of the progress bar."),
