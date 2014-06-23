@@ -71,23 +71,21 @@ def prompt_save(url):
 
 
 @cmdutils.register()
-def quickmark_add(url, name):
+def quickmark_add(urlstr, name):
     """Add a new quickmark.
 
     Args:
-        url: The url to add as quickmark, as QUrl.
+        urlstr: The url to add as quickmark, as string.
         name: The name for the new quickmark.
     """
     if not name:
         raise CommandError("Can't set mark with empty name!")
-    if not url:
+    if not urlstr:
         raise CommandError("Can't set mark with empty URL!")
-
-    qt_ensure_valid(url)
 
     def set_mark():
         """Really set the quickmark."""
-        marks[name] = url
+        marks[name] = urlstr
 
     if name in marks:
         message.confirm_action("Override existing quickmark?", set_mark,
