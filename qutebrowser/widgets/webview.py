@@ -185,7 +185,9 @@ class WebView(QWebView):
         Args:
             hitresult: A QWebHitTestResult
         """
-        # FIXME is this algorithm accurate?
+        # Beginnings of div-classes which are actually some kind of editor.
+        DIV_CLASSES = ['CodeMirror',  # Javascript editor over a textarea
+                       'kix-']        # Google Docs editor
         elem = hitresult.element()
         tag = elem.tagName().lower()
         if hitresult.isContentEditable() and webelem.is_writable(elem):
@@ -208,12 +210,15 @@ class WebView(QWebView):
                 log.mouse.debug("<object type='{}'> clicked.".format(objtype))
                 return config.get('input', 'insert-mode-on-plugins')
         elif tag == 'div':
-            # CodeMirror is some java-script editor which hides the underlying
-            # textarea, but is editable.
-            if any([c.startswith('CodeMirror') for c in elem.classes()]):
-                return True
-        else:
-            return False
+            log.webview.debug("div with classes {} clicked!".format(
+                elem.classes()))
+            for klass in elem.classes():
+                if any([klass.startswith(e) for e in DIV_CLASSES]):
+                    return True
+        elif tag == 'span':
+            log.webview.debug("span with classes {} clicked!".format(
+                elem.classes()))
+        return False
 
     def _mousepress_backforward(self, e):
         """Handle back/forward mouse button presses.

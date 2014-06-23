@@ -10,8 +10,6 @@ Bugs
 - Handle it correctly when a new statusbar question is asked while another is
   still active. (see notes)
 
-- iggy: qutebrowser gets out of insert mode a lot on Google Drive/Docs
-
 - Ugly font rendering on Windows on http://support.sigasi.com/Knowledgebase/List
 
 - On doodle, when modifying something on http://doodle.com/create and clicking
