@@ -179,6 +179,23 @@ def get_child_frames(startframe):
     return results
 
 
+def _is_object_editable(elem):
+    """Check if an object-element is editable."""
+    if not elem.hasAttribute('type'):
+        log.webview.debug("<object> without type clicked...")
+        return False
+    objtype = elem.attribute('type')
+    if objtype.startswith('application/') or elem.hasAttribute('classid'):
+        # Let's hope flash/java stuff has an application/* mimetype OR
+        # at least a classid attribute. Oh, and let's hope images/...
+        # DON'T have a classid attribute. HTML sucks.
+        log.webview.debug("<object type='{}'> clicked.".format(objtype))
+        return config.get('input', 'insert-mode-on-plugins')
+    else:
+        # Image/Audio/...
+        return False
+
+
 def is_editable(elem):
     """Check whether we should switch to insert mode for this element.
 
@@ -205,18 +222,7 @@ def is_editable(elem):
         # Flash/Java/...
         return config.get('input', 'insert-mode-on-plugins')
     elif tag == 'object':
-        # Could be Flash/Java/..., could be image/audio/...
-        if not elem.hasAttribute('type'):
-            log.webview.debug("<object> without type clicked...")
-            return False
-        objtype = elem.attribute('type')
-        if (objtype.startswith('application/') or
-                elem.hasAttribute('classid')):
-            # Let's hope flash/java stuff has an application/* mimetype OR
-            # at least a classid attribute. Oh, and let's hope images/...
-            # DON'T have a classid attribute. HTML sucks.
-            log.webview.debug("<object type='{}'> clicked.".format(objtype))
-            return config.get('input', 'insert-mode-on-plugins')
+        return _is_object_editable(elem)
     elif tag == 'div':
         log.webview.debug("div with classes {} clicked!".format(
             elem.classes()))
