@@ -32,6 +32,7 @@ from PyQt5.QtWebKit import QWebElement
 
 import qutebrowser.utils.log as log
 from qutebrowser.utils.usertypes import enum
+import qutebrowser.config.config as config
 
 
 Group = enum('all', 'links', 'images', 'editable', 'url', 'prevnext_rel',
