@@ -57,8 +57,9 @@ class MainWindow(QWidget):
         self.setWindowTitle('qutebrowser')
         try:
             stateconf = QCoreApplication.instance().stateconfig
-            geom = b64decode(stateconf['geometry']['mainwindow'],
-                             validate=True)
+            base64 = stateconf['geometry']['mainwindow']
+            log.init.debug("Restoring mainwindow from {}".format(base64))
+            geom = b64decode(base64, validate=True)
         except (KeyError, binascii.Error) as e:
             log.init.warning("Error while reading geometry: {}: {}".format(
                 e.__class__.__name__, e))
@@ -74,6 +75,8 @@ class MainWindow(QWidget):
                 log.init.warning("Error while restoring geometry.")
                 self._set_default_geometry()
 
+        log.init.debug("Initial mainwindow geometry: {}".format(
+            self.geometry()))
         self._vbox = QVBoxLayout(self)
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
