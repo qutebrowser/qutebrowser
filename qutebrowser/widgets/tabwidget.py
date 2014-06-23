@@ -136,6 +136,7 @@ class TabBar(QTabBar):
         if idx == -1:
             super().mousePressEvent(e)
             return
+        e.accept()
         self.tabCloseRequested.emit(idx)
 
     def tabSizeHint(self, index):

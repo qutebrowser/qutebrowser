@@ -87,6 +87,7 @@ class TextBase(QLabel):
         if self._elidemode == Qt.ElideNone:
             super().paintEvent(e)
         else:
+            e.accept()
             painter = QPainter(self)
             geom = self.geometry()
             qt_ensure_valid(geom)
