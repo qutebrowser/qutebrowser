@@ -332,6 +332,7 @@ class DownloadManager(QObject):
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
 
+    @pyqtSlot('QUrl')
     def get(self, url):
         """Start a download with a link URL.
 

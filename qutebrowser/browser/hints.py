@@ -90,6 +90,8 @@ class HintManager(QObject):
                  arg 0: URL to open as QUrl.
                  arg 1: True if it should be opened in a new tab, else False.
         set_open_target: Set a new target to open the links in.
+        download_get: Download an URL.
+                      arg: The URL to download, as QUrl.
     """
 
     HINT_CSS = """
@@ -123,6 +125,7 @@ class HintManager(QObject):
     mouse_event = pyqtSignal('QMouseEvent')
     openurl = pyqtSignal('QUrl', bool)
     set_open_target = pyqtSignal(str)
+    download_get = pyqtSignal('QUrl')
 
     def __init__(self, parent=None):
         """Constructor.
@@ -331,7 +334,7 @@ class HintManager(QObject):
             url: The URL to download, as a QUrl.
         """
         qt_ensure_valid(url)
-        QApplication.instance().downloadmanager.get(url)
+        self.download_get.emit(url)
 
     def _resolve_url(self, elem, baseurl=None):
         """Resolve a URL and check if we want to keep it.

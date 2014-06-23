@@ -79,6 +79,7 @@ class TabbedBrowser(TabWidget):
         current_tab_changed: The current tab changed to the emitted WebView.
         title_changed: Emitted when the application title should be changed.
                        arg: The new title as string.
+        download_get: Emitted when a QUrl should be downloaded.
     """
 
     cur_progress = pyqtSignal(int)
@@ -90,6 +91,7 @@ class TabbedBrowser(TabWidget):
     cur_scroll_perc_changed = pyqtSignal(int, int)
     cur_load_status_changed = pyqtSignal(str)
     start_download = pyqtSignal('QNetworkReply*')
+    download_get = pyqtSignal('QUrl')
     hint_strings_updated = pyqtSignal(list)
     shutdown_complete = pyqtSignal()
     quit = pyqtSignal()
@@ -163,6 +165,7 @@ class TabbedBrowser(TabWidget):
             self._filter.create(self.cur_load_status_changed))
         # hintmanager
         tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)
+        tab.hintmanager.download_get.connect(self.download_get)
         tab.hintmanager.openurl.connect(self.openurl)
         # downloads
         tab.page().unsupportedContent.connect(self.start_download)

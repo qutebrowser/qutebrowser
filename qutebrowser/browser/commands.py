@@ -24,7 +24,7 @@ import subprocess
 from functools import partial
 
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtCore import pyqtSignal, Qt, QUrl
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebInspector
@@ -59,7 +59,13 @@ class CommandDispatcher:
         _tabs: The TabbedBrowser object.
         _editor: The ExternalEditor object.
         _userscript_runners: A list of userscript runners.
+
+    Signals:
+        start_download: When a download should be started.
+                        arg: What to download, as QUrl.
     """
+
+    start_download = pyqtSignal('QUrl')
 
     def __init__(self, parent):
         """Constructor.
@@ -696,7 +702,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def download_page(self):
         """Download the current page."""
-        QApplication.instance().downloadmanager.get(self._current_url())
+        self.start_download.emit(self._current_url())
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', modes=['insert'],
                        hide=True)
