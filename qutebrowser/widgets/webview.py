@@ -385,11 +385,8 @@ class WebView(QWebView):
     @pyqtSlot('QMouseEvent')
     def on_mouse_event(self, evt):
         """Post a new mouseevent from a hintmanager."""
-        focused = QApplication.focusWidget()
         self.setFocus()
         QApplication.postEvent(self, evt)
-        if focused is not None:
-            focused.setFocus()
 
     @pyqtSlot()
     def on_load_started(self):
