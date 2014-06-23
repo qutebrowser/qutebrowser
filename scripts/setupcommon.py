@@ -61,7 +61,7 @@ def _git_str():
     """Try to find out git version.
 
     Return:
-        string containing the git commit ID.
+        string containing the git commit ID and timestamp.
         None if there was an error or we're not in a git repo.
     """
     if BASEDIR is None:
@@ -69,9 +69,13 @@ def _git_str():
     if not os.path.isdir(os.path.join(BASEDIR, ".git")):
         return None
     try:
-        return subprocess.check_output(
+        cid = subprocess.check_output(
             ['git', 'describe', '--tags', '--dirty', '--always'],
             cwd=BASEDIR).decode('UTF-8').strip()
+        date = subprocess.check_output(
+            ['git', 'show', '-s', '--format=%ci', 'HEAD'],
+            cwd=BASEDIR).decode('UTF-8').strip()
+        return '{} ({})'.format(cid, date)
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None
 

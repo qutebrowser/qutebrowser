@@ -45,7 +45,6 @@ Improvements / minor features
 - Color statusbar in insert mode
 - set_toggle to toggle setting between two states
 - Customizable statusbar
-- Timestamp of git commit in version
 - Show size of widgets in __repr__
 - Ask whether to close when downloads are running or maybe if form fields are
   unsubmitted (book page 187)

@@ -97,20 +97,24 @@ def _git_str():
 
 
 def _git_str_subprocess(gitpath):
-    """Try to get the git commit ID by calling git.
+    """Try to get the git commit ID and timestamp by calling git.
 
     Args:
         gitpath: The path where the .git folder is.
 
     Return:
-        The path on success, None on failure.
+        The ID/timestamp on success, None on failure.
     """
     if not os.path.isdir(os.path.join(gitpath, ".git")):
         return None
     try:
-        return subprocess.check_output(
+        cid = subprocess.check_output(
             ['git', 'describe', '--tags', '--dirty', '--always'],
             cwd=gitpath).decode('UTF-8').strip()
+        date = subprocess.check_output(
+            ['git', 'show', '-s', '--format=%ci', 'HEAD'],
+            cwd=gitpath).decode('UTF-8').strip()
+        return '{} ({})'.format(cid, date)
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None
 
