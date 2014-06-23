@@ -346,6 +346,7 @@ class Application(QApplication):
 
     def _connect_signals(self):
         """Connect all signals to their slots."""
+        # pylint: disable=too-many-statements
         # syntactic sugar
         kp = self._keyparsers
         status = self.mainwindow.status
