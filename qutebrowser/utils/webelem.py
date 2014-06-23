@@ -216,9 +216,9 @@ def is_editable(elem):
         if objtype in ['text', 'email', 'url', 'tel', 'number', 'password',
                        'search', '']:
             return is_writable(elem)
-    elif tag == 'textarea':
+    elif tag in ('textarea', 'select'):
         return is_writable(elem)
-    elif tag in ('embed', 'applet', 'select'):
+    elif tag in ('embed', 'applet'):
         # Flash/Java/...
         return config.get('input', 'insert-mode-on-plugins')
     elif tag == 'object':
