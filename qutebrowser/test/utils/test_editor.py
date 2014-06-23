@@ -17,61 +17,17 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=maybe-no-member
-
 """Tests for qutebrowser.utils.editor."""
 
 import os
 import os.path
 import unittest
-from unittest import TestCase
 from unittest.mock import Mock
 
 from PyQt5.QtCore import QProcess
 
 import qutebrowser.utils.editor as editorutils
-
-
-class ConfigStub:
-
-    """Stub for editor.config.
-
-    Attributes:
-        editor: The editor to return for general -> editor.
-    """
-
-    def __init__(self, editor):
-        self.editor = editor
-
-    def get(self, sect, opt):
-        """Get the configured value for sect/opt."""
-        if sect == 'general' and opt == 'editor':
-            return self.editor
-        else:
-            raise ValueError("Invalid option {} -> {}".format(sect, opt))
-
-
-class FakeQProcess:
-
-    """QProcess stub.
-
-    Gets some enum values from the real QProcess and uses mocks for signals.
-    """
-
-    NormalExit = QProcess.NormalExit
-    CrashExit = QProcess.CrashExit
-
-    FailedToStart = QProcess.FailedToStart
-    Crashed = QProcess.Crashed
-    Timedout = QProcess.Timedout
-    WriteError = QProcess.WriteError
-    ReadError = QProcess.ReadError
-    UnknownError = QProcess.UnknownError
-
-    def __init__(self, parent=None):  # pylint: disable=unused-argument
-        self.finished = Mock()
-        self.error = Mock()
-        self.start = Mock()
+from qutebrowser.test.stubs import ConfigStub, FakeQProcess
 
 
 def setUpModule():
@@ -81,7 +37,7 @@ def setUpModule():
     editorutils.QProcess = FakeQProcess
 
 
-class ArgTests(TestCase):
+class ArgTests(unittest.TestCase):
 
     """Test argument handling.
 
@@ -94,19 +50,21 @@ class ArgTests(TestCase):
 
     def test_simple_start_args(self):
         """Test starting editor without arguments."""
-        editorutils.config = ConfigStub(editor=["bin"])
+        editorutils.config = ConfigStub({'general': {'editor': ['bin']}})
         self.editor.edit("")
         self.editor.proc.start.assert_called_with("bin", [])
 
     def test_start_args(self):
         """Test starting editor with static arguments."""
-        editorutils.config = ConfigStub(editor=["bin", "foo", "bar"])
+        editorutils.config = ConfigStub(
+            {'general': {'editor': ['bin', 'foo', 'bar']}})
         self.editor.edit("")
         self.editor.proc.start.assert_called_with("bin", ["foo", "bar"])
 
     def test_placeholder(self):
         """Test starting editor with placeholder argument."""
-        editorutils.config = ConfigStub(editor=["bin", "foo", "{}", "bar"])
+        editorutils.config = ConfigStub(
+            {'general': {'editor': ['bin', 'foo', '{}', 'bar']}})
         self.editor.edit("")
         filename = self.editor.filename
         self.editor.proc.start.assert_called_with("bin",
@@ -114,7 +72,8 @@ class ArgTests(TestCase):
 
     def test_in_arg_placeholder(self):
         """Test starting editor with placeholder argument inside argument."""
-        editorutils.config = ConfigStub(editor=["bin", "foo{}bar"])
+        editorutils.config = ConfigStub(
+            {'general': {'editor': ['bin', 'foo{}bar']}})
         self.editor.edit("")
         self.editor.proc.start.assert_called_with("bin", ["foo{}bar"])
 
@@ -122,7 +81,7 @@ class ArgTests(TestCase):
         self.editor._cleanup()  # pylint: disable=protected-access
 
 
-class FileHandlingTests(TestCase):
+class FileHandlingTests(unittest.TestCase):
 
     """Test creation/deletion of tempfile.
 
@@ -132,7 +91,7 @@ class FileHandlingTests(TestCase):
 
     def setUp(self):
         self.editor = editorutils.ExternalEditor()
-        editorutils.config = ConfigStub(editor=[""])
+        editorutils.config = ConfigStub({'general': {'editor': ['']}})
 
     def test_file_handling_closed_ok(self):
         """Test file handling when closing with an exitstatus == 0."""
@@ -160,7 +119,7 @@ class FileHandlingTests(TestCase):
         self.assertFalse(os.path.exists(filename))
 
 
-class TextModifyTests(TestCase):
+class TextModifyTests(unittest.TestCase):
 
     """Tests to test if the text gets saved/loaded correctly.
 
@@ -171,7 +130,7 @@ class TextModifyTests(TestCase):
     def setUp(self):
         self.editor = editorutils.ExternalEditor()
         self.editor.editing_finished = Mock()
-        editorutils.config = ConfigStub(editor=[""])
+        editorutils.config = ConfigStub({'general': {'editor': ['']}})
 
     def _write(self, text):
         """Write a text to the file opened in the fake editor.
@@ -227,7 +186,7 @@ class TextModifyTests(TestCase):
         self.editor.editing_finished.emit.assert_called_with("\u2601")
 
 
-class ErrorMessageTests(TestCase):
+class ErrorMessageTests(unittest.TestCase):
 
     """Test if statusbar error messages get emitted correctly.
 
@@ -235,9 +194,11 @@ class ErrorMessageTests(TestCase):
         editor: The ExternalEditor instance to test.
     """
 
+    # pylint: disable=maybe-no-member
+
     def setUp(self):
         self.editor = editorutils.ExternalEditor()
-        editorutils.config = ConfigStub(editor=[""])
+        editorutils.config = ConfigStub({'general': {'editor': ['']}})
 
     def test_proc_error(self):
         """Test on_proc_error."""

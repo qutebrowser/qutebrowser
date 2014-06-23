@@ -17,17 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=missing-docstring
-
 """Tests for the Enum class."""
 
 import unittest
-from unittest import TestCase
 
 from qutebrowser.utils.usertypes import enum
 
 
-class EnumTests(TestCase):
+class EnumTests(unittest.TestCase):
 
     """Test simple enums.
 

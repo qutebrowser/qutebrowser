@@ -17,18 +17,24 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=missing-docstring
-
 """Tests for BaseKeyParser."""
 
 import unittest
 import logging
-from unittest import TestCase
 from unittest.mock import Mock
 
 import qutebrowser.keyinput.basekeyparser as basekeyparser
+from qutebrowser.test.stubs import ConfigStub, FakeKeyEvent
 
 from PyQt5.QtCore import Qt
+
+CONFIG = {'test': {'<Ctrl-a>': 'ctrla',
+                   'a': 'a',
+                   'ba': 'ba',
+                   'ax': 'ax',
+                   'ccc': 'ccc'},
+          'input': {'timeout': 100},
+          'test2': {'foo': 'bar', '<Ctrl+X>': 'ctrlx'}}
 
 
 def setUpModule():
@@ -37,54 +43,7 @@ def setUpModule():
     logging.disable(logging.ERROR)
 
 
-class ConfigStub:
-
-    """Stub for basekeyparser.config.
-
-    Class attributes:
-        DATA: The config data to return.
-    """
-
-    DATA = {'test': {'<Ctrl-a>': 'ctrla',
-                     'a': 'a',
-                     'ba': 'ba',
-                     'ax': 'ax',
-                     'ccc': 'ccc'},
-            'input': {'timeout': 100},
-            'test2': {'foo': 'bar', '<Ctrl+X>': 'ctrlx'}}
-
-    def section(self, name):
-        """Get a section from the config.
-
-        Args:
-            name: The section name to get.
-
-        Raise:
-            ValueError if section isn't test1/test2.
-
-        Return:
-            The section as dict.
-        """
-        if name not in ('test', 'test2'):
-            raise ValueError("section called with section '{}'!".format(name))
-        return self.DATA[name]
-
-    def get(self, sect, opt):
-        """Get a value from the config."""
-        return self.DATA[sect][opt]
-
-
-class FakeKeyEvent:
-
-    """Fake QKeyPressEvent stub."""
-
-    def __init__(self, key, modifiers=0, text=''):
-        self.key = Mock(return_value=key)
-        self.text = Mock(return_value=text)
-        self.modifiers = Mock(return_value=modifiers)
-
-
-class NormalizeTests(TestCase):
+class NormalizeTests(unittest.TestCase):
 
     """Test _normalize_keystr method."""
 
@@ -105,7 +64,7 @@ class NormalizeTests(TestCase):
             self.assertEqual(self.kp._normalize_keystr(orig), repl, orig)
 
 
-class SplitCountTests(TestCase):
+class SplitCountTests(unittest.TestCase):
 
     """Test the _split_count method.
 
@@ -148,12 +107,12 @@ class SplitCountTests(TestCase):
         self.assertEqual(self.kp._split_count(), (None, '10foo'))
 
 
-class ReadConfigTests(TestCase):
+class ReadConfigTests(unittest.TestCase):
 
     """Test reading the config."""
 
     def setUp(self):
-        basekeyparser.config = ConfigStub()
+        basekeyparser.config = ConfigStub(CONFIG)
         basekeyparser.QTimer = Mock()
 
     def test_read_config_invalid(self):
@@ -176,7 +135,7 @@ class ReadConfigTests(TestCase):
         self.assertIn('Ctrl+X', kp.special_bindings)
 
 
-class SpecialKeysTests(TestCase):
+class SpecialKeysTests(unittest.TestCase):
 
     """Check execute() with special keys.
 
@@ -185,7 +144,7 @@ class SpecialKeysTests(TestCase):
     """
 
     def setUp(self):
-        basekeyparser.config = ConfigStub()
+        basekeyparser.config = ConfigStub(CONFIG)
         basekeyparser.QTimer = Mock()
         self.kp = basekeyparser.BaseKeyParser()
         self.kp.execute = Mock()
@@ -210,7 +169,7 @@ class SpecialKeysTests(TestCase):
         self.assertFalse(self.kp.execute.called)
 
 
-class KeyChainTests(TestCase):
+class KeyChainTests(unittest.TestCase):
 
     """Test execute() with keychain support.
 
@@ -221,7 +180,7 @@ class KeyChainTests(TestCase):
 
     def setUp(self):
         """Set up mocks and read the test config."""
-        basekeyparser.config = ConfigStub()
+        basekeyparser.config = ConfigStub(CONFIG)
         self.timermock = Mock()
         basekeyparser.QTimer = Mock(return_value=self.timermock)
         self.kp = basekeyparser.BaseKeyParser(supports_chains=True,
@@ -279,12 +238,12 @@ class KeyChainTests(TestCase):
         self.assertEqual(self.kp._keystring, '')
 
 
-class CountTests(TestCase):
+class CountTests(unittest.TestCase):
 
     """Test execute() with counts."""
 
     def setUp(self):
-        basekeyparser.config = ConfigStub()
+        basekeyparser.config = ConfigStub(CONFIG)
         basekeyparser.QTimer = Mock()
         self.kp = basekeyparser.BaseKeyParser(supports_chains=True,
                                               supports_count=True)

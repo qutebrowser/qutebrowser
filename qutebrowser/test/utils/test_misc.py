@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=missing-docstring,blacklisted-name,protected-access
-
 """Tests for qutebrowser.utils.misc."""
 
 import os
@@ -28,7 +26,6 @@ import unittest
 import os.path
 import subprocess
 from tempfile import mkdtemp
-from unittest import TestCase
 
 from PyQt5.QtCore import QStandardPaths, QCoreApplication
 from PyQt5.QtGui import QColor
@@ -37,7 +34,7 @@ import qutebrowser.utils.misc as utils
 from qutebrowser.test.helpers import environ_set_temp
 
 
-class ElidingTests(TestCase):
+class ElidingTests(unittest.TestCase):
 
     """Test elide."""
 
@@ -61,7 +58,7 @@ class ElidingTests(TestCase):
         self.assertEqual(utils.elide('foobar', 3), 'fo' + self.ELLIPSIS)
 
 
-class ReadFileTests(TestCase):
+class ReadFileTests(unittest.TestCase):
 
     """Test read_file."""
 
@@ -71,7 +68,7 @@ class ReadFileTests(TestCase):
         self.assertEqual(content.splitlines()[0], "Hello World!")
 
 
-class DottedGetattrTests(TestCase):
+class DottedGetattrTests(unittest.TestCase):
 
     """Test dotted_getattr.
 
@@ -106,7 +103,7 @@ class DottedGetattrTests(TestCase):
             _ = utils.dotted_getattr(self, 'test.foo.baz')
 
 
-class SafeShlexSplitTests(TestCase):
+class SafeShlexSplitTests(unittest.TestCase):
 
     """Test safe_shlex_split."""
 
@@ -141,7 +138,7 @@ class SafeShlexSplitTests(TestCase):
         self.assertEqual(items, ['one', 'two\\'])
 
 
-class ShellEscapeTests(TestCase):
+class ShellEscapeTests(unittest.TestCase):
 
     """Tests for shell_escape.
 
@@ -204,7 +201,7 @@ class ShellEscapeTests(TestCase):
         sys.platform = self.platform
 
 
-class GetStandardDirLinuxTests(TestCase):
+class GetStandardDirLinuxTests(unittest.TestCase):
 
     """Tests for get_standard_dir under Linux.
 
@@ -278,7 +275,7 @@ class GetStandardDirLinuxTests(TestCase):
         shutil.rmtree(self.temp_dir)
 
 
-class GetStandardDirWindowsTests(TestCase):
+class GetStandardDirWindowsTests(unittest.TestCase):
 
     """Tests for get_standard_dir under Windows.
 
@@ -328,7 +325,7 @@ class GetStandardDirWindowsTests(TestCase):
         self.app.quit()
 
 
-class InterpolateColorTests(TestCase):
+class InterpolateColorTests(unittest.TestCase):
 
     """Tests for interpolate_color.
 
@@ -416,7 +413,7 @@ class InterpolateColorTests(TestCase):
         self.assertEqual(color, expected)
 
 
-class FormatSecondsTests(TestCase):
+class FormatSecondsTests(unittest.TestCase):
 
     """Tests for format_seconds.
 
@@ -444,7 +441,7 @@ class FormatSecondsTests(TestCase):
             self.assertEqual(utils.format_seconds(seconds), out, seconds)
 
 
-class FormatSizeTests(TestCase):
+class FormatSizeTests(unittest.TestCase):
 
     """Tests for format_size.
 

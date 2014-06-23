@@ -15,45 +15,37 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=pointless-statement,no-member
-
 """Tests for qutebrowser.utils.debug."""
 
 import unittest
-from unittest import TestCase
 
 from PyQt5.QtWidgets import QStyle, QFrame
 
 import qutebrowser.utils.debug as debug
+from qutebrowser.test.stubs import FakeSignal
 
 
-class FakeSignal:
-
-    """Fake pyqtSignal stub which uses a mock to see if it was called."""
-
-    def __init__(self, name='fake'):
-        self.signal = '2{}(int, int)'.format(name)
-
-
-class QEnumKeyTests(TestCase):
+class QEnumKeyTests(unittest.TestCase):
 
     """Tests for qenum_key."""
 
     def test_no_metaobj(self):
         """Test with an enum with no metaobject."""
         with self.assertRaises(AttributeError):
+            # pylint: disable=pointless-statement,no-member
             QStyle.PrimitiveElement.staticMetaObject
         key = debug.qenum_key(QStyle, QStyle.PE_PanelButtonCommand)
         self.assertEqual(key, 'PE_PanelButtonCommand')
 
     def test_metaobj(self):
         """Test with an enum with metaobject."""
+        # pylint: disable=pointless-statement
         QFrame.staticMetaObject
         key = debug.qenum_key(QFrame, QFrame.Sunken)
         self.assertEqual(key, 'Sunken')
 
 
-class TestDebug(TestCase):
+class TestDebug(unittest.TestCase):
 
     """Test signal debug output functions."""
 

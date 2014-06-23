@@ -17,54 +17,26 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=missing-docstring,protected-access
-
 """Tests for qutebrowser.utils.url."""
 
 import unittest
-from unittest import TestCase
 
 from PyQt5.QtCore import QUrl
 
 import qutebrowser.utils.url as urlutils
+from qutebrowser.test.stubs import ConfigStub
 
 
-class ConfigStub:
-
-    """Stub which is used to mock out the config.
-
-    Attributes:
-        _DATA: The config data to use
-    """
-
-    _DATA = {
-        'general': {'auto-search': True},
-        'searchengines': {
-            'test': 'http://www.qutebrowser.org/?q={}',
-            'DEFAULT': 'http://www.example.com/?q={}',
-        },
-    }
-
-    class NoOptionError(Exception):
-
-        """NoOptionError exception which does nothing."""
-
-        pass
-
-    def get(self, section, option):
-        """Get a value from section/option.
-
-        Raise:
-            NoOptionError if the option was not found.
-        """
-        sect = self._DATA[section]
-        try:
-            return sect[option]
-        except KeyError:
-            raise self.NoOptionError
+CONFIG = {
+    'general': {'auto-search': True},
+    'searchengines': {
+        'test': 'http://www.qutebrowser.org/?q={}',
+        'DEFAULT': 'http://www.example.com/?q={}',
+    },
+}
 
 
-class SpecialURLTests(TestCase):
+class SpecialURLTests(unittest.TestCase):
 
     """Test is_special_url.
 
@@ -97,7 +69,7 @@ class SpecialURLTests(TestCase):
             self.assertFalse(urlutils.is_special_url(u))
 
 
-class SearchUrlTests(TestCase):
+class SearchUrlTests(unittest.TestCase):
 
     """Test _get_search_url.
 
@@ -105,9 +77,11 @@ class SearchUrlTests(TestCase):
         config: The urlutils.config instance.
     """
 
+    # pylint: disable=protected-access
+
     def setUp(self):
         self.config = urlutils.config
-        urlutils.config = ConfigStub()
+        urlutils.config = ConfigStub(CONFIG)
 
     def test_default_engine(self):
         """Test default search engine."""
@@ -136,7 +110,7 @@ class SearchUrlTests(TestCase):
         urlutils.config = self.config
 
 
-class IsUrlNaiveTests(TestCase):
+class IsUrlNaiveTests(unittest.TestCase):
 
     """Tests for _is_url_naive.
 
@@ -157,6 +131,8 @@ class IsUrlNaiveTests(TestCase):
         'another . test',
         'foo',
     )
+
+    # pylint: disable=protected-access
 
     def test_urls(self):
         """Test things which are URLs."""

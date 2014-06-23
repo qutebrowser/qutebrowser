@@ -21,76 +21,19 @@
 
 import os
 import unittest
-from unittest import TestCase
 from unittest.mock import Mock
 
 import qutebrowser.utils.misc as utils
+from qutebrowser.test.stubs import FakeNetworkReply
 
 
 DEFAULT_NAME = 'qutebrowser-download'
 
 
-class FakeUrl:
-
-    """QUrl stub which provides .path()."""
-
-    def __init__(self, path=None):
-        self.path = Mock(return_value=path)
-
-
-class FakeNetworkReply:
-
-    """QNetworkReply stub which provides a Content-Disposition header."""
-
-    def __init__(self, content_disposition=None, url=None):
-        if url is None:
-            url = FakeUrl()
-        self._content_disposition = content_disposition
-        self.url = Mock(return_value=url)
-
-    def hasRawHeader(self, name):
-        """Check if the reply has a certain header.
-
-        Args:
-            name: The name of the header.
-
-        Return:
-            True if the header is present, False if not.
-
-        Raise:
-            ValueError: If a header other than Content-Disposition is
-                        requested.
-        """
-        if name == 'Content-Disposition':
-            return self._content_disposition is not None
-        else:
-            raise ValueError("Invalid header {}".format(name))
-
-    def rawHeader(self, name):
-        """Get the raw header data of a header.
-
-        Args:
-            name: The name of the header.
-
-        Return:
-            The header data, as ISO-8859-1 encoded bytes() object.
-
-        Raise:
-            ValueError: If a header other than Content-Disposition is
-                        requested.
-        """
-        if name != 'Content-Disposition':
-            raise ValueError("Invalid header {}".format(name))
-        cd = self._content_disposition
-        if cd is None:
-            raise ValueError("Content-Disposition is None!")
-        return cd.encode('iso-8859-1')
-
-
 # These test cases are based on http://greenbytes.de/tech/tc2231/
 
 
-class AttachmentTestCase(TestCase):
+class AttachmentTestCase(unittest.TestCase):
 
     """Helper class with some convienence methods to check filenames."""
 
@@ -117,7 +60,7 @@ class AttachmentTestCase(TestCase):
         self.assertFalse(cd_inline)
 
 
-class InlineTests(TestCase):
+class InlineTests(unittest.TestCase):
 
     """Various tests relating to the "inline" disposition type.
 

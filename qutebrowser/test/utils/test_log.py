@@ -17,20 +17,17 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=protected-access,invalid-name
-
 """Tests for qutebrowser.utils.log."""
 
 import logging
 import unittest
 import argparse
 import sys
-from unittest import TestCase
 
 import qutebrowser.utils.log as log
 
 
-class BaseTest(TestCase):
+class BaseTest(unittest.TestCase):
 
     """Base class for logging tests.
 
@@ -39,6 +36,7 @@ class BaseTest(TestCase):
 
     def setUp(self):
         """Save the old logging configuration."""
+        # pylint: disable=protected-access
         logger_dict = logging.getLogger().manager.loggerDict
         logging._acquireLock()
         try:
@@ -57,6 +55,7 @@ class BaseTest(TestCase):
 
     def tearDown(self):
         """Restore the original logging configuration."""
+        # pylint: disable=protected-access
         while self.root_logger.handlers:
             h = self.root_logger.handlers[0]
             self.root_logger.removeHandler(h)
@@ -67,9 +66,9 @@ class BaseTest(TestCase):
             logging._handlers.clear()
             logging._handlers.update(self.saved_handlers)
             logging._handlerList[:] = self.saved_handler_list
-            loggerDict = logging.getLogger().manager.loggerDict
-            loggerDict.clear()
-            loggerDict.update(self.saved_loggers)
+            logger_dict = logging.getLogger().manager.loggerDict
+            logger_dict.clear()
+            logger_dict.update(self.saved_loggers)
             logger_states = self.logger_states
             for name in self.logger_states:
                 if logger_states[name] is not None:
@@ -78,7 +77,7 @@ class BaseTest(TestCase):
             logging._releaseLock()
 
 
-class LogFilterTests(TestCase):
+class LogFilterTests(unittest.TestCase):
 
     """Tests for LogFilter.
 

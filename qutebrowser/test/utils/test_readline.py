@@ -17,31 +17,19 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=missing-docstring
-
 """Tests for qutebrowser.utils.readline."""
 
 import inspect
 import unittest
-from unittest import TestCase
 from unittest.mock import Mock
 
 from PyQt5.QtWidgets import QLineEdit
 
 import qutebrowser.utils.readline as readline
+from qutebrowser.test.stubs import FakeQApplication
 
 
-class FakeQApplication:
-
-    """Stub to insert as QApplication module."""
-
-    def __init__(self, focus):
-        # pylint: disable=invalid-name
-        self.focusWidget = Mock(return_value=focus)
-        self.instance = Mock(return_value=self)
-
-
-class NoneWidgetTests(TestCase):
+class NoneWidgetTests(unittest.TestCase):
 
     """Tests when the focused widget is None."""
 
@@ -56,7 +44,7 @@ class NoneWidgetTests(TestCase):
                 method()
 
 
-class ReadlineBridgeTest(TestCase):
+class ReadlineBridgeTest(unittest.TestCase):
 
     """Tests for readline bridge."""
 
@@ -71,34 +59,42 @@ class ReadlineBridgeTest(TestCase):
         self.qle.configure_mock(**{'selectedText.return_value': text})
 
     def test_rl_backward_char(self):
+        """Test rl_backward_char."""
         self.bridge.rl_backward_char()
         self.qle.cursorBackward.assert_called_with(False)
 
     def test_rl_forward_char(self):
+        """Test rl_forward_char."""
         self.bridge.rl_forward_char()
         self.qle.cursorForward.assert_called_with(False)
 
     def test_rl_backward_word(self):
+        """Test rl_backward_word."""
         self.bridge.rl_backward_word()
         self.qle.cursorWordBackward.assert_called_with(False)
 
     def test_rl_forward_word(self):
+        """Test rl_forward_word."""
         self.bridge.rl_forward_word()
         self.qle.cursorWordForward.assert_called_with(False)
 
     def test_rl_beginning_of_line(self):
+        """Test rl_beginning_of_line."""
         self.bridge.rl_beginning_of_line()
         self.qle.home.assert_called_with(False)
 
     def test_rl_end_of_line(self):
+        """Test rl_end_of_line."""
         self.bridge.rl_end_of_line()
         self.qle.end.assert_called_with(False)
 
     def test_rl_delete_char(self):
+        """Test rl_delete_char."""
         self.bridge.rl_delete_char()
         self.qle.del_.assert_called_with()
 
     def test_rl_backward_delete_char(self):
+        """Test rl_backward_delete_char."""
         self.bridge.rl_backward_delete_char()
         self.qle.backspace.assert_called_with()
 

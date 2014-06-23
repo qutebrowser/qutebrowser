@@ -22,12 +22,12 @@
 """Test test helpers."""
 
 import os
-from unittest import TestCase
+import unittest
 
 from qutebrowser.test.helpers import environ_set_temp
 
 
-class TestEnvironSetTemp(TestCase):
+class TestEnvironSetTemp(unittest.TestCase):
 
     """Test the environ_set_temp helper."""
 
@@ -48,3 +48,6 @@ class TestEnvironSetTemp(TestCase):
         if 'QUTEBROWSER_ENVIRON_TEST' in os.environ:
             # if some test failed
             del os.environ['QUTEBROWSER_ENVIRON_TEST']
+
+if __name__ == '__main__':
+    unittest.main()

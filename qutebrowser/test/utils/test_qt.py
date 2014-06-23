@@ -17,19 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=missing-docstring,blacklisted-name,protected-access
-
 """Tests for qutebrowser.utils.qt."""
 
 import sys
 import argparse
 import unittest
-from unittest import TestCase
 
 import qutebrowser.utils.qt as qt
 
 
-class CheckOverflowTests(TestCase):
+class CheckOverflowTests(unittest.TestCase):
 
     """Test check_overflow.
 
@@ -83,7 +80,7 @@ class CheckOverflowTests(TestCase):
                                  "{}: {}".format(ctype, val))
 
 
-class GetQtArgsTests(TestCase):
+class GetQtArgsTests(unittest.TestCase):
 
     """Tests for get_qt_args."""
 

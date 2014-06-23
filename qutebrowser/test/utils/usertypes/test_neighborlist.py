@@ -17,17 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=protected-access,missing-docstring
-
 """Tests for the NeighborList class."""
 
 import unittest
-from unittest import TestCase
 
 from qutebrowser.utils.usertypes import NeighborList
 
 
-class InitTests(TestCase):
+class InitTests(unittest.TestCase):
 
     """Just try to init some neighborlists.
 
@@ -62,7 +59,7 @@ class InitTests(TestCase):
         self.assertNotIn(4, nl)
 
 
-class DefaultTests(TestCase):
+class DefaultTests(unittest.TestCase):
 
     """Test the default argument.
 
@@ -86,7 +83,7 @@ class DefaultTests(TestCase):
         self.assertIsNone(nl.idx)
 
 
-class EmptyTests(TestCase):
+class EmptyTests(unittest.TestCase):
 
     """Tests with no items.
 
@@ -118,7 +115,7 @@ class EmptyTests(TestCase):
             self.nl.getitem(1)
 
 
-class ItemTests(TestCase):
+class ItemTests(unittest.TestCase):
 
     """Tests with items.
 
@@ -175,13 +172,15 @@ class ItemTests(TestCase):
         self.assertEqual(self.nl.idx, 0)
 
 
-class OneTests(TestCase):
+class OneTests(unittest.TestCase):
 
     """Tests with a list with only one item.
 
     Attributes:
         nl: The NeighborList we're testing.
     """
+
+    # pylint: disable=protected-access
 
     def setUp(self):
         self.nl = NeighborList([1], default=1)
@@ -237,7 +236,7 @@ class OneTests(TestCase):
         self.assertEqual(self.nl.idx, 0)
 
 
-class BlockTests(TestCase):
+class BlockTests(unittest.TestCase):
 
     """Tests with mode=block.
 
@@ -264,7 +263,7 @@ class BlockTests(TestCase):
         self.assertEqual(self.nl.idx, 4)
 
 
-class WrapTests(TestCase):
+class WrapTests(unittest.TestCase):
 
     """Tests with mode=wrap.
 
@@ -291,7 +290,7 @@ class WrapTests(TestCase):
         self.assertEqual(self.nl.idx, 0)
 
 
-class RaiseTests(TestCase):
+class RaiseTests(unittest.TestCase):
 
     """Tests with mode=exception.
 
@@ -320,7 +319,7 @@ class RaiseTests(TestCase):
         self.assertEqual(self.nl.idx, 4)
 
 
-class SnapInTests(TestCase):
+class SnapInTests(unittest.TestCase):
 
     """Tests for the fuzzyval/_snap_in features.
 

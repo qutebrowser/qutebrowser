@@ -17,104 +17,18 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=missing-docstring,invalid-name
-
 """Tests for the webelement utils."""
 
 import unittest
-from unittest import TestCase
-from unittest.mock import Mock
 
 from PyQt5.QtCore import QRect, QPoint
-from PyQt5.QtWebKit import QWebElement
 
 import qutebrowser.utils.webelem as webelem
+from qutebrowser.test.stubs import (FakeWebElement, FakeWebFrame,
+                                    FakeChildrenFrame)
 
 
-class FakeWebElement:
-
-    """A stub for QWebElement."""
-
-    def __init__(self, geometry=None, frame=None, null=False, visibility='',
-                 display='', attributes=None):
-        """Constructor.
-
-        Args:
-            geometry: The geometry of the QWebElement as QRect.
-            frame: The QWebFrame the element is in.
-            null: Whether the element is null or not.
-            visibility: The CSS visibility style property calue.
-            display: The CSS display style property calue.
-            attributes: Boolean HTML attributes to be added.
-
-        Raise:
-            ValueError if element is not null and geometry/frame are not given.
-        """
-        self.geometry = Mock(return_value=geometry)
-        self.webFrame = Mock(return_value=frame)
-        self.isNull = Mock(return_value=null)
-        self._visibility = visibility
-        self._display = display
-        self._attributes = attributes
-
-    def styleProperty(self, name, strategy):
-        """Return the CSS style property named name.
-
-        Only display/visibility and ComputedStyle are simulated.
-
-        Raise:
-            ValueError if strategy is not ComputedStyle or name is not
-                       visibility/display.
-        """
-        if strategy != QWebElement.ComputedStyle:
-            raise ValueError("styleProperty called with strategy != "
-                             "ComputedStyle ({})!".format(strategy))
-        if name == 'visibility':
-            return self._visibility
-        elif name == 'display':
-            return self._display
-        else:
-            raise ValueError("styleProperty called with unknown name "
-                             "'{}'".format(name))
-
-    def hasAttribute(self, name):
-        """Check if the element has an attribute named name."""
-        if self._attributes is None:
-            return False
-        else:
-            return name in self._attributes
-
-
-class FakeWebFrame:
-
-    """A stub for QWebFrame."""
-
-    def __init__(self, geometry, scroll=None, parent=None):
-        """Constructor.
-
-        Args:
-            geometry: The geometry of the frame as QRect.
-            scroll: The scroll position as QPoint.
-            parent: The parent frame.
-        """
-        if scroll is None:
-            scroll = QPoint(0, 0)
-        self.geometry = Mock(return_value=geometry)
-        self.scrollPosition = Mock(return_value=scroll)
-        self.parentFrame = Mock(return_value=parent)
-
-
-class FakeChildrenFrame:
-
-    """A stub for QWebFrame to test get_child_frames."""
-
-    def __init__(self, children=None):
-        if children is None:
-            children = []
-        self.childFrames = Mock(return_value=children)
-
-
-class IsVisibleInvalidTests(TestCase):
+class IsVisibleInvalidTests(unittest.TestCase):
 
     """Tests for is_visible with invalid elements.
 
@@ -156,7 +70,7 @@ class IsVisibleInvalidTests(TestCase):
         self.assertTrue(webelem.is_visible(elem, self.frame))
 
 
-class IsVisibleScrollTests(TestCase):
+class IsVisibleScrollTests(unittest.TestCase):
 
     """Tests for is_visible when the frame is scrolled.
 
@@ -178,7 +92,7 @@ class IsVisibleScrollTests(TestCase):
         self.assertTrue(webelem.is_visible(elem, self.frame))
 
 
-class IsVisibleCssTests(TestCase):
+class IsVisibleCssTests(unittest.TestCase):
 
     """Tests for is_visible with CSS attributes.
 
@@ -213,7 +127,7 @@ class IsVisibleCssTests(TestCase):
         self.assertFalse(webelem.is_visible(elem, self.frame))
 
 
-class IsVisibleIframeTests(TestCase):
+class IsVisibleIframeTests(unittest.TestCase):
 
     """Tests for is_visible with a child frame.
 
@@ -290,7 +204,7 @@ class IsVisibleIframeTests(TestCase):
         self.assertTrue(webelem.is_visible(self.elem4, self.frame))
 
 
-class IsWritableTests(TestCase):
+class IsWritableTests(unittest.TestCase):
 
     """Check is_writable."""
 
@@ -310,7 +224,7 @@ class IsWritableTests(TestCase):
         self.assertFalse(webelem.is_writable(elem))
 
 
-class JavascriptEscapeTests(TestCase):
+class JavascriptEscapeTests(unittest.TestCase):
 
     """Check javascript_escape.
 
@@ -326,11 +240,12 @@ class JavascriptEscapeTests(TestCase):
     )
 
     def test_fake_escape(self):
+        """Test javascript escaping."""
         for before, after in self.STRINGS:
             self.assertEqual(webelem.javascript_escape(before), after)
 
 
-class GetChildFramesTests(TestCase):
+class GetChildFramesTests(unittest.TestCase):
 
     """Check get_child_frames."""
 
