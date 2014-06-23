@@ -280,7 +280,8 @@ class TabbedBrowser(TabWidget):
         Return:
             The opened WebView instance.
         """
-        qt_ensure_valid(url)
+        if url is not None:
+            qt_ensure_valid(url)
         log.webview.debug("Creating new tab with URL {}".format(url))
         tab = WebView(self)
         self._connect_tab_signals(tab)
