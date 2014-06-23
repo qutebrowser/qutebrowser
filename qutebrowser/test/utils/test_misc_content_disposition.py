@@ -166,7 +166,6 @@ class InlineTests(TestCase):
         self._check_filename('inline; filename="Not an attachment!"',
                              "Not an attachment!")
 
-
     def test_inlwithasciifilenamepdf(self):
         """'inline', specifying a filename of foo.pdf.
 
@@ -177,7 +176,6 @@ class InlineTests(TestCase):
         the builtin PDF handler).
         """
         self._check_filename('inline; filename="foo.pdf"', "foo.pdf")
-
 
 
 class AttachmentTests(AttachmentTestCase):
@@ -535,7 +533,6 @@ class AttachmentTests(AttachmentTestCase):
         """
         self._check_ignored(': inline; attachment; filename=foo.html')
 
-
     def test_attandinline(self):
         """Both disposition types specified.
 
@@ -543,14 +540,12 @@ class AttachmentTests(AttachmentTestCase):
         """
         self._check_ignored('inline; attachment; filename=foo.html')
 
-
     def test_attandinline2(self):
         """Both disposition types specified.
 
         This is invalid, so UAs should ignore it.
         """
         self._check_ignored('attachment; inline; filename=foo.html')
-
 
     def test_attbrokenquotedfn(self):
         """'attachment', specifying a filename parameter that is broken.
@@ -758,7 +753,6 @@ class CharacterSetTests(AttachmentTestCase):
         self._check_filename("attachment; filename* =UTF-8''foo-%c3%a4.html",
                              'foo-ä.html')
 
-
     def test_attwithfn2231quot(self):
         """'attachment', specifying a filename of foo-ä.html.
 
@@ -855,7 +849,6 @@ class EncodingFallbackTests(AttachmentTestCase):
         """
         self._check_filename("attachment; filename*=UTF-8''foo-%c3%a4.html; "
                              "filename=\"foo-ae.html\"", 'foo-ä.html')
-
 
     def test_attfnboth3(self):
         """'attachment', specifying an ambigious filename.
