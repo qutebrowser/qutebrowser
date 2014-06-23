@@ -18,12 +18,6 @@ Before 0.1
 - Implement some optional stuff from http://greenbytes.de/tech/tc2231/
   (especially filename with Content-Disposition: inline)
 - Icon
-- Check return values of Qt functions
-
-- Document in hacking:
-  Qt types vs. python types (exceptions for QProcess, QThread, ...)
-  qt_ensure_valid and qt_check_overflow
-  check return values
 
 New big features
 ================
