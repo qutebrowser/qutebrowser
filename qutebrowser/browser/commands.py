@@ -39,7 +39,7 @@ import qutebrowser.utils.log as log
 import qutebrowser.utils.url as urlutils
 from qutebrowser.utils.misc import shell_escape
 from qutebrowser.utils.qt import (check_overflow, check_print_compat,
-                                  qt_ensure_valid)
+                                  qt_ensure_valid, QtValueError)
 from qutebrowser.utils.editor import ExternalEditor
 from qutebrowser.commands.exceptions import CommandError
 from qutebrowser.commands.userscripts import UserscriptRunner
@@ -74,7 +74,14 @@ class CommandDispatcher:
     def _current_url(self):
         """Get the URL of the current tab."""
         url = self._tabs.currentWidget().url()
-        qt_ensure_valid(url)
+        try:
+            qt_ensure_valid(url)
+        except QtValueError as e:
+            msg = "Current URL is invalid"
+            if e.reason:
+                msg += " ({})".format(e.reason)
+            msg += "!"
+            raise CommandError(msg)
         return url
 
     def _scroll_percent(self, perc=None, count=None, orientation=None):
