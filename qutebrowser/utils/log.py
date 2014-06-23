@@ -69,8 +69,8 @@ signals = getLogger('signals')
 hints = getLogger('hints')
 keyboard = getLogger('keyboard')
 downloads = getLogger('downloads')
-js = getLogger('js')
-qt = getLogger('qt')
+js = getLogger('js')  # Javascript console messages
+qt = getLogger('qt')  # Warnings produced by Qt
 style = getLogger('style')
 rfc6266 = getLogger('rfc6266')
 
