@@ -98,6 +98,7 @@ class Application(QApplication):
         Args:
             Argument namespace from argparse.
         """
+        # pylint: disable=too-many-statements
         qt_args = get_qt_args(args)
         log.init.debug("Qt arguments: {}, based on {}".format(qt_args, args))
         super().__init__(get_qt_args(args))

@@ -63,7 +63,7 @@ class SettingOptionCompletionModel(BaseCompletionModel):
         for name, _ in sectdata.items():
             try:
                 desc = sectdata.descriptions[name]
-            except (KeyError, AttributeError) as e:
+            except (KeyError, AttributeError):
                 # Some stuff (especially ValueList items) don't have a
                 # description.
                 desc = ""
