@@ -95,12 +95,19 @@ class SettingOptionCompletionModel(BaseCompletionModel):
 
 class SettingValueCompletionModel(BaseCompletionModel):
 
-    """A CompletionModel filled with setting values."""
+    """A CompletionModel filled with setting values.
+
+    Attributes:
+        _section: The section of this model.
+        _option: The option of this model.
+    """
 
     # pylint: disable=abstract-method
 
     def __init__(self, section, option=None, parent=None):
         super().__init__(parent)
+        self._section = section
+        self._option = option
         cur_cat = self.new_category("Current", sort=0)
         value = config.get(section, option, raw=True)
         if not value:
@@ -124,6 +131,8 @@ class SettingValueCompletionModel(BaseCompletionModel):
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update current value when config changed."""
+        if (section, option) != (self._section, self._option):
+            return
         value = config.get(section, option, raw=True)
         if not value:
             value = '""'
