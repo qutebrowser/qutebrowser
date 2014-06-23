@@ -53,6 +53,7 @@ New big features
 Improvements / minor features
 =============================
 
+- Show size of widgets in __repr__
 - Ask whether to close when downloads are running or maybe if form fields are
   unsubmitted (book page 187)
 - Add a policy regarding Qt vs. Python classes to HACKING
