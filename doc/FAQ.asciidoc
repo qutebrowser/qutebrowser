@@ -37,7 +37,7 @@ What's wrong with http://portix.bitbucket.org/dwb/[dwb]/http://sourceforge.net/p
     qutebrowser uses http://qt-project.org/[Qt] and
     http://qt-project.org/wiki/QtWebKit[QtWebKit] instead, which suffers from
     far less such crashes. It might switch to
-    http://qt-project.org/wiki/QtWebEngine[QtWebEngine] in the feature, which
+    http://qt-project.org/wiki/QtWebEngine[QtWebEngine] in the future, which
     is based on Google's
     https://en.wikipedia.org/wiki/Blink_(layout_engine)[Blink] rendering
     engine.
@@ -57,7 +57,7 @@ What's wrong with http://www.chromium.org/Home[Chromium] and https://vimium.gith
 
 Why Python?::
     I enjoy writing Python since 2011, which made it one of the possible
-    choices. I wanted to use http://qt-project.org/[Qt] because of 
+    choices. I wanted to use http://qt-project.org/[Qt] because of
     http://qt-project.org/wiki/QtWebKit[QtWebKit] so I didn't have
     http://qt-project.org/wiki/Category:LanguageBindings[many other choices]. I
     don't like C++ and can't write it very well, so that wasn't an alternative.
