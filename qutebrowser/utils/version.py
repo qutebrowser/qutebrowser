@@ -217,6 +217,7 @@ def version():
         'Webkit: {}'.format(qWebKitVersion()),
         'Harfbuzz: {}'.format(os.environ.get('QT_HARFBUZZ', 'system')),
         '',
+        'Frozen: {}'.format(hasattr(sys, 'frozen')),
         'Platform: {}, {}'.format(platform.platform(),
                                   platform.architecture()[0]),
     ]
