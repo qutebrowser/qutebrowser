@@ -591,23 +591,27 @@ class Application(QApplication):
                 urlstr = tab.url().toString()
                 if urlstr:
                     pages.append(urlstr)
-        path = os.path.join(os.path.abspath(os.path.dirname(
-            qutebrowser.__file__)), '..')
-        log.destroy.debug("path: {}".format(path))
         log.destroy.debug("sys.executable: {}".format(sys.executable))
         log.destroy.debug("sys.path: {}".format(sys.path))
         log.destroy.debug("sys.argv: {}".format(sys.argv))
         log.destroy.debug("frozen: {}".format(hasattr(sys, 'frozen')))
-        args = [sys.executable, '-m', 'qutebrowser']
+        if hasattr(sys, 'frozen'):
+            args = [sys.executable]
+            cwd = os.path.abspath(os.path.dirname(sys.executable))
+        else:
+            args = [sys.executable, '-m', 'qutebrowser']
+            cwd = os.path.join(os.path.abspath(os.path.dirname(
+                               qutebrowser.__file__)), '..')
         for arg in sys.argv[1:]:
             if arg.startswith('-'):
                 # We only want to preserve options on a restart.
                 args.append(arg)
         # Add all open pages so they get reopened.
         args += pages
-        log.destroy.debug("final args: {}".format(args))
+        log.destroy.debug("args: {}".format(args))
+        log.destroy.debug("cwd: {}".format(cwd))
         # Open a new process and immediately shutdown the existing one
-        subprocess.Popen(args, cwd=path)
+        subprocess.Popen(args, cwd=cwd)
         if shutdown:
             self.shutdown()
 
