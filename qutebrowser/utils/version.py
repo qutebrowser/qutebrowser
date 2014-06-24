@@ -58,8 +58,8 @@ the Free Software Foundation, either version 3 of the License, or
 </p>
 <p>
 This program is distributed in the hope that it will be useful,
-but <b>without any warranty</b>; without even the implied warranty of
-<b>merchantability</b> or <b>fitness for a particular purpose</b>.  See the
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 </p>
 <p>
