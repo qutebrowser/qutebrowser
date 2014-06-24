@@ -20,6 +20,7 @@
 """Utilities used for debugging."""
 
 import re
+import pdb
 import sys
 import types
 from functools import wraps
@@ -28,14 +29,6 @@ from PyQt5.QtCore import pyqtRemoveInputHook, QEvent, QCoreApplication
 
 from qutebrowser.utils.misc import elide
 from qutebrowser.utils.log import misc as logger
-
-
-try:
-    # pylint: disable=import-error
-    from ipdb import set_trace as pdb_set_trace
-except ImportError:
-    from pdb import set_trace as pdb_set_trace
-
 import qutebrowser.commands.utils as cmdutils
 
 
@@ -52,7 +45,7 @@ def set_trace():
     print("  from PyQt5 import QtCore; QtCore.pyqtRestoreInputHook()")
     print("before executing c(ontinue).")
     pyqtRemoveInputHook()
-    pdb_set_trace()
+    pdb.set_trace()
 
 
 @cmdutils.register(debug=True)

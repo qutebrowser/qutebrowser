@@ -26,7 +26,6 @@ The following libraries are optional and provide better debugging:
 
 * https://pypi.python.org/pypi/colorlog/[colorlog]
 * On Windows: https://pypi.python.org/pypi/colorama/[colorama]
-* https://pypi.python.org/pypi/ipdb[IPython/ipdb]
 
 .On Debian:
 

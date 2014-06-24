@@ -158,15 +158,6 @@ def _module_versions():
             lines.append('SIP: ?')
 
     try:
-        import ipdb
-        import IPython
-    except ImportError:
-        pass
-    else:
-        ver = getattr(IPython, '__version__', 'yes')
-        lines.append('ipdb/IPython: {}'.format(ver))
-
-    try:
         import colorlog
     except ImportError:
         pass
