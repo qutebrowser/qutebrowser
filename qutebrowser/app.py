@@ -21,6 +21,7 @@
 
 import os
 import sys
+import subprocess
 import faulthandler
 import configparser
 from bdb import BdbQuit
@@ -84,7 +85,6 @@ class Application(QApplication):
         _timers: List of used QTimers so they don't get GCed.
         _shutting_down: True if we're currently shutting down.
         _quit_status: The current quitting status.
-        _opened_urls: List of opened URLs, string as passed to the application.
         _crashdlg: The crash dialog currently open.
         _crashlogfile: A file handler to the fatal crash logfile.
     """
@@ -109,7 +109,6 @@ class Application(QApplication):
             'main': False,
         }
         self._timers = []
-        self._opened_urls = []
         self._shutting_down = False
         self._keyparsers = None
         self._crashdlg = None
@@ -312,7 +311,6 @@ class Application(QApplication):
                 self.commandmanager.run_safely_init(cmd.lstrip(':'))
             else:
                 log.init.debug("Startup URL {}".format(cmd))
-                self._opened_urls.append(cmd)
                 try:
                     url = urlutils.fuzzy_url(cmd)
                 except urlutils.FuzzyUrlError as e:
@@ -582,32 +580,36 @@ class Application(QApplication):
             log.destroy.debug("maybe_quit quitting.")
             self.quit()
 
-    #@cmdutils.register(instance='', nargs=0)
-    #def restart(self, shutdown=True, pages=None):
-    #    """Restart qutebrowser while keeping existing tabs open."""
-    #    # We don't use _recover_pages here as it's too forgiving when
-    #    # exceptions occur.
-    #    if pages is None:
-    #        pages = []
-    #        for tab in self.mainwindow.tabs.widgets:
-    #            urlstr = tab.url().toString()
-    #            if urlstr:
-    #                pages.append(urlstr)
-    #    pythonpath = os.pathsep.join(sys.path)
-    #    os.environ['PYTHONPATH'] = pythonpath
-    #    argv = sys.argv[:]
-    #    for page in self._opened_urls:
-    #        try:
-    #            argv.remove(page)
-    #        except ValueError as e:
-    #            logger.destroy.debug("Error while removing page: {}: "
-    #                                 "{}".format(e.__class__.__name__, e))
-    #    argv = [sys.executable] + argv + pages
-    #    log.procs.debug("Running {} with args {} (PYTHONPATH={})".format(
-    #        sys.executable, argv, pythonpath))
-    #    subprocess.Popen(argv)
-    #    if shutdown:
-    #        self.shutdown()
+    @cmdutils.register(instance='', nargs=0)
+    def restart(self, shutdown=True, pages=None):
+        """Restart qutebrowser while keeping existing tabs open."""
+        # We don't use _recover_pages here as it's too forgiving when
+        # exceptions occur.
+        if pages is None:
+            pages = []
+            for tab in self.mainwindow.tabs.widgets:
+                urlstr = tab.url().toString()
+                if urlstr:
+                    pages.append(urlstr)
+        path = os.path.join(os.path.abspath(os.path.dirname(
+            qutebrowser.__file__)), '..')
+        log.destroy.debug("path: {}".format(path))
+        log.destroy.debug("sys.executable: {}".format(sys.executable))
+        log.destroy.debug("sys.path: {}".format(sys.path))
+        log.destroy.debug("sys.argv: {}".format(sys.argv))
+        log.destroy.debug("frozen: {}".format(hasattr(sys, 'frozen')))
+        args = [sys.executable, '-m', 'qutebrowser']
+        for arg in sys.argv[1:]:
+            if arg.startswith('-'):
+                # We only want to preserve options on a restart.
+                args.append(arg)
+        # Add all open pages so they get reopened.
+        args += pages
+        log.destroy.debug("final args: {}".format(args))
+        # Open a new process and immediately shutdown the existing one
+        subprocess.Popen(args, cwd=path)
+        if shutdown:
+            self.shutdown()
 
     @cmdutils.register(instance='', split=False, debug=True)
     def debug_pyeval(self, s):
