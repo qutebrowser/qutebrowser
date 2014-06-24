@@ -169,7 +169,9 @@ def _module_versions():
     except ImportError:
         pass
     else:
-        ver = getattr(colorama, 'VERSION', 'yes')
+        ver = getattr(colorama, 'VERSION', None)
+        if ver is None:
+            ver = getattr(colorama, '__version__', 'yes')
         lines.append('colorama: {}'.format(ver))
 
     return lines
