@@ -1,6 +1,8 @@
 Bugs
 ====
 
+- Rightclick -> Copy link copies relative links
+
 - Prevent invalid filenames (e.g. com1) when downloading on Windows
 
 - Auto-insert-mode sometimes doesn't work correctly
