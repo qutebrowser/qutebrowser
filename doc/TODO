@@ -42,6 +42,8 @@ New big features
 Improvements / minor features
 =============================
 
+- Downloading: re-ask instead of killing download if path is invalid
+- Downloading: open files
 - Distinction between :q and :wq, add ZZ and ZQ shortcuts.
 - set_toggle to toggle setting between two states
 - Customizable statusbar
