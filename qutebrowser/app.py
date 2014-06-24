@@ -21,9 +21,11 @@
 
 import os
 import sys
+import json
 import subprocess
 import faulthandler
 import configparser
+import getpass
 import signal
 import warnings
 import bdb
@@ -34,6 +36,7 @@ import traceback
 from PyQt5.QtWidgets import QApplication, QDialog
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
                           QStandardPaths, QObject)
+from PyQt5.QtNetwork import QLocalSocket, QLocalServer
 
 import qutebrowser
 from qutebrowser.commands import cmdutils, runners
@@ -102,6 +105,23 @@ class Application(QApplication):
             print(version.GPL_BOILERPLATE.strip())
             sys.exit(0)
 
+        self.socket = QLocalSocket(self)
+        self.socket.connectToServer('qutebrowser-{}'.format(getpass.getuser()))
+        is_running = self.socket.waitForConnected(100)
+        if is_running:
+            log.init.info("Opening in existing instance")
+            line = json.dumps(self._args.command) + '\n'
+            self.socket.writeData(line.encode('utf-8'))
+            sys.exit(0)
+
+        self.server = QLocalServer()
+        ok = self.server.listen('qutebrowser-{}'.format(getpass.getuser()))
+        if not ok:
+            # FIXME
+            raise Exception("Error while listening to local socket: {}".format(
+                self.server.errorString()))
+        self.server.newConnection.connect(self.on_localsocket_connection)
+
         log.init.debug("Starting init...")
         self.setQuitOnLastWindowClosed(False)
         self.setOrganizationName("qutebrowser")
@@ -128,6 +148,16 @@ class Application(QApplication):
 
     def __repr__(self):
         return utils.get_repr(self)
+
+    def on_localsocket_connection(self):
+        socket = self.server.nextPendingConnection()
+        # FIXME timeout:
+        while not socket.canReadLine():
+            socket.waitForReadyRead()
+        data = bytes(socket.readLine())
+        args = json.loads(data.decode('utf-8'))
+        self._process_args(args)
+        socket.deleteLater()
 
     def _init_modules(self):
         """Initialize all 'modules' which need to be initialized."""
@@ -218,17 +248,21 @@ class Application(QApplication):
 
     def _open_pages(self):
         """Open startpage etc. and process commandline args."""
-        self._process_init_args()
+        self._process_args(self._args.command)
         self._open_startpage()
         self._open_quickstart()
 
-    def _process_init_args(self):
+    def _process_args(self, args):
         """Process commandline args.
 
         URLs to open have no prefix, commands to execute begin with a colon.
+
+        Args:
+            args: A list of arguments to process.
         """
+        # FIXME handle win_id with IPC
         win_id = 0
-        for cmd in self._args.command:
+        for cmd in args:
             if cmd.startswith(':'):
                 log.init.debug("Startup cmd {}".format(cmd))
                 commandrunner = runners.CommandRunner(win_id)
