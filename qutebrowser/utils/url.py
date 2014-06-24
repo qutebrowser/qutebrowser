@@ -122,7 +122,8 @@ def fuzzy_url(urlstr):
     Return:
         A target QUrl to a searchpage or the original URL.
     """
-    if is_url(urlstr):
+    stripped = urlstr.strip()
+    if is_url(stripped):
         # probably an address
         logger.debug("URL is a fuzzy address")
         url = QUrl.fromUserInput(urlstr)
@@ -131,7 +132,7 @@ def fuzzy_url(urlstr):
         try:
             url = _get_search_url(urlstr)
         except ValueError:  # invalid search engine
-            url = QUrl.fromUserInput(urlstr)
+            url = QUrl.fromUserInput(stripped)
     logger.debug("Converting fuzzy term {} to URL -> {}".format(
                  urlstr, url.toDisplayString()))
     qt_ensure_valid(url)
