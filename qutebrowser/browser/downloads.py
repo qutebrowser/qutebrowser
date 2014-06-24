@@ -128,11 +128,15 @@ class DownloadItem(QObject):
 
         Example: foo.pdf [699.2kB/s|0.34|16%|4.253/25.124]
         """
-        perc = 0 if self.percentage is None else round(self.percentage)
-        remaining = (utils.format_seconds(self.remaining_time)
-                     if self.remaining_time is not None else '?')
         speed = utils.format_size(self.speed, suffix='B/s')
         down = utils.format_size(self.bytes_done, suffix='B')
+        if all(e is None for e in (self.percentage, self.remaining_time,
+                                   self.bytes_total)):
+            return ('{name} [{speed:>10}|{down}]'.format(
+                name=self.basename, speed=speed, down=down))
+        perc = '??' if self.percentage is None else round(self.percentage)
+        remaining = (utils.format_seconds(self.remaining_time)
+                     if self.remaining_time is not None else '?')
         total = utils.format_size(self.bytes_total, suffix='B')
         return ('{name} [{speed:>10}|{remaining:>5}|{perc:>2}%|'
                 '{down}/{total}]'.format(name=self.basename, speed=speed,
