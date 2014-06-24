@@ -377,16 +377,17 @@ class CommandDispatcher:
         Args:
             sel: True to use primary selection, False to use clipboard
         """
+        clipboard = QApplication.clipboard()
         urlstr = self._current_url().toString(QUrl.FullyEncoded |
                                               QUrl.RemovePassword)
-        if sel:
+        if sel and clipboard.supportsSelection():
             mode = QClipboard.Selection
             target = "primary selection"
         else:
             mode = QClipboard.Clipboard
             target = "clipboard"
         log.misc.debug("Yanking to {}: '{}'".format(target, urlstr))
-        QApplication.clipboard().setText(urlstr, mode)
+        clipboard.setText(urlstr, mode)
         message.info("URL yanked to {}".format(target))
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
@@ -396,16 +397,17 @@ class CommandDispatcher:
         Args:
             sel: True to use primary selection, False to use clipboard
         """
+        clipboard = QApplication.clipboard()
         title = self._tabs.tabText(self._tabs.currentIndex())
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
-        if sel:
+        if sel and clipboard.supportsSelection():
             mode = QClipboard.Selection
             target = "primary selection"
         else:
             mode = QClipboard.Clipboard
             target = "clipboard"
         log.misc.debug("Yanking to {}: '{}'".format(target, title))
-        QApplication.clipboard().setText(title, mode)
+        clipboard.setText(title, mode)
         message.info("Title yanked to {}".format(target))
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
