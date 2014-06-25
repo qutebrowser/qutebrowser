@@ -98,6 +98,7 @@ style
 =====
 
 - Clean up the package checking mess in earlyinit.py
+- Clean up the message API (sync. vs. async.? queue or not?)
 
 dwb keybindings to possibly implement
 =====================================
