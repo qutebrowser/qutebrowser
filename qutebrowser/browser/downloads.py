@@ -208,12 +208,17 @@ class DownloadItem(QObject):
             filename: The full filename to save the download to.
                       None: special value to stop the download.
         """
+        if os.path.isabs(filename):
+            target = filename
+        else:
+            download_dir = config.get('storage', 'download-directory')
+            target = os.path.join(download_dir, filename)
         logger.debug("Setting filename to {}".format(filename))
         if self.filename is not None:
             raise ValueError("Filename was already set! filename: {}, "
                              "existing: {}".format(filename, self.filename))
-        self.filename = filename
-        self.basename = os.path.basename(filename)
+        self.filename = target
+        self.basename = os.path.basename(target)
         try:
             self.fileobj = open(filename, 'wb')
             if self._do_delayed_write:
@@ -368,10 +373,7 @@ class DownloadManager(QObject):
             reply: The QNetworkReply to download.
         """
         _inline, suggested_filename = utils.parse_content_disposition(reply)
-        download_location = config.get('storage', 'download-directory')
-        suggested_filepath = os.path.join(download_location,
-                                          suggested_filename)
-        logger.debug("fetch: {} -> {}".format(reply.url(), suggested_filepath))
+        logger.debug("fetch: {} -> {}".format(reply.url(), suggested_filename))
         download = DownloadItem(reply, self)
         download.finished.connect(partial(self.on_finished, download))
         download.data_changed.connect(partial(self.on_data_changed, download))
@@ -384,7 +386,7 @@ class DownloadManager(QObject):
         q = Question(self)
         q.text = "Save file to:"
         q.mode = PromptMode.text
-        q.default = suggested_filepath
+        q.default = suggested_filename
         q.answered.connect(download.set_filename)
         q.cancelled.connect(download.cancel)
         q.answered.connect(q.deleteLater)
