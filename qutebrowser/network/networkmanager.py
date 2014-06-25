@@ -145,6 +145,26 @@ class NetworkManager(QNetworkAccessManager):
             if accept_language is not None:
                 req.setRawHeader('Accept-Language'.encode('ascii'),
                                  accept_language.encode('ascii'))
+            if (op == QNetworkAccessManager.PostOperation and
+                    not req.header(QNetworkRequest.ContentTypeHeader)):
+                # If we don't do this workaround, we get a freeze on
+                # http://ch.mouser.com/localsites/ when clicking on a currency.
+                # We basically do the same thing as Qt would do by itself in
+                # src/network/access/qhttpnetworkrequest.cpp ->
+                # QHttpNetworkRequestPrivate::header but somehow it doesn't
+                # freeze when we do it here.
+                #
+                # FIXME: Open questions:
+                #
+                #   - Shouldn't QtWebPage set the content-type correctly by
+                #     itself?
+                #
+                #   - Why does Qt freeze if we don't do that? Why doesn't it
+                #     happen with the minimal browser? It should really only
+                #     print a warning and nothing else... Maybe message
+                #     handler?!
+                req.setHeader(QNetworkRequest.ContentTypeHeader,
+                               'application/x-www-form-urlencoded')
             reply = super().createRequest(op, req, outgoing_data)
             self._requests.append(reply)
             reply.destroyed.connect(lambda obj: self._requests.remove(obj))
