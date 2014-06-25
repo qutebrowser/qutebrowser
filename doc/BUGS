@@ -1,6 +1,8 @@
 Bugs
 ====
 
+- Downloads: "connection closed" if user takes too long
+
 - Download focus rectangle on windows
 
 - Rightclick -> Copy link copies relative links

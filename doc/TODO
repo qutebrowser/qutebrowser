@@ -42,6 +42,7 @@ New big features
 Improvements / minor features
 =============================
 
+- Downloading: do something more sensible than using $PWD if path is relative?
 - Downloading: re-ask instead of killing download if path is invalid
 - Downloading: open files
 - Distinction between :q and :wq, add ZZ and ZQ shortcuts.
