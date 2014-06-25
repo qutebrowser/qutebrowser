@@ -51,8 +51,9 @@ class CommandKeyParser(BaseKeyParser):
         try:
             self.commandmanager.run(cmdstr, count=count)
         except ArgumentCountError:
-            logger.debug("Filling statusbar with partial command {}".format(
-                cmdstr))
+            if self.do_log:
+                logger.debug("Filling statusbar with partial command "
+                             "{}".format(cmdstr))
             message.set_cmd_text(':{} '.format(cmdstr))
         except (CommandMetaError, CommandError) as e:
             message.error(e)
@@ -71,6 +72,8 @@ class PassthroughKeyParser(CommandKeyParser):
         _confsect: The config section to use.
     """
 
+    do_log = False
+
     def __init__(self, confsect, parent=None, warn=True):
         """Constructor.
 
@@ -80,6 +83,7 @@ class PassthroughKeyParser(CommandKeyParser):
             warn: Whether to warn if an ignored key was bound.
         """
         super().__init__(parent, supports_chains=False)
+        self.log = False
         self.warn_on_keychains = warn
         self.read_config(confsect)
         self._confsect = confsect

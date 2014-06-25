@@ -124,10 +124,12 @@ class ModeManager(QObject):
             True if event should be filtered, False otherwise.
         """
         handler = self._handlers[self.mode]
-        logger.debug("calling handler {}".format(handler.__qualname__))
+        if self.mode != 'insert':
+            logger.debug("got keypress in mode {} - calling handler {}".format(
+                self.mode, handler.__qualname__))
         handled = handler(event) if handler is not None else False
 
-        is_non_alnum = event.modifiers() or not event.text().strip()
+        is_non_alnum = bool(event.modifiers()) or not event.text().strip()
 
         if handled:
             filter_this = True
@@ -141,11 +143,12 @@ class ModeManager(QObject):
         if not filter_this:
             self._releaseevents_to_pass.append(event)
 
-        logger.debug("handled: {}, forward-unbound-keys: {}, passthrough: {}, "
-                     "is_non_alnum: {} --> filter: {}".format(
-                         handled, self._forward_unbound_keys,
-                         self.mode in self.passthrough, is_non_alnum,
-                         filter_this))
+        if self.mode != 'insert':
+            logger.debug("handled: {}, forward-unbound-keys: {}, passthrough: "
+                         "{}, is_non_alnum: {} --> filter: {}".format(
+                             handled, self._forward_unbound_keys,
+                             self.mode in self.passthrough, is_non_alnum,
+                             filter_this))
         return filter_this
 
     def _eventFilter_keyrelease(self, event):
@@ -165,7 +168,8 @@ class ModeManager(QObject):
             filter_this = False
         else:
             filter_this = True
-        logger.debug("filter: {}".format(filter_this))
+        if self.mode != 'insert':
+            logger.debug("filter: {}".format(filter_this))
         return filter_this
 
     def register(self, mode, handler, passthrough=False):
@@ -258,15 +262,11 @@ class ModeManager(QObject):
         if not isinstance(obj, QWindow):
             # We already handled this same event at some point earlier, so
             # we're not interested in it anymore.
-            logger.debug("Ignoring event {} for {}".format(
-                debug.qenum_key(QEvent, typ), obj.__class__.__name__))
             return False
         if QApplication.instance().activeWindow() is not self.mainwindow:
             # Some other window (print dialog, etc.) is focused so we pass
             # the event through.
             return False
-        logger.debug("Got event {} for {} in mode {}".format(
-            debug.qenum_key(QEvent, typ), obj.__class__.__name__, self.mode))
 
         if typ == QEvent.KeyPress:
             return self._eventFilter_keypress(event)
