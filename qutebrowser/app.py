@@ -49,7 +49,8 @@ from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.config.config import ConfigManager
 from qutebrowser.keyinput.modeman import ModeManager
 from qutebrowser.widgets.mainwindow import MainWindow
-from qutebrowser.widgets.crash import ExceptionCrashDialog, FatalCrashDialog
+from qutebrowser.widgets.crash import (ExceptionCrashDialog, FatalCrashDialog,
+                                       ReportDialog)
 from qutebrowser.keyinput.modeparsers import (NormalKeyParser, HintKeyParser,
                                               PromptKeyParser)
 from qutebrowser.keyinput.keyparser import PassthroughKeyParser
@@ -632,6 +633,16 @@ class Application(QApplication):
             out = ': '.join([e.__class__.__name__, str(e)])
         qutescheme.pyeval_output = out
         self.mainwindow.tabs.openurl(QUrl('qute:pyeval'), newtab=True)
+
+    @cmdutils.register(instance='')
+    def report(self):
+        """Report a bug in qutebrowser."""
+        pages = self._recover_pages()
+        history = self.mainwindow.status.cmd.history[-5:]
+        widgets = self.get_all_widgets()
+        objects = self.get_all_objects()
+        self._crashdlg = ReportDialog(pages, history, widgets, objects)
+        self._crashdlg.show()
 
     @pyqtSlot()
     def shutdown(self):

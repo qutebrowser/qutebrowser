@@ -137,8 +137,8 @@ class _CrashDialog(QDialog):
         Return:
             The string to display.
         """
-        chunks = ["Please edit this crash report to remove sensitive info, "
-                  "and add as much info as possible about how it happened.\n"
+        chunks = ["Please edit this report to remove sensitive info, and add "
+                  "as much info as possible about how it happened.\n"
                   "If it's okay if I contact you about this bug report, "
                   "please also add your contact info (Mail/IRC/Jabber)."]
         for (header, body) in self._crash_info:
@@ -269,3 +269,61 @@ class FatalCrashDialog(_CrashDialog):
         self._crash_info += [
             ("Fault log", self._log),
         ]
+
+
+class ReportDialog(_CrashDialog):
+
+    """Dialog which gets shown when the user wants to report an issue by hand.
+
+    Attributes:
+        _btn_ok: The OK button.
+        _btn_pastebin: The pastebin button.
+        _pages: A list of the open pages (URLs as strings)
+        _cmdhist: A list with the command history (as strings)
+        _widgets: A list of active widgets as string.
+        _objects: A list of all QObjects as string.
+    """
+
+    def __init__(self, pages, cmdhist, widgets, objects, parent=None):
+        self._pages = pages
+        self._cmdhist = cmdhist
+        self._btn_ok = None
+        self._btn_pastebin = None
+        self._widgets = widgets
+        self._objects = objects
+        super().__init__(parent)
+
+    def _init_text(self):
+        super()._init_text()
+        text = ("Please describe the bug you encountered below, then either "
+                "submit it to <a href='mailto:crash@qutebrowser.org'>"
+                "crash@qutebrowser.org</a> or click 'Report'.")
+        self._lbl.setText(text)
+
+    def _init_buttons(self):
+        super()._init_buttons()
+        self._btn_ok = QPushButton()
+        self._btn_ok.setText("OK")
+        self._btn_ok.clicked.connect(self.accept)
+        self._hbox.addWidget(self._btn_ok)
+        self._btn_pastebin = QPushButton()
+        self._btn_pastebin.setText("Report")
+        self._btn_pastebin.clicked.connect(self.pastebin)
+        self._btn_pastebin.setDefault(True)
+        self._hbox.addWidget(self._btn_pastebin)
+
+    def _gather_crash_info(self):
+        super()._gather_crash_info()
+        self._crash_info += [
+            ("Commandline args", ' '.join(sys.argv[1:])),
+            ("Open Pages", '\n'.join(self._pages)),
+            ("Command history", '\n'.join(self._cmdhist)),
+            ("Widgets", self._widgets),
+            ("Objects", self._objects),
+        ]
+        try:
+            self._crash_info.append(("Debug log",
+                                     logutils.ram_handler.dump_log()))
+        except AttributeError as e:
+            self._crash_info.append(("Debug log", "{}: {}".format(
+                e.__class__.__name__, e)))

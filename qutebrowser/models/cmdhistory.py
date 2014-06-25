@@ -57,6 +57,9 @@ class History:
         else:
             self._history = history
 
+    def __getitem__(self, idx):
+        return self._history[idx]
+
     @property
     def browsing(self):
         """Check _tmphist to see if we're browsing."""
