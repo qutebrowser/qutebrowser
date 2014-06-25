@@ -328,7 +328,7 @@ DATA = OrderedDict([
          "Whether to validate SSL handshakes."),
 
         ('dns-prefetch',
-         SettingValue(types.Bool(), 'false'),
+         SettingValue(types.Bool(), 'true'),
          "Specifies whether QtWebkit will try to pre-fetch DNS entries to "
          "speed up browsing."),
     )),
@@ -474,17 +474,17 @@ DATA = OrderedDict([
          "Quota for the offline web application cache."),
 
         ('offline-storage-database',
-         SettingValue(types.Bool(), 'false'),
+         SettingValue(types.Bool(), 'true'),
          "Specifies whether support for the HTML 5 offline storage feature is "
          "enabled or not."),
 
         ('offline-web-application-storage',
-         SettingValue(types.Bool(), 'false'),
+         SettingValue(types.Bool(), 'true'),
          "Specifies whether support for the HTML 5 web application cache "
          "feature is enabled or not."),
 
         ('local-storage',
-         SettingValue(types.Bool(), 'false'),
+         SettingValue(types.Bool(), 'true'),
          "Specifies whether support for the HTML 5 local storage feature is "
          "enabled or not."),
     )),
