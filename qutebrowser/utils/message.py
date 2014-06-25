@@ -19,7 +19,7 @@
 
 """Message singleton so we don't have to define unneeded signals."""
 
-from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication
+from PyQt5.QtCore import pyqtSignal, QCoreApplication, QObject, QTimer
 
 from qutebrowser.utils.usertypes import PromptMode, Question
 from qutebrowser.utils.log import misc as logger
@@ -40,7 +40,8 @@ def error(message, queue=False):
     """
     message = str(message)
     logger.error(message)
-    instance().error.emit(message, queue)
+    bridge = instance()
+    bridge.queue(bridge.error, message, queue)
 
 
 def info(message, queue=False):
@@ -53,14 +54,16 @@ def info(message, queue=False):
     """
     message = str(message)
     logger.info(message)
-    instance().info.emit(message, queue)
+    bridge = instance()
+    bridge.queue(bridge.info, message, queue)
 
 
 def text(message):
     """Display a persistent message in the statusbar."""
     message = str(message)
     logger.debug(message)
-    instance().text.emit(message)
+    bridge = instance()
+    bridge.queue(bridge.text, message)
 
 
 def modular_question(message, mode, default=None):
@@ -110,7 +113,8 @@ def question(message, mode, handler, cancelled_handler=None, default=None):
     q.answered.connect(handler)
     if cancelled_handler is not None:
         q.cancelled.connect(cancelled_handler)
-    instance().question.emit(q, False)
+    bridge = instance()
+    bridge.queue(bridge.question, q, False)
 
 
 def confirm_action(message, yes_action, no_action=None, default=None):
@@ -129,17 +133,20 @@ def confirm_action(message, yes_action, no_action=None, default=None):
     q.answered_yes.connect(yes_action)
     if no_action is not None:
         q.answered_no.connect(no_action)
-    instance().question.emit(q, False)
+    bridge = instance()
+    bridge.queue(bridge.question, q, False)
 
 
 def clear():
     """Clear a persistent message in the statusbar."""
-    instance().text.emit('')
+    bridge = instance()
+    bridge.queue(bridge.text, '')
 
 
 def set_cmd_text(txt):
     """Set the statusbar command line to a preset text."""
-    instance().set_cmd_text.emit(txt)
+    bridge = instance()
+    bridge.queue(bridge.set_cmd_text, txt)
 
 
 class MessageBridge(QObject):
@@ -154,3 +161,12 @@ class MessageBridge(QObject):
 
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
+
+    def queue(self, signal, *args):
+        """Queue a message to be emitted.
+
+        Args:
+            signal: The signal to be emitted.
+            *args: Args to be passed to the signal.
+        """
+        QTimer.singleShot(0, lambda: signal.emit(*args))
