@@ -77,6 +77,9 @@ class _CrashDialog(QDialog):
         self._vbox.addWidget(self._url)
         self._init_buttons()
 
+    def __repr__(self):
+        return '<{}>'.format(self.__class__.__name__)
+
     def _init_text(self):
         """Initialize the main text to be displayed on an exception.
 
