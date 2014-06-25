@@ -117,7 +117,7 @@ class Command(MinimalLineEdit):
             logger.debug("Empty element queued at {}, inserting.".format(
                 self._empty_item_idx))
             parts.insert(self._empty_item_idx, '')
-        logger.debug("Splitting '{}' -> {}".format(text, parts))
+        #logger.debug("Splitting '{}' -> {}".format(text, parts))
         return parts
 
     @pyqtSlot()
@@ -126,28 +126,23 @@ class Command(MinimalLineEdit):
         cursor_pos = self.cursorPosition()
         snippet = slice(cursor_pos - 1, cursor_pos + 1)
         if self.text()[snippet] == '  ':
-            logger.debug("Cursor between spaces")
             spaces = True
         else:
-            logger.debug("Cursor not between spaces")
             spaces = False
         cursor_pos -= len(self.prefix)
         for i, part in enumerate(self.parts):
-            logger.debug("part {}, len {}, pos {}".format(i, len(part),
-                                                          cursor_pos))
             if cursor_pos <= len(part):
                 # foo| bar
                 self.cursor_part = i
-                logger.debug("Cursor part: {}".format(i))
                 if spaces:
-                    logger.debug("Cursor between spaces -> queueing empty "
-                                 "element at {}.".format(i))
                     self._empty_item_idx = i
                 else:
                     self._empty_item_idx = None
-                return
+                break
             cursor_pos -= (len(part) + 1)  # FIXME are spaces always 1 char?
-        return None
+        logger.debug("cursor_part {}, spaces {}".format(self.cursor_part,
+                                                        spaces))
+        return
 
     @pyqtSlot()
     def on_cursor_position_changed(self):

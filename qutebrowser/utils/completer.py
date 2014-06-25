@@ -90,7 +90,6 @@ class Completer(QObject):
             parts: The command chunks to get a completion for.
             cursor_part: The part the cursor is over currently.
         """
-        logger.debug("cursor part: {}".format(cursor_part))
         if cursor_part == 0:
             # '|' or 'set|'
             return self._models['command']
@@ -100,17 +99,19 @@ class Completer(QObject):
         except KeyError:
             # entering an unknown command
             return None
-        logger.debug("completions: {}".format(completions))
         if completions is None:
             # command without any available completions
             return None
+        dbg_completions = completions[:]
         try:
             idx = cursor_part - 1
             completion_name = completions[idx]
-            logger.debug('modelname {}'.format(completion_name))
         except IndexError:
             # More arguments than completions
+            logger.debug("completions: {}".format(', '.join(dbg_completions)))
             return None
+        dbg_completions[idx] = '*' + dbg_completions[idx] + '*'
+        logger.debug("completions: {}".format(', '.join(dbg_completions)))
         if completion_name == 'option':
             section = parts[cursor_part - 1]
             model = self._models['option'].get(section)
@@ -169,9 +170,6 @@ class Completer(QObject):
             logger.debug("Ignoring completion update")
             return
 
-        logger.debug("Updating completion, parts: {}, cursor_part {}".format(
-            parts, cursor_part))
-
         if prefix != ':':
             # This is a search or gibberish, so we don't need to complete
             # anything (yet)
@@ -182,23 +180,18 @@ class Completer(QObject):
         model = self._get_new_completion(parts, cursor_part)
         if model is None:
             logger.debug("No completion model for {}.".format(parts))
-        else:
-            logger.debug("New completion: {}".format(
-                model.srcmodel.__class__.__name__))
-        if model != self.view.model():
-            if model is None:
+            if model != self.view.model():
                 self.view.hide()
                 return
-            logger.debug("Setting model to {}".format(
-                model.__class__.__name__))
+
+        if model != self.view.model():
             self.view.set_model(model)
 
-        if model is None:
-            return
-
         pattern = parts[cursor_part] if parts else ''
-        logger.debug("pattern: {}".format(pattern))
         self.view.model().pattern = pattern
+
+        logger.debug("New completion for {}: {}, with pattern '{}'".format(
+            parts, model.srcmodel.__class__.__name__, pattern))
 
         if self.view.model().item_count == 0:
             self.view.hide()
