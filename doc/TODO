@@ -99,6 +99,8 @@ style
 
 - Clean up the package checking mess in earlyinit.py
 - Clean up the message API (sync. vs. async.? queue or not?)
+- Use list models for completion and a proxy model which converts them to a
+  tree?
 
 dwb keybindings to possibly implement
 =====================================
