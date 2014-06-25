@@ -248,7 +248,7 @@ class FatalCrashDialog(_CrashDialog):
 
     def _init_text(self):
         super()._init_text()
-        text = ("<b>qutebrowser was restarted after a fatal crash.<b><br/>"
+        text = ("<b>qutebrowser was restarted after a fatal crash.</b><br/>"
                 "<br/>" + self.CRASHTEXT)
         self._lbl.setText(text)
 
