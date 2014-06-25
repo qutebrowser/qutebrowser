@@ -240,8 +240,9 @@ class TabbedBrowser(TabWidget):
             if not url.isEmpty():
                 qt_ensure_valid(url)
                 self.url_stack.append(url)
-            self.removeTab(idx)
             tab.shutdown(callback=partial(self._cb_tab_shutdown, tab))
+            log.destroy.debug("Removing tab {}/{}".format(idx, tab))
+            self.removeTab(idx)
         elif last_close == 'quit':
             self.quit.emit()
         elif last_close == 'blank':
