@@ -48,8 +48,12 @@ def init():
     confdir = get_standard_dir(QStandardPaths.ConfigLocation)
     linecp = LineConfigParser(confdir, 'quickmarks')
     for line in linecp:
-        key, url = line.split(maxsplit=1)
-        marks[key] = url
+        try:
+            key, url = line.split(maxsplit=1)
+        except ValueError:
+            message.error("Invalid quickmark '{}'".format(line), queue=True)
+        else:
+            marks[key] = url
 
 
 def save():
