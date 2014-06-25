@@ -24,7 +24,7 @@ import subprocess
 from functools import partial
 
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import pyqtSignal, Qt, QUrl
+from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebInspector
