@@ -252,9 +252,9 @@ class Command(MinimalLineEdit):
         """Slot for textEdited. Stop history and update completion."""
         self.history.stop()
         self._empty_item_idx = None
-        self._update_cursor_part()
-        self.update_completion.emit(self.prefix, self.parts,
-                                    self.cursor_part)
+        # We also want to update the cursor part and emit update_completion
+        # here, but that's already done for us by cursorPositionChanged
+        # anyways, so we don't need to do it twice.
 
     def on_mode_left(self, mode):
         """Clear up when ommand mode was left.
