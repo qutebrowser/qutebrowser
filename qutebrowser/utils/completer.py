@@ -178,14 +178,16 @@ class Completer(QObject):
             return
 
         model = self._get_new_completion(parts, cursor_part)
-        if model is None:
-            logger.debug("No completion model for {}.".format(parts))
-            if model != self.view.model():
-                self.view.hide()
-                return
 
         if model != self.view.model():
-            self.view.set_model(model)
+            if model is None:
+                self.view.hide()
+            else:
+                self.view.set_model(model)
+
+        if model is None:
+            logger.debug("No completion model for {}.".format(parts))
+            return
 
         pattern = parts[cursor_part] if parts else ''
         self.view.model().pattern = pattern
