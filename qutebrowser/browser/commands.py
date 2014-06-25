@@ -59,13 +59,7 @@ class CommandDispatcher:
         _tabs: The TabbedBrowser object.
         _editor: The ExternalEditor object.
         _userscript_runners: A list of userscript runners.
-
-    Signals:
-        start_download: When a download should be started.
-                        arg: What to download, as QUrl.
     """
-
-    start_download = pyqtSignal('QUrl')
 
     def __init__(self, parent):
         """Constructor.
@@ -704,7 +698,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def download_page(self):
         """Download the current page."""
-        self.start_download.emit(self._current_url())
+        self._tabs.download_get.emit(self._current_url())
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', modes=['insert'],
                        hide=True)
