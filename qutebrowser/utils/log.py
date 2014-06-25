@@ -24,6 +24,7 @@ import os
 import sys
 import cgi
 import logging
+from contextlib import contextmanager
 from logging import getLogger
 from collections import deque
 
@@ -112,6 +113,14 @@ def init_log(args):
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
     qInstallMessageHandler(qt_message_handler)
+
+
+@contextmanager
+def disable_qt_msghandler():
+    """Contextmanager which temporarely disables the Qt message handler."""
+    old_handler = qInstallMessageHandler(None)
+    yield
+    qInstallMessageHandler(old_handler)
 
 
 def fix_rfc2622():
