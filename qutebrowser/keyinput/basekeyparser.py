@@ -93,6 +93,15 @@ class BaseKeyParser(QObject):
             self.__class__.__name__, self._supports_count,
             self._supports_chains)
 
+    def _debug_log(self, message):
+        """Log a message to the debug log if logging is active.
+
+        Args:
+            message: The message to log.
+        """
+        if self.do_log:
+            logger.debug(message)
+
     def _normalize_keystr(self, keystr):
         """Normalize a keystring like Ctrl-Q to a keystring like Ctrl+Q.
 
@@ -144,9 +153,7 @@ class BaseKeyParser(QObject):
         try:
             cmdstr = self.special_bindings[modstr + keystr]
         except KeyError:
-            if self.do_log:
-                logger.debug("No binding found for {}.".format(
-                    modstr + keystr))
+            self._debug_log("No binding found for {}.".format(modstr + keystr))
             return False
         self.execute(cmdstr, self.Type.special)
         return True
@@ -181,20 +188,17 @@ class BaseKeyParser(QObject):
         """
         txt = e.text()
         key = e.key()
-        if self.do_log:
-            logger.debug("Got key: {} / text: '{}'".format(key, txt))
+        self._debug_log("Got key: {} / text: '{}'".format(key, txt))
 
         if key == Qt.Key_Escape:
-            if self.do_log:
-                logger.debug("Escape pressed, discarding '{}'.".format(
-                    self._keystring))
+            self._debug_log("Escape pressed, discarding '{}'.".format(
+                self._keystring))
             self._keystring = ''
             return
 
         if (not txt) or txt not in (string.ascii_letters + string.digits +
                                     string.punctuation):
-            if self.do_log:
-                logger.debug("Ignoring, no text char")
+            self._debug_log("Ignoring, no text char")
             return False
 
         self._stop_delayed_exec()
@@ -209,24 +213,20 @@ class BaseKeyParser(QObject):
         match, binding = self._match_key(cmd_input)
 
         if match == self.Match.definitive:
-            if self.do_log:
-                logger.debug("Definitive match for '{}'.".format(
-                    self._keystring))
+            self._debug_log("Definitive match for '{}'.".format(
+                self._keystring))
             self._keystring = ''
             self.execute(binding, self.Type.chain, count)
         elif match == self.Match.ambiguous:
-            if self.do_log:
-                logger.debug("Ambigious match for '{}'.".format(
-                    self._keystring))
+            self._debug_log("Ambigious match for '{}'.".format(
+                self._keystring))
             self._handle_ambiguous_match(binding, count)
         elif match == self.Match.partial:
-            if self.do_log:
-                logger.debug("No match for '{}' (added {})".format(
-                    self._keystring, txt))
+            self._debug_log("No match for '{}' (added {})".format(
+                self._keystring, txt))
         elif match == self.Match.none:
-            if self.do_log:
-                logger.debug("Giving up with '{}', no matches".format(
-                    self._keystring))
+            self._debug_log("Giving up with '{}', no matches".format(
+                self._keystring))
             self._keystring = ''
             return False
         return True
@@ -285,8 +285,7 @@ class BaseKeyParser(QObject):
             binding: The command-string to execute.
             count: The count to pass.
         """
-        if self.do_log:
-            logger.debug("Ambiguous match for '{}'".format(self._keystring))
+        self._debug_log("Ambiguous match for '{}'".format(self._keystring))
         time = config.get('input', 'timeout')
         if time == 0:
             # execute immediately
@@ -294,9 +293,8 @@ class BaseKeyParser(QObject):
             self.execute(binding, self.Type.chain, count)
         else:
             # execute in `time' ms
-            if self.do_log:
-                logger.debug("Scheduling execution of {} in {}ms".format(
-                    binding, time))
+            self._debug_log("Scheduling execution of {} in {}ms".format(
+                binding, time))
             self._timer = Timer(self, 'ambigious_match')
             self._timer.setSingleShot(True)
             self._timer.setInterval(time)
@@ -313,8 +311,7 @@ class BaseKeyParser(QObject):
         Emit:
             keystring_updated to do a delayed update.
         """
-        if self.do_log:
-            logger.debug("Executing delayed command now!")
+        self._debug_log("Executing delayed command now!")
         self._timer = None
         self._keystring = ''
         self.keystring_updated.emit(self._keystring)

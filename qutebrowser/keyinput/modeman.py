@@ -29,7 +29,6 @@ from PyQt5.QtWidgets import QApplication
 
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
-import qutebrowser.utils.debug as debug
 from qutebrowser.utils.log import modes as logger
 
 

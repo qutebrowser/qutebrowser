@@ -20,8 +20,7 @@
 """Our own QNetworkAccessManager."""
 
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply,
-                             QNetworkRequest)
+from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply
 
 try:
     from PyQt5.QtNetwork import QSslSocket
