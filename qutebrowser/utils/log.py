@@ -375,11 +375,15 @@ class HTMLFormatter(logging.Formatter):
             record.log_color = self._colordict[color]
         else:
             record.log_color = ''
-        for field in ['asctime', 'filename', 'funcName', 'levelname',
-                      'module', 'message', 'name', 'pathname', 'processName',
-                      'threadName']:
-            setattr(record, field, cgi.escape(getattr(record, field)))
+        for field in ['msg', 'filename', 'funcName', 'levelname', 'module',
+                      'name', 'pathname', 'processName', 'threadName']:
+            data = str(getattr(record, field))
+            setattr(record, field, cgi.escape(data))
         message = super().format(record)
         if not message.endswith(self._colordict['reset']):
             message += self._colordict['reset']
         return message
+
+    def formatTime(self, record, datefmt=None):
+        out = super().formatTime(record, datefmt)
+        return cgi.escape(out)

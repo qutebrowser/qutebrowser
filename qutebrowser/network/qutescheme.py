@@ -143,6 +143,7 @@ class QuteHandlers:
             body {
                 background-color: black;
                 color: white;
+                font-size: 10px;
             }
 
             table {
@@ -150,10 +151,14 @@ class QuteHandlers:
                 border-collapse: collapse;
             }
 
+            pre {
+                margin: 2px;
+            }
+
             th, td {
                 border: 1px solid grey;
-                padding-left: 10px;
-                padding-right: 10px;
+                padding-left: 5px;
+                padding-right: 5px;
             }
         </style>
         """
