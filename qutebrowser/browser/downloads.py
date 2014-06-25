@@ -208,6 +208,7 @@ class DownloadItem(QObject):
             filename: The full filename to save the download to.
                       None: special value to stop the download.
         """
+        logger.debug("Setting filename to {}".format(filename))
         if self.filename is not None:
             raise ValueError("Filename was already set! filename: {}, "
                              "existing: {}".format(filename, self.filename))

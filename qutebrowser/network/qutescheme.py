@@ -43,6 +43,7 @@ _HTML_TEMPLATE = """
 <head>
   <meta charset="utf-8">
   <title>{title}</title>
+  {head}
 </head>
 <body>
 {body}
@@ -54,18 +55,22 @@ _HTML_TEMPLATE = """
 pyeval_output = ":pyeval was never called"
 
 
-def _get_html(title, snippet):
+def _get_html(title, snippet, head=None):
     """Add HTML boilerplate to a html snippet.
 
     Args:
         title: The title the page should have.
         snippet: The html snippet.
+        head: Additional stuff to put in <head>
 
     Return:
         HTML content as bytes.
     """
-    return _HTML_TEMPLATE.format(title=title, body=snippet).encode(
+    if head is None:
+        head = ""
+    html = _HTML_TEMPLATE.format(title=title, body=snippet, head=head).encode(
         'UTF-8', errors='xmlcharrefreplace')
+    return html
 
 
 class QuteSchemeHandler(SchemeHandler):
@@ -122,13 +127,41 @@ class QuteHandlers:
         return _get_html('Version', html)
 
     @classmethod
-    def log(cls):
+    def plainlog(cls):
         """Handler for qute:log. Return HTML content as bytes."""
         if logutils.ram_handler is None:
             text = "Log output was disabled."
         else:
             text = cgi.escape(logutils.ram_handler.dump_log())
         return _get_html('log', '<pre>{}</pre>'.format(text))
+
+    @classmethod
+    def log(cls):
+        """Handler for qute:log. Return HTML content as bytes."""
+        style = """
+        <style type="text/css">
+            body {
+                background-color: black;
+                color: white;
+            }
+
+            table {
+                border: 1px solid grey;
+                border-collapse: collapse;
+            }
+
+            th, td {
+                border: 1px solid grey;
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+        </style>
+        """
+        if logutils.ram_handler is None:
+            html = "<p>Log output was disabled.</p>"
+        else:
+            html = logutils.ram_handler.dump_log(html=True)
+        return _get_html('log', html, head=style)
 
     @classmethod
     def gpl(cls):

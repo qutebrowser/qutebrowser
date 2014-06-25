@@ -22,6 +22,7 @@
 import re
 import os
 import sys
+import cgi
 import logging
 from logging import getLogger
 from collections import deque
@@ -45,11 +46,23 @@ SIMPLE_FMT = '{levelname}: {message}'
 EXTENDED_FMT = ('{asctime:8} {levelname:8} {name:10} {module}:{funcName}:'
                 '{lineno} {message}')
 SIMPLE_FMT_COLORED = '%(log_color)s%(levelname)s%(reset)s: %(message)s'
-EXTENDED_FMT_COLORED = ('%(green)s%(asctime)-8s%(reset)s %(log_color)'
-                        's%(levelname)-8s%(reset)s %(yellow)s%(name)-10s '
+EXTENDED_FMT_COLORED = ('%(green)s%(asctime)-8s%(reset)s %(log_color)s'
+                        '%(levelname)-8s%(reset)s %(yellow)s%(name)-10s '
                         '%(module)s:%(funcName)s:%(lineno)s%(reset)s '
                         '%(message)s')
+EXTENDED_FMT_HTML = ('<tr><td><pre>%(green)s%(asctime)-8s%(reset)s</pre></td>'
+                     '<td><pre>%(log_color)s%(levelname)-8s%(reset)s</pre>'
+                     '</td><td></pre>%(yellow)s%(name)-10s</pre></td>'
+                     '<td><pre>%(module)s:%(funcName)s:%(lineno)s%(reset)s'
+                     '</pre></td><td><pre>%(message)s</pre></td></tr>')
 DATEFMT = '%H:%M:%S'
+LOG_COLORS = {
+    'DEBUG': 'cyan',
+    'INFO': 'green',
+    'WARNING': 'yellow',
+    'ERROR': 'red',
+    'CRITICAL': 'red',
+}
 
 
 # The different loggers used.
@@ -126,7 +139,7 @@ def _init_handlers(level, color, ram_capacity):
         color: Whether to use color if available.
     """
     global ram_handler
-    console_formatter, ram_formatter, use_colorama = _init_formatters(
+    console_fmt, ram_fmt, html_fmt, use_colorama = _init_formatters(
         level, color)
 
     if sys.stderr is None:
@@ -138,14 +151,15 @@ def _init_handlers(level, color, ram_capacity):
             stream = sys.stderr
         console_handler = logging.StreamHandler(stream)
         console_handler.setLevel(level)
-        console_handler.setFormatter(console_formatter)
+        console_handler.setFormatter(console_fmt)
 
     if ram_capacity == 0:
         ram_handler = None
     else:
         ram_handler = RAMHandler(capacity=ram_capacity)
         ram_handler.setLevel(logging.NOTSET)
-        ram_handler.setFormatter(ram_formatter)
+        ram_handler.setFormatter(ram_fmt)
+        ram_handler.html_formatter = html_fmt
 
     return console_handler, ram_handler
 
@@ -169,26 +183,21 @@ def _init_formatters(level, color):
         console_fmt = SIMPLE_FMT
         console_fmt_colored = SIMPLE_FMT_COLORED
     ram_formatter = logging.Formatter(EXTENDED_FMT, DATEFMT, '{')
+    html_formatter = HTMLFormatter(EXTENDED_FMT_HTML, DATEFMT,
+                                   log_colors=LOG_COLORS)
     if sys.stderr is None:
-        return None, ram_formatter, False
+        return None, ram_formatter, html_formatter, False
     use_colorama = False
     if (ColoredFormatter is not None and (os.name == 'posix' or colorama) and
             sys.stderr.isatty() and color):
-        console_formatter = ColoredFormatter(
-            console_fmt_colored, DATEFMT, log_colors={
-                'DEBUG': 'cyan',
-                'INFO': 'green',
-                'WARNING': 'yellow',
-                'ERROR': 'red',
-                'CRITICAL': 'red',
-            }
-        )
+        console_formatter = ColoredFormatter(console_fmt_colored, DATEFMT,
+                                             log_colors=LOG_COLORS)
         if colorama:
             colorama.init()
             use_colorama = True
     else:
         console_formatter = logging.Formatter(console_fmt, DATEFMT, '{')
-    return console_formatter, ram_formatter, use_colorama
+    return console_formatter, ram_formatter, html_formatter, use_colorama
 
 
 def qt_message_handler(msg_type, context, msg):
@@ -304,6 +313,7 @@ class RAMHandler(logging.Handler):
 
     def __init__(self, capacity):
         super().__init__()
+        self.html_formatter = None
         if capacity != -1:
             self.data = deque(maxlen=capacity)
         else:
@@ -312,9 +322,55 @@ class RAMHandler(logging.Handler):
     def emit(self, record):
         self.data.append(record)
 
-    def dump_log(self):
+    def dump_log(self, html=False):
         """Dump the complete formatted log data as as string."""
-        lines = []
+        if html:
+            fmt = self.html_formatter.format
+            lines = ['<table>']
+        else:
+            fmt = self.format
+            lines = []
         for record in self.data:
-            lines.append(self.format(record))
+            lines.append(fmt(record))
+        if html:
+            lines.append('</table>')
         return '\n'.join(lines)
+
+
+class HTMLFormatter(logging.Formatter):
+
+    """Formatter for HTML-colored log messages, similiar to colorlog."""
+
+    def __init__(self, fmt, datefmt, log_colors):
+        """Constructor.
+
+        Args:
+            fmt: The format string to use.
+            datefmt: The date format to use.
+            log_colors: The colors to use for logging levels.
+        """
+        super().__init__(fmt, datefmt)
+        self._log_colors = log_colors
+        self._colordict = {}
+        # We could solve this nicer by using CSS, but for this simple case this
+        # works.
+        for color in ['black', 'red', 'green', 'yellow', 'blue', 'purple',
+                      'cyan', 'white']:
+            self._colordict[color] = '<font color="{}">'.format(color)
+        self._colordict['reset'] = '</font>'
+
+    def format(self, record):
+        record.__dict__.update(self._colordict)
+        if record.levelname in self._log_colors:
+            color = self._log_colors[record.levelname]
+            record.log_color = self._colordict[color]
+        else:
+            record.log_color = ''
+        for field in ['asctime', 'filename', 'funcName', 'levelname',
+                      'module', 'message', 'name', 'pathname', 'processName',
+                      'threadName']:
+            setattr(record, field, cgi.escape(getattr(record, field)))
+        message = super().format(record)
+        if not message.endswith(self._colordict['reset']):
+            message += self._colordict['reset']
+        return message

@@ -1,6 +1,8 @@
 Bugs
 ====
 
+- download-page on qute:htmllog is broken
+
 - Downloads: "connection closed" if user takes too long
 
 - Download focus rectangle on windows
