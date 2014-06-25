@@ -184,9 +184,15 @@ class CompletionView(QTreeView):
         self.setModel(model)
         self.expandAll()
         self._resize_columns()
-        model.rowsRemoved.connect(self.resize_completion)
-        model.rowsInserted.connect(self.resize_completion)
-        self.resize_completion.emit()
+        model.rowsRemoved.connect(self.maybe_resize_completion)
+        model.rowsInserted.connect(self.maybe_resize_completion)
+        self.maybe_resize_completion()
+
+    @pyqtSlot()
+    def maybe_resize_completion(self):
+        """Emit the resize_completion signal if the config says so."""
+        if config.get('completion', 'shrink'):
+            self.resize_completion.emit()
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
