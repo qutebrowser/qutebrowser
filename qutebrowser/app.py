@@ -380,12 +380,12 @@ class Application(QApplication):
         tabs.hint_strings_updated.connect(kp['hint'].on_hint_strings_updated)
 
         # messages
-        self.messagebridge.error.connect(status.disp_error)
-        self.messagebridge.info.connect(status.disp_temp_text)
-        self.messagebridge.text.connect(status.set_text)
-        self.messagebridge.set_cmd_text.connect(cmd.set_cmd_text)
-        self.messagebridge.question.connect(status.prompt.ask_question,
-                                            Qt.DirectConnection)
+        self.messagebridge.s_error.connect(status.disp_error)
+        self.messagebridge.s_info.connect(status.disp_temp_text)
+        self.messagebridge.s_set_text.connect(status.set_text)
+        self.messagebridge.s_set_cmd_text.connect(cmd.set_cmd_text)
+        self.messagebridge.s_question.connect(status.prompt.ask_question,
+                                              Qt.DirectConnection)
 
         # config
         self.config.style_changed.connect(style.invalidate_caches)

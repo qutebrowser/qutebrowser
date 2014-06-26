@@ -92,24 +92,21 @@ class NetworkManager(QNetworkAccessManager):
             return
         for err in errors:
             # FIXME we might want to use warn here (non-fatal error)
-            message.error('SSL error: {}'.format(err.errorString()),
-                          queue=True)
+            message.error('SSL error: {}'.format(err.errorString()))
         reply.ignoreSslErrors()
 
     @pyqtSlot('QNetworkReply', 'QAuthenticator')
     def on_authentication_required(self, _reply, authenticator):
         """Called when a website needs authentication."""
-        answer = message.modular_question(
-            "Username ({}):".format(authenticator.realm()),
-            mode=PromptMode.user_pwd)
+        answer = message.ask("Username ({}):".format(authenticator.realm()),
+                             mode=PromptMode.user_pwd)
         self._fill_authenticator(authenticator, answer)
 
     @pyqtSlot('QNetworkProxy', 'QAuthenticator')
     def on_proxy_authentication_required(self, _proxy, authenticator):
         """Called when a proxy needs authentication."""
-        answer = message.modular_question(
-            "Proxy username ({}):".format(authenticator.realm()),
-            mode=PromptMode.user_pwd)
+        answer = message.ask("Proxy username ({}):".format(
+            authenticator.realm()), mode=PromptMode.user_pwd)
         self._fill_authenticator(authenticator, answer)
 
     def createRequest(self, op, req, outgoing_data):

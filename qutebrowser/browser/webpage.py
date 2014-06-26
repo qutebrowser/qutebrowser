@@ -76,8 +76,7 @@ class BrowserPage(QWebPage):
 
         http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034385.html
         """
-        answer = message.modular_question(
-            "js: {}".format(msg), PromptMode.text, default)
+        answer = message.ask("js: {}".format(msg), PromptMode.text, default)
         if answer is None:
             return (False, "")
         else:
@@ -149,7 +148,7 @@ class BrowserPage(QWebPage):
         """Handle printing when requested via javascript."""
         if not check_print_compat():
             message.error("Printing on Qt < 5.3.0 on Windows is broken, "
-                          "please upgrade!")
+                          "please upgrade!", immediately=True)
             return
         printdiag = QPrintDialog()
         printdiag.setAttribute(Qt.WA_DeleteOnClose)
@@ -205,11 +204,11 @@ class BrowserPage(QWebPage):
 
     def javaScriptAlert(self, _frame, msg):
         """Override javaScriptAlert to use the statusbar."""
-        message.modular_question("js: {}".format(msg), PromptMode.alert)
+        message.ask("js: {}".format(msg), PromptMode.alert)
 
     def javaScriptConfirm(self, _frame, msg):
         """Override javaScriptConfirm to use the statusbar."""
-        ans = message.modular_question("js: {}".format(msg), PromptMode.yesno)
+        ans = message.ask("js: {}".format(msg), PromptMode.yesno)
         return bool(ans)
 
     def javaScriptConsoleMessage(self, msg, line, source):
@@ -228,8 +227,8 @@ class BrowserPage(QWebPage):
 
     def shouldInterruptJavaScript(self):
         """Override shouldInterruptJavaScript to use the statusbar."""
-        answer = message.modular_question("Interrupt long-running javascript?",
-                                          PromptMode.yesno)
+        answer = message.ask("Interrupt long-running javascript?",
+                             PromptMode.yesno)
         if answer is None:
             answer = True
         return answer

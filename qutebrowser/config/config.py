@@ -270,7 +270,8 @@ class ConfigManager(QObject):
         except (NoOptionError, NoSectionError) as e:
             raise CommandError("get: {} - {}".format(e.__class__.__name__, e))
         else:
-            message.info("{} {} = {}".format(sectname, optname, val))
+            message.info("{} {} = {}".format(sectname, optname, val),
+                         immediately=True)
 
     def get(self, sectname, optname, raw=False, transformed=True):
         """Get the value from a section/option.

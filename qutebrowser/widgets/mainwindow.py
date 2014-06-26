@@ -177,8 +177,7 @@ class MainWindow(QWidget):
         else:
             text = "Close {} {}?".format(
                 count, "tab" if count == 1 else "tabs")
-            confirmed = message.modular_question(text, PromptMode.yesno,
-                                                 default=True)
+            confirmed = message.ask(text, PromptMode.yesno, default=True)
             if confirmed:
                 e.accept()
             else:

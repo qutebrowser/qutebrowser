@@ -258,7 +258,7 @@ class CommandManager:
         try:
             self.run(text, count)
         except (CommandMetaError, CommandError) as e:
-            message.error(e)
+            message.error(e, immediately=True)
 
     @pyqtSlot(str, int)
     def run_safely_init(self, text, count=None):
@@ -269,4 +269,4 @@ class CommandManager:
         try:
             self.run(text, count)
         except (CommandMetaError, CommandError) as e:
-            message.error(e, queue=True)
+            message.error(e)

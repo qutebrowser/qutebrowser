@@ -415,4 +415,4 @@ class DownloadManager(QObject):
     @pyqtSlot(str)
     def on_error(self, msg):
         """Display error message on download errors."""
-        message.error("Download error: {}".format(msg), queue=True)
+        message.error("Download error: {}".format(msg))

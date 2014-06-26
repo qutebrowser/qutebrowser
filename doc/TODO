@@ -42,6 +42,7 @@ New big features
 Improvements / minor features
 =============================
 
+- Make sure Question objects are deleteLater'ed correctly.
 - qutebrowser local_file.foo   should open that file in $PWD
 - Downloading: Download to default filename if only path is given
 - Downloading: Remember last path for prompt, if explicitely set.
@@ -102,7 +103,6 @@ style
 =====
 
 - Clean up the package checking mess in earlyinit.py
-- Clean up the message API (sync. vs. async.? queue or not?)
 - Use list models for completion and a proxy model which converts them to a
   tree?
 

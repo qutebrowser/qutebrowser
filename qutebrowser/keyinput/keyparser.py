@@ -54,7 +54,7 @@ class CommandKeyParser(BaseKeyParser):
                 cmdstr))
             message.set_cmd_text(':{} '.format(cmdstr))
         except (CommandMetaError, CommandError) as e:
-            message.error(e)
+            message.error(e, immediately=True)
 
     def execute(self, cmdstr, _keytype, count=None):
         self._run_or_fill(cmdstr, count)

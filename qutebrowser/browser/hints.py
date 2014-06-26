@@ -444,7 +444,7 @@ class HintManager(QObject):
             raise CommandError("No elements found.")
         ctx.target = target
         ctx.baseurl = baseurl
-        message.text(self.HINT_TEXTS[target])
+        message.instance().set_text(self.HINT_TEXTS[target])
         strings = self._hint_strings(visible_elems)
         for e, string in zip(visible_elems, strings):
             label = self._draw_label(e, string)
@@ -532,7 +532,8 @@ class HintManager(QObject):
         elif self._context.target in url_handlers:
             url = self._resolve_url(elem)
             if url is None:
-                message.error("No suitable link found for this element.")
+                message.error("No suitable link found for this element.",
+                              immediately=True)
                 return
             url_handlers[self._context.target](url)
         else:
@@ -577,4 +578,4 @@ class HintManager(QObject):
             if not elem.label.isNull():
                 elem.label.removeFromDocument()
         self._context = None
-        message.clear()
+        message.instance().set_text('')

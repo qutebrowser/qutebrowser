@@ -51,7 +51,7 @@ def init():
         try:
             key, url = line.split(maxsplit=1)
         except ValueError:
-            message.error("Invalid quickmark '{}'".format(line), queue=True)
+            message.error("Invalid quickmark '{}'".format(line))
         else:
             marks[key] = url
 
@@ -70,8 +70,8 @@ def prompt_save(url):
     """
     qt_ensure_valid(url)
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
-    message.question("Add quickmark:", PromptMode.text,
-                     partial(quickmark_add, urlstr))
+    message.ask_async("Add quickmark:", PromptMode.text,
+                      partial(quickmark_add, urlstr))
 
 
 @cmdutils.register()
@@ -92,8 +92,8 @@ def quickmark_add(urlstr, name):
         marks[name] = urlstr
 
     if name in marks:
-        message.confirm_action("Override existing quickmark?", set_mark,
-                               default=True)
+        message.confirm_async("Override existing quickmark?", set_mark,
+                              default=True)
     else:
         set_mark()
 

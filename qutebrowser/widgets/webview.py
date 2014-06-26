@@ -190,13 +190,13 @@ class WebView(QWebView):
             try:
                 self.go_back()
             except CommandError as ex:
-                message.error(ex)
+                message.error(ex, immediately=True)
         elif e.button() == Qt.XButton2:
             # Forward button on mice which have it.
             try:
                 self.go_forward()
             except CommandError as ex:
-                message.error(ex)
+                message.error(ex, immediately=True)
 
     def _mousepress_insertmode(self, e):
         """Switch to insert mode when an editable element was clicked.
