@@ -66,7 +66,9 @@ class SearchManager(QObject):
             do_search: If a search should be started.
         """
         if self._text is not None and self._text != text:
+            # We first clear the marked text, then the highlights
             self.do_search.emit('', 0)
+            self.do_search.emit('', QWebPage.HighlightAllOccurrences)
         self._text = text
         self._flags = 0
         if not config.get('general', 'ignore-case'):
@@ -75,7 +77,11 @@ class SearchManager(QObject):
             self._flags |= QWebPage.FindWrapsAroundDocument
         if rev:
             self._flags |= QWebPage.FindBackward
+        # We actually search *twice* - once to highlight everything, then again
+        # to get a mark so we can navigate.
         self.do_search.emit(self._text, self._flags)
+        self.do_search.emit(self._text, self._flags |
+                            QWebPage.HighlightAllOccurrences)
 
     @pyqtSlot(str)
     def search(self, text):
