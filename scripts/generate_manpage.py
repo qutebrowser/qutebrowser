@@ -166,13 +166,17 @@ def generate_commands():
     print("== Commands")
     normal_cmds = []
     hidden_cmds = []
+    debug_cmds = []
     for name, cmd in cmdutils.cmd_dict.items():
         if cmd.hide:
             hidden_cmds.append((name, cmd))
+        elif cmd.debug:
+            debug_cmds.append((name, cmd))
         else:
             normal_cmds.append((name, cmd))
     normal_cmds.sort()
     hidden_cmds.sort()
+    debug_cmds.sort()
     print()
     print("=== Normal commands")
     print(".Quick reference")
@@ -184,6 +188,15 @@ def generate_commands():
     print(".Quick reference")
     print(get_command_quickref(hidden_cmds))
     for name, cmd in hidden_cmds:
+        print(get_command_doc(name, cmd))
+    print()
+    print("=== Debugging commands")
+    print("These commands are mainly intended for debugging. They are hidden "
+          "if qutebrowser was started without the `--debug`-flag.")
+    print()
+    print(".Quick reference")
+    print(get_command_quickref(debug_cmds))
+    for name, cmd in debug_cmds:
         print(get_command_doc(name, cmd))
 
 
