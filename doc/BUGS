@@ -1,6 +1,9 @@
 Bugs
 ====
 
+- seir sometimes sees "-- COMMAND MODE --" even though that should never
+  happen.
+
 - Hint positions wrong in wordpress admin interface
 
 - download-page on qute:htmllog is broken

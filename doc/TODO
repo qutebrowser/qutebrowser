@@ -42,6 +42,9 @@ New big features
 Improvements / minor features
 =============================
 
+- qutebrowser local_file.foo   should open that file in $PWD
+- Downloading: Download to default filename if only path is given
+- Downloading: Remember last path for prompt, if explicitely set.
 - Downloading: re-ask instead of killing download if path is invalid
 - Downloading: open files
 - Distinction between :q and :wq, add ZZ and ZQ shortcuts.
@@ -83,6 +86,7 @@ Improvements / minor features
   there are many hacks involved by now (see notes).
 - :%! like feature to pipe current page through a filter.
 - Add FIFOHandler based on asyncio if it's available
+- Lazy tab loading
 
 hints
 -----
