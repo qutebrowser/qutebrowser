@@ -39,15 +39,19 @@ New big features
 - more completions (URLs, ...)
 - proper webpage history
 
+Downloads
+=========
+
+- Download to default filename if only path is given
+- Remember last path for prompt, if explicitely set.
+- re-ask instead of killing download if path is invalid
+- open files
+
 Improvements / minor features
 =============================
 
 - Make sure Question objects are deleteLater'ed correctly.
 - qutebrowser local_file.foo   should open that file in $PWD
-- Downloading: Download to default filename if only path is given
-- Downloading: Remember last path for prompt, if explicitely set.
-- Downloading: re-ask instead of killing download if path is invalid
-- Downloading: open files
 - Distinction between :q and :wq, add ZZ and ZQ shortcuts.
 - set_toggle to toggle setting between two states
 - Customizable statusbar
