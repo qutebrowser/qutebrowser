@@ -479,7 +479,6 @@ class WebView(QWebView):
                    frame.scrollBarValue(Qt.Vertical))
         if self._old_scroll_pos != new_pos:
             self._old_scroll_pos = new_pos
-            log.webview.debug("Updating scroll position")
             m = (frame.scrollBarMaximum(Qt.Horizontal),
                  frame.scrollBarMaximum(Qt.Vertical))
             perc = (round(100 * new_pos[0] / m[0]) if m[0] != 0 else 0,

@@ -23,7 +23,7 @@ from functools import partial
 
 from PyQt5.QtCore import QObject
 
-from qutebrowser.utils.debug import dbg_signal
+from qutebrowser.utils.debug import dbg_signal, signal_name
 from qutebrowser.widgets.webview import WebView
 from qutebrowser.utils.log import signals as logger
 
@@ -37,7 +37,12 @@ class SignalFilter(QObject):
 
     Attributes:
         _tabs: The QTabWidget associated with this SignalFilter.
+
+    Class attributes:
+        BLACKLIST: List of signal names which should not be logged.
     """
+
+    BLACKLIST = ['cur_scroll_perc_changed', 'cur_progress']
 
     def __init__(self, tabs):
         super().__init__(tabs)
@@ -71,7 +76,7 @@ class SignalFilter(QObject):
             The target signal if the sender was the current widget.
         """
         sender = self.sender()
-        log_signal = not signal.signal.startswith('2cur_progress')
+        log_signal = signal_name(signal) not in self.BLACKLIST
         if not isinstance(sender, WebView):
             # BUG? This should never happen, but it does regularely...
             logger.warning("Got signal {} by {} which is no tab!".format(
