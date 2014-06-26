@@ -143,7 +143,7 @@ class QuteHandlers:
             body {
                 background-color: black;
                 color: white;
-                font-size: 10px;
+                font-size: 11px;
             }
 
             table {
