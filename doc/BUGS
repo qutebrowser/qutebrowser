@@ -95,28 +95,3 @@ Upstream Bugs
 - Web inspector is blank unless .hide()/.show() is called.
     Asked on SO: http://stackoverflow.com/q/23499159/2085149
     TODO: report Qt bug
-
-- QWebElement needs geometries()
-    https://bugreports.qt-project.org/browse/QTBUG-38698
-
-- Impossible to retrieve user value of QWebElement:
-    https://bugreports.qt-project.org/browse/QTBUG-38669
-
-- Weird font rendering
-    https://bugreports.qt-project.org/browse/QTBUG-20973
-    https://bugreports.qt-project.org/browse/QTBUG-21036
-    https://bugreports.qt-project.org/browse/QTBUG-38884
-
-- dead_actute
-    https://bugs.freedesktop.org/show_bug.cgi?id=69476
-
-- QNetworkReplyImplPrivate::error: Internal problem, this method must only be
-  called once.
-    https://bugreports.qt-project.org/browse/QTBUG-30298
-
-- Tabbar texts get cut off when styled and elided
-    https://bugreports.qt-project.org/browse/QTBUG-15203
-
-- Crash with the-compiler.org/phoronix.org
-    https://bugreports.qt-project.org/browse/QTBUG-39428
-    https://bugreports.qt-project.org/browse/QTBUG-39278
