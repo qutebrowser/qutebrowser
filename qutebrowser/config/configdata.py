@@ -175,6 +175,10 @@ DATA = OrderedDict([
          SettingValue(types.Bool(), 'true'),
          "Whether to wrap search to the top when arriving at the end."),
 
+        ('search-highlight-all',
+         SettingValue(types.Bool(), 'true'),
+         "Whether to highlight all search matches."),
+
         ('startpage',
          SettingValue(types.List(), 'http://www.duckduckgo.com'),
          "The default page(s) to open at the start, separated by commas."),

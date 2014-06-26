@@ -66,13 +66,18 @@ class SearchManager(QObject):
             do_search: If a search should be started.
         """
         if self._text is not None and self._text != text:
-            self.do_search.emit('', 0)
+            flags = 0
+            if config.get('general', 'search-highlight-all'):
+                flags |= QWebPage.HighlightAllOccurrences
+            self.do_search.emit('', flags)
         self._text = text
         self._flags = 0
         if not config.get('general', 'ignore-case'):
             self._flags |= QWebPage.FindCaseSensitively
         if config.get('general', 'wrap-search'):
             self._flags |= QWebPage.FindWrapsAroundDocument
+        if config.get('general', 'search-highlight-all'):
+            self._flags |= QWebPage.HighlightAllOccurrences
         if rev:
             self._flags |= QWebPage.FindBackward
         self.do_search.emit(self._text, self._flags)
@@ -105,6 +110,9 @@ class SearchManager(QObject):
         Emit:
             do_search: If a search should be started.
         """
+        if config.get('general', 'search-highlight-all'):
+            raise CommandError("search-next doesn't work when "
+                               "search-highlight-all is enabled!")
         if self._text is not None:
             for _ in range(count):
                 self.do_search.emit(self._text, self._flags)
@@ -119,6 +127,9 @@ class SearchManager(QObject):
         Emit:
             do_search: If a search should be started.
         """
+        if config.get('general', 'search-highlight-all'):
+            raise CommandError("search-prev doesn't work when "
+                               "search-highlight-all is enabled!")
         if self._text is None:
             return
         # The int() here serves as a QFlags constructor to create a copy of the
