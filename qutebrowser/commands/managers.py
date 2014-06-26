@@ -69,7 +69,7 @@ class SearchManager(QObject):
             self.do_search.emit('', 0)
         self._text = text
         self._flags = 0
-        if config.get('general', 'ignore-case'):
+        if not config.get('general', 'ignore-case'):
             self._flags |= QWebPage.FindCaseSensitively
         if config.get('general', 'wrap-search'):
             self._flags |= QWebPage.FindWrapsAroundDocument
