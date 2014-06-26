@@ -68,7 +68,7 @@ def ask(message, mode, default=None):
     q.text = message
     q.mode = mode
     q.default = default
-    instance().question.emit(q, True)
+    instance().ask(q, blocking=True)
     q.deleteLater()
     return q.answer
 
@@ -78,7 +78,7 @@ def alert(message):
     q = Question()
     q.text = message
     q.mode = PromptMode.alert
-    instance().question.emit(q, True)
+    instance().ask(q, blocking=True)
     q.deleteLater()
 
 
@@ -97,7 +97,7 @@ def ask_async(message, mode, handler, default=None):
     q.mode = mode
     q.default = default
     q.answered.connect(handler)
-    bridge.queue(bridge.question, q, False)
+    bridge.ask(q, blocking=False)
 
 
 def confirm_async(message, yes_action, no_action=None, default=None):
@@ -117,7 +117,7 @@ def confirm_async(message, yes_action, no_action=None, default=None):
     q.answered_yes.connect(yes_action)
     if no_action is not None:
         q.answered_no.connect(no_action)
-    bridge.queue(bridge.question, q, False)
+    bridge.ask(q, blocking=False)
 
 
 class MessageBridge(QObject):
@@ -171,10 +171,11 @@ class MessageBridge(QObject):
 
         Args:
             msg: The message to show.
-            queue: Whether to queue the message (True) or display it
-                   immediately (False). Messages resulting from direct user
-                   input should be displayed immediately, all other messages
-                   should be queued.
+            immediately: Whether to display the message immediately (True) or
+                         queue it for displaying when all other messages are
+                         displayed (False). Messages resulting from direct user
+                         input should be displayed immediately, all other
+                         messages should be queued.
         """
         msg = str(msg)
         logger.error(msg)
@@ -225,4 +226,4 @@ class MessageBridge(QObject):
             blocking: Whether to return immediately or wait until the
                       question is answered.
         """
-        self.question.emit(question, blocking)
+        self.s_question.emit(question, blocking)
