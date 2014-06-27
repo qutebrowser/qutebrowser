@@ -19,7 +19,7 @@
 
 """Our own QNetworkAccessManager."""
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, PYQT_VERSION
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply
 
 try:
@@ -142,17 +142,17 @@ class NetworkManager(QNetworkAccessManager):
             if accept_language is not None:
                 req.setRawHeader('Accept-Language'.encode('ascii'),
                                  accept_language.encode('ascii'))
-            with log.disable_qt_msghandler():
-                # If we don't disable our message handler, we get a freeze on
-                # http://ch.mouser.com/localsites/ when clicking on a currency.
+            if PYQT_VERSION < 0x050301:
+                # If we don't disable our message handler, we get a freeze if a
+                # warning is printed due to a PyQt bug, e.g. when clicking a
+                # currency on http://ch.mouser.com/localsites/
                 #
-                # FIXME: Open questions:
+                # See http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034420.html
                 #
-                #   - Shouldn't QtWebPage set the content-type correctly by
-                #     itself?
-                #
-                #   - Why does Qt freeze if we don't disable our message
-                #     handler?
+                # FIXME: Check if this is really fixed in 5.3.1.
+                with log.disable_qt_msghandler():
+                    reply = super().createRequest(op, req, outgoing_data)
+            else:
                 reply = super().createRequest(op, req, outgoing_data)
             self._requests.append(reply)
             reply.destroyed.connect(lambda obj: self._requests.remove(obj))
