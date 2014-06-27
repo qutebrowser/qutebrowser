@@ -97,6 +97,7 @@ def ask_async(message, mode, handler, default=None):
     q.mode = mode
     q.default = default
     q.answered.connect(handler)
+    q.completed.connect(q.deleteLater)
     bridge.ask(q, blocking=False)
 
 
@@ -117,6 +118,7 @@ def confirm_async(message, yes_action, no_action=None, default=None):
     q.answered_yes.connect(yes_action)
     if no_action is not None:
         q.answered_no.connect(no_action)
+    q.completed.connect(q.deleteLater)
     bridge.ask(q, blocking=False)
 
 

@@ -389,11 +389,10 @@ class DownloadManager(QObject):
         q.default = suggested_filename
         q.answered.connect(download.set_filename)
         q.cancelled.connect(download.cancel)
-        q.answered.connect(q.deleteLater)
-        q.cancelled.connect(q.deleteLater)
+        q.completed.connect(q.deleteLater)
+        q.destroyed.connect(partial(self.questions.remove, q))
         self.questions.append(q)
         download.cancelled.connect(q.abort)
-        download.cancelled.connect(q.deleteLater)
         message.instance().ask(q, blocking=False)
 
     @pyqtSlot(DownloadItem)

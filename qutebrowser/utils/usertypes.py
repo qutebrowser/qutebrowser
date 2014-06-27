@@ -240,6 +240,10 @@ class Question(QObject):
 
     """A question asked to the user, e.g. via the status bar.
 
+    Note the creator is responsible for cleaning up the question after it
+    doesn't need it anymore, e.g. via connecting Question.completed to
+    Question.deleteLater.
+
     Attributes:
         mode: A PromptMode enum member.
               yesno: A question which can be answered with yes/no.
@@ -256,8 +260,6 @@ class Question(QObject):
 
     Signals:
         answered: Emitted when the question has been answered by the user.
-                  This is emitted from qutebrowser.widgets.statusbar._prompt so
-                  it can be emitted after the mode is left.
                   arg: The answer to the question.
         cancelled: Emitted when the question has been cancelled by the user.
         aborted: Emitted when the question was aborted programatically.
@@ -266,6 +268,7 @@ class Question(QObject):
                       answered with yes.
         answered_no: Convienience signal emitted when a yesno question was
                      answered with no.
+        completed: Emitted when the question was completed in any way.
     """
 
     answered = pyqtSignal(object)
@@ -273,6 +276,7 @@ class Question(QObject):
     aborted = pyqtSignal()
     answered_yes = pyqtSignal()
     answered_no = pyqtSignal()
+    completed = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -286,6 +290,21 @@ class Question(QObject):
     def __repr__(self):
         return '<{} "{}">'.format(self.__class__.__name__, self.text)
 
+    def done(self):
+        """Must be called when the queston was answered completely."""
+        self.answered.emit(self.answer)
+        if self.mode == PromptMode.yesno:
+            if self.answer:
+                self.answered_yes.emit()
+            else:
+                self.answered_no.emit()
+        self.completed.emit()
+
+    def cancel(self):
+        """Cancel the question (resulting from user-input)."""
+        self.cancelled.emit()
+        self.completed.emit()
+
     def abort(self):
         """Abort the question.
 
@@ -295,6 +314,7 @@ class Question(QObject):
         self.is_aborted = True
         try:
             self.aborted.emit()
+            self.completed.emit()
         except TypeError as e:
             # FIXME
             # We seem to get "pyqtSignal must be bound to a QObject, not
