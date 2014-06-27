@@ -1,6 +1,12 @@
 Bugs
 ====
 
+- Escape & in tab-titles (and probably other places too?)
+
+- page-forward clicks "Newest" on http://explosm.net/ instead of "Next".
+
+- Download: relative filenames are still not handled correctly
+
 - seir sometimes sees "-- COMMAND MODE --" even though that should never
   happen.
 
