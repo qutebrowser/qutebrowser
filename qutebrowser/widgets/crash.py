@@ -61,6 +61,8 @@ class _CrashDialog(QDialog):
     def __init__(self, parent=None):
         """Constructor for CrashDialog."""
         super().__init__(parent)
+        # We don't set WA_DeleteOnClose here as on an exception, we'll get
+        # closed anyways, and it only could have unintended side-effects.
         self._crash_info = None
         self._hbox = None
         self._lbl = None
@@ -248,6 +250,7 @@ class FatalCrashDialog(_CrashDialog):
         self._btn_ok = None
         self._btn_pastebin = None
         super().__init__(parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
 
     def _init_text(self):
         super()._init_text()
@@ -295,6 +298,7 @@ class ReportDialog(_CrashDialog):
         self._widgets = widgets
         self._objects = objects
         super().__init__(parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
 
     def _init_text(self):
         super()._init_text()
