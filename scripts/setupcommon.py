@@ -94,7 +94,7 @@ setupdata = {
     'version': '.'.join(map(str, _get_constant('version_info'))),
     'description': ("A keyboard-driven, vim-like browser based on PyQt5 and "
                     "QtWebKit."),
-    'long_description': read_file('README'),
+    'long_description': read_file('README.asciidoc'),
     'url': 'http://www.qutebrowser.org/',
     'requires': ['rfc6266'],
     'author': _get_constant('author'),
