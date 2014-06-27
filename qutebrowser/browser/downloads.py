@@ -220,7 +220,7 @@ class DownloadItem(QObject):
         self.filename = target
         self.basename = os.path.basename(target)
         try:
-            self.fileobj = open(filename, 'wb')
+            self.fileobj = open(target, 'wb')
             if self._do_delayed_write:
                 # Downloading to the buffer in RAM has already finished so we
                 # write out the data and clean up now.
