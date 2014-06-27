@@ -23,9 +23,66 @@ At this point we can be sure we have all python 3.3 features available.
 import os
 import sys
 import faulthandler
-import textwrap
 import traceback
 import signal
+
+
+def _missing_str(name, debian=None, arch=None, windows=None, pip=None):
+    """Get an error string for missing packages.
+
+    Args:
+        name: The name of the package.
+        debian: String to be displayed for Debian.
+        arch: String to be displayed for Archlinux.
+        windows: String to be displayed for Windows.
+        pip: pypi package name.
+    """
+    blocks = ["Fatal error: {} is required to run qutebrowser but could "
+              "not be imported! Maybe it's not installed?".format(name)]
+    if debian is not None:
+        lines = ["On Debian/Ubuntu:"]
+        for line in debian.splitlines():
+            lines.append('    ' + line)
+        blocks.append('\n'.join(lines))
+    if arch is not None:
+        lines = ["On Archlinux:"]
+        for line in arch.splitlines():
+            lines.append('    ' + line)
+        blocks.append('\n'.join(lines))
+    if windows is not None:
+        lines = ["On Windows:"]
+        for line in windows.splitlines():
+            lines.append('    ' + line)
+        blocks.append('\n'.join(lines))
+    lines = ["For other distributions:",
+             "    Check your package manager for similiarly named packages."]
+    if pip is not None:
+        lines.append("    Or run  pip install {}  (using python3/pip3)".format(
+            pip))
+    blocks.append('\n'.join(lines))
+    return '\n\n'.join(blocks)
+
+
+def _die(message, exception=True):
+    """Display an error message using Qt and quit.
+
+    We import the imports here as we want to do other stuff before the imports.
+
+    Args:
+        message: The message to display.
+        exception: Whether to print an exception with --debug.
+    """
+    from PyQt5.QtWidgets import QApplication, QMessageBox
+    if '--debug' in sys.argv and exception:
+        print(file=sys.stderr)
+        traceback.print_exc()
+    app = QApplication(sys.argv)
+    msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
+                         message)
+    msgbox.resize(msgbox.sizeHint())
+    msgbox.exec_()
+    app.quit()
+    sys.exit(1)
 
 
 # Now we initialize the faulthandler as early as possible, so we theoretically
@@ -109,26 +166,16 @@ def check_pyqt_core():
     try:
         import PyQt5.QtCore  # pylint: disable=unused-variable
     except ImportError:
-        print(textwrap.dedent("""
-            Fatal error: PyQt5 is required to run qutebrowser but could not
-            be imported! Maybe it's not installed?
-
-            On Debian:
-                apt-get install python3-pyqt5 python3-pyqt5.qtwebkit
-
-            On Archlinux:
-                pacman -S python-pyqt5 qt5-webkit
-                or install the qutebrowser package from AUR
-
-            On Windows:
-                Use the installer by Riverbank computing or the standalone
-                qutebrowser exe.
-
-                http://www.riverbankcomputing.co.uk/software/pyqt/download5
-
-            For other distributions:
-                Check your package manager for similiarly named packages.
-            """).strip(), file=sys.stderr)
+        text = _missing_str('PyQt5',
+                            debian="apt-get install python3-pyqt5 "
+                                   "python3-pyqt5.qtwebkit",
+                            arch="pacman -S python-pyqt5 qt5-webkit\n"
+                                 "or install the qutebrowser package from AUR",
+                            windows="Use the installer by Riverbank computing "
+                                    "or the standalone qutebrowser exe.\n"
+                                    "http://www.riverbankcomputing.co.uk/"
+                                    "software/pyqt/download5")
+        print(text)
         if '--debug' in sys.argv:
             print(file=sys.stderr)
             traceback.print_exc()
@@ -141,113 +188,46 @@ def check_qt_version():
     """Check if the Qt version is recent enough."""
     import operator
     from PyQt5.QtCore import qVersion
-    from PyQt5.QtWidgets import QApplication, QMessageBox
     from qutebrowser.utils.qt import qt_version_check
     if qt_version_check('5.2.0', operator.lt):
-        app = QApplication(sys.argv)
-        msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
-                             textwrap.dedent("""
-            Fatal error: Qt and PyQt >= 5.2.0 are required, but {} is
-            installed.""").strip().format(qVersion()))
-        msgbox.resize(msgbox.sizeHint())
-        msgbox.exec_()
-        app.quit()
-        sys.exit(1)
+        text = ("Fatal error: Qt and PyQt >= 5.2.0 are required, but {} is "
+                "installed.".format(qVersion()))
+        _die(text, exception=False)
 
 
 def check_pyqt_webkit():
     """Check if PyQt WebKit is installed."""
-    from PyQt5.QtWidgets import QApplication, QMessageBox
     try:
         import PyQt5.QtWebKit  # pylint: disable=unused-variable
     except ImportError:
-        app = QApplication(sys.argv)
-        msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
-                             textwrap.dedent("""
-            Fatal error: QtWebKit is required to run qutebrowser but could not
-            be imported! Maybe it's not installed?
-
-            On Debian:
-                apt-get install python3-pyqt5.qtwebkit
-
-            On Archlinux:
-                pacman -S qt5-webkit
-
-            For other distributions:
-                Check your package manager for similiarly named packages.
-            """).strip())
-        if '--debug' in sys.argv:
-            print(file=sys.stderr)
-            traceback.print_exc()
-        msgbox.resize(msgbox.sizeHint())
-        msgbox.exec_()
-        app.quit()
-        sys.exit(1)
+        text = _missing_str("QtWebKit",
+                            debian="apt-get install python3-pyqt5.qtwebkit",
+                            arch="pacman -S qt5-webkit")
+        _die(text)
 
 
 def check_pkg_resources():
     """Check if pkg_resources is installed."""
-    from PyQt5.QtWidgets import QApplication, QMessageBox
     try:
         import pkg_resources  # pylint: disable=unused-variable
     except ImportError:
-        app = QApplication(sys.argv)
-        msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
-                             textwrap.dedent("""
-            Fatal error: pkg_resources is required to run qutebrowser but could
-            not be imported! Maybe it's not installed?
-
-            On Debian/Ubuntu:
-                apt-get install python3-pkg-resources
-
-            On Archlinux:
-                pacman -S python-setuptools
-
-            On Windows:
-                Run   python -m ensurepip  (python >= 3.4) or
-                scripts/ez_setup.py.
-
-            For other distributions:
-                Check your package manager for similiarly named packages.
-            """).strip())
-        if '--debug' in sys.argv:
-            print(file=sys.stderr)
-            traceback.print_exc()
-        msgbox.resize(msgbox.sizeHint())
-        msgbox.exec_()
-        app.quit()
-        sys.exit(1)
+        text = _missing_str("pkg_resources",
+                            debian="apt-get install python3-pkg-resources",
+                            arch="pacman -S python-setuptools",
+                            windows="Run   python -m ensurepip  "
+                                    "(python >= 3.4) or scripts/ez_setup.py.")
+        _die(text)
 
 
 def check_rfc6266():
     """Check if rfc6266 is installed."""
-    from PyQt5.QtWidgets import QApplication, QMessageBox
     try:
         import rfc6266  # pylint: disable=unused-variable
     except ImportError:
-        app = QApplication(sys.argv)
-        msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
-                             textwrap.dedent("""
-            Fatal error: rfc6266 is required to run qutebrowser but could
-            not be imported! Maybe it's not installed?
-
-            On Debian/Ubuntu:
-                No package available, try:
-                pip3 install rfc6266
-
-            On Archlinux:
-                pacman -S python-rfc6266
-
-            On Windows:
-                pip install rfc6266    (using python3)
-
-            For other distributions:
-                Check your package manager for similiarly named packages.
-            """).strip())
-        if '--debug' in sys.argv:
-            print(file=sys.stderr)
-            traceback.print_exc()
-        msgbox.resize(msgbox.sizeHint())
-        msgbox.exec_()
-        app.quit()
-        sys.exit(1)
+        text = _missing_str("rfc6266",
+                            debian="No package available, try:\n"
+                                   "pip3 install rfc6266",
+                            arch="pacman -S python-rfc6266",
+                            windows="pip install rfc6266    (using python3)",
+                            pip="rfc6266")
+        _die(text)

@@ -105,7 +105,6 @@ hints
 style
 =====
 
-- Clean up the package checking mess in earlyinit.py
 - Use list models for completion and a proxy model which converts them to a
   tree?
 
