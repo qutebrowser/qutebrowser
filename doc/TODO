@@ -50,7 +50,6 @@ Downloads
 Improvements / minor features
 =============================
 
-- qutebrowser local_file.foo   should open that file in $PWD
 - Distinction between :q and :wq, add ZZ and ZQ shortcuts.
 - set_toggle to toggle setting between two states
 - Customizable statusbar

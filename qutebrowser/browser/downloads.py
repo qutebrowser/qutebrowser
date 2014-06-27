@@ -209,7 +209,7 @@ class DownloadItem(QObject):
                       None: special value to stop the download.
         """
         if os.path.isabs(filename):
-            target = filename
+            target = os.path.expanduser(filename)
         else:
             download_dir = config.get('storage', 'download-directory')
             target = os.path.join(download_dir, filename)

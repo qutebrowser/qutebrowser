@@ -580,10 +580,16 @@ class File(BaseType):
     typestr = 'file'
 
     def validate(self, value):
+        value = os.path.expanduser(value)
         if self.none_ok and not value:
             return
         if not os.path.isfile(value):
             raise ValidationError(value, "must be a valid file!")
+        if not os.path.isabs(value):
+            raise ValidationError(value, "must be an absolute path!")
+
+    def transform(self, value):
+        return os.path.expanduser(value)
 
 
 class Directory(BaseType):
@@ -597,11 +603,13 @@ class Directory(BaseType):
             return
         if not os.path.isdir(value):
             raise ValidationError(value, "must be a valid directory!")
+        if not os.path.isabs(value):
+            raise ValidationError(value, "must be an absolute path!")
 
     def transform(self, value):
         if not value:
             return get_standard_dir(QStandardPaths.DownloadLocation)
-        return value
+        return os.path.expanduser(value)
 
 
 class WebKitBytes(BaseType):

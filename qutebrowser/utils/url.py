@@ -122,8 +122,12 @@ def fuzzy_url(urlstr):
     Return:
         A target QUrl to a searchpage or the original URL.
     """
+    path = os.path.abspath(os.path.expanduser(urlstr))
     stripped = urlstr.strip()
-    if is_url(stripped):
+    if os.path.exists(path):
+        logger.debug("URL is a local file")
+        url = QUrl.fromLocalFile(path)
+    elif is_url(stripped):
         # probably an address
         logger.debug("URL is a fuzzy address")
         url = QUrl.fromUserInput(urlstr)
@@ -179,9 +183,6 @@ def is_url(urlstr):
     elif is_special_url(QUrl(urlstr)):
         # Special URLs are always URLs, even with autosearch=False
         logger.debug("Is an special URL.")
-        return True
-    elif os.path.exists(urlstr):
-        # local file
         return True
     elif autosearch == 'dns':
         logger.debug("Checking via DNS")
