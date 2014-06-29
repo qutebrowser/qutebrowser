@@ -112,7 +112,7 @@ class ReadConfigTests(unittest.TestCase):
 
     def setUp(self):
         basekeyparser.config = ConfigStub(CONFIG)
-        basekeyparser.QTimer = Mock()
+        basekeyparser.Timer = Mock()
 
     def test_read_config_invalid(self):
         """Test reading config without setting it before."""
@@ -144,7 +144,7 @@ class SpecialKeysTests(unittest.TestCase):
 
     def setUp(self):
         basekeyparser.config = ConfigStub(CONFIG)
-        basekeyparser.QTimer = Mock()
+        basekeyparser.Timer = Mock()
         self.kp = basekeyparser.BaseKeyParser()
         self.kp.execute = Mock()
         self.kp.read_config('test')
@@ -181,7 +181,7 @@ class KeyChainTests(unittest.TestCase):
         """Set up mocks and read the test config."""
         basekeyparser.config = ConfigStub(CONFIG)
         self.timermock = Mock()
-        basekeyparser.QTimer = Mock(return_value=self.timermock)
+        basekeyparser.Timer = Mock(return_value=self.timermock)
         self.kp = basekeyparser.BaseKeyParser(supports_chains=True,
                                               supports_count=False)
         self.kp.execute = Mock()
@@ -217,7 +217,7 @@ class KeyChainTests(unittest.TestCase):
         # Then we check if the timer has been set up correctly
         self.kp.handle(FakeKeyEvent(Qt.Key_A, text='a'))
         self.assertFalse(self.kp.execute.called)
-        basekeyparser.QTimer.assert_called_once_with(self.kp)
+        basekeyparser.Timer.assert_called_once_with(self.kp, 'ambigious_match')
         self.timermock.setSingleShot.assert_called_once_with(True)
         self.timermock.setInterval.assert_called_once_with(100)
         self.assertTrue(self.timermock.timeout.connect.called)
@@ -243,7 +243,7 @@ class CountTests(unittest.TestCase):
 
     def setUp(self):
         basekeyparser.config = ConfigStub(CONFIG)
-        basekeyparser.QTimer = Mock()
+        basekeyparser.Timer = Mock()
         self.kp = basekeyparser.BaseKeyParser(supports_chains=True,
                                               supports_count=True)
         self.kp.execute = Mock()
