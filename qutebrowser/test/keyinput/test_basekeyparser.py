@@ -20,7 +20,6 @@
 """Tests for BaseKeyParser."""
 
 import unittest
-import logging
 from unittest.mock import Mock
 
 import qutebrowser.keyinput.basekeyparser as basekeyparser
@@ -40,7 +39,7 @@ CONFIG = {'test': {'<Ctrl-a>': 'ctrla',
 def setUpModule():
     """Mock out some imports in basekeyparser."""
     basekeyparser.QObject = Mock()
-    logging.disable(logging.ERROR)
+    basekeyparser.logger = Mock()
 
 
 class NormalizeTests(unittest.TestCase):
