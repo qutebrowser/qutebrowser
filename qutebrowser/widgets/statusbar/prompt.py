@@ -89,7 +89,6 @@ class Prompt(QWidget):
         if self._queue:
             self.ask_question(self._queue.popleft(), blocking=False)
 
-
     def _get_ctx(self):
         """Get a PromptContext based on the current state."""
         if not self.visible:
@@ -119,6 +118,44 @@ class Prompt(QWidget):
         self._input.setEchoMode(ctx.echo_mode)
         self._input.setVisible(ctx.input_visible)
         return True
+
+    def _display_question(self):
+        """Display the question saved in self.question.
+
+        Return:
+            The mode which should be entered.
+        """
+        if self.question.mode == PromptMode.yesno:
+            if self.question.default is None:
+                suffix = ""
+            elif self.question.default:
+                suffix = " (yes)"
+            else:
+                suffix = " (no)"
+            self._txt.setText(self.question.text + suffix)
+            self._input.hide()
+            mode = 'yesno'
+        elif self.question.mode == PromptMode.text:
+            self._txt.setText(self.question.text)
+            if self.question.default:
+                self._input.setText(self.question.default)
+            self._input.show()
+            mode = 'prompt'
+        elif self.question.mode == PromptMode.user_pwd:
+            self._txt.setText(self.question.text)
+            if self.question.default:
+                self._input.setText(self.question.default)
+            self._input.show()
+            mode = 'prompt'
+        elif self.question.mode == PromptMode.alert:
+            self._txt.setText(self.question.text + ' (ok)')
+            self._input.hide()
+            mode = 'prompt'
+        else:
+            raise ValueError("Invalid prompt mode!")
+        self._input.setFocus()
+        self.show_prompt.emit()
+        return mode
 
     def on_mode_left(self, mode):
         """Clear and reset input when the mode was left."""
@@ -223,37 +260,7 @@ class Prompt(QWidget):
             context = self._get_ctx()
 
         self.question = question
-
-        if question.mode == PromptMode.yesno:
-            if question.default is None:
-                suffix = ""
-            elif question.default:
-                suffix = " (yes)"
-            else:
-                suffix = " (no)"
-            self._txt.setText(question.text + suffix)
-            self._input.hide()
-            mode = 'yesno'
-        elif question.mode == PromptMode.text:
-            self._txt.setText(question.text)
-            if question.default:
-                self._input.setText(question.default)
-            self._input.show()
-            mode = 'prompt'
-        elif question.mode == PromptMode.user_pwd:
-            self._txt.setText(question.text)
-            if question.default:
-                self._input.setText(question.default)
-            self._input.show()
-            mode = 'prompt'
-        elif question.mode == PromptMode.alert:
-            self._txt.setText(question.text + ' (ok)')
-            self._input.hide()
-            mode = 'prompt'
-        else:
-            raise ValueError("Invalid prompt mode!")
-        self._input.setFocus()
-        self.show_prompt.emit()
+        mode = self._display_question()
         question.aborted.connect(lambda: modeman.maybe_leave(mode, 'aborted'))
         modeman.enter(mode, 'question asked')
         if blocking:
