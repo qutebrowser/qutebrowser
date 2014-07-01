@@ -87,7 +87,7 @@ class Prompt(QWidget):
         """Pop a question from the queue and ask it, if there are any."""
         logger.debug("Popping from queue {}".format(self._queue))
         if self._queue:
-            self.ask_question(self._queue.popleft())
+            self.ask_question(self._queue.popleft(), blocking=False)
 
 
     def _get_ctx(self):
@@ -216,7 +216,7 @@ class Prompt(QWidget):
         if blocking:
             # If we're blocking we save the old state on the stack, so we can
             # restore it after exec, if exec gets called multiple times.
-            context = self._save_ctx()
+            context = self._get_ctx()
 
         self.question = question
 
