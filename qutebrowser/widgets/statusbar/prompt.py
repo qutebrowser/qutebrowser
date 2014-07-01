@@ -19,9 +19,9 @@
 
 """Prompt shown in the statusbar."""
 
-from collections import namedtuple
+from collections import namedtuple, deque
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer
 from PyQt5.QtWidgets import QHBoxLayout, QWidget, QLineEdit
 
 import qutebrowser.keyinput.modeman as modeman
@@ -47,7 +47,7 @@ class Prompt(QWidget):
         _hbox: The QHBoxLayout used to display the text and prompt.
         _txt: The TextBase instance (QLabel) used to display the prompt text.
         _input: The MinimalLineEdit instance (QLineEdit) used for the input.
-        _queue: A queue of waiting questions.
+        _queue: A deque of waiting questions.
 
     Signals:
         show_prompt: Emitted when the prompt widget wants to be shown.
@@ -62,7 +62,7 @@ class Prompt(QWidget):
 
         self.question = None
         self._loops = []
-        self._queue = []
+        self._queue = deque()
 
         self._hbox = QHBoxLayout(self)
         self._hbox.setContentsMargins(0, 0, 0, 0)
@@ -78,6 +78,17 @@ class Prompt(QWidget):
 
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
+
+    def _pop_later(self):
+        """Helper to call self._pop as soon as everything else is done."""
+        QTimer.singleShot(0, self._pop)
+
+    def _pop(self):
+        """Pop a question from the queue and ask it, if there are any."""
+        logger.debug("Popping from queue {}".format(self._queue))
+        if self._queue:
+            self.ask_question(self._queue.popleft())
+
 
     def _get_ctx(self):
         """Get a PromptContext based on the current state."""
@@ -95,15 +106,19 @@ class Prompt(QWidget):
 
         Args:
             ctx: A PromptContext previously saved by _get_ctx, or None.
+
+        Return: True if a context was restored, False otherwise.
         """
+        logger.debug("Restoring context {}".format(ctx))
         if ctx is None:
             self.hide_prompt.emit()
-            return
+            return False
         self.question = ctx.question
         self._txt.setText(ctx.text)
         self._input.setText(ctx.input_text)
         self._input.setEchoMode(ctx.echo_mode)
         self._input.setVisible(ctx.input_visible)
+        return True
 
     def on_mode_left(self, mode):
         """Clear and reset input when the mode was left."""
@@ -244,5 +259,11 @@ class Prompt(QWidget):
             question.completed.connect(loop.quit)
             question.completed.connect(loop.deleteLater)
             loop.exec_()
-            self._restore_ctx(context)
+            if not self._restore_ctx(context):
+                # Nothing left to restore, so we can go back to popping async
+                # questions.
+                if self._queue:
+                    self._pop_later()
             return self.question.answer
+        else:
+            question.completed.connect(self._pop_later)
