@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=protected-access
+
 """Tests for BaseKeyParser."""
 
 import unittest
@@ -61,7 +63,7 @@ class NormalizeTests(unittest.TestCase):
 
     def test_normalize(self):
         """Test normalize with some strings."""
-        STRINGS = (
+        strings = (
             ('Control+x', 'Ctrl+X'),
             ('Windows+x', 'Meta+X'),
             ('Mod1+x', 'Alt+X'),
@@ -69,7 +71,7 @@ class NormalizeTests(unittest.TestCase):
             ('Control--', 'Ctrl+-'),
             ('Windows++', 'Meta++'),
         )
-        for orig, repl in STRINGS:
+        for orig, repl in strings:
             self.assertEqual(self.kp._normalize_keystr(orig), repl, orig)
 
 
