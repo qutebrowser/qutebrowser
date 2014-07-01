@@ -19,6 +19,8 @@
 
 """Prompt shown in the statusbar."""
 
+from collections import namedtuple
+
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QHBoxLayout, QWidget, QLineEdit
 
@@ -28,6 +30,11 @@ from qutebrowser.widgets.statusbar.textbase import TextBase
 from qutebrowser.widgets.misc import MinimalLineEdit
 from qutebrowser.utils.usertypes import PromptMode, Question
 from qutebrowser.utils.qt import EventLoop
+from qutebrowser.utils.log import statusbar as logger
+
+
+PromptContext = namedtuple('PromptContext', ['question', 'text', 'input_text',
+                                             'echo_mode', 'input_visible'])
 
 
 class Prompt(QWidget):
@@ -36,10 +43,11 @@ class Prompt(QWidget):
 
     Attributes:
         question: A Question object with the question to be asked to the user.
-        loops: A list of local EventLoops to spin into in _spin.
+        _loops: A list of local EventLoops to spin in when blocking.
         _hbox: The QHBoxLayout used to display the text and prompt.
         _txt: The TextBase instance (QLabel) used to display the prompt text.
         _input: The MinimalLineEdit instance (QLineEdit) used for the input.
+        _queue: A queue of waiting questions.
 
     Signals:
         show_prompt: Emitted when the prompt widget wants to be shown.
@@ -53,7 +61,8 @@ class Prompt(QWidget):
         super().__init__(parent)
 
         self.question = None
-        self.loops = []
+        self._loops = []
+        self._queue = []
 
         self._hbox = QHBoxLayout(self)
         self._hbox.setContentsMargins(0, 0, 0, 0)
@@ -65,23 +74,40 @@ class Prompt(QWidget):
         self._input = MinimalLineEdit()
         self._hbox.addWidget(self._input)
 
-        self._old_input = self._input.text()
-        self._old_echo_mode = self._input.echoMode()
-        self._old_text = self._txt.text()
-        self._old_visible = None
         self.visible = False
 
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
 
+    def _get_ctx(self):
+        """Get a PromptContext based on the current state."""
+        if not self.visible:
+            # FIXME do we really use visible here?
+            return None
+        ctx = PromptContext(question=self.question, text=self._txt.text(),
+                            input_text=self._input.text(),
+                            echo_mode=self._input.echoMode(),
+                            input_visible=self._input.isVisible())
+        return ctx
+
+    def _restore_ctx(self, ctx):
+        """Restore state from a PromptContext.
+
+        Args:
+            ctx: A PromptContext previously saved by _get_ctx, or None.
+        """
+        if ctx is None:
+            self.hide_prompt.emit()
+            return
+        self.question = ctx.question
+        self._txt.setText(ctx.text)
+        self._input.setText(ctx.input_text)
+        self._input.setEchoMode(ctx.echo_mode)
+        self._input.setVisible(ctx.input_visible)
+
     def on_mode_left(self, mode):
         """Clear and reset input when the mode was left."""
         if mode in ('prompt', 'yesno'):
-            self._txt.setText(self._old_text)
-            self._input.setText(self._old_input)
-            self._input.setEchoMode(self._old_echo_mode)
-            if not self._old_visible:
-                self.hide_prompt.emit()
             if self.question.answer is None and not self.question.is_aborted:
                 self.question.cancel()
 
@@ -162,11 +188,23 @@ class Prompt(QWidget):
         Raise:
             ValueError if the set PromptMode is invalid.
         """
-        self._old_input = self._input.text()
-        self._old_echo_mode = self._input.echoMode()
-        self._old_text = self._txt.text()
-        self._old_visible = self.visible
+        logger.debug("Asking question {}, blocking {}, loops {}, queue "
+                     "{}".format(question, blocking, self._loops, self._queue))
+
+        if self.visible and not blocking:
+            # We got an async question, but we're already busy with one, so we
+            # just queue it up for later.
+            logger.debug("Adding to queue")
+            self._queue.append(question)
+            return
+
+        if blocking:
+            # If we're blocking we save the old state on the stack, so we can
+            # restore it after exec, if exec gets called multiple times.
+            context = self._save_ctx()
+
         self.question = question
+
         if question.mode == PromptMode.yesno:
             if question.default is None:
                 suffix = ""
@@ -201,10 +239,10 @@ class Prompt(QWidget):
         modeman.enter(mode, 'question asked')
         if blocking:
             loop = EventLoop()
-            self.loops.append(loop)
-            loop.destroyed.connect(lambda: self.loops.remove(loop))
-            self.question.answered.connect(loop.quit)
-            self.question.cancelled.connect(loop.quit)
-            self.question.aborted.connect(loop.quit)
+            self._loops.append(loop)
+            loop.destroyed.connect(lambda: self._loops.remove(loop))
+            question.completed.connect(loop.quit)
+            question.completed.connect(loop.deleteLater)
             loop.exec_()
+            self._restore_ctx(context)
             return self.question.answer
