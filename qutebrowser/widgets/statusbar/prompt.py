@@ -123,6 +123,10 @@ class Prompt(QWidget):
     def on_mode_left(self, mode):
         """Clear and reset input when the mode was left."""
         if mode in ('prompt', 'yesno'):
+            self._txt.setText('')
+            self._input.clear()
+            self._input.setEchoMode(QLineEdit.Normal)
+            self.hide_prompt.emit()
             if self.question.answer is None and not self.question.is_aborted:
                 self.question.cancel()
 
