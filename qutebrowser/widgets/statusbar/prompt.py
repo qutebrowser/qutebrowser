@@ -74,7 +74,7 @@ class Prompt(QWidget):
         self._input = MinimalLineEdit()
         self._hbox.addWidget(self._input)
 
-        self.visible = False
+        self._busy = False
 
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
@@ -91,8 +91,7 @@ class Prompt(QWidget):
 
     def _get_ctx(self):
         """Get a PromptContext based on the current state."""
-        if not self.visible:
-            # FIXME do we really use visible here?
+        if not self._busy:
             return None
         ctx = PromptContext(question=self.question, text=self._txt.text(),
                             input_text=self._input.text(),
@@ -111,6 +110,7 @@ class Prompt(QWidget):
         logger.debug("Restoring context {}".format(ctx))
         if ctx is None:
             self.hide_prompt.emit()
+            self._busy = False
             return False
         self.question = ctx.question
         self._txt.setText(ctx.text)
@@ -155,6 +155,7 @@ class Prompt(QWidget):
             raise ValueError("Invalid prompt mode!")
         self._input.setFocus()
         self.show_prompt.emit()
+        self._busy = True
         return mode
 
     def on_mode_left(self, mode):
@@ -164,6 +165,7 @@ class Prompt(QWidget):
             self._input.clear()
             self._input.setEchoMode(QLineEdit.Normal)
             self.hide_prompt.emit()
+            self._busy = False
             if self.question.answer is None and not self.question.is_aborted:
                 self.question.cancel()
 
@@ -246,7 +248,7 @@ class Prompt(QWidget):
         logger.debug("Asking question {}, blocking {}, loops {}, queue "
                      "{}".format(question, blocking, self._loops, self._queue))
 
-        if self.visible and not blocking:
+        if self._busy and not blocking:
             # We got an async question, but we're already busy with one, so we
             # just queue it up for later.
             logger.debug("Adding to queue")
