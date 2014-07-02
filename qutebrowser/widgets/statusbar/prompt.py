@@ -41,6 +41,24 @@ class Prompt(QWidget):
 
     """The prompt widget shown in the statusbar.
 
+    The way in which multiple questions are handled deserves some explanation.
+
+    If a question is blocking, we *need* to ask it immediately, and can't wait
+    for previous questions to finish. We could theoretically ask a blocking
+    question inside of another blocking one, so in ask_question we simply save
+    the current prompt state on the stack, let the user answer the *most
+    recent* question, and then restore the previous state.
+
+    With a non-blocking question, things are a bit easier. We simply add it to
+    self._queue if we're still busy handling another question, since it can be
+    answered at any time.
+
+    In either case, as soon as we finished handling a question, we call
+    _pop_later() which schedules a _pop to ask the next question in _queue. We
+    schedule it rather than doing it immediately because then the order of how
+    things happen is clear, e.g. on_mode_left can't happen after we already set
+    up the *new* question.
+
     Attributes:
         question: A Question object with the question to be asked to the user.
         _loops: A list of local EventLoops to spin in when blocking.
@@ -124,6 +142,9 @@ class Prompt(QWidget):
 
         Return:
             The mode which should be entered.
+
+        Raise:
+            ValueError if the set PromptMode is invalid.
         """
         if self.question.mode == PromptMode.yesno:
             if self.question.default is None:
@@ -236,14 +257,11 @@ class Prompt(QWidget):
 
         Args:
             question: The Question object to ask.
-            blocking: If True, _spin is called and the result is returned.
+            blocking: If True, this function blocks and returns the result.
 
         Return:
             The answer of the user when blocking=True.
             None if blocking=False.
-
-        Raise:
-            ValueError if the set PromptMode is invalid.
         """
         logger.debug("Asking question {}, blocking {}, loops {}, queue "
                      "{}".format(question, blocking, self._loops, self._queue))
@@ -251,7 +269,7 @@ class Prompt(QWidget):
         if self._busy and not blocking:
             # We got an async question, but we're already busy with one, so we
             # just queue it up for later.
-            logger.debug("Adding to queue")
+            logger.debug("Adding {} to queue.".format(question))
             self._queue.append(question)
             return
 
