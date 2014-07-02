@@ -374,7 +374,7 @@ class TabbedBrowser(TabWidget):
                 # We can get signals for tabs we already deleted...
                 log.webview.debug("Got invalid tab {}!".format(tab))
                 return
-            self.setTabText(idx, text)
+            self.setTabText(idx, text.replace('&', '&&'))
             if idx == self.currentIndex():
                 self.title_changed.emit('{} - qutebrowser'.format(text))
         else:
@@ -394,7 +394,7 @@ class TabbedBrowser(TabWidget):
             log.webview.debug("Got invalid tab {}!".format(tab))
             return
         if not self.tabText(idx):
-            self.setTabText(idx, url)
+            self.setTabText(idx, url.replace('&', '&&'))
 
     @pyqtSlot(WebView)
     def on_icon_changed(self, tab):
