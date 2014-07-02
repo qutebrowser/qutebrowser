@@ -375,7 +375,7 @@ DATA = OrderedDict([
          "Whether to leave insert mode if a non-editable element is clicked."),
 
         ('auto-insert-mode',
-         SettingValue(types.Bool(), 'true'),
+         SettingValue(types.Bool(), 'false'),
          "Whether to automatically enter insert mode if an editable element "
          "is focused after page load."),
 
