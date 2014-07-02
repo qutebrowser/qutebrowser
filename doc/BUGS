@@ -28,8 +28,6 @@ Bugs
 
 - Space-scrolling sometimes broken until clicking into page
 
-- foo@bar:baz.com  is handled as search term
-
 - Ugly font rendering on Windows on http://support.sigasi.com/Knowledgebase/List
 
 - On doodle, when modifying something on http://doodle.com/create and clicking
