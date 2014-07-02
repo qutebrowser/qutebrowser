@@ -187,7 +187,6 @@ class Prompt(QWidget):
             password = self._input.text()
             self.question.answer = (self.question.user, password)
             modeman.leave('prompt', 'prompt accept')
-            self.hide_prompt.emit()
             self.question.done()
         elif self.question.mode == PromptMode.text:
             # User just entered text.
