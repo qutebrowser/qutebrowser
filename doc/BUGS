@@ -1,6 +1,9 @@
 Bugs
 ====
 
+- When loading http://www.the-compiler.org:4040/ ssl errors get displayed in
+  green because we're in insert mode.
+
 - Escape & in tab-titles (and probably other places too?)
 
 - page-forward clicks "Newest" on http://explosm.net/ instead of "Next".
