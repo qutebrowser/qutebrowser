@@ -101,16 +101,16 @@ class StatusBar(QWidget):
             {color[statusbar.bg]}
         }}
 
-        QWidget#StatusBar[error="true"] {{
-            {color[statusbar.bg.error]}
-        }}
-
         QWidget#StatusBar[prompt_active="true"] {{
             {color[statusbar.bg.prompt]}
         }}
 
         QWidget#StatusBar[insert_active="true"] {{
             {color[statusbar.bg.insert]}
+        }}
+
+        QWidget#StatusBar[error="true"] {{
+            {color[statusbar.bg.error]}
         }}
 
         QWidget {{

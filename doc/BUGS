@@ -5,9 +5,6 @@ Bugs
   e.g. loading a page and immediately yanking the (non-resolved) URL should
   work.
 
-- When loading http://www.the-compiler.org:4040/ ssl errors get displayed in
-  green because we're in insert mode.
-
 - page-forward clicks "Newest" on http://explosm.net/ instead of "Next".
 
 - seir sometimes sees "-- COMMAND MODE --" even though that should never
