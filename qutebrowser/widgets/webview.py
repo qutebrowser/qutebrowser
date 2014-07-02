@@ -21,7 +21,7 @@
 
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
@@ -35,11 +35,10 @@ from qutebrowser.utils.misc import elide
 from qutebrowser.utils.qt import qt_ensure_valid
 from qutebrowser.browser.webpage import BrowserPage
 from qutebrowser.browser.hints import HintManager
-from qutebrowser.utils.usertypes import NeighborList, enum
+from qutebrowser.utils.usertypes import NeighborList, ClickTarget, enum
 from qutebrowser.commands.exceptions import CommandError
 
 
-Target = enum('normal', 'tab', 'tab_bg')
 LoadStatus = enum('none', 'success', 'error', 'warn', 'loading')
 
 
@@ -58,6 +57,7 @@ class WebView(QWebView):
         scroll_pos: The current scroll position as (x%, y%) tuple.
         statusbar_message: The current javscript statusbar message.
         inspector: The QWebInspector used for this webview.
+        open_target: Where to open the next tab ("normal", "tab", "tab_bg")
         _page: The QWebPage behind the view
         _url_text: The current URL as string.
                    Accessed via url_text property.
@@ -67,7 +67,6 @@ class WebView(QWebView):
         _zoom: A NeighborList with the zoom levels.
         _old_scroll_pos: The old scroll position.
         _shutdown_callback: Callback to be called after shutdown.
-        _open_target: Where to open the next tab ("normal", "tab", "tab_bg")
         _force_open_target: Override for _open_target.
         _shutdown_callback: The callback to call after shutting down.
         _destroyed: Dict of all items to be destroyed on shtudown.
@@ -95,7 +94,7 @@ class WebView(QWebView):
         self.statusbar_message = ''
         self._old_scroll_pos = (-1, -1)
         self._shutdown_callback = None
-        self._open_target = Target.normal
+        self.open_target = ClickTarget.normal
         self._force_open_target = None
         self._destroyed = {}
         self._zoom = None
@@ -108,10 +107,9 @@ class WebView(QWebView):
         self.hintmanager = HintManager(self)
         self.hintmanager.mouse_event.connect(self.on_mouse_event)
         self.hintmanager.set_open_target.connect(self.set_force_open_target)
-        self.page().setLinkDelegationPolicy(QWebPage.DelegateAllLinks)
         self.page().linkHovered.connect(self.linkHovered)
-        self.linkClicked.connect(self.on_link_clicked)
         self.page().mainFrame().loadStarted.connect(self.on_load_started)
+        self.page().change_title.connect(self.titleChanged)
         self.urlChanged.connect(self.on_url_changed)
         self.loadFinished.connect(self.on_load_finished)
         self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
@@ -236,20 +234,20 @@ class WebView(QWebView):
             e: The QMouseEvent.
         """
         if self._force_open_target is not None:
-            self._open_target = self._force_open_target
+            self.open_target = self._force_open_target
             self._force_open_target = None
             log.mouse.debug("Setting force target: {}".format(
-                Target[self._open_target]))
+                ClickTarget[self.open_target]))
         elif (e.button() == Qt.MidButton or
               e.modifiers() & Qt.ControlModifier):
             if config.get('general', 'background-tabs'):
-                self._open_target = Target.tab_bg
+                self.open_target = ClickTarget.tab_bg
             else:
-                self._open_target = Target.tab
+                self.open_target = ClickTarget.tab
             log.mouse.debug("Middle click, setting target: {}".format(
-                Target[self._open_target]))
+                ClickTarget[self.open_target]))
         else:
-            self._open_target = Target.normal
+            self.open_target = ClickTarget.normal
             log.mouse.debug("Normal click, setting normal target")
 
     def openurl(self, url):
@@ -354,28 +352,6 @@ class WebView(QWebView):
         qt_ensure_valid(url)
         self.url_text = url.toDisplayString()
 
-    @pyqtSlot(str)
-    def on_link_clicked(self, urlstr):
-        """Handle a link.
-
-        Called from the linkClicked signal. Checks if it should open it in a
-        tab (middle-click or control) or not, and does so.
-
-        Args:
-            urlstr: The URL to handle, as string.
-        """
-        url = QUrl(urlstr)
-        if not url.isValid():
-            message.error("Invalid link {} clicked!".format(urlstr))
-            log.webview.debug(url.errorString())
-            return
-        if self._open_target == Target.tab:
-            self.tabbedbrowser.tabopen(url, False)
-        elif self._open_target == Target.tab_bg:
-            self.tabbedbrowser.tabopen(url, True)
-        else:
-            self.openurl(url)
-
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update tab config when config was changed."""
@@ -425,7 +401,7 @@ class WebView(QWebView):
         Args:
             target: A string to set self._force_open_target to.
         """
-        t = getattr(Target, target)
+        t = getattr(ClickTarget, target)
         log.webview.debug("Setting force target to {}/{}".format(target, t))
         self._force_open_target = t
 

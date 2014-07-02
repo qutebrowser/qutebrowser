@@ -32,7 +32,7 @@ import qutebrowser.config.config as config
 import qutebrowser.utils.log as log
 from qutebrowser.utils.misc import read_file
 from qutebrowser.utils.qt import check_print_compat
-from qutebrowser.utils.usertypes import PromptMode
+from qutebrowser.utils.usertypes import PromptMode, ClickTarget
 
 
 class BrowserPage(QWebPage):
@@ -41,16 +41,19 @@ class BrowserPage(QWebPage):
 
     Attributes:
         _extension_handlers: Mapping of QWebPage extensions to their handlers.
+        _view: The QWebView associated with this page.
         network_access_manager: The QNetworkAccessManager used.
 
     Signals:
         start_download: Emitted when a file should be downloaded.
+        change_title: Emitted when the title should be changed.
     """
 
     start_download = pyqtSignal('QNetworkReply*')
+    change_title = pyqtSignal(str)
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, view):
+        super().__init__(view)
         self._extension_handlers = {
             QWebPage.ErrorPageExtension: self._handle_errorpage,
             QWebPage.ChooseMultipleFilesExtension: self._handle_multiple_files,
@@ -60,6 +63,7 @@ class BrowserPage(QWebPage):
         self.setForwardUnsupportedContent(True)
         self.printRequested.connect(self.on_print_requested)
         self.downloadRequested.connect(self.on_download_requested)
+        self._view = view
 
         if PYQT_VERSION > 0x050300:
             # This breaks in <= 5.3.0, but in anything later it hopefully
@@ -232,3 +236,36 @@ class BrowserPage(QWebPage):
         if answer is None:
             answer = True
         return answer
+
+    def acceptNavigationRequest(self, _frame, request, typ):
+        """Override acceptNavigationRequest to handle clicked links.
+
+        Setting linkDelegationPolicy to DelegateAllLinks and using a slot bound
+        to linkClicked won't work correctly, because when in a frameset, we
+        have no idea in which frame the link should be opened.
+
+        Checks if it should open it in a tab (middle-click or control) or not,
+        and then opens the URL.
+
+        Args:
+            _frame: QWebFrame (target frame)
+            request: QNetworkRequest
+            typ: QWebPage::NavigationType
+        """
+        if typ != QWebPage.NavigationTypeLinkClicked:
+            return True
+        url = request.url()
+        urlstr = url.toDisplayString()
+        if not url.isValid():
+            message.error("Invalid link {} clicked!".format(urlstr))
+            log.webview.debug(url.errorString())
+            return False
+        if self._view.open_target == ClickTarget.tab:
+            self._view.tabbedbrowser.tabopen(url, False)
+            return False
+        elif self._view.open_target == ClickTarget.tab_bg:
+            self._view.tabbedbrowser.tabopen(url, True)
+            return False
+        else:
+            self.change_title.emit(urlstr)
+            return True
