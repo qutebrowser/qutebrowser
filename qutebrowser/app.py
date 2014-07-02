@@ -362,7 +362,7 @@ class Application(QApplication):
         self.modeman.entered.connect(status.on_mode_entered)
         self.modeman.left.connect(status.on_mode_left)
         self.modeman.left.connect(status.cmd.on_mode_left)
-        self.modeman.left.connect(status.prompt.on_mode_left)
+        self.modeman.left.connect(status.prompt.prompter.on_mode_left)
 
         # commands
         cmd.got_cmd.connect(self.commandmanager.run_safely)
@@ -384,8 +384,8 @@ class Application(QApplication):
         self.messagebridge.s_info.connect(status.disp_temp_text)
         self.messagebridge.s_set_text.connect(status.set_text)
         self.messagebridge.s_set_cmd_text.connect(cmd.set_cmd_text)
-        self.messagebridge.s_question.connect(status.prompt.ask_question,
-                                              Qt.DirectConnection)
+        self.messagebridge.s_question.connect(
+            status.prompt.prompter.ask_question, Qt.DirectConnection)
 
         # config
         self.config.style_changed.connect(style.invalidate_caches)
