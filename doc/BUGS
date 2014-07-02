@@ -28,9 +28,6 @@ Bugs
 
 - foo@bar:baz.com  is handled as search term
 
-- Handle it correctly when a new statusbar question is asked while another is
-  still active. (see notes)
-
 - Ugly font rendering on Windows on http://support.sigasi.com/Knowledgebase/List
 
 - On doodle, when modifying something on http://doodle.com/create and clicking
