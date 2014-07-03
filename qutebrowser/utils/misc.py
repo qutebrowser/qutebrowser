@@ -353,8 +353,61 @@ def key_to_string(key):
     Return:
         A name of the key as a string.
     """
-    name = QKeySequence(key).toString().replace("Backtab", "Tab")
-    return name
+    special_names = {
+        # Some keys handled in a weird way by QKeySequence::toString.
+        # See https://bugreports.qt-project.org/browse/QTBUG-40030
+        # Most are unlikely to be ever needed, but you never know ;)
+        # For dead/combining keys, we return the corresponding non-combining
+        # key, as that's easier to add to the config.
+        Qt.Key_Blue: 'Blue',
+        Qt.Key_Calendar: 'Calendar',
+        Qt.Key_ChannelDown: 'Channel Down',
+        Qt.Key_ChannelUp: 'Channel Up',
+        Qt.Key_ContrastAdjust: 'Contrast Adjust',
+        Qt.Key_Dead_Abovedot: '˙',
+        Qt.Key_Dead_Abovering: '˚',
+        Qt.Key_Dead_Acute: '´',
+        Qt.Key_Dead_Belowdot: 'Belowdot',
+        Qt.Key_Dead_Breve: '˘',
+        Qt.Key_Dead_Caron: 'ˇ',
+        Qt.Key_Dead_Cedilla: '¸',
+        Qt.Key_Dead_Circumflex: '^',
+        Qt.Key_Dead_Diaeresis: '¨',
+        Qt.Key_Dead_Doubleacute: '˝',
+        Qt.Key_Dead_Grave: '`',
+        Qt.Key_Dead_Hook: 'Hook',
+        Qt.Key_Dead_Horn: 'Horn',
+        Qt.Key_Dead_Iota: 'Iota',
+        Qt.Key_Dead_Macron: '¯',
+        Qt.Key_Dead_Ogonek: '˛',
+        Qt.Key_Dead_Semivoiced_Sound: 'Semivoiced Sound',
+        Qt.Key_Dead_Tilde: '~',
+        Qt.Key_Dead_Voiced_Sound: 'Voiced Sound',
+        Qt.Key_Exit: 'Exit',
+        Qt.Key_Green: 'Green',
+        Qt.Key_Guide: 'Guide',
+        Qt.Key_Info: 'Info',
+        Qt.Key_LaunchG: 'LaunchG',
+        Qt.Key_LaunchH: 'LaunchH',
+        Qt.Key_MediaLast: 'MediaLast',
+        Qt.Key_Memo: 'Memo',
+        Qt.Key_MicMute: 'Mic Mute',
+        Qt.Key_Mode_switch: 'Mode switch',
+        Qt.Key_Multi_key: 'Multi key',
+        Qt.Key_PowerDown: 'Power Down',
+        Qt.Key_Red: 'Red',
+        Qt.Key_Settings: 'Settings',
+        Qt.Key_SingleCandidate: 'Single Candidate',
+        Qt.Key_ToDoList: 'Todo List',
+        Qt.Key_TouchpadOff: 'Touchpad Off',
+        Qt.Key_TouchpadOn: 'Touchpad On',
+        Qt.Key_TouchpadToggle: 'Touchpad toggle',
+        Qt.Key_Yellow: 'Yellow',
+    }
+    try:
+        return special_names[key]
+    except KeyError:
+        return QKeySequence(key).toString().replace("Backtab", "Tab")
 
 
 def keyevent_to_string(e):
@@ -375,7 +428,8 @@ def keyevent_to_string(e):
     }
     modifiers = (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
                  Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R,
-                 Qt.Key_Hyper_L, Qt.Key_Hyper_R)
+                 Qt.Key_Hyper_L, Qt.Key_Hyper_R, Qt.Key_Direction_L,
+                 Qt.Key_Direction_R)
     if e.key() in modifiers:
         # Only modifier pressed
         return None
