@@ -29,8 +29,8 @@ from urllib.parse import urljoin, urlencode
 from functools import reduce
 
 import rfc6266
-from PyQt5.QtCore import QCoreApplication, QStandardPaths
-from PyQt5.QtGui import QColor
+from PyQt5.QtCore import QCoreApplication, QStandardPaths, Qt
+from PyQt5.QtGui import QKeySequence, QColor
 from pkg_resources import resource_string
 
 import qutebrowser
@@ -342,3 +342,47 @@ def parse_content_disposition(reply):
     if not filename:
         filename = 'qutebrowser-download'
     return is_inline, os.path.basename(filename)
+
+
+def key_to_string(key):
+    """Convert a Qt::Key member to a meaningful name.
+
+    Args:
+        key: A Qt::Key member.
+
+    Return:
+        A name of the key as a string.
+    """
+    name = QKeySequence(key).toString().replace("Backtab", "Tab")
+    return name
+
+
+def keyevent_to_string(e):
+    """Convert a QKeyEvent to a meaningful name.
+
+    Args:
+        e: A QKeyEvent.
+
+    Return:
+        A name of the key (combination) as a string or
+        None if only modifiers are pressed..
+    """
+    modmask2str = {
+        Qt.ControlModifier: 'Ctrl',
+        Qt.AltModifier: 'Alt',
+        Qt.MetaModifier: 'Meta',
+        Qt.ShiftModifier: 'Shift'
+    }
+    modifiers = (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
+                 Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R,
+                 Qt.Key_Hyper_L, Qt.Key_Hyper_R)
+    if e.key() in modifiers:
+        # Only modifier pressed
+        return None
+    mod = e.modifiers()
+    parts = []
+    for (mask, s) in modmask2str.items():
+        if mod & mask:
+            parts.append(s)
+    parts.append(key_to_string(e.key()))
+    return '+'.join(parts)

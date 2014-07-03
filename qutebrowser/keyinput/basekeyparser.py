@@ -29,6 +29,7 @@ from PyQt5.QtGui import QKeySequence
 import qutebrowser.config.config as config
 from qutebrowser.utils.usertypes import enum, Timer
 from qutebrowser.utils.log import keyboard as logger
+from qutebrowser.utils.misc import keyevent_to_string
 
 
 class BaseKeyParser(QObject):
@@ -135,28 +136,11 @@ class BaseKeyParser(QObject):
         Return:
             True if event has been handled, False otherwise.
         """
-        modmask2str = {
-            Qt.ControlModifier: 'Ctrl',
-            Qt.AltModifier: 'Alt',
-            Qt.MetaModifier: 'Meta',
-            Qt.ShiftModifier: 'Shift'
-        }
-        modifiers = (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
-                     Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R,
-                     Qt.Key_Hyper_L, Qt.Key_Hyper_R)
-        if e.key() in modifiers:
-            # Only modifier pressed
-            return False
-        mod = e.modifiers()
-        modstr = ''
-        for (mask, s) in modmask2str.items():
-            if mod & mask:
-                modstr += s + '+'
-        keystr = QKeySequence(e.key()).toString().replace("Backtab", "Tab")
+        binding = keyevent_to_string(e)
         try:
-            cmdstr = self.special_bindings[modstr + keystr]
+            cmdstr = self.special_bindings[binding]
         except KeyError:
-            self._debug_log("No binding found for {}.".format(modstr + keystr))
+            self._debug_log("No binding found for {}.".format(binding))
             return False
         self.execute(cmdstr, self.Type.special)
         return True
