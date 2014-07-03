@@ -54,8 +54,6 @@ Bugs
 
 - restart sometimes abort()s on QApplication __init__ (V155)
 
-- Super key shows up as ៀ\udc53  in logs
-
 - Funky font rendering with tewi:
   http://a.pomf.se/ecgzlx.png
 

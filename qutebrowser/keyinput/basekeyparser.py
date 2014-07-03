@@ -141,7 +141,10 @@ class BaseKeyParser(QObject):
             Qt.MetaModifier: 'Meta',
             Qt.ShiftModifier: 'Shift'
         }
-        if e.key() in (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta):
+        modifiers = (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
+                     Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R,
+                     Qt.Key_Hyper_L, Qt.Key_Hyper_R)
+        if e.key() in modifiers:
             # Only modifier pressed
             return False
         mod = e.modifiers()
