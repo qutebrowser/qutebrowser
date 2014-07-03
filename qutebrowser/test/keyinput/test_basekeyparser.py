@@ -54,27 +54,6 @@ def setUpModule():
     basekeyparser.logger = Mock()
 
 
-class NormalizeTests(unittest.TestCase):
-
-    """Test _normalize_keystr method."""
-
-    def setUp(self):
-        self.kp = basekeyparser.BaseKeyParser()
-
-    def test_normalize(self):
-        """Test normalize with some strings."""
-        strings = (
-            ('Control+x', 'Ctrl+X'),
-            ('Windows+x', 'Meta+X'),
-            ('Mod1+x', 'Alt+X'),
-            ('Mod4+x', 'Meta+X'),
-            ('Control--', 'Ctrl+-'),
-            ('Windows++', 'Meta++'),
-        )
-        for orig, repl in strings:
-            self.assertEqual(self.kp._normalize_keystr(orig), repl, orig)
-
-
 class SplitCountTests(unittest.TestCase):
 
     """Test the _split_count method.

@@ -479,5 +479,23 @@ class FormatSizeTests(unittest.TestCase):
             self.assertEqual(utils.format_size(size, base=1000), out, size)
 
 
+class NormalizeTests(unittest.TestCase):
+
+    """Test _normalize_keystr method."""
+
+    def test_normalize(self):
+        """Test normalize with some strings."""
+        strings = (
+            ('Control+x', 'Ctrl+X'),
+            ('Windows+x', 'Meta+X'),
+            ('Mod1+x', 'Alt+X'),
+            ('Mod4+x', 'Meta+X'),
+            ('Control--', 'Ctrl+-'),
+            ('Windows++', 'Meta++'),
+        )
+        for orig, repl in strings:
+            self.assertEqual(utils.normalize_keystr(orig), repl, orig)
+
+
 if __name__ == '__main__':
     unittest.main()
