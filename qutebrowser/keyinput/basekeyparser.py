@@ -24,7 +24,6 @@ import string
 from functools import partial
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject
-from PyQt5.QtGui import QKeySequence
 
 import qutebrowser.config.config as config
 from qutebrowser.utils.usertypes import enum, Timer
@@ -122,7 +121,6 @@ class BaseKeyParser(QObject):
             keystr = keystr.replace(orig, repl)
         for mod in ('Ctrl', 'Meta', 'Alt', 'Shift'):
             keystr = keystr.replace(mod + '-', mod + '+')
-        keystr = QKeySequence(keystr).toString()
         return keystr
 
     def _handle_special_key(self, e):
