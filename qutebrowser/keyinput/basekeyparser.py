@@ -28,7 +28,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject
 import qutebrowser.config.config as config
 from qutebrowser.utils.usertypes import enum, Timer
 from qutebrowser.utils.log import keyboard as logger
-from qutebrowser.utils.misc import keyevent_to_string
+from qutebrowser.utils.misc import keyevent_to_string, normalize_keystr
 
 
 class BaseKeyParser(QObject):
@@ -101,27 +101,6 @@ class BaseKeyParser(QObject):
         """
         if self.do_log:
             logger.debug(message)
-
-    def _normalize_keystr(self, keystr):
-        """Normalize a keystring like Ctrl-Q to a keystring like Ctrl+Q.
-
-        Args:
-            keystr: The key combination as a string.
-
-        Return:
-            The normalized keystring.
-        """
-        replacements = (
-            ('Control', 'Ctrl'),
-            ('Windows', 'Meta'),
-            ('Mod1', 'Alt'),
-            ('Mod4', 'Meta'),
-        )
-        for (orig, repl) in replacements:
-            keystr = keystr.replace(orig, repl)
-        for mod in ('Ctrl', 'Meta', 'Alt', 'Shift'):
-            keystr = keystr.replace(mod + '-', mod + '+')
-        return keystr
 
     def _handle_special_key(self, e):
         """Handle a new keypress with special keys (<Foo>).
@@ -343,7 +322,7 @@ class BaseKeyParser(QObject):
             if not cmd:
                 continue
             elif key.startswith('<') and key.endswith('>'):
-                keystr = self._normalize_keystr(key[1:-1])
+                keystr = normalize_keystr(key[1:-1])
                 self.special_bindings[keystr] = cmd
             elif self._supports_chains:
                 self.bindings[key] = cmd

@@ -440,3 +440,25 @@ def keyevent_to_string(e):
             parts.append(s)
     parts.append(key_to_string(e.key()))
     return '+'.join(parts)
+
+
+def normalize_keystr(keystr):
+    """Normalize a keystring like Ctrl-Q to a keystring like Ctrl+Q.
+
+    Args:
+        keystr: The key combination as a string.
+
+    Return:
+        The normalized keystring.
+    """
+    replacements = (
+        ('Control', 'Ctrl'),
+        ('Windows', 'Meta'),
+        ('Mod1', 'Alt'),
+        ('Mod4', 'Meta'),
+    )
+    for (orig, repl) in replacements:
+        keystr = keystr.replace(orig, repl)
+    for mod in ('Ctrl', 'Meta', 'Alt', 'Shift'):
+        keystr = keystr.replace(mod + '-', mod + '+')
+    return keystr
