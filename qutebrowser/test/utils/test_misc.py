@@ -486,12 +486,12 @@ class NormalizeTests(unittest.TestCase):
     def test_normalize(self):
         """Test normalize with some strings."""
         strings = (
-            ('Control+x', 'Ctrl+X'),
-            ('Windows+x', 'Meta+X'),
-            ('Mod1+x', 'Alt+X'),
-            ('Mod4+x', 'Meta+X'),
-            ('Control--', 'Ctrl+-'),
-            ('Windows++', 'Meta++'),
+            ('Control+x', 'ctrl+x'),
+            ('Windows+x', 'meta+x'),
+            ('Mod1+x', 'alt+x'),
+            ('Mod4+x', 'meta+x'),
+            ('Control--', 'ctrl+-'),
+            ('Windows++', 'meta++'),
         )
         for orig, repl in strings:
             self.assertEqual(utils.normalize_keystr(orig), repl, orig)

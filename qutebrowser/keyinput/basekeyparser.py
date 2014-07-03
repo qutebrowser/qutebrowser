@@ -113,7 +113,7 @@ class BaseKeyParser(QObject):
         Return:
             True if event has been handled, False otherwise.
         """
-        binding = keyevent_to_string(e)
+        binding = keyevent_to_string(e).lower()
         try:
             cmdstr = self.special_bindings[binding]
         except KeyError:

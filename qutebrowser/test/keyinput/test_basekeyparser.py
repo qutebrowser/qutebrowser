@@ -117,12 +117,12 @@ class ReadConfigTests(unittest.TestCase):
                                          supports_chains=True)
         kp.read_config('test')
         self.assertIn('ccc', kp.bindings)
-        self.assertIn('Ctrl+A', kp.special_bindings)
+        self.assertIn('ctrl+a', kp.special_bindings)
         kp.read_config('test2')
         self.assertNotIn('ccc', kp.bindings)
-        self.assertNotIn('Ctrl+A', kp.special_bindings)
+        self.assertNotIn('ctrl+a', kp.special_bindings)
         self.assertIn('foo', kp.bindings)
-        self.assertIn('Ctrl+X', kp.special_bindings)
+        self.assertIn('ctrl+x', kp.special_bindings)
 
 
 class SpecialKeysTests(unittest.TestCase):

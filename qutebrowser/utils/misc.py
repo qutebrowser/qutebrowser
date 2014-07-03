@@ -461,4 +461,4 @@ def normalize_keystr(keystr):
         keystr = keystr.replace(orig, repl)
     for mod in ('Ctrl', 'Meta', 'Alt', 'Shift'):
         keystr = keystr.replace(mod + '-', mod + '+')
-    return keystr
+    return keystr.lower()
