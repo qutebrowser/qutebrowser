@@ -407,7 +407,15 @@ def key_to_string(key):
     try:
         return special_names[key]
     except KeyError:
-        return QKeySequence(key).toString().replace("Backtab", "Tab")
+        name = QKeySequence(key).toString().replace("Backtab", "Tab")
+        morphings = {
+            'Backtab': 'Tab',
+            'Esc': 'Escape',
+        }
+        if name in morphings:
+            return morphings[name]
+        else:
+            return name
 
 
 def keyevent_to_string(e):
