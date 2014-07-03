@@ -191,7 +191,7 @@ class BaseKeyParser(QObject):
         """
         txt = e.text()
         key = e.key()
-        self._debug_log("Got key: {} / text: '{}'".format(key, txt))
+        self._debug_log("Got key: 0x{:x} / text: '{}'".format(key, txt))
 
         if key == Qt.Key_Escape:
             self._debug_log("Escape pressed, discarding '{}'.".format(

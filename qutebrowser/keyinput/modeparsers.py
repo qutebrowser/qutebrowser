@@ -116,7 +116,8 @@ class HintKeyParser(CommandKeyParser):
             filter_hints: Emitted when filter string has changed.
             keystring_updated: Emitted when keystring has been changed.
         """
-        logger.debug("Got special key {} text {}".format(e.key(), e.text()))
+        logger.debug("Got special key 0x{:x} text {}".format(
+            e.key(), e.text()))
         if e.key() == Qt.Key_Backspace:
             logger.debug("Got backspace, mode {}, filtertext '{}', keystring "
                          "'{}'".format(LastPress[self._last_press],
