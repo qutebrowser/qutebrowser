@@ -21,6 +21,9 @@
 
 import os
 from contextlib import contextmanager
+from unittest.mock import Mock, create_autospec
+
+from PyQt5.QtGui import QKeyEvent
 
 
 @contextmanager
@@ -36,3 +39,12 @@ def environ_set_temp(name, value):
         os.environ[name] = oldval
     else:
         del os.environ[name]
+
+
+def fake_keyevent(key, modifiers=0, text=''):
+    """Generate a new fake QKeyPressEvent."""
+    mock = create_autospec(QKeyEvent, instance=True)
+    mock.key.return_value = key
+    mock.modifiers.return_value = modifiers
+    mock.text.return_value = text
+    return mock
