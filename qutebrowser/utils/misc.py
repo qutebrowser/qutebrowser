@@ -26,6 +26,7 @@ import shlex
 import os.path
 import urllib.request
 from urllib.parse import urljoin, urlencode
+from collections import OrderedDict
 from functools import reduce
 
 import rfc6266
@@ -428,12 +429,12 @@ def keyevent_to_string(e):
         A name of the key (combination) as a string or
         None if only modifiers are pressed..
     """
-    modmask2str = {
-        Qt.ControlModifier: 'Ctrl',
-        Qt.AltModifier: 'Alt',
-        Qt.MetaModifier: 'Meta',
-        Qt.ShiftModifier: 'Shift'
-    }
+    modmask2str = OrderedDict([
+        (Qt.ControlModifier, 'Ctrl'),
+        (Qt.AltModifier, 'Alt'),
+        (Qt.MetaModifier, 'Meta'),
+        (Qt.ShiftModifier, 'Shift'),
+    ])
     modifiers = (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
                  Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R,
                  Qt.Key_Hyper_L, Qt.Key_Hyper_R, Qt.Key_Direction_L,
