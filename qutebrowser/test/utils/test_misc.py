@@ -27,11 +27,11 @@ import os.path
 import subprocess
 from tempfile import mkdtemp
 
-from PyQt5.QtCore import QStandardPaths, QCoreApplication
+from PyQt5.QtCore import QStandardPaths, QCoreApplication, Qt
 from PyQt5.QtGui import QColor
 
 import qutebrowser.utils.misc as utils
-from qutebrowser.test.helpers import environ_set_temp
+from qutebrowser.test.helpers import environ_set_temp, fake_keyevent
 
 
 class ElidingTests(unittest.TestCase):
@@ -479,9 +479,72 @@ class FormatSizeTests(unittest.TestCase):
             self.assertEqual(utils.format_size(size, base=1000), out, size)
 
 
+class KeyToStringTests(unittest.TestCase):
+
+    """Test key_to_string."""
+
+    def test_unicode_garbage_keys(self):
+        """Test a special key where QKeyEvent::toString works incorrectly."""
+        self.assertEqual(utils.key_to_string(Qt.Key_Blue), 'Blue')
+
+    def test_backtab(self):
+        """Test if backtab is normalized to tab correctly."""
+        self.assertEqual(utils.key_to_string(Qt.Key_Backtab), 'Tab')
+
+    def test_escape(self):
+        """Test if escape is normalized to escape correctly."""
+        self.assertEqual(utils.key_to_string(Qt.Key_Escape), 'Escape')
+
+    def test_letter(self):
+        """Test a simple letter key."""
+        self.assertEqual(utils.key_to_string(Qt.Key_A), 'A')
+
+    def test_unicode(self):
+        """Test a printable unicode key."""
+        self.assertEqual(utils.key_to_string(Qt.Key_degree), '°')
+
+    def test_special(self):
+        """Test a non-printable key handled by QKeyEvent::toString."""
+        self.assertEqual(utils.key_to_string(Qt.Key_F1), 'F1')
+
+
+class KeyEventToStringTests(unittest.TestCase):
+
+    """Test keyevent_to_string."""
+
+    def test_only_control(self):
+        """Test keyeevent when only control is pressed."""
+        evt = fake_keyevent(key=Qt.Key_Control, modifiers=Qt.ControlModifier)
+        self.assertIsNone(utils.keyevent_to_string(evt))
+
+    def test_only_hyper_l(self):
+        """Test keyeevent when only Hyper_L is pressed."""
+        evt = fake_keyevent(key=Qt.Key_Hyper_L, modifiers=Qt.MetaModifier)
+        self.assertIsNone(utils.keyevent_to_string(evt))
+
+    def test_only_key(self):
+        """Test with a simple key pressed."""
+        evt = fake_keyevent(key=Qt.Key_A)
+        self.assertEqual(utils.keyevent_to_string(evt), 'A')
+
+    def test_key_and_modifier(self):
+        """Test with key and modifier pressed."""
+        evt = fake_keyevent(key=Qt.Key_A, modifiers=Qt.ControlModifier)
+        self.assertEqual(utils.keyevent_to_string(evt), 'Ctrl+A')
+
+    def test_key_and_modifiers(self):
+        """Test with key and multiple modifier pressed."""
+        evt = fake_keyevent(key=Qt.Key_A, modifiers=Qt.ControlModifier |
+                                                    Qt.AltModifier |
+                                                    Qt.MetaModifier |
+                                                    Qt.ShiftModifier)
+        self.assertEqual(utils.keyevent_to_string(evt),
+                         'Ctrl+Alt+Meta+Shift+A')
+
+
 class NormalizeTests(unittest.TestCase):
 
-    """Test _normalize_keystr method."""
+    """Test normalize_keystr."""
 
     def test_normalize(self):
         """Test normalize with some strings."""
