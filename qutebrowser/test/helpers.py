@@ -21,7 +21,7 @@
 
 import os
 from contextlib import contextmanager
-from unittest.mock import Mock, create_autospec
+from unittest.mock import create_autospec
 
 from PyQt5.QtGui import QKeyEvent
 

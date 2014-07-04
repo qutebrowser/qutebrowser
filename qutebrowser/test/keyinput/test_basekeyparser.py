@@ -22,7 +22,7 @@
 """Tests for BaseKeyParser."""
 
 import unittest
-from unittest.mock import Mock, create_autospec, patch
+from unittest.mock import Mock, patch
 
 import qutebrowser.keyinput.basekeyparser as basekeyparser
 from qutebrowser.test.stubs import ConfigStub
@@ -143,7 +143,7 @@ class SpecialKeysTests(unittest.TestCase):
     def test_invalid_key(self):
         """Test an invalid special keyevent."""
         self.kp.handle(fake_keyevent(Qt.Key_A, (Qt.ControlModifier |
-                                                 Qt.AltModifier)))
+                                                Qt.AltModifier)))
         self.assertFalse(self.kp.execute.called)
 
     def test_keychain(self):
@@ -182,7 +182,7 @@ class KeyChainTests(unittest.TestCase):
     def test_invalid_special_key(self):
         """Test invalid special key."""
         self.kp.handle(fake_keyevent(Qt.Key_A, (Qt.ControlModifier |
-                                                 Qt.AltModifier)))
+                                                Qt.AltModifier)))
         self.assertFalse(self.kp.execute.called)
         self.assertEqual(self.kp._keystring, '')
 

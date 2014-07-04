@@ -534,10 +534,9 @@ class KeyEventToStringTests(unittest.TestCase):
 
     def test_key_and_modifiers(self):
         """Test with key and multiple modifier pressed."""
-        evt = fake_keyevent(key=Qt.Key_A, modifiers=Qt.ControlModifier |
-                                                    Qt.AltModifier |
-                                                    Qt.MetaModifier |
-                                                    Qt.ShiftModifier)
+        evt = fake_keyevent(key=Qt.Key_A,
+                            modifiers=(Qt.ControlModifier | Qt.AltModifier |
+                                       Qt.MetaModifier | Qt.ShiftModifier))
         self.assertEqual(utils.keyevent_to_string(evt),
                          'Ctrl+Alt+Meta+Shift+A')
 
