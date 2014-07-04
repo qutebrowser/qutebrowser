@@ -1,8 +1,6 @@
 Bugs
 ====
 
-- Rapid hinting exits hinting mode
-
 - Concept of "current URL" should work better before urlChanged is emitted,
   e.g. loading a page and immediately yanking the (non-resolved) URL should
   work.
