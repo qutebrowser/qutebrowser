@@ -148,8 +148,6 @@ class NetworkManager(QNetworkAccessManager):
                 # currency on http://ch.mouser.com/localsites/
                 #
                 # See http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034420.html
-                #
-                # FIXME: Check if this is really fixed in 5.3.1.
                 with log.disable_qt_msghandler():
                     reply = super().createRequest(op, req, outgoing_data)
             else:

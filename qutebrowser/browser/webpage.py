@@ -66,10 +66,8 @@ class BrowserPage(QWebPage):
         self._view = view
 
         if PYQT_VERSION > 0x050300:
-            # This breaks in <= 5.3.0, but in anything later it hopefully
-            # works.
-            # FIXME confirm this as soon as 5.3.1 is out!
-            # pylint: disable=invalid-name
+            # This is broken in Qt <= 5.3.0.
+            # See http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034385.html
             self.javaScriptPrompt = self._javascript_prompt
 
     def _javascript_prompt(self, _frame, msg, default):

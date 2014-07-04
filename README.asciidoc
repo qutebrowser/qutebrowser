@@ -28,10 +28,10 @@ Requirements
 The following software and libraries are required to run qutebrowser:
 
 * http://www.python.org/[Python] 3.3 or newer (3.4 recommended)
-* http://qt-project.org/[Qt] 5.2 or newer (5.3 recommended)
+* http://qt-project.org/[Qt] 5.2 or newer (5.3.1 recommended)
 * QtWebKit
-* http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.2 or newer (5.3
-  recommended) for Python 3
+* http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.2 or newer
+(5.3.1 recommended) for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
 
 The following libraries are optional and provide better debugging:
