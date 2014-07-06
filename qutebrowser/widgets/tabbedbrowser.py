@@ -167,6 +167,7 @@ class TabbedBrowser(TabWidget):
         tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)
         tab.hintmanager.download_get.connect(self.download_get)
         tab.hintmanager.openurl.connect(self.openurl)
+        self.cur_load_started.connect(self.on_cur_load_started)
         # downloads
         tab.page().unsupportedContent.connect(self.start_download)
         tab.page().start_download.connect(self.start_download)
@@ -356,6 +357,12 @@ class TabbedBrowser(TabWidget):
             log.webview.debug("Got invalid tab {}!".format(tab))
             return
         self.setTabIcon(idx, EmptyTabIcon())
+
+    @pyqtSlot()
+    def on_cur_load_started(self):
+        """Leave insert/hint mode when loading started."""
+        for mode in ('insert', 'hint'):
+            modeman.maybe_leave(mode, 'load started')
 
     @pyqtSlot(WebView, str)
     def on_title_changed(self, tab, text):

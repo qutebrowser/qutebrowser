@@ -367,8 +367,6 @@ class WebView(QWebView):
     @pyqtSlot()
     def on_load_started(self):
         """Leave insert/hint mode and set vars when a new page is loading."""
-        for mode in ('insert', 'hint'):
-            modeman.maybe_leave(mode, 'load started')
         self.progress = 0
         self._has_ssl_errors = False
         self.load_status = LoadStatus.loading

@@ -127,8 +127,8 @@ def fix_harfbuzz(args):
       https://bugreports.qt-project.org/browse/QTBUG-39278
       So the new engine will be more stable.
 
-    - On Qt 5.3.1 this bug hopefully will be fixed and the old engine
-      will be the more stable one again.
+    - On Qt 5.3.1 this bug is fixed and the old engine will be the more stable
+      one again.
 
     IMPORTANT: This needs to be done before QWidgets is imported in any way!
 
