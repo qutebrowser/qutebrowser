@@ -74,8 +74,8 @@ options = {
 
 if os.name == 'nt':
     # pep257 uses cp1252 by default on Windows, which can't handle the unicode
-    # arrows in configdata.py
-    options['exclude_pep257'].append('configdata.py')
+    # chars in some files.
+    options['exclude_pep257'] += ['configdata.py', 'misc.py']
 
 
 def run(name, target=None, args=None):
