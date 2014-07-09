@@ -6,6 +6,8 @@ Before 0.1
     - Manpage
     - Website
     - FAQ
+- Fix shutdown
+- Single-instance and multi-window
 - Tests for URL detection and fix corner cases
 - Maybe test under other platforms
 - Autosave feature (against segfaults/...)
