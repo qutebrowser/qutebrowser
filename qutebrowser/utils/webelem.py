@@ -40,10 +40,10 @@ Group = enum('all', 'links', 'images', 'editable', 'url', 'prevnext_rel',
 
 
 SELECTORS = {
-    Group.all: ('a, textarea, select, input:not([type=hidden]), button, '
+    Group.all: ('a, area, textarea, select, input:not([type=hidden]), button, '
                 'frame, iframe, [onclick], [onmousedown], [role=link], '
                 '[role=option], [role=button], img'),
-    Group.links: 'a',
+    Group.links: 'a, area, link',
     Group.images: 'img',
     # This doesn't contain all the groups where we should switch to insert mode
     # - it is just used when opening the external editor.
@@ -56,8 +56,8 @@ SELECTORS = {
                              'input[type=search]:focus, '
                              'textarea:focus'),
     Group.url: '[src], [href]',
-    Group.prevnext_rel: 'link, [role=link]',
-    Group.prevnext: 'a, button, [role=button]',
+    Group.prevnext_rel: 'a, area, link, [role=link]',
+    Group.prevnext: 'a, area, button, [role=button]',
 }
 
 FILTERS = {

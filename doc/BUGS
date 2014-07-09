@@ -5,8 +5,6 @@ Bugs
   e.g. loading a page and immediately yanking the (non-resolved) URL should
   work.
 
-- page-forward clicks "Newest" on http://explosm.net/ instead of "Next".
-
 - seir sometimes sees "-- COMMAND MODE --" even though that should never
   happen.
 

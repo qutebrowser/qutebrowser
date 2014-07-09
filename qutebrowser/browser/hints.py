@@ -375,7 +375,7 @@ class HintManager(QObject):
             return None
         for regex in config.get('hints', option):
             for e in elems:
-                if regex.match(e.toPlainText()):
+                if regex.search(e.toPlainText()):
                     return e
         return None
 
