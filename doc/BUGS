@@ -1,6 +1,8 @@
 Bugs
 ====
 
+- Downloading albums on imgur gives us corrupt files!
+
 - Concept of "current URL" should work better before urlChanged is emitted,
   e.g. loading a page and immediately yanking the (non-resolved) URL should
   work.
@@ -85,6 +87,23 @@ Bugs
 - When tabbar -> scroll-buttons is disabled and there are too many tabs, the
   window has a bigger size hint instead of tabs getting smaller than the
   minimum size (iggy)
+
+- Segfault on subsonic when clicking next track
+
+- Assertion failure on subsonic with debug build
+
+- Random error messages while browsing on imgur/reddit:
+
+  WARNING: content-type missing in HTTP POST, defaulting to
+  application/x-www-form-urlencoded. Use QNetworkRequest::setHeader() to fix
+  this problem.
+
+  WARNING: QXcbWindow: Unhandled client message: "_GTK_LOAD_ICONTHEMES"
+
+  INFO: Lexer rewriter used, but no tokens found.
+
+  WARNING: QIODevice::read: device not open
+
 
 Upstream Bugs
 =============
