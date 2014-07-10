@@ -52,6 +52,8 @@ Downloads
 Improvements / minor features
 =============================
 
+- "go up in the URL path" mapped to gu for example [egan]
+- command which closes other tabs in a direction [egan]
 - Distinction between :q and :wq, add ZZ and ZQ shortcuts.
 - set_toggle to toggle setting between two states
 - Customizable statusbar
