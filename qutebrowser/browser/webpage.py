@@ -20,8 +20,7 @@
 """The main browser widgets."""
 
 import sip
-from PyQt5.QtCore import (QCoreApplication, pyqtSignal, pyqtSlot, PYQT_VERSION,
-                          Qt)
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, PYQT_VERSION, Qt
 from PyQt5.QtNetwork import QNetworkReply
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtPrintSupport import QPrintDialog
@@ -30,6 +29,7 @@ from PyQt5.QtWebKitWidgets import QWebPage
 import qutebrowser.utils.message as message
 import qutebrowser.config.config as config
 import qutebrowser.utils.log as log
+from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.utils.misc import read_file
 from qutebrowser.utils.qt import check_print_compat
 from qutebrowser.utils.usertypes import PromptMode, ClickTarget
@@ -42,7 +42,7 @@ class BrowserPage(QWebPage):
     Attributes:
         _extension_handlers: Mapping of QWebPage extensions to their handlers.
         _view: The QWebView associated with this page.
-        network_access_manager: The QNetworkAccessManager used.
+        _networkmnager: The NetworkManager used.
 
     Signals:
         start_download: Emitted when a file should be downloaded.
@@ -58,8 +58,8 @@ class BrowserPage(QWebPage):
             QWebPage.ErrorPageExtension: self._handle_errorpage,
             QWebPage.ChooseMultipleFilesExtension: self._handle_multiple_files,
         }
-        self.setNetworkAccessManager(
-            QCoreApplication.instance().networkmanager)
+        self._networkmanager = NetworkManager(self)
+        self.setNetworkAccessManager(self._networkmanager)
         self.setForwardUnsupportedContent(True)
         self.printRequested.connect(self.on_print_requested)
         self.downloadRequested.connect(self.on_download_requested)
@@ -70,6 +70,12 @@ class BrowserPage(QWebPage):
             # See http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034385.html
             # pylint: disable=invalid-name
             self.javaScriptPrompt = self._javascript_prompt
+
+    def shutdown(self,):
+        """Shutdown the page."""
+        self._networkmanager.abort_requests()
+        self._networkmanager.destroyed.connect(self.deleteLater)
+        self._networkmanager.deleteLater()
 
     def _javascript_prompt(self, _frame, msg, default):
         """Override javaScriptPrompt to use the statusbar.

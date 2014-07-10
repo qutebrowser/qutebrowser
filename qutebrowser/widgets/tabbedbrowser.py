@@ -91,7 +91,7 @@ class TabbedBrowser(TabWidget):
     cur_scroll_perc_changed = pyqtSignal(int, int)
     cur_load_status_changed = pyqtSignal(str)
     start_download = pyqtSignal('QNetworkReply*')
-    download_get = pyqtSignal('QUrl')
+    download_get = pyqtSignal('QUrl', 'QWebPage')
     hint_strings_updated = pyqtSignal(list)
     shutdown_complete = pyqtSignal()
     quit = pyqtSignal()

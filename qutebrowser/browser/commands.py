@@ -698,7 +698,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def download_page(self):
         """Download the current page."""
-        self._tabs.download_get.emit(self._current_url())
+        page = self._tabs.currentWidget().page()
+        self._tabs.download_get.emit(self._current_url(), page)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', modes=['insert'],
                        hide=True)

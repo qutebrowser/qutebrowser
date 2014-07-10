@@ -339,7 +339,7 @@ class WebView(QWebView):
         self._destroyed[self.page()] = False
         self.page().destroyed.connect(functools.partial(self._on_destroyed,
                                                         self.page()))
-        self.page().deleteLater()
+        self.page().shutdown()
 
         self._destroyed[self] = False
         self.destroyed.connect(functools.partial(self._on_destroyed, self))

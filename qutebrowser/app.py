@@ -45,7 +45,6 @@ import qutebrowser.utils.log as log
 import qutebrowser.utils.version as version
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.message as message
-from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.config.config import ConfigManager
 from qutebrowser.keyinput.modeman import ModeManager
 from qutebrowser.widgets.mainwindow import MainWindow
@@ -78,7 +77,6 @@ class Application(QApplication):
         cmd_history: The "cmd_history" LineConfigParser instance.
         messagebridge: The global MessageBridge instance.
         modeman: The global ModeManager instance.
-        networkmanager: The global NetworkManager instance.
         cookiejar: The global CookieJar instance.
         rl_bridge: The ReadlineBridge being used.
         args: ArgumentParser instance.
@@ -106,7 +104,6 @@ class Application(QApplication):
         self._quit_status = {
             'crash': True,
             'tabs': False,
-            'networkmanager': False,
             'main': False,
         }
         self._timers = []
@@ -141,8 +138,6 @@ class Application(QApplication):
         proxy.init()
         log.init.debug("Initializing cookies...")
         self.cookiejar = CookieJar(self)
-        log.init.debug("Initializing NetworkManager...")
-        self.networkmanager = NetworkManager(self.cookiejar)
         log.init.debug("Initializing commands...")
         self.commandmanager = CommandManager()
         log.init.debug("Initializing search...")
@@ -681,16 +676,6 @@ class Application(QApplication):
             log.destroy.warning("No mainwindow/tabs to shut down ({}).".format(
                 e))
             self._maybe_quit('tabs')
-        # Shut down networkmanager
-        try:
-            self.networkmanager.abort_requests()
-            self.networkmanager.destroyed.connect(partial(
-                self._maybe_quit, 'networkmanager'))
-            self.networkmanager.deleteLater()
-        except AttributeError as e:
-            log.destroy.warning("No networkmanager to shut down ({}).".format(
-                e))
-            self._maybe_quit('networkmanager')
         # Re-enable faulthandler to stdout, then remove crash log
         self._destroy_crashlogfile()
         # If we don't kill our custom handler here we might get segfaults

@@ -19,7 +19,7 @@
 
 """Our own QNetworkAccessManager."""
 
-from PyQt5.QtCore import pyqtSlot, PYQT_VERSION
+from PyQt5.QtCore import pyqtSlot, PYQT_VERSION, QCoreApplication
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply
 
 try:
@@ -54,8 +54,12 @@ class NetworkManager(QNetworkAccessManager):
         self._scheme_handlers = {
             'qute': QuteSchemeHandler(),
         }
-        if cookiejar is not None:
-            self.setCookieJar(cookiejar)
+        cookiejar = QCoreApplication.instance().cookiejar
+        parent = cookiejar.parent()
+        self.setCookieJar(cookiejar)
+        # We have a shared cookie jar, so we don't want the NetworkManager to
+        # take ownership of the CookieJar.
+        cookiejar.setParent(parent)
         if SSL_AVAILABLE:
             self.sslErrors.connect(self.on_ssl_errors)
         self.authenticationRequired.connect(self.on_authentication_required)

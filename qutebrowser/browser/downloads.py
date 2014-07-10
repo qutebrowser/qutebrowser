@@ -24,8 +24,7 @@ import os.path
 from functools import partial
 from collections import deque
 
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QCoreApplication,
-                          QTimer)
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
 import qutebrowser.config.config as config
@@ -342,16 +341,17 @@ class DownloadManager(QObject):
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
 
-    @pyqtSlot('QUrl')
-    def get(self, url):
+    @pyqtSlot('QUrl', 'QWebPage')
+    def get(self, url, page):
         """Start a download with a link URL.
 
         Args:
             url: The URL to get, as QUrl
+            page: The QWebPage to get the download from.
         """
         qt_ensure_valid(url)
         req = QNetworkRequest(url)
-        reply = QCoreApplication.instance().networkmanager.get(req)
+        reply = page.networkAccessManager().get(req)
         self.fetch(reply)
 
     @cmdutils.register(instance='downloadmanager')

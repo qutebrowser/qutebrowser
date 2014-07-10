@@ -91,7 +91,8 @@ class HintManager(QObject):
                  arg 1: True if it should be opened in a new tab, else False.
         set_open_target: Set a new target to open the links in.
         download_get: Download an URL.
-                      arg: The URL to download, as QUrl.
+                      arg 0: The URL to download, as QUrl.
+                      arg 1: The QWebPage to download the URL in.
     """
 
     HINT_CSS = """
@@ -125,7 +126,7 @@ class HintManager(QObject):
     mouse_event = pyqtSignal('QMouseEvent')
     openurl = pyqtSignal('QUrl', bool)
     set_open_target = pyqtSignal(str)
-    download_get = pyqtSignal('QUrl')
+    download_get = pyqtSignal('QUrl', 'QWebPage')
 
     def __init__(self, parent=None):
         """Constructor.
@@ -327,14 +328,19 @@ class HintManager(QObject):
         message.set_cmd_text(':{} {}'.format(commands[self._context.target],
                                              urlstr))
 
-    def _download(self, url):
+    def _download(self, elem):
         """Download a hint URL.
 
         Args:
-            url: The URL to download, as a QUrl.
+            elem: The QWebElement to download.
         """
+        url = self._resolve_url(elem)
+        if url is None:
+            message.error("No suitable link found for this element.",
+                          immediately=True)
+            return
         qt_ensure_valid(url)
-        self.download_get.emit(url)
+        self.download_get.emit(url, elem.webFrame().page())
 
     def _resolve_url(self, elem, baseurl=None):
         """Resolve a URL and check if we want to keep it.
@@ -516,6 +522,8 @@ class HintManager(QObject):
             Target.tab: self._click,
             Target.tab_bg: self._click,
             Target.rapid: self._click,
+            # _download needs a QWebElement to get the frame.
+            Target.download: self._download,
         }
         # Handlers which take a QUrl
         url_handlers = {
@@ -524,7 +532,6 @@ class HintManager(QObject):
             Target.cmd: self._preset_cmd_text,
             Target.cmd_tab: self._preset_cmd_text,
             Target.cmd_tab_bg: self._preset_cmd_text,
-            Target.download: self._download,
         }
         elem = self._context.elems[keystr].elem
         if self._context.target in elem_handlers:
