@@ -224,6 +224,23 @@ class ConfigManager(QObject):
                     e.option = k
                     raise
 
+    def items(self, sectname, raw=True):
+        """Get a list of (optname, value) tuples for a section.
+
+        Implemented for configparser interpolation compatbility.
+
+        Args:
+            sectname: The name of the section to get.
+            raw: Whether to get raw values. Note this parameter only exists
+                 for ConfigParser compatibility and raw=False is not supported.
+        """
+        items = []
+        if not raw:
+            raise ValueError("items() with raw=True is not implemented!")
+        for optname, option in self.sections[sectname].items():
+            items.append((optname, option.value))
+        return items
+
     def has_option(self, sectname, optname):
         """Check if option exists in section.
 
