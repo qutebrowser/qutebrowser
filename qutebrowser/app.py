@@ -185,6 +185,7 @@ class Application(QApplication):
                 configparser.DuplicateSectionError,
                 configparser.DuplicateOptionError,
                 configparser.ParsingError) as e:
+            log.init.exception(e)
             errstr = "Error while reading config:"
             if hasattr(e, 'section') and hasattr(e, 'option'):
                 errstr += "\n\n{} -> {}:".format(e.section, e.option)
