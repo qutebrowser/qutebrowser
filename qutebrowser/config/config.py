@@ -71,6 +71,13 @@ class NoOptionError(configparser.NoOptionError):
     pass
 
 
+class InterpolationSyntaxError(ValueError):
+
+    """Exception raised when configparser interpolation raised an error."""
+
+    pass
+
+
 class ConfigManager(QObject):
 
     """Configuration manager for qutebrowser.
@@ -361,7 +368,11 @@ class ConfigManager(QObject):
             changed: If the config was changed.
             style_changed: When style caches need to be invalidated.
         """
-        value = self._interpolation.before_set(self, sectname, optname, value)
+        try:
+            value = self._interpolation.before_set(self, sectname, optname,
+                                                   value)
+        except ValueError as e:
+            raise InterpolationSyntaxError(e)
         try:
             sect = self.sections[sectname]
         except KeyError:
