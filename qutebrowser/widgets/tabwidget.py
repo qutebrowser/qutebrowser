@@ -19,7 +19,7 @@
 
 """The tab widget used for TabbedBrowser from browser.py."""
 
-from PyQt5.QtCore import pyqtSlot, Qt, QSize
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize
 from PyQt5.QtWidgets import QTabWidget, QTabBar, QSizePolicy
 from PyQt5.QtGui import QIcon, QPixmap
 
@@ -121,7 +121,18 @@ class TabWidget(QTabWidget):
 
 class TabBar(QTabBar):
 
-    """Custom tabbar to close tabs on right click."""
+    """Custom tabbar to close tabs on right click.
+
+    Signals:
+        tab_rightclicked: Emitted when a tab was right-clicked and should be
+                          closed. We use this rather than tabCloseRequested
+                          because tabCloseRequested is sometimes connected by
+                          Qt to the tabwidget and sometimes not, depending on
+                          if close buttons are enabled.
+                          arg: The tab index to be closed.
+    """
+
+    tab_rightclicked = pyqtSignal(int)
 
     def __repr__(self):
         return '<{} with {} tabs>'.format(self.__class__.__name__,
@@ -129,8 +140,7 @@ class TabBar(QTabBar):
 
     def mousePressEvent(self, e):
         """Override mousePressEvent to emit tabCloseRequested on rightclick."""
-        if (e.button() != Qt.RightButton or
-                not config.get('tabbar', 'close-on-right-click')):
+        if e.button() != Qt.RightButton:
             super().mousePressEvent(e)
             return
         idx = self.tabAt(e.pos())
@@ -138,7 +148,8 @@ class TabBar(QTabBar):
             super().mousePressEvent(e)
             return
         e.accept()
-        self.tabCloseRequested.emit(idx)
+        if config.get('tabbar', 'close-on-right-click'):
+            self.tab_rightclicked.emit(idx)
 
     def tabSizeHint(self, index):
         """Override tabSizeHint so all tabs are the same size.

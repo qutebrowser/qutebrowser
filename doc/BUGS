@@ -20,8 +20,6 @@ Bugs
 
 - The concept of "default keybindings always get added" is confusing.
 
-- tabbar -> close-on-right-click is broken
-
 - seir sometimes sees "-- COMMAND MODE --" even though that should never
   happen.
 
