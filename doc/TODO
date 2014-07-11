@@ -56,6 +56,8 @@ Improvements / minor features
 - command which closes other tabs in a direction [egan]
 - Distinction between :q and :wq, add ZZ and ZQ shortcuts.
 - set_toggle to toggle setting between two states
+- Small indicator on tab with a colored progress, like downloads (or maybe even
+  tab index and colored)
 - Customizable statusbar
 - Show size of widgets in __repr__
 - Ask whether to close when downloads are running or maybe if form fields are

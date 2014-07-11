@@ -18,19 +18,7 @@ Bugs
 
   egan │ This is accompanied by high CPU usage
 
-- Weird bugs when editing default keybindings:
-
-  egan │ posativ: No. It appears a little more complicated that that too. It
-  reverts some of my mappings to the default and some of them it duplicates so
-  that the default calls the same command as my mapping.
-
-  egan │ For the most part it seems like editing the default keybindings is
-  dysfunctional at this point. Some of my bindings are kept, but most are
-  reverted, duplicated, or just wrong (i.e. a key I bound to one command gets
-  rebound to a different command to which it was not originally bound).
-
-  egan │ The last part makes me think of an off-by-one error in lists. I'll
-  take a look at the code and see if I can see anything.
+- The concept of "default keybindings always get added" is confusing.
 
 - tabbar -> close-on-right-click is broken
 
