@@ -151,6 +151,25 @@ class TabBar(QTabBar):
         if config.get('tabbar', 'close-on-right-click'):
             self.tab_rightclicked.emit(idx)
 
+    def minimumTabSizeHint(self, index):
+        """Override minimumTabSizeHint because we want no hard minimum.
+
+        There are two problems with having a hard minimum tab size:
+        - When expanding is True, the window will expand without stopping
+          on some window managers.
+        - We don't want the main window to get bigger with many tabs. If
+          nothing else helps, we *do* want the tabs to get smaller instead
+          of enforcing a minimum window size.
+
+        Args:
+            index: The index of the tab to get a sizehint for.
+
+        Return:
+            A QSize.
+        """
+        height = super().tabSizeHint(index).height()
+        return QSize(1, height)
+
     def tabSizeHint(self, index):
         """Override tabSizeHint so all tabs are the same size.
 
