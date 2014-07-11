@@ -24,6 +24,8 @@ We might also use this to do more in the future.
 
 import functools
 
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QCommonStyle, QStyle
 
 
@@ -53,11 +55,10 @@ class Style(QCommonStyle):
         """
         self._style = style
         for method in ('drawComplexControl', 'drawControl', 'drawItemPixmap',
-                       'drawItemText', 'generatedIconPixmap',
-                       'hitTestComplexControl', 'itemPixmapRect',
-                       'itemTextRect', 'pixelMetric', 'polish', 'styleHint',
-                       'subControlRect', 'subElementRect', 'unpolish',
-                       'sizeFromContents'):
+                       'generatedIconPixmap', 'hitTestComplexControl',
+                       'itemPixmapRect', 'itemTextRect', 'pixelMetric',
+                       'polish', 'styleHint', 'subControlRect',
+                       'subElementRect', 'unpolish', 'sizeFromContents'):
             target = getattr(self._style, method)
             setattr(self, method, functools.partial(target))
         super().__init__()
@@ -77,3 +78,36 @@ class Style(QCommonStyle):
         if element == QStyle.PE_FrameFocusRect:
             return
         return self._style.drawPrimitive(element, option, painter, widget)
+
+    def drawItemText(self, painter, rectangle, alignment, palette, enabled,
+                     text, textRole=QPalette.NoRole):
+        """Extend QCommonStyle::drawItemText to not center-align text.
+
+        Since Qt hardcodes the text alignment for tabbar tabs in QCommonStyle,
+        we need to undo this here by deleting the flag again, and align left
+        instead.
+
+
+        Draws the given text in the specified rectangle using the provided
+        painter and palette.
+
+        The text is drawn using the painter's pen, and aligned and wrapped
+        according to the specified alignment. If an explicit textRole is
+        specified, the text is drawn using the palette's color for the given
+        role. The enabled parameter indicates whether or not the item is
+        enabled; when reimplementing this function, the enabled parameter
+        should influence how the item is drawn.
+
+        Args:
+            painter: QPainter *
+            rectangle: const QRect &
+            alignment int (Qt::Alignment)
+            palette: const QPalette &
+            enabled: bool
+            text: const QString &
+            textRole: QPalette::ColorRole textRole
+        """
+        alignment &=~ Qt.AlignHCenter
+        alignment |= Qt.AlignLeft
+        super().drawItemText(painter, rectangle, alignment, palette, enabled,
+                             text, textRole)
