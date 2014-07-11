@@ -52,6 +52,14 @@ Downloads
 Improvements / minor features
 =============================
 
+- We should use a different config file for keybindings for the following
+  reasons:
+
+  - Special chars in keychains make it hard to bind those.
+  - The concept of "default keys get re-added" is confusing when using
+    keychains as the left-hand-side. But when using it as the RHS, binding
+    multiple keybindings to the same command gets tricky.
+
 - "go up in the URL path" mapped to gu for example [egan]
 - command which closes other tabs in a direction [egan]
 - Distinction between :q and :wq, add ZZ and ZQ shortcuts.

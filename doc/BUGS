@@ -18,8 +18,6 @@ Bugs
 
   egan │ This is accompanied by high CPU usage
 
-- The concept of "default keybindings always get added" is confusing.
-
 - seir sometimes sees "-- COMMAND MODE --" even though that should never
   happen.
 
@@ -118,6 +116,11 @@ Bugs
   INFO: Lexer rewriter used, but no tokens found.
 
   WARNING: QIODevice::read: device not open
+
+- Random error message when closing/re-opening tab:
+
+  WARNING: Type conversion already registered from type QSharedPointer<QNetworkSession> to type QObject*
+
 
 
 Upstream Bugs
