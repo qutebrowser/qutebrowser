@@ -72,8 +72,6 @@ class TabWidget(QTabWidget):
             {color[tab.bg]}
             {color[tab.fg]}
             border-right: 2px solid {color[tab.seperator]};
-            min-width: {config[tabbar][min-tab-width]}px;
-            max-width: {config[tabbar][max-tab-width]}px;
             margin: 0px;
         }}
 
@@ -108,7 +106,6 @@ class TabWidget(QTabWidget):
         }
         self.setMovable(config.get('tabbar', 'movable'))
         self.setTabsClosable(config.get('tabbar', 'close-buttons'))
-        self.setUsesScrollButtons(config.get('tabbar', 'scroll-buttons'))
         posstr = config.get('tabbar', 'position')
         selstr = config.get('tabbar', 'select-on-remove')
         self.setTabPosition(position_conv[posstr])
@@ -177,11 +174,8 @@ class TabBar(QTabBar):
 
         https://wiki.python.org/moin/PyQt/Customising%20tab%20bars
         """
-        if config.get('tabbar', 'expand'):
-            height = super().tabSizeHint(index).height()
-            size = QSize(self.width() / self.count(), height)
-        else:
-            size = super().tabSizeHint(index)
+        height = super().tabSizeHint(index).height()
+        size = QSize(self.width() / self.count(), height)
         qt_ensure_valid(size)
         return size
 

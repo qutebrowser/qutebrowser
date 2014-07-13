@@ -409,10 +409,6 @@ DATA = OrderedDict([
          SettingValue(types.Bool(), 'false'),
          "Whether tabs should have close-buttons."),
 
-        ('scroll-buttons',
-         SettingValue(types.Bool(), 'true'),
-         "Whether there should be scroll buttons if there are too many tabs."),
-
         ('position',
          SettingValue(types.Position(), 'north'),
          "The position of the tab bar."),
@@ -429,22 +425,9 @@ DATA = OrderedDict([
          SettingValue(types.Bool(), 'true'),
          "Whether to wrap when changing tabs."),
 
-        ('min-tab-width',
-         SettingValue(types.Int(minval=1), '100'),
-         "The minimum width of a tab."),
-
-        ('max-tab-width',
-         SettingValue(types.Int(minval=1), '200'),
-         "The maximum width of a tab."),
-
         ('show-favicons',
          SettingValue(types.Bool(), 'true'),
          "Whether to show favicons in the tab bar."),
-
-        ('expand',
-         SettingValue(types.Bool(), 'false'),
-         "Whether to expand tabs to use the full window width."),
-
     )),
 
     ('storage', sect.KeyValue(
