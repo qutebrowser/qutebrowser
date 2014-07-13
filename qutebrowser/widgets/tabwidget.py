@@ -71,8 +71,15 @@ class TabWidget(QTabWidget):
         QTabBar::tab {{
             {color[tab.bg]}
             {color[tab.fg]}
-            border-right: 2px solid {color[tab.seperator]};
             margin: 0px;
+        }}
+
+        QTabBar::tab:first, QTabBar::tab:middle {{
+            border-right: 2px solid {color[tab.seperator]};
+        }}
+
+        QTabBar::tab:only-one {{
+            border-right: 0px;
         }}
 
         QTabBar::tab:selected {{
