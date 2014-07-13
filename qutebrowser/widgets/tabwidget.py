@@ -19,13 +19,15 @@
 
 """The tab widget used for TabbedBrowser from browser.py."""
 
+import functools
+
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize
-from PyQt5.QtWidgets import QTabWidget, QTabBar, QSizePolicy
-from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
+                             QStyle)
+from PyQt5.QtGui import QIcon, QPixmap, QPalette
 
 import qutebrowser.config.config as config
 from qutebrowser.config.style import set_register_stylesheet
-from qutebrowser.utils.style import Style
 from qutebrowser.utils.qt import qt_ensure_valid
 
 
@@ -84,7 +86,7 @@ class TabWidget(QTabWidget):
         super().__init__(parent)
         self.setTabBar(TabBar())
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.setStyle(Style(self.style()))
+        self.setStyle(TabWidgetStyle(self.style()))
         set_register_stylesheet(self)
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
@@ -182,3 +184,93 @@ class TabBar(QTabBar):
             size = super().tabSizeHint(index)
         qt_ensure_valid(size)
         return size
+
+
+class TabWidgetStyle(QCommonStyle):
+
+    """Qt style used by TabWidget to fix some issues with the default one.
+
+    This fixes the following things:
+        - Remove the focus rectangle Ubuntu draws on tabs.
+        - Force text to be left-aligned even though Qt has "centered"
+          hardcoded.
+
+    Unfortunately PyQt doesn't support QProxyStyle, so we need to do this the
+    hard way...
+
+    Based on:
+
+    http://stackoverflow.com/a/17294081
+    https://code.google.com/p/makehuman/source/browse/trunk/makehuman/lib/qtgui.py
+
+    Attributes:
+        _style: The base/"parent" style.
+    """
+
+    def __init__(self, style):
+        """Initialize all functions we're not overriding.
+
+        This simply calls the corresponding function in self._style.
+
+        Args:
+            style: The base/"parent" style.
+        """
+        self._style = style
+        for method in ('drawComplexControl', 'drawControl', 'drawItemPixmap',
+                       'generatedIconPixmap', 'hitTestComplexControl',
+                       'itemPixmapRect', 'itemTextRect', 'pixelMetric',
+                       'polish', 'styleHint', 'subControlRect',
+                       'subElementRect', 'unpolish', 'sizeFromContents'):
+            target = getattr(self._style, method)
+            setattr(self, method, functools.partial(target))
+        super().__init__()
+
+    def drawPrimitive(self, element, option, painter, widget=None):
+        """Override QCommonStyle.drawPrimitive.
+
+        Call the genuine drawPrimitive of self._style, except when a focus
+        rectangle should be drawn.
+
+        Args:
+            element: PrimitiveElement pe
+            option: const QStyleOption * opt
+            painter: QPainter * p
+            widget: const QWidget * widget
+        """
+        if element == QStyle.PE_FrameFocusRect:
+            return
+        return self._style.drawPrimitive(element, option, painter, widget)
+
+    def drawItemText(self, painter, rectangle, alignment, palette, enabled,
+                     text, textRole=QPalette.NoRole):
+        """Extend QCommonStyle::drawItemText to not center-align text.
+
+        Since Qt hardcodes the text alignment for tabbar tabs in QCommonStyle,
+        we need to undo this here by deleting the flag again, and align left
+        instead.
+
+
+        Draws the given text in the specified rectangle using the provided
+        painter and palette.
+
+        The text is drawn using the painter's pen, and aligned and wrapped
+        according to the specified alignment. If an explicit textRole is
+        specified, the text is drawn using the palette's color for the given
+        role. The enabled parameter indicates whether or not the item is
+        enabled; when reimplementing this function, the enabled parameter
+        should influence how the item is drawn.
+
+        Args:
+            painter: QPainter *
+            rectangle: const QRect &
+            alignment int (Qt::Alignment)
+            palette: const QPalette &
+            enabled: bool
+            text: const QString &
+            textRole: QPalette::ColorRole textRole
+        """
+        # pylint: disable=invalid-name
+        alignment &= ~Qt.AlignHCenter
+        alignment |= Qt.AlignLeft
+        super().drawItemText(painter, rectangle, alignment, palette, enabled,
+                             text, textRole)
