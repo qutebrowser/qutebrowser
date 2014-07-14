@@ -324,7 +324,7 @@ class TabBarStyle(QCommonStyle):
             text_rect.adjust(0, 0, -opt.rightButtonSize.width(), 0)
         if not opt.icon.isNull():
             icon_rect = self._get_icon_rect(opt, text_rect)
-            text_rect.adjust(icon_rect.width() + 4, 0, 0, 0)
+            text_rect.adjust(icon_rect.width() + padding, 0, 0, 0)
         text_rect = self._style.visualRect(opt.direction, opt.rect, text_rect)
         qt_ensure_valid(text_rect)
         return (text_rect, icon_rect)
