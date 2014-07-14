@@ -315,7 +315,7 @@ class TabBarStyle(QCommonStyle):
         """
         padding = 4
         icon_rect = QRect()
-        text_rect = opt.rect
+        text_rect = QRect(opt.rect)
         qt_ensure_valid(text_rect)
         text_rect.adjust(padding, 0, 0, 0)
         if not opt.leftButtonSize.isEmpty():
