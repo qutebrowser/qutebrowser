@@ -241,6 +241,7 @@ class TabBarStyle(QCommonStyle):
             p.fillRect(opt.rect, opt.palette.window())
             text_rect, icon_rect = self._tab_layout(opt, widget)
             if not opt.icon.isNull():
+                qt_ensure_valid(icon_rect)
                 icon_mode = (QIcon.Normal if opt.state & QStyle.State_Enabled
                              else QIcon.Disabled)
                 icon_state = (QIcon.On if opt.state & QStyle.State_Selected
@@ -321,7 +322,6 @@ class TabBarStyle(QCommonStyle):
             text_rect.adjust(icon_rect.width() + 4, 0, 0, 0)
         text_rect = self._style.visualRect(opt.direction, opt.rect, text_rect)
         qt_ensure_valid(text_rect)
-        qt_ensure_valid(icon_rect)
         return (text_rect, icon_rect)
 
     def _get_icon_rect(self, opt, text_rect):
