@@ -141,7 +141,7 @@ class TabBar(QTabBar):
         Return:
             A QSize.
         """
-        height = super().tabSizeHint(index).height()
+        height = self.tabSizeHint(index).height()
         return QSize(1, height)
 
     def tabSizeHint(self, _index):
