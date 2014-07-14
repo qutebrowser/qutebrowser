@@ -21,32 +21,14 @@
 
 import functools
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QRect
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab)
-from PyQt5.QtGui import QIcon, QPixmap, QPalette, QColor
+from PyQt5.QtGui import QIcon, QPalette, QColor
 
 import qutebrowser.config.config as config
 from qutebrowser.config.style import set_register_stylesheet
 from qutebrowser.utils.qt import qt_ensure_valid
-
-
-class EmptyTabIcon(QIcon):
-
-    """An empty icon for a tab.
-
-    Qt somehow cuts text off when padding is used for the tabbar, see
-    https://bugreports.qt-project.org/browse/QTBUG-15203
-
-    Until we find a better solution we use this hack of using a simple
-    transparent icon to get some padding, because when a real favicon is set,
-    the padding seems to be fine...
-    """
-
-    def __init__(self):
-        pix = QPixmap(2, 16)
-        pix.fill(Qt.transparent)
-        super().__init__(pix)
 
 
 class TabWidget(QTabWidget):
@@ -172,7 +154,7 @@ class TabBar(QTabBar):
         qt_ensure_valid(size)
         return size
 
-    def paintEvent(self, e):
+    def paintEvent(self, _e):
         """Override paintEvent to draw the tabs like we want to."""
         p = QStylePainter(self)
         tab = QStyleOptionTab()
@@ -227,62 +209,13 @@ class TabBarStyle(QCommonStyle):
         self._style = style
         for method in ('drawComplexControl', 'drawItemPixmap',
                        'generatedIconPixmap', 'hitTestComplexControl',
-                       'itemPixmapRect', 'itemTextRect', 'pixelMetric',
-                       'polish', 'styleHint', 'subControlRect',
-                       'subElementRect', 'unpolish', 'sizeFromContents'):
+                       'pixelMetric', 'subElementRect',
+                       'itemPixmapRect', 'itemTextRect', 'polish', 'styleHint',
+                       'subControlRect', 'unpolish', 'drawPrimitive',
+                       'drawItemText', 'sizeFromContents'):
             target = getattr(self._style, method)
             setattr(self, method, functools.partial(target))
         super().__init__()
-
-    def drawPrimitive(self, element, option, painter, widget=None):
-        """Override QCommonStyle.drawPrimitive.
-
-        Call the genuine drawPrimitive of self._style, except when a focus
-        rectangle should be drawn.
-
-        Args:
-            element: PrimitiveElement pe
-            option: const QStyleOption * opt
-            painter: QPainter * p
-            widget: const QWidget * widget
-        """
-        if element == QStyle.PE_FrameFocusRect:
-            return
-        return self._style.drawPrimitive(element, option, painter, widget)
-
-    def drawItemText(self, painter, rectangle, alignment, palette, enabled,
-                     text, textRole=QPalette.NoRole):
-        """Extend QCommonStyle::drawItemText to not center-align text.
-
-        Since Qt hardcodes the text alignment for tabbar tabs in QCommonStyle,
-        we need to undo this here by deleting the flag again, and align left
-        instead.
-
-
-        Draws the given text in the specified rectangle using the provided
-        painter and palette.
-
-        The text is drawn using the painter's pen, and aligned and wrapped
-        according to the specified alignment. If an explicit textRole is
-        specified, the text is drawn using the palette's color for the given
-        role. The enabled parameter indicates whether or not the item is
-        enabled; when reimplementing this function, the enabled parameter
-        should influence how the item is drawn.
-
-        Args:
-            painter: QPainter *
-            rectangle: const QRect &
-            alignment int (Qt::Alignment)
-            palette: const QPalette &
-            enabled: bool
-            text: const QString &
-            textRole: QPalette::ColorRole textRole
-        """
-        # pylint: disable=invalid-name
-        alignment &= ~Qt.AlignHCenter
-        alignment |= Qt.AlignLeft
-        self._style.drawItemText(painter, rectangle, alignment, palette,
-                                 enabled, text, textRole)
 
     def drawControl(self, element, opt, p, widget=None):
         """Override drawControl to draw odd tabs in a different color.
@@ -303,13 +236,118 @@ class TabBarStyle(QCommonStyle):
         elif element == QStyle.CE_TabBarTabShape:
             # We use super() rather than self._style here because we don't want
             # any sophisticated drawing.
-            p.fillRect(opt.rect, opt.palette.window())
             super().drawControl(QStyle.CE_TabBarTabShape, opt, p, widget)
         elif element == QStyle.CE_TabBarTabLabel:
-            # We use super() rather than self._style here so our drawItemText()
-            # gets called.
-            super().drawControl(QStyle.CE_TabBarTabLabel, opt, p, widget)
+            p.fillRect(opt.rect, opt.palette.window())
+            text_rect, icon_rect = self._tab_layout(opt, widget)
+            if not opt.icon.isNull():
+                icon_mode = (QIcon.Normal if opt.state & QStyle.State_Enabled
+                             else QIcon.Disabled)
+                icon_state = (QIcon.On if opt.state & QStyle.State_Selected
+                              else QIcon.Off)
+                icon = opt.icon.pixmap(opt.iconSize, icon_mode, icon_state)
+                p.drawPixmap(icon_rect.x(), icon_rect.y(), icon)
+            self._style.drawItemText(p, text_rect,
+                                     Qt.AlignLeft | Qt.AlignVCenter,
+                                     opt.palette,
+                                     opt.state & QStyle.State_Enabled,
+                                     opt.text, QPalette.WindowText)
         else:
             # For any other elements we just delegate the work to our real
             # style.
             self._style.drawControl(element, opt, p, widget)
+
+    def pixelMetric(self, metric, option=None, widget=None):
+        """Override pixelMetric to not shift the selected tab.
+
+        Args:
+            metric: PixelMetric
+            option: const QStyleOption *
+            widget: const QWidget *
+
+        Return:
+            An int.
+        """
+        if (metric == QStyle.PM_TabBarTabShiftHorizontal or
+                metric == QStyle.PM_TabBarTabShiftVertical or
+                metric == QStyle.PM_TabBarTabHSpace or
+                metric == QStyle.PM_TabBarTabVSpace):
+            return 0
+        else:
+            return self._style.pixelMetric(metric, option, widget)
+
+    def subElementRect(self, sr, option, widget=None):
+        """Override subElementRect to use our own _tab_layout implementation.
+
+        Args:
+            sr: SubElement
+            opt: QStyleOption
+            widget: QWidget
+
+        Return:
+            A QRect.
+        """
+        if sr == QStyle.SE_TabBarTabText:
+            text_rect, _icon_rect = self._tab_layout(option, widget)
+            return text_rect
+        else:
+            return self._style.subElementRect(sr, option, widget)
+
+    def _tab_layout(self, opt, _widget):
+        """Compute the text/icon rect from the opt rect.
+
+        This is based on Qt's QCommonStylePrivate::tabLayout
+        (qtbase/src/widgets/styles/qcommonstyle.cpp) as we can't use the
+        private implementation.
+
+        Args:
+            opt: QStyleOptionTab
+            _widget: QWidget
+
+        Return:
+            A (text_rect, icon_rect) tuple (both QRects).
+        """
+        padding = 4
+        icon_rect = QRect()
+        text_rect = opt.rect
+        qt_ensure_valid(text_rect)
+        text_rect.adjust(padding, 0, 0, 0)
+        if not opt.leftButtonSize.isEmpty():
+            text_rect.adjust(opt.leftButtonSize.width(), 0, 0, 0)
+        if not opt.rightButtonSize.isEmpty():
+            text_rect.adjust(0, 0, -opt.rightButtonSize.width(), 0)
+        if not opt.icon.isNull():
+            icon_rect = self._get_icon_rect(opt, text_rect)
+            text_rect.adjust(icon_rect.width() + 4, 0, 0, 0)
+        text_rect = self._style.visualRect(opt.direction, opt.rect, text_rect)
+        qt_ensure_valid(text_rect)
+        qt_ensure_valid(icon_rect)
+        return (text_rect, icon_rect)
+
+    def _get_icon_rect(self, opt, text_rect):
+        """Get a QRect for the icon to draw.
+
+        Args:
+            opt: QStyleOptionTab
+            text_rect: The QRect for the text.
+
+        Return:
+            A QRect.
+        """
+        icon_size = opt.iconSize
+        if not icon_size.isValid():
+            icon_extent = self._style.pixelMetric(QStyle.PM_SmallIconSize)
+            icon_size = QSize(icon_extent, icon_extent)
+        icon_mode = (QIcon.Normal if opt.state & QStyle.State_Enabled
+                     else QIcon.Disabled)
+        icon_state = (QIcon.On if opt.state & QStyle.State_Selected
+                      else QIcon.Off)
+        tab_icon_size = opt.icon.actualSize(icon_size, icon_mode, icon_state)
+        tab_icon_size = QSize(min(tab_icon_size.width(), icon_size.width()),
+                              min(tab_icon_size.height(), icon_size.height()))
+        icon_rect = QRect(text_rect.left(),
+                          text_rect.center().y() - tab_icon_size.height() / 2,
+                          tab_icon_size.width(), tab_icon_size.height())
+        icon_rect = self._style.visualRect(opt.direction, opt.rect, icon_rect)
+        qt_ensure_valid(icon_rect)
+        return icon_rect

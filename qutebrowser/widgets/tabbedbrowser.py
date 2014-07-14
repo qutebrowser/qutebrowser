@@ -23,12 +23,13 @@ from functools import partial
 
 from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QSize
+from PyQt5.QtGui import QIcon
 
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.log as log
-from qutebrowser.widgets.tabwidget import TabWidget, EmptyTabIcon
+from qutebrowser.widgets.tabwidget import TabWidget
 from qutebrowser.widgets.webview import WebView
 from qutebrowser.browser.signalfilter import SignalFilter
 from qutebrowser.browser.commands import CommandDispatcher
@@ -348,7 +349,7 @@ class TabbedBrowser(TabWidget):
                 if show:
                     self.setTabIcon(i, tab.icon())
                 else:
-                    self.setTabIcon(i, EmptyTabIcon())
+                    self.setTabIcon(i, QIcon())
 
     @pyqtSlot()
     def on_load_started(self, tab):
@@ -362,7 +363,6 @@ class TabbedBrowser(TabWidget):
             # We can get signals for tabs we already deleted...
             log.webview.debug("Got invalid tab {}!".format(tab))
             return
-        self.setTabIcon(idx, EmptyTabIcon())
 
     @pyqtSlot()
     def on_cur_load_started(self):
