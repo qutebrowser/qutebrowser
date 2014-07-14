@@ -280,8 +280,8 @@ class TabWidgetStyle(QCommonStyle):
         # pylint: disable=invalid-name
         alignment &= ~Qt.AlignHCenter
         alignment |= Qt.AlignLeft
-        super().drawItemText(painter, rectangle, alignment, palette, enabled,
-                             text, textRole)
+        self._style.drawItemText(painter, rectangle, alignment, palette,
+                                 enabled, text, textRole)
 
     def drawControl(self, element, opt, p, widget=None):
         """Override drawControl to draw odd tabs in a different color."""
