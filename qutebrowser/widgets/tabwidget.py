@@ -24,7 +24,7 @@ import functools
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle)
-from PyQt5.QtGui import QIcon, QPixmap, QPalette
+from PyQt5.QtGui import QIcon, QPixmap, QPalette, QColor
 
 import qutebrowser.config.config as config
 from qutebrowser.config.style import set_register_stylesheet
@@ -186,6 +186,13 @@ class TabBar(QTabBar):
         qt_ensure_valid(size)
         return size
 
+    def initStyleOption(self, option, tabIndex):
+        """Override initStyleOption so we can mark odd tabs."""
+        super().initStyleOption(option, tabIndex)
+        if tabIndex % 2:
+            option |= 0x10000000
+        return option
+
 
 class TabWidgetStyle(QCommonStyle):
 
@@ -217,7 +224,7 @@ class TabWidgetStyle(QCommonStyle):
             style: The base/"parent" style.
         """
         self._style = style
-        for method in ('drawComplexControl', 'drawControl', 'drawItemPixmap',
+        for method in ('drawComplexControl', 'drawItemPixmap',
                        'generatedIconPixmap', 'hitTestComplexControl',
                        'itemPixmapRect', 'itemTextRect', 'pixelMetric',
                        'polish', 'styleHint', 'subControlRect',
@@ -275,3 +282,12 @@ class TabWidgetStyle(QCommonStyle):
         alignment |= Qt.AlignLeft
         super().drawItemText(painter, rectangle, alignment, palette, enabled,
                              text, textRole)
+
+    def drawControl(self, element, opt, p, widget=None):
+        """Override drawControl to draw odd tabs in a different color."""
+        if element != QStyle.CE_TabBarTab:
+            super().drawControl(element, opt, p, widget)
+            return
+        raise Exception
+        opt.palette.setColor(QPalette.Base, QColor('red'))
+        self._style.drawControl(element, opt, p, widget)
