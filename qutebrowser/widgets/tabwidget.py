@@ -283,7 +283,7 @@ class TabBarStyle(QCommonStyle):
         else:
             return self._style.pixelMetric(metric, option, widget)
 
-    def subElementRect(self, sr, option, widget=None):
+    def subElementRect(self, sr, opt, widget=None):
         """Override subElementRect to use our own _tab_layout implementation.
 
         Args:
@@ -295,10 +295,10 @@ class TabBarStyle(QCommonStyle):
             A QRect.
         """
         if sr == QStyle.SE_TabBarTabText:
-            text_rect, _icon_rect = self._tab_layout(option)
+            text_rect, _icon_rect = self._tab_layout(opt)
             return text_rect
         else:
-            return self._style.subElementRect(sr, option, widget)
+            return self._style.subElementRect(sr, opt, widget)
 
     def _tab_layout(self, opt):
         """Compute the text/icon rect from the opt rect.
