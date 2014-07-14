@@ -89,13 +89,14 @@ class TabWidget(QTabWidget):
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.setTabBar(TabBar())
+        bar = TabBar()
+        self.setTabBar(bar)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.setStyle(TabWidgetStyle(self.style()))
         set_register_stylesheet(self)
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
-        self.tabBar().setDrawBase(False)
+        bar.setDrawBase(False)
+        bar.setStyle(TabBarStyle(bar.style()))
         self._init_config()
 
     def _init_config(self):
@@ -194,9 +195,9 @@ class TabBar(QTabBar):
         return option
 
 
-class TabWidgetStyle(QCommonStyle):
+class TabBarStyle(QCommonStyle):
 
-    """Qt style used by TabWidget to fix some issues with the default one.
+    """Qt style used by TabBar to fix some issues with the default one.
 
     This fixes the following things:
         - Remove the focus rectangle Ubuntu draws on tabs.
