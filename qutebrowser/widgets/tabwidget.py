@@ -144,10 +144,16 @@ class TabBar(QTabBar):
         height = super().tabSizeHint(index).height()
         return QSize(1, height)
 
-    def tabSizeHint(self, index):
+    def tabSizeHint(self, _index):
         """Override tabSizeHint so all tabs are the same size.
 
         https://wiki.python.org/moin/PyQt/Customising%20tab%20bars
+
+        Args:
+            _index: The index of the tab.
+
+        Return:
+            A QSize.
         """
         height = self.fontMetrics().height()
         size = QSize(self.width() / self.count(), height)
