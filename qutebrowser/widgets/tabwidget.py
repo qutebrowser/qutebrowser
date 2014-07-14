@@ -23,7 +23,7 @@ import functools
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
-                             QStyle)
+                             QStyle, QStylePainter, QStyleOptionTab)
 from PyQt5.QtGui import QIcon, QPixmap, QPalette, QColor
 
 import qutebrowser.config.config as config
@@ -67,24 +67,6 @@ class TabWidget(QTabWidget):
             {font[tabbar]}
             {color[tab.bg.bar]}
         }}
-
-        QTabBar::tab {{
-            {color[tab.bg]}
-            {color[tab.fg]}
-            margin: 0px;
-        }}
-
-        QTabBar::tab:first, QTabBar::tab:middle {{
-            border-right: 2px solid {color[tab.seperator]};
-        }}
-
-        QTabBar::tab:only-one {{
-            border-right: 0px;
-        }}
-
-        QTabBar::tab:selected {{
-            {color[tab.bg.selected]}
-        }}
     """
 
     def __init__(self, parent):
@@ -96,7 +78,6 @@ class TabWidget(QTabWidget):
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
         bar.setDrawBase(False)
-        bar.setStyle(TabBarStyle(bar.style()))
         self._init_config()
 
     def _init_config(self):
@@ -141,6 +122,10 @@ class TabBar(QTabBar):
 
     tab_rightclicked = pyqtSignal(int)
 
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setStyle(TabBarStyle(self.style()))
+
     def __repr__(self):
         return '<{} with {} tabs>'.format(self.__class__.__name__,
                                           self.count())
@@ -182,17 +167,32 @@ class TabBar(QTabBar):
 
         https://wiki.python.org/moin/PyQt/Customising%20tab%20bars
         """
-        height = super().tabSizeHint(index).height()
+        height = self.fontMetrics().height()
         size = QSize(self.width() / self.count(), height)
         qt_ensure_valid(size)
         return size
 
-    def initStyleOption(self, option, tabIndex):
-        """Override initStyleOption so we can mark odd tabs."""
-        super().initStyleOption(option, tabIndex)
-        if tabIndex % 2:
-            option |= 0x10000000
-        return option
+    def paintEvent(self, e):
+        """Override paintEvent to draw the tabs like we want to."""
+        p = QStylePainter(self)
+        tab = QStyleOptionTab()
+        selected = self.currentIndex()
+        for idx in range(self.count()):
+            self.initStyleOption(tab, idx)
+            if idx == selected:
+                color = config.get('colors', 'tab.bg.selected')
+            elif idx % 2:
+                color = config.get('colors', 'tab.bg.odd')
+            else:
+                color = config.get('colors', 'tab.bg.even')
+            tab.palette.setColor(QPalette.Window, QColor(color))
+            tab.palette.setColor(QPalette.WindowText,
+                                 QColor(config.get('colors', 'tab.fg')))
+            if tab.rect.right() < 0 or tab.rect.left() > self.width():
+                # Don't bother drawing a tab if the entire tab is outside of
+                # the visible tab bar.
+                continue
+            p.drawControl(QStyle.CE_TabBarTab, tab)
 
 
 class TabBarStyle(QCommonStyle):
@@ -285,10 +285,31 @@ class TabBarStyle(QCommonStyle):
                                  enabled, text, textRole)
 
     def drawControl(self, element, opt, p, widget=None):
-        """Override drawControl to draw odd tabs in a different color."""
-        if element != QStyle.CE_TabBarTab:
-            super().drawControl(element, opt, p, widget)
-            return
-        raise Exception
-        opt.palette.setColor(QPalette.Base, QColor('red'))
-        self._style.drawControl(element, opt, p, widget)
+        """Override drawControl to draw odd tabs in a different color.
+
+        Draws the given element with the provided painter with the style
+        options specified by option.
+
+        Args:
+            element: ControlElement
+            option: const QStyleOption *
+            painter: QPainter *
+            widget: const QWidget *
+        """
+        if element == QStyle.CE_TabBarTab:
+            # We override this so we can control TabBarTabShape/TabBarTabLabel.
+            self.drawControl(QStyle.CE_TabBarTabShape, opt, p, widget)
+            self.drawControl(QStyle.CE_TabBarTabLabel, opt, p, widget)
+        elif element == QStyle.CE_TabBarTabShape:
+            # We use super() rather than self._style here because we don't want
+            # any sophisticated drawing.
+            p.fillRect(opt.rect, opt.palette.window())
+            super().drawControl(QStyle.CE_TabBarTabShape, opt, p, widget)
+        elif element == QStyle.CE_TabBarTabLabel:
+            # We use super() rather than self._style here so our drawItemText()
+            # gets called.
+            super().drawControl(QStyle.CE_TabBarTabLabel, opt, p, widget)
+        else:
+            # For any other elements we just delegate the work to our real
+            # style.
+            self._style.drawControl(element, opt, p, widget)

@@ -856,9 +856,13 @@ DATA = OrderedDict([
          SettingValue(types.Color(), 'white'),
          "Foreground color of tabs."),
 
-        ('tab.bg',
-         SettingValue(types.Color(), 'grey'),
-         "Background color of unselected tabs."),
+        ('tab.bg.odd',
+         SettingValue(types.QtColor(), 'grey'),
+         "Background color of unselected odd tabs."),
+
+        ('tab.bg.even',
+         SettingValue(types.QtColor(), 'darkgrey'),
+         "Background color of unselected even tabs."),
 
         ('tab.bg.selected',
          SettingValue(types.Color(), 'black'),
