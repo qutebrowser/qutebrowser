@@ -245,7 +245,7 @@ class TabBarStyle(QCommonStyle):
             super().drawControl(QStyle.CE_TabBarTabShape, opt, p, widget)
         elif element == QStyle.CE_TabBarTabLabel:
             p.fillRect(opt.rect, opt.palette.window())
-            text_rect, icon_rect = self._tab_layout(opt, widget)
+            text_rect, icon_rect = self._tab_layout(opt)
             if not opt.icon.isNull():
                 qt_ensure_valid(icon_rect)
                 icon_mode = (QIcon.Normal if opt.state & QStyle.State_Enabled
@@ -295,12 +295,12 @@ class TabBarStyle(QCommonStyle):
             A QRect.
         """
         if sr == QStyle.SE_TabBarTabText:
-            text_rect, _icon_rect = self._tab_layout(option, widget)
+            text_rect, _icon_rect = self._tab_layout(option)
             return text_rect
         else:
             return self._style.subElementRect(sr, option, widget)
 
-    def _tab_layout(self, opt, _widget):
+    def _tab_layout(self, opt):
         """Compute the text/icon rect from the opt rect.
 
         This is based on Qt's QCommonStylePrivate::tabLayout
@@ -309,7 +309,6 @@ class TabBarStyle(QCommonStyle):
 
         Args:
             opt: QStyleOptionTab
-            _widget: QWidget
 
         Return:
             A (text_rect, icon_rect) tuple (both QRects).
