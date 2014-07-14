@@ -215,10 +215,9 @@ class TabBarStyle(QCommonStyle):
         self._style = style
         for method in ('drawComplexControl', 'drawItemPixmap',
                        'generatedIconPixmap', 'hitTestComplexControl',
-                       'pixelMetric', 'subElementRect',
-                       'itemPixmapRect', 'itemTextRect', 'polish', 'styleHint',
-                       'subControlRect', 'unpolish', 'drawPrimitive',
-                       'drawItemText', 'sizeFromContents'):
+                       'pixelMetric', 'itemPixmapRect', 'itemTextRect',
+                       'polish', 'styleHint', 'subControlRect', 'unpolish',
+                       'drawPrimitive', 'drawItemText', 'sizeFromContents'):
             target = getattr(self._style, method)
             setattr(self, method, functools.partial(target))
         super().__init__()
