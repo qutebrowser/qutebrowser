@@ -102,7 +102,11 @@ class TabWidget(QTabWidget):
 
 class TabBar(QTabBar):
 
-    """Custom tabbar to close tabs on right click.
+    """Custom tabbar with our own style.
+
+    FIXME: This acts funny when dragging tabs, especially when close buttons
+    are enabled. However, fixing this would be a lot of effort, so we'll
+    postpone it until we're reimplementing drag&drop for other reasons.
 
     Signals:
         tab_rightclicked: Emitted when a tab was right-clicked and should be
