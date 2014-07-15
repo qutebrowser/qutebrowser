@@ -32,6 +32,7 @@ from PyQt5.QtGui import QColor
 
 import qutebrowser.utils.misc as utils
 from qutebrowser.test.helpers import environ_set_temp, fake_keyevent
+from qutebrowser.utils.qt import QtValueError
 
 
 class Color(QColor):
@@ -356,12 +357,12 @@ class InterpolateColorTests(unittest.TestCase):
 
     def test_invalid_start(self):
         """Test an invalid start color."""
-        with self.assertRaises(ValueError):
+        with self.assertRaises(QtValueError):
             utils.interpolate_color(Color(), self.white, 0)
 
     def test_invalid_end(self):
         """Test an invalid end color."""
-        with self.assertRaises(ValueError):
+        with self.assertRaises(QtValueError):
             utils.interpolate_color(self.white, Color(), 0)
 
     def test_invalid_percentage(self):
