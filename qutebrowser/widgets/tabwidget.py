@@ -184,16 +184,6 @@ class TabBar(QTabBar):
                 continue
             p.drawControl(QStyle.CE_TabBarTab, tab)
 
-    def tabInserted(self, index):
-        """Extend tabInserted to set close button size policy.
-
-        FIXME is this needed?
-        """
-        super().tabInserted(index)
-        button = self.tabButton(index, QTabBar.RightSide)
-        if button is not None:
-            button.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
-
 
 class TabBarStyle(QCommonStyle):
 
