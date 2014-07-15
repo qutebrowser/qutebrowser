@@ -121,6 +121,8 @@ Bugs
 
   WARNING: Type conversion already registered from type QSharedPointer<QNetworkSession> to type QObject*
 
+- Scrolling lags like crazy (even in minimal browser) on
+  http://github.com/uzbl/uzbl
 
 
 Upstream Bugs
