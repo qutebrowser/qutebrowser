@@ -576,5 +576,36 @@ class NormalizeTests(unittest.TestCase):
             self.assertEqual(utils.normalize_keystr(orig), repl, orig)
 
 
+class HighlightColorTests(unittest.TestCase):
+
+    """Test highlight_color."""
+
+    def test_invalid(self):
+        """Test with an invalid Color."""
+        col = Color()
+        with self.assertRaises(QtValueError):
+            utils.highlight_color(col)
+
+    def test_large_factor(self):
+        """Test with a too large factor."""
+        col = Color('black')
+        with self.assertRaises(OverflowError):
+            utils.highlight_color(col, 2 ** 31)
+
+    def test_white(self):
+        """Test highlighting white."""
+        col = Color('white')
+        c1 = Color(utils.highlight_color(col, 1))
+        c2 = Color(127, 127, 127)
+        self.assertEqual(c1, c2)
+
+    def test_black(self):
+        """Test highlighting black."""
+        col = Color('black')
+        self.assertEqual(Color(utils.highlight_color(col, 0.5)),
+                         Color(204, 204, 204))
+
+
+
 if __name__ == '__main__':
     unittest.main()
