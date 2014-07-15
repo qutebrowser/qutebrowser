@@ -126,17 +126,16 @@ class TabBar(QTabBar):
                                           self.count())
 
     def mousePressEvent(self, e):
-        """Override mousePressEvent to emit tabCloseRequested on rightclick."""
-        if e.button() != Qt.RightButton:
-            super().mousePressEvent(e)
-            return
-        idx = self.tabAt(e.pos())
-        if idx == -1:
-            super().mousePressEvent(e)
-            return
-        e.accept()
-        if config.get('tabbar', 'close-on-right-click'):
-            self.tabCloseRequested.emit(idx)
+        """Override mousePressEvent to close tabs if configured."""
+        button = config.get('tabbar', 'close-mouse-button')
+        if (e.button() == Qt.RightButton and button == 'right' or
+                e.button() == Qt.MiddleButton and button == 'middle'):
+            idx = self.tabAt(e.pos())
+            if idx != -1:
+                e.accept()
+                self.tabCloseRequested.emit(idx)
+                return
+        super().mousePressEvent(e)
 
     def minimumTabSizeHint(self, index):
         """Override minimumTabSizeHint because we want no hard minimum.

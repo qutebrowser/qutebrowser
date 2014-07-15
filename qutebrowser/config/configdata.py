@@ -401,9 +401,9 @@ DATA = OrderedDict([
          SettingValue(types.Bool(), 'true'),
          "Whether tabs should be movable."),
 
-        ('close-on-right-click',
-         SettingValue(types.Bool(), 'false'),
-         "Whether tabs should close when right-clicked."),
+        ('close-mouse-button',
+         SettingValue(types.CloseButton(), 'middle'),
+         "On which mouse button to close tabs."),
 
         ('position',
          SettingValue(types.Position(), 'north'),
