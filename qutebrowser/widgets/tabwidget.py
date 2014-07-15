@@ -22,7 +22,7 @@
 from math import ceil
 import functools
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QRect
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QRect, QRectF
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab)
 from PyQt5.QtGui import QIcon, QPalette, QColor
@@ -183,6 +183,16 @@ class TabBar(QTabBar):
                 continue
             p.drawControl(QStyle.CE_TabBarTab, tab)
 
+    def tabInserted(self, index):
+        """Extend tabInserted to set close button size policy.
+
+        FIXME is this needed?
+        """
+        super().tabInserted(index)
+        button = self.tabButton(index, QTabBar.RightSide)
+        if button is not None:
+            button.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+
 
 class TabBarStyle(QCommonStyle):
 
@@ -218,7 +228,7 @@ class TabBarStyle(QCommonStyle):
                        'generatedIconPixmap', 'hitTestComplexControl',
                        'pixelMetric', 'itemPixmapRect', 'itemTextRect',
                        'polish', 'styleHint', 'subControlRect', 'unpolish',
-                       'drawPrimitive', 'drawItemText', 'sizeFromContents'):
+                       'drawItemText', 'sizeFromContents'):
             target = getattr(self._style, method)
             setattr(self, method, functools.partial(target))
         super().__init__()
@@ -263,6 +273,29 @@ class TabBarStyle(QCommonStyle):
             # For any other elements we just delegate the work to our real
             # style.
             self._style.drawControl(element, opt, p, widget)
+
+    def drawPrimitive(self, element, opt, painter, widget=None):
+            """Draws the given primitive element.
+
+            Args:
+                element: PrimitiveElement
+                opt: const QStyleOption *
+                painter: QPainter *
+                widget: const QWidget *
+            """
+            if element != QStyle.PE_IndicatorTabClose:
+                self._style.drawPrimitive(element, opt, painter, widget)
+                return
+            painter.save()
+            painter.setPen(QColor(config.get('colors', 'tab.fg')))
+            rect = QRectF(opt.rect)
+            center = rect.center()
+            new_size = rect.size() * 0.4
+            rect.setSize(new_size)
+            rect.moveCenter(center)
+            painter.drawLine(rect.topLeft(), rect.bottomRight())
+            painter.drawLine(rect.topRight(), rect.bottomLeft())
+            painter.restore()
 
     def pixelMetric(self, metric, option=None, widget=None):
         """Override pixelMetric to not shift the selected tab.
