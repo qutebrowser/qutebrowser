@@ -22,7 +22,7 @@
 from math import ceil
 import functools
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QRect, QRectF
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QRect
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab)
 from PyQt5.QtGui import QIcon, QPalette, QColor
@@ -351,7 +351,6 @@ class TabBarStyle(QCommonStyle):
             width = size.width()
             height = size.height()
             mid_height = ceil((opt.rect.height() - height) / 2)
-            mid_width = (opt.rect.width() - width) / 2
             if sr == QStyle.SE_TabBarTabLeftButton:
                 rect = QRect(opt.rect.x(), mid_height, width, height)
             else:
