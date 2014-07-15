@@ -19,6 +19,7 @@
 
 """The tab widget used for TabbedBrowser from browser.py."""
 
+from math import ceil
 import functools
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QRect
@@ -296,6 +297,21 @@ class TabBarStyle(QCommonStyle):
         if sr == QStyle.SE_TabBarTabText:
             text_rect, _icon_rect = self._tab_layout(opt)
             return text_rect
+        if (sr == QStyle.SE_TabBarTabLeftButton or
+                sr == QStyle.SE_TabBarTabRightButton):
+            size = (opt.leftButtonSize if sr == QStyle.SE_TabBarTabLeftButton
+                    else opt.rightButtonSize)
+            width = size.width()
+            height = size.height()
+            mid_height = ceil((opt.rect.height() - height) / 2)
+            mid_width = (opt.rect.width() - width) / 2
+            if sr == QStyle.SE_TabBarTabLeftButton:
+                rect = QRect(opt.rect.x(), mid_height, width, height)
+            else:
+                rect = QRect(opt.rect.right() - width, mid_height, width,
+                             height)
+            rect = self._style.visualRect(opt.direction, opt.rect, rect)
+            return rect
         else:
             return self._style.subElementRect(sr, opt, widget)
 
