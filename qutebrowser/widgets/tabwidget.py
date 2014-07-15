@@ -29,7 +29,8 @@ import functools
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QRect
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
-                             QStyle, QStylePainter, QStyleOptionTab)
+                             QStyle, QStylePainter, QStyleOptionTab,
+                             QApplication)
 from PyQt5.QtGui import QIcon, QPalette, QColor
 
 import qutebrowser.config.config as config
@@ -86,12 +87,16 @@ class TabWidget(QTabWidget):
             'right': QTabBar.SelectRightTab,
             'previous': QTabBar.SelectPreviousTab,
         }
+        tabbar = self.tabBar()
         self.setMovable(config.get('tabbar', 'movable'))
         self.setTabsClosable(config.get('tabbar', 'close-buttons'))
         posstr = config.get('tabbar', 'position')
         selstr = config.get('tabbar', 'select-on-remove')
-        self.setTabPosition(position_conv[posstr])
-        self.tabBar().setSelectionBehaviorOnRemove(select_conv[selstr])
+        position = position_conv[posstr]
+        self.setTabPosition(position)
+        tabbar.vertical = position in (QTabWidget.West, QTabWidget.East)
+        tabbar.setSelectionBehaviorOnRemove(select_conv[selstr])
+        tabbar.updateGeometry()
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, _option):
@@ -108,6 +113,9 @@ class TabBar(QTabBar):
     are enabled. However, fixing this would be a lot of effort, so we'll
     postpone it until we're reimplementing drag&drop for other reasons.
 
+    Attributes:
+        vertical: When the tab bar is currently vertical.
+
     Signals:
         tab_rightclicked: Emitted when a tab was right-clicked and should be
                           closed. We use this rather than tabCloseRequested
@@ -122,6 +130,7 @@ class TabBar(QTabBar):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setStyle(TabBarStyle(self.style()))
+        self.vertical = False
 
     def __repr__(self):
         return '<{} with {} tabs>'.format(self.__class__.__name__,
@@ -193,14 +202,22 @@ class TabBar(QTabBar):
             A QSize.
         """
         minimum_size = self.minimumTabSizeHint(index)
-        if self.count() * minimum_size.width() > self.width():
+        height = self.fontMetrics().height()
+        if self.vertical:
+            confwidth = str(config.get('tabbar', 'width'))
+            if confwidth.endswith('%'):
+                perc = int(confwidth.rstrip('%'))
+                width = QApplication.instance().mainwindow.width() * perc / 100
+            else:
+                width = int(confwidth)
+            size = QSize(max(minimum_size.width(), width), height)
+        elif self.count() * minimum_size.width() > self.width():
             # If we don't have enough space, we return the minimum size so we
             # get scroll buttons as soon as needed.
             size = minimum_size
         else:
             # If we *do* have enough space, tabs should occupy the whole window
             # width.
-            height = self.fontMetrics().height()
             size = QSize(self.width() / self.count(), height)
         qt_ensure_valid(size)
         return size

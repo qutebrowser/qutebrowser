@@ -428,6 +428,12 @@ DATA = OrderedDict([
         ('show-favicons',
          SettingValue(types.Bool(), 'true'),
          "Whether to show favicons in the tab bar."),
+
+        ('width',
+         SettingValue(types.PercOrInt(minperc=0, maxperc=100, minint=1),
+                      '20%'),
+         "The width of the tab bar if it's vertical, in px or as percentage "
+         "of the window."),
     )),
 
     ('storage', sect.KeyValue(

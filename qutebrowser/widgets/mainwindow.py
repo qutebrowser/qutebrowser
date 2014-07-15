@@ -165,6 +165,7 @@ class MainWindow(QWidget):
         super().resizeEvent(e)
         self.resize_completion()
         self.downloadview.updateGeometry()
+        self.tabs.tabBar().updateGeometry()
 
     def closeEvent(self, e):
         """Override closeEvent to display a confirmation if needed."""
