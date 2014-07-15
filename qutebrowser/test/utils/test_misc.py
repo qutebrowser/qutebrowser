@@ -595,16 +595,26 @@ class HighlightColorTests(unittest.TestCase):
     def test_white(self):
         """Test highlighting white."""
         col = Color('white')
-        c1 = Color(utils.highlight_color(col, 1))
-        c2 = Color(127, 127, 127)
-        self.assertEqual(c1, c2)
+        self.assertEqual(Color(utils.highlight_color(col, 1)),
+                         Color(127, 127, 127), col)
 
     def test_black(self):
         """Test highlighting black."""
         col = Color('black')
         self.assertEqual(Color(utils.highlight_color(col, 0.5)),
-                         Color(204, 204, 204))
+                         Color(204, 204, 204), col)
 
+    def test_yellow(self):
+        """Test highlighting yellow."""
+        col = Color('yellow')
+        self.assertEqual(Color(utils.highlight_color(col, 0.5)),
+                         Color(170, 170, 0), col)
+
+    def test_darkblue(self):
+        """Test highlighting darkblue."""
+        col = Color('darkblue')
+        self.assertEqual(Color(utils.highlight_color(col, 0.5)),
+                         Color(0, 0, 93), col)
 
 
 if __name__ == '__main__':
