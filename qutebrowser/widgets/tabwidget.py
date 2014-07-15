@@ -30,6 +30,7 @@ from PyQt5.QtGui import QIcon, QPalette, QColor
 import qutebrowser.config.config as config
 from qutebrowser.config.style import set_register_stylesheet
 from qutebrowser.utils.qt import qt_ensure_valid
+from qutebrowser.utils.misc import highlight_color
 
 
 class TabWidget(QTabWidget):
@@ -275,27 +276,40 @@ class TabBarStyle(QCommonStyle):
             self._style.drawControl(element, opt, p, widget)
 
     def drawPrimitive(self, element, opt, painter, widget=None):
-            """Draws the given primitive element.
+        """Draw the given primitive element.
 
-            Args:
-                element: PrimitiveElement
-                opt: const QStyleOption *
-                painter: QPainter *
-                widget: const QWidget *
-            """
-            if element != QStyle.PE_IndicatorTabClose:
-                self._style.drawPrimitive(element, opt, painter, widget)
-                return
-            painter.save()
-            painter.setPen(QColor(config.get('colors', 'tab.fg')))
-            rect = QRectF(opt.rect)
-            center = rect.center()
-            new_size = rect.size() * 0.4
-            rect.setSize(new_size)
-            rect.moveCenter(center)
-            painter.drawLine(rect.topLeft(), rect.bottomRight())
-            painter.drawLine(rect.topRight(), rect.bottomLeft())
-            painter.restore()
+        Overriden to draw our own tab close button.
+
+        Args:
+            element: PrimitiveElement
+            opt: const QStyleOption *
+            painter: QPainter *
+            widget: const QWidget *
+        """
+        if element != QStyle.PE_IndicatorTabClose:
+            self._style.drawPrimitive(element, opt, painter, widget)
+            return
+        painter.save()
+        # This fixes some weird off-by-ones in Qt.
+        # See http://stackoverflow.com/a/17019898/2085149
+        painter.translate(0.5, 0.5)
+        color = QColor(config.get('colors', 'tab.fg'))
+        if opt.state & QStyle.State_Raised:
+            color = highlight_color(color, factor=0.2)
+        elif opt.state & QStyle.State_Sunken:
+            color = highlight_color(color, factor=0.3)
+        painter.setPen(color)
+        side = min(opt.rect.width(), opt.rect.height())
+        square = QRect()
+        square.setSize(QSize(side, side) * 0.4)
+        square.moveCenter(opt.rect.center())
+        if square.width() % 2 == 0:
+            # An X is easier to paint in a square with an odd count of
+            # pixels.
+            square.adjust(-1, -1, 0, 0)
+        painter.drawLine(square.topLeft(), square.bottomRight())
+        painter.drawLine(square.topRight(), square.bottomLeft())
+        painter.restore()
 
     def pixelMetric(self, metric, option=None, widget=None):
         """Override pixelMetric to not shift the selected tab.
