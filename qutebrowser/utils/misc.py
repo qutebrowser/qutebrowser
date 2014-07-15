@@ -36,8 +36,7 @@ from pkg_resources import resource_string
 
 import qutebrowser
 import qutebrowser.utils.log as log
-from qutebrowser.utils.qt import (qt_version_check, qt_ensure_valid,
-                                  check_overflow)
+from qutebrowser.utils.qt import qt_version_check, qt_ensure_valid
 
 
 def elide(text, length):
@@ -490,32 +489,3 @@ def normalize_keystr(keystr):
     for mod in ('Ctrl', 'Meta', 'Alt', 'Shift'):
         keystr = keystr.replace(mod + '-', mod + '+')
     return keystr.lower()
-
-
-def highlight_color(color, factor=0.5):
-    """Get a highlighted color based on a base color.
-
-    If the passed color is dark, it will get lighter. If it is light, it will
-    get darker.
-
-    Args:
-        color: A QColor with the initial color.
-        factor: How much to lighten/darken the color (0.5: 50% lighter/darker).
-
-    Return:
-        A QColor with the highlighted color.
-    """
-    qt_ensure_valid(color)
-    qt_factor = 100 * (1 + factor)
-    check_overflow(qt_factor, 'int')
-    if color == QColor('black'):
-        # Black isn't handled by QColor::lighter because that just multiplies
-        # the HSV value by a factor.
-        # We also add an additional 30% because the effect would be way too
-        # subtle if we didn't.
-        return interpolate_color(QColor('black'), QColor('white'),
-                                 min((100 * factor) + 30, 100))
-    elif color.value() < 128:
-        return color.lighter(qt_factor)
-    else:
-        return color.darker(qt_factor)

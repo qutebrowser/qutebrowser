@@ -24,10 +24,9 @@ Module attributes:
                       between items.
 """
 
-from math import ceil
 import functools
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QRect
+from PyQt5.QtCore import pyqtSlot, Qt, QSize, QRect
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab,
                              QApplication)
@@ -36,7 +35,6 @@ from PyQt5.QtGui import QIcon, QPalette, QColor
 import qutebrowser.config.config as config
 from qutebrowser.config.style import set_register_stylesheet
 from qutebrowser.utils.qt import qt_ensure_valid
-from qutebrowser.utils.misc import highlight_color
 
 
 PM_TabBarPadding = QStyle.PM_CustomBase
@@ -66,6 +64,7 @@ class TabWidget(QTabWidget):
         super().__init__(parent)
         bar = TabBar()
         self.setTabBar(bar)
+        bar.tabCloseRequested.connect(self.tabCloseRequested)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         set_register_stylesheet(self)
         self.setDocumentMode(True)
@@ -89,7 +88,7 @@ class TabWidget(QTabWidget):
         }
         tabbar = self.tabBar()
         self.setMovable(config.get('tabbar', 'movable'))
-        self.setTabsClosable(config.get('tabbar', 'close-buttons'))
+        self.setTabsClosable(False)
         posstr = config.get('tabbar', 'position')
         selstr = config.get('tabbar', 'select-on-remove')
         position = position_conv[posstr]
@@ -109,23 +108,13 @@ class TabBar(QTabBar):
 
     """Custom tabbar with our own style.
 
-    FIXME: This acts funny when dragging tabs, especially when close buttons
-    are enabled. However, fixing this would be a lot of effort, so we'll
-    postpone it until we're reimplementing drag&drop for other reasons.
+    FIXME: Dragging tabs doesn't look as nice as it does in QTabBar.  However,
+    fixing this would be a lot of effort, so we'll postpone it until we're
+    reimplementing drag&drop for other reasons.
 
     Attributes:
         vertical: When the tab bar is currently vertical.
-
-    Signals:
-        tab_rightclicked: Emitted when a tab was right-clicked and should be
-                          closed. We use this rather than tabCloseRequested
-                          because tabCloseRequested is sometimes connected by
-                          Qt to the tabwidget and sometimes not, depending on
-                          if close buttons are enabled.
-                          arg: The tab index to be closed.
     """
-
-    tab_rightclicked = pyqtSignal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -147,7 +136,7 @@ class TabBar(QTabBar):
             return
         e.accept()
         if config.get('tabbar', 'close-on-right-click'):
-            self.tab_rightclicked.emit(idx)
+            self.tabCloseRequested.emit(idx)
 
     def minimumTabSizeHint(self, index):
         """Override minimumTabSizeHint because we want no hard minimum.
@@ -174,20 +163,10 @@ class TabBar(QTabBar):
             padding_count += 1
         else:
             icon_size = QSize(0, 0)
-        button_width = 0
-        btn1 = self.tabButton(index, QTabBar.LeftSide)
-        btn2 = self.tabButton(index, QTabBar.RightSide)
-        if btn1 is not None:
-            button_width += btn1.size().width()
-            padding_count += 1
-        if btn2 is not None:
-            button_width += btn2.size().width()
-        padding_count += 1
         padding_width = self.style().pixelMetric(PM_TabBarPadding, None, self)
         height = self.fontMetrics().height()
         width = (self.fontMetrics().size(0, '\u2026').width() +
-                 icon_size.width() + button_width +
-                 padding_count * padding_width)
+                 icon_size.width() + padding_count * padding_width)
         return QSize(width, height)
 
     def tabSizeHint(self, index):
@@ -279,7 +258,7 @@ class TabBarStyle(QCommonStyle):
                        'generatedIconPixmap', 'hitTestComplexControl',
                        'itemPixmapRect', 'itemTextRect',
                        'polish', 'styleHint', 'subControlRect', 'unpolish',
-                       'drawItemText', 'sizeFromContents'):
+                       'drawItemText', 'sizeFromContents', 'drawPrimitive'):
             target = getattr(self._style, method)
             setattr(self, method, functools.partial(target))
         super().__init__()
@@ -325,42 +304,6 @@ class TabBarStyle(QCommonStyle):
             # style.
             self._style.drawControl(element, opt, p, widget)
 
-    def drawPrimitive(self, element, opt, painter, widget=None):
-        """Draw the given primitive element.
-
-        Overriden to draw our own tab close button.
-
-        Args:
-            element: PrimitiveElement
-            opt: const QStyleOption *
-            painter: QPainter *
-            widget: const QWidget *
-        """
-        if element != QStyle.PE_IndicatorTabClose:
-            self._style.drawPrimitive(element, opt, painter, widget)
-            return
-        painter.save()
-        # This fixes some weird off-by-ones in Qt.
-        # See http://stackoverflow.com/a/17019898/2085149
-        painter.translate(0.5, 0.5)
-        color = QColor(config.get('colors', 'tab.fg'))
-        if opt.state & QStyle.State_Raised:
-            color = highlight_color(color, factor=0.2)
-        elif opt.state & QStyle.State_Sunken:
-            color = highlight_color(color, factor=0.3)
-        painter.setPen(color)
-        side = min(opt.rect.width(), opt.rect.height())
-        square = QRect()
-        square.setSize(QSize(side, side) * 0.4)
-        square.moveCenter(opt.rect.center())
-        if square.width() % 2 == 0:
-            # An X is easier to paint in a square with an odd count of
-            # pixels.
-            square.adjust(-1, -1, 0, 0)
-        painter.drawLine(square.topLeft(), square.bottomRight())
-        painter.drawLine(square.topRight(), square.bottomLeft())
-        painter.restore()
-
     def pixelMetric(self, metric, option=None, widget=None):
         """Override pixelMetric to not shift the selected tab.
 
@@ -396,20 +339,6 @@ class TabBarStyle(QCommonStyle):
         if sr == QStyle.SE_TabBarTabText:
             text_rect, _icon_rect = self._tab_layout(opt)
             return text_rect
-        if (sr == QStyle.SE_TabBarTabLeftButton or
-                sr == QStyle.SE_TabBarTabRightButton):
-            size = (opt.leftButtonSize if sr == QStyle.SE_TabBarTabLeftButton
-                    else opt.rightButtonSize)
-            width = size.width()
-            height = size.height()
-            mid_height = ceil((opt.rect.height() - height) / 2)
-            if sr == QStyle.SE_TabBarTabLeftButton:
-                rect = QRect(opt.rect.x(), mid_height, width, height)
-            else:
-                rect = QRect(opt.rect.right() - width, mid_height, width,
-                             height)
-            rect = self._style.visualRect(opt.direction, opt.rect, rect)
-            return rect
         else:
             return self._style.subElementRect(sr, opt, widget)
 
@@ -431,10 +360,6 @@ class TabBarStyle(QCommonStyle):
         text_rect = QRect(opt.rect)
         qt_ensure_valid(text_rect)
         text_rect.adjust(padding, 0, 0, 0)
-        if not opt.leftButtonSize.isEmpty():
-            text_rect.adjust(opt.leftButtonSize.width(), 0, 0, 0)
-        if not opt.rightButtonSize.isEmpty():
-            text_rect.adjust(0, 0, -opt.rightButtonSize.width(), 0)
         if not opt.icon.isNull():
             icon_rect = self._get_icon_rect(opt, text_rect)
             text_rect.adjust(icon_rect.width() + padding, 0, 0, 0)

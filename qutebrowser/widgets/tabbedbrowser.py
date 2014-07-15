@@ -103,7 +103,6 @@ class TabbedBrowser(TabWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.tabBar().tab_rightclicked.connect(self.on_tab_close_requested)
         self.tabCloseRequested.connect(self.on_tab_close_requested)
         self.currentChanged.connect(self.on_current_changed)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)

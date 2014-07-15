@@ -405,10 +405,6 @@ DATA = OrderedDict([
          SettingValue(types.Bool(), 'false'),
          "Whether tabs should close when right-clicked."),
 
-        ('close-buttons',
-         SettingValue(types.Bool(), 'false'),
-         "Whether tabs should have close-buttons."),
-
         ('position',
          SettingValue(types.Position(), 'north'),
          "The position of the tab bar."),
