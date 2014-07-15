@@ -34,6 +34,22 @@ import qutebrowser.utils.misc as utils
 from qutebrowser.test.helpers import environ_set_temp, fake_keyevent
 
 
+class Color(QColor):
+
+    """A QColor with a nicer repr()."""
+
+    def __repr__(self):
+        return 'Color({}, {}, {}, {})'.format(
+            self.red(), self.green(), self.blue(), self.alpha())
+
+    def __eq__(self, other):
+        """The default operator= of QColor seems to be rather strict."""
+        return (self.red() == other.red() and
+                self.green() == other.green() and
+                self.blue() == other.blue() and
+                self.alpha() == other.alpha())
+
+
 class ElidingTests(unittest.TestCase):
 
     """Test elide."""
@@ -330,23 +346,23 @@ class InterpolateColorTests(unittest.TestCase):
     """Tests for interpolate_color.
 
     Attributes:
-        white: The QColor white as a valid QColor for tests.
-        white: The QColor black as a valid QColor for tests.
+        white: The Color white as a valid Color for tests.
+        white: The Color black as a valid Color for tests.
     """
 
     def setUp(self):
-        self.white = QColor('white')
-        self.black = QColor('black')
+        self.white = Color('white')
+        self.black = Color('black')
 
     def test_invalid_start(self):
         """Test an invalid start color."""
         with self.assertRaises(ValueError):
-            utils.interpolate_color(QColor(), self.white, 0)
+            utils.interpolate_color(Color(), self.white, 0)
 
     def test_invalid_end(self):
         """Test an invalid end color."""
         with self.assertRaises(ValueError):
-            utils.interpolate_color(self.white, QColor(), 0)
+            utils.interpolate_color(self.white, Color(), 0)
 
     def test_invalid_percentage(self):
         """Test an invalid percentage."""
@@ -365,52 +381,52 @@ class InterpolateColorTests(unittest.TestCase):
         white = utils.interpolate_color(self.white, self.black, 0, QColor.Rgb)
         black = utils.interpolate_color(self.white, self.black, 100,
                                         QColor.Rgb)
-        self.assertEqual(white, self.white)
-        self.assertEqual(black, self.black)
+        self.assertEqual(Color(white), self.white)
+        self.assertEqual(Color(black), self.black)
 
     def test_valid_percentages_hsv(self):
         """Test 0% and 100% in the HSV colorspace."""
         white = utils.interpolate_color(self.white, self.black, 0, QColor.Hsv)
         black = utils.interpolate_color(self.white, self.black, 100,
                                         QColor.Hsv)
-        self.assertEqual(white, self.white)
-        self.assertEqual(black, self.black)
+        self.assertEqual(Color(white), self.white)
+        self.assertEqual(Color(black), self.black)
 
     def test_valid_percentages_hsl(self):
         """Test 0% and 100% in the HSL colorspace."""
         white = utils.interpolate_color(self.white, self.black, 0, QColor.Hsl)
         black = utils.interpolate_color(self.white, self.black, 100,
                                         QColor.Hsl)
-        self.assertEqual(white, self.white)
-        self.assertEqual(black, self.black)
+        self.assertEqual(Color(white), self.white)
+        self.assertEqual(Color(black), self.black)
 
     def test_interpolation_rgb(self):
         """Test an interpolation in the RGB colorspace."""
-        color = utils.interpolate_color(QColor(0, 40, 100), QColor(0, 20, 200),
+        color = utils.interpolate_color(Color(0, 40, 100), Color(0, 20, 200),
                                         50, QColor.Rgb)
-        self.assertEqual(color, QColor(0, 30, 150))
+        self.assertEqual(Color(color), Color(0, 30, 150))
 
     def test_interpolation_hsv(self):
         """Test an interpolation in the HSV colorspace."""
-        start = QColor()
-        stop = QColor()
+        start = Color()
+        stop = Color()
         start.setHsv(0, 40, 100)
         stop.setHsv(0, 20, 200)
         color = utils.interpolate_color(start, stop, 50, QColor.Hsv)
-        expected = QColor()
+        expected = Color()
         expected.setHsv(0, 30, 150)
-        self.assertEqual(color, expected)
+        self.assertEqual(Color(color), expected)
 
     def test_interpolation_hsl(self):
         """Test an interpolation in the HSL colorspace."""
-        start = QColor()
-        stop = QColor()
+        start = Color()
+        stop = Color()
         start.setHsl(0, 40, 100)
         stop.setHsl(0, 20, 200)
         color = utils.interpolate_color(start, stop, 50, QColor.Hsl)
-        expected = QColor()
+        expected = Color()
         expected.setHsl(0, 30, 150)
-        self.assertEqual(color, expected)
+        self.assertEqual(Color(color), expected)
 
 
 class FormatSecondsTests(unittest.TestCase):
