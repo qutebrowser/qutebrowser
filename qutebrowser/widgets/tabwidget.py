@@ -17,7 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""The tab widget used for TabbedBrowser from browser.py."""
+"""The tab widget used for TabbedBrowser from browser.py.
+
+Module attributes:
+    PM_TabBarPadding: The PixelMetric value for TabBarStyle to get the padding
+                      between items.
+"""
 
 from math import ceil
 import functools
@@ -31,6 +36,9 @@ import qutebrowser.config.config as config
 from qutebrowser.config.style import set_register_stylesheet
 from qutebrowser.utils.qt import qt_ensure_valid
 from qutebrowser.utils.misc import highlight_color
+
+
+PM_TabBarPadding = QStyle.PM_CustomBase
 
 
 class TabWidget(QTabWidget):
@@ -61,6 +69,7 @@ class TabWidget(QTabWidget):
         set_register_stylesheet(self)
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
+        self.setUsesScrollButtons(True)
         bar.setDrawBase(False)
         self._init_config()
 
@@ -143,22 +152,52 @@ class TabBar(QTabBar):
         Return:
             A QSize.
         """
-        height = self.tabSizeHint(index).height()
-        return QSize(1, height)
+        icon = self.tabIcon(index)
+        padding_count = 0
+        if not icon.isNull():
+            extent = self.style().pixelMetric(QStyle.PM_TabBarIconSize, None,
+                                              self)
+            icon_size = icon.actualSize(QSize(extent, extent))
+            padding_count += 1
+        else:
+            icon_size = QSize(0, 0)
+        button_width = 0
+        btn1 = self.tabButton(index, QTabBar.LeftSide)
+        btn2 = self.tabButton(index, QTabBar.RightSide)
+        if btn1 is not None:
+            button_width += btn1.size().width()
+            padding_count += 1
+        if btn2 is not None:
+            button_width += btn2.size().width()
+        padding_count += 1
+        padding_width = self.style().pixelMetric(PM_TabBarPadding, None, self)
+        height = self.fontMetrics().height()
+        width = (self.fontMetrics().size(0, '\u2026').width() +
+                 icon_size.width() + button_width +
+                 padding_count * padding_width)
+        return QSize(width, height)
 
-    def tabSizeHint(self, _index):
+    def tabSizeHint(self, index):
         """Override tabSizeHint so all tabs are the same size.
 
         https://wiki.python.org/moin/PyQt/Customising%20tab%20bars
 
         Args:
-            _index: The index of the tab.
+            index: The index of the tab.
 
         Return:
             A QSize.
         """
-        height = self.fontMetrics().height()
-        size = QSize(self.width() / self.count(), height)
+        minimum_size = self.minimumTabSizeHint(index)
+        if self.count() * minimum_size.width() > self.width():
+            # If we don't have enough space, we return the minimum size so we
+            # get scroll buttons as soon as needed.
+            size = minimum_size
+        else:
+            # If we *do* have enough space, tabs should occupy the whole window
+            # width.
+            height = self.fontMetrics().height()
+            size = QSize(self.width() / self.count(), height)
         qt_ensure_valid(size)
         return size
 
@@ -217,7 +256,7 @@ class TabBarStyle(QCommonStyle):
         self._style = style
         for method in ('drawComplexControl', 'drawItemPixmap',
                        'generatedIconPixmap', 'hitTestComplexControl',
-                       'pixelMetric', 'itemPixmapRect', 'itemTextRect',
+                       'itemPixmapRect', 'itemTextRect',
                        'polish', 'styleHint', 'subControlRect', 'unpolish',
                        'drawItemText', 'sizeFromContents'):
             target = getattr(self._style, method)
@@ -317,6 +356,8 @@ class TabBarStyle(QCommonStyle):
                 metric == QStyle.PM_TabBarTabHSpace or
                 metric == QStyle.PM_TabBarTabVSpace):
             return 0
+        elif metric == PM_TabBarPadding:
+            return 4
         else:
             return self._style.pixelMetric(metric, option, widget)
 
@@ -364,7 +405,7 @@ class TabBarStyle(QCommonStyle):
         Return:
             A (text_rect, icon_rect) tuple (both QRects).
         """
-        padding = 4
+        padding = self.pixelMetric(PM_TabBarPadding, opt)
         icon_rect = QRect()
         text_rect = QRect(opt.rect)
         qt_ensure_valid(text_rect)
@@ -377,7 +418,6 @@ class TabBarStyle(QCommonStyle):
             icon_rect = self._get_icon_rect(opt, text_rect)
             text_rect.adjust(icon_rect.width() + padding, 0, 0, 0)
         text_rect = self._style.visualRect(opt.direction, opt.rect, text_rect)
-        qt_ensure_valid(text_rect)
         return (text_rect, icon_rect)
 
     def _get_icon_rect(self, opt, text_rect):
@@ -392,7 +432,7 @@ class TabBarStyle(QCommonStyle):
         """
         icon_size = opt.iconSize
         if not icon_size.isValid():
-            icon_extent = self._style.pixelMetric(QStyle.PM_SmallIconSize)
+            icon_extent = self.pixelMetric(QStyle.PM_SmallIconSize)
             icon_size = QSize(icon_extent, icon_extent)
         icon_mode = (QIcon.Normal if opt.state & QStyle.State_Enabled
                      else QIcon.Disabled)
