@@ -352,12 +352,15 @@ class WebView(QWebView):
             callback: Function to call after shutting down.
         """
         self._shutdown_callback = callback
+        # Avoid loading finished signal when stopping
         try:
-            # Avoid loading finished signal when stopping
             self.loadFinished.disconnect()
+        except TypeError:
+            pass
+        try:
             self.page().mainFrame().loadFinished.disconnect()
         except TypeError:
-            log.destroy.exception("This should never happen.")
+            pass
         self.stop()
         self.close()
         self.settings().setAttribute(QWebSettings.JavascriptEnabled, False)

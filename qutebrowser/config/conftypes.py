@@ -935,3 +935,12 @@ class ForwardUnboundKeys(BaseType):
                                ('auto', "Forward unbound non-alphanumeric "
                                         "keys."),
                                ('none', "Don't forward any keys."))
+
+
+class CloseButton(BaseType):
+
+    """Whether to forward unbound keys."""
+
+    valid_values = ValidValues(('right', "Close tabs on right-click."),
+                               ('middle', "Close tabs on middle-click."),
+                               ('none', "Don't close tabs using the mouse."))

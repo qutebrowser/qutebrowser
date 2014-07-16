@@ -401,17 +401,9 @@ DATA = OrderedDict([
          SettingValue(types.Bool(), 'true'),
          "Whether tabs should be movable."),
 
-        ('close-on-right-click',
-         SettingValue(types.Bool(), 'false'),
-         "Whether tabs should close when right-clicked."),
-
-        ('close-buttons',
-         SettingValue(types.Bool(), 'false'),
-         "Whether tabs should have close-buttons."),
-
-        ('scroll-buttons',
-         SettingValue(types.Bool(), 'true'),
-         "Whether there should be scroll buttons if there are too many tabs."),
+        ('close-mouse-button',
+         SettingValue(types.CloseButton(), 'middle'),
+         "On which mouse button to close tabs."),
 
         ('position',
          SettingValue(types.Position(), 'north'),
@@ -429,22 +421,23 @@ DATA = OrderedDict([
          SettingValue(types.Bool(), 'true'),
          "Whether to wrap when changing tabs."),
 
-        ('min-tab-width',
-         SettingValue(types.Int(minval=1), '100'),
-         "The minimum width of a tab."),
-
-        ('max-tab-width',
-         SettingValue(types.Int(minval=1), '200'),
-         "The maximum width of a tab."),
-
         ('show-favicons',
          SettingValue(types.Bool(), 'true'),
          "Whether to show favicons in the tab bar."),
 
-        ('expand',
-         SettingValue(types.Bool(), 'false'),
-         "Whether to expand tabs to use the full window width."),
+        ('width',
+         SettingValue(types.PercOrInt(minperc=0, maxperc=100, minint=1),
+                      '20%'),
+         "The width of the tab bar if it's vertical, in px or as percentage "
+         "of the window."),
 
+        ('indicator-width',
+         SettingValue(types.Int(minval=0), '3'),
+         "Width of the progress indicator."),
+
+        ('indicator-space',
+         SettingValue(types.Int(minval=0), '3'),
+         "Spacing between tab edge and indicator."),
     )),
 
     ('storage', sect.KeyValue(
@@ -873,9 +866,13 @@ DATA = OrderedDict([
          SettingValue(types.Color(), 'white'),
          "Foreground color of tabs."),
 
-        ('tab.bg',
-         SettingValue(types.Color(), 'grey'),
-         "Background color of unselected tabs."),
+        ('tab.bg.odd',
+         SettingValue(types.QtColor(), 'grey'),
+         "Background color of unselected odd tabs."),
+
+        ('tab.bg.even',
+         SettingValue(types.QtColor(), 'darkgrey'),
+         "Background color of unselected even tabs."),
 
         ('tab.bg.selected',
          SettingValue(types.Color(), 'black'),
@@ -884,6 +881,22 @@ DATA = OrderedDict([
         ('tab.bg.bar',
          SettingValue(types.Color(), '#555555'),
          "Background color of the tabbar."),
+
+        ('tab.indicator.start',
+         SettingValue(types.QtColor(), '#0000aa'),
+         "Color gradient start for the tab indicator."),
+
+        ('tab.indicator.stop',
+         SettingValue(types.QtColor(), '#00aa00'),
+         "Color gradient end for the tab indicator."),
+
+        ('tab.indicator.error',
+         SettingValue(types.QtColor(), '#ff0000'),
+         "Color for the tab indicator on errors.."),
+
+        ('tab.indicator.system',
+         SettingValue(types.ColorSystem(), 'rgb'),
+         "Color gradient interpolation system for the tab indicator."),
 
         ('tab.seperator',
          SettingValue(types.Color(), '#555555'),

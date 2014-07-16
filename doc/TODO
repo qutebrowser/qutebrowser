@@ -76,7 +76,6 @@ Improvements / minor features
 - Commandline argument to delete config
 - Settings dialog
 - Tab groups (tagging/filtering for displayed tabs)
-- Reimplement tabbar to paint it by ourselves to look like dwb
 - Save cookies in Netscape format so it can be used by wget. (see notes)
 - Zoom with ctrl + mousewheel
 - debug-Command for set loglevel/RAM capacity
@@ -94,7 +93,6 @@ Improvements / minor features
 - Ctrl+A/X to increase/decrease last number in URL
 - Add more element-selection-detection code (with options?) (see notes)
 - somehow unfocus elements (hide blinking cursor) when insert mode is left?
-- tabs: some more padding?
 - Copy link location on crash mail should not copy mailto:
 - Drag&Drop of tabs to other windows
 - Use QNetworkAccessManager per QWebPage again so we can set proxy per tab.
