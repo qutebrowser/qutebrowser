@@ -711,8 +711,7 @@ class CommandDispatcher:
         and do everything async.
         """
         frame = self._tabs.currentWidget().page().currentFrame()
-        elem = frame.findFirstElement(webelem.SELECTORS[
-            webelem.Group.focus])
+        elem = webelem.focus_elem(frame)
         if elem.isNull():
             raise CommandError("No element focused!")
         if not webelem.is_editable(elem):

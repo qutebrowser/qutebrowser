@@ -247,3 +247,14 @@ def is_editable(elem):
         log.webview.debug("span with classes {} clicked!".format(
             elem.classes()))
     return False
+
+
+def focus_elem(frame):
+    """Get the focused element in a webframe.
+
+    FIXME: Add tests.
+
+    Args:
+        frame: The QWebFrame to search in.
+    """
+    return frame.findFirstElement(SELECTORS[Group.focus])
