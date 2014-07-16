@@ -143,11 +143,6 @@ class MainWindow(QWidget):
         topleft = QPoint(0, topleft_y)
         bottomright = self.status.geometry().topRight()
         rect = QRect(topleft, bottomright)
-        log.misc.debug("confheight: {}, self.height(): {}, height: {}, "
-                       "contents_height: {}, self.status.height(): {}, "
-                       "topleft: {}, bottomright: {}".format(
-                           confheight, self.height(), height, contents_height,
-                           self.status.height(), topleft, bottomright))
         qt_ensure_valid(rect)
         self.completion.setGeometry(rect)
 
