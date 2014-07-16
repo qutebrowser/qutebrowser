@@ -201,8 +201,14 @@ def is_editable(elem):
     # Beginnings of div-classes which are actually some kind of editor.
     log.misc.debug("Checking if element is editable: {}".format(
         elem.toOuterXml()))
-    div_classes = ['CodeMirror',  # Javascript editor over a textarea
-                   'kix-']        # Google Docs editor
+    div_classes = ('CodeMirror',  # Javascript editor over a textarea
+                   'kix-')        # Google Docs editor
+    roles = ('combobox', 'textbox')
+    if elem.hasAttribute('role') and elem.attribute('role') in roles:
+        return is_writable(elem)
+    if (elem.hasAttribute('contenteditable') and
+            elem.attribute('contenteditable') not in ('false', 'inherit')):
+        return is_writable(elem)
     tag = elem.tagName().lower()
     if tag == 'input':
         objtype = elem.attribute('type').lower()
