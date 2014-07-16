@@ -308,7 +308,6 @@ class TabbedBrowser(TabWidget):
         if not background:
             self.setCurrentWidget(tab)
         tab.show()
-        tab.setFocus()
         return tab
 
     @pyqtSlot(str, int)
@@ -436,8 +435,9 @@ class TabbedBrowser(TabWidget):
     @pyqtSlot(int)
     def on_current_changed(self, idx):
         """Set last_focused and leave hinting mode when focus changed."""
-        modeman.maybe_leave('hint', 'tab changed')
         tab = self.widget(idx)
+        tab.setFocus()
+        modeman.maybe_leave('hint', 'tab changed')
         self.last_focused = self.now_focused
         self.now_focused = tab
         self.current_tab_changed.emit(tab)
