@@ -60,6 +60,7 @@ Improvements / minor features
     keychains as the left-hand-side. But when using it as the RHS, binding
     multiple keybindings to the same command gets tricky.
 
+- Print keybinding for command in completion [konubinix]
 - "go up in the URL path" mapped to gu for example [egan]
 - command which closes other tabs in a direction [egan]
 - Distinction between :q and :wq, add ZZ and ZQ shortcuts.
