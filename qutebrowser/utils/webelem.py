@@ -187,6 +187,21 @@ def _is_object_editable(elem):
         return False
 
 
+def is_content_editable(elem):
+    """Check if an element hsa a contenteditable attribute.
+
+    FIXME: Add tests.
+
+    Args:
+        elem: The QWebElement to check.
+
+    Return:
+        True if the element has a contenteditable attribute, False otherwise.
+    """
+    return (elem.hasAttribute('contenteditable') and
+                elem.attribute('contenteditable') not in ('false', 'inherit'))
+
+
 def is_editable(elem):
     """Check whether we should switch to insert mode for this element.
 
@@ -204,8 +219,8 @@ def is_editable(elem):
     div_classes = ('CodeMirror',  # Javascript editor over a textarea
                    'kix-')        # Google Docs editor
     roles = ('combobox', 'textbox')
-    if elem.hasAttribute('role') and elem.attribute('role') in roles:
-        return is_writable(elem)
+    if is_content_editable(elem) and is_writable(elem):
+        return True
     if (elem.hasAttribute('contenteditable') and
             elem.attribute('contenteditable') not in ('false', 'inherit')):
         return is_writable(elem)

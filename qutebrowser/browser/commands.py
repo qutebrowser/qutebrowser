@@ -717,7 +717,10 @@ class CommandDispatcher:
             raise CommandError("No element focused!")
         if not webelem.is_editable(elem):
             raise CommandError("Focused element is not editable!")
-        text = elem.evaluateJavaScript('this.value')
+        if webelem.is_content_editable(elem):
+            text = elem.toPlainText()
+        else:
+            text = elem.evaluateJavaScript('this.value')
         self._editor = ExternalEditor(self._tabs)
         self._editor.editing_finished.connect(
             partial(self.on_editing_finished, elem))
@@ -734,5 +737,8 @@ class CommandDispatcher:
         """
         if elem.isNull():
             raise CommandError("Element vanished while editing!")
-        text = webelem.javascript_escape(text)
-        elem.evaluateJavaScript("this.value='{}'".format(text))
+        if webelem.is_content_editable(elem):
+            elem.setPlainText(text)
+        else:
+            text = webelem.javascript_escape(text)
+            elem.evaluateJavaScript("this.value='{}'".format(text))
