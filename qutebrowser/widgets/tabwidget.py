@@ -95,7 +95,7 @@ class TabWidget(QTabWidget):
         self.setTabPosition(position)
         tabbar.vertical = position in (QTabWidget.West, QTabWidget.East)
         tabbar.setSelectionBehaviorOnRemove(select_conv[selstr])
-        tabbar.updateGeometry()
+        tabbar.refresh()
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, _option):
@@ -124,6 +124,13 @@ class TabBar(QTabBar):
     def __repr__(self):
         return '<{} with {} tabs>'.format(self.__class__.__name__,
                                           self.count())
+
+    def refresh(self):
+        """Properly repaint the tab bar and relayout tabs."""
+        # This is a horrible hack, but we need to do this so the underlaying Qt
+        # code sets layoutDirty so it actually relayouts the tabs.
+        self.setIconSize(self.iconSize())
+        self.updateGeometry()
 
     def set_tab_indicator_color(self, idx, color):
         """Set the tab indicator color.
