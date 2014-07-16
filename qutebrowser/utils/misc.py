@@ -49,6 +49,24 @@ def elide(text, length):
         return text[:length - 1] + '\u2026'
 
 
+def compact_text(text, elidelength=None):
+    """Remove leading whitespace and newlines from a text and maybe elide it.
+
+    FIXME: Add tests.
+
+    Args:
+        text: The text to compact.
+        elidelength: To how many chars to elide.
+    """
+    out = []
+    for line in text.splitlines():
+        out.append(line.strip())
+    out = ''.join(out)
+    if elidelength is not None:
+        out = elide(out, elidelength)
+    return out
+
+
 def read_file(filename):
     """Get the contents of a file contained with qutebrowser.
 

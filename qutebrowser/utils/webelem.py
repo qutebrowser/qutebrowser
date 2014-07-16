@@ -31,8 +31,9 @@ from PyQt5.QtCore import QRect, QUrl
 from PyQt5.QtWebKit import QWebElement
 
 import qutebrowser.utils.log as log
-from qutebrowser.utils.usertypes import enum
 import qutebrowser.config.config as config
+from qutebrowser.utils.usertypes import enum
+from qutebrowser.utils.misc import compact_text
 
 
 Group = enum('all', 'links', 'images', 'editable', 'url', 'prevnext_rel',
@@ -250,7 +251,7 @@ def is_editable(elem, strict=False):
     # pylint: disable=too-many-return-statements
     roles = ('combobox', 'textbox')
     log.misc.debug("Checking if element is editable: {}".format(
-        elem.toOuterXml()))
+        compact_text(elem.toOuterXml(),  500)))
     tag = elem.tagName().lower()
     if is_content_editable(elem) and is_writable(elem):
         return True
