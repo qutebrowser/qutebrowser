@@ -430,6 +430,14 @@ DATA = OrderedDict([
                       '20%'),
          "The width of the tab bar if it's vertical, in px or as percentage "
          "of the window."),
+
+        ('indicator-width',
+         SettingValue(types.Int(minval=0), '3'),
+         "Width of the progress indicator."),
+
+        ('indicator-space',
+         SettingValue(types.Int(minval=0), '3'),
+         "Spacing between tab edge and indicator."),
     )),
 
     ('storage', sect.KeyValue(
@@ -873,6 +881,22 @@ DATA = OrderedDict([
         ('tab.bg.bar',
          SettingValue(types.Color(), '#555555'),
          "Background color of the tabbar."),
+
+        ('tab.indicator.start',
+         SettingValue(types.QtColor(), '#0000aa'),
+         "Color gradient start for the tab indicator."),
+
+        ('tab.indicator.stop',
+         SettingValue(types.QtColor(), '#00aa00'),
+         "Color gradient end for the tab indicator."),
+
+        ('tab.indicator.error',
+         SettingValue(types.QtColor(), '#ff0000'),
+         "Color for the tab indicator on errors.."),
+
+        ('tab.indicator.system',
+         SettingValue(types.ColorSystem(), 'rgb'),
+         "Color gradient interpolation system for the tab indicator."),
 
         ('tab.seperator',
          SettingValue(types.Color(), '#555555'),

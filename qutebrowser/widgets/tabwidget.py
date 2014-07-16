@@ -26,15 +26,15 @@ Module attributes:
 
 import functools
 
-from PyQt5.QtCore import pyqtSlot, Qt, QSize, QRect
+from PyQt5.QtCore import pyqtSlot, Qt, QSize, QRect, QPoint
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab,
                              QApplication)
 from PyQt5.QtGui import QIcon, QPalette, QColor
 
-import qutebrowser.config.config as config
 from qutebrowser.config.style import set_register_stylesheet
 from qutebrowser.utils.qt import qt_ensure_valid
+import qutebrowser.config.config as config
 
 
 PM_TabBarPadding = QStyle.PM_CustomBase
@@ -124,6 +124,16 @@ class TabBar(QTabBar):
     def __repr__(self):
         return '<{} with {} tabs>'.format(self.__class__.__name__,
                                           self.count())
+
+    def set_tab_indicator_color(self, idx, color):
+        """Set the tab indicator color.
+
+        Args:
+            idx: The tab index.
+            color: A QColor.
+        """
+        self.setTabData(idx, color)
+        self.update(self.tabRect(idx))
 
     def mousePressEvent(self, e):
         """Override mousePressEvent to close tabs if configured."""
@@ -216,6 +226,10 @@ class TabBar(QTabBar):
             tab.palette.setColor(QPalette.Window, QColor(color))
             tab.palette.setColor(QPalette.WindowText,
                                  QColor(config.get('colors', 'tab.fg')))
+            indicator_color = self.tabData(idx)
+            if indicator_color is None:
+                indicator_color = QColor()
+            tab.palette.setColor(QPalette.Base, indicator_color)
             if tab.rect.right() < 0 or tab.rect.left() > self.width():
                 # Don't bother drawing a tab if the entire tab is outside of
                 # the visible tab bar.
@@ -279,11 +293,18 @@ class TabBarStyle(QCommonStyle):
             self.drawControl(QStyle.CE_TabBarTabShape, opt, p, widget)
             self.drawControl(QStyle.CE_TabBarTabLabel, opt, p, widget)
         elif element == QStyle.CE_TabBarTabShape:
+            p.fillRect(opt.rect, opt.palette.window())
+            indicator_color = opt.palette.base().color()
+            indicator_width = config.get('tabbar', 'indicator-width')
+            if indicator_color.isValid() and indicator_width != 0:
+                topleft = opt.rect.topLeft()
+                topleft += QPoint(config.get('tabbar', 'indicator-space'), 2)
+                p.fillRect(topleft.x(), topleft.y(), indicator_width,
+                           opt.rect.height() - 4, indicator_color)
             # We use super() rather than self._style here because we don't want
             # any sophisticated drawing.
             super().drawControl(QStyle.CE_TabBarTabShape, opt, p, widget)
         elif element == QStyle.CE_TabBarTabLabel:
-            p.fillRect(opt.rect, opt.palette.window())
             text_rect, icon_rect = self._tab_layout(opt)
             if not opt.icon.isNull():
                 qt_ensure_valid(icon_rect)
@@ -359,6 +380,8 @@ class TabBarStyle(QCommonStyle):
         text_rect = QRect(opt.rect)
         qt_ensure_valid(text_rect)
         text_rect.adjust(padding, 0, 0, 0)
+        text_rect.adjust(config.get('tabbar', 'indicator-width') +
+                         config.get('tabbar', 'indicator-space'), 0, 0, 0)
         if not opt.icon.isNull():
             icon_rect = self._get_icon_rect(opt, text_rect)
             text_rect.adjust(icon_rect.width() + padding, 0, 0, 0)

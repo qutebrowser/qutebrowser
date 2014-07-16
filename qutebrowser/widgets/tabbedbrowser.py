@@ -29,6 +29,7 @@ import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.log as log
+import qutebrowser.utils.misc as utils
 from qutebrowser.widgets.tabwidget import TabWidget
 from qutebrowser.widgets.webview import WebView
 from qutebrowser.browser.signalfilter import SignalFilter
@@ -181,6 +182,8 @@ class TabbedBrowser(TabWidget):
         # misc
         tab.titleChanged.connect(partial(self.on_title_changed, tab))
         tab.iconChanged.connect(partial(self.on_icon_changed, tab))
+        tab.loadProgress.connect(partial(self.on_load_progress, tab))
+        frame.loadFinished.connect(partial(self.on_load_finished, tab))
         frame.loadStarted.connect(partial(self.on_load_started, tab))
         page.windowCloseRequested.connect(
             partial(self.on_window_close_requested, tab))
@@ -441,6 +444,27 @@ class TabbedBrowser(TabWidget):
         self.now_focused = tab
         self.current_tab_changed.emit(tab)
         self.title_changed.emit('{} - qutebrowser'.format(self.tabText(idx)))
+
+    def on_load_progress(self, tab, perc):
+        """Adjust tab indicator on load progress."""
+        idx = self.indexOf(tab)
+        start = config.get('colors', 'tab.indicator.start')
+        stop = config.get('colors', 'tab.indicator.stop')
+        system = config.get('colors', 'tab.indicator.system')
+        color = utils.interpolate_color(start, stop, perc, system)
+        self.tabBar().set_tab_indicator_color(idx, color)
+
+    def on_load_finished(self, tab, ok):
+        """Adjust tab indicator when loading finished."""
+        idx = self.indexOf(tab)
+        if ok:
+            start = config.get('colors', 'tab.indicator.start')
+            stop = config.get('colors', 'tab.indicator.stop')
+            system = config.get('colors', 'tab.indicator.system')
+            color = utils.interpolate_color(start, stop, 100, system)
+        else:
+            color = config.get('colors', 'tab.indicator.error')
+        self.tabBar().set_tab_indicator_color(idx, color)
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
