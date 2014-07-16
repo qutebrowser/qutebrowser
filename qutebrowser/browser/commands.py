@@ -711,13 +711,15 @@ class CommandDispatcher:
         and do everything async.
         """
         frame = self._tabs.currentWidget().page().currentFrame()
-        elem = frame.findFirstElement(webelem.SELECTORS[
-            webelem.Group.focus])
+        elem = webelem.focus_elem(frame)
         if elem.isNull():
             raise CommandError("No element focused!")
-        if not webelem.is_editable(elem):
+        if not webelem.is_editable(elem, strict=True):
             raise CommandError("Focused element is not editable!")
-        text = elem.evaluateJavaScript('this.value')
+        if webelem.is_content_editable(elem):
+            text = elem.toPlainText()
+        else:
+            text = elem.evaluateJavaScript('this.value')
         self._editor = ExternalEditor(self._tabs)
         self._editor.editing_finished.connect(
             partial(self.on_editing_finished, elem))
@@ -734,5 +736,8 @@ class CommandDispatcher:
         """
         if elem.isNull():
             raise CommandError("Element vanished while editing!")
-        text = webelem.javascript_escape(text)
-        elem.evaluateJavaScript("this.value='{}'".format(text))
+        if webelem.is_content_editable(elem):
+            elem.setPlainText(text)
+        else:
+            text = webelem.javascript_escape(text)
+            elem.evaluateJavaScript("this.value='{}'".format(text))

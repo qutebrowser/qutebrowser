@@ -170,7 +170,22 @@ def get_child_frames(startframe):
     return results
 
 
-def _is_object_editable(elem):
+def is_content_editable(elem):
+    """Check if an element hsa a contenteditable attribute.
+
+    FIXME: Add tests.
+
+    Args:
+        elem: The QWebElement to check.
+
+    Return:
+        True if the element has a contenteditable attribute, False otherwise.
+    """
+    return (elem.hasAttribute('contenteditable') and
+            elem.attribute('contenteditable') not in ('false', 'inherit'))
+
+
+def _is_editable_object(elem):
     """Check if an object-element is editable."""
     if not elem.hasAttribute('type'):
         log.webview.debug("<object> without type clicked...")
@@ -187,42 +202,81 @@ def _is_object_editable(elem):
         return False
 
 
-def is_editable(elem):
+def _is_editable_input(elem):
+    """Check if an input-element is editable.
+
+    Args:
+        elem: The QWebElement to check.
+
+    Return:
+        True if the element is editable, False otherwise.
+    """
+    objtype = elem.attribute('type').lower()
+    if objtype in ['text', 'email', 'url', 'tel', 'number', 'password',
+                   'search', '']:
+        return is_writable(elem)
+
+
+def _is_editable_div(elem):
+    """Check if a div-element is editable.
+
+    Args:
+        elem: The QWebElement to check.
+
+    Return:
+        True if the element is editable, False otherwise.
+    """
+    # Beginnings of div-classes which are actually some kind of editor.
+    div_classes = ('CodeMirror',  # Javascript editor over a textarea
+                   'kix-')        # Google Docs editor
+    for klass in elem.classes():
+        if any([klass.startswith(e) for e in div_classes]):
+            return True
+
+
+def is_editable(elem, strict=False):
     """Check whether we should switch to insert mode for this element.
 
     FIXME: add tests
 
     Args:
         elem: The QWebElement to check.
+        strict: Whether to do stricter checking so only fields where we can get
+                the value match, for use with the :editor command.
 
     Return:
         True if we should switch to insert mode, False otherwise.
     """
-    # Beginnings of div-classes which are actually some kind of editor.
+    # pylint: disable=too-many-return-statements
+    roles = ('combobox', 'textbox')
     log.misc.debug("Checking if element is editable: {}".format(
         elem.toOuterXml()))
-    div_classes = ['CodeMirror',  # Javascript editor over a textarea
-                   'kix-']        # Google Docs editor
     tag = elem.tagName().lower()
-    if tag == 'input':
-        objtype = elem.attribute('type').lower()
-        if objtype in ['text', 'email', 'url', 'tel', 'number', 'password',
-                       'search', '']:
-            return is_writable(elem)
+    if is_content_editable(elem) and is_writable(elem):
+        return True
+    elif elem.hasAttribute('role') and elem.attribute('role') in roles:
+        return True
+    elif tag == 'input':
+        return _is_editable_input(elem)
     elif tag in ('textarea', 'select'):
         return is_writable(elem)
     elif tag in ('embed', 'applet'):
         # Flash/Java/...
-        return config.get('input', 'insert-mode-on-plugins')
+        return config.get('input', 'insert-mode-on-plugins') and not strict
     elif tag == 'object':
-        return _is_object_editable(elem)
+        return _is_editable_object(elem) and not strict
     elif tag == 'div':
-        log.webview.debug("div with classes {} clicked!".format(
-            elem.classes()))
-        for klass in elem.classes():
-            if any([klass.startswith(e) for e in div_classes]):
-                return True
-    elif tag == 'span':
-        log.webview.debug("span with classes {} clicked!".format(
-            elem.classes()))
-    return False
+        return _is_editable_div(elem) and not strict
+    else:
+        return False
+
+
+def focus_elem(frame):
+    """Get the focused element in a webframe.
+
+    FIXME: Add tests.
+
+    Args:
+        frame: The QWebFrame to search in.
+    """
+    return frame.findFirstElement(SELECTORS[Group.focus])
