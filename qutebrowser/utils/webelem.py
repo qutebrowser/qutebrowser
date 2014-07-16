@@ -170,7 +170,22 @@ def get_child_frames(startframe):
     return results
 
 
-def _is_object_editable(elem):
+def is_content_editable(elem):
+    """Check if an element hsa a contenteditable attribute.
+
+    FIXME: Add tests.
+
+    Args:
+        elem: The QWebElement to check.
+
+    Return:
+        True if the element has a contenteditable attribute, False otherwise.
+    """
+    return (elem.hasAttribute('contenteditable') and
+            elem.attribute('contenteditable') not in ('false', 'inherit'))
+
+
+def _is_editable_object(elem):
     """Check if an object-element is editable."""
     if not elem.hasAttribute('type'):
         log.webview.debug("<object> without type clicked...")
@@ -187,19 +202,36 @@ def _is_object_editable(elem):
         return False
 
 
-def is_content_editable(elem):
-    """Check if an element hsa a contenteditable attribute.
-
-    FIXME: Add tests.
+def _is_editable_input(elem):
+    """Check if an input-element is editable.
 
     Args:
         elem: The QWebElement to check.
 
     Return:
-        True if the element has a contenteditable attribute, False otherwise.
+        True if the element is editable, False otherwise.
     """
-    return (elem.hasAttribute('contenteditable') and
-                elem.attribute('contenteditable') not in ('false', 'inherit'))
+    objtype = elem.attribute('type').lower()
+    if objtype in ['text', 'email', 'url', 'tel', 'number', 'password',
+                   'search', '']:
+        return is_writable(elem)
+
+
+def _is_editable_div(elem):
+    """Check if a div-element is editable.
+
+    Args:
+        elem: The QWebElement to check.
+
+    Return:
+        True if the element is editable, False otherwise.
+    """
+    # Beginnings of div-classes which are actually some kind of editor.
+    div_classes = ('CodeMirror',  # Javascript editor over a textarea
+                   'kix-')        # Google Docs editor
+    for klass in elem.classes():
+        if any([klass.startswith(e) for e in div_classes]):
+            return True
 
 
 def is_editable(elem):
@@ -213,40 +245,28 @@ def is_editable(elem):
     Return:
         True if we should switch to insert mode, False otherwise.
     """
-    # Beginnings of div-classes which are actually some kind of editor.
+    # pylint: disable=too-many-return-statements
+    roles = ('combobox', 'textbox')
     log.misc.debug("Checking if element is editable: {}".format(
         elem.toOuterXml()))
-    div_classes = ('CodeMirror',  # Javascript editor over a textarea
-                   'kix-')        # Google Docs editor
-    roles = ('combobox', 'textbox')
+    tag = elem.tagName().lower()
     if is_content_editable(elem) and is_writable(elem):
         return True
-    if (elem.hasAttribute('contenteditable') and
-            elem.attribute('contenteditable') not in ('false', 'inherit')):
-        return is_writable(elem)
-    tag = elem.tagName().lower()
-    if tag == 'input':
-        objtype = elem.attribute('type').lower()
-        if objtype in ['text', 'email', 'url', 'tel', 'number', 'password',
-                       'search', '']:
-            return is_writable(elem)
+    elif elem.hasAttribute('role') and elem.attribute('role') in roles:
+        return True
+    elif tag == 'input':
+        return _is_editable_input(elem)
     elif tag in ('textarea', 'select'):
         return is_writable(elem)
     elif tag in ('embed', 'applet'):
         # Flash/Java/...
         return config.get('input', 'insert-mode-on-plugins')
     elif tag == 'object':
-        return _is_object_editable(elem)
+        return _is_editable_object(elem)
     elif tag == 'div':
-        log.webview.debug("div with classes {} clicked!".format(
-            elem.classes()))
-        for klass in elem.classes():
-            if any([klass.startswith(e) for e in div_classes]):
-                return True
-    elif tag == 'span':
-        log.webview.debug("span with classes {} clicked!".format(
-            elem.classes()))
-    return False
+        return _is_editable_div(elem)
+    else:
+        return False
 
 
 def focus_elem(frame):
