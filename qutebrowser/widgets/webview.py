@@ -110,11 +110,11 @@ class WebView(QWebView):
         self.hintmanager = HintManager(self)
         self.hintmanager.mouse_event.connect(self.on_mouse_event)
         self.hintmanager.set_open_target.connect(self.set_force_open_target)
-        self.page().linkHovered.connect(self.linkHovered)
-        self.page().mainFrame().loadStarted.connect(self.on_load_started)
-        self.page().change_title.connect(self.titleChanged)
+        self._page.linkHovered.connect(self.linkHovered)
+        self._page.mainFrame().loadStarted.connect(self.on_load_started)
+        self._page.change_title.connect(self.titleChanged)
         self.urlChanged.connect(self.on_url_changed)
-        self.loadFinished.connect(self.on_load_finished)
+        self._page.mainFrame().loadFinished.connect(self.on_load_finished)
         self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
         self.page().statusBarMessage.connect(
             lambda msg: setattr(self, 'statusbar_message', msg))
@@ -355,6 +355,7 @@ class WebView(QWebView):
         try:
             # Avoid loading finished signal when stopping
             self.loadFinished.disconnect()
+            self.page().mainFrame().loadFinished.disconnect()
         except TypeError:
             log.destroy.exception("This should never happen.")
         self.stop()

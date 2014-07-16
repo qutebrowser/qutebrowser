@@ -150,35 +150,40 @@ class TabbedBrowser(TabWidget):
 
     def _connect_tab_signals(self, tab):
         """Set up the needed signals for tab."""
+        page = tab.page()
+        frame = page.mainFrame()
         # filtered signals
-        tab.linkHovered.connect(self._filter.create(self.cur_link_hovered))
-        tab.loadProgress.connect(self._filter.create(self.cur_progress))
-        tab.loadFinished.connect(self._filter.create(self.cur_load_finished))
-        tab.loadStarted.connect(self._filter.create(self.cur_load_started))
+        tab.linkHovered.connect(
+            self._filter.create(self.cur_link_hovered, tab))
+        tab.loadProgress.connect(
+            self._filter.create(self.cur_progress, tab))
+        frame.loadFinished.connect(
+            self._filter.create(self.cur_load_finished, tab))
+        frame.loadStarted.connect(
+            self._filter.create(self.cur_load_started, tab))
         tab.statusBarMessage.connect(
-            self._filter.create(self.cur_statusbar_message))
+            self._filter.create(self.cur_statusbar_message, tab))
         tab.scroll_pos_changed.connect(
-            self._filter.create(self.cur_scroll_perc_changed))
+            self._filter.create(self.cur_scroll_perc_changed, tab))
         tab.url_text_changed.connect(
-            self._filter.create(self.cur_url_text_changed))
-        tab.url_text_changed.connect(partial(self.on_url_text_changed, tab))
+            self._filter.create(self.cur_url_text_changed, tab))
         tab.load_status_changed.connect(
-            self._filter.create(self.cur_load_status_changed))
+            self._filter.create(self.cur_load_status_changed, tab))
+        tab.url_text_changed.connect(partial(self.on_url_text_changed, tab))
         # hintmanager
         tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)
         tab.hintmanager.download_get.connect(self.download_get)
         tab.hintmanager.openurl.connect(self.openurl)
         self.cur_load_started.connect(self.on_cur_load_started)
         # downloads
-        tab.page().unsupportedContent.connect(self.start_download)
-        tab.page().start_download.connect(self.start_download)
+        page.unsupportedContent.connect(self.start_download)
+        page.start_download.connect(self.start_download)
         # misc
         tab.titleChanged.connect(partial(self.on_title_changed, tab))
         tab.iconChanged.connect(partial(self.on_icon_changed, tab))
-        tab.page().mainFrame().loadStarted.connect(partial(
-            self.on_load_started, tab))
-        tab.page().windowCloseRequested.connect(partial(
-            self.on_window_close_requested, tab))
+        frame.loadStarted.connect(partial(self.on_load_started, tab))
+        page.windowCloseRequested.connect(
+            partial(self.on_window_close_requested, tab))
 
     def cntwidget(self, count=None):
         """Return a widget based on a count/idx.
@@ -362,8 +367,8 @@ class TabbedBrowser(TabWidget):
     @pyqtSlot()
     def on_cur_load_started(self):
         """Leave insert/hint mode when loading started."""
-        for mode in ('insert', 'hint'):
-            modeman.maybe_leave(mode, 'load started')
+        modeman.maybe_leave('insert', 'load started')
+        modeman.maybe_leave('hint', 'load started')
 
     @pyqtSlot(WebView, str)
     def on_title_changed(self, tab, text):

@@ -48,18 +48,22 @@ class SignalFilter(QObject):
         super().__init__(tabs)
         self._tabs = tabs
 
-    def create(self, signal):
+    def create(self, signal, tab):
         """Factory for partial _filter_signals functions.
 
         Args:
             signal: The pyqtSignal to filter.
+            tab: The WebView to create filters for.
 
         Return:
             A partial functon calling _filter_signals with a signal.
         """
-        return partial(self._filter_signals, signal)
+        if not isinstance(tab, WebView):
+            raise ValueError("Tried to create filter for {} which is no "
+                             "WebView!".format(tab))
+        return partial(self._filter_signals, signal, tab)
 
-    def _filter_signals(self, signal, *args):
+    def _filter_signals(self, signal, tab, *args):
         """Filter signals and trigger TabbedBrowser signals if needed.
 
         Triggers signal if the original signal was sent from the _current_ tab
@@ -70,24 +74,20 @@ class SignalFilter(QObject):
 
         Args:
             signal: The signal to emit if the sender was the current widget.
+            tab: The WebView which the filter belongs to.
             *args: The args to pass to the signal.
 
         Emit:
             The target signal if the sender was the current widget.
         """
-        sender = self.sender()
         log_signal = signal_name(signal) not in self.BLACKLIST
-        if not isinstance(sender, WebView):
-            # BUG? This should never happen, but it does regularely...
-            logger.warning("Got signal {} by {} which is no tab!".format(
-                dbg_signal(signal, args), sender))
-            return
-        if self._tabs.currentWidget() == sender:
+        tabidx = self._tabs.indexOf(tab)
+        if tabidx == self._tabs.currentIndex():
             if log_signal:
                 logger.debug("emitting: {} (tab {})".format(
-                    dbg_signal(signal, args), self._tabs.indexOf(sender)))
+                    dbg_signal(signal, args), tabidx))
             signal.emit(*args)
         else:
             if log_signal:
                 logger.debug("ignoring: {} (tab {})".format(
-                    dbg_signal(signal, args), self._tabs.indexOf(sender)))
+                    dbg_signal(signal, args), tabidx))
