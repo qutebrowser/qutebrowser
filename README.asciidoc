@@ -91,7 +91,11 @@ Note a standalone .exe is available.
 Authors
 -------
 
-include::doc/AUTHORS.asciidoc[]
+Contributors, sorted by the number of commits in descending order:
+
+// QUTE_AUTHORS_START
+* Florian Bruhin
+// QUTE_AUTHORS_END
 
 Thanks / Similiar projects
 --------------------------

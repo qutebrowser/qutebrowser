@@ -20,7 +20,11 @@
 import os
 import sys
 import cgi
+import shutil
 import inspect
+import subprocess
+from collections import Counter
+from tempfile import mkstemp
 
 sys.path.insert(0, os.getcwd())
 
@@ -29,8 +33,11 @@ import qutebrowser.commands.utils as cmdutils
 import qutebrowser.config.configdata as configdata
 from qutebrowser.utils.usertypes import enum
 
+def _open_file(name, mode='w'):
+    """Open a file with a preset newline/encoding mode."""
+    return open(name, mode, newline='\n', encoding='utf-8')
 
-def parse_docstring(func):
+def _parse_docstring(func):
     """Generates documentation based on a docstring of a command handler.
 
     The docstring needs to follow the format described in HACKING.
@@ -94,7 +101,7 @@ def parse_docstring(func):
     return (short_desc, long_desc, arg_descs)
 
 
-def get_cmd_syntax(name, cmd):
+def _get_cmd_syntax(name, cmd):
     words = []
     argspec = inspect.getfullargspec(cmd.handler)
     if argspec.defaults is not None:
@@ -115,7 +122,7 @@ def get_cmd_syntax(name, cmd):
     return (' '.join(words), defaults)
 
 
-def get_command_quickref(cmds):
+def _get_command_quickref(cmds):
     out = []
     out.append('[options="header",width="75%",cols="25%,75%"]')
     out.append('|==============')
@@ -127,7 +134,7 @@ def get_command_quickref(cmds):
     return '\n'.join(out)
 
 
-def get_setting_quickref():
+def _get_setting_quickref():
     out = []
     for sectname, sect in configdata.DATA.items():
         if not getattr(sect, 'descriptions'):
@@ -144,13 +151,13 @@ def get_setting_quickref():
     return '\n'.join(out)
 
 
-def get_command_doc(name, cmd):
+def _get_command_doc(name, cmd):
     output = ['[[cmd-{}]]'.format(name)]
     output += ['==== {}'.format(name)]
-    syntax, defaults = get_cmd_syntax(name, cmd)
+    syntax, defaults = _get_cmd_syntax(name, cmd)
     output.append('+:{}+'.format(syntax))
     output.append("")
-    short_desc, long_desc, arg_descs = parse_docstring(cmd.handler)
+    short_desc, long_desc, arg_descs = _parse_docstring(cmd.handler)
     output.append(' '.join(short_desc))
     output.append("")
     output.append(' '.join(long_desc))
@@ -166,17 +173,16 @@ def get_command_doc(name, cmd):
     return '\n'.join(output)
 
 
-def generate_header():
-    print('= qutebrowser manpage')
-    print('Florian Bruhin <mail@qutebrowser.org>')
-    print(':toc:')
-    print(':homepage: http://www.qutebrowser.org/')
-    print("== NAME")
+def generate_header(f):
+    f.write('= qutebrowser manpage\n')
+    f.write('Florian Bruhin <mail@qutebrowser.org>\n')
+    f.write(':toc:\n')
+    f.write(':homepage: http://www.qutebrowser.org/\n')
 
 
-def generate_commands():
-    print()
-    print("== Commands")
+def generate_commands(f):
+    f.write('\n')
+    f.write("== Commands\n")
     normal_cmds = []
     hidden_cmds = []
     debug_cmds = []
@@ -190,64 +196,90 @@ def generate_commands():
     normal_cmds.sort()
     hidden_cmds.sort()
     debug_cmds.sort()
-    print()
-    print("=== Normal commands")
-    print(".Quick reference")
-    print(get_command_quickref(normal_cmds))
+    f.write("\n")
+    f.write("=== Normal commands\n")
+    f.write(".Quick reference\n")
+    f.write(_get_command_quickref(normal_cmds) + "\n")
     for name, cmd in normal_cmds:
-        print(get_command_doc(name, cmd))
-    print()
-    print("=== Hidden commands")
-    print(".Quick reference")
-    print(get_command_quickref(hidden_cmds))
+        f.write(_get_command_doc(name, cmd) + "\n")
+    f.write("\n")
+    f.write("=== Hidden commands\n")
+    f.write(".Quick reference\n")
+    f.write(_get_command_quickref(hidden_cmds) + "\n")
     for name, cmd in hidden_cmds:
-        print(get_command_doc(name, cmd))
-    print()
-    print("=== Debugging commands")
-    print("These commands are mainly intended for debugging. They are hidden "
-          "if qutebrowser was started without the `--debug`-flag.")
-    print()
-    print(".Quick reference")
-    print(get_command_quickref(debug_cmds))
+        f.write(_get_command_doc(name, cmd) + "\n")
+    f.write("\n")
+    f.write("=== Debugging commands\n")
+    f.write("These commands are mainly intended for debugging. They are "
+            "hidden if qutebrowser was started without the `--debug`-flag.\n")
+    f.write("\n")
+    f.write(".Quick reference\n")
+    f.write(_get_command_quickref(debug_cmds) + "\n")
     for name, cmd in debug_cmds:
-        print(get_command_doc(name, cmd))
+        f.write(_get_command_doc(name, cmd) + "\n")
 
 
-def generate_settings():
-    print()
-    print("== Settings")
-    print(get_setting_quickref())
+def generate_settings(f):
+    f.write("\n")
+    f.write("== Settings\n")
+    f.write(_get_setting_quickref() + "\n")
     for sectname, sect in configdata.DATA.items():
-        print()
-        print("=== {}".format(sectname))
-        print(configdata.SECTION_DESC[sectname])
+        f.write("\n")
+        f.write("=== {}".format(sectname) + "\n")
+        f.write(configdata.SECTION_DESC[sectname] + "\n")
         if not getattr(sect, 'descriptions'):
             pass
         else:
             for optname, option in sect.items():
-                print()
-                print('[[setting-{}-{}]]'.format(sectname, optname))
-                print("==== {}".format(optname))
-                print(sect.descriptions[optname])
-                print()
+                f.write("\n")
+                f.write('[[setting-{}-{}]]'.format(sectname, optname) + "\n")
+                f.write("==== {}".format(optname) + "\n")
+                f.write(sect.descriptions[optname] + "\n")
+                f.write("\n")
                 valid_values = option.typ.valid_values
                 if valid_values is not None:
-                    print("Valid values:")
-                    print()
+                    f.write("Valid values:\n")
+                    f.write("\n")
                     for val in valid_values:
                         try:
                             desc = valid_values.descriptions[val]
-                            print(" * +{}+: {}".format(val, desc))
+                            f.write(" * +{}+: {}".format(val, desc) + "\n")
                         except KeyError:
-                            print(" * +{}+".format(val))
-                    print()
+                            f.write(" * +{}+".format(val) + "\n")
+                    f.write("\n")
                 if option.default:
-                    print("Default: +pass:[{}]+".format(cgi.escape(
+                    f.write("Default: +pass:[{}]+\n".format(cgi.escape(
                         option.default)))
                 else:
-                    print("Default: empty")
+                    f.write("Default: empty\n")
 
 
-generate_header()
-generate_settings()
-generate_commands()
+def regenerate_authors(filename):
+    """Re-generate the authors inside README based on the commits made."""
+    commits = subprocess.check_output(['git', 'log', '--format=%aN'])
+    cnt = Counter(commits.decode('utf-8').splitlines())
+    oshandle, tmpname = mkstemp()
+    with _open_file(filename, mode='r') as infile, \
+            _open_file(oshandle, mode='w') as temp:
+        ignore = False
+        for line in infile:
+            if line.strip() == '// QUTE_AUTHORS_START':
+                ignore = True
+                temp.write(line)
+                for author in sorted(cnt, key=lambda k: cnt[k]):
+                    temp.write('* {}\n'.format(author))
+            elif line.strip() == '// QUTE_AUTHORS_END':
+                temp.write(line)
+                ignore = False
+            elif not ignore:
+                temp.write(line)
+    os.remove(filename)
+    shutil.move(tmpname, filename)
+
+
+if __name__ == '__main__':
+    with _open_file('doc/qutebrowser.asciidoc') as f:
+        generate_header(f)
+        generate_settings(f)
+        generate_commands(f)
+    regenerate_authors('README.asciidoc')
