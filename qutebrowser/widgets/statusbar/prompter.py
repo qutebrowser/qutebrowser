@@ -171,7 +171,9 @@ class Prompter:
     @cmdutils.register(instance='mainwindow.status.prompt.prompter', hide=True,
                        modes=['prompt'])
     def prompt_accept(self):
-        """Accept the prompt.
+        """Accept the current prompt.
+
+        //
 
         This executes the next action depending on the question mode, e.g. asks
         for the password or leaves the mode.

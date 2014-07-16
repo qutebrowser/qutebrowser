@@ -41,7 +41,8 @@ def parse_docstring(func):
     Return:
         A (short_desc, long_desc, arg_descs) tuple.
     """
-    State = enum('short', 'desc', 'arg_start', 'arg_inside')
+    State = enum('short', 'desc', 'desc_hidden', 'arg_start', 'arg_inside',
+                 'misc')
     doc = inspect.getdoc(func)
     lines = doc.splitlines()
 
@@ -61,8 +62,20 @@ def parse_docstring(func):
         elif cur_state == State.desc:
             if line.startswith('Args:'):
                 cur_state = State.arg_start
+            elif line.startswith('Emit:') or line.startswith('Raise:'):
+                cur_state = State.misc
+            elif line.strip() == '//':
+                cur_state = State.desc_hidden
             elif line.strip():
                 long_desc.append(line.strip())
+        elif cur_state == State.misc:
+            if line.startswith('Args:'):
+                cur_state = State.arg_start
+            else:
+                pass
+        elif cur_state == State.desc_hidden:
+            if line.startswith('Args:'):
+                cur_state = State.arg_start
         elif cur_state == State.arg_start:
             cur_arg_name, argdesc = line.split(':', maxsplit=1)
             cur_arg_name = cur_arg_name.strip()

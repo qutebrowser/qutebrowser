@@ -619,6 +619,8 @@ class CommandDispatcher:
         The command will be run in a shell, so you can use shell features like
         redirections.
 
+        //
+
         We use subprocess rather than Qt's QProcess here because of it's
         shell=True argument and because we really don't care about the process
         anymore as soon as it's spawned.
@@ -705,6 +707,8 @@ class CommandDispatcher:
                        hide=True)
     def open_editor(self):
         """Open an external editor with the current form field.
+
+        //
 
         We use QProcess rather than subprocess here because it makes it a lot
         easier to execute some code as soon as the process has been finished

@@ -34,7 +34,9 @@ import qutebrowser.commands.utils as cmdutils
 
 @cmdutils.register(debug=True, name='debug-set-trace')
 def set_trace():
-    """Set a tracepoint in the Python debugger that works with Qt.
+    """Break into the debugger in the shell.
+
+    //
 
     Based on http://stackoverflow.com/a/1745965/2085149
     """
