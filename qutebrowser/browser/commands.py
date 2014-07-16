@@ -737,7 +737,11 @@ class CommandDispatcher:
         if elem.isNull():
             raise CommandError("Element vanished while editing!")
         if webelem.is_content_editable(elem):
+            log.misc.debug("Filling element {} via setPlainText.".format(
+                webelem.debug_text(elem)))
             elem.setPlainText(text)
         else:
+            log.misc.debug("Filling element {} via javascript.".format(
+                webelem.debug_text(elem)))
             text = webelem.javascript_escape(text)
             elem.evaluateJavaScript("this.value='{}'".format(text))

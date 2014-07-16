@@ -249,7 +249,7 @@ def is_editable(elem, strict=False):
     # pylint: disable=too-many-return-statements
     roles = ('combobox', 'textbox')
     log.misc.debug("Checking if element is editable: {}".format(
-        compact_text(elem.toOuterXml(),  500)))
+        debug_text(elem)))
     tag = elem.tagName().lower()
     if is_content_editable(elem) and is_writable(elem):
         return True
@@ -279,3 +279,8 @@ def focus_elem(frame):
         frame: The QWebFrame to search in.
     """
     return frame.findFirstElement(SELECTORS[Group.focus])
+
+
+def debug_text(elem):
+    """Get a text based on an element suitable for debug output."""
+    return compact_text(elem.toOuterXml(), 500)
