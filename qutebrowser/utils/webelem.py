@@ -36,7 +36,7 @@ import qutebrowser.config.config as config
 
 
 Group = enum('all', 'links', 'images', 'editable', 'url', 'prevnext_rel',
-             'prevnext', 'editable_focused')
+             'prevnext', 'focus')
 
 
 SELECTORS = {
@@ -45,19 +45,10 @@ SELECTORS = {
                 '[role=option], [role=button], img'),
     Group.links: 'a, area, link',
     Group.images: 'img',
-    # This doesn't contain all the groups where we should switch to insert mode
-    # - it is just used when opening the external editor.
-    Group.editable_focused: ('input[type=text]:focus, '
-                             'input[type=email]:focus, '
-                             'input[type=url]:focus, '
-                             'input[type=tel]:focus, '
-                             'input[type=number]:focus, '
-                             'input[type=password]:focus, '
-                             'input[type=search]:focus, '
-                             'textarea:focus'),
     Group.url: '[src], [href]',
     Group.prevnext_rel: 'a, area, link, [role=link]',
     Group.prevnext: 'a, area, button, [role=button]',
+    Group.focus: '*:focus',
 }
 
 FILTERS = {
@@ -208,6 +199,8 @@ def is_editable(elem):
         True if we should switch to insert mode, False otherwise.
     """
     # Beginnings of div-classes which are actually some kind of editor.
+    log.misc.debug("Checking if element is editable: {}".format(
+        elem.toOuterXml()))
     div_classes = ['CodeMirror',  # Javascript editor over a textarea
                    'kix-']        # Google Docs editor
     tag = elem.tagName().lower()

@@ -712,9 +712,11 @@ class CommandDispatcher:
         """
         frame = self._tabs.currentWidget().page().currentFrame()
         elem = frame.findFirstElement(webelem.SELECTORS[
-            webelem.Group.editable_focused])
+            webelem.Group.focus])
         if elem.isNull():
-            raise CommandError("No editable element focused!")
+            raise CommandError("No element focused!")
+        if not webelem.is_editable(elem):
+            raise CommandError("Focused element is not editable!")
         text = elem.evaluateJavaScript('this.value')
         self._editor = ExternalEditor(self._tabs)
         self._editor.editing_finished.connect(
