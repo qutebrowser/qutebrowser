@@ -511,6 +511,7 @@ class WebView(QWebView):
         super().mousePressEvent(e)
 
     def mouseReleaseEvent(self, e):
+        """Extend mouseReleaseEvent to enter insert mode if needed."""
         super().mouseReleaseEvent(e)
         # We want to make sure we check the focus element after the WebView is
         # updated completely.

@@ -249,7 +249,7 @@ def is_editable(elem, strict=False):
     # pylint: disable=too-many-return-statements
     roles = ('combobox', 'textbox')
     log.misc.debug("Checking if element is editable: {}".format(
-        compact_text(elem.toOuterXml(),  500)))
+        compact_text(elem.toOuterXml(), 500)))
     tag = elem.tagName().lower()
     if is_content_editable(elem) and is_writable(elem):
         return True
