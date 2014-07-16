@@ -714,7 +714,7 @@ class CommandDispatcher:
         elem = webelem.focus_elem(frame)
         if elem.isNull():
             raise CommandError("No element focused!")
-        if not webelem.is_editable(elem):
+        if not webelem.is_editable(elem, strict=True):
             raise CommandError("Focused element is not editable!")
         if webelem.is_content_editable(elem):
             text = elem.toPlainText()

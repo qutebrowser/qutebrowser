@@ -234,13 +234,15 @@ def _is_editable_div(elem):
             return True
 
 
-def is_editable(elem):
+def is_editable(elem, strict=False):
     """Check whether we should switch to insert mode for this element.
 
     FIXME: add tests
 
     Args:
         elem: The QWebElement to check.
+        strict: Whether to do stricter checking so only fields where we can get
+                the value match, for use with the :editor command.
 
     Return:
         True if we should switch to insert mode, False otherwise.
@@ -260,11 +262,11 @@ def is_editable(elem):
         return is_writable(elem)
     elif tag in ('embed', 'applet'):
         # Flash/Java/...
-        return config.get('input', 'insert-mode-on-plugins')
+        return config.get('input', 'insert-mode-on-plugins') and not strict
     elif tag == 'object':
-        return _is_editable_object(elem)
+        return _is_editable_object(elem) and not strict
     elif tag == 'div':
-        return _is_editable_div(elem)
+        return _is_editable_div(elem) and not strict
     else:
         return False
 
