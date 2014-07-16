@@ -346,6 +346,11 @@ http://legacy.python.org/dev/peps/pep-0008/[PEP8] and the https://google-stylegu
 http://legacy.python.org/dev/peps/pep-0257/[PEP257] and the google guidelines.
 * Class docstrings have additional _Attributes:_, _Class attributes:_ and
   _Signals:_ sections, method/function docstrings have an _Emit:_ section.
+* In docstrings of command handlers (registered via `@cmdutils.register`), the
+description should be split into two parts by using `//` - the first part is
+the description of the command like it will appear in the documentation, the
+second part is "internal" documentation only relevant to people reading the
+sourcecode.
 +
 Example for a class docstring:
 +
@@ -367,6 +372,12 @@ Example for a method/function docstring:
 [source,python]
 ----
 """Do something special.
+
+This will do something.
+
+//
+
+It is based on http://example.com/.
 
 Args:
     foo: ...

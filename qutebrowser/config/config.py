@@ -287,6 +287,8 @@ class ConfigManager(QObject):
     def get_wrapper(self, sectname, optname):
         """Get the value from a section/option.
 
+        //
+
         Wrapper for the get-command to output the value in the status bar.
         """
         try:
@@ -331,6 +333,8 @@ class ConfigManager(QObject):
     def set_wrapper(self, sectname, optname, value):
         """Set an option.
 
+        //
+
         Wrapper for self.set() to output exceptions in the status bar.
         """
         try:
@@ -343,6 +347,8 @@ class ConfigManager(QObject):
                        completion=['section', 'option', 'value'])
     def set_temp_wrapper(self, sectname, optname, value):
         """Set a temporary option.
+
+        //
 
         Wrapper for self.set() to output exceptions in the status bar.
         """

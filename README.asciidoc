@@ -1,14 +1,12 @@
-qutebrowser readme
-==================
+qutebrowser
+===========
 
-About qutebrowser
------------------
+_A keyboard-driven, vim-like browser based on PyQt5 and QtWebKit._
 
-qutebrowser is a browser based on PyQt5 which aims to be keyboard-focused with
-an input similar to vim.
+qutebrowser is a keyboard-focused browser with with a minimal GUI. It's based
+on Python, PyQt5 and QtWebKit and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
-
 
 Getting help
 ------------
@@ -21,7 +19,33 @@ message to the
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[].
 
+Running qutebrowser
+-------------------
 
+After installing the <<requirements>>, you have these options:
+
+* Run qutebrowser directly via `python3 -m qutebrowser`. Note executing
+qutebrowser.py directly as script won't work, as Python won't recognize the
+module.
+* Run `python3 setup.py install` to install qutebrowser, then call
+`qutebrowser`.
+
+Contributions / Bugs
+--------------------
+
+You want to contribute to qutebrowser? Awesome! Please read
+link:doc/HACKING.asciidoc[HACKING] for details and useful hints.
+
+If you found a bug or have a feature request, you can report it in several
+ways:
+
+* Use the built-in `:report` command or the automatic crash dialog.
+* Open an issue in the Github issue tracker.
+* Write a mail to the
+https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
+mailto:qutebrowser@lists.qutebrowser.org[].
+
+[[requirements]]
 Requirements
 ------------
 
@@ -33,27 +57,92 @@ The following software and libraries are required to run qutebrowser:
 * http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.2 or newer
 (5.3.1 recommended) for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
+* https://github.com/g2p/rfc6266[rfc6266]
 
 The following libraries are optional and provide better debugging:
 
 * https://pypi.python.org/pypi/colorlog/[colorlog]
 * On Windows: https://pypi.python.org/pypi/colorama/[colorama]
 
-.On Debian:
+On Debian
+~~~~~~~~~
 
-    apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python3-pkg-resources
+----
+# apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python3-pkg-resources
+# pip3 install rfc6266
+----
 
-.On Archlinux:
+On Archlinux
+~~~~~~~~~~~~
 
-    pacman -S python-pyqt5 qt5-webkit python-setuptools
+Install https://aur.archlinux.org/packages/qutebrowser-git/[qutebrowser-git]
+from the AUR.
 
-Note an Archlinux AUR package is available.
-
-.On Windows:
+On Windows
+~~~~~~~~~~
 
 Use the installer from http://www.python.org/downloads[python.org] to get
 Python 3 and the installer from
 http://www.riverbankcomputing.com/software/pyqt/download5[Riverbank computing]
 to get Qt and PyQt5. Run `scripts/ez_setup.py` to get setuptools.
 
-Note a standalone .EXE is available.
+Note a standalone .exe is available.
+
+Authors
+-------
+
+include::doc/AUTHORS.asciidoc[]
+
+Thanks / Similiar projects
+--------------------------
+
+Many projects with a similiar goal as qutebrowser exist:
+
+* http://portix.bitbucket.org/dwb/[dwb]
+* https://github.com/fanglingsu/vimb[vimb]
+* http://sourceforge.net/projects/vimprobable/[vimprobable]
+* https://mason-larobina.github.io/luakit/[luakit]
+* http://pwmt.org/projects/jumanji/[jumanji]
+* http://conkeror.org/[conkeror]
+* http://surf.suckless.org/[surf]
+* http://www.uzbl.org/[uzbl]
+* http://www.vimperator.org/[Vimperator] (Firefox addon)
+* http://5digits.org/pentadactyl/[Pentadactyl] (Firefox addon)
+* https://github.com/akhodakivskiy/VimFx[VimFx] (Firefox addon)
+* http://vimium.github.io/[vimium] (Chrome/Chromium addon)
+
+Most of them were inspirations for qutebrowser in some way, thanks for that!
+
+Thanks as well to the following projects and people for helping me with
+problems and helpful hints:
+
+* http://eric-ide.python-projects.org/[eric5] / Detlev Offenbach
+* https://code.google.com/p/devicenzo/[devicenzo]
+* portix
+* seir
+* nitroxleecher
+
+Also, thanks to:
+
+* Everyone who had the patience to test qutebrowser before v0.1.
+* Everyone triaging/fixing my bugs in the
+https://bugreports.qt-project.org/secure/Dashboard.jspa[Qt bugtracker]
+* Everyone answering my questions on http://stackoverflow.com/[Stack Overflow]
+and in IRC.
+* All the projects which were a great help while developing qutebrowser.
+
+License
+-------
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.

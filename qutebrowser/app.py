@@ -616,6 +616,8 @@ class Application(QApplication):
     def debug_pyeval(self, s):
         """Evaluate a python string and display the results as a webpage.
 
+        //
+
         We have this here rather in utils.debug so the context of eval makes
         more sense and because we don't want to import much stuff in the utils.
 

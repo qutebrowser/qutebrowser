@@ -148,7 +148,12 @@ class MainWindow(QWidget):
 
     @cmdutils.register(instance='mainwindow', name=['quit', 'q'], nargs=0)
     def close(self):
-        """Extend close() so we can register it as a command."""
+        """Quit qutebrowser.
+
+        //
+
+        Extend close() so we can register it as a command.
+        """
         super().close()
 
     def resizeEvent(self, e):
