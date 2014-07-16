@@ -36,18 +36,16 @@ from qutebrowser.utils.usertypes import enum
 from qutebrowser.utils.misc import compact_text
 
 
-Group = enum('all', 'links', 'images', 'editable', 'url', 'prevnext_rel',
-             'prevnext', 'focus')
+Group = enum('all', 'links', 'images', 'editable', 'url', 'prevnext', 'focus')
 
 
 SELECTORS = {
     Group.all: ('a, area, textarea, select, input:not([type=hidden]), button, '
                 'frame, iframe, [onclick], [onmousedown], [role=link], '
                 '[role=option], [role=button], img'),
-    Group.links: 'a, area, link',
+    Group.links: 'a, area, link, [role=link]',
     Group.images: 'img',
     Group.url: '[src], [href]',
-    Group.prevnext_rel: 'a, area, link, [role=link]',
     Group.prevnext: 'a, area, button, [role=button]',
     Group.focus: '*:focus',
 }

@@ -368,12 +368,12 @@ class HintManager(QObject):
         """Find a prev/next element in frame."""
         # First check for <link rel="prev(ious)|next">
         elems = frame.findAllElements(
-            webelem.SELECTORS[webelem.Group.prevnext_rel])
+            webelem.SELECTORS[webelem.Group.links])
         rel_values = ('prev', 'previous') if prev else ('next')
         for e in elems:
             if e.attribute('rel') in rel_values:
                 return e
-        # Then check for regular links
+        # Then check for regular links/buttons.
         elems = frame.findAllElements(
             webelem.SELECTORS[webelem.Group.prevnext])
         option = 'prev-regexes' if prev else 'next-regexes'
