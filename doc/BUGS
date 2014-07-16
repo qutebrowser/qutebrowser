@@ -102,6 +102,8 @@ Bugs
   window has a bigger size hint instead of tabs getting smaller than the
   minimum size (iggy)
 
+- Opening editor is broken on http://p.cmpl.cc/
+
 - Segfault on subsonic when clicking next track
 
 - Assertion failure on subsonic with debug build
