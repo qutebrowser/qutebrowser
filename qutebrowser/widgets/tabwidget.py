@@ -130,7 +130,6 @@ class TabBar(QTabBar):
         # This is a horrible hack, but we need to do this so the underlaying Qt
         # code sets layoutDirty so it actually relayouts the tabs.
         self.setIconSize(self.iconSize())
-        self.updateGeometry()
 
     def set_tab_indicator_color(self, idx, color):
         """Set the tab indicator color.
