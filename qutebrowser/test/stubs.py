@@ -107,6 +107,10 @@ class FakeWebElement:
         self._attributes = attributes
         self._classes = classes
 
+    def toOuterXml(self):
+        """Imitate toOuterXml."""
+        return '<fakeelem>'
+
     def styleProperty(self, name, strategy):
         """Return the CSS style property named name.
 
