@@ -435,7 +435,7 @@ DATA = OrderedDict([
 
         ('indicator-width',
          SettingValue(types.Int(minval=0), '3'),
-         "Width of the progress indicator."),
+         "Width of the progress indicator (0 to disable)."),
 
         ('indicator-space',
          SettingValue(types.Int(minval=0), '3'),
