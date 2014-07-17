@@ -1,4 +1,6 @@
+# pylint: disable=too-many-lines
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+# Note the "disable=too-many-lines" needs to be in the first line to work.
 
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
@@ -785,8 +787,8 @@ DATA = OrderedDict([
          "Foreground color of completion widget category headers."),
 
         ('completion.category.bg',
-         SettingValue(types.QssColor(), 'qlineargradient(x1:0, y1:0, x2:0, y2:1, '
-                      'stop:0 #888888, stop:1 #505050)'),
+         SettingValue(types.QssColor(), 'qlineargradient(x1:0, y1:0, x2:0, '
+                      'y2:1, stop:0 #888888, stop:1 #505050)'),
          "Background color of the completion widget category headers."),
 
         ('completion.category.border.top',
@@ -810,7 +812,8 @@ DATA = OrderedDict([
          "Top border color of the completion widget category headers."),
 
         ('completion.item.selected.border.bottom',
-         SettingValue(types.QssColor(), '${completion.item.selected.border.top}'),
+         SettingValue(types.QssColor(), '${completion.item.selected.border.'
+                      'top}'),
          "Bottom border color of the selected completion item."),
 
         ('completion.match.fg',

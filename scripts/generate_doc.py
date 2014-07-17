@@ -28,17 +28,20 @@ from tempfile import mkstemp
 
 sys.path.insert(0, os.getcwd())
 
-import qutebrowser.app
+# We import qutebrowser.app so all @cmdutils-register decorators are run.
+import qutebrowser.app  # pylint: disable=unused-import
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.config.configdata as configdata
 from qutebrowser.utils.usertypes import enum
+
 
 def _open_file(name, mode='w'):
     """Open a file with a preset newline/encoding mode."""
     return open(name, mode, newline='\n', encoding='utf-8')
 
-def _parse_docstring(func):
-    """Generates documentation based on a docstring of a command handler.
+
+def _parse_docstring(func):  # noqa
+    """Generate documentation based on a docstring of a command handler.
 
     The docstring needs to follow the format described in HACKING.
 
@@ -48,8 +51,9 @@ def _parse_docstring(func):
     Return:
         A (short_desc, long_desc, arg_descs) tuple.
     """
-    State = enum('short', 'desc', 'desc_hidden', 'arg_start', 'arg_inside',
-                 'misc')
+    # pylint: disable=too-many-branches
+    State = enum('short', 'desc',  # pylint: disable=invalid-name
+                 'desc_hidden', 'arg_start', 'arg_inside', 'misc')
     doc = inspect.getdoc(func)
     lines = doc.splitlines()
 
@@ -102,10 +106,13 @@ def _parse_docstring(func):
 
 
 def _get_cmd_syntax(name, cmd):
+    """Get the command syntax for a command."""
+    # pylint: disable=no-member
     words = []
     argspec = inspect.getfullargspec(cmd.handler)
     if argspec.defaults is not None:
-        defaults = dict(zip(reversed(argspec.args), reversed(list(argspec.defaults))))
+        defaults = dict(zip(reversed(argspec.args),
+                        reversed(list(argspec.defaults))))
     else:
         defaults = {}
     words.append(name)
@@ -123,6 +130,7 @@ def _get_cmd_syntax(name, cmd):
 
 
 def _get_command_quickref(cmds):
+    """Generate the command quick reference."""
     out = []
     out.append('[options="header",width="75%",cols="25%,75%"]')
     out.append('|==============')
@@ -135,6 +143,7 @@ def _get_command_quickref(cmds):
 
 
 def _get_setting_quickref():
+    """Generate the settings quick reference."""
     out = []
     for sectname, sect in configdata.DATA.items():
         if not getattr(sect, 'descriptions'):
@@ -143,7 +152,7 @@ def _get_setting_quickref():
         out.append('[options="header",width="75%",cols="25%,75%"]')
         out.append('|==============')
         out.append('|Setting|Description')
-        for optname, option in sect.items():
+        for optname, _option in sect.items():
             desc = sect.descriptions[optname]
             out.append('|<<setting-{}-{},{}>>|{}'.format(
                 sectname, optname, optname, desc))
@@ -152,6 +161,7 @@ def _get_setting_quickref():
 
 
 def _get_command_doc(name, cmd):
+    """Generate the documentation for a command."""
     output = ['[[cmd-{}]]'.format(name)]
     output += ['==== {}'.format(name)]
     syntax, defaults = _get_cmd_syntax(name, cmd)
@@ -174,6 +184,7 @@ def _get_command_doc(name, cmd):
 
 
 def generate_header(f):
+    """Generate an asciidoc header."""
     f.write('= qutebrowser manpage\n')
     f.write('Florian Bruhin <mail@qutebrowser.org>\n')
     f.write(':toc:\n')
@@ -181,6 +192,7 @@ def generate_header(f):
 
 
 def generate_commands(f):
+    """Generate the complete commands section."""
     f.write('\n')
     f.write("== Commands\n")
     normal_cmds = []
@@ -220,6 +232,7 @@ def generate_commands(f):
 
 
 def generate_settings(f):
+    """Generate the complete settings section."""
     f.write("\n")
     f.write("== Settings\n")
     f.write(_get_setting_quickref() + "\n")
@@ -278,8 +291,8 @@ def regenerate_authors(filename):
 
 
 if __name__ == '__main__':
-    with _open_file('doc/qutebrowser.asciidoc') as f:
-        generate_header(f)
-        generate_settings(f)
-        generate_commands(f)
+    with _open_file('doc/qutebrowser.asciidoc') as fobj:
+        generate_header(fobj)
+        generate_settings(fobj)
+        generate_commands(fobj)
     regenerate_authors('README.asciidoc')
