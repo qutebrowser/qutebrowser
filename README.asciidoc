@@ -1,5 +1,7 @@
 qutebrowser
 ===========
+:icons:
+:data-uri:
 
 _A keyboard-driven, vim-like browser based on PyQt5 and QtWebKit._
 
@@ -7,6 +9,8 @@ qutebrowser is a keyboard-focused browser with with a minimal GUI. It's based
 on Python, PyQt5 and QtWebKit and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
+
+* link:doc/FAQ.asciidoc[Frequently asked questions]
 
 Getting help
 ------------
@@ -75,8 +79,31 @@ On Debian
 On Archlinux
 ~~~~~~~~~~~~
 
-Install https://aur.archlinux.org/packages/qutebrowser-git/[qutebrowser-git]
-from the AUR.
+There's an Archlinux package available in `pkg/`. You can install it (and the
+python-rfc6266 dependency) like this:
+
+----
+$ wget https://aur.archlinux.org/packages/py/python-rfc6266/python-rfc6266.tar.gz <1>
+$ tar xzvf python-rfc6266.tar.gz
+$ cd python-rfc6266
+$ makepkg -si
+$ cd ..
+
+$ mkdir qutebrowser
+$ cd qutebrowser
+$ wget http://git.the-compiler.org/qutebrowser/plain/pkg/PKGBUILD.qutebrowser-git -O PKGBUILD
+$ makepkg -si
+$ cd ..
+$ rm -rf python-rfc6266.tar.gz python-rfc6266 qutebrowser
+----
+<1> Instead of the first block of commands you could also use an AUR helper,
+e.g. +yaourt -S python-rfc6266+.
+
+As soon as v0.1 is out, there will be a package in the AUR, so this will get
+easier.
+
+// Install https://aur.archlinux.org/packages/qutebrowser-git/[qutebrowser-git]
+// from the AUR.
 
 On Windows
 ~~~~~~~~~~
@@ -86,7 +113,9 @@ Python 3 and the installer from
 http://www.riverbankcomputing.com/software/pyqt/download5[Riverbank computing]
 to get Qt and PyQt5. Run `scripts/ez_setup.py` to get setuptools.
 
-Note a standalone .exe is available.
+As soon as v0.1 is out, a standalone .exe (built with
+http://cx-freeze.sourceforge.net/[cx_Freeze]) will be provided. In the
+meantime, you can simply ask in IRC if you need one.
 
 Authors
 -------
