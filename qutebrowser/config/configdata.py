@@ -773,11 +773,11 @@ DATA = OrderedDict([
          "Text color of the completion widget."),
 
         ('completion.bg',
-         SettingValue(types.Color(), '#333333'),
+         SettingValue(types.QssColor(), '#333333'),
          "Text color of the completion widget."),
 
         ('completion.item.bg',
-         SettingValue(types.Color(), '${completion.bg}'),
+         SettingValue(types.QssColor(), '${completion.bg}'),
          "Background color of completion widget items."),
 
         ('completion.category.fg',
@@ -785,16 +785,16 @@ DATA = OrderedDict([
          "Foreground color of completion widget category headers."),
 
         ('completion.category.bg',
-         SettingValue(types.Color(), 'qlineargradient(x1:0, y1:0, x2:0, y2:1, '
+         SettingValue(types.QssColor(), 'qlineargradient(x1:0, y1:0, x2:0, y2:1, '
                       'stop:0 #888888, stop:1 #505050)'),
          "Background color of the completion widget category headers."),
 
         ('completion.category.border.top',
-         SettingValue(types.Color(), 'black'),
+         SettingValue(types.QssColor(), 'black'),
          "Top border color of the completion widget category headers."),
 
         ('completion.category.border.bottom',
-         SettingValue(types.Color(), '${completion.category.border.top}'),
+         SettingValue(types.QssColor(), '${completion.category.border.top}'),
          "Bottom border color of the completion widget category headers."),
 
         ('completion.item.selected.fg',
@@ -802,70 +802,70 @@ DATA = OrderedDict([
          "Foreground color of the selected completion item."),
 
         ('completion.item.selected.bg',
-         SettingValue(types.Color(), '#e8c000'),
+         SettingValue(types.QssColor(), '#e8c000'),
          "Background color of the selected completion item."),
 
         ('completion.item.selected.border.top',
-         SettingValue(types.Color(), '#bbbb00'),
+         SettingValue(types.QssColor(), '#bbbb00'),
          "Top border color of the completion widget category headers."),
 
         ('completion.item.selected.border.bottom',
-         SettingValue(types.Color(), '${completion.item.selected.border.top}'),
+         SettingValue(types.QssColor(), '${completion.item.selected.border.top}'),
          "Bottom border color of the selected completion item."),
 
         ('completion.match.fg',
-         SettingValue(types.Color(), '#ff4444'),
+         SettingValue(types.QssColor(), '#ff4444'),
          "Foreground color of the matched text in the completion."),
 
         ('statusbar.bg',
-         SettingValue(types.Color(), 'black'),
+         SettingValue(types.QssColor(), 'black'),
          "Foreground color of the statusbar."),
 
         ('statusbar.fg',
-         SettingValue(types.Color(), 'white'),
+         SettingValue(types.QssColor(), 'white'),
          "Foreground color of the statusbar."),
 
         ('statusbar.bg.error',
-         SettingValue(types.Color(), 'red'),
+         SettingValue(types.QssColor(), 'red'),
          "Background color of the statusbar if there was an error."),
 
         ('statusbar.bg.prompt',
-         SettingValue(types.Color(), 'darkblue'),
+         SettingValue(types.QssColor(), 'darkblue'),
          "Background color of the statusbar if there is a prompt."),
 
         ('statusbar.bg.insert',
-         SettingValue(types.Color(), 'darkgreen'),
+         SettingValue(types.QssColor(), 'darkgreen'),
          "Background color of the statusbar in insert mode."),
 
         ('statusbar.progress.bg',
-         SettingValue(types.Color(), 'white'),
+         SettingValue(types.QssColor(), 'white'),
          "Background color of the progress bar."),
 
         ('statusbar.url.fg',
-         SettingValue(types.Color(), '${statusbar.fg}'),
+         SettingValue(types.QssColor(), '${statusbar.fg}'),
          "Default foreground color of the URL in the statusbar."),
 
         ('statusbar.url.fg.success',
-         SettingValue(types.Color(), 'lime'),
+         SettingValue(types.QssColor(), 'lime'),
          "Foreground color of the URL in the statusbar on successful "
          "load."),
 
         ('statusbar.url.fg.error',
-         SettingValue(types.Color(), 'orange'),
+         SettingValue(types.QssColor(), 'orange'),
          "Foreground color of the URL in the statusbar on error."),
 
         ('statusbar.url.fg.warn',
-         SettingValue(types.Color(), 'yellow'),
+         SettingValue(types.QssColor(), 'yellow'),
          "Foreground color of the URL in the statusbar when there's a "
          "warning."),
 
         ('statusbar.url.fg.hover',
-         SettingValue(types.Color(), 'aqua'),
+         SettingValue(types.QssColor(), 'aqua'),
          "Foreground color of the URL in the statusbar for hovered "
          "links."),
 
         ('tab.fg',
-         SettingValue(types.Color(), 'white'),
+         SettingValue(types.QtColor(), 'white'),
          "Foreground color of tabs."),
 
         ('tab.bg.odd',
@@ -877,11 +877,11 @@ DATA = OrderedDict([
          "Background color of unselected even tabs."),
 
         ('tab.bg.selected',
-         SettingValue(types.Color(), 'black'),
+         SettingValue(types.QtColor(), 'black'),
          "Background color of selected tabs."),
 
         ('tab.bg.bar',
-         SettingValue(types.Color(), '#555555'),
+         SettingValue(types.QssColor(), '#555555'),
          "Background color of the tabbar."),
 
         ('tab.indicator.start',
@@ -901,7 +901,7 @@ DATA = OrderedDict([
          "Color gradient interpolation system for the tab indicator."),
 
         ('tab.seperator',
-         SettingValue(types.Color(), '#555555'),
+         SettingValue(types.QssColor(), '#555555'),
          "Color for the tab seperator."),
 
         ('hints.fg',
@@ -923,7 +923,7 @@ DATA = OrderedDict([
          "Foreground color for downloads."),
 
         ('downloads.bg.bar',
-         SettingValue(types.Color(), 'black'),
+         SettingValue(types.QssColor(), 'black'),
          "Background color for the download bar."),
 
         ('downloads.bg.start',

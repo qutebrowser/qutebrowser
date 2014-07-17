@@ -229,9 +229,9 @@ class TabBar(QTabBar):
                 color = config.get('colors', 'tab.bg.odd')
             else:
                 color = config.get('colors', 'tab.bg.even')
-            tab.palette.setColor(QPalette.Window, QColor(color))
+            tab.palette.setColor(QPalette.Window, color)
             tab.palette.setColor(QPalette.WindowText,
-                                 QColor(config.get('colors', 'tab.fg')))
+                                 config.get('colors', 'tab.fg'))
             indicator_color = self.tabData(idx)
             if indicator_color is None:
                 indicator_color = QColor()

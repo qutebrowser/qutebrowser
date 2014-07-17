@@ -494,14 +494,14 @@ class CssColor(BaseType):
     def validate(self, value):
         if value.startswith('-'):
             # custom function name, won't validate.
-            return
-        if QColor.isValidColor(value):
+            pass
+        elif QColor.isValidColor(value):
             pass
         else:
-            raise ValidationError(value, "must be a valid CSS color")
+            raise ValidationError(value, "must be a valid color")
 
 
-class Color(CssColor):
+class QssColor(CssColor):
 
     """Base class for a color value.
 
@@ -509,15 +509,18 @@ class Color(CssColor):
         _GRADIENTS: Valid gradient function names.
     """
 
-    typestr = 'color'
+    typestr = 'qss-color'
 
     _GRADIENTS = ('qlineargradient', 'qradialgradient', 'qconicalgradient')
 
     def validate(self, value):
-        if any([value.startswith(start) for start in Color._GRADIENTS]):
+        if any([value.startswith(start) for start in self._GRADIENTS]):
             # We can't validate this further.
-            return
-        super().validate(value)
+            pass
+        elif QColor.isValidColor(value):
+            pass
+        else:
+            raise ValidationError(value, "must be a valid color")
 
 
 class Font(BaseType):
