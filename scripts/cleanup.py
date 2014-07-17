@@ -32,7 +32,7 @@ from fnmatch import fnmatch
 recursive_lint = ('__pycache__', '*.pyc')
 lint = ('build', 'dist', 'pkg/pkg', 'pkg/qutebrowser-*.pkg.tar.xz', 'pkg/src',
         'pkg/qutebrowser', 'qutebrowser.egg-info', 'setuptools-*.egg',
-        'setuptools-*.zip')
+        'setuptools-*.zip', 'doc/qutebrowser.asciidoc', 'doc/qutebrowser.html')
 
 
 def remove(path):
