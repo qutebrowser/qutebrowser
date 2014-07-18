@@ -20,18 +20,16 @@
 
 from argparse import ArgumentParser
 
+import qutebrowser
 from qutebrowser.utils.checkpyver import check_python_version
 check_python_version()
 import qutebrowser.utils.earlyinit as earlyinit
 
 
-def _parse_args():
-    """Parse command line options.
-
-    Return:
-        Argument namespace from argparse.
-    """
-    parser = ArgumentParser("usage: %(prog)s [options]")
+def get_argparser():
+    """Get the argparse parser."""
+    parser = ArgumentParser("usage: qutebrowser",
+                            description=qutebrowser.__description__)
     parser.add_argument('-c', '--confdir', help="Set config directory (empty "
                         "for no config storage)")
     parser.add_argument('-V', '--version', help="Show version and quit.",
@@ -75,13 +73,14 @@ def _parse_args():
                         "startup.", metavar=':command')
     # URLs will actually be in command
     parser.add_argument('url', nargs='*', help="URLs to open on startup.")
-    return parser.parse_args()
+    return parser
 
 
 def main():
     """Main entry point for qutebrowser."""
     earlyinit.init_faulthandler()
-    args = _parse_args()
+    parser = get_argparser()
+    args = parser.parse_args()
     earlyinit.check_pyqt_core()
     # We do this import late as we need to do the version checking first.
     # Note we may not import webkit stuff yet as fix_harfbuzz didn't run.

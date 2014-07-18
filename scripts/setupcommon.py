@@ -92,8 +92,7 @@ def write_git_file():
 setupdata = {
     'name': 'qutebrowser',
     'version': '.'.join(map(str, _get_constant('version_info'))),
-    'description': ("A keyboard-driven, vim-like browser based on PyQt5 and "
-                    "QtWebKit."),
+    'description': _get_constant('description'),
     'long_description': read_file('README.asciidoc'),
     'url': 'http://www.qutebrowser.org/',
     'requires': ['rfc6266'],

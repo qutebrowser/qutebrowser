@@ -28,6 +28,7 @@ from tempfile import mkstemp
 
 sys.path.insert(0, os.getcwd())
 
+import qutebrowser
 # We import qutebrowser.app so all @cmdutils-register decorators are run.
 import qutebrowser.app  # pylint: disable=unused-import
 import qutebrowser.commands.utils as cmdutils
@@ -183,12 +184,33 @@ def _get_command_doc(name, cmd):
     return '\n'.join(output)
 
 
-def generate_header(f):
-    """Generate an asciidoc header."""
-    f.write('= qutebrowser manpage\n')
+def generate_manpage_header(f):
+    """Generate an asciidoc header for the manpage."""
+    f.write('= qutebrowser(1)\n')
     f.write('Florian Bruhin <mail@qutebrowser.org>\n')
+    f.write(':doctype: manpage\n')
+    f.write(':man source: qutebrowser\n')
+    f.write(':man manual: qutebrowser manpage\n')
     f.write(':toc:\n')
     f.write(':homepage: http://www.qutebrowser.org/\n')
+    f.write('\n')
+
+
+def generate_manpage_name(f):
+    """Generate the NAME-section of the manpage."""
+    f.write('== NAME\n')
+    f.write('qutebrowser - {}\n'.format(qutebrowser.__description__))
+    f.write('\n')
+
+
+def generate_manpage_synopsis(f):
+    """Generate the SYNOPSIS-section of the manpage from an argparse parser.
+
+    TODO.
+    """
+    f.write('== SYNOPSIS\n')
+    f.write('FIXME\n')
+    f.write('\n')
 
 
 def generate_commands(f):
@@ -291,8 +313,10 @@ def regenerate_authors(filename):
 
 
 if __name__ == '__main__':
-    with _open_file('doc/qutebrowser.asciidoc') as fobj:
-        generate_header(fobj)
+    with _open_file('doc/qutebrowser.1.asciidoc') as fobj:
+        generate_manpage_header(fobj)
+        generate_manpage_name(fobj)
+        generate_manpage_synopsis(fobj)
         generate_settings(fobj)
         generate_commands(fobj)
     regenerate_authors('README.asciidoc')
