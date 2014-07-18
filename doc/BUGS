@@ -48,6 +48,22 @@ Rendering
 
 - Ugly font rendering on Windows on http://support.sigasi.com/Knowledgebase/List
 - Funky font rendering with tewi: http://a.pomf.se/ecgzlx.png
+- Terminus is rendered wrong [smalltock]
+
+    Qutebrowser doesn't seem to like Terminus °⁔° Screenshot:
+    http://a.pomf.se/rhhrec.png dwb doesn't do such a great job either.
+    Possibly webkit's fault. Bitmap fonts don't occur often on the web anyway,
+    so it's not a huge deal.
+
+    Same thing happens in qutebrowser's UI itself. Another screenshot:
+    http://a.pomf.se/adordy.png
+
+    For the UI problem, I set _monospace to Terminus. Terminus is a popular
+    bitmap font. For the page content, I changed font-family to Terminus and
+    font-size to 11pt in the css. It doesn't happen in urxvt, VLC, or GIMP,
+    although it does happen just a tiny bit in Mumble, which is also Qt-based
+    if I recall correctly. It also happens in Teamspeak, which is Qt-based.
+
 
 Crashes
 -------
