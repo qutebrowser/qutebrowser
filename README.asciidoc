@@ -82,7 +82,7 @@ On Debian
 ~~~~~~~~~
 
 ----
-# apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python3-pkg-resources
+# apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python3-pkg-resources python3-pip
 # pip3 install rfc6266
 ----
 
@@ -118,10 +118,13 @@ easier.
 On Windows
 ~~~~~~~~~~
 
-Use the installer from http://www.python.org/downloads[python.org] to get
-Python 3 and the installer from
+* Use the installer from http://www.python.org/downloads[python.org] to get Python 3
+* Use the installer from
 http://www.riverbankcomputing.com/software/pyqt/download5[Riverbank computing]
-to get Qt and PyQt5. Run `scripts/ez_setup.py` to get setuptools.
+to get Qt and PyQt5.
+* Run `scripts/ez_setup.py` to get setuptools.
+* Get pip as described http://stackoverflow.com/a/12476379[on Stack Overflow].
+* Run +pip install rfc6266+ to install rfc6266.
 
 As soon as v0.1 is out, a standalone .exe (built with
 http://cx-freeze.sourceforge.net/[cx_Freeze]) will be provided. In the
