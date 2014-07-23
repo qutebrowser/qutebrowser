@@ -86,4 +86,4 @@ However, there are some alternatives you could use to block ads:
   block ads, which currently isn't implemented either.
 +
 If you think you can add ad blocking or request policy, please
-link:doc/HACKING.asciidoc[contribute]!
+link:HACKING.asciidoc[contribute]!
