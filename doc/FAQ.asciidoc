@@ -16,12 +16,12 @@ Why another browser?::
     It might be hard to believe, but I didn't find any browser which I was
     happy with, so I started to write my own. Also, I needed a project to get
     into writing GUI applications with Python and
-    http://qt-project.org/[Qt]/http://www.riverbankcomputing.com/software/pyqt/intro[PyQt].
+    link:http://qt-project.org/[Qt]/link:http://www.riverbankcomputing.com/software/pyqt/intro[PyQt].
     +
     Read the next few questions to find out why I was unhappy with existing
     software.
 
-What's wrong with http://portix.bitbucket.org/dwb/[dwb]/http://sourceforge.net/projects/vimprobable/[vimprobable]/https://mason-larobina.github.io/luakit/[luakit]/http://pwmt.org/projects/jumanji/[jumanji]/... (projects based on WebKitGTK)?::
+What's wrong with link:http://portix.bitbucket.org/dwb/[dwb]/link:http://sourceforge.net/projects/vimprobable/[vimprobable]/link:https://mason-larobina.github.io/luakit/[luakit]/link:http://pwmt.org/projects/jumanji/[jumanji]/... (projects based on WebKitGTK)?::
     Most of them are based on the http://webkitgtk.org/[WebKitGTK+]
     http://webkitgtk.org/reference/webkitgtk/stable/index.html[WebKit1] API,
     which causes a lot of crashes. As the GTK API using WebKit1 is
@@ -42,7 +42,7 @@ What's wrong with http://portix.bitbucket.org/dwb/[dwb]/http://sourceforge.net/p
     https://en.wikipedia.org/wiki/Blink_(layout_engine)[Blink] rendering
     engine.
 
-What's wrong with https://www.mozilla.org/en-US/firefox/new/[Firefox] and http://5digits.org/pentadactyl/[Pentadactyl]/http://www.vimperator.org/vimperator[Vimperator]?::
+What's wrong with https://www.mozilla.org/en-US/firefox/new/[Firefox] and link:http://5digits.org/pentadactyl/[Pentadactyl]/link:http://www.vimperator.org/vimperator[Vimperator]?::
     Firefox likes to break compatibility with addons on each upgrade, gets
     slower and more bloated with every upgrade, and has some
     https://blog.mozilla.org/advancingcontent/2014/02/11/publisher-transformation-with-users-at-the-center/[horrible
