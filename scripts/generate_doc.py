@@ -25,6 +25,7 @@ import inspect
 import subprocess
 from collections import Counter
 from tempfile import mkstemp
+from argparse import RawTextHelpFormatter
 
 sys.path.insert(0, os.getcwd())
 
@@ -33,6 +34,7 @@ import qutebrowser
 import qutebrowser.app  # pylint: disable=unused-import
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.config.configdata as configdata
+import qutebrowser.qutebrowser as qutequtebrowser
 from qutebrowser.utils.usertypes import enum
 
 
@@ -184,6 +186,51 @@ def _get_command_doc(name, cmd):
     return '\n'.join(output)
 
 
+def _get_action_metavar(action):
+    """Get the metavar to display for an argparse action."""
+    if action.metavar is not None:
+        return "'{}'".format(action.metavar)
+    elif action.choices is not None:
+        choices = ','.join(map(str, action.choices))
+        return "'{{{}}}'".format(choices)
+    else:
+        return "'{}'".format(action.dest.upper())
+
+
+def _format_action_args(action):
+    """Get an argument string based on an argparse action."""
+    if action.nargs is None:
+        return _get_action_metavar(action)
+    elif action.nargs == '?':
+        return '[{}]'.format(_get_action_metavar(action))
+    elif action.nargs == '*':
+        return '[{mv} [{mv} ...]]'.format(mv=_get_action_metavar(action))
+    elif action.nargs == '+':
+        return '{mv} [{mv} ...]'.format(mv=_get_action_metavar(action))
+    elif action.nargs == '...':
+        return '...'
+    else:
+        return ' '.join([_get_action_metavar(action)] * action.nargs)
+
+
+def _format_action(action):
+    """Get an invocation string/help from an argparse action."""
+    if not action.option_strings:
+        invocation = '*{}*::'.format(_get_action_metavar(action))
+    else:
+        parts = []
+        if action.nargs == 0:
+            # Doesn't take a value, so the syntax is -s, --long
+            parts += ['*{}*'.format(s) for s in action.option_strings]
+        else:
+            # Takes a value, so the syntax is -s ARGS or --long ARGS.
+            args_string = _format_action_args(action)
+            for opt in action.option_strings:
+                parts.append('*{}* {}'.format(opt, args_string))
+        invocation = ', '.join(parts) + '::'
+    return '{}\n    {}\n\n'.format(invocation, action.help)
+
+
 def generate_manpage_header(f):
     """Generate an asciidoc header for the manpage."""
     f.write('= qutebrowser(1)\n')
@@ -204,14 +251,30 @@ def generate_manpage_name(f):
 
 
 def generate_manpage_synopsis(f):
-    """Generate the SYNOPSIS-section of the manpage from an argparse parser.
-
-    TODO.
-    """
+    """Generate the SYNOPSIS-section of the manpage from an argparse parser."""
     f.write('== SYNOPSIS\n')
-    f.write('FIXME\n')
+    f.write("*qutebrowser* ['-OPTION' ['...']] [':COMMAND' ['...']] "
+            "['URL' ['...']]\n")
     f.write('\n')
 
+def generate_manpage_options(f):
+    """Generate the OPTIONS-section of the manpage from an argparse parser."""
+    parser = qutequtebrowser.get_argparser()
+    formatter = RawTextHelpFormatter('qutebrowser')
+    f.write('== OPTIONS\n')
+
+    # positionals, optionals and user-defined groups
+    for action_group in parser._action_groups:
+        f.write('=== {}\n'.format(action_group.title))
+        if action_group.description is not None:
+            f.write(action_group.description + '\n')
+        for action in action_group._group_actions:
+            f.write(_format_action(action))
+        f.write('\n')
+    # epilog
+    if parser.epilog is not None:
+        f.write(parser.epilog)
+    f.write('\n')
 
 def generate_commands(f):
     """Generate the complete commands section."""
@@ -317,6 +380,7 @@ if __name__ == '__main__':
         generate_manpage_header(fobj)
         generate_manpage_name(fobj)
         generate_manpage_synopsis(fobj)
+        generate_manpage_options(fobj)
         generate_settings(fobj)
         generate_commands(fobj)
     regenerate_authors('README.asciidoc')
