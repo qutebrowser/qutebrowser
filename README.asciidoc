@@ -10,15 +10,24 @@ on Python, PyQt5 and QtWebKit and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
+Documentation
+-------------
+
+In addition to the topics mentioned in that README, the following documents are
+available:
+
 * link:doc/FAQ.asciidoc[Frequently asked questions]
+* link:doc/HACKING.asciidoc[HACKING]
+* link:doc/BUGS[BUGS]
+* link:doc/TODO[TODO]
 
 Getting help
 ------------
 
-Documentation is slowly catching up as this is a rather young project.
-
-You can however get help in the IRC channel
-irc://irc.freenode.org/#qutebrowser[#qutebrowser] on Freenode, or by writing a
+You can get help in the IRC channel
+irc://irc.freenode.org/#qutebrowser[`#qutebrowser`] on
+http://freenode.net/[Freenode]
+(https://webchat.freenode.net/?channels=#qutebrowser[webchat]), or by writing a
 message to the
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[].
@@ -26,7 +35,7 @@ mailto:qutebrowser@lists.qutebrowser.org[].
 Running qutebrowser
 -------------------
 
-After installing the <<requirements>>, you have these options:
+After installing the <<requirements,requirements>>, you have these options:
 
 * Run qutebrowser directly via `python3 -m qutebrowser`. Note executing
 qutebrowser.py directly as script won't work, as Python won't recognize the
@@ -63,7 +72,8 @@ The following software and libraries are required to run qutebrowser:
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
 * https://github.com/g2p/rfc6266[rfc6266]
 
-The following libraries are optional and provide better debugging:
+The following libraries are optional and provide colored logging in the
+console:
 
 * https://pypi.python.org/pypi/colorlog/[colorlog]
 * On Windows: https://pypi.python.org/pypi/colorama/[colorama]

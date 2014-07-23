@@ -6,7 +6,7 @@ The Compiler <mail@qutebrowser.org>
 What is qutebrowser based on?::
     qutebrowser uses http://www.python.org/[Python], http://qt-project.org/[Qt]
     and http://www.riverbankcomputing.com/software/pyqt/intro[PyQt].
-    +
++
     The concept of it is largely inspired by
     http://portix.bitbucket.org/dwb/[dwb] and
     http://www.vimperator.org/vimperator[Vimperator]. Many actions and
@@ -17,7 +17,7 @@ Why another browser?::
     happy with, so I started to write my own. Also, I needed a project to get
     into writing GUI applications with Python and
     link:http://qt-project.org/[Qt]/link:http://www.riverbankcomputing.com/software/pyqt/intro[PyQt].
-    +
++
     Read the next few questions to find out why I was unhappy with existing
     software.
 
@@ -27,13 +27,13 @@ What's wrong with link:http://portix.bitbucket.org/dwb/[dwb]/link:http://sourcef
     which causes a lot of crashes. As the GTK API using WebKit1 is
     https://lists.webkit.org/pipermail/webkit-gtk/2014-March/001821.html[deprecated],
     these bugs are never going to be fixed.
-    +
++
     The newer
     http://webkitgtk.org/reference/webkit2gtk/stable/index.html[WebKit2 API]
     seems to lack basic features like proxy support, and almost no projects
     seem to have started porting to WebKit2 (I only know of
     http://www.uzbl.org/[uzbl]).
-    +
++
     qutebrowser uses http://qt-project.org/[Qt] and
     http://qt-project.org/wiki/QtWebKit[QtWebKit] instead, which suffers from
     far less such crashes. It might switch to
@@ -47,7 +47,7 @@ What's wrong with https://www.mozilla.org/en-US/firefox/new/[Firefox] and link:h
     slower and more bloated with every upgrade, and has some
     https://blog.mozilla.org/advancingcontent/2014/02/11/publisher-transformation-with-users-at-the-center/[horrible
     ideas] lately.
-    +
++
     Also, developing addons for it is a nightmare.
 
 What's wrong with http://www.chromium.org/Home[Chromium] and https://vimium.github.io/[Vimium]?::
@@ -76,9 +76,9 @@ Is there an adblocker?::
     https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/[RAM
     usage], so implementing it properly might take some time and won't be done
     for v0.1.
-    +
++
     However, there are some alternatives you could use to block ads:
-    +
++
     * You can use a hosts file to block ads. Examples:
       http://someonewhocares.org/hosts/[1],
       http://winhelp2002.mvps.org/hosts.htm[2],
@@ -87,5 +87,6 @@ Is there an adblocker?::
       filter ads before they even get to the browser.
     * Use the https://www.requestpolicy.com/[RequestPolicy] functionality to
       block ads, which currently isn't implemented either.
-    +
-    If you think you can add ad blocking or request policy, please contribute!
++
+    If you think you can add ad blocking or request policy, please
+    link:doc/HACKING.asciidoc[contribute]!
