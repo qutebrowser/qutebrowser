@@ -7,10 +7,9 @@ What is qutebrowser based on?::
     qutebrowser uses http://www.python.org/[Python], http://qt-project.org/[Qt]
     and http://www.riverbankcomputing.com/software/pyqt/intro[PyQt].
 +
-    The concept of it is largely inspired by
-    http://portix.bitbucket.org/dwb/[dwb] and
-    http://www.vimperator.org/vimperator[Vimperator]. Many actions and
-    keybindings are similiar to dwb.
+The concept of it is largely inspired by http://portix.bitbucket.org/dwb/[dwb]
+and http://www.vimperator.org/vimperator[Vimperator]. Many actions and
+keybindings are similiar to dwb.
 
 Why another browser?::
     It might be hard to believe, but I didn't find any browser which I was
@@ -18,8 +17,8 @@ Why another browser?::
     into writing GUI applications with Python and
     link:http://qt-project.org/[Qt]/link:http://www.riverbankcomputing.com/software/pyqt/intro[PyQt].
 +
-    Read the next few questions to find out why I was unhappy with existing
-    software.
+Read the next few questions to find out why I was unhappy with existing
+software.
 
 What's wrong with link:http://portix.bitbucket.org/dwb/[dwb]/link:http://sourceforge.net/projects/vimprobable/[vimprobable]/link:https://mason-larobina.github.io/luakit/[luakit]/link:http://pwmt.org/projects/jumanji/[jumanji]/... (projects based on WebKitGTK)?::
     Most of them are based on the http://webkitgtk.org/[WebKitGTK+]
@@ -28,19 +27,17 @@ What's wrong with link:http://portix.bitbucket.org/dwb/[dwb]/link:http://sourcef
     https://lists.webkit.org/pipermail/webkit-gtk/2014-March/001821.html[deprecated],
     these bugs are never going to be fixed.
 +
-    The newer
-    http://webkitgtk.org/reference/webkit2gtk/stable/index.html[WebKit2 API]
-    seems to lack basic features like proxy support, and almost no projects
-    seem to have started porting to WebKit2 (I only know of
-    http://www.uzbl.org/[uzbl]).
+The newer http://webkitgtk.org/reference/webkit2gtk/stable/index.html[WebKit2
+API] seems to lack basic features like proxy support, and almost no projects
+seem to have started porting to WebKit2 (I only know of
+http://www.uzbl.org/[uzbl]).
 +
-    qutebrowser uses http://qt-project.org/[Qt] and
-    http://qt-project.org/wiki/QtWebKit[QtWebKit] instead, which suffers from
-    far less such crashes. It might switch to
-    http://qt-project.org/wiki/QtWebEngine[QtWebEngine] in the future, which
-    is based on Google's
-    https://en.wikipedia.org/wiki/Blink_(layout_engine)[Blink] rendering
-    engine.
+qutebrowser uses http://qt-project.org/[Qt] and
+http://qt-project.org/wiki/QtWebKit[QtWebKit] instead, which suffers from far
+less such crashes. It might switch to
+http://qt-project.org/wiki/QtWebEngine[QtWebEngine] in the future, which is
+based on Google's https://en.wikipedia.org/wiki/Blink_(layout_engine)[Blink]
+rendering engine.
 
 What's wrong with https://www.mozilla.org/en-US/firefox/new/[Firefox] and link:http://5digits.org/pentadactyl/[Pentadactyl]/link:http://www.vimperator.org/vimperator[Vimperator]?::
     Firefox likes to break compatibility with addons on each upgrade, gets
@@ -48,7 +45,7 @@ What's wrong with https://www.mozilla.org/en-US/firefox/new/[Firefox] and link:h
     https://blog.mozilla.org/advancingcontent/2014/02/11/publisher-transformation-with-users-at-the-center/[horrible
     ideas] lately.
 +
-    Also, developing addons for it is a nightmare.
+Also, developing addons for it is a nightmare.
 
 What's wrong with http://www.chromium.org/Home[Chromium] and https://vimium.github.io/[Vimium]?::
     The Chrome plugin API doesn't seem to allow much freedom for plugin
@@ -77,16 +74,16 @@ Is there an adblocker?::
     usage], so implementing it properly might take some time and won't be done
     for v0.1.
 +
-    However, there are some alternatives you could use to block ads:
+However, there are some alternatives you could use to block ads:
 +
-    * You can use a hosts file to block ads. Examples:
-      http://someonewhocares.org/hosts/[1],
-      http://winhelp2002.mvps.org/hosts.htm[2],
-      http://www.hosts-file.net/[3]
-    * Set up a http://www.privoxy.org/[Privoxy] proxy server and use it to
-      filter ads before they even get to the browser.
-    * Use the https://www.requestpolicy.com/[RequestPolicy] functionality to
-      block ads, which currently isn't implemented either.
+* You can use a hosts file to block ads. Examples:
+  http://someonewhocares.org/hosts/[1],
+  http://winhelp2002.mvps.org/hosts.htm[2],
+  http://www.hosts-file.net/[3]
+* Set up a http://www.privoxy.org/[Privoxy] proxy server and use it to
+  filter ads before they even get to the browser.
+* Use the https://www.requestpolicy.com/[RequestPolicy] functionality to
+  block ads, which currently isn't implemented either.
 +
-    If you think you can add ad blocking or request policy, please
-    link:doc/HACKING.asciidoc[contribute]!
+If you think you can add ad blocking or request policy, please
+link:doc/HACKING.asciidoc[contribute]!
