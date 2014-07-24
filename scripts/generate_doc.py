@@ -253,7 +253,7 @@ def generate_manpage_name(f):
 
 
 def generate_manpage_synopsis(f):
-    """Generate the SYNOPSIS-section of the manpage from an argparse parser."""
+    """Generate the SYNOPSIS-section of the manpage."""
     f.write('== SYNOPSIS\n')
     f.write("*qutebrowser* ['-OPTION' ['...']] [':COMMAND' ['...']] "
             "['URL' ['...']]\n")
@@ -261,6 +261,7 @@ def generate_manpage_synopsis(f):
 
 
 def generate_manpage_description(f):
+    """Generate the DESCRIPTION-section of the manpage."""
     f.write('== DESCRIPTION\n')
     f.write("qutebrowser is a keyboard-focused browser with with a minimal "
             "GUI. It's based on Python, PyQt5 and QtWebKit and free software, "
@@ -396,6 +397,7 @@ def generate_manpage_bugs(f):
 
 
 def generate_manpage_copyright(f):
+    """Generate the COPYRIGHT section of the manpage."""
     f.write('== COPYRIGHT\n')
     f.write("This program is free software: you can redistribute it and/or "
             "modify it under the terms of the GNU General Public License as "
@@ -411,6 +413,7 @@ def generate_manpage_copyright(f):
 
 
 def generate_manpage_resources(f):
+    """Generate the RESOURCES section of the manpage."""
     f.write('== RESOURCES\n\n')
     f.write("* Website: http://www.qutebrowser.org/\n")
     f.write("* Mailinglist: mailto:qutebrowser@lists.qutebrowser.org[] / "
