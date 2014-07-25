@@ -408,7 +408,7 @@ class TabbedBrowser(TabWidget):
             log.webview.debug("Got invalid tab {}!".format(tab))
             return
         if not self.tabText(idx):
-            self.settabtext(idx, url)
+            self.setTabText(idx, url)
 
     @pyqtSlot(WebView)
     def on_icon_changed(self, tab):
