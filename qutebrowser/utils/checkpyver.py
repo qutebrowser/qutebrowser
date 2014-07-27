@@ -22,6 +22,18 @@ This should import and run fine with both python2 and python3.
 
 import sys
 
+try:
+    # Python3
+    from tkinter import Tk, messagebox
+except ImportError:
+    try:
+        # Python2
+        from Tkinter import Tk
+        import tkMessageBox as messagebox
+    except ImportError:
+        # Some Python without Tk
+        Tk = None
+
 
 # First we check the version of Python. This code should run fine with python2
 # and python3. We don't have Qt available here yet, so we just print an error
@@ -32,8 +44,13 @@ def check_python_version():
         # We don't use .format() and print_function here just in case someone
         # still has < 2.6 installed.
         version_str = '.'.join(map(str, sys.version_info[:3]))
-        sys.stderr.write("Fatal error: At least Python 3.3 is required to run "
-                         "qutebrowser, but " + version_str + " is "
-                         "installed!\n")
-        sys.stderr.flush()
+        text = ("At least Python 3.3 is required to run qutebrowser, but " +
+                version_str + " is installed!\n")
+        if Tk:
+            root = Tk()
+            root.withdraw()
+            messagebox.showerror("qutebrowser: Fatal error!", text)
+        else:
+            sys.stderr.write(text)
+            sys.stderr.flush()
         sys.exit(1)

@@ -25,6 +25,10 @@ import sys
 import faulthandler
 import traceback
 import signal
+try:
+    from tkinter import Tk, messagebox
+except ImportError:
+    Tk = None
 
 
 def _missing_str(name, debian=None, arch=None, windows=None, pip=None):
@@ -175,7 +179,12 @@ def check_pyqt_core():
                                     "or the standalone qutebrowser exe.\n"
                                     "http://www.riverbankcomputing.co.uk/"
                                     "software/pyqt/download5")
-        print(text)
+        if Tk:
+            root = Tk()
+            root.withdraw()
+            messagebox.showerror("qutebrowser: Fatal error!", text)
+        else:
+            print(text, file=sys.stderr)
         if '--debug' in sys.argv:
             print(file=sys.stderr)
             traceback.print_exc()

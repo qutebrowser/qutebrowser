@@ -15,14 +15,27 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Early initialization and main entry pint."""
+"""Early initialization and main entry point."""
 
-
-from argparse import ArgumentParser
+import sys
 
 import qutebrowser
-from qutebrowser.utils.checkpyver import check_python_version
+try:
+    from qutebrowser.utils.checkpyver import check_python_version
+except ImportError:
+    try:
+        # python2
+        from .utils.checkpyver import check_python_version
+    except (SystemError, ValueError):
+        # Import without module - SystemError on Python3, ValueError (?!?) on
+        # Python2
+        sys.stderr.write("Please don't run this script directly, do something "
+                         "like   python3 -m qutebrowser   instead.\n")
+        sys.stderr.flush()
+        sys.exit(100)
 check_python_version()
+
+from argparse import ArgumentParser
 import qutebrowser.utils.earlyinit as earlyinit
 
 
