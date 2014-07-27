@@ -561,22 +561,6 @@ class Application(QApplication):
         self._destroy_crashlogfile()
         sys.exit(1)
 
-    def _maybe_quit(self, sender):
-        """Maybe quit qutebrowser.
-
-        This only quits if both the ExceptionCrashDialog was ready to quit AND
-        the shutdown is complete.
-
-        Args:
-            The sender of the quit signal (string)
-        """
-        self._quit_status[sender] = True
-        log.destroy.debug("maybe_quit called from {}, quit status {}".format(
-            sender, self._quit_status))
-        if all(self._quit_status.values()):
-            log.destroy.debug("maybe_quit quitting.")
-            self.quit()
-
     @cmdutils.register(instance='', nargs=0)
     def restart(self, shutdown=True, pages=None):
         """Restart qutebrowser while keeping existing tabs open."""
@@ -670,26 +654,8 @@ class Application(QApplication):
             except AttributeError as e:
                 log.destroy.warning("Could not save {}.".format(what))
                 log.destroy.debug(e)
-        # Shut down tabs
-        try:
-            self.mainwindow.tabs.shutdown_complete.connect(partial(
-                self._maybe_quit, 'tabs'))
-            self.mainwindow.tabs.shutdown()
-        except AttributeError as e:  # mainwindow or tabs could still be None
-            log.destroy.warning("No mainwindow/tabs to shut down ({}).".format(
-                e))
-            self._maybe_quit('tabs')
         # Re-enable faulthandler to stdout, then remove crash log
         self._destroy_crashlogfile()
         # If we don't kill our custom handler here we might get segfaults
         qInstallMessageHandler(None)
-        self._maybe_quit('main')
-
-    @pyqtSlot()
-    def on_tab_shutdown_complete(self):
-        """Quit application after a shutdown.
-
-        Gets called when all tabs finished shutting down after shutdown().
-        """
-        log.destroy.debug("Shutdown complete, quitting.")
         self.quit()

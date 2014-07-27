@@ -66,10 +66,7 @@ class WebView(QWebView):
         _has_ssl_errors: Whether SSL errors occured during loading.
         _zoom: A NeighborList with the zoom levels.
         _old_scroll_pos: The old scroll position.
-        _shutdown_callback: Callback to be called after shutdown.
         _force_open_target: Override for _open_target.
-        _shutdown_callback: The callback to call after shutting down.
-        _destroyed: Dict of all items to be destroyed on shtudown.
         _check_insertmode: If True, in mouseReleaseEvent we should check if we
                            need to enter/leave insert mode.
 
@@ -96,10 +93,8 @@ class WebView(QWebView):
         self.scroll_pos = (-1, -1)
         self.statusbar_message = ''
         self._old_scroll_pos = (-1, -1)
-        self._shutdown_callback = None
         self.open_target = ClickTarget.normal
         self._force_open_target = None
-        self._destroyed = {}
         self._zoom = None
         self._has_ssl_errors = False
         self._init_neighborlist()
@@ -163,22 +158,6 @@ class WebView(QWebView):
         self._zoom = NeighborList(config.get('ui', 'zoom-levels'),
                                   default=config.get('ui', 'default-zoom'),
                                   mode=NeighborList.Modes.block)
-
-    def _on_destroyed(self, sender):
-        """Called when a subsystem has been destroyed during shutdown.
-
-        Args:
-            sender: The object which called the callback.
-        """
-        self._destroyed[sender] = True
-        dbgout = ' / '.join(['{}: {}'.format(k.__class__.__name__, v)
-                            for (k, v) in self._destroyed.items()])
-        log.destroy.debug("{} has been destroyed, new status: {}".format(
-            sender.__class__.__name__, dbgout))
-        if all(self._destroyed.values()):
-            if self._shutdown_callback is not None:
-                log.destroy.debug("Everything destroyed, calling callback")
-                self._shutdown_callback()
 
     def _mousepress_backforward(self, e):
         """Handle back/forward mouse button presses.
@@ -340,40 +319,6 @@ class WebView(QWebView):
             self.forward()
         else:
             raise CommandError("At end of history.")
-
-    def shutdown(self, callback=None):
-        """Shut down the tab cleanly and remove it.
-
-        Inspired by [1].
-
-        [1] https://github.com/integricho/path-of-a-pyqter/tree/master/qttut08
-
-        Args:
-            callback: Function to call after shutting down.
-        """
-        self._shutdown_callback = callback
-        # Avoid loading finished signal when stopping
-        try:
-            self.loadFinished.disconnect()
-        except TypeError:
-            pass
-        try:
-            self.page().mainFrame().loadFinished.disconnect()
-        except TypeError:
-            pass
-        self.stop()
-        self.close()
-        self.settings().setAttribute(QWebSettings.JavascriptEnabled, False)
-
-        self._destroyed[self.page()] = False
-        self.page().destroyed.connect(functools.partial(self._on_destroyed,
-                                                        self.page()))
-        self.page().shutdown()
-
-        self._destroyed[self] = False
-        self.destroyed.connect(functools.partial(self._on_destroyed, self))
-        self.deleteLater()
-        log.destroy.debug("Tab shutdown scheduled")
 
     @pyqtSlot('QUrl')
     def on_url_changed(self, url):
