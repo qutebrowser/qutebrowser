@@ -19,7 +19,7 @@
 
 """Contains the Command class, a skeleton for a command."""
 
-from PyQt5.QtCore import QCoreApplication
+from PyQt5.QtCore import QCoreApplication, QUrl
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.commands.exceptions import (ArgumentCountError,
@@ -127,15 +127,25 @@ class Command:
         kwargs = {}
         app = QCoreApplication.instance()
 
+        # Replace variables (currently only {url})
+        new_args = []
+        for arg in args:
+            if arg == '{url}':
+                urlstr = app.mainwindow.tabs.current_url().toString(
+                    QUrl.FullyEncoded | QUrl.RemovePassword)
+                new_args.append(urlstr)
+            else:
+                new_args.append(arg)
+
         if self.instance is not None:
             # Add the 'self' parameter.
             if self.instance == '':
                 obj = app
             else:
                 obj = dotted_getattr(app, self.instance)
-            args.insert(0, obj)
+            new_args.insert(0, obj)
 
         if count is not None and self.count:
             kwargs = {'count': count}
 
-        self.handler(*args, **kwargs)
+        self.handler(*new_args, **kwargs)

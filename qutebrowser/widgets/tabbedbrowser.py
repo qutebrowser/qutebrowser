@@ -207,6 +207,28 @@ class TabbedBrowser(TabWidget):
         else:
             return None
 
+    def current_url(self):
+        """Get the URL of the current tab.
+
+        Intended to be used from command handlers.
+
+        Return:
+            The current URL as QUrl.
+
+        Raise:
+            CommandError if the current URL is invalid.
+        """
+        url = self.currentWidget().url()
+        try:
+            qt_ensure_valid(url)
+        except QtValueError as e:
+            msg = "Current URL is invalid"
+            if e.reason:
+                msg += " ({})".format(e.reason)
+            msg += "!"
+            raise CommandError(msg)
+        return url
+
     def shutdown(self):
         """Try to shut down all tabs cleanly.
 

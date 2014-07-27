@@ -127,29 +127,6 @@ def safe_shlex_split(s):
                 raise
 
 
-def shell_escape(s):
-    """Escape a string so it's safe to pass to a shell."""
-    if sys.platform.startswith('win'):
-        # Oh dear flying sphagetti monster please kill me now...
-        if not s:
-            # Is this an empty argument or a literal ""? It seems to depend on
-            # something magical.
-            return '""'
-        # We could also use \", but what do we do for a literal \" then? It
-        # seems \\\". But \\ anywhere else is a literal \\. Because that makes
-        # sense. Totally NOT. Using """ also seems to yield " and work in some
-        # kind-of-safe manner.
-        s = s.replace('"', '"""')
-        # Some places suggest we use %% to escape %, but actually ^% seems to
-        # work better (compare  echo %%DATE%%  and  echo ^%DATE^%)
-        s = re.sub(r'[&|^><%]', r'^\g<0>', s)
-        # Is everything escaped now? Maybe. I don't know. I don't *get* the
-        # black magic Microshit is doing here.
-        return s
-    else:
-        return shlex.quote(s)
-
-
 def pastebin(text):
     """Paste the text into a pastebin and return the URL."""
     api_url = 'http://paste.the-compiler.org/api/'

@@ -155,69 +155,6 @@ class SafeShlexSplitTests(unittest.TestCase):
         self.assertEqual(items, ['one', 'two\\'])
 
 
-class ShellEscapeTests(unittest.TestCase):
-
-    """Tests for shell_escape.
-
-    Class attributes:
-        TEXTS_LINUX: A list of (input, output) of expected texts for Linux.
-        TEXTS_WINDOWS: A list of (input, output) of expected texts for Windows.
-
-    Attributes:
-        platform: The saved sys.platform value.
-    """
-
-    TEXTS_LINUX = (
-        ('', "''"),
-        ('foo%bar+baz', 'foo%bar+baz'),
-        ('foo$bar', "'foo$bar'"),
-        ("$'b", """'$'"'"'b'"""),
-    )
-
-    TEXTS_WINDOWS = (
-        ('', '""'),
-        ('foo*bar?baz', 'foo*bar?baz'),
-        ("a&b|c^d<e>f%", "a^&b^|c^^d^<e^>f^%"),
-        ('foo"bar', 'foo"""bar'),
-    )
-
-    def setUp(self):
-        self.platform = sys.platform
-
-    def test_fake_linux(self):
-        """Fake test which simply checks if the escaped string looks right."""
-        sys.platform = 'linux'
-        for (orig, escaped) in self.TEXTS_LINUX:
-            self.assertEqual(utils.shell_escape(orig), escaped)
-
-    def test_fake_windows(self):
-        """Fake test which simply checks if the escaped string looks right."""
-        sys.platform = 'win32'
-        for (orig, escaped) in self.TEXTS_WINDOWS:
-            self.assertEqual(utils.shell_escape(orig), escaped)
-
-    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
-    def test_real_linux(self):
-        """Real test which prints an escaped string via python."""
-        for (orig, _escaped) in self.TEXTS_LINUX:
-            cmd = ("python -c 'import sys; print(sys.argv[1], end=\"\")' "
-                   "{}".format(utils.shell_escape(orig)))
-            out = subprocess.check_output(cmd, shell=True).decode('ASCII')
-            self.assertEqual(out, orig, cmd)
-
-    @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
-    def test_real_windows(self):
-        """Real test which prints an escaped string via python."""
-        for (orig, _escaped) in self.TEXTS_WINDOWS:
-            cmd = ('python -c "import sys; print(sys.argv[1], end=\'\')" '
-                   '{}'.format(utils.shell_escape(orig)))
-            out = subprocess.check_output(cmd, shell=True).decode('ASCII')
-            self.assertEqual(out, orig, cmd)
-
-    def tearDown(self):
-        sys.platform = self.platform
-
-
 class GetStandardDirLinuxTests(unittest.TestCase):
 
     """Tests for get_standard_dir under Linux.
