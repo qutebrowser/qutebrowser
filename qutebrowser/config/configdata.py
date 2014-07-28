@@ -597,11 +597,11 @@ DATA = OrderedDict([
 
     ('keybind', sect.ValueList(
         types.KeyBindingName(), types.KeyBinding(),
-        ('o', 'open'),
+        ('o', 'set-cmd-text ":open "'),
         ('go', 'set-cmd-text :open {url}'),
-        ('O', 'open-tab'),
+        ('O', 'set-cmd-text ":open-tab "'),
         ('gO', 'set-cmd-text :open-tab {url}'),
-        ('xo', 'open-tab-bg'),
+        ('xo', 'set-cmd-text ":open-tab-bg "'),
         ('xO', 'set-cmd-text :open-tab-bg {url}'),
         ('ga', 'open-tab about:blank'),
         ('d', 'tab-close'),
