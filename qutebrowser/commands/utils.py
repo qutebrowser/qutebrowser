@@ -29,6 +29,7 @@ from collections import Iterable
 import qutebrowser.utils.qt as qtutils
 from qutebrowser.commands.command import Command
 from qutebrowser.commands.exceptions import CommandError
+from qutebrowser.utils.usertypes import KeyMode
 
 cmd_dict = {}
 
@@ -132,6 +133,14 @@ class register:  # pylint: disable=invalid-name
         self.not_modes = not_modes
         self.needs_js = needs_js
         self.debug = debug
+        if modes is not None:
+            for m in modes:
+                if not isinstance(m, KeyMode):
+                    raise TypeError("Mode {} is no KeyMode member!".format(m))
+        if not_modes is not None:
+            for m in not_modes:
+                if not isinstance(m, KeyMode):
+                    raise TypeError("Mode {} is no KeyMode member!".format(m))
 
     def __call__(self, func):
         """Register the command before running the function.

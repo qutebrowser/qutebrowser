@@ -90,7 +90,8 @@ class WebView(QWebView):
 
     def __init__(self, parent):
         super().__init__(parent)
-        self._load_status = LoadStatus.none
+        self._load_status = None
+        self.load_status = LoadStatus.none
         self._check_insertmode = False
         self.tabbedbrowser = parent
         self.inspector = None
@@ -98,6 +99,7 @@ class WebView(QWebView):
         self.statusbar_message = ''
         self._old_scroll_pos = (-1, -1)
         self._shutdown_callback = None
+        self._open_target = None
         self.open_target = ClickTarget.normal
         self._force_open_target = None
         self._destroyed = {}
@@ -128,6 +130,18 @@ class WebView(QWebView):
         return "WebView(url='{}')".format(elide(url, 50))
 
     @property
+    def open_target(self):
+        """Getter for open_target so we can define a setter."""
+        return self._open_target
+
+    @open_target.setter
+    def open_target(self, val):
+        """Setter for open_target to do type checking."""
+        if not isinstance(val, ClickTarget):
+            raise TypeError("Target {} is no ClickTarget member!".format(val))
+        self._open_target = val
+
+    @property
     def load_status(self):
         """Getter for load_status."""
         return self._load_status
@@ -139,6 +153,8 @@ class WebView(QWebView):
         Emit:
             load_status_changed
         """
+        if not isinstance(val, LoadStatus):
+            raise TypeError("Type {} is no LoadStatus member!".format(val))
         log.webview.debug("load status for {}: {}".format(repr(self), val))
         self._load_status = val
         self.load_status_changed.emit(val.name)

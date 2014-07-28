@@ -90,6 +90,8 @@ class NeighborList(collections.abc.Sequence):
                    Modes.wrap: Wrap around to the other end
                    Modes.exception: Raise an IndexError.
         """
+        if not isinstance(mode, self.Modes):
+            raise TypeError("Mode {} is not a Modes member!".format(mode))
         if items is None:
             self._items = []
         else:
@@ -289,7 +291,7 @@ class Question(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.mode = None
+        self._mode = None
         self.default = None
         self.text = None
         self.user = None
@@ -298,6 +300,18 @@ class Question(QObject):
 
     def __repr__(self):
         return '<{} "{}">'.format(self.__class__.__name__, self.text)
+
+    @property
+    def mode(self):
+        """Getter for mode so we can define a setter."""
+        return self._mode
+
+    @mode.setter
+    def mode(self, val):
+        """Setter for mode to do basic type checking."""
+        if not isinstance(val, PromptMode):
+            raise TypeError("Mode {} is no PromptMode member!".format(val))
+        self._mode = val
 
     def done(self):
         """Must be called when the queston was answered completely."""

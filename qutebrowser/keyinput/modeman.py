@@ -182,6 +182,8 @@ class ModeManager(QObject):
             passthrough: Whether to pass keybindings in this mode through to
                          the widgets.
         """
+        if not isinstance(mode, KeyMode):
+            raise TypeError("Mode {} is no KeyMode member!".format(mode))
         self._handlers[mode] = handler
         if passthrough:
             self.passthrough.append(mode)
@@ -196,6 +198,8 @@ class ModeManager(QObject):
         Emit:
             entered: With the new mode name.
         """
+        if not isinstance(mode, KeyMode):
+            raise TypeError("Mode {} is no KeyMode member!".format(mode))
         logger.debug("Entering mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
         if mode not in self._handlers:

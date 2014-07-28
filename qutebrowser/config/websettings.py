@@ -165,6 +165,8 @@ def _set_setting(typ, arg, value):
         arg: The argument (attribute/handler)
         value: The value to set.
     """
+    if not isinstance(typ, MapType):
+        raise TypeError("Type {} is no MapType member!".format(typ))
     if typ == MapType.attribute:
         settings.setAttribute(arg, value)
     elif typ == MapType.setter and value is not None:

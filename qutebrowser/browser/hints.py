@@ -63,11 +63,23 @@ class HintContext:
 
     def __init__(self):
         self.elems = {}
-        self.target = None
+        self._target = None
         self.baseurl = None
         self.to_follow = None
         self.frames = []
         self.connected_frames = []
+
+    @property
+    def target(self):
+        """Getter for target so we can define a setter."""
+        return self._target
+
+    @target.setter
+    def target(self, val):
+        """Setter for target to do type checking."""
+        if not isinstance(val, Target):
+            raise TypeError("Target {} is no Target member!".format(val))
+        self._target = val
 
 
 class HintManager(QObject):
@@ -433,6 +445,8 @@ class HintManager(QObject):
         Emit:
             hint_strings_updated: Emitted to update keypraser.
         """
+        if not isinstance(target, Target):
+            raise TypeError("Target {} is no Target member!".format(target))
         if mainframe is None:
             # This should never happen since we check frame before calling
             # start. But since we had a bug where frame is None in

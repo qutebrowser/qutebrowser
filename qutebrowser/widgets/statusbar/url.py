@@ -101,6 +101,8 @@ class UrlText(TextBase):
     @urltype.setter
     def urltype(self, val):
         """Setter for self.urltype to update stylesheets after it is set."""
+        if not isinstance(val, UrlType):
+            raise TypeError("Type {} is no UrlType member!".format(val))
         self._urltype = val
         self.setStyleSheet(get_stylesheet(self.STYLESHEET))
 
@@ -138,6 +140,8 @@ class UrlText(TextBase):
         Args:
             val: The value as an UrlType instance.
         """
+        if not isinstance(val, UrlType):
+            raise TypeError("Type {} is no UrlType member!".format(val))
         self._normal_url_type = val
         self._update_url()
 

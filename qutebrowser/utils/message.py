@@ -91,6 +91,8 @@ def ask_async(message, mode, handler, default=None):
         handler: The function to get called with the answer as argument.
         default: The default value to display.
     """
+    if not isinstance(mode, PromptMode):
+        raise TypeError("Mode {} is no PromptMode member!".format(mode))
     bridge = instance()
     q = Question(bridge)
     q.text = message

@@ -89,7 +89,7 @@ class HintKeyParser(CommandKeyParser):
 
     Attributes:
         _filtertext: The text to filter with.
-        _last_press: The nature of the last keypress, a LastPress member.
+        last_press: The nature of the last keypress, a LastPress member.
     """
 
     fire_hint = pyqtSignal(str)
@@ -98,8 +98,21 @@ class HintKeyParser(CommandKeyParser):
     def __init__(self, parent=None):
         super().__init__(parent, supports_count=False, supports_chains=True)
         self._filtertext = ''
-        self._last_press = LastPress.none
+        self._last_press = None
+        self.last_press = LastPress.none
         self.read_config('keybind.hint')
+
+    @property
+    def last_press(self):
+        """Getter for last_press so we can define a setter."""
+        return self._last_press
+
+    @last_press.setter
+    def last_press(self, val):
+        """Setter for last_press to do typechecking."""
+        if not isinstance(val, LastPress):
+            raise TypeError("Value {} is no LastPress member!".format(val))
+        self._last_press = val
 
     def _handle_special_key(self, e):
         """Override _handle_special_key to handle string filtering.
@@ -120,13 +133,13 @@ class HintKeyParser(CommandKeyParser):
             e.key(), e.text()))
         if e.key() == Qt.Key_Backspace:
             logger.debug("Got backspace, mode {}, filtertext '{}', keystring "
-                         "'{}'".format(self._last_press, self._filtertext,
+                         "'{}'".format(self.last_press, self._filtertext,
                                        self._keystring))
-            if self._last_press == LastPress.filtertext and self._filtertext:
+            if self.last_press == LastPress.filtertext and self._filtertext:
                 self._filtertext = self._filtertext[:-1]
                 self.filter_hints.emit(self._filtertext)
                 return True
-            elif self._last_press == LastPress.keystring and self._keystring:
+            elif self.last_press == LastPress.keystring and self._keystring:
                 self._keystring = self._keystring[:-1]
                 self.keystring_updated.emit(self._keystring)
                 return True
@@ -139,7 +152,7 @@ class HintKeyParser(CommandKeyParser):
         else:
             self._filtertext += e.text()
             self.filter_hints.emit(self._filtertext)
-            self._last_press = LastPress.filtertext
+            self.last_press = LastPress.filtertext
             return True
 
     def handle(self, e):
@@ -155,12 +168,12 @@ class HintKeyParser(CommandKeyParser):
         if handled and self._keystring:
             # A key has been added to the keystring (Match.partial)
             self.keystring_updated.emit(self._keystring)
-            self._last_press = LastPress.keystring
+            self.last_press = LastPress.keystring
             return handled
         elif handled:
             # We handled the key but the keystring is empty. This happens when
             # match is Match.definitive, so a keychain has been completed.
-            self._last_press = LastPress.none
+            self.last_press = LastPress.none
             return handled
         else:
             # We couldn't find a keychain so we check if it's a special key.
@@ -172,6 +185,8 @@ class HintKeyParser(CommandKeyParser):
         Emit:
             fire_hint: Emitted if keytype is chain
         """
+        if not isinstance(keytype, self.Type):
+            raise TypeError("Type {} is no Type member!".format(keytype))
         if keytype == self.Type.chain:
             self.fire_hint.emit(cmdstr)
         else:
