@@ -223,8 +223,7 @@ class CommandManager:
         self._cmd = cmd
         self._args = args
         retargs = args[:]
-        if text.endswith(' ') and (cmd.split is True or
-                                   len(args) < cmd.nargs[0]):
+        if text.endswith(' '):
             retargs.append('')
         return [cmdstr] + retargs
 
