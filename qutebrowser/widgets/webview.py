@@ -35,7 +35,8 @@ from qutebrowser.utils.misc import elide
 from qutebrowser.utils.qt import qt_ensure_valid
 from qutebrowser.browser.webpage import BrowserPage
 from qutebrowser.browser.hints import HintManager
-from qutebrowser.utils.usertypes import NeighborList, ClickTarget, enum
+from qutebrowser.utils.usertypes import (NeighborList, ClickTarget, KeyMode,
+                                         enum)
 from qutebrowser.commands.exceptions import CommandError
 
 
@@ -231,11 +232,11 @@ class WebView(QWebView):
         elif ((hitresult.isContentEditable() and webelem.is_writable(elem)) or
                 webelem.is_editable(elem)):
             log.mouse.debug("Clicked editable element!")
-            modeman.enter('insert', 'click')
+            modeman.enter(KeyMode.insert, 'click')
         else:
             log.mouse.debug("Clicked non-editable element!")
             if config.get('input', 'auto-leave-insert-mode'):
-                modeman.maybe_leave('insert', 'click')
+                modeman.maybe_leave(KeyMode.insert, 'click')
 
     def mouserelease_insertmode(self):
         """If we have an insertmode check scheduled, handle it."""
@@ -245,11 +246,11 @@ class WebView(QWebView):
         elem = webelem.focus_elem(self.page().currentFrame())
         if webelem.is_editable(elem):
             log.mouse.debug("Clicked editable element (delayed)!")
-            modeman.enter('insert', 'click-delayed')
+            modeman.enter(KeyMode.insert, 'click-delayed')
         else:
             log.mouse.debug("Clicked non-editable element (delayed)!")
             if config.get('input', 'auto-leave-insert-mode'):
-                modeman.maybe_leave('insert', 'click-delayed')
+                modeman.maybe_leave(KeyMode.insert, 'click-delayed')
 
     def _mousepress_opentarget(self, e):
         """Set the open target when something was clicked.
@@ -410,7 +411,7 @@ class WebView(QWebView):
             self.load_status = LoadStatus.error
         if not config.get('input', 'auto-insert-mode'):
             return
-        if modeman.instance().mode == 'insert' or not ok:
+        if modeman.instance().mode == KeyMode.insert or not ok:
             return
         frame = self.page().currentFrame()
         elem = frame.findFirstElement(':focus')
@@ -418,7 +419,7 @@ class WebView(QWebView):
         if elem.isNull():
             log.webview.debug("Focused element is null!")
         elif webelem.is_editable(elem):
-            modeman.enter('insert', 'load finished')
+            modeman.enter(KeyMode.insert, 'load finished')
 
     @pyqtSlot(str)
     def set_force_open_target(self, target):

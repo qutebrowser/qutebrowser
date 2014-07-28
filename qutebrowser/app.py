@@ -61,7 +61,7 @@ from qutebrowser.browser.downloads import DownloadManager
 from qutebrowser.utils.misc import get_standard_dir, actute_warning
 from qutebrowser.utils.qt import get_qt_args
 from qutebrowser.utils.readline import ReadlineBridge
-from qutebrowser.utils.usertypes import Timer
+from qutebrowser.utils.usertypes import Timer, KeyMode
 
 
 class Application(QApplication):
@@ -154,7 +154,7 @@ class Application(QApplication):
 
         log.init.debug("Connecting signals...")
         self._connect_signals()
-        self.modeman.enter('normal', 'init')
+        self.modeman.enter(KeyMode.normal, 'init')
 
         log.init.debug("Showing mainwindow...")
         self.mainwindow.show()
@@ -202,27 +202,40 @@ class Application(QApplication):
     def _init_modes(self):
         """Inizialize the mode manager and the keyparsers."""
         self._keyparsers = {
-            'normal': NormalKeyParser(self),
-            'hint': HintKeyParser(self),
-            'insert': PassthroughKeyParser('keybind.insert', self),
-            'passthrough': PassthroughKeyParser('keybind.passthrough', self),
-            'command': PassthroughKeyParser('keybind.command', self),
-            'prompt': PassthroughKeyParser('keybind.prompt', self, warn=False),
-            'yesno': PromptKeyParser(self),
+            KeyMode.normal:
+                NormalKeyParser(self),
+            KeyMode.hint:
+                HintKeyParser(self),
+            KeyMode.insert:
+                PassthroughKeyParser('keybind.insert', self),
+            KeyMode.passthrough:
+                PassthroughKeyParser('keybind.passthrough', self),
+            KeyMode.command:
+                PassthroughKeyParser('keybind.command', self),
+            KeyMode.prompt:
+                PassthroughKeyParser('keybind.prompt', self, warn=False),
+            KeyMode.yesno:
+                PromptKeyParser(self),
         }
         self.modeman = ModeManager(self)
-        self.modeman.register('normal', self._keyparsers['normal'].handle)
-        self.modeman.register('hint', self._keyparsers['hint'].handle)
-        self.modeman.register('insert', self._keyparsers['insert'].handle,
+        self.modeman.register(KeyMode.normal,
+                              self._keyparsers[KeyMode.normal].handle)
+        self.modeman.register(KeyMode.hint,
+                              self._keyparsers[KeyMode.hint].handle)
+        self.modeman.register(KeyMode.insert,
+                              self._keyparsers[KeyMode.insert].handle,
                               passthrough=True)
-        self.modeman.register('passthrough',
-                              self._keyparsers['passthrough'].handle,
+        self.modeman.register(KeyMode.passthrough,
+                              self._keyparsers[KeyMode.passthrough].handle,
                               passthrough=True)
-        self.modeman.register('command', self._keyparsers['command'].handle,
+        self.modeman.register(KeyMode.command,
+                              self._keyparsers[KeyMode.command].handle,
                               passthrough=True)
-        self.modeman.register('prompt', self._keyparsers['prompt'].handle,
+        self.modeman.register(KeyMode.prompt,
+                              self._keyparsers[KeyMode.prompt].handle,
                               passthrough=True)
-        self.modeman.register('yesno', self._keyparsers['yesno'].handle)
+        self.modeman.register(KeyMode.yesno,
+                              self._keyparsers[KeyMode.yesno].handle)
 
     def _init_misc(self):
         """Initialize misc things."""
@@ -366,14 +379,15 @@ class Application(QApplication):
         cmd.got_search_rev.connect(self.searchmanager.search_rev)
         cmd.returnPressed.connect(tabs.setFocus)
         self.searchmanager.do_search.connect(tabs.search)
-        kp['normal'].keystring_updated.connect(status.keystring.setText)
+        kp[KeyMode.normal].keystring_updated.connect(status.keystring.setText)
         tabs.got_cmd.connect(self.commandmanager.run_safely)
 
         # hints
-        kp['hint'].fire_hint.connect(tabs.fire_hint)
-        kp['hint'].filter_hints.connect(tabs.filter_hints)
-        kp['hint'].keystring_updated.connect(tabs.handle_hint_key)
-        tabs.hint_strings_updated.connect(kp['hint'].on_hint_strings_updated)
+        kp[KeyMode.hint].fire_hint.connect(tabs.fire_hint)
+        kp[KeyMode.hint].filter_hints.connect(tabs.filter_hints)
+        kp[KeyMode.hint].keystring_updated.connect(tabs.handle_hint_key)
+        tabs.hint_strings_updated.connect(
+            kp[KeyMode.hint].on_hint_strings_updated)
 
         # messages
         self.messagebridge.s_error.connect(status.disp_error)
@@ -386,7 +400,7 @@ class Application(QApplication):
         # config
         self.config.style_changed.connect(style.invalidate_caches)
         for obj in (tabs, completion, self.mainwindow, self.cmd_history,
-                    websettings, kp['normal'], self.modeman, status,
+                    websettings, kp[KeyMode.normal], self.modeman, status,
                     status.txt):
             self.config.changed.connect(obj.on_config_changed)
 

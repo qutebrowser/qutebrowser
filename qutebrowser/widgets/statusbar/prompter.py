@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import QLineEdit
 
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.commands.utils as cmdutils
-from qutebrowser.utils.usertypes import PromptMode, Question
+from qutebrowser.utils.usertypes import PromptMode, Question, KeyMode
 from qutebrowser.utils.qt import EventLoop
 from qutebrowser.utils.log import statusbar as logger
 
@@ -133,23 +133,23 @@ class Prompter:
                 suffix = " (no)"
             self._prompt.txt.setText(self.question.text + suffix)
             self._prompt.lineedit.hide()
-            mode = 'yesno'
+            mode = KeyMode.yesno
         elif self.question.mode == PromptMode.text:
             self._prompt.txt.setText(self.question.text)
             if self.question.default:
                 self._prompt.lineedit.setText(self.question.default)
             self._prompt.lineedit.show()
-            mode = 'prompt'
+            mode = KeyMode.prompt
         elif self.question.mode == PromptMode.user_pwd:
             self._prompt.txt.setText(self.question.text)
             if self.question.default:
                 self._prompt.lineedit.setText(self.question.default)
             self._prompt.lineedit.show()
-            mode = 'prompt'
+            mode = KeyMode.prompt
         elif self.question.mode == PromptMode.alert:
             self._prompt.txt.setText(self.question.text + ' (ok)')
             self._prompt.lineedit.hide()
-            mode = 'prompt'
+            mode = KeyMode.prompt
         else:
             raise ValueError("Invalid prompt mode!")
         self._prompt.lineedit.setFocus()
@@ -157,9 +157,10 @@ class Prompter:
         self._busy = True
         return mode
 
+    @pyqtSlot(KeyMode)
     def on_mode_left(self, mode):
         """Clear and reset input when the mode was left."""
-        if mode in ('prompt', 'yesno'):
+        if mode in (KeyMode.prompt, KeyMode.yesno):
             self._prompt.txt.setText('')
             self._prompt.lineedit.clear()
             self._prompt.lineedit.setEchoMode(QLineEdit.Normal)
@@ -169,7 +170,7 @@ class Prompter:
                 self.question.cancel()
 
     @cmdutils.register(instance='mainwindow.status.prompt.prompter', hide=True,
-                       modes=['prompt'])
+                       modes=[KeyMode.prompt])
     def prompt_accept(self):
         """Accept the current prompt.
 
@@ -189,46 +190,46 @@ class Prompter:
             # User just entered a password
             password = self._prompt.lineedit.text()
             self.question.answer = (self.question.user, password)
-            modeman.leave('prompt', 'prompt accept')
+            modeman.leave(KeyMode.prompt, 'prompt accept')
             self.question.done()
         elif self.question.mode == PromptMode.text:
             # User just entered text.
             self.question.answer = self._prompt.lineedit.text()
-            modeman.leave('prompt', 'prompt accept')
+            modeman.leave(KeyMode.prompt, 'prompt accept')
             self.question.done()
         elif self.question.mode == PromptMode.yesno:
             # User wants to accept the default of a yes/no question.
             self.question.answer = self.question.default
-            modeman.leave('yesno', 'yesno accept')
+            modeman.leave(KeyMode.yesno, 'yesno accept')
             self.question.done()
         elif self.question.mode == PromptMode.alert:
             # User acknowledged an alert
             self.question.answer = None
-            modeman.leave('prompt', 'alert accept')
+            modeman.leave(KeyMode.prompt, 'alert accept')
             self.question.done()
         else:
             raise ValueError("Invalid question mode!")
 
     @cmdutils.register(instance='mainwindow.status.prompt.prompter', hide=True,
-                       modes=['yesno'])
+                       modes=[KeyMode.yesno])
     def prompt_yes(self):
         """Answer yes to a yes/no prompt."""
         if self.question.mode != PromptMode.yesno:
             # We just ignore this if we don't have a yes/no question.
             return
         self.question.answer = True
-        modeman.leave('yesno', 'yesno accept')
+        modeman.leave(KeyMode.yesno, 'yesno accept')
         self.question.done()
 
     @cmdutils.register(instance='mainwindow.status.prompt.prompter', hide=True,
-                       modes=['yesno'])
+                       modes=[KeyMode.yesno])
     def prompt_no(self):
         """Answer no to a yes/no prompt."""
         if self.question.mode != PromptMode.yesno:
             # We just ignore this if we don't have a yes/no question.
             return
         self.question.answer = False
-        modeman.leave('yesno', 'prompt accept')
+        modeman.leave(KeyMode.yesno, 'prompt accept')
         self.question.done()
 
     @pyqtSlot(Question, bool)

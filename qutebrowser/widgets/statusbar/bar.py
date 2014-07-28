@@ -36,7 +36,7 @@ from qutebrowser.widgets.statusbar.percentage import Percentage
 from qutebrowser.widgets.statusbar.url import UrlText
 from qutebrowser.widgets.statusbar.prompt import Prompt
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
-from qutebrowser.utils.usertypes import Timer
+from qutebrowser.utils.usertypes import Timer, KeyMode
 
 
 class StatusBar(QWidget):
@@ -353,20 +353,20 @@ class StatusBar(QWidget):
         """Set a normal (persistent) text in the status bar."""
         self.txt.normaltext = val
 
-    @pyqtSlot(str)
+    @pyqtSlot(KeyMode)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
         if mode in modeman.instance().passthrough:
-            self.txt.normaltext = "-- {} MODE --".format(mode.upper())
-        if mode == 'insert':
+            self.txt.normaltext = "-- {} MODE --".format(mode.name.upper())
+        if mode == KeyMode.insert:
             self.insert_active = True
 
-    @pyqtSlot(str)
+    @pyqtSlot(KeyMode)
     def on_mode_left(self, mode):
         """Clear marked mode."""
         if mode in modeman.instance().passthrough:
             self.txt.normaltext = ""
-        if mode == 'insert':
+        if mode == KeyMode.insert:
             self.insert_active = False
 
     @pyqtSlot(str, str)

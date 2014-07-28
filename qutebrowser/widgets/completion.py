@@ -32,6 +32,7 @@ from qutebrowser.widgets.completiondelegate import CompletionItemDelegate
 from qutebrowser.config.style import set_register_stylesheet
 from qutebrowser.utils.completer import Completer
 from qutebrowser.utils.qt import qt_ensure_valid
+from qutebrowser.utils.usertypes import KeyMode
 
 
 class CompletionView(QTreeView):
@@ -211,13 +212,13 @@ class CompletionView(QTreeView):
             selmod.clearCurrentIndex()
 
     @cmdutils.register(instance='mainwindow.completion', hide=True,
-                       modes=['command'])
+                       modes=[KeyMode.command])
     def completion_item_prev(self):
         """Select the previous completion item."""
         self._next_prev_item(prev=True)
 
     @cmdutils.register(instance='mainwindow.completion', hide=True,
-                       modes=['command'])
+                       modes=[KeyMode.command])
     def completion_item_next(self):
         """Select the next completion item."""
         self._next_prev_item(prev=False)

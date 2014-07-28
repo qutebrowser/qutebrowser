@@ -235,8 +235,14 @@ class NeighborList(collections.abc.Sequence):
 # The mode of a Question.
 PromptMode = enum('PromptMode', 'yesno', 'text', 'user_pwd', 'alert')
 
+
 # Where to open a clicked link.
 ClickTarget = enum('ClickTarget', 'normal', 'tab', 'tab_bg')
+
+
+# Key input modes
+KeyMode = enum('KeyMode', 'normal', 'hint', 'command', 'yesno', 'prompt',
+               'insert', 'passthrough')
 
 
 class Question(QObject):

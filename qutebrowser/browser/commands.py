@@ -41,6 +41,7 @@ from qutebrowser.utils.qt import check_overflow, check_print_compat
 from qutebrowser.utils.editor import ExternalEditor
 from qutebrowser.commands.exceptions import CommandError
 from qutebrowser.commands.userscripts import UserscriptRunner
+from qutebrowser.utils.usertypes import KeyMode
 
 
 class CommandDispatcher:
@@ -664,7 +665,7 @@ class CommandDispatcher:
         page = self._tabs.currentWidget().page()
         self._tabs.download_get.emit(self._tabs.current_url(), page)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd', modes=['insert'],
+    @cmdutils.register(instance='mainwindow.tabs.cmd', modes=[KeyMode.insert],
                        hide=True)
     def open_editor(self):
         """Open an external editor with the current form field.

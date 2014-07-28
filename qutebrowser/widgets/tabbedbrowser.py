@@ -36,6 +36,7 @@ from qutebrowser.browser.signalfilter import SignalFilter
 from qutebrowser.browser.commands import CommandDispatcher
 from qutebrowser.utils.qt import qt_ensure_valid, QtValueError
 from qutebrowser.commands.exceptions import CommandError
+from qutebrowser.utils.usertypes import KeyMode
 
 
 class TabbedBrowser(TabWidget):
@@ -391,8 +392,8 @@ class TabbedBrowser(TabWidget):
     @pyqtSlot()
     def on_cur_load_started(self):
         """Leave insert/hint mode when loading started."""
-        modeman.maybe_leave('insert', 'load started')
-        modeman.maybe_leave('hint', 'load started')
+        modeman.maybe_leave(KeyMode.insert, 'load started')
+        modeman.maybe_leave(KeyMode.hint, 'load started')
 
     @pyqtSlot(WebView, str)
     def on_title_changed(self, tab, text):
@@ -451,10 +452,10 @@ class TabbedBrowser(TabWidget):
             return
         self.setTabIcon(idx, tab.icon())
 
-    @pyqtSlot(str)
+    @pyqtSlot(KeyMode)
     def on_mode_left(self, mode):
         """Give focus to current tab if command mode was left."""
-        if mode == "command":
+        if mode == KeyMode.command:
             self.currentWidget().setFocus()
 
     @pyqtSlot(int)
@@ -462,7 +463,7 @@ class TabbedBrowser(TabWidget):
         """Set last_focused and leave hinting mode when focus changed."""
         tab = self.widget(idx)
         tab.setFocus()
-        modeman.maybe_leave('hint', 'tab changed')
+        modeman.maybe_leave(KeyMode.hint, 'tab changed')
         self.last_focused = self.now_focused
         self.now_focused = tab
         self.current_tab_changed.emit(tab)

@@ -31,7 +31,7 @@ import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.message as message
 import qutebrowser.utils.webelem as webelem
 from qutebrowser.commands.exceptions import CommandError
-from qutebrowser.utils.usertypes import enum
+from qutebrowser.utils.usertypes import enum, KeyMode
 from qutebrowser.utils.log import hints as logger
 from qutebrowser.utils.qt import qt_ensure_valid
 
@@ -458,7 +458,7 @@ class HintManager(QObject):
         self._context = ctx
         self._connect_frame_signals()
         self.hint_strings_updated.emit(strings)
-        modeman.enter('hint', 'HintManager.start')
+        modeman.enter(KeyMode.hint, 'HintManager.start')
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
@@ -500,7 +500,7 @@ class HintManager(QObject):
                 visible[k] = e
         if not visible:
             # Whoops, filtered all hints
-            modeman.leave('hint', 'all filtered')
+            modeman.leave(KeyMode.hint, 'all filtered')
         elif len(visible) == 1 and config.get('hints', 'auto-follow'):
             # unpacking gets us the first (and only) key in the dict.
             self.fire(*visible)
@@ -546,7 +546,7 @@ class HintManager(QObject):
         else:
             raise ValueError("No suitable handler found!")
         if self._context.target != Target.rapid:
-            modeman.maybe_leave('hint', 'followed')
+            modeman.maybe_leave(KeyMode.hint, 'followed')
 
     def follow_hint(self):
         """Follow the currently selected hint."""
@@ -567,16 +567,16 @@ class HintManager(QObject):
             css = self._get_hint_css(elems.elem, elems.label)
             elems.label.setAttribute('style', css)
 
-    @pyqtSlot(str)
+    @pyqtSlot(KeyMode)
     def on_mode_entered(self, mode):
         """Stop hinting when insert mode was entered."""
-        if mode == 'insert':
-            modeman.maybe_leave('hint', 'insert mode')
+        if mode == KeyMode.insert:
+            modeman.maybe_leave(KeyMode.hint, 'insert mode')
 
-    @pyqtSlot(str)
+    @pyqtSlot(KeyMode)
     def on_mode_left(self, mode):
         """Stop hinting when hinting mode was left."""
-        if mode != 'hint' or self._context is None:
+        if mode != KeyMode.hint or self._context is None:
             # We have one HintManager per tab, so when this gets called,
             # self._context might be None, because the current tab is not
             # hinting.

@@ -32,6 +32,7 @@ from qutebrowser.utils.log import completion as logger
 from qutebrowser.models.cmdhistory import (History, HistoryEmptyError,
                                            HistoryEndReachedError)
 from qutebrowser.commands.exceptions import CommandError
+from qutebrowser.utils.usertypes import KeyMode
 
 
 class Command(MinimalLineEdit):
@@ -218,7 +219,7 @@ class Command(MinimalLineEdit):
         self.show_cmd.emit()
 
     @cmdutils.register(instance='mainwindow.status.cmd', hide=True,
-                       modes=['command'])
+                       modes=[KeyMode.command])
     def command_history_prev(self):
         """Handle Up presses (go back in history)."""
         try:
@@ -232,7 +233,7 @@ class Command(MinimalLineEdit):
             self.set_cmd_text(item)
 
     @cmdutils.register(instance='mainwindow.status.cmd', hide=True,
-                       modes=['command'])
+                       modes=[KeyMode.command])
     def command_history_next(self):
         """Handle Down presses (go forward in history)."""
         if not self.history.browsing:
@@ -245,7 +246,7 @@ class Command(MinimalLineEdit):
             self.set_cmd_text(item)
 
     @cmdutils.register(instance='mainwindow.status.cmd', hide=True,
-                       modes=['command'])
+                       modes=[KeyMode.command])
     def command_accept(self):
         """Handle the command in the status bar.
 
@@ -261,7 +262,7 @@ class Command(MinimalLineEdit):
         }
         text = self.text()
         self.history.append(text)
-        modeman.leave('command', 'cmd accept')
+        modeman.leave(KeyMode.command, 'cmd accept')
         if text[0] in signals:
             signals[text[0]].emit(text.lstrip(text[0]))
 
@@ -274,6 +275,7 @@ class Command(MinimalLineEdit):
         # here, but that's already done for us by cursorPositionChanged
         # anyways, so we don't need to do it twice.
 
+    @pyqtSlot(KeyMode)
     def on_mode_left(self, mode):
         """Clear up when ommand mode was left.
 
@@ -288,7 +290,7 @@ class Command(MinimalLineEdit):
             clear_completion_selection: Always emitted.
             hide_completion: Always emitted so the completion is hidden.
         """
-        if mode == "command":
+        if mode == KeyMode.command:
             self.setText('')
             self.history.stop()
             self.hide_cmd.emit()
@@ -297,7 +299,7 @@ class Command(MinimalLineEdit):
 
     def focusInEvent(self, e):
         """Extend focusInEvent to enter command mode."""
-        modeman.enter('command', 'cmd focus')
+        modeman.enter(KeyMode.command, 'cmd focus')
         super().focusInEvent(e)
 
 
