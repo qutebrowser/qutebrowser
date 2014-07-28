@@ -20,6 +20,7 @@
 """A HintManager to draw hints over links."""
 
 import math
+import subprocess
 from collections import namedtuple
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl
@@ -40,7 +41,8 @@ ElemTuple = namedtuple('ElemTuple', 'elem, label')
 
 
 Target = enum('Target', 'normal', 'tab', 'tab_bg', 'yank', 'yank_primary',
-              'cmd', 'cmd_tab', 'cmd_tab_bg', 'rapid', 'download')
+              'cmd', 'cmd_tab', 'cmd_tab_bg', 'rapid', 'download',
+              'userscript', 'spawn')
 
 
 class HintContext:
@@ -57,8 +59,11 @@ class HintContext:
                 cmd/cmd_tab/cmd_tab_bg: Enter link to commandline
                 rapid: Rapid mode with background tabs
                 download: Download the link.
+                userscript: Call a custom userscript.
+                spawn: Spawn a simple command.
         to_follow: The link to follow when enter is pressed.
         connected_frames: The QWebFrames which are connected to a signal.
+        args: Custom arguments for userscript/spawn
     """
 
     def __init__(self):
@@ -68,6 +73,7 @@ class HintContext:
         self.to_follow = None
         self.frames = []
         self.connected_frames = []
+        self.args = []
 
     @property
     def target(self):
@@ -105,6 +111,9 @@ class HintManager(QObject):
         download_get: Download an URL.
                       arg 0: The URL to download, as QUrl.
                       arg 1: The QWebPage to download the URL in.
+        run_userscript: Emitted when a custom userscript should be run.
+                        arg 0: The URL which was selected.
+                        arg 1: The userscript/args to run.
     """
 
     HINT_CSS = """
@@ -132,6 +141,8 @@ class HintManager(QObject):
         Target.cmd_tab_bg: "Set hint in commandline as background tab...",
         Target.rapid: "Follow hint (rapid mode)...",
         Target.download: "Download hint...",
+        Target.userscript: "Call userscript via hint...",
+        Target.spawn: "Spawn command via hint...",
     }
 
     hint_strings_updated = pyqtSignal(list)
@@ -139,6 +150,7 @@ class HintManager(QObject):
     openurl = pyqtSignal('QUrl', bool)
     set_open_target = pyqtSignal(str)
     download_get = pyqtSignal('QUrl', 'QWebPage')
+    run_userscript = pyqtSignal('QUrl', list)
 
     def __init__(self, parent=None):
         """Constructor.
@@ -354,6 +366,23 @@ class HintManager(QObject):
         qt_ensure_valid(url)
         self.download_get.emit(url, elem.webFrame().page())
 
+    def _call_userscript(self, url):
+        """Call an userscript from a hint."""
+        qt_ensure_valid(url)
+        self.run_userscript.emit(url, list(self._context.args))
+
+    def _spawn(self, url):
+        """Spawn a simple command from a hint."""
+        qt_ensure_valid(url)
+        urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
+        args = []
+        for arg in self._context.args:
+            if arg == '{hint-url}':
+                args.append(urlstr)
+            else:
+                args.append(arg)
+        subprocess.Popen(args)
+
     def _resolve_url(self, elem, baseurl=None):
         """Resolve a URL and check if we want to keep it.
 
@@ -433,7 +462,7 @@ class HintManager(QObject):
         self.openurl.emit(url, newtab)
 
     def start(self, mainframe, baseurl, group=webelem.Group.all,
-              target=Target.normal):
+              target=Target.normal, *args):
         """Start hinting.
 
         Args:
@@ -441,6 +470,7 @@ class HintManager(QObject):
             baseurl: URL of the current page.
             group: Which group of elements to hint.
             target: What to do with the link. See attribute docstring.
+            *args: Arguments for userscript/download
 
         Emit:
             hint_strings_updated: Emitted to update keypraser.
@@ -452,6 +482,14 @@ class HintManager(QObject):
             # start. But since we had a bug where frame is None in
             # on_mode_left, we are extra careful here.
             raise ValueError("start() was called with frame=None")
+        if target in (Target.userscript, Target.spawn):
+            if not args:
+                raise CommandError("Additional arguments are required with "
+                                   "target userscript/spawn.")
+        else:
+            if args:
+                raise CommandError("Arguments are only allowed with target "
+                                   "userscript/spawn.")
         elems = []
         ctx = HintContext()
         ctx.frames = webelem.get_child_frames(mainframe)
@@ -464,6 +502,7 @@ class HintManager(QObject):
             raise CommandError("No elements found.")
         ctx.target = target
         ctx.baseurl = baseurl
+        ctx.args = args
         message.instance().set_text(self.HINT_TEXTS[target])
         strings = self._hint_strings(visible_elems)
         for e, string in zip(visible_elems, strings):
@@ -546,6 +585,8 @@ class HintManager(QObject):
             Target.cmd: self._preset_cmd_text,
             Target.cmd_tab: self._preset_cmd_text,
             Target.cmd_tab_bg: self._preset_cmd_text,
+            Target.userscript: self._call_userscript,
+            Target.spawn: self._spawn,
         }
         elem = self._context.elems[keystr].elem
         if self._context.target in elem_handlers:

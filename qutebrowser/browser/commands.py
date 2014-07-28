@@ -252,12 +252,13 @@ class CommandDispatcher:
             self._tabs.currentWidget().go_forward()
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
-    def hint(self, groupstr='all', targetstr='normal'):
+    def hint(self, groupstr='all', targetstr='normal', *args):
         """Start hinting.
 
         Args:
             groupstr: The hinting mode to use.
             targetstr: Where to open the links.
+            *args: Arguments for spawn/userscript.
         """
         widget = self._tabs.currentWidget()
         frame = widget.page().mainFrame()
@@ -272,7 +273,7 @@ class CommandDispatcher:
         except AttributeError:
             raise CommandError("Unknown hinting target {}!".format(targetstr))
         widget.hintmanager.start(frame, self._tabs.current_url(), group,
-                                 target)
+                                 target, *args)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def follow_hint(self):
@@ -602,11 +603,19 @@ class CommandDispatcher:
         self.openurl(config.get('general', 'startpage')[0])
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
-    def run_userscript(self, cmd, *args):
-        """Run an userscript given as argument."""
+    def run_userscript(self, cmd, *args, url=None):
+        """Run an userscript given as argument.
+
+        Args:
+            cmd: The userscript to run.
+            args: Arguments to pass to the userscript.
+            url: A custom QUrl to use instead of the current url.
+        """
+        if url is None:
+            url = self._tabs.current_url()
         # We don't remove the password in the URL here, as it's probably safe
         # to pass via env variable.
-        urlstr = self._tabs.current_url().toString(QUrl.FullyEncoded)
+        urlstr = url.toString(QUrl.FullyEncoded)
         runner = UserscriptRunner(self._tabs)
         runner.got_cmd.connect(self._tabs.got_cmd)
         runner.run(cmd, *args, env={'QUTE_URL': urlstr})
