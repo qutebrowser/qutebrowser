@@ -31,6 +31,7 @@ from qutebrowser.keyinput.modeparsers import STARTCHARS
 from qutebrowser.utils.log import completion as logger
 from qutebrowser.models.cmdhistory import (History, HistoryEmptyError,
                                            HistoryEndReachedError)
+from qutebrowser.commands.exceptions import CommandError
 
 
 class Command(MinimalLineEdit):
@@ -154,7 +155,7 @@ class Command(MinimalLineEdit):
         """Preset the statusbar to some text.
 
         Args:
-            text: The text to set (string).
+            text: The text to set as string.
 
         Emit:
             update_completion: Emitted if the text changed.
@@ -167,6 +168,23 @@ class Command(MinimalLineEdit):
                                         self.cursor_part)
         self.setFocus()
         self.show_cmd.emit()
+
+    @cmdutils.register(instance='mainwindow.status.cmd', name='set-cmd-text')
+    def set_cmd_text_command(self, *strings):
+        """Preset the statusbar to some text.
+
+        //
+
+        Wrapper for set_cmd_text to check the arguments and allow multiple
+        strings which will get joined.
+
+        Args:
+            strings: A list of strings to set.
+        """
+        text = ' '.join(strings)
+        if not any(text.startswith(c) for c in STARTCHARS):
+            raise CommandError("Invalid command text '{}'.".format(text))
+        self.set_cmd_text(text)
 
     @pyqtSlot(str, bool)
     def on_change_completed_part(self, newtext, immediate):

@@ -38,7 +38,7 @@ import qutebrowser.browser.quickmarks as quickmarks
 import qutebrowser.utils.log as log
 import qutebrowser.utils.url as urlutils
 from qutebrowser.utils.qt import (check_overflow, check_print_compat,
-                                  qt_ensure_valid, QtValueError)
+                                  qt_ensure_valid)
 from qutebrowser.utils.editor import ExternalEditor
 from qutebrowser.commands.exceptions import CommandError
 from qutebrowser.commands.userscripts import UserscriptRunner
@@ -450,24 +450,6 @@ class CommandDispatcher:
         except urlutils.FuzzyUrlError as e:
             raise CommandError(e)
         self._tabs.tabopen(url, background=True)
-
-    @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
-    def open_tab_cur(self):
-        """Set the statusbar to :tabopen and the current URL."""
-        urlstr = self._tabs.current_url().toDisplayString(QUrl.FullyEncoded)
-        message.set_cmd_text(':open-tab ' + urlstr)
-
-    @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
-    def open_cur(self):
-        """Set the statusbar to :open and the current URL."""
-        urlstr = self._tabs.current_url().toDisplayString(QUrl.FullyEncoded)
-        message.set_cmd_text(':open ' + urlstr)
-
-    @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
-    def open_tab_bg_cur(self):
-        """Set the statusbar to :tabopen-bg and the current URL."""
-        urlstr = self._tabs.current_url().toDisplayString(QUrl.FullyEncoded)
-        message.set_cmd_text(':open-tab-bg ' + urlstr)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def undo(self):
