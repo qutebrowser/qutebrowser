@@ -247,6 +247,10 @@ KeyMode = enum('KeyMode', 'normal', 'hint', 'command', 'yesno', 'prompt',
                'insert', 'passthrough')
 
 
+# Available command completions
+Completion = enum('Completion', 'command', 'section', 'option', 'value')
+
+
 class Question(QObject):
 
     """A question asked to the user, e.g. via the status bar.

@@ -29,6 +29,7 @@ from qutebrowser.models.completionfilter import CompletionFilterModel as CFM
 from qutebrowser.models.completion import (
     CommandCompletionModel, SettingSectionCompletionModel,
     SettingOptionCompletionModel, SettingValueCompletionModel)
+from qutebrowser.utils.usertypes import Completion
 
 
 class Completer(QObject):
@@ -57,30 +58,32 @@ class Completer(QObject):
         self.ignore_change = False
 
         self._models = {
-            'option': {},
-            'value': {},
+            Completion.option: {},
+            Completion.value: {},
         }
         self._init_command_completion()
         self._init_setting_completions()
 
     def _init_command_completion(self):
         """Initialize the command completion model."""
-        self._models['command'] = CFM(CommandCompletionModel(self), self)
+        self._models[Completion.command] = CFM(
+            CommandCompletionModel(self), self)
 
     def _init_setting_completions(self):
         """Initialize setting completion models."""
-        self._models['section'] = CFM(SettingSectionCompletionModel(self),
-                                      self)
-        self._models['option'] = {}
-        self._models['value'] = {}
+        self._models[Completion.section] = CFM(
+            SettingSectionCompletionModel(self), self)
+        self._models[Completion.option] = {}
+        self._models[Completion.value] = {}
         for sectname in configdata.DATA:
             model = SettingOptionCompletionModel(sectname, self)
-            self._models['option'][sectname] = CFM(model, self)
+            self._models[Completion.option][sectname] = CFM(model, self)
             config.instance().changed.connect(model.on_config_changed)
-            self._models['value'][sectname] = {}
+            self._models[Completion.value][sectname] = {}
             for opt in configdata.DATA[sectname].keys():
                 model = SettingValueCompletionModel(sectname, opt, self)
-                self._models['value'][sectname][opt] = CFM(model, self)
+                self._models[Completion.value][sectname][opt] = CFM(
+                    model, self)
                 config.instance().changed.connect(model.on_config_changed)
 
     def _get_new_completion(self, parts, cursor_part):
@@ -92,7 +95,7 @@ class Completer(QObject):
         """
         if cursor_part == 0:
             # '|' or 'set|'
-            return self._models['command']
+            return self._models[Completion.command]
         # delegate completion to command
         try:
             completions = cmdutils.cmd_dict[parts[0]].completion
@@ -102,29 +105,29 @@ class Completer(QObject):
         if completions is None:
             # command without any available completions
             return None
-        dbg_completions = completions[:]
+        dbg_completions = [c.name for c in completions]
         try:
             idx = cursor_part - 1
-            completion_name = completions[idx]
+            completion = completions[idx]
         except IndexError:
             # More arguments than completions
             logger.debug("completions: {}".format(', '.join(dbg_completions)))
             return None
         dbg_completions[idx] = '*' + dbg_completions[idx] + '*'
         logger.debug("completions: {}".format(', '.join(dbg_completions)))
-        if completion_name == 'option':
+        if completion == Completion.option:
             section = parts[cursor_part - 1]
-            model = self._models['option'].get(section)
-        elif completion_name == 'value':
+            model = self._models[completion].get(section)
+        elif completion == Completion.value:
             section = parts[cursor_part - 2]
             option = parts[cursor_part - 1]
             try:
-                model = self._models['value'][section][option]
+                model = self._models[completion][section][option]
             except KeyError:
                 # No completion model for this section/option.
                 model = None
         else:
-            model = self._models.get(completion_name)
+            model = self._models.get(completion)
         return model
 
     def selection_changed(self, selected, _deselected):

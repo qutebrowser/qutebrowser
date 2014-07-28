@@ -40,6 +40,7 @@ import qutebrowser.utils.log as log
 from qutebrowser.config.iniparsers import ReadConfigParser
 from qutebrowser.config.conftypes import ValidationError
 from qutebrowser.commands.exceptions import CommandError
+from qutebrowser.utils.usertypes import Completion
 
 
 def instance():
@@ -283,7 +284,7 @@ class ConfigManager(QObject):
         return existed
 
     @cmdutils.register(name='get', instance='config',
-                       completion=['section', 'option'])
+                       completion=[Completion.section, Completion.option])
     def get_wrapper(self, sectname, optname):
         """Get the value from a section/option.
 
@@ -329,7 +330,8 @@ class ConfigManager(QObject):
         return newval
 
     @cmdutils.register(name='set', instance='config',
-                       completion=['section', 'option', 'value'])
+                       completion=[Completion.section, Completion.option,
+                                   Completion.value])
     def set_wrapper(self, sectname, optname, value):
         """Set an option.
 
@@ -344,7 +346,8 @@ class ConfigManager(QObject):
             raise CommandError("set: {} - {}".format(e.__class__.__name__, e))
 
     @cmdutils.register(name='set-temp', instance='config',
-                       completion=['section', 'option', 'value'])
+                       completion=[Completion.section, Completion.option,
+                                   Completion.value])
     def set_temp_wrapper(self, sectname, optname, value):
         """Set a temporary option.
 
