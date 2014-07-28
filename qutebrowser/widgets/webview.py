@@ -39,7 +39,7 @@ from qutebrowser.utils.usertypes import NeighborList, ClickTarget, enum
 from qutebrowser.commands.exceptions import CommandError
 
 
-LoadStatus = enum('none', 'success', 'error', 'warn', 'loading')
+LoadStatus = enum('LoadStatus', 'none', 'success', 'error', 'warn', 'loading')
 
 
 class WebView(QWebView):
@@ -138,10 +138,9 @@ class WebView(QWebView):
         Emit:
             load_status_changed
         """
-        log.webview.debug("load status for {}: {}".format(
-            repr(self), LoadStatus[val]))
+        log.webview.debug("load status for {}: {}".format(repr(self), val))
         self._load_status = val
-        self.load_status_changed.emit(LoadStatus[val])
+        self.load_status_changed.emit(val.name)
 
     @property
     def url_text(self):
@@ -262,7 +261,7 @@ class WebView(QWebView):
             self.open_target = self._force_open_target
             self._force_open_target = None
             log.mouse.debug("Setting force target: {}".format(
-                ClickTarget[self.open_target]))
+                self.open_target))
         elif (e.button() == Qt.MidButton or
               e.modifiers() & Qt.ControlModifier):
             if config.get('general', 'background-tabs'):
@@ -270,7 +269,7 @@ class WebView(QWebView):
             else:
                 self.open_target = ClickTarget.tab
             log.mouse.debug("Middle click, setting target: {}".format(
-                ClickTarget[self.open_target]))
+                self.open_target))
         else:
             self.open_target = ClickTarget.normal
             log.mouse.debug("Normal click, setting normal target")

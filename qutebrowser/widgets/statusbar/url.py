@@ -24,6 +24,11 @@ from PyQt5.QtCore import pyqtSlot, pyqtProperty, Qt
 from qutebrowser.widgets.webview import LoadStatus
 from qutebrowser.widgets.statusbar.textbase import TextBase
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
+from qutebrowser.utils.usertypes import enum
+
+
+# Note this has entries for success/error/warn from widgets.webview:LoadStatus
+UrlType = enum('UrlType', 'success', 'error', 'warn', 'hover', 'normal')
 
 
 class UrlText(TextBase):
@@ -34,8 +39,8 @@ class UrlText(TextBase):
         STYLESHEET: The stylesheet template.
 
     Attributes:
-        normal_url: The normal URL to be displayed.
-        normal_url_type: The type of the normal URL.
+        normal_url: The normal URL to be displayed as a UrlType instance.
+        normal_url_type: The type of the normal URL as a UrlType instance.
         hover_url: The URL we're currently hovering over.
         _ssl_errors: Whether SSL errors occured while loading.
 
@@ -78,13 +83,20 @@ class UrlText(TextBase):
         set_register_stylesheet(self)
         self._hover_url = None
         self._normal_url = None
-        self._normal_url_type = 'normal'
+        self._normal_url_type = UrlType.normal
 
     @pyqtProperty(str)
     def urltype(self):
-        """Getter for self.urltype, so it can be used as Qt property."""
+        """Getter for self.urltype, so it can be used as Qt property.
+
+        Return:
+            The urltype as a string (!)
+        """
         # pylint: disable=method-hidden
-        return self._urltype
+        if self._urltype is None:
+            return ""
+        else:
+            return self._urltype.name
 
     @urltype.setter
     def urltype(self, val):
@@ -121,7 +133,11 @@ class UrlText(TextBase):
 
     @normal_url_type.setter
     def normal_url_type(self, val):
-        """Setter to update displayed URL when normal_url_type was set."""
+        """Setter to update displayed URL when normal_url_type was set.
+
+        Args:
+            val: The value as an UrlType instance.
+        """
         self._normal_url_type = val
         self._update_url()
 
@@ -129,25 +145,26 @@ class UrlText(TextBase):
         """Update the displayed URL if the url or the hover url changed."""
         if self.hover_url is not None:
             self.setText(self.hover_url)
-            self.urltype = 'hover'
+            self.urltype = UrlType.hover
         elif self.normal_url is not None:
             self.setText(self.normal_url)
             self.urltype = self.normal_url_type
         else:
             self.setText('')
-            self.urltype = 'normal'
+            self.urltype = UrlType.normal
 
     @pyqtSlot(str)
-    def on_load_status_changed(self, status):
+    def on_load_status_changed(self, status_str):
         """Slot for load_status_changed. Sets URL color accordingly.
 
         Args:
-            status: The LoadStatus as string.
+            status_str: The LoadStatus as string.
         """
-        if status in ('success', 'error', 'warn'):
-            self.normal_url_type = status
+        status = LoadStatus[status_str]
+        if status in (LoadStatus.success, LoadStatus.error, LoadStatus.warn):
+            self.normal_url_type = UrlType[status_str]
         else:
-            self.normal_url_type = 'normal'
+            self.normal_url_type = UrlType.normal
 
     @pyqtSlot(str)
     def set_url(self, s):
@@ -157,7 +174,7 @@ class UrlText(TextBase):
             s: The URL to set as string.
         """
         self.normal_url = s
-        self.normal_url_type = 'normal'
+        self.normal_url_type = UrlType.normal
 
     @pyqtSlot(str, str, str)
     def set_hover_url(self, link, _title, _text):
@@ -181,8 +198,4 @@ class UrlText(TextBase):
         """Update URL if the tab changed."""
         self.hover_url = None
         self.normal_url = tab.url_text
-        status = LoadStatus[tab.load_status]
-        if status in ('success', 'error', 'warn'):
-            self.normal_url_type = status
-        else:
-            self.normal_url_type = 'normal'
+        self.on_load_status_changed(tab.load_status.name)

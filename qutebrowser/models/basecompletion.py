@@ -30,7 +30,7 @@ from qutebrowser.utils.usertypes import enum
 from qutebrowser.utils.qt import qt_ensure_valid
 
 
-Role = enum('marks', 'sort', start=Qt.UserRole)
+Role = enum('Role', 'marks', 'sort', start=Qt.UserRole, is_int=True)
 
 
 class BaseCompletionModel(QStandardItemModel):

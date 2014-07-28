@@ -40,11 +40,11 @@ except ImportError:
 # to stderr.
 def check_python_version():
     """Check if correct python version is run."""
-    if sys.hexversion < 0x03030000:
+    if sys.hexversion < 0x03040000:
         # We don't use .format() and print_function here just in case someone
         # still has < 2.6 installed.
         version_str = '.'.join(map(str, sys.version_info[:3]))
-        text = ("At least Python 3.3 is required to run qutebrowser, but " +
+        text = ("At least Python 3.4 is required to run qutebrowser, but " +
                 version_str + " is installed!\n")
         if Tk:
             root = Tk()

@@ -39,8 +39,8 @@ from qutebrowser.utils.qt import qt_ensure_valid
 ElemTuple = namedtuple('ElemTuple', 'elem, label')
 
 
-Target = enum('normal', 'tab', 'tab_bg', 'yank', 'yank_primary', 'cmd',
-              'cmd_tab', 'cmd_tab_bg', 'rapid', 'download')
+Target = enum('Target', 'normal', 'tab', 'tab_bg', 'yank', 'yank_primary',
+              'cmd', 'cmd_tab', 'cmd_tab_bg', 'rapid', 'download')
 
 
 class HintContext:
@@ -280,7 +280,7 @@ class HintManager(QObject):
             target = Target.tab_bg
         else:
             target = self._context.target
-        self.set_open_target.emit(Target[target])
+        self.set_open_target.emit(target.name)
         # FIXME Instead of clicking the center, we could have nicer heuristics.
         # e.g. parse (-webkit-)border-radius correctly and click text fields at
         # the bottom right, and everything else on the top left or so.

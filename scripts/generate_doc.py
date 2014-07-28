@@ -54,8 +54,8 @@ def _parse_docstring(func):  # noqa
         A (short_desc, long_desc, arg_descs) tuple.
     """
     # pylint: disable=too-many-branches
-    State = enum('short', 'desc',  # pylint: disable=invalid-name
-                 'desc_hidden', 'arg_start', 'arg_inside', 'misc')
+    State = enum('State', 'short', 'desc', 'desc_hidden', 'arg_start',
+                 'arg_inside', 'misc')
     doc = inspect.getdoc(func)
     lines = doc.splitlines()
 

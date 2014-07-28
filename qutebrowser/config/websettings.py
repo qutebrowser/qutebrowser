@@ -34,7 +34,7 @@ import qutebrowser.config.config as config
 from qutebrowser.utils.usertypes import enum
 from qutebrowser.utils.misc import get_standard_dir
 
-MapType = enum('attribute', 'setter', 'static_setter')
+MapType = enum('MapType', 'attribute', 'setter', 'static_setter')
 
 
 MAPPINGS = {

@@ -111,7 +111,6 @@ setupdata = {
         'Operating System :: Microsoft :: Windows :: Windows 7',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Topic :: Internet',
         'Topic :: Internet :: WWW/HTTP',

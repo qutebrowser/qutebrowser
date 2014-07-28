@@ -23,6 +23,8 @@ import unittest
 
 from qutebrowser.utils.usertypes import enum
 
+# FIXME: Add some more tests, e.g. for is_int
+
 
 class EnumTests(unittest.TestCase):
 
@@ -33,33 +35,28 @@ class EnumTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.enum = enum('zero', 'one')
+        self.enum = enum('Enum', 'one', 'two')
 
     def test_values(self):
         """Test if enum members resolve to the right values."""
-        self.assertEqual(self.enum.zero, 0)
-        self.assertEqual(self.enum.one, 1)
+        self.assertEqual(self.enum.one.value, 1)
+        self.assertEqual(self.enum.two.value, 2)
 
-    def test_reverse(self):
-        """Test reverse mapping."""
-        self.assertEqual(self.enum[0], 'zero')
-        self.assertEqual(self.enum[1], 'one')
+    def test_name(self):
+        """Test .name mapping."""
+        self.assertEqual(self.enum.one.name, 'one')
+        self.assertEqual(self.enum.two.name, 'two')
 
     def test_unknown(self):
         """Test invalid values which should raise an AttributeError."""
         with self.assertRaises(AttributeError):
-            _ = self.enum.two
-
-    def test_unknown_reverse(self):
-        """Test reverse mapping with invalid value ."""
-        with self.assertRaises(KeyError):
-            _ = self.enum['two']
+            _ = self.enum.three
 
     def test_start(self):
         """Test the start= argument."""
-        e = enum('three', 'four', start=3)
-        self.assertEqual(e.three, 3)
-        self.assertEqual(e.four, 4)
+        e = enum('Enum', 'three', 'four', start=3)
+        self.assertEqual(e.three.value, 3)
+        self.assertEqual(e.four.value, 4)
 
 
 if __name__ == '__main__':

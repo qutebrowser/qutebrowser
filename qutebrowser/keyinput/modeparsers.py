@@ -33,7 +33,7 @@ from qutebrowser.utils.log import keyboard as logger
 
 
 STARTCHARS = ":/?"
-LastPress = enum('none', 'filtertext', 'keystring')
+LastPress = enum('LastPress', 'none', 'filtertext', 'keystring')
 
 
 class NormalKeyParser(CommandKeyParser):
@@ -120,8 +120,8 @@ class HintKeyParser(CommandKeyParser):
             e.key(), e.text()))
         if e.key() == Qt.Key_Backspace:
             logger.debug("Got backspace, mode {}, filtertext '{}', keystring "
-                         "'{}'".format(LastPress[self._last_press],
-                                       self._filtertext, self._keystring))
+                         "'{}'".format(self._last_press, self._filtertext,
+                                       self._keystring))
             if self._last_press == LastPress.filtertext and self._filtertext:
                 self._filtertext = self._filtertext[:-1]
                 self.filter_hints.emit(self._filtertext)

@@ -25,6 +25,7 @@ Module attributes:
 
 import operator
 import collections.abc
+import enum as pyenum
 
 from PyQt5.QtCore import pyqtSignal, QObject, QTimer
 
@@ -34,21 +35,20 @@ from qutebrowser.utils.log import misc as logger
 _UNSET = object()
 
 
-def enum(*items, start=0):
+def enum(name, *items, start=1, is_int=False):
     """Factory for simple enumerations.
 
-    We really don't need more complex things here, so we don't use python3.4's
-    enum, because we'd have to backport things to 3.3.
-
-    Based on: http://stackoverflow.com/a/1695250/2085149
-
     Args:
+        name: Name of the enum
         *items: Items to be sequentally enumerated.
         start: The number to use for the first value.
+               We use 1 as default so enum members are always True.
+        is_init: True if the enum should be a Python IntEnum
     """
-    numbers = range(start, len(items) + start)
-    enums = dict(zip(items, numbers))
-    return EnumBase('Enum', (), enums)
+    enums = [(v, i) for (i, v) in enumerate(items, start)]
+    base = pyenum.IntEnum if is_int else pyenum.Enum
+    base = pyenum.unique(base)
+    return base(name, enums)
 
 
 class EnumBase(type):
@@ -77,7 +77,7 @@ class NeighborList(collections.abc.Sequence):
         _mode: The current mode.
     """
 
-    Modes = enum('block', 'wrap', 'exception')
+    Modes = enum('Modes', 'block', 'wrap', 'exception')
 
     def __init__(self, items=None, default=_UNSET, mode=Modes.exception):
         """Constructor.
@@ -233,10 +233,10 @@ class NeighborList(collections.abc.Sequence):
 
 
 # The mode of a Question.
-PromptMode = enum('yesno', 'text', 'user_pwd', 'alert')
+PromptMode = enum('PromptMode', 'yesno', 'text', 'user_pwd', 'alert')
 
 # Where to open a clicked link.
-ClickTarget = enum('normal', 'tab', 'tab_bg')
+ClickTarget = enum('ClickTarget', 'normal', 'tab', 'tab_bg')
 
 
 class Question(QObject):
