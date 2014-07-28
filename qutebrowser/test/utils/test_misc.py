@@ -24,7 +24,6 @@ import sys
 import shutil
 import unittest
 import os.path
-import subprocess
 from tempfile import mkdtemp
 
 from PyQt5.QtCore import QStandardPaths, QCoreApplication, Qt

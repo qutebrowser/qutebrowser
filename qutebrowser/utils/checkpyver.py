@@ -28,6 +28,7 @@ try:
 except ImportError:
     try:
         # Python2
+        # pylint: disable=import-error
         from Tkinter import Tk
         import tkMessageBox as messagebox
     except ImportError:

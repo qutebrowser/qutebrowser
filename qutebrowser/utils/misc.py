@@ -20,7 +20,6 @@
 """Other utilities which don't fit anywhere else. """
 
 import os
-import re
 import sys
 import shlex
 import os.path
