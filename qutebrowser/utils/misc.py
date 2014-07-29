@@ -322,7 +322,7 @@ def parse_content_disposition(reply):
         # os.path.basename later.
         try:
             content_disposition = rfc6266.parse_headers(
-                bytes(reply.rawHeader('Content-Disposition')))
+                bytes(reply.rawHeader('Content-Disposition')), relaxed=True)
             filename = content_disposition.filename_unsafe
         except UnicodeDecodeError as e:
             log.misc.warning("Error while getting filename: {}: {}".format(

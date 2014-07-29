@@ -251,6 +251,8 @@ class AttachmentTests(AttachmentTestCase):
         """
         self._check_ignored('attachment; filename=foo,bar.html')
 
+    # With relaxed=True we accept that
+    @unittest.expectedFailure
     def test_attwithasciifilenamenqs(self):
         """'attachment', specifying a filename of foo.html.
 
@@ -879,6 +881,16 @@ class RFC2047EncodingTests(AttachmentTestCase):
         self._check_filename(
             'attachment; filename="=?ISO-8859-1?Q?foo-=E4.html?="',
             '=?ISO-8859-1?Q?foo-=E4.html?=')
+
+
+class OurTests(AttachmentTestCase):
+
+    """Our own tests, not based on http://greenbytes.de/tech/tc2231/"""
+
+    def test_att_double_space(self):
+        """'attachment' with double space in the filename."""
+        self._check_filename('attachment; filename="foo  bar.html"',
+                             'foo bar.html')
 
 
 def setUpModule():
