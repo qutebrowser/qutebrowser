@@ -54,10 +54,10 @@ class TabbedBrowser(TabWidget):
     Attributes:
         _tabs: A list of open tabs.
         _filter: A SignalFilter instance.
+        _now_focused: The tab which is focused now.
         url_stack: Stack of URLs of closed tabs.
         cmd: A TabCommandDispatcher instance.
         last_focused: The tab which was focused last.
-        now_focused: The tab which is focused now.
 
     Signals:
         cur_progress: Progress of the current tab changed (loadProgress).
@@ -114,7 +114,7 @@ class TabbedBrowser(TabWidget):
         self._filter = SignalFilter(self)
         self.cmd = CommandDispatcher(self)
         self.last_focused = None
-        self.now_focused = None
+        self._now_focused = None
         # FIXME adjust this to font size
         self.setIconSize(QSize(12, 12))
 
@@ -268,8 +268,8 @@ class TabbedBrowser(TabWidget):
             tab = self.widget(idx)
             if tab is None:
                 raise ValueError("invalid index {}!".format(idx))
-        if tab is self.now_focused:
-            self.now_focused = None
+        if tab is self._now_focused:
+            self._now_focused = None
         if tab is self.last_focused:
             self.last_focused = None
         last_close = config.get('tabbar', 'last-close')
@@ -468,8 +468,8 @@ class TabbedBrowser(TabWidget):
         tab = self.widget(idx)
         tab.setFocus()
         modeman.maybe_leave(KeyMode.hint, 'tab changed')
-        self.last_focused = self.now_focused
-        self.now_focused = tab
+        self.last_focused = self._now_focused
+        self._now_focused = tab
         self.current_tab_changed.emit(tab)
         self.title_changed.emit('{} - qutebrowser'.format(self.tabText(idx)))
 
