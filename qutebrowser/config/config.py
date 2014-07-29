@@ -419,6 +419,8 @@ class ConfigManager(QObject):
             if changed:
                 lines.append('[{}]'.format(sectname))
                 lines += ['{} = {}'.format(k, v) for k, v in changed]
+        if not lines:
+            lines = ['<Default configuration>']
         return '\n'.join(lines)
 
     def optionxform(self, val):
