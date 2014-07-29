@@ -95,6 +95,10 @@ Misc
   windows
 - Scrolling lags like crazy (even in minimal browser) on
   http://github.com/uzbl/uzbl
+- Pressing Ctrl+C should call shutdown and quit normally instead of quitting
+  hard. (Ideally it should print a message, and doing Ctrl+C again should quit
+  hard).
+  Same for SIGTERM, etc.
 
 
 Upstream Bugs
@@ -103,3 +107,5 @@ Upstream Bugs
 - Web inspector is blank unless .hide()/.show() is called.
     Asked on SO: http://stackoverflow.com/q/23499159/2085149
     TODO: report Qt bug
+
+- Various segfaults on youtube videos
