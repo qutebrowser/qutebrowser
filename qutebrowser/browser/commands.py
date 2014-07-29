@@ -250,12 +250,12 @@ class CommandDispatcher:
             self._tabs.currentWidget().go_forward()
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
-    def hint(self, groupstr='all', targetstr='normal', *args):
+    def hint(self, group='all', target='normal', *args):
         """Start hinting.
 
         Args:
-            groupstr: The hinting mode to use.
-            targetstr: Where to open the links.
+            group: The hinting mode to use.
+            target: Where to open the links.
             *args: Arguments for spawn/userscript.
         """
         widget = self._tabs.currentWidget()
@@ -263,15 +263,15 @@ class CommandDispatcher:
         if frame is None:
             raise CommandError("No frame focused!")
         try:
-            group = getattr(webelem.Group, groupstr.replace('-', '_'))
+            group_enum = webelem.Group[group.replace('-', '_')]
         except AttributeError:
-            raise CommandError("Unknown hinting group {}!".format(groupstr))
+            raise CommandError("Unknown hinting group {}!".format(group))
         try:
-            target = getattr(hints.Target, targetstr.replace('-', '_'))
+            target_enum = hints.Target[target.replace('-', '_')]
         except AttributeError:
-            raise CommandError("Unknown hinting target {}!".format(targetstr))
-        widget.hintmanager.start(frame, self._tabs.current_url(), group,
-                                 target, *args)
+            raise CommandError("Unknown hinting target {}!".format(target))
+        widget.hintmanager.start(frame, self._tabs.current_url(), group_enum,
+                                 target_enum, *args)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def follow_hint(self):
