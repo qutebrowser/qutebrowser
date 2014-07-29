@@ -37,10 +37,10 @@ import qutebrowser.utils.webelem as webelem
 import qutebrowser.browser.quickmarks as quickmarks
 import qutebrowser.utils.log as log
 import qutebrowser.utils.url as urlutils
+import qutebrowser.commands.userscripts as userscripts
 from qutebrowser.utils.qt import check_overflow, check_print_compat
 from qutebrowser.utils.editor import ExternalEditor
 from qutebrowser.commands.exceptions import CommandError
-from qutebrowser.commands.userscripts import UserscriptRunner
 from qutebrowser.utils.usertypes import KeyMode
 
 
@@ -57,7 +57,6 @@ class CommandDispatcher:
     Attributes:
         _tabs: The TabbedBrowser object.
         _editor: The ExternalEditor object.
-        _userscript_runners: A list of userscript runners.
     """
 
     def __init__(self, parent):
@@ -66,7 +65,6 @@ class CommandDispatcher:
         Args:
             parent: The TabbedBrowser for this dispatcher.
         """
-        self._userscript_runners = []
         self._tabs = parent
         self._editor = None
 
@@ -603,7 +601,7 @@ class CommandDispatcher:
         self.openurl(config.get('general', 'startpage')[0])
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
-    def run_userscript(self, cmd, *args, url=None):
+    def run_userscript(self, cmd, *args):
         """Run an userscript given as argument.
 
         Args:
@@ -611,15 +609,8 @@ class CommandDispatcher:
             args: Arguments to pass to the userscript.
             url: A custom QUrl to use instead of the current url.
         """
-        if url is None:
-            url = self._tabs.current_url()
-        # We don't remove the password in the URL here, as it's probably safe
-        # to pass via env variable.
-        urlstr = url.toString(QUrl.FullyEncoded)
-        runner = UserscriptRunner(self._tabs)
-        runner.got_cmd.connect(self._tabs.got_cmd)
-        runner.run(cmd, *args, env={'QUTE_URL': urlstr})
-        self._userscript_runners.append(runner)
+        url = self._tabs.current_url()
+        userscripts.run(cmd, *args, url=url)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def quickmark_save(self):

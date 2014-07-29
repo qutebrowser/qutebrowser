@@ -31,6 +31,7 @@ import qutebrowser.config.config as config
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.message as message
 import qutebrowser.utils.webelem as webelem
+import qutebrowser.commands.userscripts as userscripts
 from qutebrowser.commands.exceptions import CommandError
 from qutebrowser.utils.usertypes import enum, KeyMode
 from qutebrowser.utils.log import hints as logger
@@ -111,9 +112,6 @@ class HintManager(QObject):
         download_get: Download an URL.
                       arg 0: The URL to download, as QUrl.
                       arg 1: The QWebPage to download the URL in.
-        run_userscript: Emitted when a custom userscript should be run.
-                        arg 0: The URL which was selected.
-                        arg 1: The userscript/args to run.
     """
 
     HINT_CSS = """
@@ -150,7 +148,6 @@ class HintManager(QObject):
     openurl = pyqtSignal('QUrl', bool)
     set_open_target = pyqtSignal(str)
     download_get = pyqtSignal('QUrl', 'QWebPage')
-    run_userscript = pyqtSignal('QUrl', list)
 
     def __init__(self, parent=None):
         """Constructor.
@@ -369,7 +366,9 @@ class HintManager(QObject):
     def _call_userscript(self, url):
         """Call an userscript from a hint."""
         qt_ensure_valid(url)
-        self.run_userscript.emit(url, list(self._context.args))
+        cmd = self._context.args[0]
+        args = self._context.args[1:]
+        userscripts.run(cmd, *args, url=url)
 
     def _spawn(self, url):
         """Spawn a simple command from a hint."""

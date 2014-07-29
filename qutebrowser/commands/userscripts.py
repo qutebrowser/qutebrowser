@@ -17,20 +17,30 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Functions to execute an userscript."""
+"""Functions to execute an userscript.
+
+Module attributes:
+    _runners: Active userscript runners from run_userscript.
+"""
 
 import os
 import os.path
 import tempfile
 from select import select
+from functools import partial
 
 from PyQt5.QtCore import (pyqtSignal, QObject, QThread, QStandardPaths,
-                          QProcessEnvironment, QProcess)
+                          QProcessEnvironment, QProcess, QUrl)
 
 import qutebrowser.utils.message as message
 from qutebrowser.utils.misc import get_standard_dir
 from qutebrowser.utils.log import procs as logger
 from qutebrowser.commands.exceptions import CommandError
+from qutebrowser.commands.managers import CommandManager
+
+
+_runners = []
+_commandmanager = None
 
 
 class _BlockingFIFOReader(QObject):
@@ -97,9 +107,11 @@ class _BaseUserscriptRunner(QObject):
 
     Signals:
         got_cmd: Emitted when a new command arrived and should be executed.
+        finished: Emitted when the userscript finished running.
     """
 
     got_cmd = pyqtSignal(str)
+    finished = pyqtSignal()
 
     PROCESS_MESSAGES = {
         QProcess.FailedToStart: "The process failed to start.",
@@ -229,6 +241,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         self.reader.fifo.close()
         self.reader.deleteLater()
         super()._cleanup()
+        self.finished.emit()
 
     def on_thread_finished(self):
         """Clean up the QThread object when the thread finished."""
@@ -270,11 +283,13 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
             for line in f:
                 self.got_cmd.emit(line.rstrip())
         self._cleanup()
+        self.finished.emit()
 
     def on_proc_error(self, error):
         """Clean up when the process had an error."""
         super().on_proc_error(error)
         self._cleanup()
+        self.finished.emit()
 
     def run(self, cmd, *args, env=None):
         self.oshandle, self.filepath = tempfile.mkstemp(text=True)
@@ -287,10 +302,16 @@ class _DummyUserscriptRunner:
 
     Used on unknown systems since we don't know what (or if any) approach will
     work there.
+
+    Signals:
+        finished: Always emitted.
     """
+
+    finished = pyqtSignal()
 
     def run(self, _cmd, *_args, _env=None):
         """Print an error as userscripts are not supported."""
+        self.finished.emit()
         raise CommandError("Userscripts are not supported on this platform!")
 
 
@@ -302,3 +323,21 @@ elif os.name == 'nt':
     UserscriptRunner = _WindowsUserscriptRunner
 else:
     UserscriptRunner = _DummyUserscriptRunner
+
+
+def init():
+    """Initialize the global _commandmanager."""
+    global _commandmanager
+    _commandmanager = CommandManager()
+
+
+def run(cmd, *args, url):
+    """Convenience method to run an userscript."""
+    # We don't remove the password in the URL here, as it's probably safe to
+    # pass via env variable..
+    urlstr = url.toString(QUrl.FullyEncoded)
+    runner = UserscriptRunner()
+    runner.got_cmd.connect(_commandmanager.run_safely)
+    runner.run(cmd, *args, env={'QUTE_URL': urlstr})
+    _runners.append(runner)
+    runner.finished.connect(partial(_runners.remove, runner))

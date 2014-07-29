@@ -112,7 +112,6 @@ class WebView(QWebView):
         self.setPage(self._page)
         self.hintmanager = HintManager(self)
         self.hintmanager.mouse_event.connect(self.on_mouse_event)
-        self.hintmanager.run_userscript.connect(self.run_hint_userscript)
         self.hintmanager.set_open_target.connect(self.set_force_open_target)
         self._page.linkHovered.connect(self.linkHovered)
         self._page.mainFrame().loadStarted.connect(self.on_load_started)
@@ -343,11 +342,6 @@ class WebView(QWebView):
             flags: The QWebPage::FindFlags.
         """
         self._tabs.currentWidget().findText(text, flags)
-
-    @pyqtSlot('QUrl', list)
-    def run_hint_userscript(self, url, args):
-        """Glue slot to run an userscript via HintManager."""
-        self.tabbedbrowser.cmd.run_userscript(args[0], *args[1:], url=url)
 
     def go_back(self):
         """Go back a page in the history."""
