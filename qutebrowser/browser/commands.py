@@ -572,6 +572,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def tab_focus_last(self):
         """Select the tab which was last focused."""
+        if self._tabs.last_focused is None:
+            raise CommandError("No last focused tab!")
         idx = self._tabs.indexOf(self._tabs.last_focused)
         if idx == -1:
             raise CommandError("Last focused tab vanished!")

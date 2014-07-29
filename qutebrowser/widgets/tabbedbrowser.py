@@ -268,6 +268,10 @@ class TabbedBrowser(TabWidget):
             tab = self.widget(idx)
             if tab is None:
                 raise ValueError("invalid index {}!".format(idx))
+        if tab is self.now_focused:
+            self.now_focused = None
+        if tab is self.last_focused:
+            self.last_focused = None
         last_close = config.get('tabbar', 'last-close')
         if self.count() > 1:
             url = tab.url()
