@@ -657,7 +657,6 @@ class Application(QApplication):
     def interrupt_forcefully(self, signum, frame):
         """Interrupt forcefully on the second SIGINT/SIGTERM request."""
         log.destroy.info("Forceful quit requested, goodbye cruel world!")
-        print("Forceful quit requested, goodbye cruel world!")
         self.exit(128 + signum)
 
     @pyqtSlot()
