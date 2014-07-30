@@ -348,57 +348,68 @@ def key_to_string(key):
     Return:
         A name of the key as a string.
     """
-    special_names = {
+    special_names_str = {
         # Some keys handled in a weird way by QKeySequence::toString.
         # See https://bugreports.qt-project.org/browse/QTBUG-40030
         # Most are unlikely to be ever needed, but you never know ;)
         # For dead/combining keys, we return the corresponding non-combining
         # key, as that's easier to add to the config.
-        Qt.Key_Blue: 'Blue',
-        Qt.Key_Calendar: 'Calendar',
-        Qt.Key_ChannelDown: 'Channel Down',
-        Qt.Key_ChannelUp: 'Channel Up',
-        Qt.Key_ContrastAdjust: 'Contrast Adjust',
-        Qt.Key_Dead_Abovedot: '˙',
-        Qt.Key_Dead_Abovering: '˚',
-        Qt.Key_Dead_Acute: '´',
-        Qt.Key_Dead_Belowdot: 'Belowdot',
-        Qt.Key_Dead_Breve: '˘',
-        Qt.Key_Dead_Caron: 'ˇ',
-        Qt.Key_Dead_Cedilla: '¸',
-        Qt.Key_Dead_Circumflex: '^',
-        Qt.Key_Dead_Diaeresis: '¨',
-        Qt.Key_Dead_Doubleacute: '˝',
-        Qt.Key_Dead_Grave: '`',
-        Qt.Key_Dead_Hook: 'Hook',
-        Qt.Key_Dead_Horn: 'Horn',
-        Qt.Key_Dead_Iota: 'Iota',
-        Qt.Key_Dead_Macron: '¯',
-        Qt.Key_Dead_Ogonek: '˛',
-        Qt.Key_Dead_Semivoiced_Sound: 'Semivoiced Sound',
-        Qt.Key_Dead_Tilde: '~',
-        Qt.Key_Dead_Voiced_Sound: 'Voiced Sound',
-        Qt.Key_Exit: 'Exit',
-        Qt.Key_Green: 'Green',
-        Qt.Key_Guide: 'Guide',
-        Qt.Key_Info: 'Info',
-        Qt.Key_LaunchG: 'LaunchG',
-        Qt.Key_LaunchH: 'LaunchH',
-        Qt.Key_MediaLast: 'MediaLast',
-        Qt.Key_Memo: 'Memo',
-        Qt.Key_MicMute: 'Mic Mute',
-        Qt.Key_Mode_switch: 'Mode switch',
-        Qt.Key_Multi_key: 'Multi key',
-        Qt.Key_PowerDown: 'Power Down',
-        Qt.Key_Red: 'Red',
-        Qt.Key_Settings: 'Settings',
-        Qt.Key_SingleCandidate: 'Single Candidate',
-        Qt.Key_ToDoList: 'Todo List',
-        Qt.Key_TouchpadOff: 'Touchpad Off',
-        Qt.Key_TouchpadOn: 'Touchpad On',
-        Qt.Key_TouchpadToggle: 'Touchpad toggle',
-        Qt.Key_Yellow: 'Yellow',
+        'Key_Blue': 'Blue',
+        'Key_Calendar': 'Calendar',
+        'Key_ChannelDown': 'Channel Down',
+        'Key_ChannelUp': 'Channel Up',
+        'Key_ContrastAdjust': 'Contrast Adjust',
+        'Key_Dead_Abovedot': '˙',
+        'Key_Dead_Abovering': '˚',
+        'Key_Dead_Acute': '´',
+        'Key_Dead_Belowdot': 'Belowdot',
+        'Key_Dead_Breve': '˘',
+        'Key_Dead_Caron': 'ˇ',
+        'Key_Dead_Cedilla': '¸',
+        'Key_Dead_Circumflex': '^',
+        'Key_Dead_Diaeresis': '¨',
+        'Key_Dead_Doubleacute': '˝',
+        'Key_Dead_Grave': '`',
+        'Key_Dead_Hook': 'Hook',
+        'Key_Dead_Horn': 'Horn',
+        'Key_Dead_Iota': 'Iota',
+        'Key_Dead_Macron': '¯',
+        'Key_Dead_Ogonek': '˛',
+        'Key_Dead_Semivoiced_Sound': 'Semivoiced Sound',
+        'Key_Dead_Tilde': '~',
+        'Key_Dead_Voiced_Sound': 'Voiced Sound',
+        'Key_Exit': 'Exit',
+        'Key_Green': 'Green',
+        'Key_Guide': 'Guide',
+        'Key_Info': 'Info',
+        'Key_LaunchG': 'LaunchG',
+        'Key_LaunchH': 'LaunchH',
+        'Key_MediaLast': 'MediaLast',
+        'Key_Memo': 'Memo',
+        'Key_MicMute': 'Mic Mute',
+        'Key_Mode_switch': 'Mode switch',
+        'Key_Multi_key': 'Multi key',
+        'Key_PowerDown': 'Power Down',
+        'Key_Red': 'Red',
+        'Key_Settings': 'Settings',
+        'Key_SingleCandidate': 'Single Candidate',
+        'Key_ToDoList': 'Todo List',
+        'Key_TouchpadOff': 'Touchpad Off',
+        'Key_TouchpadOn': 'Touchpad On',
+        'Key_TouchpadToggle': 'Touchpad toggle',
+        'Key_Yellow': 'Yellow',
     }
+    # We now build our real special_names dict from the string mapping above.
+    # The reason we don't do this directly is that certain Qt versions don't
+    # have all the keys, so we want to ignore AttributeErrors.
+    special_names = {}
+    for k, v in special_names_str.items():
+        try:
+            special_names[getattr(Qt, k)] = v
+        except AttributeError:
+            pass
+    # Now we check if the key is any special one - if not, we use
+    # QKeySequence::toString.
     try:
         return special_names[key]
     except KeyError:
