@@ -351,8 +351,8 @@ class Application(QApplication):
         exit status, and handles Ctrl+C properly by passing control to the
         Python interpreter once all 500ms.
         """
-        signal.signal(signal.SIGINT,
-                      lambda *args: self.exit(128 + signal.SIGINT))
+        signal.signal(signal.SIGINT, self.interrupt)
+        signal.signal(signal.SIGTERM, self.interrupt)
         timer = Timer(self, 'python_hacks')
         timer.start(500)
         timer.timeout.connect(lambda: None)
@@ -646,17 +646,34 @@ class Application(QApplication):
         self._crashdlg = ReportDialog(pages, history, widgets, objects)
         self._crashdlg.show()
 
+    def interrupt(self, signum, _frame):
+        """Handler for signals to gracefully shutdown (SIGINT/SIGTERM)."""
+        log.destroy.info("SIGINT/SIGTERM received, shutting down!")
+        log.destroy.info("Press Ctrl-C again to forcefully quit.")
+        signal.signal(signal.SIGINT, self.interrupt_forcefully)
+        signal.signal(signal.SIGTERM, self.interrupt_forcefully)
+        self.shutdown(128 + signum)
+
+    def interrupt_forcefully(self, signum, frame):
+        """Interrupt forcefully on the second SIGINT/SIGTERM request."""
+        log.destroy.info("Forceful quit requested, goodbye cruel world!")
+        print("Forceful quit requested, goodbye cruel world!")
+        self.exit(128 + signum)
+
     @pyqtSlot()
-    def shutdown(self):
+    def shutdown(self, status=0):
         """Try to shutdown everything cleanly.
 
         For some reason lastWindowClosing sometimes seem to get emitted twice,
         so we make sure we only run once here.
+
+        Args:
+            status: The status code to exit with.
         """
         if self._shutting_down:
             return
         self._shutting_down = True
-        log.destroy.debug("Shutting down...")
+        log.destroy.debug("Shutting down with status {}...".format(status))
         to_save = []
         # Save everything
         if self.config.get('general', 'auto-save-config'):
@@ -678,4 +695,4 @@ class Application(QApplication):
         self._destroy_crashlogfile()
         # If we don't kill our custom handler here we might get segfaults
         qInstallMessageHandler(None)
-        self.quit()
+        self.exit(status)
