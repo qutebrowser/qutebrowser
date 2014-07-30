@@ -30,6 +30,7 @@ import enum as pyenum
 from PyQt5.QtCore import pyqtSignal, QObject, QTimer
 
 from qutebrowser.utils.log import misc as logger
+from qutebrowser.utils.qt import check_overflow
 
 
 _UNSET = object()
@@ -352,7 +353,7 @@ class Question(QObject):
 
 class Timer(QTimer):
 
-    """A timer which has a name to show in __repr__.
+    """A timer which has a name to show in __repr__ and checks for overflows.
 
     Attributes:
         _name: The name of the timer.
@@ -368,3 +369,16 @@ class Timer(QTimer):
 
     def __repr__(self):
         return '<{} {}>'.format(self.__class__.__name__, self._name)
+
+    def setInterval(self, msec):
+        """Extend setInterval to check for overflows."""
+        check_overflow(msec, 'int')
+        super().setInterval(msec)
+
+    def start(self, msec=None):
+        """Extend start to check for overflows."""
+        if msec is not None:
+            check_overflow(msec, 'int')
+            super().start(msec)
+        else:
+            super().start()
