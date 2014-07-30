@@ -19,11 +19,8 @@
 
 """The main browser widgets."""
 
-import functools
-
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 import qutebrowser.config.config as config

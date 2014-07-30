@@ -222,7 +222,6 @@ class TabbedBrowser(TabWidget):
         except TypeError as e:
             log.destroy.debug("Error while shutting down tabs: {}: {}".format(
                 e.__class__.__name__, e))
-        tabcount = self.count()
         for tab in self.widgets:
             self._tabs.remove(tab)
 

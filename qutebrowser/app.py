@@ -25,7 +25,6 @@ import subprocess
 import faulthandler
 import configparser
 from bdb import BdbQuit
-from functools import partial
 from signal import signal, SIGINT
 from base64 import b64encode
 
