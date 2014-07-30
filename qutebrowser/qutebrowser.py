@@ -108,5 +108,15 @@ def main():
     earlyinit.check_rfc6266()
     # We do this import late as we need to fix harfbuzz first.
     from qutebrowser.app import Application
+    import PyQt5.QtWidgets as QtWidgets
     app = Application(args)
-    return app.exec_()
+    # We set qApp explicitely here to reduce the risk of segfaults while
+    # quitting.
+    # See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/561303/comments/7
+    # While this is a workaround for PyQt4 which should be fixed in PyQt, it
+    # seems this still reduces segfaults.
+    # FIXME: We should do another attempt at contacting upstream about this.
+    QtWidgets.qApp = app
+    ret = app.exec_()
+    QtWidgets.qApp = None
+    return ret
