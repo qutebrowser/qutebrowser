@@ -674,28 +674,33 @@ class Application(QApplication):
             return
         self._shutting_down = True
         log.destroy.debug("Shutting down with status {}...".format(status))
-        to_save = []
         # Save everything
-        if self.config.get('general', 'auto-save-config'):
-            to_save.append(("config", self.config.save))
-        to_save += [("command history", self.cmd_history.save),
-                    ("window geometry", self._save_geometry),
-                    ("window geometry", self.stateconfig.save),
-                    ("cookies", self.cookiejar.save),
-                    ("quickmarks", quickmarks.save)]
-        for what, handler in to_save:
-            log.destroy.debug("Saving {} (handler: {})".format(
-                what, handler.__qualname__))
-            try:
-                handler()
-            except AttributeError as e:
-                log.destroy.warning("Could not save {}.".format(what))
-                log.destroy.debug(e)
+        if self.config is not None:
+            to_save = []
+            if self.config.get('general', 'auto-save-config'):
+                to_save.append(("config", self.config.save))
+            to_save += [("command history", self.cmd_history.save),
+                        ("window geometry", self._save_geometry),
+                        ("window geometry", self.stateconfig.save),
+                        ("cookies", self.cookiejar.save),
+                        ("quickmarks", quickmarks.save)]
+            for what, handler in to_save:
+                log.destroy.debug("Saving {} (handler: {})".format(
+                    what, handler.__qualname__))
+                try:
+                    handler()
+                except AttributeError as e:
+                    log.destroy.warning("Could not save {}.".format(what))
+                    log.destroy.debug(e)
+        else:
+            log.destroy.debug("Config not initialized yet, so not saving "
+                              "anything.")
         # Re-enable faulthandler to stdout, then remove crash log
         log.destroy.debug("Deactiving crash log...")
         self._destroy_crashlogfile()
         # If we don't kill our custom handler here we might get segfaults
         log.destroy.debug("Deactiving message handler...")
         qInstallMessageHandler(None)
+        # Now we can hopefully quit without segfaults
         log.destroy.info("Good bye!")
         self.exit(status)
