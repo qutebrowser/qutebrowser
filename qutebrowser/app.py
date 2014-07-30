@@ -24,8 +24,8 @@ import sys
 import subprocess
 import faulthandler
 import configparser
+import signal
 from bdb import BdbQuit
-from signal import signal, SIGINT
 from base64 import b64encode
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
@@ -351,7 +351,8 @@ class Application(QApplication):
         exit status, and handles Ctrl+C properly by passing control to the
         Python interpreter once all 500ms.
         """
-        signal(SIGINT, lambda *args: self.exit(128 + SIGINT))
+        signal.signal(signal.SIGINT,
+                      lambda *args: self.exit(128 + signal.SIGINT))
         timer = Timer(self, 'python_hacks')
         timer.start(500)
         timer.timeout.connect(lambda: None)
