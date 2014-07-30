@@ -30,6 +30,7 @@ from PyQt5.QtGui import QColor
 
 import qutebrowser.config.config as config
 from qutebrowser.utils.log import style as logger
+from qutebrowser.utils.misc import compact_text
 
 
 _colordict = None
@@ -66,7 +67,8 @@ def set_register_stylesheet(obj):
              Must have a STYLESHEET attribute.
     """
     qss = get_stylesheet(obj.STYLESHEET)
-    logger.debug("stylesheet for {}:\n{}".format(obj.__class__.__name__, qss))
+    logger.debug("stylesheet for {}: {}".format(obj.__class__.__name__,
+                                                compact_text(qss)))
     obj.setStyleSheet(qss)
     config.instance().changed.connect(partial(_update_stylesheet, obj))
 
