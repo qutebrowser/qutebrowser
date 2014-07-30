@@ -46,6 +46,7 @@ import qutebrowser.utils.version as version
 import qutebrowser.utils.url as urlutils
 import qutebrowser.utils.message as message
 import qutebrowser.commands.userscripts as userscripts
+import qutebrowser.utils.utilcmds as utilcmds
 from qutebrowser.config.config import ConfigManager
 from qutebrowser.keyinput.modeman import ModeManager
 from qutebrowser.widgets.mainwindow import MainWindow
@@ -139,6 +140,8 @@ class Application(QApplication):
         proxy.init()
         log.init.debug("Initializing userscripts...")
         userscripts.init()
+        log.init.debug("Initializing utility commands...")
+        utilcmds.init()
         log.init.debug("Initializing cookies...")
         self.cookiejar = CookieJar(self)
         log.init.debug("Initializing commands...")
