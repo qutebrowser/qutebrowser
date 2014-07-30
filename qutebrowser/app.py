@@ -704,5 +704,5 @@ class Application(QApplication):
         log.destroy.debug("Deactiving message handler...")
         qInstallMessageHandler(None)
         # Now we can hopefully quit without segfaults
-        log.destroy.info("Good bye!")
+        log.destroy.debug("Calling QApplication::exit...")
         self.exit(status)
