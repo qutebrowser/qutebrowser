@@ -675,15 +675,18 @@ class Application(QApplication):
         self._shutting_down = True
         log.destroy.debug("Shutting down with status {}...".format(status))
         # Save everything
-        if self.config is not None:
+        if hasattr(self, 'config') and self.config is not None:
             to_save = []
             if self.config.get('general', 'auto-save-config'):
                 to_save.append(("config", self.config.save))
-            to_save += [("command history", self.cmd_history.save),
-                        ("window geometry", self._save_geometry),
-                        ("window geometry", self.stateconfig.save),
-                        ("cookies", self.cookiejar.save),
+            to_save += [("window geometry", self._save_geometry),
                         ("quickmarks", quickmarks.save)]
+            if hasattr(self, 'cmd_history'):
+                to_save.append(("command history", self.cmd_history.save))
+            if hasattr(self, 'stateconfig'):
+                to_save.append(("window geometry", self.stateconfig.save))
+            if hasattr(self, 'cookiejar'):
+                to_save.append(("cookies", self.cookiejar.save))
             for what, handler in to_save:
                 log.destroy.debug("Saving {} (handler: {})".format(
                     what, handler.__qualname__))
