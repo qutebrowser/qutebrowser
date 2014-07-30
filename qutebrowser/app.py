@@ -654,7 +654,7 @@ class Application(QApplication):
         signal.signal(signal.SIGTERM, self.interrupt_forcefully)
         self.shutdown(128 + signum)
 
-    def interrupt_forcefully(self, signum, frame):
+    def interrupt_forcefully(self, signum, _frame):
         """Interrupt forcefully on the second SIGINT/SIGTERM request."""
         log.destroy.info("Forceful quit requested, goodbye cruel world!")
         self.exit(128 + signum)
