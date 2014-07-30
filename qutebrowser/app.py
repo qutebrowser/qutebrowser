@@ -692,7 +692,10 @@ class Application(QApplication):
                 log.destroy.warning("Could not save {}.".format(what))
                 log.destroy.debug(e)
         # Re-enable faulthandler to stdout, then remove crash log
+        log.destroy.debug("Deactiving crash log...")
         self._destroy_crashlogfile()
         # If we don't kill our custom handler here we might get segfaults
+        log.destroy.debug("Deactiving message handler...")
         qInstallMessageHandler(None)
+        log.destroy.info("Good bye!")
         self.exit(status)
