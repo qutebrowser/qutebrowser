@@ -508,7 +508,7 @@ class Application(QApplication):
         self._crashlogfile.close()
         try:
             os.remove(self._crashlogfile.name)
-        except PermissionError as e:
+        except (PermissionError, FileNotFoundError) as e:
             log.destroy.warning("Could not remove crash log ({})!".format(e))
 
     def _exception_hook(self, exctype, excvalue, tb):
