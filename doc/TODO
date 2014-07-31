@@ -105,6 +105,7 @@ Improvements / minor features
 - Add FIFOHandler based on asyncio if it's available
 - Lazy tab loading
 - Add command shortcuts to command completion
+- Add commandline option to not spawn any windows (for testing)
 
 hints
 -----

@@ -58,6 +58,9 @@ Crashes
 - Shutdown is still flaky. (see notes)
 - Segfault on subsonic when clicking next track
 - Assertion failure on subsonic with debug build
+- Hang in logging.shutdown when quitting if started via a .bat file on Windows
+  (if we deactivate the atexit hook, hang in threading._shutdown).
+  However, only the MainThread is active when doing sys.exit.
 
 Qt warnings
 -----------
