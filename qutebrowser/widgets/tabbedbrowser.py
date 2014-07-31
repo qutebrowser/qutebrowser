@@ -263,6 +263,7 @@ class TabbedBrowser(TabWidget):
             self.url_stack.append(url)
         self._tabs.remove(tab)
         self.removeTab(idx)
+        tab.deleteLater()
 
     @pyqtSlot('QUrl', bool)
     def openurl(self, url, newtab):
