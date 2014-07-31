@@ -95,9 +95,12 @@ def init_faulthandler():
     """Enable faulthandler module if available.
 
     This print a nice traceback on segfauls.
+
+    We use sys.__stderr__ instead of sys.stderr here so this will still work
+    when sys.stderr got replaced, e.g. by "Python Tools for Visual Studio".
     """
-    if sys.stderr is None:
-        # When run with pythonw.exe, sys.stderr can be None:
+    if sys.__stderr__ is None:
+        # When run with pythonw.exe, sys.__stderr__ can be None:
         # https://docs.python.org/3/library/sys.html#sys.__stderr__
         # If we'd enable faulthandler in that case, we just get a weird
         # exception, so we don't enable faulthandler if we have no stdout.
@@ -106,7 +109,7 @@ def init_faulthandler():
         # to write to a file so we can display a crash to the user at the next
         # start.
         return
-    faulthandler.enable()
+    faulthandler.enable(sys.__stderr__)
     if hasattr(faulthandler, 'register') and hasattr(signal, 'SIGUSR1'):
         # If available, we also want a traceback on SIGUSR1.
         faulthandler.register(signal.SIGUSR1)  # pylint: disable=no-member

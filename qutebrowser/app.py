@@ -502,8 +502,11 @@ class Application(QApplication):
         """Clean up the crash log file and delete it."""
         if self._crashlogfile is None:
             return
-        if sys.stderr is not None:
-            faulthandler.enable()
+        # We use sys.__stderr__ instead of sys.stderr here so this will still
+        # work when sys.stderr got replaced, e.g. by "Python Tools for Visual
+        # Studio".
+        if sys.__stderr__ is not None:
+            faulthandler.enable(sys.__stderr__)
         else:
             faulthandler.disable()
         self._crashlogfile.close()
