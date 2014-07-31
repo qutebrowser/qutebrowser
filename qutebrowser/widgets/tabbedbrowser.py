@@ -225,40 +225,44 @@ class TabbedBrowser(TabWidget):
         for tab in self.widgets:
             self._tabs.remove(tab)
 
-    def close_tab(self, tab_or_idx):
+    def close_tab(self, tab):
         """Close a tab with either index or tab given.
 
         Args:
-            tab_or_index: Either the QWebView to be closed or an index.
+            tab: The QWebView to be closed.
         """
-        try:
-            idx = int(tab_or_idx)
-        except TypeError:
-            tab = tab_or_idx
-            idx = self.indexOf(tab_or_idx)
-            if idx == -1:
-                raise ValueError("tab {} is not contained in "
-                                 "TabbedWidget!".format(tab))
-        else:
-            tab = self.widget(idx)
-            if tab is None:
-                raise ValueError("invalid index {}!".format(idx))
+        last_close = config.get('tabbar', 'last-close')
+        if self.count() > 1:
+            self._remove_tab(tab)
+        elif last_close == 'quit':
+            self._remove_tab(tab)
+            self.quit.emit()
+        elif last_close == 'blank':
+            tab.openurl('about:blank')
+
+    def _remove_tab(self, tab):
+        """Remove a tab from the tab list and delete it properly.
+
+        Args:
+            tab: The QWebView to be closed.
+
+        Raise:
+            ValueError if the tab is not in the QTabWidget.
+        """
+        idx = self.indexOf(tab)
+        if idx == -1:
+            raise ValueError("tab {} is not contained in TabbedWidget!".format(
+                tab))
         if tab is self._now_focused:
             self._now_focused = None
         if tab is self.last_focused:
             self.last_focused = None
-        last_close = config.get('tabbar', 'last-close')
-        if self.count() > 1:
-            url = tab.url()
-            if not url.isEmpty():
-                qt_ensure_valid(url)
-                self.url_stack.append(url)
-            self._tabs.remove(tab)
-            self.removeTab(idx)
-        elif last_close == 'quit':
-            self.quit.emit()
-        elif last_close == 'blank':
-            tab.openurl('about:blank')
+        url = tab.url()
+        if not url.isEmpty():
+            qt_ensure_valid(url)
+            self.url_stack.append(url)
+        self._tabs.remove(tab)
+        self.removeTab(idx)
 
     @pyqtSlot('QUrl', bool)
     def openurl(self, url, newtab):
