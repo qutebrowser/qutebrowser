@@ -674,6 +674,10 @@ class Application(QApplication):
             return
         self._shutting_down = True
         log.destroy.debug("Shutting down with status {}...".format(status))
+        # Remove eventfilter
+        if self.modeman is not None:
+            log.destroy.debug("Removing eventfilter...")
+            self.removeEventFilter(self.modeman)
         # Close all tabs
         log.destroy.debug("Closing tabs...")
         self.mainwindow.tabs.shutdown()
