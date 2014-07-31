@@ -63,6 +63,7 @@ from qutebrowser.utils.misc import get_standard_dir, actute_warning
 from qutebrowser.utils.qt import get_qt_args
 from qutebrowser.utils.readline import ReadlineBridge
 from qutebrowser.utils.usertypes import Timer, KeyMode
+from qutebrowser.utils.debug import trace_lines
 
 
 class Application(QApplication):
@@ -708,4 +709,7 @@ class Application(QApplication):
         qInstallMessageHandler(None)
         # Now we can hopefully quit without segfaults
         log.destroy.debug("Calling QApplication::exit...")
+        if self.args.debug:
+            log.destroy.debug("Now logging late shutdown.")
+            trace_lines(True)
         self.exit(status)
