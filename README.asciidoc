@@ -42,8 +42,7 @@ Running qutebrowser
 
 After installing the <<requirements,requirements>>, you have these options:
 
-* Run qutebrowser directly via `python3 qutebrowser.py` in the toplevel
-directory.
+* Run qutebrowser directly via `./qutebrowser.py` in the toplevel directory.
 * Run `python3 setup.py install` to install qutebrowser, then call
 `qutebrowser`.
 
