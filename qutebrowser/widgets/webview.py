@@ -122,10 +122,10 @@ class WebView(QWebView):
         return "WebView(url='{}')".format(elide(url, 50))
 
     def __del__(self):
-	# Explicitely releasing the page here seems to prevent some segfaults
-	# when quitting.
-	# Copied from:
-	# https://code.google.com/p/webscraping/source/browse/webkit.py#325
+        # Explicitely releasing the page here seems to prevent some segfaults
+        # when quitting.
+        # Copied from:
+        # https://code.google.com/p/webscraping/source/browse/webkit.py#325
         self.setPage(None)
 
     @property
