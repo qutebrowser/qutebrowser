@@ -223,7 +223,7 @@ class TabbedBrowser(TabWidget):
             log.destroy.debug("Error while shutting down tabs: {}: {}".format(
                 e.__class__.__name__, e))
         for tab in self.widgets:
-            self._tabs.remove(tab)
+            self._remove_tab(tab)
 
     def close_tab(self, tab):
         """Close a tab with either index or tab given.
@@ -261,6 +261,7 @@ class TabbedBrowser(TabWidget):
         if not url.isEmpty():
             qt_ensure_valid(url)
             self.url_stack.append(url)
+        tab.blockSignals(True)
         self._tabs.remove(tab)
         self.removeTab(idx)
         tab.deleteLater()
@@ -366,7 +367,11 @@ class TabbedBrowser(TabWidget):
         Args:
             tab: The tab where the signal belongs to.
         """
-        idx = self.indexOf(tab)
+        try:
+            idx = self.indexOf(tab)
+        except RuntimeError:
+            # We can get signals for tabs we already deleted...
+            return
         if idx == -1:
             # We can get signals for tabs we already deleted...
             log.webview.debug("Got invalid tab {}!".format(tab))
@@ -389,17 +394,21 @@ class TabbedBrowser(TabWidget):
             text: The text to set.
         """
         log.webview.debug("title changed to '{}'".format(text))
-        if text:
-            idx = self.indexOf(tab)
-            if idx == -1:
-                # We can get signals for tabs we already deleted...
-                log.webview.debug("Got invalid tab {}!".format(tab))
-                return
-            self.setTabText(idx, text)
-            if idx == self.currentIndex():
-                self.title_changed.emit('{} - qutebrowser'.format(text))
-        else:
+        if not text:
             log.webview.debug("ignoring title change")
+            return
+        try:
+            idx = self.indexOf(tab)
+        except RuntimeError:
+            # We can get signals for tabs we already deleted...
+            return
+        if idx == -1:
+            # We can get signals for tabs we already deleted...
+            log.webview.debug("Got invalid tab {}!".format(tab))
+            return
+        self.setTabText(idx, text)
+        if idx == self.currentIndex():
+            self.title_changed.emit('{} - qutebrowser'.format(text))
 
     @pyqtSlot(WebView, str)
     def on_url_text_changed(self, tab, url):
@@ -409,7 +418,11 @@ class TabbedBrowser(TabWidget):
             tab: The WebView where the title was changed.
             url: The new URL.
         """
-        idx = self.indexOf(tab)
+        try:
+            idx = self.indexOf(tab)
+        except RuntimeError:
+            # We can get signals for tabs we already deleted...
+            return
         if idx == -1:
             # We can get signals for tabs we already deleted...
             log.webview.debug("Got invalid tab {}!".format(tab))
@@ -428,7 +441,11 @@ class TabbedBrowser(TabWidget):
         """
         if not config.get('tabbar', 'show-favicons'):
             return
-        idx = self.indexOf(tab)
+        try:
+            idx = self.indexOf(tab)
+        except RuntimeError:
+            # We can get signals for tabs we already deleted...
+            return
         if idx == -1:
             # We can get *_changed signals for tabs we already deleted...
             log.webview.debug("Got invalid tab {}!".format(tab))
@@ -454,7 +471,11 @@ class TabbedBrowser(TabWidget):
 
     def on_load_progress(self, tab, perc):
         """Adjust tab indicator on load progress."""
-        idx = self.indexOf(tab)
+        try:
+            idx = self.indexOf(tab)
+        except RuntimeError:
+            # We can get signals for tabs we already deleted...
+            return
         start = config.get('colors', 'tab.indicator.start')
         stop = config.get('colors', 'tab.indicator.stop')
         system = config.get('colors', 'tab.indicator.system')
@@ -463,7 +484,11 @@ class TabbedBrowser(TabWidget):
 
     def on_load_finished(self, tab, ok):
         """Adjust tab indicator when loading finished."""
-        idx = self.indexOf(tab)
+        try:
+            idx = self.indexOf(tab)
+        except RuntimeError:
+            # We can get signals for tabs we already deleted...
+            return
         if ok:
             start = config.get('colors', 'tab.indicator.start')
             stop = config.get('colors', 'tab.indicator.stop')

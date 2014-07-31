@@ -81,7 +81,11 @@ class SignalFilter(QObject):
             The target signal if the sender was the current widget.
         """
         log_signal = signal_name(signal) not in self.BLACKLIST
-        tabidx = self._tabs.indexOf(tab)
+        try:
+            tabidx = self._tabs.indexOf(tab)
+        except RuntimeError:
+            # The tab has been deleted already
+            return
         if tabidx == self._tabs.currentIndex():
             if log_signal:
                 logger.debug("emitting: {} (tab {})".format(

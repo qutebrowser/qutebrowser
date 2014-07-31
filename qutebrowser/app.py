@@ -673,6 +673,9 @@ class Application(QApplication):
             return
         self._shutting_down = True
         log.destroy.debug("Shutting down with status {}...".format(status))
+        # Close all tabs
+        log.destroy.debug("Closing tabs...")
+        self.mainwindow.tabs.shutdown()
         # Save everything
         if hasattr(self, 'config') and self.config is not None:
             to_save = []
