@@ -112,9 +112,14 @@ def trace_lines(do_trace):
         Return:
             Itself, so tracing continues.
         """
-        print("{}, {}:{}".format(event, frame.f_code.co_filename,
-                                 frame.f_lineno), file=sys.stderr)
-        return trace
+        if sys is not None:
+            print("{}, {}:{}".format(event, frame.f_code.co_filename,
+                                     frame.f_lineno), file=sys.stderr)
+            return trace
+        else:
+            # When tracing while shutting down, it seems sys can be None
+            # sometimes... if that's the case, we stop tracing.
+            return None
     if do_trace:
         sys.settrace(trace)
     else:
