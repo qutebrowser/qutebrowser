@@ -269,6 +269,7 @@ class TabbedBrowser(TabWidget):
         settings.setAttribute(QWebSettings.JavaEnabled, False)
         settings.setAttribute(QWebSettings.PluginsEnabled, False)
         tab.blockSignals(True)
+        tab.stop()
         self._tabs.remove(tab)
         self.removeTab(idx)
         tab.deleteLater()
