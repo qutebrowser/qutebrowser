@@ -113,7 +113,7 @@ def trace_lines(do_trace):
             Itself, so tracing continues.
         """
         print("{}, {}:{}".format(event, frame.f_code.co_filename,
-                                 frame.f_lineno))
+                                 frame.f_lineno), file=sys.stderr)
         return trace
     if do_trace:
         sys.settrace(trace)
