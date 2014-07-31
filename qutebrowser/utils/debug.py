@@ -27,7 +27,7 @@ from functools import wraps
 
 from PyQt5.QtCore import pyqtRemoveInputHook, QEvent, QCoreApplication
 
-from qutebrowser.utils.misc import elide
+from qutebrowser.utils.misc import elide, compact_text
 from qutebrowser.utils.log import misc as logger
 import qutebrowser.commands.utils as cmdutils
 
@@ -106,15 +106,19 @@ def trace_lines(do_trace):
     Args:
         do_trace: Whether to start tracing (True) or stop it (False).
     """
-    def trace(frame, event, _):
+    def trace(frame, event, arg):
         """Trace function passed to sys.settrace.
 
         Return:
             Itself, so tracing continues.
         """
         if sys is not None:
-            print("{}, {}:{}".format(event, frame.f_code.co_filename,
-                                     frame.f_lineno), file=sys.stderr)
+            loc = '{}:{}'.format(frame.f_code.co_filename, frame.f_lineno)
+            if arg is not None:
+                arg = compact_text(str(arg), 200)
+            else:
+                arg = ''
+            print("{:11} {:80} {}".format(event, loc, arg), file=sys.stderr)
             return trace
         else:
             # When tracing while shutting down, it seems sys can be None
