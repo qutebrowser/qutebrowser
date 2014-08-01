@@ -654,7 +654,7 @@ class Application(QApplication):
     def interrupt(self, signum, _frame):
         """Handler for signals to gracefully shutdown (SIGINT/SIGTERM)."""
         log.destroy.info("SIGINT/SIGTERM received, shutting down!")
-        log.destroy.info("Press Ctrl-C again to forcefully quit.")
+        log.destroy.info("Do the same again to forcefully quit.")
         signal.signal(signal.SIGINT, self.interrupt_forcefully)
         signal.signal(signal.SIGTERM, self.interrupt_forcefully)
         # If we call shutdown directly here, we get a segfault.
@@ -663,7 +663,16 @@ class Application(QApplication):
     def interrupt_forcefully(self, signum, _frame):
         """Interrupt forcefully on the second SIGINT/SIGTERM request."""
         log.destroy.info("Forceful quit requested, goodbye cruel world!")
-        self.exit(128 + signum)
+        log.destroy.info("Do the same again to quit with even more force.")
+        signal.signal(signal.SIGINT, self.interrupt_really_forcefully)
+        signal.signal(signal.SIGTERM, self.interrupt_really_forcefully)
+        # This *should* work without a QTimer, but because of the trouble in
+        # self.interrupt we're better safe than sorry.
+        QTimer.singleShot(0, partial(self.exit, 128 + signum))
+
+    def interrupt_really_forcefully(self, signum, _frame):
+        log.destroy.info("WHY ARE YOU DOING THIS TO ME? :(")
+        sys.exit(128 + signum)
 
     @pyqtSlot()
     def shutdown(self, status=0):
