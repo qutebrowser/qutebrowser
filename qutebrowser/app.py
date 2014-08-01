@@ -657,7 +657,8 @@ class Application(QApplication):
         log.destroy.info("Press Ctrl-C again to forcefully quit.")
         signal.signal(signal.SIGINT, self.interrupt_forcefully)
         signal.signal(signal.SIGTERM, self.interrupt_forcefully)
-        self.shutdown(128 + signum)
+        # If we call shutdown directly here, we get a segfault.
+        QTimer.singleShot(0, partial(self.shutdown, 128 + signum))
 
     def interrupt_forcefully(self, signum, _frame):
         """Interrupt forcefully on the second SIGINT/SIGTERM request."""
