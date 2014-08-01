@@ -108,6 +108,7 @@ def main():
     earlyinit.check_rfc6266()
     # We do this import late as we need to fix harfbuzz first.
     from qutebrowser.app import Application
+    from qutebrowser.utils.debug import trace_lines
     import PyQt5.QtWidgets as QtWidgets
     app = Application(args)
     # We set qApp explicitely here to reduce the risk of segfaults while
@@ -118,5 +119,8 @@ def main():
     # FIXME: We should do another attempt at contacting upstream about this.
     QtWidgets.qApp = app
     ret = app.exec_()
+    if args.debug:
+        print("Now logging late shutdown.", file=sys.stderr)
+        trace_lines(True)
     QtWidgets.qApp = None
     return ret

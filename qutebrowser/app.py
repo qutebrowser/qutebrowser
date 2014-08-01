@@ -64,7 +64,6 @@ from qutebrowser.utils.misc import get_standard_dir, actute_warning
 from qutebrowser.utils.qt import get_qt_args
 from qutebrowser.utils.readline import ReadlineBridge
 from qutebrowser.utils.usertypes import Timer, KeyMode
-from qutebrowser.utils.debug import trace_lines
 
 
 class Application(QApplication):
@@ -720,10 +719,3 @@ class Application(QApplication):
         # We use a singleshot timer to exit here to minimize the likelyhood of
         # segfaults.
         QTimer.singleShot(0, partial(self.exit, status))
-
-    def exit(self, status):
-        """Override exit to trace late shutdown if requested."""
-        if self.args.debug:
-            log.destroy.debug("Now logging late shutdown.")
-            trace_lines(True)
-        super().exit(status)
