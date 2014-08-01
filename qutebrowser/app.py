@@ -693,8 +693,9 @@ class Application(QApplication):
             log.destroy.debug("Removing eventfilter...")
             self.removeEventFilter(self.modeman)
         # Close all tabs
-        log.destroy.debug("Closing tabs...")
-        self.mainwindow.tabs.shutdown()
+        if self.mainwindow is not None:
+            log.destroy.debug("Closing tabs...")
+            self.mainwindow.tabs.shutdown()
         # Save everything
         if hasattr(self, 'config') and self.config is not None:
             to_save = []
