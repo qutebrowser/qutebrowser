@@ -77,8 +77,9 @@ class NetworkManager(QNetworkAccessManager):
             authenticator.setUser(user)
             authenticator.setPassword(password)
 
-    def abort_requests(self):
+    def shutdown(self):
         """Abort all running requests."""
+        self.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
         for request in self._requests:
             request.abort()
 

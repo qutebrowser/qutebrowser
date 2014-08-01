@@ -71,12 +71,6 @@ class BrowserPage(QWebPage):
             # pylint: disable=invalid-name
             self.javaScriptPrompt = self._javascript_prompt
 
-    def shutdown(self,):
-        """Shutdown the page."""
-        self._networkmanager.abort_requests()
-        self._networkmanager.destroyed.connect(self.deleteLater)
-        self._networkmanager.deleteLater()
-
     def _javascript_prompt(self, _frame, msg, default):
         """Override javaScriptPrompt to use the statusbar.
 

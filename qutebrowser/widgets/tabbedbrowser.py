@@ -24,7 +24,6 @@ from functools import partial
 from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QSize
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWebKit import QWebSettings
 
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
@@ -262,14 +261,7 @@ class TabbedBrowser(TabWidget):
         if not url.isEmpty():
             qt_ensure_valid(url)
             self.url_stack.append(url)
-        # We disable javascript/plugins because that prevents some segfaults
-        # when quitting it seems.
-        settings = tab.settings()
-        settings.setAttribute(QWebSettings.JavascriptEnabled, False)
-        settings.setAttribute(QWebSettings.JavaEnabled, False)
-        settings.setAttribute(QWebSettings.PluginsEnabled, False)
-        tab.blockSignals(True)
-        tab.stop()
+        tab.shutdown()
         self._tabs.remove(tab)
         self.removeTab(idx)
         tab.deleteLater()

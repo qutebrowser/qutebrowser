@@ -21,6 +21,7 @@
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer
 from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 import qutebrowser.config.config as config
@@ -120,13 +121,6 @@ class WebView(QWebView):
     def __repr__(self):
         url = self.url().toDisplayString()
         return "WebView(url='{}')".format(elide(url, 50))
-
-    def __del__(self):
-        # Explicitely releasing the page here seems to prevent some segfaults
-        # when quitting.
-        # Copied from:
-        # https://code.google.com/p/webscraping/source/browse/webkit.py#325
-        self.setPage(None)
 
     @property
     def open_target(self):
@@ -273,6 +267,22 @@ class WebView(QWebView):
         else:
             self.open_target = ClickTarget.normal
             log.mouse.debug("Normal click, setting normal target")
+
+    def shutdown(self):
+        """Shut down the webview."""
+        # We disable javascript because that prevents some segfaults when
+        # quitting it seems.
+        settings = self.settings()
+        settings.setAttribute(QWebSettings.JavascriptEnabled, False)
+        self.stop()
+        nam = self.page().networkAccessManager()
+        # Explicitely releasing the page here seems to prevent some segfaults
+        # when quitting.
+        # Copied from:
+        # https://code.google.com/p/webscraping/source/browse/webkit.py#325
+        self.setPage(None)
+        nam.shutdown()
+        del nam
 
     def openurl(self, url):
         """Open a URL in the browser.
