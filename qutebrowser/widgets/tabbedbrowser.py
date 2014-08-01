@@ -291,7 +291,12 @@ class TabbedBrowser(TabWidget):
     @pyqtSlot(int)
     def on_tab_close_requested(self, idx):
         """Close a tab via an index."""
-        self.close_tab(idx)
+        tab = self.widget(idx)
+        if tab is None:
+            log.webview.debug("Got invalid tab {} for index {}!".format(
+                tab, idx))
+            return
+        self.close_tab(tab)
 
     @pyqtSlot(WebView)
     def on_window_close_requested(self, widget):
