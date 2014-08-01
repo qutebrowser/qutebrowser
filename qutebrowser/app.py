@@ -27,6 +27,7 @@ import configparser
 import signal
 from bdb import BdbQuit
 from base64 import b64encode
+from functools import partial
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.QtCore import (pyqtSlot, QTimer, QEventLoop, Qt, QStandardPaths,
@@ -716,7 +717,13 @@ class Application(QApplication):
         qInstallMessageHandler(None)
         # Now we can hopefully quit without segfaults
         log.destroy.debug("Calling QApplication::exit...")
+        # We use a singleshot timer to exit here to minimize the likelyhood of
+        # segfaults.
+        QTimer.singleShot(0, partial(self.exit, status))
+
+    def exit(self, status):
+        """Override exit to trace late shutdown if requested."""
         if self.args.debug:
             log.destroy.debug("Now logging late shutdown.")
             trace_lines(True)
-        self.exit(status)
+        super().exit(status)
