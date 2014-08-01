@@ -64,6 +64,8 @@ def get_argparser():
     debug.add_argument('--harfbuzz', choices=['old', 'new', 'system', 'auto'],
                        default='auto', help="HarfBuzz engine version to use. "
                        "Default: auto.")
+    debug.add_argument('--nowindow', action='store_true', help="Don't show "
+                       "the main window.")
     # For the Qt args, we use store_const with const=True rather than
     # store_true because we want the default to be None, to make
     # utils.qt:get_qt_args easier.

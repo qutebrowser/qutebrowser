@@ -163,7 +163,8 @@ class Application(QApplication):
         self.modeman.enter(KeyMode.normal, 'init')
 
         log.init.debug("Showing mainwindow...")
-        self.mainwindow.show()
+        if not args.nowindow:
+            self.mainwindow.show()
         log.init.debug("Applying python hacks...")
         self._python_hacks()
         timer = QTimer.singleShot(0, self._process_init_args)
