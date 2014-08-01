@@ -202,7 +202,6 @@ def _init_formatters(level, color):
         console_formatter = ColoredFormatter(console_fmt_colored, DATEFMT,
                                              log_colors=LOG_COLORS)
         if colorama:
-            colorama.init()
             use_colorama = True
     else:
         console_formatter = logging.Formatter(console_fmt, DATEFMT, '{')
