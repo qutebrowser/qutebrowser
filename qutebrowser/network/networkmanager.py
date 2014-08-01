@@ -82,6 +82,7 @@ class NetworkManager(QNetworkAccessManager):
         self.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
         for request in self._requests:
             request.abort()
+            request.deleteLater()
 
     @pyqtSlot('QNetworkReply*', 'QList<QSslError>')
     def on_ssl_errors(self, reply, errors):
