@@ -652,7 +652,11 @@ class Application(QApplication):
         self._crashdlg.show()
 
     def interrupt(self, signum, _frame):
-        """Handler for signals to gracefully shutdown (SIGINT/SIGTERM)."""
+        """Handler for signals to gracefully shutdown (SIGINT/SIGTERM).
+
+        This calls self.shutdown and remaps the signal to call
+        self.interrupt_forcefully the next time.
+        """
         log.destroy.info("SIGINT/SIGTERM received, shutting down!")
         log.destroy.info("Do the same again to forcefully quit.")
         signal.signal(signal.SIGINT, self.interrupt_forcefully)
@@ -661,7 +665,12 @@ class Application(QApplication):
         QTimer.singleShot(0, partial(self.shutdown, 128 + signum))
 
     def interrupt_forcefully(self, signum, _frame):
-        """Interrupt forcefully on the second SIGINT/SIGTERM request."""
+        """Interrupt forcefully on the second SIGINT/SIGTERM request.
+
+        This skips our shutdown routine and calls QApplication:exit instead.
+        It then remaps the signals to call self.interrupt_really_forcefully the
+        next time.
+        """
         log.destroy.info("Forceful quit requested, goodbye cruel world!")
         log.destroy.info("Do the same again to quit with even more force.")
         signal.signal(signal.SIGINT, self.interrupt_really_forcefully)
@@ -671,6 +680,11 @@ class Application(QApplication):
         QTimer.singleShot(0, partial(self.exit, 128 + signum))
 
     def interrupt_really_forcefully(self, signum, _frame):
+        """Interrupt with even more force on the third SIGINT/SIGTERM request.
+
+        This doesn't run *any* Qt cleanup and simply exits via Python.
+        It will most likely lead to a segfault.
+        """
         log.destroy.info("WHY ARE YOU DOING THIS TO ME? :(")
         sys.exit(128 + signum)
 
