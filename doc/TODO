@@ -66,25 +66,20 @@ Improvements / minor features
 - command which closes other tabs in a direction [egan]
 - Distinction between :q and :wq, add ZZ and ZQ shortcuts.
 - set_toggle to toggle setting between two states
-- Small indicator on tab with a colored progress, like downloads (or maybe even
-  tab index and colored)
 - Customizable statusbar
-- Show size of widgets in __repr__
+    - SSL-symbol in statusbar?
 - Ask whether to close when downloads are running or maybe if form fields are
   unsubmitted (book page 187)
-- Completion in statusbar like dwb
-- SSL-symbol in statusbar?
+- Keychain completion in statusbar like dwb
 - Commandline argument to delete config
-- Settings dialog
+- Settings dialog/page (iggy is working on qute:settings)
 - Tab groups (tagging/filtering for displayed tabs)
 - Save cookies in Netscape format so it can be used by wget. (see notes)
 - Zoom with ctrl + mousewheel
 - debug-Command for set loglevel/RAM capacity
-- search highlighting
-- vertical tabbar
 - reload config command
     - config changed signals for sections (optimization)
-- Display metavars for commands in input bar.
+- Display metavars for command arguments in input bar.
 - count support for special keys
 - set-as-default argument/command (to set qute as system default browser)
 - Enable disk caching (see notes)
@@ -96,16 +91,12 @@ Improvements / minor features
 - somehow unfocus elements (hide blinking cursor) when insert mode is left?
 - Copy link location on crash mail should not copy mailto:
 - Drag&Drop of tabs to other windows
-- Use QNetworkAccessManager per QWebPage again so we can set proxy per tab.
 - Multi-line statusbar or own widget for long messages?
 - :messages command to view past messages
-- Maybe the completion widget shouldn't be a QTreeView with tree models as
-  there are many hacks involved by now (see notes).
 - :%! like feature to pipe current page through a filter.
-- Add FIFOHandler based on asyncio if it's available
+- Add FIFOHandler based on asyncio
 - Lazy tab loading
 - Add command shortcuts to command completion
-- Add commandline option to not spawn any windows (for testing)
 
 hints
 -----

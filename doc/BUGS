@@ -32,7 +32,7 @@ Webview
 - ok is always True in WebPage:on_load_status_changed, even when an error page
   is loaded (probably *because* we're loading the error page and that
   succeeds).
-- Opening editor is broken on http://p.cmpl.cc/
+- Opening editor is broken on http://p.cmpl.cc/ (probably a CodeMirror issue?)
 
 Input
 -----
@@ -58,9 +58,6 @@ Crashes
 - Shutdown is still flaky. (see notes)
 - Segfault on subsonic when clicking next track
 - Assertion failure on subsonic with debug build
-- Hang in logging.shutdown when quitting if started via a .bat file on Windows
-  (if we deactivate the atexit hook, hang in threading._shutdown).
-  However, only the MainThread is active when doing sys.exit.
 
 Qt warnings
 -----------
@@ -98,10 +95,6 @@ Misc
   windows
 - Scrolling lags like crazy (even in minimal browser) on
   http://github.com/uzbl/uzbl
-- Pressing Ctrl+C should call shutdown and quit normally instead of quitting
-  hard. (Ideally it should print a message, and doing Ctrl+C again should quit
-  hard).
-  Same for SIGTERM, etc.
 
 
 Upstream Bugs
