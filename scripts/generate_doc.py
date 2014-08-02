@@ -185,9 +185,14 @@ def _get_command_doc(name, cmd):
         output.append("")
         for arg, desc in arg_descs.items():
             text = ' '.join(desc).splitlines()
-            item = "* +{}+: {}".format(arg, text[0])
+            firstline = text[0].replace(', or None', '')
+            item = "* +{}+: {}".format(arg, firstline)
             if arg in defaults:
-                item += " (default: +{}+)\n".format(defaults[arg])
+                val = defaults[arg]
+                if val is None:
+                    item += " (optional)\n"
+                else:
+                    item += " (default: +{}+)\n".format(defaults[arg])
             item += '\n'.join(text[1:])
             output.append(item)
         output.append("")
