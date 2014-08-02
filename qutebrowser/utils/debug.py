@@ -55,7 +55,7 @@ def debug_crash(typ='exception'):
     """Crash for debugging purposes.
 
     Args:
-        typ: either 'exception' or 'segfault'
+        typ: either 'exception' or 'segfault'.
 
     Raises:
         raises Exception when typ is not segfault.
@@ -80,7 +80,7 @@ def debug_all_widgets():
 
 @cmdutils.register(debug=True)
 def debug_all_objects():
-    """Dump all children of an object recursively."""
+    """Print a list of  all objects to the debug log."""
     s = QCoreApplication.instance().get_all_objects()
     logger.debug(s)
 

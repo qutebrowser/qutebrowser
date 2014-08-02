@@ -213,10 +213,10 @@ class ModeManager(QObject):
 
     @cmdutils.register(instance='modeman', hide=True)
     def enter_mode(self, mode):
-        """Enter mode as a command.
+        """Enter a key mode.
 
         Args:
-            mode: The mode to enter as a string.
+            mode: The mode to enter.
         """
         try:
             m = KeyMode[mode]
@@ -225,7 +225,7 @@ class ModeManager(QObject):
         self.enter(m, 'command')
 
     def leave(self, mode, reason=None):
-        """Leave a mode.
+        """Leave a key mode.
 
         Args:
             mode: The name of the mode to leave.

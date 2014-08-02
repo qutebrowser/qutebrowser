@@ -302,27 +302,43 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def prev_page(self):
-        """Open a "previous" link."""
+        """Open a "previous" link.
+
+        This tries to automaticall click on typical "Previous Page" links using
+        some heuristics.
+        """
         self._prevnext(prev=True, newtab=False)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def next_page(self):
-        """Open a "next" link."""
+        """Open a "next" link.
+
+        This tries to automatically click on typical "Next Page" links using
+        some heuristics.
+        """
         self._prevnext(prev=False, newtab=False)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def prev_page_tab(self):
-        """Open a "previous" link in a new tab."""
+        """Open a "previous" link in a new tab.
+
+        This tries to automatically click on typical "Previous Page" links using
+        some heuristics.
+        """
         self._prevnext(prev=True, newtab=True)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def next_page_tab(self):
-        """Open a "next" link in a new tab."""
+        """Open a "next" link in a new tab.
+
+        This tries to automatically click on typical "Previous Page" links using
+        some heuristics.
+        """
         self._prevnext(prev=False, newtab=True)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def scroll(self, dx, dy, count=1):
-        """Scroll the current tab by count * dx/dy.
+        """Scroll the current tab by 'count * dx/dy'.
 
         Args:
             dx: How much to scroll in x-direction.
@@ -337,7 +353,10 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def scroll_perc_x(self, perc=None, count=None):
-        """Scroll the current tab to a specific percent of the page (horiz).
+        """Scroll horizontally to a specific percentage of the page.
+
+        The percentage can be given either as argument or as count.
+        If no percentage is given, the page is scrolled to the end.
 
         Args:
             perc: Percentage to scroll.
@@ -347,7 +366,10 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def scroll_perc_y(self, perc=None, count=None):
-        """Scroll the current tab to a specific percent of the page (vert).
+        """Scroll vertically to a specific percentage of the page.
+
+        The percentage can be given either as argument or as count.
+        If no percentage is given, the page is scrolled to the end.
 
         Args:
             perc: Percentage to scroll.
@@ -356,18 +378,18 @@ class CommandDispatcher:
         self._scroll_percent(perc, count, Qt.Vertical)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
-    def scroll_page(self, mx, my, count=1):
+    def scroll_page(self, x, y, count=1):
         """Scroll the frame page-wise.
 
         Args:
-            mx: How many pages to scroll to the right.
-            my: How many pages to scroll down.
+            x: How many pages to scroll to the right.
+            y: How many pages to scroll down.
             count: multiplier
         """
         frame = self._tabs.currentWidget().page().currentFrame()
         size = frame.geometry()
-        dx = int(count) * float(mx) * size.width()
-        dy = int(count) * float(my) * size.height()
+        dx = int(count) * float(x) * size.width()
+        dy = int(count) * float(y) * size.height()
         cmdutils.check_overflow(dx, 'int')
         cmdutils.check_overflow(dy, 'int')
         frame.scroll(dx, dy)
@@ -417,7 +439,7 @@ class CommandDispatcher:
         """Increase the zoom level for the current tab.
 
         Args:
-            count: How many steps to take.
+            count: How many steps to zoom in.
         """
         tab = self._tabs.currentWidget()
         tab.zoom(count)
@@ -427,17 +449,21 @@ class CommandDispatcher:
         """Decrease the zoom level for the current tab.
 
         Args:
-            count: How many steps to take.
+            count: How many steps to zoom out.
         """
         tab = self._tabs.currentWidget()
         tab.zoom(-count)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def zoom(self, zoom=None, count=None):
-        """Set the zoom level for the current tab to [count] or 100 percent.
+        """Set the zoom level for the current tab.
+
+        The zoom can be given as argument or as [count]. If neither of both is
+        given, the zoom is set to 100%.
 
         Args:
-            count: How many steps to take.
+            zoom: The zoom percentage to set.
+            count: The zoom percentage to set.
         """
         try:
             level = cmdutils.arg_or_count(zoom, count, default=100)
@@ -474,7 +500,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def undo(self):
-        """Re-open a closed tab (optionally skipping [count] tabs)."""
+        """Re-open a closed tab (optionally skipping [count] closed tabs)."""
         if self._tabs.url_stack:
             self._tabs.tabopen(self._tabs.url_stack.pop())
         else:
@@ -482,7 +508,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def tab_prev(self, count=1):
-        """Switch to the previous tab, or skip [count] tabs.
+        """Switch to the previous tab, or switch [count] tabs back.
 
         Args:
             count: How many tabs to switch back.
@@ -497,7 +523,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def tab_next(self, count=1):
-        """Switch to the next tab, or skip [count] tabs.
+        """Switch to the next tab, or switch [count] tabs forward.
 
         Args:
             count: How many tabs to switch forward.
@@ -548,6 +574,7 @@ class CommandDispatcher:
 
         Args:
             index: The tab index to focus, starting with 1.
+            count: The tab index to focus, starting with 1.
         """
         try:
             idx = cmdutils.arg_or_count(index, count, default=1,
@@ -565,8 +592,8 @@ class CommandDispatcher:
         """Move the current tab.
 
         Args:
-            direction: + or - for relative moving, None for absolute.
-            count: If moving absolutely: New position (or first).
+            direction: + or - for relative moving, none for absolute.
+            count: If moving absolutely: New position (default: 0)
                    If moving relatively: Offset.
         """
         if direction is None:
@@ -614,7 +641,7 @@ class CommandDispatcher:
         don't care about the process anymore as soon as it's spawned.
 
         Args:
-            *args: The commandline to execute
+            *args: The commandline to execute.
         """
         log.procs.debug("Executing: {}".format(args))
         subprocess.Popen(args)
@@ -631,7 +658,6 @@ class CommandDispatcher:
         Args:
             cmd: The userscript to run.
             args: Arguments to pass to the userscript.
-            url: A custom QUrl to use instead of the current url.
         """
         url = self._tabs.current_url()
         userscripts.run(cmd, *args, url=url)
@@ -692,7 +718,10 @@ class CommandDispatcher:
     @cmdutils.register(instance='mainwindow.tabs.cmd', modes=[KeyMode.insert],
                        hide=True)
     def open_editor(self):
-        """Open an external editor with the current form field.
+        """Open an external editor with the currently selected form field.
+
+        The editor which should be launched can be configured via the
+        `general -> editor` config option.
 
         //
 

@@ -291,6 +291,10 @@ class ConfigManager(QObject):
         //
 
         Wrapper for the get-command to output the value in the status bar.
+
+        Args:
+            sectname: The section where the option is in.
+            optname: The name of the option.
         """
         try:
             val = self.get(sectname, optname, transformed=False)
@@ -338,6 +342,11 @@ class ConfigManager(QObject):
         //
 
         Wrapper for self.set() to output exceptions in the status bar.
+
+        Args:
+            sectname: The section where the option is in.
+            optname: The name of the option.
+            value: The value to set.
         """
         try:
             self.set('conf', sectname, optname, value)
@@ -354,6 +363,11 @@ class ConfigManager(QObject):
         //
 
         Wrapper for self.set() to output exceptions in the status bar.
+
+        Args:
+            sectname: The section where the option is in.
+            optname: The name of the option.
+            value: The value to set.
         """
         try:
             self.set('temp', sectname, optname, value)

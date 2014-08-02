@@ -221,7 +221,7 @@ class Command(MinimalLineEdit):
     @cmdutils.register(instance='mainwindow.status.cmd', hide=True,
                        modes=[KeyMode.command])
     def command_history_prev(self):
-        """Handle Up presses (go back in history)."""
+        """Go back in the commandline history."""
         try:
             if not self.history.browsing:
                 item = self.history.start(self.text().strip())
@@ -235,7 +235,7 @@ class Command(MinimalLineEdit):
     @cmdutils.register(instance='mainwindow.status.cmd', hide=True,
                        modes=[KeyMode.command])
     def command_history_next(self):
-        """Handle Down presses (go forward in history)."""
+        """Go forward in the commandline history."""
         if not self.history.browsing:
             return
         try:
@@ -248,7 +248,7 @@ class Command(MinimalLineEdit):
     @cmdutils.register(instance='mainwindow.status.cmd', hide=True,
                        modes=[KeyMode.command])
     def command_accept(self):
-        """Handle the command in the status bar.
+        """Execute the command currently in the commandline.
 
         Emit:
             got_cmd: If a new cmd was entered.

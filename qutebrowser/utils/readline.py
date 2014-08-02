@@ -48,7 +48,10 @@ class ReadlineBridge:
     @cmd.register(instance='rl_bridge', hide=True,
                   modes=[KeyMode.command, KeyMode.prompt])
     def rl_backward_char(self):
-        """Readline: Move back a character."""
+        """Move back a character.
+
+        This acts like readline's backward-char.
+        """
         if self.widget is None:
             return
         self.widget.cursorBackward(False)
@@ -56,7 +59,10 @@ class ReadlineBridge:
     @cmd.register(instance='rl_bridge', hide=True,
                   modes=[KeyMode.command, KeyMode.prompt])
     def rl_forward_char(self):
-        """Readline: Move forward a character."""
+        """Move forward a character.
+
+        This acts like readline's forward-char.
+        """
         if self.widget is None:
             return
         self.widget.cursorForward(False)
@@ -64,7 +70,10 @@ class ReadlineBridge:
     @cmd.register(instance='rl_bridge', hide=True,
                   modes=[KeyMode.command, KeyMode.prompt])
     def rl_backward_word(self):
-        """Readline: Move back to the start of the current or previous word."""
+        """Move back to the start of the current or previous word.
+
+        This acts like readline's backward-word.
+        """
         if self.widget is None:
             return
         self.widget.cursorWordBackward(False)
@@ -72,7 +81,10 @@ class ReadlineBridge:
     @cmd.register(instance='rl_bridge', hide=True,
                   modes=[KeyMode.command, KeyMode.prompt])
     def rl_forward_word(self):
-        """Readline: Move forward to the end of the next word."""
+        """Move forward to the end of the next word.
+
+        This acts like readline's forward-word.
+        """
         if self.widget is None:
             return
         self.widget.cursorWordForward(False)
@@ -80,7 +92,10 @@ class ReadlineBridge:
     @cmd.register(instance='rl_bridge', hide=True,
                   modes=[KeyMode.command, KeyMode.prompt])
     def rl_beginning_of_line(self):
-        """Readline: Move to the start of the current line."""
+        """Move to the start of the line.
+
+        This acts like readline's beginning-of-line.
+        """
         if self.widget is None:
             return
         self.widget.home(False)
@@ -88,7 +103,10 @@ class ReadlineBridge:
     @cmd.register(instance='rl_bridge', hide=True,
                   modes=[KeyMode.command, KeyMode.prompt])
     def rl_end_of_line(self):
-        """Readline: Move to the end of the line."""
+        """Move to the end of the line.
+
+        This acts like readline's end-of-line.
+        """
         if self.widget is None:
             return
         self.widget.end(False)
@@ -96,7 +114,10 @@ class ReadlineBridge:
     @cmd.register(instance='rl_bridge', hide=True,
                   modes=[KeyMode.command, KeyMode.prompt])
     def rl_unix_line_discard(self):
-        """Readline: Kill backward from cursor to the beginning of the line."""
+        """Remove chars backward from the cursor to the beginning of the line.
+
+        This acts like readline's unix-line-discard.
+        """
         if self.widget is None:
             return
         self.widget.home(True)
@@ -106,7 +127,10 @@ class ReadlineBridge:
     @cmd.register(instance='rl_bridge', hide=True,
                   modes=[KeyMode.command, KeyMode.prompt])
     def rl_kill_line(self):
-        """Readline: Kill the text from point to the end of the line."""
+        """Remove chars from the cursor to the end of the line.
+
+        This acts like readline's kill-line.
+        """
         if self.widget is None:
             return
         self.widget.end(True)
@@ -116,7 +140,10 @@ class ReadlineBridge:
     @cmd.register(instance='rl_bridge', hide=True,
                   modes=[KeyMode.command, KeyMode.prompt])
     def rl_unix_word_rubout(self):
-        """Readline: Kill the word behind point."""
+        """Remove chars from the cursor to the beginning of the word.
+
+        This acts like readline's unix-word-rubout.
+        """
         if self.widget is None:
             return
         self.widget.cursorWordBackward(True)
@@ -126,7 +153,10 @@ class ReadlineBridge:
     @cmd.register(instance='rl_bridge', hide=True,
                   modes=[KeyMode.command, KeyMode.prompt])
     def rl_kill_word(self):
-        """Readline: Kill from point to the end of the current word."""
+        """Remove chars from the cursor to the end of the current word.
+
+        This acts like readline's kill-word.
+        """
         if self.widget is None:
             return
         self.widget.cursorWordForward(True)
@@ -136,7 +166,10 @@ class ReadlineBridge:
     @cmd.register(instance='rl_bridge', hide=True,
                   modes=[KeyMode.command, KeyMode.prompt])
     def rl_yank(self):
-        """Readline: Yank the top of the kill ring into the buffer at point."""
+        """Paste the most recently deleted text.
+
+        This acts like readline's yank.
+        """
         if self.widget is None or self.widget not in self.deleted:
             return
         self.widget.insert(self.deleted[self.widget])
@@ -144,7 +177,10 @@ class ReadlineBridge:
     @cmd.register(instance='rl_bridge', hide=True,
                   modes=[KeyMode.command, KeyMode.prompt])
     def rl_delete_char(self):
-        """Readline: Delete the character at point."""
+        """Delete the character after the cursor.
+
+        This acts like readline's delete-char.
+        """
         if self.widget is None:
             return
         self.widget.del_()
@@ -152,7 +188,10 @@ class ReadlineBridge:
     @cmd.register(instance='rl_bridge', hide=True,
                   modes=[KeyMode.command, KeyMode.prompt])
     def rl_backward_delete_char(self):
-        """Readline: Delete the character behind the cursor."""
+        """Delete the character before the cursor.
+
+        This acts like readline's backward-delete-char.
+        """
         if self.widget is None:
             return
         self.widget.backspace()
