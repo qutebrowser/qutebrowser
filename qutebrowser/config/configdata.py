@@ -64,7 +64,7 @@ FIRST_COMMENT = r"""
 
 
 SECTION_DESC = {
-    'general': "General/misc. options.",
+    'general': "General/miscellaneous options.",
     'ui': "General options related to the user interface.",
     'input': "Options related to input modes.",
     'network': "Settings related to the network.",
@@ -113,7 +113,8 @@ SECTION_DESC = {
         "Keybindings for passthrough mode.\n"
         "Since normal keypresses are passed through, only special keys are "
         "supported in this mode.\n"
-        "An useful command to map here is the hidden command leave-mode."),
+        "Useful hidden commands to map in this section:\n\n"
+        " * `leave-mode`: Leave the passthrough mode."),
     'keybind.command': (
         "Keybindings for command mode.\n"
         "Since normal keypresses are passed through, only special keys are "
@@ -161,7 +162,7 @@ SECTION_DESC = {
     'fonts': (
         "Fonts used for the UI, with optional style/weight/size.\n\n"
         " * Style: `normal`/`italic`/`oblique`\n"
-        " * Weight: `normal`, `bold`, 100..900\n"
+        " * Weight: `normal`, `bold`, `100`..`900`\n"
         " * Size: _number_ `px`/`pt`\n\n"
         "Note: The font for hints is a true CSS font, not a Qt-CSS one, "
         "because of that, a general ``Monospace'' family is enough and we "
@@ -173,11 +174,11 @@ DATA = OrderedDict([
     ('general', sect.KeyValue(
         ('ignore-case',
          SettingValue(types.Bool(), 'true'),
-         "Whether to do case-insensitive searching."),
+         "Whether to find text on a page case-insensitively."),
 
         ('wrap-search',
          SettingValue(types.Bool(), 'true'),
-         "Whether to wrap search to the top when arriving at the end."),
+         "Whether to wrap finding text to the top when arriving at the end."),
 
         ('startpage',
          SettingValue(types.List(), 'http://www.duckduckgo.com'),
@@ -198,37 +199,44 @@ DATA = OrderedDict([
 
         ('editor',
          SettingValue(types.ShellCommand(placeholder=True), 'gvim -f "{}"'),
-         "The editor (and arguments) to use for the open-editor binding. "
-         "Use `{}` for the filename. Gets split via shutils."),
+         "The editor (and arguments) to use for the `open-editor` command.\n\n"
+         "Use `{}` for the filename. The value gets split like in a shell, so "
+         "you can use `\"` or `'` to quote arguments."),
 
         ('private-browsing',
          SettingValue(types.Bool(), 'false'),
-         "Private browsing prevents WebKit from recording visited pages in "
-         "the history and storing web page icons."),
+         "Do not record visited pages in the history or store web page "
+         "icons."),
 
         ('developer-extras',
          SettingValue(types.Bool(), 'false'),
-         "Enables extra tools for Web developers (e.g. webinspector)."),
+         "Enable extra tools for Web developers.\n\n"
+         "This needs to be enabled for `:inspector` to work and also adds an "
+         "_Inspect_ entry to the context menu."),
 
         ('print-element-backgrounds',
          SettingValue(types.Bool(), 'true'),
-         "Specifies whether the background color and images are also drawn "
-         "when the page is printed."),
+         "Whether the background color and images are also drawn when the "
+         "page is printed."),
 
         ('xss-auditing',
          SettingValue(types.Bool(), 'false'),
-         "Specifies whether load requests should be monitored for cross-site "
-         "scripting attempts. Suspicious scripts will be blocked and reported "
-         "in the inspector's JavaScript console. Enabling this feature might "
-         "have an impact on performance."),
+         "Whether load requests should be monitored for cross-site scripting "
+         "attempts.\n\n"
+         "Suspicious scripts will be blocked and reported in the inspector's "
+         "JavaScript console. Enabling this feature might have an impact on "
+         "performance."),
 
         ('site-specific-quirks',
          SettingValue(types.Bool(), 'true'),
-         "This setting enables WebKit's workaround for broken sites."),
+         "Enable workarounds for broken sites."),
 
         ('default-encoding',
          SettingValue(types.String(none_ok=True), ''),
-         "Default encoding to use for websites."),
+         "Default encoding to use for websites.\n\n"
+         "The encoding must be a string describing an encoding such as "
+         '_utf-8_, _iso-8859-1_, etc. If left empty a default value will be '
+         "used."),
     )),
 
     ('ui', sect.KeyValue(
@@ -256,63 +264,31 @@ DATA = OrderedDict([
 
         ('zoom-text-only',
          SettingValue(types.Bool(), 'false'),
-         "Specifies whether the zoom factor on a frame applies only to the "
-         "text or to all content."),
+         "Whether the zoom factor on a frame applies only to the text or to "
+         "all content."),
 
         ('frame-flattening',
          SettingValue(types.Bool(), 'false'),
-         "With this setting each subframe is expanded to its contents. This "
-         "will flatten all the frames to become one scrollable "
-         "page."),
-
-        ('frame-flattening',
-         SettingValue(types.Bool(), 'false'),
-         "With this setting each subframe is expanded to its contents. This "
-         "will flatten all the frames to become one scrollable "
-         "page."),
+         "Whether to  expand each subframe to its contents.\n\n"
+         "This will flatten all the frames to become one scrollable page."),
 
         ('user-stylesheet',
          SettingValue(types.WebSettingsFile(), ''),
-         "User stylesheet to set."),
-
-        ('user-stylesheet',
-         SettingValue(types.WebSettingsFile(), ''),
-         "User stylesheet to set."),
+         "User stylesheet to use."),
 
         ('css-media-type',
          SettingValue(types.String(none_ok=True), ''),
          "Set the CSS media type."),
-
-        ('css-media-type',
-         SettingValue(types.String(none_ok=True), ''),
-         "Set the CSS media type."),
-
-        #('accelerated-compositing',
-        # SettingValue(types.Bool(), 'true'),
-        # "This feature, when used in conjunction with QGraphicsWebView, "
-        # "accelerates animations of web content. CSS animations of the "
-        # "transform and opacity properties will be rendered by composing the "
-        # "cached content of the animated elements."),
-
-        #('tiled-backing-store',
-        # SettingValue(types.Bool(), 'false'),
-        # "This setting enables the tiled backing store feature for a "
-        # "QGraphicsWebView. With the tiled backing store enabled, the web "
-        # "page contents in and around the current visible area is "
-        # "speculatively cached to bitmap tiles. The tiles are automatically "
-        # "kept in sync with the web page as it changes. Enabling tiling can "
-        # "significantly speed up painting heavy operations like scrolling. "
-        # "Enabling the feature increases memory consuption."),
     )),
 
     ('network', sect.KeyValue(
         ('do-not-track',
          SettingValue(types.Bool(), 'true'),
-         "Value to send in the DNT header."),
+         "Value to send in the `DNT` header."),
 
         ('accept-language',
          SettingValue(types.String(none_ok=True), 'en-US,en'),
-         "Value to send in the accept-language header."),
+         "Value to send in the `accept-language` header."),
 
         ('user-agent',
          SettingValue(types.String(none_ok=True), ''),
@@ -320,7 +296,9 @@ DATA = OrderedDict([
 
         ('proxy',
          SettingValue(types.Proxy(), 'system'),
-         "The proxy to use."),
+         "The proxy to use.\n\n"
+         "In addition to the listed values, you can use a `socks://...` or "
+         "`http://...` URL."),
 
         ('ssl-strict',
          SettingValue(types.Bool(), 'true'),
@@ -328,14 +306,13 @@ DATA = OrderedDict([
 
         ('dns-prefetch',
          SettingValue(types.Bool(), 'true'),
-         "Specifies whether QtWebkit will try to pre-fetch DNS entries to "
-         "speed up browsing."),
+         "Whether to try to pre-fetch DNS entries to speed up browsing."),
     )),
 
     ('completion', sect.KeyValue(
         ('show',
          SettingValue(types.Bool(), 'true'),
-         "Whether to show the autocompletion window or not."),
+         "Whether to show the autocompletion window."),
 
         ('height',
          SettingValue(types.PercOrInt(minperc=0, maxperc=100, minint=1),
@@ -345,8 +322,8 @@ DATA = OrderedDict([
 
         ('history-length',
          SettingValue(types.Int(minval=-1), '100'),
-         "How many commands to save in the history. 0: no history / -1: "
-         "unlimited"),
+         "How many commands to save in the history.\n\n"
+         "0: no history / -1: unlimited"),
 
         ('quick-complete',
          SettingValue(types.Bool(), 'true'),
@@ -384,15 +361,18 @@ DATA = OrderedDict([
 
         ('spatial-navigation',
          SettingValue(types.Bool(), 'false'),
-         "Enables or disables the Spatial Navigation feature, which consists "
-         "in the ability to navigate between focusable elements in a Web "
-         "page, such as hyperlinks and form controls, by using Left, Right, "
-         "Up and Down arrow keys."),
+         "Enables or disables the Spatial Navigation feature\n\n"
+         "Spatial navigation consists in the ability to navigate between "
+         "focusable elements in a Web page, such as hyperlinks and form "
+         "controls, by using Left, Right, Up and Down arrow keys. For "
+         "example, if a user presses the Right key, heuristics determine "
+         "whether there is an element he might be trying to reach towards the "
+         "right and which element he probably wants."),
 
         ('links-included-in-focus-chain',
          SettingValue(types.Bool(), 'true'),
-         "Specifies whether hyperlinks should be included in the keyboard "
-         "focus chain."),
+         "Whether hyperlinks should be included in the keyboard focus "
+         "chain."),
     )),
 
     ('tabbar', sect.KeyValue(
@@ -448,14 +428,26 @@ DATA = OrderedDict([
         ('maximum-pages-in-cache',
          SettingValue(types.Int(none_ok=True, minval=0, maxval=MAXVALS['int']),
                       ''),
-         "Sets the maximum number of pages to hold in the memory page cache."),
+         "The maximum number of pages to hold in the memory page cache.\n\n"
+         "The Page Cache allows for a nicer user experience when navigating "
+         "forth or back to pages in the forward/back history, by pausing and "
+         "resuming up to _n_ pages.\n\n"
+         "For more information about the feature, please refer to: "
+         "http://webkit.org/blog/427/webkit-page-cache-i-the-basics/"),
 
         ('object-cache-capacities',
          SettingValue(types.WebKitBytesList(length=3, maxsize=MAXVALS['int']),
                       ''),
-         "Specifies the capacities for the memory cache for dead objects "
-         "such as stylesheets or scripts. Three values are expected: "
-         "cacheMinDeadCapacity, cacheMaxDead, totalCapacity."),
+         "The capacities for the memory cache for dead objects such as "
+         "stylesheets or scripts. Syntax: cacheMinDeadCapacity, cacheMaxDead, "
+         "totalCapacity.\n\n"
+         "The _cacheMinDeadCapacity_ specifies the minimum number of bytes "
+         "that dead objects should consume when the cache is under "
+         "pressure.\n\n"
+         "_cacheMaxDead_ is the maximum number of bytes that dead objects "
+         "should consume when the cache is *not* under pressure.\n\n"
+         "_totalCapacity_ specifies the maximum number of bytes "
+         "that the cache should consume *overall*."),
 
         ('offline-storage-default-quota',
          SettingValue(types.WebKitBytes(maxsize=MAXVALS['int64']), ''),
@@ -467,37 +459,38 @@ DATA = OrderedDict([
 
         ('offline-storage-database',
          SettingValue(types.Bool(), 'true'),
-         "Specifies whether support for the HTML 5 offline storage feature is "
-         "enabled or not."),
+         "Whether support for the HTML 5 offline storage feature is enabled."),
 
         ('offline-web-application-storage',
          SettingValue(types.Bool(), 'true'),
-         "Specifies whether support for the HTML 5 web application cache "
-         "feature is enabled or not."),
+         "Whether support for the HTML 5 web application cache feature is "
+         "enabled.\n\n"
+         "An application cache acts like an HTTP cache in some sense. For "
+         "documents that use the application cache via JavaScript, the loader "
+         "engine will first ask the application cache for the contents, "
+         "before hitting the network.\n\n"
+         "The feature is described in details at: "
+         "http://dev.w3.org/html5/spec/Overview.html#appcache"),
 
         ('local-storage',
          SettingValue(types.Bool(), 'true'),
-         "Specifies whether support for the HTML 5 local storage feature is "
-         "enabled or not."),
+         "Whether support for the HTML 5 local storage feature is enabled."),
     )),
 
     ('permissions', sect.KeyValue(
         ('allow-images',
          SettingValue(types.Bool(), 'true'),
-         "Specifies whether images are automatically loaded in web pages."),
+         "Whether images are automatically loaded in web pages."),
 
         ('allow-javascript',
          SettingValue(types.Bool(), 'true'),
          "Enables or disables the running of JavaScript programs."),
 
-        #('allow-java',
-        # SettingValue(types.Bool(), 'true'),
-        # "Enables or disables Java applets. Currently Java applets are "
-        # "not supported"),
-
         ('allow-plugins',
          SettingValue(types.Bool(), 'false'),
-         "Enables or disables plugins in Web pages."),
+         "Enables or disables plugins in Web pages.\n\n"
+         'Qt plugins with a mimetype such as "application/x-qt-plugin" are '
+         "not affected by this setting."),
 
         ('allow-javascript',
          SettingValue(types.Bool(), 'true'),
@@ -514,26 +507,25 @@ DATA = OrderedDict([
 
         ('javascript-can-open-windows',
          SettingValue(types.Bool(), 'false'),
-         "Specifies whether JavaScript programs can open new windows."),
+         "Whether JavaScript programs can open new windows."),
 
         ('javascript-can-close-windows',
          SettingValue(types.Bool(), 'false'),
-         "Specifies whether JavaScript programs can close windows."),
+         "Whether JavaScript programs can close windows."),
 
         ('javascript-can-access-clipboard',
          SettingValue(types.Bool(), 'false'),
-         "Specifies whether JavaScript programs can read or write to the "
-         "clipboard."),
+         "Whether JavaScript programs can read or write to the clipboard."),
 
         ('local-content-can-access-remote-urls',
          SettingValue(types.Bool(), 'false'),
-         "Specifies whether locally loaded documents are allowed to access "
-         "remote urls."),
+         "Whether locally loaded documents are allowed to access remote "
+         "urls."),
 
         ('local-content-can-access-file-urls',
          SettingValue(types.Bool(), 'true'),
-         "Specifies whether locally loaded documents are allowed to access "
-         "other local urls."),
+         "Whether locally loaded documents are allowed to access other local "
+         "urls."),
 
         ('cookies-accept',
          SettingValue(types.AcceptCookies(), 'default'),
@@ -542,7 +534,6 @@ DATA = OrderedDict([
         ('cookies-store',
          SettingValue(types.Bool(), 'true'),
          "Whether to store cookies."),
-
     )),
 
     ('hints', sect.KeyValue(
@@ -771,7 +762,7 @@ DATA = OrderedDict([
 
         ('completion.bg',
          SettingValue(types.QssColor(), '#333333'),
-         "Text color of the completion widget."),
+         "Background color of the completion widget."),
 
         ('completion.item.bg',
          SettingValue(types.QssColor(), '${completion.bg}'),

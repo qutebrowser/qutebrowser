@@ -455,7 +455,7 @@ class ColorSystem(BaseType):
 
     valid_values = ValidValues(('rgb', "Interpolate in the RGB color system."),
                                ('hsv', "Interpolate in the HSV color system."),
-                               ('hsl', "Interpolate in the HSV color system."))
+                               ('hsl', "Interpolate in the HSL color system."))
 
     def validate(self, value):
         super().validate(value.lower())
@@ -742,7 +742,8 @@ class HintMode(BaseType):
     """Base class for the hints -> mode setting."""
 
     valid_values = ValidValues(('number', "Use numeric hints."),
-                               ('letter', "Use the chars in hints -> chars."))
+                               ('letter', "Use the chars in the hints -> chars "
+                                          "setting."))
 
 
 class Proxy(BaseType):
@@ -899,7 +900,7 @@ class LastClose(BaseType):
     """Behaviour when the last tab is closed."""
 
     valid_values = ValidValues(('ignore', "Don't do anything."),
-                               ('blank', "Load about:blank."),
+                               ('blank', "Load a blank page."),
                                ('quit', "Quit qutebrowser."))
 
 
@@ -907,7 +908,7 @@ class AcceptCookies(BaseType):
 
     """Whether to accept a cookie."""
 
-    valid_values = ValidValues(('default', "Default QtWebKit behaviour"),
+    valid_values = ValidValues(('default', "Default QtWebKit behaviour."),
                                ('never', "Don't accept cookies at all."))
 
 
