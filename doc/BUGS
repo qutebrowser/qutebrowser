@@ -9,8 +9,6 @@ Downloads
 - Download focus rectangle on windows
 - download-page on qute:htmllog is broken
 - Prevent invalid filenames (e.g. com1) when downloading on Windows
-- When quitting while being asked for a download filename: segfault / memory
-  corruption
 
 Webview
 -------

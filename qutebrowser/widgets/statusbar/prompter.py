@@ -157,6 +157,23 @@ class Prompter:
         self._busy = True
         return mode
 
+    def shutdown(self):
+        """Cancel all blocking questions.
+
+        Quits and removes all running eventloops.
+
+        Return:
+            True if loops needed to be aborted,
+            False otherwise.
+        """
+        if self._loops:
+            for loop in self._loops:
+                loop.quit()
+                loop.deleteLater()
+            return True
+        else:
+            return False
+
     @pyqtSlot(KeyMode)
     def on_mode_left(self, mode):
         """Clear and reset input when the mode was left."""

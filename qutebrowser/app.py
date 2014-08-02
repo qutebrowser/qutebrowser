@@ -704,6 +704,23 @@ class Application(QApplication):
             return
         self._shutting_down = True
         log.destroy.debug("Shutting down with status {}...".format(status))
+        if self.mainwindow.status.prompt.prompter.shutdown():
+            # If shutdown was called while we were asking a question, we're in
+            # a still sub-eventloop (which gets quitted now) and not in the
+            # main one.
+            # This means we need to defer the real shutdown to when we're back
+            # in the real main event loop, or we'll get a segfault.
+            log.destroy.debug("Deferring real shutdown because question was "
+                              "active.")
+            QTimer.singleShot(0, partial(self._shutdown, status))
+        else:
+            # If we have no questions to shut down, we are already in the real
+            # event loop, so we can shut down immediately.
+            self._shutdown(status)
+
+    def _shutdown(self, status):
+        """Second stage of shutdown."""
+        log.destroy.debug("Stage 2 of shutting down...")
         # Remove eventfilter
         if self.modeman is not None:
             log.destroy.debug("Removing eventfilter...")
