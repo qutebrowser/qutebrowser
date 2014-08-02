@@ -25,7 +25,7 @@ import cgi
 import shutil
 import inspect
 import subprocess
-from collections import Counter
+from collections import Counter, OrderedDict
 from tempfile import mkstemp
 
 sys.path.insert(0, os.getcwd())
@@ -65,7 +65,7 @@ def _parse_docstring(func):  # noqa
 
     short_desc = []
     long_desc = []
-    arg_descs = {}
+    arg_descs = OrderedDict()
     cur_arg_name = None
 
     for line in lines:
