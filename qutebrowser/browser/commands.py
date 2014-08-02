@@ -268,9 +268,10 @@ class CommandDispatcher:
                 - `yank`: Yank the link to the clipboard.
                 - `yank-primary`: Yank the link to the primary selection.
                 - `cmd`: Fill the commandline with `:open` and the link.
-                - `cmd-tab`: Fill the commandline with `:open-tab` and the link.
-                - `cmd-tag-bg`: Fill the commandline with `:open-tab-bg` and the
+                - `cmd-tab`: Fill the commandline with `:open-tab` and the
                   link.
+                - `cmd-tag-bg`: Fill the commandline with `:open-tab-bg` and
+                  the link.
                 - `rapid`: Open the link in a new tab and stay in hinting mode.
                 - `download`: Download the link.
                 - `userscript`: Call an userscript with `$QUTE_URL` set to the
@@ -322,8 +323,8 @@ class CommandDispatcher:
     def prev_page_tab(self):
         """Open a "previous" link in a new tab.
 
-        This tries to automatically click on typical "Previous Page" links using
-        some heuristics.
+        This tries to automatically click on typical "Previous Page" links
+        using some heuristics.
         """
         self._prevnext(prev=True, newtab=True)
 
@@ -331,8 +332,8 @@ class CommandDispatcher:
     def next_page_tab(self):
         """Open a "next" link in a new tab.
 
-        This tries to automatically click on typical "Previous Page" links using
-        some heuristics.
+        This tries to automatically click on typical "Previous Page" links
+        using some heuristics.
         """
         self._prevnext(prev=False, newtab=True)
 

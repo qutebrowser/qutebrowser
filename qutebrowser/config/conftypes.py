@@ -742,8 +742,8 @@ class HintMode(BaseType):
     """Base class for the hints -> mode setting."""
 
     valid_values = ValidValues(('number', "Use numeric hints."),
-                               ('letter', "Use the chars in the hints -> chars "
-                                          "setting."))
+                               ('letter', "Use the chars in the hints -> "
+                                          "chars setting."))
 
 
 class Proxy(BaseType):
