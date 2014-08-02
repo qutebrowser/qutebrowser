@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
