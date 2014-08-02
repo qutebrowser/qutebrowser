@@ -277,7 +277,8 @@ class CommandDispatcher:
                 - `tab-bg`: Open the link in a new background tab.
                 - `yank`: Yank the link to the clipboard.
                 - `yank-primary`: Yank the link to the primary selection.
-                - `cmd`: Fill the commandline with `:open` and the link.
+                - `fill`: Fill the commandline with the command given as
+                          argument.
                 - `cmd-tab`: Fill the commandline with `:open-tab` and the
                              link.
                 - `cmd-tag-bg`: Fill the commandline with `:open-tab-bg` and
@@ -286,10 +287,18 @@ class CommandDispatcher:
                 - `download`: Download the link.
                 - `userscript`: Call an userscript with `$QUTE_URL` set to the
                                 link.
-                - `spawn`: Spawn a command, with the argument `{hint-url}`
-                           replaced by the link.
+                - `spawn`: Spawn a command.
 
-            *args: Arguments for spawn/userscript.
+            *args: Arguments for spawn/userscript/fill.
+
+
+                - With `spawn`: The executable and arguments to spawn.
+                                `{hint-url}` will get replaced by the selected
+                                URL.
+                - With `userscript`: The userscript to execute.
+                - With `fill`: The command to fill the statusbar with.
+                                `{hint-url}` will get replaced by the selected
+                                URL.
         """
         widget = self._tabs.currentWidget()
         frame = widget.page().mainFrame()
@@ -297,11 +306,11 @@ class CommandDispatcher:
             raise CommandError("No frame focused!")
         try:
             group_enum = webelem.Group[group.replace('-', '_')]
-        except AttributeError:
+        except KeyError:
             raise CommandError("Unknown hinting group {}!".format(group))
         try:
             target_enum = hints.Target[target.replace('-', '_')]
-        except AttributeError:
+        except KeyError:
             raise CommandError("Unknown hinting target {}!".format(target))
         widget.hintmanager.start(frame, self._tabs.current_url(), group_enum,
                                  target_enum, *args)

@@ -42,8 +42,7 @@ ElemTuple = namedtuple('ElemTuple', 'elem, label')
 
 
 Target = enum('Target', 'normal', 'tab', 'tab_bg', 'yank', 'yank_primary',
-              'cmd', 'cmd_tab', 'cmd_tab_bg', 'rapid', 'download',
-              'userscript', 'spawn')
+              'fill', 'rapid', 'download', 'userscript', 'spawn')
 
 
 class HintContext:
@@ -57,7 +56,7 @@ class HintContext:
         target: What to do with the opened links.
                 normal/tab/tab_bg: Get passed to BrowserTab.
                 yank/yank_primary: Yank to clipboard/primary selection
-                cmd/cmd_tab/cmd_tab_bg: Enter link to commandline
+                fill: Fill commandline with link.
                 rapid: Rapid mode with background tabs
                 download: Download the link.
                 userscript: Call a custom userscript.
@@ -87,6 +86,16 @@ class HintContext:
         if not isinstance(val, Target):
             raise TypeError("Target {} is no Target member!".format(val))
         self._target = val
+
+    def get_args(self, urlstr):
+        """Get the arguments, with {hint-url} replaced by the given URL."""
+        args = []
+        for arg in self.args:
+            if arg == '{hint-url}':
+                args.append(urlstr)
+            else:
+                args.append(arg)
+        return args
 
 
 class HintManager(QObject):
@@ -134,9 +143,7 @@ class HintManager(QObject):
         Target.tab_bg: "Follow hint in background tab...",
         Target.yank: "Yank hint to clipboard...",
         Target.yank_primary: "Yank hint to primary selection...",
-        Target.cmd: "Set hint in commandline...",
-        Target.cmd_tab: "Set hint in commandline as new tab...",
-        Target.cmd_tab_bg: "Set hint in commandline as background tab...",
+        Target.fill: "Set hint in commandline...",
         Target.rapid: "Follow hint (rapid mode)...",
         Target.download: "Download hint...",
         Target.userscript: "Call userscript via hint...",
@@ -340,14 +347,10 @@ class HintManager(QObject):
             url: The URL to open as a QUrl.
         """
         qt_ensure_valid(url)
-        commands = {
-            Target.cmd: 'open',
-            Target.cmd_tab: 'open-tab',
-            Target.cmd_tab_bg: 'open-tab-bg',
-        }
+        command = self._context.args[0]
         urlstr = url.toDisplayString(QUrl.FullyEncoded)
-        message.set_cmd_text(':{} {}'.format(commands[self._context.target],
-                                             urlstr))
+        args = self._context.get_args(urlstr)
+        message.set_cmd_text(' '.join(args))
 
     def _download(self, elem):
         """Download a hint URL.
@@ -374,12 +377,7 @@ class HintManager(QObject):
         """Spawn a simple command from a hint."""
         qt_ensure_valid(url)
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
-        args = []
-        for arg in self._context.args:
-            if arg == '{hint-url}':
-                args.append(urlstr)
-            else:
-                args.append(arg)
+        args = self._context.get_args(urlstr)
         subprocess.Popen(args)
 
     def _resolve_url(self, elem, baseurl=None):
@@ -481,10 +479,10 @@ class HintManager(QObject):
             # start. But since we had a bug where frame is None in
             # on_mode_left, we are extra careful here.
             raise ValueError("start() was called with frame=None")
-        if target in (Target.userscript, Target.spawn):
+        if target in (Target.userscript, Target.spawn, Target.fill):
             if not args:
                 raise CommandError("Additional arguments are required with "
-                                   "target userscript/spawn.")
+                                   "target userscript/spawn/fill.")
         else:
             if args:
                 raise CommandError("Arguments are only allowed with target "
@@ -581,9 +579,7 @@ class HintManager(QObject):
         url_handlers = {
             Target.yank: self._yank,
             Target.yank_primary: self._yank,
-            Target.cmd: self._preset_cmd_text,
-            Target.cmd_tab: self._preset_cmd_text,
-            Target.cmd_tab_bg: self._preset_cmd_text,
+            Target.fill: self._preset_cmd_text,
             Target.userscript: self._call_userscript,
             Target.spawn: self._spawn,
         }
