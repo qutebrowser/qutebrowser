@@ -103,7 +103,7 @@ def _parse_docstring(func):  # noqa
                     arg_descs[cur_arg_name] = arg_descs[cur_arg_name][:-1]
                     break
             elif not line.strip():
-                arg_descs[cur_arg_name].append('\n')
+                arg_descs[cur_arg_name].append('\n\n')
             elif line[4:].startswith(' '):
                 arg_descs[cur_arg_name].append(line.strip() + '\n')
             else:
