@@ -215,7 +215,12 @@ class WebView(QWebView):
         # me, but it works this way.
         hitresult = frame.hitTestContent(pos)
         if hitresult.isNull():
+            # For some reason, the whole hitresult can be null sometimes (e.g.
+            # on doodle menu links). If this is the case, we schedule a check
+            # later (in mouseReleaseEvent) which uses webelem.focus_elem.
             log.mouse.debug("Hitresult is null!")
+            self._check_insertmode = True
+            return
         elem = hitresult.element()
         if elem.isNull():
             # For some reason, the hitresult element can be a null element
