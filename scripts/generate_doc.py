@@ -130,6 +130,8 @@ def _get_cmd_syntax(name, cmd):
         elif maxargs is None or i <= maxargs:
             words.append('[<{}>]'.format(arg))
         i += 1
+    if argspec.varargs is not None:
+        words.append('[<{name}> [...]]'.format(name=argspec.varargs))
     return (' '.join(words), defaults)
 
 
