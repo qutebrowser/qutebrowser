@@ -15,9 +15,6 @@ Downloads
 Webview
 -------
 
-- Concept of "current URL" should work better before urlChanged is emitted,
-  e.g. loading a page and immediately yanking the (non-resolved) URL should
-  work.
 - Hint positions wrong in wordpress admin interface
 - Rightclick -> Copy link copies relative links
 - F on duckduckgo result page opens in current page

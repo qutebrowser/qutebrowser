@@ -200,7 +200,7 @@ class TabbedBrowser(TabWidget):
         Raise:
             CommandError if the current URL is invalid.
         """
-        url = self.currentWidget().url()
+        url = self.currentWidget().cur_url
         try:
             qt_ensure_valid(url)
         except QtValueError as e:
@@ -257,10 +257,9 @@ class TabbedBrowser(TabWidget):
             self._now_focused = None
         if tab is self.last_focused:
             self.last_focused = None
-        url = tab.url()
-        if not url.isEmpty():
-            qt_ensure_valid(url)
-            self.url_stack.append(url)
+        if not tab.cur_url.isEmpty():
+            qt_ensure_valid(tab.cur_url)
+            self.url_stack.append(tab.cur_url)
         tab.shutdown()
         self._tabs.remove(tab)
         self.removeTab(idx)

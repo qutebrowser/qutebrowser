@@ -19,7 +19,7 @@
 
 """The main browser widgets."""
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
@@ -58,8 +58,7 @@ class WebView(QWebView):
         inspector: The QWebInspector used for this webview.
         open_target: Where to open the next tab ("normal", "tab", "tab_bg")
         _page: The QWebPage behind the view
-        _url_text: The current URL as string.
-                   Accessed via url_text property.
+        _cur_url: The current URL (accessed via cur_url property).
         _load_status: loading status of this page (index into LoadStatus)
                       Accessed via load_status property.
         _has_ssl_errors: Whether SSL errors occured during loading.
@@ -99,7 +98,8 @@ class WebView(QWebView):
         self._zoom = None
         self._has_ssl_errors = False
         self._init_neighborlist()
-        self._url_text = ''
+        self._cur_url = None
+        self.cur_url = QUrl()
         self.progress = 0
         self._page = BrowserPage(self)
         self.setPage(self._page)
@@ -153,19 +153,22 @@ class WebView(QWebView):
         self.load_status_changed.emit(val.name)
 
     @property
-    def url_text(self):
-        """Getter for url_text."""
-        return self._url_text
+    def cur_url(self):
+        """Getter for cur_url so we can define a setter."""
+        return self._cur_url
 
-    @url_text.setter
-    def url_text(self, val):
-        """Setter for url_text.
+    @cur_url.setter
+    def cur_url(self, url):
+        """Setter for cur_url to emit a signal..
+
+        Arg:
+            url: The new URL as a QUrl.
 
         Emit:
-            url_text_changed
+            url_text_changed: Always emitted.
         """
-        self._url_text = val
-        self.url_text_changed.emit(val)
+        self._cur_url = url
+        self.url_text_changed.emit(url.toDisplayString())
 
     def _init_neighborlist(self):
         """Initialize the _zoom neighborlist."""
@@ -300,7 +303,7 @@ class WebView(QWebView):
         urlstr = url.toDisplayString()
         log.webview.debug("New title: {}".format(urlstr))
         self.titleChanged.emit(urlstr)
-        self.url_text = urlstr
+        self.cur_url = url
         return self.load(url)
 
     def zoom_perc(self, perc, fuzzyval=True):
@@ -352,9 +355,9 @@ class WebView(QWebView):
 
     @pyqtSlot('QUrl')
     def on_url_changed(self, url):
-        """Update url_text when URL has changed."""
+        """Update cur_url when URL has changed."""
         qt_ensure_valid(url)
-        self.url_text = url.toDisplayString()
+        self.cur_url = url
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
