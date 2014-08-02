@@ -911,15 +911,6 @@ class AcceptCookies(BaseType):
                                ('never', "Don't accept cookies at all."))
 
 
-class WindowOpenBehaviour(BaseType):
-
-    """What to do when a webview requests a new window."""
-
-    valid_values = ValidValues(('same-tab', "Open new window in same tab."),
-                               ('new-tab', "Open new window in new tab (note: "
-                                           "history will be cleared)."))
-
-
 class ConfirmQuit(BaseType):
 
     """Whether to display a confirmation when the window is closed."""

@@ -437,12 +437,7 @@ class WebView(QWebView):
         if wintype == QWebPage.WebModalDialog:
             log.webview.warning("WebModalDialog requested, but we don't "
                                 "support that!")
-        if config.get('general', 'window-open-behaviour') == 'new-tab':
-            return self.tabbedbrowser.tabopen()
-        else:
-            # FIXME for some odd reason, the history of the tab gets killed
-            # here...
-            return self
+        return self.tabbedbrowser.tabopen()
 
     def paintEvent(self, e):
         """Extend paintEvent to emit a signal if the scroll position changed.

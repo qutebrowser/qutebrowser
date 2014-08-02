@@ -196,11 +196,6 @@ DATA = OrderedDict([
          SettingValue(types.Bool(), 'false'),
          "Whether to open new tabs (middleclick/ctrl+click) in background."),
 
-        ('window-open-behaviour',
-         SettingValue(types.WindowOpenBehaviour(), 'new-tab'),
-         "What to do when the WebView requests a new window to be opened "
-         "(e.g.  via javascript)."),
-
         ('editor',
          SettingValue(types.ShellCommand(placeholder=True), 'gvim -f "{}"'),
          "The editor (and arguments) to use for the open-editor binding. "
