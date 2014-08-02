@@ -760,7 +760,12 @@ class Application(QApplication):
         log.destroy.debug("Deactiving message handler...")
         qInstallMessageHandler(None)
         # Now we can hopefully quit without segfaults
-        log.destroy.debug("Calling QApplication::exit...")
+        log.destroy.debug("Deferring QApplication::exit...")
         # We use a singleshot timer to exit here to minimize the likelyhood of
         # segfaults.
         QTimer.singleShot(0, partial(self.exit, status))
+
+    def exit(self, status):
+        """Extend QApplication::exit to log the event."""
+        log.destroy.debug("Now calling QApplication::exit.")
+        super().exit(status)
