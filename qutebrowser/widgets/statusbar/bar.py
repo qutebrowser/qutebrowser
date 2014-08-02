@@ -190,6 +190,7 @@ class StatusBar(QWidget):
         Re-set the stylesheet after setting the value, so everything gets
         updated by Qt properly.
         """
+        logger.debug("Setting error to {}".format(val))
         self._error = val
         self.setStyleSheet(get_stylesheet(self.STYLESHEET))
 
@@ -206,6 +207,7 @@ class StatusBar(QWidget):
         Re-set the stylesheet after setting the value, so everything gets
         updated by Qt properly.
         """
+        logger.debug("Setting prompt_active to {}".format(val))
         self._prompt_active = val
         self.setStyleSheet(get_stylesheet(self.STYLESHEET))
 
@@ -222,6 +224,7 @@ class StatusBar(QWidget):
         Re-set the stylesheet after setting the value, so everything gets
         updated by Qt properly.
         """
+        logger.debug("Setting insert_active to {}".format(val))
         self._insert_active = val
         self.setStyleSheet(get_stylesheet(self.STYLESHEET))
 
