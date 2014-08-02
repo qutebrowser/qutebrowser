@@ -279,15 +279,15 @@ class CommandDispatcher:
                 - `yank-primary`: Yank the link to the primary selection.
                 - `cmd`: Fill the commandline with `:open` and the link.
                 - `cmd-tab`: Fill the commandline with `:open-tab` and the
-                  link.
+                             link.
                 - `cmd-tag-bg`: Fill the commandline with `:open-tab-bg` and
-                  the link.
+                                the link.
                 - `rapid`: Open the link in a new tab and stay in hinting mode.
                 - `download`: Download the link.
                 - `userscript`: Call an userscript with `$QUTE_URL` set to the
-                  link.
+                                link.
                 - `spawn`: Spawn a command, with the argument `{hint-url}`
-                  replaced by the link.
+                           replaced by the link.
 
             *args: Arguments for spawn/userscript.
         """
