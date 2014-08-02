@@ -482,8 +482,8 @@ class Application(QApplication):
             return pages
         for tab in self.mainwindow.tabs.widgets:
             try:
-                # FIXME should that be encoded?
-                url = tab.cur_url.toString()
+                url = tab.cur_url.toString(
+                    QUrl.RemovePassword | QUrl.FullyEncoded)
                 if url:
                     pages.append(url)
             except Exception as e:  # pylint: disable=broad-except
@@ -595,8 +595,8 @@ class Application(QApplication):
         if pages is None:
             pages = []
             for tab in self.mainwindow.tabs.widgets:
-                # FIXME should that be encoded?
-                urlstr = tab.cur_url.toString()
+                urlstr = tab.cur_url.toString(
+                    QUrl.RemovePassword | QUrl.FullyEncoded)
                 if urlstr:
                     pages.append(urlstr)
         log.destroy.debug("sys.executable: {}".format(sys.executable))
