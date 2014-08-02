@@ -291,7 +291,6 @@ class CommandDispatcher:
 
             *args: Arguments for spawn/userscript/fill.
 
-
                 - With `spawn`: The executable and arguments to spawn.
                                 `{hint-url}` will get replaced by the selected
                                 URL.

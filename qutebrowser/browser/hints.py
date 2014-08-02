@@ -347,7 +347,6 @@ class HintManager(QObject):
             url: The URL to open as a QUrl.
         """
         qt_ensure_valid(url)
-        command = self._context.args[0]
         urlstr = url.toDisplayString(QUrl.FullyEncoded)
         args = self._context.get_args(urlstr)
         message.set_cmd_text(' '.join(args))
