@@ -273,7 +273,7 @@ class CommandDispatcher:
                   link.
                 - `rapid`: Open the link in a new tab and stay in hinting mode.
                 - `download`: Download the link.
-                - `userscript`: Call an userscript with `$QUTE_URI` set to the
+                - `userscript`: Call an userscript with `$QUTE_URL` set to the
                   link.
                 - `spawn`: Spawn a command, with the argument `{hint-url}`
                   replaced by the link.
