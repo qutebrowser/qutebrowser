@@ -68,6 +68,7 @@ class Prompter:
         self.question = None
         self._loops = []
         self._queue = deque()
+        self._busy = False
         self._prompt = prompt
 
     def __repr__(self):
@@ -85,7 +86,7 @@ class Prompter:
 
     def _get_ctx(self):
         """Get a PromptContext based on the current state."""
-        if self.question is None:
+        if not self._busy:
             return None
         ctx = PromptContext(question=self.question,
                             text=self._prompt.txt.text(),
@@ -105,7 +106,7 @@ class Prompter:
         logger.debug("Restoring context {}".format(ctx))
         if ctx is None:
             self._prompt.hide_prompt.emit()
-            self.question = None
+            self._busy = False
             return False
         self.question = ctx.question
         self._prompt.txt.setText(ctx.text)
@@ -153,6 +154,7 @@ class Prompter:
             raise ValueError("Invalid prompt mode!")
         self._prompt.lineedit.setFocus()
         self._prompt.show_prompt.emit()
+        self._busy = True
         return mode
 
     @pyqtSlot(KeyMode)
@@ -163,9 +165,9 @@ class Prompter:
             self._prompt.lineedit.clear()
             self._prompt.lineedit.setEchoMode(QLineEdit.Normal)
             self._prompt.hide_prompt.emit()
+            self._busy = False
             if self.question.answer is None and not self.question.is_aborted:
                 self.question.cancel()
-            self.question = None
 
     @cmdutils.register(instance='mainwindow.status.prompt.prompter', hide=True,
                        modes=[KeyMode.prompt])
@@ -245,7 +247,7 @@ class Prompter:
         logger.debug("Asking question {}, blocking {}, loops {}, queue "
                      "{}".format(question, blocking, self._loops, self._queue))
 
-        if self.question is not None and not blocking:
+        if self._busy and not blocking:
             # We got an async question, but we're already busy with one, so we
             # just queue it up for later.
             logger.debug("Adding {} to queue.".format(question))
