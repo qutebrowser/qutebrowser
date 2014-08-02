@@ -175,7 +175,8 @@ def _get_command_doc(name, cmd):
     output = ['[[cmd-{}]]'.format(name)]
     output += ['==== {}'.format(name)]
     syntax, defaults = _get_cmd_syntax(name, cmd)
-    output.append('+:{}+'.format(syntax))
+    if syntax != name:
+        output.append('Syntax: +:{}+'.format(syntax))
     output.append("")
     short_desc, long_desc, arg_descs = _parse_docstring(cmd.handler)
     output.append(' '.join(short_desc))
