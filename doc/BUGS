@@ -80,8 +80,9 @@ Misc
 
 - All kind of FIXMEs
 - On doodle, when modifying something on http://doodle.com/create and clicking
-  a link to leave the page, the message is suboptimal. Also, with some random
-  clicking it's somehow possible to get out of yesno mode.
+  a link to leave the page, with some random clicking it's somehow possible to
+  get out of yesno mode.
+  We also should prevent entering any other mode while in prompt mode.
 - Opening via commandline / startpage doesn't work with absolute file paths.
 - Relative file paths and ~ don't work at all.
 - Config errors on start shouldn't be hard errors
