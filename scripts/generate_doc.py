@@ -93,7 +93,7 @@ def _parse_docstring(func):  # noqa
                 cur_state = State.arg_start
         elif cur_state == State.arg_start:
             cur_arg_name, argdesc = line.split(':', maxsplit=1)
-            cur_arg_name = cur_arg_name.strip()
+            cur_arg_name = cur_arg_name.strip().lstrip('*')
             arg_descs[cur_arg_name] = [argdesc.strip()]
             cur_state = State.arg_inside
         elif cur_state == State.arg_inside:
@@ -103,7 +103,7 @@ def _parse_docstring(func):  # noqa
                 arg_descs[cur_arg_name].append(line.strip())
             else:
                 cur_arg_name, argdesc = line.split(':', maxsplit=1)
-                cur_arg_name = cur_arg_name.strip()
+                cur_arg_name = cur_arg_name.strip().lstrip('*')
                 arg_descs[cur_arg_name] = [argdesc.strip()]
 
     return (short_desc, long_desc, arg_descs)
