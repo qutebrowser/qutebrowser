@@ -607,7 +607,6 @@ DATA = OrderedDict([
         (';i', 'hint images'),
         (';I', 'hint images tab'),
         ('.i', 'hint images tab-bg'),
-        (';e', 'hint editable'),
         (';o', 'hint links cmd'),
         (';O', 'hint links cmd-tab'),
         ('.o', 'hint links cmd-tab-bg'),

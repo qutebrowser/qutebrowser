@@ -36,8 +36,7 @@ from qutebrowser.utils.usertypes import enum
 from qutebrowser.utils.misc import compact_text
 
 
-Group = enum('Group', 'all', 'links', 'images', 'editable', 'url', 'prevnext',
-             'focus')
+Group = enum('Group', 'all', 'links', 'images', 'url', 'prevnext', 'focus')
 
 
 SELECTORS = {
