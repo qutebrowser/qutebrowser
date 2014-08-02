@@ -19,6 +19,7 @@
 
 """Generate asciidoc source for qutebrowser based on docstrings."""
 
+import re
 import os
 import sys
 import cgi
@@ -97,15 +98,18 @@ def _parse_docstring(func):  # noqa
             arg_descs[cur_arg_name] = [argdesc.strip()]
             cur_state = State.arg_inside
         elif cur_state == State.arg_inside:
-            if not line:
-                break
+            if re.match('^[A-Z][a-z]+:$', line):
+                if not arg_descs[cur_arg_name][-1].strip():
+                    arg_descs[cur_arg_name] = arg_descs[cur_arg_name][:-1]
+                    break
+            elif not line.strip():
+                arg_descs[cur_arg_name].append('\n')
             elif line[4:].startswith(' '):
-                arg_descs[cur_arg_name].append(line.strip())
+                arg_descs[cur_arg_name].append(line.strip() + '\n')
             else:
                 cur_arg_name, argdesc = line.split(':', maxsplit=1)
                 cur_arg_name = cur_arg_name.strip().lstrip('*')
                 arg_descs[cur_arg_name] = [argdesc.strip()]
-
     return (short_desc, long_desc, arg_descs)
 
 
@@ -180,9 +184,11 @@ def _get_command_doc(name, cmd):
     if arg_descs:
         output.append("")
         for arg, desc in arg_descs.items():
-            item = "* +{}+: {}".format(arg, ' '.join(desc))
+            text = ' '.join(desc).splitlines()
+            item = "* +{}+: {}".format(arg, text[0])
             if arg in defaults:
-                item += " (default: +{}+)".format(defaults[arg])
+                item += " (default: +{}+)\n".format(defaults[arg])
+            item += '\n'.join(text[1:])
             output.append(item)
         output.append("")
     output.append("")
