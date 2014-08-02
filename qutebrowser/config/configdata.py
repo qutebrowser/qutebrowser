@@ -650,7 +650,7 @@ DATA = OrderedDict([
         ('wi', 'inspector'),
         ('gd', 'download-page'),
         ('ad', 'cancel-download'),
-        ('<Ctrl-Tab>', 'tab-focus-last'),
+        ('<Ctrl-Tab>', 'tab-focus last'),
         ('<Ctrl-V>', 'enter-mode passthrough'),
         ('<Ctrl-Q>', 'quit'),
         ('<Ctrl-Shift-T>', 'undo'),

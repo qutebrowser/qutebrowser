@@ -125,6 +125,16 @@ class CommandDispatcher:
         elif direction == '+':
             return self._tabs.currentIndex() + delta
 
+    def _tab_focus_last(self):
+        """Select the tab which was last focused."""
+        if self._tabs.last_focused is None:
+            raise CommandError("No last focused tab!")
+        idx = self._tabs.indexOf(self._tabs.last_focused)
+        if idx == -1:
+            raise CommandError("Last focused tab vanished!")
+        self._tabs.setCurrentIndex(idx)
+
+
     def _editor_cleanup(self, oshandle, filename):
         """Clean up temporary file when the editor was closed."""
         os.close(oshandle)
@@ -574,9 +584,13 @@ class CommandDispatcher:
         """Select the tab given as argument/[count].
 
         Args:
-            index: The tab index to focus, starting with 1.
+            index: The tab index to focus, starting with 1. The special value
+                   `last` focuses the last focused tab.
             count: The tab index to focus, starting with 1.
         """
+        if index == 'last':
+            self._tab_focus_last()
+            return
         try:
             idx = cmdutils.arg_or_count(index, count, default=1,
                                         countzero=self._tabs.count())
@@ -618,16 +632,6 @@ class CommandDispatcher:
         self._tabs.removeTab(cur_idx)
         self._tabs.insertTab(new_idx, tab, icon, label)
         self._tabs.setCurrentIndex(new_idx)
-
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
-    def tab_focus_last(self):
-        """Select the tab which was last focused."""
-        if self._tabs.last_focused is None:
-            raise CommandError("No last focused tab!")
-        idx = self._tabs.indexOf(self._tabs.last_focused)
-        if idx == -1:
-            raise CommandError("Last focused tab vanished!")
-        self._tabs.setCurrentIndex(idx)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', split=False)
     def spawn(self, *args):
