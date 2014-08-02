@@ -36,7 +36,10 @@ from qutebrowser.widgets.statusbar.percentage import Percentage
 from qutebrowser.widgets.statusbar.url import UrlText
 from qutebrowser.widgets.statusbar.prompt import Prompt
 from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
-from qutebrowser.utils.usertypes import Timer, KeyMode
+from qutebrowser.utils.usertypes import Timer, KeyMode, enum
+
+
+PreviousWidget = enum('PreviousWidget', 'none', 'prompt', 'command')
 
 
 class StatusBar(QWidget):
@@ -61,6 +64,8 @@ class StatusBar(QWidget):
         _last_text_time: The timestamp where a message was last displayed.
         _timer_was_active: Whether the _text_pop_timer was active before hiding
                            the command widget.
+        _previous_widget: A PreviousWidget member - the widget which was
+                          displayed when an error interrupted it.
 
     Class attributes:
         _error: If there currently is an error, accessed through the error
@@ -151,6 +156,7 @@ class StatusBar(QWidget):
 
         self.prompt = Prompt()
         self._stack.addWidget(self.prompt)
+        self._previous_widget = PreviousWidget.none
 
         self.cmd.show_cmd.connect(self._show_cmd_widget)
         self.cmd.hide_cmd.connect(self._hide_cmd_widget)
@@ -193,6 +199,10 @@ class StatusBar(QWidget):
         logger.debug("Setting error to {}".format(val))
         self._error = val
         self.setStyleSheet(get_stylesheet(self.STYLESHEET))
+        if val:
+            # If we got an error while command/prompt was shown, raise the text
+            # widget.
+            self._stack.setCurrentWidget(self.txt)
 
     @pyqtProperty(bool)
     def prompt_active(self):
@@ -236,6 +246,15 @@ class StatusBar(QWidget):
             self.error = False
             self.txt.temptext = ''
             self._text_pop_timer.stop()
+            # If a previous widget was interrupted by an error, restore it.
+            if self._previous_widget == PreviousWidget.prompt:
+                self._stack.setCurrentWidget(self.prompt)
+            elif self._previous_widget == PreviousWidget.command:
+                self._stack.setCurrentWidget(self.command)
+            elif self._previous_widget == PreviousWidget.none:
+                pass
+            else:
+                raise AssertionError("Unknown _previous_widget!")
             return
         logger.debug("Displaying {} message: {}".format(
             'error' if error else 'text', text))
@@ -246,6 +265,7 @@ class StatusBar(QWidget):
     def _show_cmd_widget(self):
         """Show command widget instead of temporary text."""
         self.error = False
+        self._previous_widget = PreviousWidget.prompt
         if self._text_pop_timer.isActive():
             self._timer_was_active = True
         self._text_pop_timer.stop()
@@ -254,6 +274,7 @@ class StatusBar(QWidget):
     def _hide_cmd_widget(self):
         """Show temporary text instead of command widget."""
         logger.debug("Hiding cmd widget, queue: {}".format(self._text_queue))
+        self._previous_widget = PreviousWidget.none
         if self._timer_was_active:
             # Restart the text pop timer if it was active before hiding.
             self._pop_text()
@@ -265,6 +286,7 @@ class StatusBar(QWidget):
         """Show prompt widget instead of temporary text."""
         self.error = False
         self.prompt_active = True
+        self._previous_widget = PreviousWidget.prompt
         if self._text_pop_timer.isActive():
             self._timer_was_active = True
         self._text_pop_timer.stop()
@@ -273,6 +295,7 @@ class StatusBar(QWidget):
     def _hide_prompt_widget(self):
         """Show temporary text instead of prompt widget."""
         self.prompt_active = False
+        self._previous_widget = PreviousWidget.none
         logger.debug("Hiding prompt widget, queue: {}".format(
             self._text_queue))
         if self._timer_was_active:
