@@ -255,7 +255,29 @@ class CommandDispatcher:
 
         Args:
             group: The hinting mode to use.
-            target: Where to open the links.
+
+                - `all`: All clickable elements.
+                - `links`: Only links.
+                - `images`: Only images.
+
+            target: What to do with the selected element.
+
+                - `normal`: Open the link in the current tab.
+                - `tab`: Open the link in a new tab.
+                - `tab-bg`: Open the link in a new background tab.
+                - `yank`: Yank the link to the clipboard.
+                - `yank-primary`: Yank the link to the primary selection.
+                - `cmd`: Fill the commandline with `:open` and the link.
+                - `cmd-tab`: Fill the commandline with `:open-tab` and the link.
+                - `cmd-tag-bg`: Fill the commandline with `:open-tab-bg` and the
+                  link.
+                - `rapid`: Open the link in a new tab and stay in hinting mode.
+                - `download`: Download the link.
+                - `userscript`: Call an userscript with `$QUTE_URI` set to the
+                  link.
+                - `spawn`: Spawn a command, with the argument `{hint-url}`
+                  replaced by the link.
+
             *args: Arguments for spawn/userscript.
         """
         widget = self._tabs.currentWidget()
