@@ -83,13 +83,13 @@ class Command:
         # of qutebrowser.keyinput.modeman.
         curmode = QCoreApplication.instance().modeman.mode
         if self.modes is not None and curmode not in self.modes:
+            mode_names = '/'.join(mode.name for mode in self.modes)
             raise PrerequisitesError("{}: This command is only allowed in {} "
-                                     "mode.".format(self.name,
-                                                    '/'.join(self.modes)))
+                                     "mode.".format(self.name, mode_names))
         elif self.not_modes is not None and curmode in self.not_modes:
+            mode_names = '/'.join(mode.name for mode in self.not_modes)
             raise PrerequisitesError("{}: This command is not allowed in {} "
-                                     "mode.".format(self.name,
-                                                    '/'.join(self.not_modes)))
+                                     "mode.".format(self.name, mode_names))
         if self.needs_js and not QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
             raise PrerequisitesError("{}: This command needs javascript "
