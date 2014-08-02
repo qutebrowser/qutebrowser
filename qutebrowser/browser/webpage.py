@@ -207,11 +207,11 @@ class BrowserPage(QWebPage):
 
     def javaScriptAlert(self, _frame, msg):
         """Override javaScriptAlert to use the statusbar."""
-        message.ask("js: {}".format(msg), PromptMode.alert)
+        message.ask("[js alert] {}".format(msg), PromptMode.alert)
 
     def javaScriptConfirm(self, _frame, msg):
         """Override javaScriptConfirm to use the statusbar."""
-        ans = message.ask("js: {}".format(msg), PromptMode.yesno)
+        ans = message.ask("[js confirm] {}".format(msg), PromptMode.yesno)
         return bool(ans)
 
     def javaScriptConsoleMessage(self, msg, line, source):
