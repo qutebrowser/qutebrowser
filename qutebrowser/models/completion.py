@@ -67,6 +67,8 @@ class SettingOptionCompletionModel(BaseCompletionModel):
                 # Some stuff (especially ValueList items) don't have a
                 # description.
                 desc = ""
+            else:
+                desc = desc.splitlines()[0]
             value = config.get(section, name, raw=True)
             _valitem, _descitem, miscitem = self.new_item(cat, name, desc,
                                                           value)
