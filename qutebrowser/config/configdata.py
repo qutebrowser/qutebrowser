@@ -869,7 +869,7 @@ DATA = OrderedDict([
          "Background color of selected tabs."),
 
         ('tab.bg.bar',
-         SettingValue(types.QssColor(), '#555555'),
+         SettingValue(types.QtColor(), '#555555'),
          "Background color of the tabbar."),
 
         ('tab.indicator.start',

@@ -104,6 +104,10 @@ class TabBar(QTabBar):
         self.setStyle(TabBarStyle(self.style()))
         self.setFont(config.get('fonts', 'tabbar'))
         self.vertical = False
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(QPalette.Window, config.get('colors', 'tab.bg.bar'))
+        self.setPalette(p)
 
     def __repr__(self):
         return '<{} with {} tabs>'.format(self.__class__.__name__,
@@ -130,6 +134,10 @@ class TabBar(QTabBar):
         """Update attributes when config changed."""
         if section == 'fonts' and option == 'tabbar':
             self.setFont(config.get('fonts', 'tabbar'))
+        elif section == 'colors' and option == 'tab.bg.bar':
+            p = self.palette()
+            p.setColor(QPalette.Window, config.get('colors', 'tab.bg.bar'))
+            self.setPalette(p)
 
     def mousePressEvent(self, e):
         """Override mousePressEvent to close tabs if configured."""
