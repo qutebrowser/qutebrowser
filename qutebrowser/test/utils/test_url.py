@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=protected-access
+
 """Tests for qutebrowser.utils.url."""
 
 import unittest
@@ -77,8 +79,6 @@ class SearchUrlTests(unittest.TestCase):
         config: The urlutils.config instance.
     """
 
-    # pylint: disable=protected-access
-
     def setUp(self):
         self.config = urlutils.config
         urlutils.config = ConfigStub(CONFIG)
@@ -131,8 +131,6 @@ class IsUrlNaiveTests(unittest.TestCase):
         'another . test',
         'foo',
     )
-
-    # pylint: disable=protected-access
 
     def test_urls(self):
         """Test things which are URLs."""

@@ -38,7 +38,6 @@ MapType = enum('MapType', 'attribute', 'setter', 'static_setter')
 
 
 MAPPINGS = {
-    # noqa
     'permissions': {
         'allow-images':
             (MapType.attribute, QWebSettings.AutoLoadImages),

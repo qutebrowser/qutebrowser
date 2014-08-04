@@ -26,7 +26,7 @@ import faulthandler
 import traceback
 import signal
 try:
-    from tkinter import Tk, messagebox
+    from tkinter import Tk, messagebox  # pylint: disable=import-error
 except ImportError:
     Tk = None
 

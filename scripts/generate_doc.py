@@ -33,7 +33,7 @@ sys.path.insert(0, os.getcwd())
 
 import qutebrowser
 # We import qutebrowser.app so all @cmdutils-register decorators are run.
-import qutebrowser.app  # pylint: disable=unused-import
+import qutebrowser.app
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.config.configdata as configdata
 import qutebrowser.qutebrowser as qutequtebrowser
@@ -115,7 +115,6 @@ def _parse_docstring(func):  # noqa
 
 def _get_cmd_syntax(name, cmd):
     """Get the command syntax for a command."""
-    # pylint: disable=no-member
     words = []
     argspec = inspect.getfullargspec(cmd.handler)
     if argspec.defaults is not None:
@@ -288,15 +287,16 @@ def generate_manpage_description(f):
 
 def generate_manpage_options(f):
     """Generate the OPTIONS-section of the manpage from an argparse parser."""
+    # pylint: disable=protected-access
     parser = qutequtebrowser.get_argparser()
     f.write('== OPTIONS\n')
 
     # positionals, optionals and user-defined groups
-    for group in parser._action_groups:  # pylint: disable=protected-access
+    for group in parser._action_groups:
         f.write('=== {}\n'.format(group.title))
         if group.description is not None:
             f.write(group.description + '\n')
-        for action in group._group_actions:  # pylint: disable=protected-access
+        for action in group._group_actions:
             f.write(_format_action(action))
         f.write('\n')
     # epilog

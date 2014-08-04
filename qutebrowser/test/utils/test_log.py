@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=protected-access
+
 """Tests for qutebrowser.utils.log."""
 
 import logging
@@ -36,7 +38,6 @@ class BaseTest(unittest.TestCase):
 
     def setUp(self):
         """Save the old logging configuration."""
-        # pylint: disable=protected-access
         logger_dict = logging.getLogger().manager.loggerDict
         logging._acquireLock()
         try:
@@ -55,7 +56,6 @@ class BaseTest(unittest.TestCase):
 
     def tearDown(self):
         """Restore the original logging configuration."""
-        # pylint: disable=protected-access
         while self.root_logger.handlers:
             h = self.root_logger.handlers[0]
             self.root_logger.removeHandler(h)

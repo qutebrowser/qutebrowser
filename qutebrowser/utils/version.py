@@ -142,7 +142,7 @@ def _module_versions():
     Return:
         A list of lines with version info.
     """
-    # pylint: disable=import-error, unused-variable
+    # pylint: disable=import-error,unused-variable
     lines = []
     try:
         import sipconfig

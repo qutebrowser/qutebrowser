@@ -90,9 +90,6 @@ class Application(QApplication):
         _crashlogfile: A file handler to the fatal crash logfile.
     """
 
-    # This also holds all our globals, so we're a bit over the top here.
-    # pylint: disable=too-many-instance-attributes
-
     def __init__(self, args):
         """Constructor.
 

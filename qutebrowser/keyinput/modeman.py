@@ -58,7 +58,7 @@ def maybe_enter(mode, reason=None):
     """Convenience method to enter 'mode' without exceptions."""
     try:
         instance().enter(mode, reason)
-    except ModeLockedError as e:
+    except ModeLockedError:
         pass
 
 

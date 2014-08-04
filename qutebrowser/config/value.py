@@ -81,7 +81,6 @@ class SettingValue:
         Args:
             startlayer: The first layer to include.
         """
-        # pylint: disable=useless-else-on-loop
         if startlayer is None:
             d = self._values
         else:
@@ -89,7 +88,7 @@ class SettingValue:
         for val in d.values():
             if val is not None:
                 return val
-        else:
+        else:  # pylint: disable=useless-else-on-loop
             raise ValueError("No valid config value found!")
 
     def transformed(self):

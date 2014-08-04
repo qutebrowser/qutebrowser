@@ -134,7 +134,6 @@ class CommandDispatcher:
             raise CommandError("Last focused tab vanished!")
         self._tabs.setCurrentIndex(idx)
 
-
     def _editor_cleanup(self, oshandle, filename):
         """Clean up temporary file when the editor was closed."""
         os.close(oshandle)

@@ -189,7 +189,6 @@ class FakeQApplication:
     """Stub to insert as QApplication module."""
 
     def __init__(self, focus):
-        # pylint: disable=invalid-name
         self.focusWidget = Mock(return_value=focus)
         self.instance = Mock(return_value=self)
 

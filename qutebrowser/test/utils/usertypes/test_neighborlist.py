@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=protected-access
+
 """Tests for the NeighborList class."""
 
 import unittest
@@ -179,8 +181,6 @@ class OneTests(unittest.TestCase):
     Attributes:
         nl: The NeighborList we're testing.
     """
-
-    # pylint: disable=protected-access
 
     def setUp(self):
         self.nl = NeighborList([1], default=1)

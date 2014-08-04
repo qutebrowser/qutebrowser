@@ -451,8 +451,6 @@ class SectionProxy(MutableMapping):
         _name: The section name.
     """
 
-    # pylint: disable=redefined-builtin
-
     def __init__(self, conf, name):
         """Create a view on a section.
 
@@ -492,7 +490,7 @@ class SectionProxy(MutableMapping):
         """Get the option keys from this section."""
         return self._conf.sections[self._name].keys()
 
-    def get(self, optname, *, raw=False):
+    def get(self, optname, *, raw=False):  # pylint: disable=arguments-differ
         """Get a value from this section.
 
         We deliberately don't support the default argument here, but have a raw
@@ -502,7 +500,6 @@ class SectionProxy(MutableMapping):
             optname: The option name to get.
             raw: Whether to get a raw value or not.
         """
-        # pylint: disable=arguments-differ
         return self._conf.get(self._name, optname, raw=raw)
 
     @property

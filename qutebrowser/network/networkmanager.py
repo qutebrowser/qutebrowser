@@ -73,7 +73,7 @@ class NetworkManager(QNetworkAccessManager):
             # Since the answer could be something else than (user, password)
             # pylint seems to think we're unpacking a non-sequence. However we
             # *did* explicitely ask for a tuple, so it *will* always be one.
-            user, password = answer  # pylint: disable=unpacking-non-sequence
+            user, password = answer
             authenticator.setUser(user)
             authenticator.setPassword(password)
 

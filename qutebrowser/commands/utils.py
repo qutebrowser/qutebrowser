@@ -156,7 +156,6 @@ class register:  # pylint: disable=invalid-name
         Return:
             The original function (unmodified).
         """
-        # pylint: disable=no-member
         names = []
         if self.name is None:
             name = func.__name__.lower().replace('_', '-')
@@ -206,14 +205,13 @@ class register:  # pylint: disable=invalid-name
                 +   (1, None)
                 *   (0, None)
         """
-        # pylint: disable=unpacking-non-sequence
-        # pylint: disable=no-member
         count = 'count' in spec.args
         # we assume count always has a default (and it should!)
         if self.nargs is not None:
             # If nargs is overriden, use that.
             if isinstance(self.nargs, Iterable):
                 # Iterable (min, max)
+                # pylint: disable=unpacking-non-sequence
                 minargs, maxargs = self.nargs
             else:
                 # Single int
