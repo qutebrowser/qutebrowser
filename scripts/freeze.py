@@ -55,6 +55,7 @@ build_exe_options = {
         ('qutebrowser/git-commit-id', 'git-commit-id'),
     ],
     'include_msvcr': True,
+    'excludes': ['tkinter'],
 }
 
 egl_path = get_egl_path()
