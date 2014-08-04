@@ -279,7 +279,13 @@ class Prompter:
         self.question = question
         mode = self._display_question()
         question.aborted.connect(lambda: modeman.maybe_leave(mode, 'aborted'))
-        modeman.enter(mode, 'question asked')
+        try:
+            modeman.enter(mode, 'question asked')
+        except modeman.ModeLockedError:
+            if modeman.instance().mode != KeyMode.prompt:
+                question.abort()
+                return None
+        modeman.instance().locked = True
         if blocking:
             loop = EventLoop()
             self._loops.append(loop)

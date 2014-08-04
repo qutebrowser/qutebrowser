@@ -299,7 +299,7 @@ class Command(MinimalLineEdit):
 
     def focusInEvent(self, e):
         """Extend focusInEvent to enter command mode."""
-        modeman.enter(KeyMode.command, 'cmd focus')
+        modeman.maybe_enter(KeyMode.command, 'cmd focus')
         super().focusInEvent(e)
 
 

@@ -167,6 +167,14 @@ class HintManager(QObject):
         modeman.instance().left.connect(self.on_mode_left)
         modeman.instance().entered.connect(self.on_mode_entered)
 
+    def _cleanup(self):
+        """Clean up after hinting."""
+        for elem in self._context.elems.values():
+            if not elem.label.isNull():
+                elem.label.removeFromDocument()
+        self._context = None
+        message.instance().set_text('')
+
     def _hint_strings(self, elems):
         """Calculate the hint strings for elems.
 
@@ -507,7 +515,10 @@ class HintManager(QObject):
         self._context = ctx
         self._connect_frame_signals()
         self.hint_strings_updated.emit(strings)
-        modeman.enter(KeyMode.hint, 'HintManager.start')
+        try:
+            modeman.enter(KeyMode.hint, 'HintManager.start')
+        except modeman.ModeLockedError:
+            self._cleanup()
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
@@ -630,8 +641,4 @@ class HintManager(QObject):
             # self._context might be None, because the current tab is not
             # hinting.
             return
-        for elem in self._context.elems.values():
-            if not elem.label.isNull():
-                elem.label.removeFromDocument()
-        self._context = None
-        message.instance().set_text('')
+        self._cleanup()

@@ -34,6 +34,11 @@ from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.commands.exceptions import CommandError
 
 
+class ModeLockedError(Exception):
+
+    """Exception raised when the mode is currently locked."""
+
+
 def instance():
     """Get the global modeman instance."""
     return QApplication.instance().modeman
@@ -47,6 +52,14 @@ def enter(mode, reason=None):
 def leave(mode, reason=None):
     """Leave the mode 'mode'."""
     instance().leave(mode, reason)
+
+
+def maybe_enter(mode, reason=None):
+    """Convenience method to enter 'mode' without exceptions."""
+    try:
+        instance().enter(mode, reason)
+    except ModeLockedError as e:
+        pass
 
 
 def maybe_leave(mode, reason=None):
@@ -65,6 +78,9 @@ class ModeManager(QObject):
         mode: The current mode (readonly property).
         passthrough: A list of modes in which to pass through events.
         mainwindow: The mainwindow object
+        locked: Whether current mode is locked. This means the current mode can
+                still be left (then locked will be reset), but no new mode can
+                be entered while the current mode is active.
         _handlers: A dictionary of modes and their handlers.
         _mode_stack: A list of the modes we're currently in, with the active
                      one on the right.
@@ -86,6 +102,7 @@ class ModeManager(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.mainwindow = None
+        self.locked = False
         self._handlers = {}
         self.passthrough = []
         self._mode_stack = []
@@ -200,6 +217,11 @@ class ModeManager(QObject):
         """
         if not isinstance(mode, KeyMode):
             raise TypeError("Mode {} is no KeyMode member!".format(mode))
+        if self.locked:
+            logger.debug("Not entering mode {} because mode is locked to "
+                         "{}.".format(mode, self.mode))
+            raise ModeLockedError("Mode is currently locked to {}".format(
+                self.mode))
         logger.debug("Entering mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
         if mode not in self._handlers:
@@ -238,6 +260,7 @@ class ModeManager(QObject):
             self._mode_stack.remove(mode)
         except ValueError:
             raise ValueError("Mode {} not on mode stack!".format(mode))
+        self.locked = False
         logger.debug("Leaving mode {}{}, new mode stack {}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason),
             self._mode_stack))
