@@ -43,6 +43,8 @@ else:
 if '--profile-noconv' in sys.argv:
     sys.argv.remove('--profile-noconv')
     noconv = True
+else:
+    noconv = False
 
 callgraphfile = os.path.join(tempdir, 'callgraph')
 profiler = cProfile.Profile()
