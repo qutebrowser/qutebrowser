@@ -32,7 +32,6 @@ from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QApplication)
 from PyQt5.QtGui import QIcon, QPalette, QColor
 
-from qutebrowser.config.style import set_register_stylesheet
 from qutebrowser.utils.qt import qt_ensure_valid
 import qutebrowser.config.config as config
 
@@ -42,23 +41,7 @@ PM_TabBarPadding = QStyle.PM_CustomBase
 
 class TabWidget(QTabWidget):
 
-    """The tabwidget used for TabbedBrowser.
-
-    Class attributes:
-        STYLESHEET: The stylesheet template to be used.
-    """
-
-    STYLESHEET = """
-        QTabWidget::pane {{
-            position: absolute;
-            top: 0px;
-        }}
-
-        QTabBar {{
-            {font[tabbar]}
-            {color[tab.bg.bar]}
-        }}
-    """
+    """The tabwidget used for TabbedBrowser."""
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -66,7 +49,6 @@ class TabWidget(QTabWidget):
         self.setTabBar(bar)
         bar.tabCloseRequested.connect(self.tabCloseRequested)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        set_register_stylesheet(self)
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
         self.setUsesScrollButtons(True)
@@ -98,8 +80,9 @@ class TabWidget(QTabWidget):
         tabbar.refresh()
 
     @pyqtSlot(str, str)
-    def on_config_changed(self, section, _option):
+    def on_config_changed(self, section, option):
         """Update attributes when config changed."""
+        self.tabBar().on_config_changed(section, option)
         if section == 'tabbar':
             self._init_config()
 
@@ -119,6 +102,7 @@ class TabBar(QTabBar):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setStyle(TabBarStyle(self.style()))
+        self.setFont(config.get('fonts', 'tabbar'))
         self.vertical = False
 
     def __repr__(self):
@@ -140,6 +124,12 @@ class TabBar(QTabBar):
         """
         self.setTabData(idx, color)
         self.update(self.tabRect(idx))
+
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
+        """Update attributes when config changed."""
+        if section == 'fonts' and option == 'tabbar':
+            self.setFont(config.get('fonts', 'tabbar'))
 
     def mousePressEvent(self, e):
         """Override mousePressEvent to close tabs if configured."""

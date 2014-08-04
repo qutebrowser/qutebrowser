@@ -940,7 +940,7 @@ DATA = OrderedDict([
          "Font used in the completion widget."),
 
         ('tabbar',
-         SettingValue(types.Font(), '8pt ${_monospace}'),
+         SettingValue(types.QtFont(), '8pt ${_monospace}'),
          "Font used in the tabbar."),
 
         ('statusbar',

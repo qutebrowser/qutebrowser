@@ -25,11 +25,28 @@ import os.path
 from sre_constants import error as RegexError
 
 from PyQt5.QtCore import QUrl, QStandardPaths
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
 
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.utils.misc import get_standard_dir
+
+
+QSS_FONT_REGEX = re.compile(r"""
+    ^(
+        (
+            # style
+            (?P<style>normal|italic|oblique) |
+            # weight (named | 100..900)
+            (
+                (?P<weight>[123456789]00) |
+                (?P<namedweight>normal|bold)
+            ) |
+            # size (<float>pt | <int>px)
+            (?P<size>[0-9]+((\.[0-9]+)?[pP][tT]|[pP][xX]))
+        )\                     # size/weight/style are space-separated
+    )*                         # 0-inf size/weight/style tags
+    (?P<family>[A-Za-z, "]*)$  # mandatory font family""", re.VERBOSE)
 
 
 class ValidationError(ValueError):
@@ -530,8 +547,45 @@ class Font(BaseType):
     typestr = 'font'
 
     def validate(self, value):
-        # We can't really validate anything here
-        pass
+        if not QSS_FONT_REGEX.match(value):
+            raise ValidationError(value, "must be a valid font")
+
+
+class QtFont(Font):
+
+    """A Font which gets converted to q QFont."""
+
+    def transform(self, value):
+        style_map = {
+            'normal': QFont.StyleNormal,
+            'italic': QFont.StyleItalic,
+            'oblique': QFont.StyleOblique,
+        }
+        weight_map = {
+            'normal': QFont.Normal,
+            'bold': QFont.Bold,
+        }
+        font = QFont()
+        match = QSS_FONT_REGEX.match(value)
+        style = match.group('style')
+        weight = match.group('weight')
+        namedweight = match.group('weight')
+        size = match.group('size')
+        family = match.group('family')
+        if style:
+            font.setStyle(style_map[style])
+        if namedweight:
+            font.setWeight(weight_map[namedweight])
+        if weight:
+            # based on qcssparser.cpp:setFontWeightFromValue
+            font.setWeight(min(int(weight) / 8, 99))
+        if size:
+            if size.lower().endswith('pt'):
+                font.setPointSizeF(float(size[:-2]))
+            elif size.lower().endswith('px'):
+                font.setPointSizeF(int(size[:-2]))
+        font.setFamily(family)
+        return font
 
 
 class Regex(BaseType):
