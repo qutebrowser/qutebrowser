@@ -207,8 +207,11 @@ class String(BaseType):
         self.forbidden = forbidden
 
     def validate(self, value):
-        if self.none_ok and not value:
-            return
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
         if self.forbidden is not None and any(c in value
                                               for c in self.forbidden):
             raise ValidationError(value, "may not contain the chars "
@@ -228,13 +231,15 @@ class List(BaseType):
     typestr = 'string-list'
 
     def transform(self, value):
-        vals = value.split(',')
-        if self.none_ok:
-            vals = [v if v else None for v in vals]
-        return vals
+        return [v if v else None for v in value.split(',')]
 
     def validate(self, value):
-        pass
+        vals = self.transform(value)
+        if None in vals:
+            if self.none_ok:
+                pass
+            else:
+                raise ValidationError(value, "items may not be empty!")
 
 
 class Bool(BaseType):
@@ -252,9 +257,16 @@ class Bool(BaseType):
                        '0': False, 'no': False, 'false': False, 'off': False}
 
     def transform(self, value):
+        if not value:
+            return None
         return Bool._BOOLEAN_STATES[value.lower()]
 
     def validate(self, value):
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
         if value.lower() not in Bool._BOOLEAN_STATES:
             raise ValidationError(value, "must be a boolean!")
 
@@ -287,8 +299,11 @@ class Int(BaseType):
         return int(value)
 
     def validate(self, value):
-        if self.none_ok and not value:
-            return
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
         try:
             intval = int(value)
         except ValueError:
@@ -343,8 +358,11 @@ class Float(BaseType):
         return float(value)
 
     def validate(self, value):
-        if self.none_ok and not value:
-            return
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
         try:
             floatval = float(value)
         except ValueError:
@@ -468,8 +486,11 @@ class PercOrInt(BaseType):
         self.maxint = maxint
 
     def validate(self, value):
-        if not value and self.none_ok:
-            return
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
         if value.endswith('%'):
             try:
                 intval = int(value[:-1])
@@ -502,7 +523,10 @@ class Command(BaseType):
 
     def validate(self, value):
         if not value:
-            return
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
         if value.split()[0] not in cmdutils.cmd_dict:
             raise ValidationError(value, "must be a valid command!")
 
@@ -522,9 +546,16 @@ class ColorSystem(BaseType):
                                ('hsl', "Interpolate in the HSL color system."))
 
     def validate(self, value):
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
         super().validate(value.lower())
 
     def transform(self, value):
+        if not value:
+            return None
         mapping = {
             'rgb': QColor.Rgb,
             'hsv': QColor.Hsv,
@@ -540,6 +571,11 @@ class QtColor(BaseType):
     typestr = 'qcolor'
 
     def validate(self, value):
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
         if QColor.isValidColor(value):
             pass
         else:
@@ -556,6 +592,11 @@ class CssColor(BaseType):
     typestr = 'css-color'
 
     def validate(self, value):
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
         if value.startswith('-'):
             # custom function name, won't validate.
             pass
@@ -578,6 +619,11 @@ class QssColor(CssColor):
     _GRADIENTS = ('qlineargradient', 'qradialgradient', 'qconicalgradient')
 
     def validate(self, value):
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
         if any([value.startswith(start) for start in self._GRADIENTS]):
             # We can't validate this further.
             pass
@@ -594,6 +640,11 @@ class Font(BaseType):
     typestr = 'font'
 
     def validate(self, value):
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
         if not QSS_FONT_REGEX.match(value):
             raise ValidationError(value, "must be a valid font")
 
@@ -646,6 +697,11 @@ class Regex(BaseType):
         self.flags = flags
 
     def validate(self, value):
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
         try:
             re.compile(value, self.flags)
         except RegexError as e:
@@ -684,9 +740,12 @@ class File(BaseType):
     typestr = 'file'
 
     def validate(self, value):
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
         value = os.path.expanduser(value)
-        if self.none_ok and not value:
-            return
         if not os.path.isfile(value):
             raise ValidationError(value, "must be a valid file!")
         if not os.path.isabs(value):
@@ -703,8 +762,11 @@ class Directory(BaseType):
     typestr = 'directory'
 
     def validate(self, value):
-        if self.none_ok and not value:
-            return
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
         if not os.path.isdir(value):
             raise ValidationError(value, "must be a valid directory!")
         if not os.path.isabs(value):
@@ -745,7 +807,8 @@ class WebKitBytes(BaseType):
         self.maxsize = maxsize
 
     def validate(self, value):
-        if value == '':
+        if not value:
+            # WebKitBytes is always None-able.
             return
         try:
             val = self.transform(value)
@@ -759,7 +822,7 @@ class WebKitBytes(BaseType):
             raise ValidationError(value, "must be 0 minimum!")
 
     def transform(self, value):
-        if value == '':
+        if not value:
             return None
         if any(value.lower().endswith(c) for c in self.SUFFIXES):
             suffix = value[-1].lower()
@@ -794,7 +857,7 @@ class WebKitBytesList(List):
         return [self.bytestype.transform(val) for val in vals]
 
     def validate(self, value):
-        if value == '':
+        if not value:
             return
         vals = super().transform(value)
         for val in vals:
@@ -821,6 +884,11 @@ class ShellCommand(String):
         self.placeholder = placeholder
 
     def validate(self, value):
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
         super().validate(value)
         if self.placeholder and '{}' not in value:
             raise ValidationError(value, "needs to contain a {}-placeholder.")
@@ -861,6 +929,11 @@ class Proxy(BaseType):
     }
 
     def validate(self, value):
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
         if value in self.valid_values:
             return
         url = QUrl(value)
@@ -910,7 +983,11 @@ class SearchEngineName(BaseType):
     """A search engine name."""
 
     def validate(self, value):
-        pass
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
 
 
 class SearchEngineUrl(BaseType):
@@ -918,6 +995,11 @@ class SearchEngineUrl(BaseType):
     """A search engine URL."""
 
     def validate(self, value):
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
         if '{}' in value:
             pass
         else:
