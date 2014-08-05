@@ -319,9 +319,8 @@ class IntList(List):
             vals = self.transform(value)
         except ValueError:
             raise ValidationError(value, "must be a list of integers!")
-        for v in vals:
-            if v is None and not self.none_ok:
-                raise ValidationError(value, "items may not be empty!")
+        if None in vals and not self.none_ok:
+            raise ValidationError(value, "items may not be empty!")
 
 
 class Float(BaseType):
@@ -894,8 +893,8 @@ class WebKitBytesList(List):
         vals = super().transform(value)
         for val in vals:
             self.bytestype.validate(val)
-        if any(val is None for val in vals):
-            raise ValidationError(value, "all values need to be set!")
+        if None in vals and not self.none_ok:
+            raise ValidationError(value, "items may not be empty!")
         if self.length is not None and len(vals) != self.length:
             raise ValidationError(value, "exactly {} values need to be "
                                          "set!".format(self.length))
@@ -936,9 +935,7 @@ class ZoomPerc(Perc):
 
     """A percentage which needs to be in the current zoom percentages."""
 
-    def validate(self, value):
-        super().validate(value)
-        # FIXME we should validate the percentage is in the list here.
+    # FIXME we should validate the percentage is in the list here.
 
 
 class HintMode(BaseType):
@@ -1086,6 +1083,10 @@ class AutoSearch(BaseType):
                                ('dns', "Use DNS requests (might be slow!)."),
                                ('false', "Never search automatically."))
 
+    def __init__(self, none_ok=False):
+        super().__init__(none_ok)
+        self.booltype = Bool()
+
     def validate(self, value):
         if not value:
             if self.none_ok:
@@ -1095,7 +1096,7 @@ class AutoSearch(BaseType):
         if value.lower() in ('naive', 'dns'):
             pass
         else:
-            Bool.validate(self, value)
+            self.booltype.validate(value)
 
     def transform(self, value):
         if not value:
