@@ -486,12 +486,12 @@ class PercOrInt(BaseType):
                 intval = int(value)
             except ValueError:
                 raise ValidationError(value, "must be integer or percentage!")
-        if self.minint is not None and intval < self.minint:
-            raise ValidationError(value, "must be {} or bigger!".format(
-                                  self.minint))
-        if self.maxint is not None and intval > self.maxint:
-            raise ValidationError(value, "must be {} or smaller!".format(
-                                  self.maxint))
+            if self.minint is not None and intval < self.minint:
+                raise ValidationError(value, "must be {} or bigger!".format(
+                                      self.minint))
+            if self.maxint is not None and intval > self.maxint:
+                raise ValidationError(value, "must be {} or smaller!".format(
+                                      self.maxint))
 
 
 class Command(BaseType):
