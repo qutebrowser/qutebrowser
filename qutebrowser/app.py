@@ -25,6 +25,7 @@ import subprocess
 import faulthandler
 import configparser
 import signal
+import warnings
 from bdb import BdbQuit
 from base64 import b64encode
 from functools import partial
@@ -97,6 +98,10 @@ class Application(QApplication):
             Argument namespace from argparse.
         """
         # pylint: disable=too-many-statements
+        if args.debug:
+            # We don't enable this earlier because some imports trigger
+            # warnings (which are not our fault).
+            warnings.simplefilter('default')
         qt_args = get_qt_args(args)
         log.init.debug("Qt arguments: {}, based on {}".format(qt_args, args))
         super().__init__(get_qt_args(args))
