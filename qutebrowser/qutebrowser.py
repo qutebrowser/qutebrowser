@@ -66,6 +66,8 @@ def get_argparser():
                        "Default: auto.")
     debug.add_argument('--nowindow', action='store_true', help="Don't show "
                        "the main window.")
+    debug.add_argument('--debug-exit', help="Turn on debugging of late exit.",
+                       action='store_true')
     # For the Qt args, we use store_const with const=True rather than
     # store_true because we want the default to be None, to make
     # utils.qt:get_qt_args easier.
@@ -121,7 +123,7 @@ def main():
     # FIXME: We should do another attempt at contacting upstream about this.
     QtWidgets.qApp = app
     ret = app.exec_()
-    if args.debug:
+    if args.debug_exit:
         print("Now logging late shutdown.", file=sys.stderr)
         trace_lines(True)
     QtWidgets.qApp = None
