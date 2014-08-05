@@ -187,7 +187,7 @@ class Prompter:
                 self.question.cancel()
 
     @cmdutils.register(instance='mainwindow.status.prompt.prompter', hide=True,
-                       modes=[KeyMode.prompt])
+                       modes=[KeyMode.prompt, KeyMode.yesno])
     def prompt_accept(self):
         """Accept the current prompt.
 
