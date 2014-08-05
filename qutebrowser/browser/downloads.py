@@ -212,7 +212,7 @@ class DownloadItem(QObject):
         else:
             download_dir = config.get('storage', 'download-directory')
             if download_dir is None:
-                download_dir = get_standard_dir(
+                download_dir = utils.get_standard_dir(
                     QStandardPaths.DownloadLocation)
             target = os.path.join(download_dir, filename)
         logger.debug("Setting filename to {}".format(filename))

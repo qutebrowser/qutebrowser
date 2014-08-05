@@ -29,7 +29,6 @@ from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
 
 import qutebrowser.commands.utils as cmdutils
-from qutebrowser.utils.misc import get_standard_dir
 
 
 class ValidationError(ValueError):
