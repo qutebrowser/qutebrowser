@@ -338,7 +338,12 @@ class RAMHandler(logging.Handler):
         else:
             fmt = self.format
             lines = []
-        for record in self.data:
+        self.acquire()
+        try:
+            records = list(self.data)
+        finally:
+            self.release()
+        for record in records:
             lines.append(fmt(record))
         if html:
             lines.append('</table>')
