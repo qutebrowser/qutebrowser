@@ -20,6 +20,9 @@
 import unittest
 
 import qutebrowser.config.conftypes as conftypes
+from qutebrowser.test.stubs import FakeCmdUtils, FakeCommand
+
+from PyQt5.QtGui import QColor, QFont
 
 
 class ValidValuesTest(unittest.TestCase):
@@ -87,13 +90,8 @@ class BaseTypeTests(unittest.TestCase):
         self.assertEqual(self.t.transform("foobar"), "foobar")
 
     def test_transform_empty(self):
-        """Test transform with none_ok = False and an empty value."""
-        self.assertEqual(self.t.transform(''), '')
-
-    def test_transform_empty_none_ok(self):
-        """Test transform with none_ok = True and an empty value."""
-        t = conftypes.BaseType(none_ok=True)
-        self.assertIsNone(t.transform(''))
+        """Test transform with an empty value."""
+        self.assertIsNone(self.t.transform(''))
 
     def test_validate_not_implemented(self):
         """Test validate without valid_values set."""
@@ -166,7 +164,8 @@ class StringTests(unittest.TestCase):
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
         t = conftypes.String()
-        t.validate("")
+        with self.assertRaises(conftypes.ValidationError):
+            t.validate("")
 
     def test_validate_empty_none_ok(self):
         """Test validate with empty string and none_ok = True."""
@@ -249,7 +248,7 @@ class ListTests(unittest.TestCase):
     def test_transform_empty(self):
         """Test transform with an empty value."""
         self.assertEqual(self.t.transform('foo,,baz'),
-                         ['foo', '', 'baz'])
+                         ['foo', None, 'baz'])
 
     def test_transform_empty_none_ok(self):
         """Test transform with an empty value and none_ok = True."""
@@ -271,7 +270,11 @@ class BoolTests(unittest.TestCase):
         """Test transform with all values."""
         for out, inputs in self.TESTS.items():
             for inp in inputs:
-                self.assertEqual(self.t.transform(inp), out)
+                self.assertEqual(self.t.transform(inp), out, inp)
+
+    def test_transform_empty(self):
+        """Test transform with none_ok = False and an empty value."""
+        self.assertIsNone(self.t.transform(''))
 
     def test_validate_valid(self):
         """Test validate with valid values."""
@@ -284,6 +287,18 @@ class BoolTests(unittest.TestCase):
         for val in self.INVALID:
             with self.assertRaises(conftypes.ValidationError):
                 self.t.validate(val)
+
+    def test_validate_empty(self):
+        """Test validate with empty string and none_ok = False."""
+        t = conftypes.Bool()
+        with self.assertRaises(conftypes.ValidationError):
+            t.validate('')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with empty string and none_ok = True."""
+        t = conftypes.Int(none_ok=True)
+        t.validate('')
+
 
 
 class IntTests(unittest.TestCase):
@@ -397,10 +412,9 @@ class IntListTests(unittest.TestCase):
         self.assertEqual(self.t.transform('23,42,1337'),
                          [23, 42, 1337])
 
-    def test_transform_empty_none_ok(self):
-        """Test transform with an empty value and none_ok = True."""
-        t = conftypes.IntList(none_ok=True)
-        self.assertEqual(t.transform('23,,42'), [23, None, 42])
+    def test_transform_empty(self):
+        """Test transform with an empty value."""
+        self.assertEqual(self.t.transform('23,,42'), [23, None, 42])
 
 
 class FloatTests(unittest.TestCase):
@@ -481,9 +495,9 @@ class FloatTests(unittest.TestCase):
         with self.assertRaises(conftypes.ValidationError):
             t.validate('3.01')
 
-    def test_transform_none(self):
+    def test_transform_empty(self):
         """Test transform with an empty value."""
-        t = conftypes.Float(none_ok=True)
+        t = conftypes.Float()
         self.assertIsNone(t.transform(''))
 
     def test_transform_float(self):
@@ -501,6 +515,9 @@ class PercTests(unittest.TestCase):
 
     """Test Perc."""
 
+    def setUp(self):
+        self.t = conftypes.Perc()
+
     def test_minval_gt_maxval(self):
         """Test __init__ with a minval bigger than the maxval."""
         with self.assertRaises(ValueError):
@@ -508,26 +525,22 @@ class PercTests(unittest.TestCase):
 
     def test_validate_int(self):
         """Test validate with a normal int (not a percentage)."""
-        t = conftypes.Perc()
         with self.assertRaises(ValueError):
-            t.validate('1337')
+            self.t.validate('1337')
 
     def test_validate_string(self):
         """Test validate with something which isn't a percentage."""
-        t = conftypes.Perc()
         with self.assertRaises(conftypes.ValidationError):
-            t.validate('1337%%')
+            self.t.validate('1337%%')
 
     def test_validate_perc(self):
         """Test validate with a percentage."""
-        t = conftypes.Perc()
-        t.validate('1337%')
+        self.t.validate('1337%')
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
-        t = conftypes.Perc()
         with self.assertRaises(conftypes.ValidationError):
-            t.validate('')
+            self.t.validate('')
 
     def test_validate_empty_none_ok(self):
         """Test validate with empty string and none_ok = True."""
@@ -570,15 +583,13 @@ class PercTests(unittest.TestCase):
         with self.assertRaises(conftypes.ValidationError):
             t.validate('4%')
 
-    def test_transform_none(self):
+    def test_transform_empty(self):
         """Test transform with an empty value."""
-        t = conftypes.Perc(none_ok=True)
-        self.assertIsNone(t.transform(''))
+        self.assertIsNone(self.t.transform(''))
 
     def test_transform_perc(self):
         """Test transform with a percentage."""
-        t = conftypes.Perc()
-        self.assertEqual(t.transform('1337%'), 1337)
+        self.assertEqual(self.t.transform('1337%'), 1337)
 
 
 class PercListTests(unittest.TestCase):
@@ -663,6 +674,9 @@ class PercOrIntTests(unittest.TestCase):
 
     """Test PercOrInt."""
 
+    def setUp(self):
+        self.t = conftypes.PercOrInt()
+
     def test_minint_gt_maxint(self):
         """Test __init__ with a minint bigger than the maxint."""
         with self.assertRaises(ValueError):
@@ -675,25 +689,21 @@ class PercOrIntTests(unittest.TestCase):
 
     def test_validate_string(self):
         """Test validate with something which isn't a percentage."""
-        t = conftypes.PercOrInt()
         with self.assertRaises(conftypes.ValidationError):
-            t.validate('1337%%')
+            self.t.validate('1337%%')
 
     def test_validate_perc(self):
         """Test validate with a percentage."""
-        t = conftypes.PercOrInt()
-        t.validate('1337%')
+        self.t.validate('1337%')
 
     def test_validate_int(self):
         """Test validate with a normal int."""
-        t = conftypes.PercOrInt()
-        t.validate('1337')
+        self.t.validate('1337')
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
-        t = conftypes.PercOrInt()
         with self.assertRaises(conftypes.ValidationError):
-            t.validate('')
+            self.t.validate('')
 
     def test_validate_empty_none_ok(self):
         """Test validate with empty string and none_ok = True."""
@@ -786,21 +796,125 @@ class PercOrIntTests(unittest.TestCase):
 
     def test_transform_none(self):
         """Test transform with an empty value."""
-        t = conftypes.PercOrInt(none_ok=True)
-        self.assertIsNone(t.transform(''))
+        self.assertIsNone(self.t.transform(''))
 
     def test_transform_perc(self):
         """Test transform with a percentage."""
-        t = conftypes.PercOrInt()
-        self.assertEqual(t.transform('1337%'), '1337%')
+        self.assertEqual(self.t.transform('1337%'), '1337%')
 
     def test_transform_int(self):
         """Test transform with an int."""
-        t = conftypes.PercOrInt()
-        self.assertEqual(t.transform('1337'), '1337')
+        self.assertEqual(self.t.transform('1337'), '1337')
 
 
+class CommandTests(unittest.TestCase):
 
+    """Test Command."""
+
+    def setUp(self):
+        self.old_cmdutils = conftypes.cmdutils
+        commands = {
+            'cmd1': FakeCommand("desc 1"),
+            'cmd2': FakeCommand("desc 2"),
+        }
+        conftypes.cmdutils = FakeCmdUtils(commands)
+        self.t = conftypes.Command()
+
+    def tearDown(self):
+        conftypes.cmdutils = self.old_cmdutils
+
+    def test_validate_empty(self):
+        """Test validate with an empty string."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with an empty string and none_ok=True."""
+        t = conftypes.Command(none_ok=True)
+        t.validate('')
+
+    def test_validate_command(self):
+        """Test validate with a command."""
+        self.t.validate('cmd1')
+        self.t.validate('cmd2')
+
+    def test_validate_command_args(self):
+        """Test validate with a command and arguments."""
+        self.t.validate('cmd1  foo bar')
+        self.t.validate('cmd2  baz fish')
+
+    def test_validate_invalid_command(self):
+        """Test validate with an invalid command."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('cmd3')
+
+    def test_validate_invalid_command_args(self):
+        """Test validate with an invalid command and arguments."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('cmd3  foo bar')
+
+    def test_transform(self):
+        """Make sure transform doesn't alter values."""
+        self.assertEqual(self.t.transform('foo bar'), 'foo bar')
+
+    def test_transform_empty(self):
+        """Test transform with an empty value."""
+        self.assertIsNone(self.t.transform(''))
+
+    def test_complete(self):
+        """Test complete."""
+        items = self.t.complete()
+        self.assertEqual(len(items), 2)
+        self.assertIn(('cmd1', "desc 1"), items)
+        self.assertIn(('cmd2', "desc 2"), items)
+
+
+class ColorSystemTests(unittest.TestCase):
+
+    """Test ColorSystem."""
+
+    TESTS = {
+        'RGB': QColor.Rgb,
+        'rgb': QColor.Rgb,
+        'HSV': QColor.Hsv,
+        'hsv': QColor.Hsv,
+        'HSL': QColor.Hsl,
+        'hsl': QColor.Hsl,
+    }
+    INVALID = ['RRGB', 'HSV ']
+
+    def setUp(self):
+        self.t = conftypes.ColorSystem()
+
+    def test_validate_empty(self):
+        """Test validate with an empty string."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with an empty string and none_ok=True."""
+        t = conftypes.ColorSystem(none_ok=True)
+        t.validate('')
+
+    def test_validate_valid(self):
+        """Test validate with valid values."""
+        for val in self.TESTS:
+            self.t.validate(val)
+
+    def test_validate_invalid(self):
+        """Test validate with invalid values."""
+        for val in self.INVALID:
+            with self.assertRaises(conftypes.ValidationError, msg=val):
+                self.t.validate(val)
+
+    def test_transform(self):
+        """Test transform."""
+        for k, v in self.TESTS.items():
+            self.assertEqual(self.t.transform(k), v, k)
+
+    def test_transform_empty(self):
+        """Test transform with an empty value."""
+        self.assertIsNone(self.t.transform(''))
 
 if __name__ == '__main__':
     unittest.main()

@@ -279,3 +279,19 @@ class FakeSignal:
 
     def __init__(self, name='fake'):
         self.signal = '2{}(int, int)'.format(name)
+
+
+class FakeCmdUtils:
+
+    """Stub for cmdutils which provides a cmd_dict."""
+
+    def __init__(self, commands):
+        self.cmd_dict = commands
+
+
+class FakeCommand:
+
+    """A simple command stub which has a description."""
+
+    def __init__(self, desc):
+        self.desc = desc

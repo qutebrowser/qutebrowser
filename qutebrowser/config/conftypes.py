@@ -126,9 +126,10 @@ class BaseType:
         Return:
             The transformed value.
         """
-        if self.none_ok and not value:
+        if not value:
             return None
-        return value
+        else:
+            return value
 
     def validate(self, value):
         """Validate value against possible values.
@@ -259,7 +260,8 @@ class Bool(BaseType):
     def transform(self, value):
         if not value:
             return None
-        return Bool._BOOLEAN_STATES[value.lower()]
+        else:
+            return Bool._BOOLEAN_STATES[value.lower()]
 
     def validate(self, value):
         if not value:
@@ -294,9 +296,10 @@ class Int(BaseType):
         self.maxval = maxval
 
     def transform(self, value):
-        if self.none_ok and not value:
+        if not value:
             return None
-        return int(value)
+        else:
+            return int(value)
 
     def validate(self, value):
         if not value:
@@ -328,9 +331,12 @@ class IntList(List):
 
     def validate(self, value):
         try:
-            self.transform(value)
+            vals = self.transform(value)
         except ValueError:
             raise ValidationError(value, "must be a list of integers!")
+        for v in vals:
+            if v is None and not self.none_ok:
+                raise ValidationError(value, "items may not be empty!")
 
 
 class Float(BaseType):
@@ -353,9 +359,10 @@ class Float(BaseType):
         self.maxval = maxval
 
     def transform(self, value):
-        if self.none_ok and not value:
+        if not value:
             return None
-        return float(value)
+        else:
+            return float(value)
 
     def validate(self, value):
         if not value:
@@ -395,9 +402,10 @@ class Perc(BaseType):
         self.maxval = maxval
 
     def transform(self, value):
-        if self.none_ok and not value:
+        if not value:
             return
-        return int(value[:-1])
+        else:
+            return int(value[:-1])
 
     def validate(self, value):
         if not value:
@@ -440,7 +448,7 @@ class PercList(List):
 
     def transform(self, value):
         vals = super().transform(value)
-        return [int(val[:-1]) for val in vals]
+        return [int(v[:-1]) if v is not None else None for v in vals]
 
     def validate(self, value):
         vals = super().transform(value)
@@ -556,12 +564,13 @@ class ColorSystem(BaseType):
     def transform(self, value):
         if not value:
             return None
-        mapping = {
-            'rgb': QColor.Rgb,
-            'hsv': QColor.Hsv,
-            'hsl': QColor.Hsl,
-        }
-        return mapping[value.lower()]
+        else:
+            mapping = {
+                'rgb': QColor.Rgb,
+                'hsv': QColor.Hsv,
+                'hsl': QColor.Hsl,
+            }
+            return mapping[value.lower()]
 
 
 class QtColor(BaseType):
@@ -582,7 +591,10 @@ class QtColor(BaseType):
             raise ValidationError(value, "must be a valid color")
 
     def transform(self, value):
-        return QColor(value)
+        if not value:
+            return None
+        else:
+            return QColor(value)
 
 
 class CssColor(BaseType):
@@ -654,6 +666,8 @@ class QtFont(Font):
     """A Font which gets converted to q QFont."""
 
     def transform(self, value):
+        if not value:
+            return None
         style_map = {
             'normal': QFont.StyleNormal,
             'italic': QFont.StyleItalic,
@@ -708,7 +722,10 @@ class Regex(BaseType):
             raise ValidationError(value, "must be a valid regex - " + str(e))
 
     def transform(self, value):
-        return re.compile(value, self.flags)
+        if not value:
+            return None
+        else:
+            return re.compile(value, self.flags)
 
 
 class RegexList(List):
@@ -723,7 +740,8 @@ class RegexList(List):
 
     def transform(self, value):
         vals = super().transform(value)
-        return [re.compile(pattern, self.flags) for pattern in vals]
+        return [re.compile(v, self.flags) if v is not None else None
+                for v in vals]
 
     def validate(self, value):
         try:
@@ -752,6 +770,8 @@ class File(BaseType):
             raise ValidationError(value, "must be an absolute path!")
 
     def transform(self, value):
+        if not value:
+            return None
         return os.path.expanduser(value)
 
 
@@ -824,7 +844,7 @@ class WebKitBytes(BaseType):
     def transform(self, value):
         if not value:
             return None
-        if any(value.lower().endswith(c) for c in self.SUFFIXES):
+        elif any(value.lower().endswith(c) for c in self.SUFFIXES):
             suffix = value[-1].lower()
             val = value[:-1]
             multiplicator = self.SUFFIXES[suffix]
@@ -853,8 +873,9 @@ class WebKitBytesList(List):
     def transform(self, value):
         if value == '':
             return None
-        vals = super().transform(value)
-        return [self.bytestype.transform(val) for val in vals]
+        else:
+            vals = super().transform(value)
+            return [self.bytestype.transform(val) for val in vals]
 
     def validate(self, value):
         if not value:
@@ -894,7 +915,10 @@ class ShellCommand(String):
             raise ValidationError(value, "needs to contain a {}-placeholder.")
 
     def transform(self, value):
-        return shlex.split(value)
+        if not value:
+            return None
+        else:
+            return shlex.split(value)
 
 
 class ZoomPerc(Perc):
@@ -962,7 +986,9 @@ class Proxy(BaseType):
         return out
 
     def transform(self, value):
-        if value == 'system':
+        if not value:
+            return None
+        elif value == 'system':
             return None
         elif value == 'none':
             return QNetworkProxy(QNetworkProxy.NoProxy)
@@ -1011,7 +1037,11 @@ class KeyBindingName(BaseType):
     """The name (keys) of a keybinding."""
 
     def validate(self, value):
-        pass
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
 
 
 class KeyBinding(Command):
@@ -1046,13 +1076,20 @@ class AutoSearch(BaseType):
                                ('false', "Never search automatically."))
 
     def validate(self, value):
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
         if value.lower() in ('naive', 'dns'):
             pass
         else:
             Bool.validate(self, value)
 
     def transform(self, value):
-        if value.lower() in ('naive', 'dns'):
+        if not value:
+            return None
+        elif value.lower() in ('naive', 'dns'):
             return value.lower()
         elif super().transform(value):
             # boolean true is an alias for naive matching
