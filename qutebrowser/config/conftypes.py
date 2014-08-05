@@ -228,7 +228,10 @@ class List(BaseType):
     typestr = 'string-list'
 
     def transform(self, value):
-        return value.split(',')
+        vals = value.split(',')
+        if self.none_ok:
+            vals = [v if v else None for v in vals]
+        return vals
 
     def validate(self, value):
         pass
@@ -303,7 +306,7 @@ class IntList(List):
 
     def transform(self, value):
         vals = super().transform(value)
-        return map(int, vals)
+        return [int(v) if v is not None else None for v in vals]
 
     def validate(self, value):
         try:
@@ -329,9 +332,13 @@ class Float(BaseType):
         self.maxval = maxval
 
     def transform(self, value):
+        if self.none_ok and not value:
+            return None
         return float(value)
 
     def validate(self, value):
+        if self.none_ok and not value:
+            return
         try:
             floatval = float(value)
         except ValueError:
@@ -362,8 +369,15 @@ class Perc(BaseType):
 
     def transform(self, value):
         return int(value.rstrip('%'))
+        if self.none_ok and not value:
+            return
 
     def validate(self, value):
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty")
         if not value.endswith('%'):
             raise ValidationError(value, "does not end with %")
         try:
@@ -391,19 +405,28 @@ class PercList(List):
 
     def __init__(self, minval=None, maxval=None, none_ok=False):
         super().__init__(none_ok)
+        if maxval is not None and minval is not None and maxval < minval:
+            raise ValueError("minval ({}) needs to be <= maxval ({})!".format(
+                minval, maxval))
         self.minval = minval
         self.maxval = maxval
 
     def transform(self, value):
         vals = super().transform(value)
-        return [int(val.rstrip('%')) for val in vals]
+        return [int(val[:-1]) for val in vals]
 
     def validate(self, value):
         vals = super().transform(value)
         perctype = Perc(minval=self.minval, maxval=self.maxval)
         try:
             for val in vals:
-                perctype.validate(val)
+                if val is None:
+                    if self.none_ok:
+                        continue
+                    else:
+                        raise ValidationError(value, "items may not be empty!")
+                else:
+                    perctype.validate(val)
         except ValidationError:
             raise ValidationError(value, "must be a list of percentages!")
 
@@ -430,6 +453,8 @@ class PercOrInt(BaseType):
         self.maxint = maxint
 
     def validate(self, value):
+        if not value and self.none_ok:
+            return
         if value.endswith('%'):
             try:
                 intval = int(value.rstrip('%'))
