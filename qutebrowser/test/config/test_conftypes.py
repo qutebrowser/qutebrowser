@@ -916,5 +916,80 @@ class ColorSystemTests(unittest.TestCase):
         """Test transform with an empty value."""
         self.assertIsNone(self.t.transform(''))
 
+
+class QtColorTests(unittest.TestCase):
+
+    """Test QtColor."""
+
+    VALID = ['#123', '#112233', '#111222333', '#111122223333', 'red']
+    INVALID = ['#00000G', '#123456789ABCD', '#12', 'foobar', '42']
+    INVALID_QT = ['rgb(0, 0, 0)']
+
+    def setUp(self):
+        self.t = conftypes.QtColor()
+
+    def test_validate_empty(self):
+        """Test validate with an empty string."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with an empty string and none_ok=True."""
+        t = conftypes.QtColor(none_ok=True)
+        t.validate('')
+
+    def test_validate_valid(self):
+        """Test validate with valid values."""
+        for v in self.VALID:
+            self.t.validate(v)
+
+    def test_validate_invalid(self):
+        """Test validate with invalid values."""
+        for val in self.INVALID + self.INVALID_QT:
+            with self.assertRaises(conftypes.ValidationError, msg=val):
+                self.t.validate(val)
+
+
+class CssColorTests(QtColorTests):
+
+    """Test CssColor."""
+
+    VALID = QtColorTests.VALID + ['-foobar(42)']
+
+    def setUp(self):
+        self.t = conftypes.CssColor()
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with an empty string and none_ok=True."""
+        t = conftypes.CssColor(none_ok=True)
+        t.validate('')
+
+
+class QssColorTests(QtColorTests):
+
+    """Test QssColor."""
+
+    VALID = QtColorTests.VALID + [
+        'rgba(255, 255, 255, 255)', 'hsv(359, 255, 255)',
+        'hsva(359, 255, 255, 255)', 'hsv(10%, 10%, 10%)',
+        'qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 white, stop: 0.4 '
+        'gray, stop:1 green)',
+        'qconicalgradient(cx:0.5, cy:0.5, angle:30, stop:0 white, stop:1 '
+        '#00FF00)',
+        'qradialgradient(cx:0, cy:0, radius: 1, fx:0.5, fy:0.5, stop:0 '
+        'white, stop:1 green)'
+    ]
+    INVALID = QtColorTests.INVALID + ['rgb(1, 2, 3, 4)', 'foo(1, 2, 3)']
+    INVALID_QT = []
+
+    def setUp(self):
+        self.t = conftypes.QssColor()
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with an empty string and none_ok=True."""
+        t = conftypes.QssColor(none_ok=True)
+        t.validate('')
+
+
 if __name__ == '__main__':
     unittest.main()
