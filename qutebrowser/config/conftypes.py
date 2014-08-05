@@ -585,7 +585,7 @@ class QtColor(BaseType):
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
-        if QColor.isValidColor(value):
+        elif QColor.isValidColor(value):
             pass
         else:
             raise ValidationError(value, "must be a valid color")
