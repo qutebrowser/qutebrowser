@@ -199,7 +199,7 @@ class String(BaseType):
             raise ValueError("minlen ({}) needs to be >= 1!".format(minlen))
         elif maxlen is not None and maxlen < 1:
             raise ValueError("maxlen ({}) needs to be >= 1!".format(maxlen))
-        elif maxlen is not None and minlen is not None and maxlen > minlen:
+        elif maxlen is not None and minlen is not None and maxlen < minlen:
             raise ValueError("minlen ({}) needs to be <= maxlen ({})!".format(
                 minlen, maxlen))
         self.minlen = minlen
