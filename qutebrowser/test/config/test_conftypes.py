@@ -18,6 +18,8 @@
 """Tests for qutebrowser.config.conftypes."""
 
 import unittest
+import unittest.mock as mock
+import re
 
 import qutebrowser.config.conftypes as conftypes
 from qutebrowser.test.stubs import FakeCmdUtils, FakeCommand
@@ -280,11 +282,6 @@ class ListTests(unittest.TestCase):
         """Test transform with an empty value."""
         self.assertEqual(self.t.transform('foo,,baz'),
                          ['foo', None, 'baz'])
-
-    def test_transform_empty_none_ok(self):
-        """Test transform with an empty value and none_ok = True."""
-        t = conftypes.List(none_ok=True)
-        self.assertEqual(t.transform('foo,,baz'), ['foo', None, 'baz'])
 
 
 class BoolTests(unittest.TestCase):
@@ -1096,8 +1093,8 @@ class FontTests(unittest.TestCase):
 
     def test_validate_empty_none_ok(self):
         """Test validate with an empty string and none_ok=True."""
-        t = conftypes.QssColor(none_ok=True)
-        t2 = conftypes.QtColor(none_ok=True)
+        t = conftypes.Font(none_ok=True)
+        t2 = conftypes.QtFont(none_ok=True)
         t.validate('')
         t2.validate('')
 
@@ -1130,6 +1127,280 @@ class FontTests(unittest.TestCase):
         """Test transform with an empty value."""
         self.assertIsNone(self.t.transform(''))
         self.assertIsNone(self.t2.transform(''))
+
+
+class RegexTests(unittest.TestCase):
+
+    """Test Regex."""
+
+    def setUp(self):
+        self.t = conftypes.Regex()
+
+    def test_validate_empty(self):
+        """Test validate with an empty string."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with an empty string and none_ok=True."""
+        t = conftypes.Regex(none_ok=True)
+        t.validate('')
+
+    def test_validate(self):
+        """Test validate with a valid regex."""
+        self.t.validate(r'(foo|bar)?baz[fis]h')
+
+    def test_validate_invalid(self):
+        """Test validate with an invalid regex."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate(r'(foo|bar))?baz[fis]h')
+
+    def test_transform_empty(self):
+        """Test transform with an empty value."""
+        self.assertIsNone(self.t.transform(''))
+
+    def test_transform_empty(self):
+        """Test transform."""
+        self.assertEqual(self.t.transform(r'foobar'), re.compile(r'foobar'))
+
+
+class RegexListTests(unittest.TestCase):
+
+    """Test RegexList."""
+
+    def setUp(self):
+        self.t = conftypes.RegexList()
+
+    def test_validate_good(self):
+        """Test validate with good values."""
+        self.t.validate(r'(foo|bar),[abcd]?,1337{42}')
+
+    def test_validate_empty(self):
+        """Test validate with an empty value."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate(r'(foo|bar),,1337{42}')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with an empty value and none_ok=True."""
+        t = conftypes.RegexList(none_ok=True)
+        t.validate(r'(foo|bar),,1337{42}')
+
+    def test_validate_bad(self):
+        """Test validate with bad values."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate(r'(foo|bar),((),1337{42}')
+
+    def test_transform_single(self):
+        """Test transform with a single value."""
+        self.assertEqual(self.t.transform('foo'), [re.compile('foo')])
+
+    def test_transform_more(self):
+        """Test transform with multiple values."""
+        self.assertEqual(self.t.transform('foo,bar,baz'),
+                         [re.compile('foo'), re.compile('bar'),
+                          re.compile('baz')])
+
+    def test_transform_empty(self):
+        """Test transform with an empty value."""
+        self.assertEqual(self.t.transform('foo,,bar'),
+                         [re.compile('foo'), None, re.compile('bar')])
+
+
+@mock.patch('qutebrowser.config.conftypes.os.path', autospec=True)
+class FileTests(unittest.TestCase):
+
+    """Test File."""
+
+    def setUp(self):
+        self.t = conftypes.File()
+
+    def test_validate_empty(self, _os_path):
+        """Test validate with empty string and none_ok = False."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate("")
+
+    def test_validate_empty_none_ok(self, _os_path):
+        """Test validate with empty string and none_ok = True."""
+        t = conftypes.File(none_ok=True)
+        t.validate("")
+
+    def test_validate_does_not_exist(self, os_path):
+        """Test validate with a file which does not exist."""
+        os_path.expanduser.side_effect = lambda x: x
+        os_path.isfile.return_value = False
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('foobar')
+
+    def test_validate_exists_abs(self, os_path):
+        """Test validate with a file which does exist."""
+        os_path.expanduser.side_effect = lambda x: x
+        os_path.isfile.return_value = True
+        os_path.isabs.return_value = True
+        self.t.validate('foobar')
+
+    def test_validate_exists_not_abs(self, os_path):
+        """Test validate with a file which does exist but is not absolute."""
+        os_path.expanduser.side_effect = lambda x: x
+        os_path.isfile.return_value = True
+        os_path.isabs.return_value = False
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('foobar')
+
+    def test_validate_expanduser(self, os_path):
+        """Test if validate expands the user correctly."""
+        os_path.expanduser.side_effect = lambda x: x.replace('~', '/home/foo')
+        os_path.isfile.side_effect = lambda path: path == '/home/foo/foobar'
+        os_path.isabs.return_value = True
+        self.t.validate('~/foobar')
+        os_path.expanduser.assert_called_once_with('~/foobar')
+
+    def test_transform(self, os_path):
+        """Test transform."""
+        os_path.expanduser.side_effect = lambda x: x.replace('~', '/home/foo')
+        self.assertEqual(self.t.transform('~/foobar'), '/home/foo/foobar')
+        os_path.expanduser.assert_called_once_with('~/foobar')
+
+    def test_transform_empty(self, _os_path):
+        """Test transform with none_ok = False and an empty value."""
+        self.assertIsNone(self.t.transform(''))
+
+
+@mock.patch('qutebrowser.config.conftypes.os.path', autospec=True)
+class DirectoryTests(unittest.TestCase):
+
+    """Test Directory."""
+
+    def setUp(self):
+        self.t = conftypes.Directory()
+
+    def test_validate_empty(self, _os_path):
+        """Test validate with empty string and none_ok = False."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate("")
+
+    def test_validate_empty_none_ok(self, _os_path):
+        """Test validate with empty string and none_ok = True."""
+        t = conftypes.Directory(none_ok=True)
+        t.validate("")
+
+    def test_validate_does_not_exist(self, os_path):
+        """Test validate with a directory which does not exist."""
+        os_path.expanduser.side_effect = lambda x: x
+        os_path.isdir.return_value = False
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('foobar')
+
+    def test_validate_exists_abs(self, os_path):
+        """Test validate with a directory which does exist."""
+        os_path.expanduser.side_effect = lambda x: x
+        os_path.isdir.return_value = True
+        os_path.isabs.return_value = True
+        self.t.validate('foobar')
+
+    def test_validate_exists_not_abs(self, os_path):
+        """Test validate with a dir which does exist but is not absolute."""
+        os_path.expanduser.side_effect = lambda x: x
+        os_path.isdir.return_value = True
+        os_path.isabs.return_value = False
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('foobar')
+
+    def test_validate_expanduser(self, os_path):
+        """Test if validate expands the user correctly."""
+        os_path.expanduser.side_effect = lambda x: x.replace('~', '/home/foo')
+        os_path.isdir.side_effect = lambda path: path == '/home/foo/foobar'
+        os_path.isabs.return_value = True
+        self.t.validate('~/foobar')
+        os_path.expanduser.assert_called_once_with('~/foobar')
+
+    def test_transform(self, os_path):
+        """Test transform."""
+        os_path.expanduser.side_effect = lambda x: x.replace('~', '/home/foo')
+        self.assertEqual(self.t.transform('~/foobar'), '/home/foo/foobar')
+        os_path.expanduser.assert_called_once_with('~/foobar')
+
+    def test_transform_empty(self, _os_path):
+        """Test transform with none_ok = False and an empty value."""
+        self.assertIsNone(self.t.transform(''))
+
+
+class WebKitByteTests(unittest.TestCase):
+
+    """Test WebKitBytes."""
+
+    def setUp(self):
+        self.t = conftypes.WebKitBytes()
+
+    def test_validate_empty(self):
+        """Test validate with empty string and none_ok = False."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with empty string and none_ok = True."""
+        t = conftypes.WebKitBytes(none_ok=True)
+        t.validate('')
+
+    def test_validate_int(self):
+        """Test validate with a normal int."""
+        self.t.validate('42')
+
+    def test_validate_int_suffix(self):
+        """Test validate with an int with a suffix."""
+        self.t.validate('56k')
+
+    def test_validate_int_caps_suffix(self):
+        """Test validate with an int with a capital suffix."""
+        self.t.validate('56K')
+
+    def test_validate_int_negative(self):
+        """Test validate with a negative int."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('-1')
+
+    def test_validate_int_negative_suffix(self):
+        """Test validate with a negative int with suffix."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('-1k')
+
+    def test_validate_int_toobig(self):
+        """Test validate with an int which is too big."""
+        t = conftypes.WebKitBytes(maxsize=10)
+        with self.assertRaises(conftypes.ValidationError):
+            t.validate('11')
+
+    def test_validate_int_not_toobig(self):
+        """Test validate with an int which is not too big."""
+        t = conftypes.WebKitBytes(maxsize=10)
+        t.validate('10')
+
+    def test_validate_int_toobig_suffix(self):
+        """Test validate with an int which is too big with suffix."""
+        t = conftypes.WebKitBytes(maxsize=10)
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('1k')
+
+    def test_validate_int_invalid_suffix(self):
+        """Test validate with an int with an invalid suffix."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('56x')
+
+    def test_validate_int_double_suffix(self):
+        """Test validate with an int with a double suffix."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('56kk')
+
+    def test_transform_empty(self):
+        """Test transform with none_ok = False and an empty value."""
+        self.assertIsNone(self.t.transform(''))
+
+    def test_transform_int(self):
+        """Test transform with a simple value."""
+        self.assertEqual(self.t.transform('10'), 10)
+
+    def test_transform_int_suffix(self):
+        """Test transform with a value with suffix."""
+        self.assertEqual(self.t.transform('1k'), 1024)
 
 
 
