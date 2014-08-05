@@ -384,7 +384,8 @@ class FormatSecondsTests(unittest.TestCase):
     def test_format_seconds(self):
         """Test format_seconds with several tests."""
         for seconds, out in self.TESTS:
-            self.assertEqual(utils.format_seconds(seconds), out, seconds)
+            with self.subTest(seconds=seconds):
+                self.assertEqual(utils.format_seconds(seconds), out)
 
 
 class FormatSizeTests(unittest.TestCase):
@@ -410,19 +411,22 @@ class FormatSizeTests(unittest.TestCase):
     def test_format_size(self):
         """Test format_size with several tests."""
         for size, out in self.TESTS:
-            self.assertEqual(utils.format_size(size), out, size)
+            with self.subTest(size=size):
+                self.assertEqual(utils.format_size(size), out)
 
     def test_suffix(self):
         """Test the suffix option."""
         for size, out in self.TESTS:
-            self.assertEqual(utils.format_size(size, suffix='B'), out + 'B',
-                             size)
+            with self.subTest(size=size):
+                self.assertEqual(utils.format_size(size, suffix='B'),
+                                 out + 'B')
 
     def test_base(self):
         """Test with an alternative base."""
         kilo_tests = [(999, '999.00'), (1000, '1.00k'), (1010, '1.01k')]
         for size, out in kilo_tests:
-            self.assertEqual(utils.format_size(size, base=1000), out, size)
+            with self.subTest(size=size):
+                self.assertEqual(utils.format_size(size, base=1000), out)
 
 
 class KeyToStringTests(unittest.TestCase):
@@ -502,7 +506,8 @@ class NormalizeTests(unittest.TestCase):
             ('Windows++', 'meta++'),
         )
         for orig, repl in strings:
-            self.assertEqual(utils.normalize_keystr(orig), repl, orig)
+            with self.subTest(orig=orig):
+                self.assertEqual(utils.normalize_keystr(orig), repl)
 
 
 if __name__ == '__main__':

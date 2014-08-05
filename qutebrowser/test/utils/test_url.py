@@ -61,14 +61,16 @@ class SpecialURLTests(unittest.TestCase):
     def test_special_urls(self):
         """Test special URLs."""
         for url in self.SPECIAL_URLS:
-            u = QUrl(url)
-            self.assertTrue(urlutils.is_special_url(u))
+            with self.subTest(url=url):
+                u = QUrl(url)
+                self.assertTrue(urlutils.is_special_url(u))
 
     def test_normal_urls(self):
         """Test non-special URLs."""
         for url in self.NORMAL_URLS:
-            u = QUrl(url)
-            self.assertFalse(urlutils.is_special_url(u))
+            with self.subTest(url=url):
+                u = QUrl(url)
+                self.assertFalse(urlutils.is_special_url(u))
 
 
 class SearchUrlTests(unittest.TestCase):
@@ -135,12 +137,14 @@ class IsUrlNaiveTests(unittest.TestCase):
     def test_urls(self):
         """Test things which are URLs."""
         for url in self.URLS:
-            self.assertTrue(urlutils._is_url_naive(url), url)
+            with self.subTest(url=url):
+                self.assertTrue(urlutils._is_url_naive(url), url)
 
     def test_not_urls(self):
         """Test things which are not URLs."""
         for url in self.NOT_URLS:
-            self.assertFalse(urlutils._is_url_naive(url), url)
+            with self.subTest(url=url):
+                self.assertFalse(urlutils._is_url_naive(url), url)
 
 
 if __name__ == '__main__':

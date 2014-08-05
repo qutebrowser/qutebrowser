@@ -40,8 +40,9 @@ class NoneWidgetTests(unittest.TestCase):
     def test_none(self):
         """Test if there are no exceptions when the widget is None."""
         for name, method in inspect.getmembers(self.bridge, inspect.ismethod):
-            if name.startswith('rl_'):
-                method()
+            with self.subTest(name=name):
+                if name.startswith('rl_'):
+                    method()
 
 
 class ReadlineBridgeTest(unittest.TestCase):

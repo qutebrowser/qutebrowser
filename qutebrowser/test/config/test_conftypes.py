@@ -305,7 +305,8 @@ class BoolTests(unittest.TestCase):
         """Test transform with all values."""
         for out, inputs in self.TESTS.items():
             for inp in inputs:
-                self.assertEqual(self.t.transform(inp), out, inp)
+                with self.subTest(inp=inp, out=out):
+                    self.assertEqual(self.t.transform(inp), out, inp)
 
     def test_transform_empty(self):
         """Test transform with none_ok = False and an empty value."""
@@ -315,13 +316,15 @@ class BoolTests(unittest.TestCase):
         """Test validate with valid values."""
         for vallist in self.TESTS.values():
             for val in vallist:
-                self.t.validate(val)
+                with self.subTest(val=val):
+                    self.t.validate(val)
 
     def test_validate_invalid(self):
         """Test validate with invalid values."""
         for val in self.INVALID:
-            with self.assertRaises(conftypes.ValidationError):
-                self.t.validate(val)
+            with self.subTest(val=val):
+                with self.assertRaises(conftypes.ValidationError):
+                    self.t.validate(val)
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
@@ -931,18 +934,21 @@ class ColorSystemTests(unittest.TestCase):
     def test_validate_valid(self):
         """Test validate with valid values."""
         for val in self.TESTS:
-            self.t.validate(val)
+            with self.subTest(val=val):
+                self.t.validate(val)
 
     def test_validate_invalid(self):
         """Test validate with invalid values."""
         for val in self.INVALID:
-            with self.assertRaises(conftypes.ValidationError, msg=val):
-                self.t.validate(val)
+            with self.subTest(val=val):
+                with self.assertRaises(conftypes.ValidationError, msg=val):
+                    self.t.validate(val)
 
     def test_transform(self):
         """Test transform."""
         for k, v in self.TESTS.items():
-            self.assertEqual(self.t.transform(k), v, k)
+            with self.subTest(v=v):
+                self.assertEqual(self.t.transform(k), v, k)
 
     def test_transform_empty(self):
         """Test transform with an empty value."""
@@ -973,18 +979,21 @@ class QtColorTests(unittest.TestCase):
     def test_validate_valid(self):
         """Test validate with valid values."""
         for v in self.VALID:
-            self.t.validate(v)
+            with self.subTest(v=v):
+                self.t.validate(v)
 
     def test_validate_invalid(self):
         """Test validate with invalid values."""
         for val in self.INVALID + self.INVALID_QT:
-            with self.assertRaises(conftypes.ValidationError, msg=val):
-                self.t.validate(val)
+            with self.subTest(val=val):
+                with self.assertRaises(conftypes.ValidationError, msg=val):
+                    self.t.validate(val)
 
     def test_transform(self):
         """Test transform."""
         for v in self.VALID:
-            self.assertEqual(self.t.transform(v), QColor(v), v)
+            with self.subTest(v=v):
+                self.assertEqual(self.t.transform(v), QColor(v), v)
 
     def test_transform_empty(self):
         """Test transform with an empty value."""
@@ -1008,7 +1017,8 @@ class CssColorTests(QtColorTests):
     def test_transform(self):
         """Make sure transform doesn't alter the value."""
         for v in self.VALID:
-            self.assertEqual(self.t.transform(v), v, v)
+            with self.subTest(v=v):
+                self.assertEqual(self.t.transform(v), v, v)
 
 
 class QssColorTests(QtColorTests):
@@ -1039,7 +1049,8 @@ class QssColorTests(QtColorTests):
     def test_transform(self):
         """Make sure transform doesn't alter the value."""
         for v in self.VALID:
-            self.assertEqual(self.t.transform(v), v, v)
+            with self.subTest(v=v):
+                self.assertEqual(self.t.transform(v), v, v)
 
 
 class FontTests(unittest.TestCase):
@@ -1104,27 +1115,36 @@ class FontTests(unittest.TestCase):
     def test_validate_valid(self):
         """Test validate with valid values."""
         for val in self.TESTS:
-            self.t.validate(val)
-            self.t2.validate(val)
+            with self.subTest(val=val):
+                with self.subTest(t="t1"):
+                    self.t.validate(val)
+                with self.subTest(t="t2"):
+                    self.t2.validate(val)
 
     # FIXME
     @unittest.expectedFailure
     def test_validate_invalid(self):
         """Test validate with invalid values."""
         for val in self.INVALID:
-            with self.assertRaises(conftypes.ValidationError, msg=val):
-                self.t.validate(val)
-            with self.assertRaises(conftypes.ValidationError, msg=val):
-                self.t2.validate(val)
+            with self.subTest(val=val):
+                with self.subTest(t="t1"):
+                    with self.assertRaises(conftypes.ValidationError, msg=val):
+                        self.t.validate(val)
+                with self.subTest(t="t2"):
+                    with self.assertRaises(conftypes.ValidationError, msg=val):
+                        self.t2.validate(val)
 
     # FIXME
     @unittest.expectedFailure
     def test_transform(self):
         """Test transform."""
         for string, desc in self.TESTS.items():
-            self.assertEqual(self.t.transform(string), string, string)
-            self.assertEqual(Font(self.t2.transform(string)),
-                             Font.fromdesc(desc), string)
+            with self.subTest(val=val):
+                with self.subTest(t="t1"):
+                    self.assertEqual(self.t.transform(string), string, string)
+                with self.subTest(t="t2"):
+                    self.assertEqual(Font(self.t2.transform(string)),
+                                    Font.fromdesc(desc), string)
 
     def test_transform_empty(self):
         """Test transform with an empty value."""
@@ -1767,19 +1787,22 @@ class AutoSearchTests(unittest.TestCase):
         """Test validate with valid values."""
         for vallist in self.TESTS.values():
             for val in vallist:
-                self.t.validate(val)
+                with self.subTest(val=val):
+                    self.t.validate(val)
 
     def test_validate_invalid(self):
         """Test validate with invalid values."""
         for val in self.INVALID:
-            with self.assertRaises(conftypes.ValidationError):
-                self.t.validate(val)
+            with self.subTest(val=val):
+                with self.assertRaises(conftypes.ValidationError):
+                    self.t.validate(val)
 
     def test_transform(self):
         """Test transform with all values."""
         for out, inputs in self.TESTS.items():
             for inp in inputs:
-                self.assertEqual(self.t.transform(inp), out, inp)
+                with self.subTest(inp=inp):
+                    self.assertEqual(self.t.transform(inp), out, inp)
 
     def test_transform_empty(self):
         """Test transform with none_ok = False and an empty value."""

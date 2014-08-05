@@ -62,22 +62,24 @@ class CheckOverflowTests(unittest.TestCase):
         """Test values which are inside bounds."""
         for ctype, vals in self.GOOD_VALUES.items():
             for val in vals:
-                qt.check_overflow(val, ctype)
+                with self.subTest(ctype=ctype, val=val):
+                    qt.check_overflow(val, ctype)
 
     def test_bad_values_fatal(self):
         """Test values which are outside bounds with fatal=True."""
         for ctype, vals in self.BAD_VALUES.items():
             for (val, _) in vals:
-                with self.assertRaises(OverflowError, msg=ctype):
-                    qt.check_overflow(val, ctype)
+                with self.subTest(ctype=ctype, val=val):
+                    with self.assertRaises(OverflowError):
+                        qt.check_overflow(val, ctype)
 
     def test_bad_values_nonfatal(self):
         """Test values which are outside bounds with fatal=False."""
         for ctype, vals in self.BAD_VALUES.items():
             for (val, replacement) in vals:
-                newval = qt.check_overflow(val, ctype, fatal=False)
-                self.assertEqual(newval, replacement,
-                                 "{}: {}".format(ctype, val))
+                with self.subTest(ctype=ctype, val=val):
+                    newval = qt.check_overflow(val, ctype, fatal=False)
+                    self.assertEqual(newval, replacement)
 
 
 class GetQtArgsTests(unittest.TestCase):

@@ -242,7 +242,8 @@ class JavascriptEscapeTests(unittest.TestCase):
     def test_fake_escape(self):
         """Test javascript escaping."""
         for before, after in self.STRINGS:
-            self.assertEqual(webelem.javascript_escape(before), after)
+            with self.subTest(before=before):
+                self.assertEqual(webelem.javascript_escape(before), after)
 
 
 class GetChildFramesTests(unittest.TestCase):
@@ -293,7 +294,8 @@ class GetChildFramesTests(unittest.TestCase):
         self.assertEqual(len(children), 7)
         self.assertIs(children[0], root)
         for frame in [root] + first + second:
-            frame.childFrames.assert_called_once_with()
+            with self.subTest(frame=frame):
+                frame.childFrames.assert_called_once_with()
 
 
 class IsEditableTests(unittest.TestCase):
