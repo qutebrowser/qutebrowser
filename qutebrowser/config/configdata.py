@@ -1,6 +1,4 @@
-# pylint: disable=too-many-lines
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Note the "disable=too-many-lines" needs to be in the first line to work.
 
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #

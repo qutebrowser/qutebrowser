@@ -22,7 +22,8 @@ disable=no-self-use,
         bad-continuation,
         too-many-instance-attributes,
         unnecessary-lambda,
-        blacklisted-name
+        blacklisted-name,
+        too-many-lines
 
 [BASIC]
 module-rgx=(__)?[a-z][a-z0-9_]*(__)?$
