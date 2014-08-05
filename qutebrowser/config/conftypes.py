@@ -377,9 +377,9 @@ class Perc(BaseType):
         self.maxval = maxval
 
     def transform(self, value):
-        return int(value.rstrip('%'))
         if self.none_ok and not value:
             return
+        return int(value[:-1])
 
     def validate(self, value):
         if not value:
@@ -390,7 +390,7 @@ class Perc(BaseType):
         if not value.endswith('%'):
             raise ValidationError(value, "does not end with %")
         try:
-            intval = int(value.rstrip('%'))
+            intval = int(value[:-1])
         except ValueError:
             raise ValidationError(value, "invalid percentage!")
         if self.minval is not None and intval < self.minval:
@@ -472,7 +472,7 @@ class PercOrInt(BaseType):
             return
         if value.endswith('%'):
             try:
-                intval = int(value.rstrip('%'))
+                intval = int(value[:-1])
             except ValueError:
                 raise ValidationError(value, "invalid percentage!")
             if self.minperc is not None and intval < self.minperc:
