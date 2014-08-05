@@ -623,12 +623,20 @@ class QssColor(CssColor):
     """Base class for a color value.
 
     Class attributes:
-        _GRADIENTS: Valid gradient function names.
+        color_func_regexes: Valid function regexes.
     """
 
     typestr = 'qss-color'
 
-    _GRADIENTS = ('qlineargradient', 'qradialgradient', 'qconicalgradient')
+    color_func_regexes = [
+        r'rgb\([0-9]{1,3}%?, [0-9]{1,3}%?, [0-9]{1,3}%?\)',
+        r'rgba\([0-9]{1,3}%?, [0-9]{1,3}%?, [0-9]{1,3}%?, [0-9]{1,3}%?\)',
+        r'hsv\([0-9]{1,3}%?, [0-9]{1,3}%?, [0-9]{1,3}%?\)',
+        r'hsva\([0-9]{1,3}%?, [0-9]{1,3}%?, [0-9]{1,3}%?, [0-9]{1,3}%?\)',
+        r'qlineargradient\(.*\)',
+        r'qradialgradient\(.*\)',
+        r'qconicalgradient\(.*\)',
+    ]
 
     def validate(self, value):
         if not value:
@@ -636,8 +644,8 @@ class QssColor(CssColor):
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
-        if any([value.startswith(start) for start in self._GRADIENTS]):
-            # We can't validate this further.
+        elif any(re.match(r, value) for r in self.color_func_regexes):
+            # QColor doesn't handle these, so we do the best we can easily
             pass
         elif QColor.isValidColor(value):
             pass
