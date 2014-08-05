@@ -1139,12 +1139,12 @@ class FontTests(unittest.TestCase):
     def test_transform(self):
         """Test transform."""
         for string, desc in self.TESTS.items():
-            with self.subTest(val=val):
+            with self.subTest(string=string, desc=desc):
                 with self.subTest(t="t1"):
                     self.assertEqual(self.t.transform(string), string, string)
                 with self.subTest(t="t2"):
                     self.assertEqual(Font(self.t2.transform(string)),
-                                    Font.fromdesc(desc), string)
+                                     Font.fromdesc(desc), string)
 
     def test_transform_empty(self):
         """Test transform with an empty value."""

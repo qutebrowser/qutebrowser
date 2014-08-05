@@ -24,7 +24,7 @@ Module attributes:
     pyeval_output: The output of the last :pyeval command.
 """
 
-import html
+import html as pyhtml
 
 from PyQt5.QtNetwork import QNetworkReply
 
@@ -112,13 +112,13 @@ class QuteHandlers:
     @classmethod
     def pyeval(cls):
         """Handler for qute:pyeval. Return HTML content as bytes."""
-        text = html.escape(pyeval_output)
+        text = pyhtml.escape(pyeval_output)
         return _get_html('pyeval', '<pre>{}</pre>'.format(text))
 
     @classmethod
     def version(cls):
         """Handler for qute:version. Return HTML content as bytes."""
-        text = html.escape(version.version())
+        text = pyhtml.escape(version.version())
         html = '<h1>Version info</h1>'
         html += '<p>{}</p>'.format(text.replace('\n', '<br/>'))
         html += '<h1>Copyright info</h1>'
@@ -132,7 +132,7 @@ class QuteHandlers:
         if logutils.ram_handler is None:
             text = "Log output was disabled."
         else:
-            text = html.escape(logutils.ram_handler.dump_log())
+            text = pyhtml.escape(logutils.ram_handler.dump_log())
         return _get_html('log', '<pre>{}</pre>'.format(text))
 
     @classmethod
