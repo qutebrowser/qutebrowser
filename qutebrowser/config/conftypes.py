@@ -1096,7 +1096,7 @@ class AutoSearch(BaseType):
             return None
         elif value.lower() in ('naive', 'dns'):
             return value.lower()
-        elif super().transform(value):
+        elif self.booltype.transform(value):
             # boolean true is an alias for naive matching
             return 'naive'
         else:
