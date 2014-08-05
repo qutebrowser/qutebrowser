@@ -617,6 +617,9 @@ class PercListTests(unittest.TestCase):
 
     """Test PercList."""
 
+    def setUp(self):
+        self.t = conftypes.PercList()
+
     def test_minval_gt_maxval(self):
         """Test __init__ with a minval bigger than the maxval."""
         with self.assertRaises(ValueError):
@@ -624,14 +627,12 @@ class PercListTests(unittest.TestCase):
 
     def test_validate_good(self):
         """Test validate with good values."""
-        t = conftypes.PercList()
-        t.validate('23%,42%,1337%')
+        self.t.validate('23%,42%,1337%')
 
     def test_validate_bad(self):
         """Test validate with bad values."""
-        t = conftypes.PercList()
         with self.assertRaises(conftypes.ValidationError):
-            t.validate('23%,42%%,1337%')
+            self.t.validate('23%,42%%,1337%')
 
     def test_validate_minval_toosmall(self):
         """Test validate with a minval and a too small percentage."""
@@ -671,9 +672,8 @@ class PercListTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with an empty value."""
-        t = conftypes.PercList()
         with self.assertRaises(conftypes.ValidationError):
-            t.validate('23%,,42%')
+            self.t.validate('23%,,42%')
 
     def test_validate_empty_none_ok(self):
         """Test validate with an empty value and none_ok=True."""
@@ -682,13 +682,15 @@ class PercListTests(unittest.TestCase):
 
     def test_transform_single(self):
         """Test transform with a single value."""
-        t = conftypes.PercList()
-        self.assertEqual(t.transform('1337%'), [1337])
+        self.assertEqual(self.t.transform('1337%'), [1337])
 
     def test_transform_more(self):
         """Test transform with multiple values."""
-        t = conftypes.PercList()
-        self.assertEqual(t.transform('23%,42%,1337%'), [23, 42, 1337])
+        self.assertEqual(self.t.transform('23%,42%,1337%'), [23, 42, 1337])
+
+    def test_transform_empty(self):
+        """Test transform with an empty value."""
+        self.assertEqual(self.t.transform('23%,,42%'), [23, None, 42])
 
 
 class PercOrIntTests(unittest.TestCase):
@@ -1326,13 +1328,8 @@ class WebKitByteTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
-        with self.assertRaises(conftypes.ValidationError):
-            self.t.validate('')
-
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = conftypes.WebKitBytes(none_ok=True)
-        t.validate('')
+        # Note WebKitBytes are always None-able
+        self.t.validate('')
 
     def test_validate_int(self):
         """Test validate with a normal int."""
@@ -1371,7 +1368,7 @@ class WebKitByteTests(unittest.TestCase):
         """Test validate with an int which is too big with suffix."""
         t = conftypes.WebKitBytes(maxsize=10)
         with self.assertRaises(conftypes.ValidationError):
-            self.t.validate('1k')
+            t.validate('1k')
 
     def test_validate_int_invalid_suffix(self):
         """Test validate with an int with an invalid suffix."""
