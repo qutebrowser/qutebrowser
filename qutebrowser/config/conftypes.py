@@ -275,6 +275,9 @@ class Int(BaseType):
 
     def __init__(self, minval=None, maxval=None, none_ok=False):
         super().__init__(none_ok)
+        if maxval is not None and minval is not None and maxval < minval:
+            raise ValueError("minval ({}) needs to be <= maxval ({})!".format(
+                minval, maxval))
         self.minval = minval
         self.maxval = maxval
 
@@ -328,6 +331,9 @@ class Float(BaseType):
 
     def __init__(self, minval=None, maxval=None, none_ok=False):
         super().__init__(none_ok)
+        if maxval is not None and minval is not None and maxval < minval:
+            raise ValueError("minval ({}) needs to be <= maxval ({})!".format(
+                minval, maxval))
         self.minval = minval
         self.maxval = maxval
 
@@ -364,6 +370,9 @@ class Perc(BaseType):
 
     def __init__(self, minval=None, maxval=None, none_ok=False):
         super().__init__(none_ok)
+        if maxval is not None and minval is not None and maxval < minval:
+            raise ValueError("minval ({}) needs to be <= maxval ({})!".format(
+                minval, maxval))
         self.minval = minval
         self.maxval = maxval
 
@@ -447,6 +456,12 @@ class PercOrInt(BaseType):
     def __init__(self, minperc=None, maxperc=None, minint=None, maxint=None,
                  none_ok=False):
         super().__init__(none_ok)
+        if maxint is not None and minint is not None and maxint < minint:
+            raise ValueError("minint ({}) needs to be <= maxint ({})!".format(
+                minint, maxint))
+        if maxperc is not None and minperc is not None and maxperc < minperc:
+            raise ValueError("minperc ({}) needs to be <= maxperc "
+                             "({})!".format(minperc, maxperc))
         self.minperc = minperc
         self.maxperc = maxperc
         self.minint = minint
