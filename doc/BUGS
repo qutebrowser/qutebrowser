@@ -89,6 +89,8 @@ Misc
   (e.g. when an user-stylesheet file is deleted)
 - Clicking links/email in crash dialog should open browser/mailclient under
   windows
+- Current font handling is rather broken (rejecting invalid values / setting
+  multiple font families)
 
 Upstream Bugs
 =============
