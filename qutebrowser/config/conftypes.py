@@ -972,16 +972,7 @@ class Proxy(BaseType):
         if not url.isValid():
             raise ValidationError(value, "invalid url, {}".format(
                 url.errorString()))
-        elif (url.isValid() and not url.isEmpty() and
-                url.scheme() in self.PROXY_TYPES):
-            if url.userName() and url.password():
-                pass
-            elif not url.userName() and not url.password():
-                pass
-            else:
-                raise ValidationError(value, "must either have user and "
-                                             "password or none of both")
-        else:
+        elif url.scheme() not in self.PROXY_TYPES:
             raise ValidationError(value, "must be a proxy URL (http://... or "
                                          "socks://...) or system/none!")
 
