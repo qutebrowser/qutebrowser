@@ -42,13 +42,6 @@ class Color(QColor):
         return 'Color({}, {}, {}, {})'.format(
             self.red(), self.green(), self.blue(), self.alpha())
 
-    def __eq__(self, other):
-        """The default operator= of QColor seems to be rather strict."""
-        return (self.red() == other.red() and
-                self.green() == other.green() and
-                self.blue() == other.blue() and
-                self.alpha() == other.alpha())
-
 
 class ElidingTests(unittest.TestCase):
 

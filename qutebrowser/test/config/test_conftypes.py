@@ -36,13 +36,6 @@ class Font(QFont):
             self.family(), self.pointSize(), self.weight(),
             self.style() & QFont.StyleItalic)
 
-    def __eq__(self, other):
-        """The default operator= of QFont seems to be rather strict."""
-        return (self.family() == other.family() and
-                self.pointSize() == other.pointSize() and
-                self.weight() == other.weight() and
-                self.style() == other.style())
-
     @classmethod
     def fromdesc(cls, desc):
         """Get a Font based on a font description."""
