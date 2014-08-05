@@ -24,7 +24,9 @@ import re
 import qutebrowser.config.conftypes as conftypes
 from qutebrowser.test.stubs import FakeCmdUtils, FakeCommand
 
+from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
+from PyQt5.QtNetwork import QNetworkProxy
 
 
 class Font(QFont):
@@ -49,6 +51,16 @@ class Font(QFont):
             f.setPixelSize(pxsize)
         f.setFamily(family)
         return f
+
+
+class NetworkProxy(QNetworkProxy):
+
+    """A QNetworkProxy with a nicer repr()."""
+
+    def __repr__(self):
+        return 'QNetworkProxy({}, "{}", {}, "{}", "{}")'.format(
+            self.type(), self.hostName(), self.port(), self.user(),
+            self.password())
 
 
 class ValidValuesTest(unittest.TestCase):
@@ -1392,6 +1404,393 @@ class WebKitByteTests(unittest.TestCase):
         """Test transform with a value with suffix."""
         self.assertEqual(self.t.transform('1k'), 1024)
 
+
+class WebKitBytesListTests(unittest.TestCase):
+
+    """Test WebKitBytesList."""
+
+    def setUp(self):
+        self.t = conftypes.WebKitBytesList()
+
+    def test_validate_good(self):
+        """Test validate with good values."""
+        t = conftypes.WebKitBytesList()
+        t.validate('23,56k,1337')
+
+    def test_validate_bad(self):
+        """Test validate with bad values."""
+        t = conftypes.WebKitBytesList()
+        with self.assertRaises(conftypes.ValidationError):
+            t.validate('23,56kk,1337')
+
+    def test_validate_maxsize_toolarge(self):
+        """Test validate with a maxsize and a too big size."""
+        t = conftypes.WebKitBytesList(maxsize=2)
+        with self.assertRaises(conftypes.ValidationError):
+            t.validate('3')
+        with self.assertRaises(conftypes.ValidationError):
+            t.validate('3k')
+
+    def test_validate_maxsize_ok(self):
+        """Test validate with a maxsize and a good size."""
+        t = conftypes.WebKitBytesList(maxsize=2)
+        t.validate('2')
+
+    def test_validate_empty(self):
+        """Test validate with an empty value."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('23,,42')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with an empty value and none_ok=True."""
+        t = conftypes.WebKitBytesList(none_ok=True)
+        t.validate('23,,42')
+
+    def test_validate_len_tooshort(self):
+        """Test validate with a too short length."""
+        t = conftypes.WebKitBytesList(length=3)
+        with self.assertRaises(conftypes.ValidationError):
+            t.validate('1,2')
+
+    def test_validate_len_ok(self):
+        """Test validate with a correct length."""
+        t = conftypes.WebKitBytesList(length=3)
+        t.validate('1,2,3')
+
+    def test_validate_len_tooshort(self):
+        """Test validate with a too long length."""
+        t = conftypes.WebKitBytesList(length=3)
+        with self.assertRaises(conftypes.ValidationError):
+
+            t.validate('1,2,3,4')
+
+    def test_transform_single(self):
+        """Test transform with a single value."""
+        self.assertEqual(self.t.transform('1k'), [1024])
+
+    def test_transform_more(self):
+        """Test transform with multiple values."""
+        self.assertEqual(self.t.transform('23,2k,1337'), [23, 2048, 1337])
+
+    def test_transform_empty(self):
+        """Test transform with an empty value."""
+        self.assertEqual(self.t.transform('23,,42'), [23, None, 42])
+
+
+class ShellCommandTests(unittest.TestCase):
+
+    """Test ShellCommand."""
+
+    def setUp(self):
+        self.t = conftypes.ShellCommand()
+
+    def test_validate_empty(self):
+        """Test validate with empty string and none_ok = False."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate("")
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with empty string and none_ok = True."""
+        t = conftypes.ShellCommand(none_ok=True)
+        t.validate("")
+
+    def test_validate_simple(self):
+        """Test validate with a simple string."""
+        self.t.validate('foobar')
+
+    def test_validate_placeholder(self):
+        """Test validate with a placeholder."""
+        t = conftypes.ShellCommand(placeholder='{}')
+        t.validate('foo {} bar')
+
+    def test_validate_placeholder_invalid(self):
+        """Test validate with an invalid placeholder."""
+        t = conftypes.ShellCommand(placeholder='{}')
+        with self.assertRaises(conftypes.ValidationError):
+            t.validate('foo{} bar')
+
+    def test_transform_single(self):
+        """Test transform with a single word."""
+        self.assertEqual(self.t.transform('foobar'), ['foobar'])
+
+    def test_transform_double(self):
+        """Test transform with two words."""
+        self.assertEqual(self.t.transform('foobar baz'), ['foobar', 'baz'])
+
+    def test_transform_quotes(self):
+        """Test transform with a quoted word."""
+        self.assertEqual(self.t.transform('foo "bar baz" fish'),
+                         ['foo', 'bar baz', 'fish'])
+
+    def test_transform_empty(self):
+        """Test transform with none_ok = False and an empty value."""
+        self.assertIsNone(self.t.transform(''))
+
+
+class ProxyTests(unittest.TestCase):
+
+    """Test Proxy."""
+
+    def setUp(self):
+        self.t = conftypes.Proxy()
+
+    def test_validate_empty(self):
+        """Test validate with empty string and none_ok = False."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with empty string and none_ok = True."""
+        t = conftypes.Proxy(none_ok=True)
+        t.validate('')
+
+    def test_validate_system(self):
+        """Test validate with system proxy."""
+        self.t.validate('system')
+
+    def test_validate_none(self):
+        """Test validate with none proxy."""
+        self.t.validate('none')
+
+    def test_validate_invalid(self):
+        """Test validate with an invalid URL."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate(':')
+
+    def test_validate_scheme(self):
+        """Test validate with a URL with wrong scheme."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('ftp://example.com/')
+
+    def test_validate_http(self):
+        """Test validate with a correct HTTP URL."""
+        self.t.validate('http://user:pass@example.com:2323/')
+
+    def test_validate_socks(self):
+        """Test validate with a correct socks URL."""
+        self.t.validate('socks://user:pass@example.com:2323/')
+
+    def test_validate_socks5(self):
+        """Test validate with a correct socks5 URL."""
+        self.t.validate('socks5://user:pass@example.com:2323/')
+
+    def test_complete(self):
+        """Test complete."""
+        self.assertEqual(self.t.complete(),
+                         [('system', "Use the system wide proxy."),
+                          ('none', "Don't use any proxy"),
+                          ('http://', 'HTTP proxy URL'),
+                          ('socks://', 'SOCKS proxy URL')])
+
+    def test_transform_empty(self):
+        """Test transform with an empty value."""
+        self.assertIsNone(self.t.transform(''))
+
+    def test_transform_system(self):
+        """Test transform with system proxy."""
+        self.assertIs(self.t.transform('system'), conftypes.SYSTEM_PROXY)
+
+    def test_transform_none(self):
+        """Test transform with no proxy."""
+        self.assertEqual(NetworkProxy(self.t.transform('none')),
+                         NetworkProxy(QNetworkProxy.NoProxy))
+
+    def test_transform_socks(self):
+        """Test transform with a socks proxy."""
+        proxy = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')
+        val = NetworkProxy(self.t.transform('socks://example.com/'))
+        self.assertEqual(proxy, val)
+
+    def test_transform_socks5(self):
+        """Test transform with a socks5 proxy."""
+        proxy = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')
+        val = NetworkProxy(self.t.transform('socks5://example.com'))
+        self.assertEqual(proxy, val)
+
+    def test_transform_http_port(self):
+        """Test transform with a http proxy with set port."""
+        proxy = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2342)
+        val = NetworkProxy(self.t.transform('socks5://example.com:2342'))
+        self.assertEqual(proxy, val)
+
+    def test_transform_socks_user(self):
+        """Test transform with a socks proxy with set user."""
+        proxy = NetworkProxy(
+            QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo')
+        val = NetworkProxy(self.t.transform('socks5://foo@example.com'))
+        self.assertEqual(proxy, val)
+
+    def test_transform_socks_user_password(self):
+        """Test transform with a socks proxy with set user/password."""
+        proxy = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0,
+                             'foo', 'bar')
+        val = NetworkProxy(self.t.transform('socks5://foo:bar@example.com'))
+        self.assertEqual(proxy, val)
+
+    def test_transform_socks_user_password_port(self):
+        """Test transform with a socks proxy with set port/user/password."""
+        proxy = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2323,
+                             'foo', 'bar')
+        val = NetworkProxy(
+            self.t.transform('socks5://foo:bar@example.com:2323'))
+        self.assertEqual(proxy, val)
+
+
+
+class SearchEngineNameTests(unittest.TestCase):
+
+    """Test SearchEngineName."""
+
+    def setUp(self):
+        self.t = conftypes.SearchEngineName()
+
+    def test_validate_empty(self):
+        """Test validate with empty string and none_ok = False."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with empty string and none_ok = True."""
+        t = conftypes.SearchEngineName(none_ok=True)
+        t.validate('')
+
+    def test_transform_empty(self):
+        """Test transform with an empty value."""
+        self.assertIsNone(self.t.transform(''))
+
+    def test_transform(self):
+        """Test transform with a value."""
+        self.assertEqual(self.t.transform("foobar"), "foobar")
+
+
+class SearchEngineUrlTests(unittest.TestCase):
+
+    """Test SearchEngineUrl."""
+
+    def setUp(self):
+        self.t = conftypes.SearchEngineUrl()
+
+    def test_validate_empty(self):
+        """Test validate with empty string and none_ok = False."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with empty string and none_ok = True."""
+        t = conftypes.SearchEngineUrl(none_ok=True)
+        t.validate('')
+
+    def test_validate_no_placeholder(self):
+        """Test validate with no placeholder."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('foo')
+
+    def test_validate(self):
+        """Test validate with a good value."""
+        self.t.validate('http://example.com/?q={}')
+
+    def test_validate_invalid_url(self):
+        """Test validate with an invalud URL."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate(':{}')
+
+    def test_transform_empty(self):
+        """Test transform with an empty value."""
+        self.assertIsNone(self.t.transform(''))
+
+
+    def test_transform(self):
+        """Test transform with a value."""
+        self.assertEqual(self.t.transform("foobar"), "foobar")
+
+
+class KeyBindingNameTests(unittest.TestCase):
+
+    """Test KeyBindingName."""
+
+    def setUp(self):
+        self.t = conftypes.KeyBindingName()
+
+    def test_validate_empty(self):
+        """Test validate with empty string and none_ok = False."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with empty string and none_ok = True."""
+        t = conftypes.KeyBindingName(none_ok=True)
+        t.validate('')
+
+    def test_transform_empty(self):
+        """Test transform with an empty value."""
+        self.assertIsNone(self.t.transform(''))
+
+    def test_transform(self):
+        """Test transform with a value."""
+        self.assertEqual(self.t.transform("foobar"), "foobar")
+
+
+class WebSettingsFileTests(unittest.TestCase):
+
+    """Test WebSettingsFile."""
+
+    def setUp(self):
+        self.t = conftypes.WebSettingsFile()
+
+    def test_transform_empty(self):
+        """Test transform with an empty value."""
+        self.assertIsNone(self.t.transform(''))
+
+    def test_transform(self):
+        """Test transform with a value."""
+        self.assertEqual(self.t.transform("/foo/bar"), QUrl("file:///foo/bar"))
+
+
+class AutoSearchTests(unittest.TestCase):
+
+    """Test AutoSearch."""
+
+    TESTS = {
+        'naive': ['naive', 'NAIVE'] + BoolTests.TESTS[True],
+        'dns': ['dns', 'DNS'],
+        False: BoolTests.TESTS[False],
+    }
+    INVALID = ['ddns', 'foo']
+
+    def setUp(self):
+        self.t = conftypes.AutoSearch()
+
+    def test_validate_empty(self):
+        """Test validate with empty string and none_ok = False."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with empty string and none_ok = True."""
+        t = conftypes.AutoSearch(none_ok=True)
+        t.validate('')
+
+    def test_validate_valid(self):
+        """Test validate with valid values."""
+        for vallist in self.TESTS.values():
+            for val in vallist:
+                self.t.validate(val)
+
+    def test_validate_invalid(self):
+        """Test validate with invalid values."""
+        for val in self.INVALID:
+            with self.assertRaises(conftypes.ValidationError):
+                self.t.validate(val)
+
+    def test_transform(self):
+        """Test transform with all values."""
+        for out, inputs in self.TESTS.items():
+            for inp in inputs:
+                self.assertEqual(self.t.transform(inp), out, inp)
+
+    def test_transform_empty(self):
+        """Test transform with none_ok = False and an empty value."""
+        self.assertIsNone(self.t.transform(''))
 
 
 if __name__ == '__main__':
