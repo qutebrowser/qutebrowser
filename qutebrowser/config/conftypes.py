@@ -921,7 +921,7 @@ class ShellCommand(String):
             else:
                 raise ValidationError(value, "may not be empty!")
         super().validate(value)
-        if self.placeholder and '{}' not in value:
+        if self.placeholder and '{}' not in self.transform(value):
             raise ValidationError(value, "needs to contain a {}-placeholder.")
 
     def transform(self, value):
