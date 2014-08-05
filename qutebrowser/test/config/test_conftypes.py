@@ -291,6 +291,8 @@ class ListTests(unittest.TestCase):
 
 class BoolTests(unittest.TestCase):
 
+    """Test Bool."""
+
     TESTS = {True: ['1', 'yes', 'YES', 'true', 'TrUe', 'on'],
              False: ['0', 'no', 'NO', 'false', 'FaLsE', 'off']}
 
@@ -333,8 +335,9 @@ class BoolTests(unittest.TestCase):
         t.validate('')
 
 
-
 class IntTests(unittest.TestCase):
+
+    """Test Int."""
 
     def test_minval_gt_maxval(self):
         """Test __init__ with a minval bigger than the maxval."""
@@ -452,6 +455,8 @@ class IntListTests(unittest.TestCase):
 
 class FloatTests(unittest.TestCase):
 
+    """Test Float."""
+
     def test_minval_gt_maxval(self):
         """Test __init__ with a minval bigger than the maxval."""
         with self.assertRaises(ValueError):
@@ -511,14 +516,6 @@ class FloatTests(unittest.TestCase):
         t = conftypes.Float(minval=2, maxval=3)
         t.validate('2.00')
         t.validate('3.00')
-
-    def test_validate_range_bad(self):
-        """Test validate with both min/maxval and a bad float."""
-        t = conftypes.Float(minval=2, maxval=3)
-        with self.assertRaises(conftypes.ValidationError):
-            t.validate('1.99')
-        with self.assertRaises(conftypes.ValidationError):
-            t.validate('3.01')
 
     def test_validate_range_bad(self):
         """Test validate with both min/maxval and a bad float."""
@@ -823,7 +820,7 @@ class PercOrIntTests(unittest.TestCase):
         t.validate('4')
         t.validate('1')
 
-    def test_validate_both_range_int(self):
+    def test_validate_both_range_perc(self):
         """Test validate with both min/maxint and make sure perc is ok."""
         t = conftypes.PercOrInt(minint=2, maxint=3)
         t.validate('4%')
@@ -1086,8 +1083,7 @@ class FontTests(unittest.TestCase):
     }
     INVALID = ['green "Foobar Neue"', 'italic green "Foobar Neue"',
                'bold bold "Foobar Neue"', 'bold italic "Foobar Neue"'
-               'bold', '10pt 20px "Foobar Neue"'
-    ]
+               'bold', '10pt 20px "Foobar Neue"']
 
     def setUp(self):
         self.t = conftypes.Font()
@@ -1166,7 +1162,7 @@ class RegexTests(unittest.TestCase):
         """Test transform with an empty value."""
         self.assertIsNone(self.t.transform(''))
 
-    def test_transform_empty(self):
+    def test_transform(self):
         """Test transform."""
         self.assertEqual(self.t.transform(r'foobar'), re.compile(r'foobar'))
 
@@ -1457,11 +1453,10 @@ class WebKitBytesListTests(unittest.TestCase):
         t = conftypes.WebKitBytesList(length=3)
         t.validate('1,2,3')
 
-    def test_validate_len_tooshort(self):
+    def test_validate_len_toolong(self):
         """Test validate with a too long length."""
         t = conftypes.WebKitBytesList(length=3)
         with self.assertRaises(conftypes.ValidationError):
-
             t.validate('1,2,3,4')
 
     def test_transform_single(self):
@@ -1636,7 +1631,6 @@ class ProxyTests(unittest.TestCase):
         self.assertEqual(proxy, val)
 
 
-
 class SearchEngineNameTests(unittest.TestCase):
 
     """Test SearchEngineName."""
@@ -1697,7 +1691,6 @@ class SearchEngineUrlTests(unittest.TestCase):
     def test_transform_empty(self):
         """Test transform with an empty value."""
         self.assertIsNone(self.t.transform(''))
-
 
     def test_transform(self):
         """Test transform with a value."""
