@@ -22,7 +22,7 @@
 import re
 import os
 import sys
-import cgi
+import html
 import logging
 from contextlib import contextmanager
 from logging import getLogger
@@ -383,7 +383,7 @@ class HTMLFormatter(logging.Formatter):
         for field in ['msg', 'filename', 'funcName', 'levelname', 'module',
                       'name', 'pathname', 'processName', 'threadName']:
             data = str(getattr(record, field))
-            setattr(record, field, cgi.escape(data))
+            setattr(record, field, html.escape(data))
         message = super().format(record)
         if not message.endswith(self._colordict['reset']):
             message += self._colordict['reset']
@@ -391,4 +391,4 @@ class HTMLFormatter(logging.Formatter):
 
     def formatTime(self, record, datefmt=None):
         out = super().formatTime(record, datefmt)
-        return cgi.escape(out)
+        return html.escape(out)

@@ -22,7 +22,7 @@
 import re
 import os
 import sys
-import cgi
+import html
 import shutil
 import inspect
 import subprocess
@@ -375,7 +375,7 @@ def generate_settings(f):
                             f.write(" * +{}+".format(val) + "\n")
                     f.write("\n")
                 if option.default:
-                    f.write("Default: +pass:[{}]+\n".format(cgi.escape(
+                    f.write("Default: +pass:[{}]+\n".format(html.escape(
                         option.default)))
                 else:
                     f.write("Default: empty\n")
