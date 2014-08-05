@@ -24,7 +24,7 @@ import os.path
 from functools import partial
 from collections import deque
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer, QStandardPaths
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
 import qutebrowser.config.config as config
@@ -211,6 +211,9 @@ class DownloadItem(QObject):
             target = os.path.expanduser(filename)
         else:
             download_dir = config.get('storage', 'download-directory')
+            if download_dir is None:
+                download_dir = get_standard_dir(
+                    QStandardPaths.DownloadLocation)
             target = os.path.join(download_dir, filename)
         logger.debug("Setting filename to {}".format(filename))
         if self.filename is not None:

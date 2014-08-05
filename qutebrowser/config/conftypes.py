@@ -24,7 +24,7 @@ import shlex
 import os.path
 from sre_constants import error as RegexError
 
-from PyQt5.QtCore import QUrl, QStandardPaths
+from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
 
@@ -800,7 +800,7 @@ class Directory(BaseType):
 
     def transform(self, value):
         if not value:
-            return get_standard_dir(QStandardPaths.DownloadLocation)
+            return None
         return os.path.expanduser(value)
 
 
