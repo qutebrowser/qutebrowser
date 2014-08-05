@@ -48,17 +48,18 @@ EXTENDED_FMT = ('{asctime:8} {levelname:8} {name:10} {module}:{funcName}:'
                 '{lineno} {message}')
 SIMPLE_FMT_COLORED = '%(log_color)s%(levelname)s%(reset)s: %(message)s'
 EXTENDED_FMT_COLORED = ('%(green)s%(asctime)-8s%(reset)s %(log_color)s'
-                        '%(levelname)-8s%(reset)s %(yellow)s%(name)-10s '
+                        '%(levelname)-8s%(reset)s %(cyan)s%(name)-10s '
                         '%(module)s:%(funcName)s:%(lineno)s%(reset)s '
-                        '%(message)s')
+                        '%(log_color)s%(message)s%(reset)s')
 EXTENDED_FMT_HTML = ('<tr><td><pre>%(green)s%(asctime)-8s%(reset)s</pre></td>'
                      '<td><pre>%(log_color)s%(levelname)-8s%(reset)s</pre>'
-                     '</td><td></pre>%(yellow)s%(name)-10s</pre></td>'
+                     '</td><td></pre>%(cyan)s%(name)-10s</pre></td>'
                      '<td><pre>%(module)s:%(funcName)s:%(lineno)s%(reset)s'
-                     '</pre></td><td><pre>%(message)s</pre></td></tr>')
+                     '</pre></td><td><pre>%(log_color)s%(message)s%(reset)s'
+                     '</pre></td></tr>')
 DATEFMT = '%H:%M:%S'
 LOG_COLORS = {
-    'DEBUG': 'cyan',
+    'DEBUG': 'white',
     'INFO': 'green',
     'WARNING': 'yellow',
     'ERROR': 'red',
