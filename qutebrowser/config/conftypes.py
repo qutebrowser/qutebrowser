@@ -31,6 +31,9 @@ from PyQt5.QtNetwork import QNetworkProxy
 import qutebrowser.commands.utils as cmdutils
 
 
+SYSTEM_PROXY = object()  # Return value for Proxy type
+
+
 class ValidationError(ValueError):
 
     """Exception raised when a value for a config type was invalid.
@@ -997,7 +1000,7 @@ class Proxy(BaseType):
         if not value:
             return None
         elif value == 'system':
-            return None
+            return SYSTEM_PROXY
         elif value == 'none':
             return QNetworkProxy(QNetworkProxy.NoProxy)
         url = QUrl(value)

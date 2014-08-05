@@ -20,6 +20,7 @@
 """Handling of proxies."""
 
 import qutebrowser.config.config as config
+from qutebrowser.config.conftypes import SYSTEM_PROXY
 
 from PyQt5.QtNetwork import QNetworkProxyFactory
 
@@ -43,9 +44,7 @@ class ProxyFactory(QNetworkProxyFactory):
             A list of QNetworkProxy objects in order of preference.
         """
         proxy = config.get('network', 'proxy')
-        if proxy is None:
-            # config.get returns a QNetworkProxy for all cases, except when we
-            # should use the system proxy -- then it returns None.
+        if proxy is SYSTEM_PROXY:
             return QNetworkProxyFactory.systemProxyForQuery(query)
         else:
             return [proxy]
