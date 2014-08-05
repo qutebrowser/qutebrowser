@@ -103,7 +103,7 @@ def init_log(args):
     console, ram = _init_handlers(numeric_level, args.color, args.loglines)
     root = getLogger()
     if console is not None:
-        if args.logfilter is not None and numeric_level <= logging.DEBUG:
+        if args.logfilter is not None and numeric_level < logging.DEBUG:
             console.addFilter(LogFilter(args.logfilter.split(',')))
             console.addFilter(LeplFilter())
         root.addHandler(console)
