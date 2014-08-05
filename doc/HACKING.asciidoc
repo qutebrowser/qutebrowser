@@ -173,6 +173,20 @@ Some resources which might be handy:
 * http://httpbin.org/[httpbin, a test service for HTTP requests/responses]
 * http://requestb.in/[RequestBin, a service to inspect HTTP requests]
 
+Related RFCs and standards:
+
+* https://www.rfc-editor.org/rfc/rfc2616.txt[RFC 2616 - Hypertext Transfer
+Protocol -- HTTP/1.1]
+* https://www.rfc-editor.org/rfc/rfc6266.txt[RFC 6266 - Use of the
+Content-Disposition Header Field in the Hypertext Transfer Protocol (HTTP)]
+* http://www.rfc-editor.org/rfc/rfc6265.txt[RFC 6265 - HTTP State Management
+Mechanism (Cookies)]
+* http://www.cookiecentral.com/faq/#3.5[Netscape Cookie Format]
+* http://www.w3.org/TR/CSS2/[Cascading Style Sheets Level 2 Revision 1 (CSS
+2.1) Specification]
+* http://qt-project.org/doc/qt-4.8/stylesheet-reference.html[Qt Style Sheets
+Reference]
+
 Hints
 -----
 
