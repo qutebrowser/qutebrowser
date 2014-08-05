@@ -32,23 +32,6 @@ import qutebrowser.commands.utils as cmdutils
 from qutebrowser.utils.misc import get_standard_dir
 
 
-QSS_FONT_REGEX = re.compile(r"""
-    ^(
-        (
-            # style
-            (?P<style>normal|italic|oblique) |
-            # weight (named | 100..900)
-            (
-                (?P<weight>[123456789]00) |
-                (?P<namedweight>normal|bold)
-            ) |
-            # size (<float>pt | <int>px)
-            (?P<size>[0-9]+((\.[0-9]+)?[pP][tT]|[pP][xX]))
-        )\                     # size/weight/style are space-separated
-    )*                         # 0-inf size/weight/style tags
-    (?P<family>[A-Za-z, "]*)$  # mandatory font family""", re.VERBOSE)
-
-
 class ValidationError(ValueError):
 
     """Exception raised when a value for a config type was invalid.
@@ -658,6 +641,21 @@ class Font(BaseType):
     """Base class for a font value."""
 
     typestr = 'font'
+    font_regex = re.compile(r"""
+        ^(
+            (
+                # style
+                (?P<style>normal|italic|oblique) |
+                # weight (named | 100..900)
+                (
+                    (?P<weight>[123456789]00) |
+                    (?P<namedweight>normal|bold)
+                ) |
+                # size (<float>pt | <int>px)
+                (?P<size>[0-9]+((\.[0-9]+)?[pP][tT]|[pP][xX]))
+            )\                     # size/weight/style are space-separated
+        )*                         # 0-inf size/weight/style tags
+        (?P<family>[A-Za-z, "]*)$  # mandatory font family""", re.VERBOSE)
 
     def validate(self, value):
         if not value:
@@ -665,7 +663,7 @@ class Font(BaseType):
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
-        if not QSS_FONT_REGEX.match(value):
+        if not self.font_regex.match(value):
             raise ValidationError(value, "must be a valid font")
 
 
@@ -686,7 +684,7 @@ class QtFont(Font):
             'bold': QFont.Bold,
         }
         font = QFont()
-        match = QSS_FONT_REGEX.match(value)
+        match = self.font_regex.match(value)
         style = match.group('style')
         weight = match.group('weight')
         namedweight = match.group('weight')
