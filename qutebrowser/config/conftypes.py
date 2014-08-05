@@ -795,6 +795,7 @@ class Directory(BaseType):
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
+        value = os.path.expanduser(value)
         if not os.path.isdir(value):
             raise ValidationError(value, "must be a valid directory!")
         if not os.path.isabs(value):
