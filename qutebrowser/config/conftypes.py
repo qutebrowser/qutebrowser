@@ -1025,10 +1025,12 @@ class SearchEngineUrl(BaseType):
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
-        if '{}' in value:
-            pass
-        else:
+        if '{}' not in value:
             raise ValidationError(value, "must contain \"{}\"")
+        url = QUrl(value.replace('{}', 'foobar'))
+        if not url.isValid():
+            raise ValidationError(value, "invalid url, {}".format(
+                url.errorString()))
 
 
 class KeyBindingName(BaseType):
