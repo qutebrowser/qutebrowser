@@ -751,10 +751,12 @@ class RegexList(List):
 
     def validate(self, value):
         try:
-            self.transform(value)
+            vals = self.transform(value)
         except RegexError as e:
             raise ValidationError(value, "must be a list valid regexes - " +
                                   str(e))
+        if not self.none_ok and None in vals:
+            raise ValidationError(value, "items may not be empty!")
 
 
 class File(BaseType):
