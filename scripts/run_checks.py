@@ -67,7 +67,8 @@ options = {
     'exclude_pep257': ['test_*', 'ez_setup'],
     'other': {
         'pylint': ['--output-format=colorized', '--reports=no',
-                   '--rcfile=.pylintrc'],
+                   '--rcfile=.pylintrc',
+                   '--load-plugins=pylint_checkers.config'],
         'flake8': ['--config=.flake8'],
     },
 }
@@ -86,6 +87,14 @@ def run(name, target=None, args=None):
         target: The package to check
         args: Option list of arguments to pass
     """
+    if name == 'pylint':
+        scriptdir = os.path.abspath(os.path.dirname(__file__))
+        if 'PYTHONPATH' in os.environ:
+            old_pythonpath = os.environ['PYTHONPATH']
+            os.environ['PYTHONPATH'] += os.pathsep + scriptdir
+        else:
+            old_pythonpath = None
+            os.environ['PYTHONPATH'] = scriptdir
     sys.argv = [name]
     if target is None:
         status_key = name
@@ -111,6 +120,11 @@ def run(name, target=None, args=None):
     except Exception as e:
         print('{}: {}'.format(e.__class__.__name__, e))
         status[status_key] = None
+    if name == 'pylint':
+        if old_pythonpath is not None:
+            os.environ['PYTHONPATH'] = old_pythonpath
+        else:
+            del os.environ['PYTHONPATH']
     print()
 
 
