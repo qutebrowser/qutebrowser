@@ -178,31 +178,24 @@ def check_git():
     print()
 
 
-def check_line(target):
-    """Run _check_file over a filetree."""
-    print("------ line ------")
-    ret = []
+def check_vcs_conflict(target):
+    """Check VCS conflict markers."""
+    print("------ VCS conflict markers ------")
     try:
+        ok = True
         for (dirpath, _dirnames, filenames) in os.walk(target):
             for name in (e for e in filenames if e.endswith('.py')):
                 fn = os.path.join(dirpath, name)
-                ret.append(_check_file(fn))
-        status['line_' + target] = all(ret)
+                with open(fn, 'r') as f:
+                    for line in f:
+                        if any(line.startswith(c * 7) for c in '<>=|'):
+                            print("Found conflict marker in {}".format(fn))
+                            ok = False
+        status['vcs_' + target] = ok
     except Exception as e:
         print('{}: {}'.format(e.__class__.__name__, e))
-        status['line_' + target] = None
+        status['vcs_' + target] = None
     print()
-
-
-def _check_file(fn):
-    """Check a single file for CRLFs, conflict markers and weird whitespace."""
-    ok = True
-    with open(fn, 'rb') as f:
-        for line in f:
-            if any(line.decode('UTF-8').startswith(c * 7) for c in "<>=|"):
-                print("Found conflict marker in {}".format(fn))
-                ok = False
-    return ok
 
 
 def _get_args(checker):
@@ -273,7 +266,7 @@ for trg in options['targets']:
     for chk in ('pylint', 'flake8'):
         # FIXME what the hell is the flake8 exit status?
         run(chk, trg, _get_args(chk))
-    check_line(trg, )
+    check_vcs_conflict(trg)
 
 if '--setup' in argv:
     print("==================== Setup checks ====================")
