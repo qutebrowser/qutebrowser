@@ -56,7 +56,7 @@ from qutebrowser.widgets.crash import (ExceptionCrashDialog, FatalCrashDialog,
 from qutebrowser.keyinput.modeparsers import (NormalKeyParser, HintKeyParser,
                                               PromptKeyParser)
 from qutebrowser.keyinput.keyparser import PassthroughKeyParser
-from qutebrowser.commands.managers import CommandManager, SearchManager
+from qutebrowser.commands.managers import CommandRunner, SearchRunner
 from qutebrowser.config.iniparsers import ReadWriteConfigParser
 from qutebrowser.config.lineparser import LineConfigParser
 from qutebrowser.browser.cookies import CookieJar
@@ -73,8 +73,8 @@ class Application(QApplication):
 
     Attributes:
         mainwindow: The MainWindow QWidget.
-        commandmanager: The main CommandManager instance.
-        searchmanager: The main SearchManager instance.
+        commandrunner: The main CommandRunner instance.
+        searchrunner: The main SearchRunner instance.
         config: The main ConfigManager
         stateconfig: The "state" ReadWriteConfigParser instance.
         cmd_history: The "cmd_history" LineConfigParser instance.
@@ -147,9 +147,9 @@ class Application(QApplication):
         log.init.debug("Initializing cookies...")
         self.cookiejar = CookieJar(self)
         log.init.debug("Initializing commands...")
-        self.commandmanager = CommandManager()
+        self.commandrunner = CommandRunner()
         log.init.debug("Initializing search...")
-        self.searchmanager = SearchManager(self)
+        self.searchrunner = SearchRunner(self)
         log.init.debug("Initializing downloads...")
         self.downloadmanager = DownloadManager(self)
         log.init.debug("Initializing main window...")
@@ -327,7 +327,7 @@ class Application(QApplication):
         for cmd in self.args.command:
             if cmd.startswith(':'):
                 log.init.debug("Startup cmd {}".format(cmd))
-                self.commandmanager.run_safely_init(cmd.lstrip(':'))
+                self.commandrunner.run_safely_init(cmd.lstrip(':'))
             else:
                 log.init.debug("Startup URL {}".format(cmd))
                 try:
@@ -384,13 +384,13 @@ class Application(QApplication):
         self.modeman.left.connect(status.prompt.prompter.on_mode_left)
 
         # commands
-        cmd.got_cmd.connect(self.commandmanager.run_safely)
-        cmd.got_search.connect(self.searchmanager.search)
-        cmd.got_search_rev.connect(self.searchmanager.search_rev)
+        cmd.got_cmd.connect(self.commandrunner.run_safely)
+        cmd.got_search.connect(self.searchrunner.search)
+        cmd.got_search_rev.connect(self.searchrunner.search_rev)
         cmd.returnPressed.connect(tabs.setFocus)
-        self.searchmanager.do_search.connect(tabs.search)
+        self.searchrunner.do_search.connect(tabs.search)
         kp[KeyMode.normal].keystring_updated.connect(status.keystring.setText)
-        tabs.got_cmd.connect(self.commandmanager.run_safely)
+        tabs.got_cmd.connect(self.commandrunner.run_safely)
 
         # hints
         kp[KeyMode.hint].fire_hint.connect(tabs.fire_hint)

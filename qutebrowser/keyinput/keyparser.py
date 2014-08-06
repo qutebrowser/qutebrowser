@@ -22,7 +22,7 @@
 from qutebrowser.keyinput.basekeyparser import BaseKeyParser
 import qutebrowser.utils.message as message
 
-from qutebrowser.commands.managers import CommandManager
+from qutebrowser.commands.managers import CommandRunner
 from qutebrowser.commands.exceptions import CommandMetaError, CommandError
 
 
@@ -31,17 +31,17 @@ class CommandKeyParser(BaseKeyParser):
     """KeyChainParser for command bindings.
 
     Attributes:
-        commandmanager: CommandManager instance.
+        commandrunner: CommandRunner instance.
     """
 
     def __init__(self, parent=None, supports_count=None,
                  supports_chains=False):
         super().__init__(parent, supports_count, supports_chains)
-        self.commandmanager = CommandManager()
+        self.commandrunner = CommandRunner()
 
     def execute(self, cmdstr, _keytype, count=None):
         try:
-            self.commandmanager.run(cmdstr, count)
+            self.commandrunner.run(cmdstr, count)
         except (CommandMetaError, CommandError) as e:
             message.error(e, immediately=True)
 

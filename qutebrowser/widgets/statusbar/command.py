@@ -26,7 +26,7 @@ from PyQt5.QtGui import QValidator
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.widgets.misc import MinimalLineEdit
-from qutebrowser.commands.managers import CommandManager
+from qutebrowser.commands.managers import CommandRunner
 from qutebrowser.keyinput.modeparsers import STARTCHARS
 from qutebrowser.utils.log import completion as logger
 from qutebrowser.models.cmdhistory import (History, HistoryEmptyError,
@@ -113,8 +113,8 @@ class Command(MinimalLineEdit):
             # Text is only whitespace so we treat this as a single element with
             # the whitespace.
             return [text]
-        manager = CommandManager()
-        parts = manager.parse(text, fallback=True, alias_no_args=False)
+        runner = CommandRunner()
+        parts = runner.parse(text, fallback=True, alias_no_args=False)
         if self._empty_item_idx is not None:
             logger.debug("Empty element queued at {}, inserting.".format(
                 self._empty_item_idx))

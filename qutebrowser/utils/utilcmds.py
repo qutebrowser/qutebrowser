@@ -24,17 +24,17 @@ from functools import partial
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.utils.usertypes import Timer
 from qutebrowser.commands.exceptions import CommandError
-from qutebrowser.commands.managers import CommandManager
+from qutebrowser.commands.managers import CommandRunner
 
 
 _timers = []
-_commandmanager = None
+_commandrunner = None
 
 
 def init():
-    """Initialize the global _commandmanager."""
-    global _commandmanager
-    _commandmanager = CommandManager()
+    """Initialize the global _commandrunner."""
+    global _commandrunner
+    _commandrunner = CommandRunner()
 
 
 @cmdutils.register(nargs=(2, None))
@@ -57,6 +57,6 @@ def later(ms, *command):
                            "representation.")
     _timers.append(timer)
     cmdline = ' '.join(command)
-    timer.timeout.connect(partial(_commandmanager.run_safely, cmdline))
+    timer.timeout.connect(partial(_commandrunner.run_safely, cmdline))
     timer.timeout.connect(lambda: _timers.remove(timer))
     timer.start()

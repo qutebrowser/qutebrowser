@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Module containing command managers (SearchManager and CommandManager)."""
+"""Module containing command managers (SearchRunner and CommandRunner)."""
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 from PyQt5.QtWebKitWidgets import QWebPage
@@ -31,9 +31,9 @@ from qutebrowser.utils.misc import safe_shlex_split
 from qutebrowser.utils.log import commands as logger
 
 
-class SearchManager(QObject):
+class SearchRunner(QObject):
 
-    """Manage qutebrowser searches.
+    """Run searches on webpages.
 
     Attributes:
         _text: The text from the last search.
@@ -101,7 +101,7 @@ class SearchManager(QObject):
         """
         self._search(text, rev=True)
 
-    @cmdutils.register(instance='searchmanager', hide=True)
+    @cmdutils.register(instance='searchrunner', hide=True)
     def search_next(self, count=1):
         """Continue the search to the ([count]th) next term.
 
@@ -115,7 +115,7 @@ class SearchManager(QObject):
             for _ in range(count):
                 self.do_search.emit(self._text, self._flags)
 
-    @cmdutils.register(instance='searchmanager', hide=True)
+    @cmdutils.register(instance='searchrunner', hide=True)
     def search_prev(self, count=1):
         """Continue the search to the ([count]th) previous term.
 
@@ -139,9 +139,9 @@ class SearchManager(QObject):
             self.do_search.emit(self._text, flags)
 
 
-class CommandManager:
+class CommandRunner:
 
-    """Manage qutebrowser commandline commands.
+    """Parse and run qutebrowser commandline commands.
 
     Attributes:
         _cmd: The command which was parsed.

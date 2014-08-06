@@ -36,11 +36,11 @@ import qutebrowser.utils.message as message
 from qutebrowser.utils.misc import get_standard_dir
 from qutebrowser.utils.log import procs as logger
 from qutebrowser.commands.exceptions import CommandError
-from qutebrowser.commands.managers import CommandManager
+from qutebrowser.commands.managers import CommandRunner
 
 
 _runners = []
-_commandmanager = None
+_commandrunner = None
 
 
 class _BlockingFIFOReader(QObject):
@@ -326,9 +326,9 @@ else:
 
 
 def init():
-    """Initialize the global _commandmanager."""
-    global _commandmanager
-    _commandmanager = CommandManager()
+    """Initialize the global _commandrunner."""
+    global _commandrunner
+    _commandrunner = CommandRunner()
 
 
 def run(cmd, *args, url):
@@ -337,7 +337,7 @@ def run(cmd, *args, url):
     # pass via env variable..
     urlstr = url.toString(QUrl.FullyEncoded)
     runner = UserscriptRunner()
-    runner.got_cmd.connect(_commandmanager.run_safely)
+    runner.got_cmd.connect(_commandrunner.run_safely)
     runner.run(cmd, *args, env={'QUTE_URL': urlstr})
     _runners.append(runner)
     runner.finished.connect(partial(_runners.remove, runner))
