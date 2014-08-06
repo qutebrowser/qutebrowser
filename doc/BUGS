@@ -28,6 +28,7 @@ Webview
   is loaded (probably *because* we're loading the error page and that
   succeeds).
 - Opening editor is broken on http://p.cmpl.cc/ (probably a CodeMirror issue?)
+- Middle-clicking anchors doesn't actually move to the anchor in the new tab
 
 Input
 -----
@@ -79,7 +80,7 @@ Misc
 ----
 
 - All kind of FIXMEs
-- Tab positions/focusing is confusing (when closing tabs or opening a new one)
+- --logfilter is broken
 - On doodle, when modifying something on http://doodle.com/create and clicking
   a link to leave the page, with some random clicking it's somehow possible to
   get out of yesno mode.

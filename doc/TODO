@@ -52,7 +52,9 @@ Downloads
 Improvements / minor features
 =============================
 
+- Honour icognito mode for cookies etc.
 - Make sure commands in config are _complete_
+- Config should check for unknown sections
 
 - We should use a different config file for keybindings for the following
   reasons:
