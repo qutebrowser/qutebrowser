@@ -69,10 +69,10 @@ class TabWidget(QTabWidget):
             'previous': QTabBar.SelectPreviousTab,
         }
         tabbar = self.tabBar()
-        self.setMovable(config.get('tabbar', 'movable'))
+        self.setMovable(config.get('tabs', 'movable'))
         self.setTabsClosable(False)
-        posstr = config.get('tabbar', 'position')
-        selstr = config.get('tabbar', 'select-on-remove')
+        posstr = config.get('tabs', 'position')
+        selstr = config.get('tabs', 'select-on-remove')
         position = position_conv[posstr]
         self.setTabPosition(position)
         tabbar.vertical = position in (QTabWidget.West, QTabWidget.East)
@@ -141,7 +141,7 @@ class TabBar(QTabBar):
 
     def mousePressEvent(self, e):
         """Override mousePressEvent to close tabs if configured."""
-        button = config.get('tabbar', 'close-mouse-button')
+        button = config.get('tabs', 'close-mouse-button')
         if (e.button() == Qt.RightButton and button == 'right' or
                 e.button() == Qt.MiddleButton and button == 'middle'):
             idx = self.tabAt(e.pos())
@@ -196,7 +196,7 @@ class TabBar(QTabBar):
         minimum_size = self.minimumTabSizeHint(index)
         height = self.fontMetrics().height()
         if self.vertical:
-            confwidth = str(config.get('tabbar', 'width'))
+            confwidth = str(config.get('tabs', 'width'))
             if confwidth.endswith('%'):
                 perc = int(confwidth.rstrip('%'))
                 width = QApplication.instance().mainwindow.width() * perc / 100
@@ -299,10 +299,10 @@ class TabBarStyle(QCommonStyle):
         elif element == QStyle.CE_TabBarTabShape:
             p.fillRect(opt.rect, opt.palette.window())
             indicator_color = opt.palette.base().color()
-            indicator_width = config.get('tabbar', 'indicator-width')
+            indicator_width = config.get('tabs', 'indicator-width')
             if indicator_color.isValid() and indicator_width != 0:
                 topleft = opt.rect.topLeft()
-                topleft += QPoint(config.get('tabbar', 'indicator-space'), 2)
+                topleft += QPoint(config.get('tabs', 'indicator-space'), 2)
                 p.fillRect(topleft.x(), topleft.y(), indicator_width,
                            opt.rect.height() - 4, indicator_color)
             # We use super() rather than self._style here because we don't want
@@ -383,11 +383,11 @@ class TabBarStyle(QCommonStyle):
         icon_rect = QRect()
         text_rect = QRect(opt.rect)
         qt_ensure_valid(text_rect)
-        indicator_width = config.get('tabbar', 'indicator-width')
+        indicator_width = config.get('tabs', 'indicator-width')
         text_rect.adjust(padding, 0, 0, 0)
         if indicator_width != 0:
             text_rect.adjust(indicator_width +
-                             config.get('tabbar', 'indicator-space'), 0, 0, 0)
+                             config.get('tabs', 'indicator-space'), 0, 0, 0)
         if not opt.icon.isNull():
             icon_rect = self._get_icon_rect(opt, text_rect)
             text_rect.adjust(icon_rect.width() + padding, 0, 0, 0)

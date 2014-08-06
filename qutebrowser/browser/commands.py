@@ -534,7 +534,7 @@ class CommandDispatcher:
         newidx = self._tabs.currentIndex() - count
         if newidx >= 0:
             self._tabs.setCurrentIndex(newidx)
-        elif config.get('tabbar', 'wrap'):
+        elif config.get('tabs', 'wrap'):
             self._tabs.setCurrentIndex(newidx % self._tabs.count())
         else:
             raise CommandError("First tab")
@@ -549,7 +549,7 @@ class CommandDispatcher:
         newidx = self._tabs.currentIndex() + count
         if newidx < self._tabs.count():
             self._tabs.setCurrentIndex(newidx)
-        elif config.get('tabbar', 'wrap'):
+        elif config.get('tabs', 'wrap'):
             self._tabs.setCurrentIndex(newidx % self._tabs.count())
         else:
             raise CommandError("Last tab")

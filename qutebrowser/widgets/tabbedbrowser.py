@@ -236,7 +236,7 @@ class TabbedBrowser(TabWidget):
         Args:
             tab: The QWebView to be closed.
         """
-        last_close = config.get('tabbar', 'last-close')
+        last_close = config.get('tabs', 'last-close')
         if self.count() > 1:
             self._remove_tab(tab)
         elif last_close == 'quit':
@@ -327,9 +327,9 @@ class TabbedBrowser(TabWidget):
         self._connect_tab_signals(tab)
         self._tabs.append(tab)
         if explicit:
-            pos = config.get('tabbar', 'new-tab-position-explicit')
+            pos = config.get('tabs', 'new-tab-position-explicit')
         else:
-            pos = config.get('tabbar', 'new-tab-position')
+            pos = config.get('tabs', 'new-tab-position')
         if pos == 'left':
             idx = self._tab_insert_idx_left
             # On first sight, we'd think we have to decrement
@@ -355,7 +355,7 @@ class TabbedBrowser(TabWidget):
         if url is not None:
             tab.openurl(url)
         if background is None:
-            background = config.get('general', 'background-tabs')
+            background = config.get('tabs', 'background-tabs')
         if not background:
             self.setCurrentWidget(tab)
         tab.show()
@@ -393,7 +393,7 @@ class TabbedBrowser(TabWidget):
         for tab in self._tabs:
             tab.on_config_changed(section, option)
         if (section, option) == ('tabbar', 'show-favicons'):
-            show = config.get('tabbar', 'show-favicons')
+            show = config.get('tabs', 'show-favicons')
             for i, tab in enumerate(self.widgets):
                 if show:
                     self.setTabIcon(i, tab.icon())
@@ -479,7 +479,7 @@ class TabbedBrowser(TabWidget):
         Args:
             tab: The WebView where the title was changed.
         """
-        if not config.get('tabbar', 'show-favicons'):
+        if not config.get('tabs', 'show-favicons'):
             return
         try:
             idx = self.indexOf(tab)

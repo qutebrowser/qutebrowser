@@ -266,7 +266,7 @@ class WebView(QWebView):
                 self.open_target))
         elif (e.button() == Qt.MidButton or
               e.modifiers() & Qt.ControlModifier):
-            if config.get('general', 'background-tabs'):
+            if config.get('tabs', 'background-tabs'):
                 self.open_target = ClickTarget.tab_bg
             else:
                 self.open_target = ClickTarget.tab

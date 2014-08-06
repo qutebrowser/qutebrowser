@@ -67,7 +67,7 @@ SECTION_DESC = {
     'input': "Options related to input modes.",
     'network': "Settings related to the network.",
     'completion': "Options related to completion and command history.",
-    'tabbar': "Configuration of the tab bar.",
+    'tabs': "Configuration of the tab bar.",
     'storage': "Settings related to cache and storage.",
     'permissions': "Loaded plugins/scripts and allowed actions.",
     'hints': "Hinting settings.",
@@ -190,10 +190,6 @@ DATA = OrderedDict([
         ('auto-save-config',
          SettingValue(types.Bool(), 'true'),
          "Whether to save the config automatically on quit."),
-
-        ('background-tabs',
-         SettingValue(types.Bool(), 'false'),
-         "Whether to open new tabs (middleclick/ctrl+click) in background."),
 
         ('editor',
          SettingValue(types.ShellCommand(placeholder=True), 'gvim -f "{}"'),
@@ -373,18 +369,10 @@ DATA = OrderedDict([
          "chain."),
     )),
 
-    ('tabbar', sect.KeyValue(
-        ('movable',
-         SettingValue(types.Bool(), 'true'),
-         "Whether tabs should be movable."),
-
-        ('close-mouse-button',
-         SettingValue(types.CloseButton(), 'middle'),
-         "On which mouse button to close tabs."),
-
-        ('position',
-         SettingValue(types.Position(), 'north'),
-         "The position of the tab bar."),
+    ('tabs', sect.KeyValue(
+        ('background-tabs',
+         SettingValue(types.Bool(), 'false'),
+         "Whether to open new tabs (middleclick/ctrl+click) in background."),
 
         ('select-on-remove',
          SettingValue(types.SelectOnRemove(), 'previous'),
@@ -405,6 +393,18 @@ DATA = OrderedDict([
         ('wrap',
          SettingValue(types.Bool(), 'true'),
          "Whether to wrap when changing tabs."),
+
+        ('movable',
+         SettingValue(types.Bool(), 'true'),
+         "Whether tabs should be movable."),
+
+        ('close-mouse-button',
+         SettingValue(types.CloseButton(), 'middle'),
+         "On which mouse button to close tabs."),
+
+        ('position',
+         SettingValue(types.Position(), 'north'),
+         "The position of the tab bar."),
 
         ('show-favicons',
          SettingValue(types.Bool(), 'true'),
