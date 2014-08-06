@@ -633,7 +633,6 @@ DATA = OrderedDict([
         ('m', 'quickmark-save'),
         ('b', 'set-cmd-text ":quickmark-load "'),
         ('B', 'set-cmd-text ":quickmark-load-tab "'),
-        (';b', 'quickmark-load-tab-bg'),
         ('sf', 'save'),
         ('ss', 'set'),
         ('sl', 'set-temp'),
