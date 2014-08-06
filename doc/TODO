@@ -52,6 +52,8 @@ Downloads
 Improvements / minor features
 =============================
 
+- Make sure commands in config are _complete_
+
 - We should use a different config file for keybindings for the following
   reasons:
 
