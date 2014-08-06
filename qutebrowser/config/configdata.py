@@ -394,6 +394,10 @@ DATA = OrderedDict([
          SettingValue(types.NewTabPosition(), 'right'),
          "How new tabs are positioned."),
 
+        ('new-tab-position-explicit',
+         SettingValue(types.NewTabPosition(), 'last'),
+         "How new tabs opened explicitely are positioned."),
+
         ('last-close',
          SettingValue(types.LastClose(), 'ignore'),
          "Behaviour when the last tab is closed."),

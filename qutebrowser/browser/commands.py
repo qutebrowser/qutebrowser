@@ -505,7 +505,7 @@ class CommandDispatcher:
             url = urlutils.fuzzy_url(urlstr)
         except urlutils.FuzzyUrlError as e:
             raise CommandError(e)
-        self._tabs.tabopen(url, background=False)
+        self._tabs.tabopen(url, background=False, explicit=True)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', split=False)
     def open_tab_bg(self, urlstr):
@@ -514,7 +514,7 @@ class CommandDispatcher:
             url = urlutils.fuzzy_url(urlstr)
         except urlutils.FuzzyUrlError as e:
             raise CommandError(e)
-        self._tabs.tabopen(url, background=True)
+        self._tabs.tabopen(url, background=True, explicit=True)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def undo(self):
@@ -572,7 +572,7 @@ class CommandDispatcher:
         except urlutils.FuzzyUrlError as e:
             raise CommandError(e)
         if tab:
-            self._tabs.tabopen(url)
+            self._tabs.tabopen(url, explicit=True)
         else:
             widget = self._tabs.currentWidget()
             widget.openurl(url)
@@ -693,13 +693,13 @@ class CommandDispatcher:
     def quickmark_load_tab(self, name):
         """Load a quickmark in a new tab."""
         url = quickmarks.get(name)
-        self._tabs.tabopen(url, background=False)
+        self._tabs.tabopen(url, background=False, explicit=True)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def quickmark_load_tab_bg(self, name):
         """Load a quickmark in a new background tab."""
         url = quickmarks.get(name)
-        self._tabs.tabopen(url, background=True)
+        self._tabs.tabopen(url, background=True, explicit=True)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', name='inspector')
     def toggle_inspector(self):
