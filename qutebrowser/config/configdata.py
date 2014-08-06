@@ -490,18 +490,10 @@ DATA = OrderedDict([
          'Qt plugins with a mimetype such as "application/x-qt-plugin" are '
          "not affected by this setting."),
 
-        ('allow-javascript',
-         SettingValue(types.Bool(), 'true'),
-         "Enables or disables the running of JavaScript programs."),
-
         #('allow-java',
         # SettingValue(types.Bool(), 'true'),
         # "Enables or disables Java applets. Currently Java applets are "
         # "not supported"),
-
-        ('allow-plugins',
-         SettingValue(types.Bool(), 'false'),
-         "Enables or disables plugins in Web pages."),
 
         ('javascript-can-open-windows',
          SettingValue(types.Bool(), 'false'),
