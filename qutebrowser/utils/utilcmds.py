@@ -24,7 +24,7 @@ from functools import partial
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.utils.usertypes import Timer
 from qutebrowser.commands.exceptions import CommandError
-from qutebrowser.commands.managers import CommandRunner
+from qutebrowser.commands.runners import CommandRunner
 
 
 _timers = []

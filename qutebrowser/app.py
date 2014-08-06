@@ -56,7 +56,7 @@ from qutebrowser.widgets.crash import (ExceptionCrashDialog, FatalCrashDialog,
 from qutebrowser.keyinput.modeparsers import (NormalKeyParser, HintKeyParser,
                                               PromptKeyParser)
 from qutebrowser.keyinput.keyparser import PassthroughKeyParser
-from qutebrowser.commands.managers import CommandRunner, SearchRunner
+from qutebrowser.commands.runners import CommandRunner, SearchRunner
 from qutebrowser.config.iniparsers import ReadWriteConfigParser
 from qutebrowser.config.lineparser import LineConfigParser
 from qutebrowser.browser.cookies import CookieJar

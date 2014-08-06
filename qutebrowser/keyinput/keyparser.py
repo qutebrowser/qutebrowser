@@ -22,7 +22,7 @@
 from qutebrowser.keyinput.basekeyparser import BaseKeyParser
 import qutebrowser.utils.message as message
 
-from qutebrowser.commands.managers import CommandRunner
+from qutebrowser.commands.runners import CommandRunner
 from qutebrowser.commands.exceptions import CommandMetaError, CommandError
 
 

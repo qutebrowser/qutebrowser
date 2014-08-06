@@ -36,7 +36,7 @@ import qutebrowser.utils.message as message
 from qutebrowser.utils.misc import get_standard_dir
 from qutebrowser.utils.log import procs as logger
 from qutebrowser.commands.exceptions import CommandError
-from qutebrowser.commands.managers import CommandRunner
+from qutebrowser.commands.runners import CommandRunner
 
 
 _runners = []

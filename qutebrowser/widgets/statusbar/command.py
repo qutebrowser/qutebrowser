@@ -26,7 +26,7 @@ from PyQt5.QtGui import QValidator
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.commands.utils as cmdutils
 from qutebrowser.widgets.misc import MinimalLineEdit
-from qutebrowser.commands.managers import CommandRunner
+from qutebrowser.commands.runners import CommandRunner
 from qutebrowser.keyinput.modeparsers import STARTCHARS
 from qutebrowser.utils.log import completion as logger
 from qutebrowser.models.cmdhistory import (History, HistoryEmptyError,
