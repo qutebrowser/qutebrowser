@@ -68,7 +68,8 @@ options = {
     'other': {
         'pylint': ['--output-format=colorized', '--reports=no',
                    '--rcfile=.pylintrc',
-                   '--load-plugins=pylint_checkers.config'],
+                   '--load-plugins=pylint_checkers.config,'
+                   'pylint_checkers.crlf'],
         'flake8': ['--config=.flake8'],
     },
 }
@@ -198,10 +199,7 @@ def _check_file(fn):
     ok = True
     with open(fn, 'rb') as f:
         for line in f:
-            if b'\r\n' in line:
-                print("Found CRLF in {}".format(fn))
-                ok = False
-            elif any(line.decode('UTF-8').startswith(c * 7) for c in "<>=|"):
+            if any(line.decode('UTF-8').startswith(c * 7) for c in "<>=|"):
                 print("Found conflict marker in {}".format(fn))
                 ok = False
             elif b'set_trace()' in line and not (
