@@ -112,7 +112,6 @@ style
 
 - Use list models for completion and a proxy model which converts them to a
   tree?
-- Use unittest's subtests for typical "for ... in ..." tests.
 
 dwb keybindings to possibly implement
 =====================================

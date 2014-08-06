@@ -79,6 +79,7 @@ Misc
 ----
 
 - All kind of FIXMEs
+- Tab positions/focusing is confusing (when closing tabs or opening a new one)
 - On doodle, when modifying something on http://doodle.com/create and clicking
   a link to leave the page, with some random clicking it's somehow possible to
   get out of yesno mode.
@@ -91,6 +92,11 @@ Misc
   windows
 - Current font handling is rather broken (rejecting invalid values / setting
   multiple font families)
+
+Tests
+-----
+
+- Use unittest.Mock and especially unittest.patch more.
 
 Upstream Bugs
 =============
