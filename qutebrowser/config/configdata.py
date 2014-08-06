@@ -390,6 +390,10 @@ DATA = OrderedDict([
          SettingValue(types.SelectOnRemove(), 'previous'),
          "Which tab to select when the focused tab is removed."),
 
+        ('new-tab-position',
+         SettingValue(types.NewTabPosition(), 'right'),
+         "How new tabs are positioned."),
+
         ('last-close',
          SettingValue(types.LastClose(), 'ignore'),
          "Behaviour when the last tab is closed."),

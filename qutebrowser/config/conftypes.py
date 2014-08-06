@@ -1164,3 +1164,13 @@ class CloseButton(BaseType):
     valid_values = ValidValues(('right', "Close tabs on right-click."),
                                ('middle', "Close tabs on middle-click."),
                                ('none', "Don't close tabs using the mouse."))
+
+
+class NewTabPosition(BaseType):
+
+    """How new tabs are positioned."""
+
+    valid_values = ValidValues(('left', "On the left of the current tab."),
+                               ('right', "On the right of the current tab."),
+                               ('first', "At the left end."),
+                               ('last', "At the right end."))

@@ -55,6 +55,8 @@ class TabbedBrowser(TabWidget):
         _tabs: A list of open tabs.
         _filter: A SignalFilter instance.
         _now_focused: The tab which is focused now.
+        _tab_insert_idx: Where to insert new tabs.  Only used if
+                         tabbar -> new-tab-position is 'left' or 'right'.
         url_stack: Stack of URLs of closed tabs.
         cmd: A TabCommandDispatcher instance.
         last_focused: The tab which was focused last.
@@ -104,6 +106,7 @@ class TabbedBrowser(TabWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._tab_insert_idx = 0
         self.tabCloseRequested.connect(self.on_tab_close_requested)
         self.currentChanged.connect(self.on_current_changed)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -130,6 +133,14 @@ class TabbedBrowser(TabWidget):
         for i in range(self.count()):
             w.append(self.widget(i))
         return w
+
+    def _adjust_tab_insert_idx(self):
+        """Adjust self._tab_insert_idx based on the current config."""
+        new_tab_pos = config.get('tabbar', 'new-tab-position')
+        if new_tab_pos == 'left':
+            self._tab_insert_idx = self.currentIndex()
+        elif new_tab_pos == 'right':
+            self._tab_insert_idx = self.currentIndex() + 1
 
     def _connect_tab_signals(self, tab):
         """Set up the needed signals for tab."""
@@ -315,7 +326,28 @@ class TabbedBrowser(TabWidget):
         tab = WebView(self)
         self._connect_tab_signals(tab)
         self._tabs.append(tab)
-        self.addTab(tab, "")
+        new_tab_pos = config.get('tabbar', 'new-tab-position')
+        if new_tab_pos == 'left':
+            idx = self._tab_insert_idx
+            # On first sight, we'd think we have to decrement
+            # self._tab_insert_idx here, as we want the next tab to be *before*
+            # the one we just opened. However, since we opened a tab *to the
+            # left* of the currently focused tab, indices will shift by 1
+            # automatically.
+        elif new_tab_pos == 'right':
+            idx = self._tab_insert_idx
+            self._tab_insert_idx += 1
+        elif new_tab_pos == 'first':
+            idx = 0
+        elif new_tab_pos == 'last':
+            idx = -1
+        else:
+            raise ValueError("Invalid new-tab-position '{}'.".format(
+                new_tab_pos))
+        log.webview.debug("new-tab-position {} -> opening new tab at {}, "
+                          "next: {}".format(new_tab_pos, idx,
+                                            self._tab_insert_idx))
+        self.insertTab(idx, tab, "")
         if url is not None:
             tab.openurl(url)
         if background is None:
@@ -363,6 +395,8 @@ class TabbedBrowser(TabWidget):
                     self.setTabIcon(i, tab.icon())
                 else:
                     self.setTabIcon(i, QIcon())
+        elif (section, option) == ('tabbar', 'new-tab-position'):
+            self._adjust_tab_insert_idx()
 
     @pyqtSlot()
     def on_load_started(self, tab):
@@ -472,6 +506,7 @@ class TabbedBrowser(TabWidget):
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
         self.title_changed.emit('{} - qutebrowser'.format(self.tabText(idx)))
+        self._adjust_tab_insert_idx()
 
     def on_load_progress(self, tab, perc):
         """Adjust tab indicator on load progress."""
