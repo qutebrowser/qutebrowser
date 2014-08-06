@@ -110,6 +110,7 @@ class KeyValue(Section):
             return
         self.values = OrderedDict()
         for (k, v, desc) in defaults:
+            assert k not in self.values, k
             self.values[k] = v
             self.descriptions[k] = desc
 
@@ -160,11 +161,14 @@ class ValueList(Section):
         self.keytype = keytype
         self.valtype = valtype
         self.layers = OrderedDict([
-            ('default', OrderedDict([(key, SettingValue(valtype, value))
-                                     for key, value in defaults])),
+            ('default', OrderedDict()),
             ('conf', OrderedDict()),
             ('temp', OrderedDict()),
         ])
+        defaultlayer = self.layers['default']
+        for key, value in defaults:
+            assert key not in defaultlayer, key
+            defaultlayer[key] = SettingValue(valtype, value)
         self.values = ChainMap(self.layers['temp'], self.layers['conf'],
                                self.layers['default'])
 
