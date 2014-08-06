@@ -204,10 +204,6 @@ def _check_file(fn):
             elif any(line.decode('UTF-8').startswith(c * 7) for c in "<>=|"):
                 print("Found conflict marker in {}".format(fn))
                 ok = False
-            elif any([line.decode('UTF-8').rstrip('\r\n').endswith(c)
-                      for c in " \t"]):
-                print("Found whitespace at line ending in {}".format(fn))
-                ok = False
             elif b'set_trace()' in line and not (
                     fn.endswith('debug.py') or fn.endswith('run_checks.py')):
                 print("Found set_trace in {}".format(fn))
