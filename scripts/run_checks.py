@@ -69,7 +69,8 @@ options = {
                    '--rcfile=.pylintrc',
                    '--load-plugins=pylint_checkers.config,'
                    'pylint_checkers.crlf,'
-                   'pylint_checkers.modeline'],
+                   'pylint_checkers.modeline,'
+                   'pylint_checkers.settrace'],
         'flake8': ['--config=.flake8'],
     },
 }
@@ -200,10 +201,6 @@ def _check_file(fn):
         for line in f:
             if any(line.decode('UTF-8').startswith(c * 7) for c in "<>=|"):
                 print("Found conflict marker in {}".format(fn))
-                ok = False
-            elif b'set_trace()' in line and not (
-                    fn.endswith('debug.py') or fn.endswith('run_checks.py')):
-                print("Found set_trace in {}".format(fn))
                 ok = False
     return ok
 
