@@ -1159,7 +1159,7 @@ class ForwardUnboundKeys(BaseType):
 
 class CloseButton(BaseType):
 
-    """Whether to forward unbound keys."""
+    """Mouse button used to close tabs."""
 
     valid_values = ValidValues(('right', "Close tabs on right-click."),
                                ('middle', "Close tabs on middle-click."),
