@@ -375,7 +375,7 @@ DATA = OrderedDict([
          "Whether to open new tabs (middleclick/ctrl+click) in background."),
 
         ('select-on-remove',
-         SettingValue(types.SelectOnRemove(), 'previous'),
+         SettingValue(types.SelectOnRemove(), 'right'),
          "Which tab to select when the focused tab is removed."),
 
         ('new-tab-position',
