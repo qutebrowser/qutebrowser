@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
@@ -69,7 +68,8 @@ options = {
         'pylint': ['--output-format=colorized', '--reports=no',
                    '--rcfile=.pylintrc',
                    '--load-plugins=pylint_checkers.config,'
-                   'pylint_checkers.crlf'],
+                   'pylint_checkers.crlf,'
+                   'pylint_checkers.modeline'],
         'flake8': ['--config=.flake8'],
     },
 }
@@ -195,7 +195,6 @@ def check_line(target):
 
 def _check_file(fn):
     """Check a single file for CRLFs, conflict markers and weird whitespace."""
-    has_modeline = False
     ok = True
     with open(fn, 'rb') as f:
         for line in f:
@@ -206,10 +205,6 @@ def _check_file(fn):
                     fn.endswith('debug.py') or fn.endswith('run_checks.py')):
                 print("Found set_trace in {}".format(fn))
                 ok = False
-            elif line.startswith(b'# vim:'):
-                has_modeline = True
-    if not has_modeline:
-        ok = False
     return ok
 
 

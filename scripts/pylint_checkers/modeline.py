@@ -16,31 +16,47 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Checker for CRLF in files."""
+"""Checker for vim modelines in files."""
+
+import os.path
 
 from pylint.interfaces import IRawChecker
 from pylint.checkers import BaseChecker
 
 
-class CrlfChecker(BaseChecker):
+class ModelineChecker(BaseChecker):
 
-    """Check for CRLF in files."""
+    """Check for vim modelines in files."""
 
     __implements__ = IRawChecker
 
-    name = 'crlf'
-    msgs = {'W9001': ('Uses CRLFs', 'crlf', None)}
+    name = 'modeline'
+    msgs = {'W9002': ('Does not have vim modeline', 'modeline-missing', None),
+            'W9003': ('Modeline is invalid', 'invalid-modeline', None),
+            'W9004': ('Modeline position is wrong', 'modeline-position', None)}
     options = ()
     priority = -1
 
     def process_module(self, node):
         """Process the module."""
+        if os.path.basename(os.path.splitext(node.file)[0]) == '__init__':
+            return
+        max_lineno = 1
         for (lineno, line) in enumerate(node.file_stream):
-            if b'\r\n' in line:
-                self.add_message('crlf', line=lineno)
-                return
+            if lineno == 1 and line.startswith(b'#!'):
+                max_lineno += 1
+                continue
+            elif line.startswith(b'# vim:'):
+                if lineno > max_lineno:
+                    self.add_message('modeline-position', line=lineno)
+                if (line.rstrip() !=
+                        b'# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:'):
+                    self.add_message('invalid-modeline', line=lineno)
+                break
+        else:
+            self.add_message('modeline-missing', line=1)
 
 
 def register(linter):
     """Register the checker."""
-    linter.register_checker(CrlfChecker(linter))
+    linter.register_checker(ModelineChecker(linter))
