@@ -341,7 +341,6 @@ class TabbedBrowser(TabWidget):
             idx = self._tab_insert_idx_right
             self._tab_insert_idx_right += 1
         elif pos == 'first':
-            inserted_left = True
             idx = 0
         elif pos == 'last':
             idx = -1

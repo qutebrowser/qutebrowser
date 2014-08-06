@@ -87,6 +87,7 @@ def run(name, target=None, args=None):
         target: The package to check
         args: Option list of arguments to pass
     """
+    # pylint: disable=too-many-branches
     if name == 'pylint':
         scriptdir = os.path.abspath(os.path.dirname(__file__))
         if 'PYTHONPATH' in os.environ:

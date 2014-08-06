@@ -116,6 +116,8 @@ style
 
 - Use list models for completion and a proxy model which converts them to a
   tree?
+- Stuff under scripts/ (especially generate_doc and run_checks) could use a
+  rewrite.
 
 dwb keybindings to possibly implement
 =====================================
