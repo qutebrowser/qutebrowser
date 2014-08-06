@@ -11,6 +11,7 @@
 # E222: Multiple spaces after operator
 # F811: Redifiniton
 # W292: No newline at end of file
-ignore=E241,E265,F401,E501,F821,F841,E222,F811,W292
+# E702: multiple statements on one line
+ignore=E241,E265,F401,E501,F821,F841,E222,F811,W292,E702
 max_complexity = 12
 exclude = ez_setup.py
