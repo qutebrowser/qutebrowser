@@ -21,6 +21,7 @@
 import unittest
 import unittest.mock as mock
 import re
+from collections import namedtuple
 
 import qutebrowser.config.conftypes as conftypes
 from qutebrowser.test.stubs import FakeCmdUtils, FakeCommand
@@ -1054,6 +1055,9 @@ class QssColorTests(QtColorTests):
                 self.assertEqual(self.t.transform(v), v, v)
 
 
+FontDesc = namedtuple('FontDesc', ['style', 'weight', 'pt', 'px', 'family'])
+
+
 class FontTests(unittest.TestCase):
 
     """Test Font."""
@@ -1061,37 +1065,37 @@ class FontTests(unittest.TestCase):
     TESTS = {
         # (style, weight, pointsize, pixelsize, family
         '"Foobar Neue"':
-            (QFont.StyleNormal, QFont.Normal, -1, -1, 'Foobar Neue'),
+            FontDesc(QFont.StyleNormal, QFont.Normal, -1, -1, 'Foobar Neue'),
         '10pt "Foobar Neue"':
-            (QFont.StyleNormal, QFont.Normal, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.StyleNormal, QFont.Normal, 10, None, 'Foobar Neue'),
         '10PT "Foobar Neue"':
-            (QFont.StyleNormal, QFont.Normal, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.StyleNormal, QFont.Normal, 10, None, 'Foobar Neue'),
         '10.5pt "Foobar Neue"':
-            (QFont.StyleNormal, QFont.Normal, 10.5, None, 'Foobar Neue'),
+            FontDesc(QFont.StyleNormal, QFont.Normal, 10.5, None, 'Foobar Neue'),
         '10px "Foobar Neue"':
-            (QFont.StyleNormal, QFont.Normal, None, 10, 'Foobar Neue'),
+            FontDesc(QFont.StyleNormal, QFont.Normal, None, 10, 'Foobar Neue'),
         '10PX "Foobar Neue"':
-            (QFont.StyleNormal, QFont.Normal, None, 10, 'Foobar Neue'),
+            FontDesc(QFont.StyleNormal, QFont.Normal, None, 10, 'Foobar Neue'),
         'bold "Foobar Neue"':
-            (QFont.StyleNormal, QFont.Bold, -1, -1, 'Foobar Neue'),
+            FontDesc(QFont.StyleNormal, QFont.Bold, -1, -1, 'Foobar Neue'),
         'italic "Foobar Neue"':
-            (QFont.StyleItalic, QFont.Normal, -1, -1, 'Foobar Neue'),
+            FontDesc(QFont.StyleItalic, QFont.Normal, -1, -1, 'Foobar Neue'),
         'oblique "Foobar Neue"':
-            (QFont.StyleOblique, QFont.Normal, -1, -1, 'Foobar Neue'),
+            FontDesc(QFont.StyleOblique, QFont.Normal, -1, -1, 'Foobar Neue'),
         'normal bold "Foobar Neue"':
-            (QFont.StyleNormal, QFont.Bold, -1, -1, 'Foobar Neue'),
+            FontDesc(QFont.StyleNormal, QFont.Bold, -1, -1, 'Foobar Neue'),
         'bold italic "Foobar Neue"':
-            (QFont.StyleItalic, QFont.Bold, -1, -1, 'Foobar Neue'),
+            FontDesc(QFont.StyleItalic, QFont.Bold, -1, -1, 'Foobar Neue'),
         'bold 10pt "Foobar Neue"':
-            (QFont.StyleNormal, QFont.Bold, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.StyleNormal, QFont.Bold, 10, None, 'Foobar Neue'),
         'italic 10pt "Foobar Neue"':
-            (QFont.StyleItalic, QFont.Normal, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.StyleItalic, QFont.Normal, 10, None, 'Foobar Neue'),
         'oblique 10pt "Foobar Neue"':
-            (QFont.StyleOblique, QFont.Normal, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.StyleOblique, QFont.Normal, 10, None, 'Foobar Neue'),
         'normal bold 10pt "Foobar Neue"':
-            (QFont.StyleNormal, QFont.Bold, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.StyleNormal, QFont.Bold, 10, None, 'Foobar Neue'),
         'bold italic 10pt "Foobar Neue"':
-            (QFont.StyleItalic, QFont.Bold, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.StyleItalic, QFont.Bold, 10, None, 'Foobar Neue'),
     }
     INVALID = ['green "Foobar Neue"', 'italic green "Foobar Neue"',
                'bold bold "Foobar Neue"', 'bold italic "Foobar Neue"'
