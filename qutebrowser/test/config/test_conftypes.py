@@ -1072,8 +1072,6 @@ class FontTests(unittest.TestCase):
             FontDesc(QFont.StyleNormal, QFont.Normal, 10, None, 'Foobar Neue'),
         '10PT "Foobar Neue"':
             FontDesc(QFont.StyleNormal, QFont.Normal, 10, None, 'Foobar Neue'),
-        '10.5pt "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, QFont.Normal, 10.5, None, 'Foobar Neue'),
         '10px "Foobar Neue"':
             FontDesc(QFont.StyleNormal, QFont.Normal, None, 10, 'Foobar Neue'),
         '10PX "Foobar Neue"':
@@ -1141,7 +1139,6 @@ class FontTests(unittest.TestCase):
                     with self.assertRaises(conftypes.ValidationError, msg=val):
                         self.t2.validate(val)
 
-    # FIXME
     def test_transform(self):
         """Test transform."""
         for string, desc in self.TESTS.items():
@@ -1151,6 +1148,19 @@ class FontTests(unittest.TestCase):
                 with self.subTest(t="t2"):
                     self.assertEqual(Font(self.t2.transform(string)),
                                      Font.fromdesc(desc), string)
+
+    def test_transform_float(self):
+        """Test QtFont's transform with a float as point size.
+
+        We can't test the point size for equality as Qt seems to do some
+        rounding as appropriate.
+        """
+        value = Font(self.t2.transform('10.5pt "Foobar Neue"'))
+        self.assertEqual(value.family(), 'Foobar Neue')
+        self.assertEqual(value.weight(), QFont.Normal)
+        self.assertEqual(value.style(), QFont.StyleNormal)
+        self.assertGreaterEqual(value.pointSize(), 10)
+        self.assertLessEqual(value.pointSize(), 11)
 
     def test_transform_empty(self):
         """Test transform with an empty value."""
