@@ -25,6 +25,7 @@ from collections import namedtuple
 
 import qutebrowser.config.conftypes as conftypes
 from qutebrowser.test.stubs import FakeCmdUtils, FakeCommand
+from qutebrowser.utils.debug import qenum_key
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
@@ -36,9 +37,10 @@ class Font(QFont):
     """A QFont with a nicer repr()."""
 
     def __repr__(self):
-        return 'Font("{}", {}, {}, {})'.format(
-            self.family(), self.pointSize(), self.weight(),
-            self.style() & QFont.StyleItalic)
+        return '<Font family={}, pt={}, px={}, weight={}, style={}>'.format(
+            self.family(), self.pointSize(), self.pixelSize(),
+            qenum_key(QFont, self.weight(), add_base=True, klass=QFont.Weight),
+            self.style())
 
     @classmethod
     def fromdesc(cls, desc):
