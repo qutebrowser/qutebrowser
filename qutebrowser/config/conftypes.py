@@ -705,7 +705,7 @@ class QtFont(Font):
             if size.lower().endswith('pt'):
                 font.setPointSizeF(float(size[:-2]))
             elif size.lower().endswith('px'):
-                font.setPointSizeF(int(size[:-2]))
+                font.setPixelSize(int(size[:-2]))
         # The Qt CSS parser handles " and ' before passing the string to
         # QFont.setFamily. We could do proper CSS-like parsing here, but since
         # hopefully nobody will ever have a font with quotes in the family (if
