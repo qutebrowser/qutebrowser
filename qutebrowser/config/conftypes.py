@@ -685,6 +685,9 @@ class QtFont(Font):
             'bold': QFont.Bold,
         }
         font = QFont()
+        font.setStyle(QFont.StyleNormal)
+        font.setWeight(QFont.Normal)
+
         match = self.font_regex.match(value)
         style = match.group('style')
         weight = match.group('weight')
