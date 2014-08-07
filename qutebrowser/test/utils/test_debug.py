@@ -73,6 +73,49 @@ class QEnumKeyTests(unittest.TestCase):
         # FIXME maybe this should return the right thing anyways?
         debug.qenum_key(Qt, Qt.Alignment(int(Qt.AlignLeft)))
 
+
+class QFlagsKeyTests(unittest.TestCase):
+
+    @unittest.skip('FIXME')
+    def test_single(self):
+        """Test with single value."""
+        flags = debug.qflags_key(Qt, Qt.AlignTop)
+        self.assertEqual(flags, 'AlignTop')
+
+    @unittest.skip('FIXME')
+    def test_multiple(self):
+        """Test with multiple values."""
+        flags = debug.qflags_key(Qt, Qt.AlignLeft | Qt.AlignTop)
+        self.assertEqual(flags, 'AlignLeft|AlignTop')
+
+    def test_combined(self):
+        """Test with a combined value."""
+        flags = debug.qflags_key(Qt, Qt.AlignCenter)
+        self.assertEqual(flags, 'AlignHCenter|AlignVCenter')
+
+    @unittest.skip('FIXME')
+    def test_add_base(self):
+        """Test with add_base=True."""
+        flags = debug.qflags_key(Qt, Qt.AlignTop, add_base=True)
+        self.assertEqual(flags, 'Qt.AlignTop')
+
+    def test_int_noklass(self):
+        """Test passing an int without explicit klass given."""
+        with self.assertRaises(TypeError):
+            debug.qflags_key(Qt, 42)
+
+    @unittest.skip('FIXME')
+    def test_int(self):
+        """Test passing an int with explicit klass given."""
+        flags = debug.qflags_key(Qt, 0x0021, klass=Qt.Alignment)
+        self.assertEqual(flags, 'AlignLeft|AlignTop')
+
+    def test_unknown(self):
+        """Test passing an unknown value."""
+        flags = debug.qflags_key(Qt, 0x1100, klass=Qt.Alignment)
+        self.assertEqual(flags, '0x0100|0x1000')
+
+
 class TestDebug(unittest.TestCase):
 
     """Test signal debug output functions."""

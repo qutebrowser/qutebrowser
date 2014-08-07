@@ -167,6 +167,44 @@ def qenum_key(base, value, add_base=False, klass=None):
         return ret
 
 
+def qflags_key(base, value, add_base=False, klass=None):
+    """Convert a Qt QFlags value to its keys as string.
+
+    Note: Passing a combined value (such as Qt.AlignCenter) will get the names
+    for the individual bits (e.g. Qt.AlignVCenter | Qt.AlignHCenter). FIXME
+
+    Args:
+        base: The object the flags are in, e.g. QtCore.Qt
+        value: The value to get.
+        add_base: Whether the base should be added to the printed names.
+        klass: The flags class the value belongs to.
+               If None, the class will be auto-guessed.
+
+    Return:
+        The keys associated with the flags as a '|' separated string if they
+        could be found. Hex values as a string if not.
+    """
+    if klass is None:
+        # We have to store klass here because it will be lost when iterating
+        # over the bits.
+        klass = value.__class__
+        if klass == int:
+            raise TypeError("Can't guess enum class of an int!")
+    bits = []
+    names = []
+    mask = 0x01
+    value = int(value)
+    while mask < value:
+        if value & mask:
+            bits.append(mask)
+        mask <<= 1
+    for bit in bits:
+        # We have to re-convert to an enum type here or we'll sometimes get an
+        # empty string back.
+        names.append(qenum_key(base, klass(bit), add_base))
+    return '|'.join(names)
+
+
 def signal_name(sig):
     """Get a cleaned up name of a signal.
 
