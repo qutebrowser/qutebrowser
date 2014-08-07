@@ -1142,7 +1142,6 @@ class FontTests(unittest.TestCase):
                         self.t2.validate(val)
 
     # FIXME
-    @unittest.expectedFailure
     def test_transform(self):
         """Test transform."""
         for string, desc in self.TESTS.items():
