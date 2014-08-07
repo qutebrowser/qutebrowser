@@ -55,7 +55,6 @@ Downloads
 Improvements / minor features
 =============================
 
-- Use tokenize.open where appropriate.
 - Add pylint checker to warn on open() without encoding.
 - We should have something like utils.debug.qenum_key for QFlags.
 - Honour icognito mode for cookies etc.
