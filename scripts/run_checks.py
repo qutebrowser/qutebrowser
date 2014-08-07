@@ -36,6 +36,7 @@ import os
 import os.path
 import unittest
 import logging
+import tokenize
 from collections import OrderedDict
 
 try:
@@ -186,7 +187,7 @@ def check_vcs_conflict(target):
         for (dirpath, _dirnames, filenames) in os.walk(target):
             for name in (e for e in filenames if e.endswith('.py')):
                 fn = os.path.join(dirpath, name)
-                with open(fn, 'r') as f:
+                with tokenize.open(fn) as f:
                     for line in f:
                         if any(line.startswith(c * 7) for c in '<>=|'):
                             print("Found conflict marker in {}".format(fn))
