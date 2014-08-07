@@ -691,7 +691,7 @@ class QtFont(Font):
         match = self.font_regex.match(value)
         style = match.group('style')
         weight = match.group('weight')
-        namedweight = match.group('weight')
+        namedweight = match.group('namedweight')
         size = match.group('size')
         family = match.group('family')
         if style:
