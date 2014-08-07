@@ -130,28 +130,41 @@ def trace_lines(do_trace):
         sys.settrace(None)
 
 
-def qenum_key(base, value):
+def qenum_key(base, value, add_base=False, klass=None):
     """Convert a Qt Enum value to its key as a string.
 
     Args:
         base: The object the enum is in, e.g. QFrame.
         value: The value to get.
+        add_base: Whether the base should be added to the printed name.
+        klass: The enum class the value belongs to.
+               If None, the class will be auto-guessed.
 
     Return:
-        The key associated with the value as a string, or None.
+        The key associated with the value as a string if it could be found.
+        The original value as a string if not.
     """
-    klass = value.__class__
+    if klass is None:
+        klass = value.__class__
+        if klass == int:
+            raise TypeError("Can't guess enum class of an int!")
     try:
         idx = klass.staticMetaObject.indexOfEnumerator(klass.__name__)
     except AttributeError:
         idx = -1
     if idx != -1:
-        return klass.staticMetaObject.enumerator(idx).valueToKey(value)
+        ret = klass.staticMetaObject.enumerator(idx).valueToKey(value)
     else:
         for name, obj in vars(base).items():
             if isinstance(obj, klass) and obj == value:
-                return name
-        return None
+                ret = name
+                break
+        else:
+            ret = str(value)
+    if add_base and hasattr(base, '__name__'):
+        return '.'.join([base.__name__, ret])
+    else:
+        return ret
 
 
 def signal_name(sig):

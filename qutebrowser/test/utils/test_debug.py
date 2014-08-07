@@ -46,6 +46,21 @@ class QEnumKeyTests(unittest.TestCase):
         key = debug.qenum_key(QFrame, QFrame.Sunken)
         self.assertEqual(key, 'Sunken')
 
+    def test_add_base(self):
+        """Test with add_base=True."""
+        key = debug.qenum_key(QFrame, QFrame.Sunken, add_base=True)
+        self.assertEqual(key, 'QFrame.Sunken')
+
+    def test_int_noklass(self):
+        """Test passing an int without explicit klass given."""
+        with self.assertRaises(TypeError):
+            debug.qenum_key(QFrame, 42)
+
+    def test_int(self):
+        """Test passing an int with explicit klass given."""
+        key = debug.qenum_key(QFrame, 0x0030, klass=QFrame.Shadow)
+        self.assertEqual(key, 'Sunken')
+
 
 class TestDebug(unittest.TestCase):
 
