@@ -40,6 +40,9 @@ New big features
 - Internationalization
 - more completions (URLs, ...)
 - proper webpage history
+- proper widget for debug logs, with filtering etc.
+- maybe FakeWebView which acts like a WebView in a tab but isn't, to open any
+  widget?
 
 Downloads
 =========
@@ -52,6 +55,7 @@ Downloads
 Improvements / minor features
 =============================
 
+- We should have something like utils.debug.qenum_key for QFlags.
 - Honour icognito mode for cookies etc.
 - Make sure commands in config are _complete_
 - Config should check for unknown sections
