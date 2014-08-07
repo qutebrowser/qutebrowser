@@ -160,7 +160,7 @@ def qenum_key(base, value, add_base=False, klass=None):
                 ret = name
                 break
         else:
-            ret = str(value)
+            ret = '0x{:04x}'.format(int(value))
     if add_base and hasattr(base, '__name__'):
         return '.'.join([base.__name__, ret])
     else:
