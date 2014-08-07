@@ -41,7 +41,7 @@ max-line-length=79
 ignore-long-lines=<?https?://
 
 [SIMILARITIES]
-min-similarity-lines=6
+min-similarity-lines=8
 
 [VARIABLES]
 dummy-variables-rgx=_.*
