@@ -76,6 +76,8 @@ class QEnumKeyTests(unittest.TestCase):
 
 class QFlagsKeyTests(unittest.TestCase):
 
+    """Tests for qflags_key()."""
+
     @unittest.skip('FIXME')
     def test_single(self):
         """Test with single value."""
