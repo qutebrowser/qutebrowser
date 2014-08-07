@@ -51,6 +51,7 @@ import qutebrowser.utils.utilcmds as utilcmds
 from qutebrowser.config.config import ConfigManager
 from qutebrowser.keyinput.modeman import ModeManager
 from qutebrowser.widgets.mainwindow import MainWindow
+from qutebrowser.widgets.console import ConsoleWidget
 from qutebrowser.widgets.crash import (ExceptionCrashDialog, FatalCrashDialog,
                                        ReportDialog)
 from qutebrowser.keyinput.modeparsers import (NormalKeyParser, HintKeyParser,
@@ -73,6 +74,7 @@ class Application(QApplication):
 
     Attributes:
         mainwindow: The MainWindow QWidget.
+        debugconsole: The ConsoleWidget for debugging.
         commandrunner: The main CommandRunner instance.
         searchrunner: The main SearchRunner instance.
         config: The main ConfigManager
@@ -154,8 +156,9 @@ class Application(QApplication):
         self.downloadmanager = DownloadManager(self)
         log.init.debug("Initializing main window...")
         self.mainwindow = MainWindow()
-
         self.modeman.mainwindow = self.mainwindow
+        log.init.debug("Initializing debug console...")
+        self.debugconsole = ConsoleWidget()
         log.init.debug("Initializing eventfilter...")
         self.installEventFilter(self.modeman)
         self.setQuitOnLastWindowClosed(False)
@@ -654,6 +657,11 @@ class Application(QApplication):
         objects = self.get_all_objects()
         self._crashdlg = ReportDialog(pages, history, widgets, objects)
         self._crashdlg.show()
+
+    @cmdutils.register(debug=True, name='debug-console')
+    def show_debugconsole(self):
+        """Show the debugging console."""
+        self.debugconsole.show()
 
     def interrupt(self, signum, _frame):
         """Handler for signals to gracefully shutdown (SIGINT/SIGTERM).

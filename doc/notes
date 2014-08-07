@@ -69,3 +69,12 @@ Completion view (not QTreeView)
 
 Perhaps using a QHBoxLayout of QTableViews and creating/destroying them based
 on the completion would be a better idea?
+
+
+Debug console
+=============
+
+https://github.com/karelklic/flashfit/blob/1a2393cb2fb3e44d2e34bf568386d9d4a9b22148/gui_console.py
+http://code.google.com/p/pyqtlive/source/browse/pycute4.py
+http://stackoverflow.com/questions/12431555/enabling-code-completion-in-an-embedded-python-interpreter
+http://docs.projexsoftware.com/wp-content/docs/projexui/0.5.1/api/projexui/widgets/xconsoleedit-source.html
