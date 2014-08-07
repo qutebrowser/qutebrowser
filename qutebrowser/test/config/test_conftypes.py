@@ -1091,7 +1091,8 @@ class FontTests(unittest.TestCase):
         'italic 10pt "Foobar Neue"':
             FontDesc(QFont.StyleItalic, QFont.Normal, 10, None, 'Foobar Neue'),
         'oblique 10pt "Foobar Neue"':
-            FontDesc(QFont.StyleOblique, QFont.Normal, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.StyleOblique, QFont.Normal, 10, None,
+                     'Foobar Neue'),
         'normal bold 10pt "Foobar Neue"':
             FontDesc(QFont.StyleNormal, QFont.Bold, 10, None, 'Foobar Neue'),
         'bold italic 10pt "Foobar Neue"':
