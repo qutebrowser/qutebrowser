@@ -20,7 +20,7 @@
 """The commandline in the statusbar."""
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5.QtWidgets import QSizePolicy
+from PyQt5.QtWidgets import QSizePolicy, QApplication
 from PyQt5.QtGui import QValidator
 
 import qutebrowser.keyinput.modeman as modeman
@@ -81,7 +81,7 @@ class Command(MinimalLineEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.cursor_part = 0
-        self.history = History()
+        self.history = History(QApplication.instance().cmd_history.data)
         self._validator = _CommandValidator(self)
         self._empty_item_idx = None
         self.setValidator(self._validator)

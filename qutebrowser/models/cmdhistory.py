@@ -19,10 +19,10 @@
 
 """Command history for the status bar."""
 
-from PyQt5.QtCore import pyqtSlot, QCoreApplication
+from PyQt5.QtCore import pyqtSlot
 
 from qutebrowser.utils.usertypes import NeighborList
-from qutebrowser.utils.log import statusbar as logger
+from qutebrowser.utils.log import misc as logger
 
 
 class HistoryEmptyError(Exception):
@@ -49,9 +49,13 @@ class History:
         _tmphist: Temporary history for history browsing (as NeighborList)
     """
 
-    def __init__(self):
+    def __init__(self, history=None):
+        """Constructor.
+
+        Args:
+            history: The initial history to set.
+        """
         self._tmphist = None
-        history = QCoreApplication.instance().cmd_history.data
         if history is None:
             self._history = []
         else:
