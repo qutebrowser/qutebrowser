@@ -34,7 +34,7 @@ from qutebrowser.widgets.tabbedbrowser import TabbedBrowser
 from qutebrowser.widgets.completion import CompletionView
 from qutebrowser.widgets.downloads import DownloadView
 from qutebrowser.utils.usertypes import PromptMode
-from qutebrowser.utils.qt import check_overflow, qt_ensure_valid
+from qutebrowser.utils.qt import check_overflow
 
 
 class MainWindow(QWidget):
@@ -143,8 +143,8 @@ class MainWindow(QWidget):
         topleft = QPoint(0, topleft_y)
         bottomright = self.status.geometry().topRight()
         rect = QRect(topleft, bottomright)
-        qt_ensure_valid(rect)
-        self.completion.setGeometry(rect)
+        if rect.isValid():
+            self.completion.setGeometry(rect)
 
     @cmdutils.register(instance='mainwindow', name=['quit', 'q'], nargs=0)
     def close(self):
