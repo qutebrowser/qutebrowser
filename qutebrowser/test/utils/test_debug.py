@@ -21,6 +21,7 @@
 
 import unittest
 
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QStyle, QFrame
 
 import qutebrowser.utils.debug as debug
@@ -34,6 +35,7 @@ class QEnumKeyTests(unittest.TestCase):
     def test_no_metaobj(self):
         """Test with an enum with no metaobject."""
         with self.assertRaises(AttributeError):
+            # Make sure it doesn't have a meta object
             # pylint: disable=pointless-statement,no-member
             QStyle.PrimitiveElement.staticMetaObject
         key = debug.qenum_key(QStyle, QStyle.PE_PanelButtonCommand)
@@ -42,7 +44,7 @@ class QEnumKeyTests(unittest.TestCase):
     def test_metaobj(self):
         """Test with an enum with metaobject."""
         # pylint: disable=pointless-statement
-        QFrame.staticMetaObject
+        QFrame.staticMetaObject  # make sure it has a metaobject
         key = debug.qenum_key(QFrame, QFrame.Sunken)
         self.assertEqual(key, 'Sunken')
 
@@ -61,6 +63,15 @@ class QEnumKeyTests(unittest.TestCase):
         key = debug.qenum_key(QFrame, 0x0030, klass=QFrame.Shadow)
         self.assertEqual(key, 'Sunken')
 
+    def test_unknown(self):
+        """Test passing an unknown value."""
+        key = debug.qenum_key(QFrame, 0x1337, klass=QFrame.Shadow)
+        self.assertEqual(key, '0x1337')
+
+    def test_reconverted(self):
+        """Test passing a flag value which was re-converted to an enum."""
+        # FIXME maybe this should return the right thing anyways?
+        debug.qenum_key(Qt, Qt.Alignment(int(Qt.AlignLeft)))
 
 class TestDebug(unittest.TestCase):
 
