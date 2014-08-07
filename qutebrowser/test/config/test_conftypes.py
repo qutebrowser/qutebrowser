@@ -1060,7 +1060,7 @@ FontDesc = namedtuple('FontDesc', ['style', 'weight', 'pt', 'px', 'family'])
 
 class FontTests(unittest.TestCase):
 
-    """Test Font."""
+    """Test Font/QtFont."""
 
     TESTS = {
         # (style, weight, pointsize, pixelsize, family
