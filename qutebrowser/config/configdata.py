@@ -156,15 +156,12 @@ SECTION_DESC = {
         "The `hints.*` values are a special case as they're real CSS "
         "colors, not Qt-CSS colors. There, for a gradient, you need to use "
         "`-webkit-gradient`, see https://www.webkit.org/blog/175/introducing-"
-        "css-gradients/[the WebKit documentation].\n"),
+        "css-gradients/[the WebKit documentation]."),
     'fonts': (
         "Fonts used for the UI, with optional style/weight/size.\n\n"
         " * Style: `normal`/`italic`/`oblique`\n"
         " * Weight: `normal`, `bold`, `100`..`900`\n"
-        " * Size: _number_ `px`/`pt`\n\n"
-        "Note: The font for hints is a true CSS font, not a Qt-CSS one, "
-        "because of that, a general ``Monospace'' family is enough and we "
-        "don't use `${_monospace}` there."),
+        " * Size: _number_ `px`/`pt`"),
 }
 
 
@@ -988,8 +985,7 @@ DATA = OrderedDict([
 
         ('web-size-default',
          SettingValue(types.Int(none_ok=True, minval=1, maxval=MAXVALS['int']),
-                      ''),
-         "The default font size for regular text."),
+                      ''), "The default font size for regular text."),
 
         ('web-size-default-fixed',
          SettingValue(types.Int(none_ok=True, minval=1, maxval=MAXVALS['int']),
