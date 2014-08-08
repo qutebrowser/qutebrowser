@@ -124,6 +124,13 @@ def fuzzy_url(urlstr):
     if os.path.exists(path):
         logger.debug("URL is a local file")
         url = QUrl.fromLocalFile(path)
+    elif (not _has_explicit_scheme(QUrl(urlstr)) and
+            os.path.exists(os.path.abspath(path))):
+        # We do this here rather than in the first block because we first want
+        # to make sure it's not an URL like http://, because os.path.abspath
+        # would mangle that.
+        logger.debug("URL is a relative local file")
+        url = QUrl.fromLocalFile(os.path.abspath(path))
     elif is_url(stripped):
         # probably an address
         logger.debug("URL is a fuzzy address")
@@ -138,6 +145,15 @@ def fuzzy_url(urlstr):
                  urlstr, url.toDisplayString()))
     qt_ensure_valid(url)
     return url
+
+
+def _has_explicit_scheme(url):
+    """Check if an url has an explicit scheme given.
+
+    Args:
+        url: The URL as QUrl.
+    """
+    return url.isValid() and url.scheme()
 
 
 def is_special_url(url):
@@ -174,7 +190,7 @@ def is_url(urlstr):
         # no autosearch, so everything is a URL.
         return True
 
-    if qurl.isValid() and qurl.scheme():
+    if _has_explicit_scheme(qurl):
         # URLs with explicit schemes are always URLs
         logger.debug("Contains explicit scheme")
         return True
