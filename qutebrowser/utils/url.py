@@ -78,14 +78,11 @@ def _is_url_naive(urlstr):
     Return:
         True if the URL really is a URL, False otherwise.
     """
-    schemes = ('http', 'https')
     url = QUrl.fromUserInput(urlstr)
     # We don't use url here because fromUserInput appends http://
     # automatically.
     if not url.isValid():
         return False
-    elif QUrl(urlstr).scheme() in schemes:
-        return True
     elif '.' in url.host():
         return True
     elif url.host() == 'localhost':
@@ -171,16 +168,21 @@ def is_url(urlstr):
 
     logger.debug("Checking if '{}' is a URL (autosearch={}).".format(
                  urlstr, autosearch))
+    qurl = QUrl(urlstr)
 
     if not autosearch:
         # no autosearch, so everything is a URL.
         return True
 
-    if ' ' in urlstr:
+    if qurl.isValid() and qurl.scheme():
+        # URLs with explicit schemes are always URLs
+        logger.debug("Contains explicit scheme")
+        return True
+    elif ' ' in urlstr:
         # A URL will never contain a space
         logger.debug("Contains space -> no URL")
         return False
-    elif is_special_url(QUrl(urlstr)):
+    elif is_special_url(qurl):
         # Special URLs are always URLs, even with autosearch=False
         logger.debug("Is an special URL.")
         return True
