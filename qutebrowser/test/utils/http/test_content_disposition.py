@@ -17,13 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.utils.misc.parse_content_disposition."""
+"""Tests for qutebrowser.utils.http.parse_content_disposition."""
 
 import os
 import unittest
 from unittest.mock import Mock
 
-import qutebrowser.utils.misc as utils
+import qutebrowser.utils.http as httputils
 from qutebrowser.test.stubs import FakeNetworkReply
 
 
@@ -40,7 +40,7 @@ class AttachmentTestCase(unittest.TestCase):
     def _check_filename(self, header, filename):
         """Check if the passed header has the given filename."""
         reply = FakeNetworkReply(header)
-        cd_inline, cd_filename = utils.parse_content_disposition(reply)
+        cd_inline, cd_filename = httputils.parse_content_disposition(reply)
         self.assertIsNotNone(cd_filename)
         self.assertEqual(cd_filename, filename)
         self.assertFalse(cd_inline)
@@ -48,14 +48,14 @@ class AttachmentTestCase(unittest.TestCase):
     def _check_ignored(self, header):
         """Check if the passed header is ignored."""
         reply = FakeNetworkReply(header)
-        cd_inline, cd_filename = utils.parse_content_disposition(reply)
+        cd_inline, cd_filename = httputils.parse_content_disposition(reply)
         self.assertEqual(cd_filename, DEFAULT_NAME)
         self.assertTrue(cd_inline)
 
     def _check_unnamed(self, header):
         """Check if the passed header results in an unnamed attachment."""
         reply = FakeNetworkReply(header)
-        cd_inline, cd_filename = utils.parse_content_disposition(reply)
+        cd_inline, cd_filename = httputils.parse_content_disposition(reply)
         self.assertEqual(cd_filename, DEFAULT_NAME)
         self.assertFalse(cd_inline)
 
@@ -70,14 +70,14 @@ class InlineTests(unittest.TestCase):
     def _check_filename(self, header, filename):
         """Check if the passed header has the given filename."""
         reply = FakeNetworkReply(header)
-        cd_inline, cd_filename = utils.parse_content_disposition(reply)
+        cd_inline, cd_filename = httputils.parse_content_disposition(reply)
         self.assertEqual(cd_filename, filename)
         self.assertTrue(cd_inline)
 
     def _check_ignored(self, header):
         """Check if the passed header is ignored."""
         reply = FakeNetworkReply(header)
-        cd_inline, cd_filename = utils.parse_content_disposition(reply)
+        cd_inline, cd_filename = httputils.parse_content_disposition(reply)
         self.assertEqual(cd_filename, DEFAULT_NAME)
         self.assertTrue(cd_inline)
 
@@ -135,7 +135,7 @@ class AttachmentTests(AttachmentTestCase):
         UA should offer to download the resource.
         """
         reply = FakeNetworkReply('attachment')
-        cd_inline, cd_filename = utils.parse_content_disposition(reply)
+        cd_inline, cd_filename = httputils.parse_content_disposition(reply)
         self.assertFalse(cd_inline)
         self.assertEqual(cd_filename, DEFAULT_NAME)
 
@@ -894,8 +894,8 @@ class OurTests(AttachmentTestCase):
 
 
 def setUpModule():
-    """Mock out logging in utils."""
-    utils.log = Mock()
+    """Mock out logging in httputils."""
+    httputils.logger = Mock()
 
 
 if __name__ == '__main__':

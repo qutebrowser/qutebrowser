@@ -31,6 +31,7 @@ import qutebrowser.config.config as config
 import qutebrowser.utils.message as message
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.misc as utils
+from qutebrowser.utils.http import parse_content_disposition
 from qutebrowser.utils.log import downloads as logger
 from qutebrowser.utils.log import fix_rfc2622
 from qutebrowser.utils.usertypes import PromptMode, Question, Timer
@@ -375,7 +376,7 @@ class DownloadManager(QObject):
         Args:
             reply: The QNetworkReply to download.
         """
-        _inline, suggested_filename = utils.parse_content_disposition(reply)
+        _inline, suggested_filename = parse_content_disposition(reply)
         logger.debug("fetch: {} -> {}".format(reply.url(), suggested_filename))
         download = DownloadItem(reply, self)
         download.finished.connect(partial(self.on_finished, download))

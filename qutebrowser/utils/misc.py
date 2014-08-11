@@ -28,13 +28,11 @@ from urllib.parse import urljoin, urlencode
 from collections import OrderedDict
 from functools import reduce
 
-import rfc6266
 from PyQt5.QtCore import QCoreApplication, QStandardPaths, Qt
 from PyQt5.QtGui import QKeySequence, QColor
 from pkg_resources import resource_string
 
 import qutebrowser
-import qutebrowser.utils.log as log
 from qutebrowser.utils.qt import qt_version_check, qt_ensure_valid
 
 
@@ -302,41 +300,6 @@ def format_size(size, base=1024, suffix=''):
             return '{:.02f}{}{}'.format(size, p, suffix)
         size /= base
     return '{:.02f}{}{}'.format(size, prefixes[-1], suffix)
-
-
-def parse_content_disposition(reply):
-    """Parse a content_disposition header.
-
-    Args:
-        reply: The QNetworkReply to get a filename for.
-
-    Return:
-        A (is_inline, filename) tuple.
-    """
-    is_inline = True
-    filename = None
-    # First check if the Content-Disposition header has a filename
-    # attribute.
-    if reply.hasRawHeader('Content-Disposition'):
-        # We use the unsafe variant of the filename as we sanitize it via
-        # os.path.basename later.
-        try:
-            content_disposition = rfc6266.parse_headers(
-                bytes(reply.rawHeader('Content-Disposition')), relaxed=True)
-            filename = content_disposition.filename_unsafe
-        except UnicodeDecodeError as e:
-            log.misc.warning("Error while getting filename: {}: {}".format(
-                e.__class__.__name__, e))
-            filename = None
-        else:
-            is_inline = content_disposition.is_inline
-    # Then try to get filename from url
-    if not filename:
-        filename = reply.url().path()
-    # If that fails as well, use a fallback
-    if not filename:
-        filename = 'qutebrowser-download'
-    return is_inline, os.path.basename(filename)
 
 
 def key_to_string(key):
