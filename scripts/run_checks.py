@@ -222,6 +222,7 @@ def _get_args(checker):
 
 
 def main():
+    """Main entry point."""
     argv = sys.argv[:]
     check_unittest()
     check_git()
