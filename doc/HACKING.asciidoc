@@ -206,6 +206,8 @@ Content-Disposition Header Field in the Hypertext Transfer Protocol (HTTP)]
 2.1) Specification]
 * http://qt-project.org/doc/qt-4.8/stylesheet-reference.html[Qt Style Sheets
 Reference]
+* http://mimesniff.spec.whatwg.org/[MIME Sniffing Standard]
+* http://spec.whatwg.org/[WHATWG specifications]
 
 Hints
 -----
