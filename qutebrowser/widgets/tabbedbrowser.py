@@ -380,6 +380,7 @@ class TabbedBrowser(TabWidget):
                           immediately=True)
         else:
             backward = int(flags) & QWebPage.FindBackward
+
             def check_scroll_pos():
                 """Check if the scroll position got smaller and show info."""
                 if not backward and widget.scroll_pos < old_scroll_pos:
