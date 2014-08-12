@@ -105,7 +105,7 @@ def change_content_type(reply, mapping):
     except KeyError:
         pass
     if rest is not None:
-        header = ';'.join(content_type, rest)
+        header = ';'.join((content_type, rest))
     else:
         header = content_type
     reply.setHeader(QNetworkRequest.ContentTypeHeader, header)
