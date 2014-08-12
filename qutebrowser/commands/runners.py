@@ -71,7 +71,12 @@ class SearchRunner(QObject):
             self.do_search.emit('', QWebPage.HighlightAllOccurrences)
         self._text = text
         self._flags = 0
-        if not config.get('general', 'ignore-case'):
+        ignore_case = config.get('general', 'ignore-case')
+        if ignore_case == 'smart':
+            if not text.islower():
+                self._flags |= QWebPage.FindCaseSensitively
+        elif ignore_case:
+            # True, but not 'smart'
             self._flags |= QWebPage.FindCaseSensitively
         if config.get('general', 'wrap-search'):
             self._flags |= QWebPage.FindWrapsAroundDocument

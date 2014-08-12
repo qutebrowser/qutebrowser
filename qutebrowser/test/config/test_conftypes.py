@@ -1826,5 +1826,55 @@ class AutoSearchTests(unittest.TestCase):
         self.assertIsNone(self.t.transform(''))
 
 
+class IgnoreCase(unittest.TestCase):
+
+    """Test IgnoreCase."""
+
+    TESTS = {
+        'smart': ['smart', 'SMART'],
+        True: BoolTests.TESTS[True],
+        False: BoolTests.TESTS[False],
+    }
+    INVALID = ['ssmart', 'foo']
+
+    def setUp(self):
+        self.t = conftypes.IgnoreCase()
+
+    def test_validate_empty(self):
+        """Test validate with empty string and none_ok = False."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with empty string and none_ok = True."""
+        t = conftypes.IgnoreCase(none_ok=True)
+        t.validate('')
+
+    def test_validate_valid(self):
+        """Test validate with valid values."""
+        for vallist in self.TESTS.values():
+            for val in vallist:
+                with self.subTest(val=val):
+                    self.t.validate(val)
+
+    def test_validate_invalid(self):
+        """Test validate with invalid values."""
+        for val in self.INVALID:
+            with self.subTest(val=val):
+                with self.assertRaises(conftypes.ValidationError):
+                    self.t.validate(val)
+
+    def test_transform(self):
+        """Test transform with all values."""
+        for out, inputs in self.TESTS.items():
+            for inp in inputs:
+                with self.subTest(inp=inp):
+                    self.assertEqual(self.t.transform(inp), out, inp)
+
+    def test_transform_empty(self):
+        """Test transform with none_ok = False and an empty value."""
+        self.assertIsNone(self.t.transform(''))
+
+
 if __name__ == '__main__':
     unittest.main()

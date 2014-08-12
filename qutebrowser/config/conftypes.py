@@ -1182,3 +1182,26 @@ class NewTabPosition(BaseType):
                                ('right', "On the right of the current tab."),
                                ('first', "At the left end."),
                                ('last', "At the right end."))
+
+
+class IgnoreCase(Bool):
+
+    """Whether to ignore case when searching."""
+
+    def transform(self, value):
+        if value.lower() == 'smart':
+            return 'smart'
+        else:
+            return super().transform(value)
+
+    def validate(self, value):
+        if value.lower() == 'smart':
+            return
+        else:
+            super().validate(value)
+
+    def complete(self):
+        return [('true', 'Search case-insensitively'),
+                ('false', 'Search case-sensitively'),
+                ('smart', 'Search case-sensitively if there are capital '
+                 'chars')]

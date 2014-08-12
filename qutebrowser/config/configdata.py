@@ -168,7 +168,7 @@ SECTION_DESC = {
 DATA = OrderedDict([
     ('general', sect.KeyValue(
         ('ignore-case',
-         SettingValue(types.Bool(), 'true'),
+         SettingValue(types.IgnoreCase(), 'smart'),
          "Whether to find text on a page case-insensitively."),
 
         ('wrap-search',
