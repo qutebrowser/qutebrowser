@@ -19,6 +19,8 @@
 
 """The main browser widgets."""
 
+from functools import partial
+
 import sip
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, PYQT_VERSION, Qt
 from PyQt5.QtNetwork import QNetworkReply
@@ -29,6 +31,7 @@ from PyQt5.QtWebKitWidgets import QWebPage
 import qutebrowser.utils.message as message
 import qutebrowser.config.config as config
 import qutebrowser.utils.log as log
+import qutebrowser.utils.http as http
 from qutebrowser.network.networkmanager import NetworkManager
 from qutebrowser.utils.misc import read_file
 from qutebrowser.utils.qt import check_print_compat
@@ -63,6 +66,7 @@ class BrowserPage(QWebPage):
         self.setForwardUnsupportedContent(True)
         self.printRequested.connect(self.on_print_requested)
         self.downloadRequested.connect(self.on_download_requested)
+        self.unsupportedContent.connect(self.on_unsupported_content)
         self._view = view
 
         if PYQT_VERSION > 0x050300:
@@ -147,6 +151,11 @@ class BrowserPage(QWebPage):
                                                           suggested_file)
         return True
 
+    def display_content(self, reply, mimetype):
+        """Display a QNetworkReply with an explicitely set mimetype."""
+        self.mainFrame().setContent(reply.readAll(), mimetype, reply.url())
+        reply.deleteLater()
+
     def on_print_requested(self, frame):
         """Handle printing when requested via javascript."""
         if not check_print_compat():
@@ -167,6 +176,36 @@ class BrowserPage(QWebPage):
         """
         reply = self.networkAccessManager().get(request)
         self.start_download.emit(reply)
+
+    @pyqtSlot('QNetworkReply')
+    def on_unsupported_content(self, reply):
+        """Handle an unsupportedContent signal.
+
+        Most likely this will mean we need to download the reply, but we
+        correct for some common errors the server do.
+
+        At some point we might want to implement the MIME Sniffing standard
+        here: http://mimesniff.spec.whatwg.org/
+        """
+        inline, _suggested_filename = http.parse_content_disposition(reply)
+        if not inline:
+            # Content-Disposition: attachment -> force download
+            self.start_download.emit(reply)
+            return
+        mimetype, _rest = http.parse_content_type(reply)
+        if mimetype == 'image/jpg':
+            # Some servers (e.g. the LinkedIn CDN) send a non-standard
+            # image/jpg (instead of image/jpeg, defined in RFC 1341 section
+            # 7.5). If this is the case, we force displaying with a corrected
+            # mimetype.
+            if reply.isFinished():
+                self.display_content(reply, 'image/jpeg')
+            else:
+                reply.finished.connect(
+                    partial(self.display_content, reply, 'image/jpeg'))
+        else:
+            # Unknown mimetype, so download anyways.
+            self.start_download.emit(reply)
 
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""

@@ -166,7 +166,6 @@ class TabbedBrowser(TabWidget):
         tab.hintmanager.openurl.connect(self.openurl)
         self.cur_load_started.connect(self.on_cur_load_started)
         # downloads
-        page.unsupportedContent.connect(self.start_download)
         page.start_download.connect(self.start_download)
         # misc
         tab.titleChanged.connect(partial(self.on_title_changed, tab))
