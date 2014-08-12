@@ -22,14 +22,16 @@
 from functools import partial
 
 from PyQt5.QtWidgets import QSizePolicy
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QSize
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QSize, QTimer
 from PyQt5.QtGui import QIcon
+from PyQt5.QtWebKitWidgets import QWebPage
 
 import qutebrowser.config.config as config
 import qutebrowser.commands.utils as cmdutils
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.utils.log as log
 import qutebrowser.utils.misc as utils
+import qutebrowser.utils.message as message
 from qutebrowser.widgets.tabwidget import TabWidget
 from qutebrowser.widgets.webview import WebView
 from qutebrowser.browser.signalfilter import SignalFilter
@@ -368,7 +370,26 @@ class TabbedBrowser(TabWidget):
             text: The text to search for.
             flags: The QWebPage::FindFlags.
         """
-        self.currentWidget().findText(text, flags)
+        log.webview.debug("Searching with text '{}' and flags "
+                          "0x{:04x}.".format(text, int(flags)))
+        widget = self.currentWidget()
+        old_scroll_pos = widget.scroll_pos
+        found = widget.findText(text, flags)
+        if not found and not flags & QWebPage.HighlightAllOccurrences and text:
+            message.error("Text '{}' not found on page!".format(text),
+                          immediately=True)
+        else:
+            backward = int(flags) & QWebPage.FindBackward
+            def check_scroll_pos():
+                """Check if the scroll position got smaller and show info."""
+                if not backward and widget.scroll_pos < old_scroll_pos:
+                    message.info("Search hit BOTTOM, continuing at TOP",
+                                 immediately=True)
+                elif backward and widget.scroll_pos > old_scroll_pos:
+                    message.info("Search hit TOP, continuing at BOTTOM",
+                                 immediately=True)
+            # We first want QWebPage to refresh.
+            QTimer.singleShot(0, check_scroll_pos)
 
     @pyqtSlot(str)
     def handle_hint_key(self, keystr):
