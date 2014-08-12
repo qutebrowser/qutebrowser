@@ -166,6 +166,6 @@ class NetworkManager(QNetworkAccessManager):
         # header for jpg images. We change this to image/jpeg (defined in RFC
         # 1341 section 7.5: https://tools.ietf.org/html/rfc1341) so QtWebKit
         # displays this instead of downloading it.
-        reply.metaDataChanged.connect(partial(change_content_type, reply,
-                                              {'image/jpg': 'image/jpeg'}))
+        reply.metaDataChanged.connect(
+            partial(change_content_type, reply, {'image/jpg': 'image/jpeg'}))
         return reply
