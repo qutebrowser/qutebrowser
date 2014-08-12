@@ -58,11 +58,6 @@ Crashes
 Qt warnings
 -----------
 
-- When following a hint:
-  QNetworkReplyImplPrivate::error: Internal problem, this method must only be called once.
-  Also when loading
-  https://web.archive.org/web/20140625053129/http://www.20min.ch/
-
 - Random error messages while browsing on imgur/reddit:
 
   WARNING: content-type missing in HTTP POST, defaulting to

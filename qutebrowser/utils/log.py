@@ -234,9 +234,18 @@ def qt_message_handler(msg_type, context, msg):
     # Change levels of some well-known messages to debug so they don't get
     # shown to the user.
     # suppressed_msgs is a list of regexes matching the message texts to hide.
-    suppressed_msgs = ("libpng warning: iCCP: Not recognizing known sRGB "
-                       "profile that has been edited",
-                       "OpenType support missing for script [0-9]*")
+    suppressed_msgs = (
+        # PNGs in Qt with broken color profile
+        # https://bugreports.qt-project.org/browse/QTBUG-39788
+        "libpng warning: iCCP: Not recognizing known sRGB profile that has "
+        "been edited",
+        # Hopefully harmless warning
+        "OpenType support missing for script [0-9]*",
+        # Error if a QNetworkReply gets two different errors set. Harmless Qt
+        # bug on some pages.
+        # https://bugreports.qt-project.org/browse/QTBUG-30298
+        "QNetworkReplyImplPrivate::error: Internal problem, this method must "
+        "only be called once.")
     if any(re.match(pattern, msg.strip()) for pattern in suppressed_msgs):
         level = logging.DEBUG
     else:
