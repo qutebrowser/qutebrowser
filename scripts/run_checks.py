@@ -37,6 +37,7 @@ import os.path
 import unittest
 import logging
 import tokenize
+import configparser
 from collections import OrderedDict
 
 try:
@@ -53,33 +54,9 @@ logging.basicConfig(level=logging.INFO, format='%(msg)s')
 
 status = OrderedDict()
 
-options = {
-    'targets': ['qutebrowser', 'scripts'],
-    'disable': {
-        'pep257': [
-            'D102',  # Docstring missing, will be handled by others
-            'D209',  # Blank line before closing """ (removed from PEP257)
-            'D402',  # First line should not be function's signature
-                     # (false-positives)
-        ],
-    },
-    'exclude': [],
-    'exclude_pep257': ['test_*', 'ez_setup'],
-    'other': {
-        'pylint': ['--output-format=colorized', '--reports=no',
-                   '--rcfile=.pylintrc',
-                   '--load-plugins=pylint_checkers.config,'
-                   'pylint_checkers.crlf,'
-                   'pylint_checkers.modeline,'
-                   'pylint_checkers.settrace'],
-        'flake8': ['--config=.flake8'],
-    },
-}
 
-if os.name == 'nt':
-    # pep257 uses cp1252 by default on Windows, which can't handle the unicode
-    # chars in some files.
-    options['exclude_pep257'] += ['configdata.py', 'misc.py']
+CONFIG = configparser.ConfigParser()
+CONFIG.read('.run_checks')
 
 
 def run(name, target=None, args=None):
@@ -205,51 +182,43 @@ def _get_args(checker):
     Return:
         A list of commandline arguments.
     """
-    # pylint: disable=too-many-branches
+
+    def _get_optional_args(checker):
+        """Get a list of arguments based on a comma-separated args config."""
+        try:
+            return CONFIG.get(checker, 'args').split(',')
+        except configparser.NoOptionError:
+            return []
+
+    def _get_flag(arg, checker, option):
+        """Get a list of arguments based on a config option."""
+        try:
+            return ['--{}={}'.format(arg, CONFIG.get(checker, option))]
+        except configparser.NoOptionError:
+            return []
+
     args = []
     if checker == 'pylint':
-        try:
-            args += ['--disable=' + ','.join(options['disable']['pylint'])]
-        except KeyError:
-            pass
-        if options['exclude']:
-            try:
-                args += ['--ignore=' + ','.join(options['exclude'])]
-            except KeyError:
-                pass
-        try:
-            args += options['other']['pylint']
-        except KeyError:
-            pass
+        args += _get_flag('disable', 'pylint', 'disable')
+        args += _get_flag('ignore', 'pylint', 'exclude')
+        args += _get_optional_args('pylint')
     elif checker == 'flake8':
-        try:
-            args += ['--ignore=' + ','.join(options['disable']['flake8'])]
-        except KeyError:
-            pass
-        if options['exclude']:
-            try:
-                args += ['--exclude=' + ','.join(options['exclude'])]
-            except KeyError:
-                pass
-        try:
-            args += options['other']['flake8']
-        except KeyError:
-            pass
+        args += _get_flag('ignore', 'flake8', 'disable')
+        args += _get_flag('exclude', 'flake8', 'exclude')
+        args += _get_optional_args('flake8')
     elif checker == 'pep257':
-        args = []
+        args += _get_flag('ignore', 'pep257', 'disable')
         try:
-            args += ['--ignore=' + ','.join(options['disable']['pep257'])]
-        except KeyError:
-            pass
-        try:
-            args += [r'--match=(?!{}).*\.py'.format('|'.join(
-                options['exclude'] + options['exclude_pep257']))]
-        except KeyError:
-            pass
-        try:
-            args += options['other']['pep257']
-        except KeyError:
-            pass
+            excluded = CONFIG.get('pep257', 'exclude').split(',')
+        except configparser.NoOptionError:
+            excluded = []
+        if os.name == 'nt':
+            # FIXME find a better solution
+            # pep257 uses cp1252 by default on Windows, which can't handle the
+            # unicode chars in some files.
+            excluded += ['configdata', 'misc']
+        args.append(r'--match=(?!{})\.py'.format('|'.join(excluded)))
+        args += _get_optional_args('pep257')
     elif checker == 'pyroma':
         args = ['.']
     elif checker == 'check-manifest':
@@ -260,7 +229,7 @@ def _get_args(checker):
 argv = sys.argv[:]
 check_unittest()
 check_git()
-for trg in options['targets']:
+for trg in CONFIG.get('DEFAULT', 'targets').split(','):
     print("==================== {} ====================".format(trg))
     if do_check_257:
         check_pep257(trg, _get_args('pep257'))
