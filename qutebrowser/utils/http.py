@@ -24,6 +24,8 @@ import os.path
 import rfc6266
 from qutebrowser.utils.log import misc as logger
 
+from PyQt5.QtNetwork import QNetworkRequest
+
 
 def parse_content_disposition(reply):
     """Parse a content_disposition header.
@@ -58,3 +60,52 @@ def parse_content_disposition(reply):
     if not filename:
         filename = 'qutebrowser-download'
     return is_inline, os.path.basename(filename)
+
+
+def parse_content_type(reply):
+    """Parse a Content-Type header.
+
+    The parsing done here is very cheap, as we really only want to get the
+    Mimetype. Parameters aren't parsed specially.
+
+    Args:
+        reply: The QNetworkReply to handle.
+
+    Return:
+        A [mimetype, rest] list, or None.
+        Rest can be None.
+    """
+    content_type = reply.header(QNetworkRequest.ContentTypeHeader)
+    if content_type is None:
+        return None
+    if ';' in content_type:
+        ret = content_type.split(';', maxsplit=1)
+    else:
+        ret = [content_type, None]
+    ret[0] = ret[0].strip()
+    return ret
+
+
+def change_content_type(reply, mapping):
+    """Change a content-type of a QNetworkReply.
+
+    Args:
+        reply: The QNetworkReply to handle.
+        mapping: A mapping of source to target content types.
+
+    Return:
+        None (modifies the passed reply).
+    """
+    parsed = parse_content_type(reply)
+    if parsed is None:
+        return
+    content_type, rest = parsed  # pylint: disable=unpacking-non-sequence
+    try:
+        content_type = mapping[content_type]
+    except KeyError:
+        pass
+    if rest is not None:
+        header = ';'.join(content_type, rest)
+    else:
+        header = content_type
+    reply.setHeader(QNetworkRequest.ContentTypeHeader, header)
