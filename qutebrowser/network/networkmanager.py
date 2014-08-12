@@ -19,6 +19,8 @@
 
 """Our own QNetworkAccessManager."""
 
+from functools import partial
+
 from PyQt5.QtCore import pyqtSlot, PYQT_VERSION, QCoreApplication
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply
 
@@ -35,6 +37,7 @@ import qutebrowser.utils.log as log
 from qutebrowser.network.qutescheme import QuteSchemeHandler
 from qutebrowser.network.schemehandler import ErrorNetworkReply
 from qutebrowser.utils.usertypes import PromptMode
+from qutebrowser.utils.http import change_content_type
 
 
 class NetworkManager(QNetworkAccessManager):
@@ -137,27 +140,32 @@ class NetworkManager(QNetworkAccessManager):
         elif scheme in self._scheme_handlers:
             return self._scheme_handlers[scheme].createRequest(
                 op, req, outgoing_data)
+        if config.get('network', 'do-not-track'):
+            dnt = '1'.encode('ascii')
         else:
-            if config.get('network', 'do-not-track'):
-                dnt = '1'.encode('ascii')
-            else:
-                dnt = '0'.encode('ascii')
-            req.setRawHeader('DNT'.encode('ascii'), dnt)
-            req.setRawHeader('X-Do-Not-Track'.encode('ascii'), dnt)
-            accept_language = config.get('network', 'accept-language')
-            if accept_language is not None:
-                req.setRawHeader('Accept-Language'.encode('ascii'),
-                                 accept_language.encode('ascii'))
-            if PYQT_VERSION < 0x050301:
-                # If we don't disable our message handler, we get a freeze if a
-                # warning is printed due to a PyQt bug, e.g. when clicking a
-                # currency on http://ch.mouser.com/localsites/
-                #
-                # See http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034420.html
-                with log.disable_qt_msghandler():
-                    reply = super().createRequest(op, req, outgoing_data)
-            else:
+            dnt = '0'.encode('ascii')
+        req.setRawHeader('DNT'.encode('ascii'), dnt)
+        req.setRawHeader('X-Do-Not-Track'.encode('ascii'), dnt)
+        accept_language = config.get('network', 'accept-language')
+        if accept_language is not None:
+            req.setRawHeader('Accept-Language'.encode('ascii'),
+                             accept_language.encode('ascii'))
+        if PYQT_VERSION < 0x050301:
+            # If we don't disable our message handler, we get a freeze if a
+            # warning is printed due to a PyQt bug, e.g. when clicking a
+            # currency on http://ch.mouser.com/localsites/
+            #
+            # See http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034420.html
+            with log.disable_qt_msghandler():
                 reply = super().createRequest(op, req, outgoing_data)
-            self._requests.append(reply)
-            reply.destroyed.connect(lambda obj: self._requests.remove(obj))
+        else:
+            reply = super().createRequest(op, req, outgoing_data)
+        self._requests.append(reply)
+        reply.destroyed.connect(lambda obj: self._requests.remove(obj))
+        # Some servers (e.g. the LinkedIn CDN) send a non-standard image/jpg
+        # header for jpg images. We change this to image/jpeg (defined in RFC
+        # 1341 section 7.5: https://tools.ietf.org/html/rfc1341) so QtWebKit
+        # displays this instead of downloading it.
+        reply.metaDataChanged.connect(partial(change_content_type, reply,
+                                              {'image/jpg': 'image/jpeg'}))
         return reply

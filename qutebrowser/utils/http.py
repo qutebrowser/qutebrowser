@@ -103,7 +103,7 @@ def change_content_type(reply, mapping):
     try:
         content_type = mapping[content_type]
     except KeyError:
-        pass
+        return
     if rest is not None:
         header = ';'.join((content_type, rest))
     else:
