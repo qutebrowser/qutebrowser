@@ -39,7 +39,7 @@ class AttachmentTestCase(unittest.TestCase):
 
     def _check_filename(self, header, filename):
         """Check if the passed header has the given filename."""
-        reply = FakeNetworkReply(header)
+        reply = FakeNetworkReply(headers={'Content-Disposition': header})
         cd_inline, cd_filename = httputils.parse_content_disposition(reply)
         self.assertIsNotNone(cd_filename)
         self.assertEqual(cd_filename, filename)
@@ -47,14 +47,14 @@ class AttachmentTestCase(unittest.TestCase):
 
     def _check_ignored(self, header):
         """Check if the passed header is ignored."""
-        reply = FakeNetworkReply(header)
+        reply = FakeNetworkReply(headers={'Content-Disposition': header})
         cd_inline, cd_filename = httputils.parse_content_disposition(reply)
         self.assertEqual(cd_filename, DEFAULT_NAME)
         self.assertTrue(cd_inline)
 
     def _check_unnamed(self, header):
         """Check if the passed header results in an unnamed attachment."""
-        reply = FakeNetworkReply(header)
+        reply = FakeNetworkReply(headers={'Content-Disposition': header})
         cd_inline, cd_filename = httputils.parse_content_disposition(reply)
         self.assertEqual(cd_filename, DEFAULT_NAME)
         self.assertFalse(cd_inline)
@@ -69,14 +69,14 @@ class InlineTests(unittest.TestCase):
 
     def _check_filename(self, header, filename):
         """Check if the passed header has the given filename."""
-        reply = FakeNetworkReply(header)
+        reply = FakeNetworkReply(headers={'Content-Disposition': header})
         cd_inline, cd_filename = httputils.parse_content_disposition(reply)
         self.assertEqual(cd_filename, filename)
         self.assertTrue(cd_inline)
 
     def _check_ignored(self, header):
         """Check if the passed header is ignored."""
-        reply = FakeNetworkReply(header)
+        reply = FakeNetworkReply(headers={'Content-Disposition': header})
         cd_inline, cd_filename = httputils.parse_content_disposition(reply)
         self.assertEqual(cd_filename, DEFAULT_NAME)
         self.assertTrue(cd_inline)
@@ -134,7 +134,7 @@ class AttachmentTests(AttachmentTestCase):
 
         UA should offer to download the resource.
         """
-        reply = FakeNetworkReply('attachment')
+        reply = FakeNetworkReply(headers={'Content-Disposition': 'attachment'})
         cd_inline, cd_filename = httputils.parse_content_disposition(reply)
         self.assertFalse(cd_inline)
         self.assertEqual(cd_filename, DEFAULT_NAME)

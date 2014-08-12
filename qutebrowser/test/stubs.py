@@ -25,6 +25,7 @@ from unittest.mock import Mock
 
 from PyQt5.QtCore import QPoint, QProcess
 from PyQt5.QtWebKit import QWebElement
+from PyQt5.QtNetwork import QNetworkRequest
 
 
 class ConfigStub:
@@ -205,10 +206,17 @@ class FakeNetworkReply:
 
     """QNetworkReply stub which provides a Content-Disposition header."""
 
-    def __init__(self, content_disposition=None, url=None):
+    KNOWN_HEADERS = {
+        QNetworkRequest.ContentTypeHeader: 'Content-Type',
+    }
+
+    def __init__(self, headers=None, url=None):
         if url is None:
             url = FakeUrl()
-        self._content_disposition = content_disposition
+        if headers is None:
+            self.headers = {}
+        else:
+            self.headers = headers
         self.url = Mock(return_value=url)
 
     def hasRawHeader(self, name):
@@ -219,15 +227,8 @@ class FakeNetworkReply:
 
         Return:
             True if the header is present, False if not.
-
-        Raise:
-            ValueError: If a header other than Content-Disposition is
-                        requested.
         """
-        if name == 'Content-Disposition':
-            return self._content_disposition is not None
-        else:
-            raise ValueError("Invalid header {}".format(name))
+        return name in self.headers
 
     def rawHeader(self, name):
         """Get the raw header data of a header.
@@ -237,17 +238,30 @@ class FakeNetworkReply:
 
         Return:
             The header data, as ISO-8859-1 encoded bytes() object.
-
-        Raise:
-            ValueError: If a header other than Content-Disposition is
-                        requested.
         """
-        if name != 'Content-Disposition':
-            raise ValueError("Invalid header {}".format(name))
-        cd = self._content_disposition
-        if cd is None:
-            raise ValueError("Content-Disposition is None!")
-        return cd.encode('iso-8859-1')
+        return self.headers[name].encode('iso-8859-1')
+
+    def header(self, known_header):
+        """Get a known header.
+
+        Args:
+            known_header: A QNetworkRequest::KnownHeaders member.
+        """
+        key = self.KNOWN_HEADERS[known_header]
+        try:
+            return self.headers[key]
+        except KeyError:
+            return None
+
+    def setHeader(self, known_header, value):
+        """Set a known header.
+
+        Args:
+            known_header: A QNetworkRequest::KnownHeaders member.
+            value: The value to set.
+        """
+        key = self.KNOWN_HEADERS[known_header]
+        self.headers[key] = value
 
 
 class FakeQProcess:
