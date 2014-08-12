@@ -72,12 +72,12 @@ def parse_content_type(reply):
         reply: The QNetworkReply to handle.
 
     Return:
-        A [mimetype, rest] list, or None.
+        A [mimetype, rest] list, or [None, None] if unset.
         Rest can be None.
     """
     content_type = reply.header(QNetworkRequest.ContentTypeHeader)
     if content_type is None:
-        return None
+        return [None, None]
     if ';' in content_type:
         ret = content_type.split(';', maxsplit=1)
     else:
@@ -96,10 +96,9 @@ def change_content_type(reply, mapping):
     Return:
         None (modifies the passed reply).
     """
-    parsed = parse_content_type(reply)
-    if parsed is None:
+    content_type, rest = parse_content_type(reply)
+    if content_type is None:
         return
-    content_type, rest = parsed  # pylint: disable=unpacking-non-sequence
     try:
         content_type = mapping[content_type]
     except KeyError:

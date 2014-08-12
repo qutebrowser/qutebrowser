@@ -33,12 +33,12 @@ class ParseContentTypeTests(unittest.TestCase):
 
     """Test for parse_content_type."""
 
-    # pylint: disable=unpacking-non-sequence
-
     def test_not_existing(self):
         """Test without any Content-Type header."""
         reply = FakeNetworkReply()
-        self.assertIsNone(httputils.parse_content_type(reply))
+        mimetype, rest = httputils.parse_content_type(reply)
+        self.assertIsNone(mimetype)
+        self.assertIsNone(rest)
 
     def test_mimetype(self):
         """Test with simple Content-Type header."""
