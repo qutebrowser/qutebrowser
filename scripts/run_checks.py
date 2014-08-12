@@ -40,12 +40,7 @@ import tokenize
 import configparser
 from collections import OrderedDict
 
-try:
-    import pep257
-except ImportError:
-    do_check_257 = False
-else:
-    do_check_257 = True
+import pep257
 from pkg_resources import load_entry_point, DistributionNotFound
 
 # We need to do this because pyroma is braindead enough to use logging instead
@@ -231,8 +226,7 @@ check_unittest()
 check_git()
 for trg in CONFIG.get('DEFAULT', 'targets').split(','):
     print("==================== {} ====================".format(trg))
-    if do_check_257:
-        check_pep257(trg, _get_args('pep257'))
+    check_pep257(trg, _get_args('pep257'))
     for chk in ('pylint', 'flake8'):
         # FIXME what the hell is the flake8 exit status?
         run(chk, trg, _get_args(chk))
