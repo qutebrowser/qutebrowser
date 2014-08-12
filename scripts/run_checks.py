@@ -197,6 +197,10 @@ def _get_args(checker):
         args += _get_flag('disable', 'pylint', 'disable')
         args += _get_flag('ignore', 'pylint', 'exclude')
         args += _get_optional_args('pylint')
+        plugins = []
+        for plugin in config.get('pylint', 'plugins').split(','):
+            plugins.append('pylint_checkers.{}'.format(plugin))
+        args.append('--load-plugins={}'.format(','.join(plugins)))
     elif checker == 'flake8':
         args += _get_flag('ignore', 'flake8', 'disable')
         args += _get_flag('exclude', 'flake8', 'exclude')
