@@ -50,8 +50,8 @@ logging.basicConfig(level=logging.INFO, format='%(msg)s')
 status = OrderedDict()
 
 
-CONFIG = configparser.ConfigParser()
-CONFIG.read('.run_checks')
+config = configparser.ConfigParser()
+config.read('.run_checks')
 
 
 def run(name, target=None, args=None):
@@ -181,14 +181,14 @@ def _get_args(checker):
     def _get_optional_args(checker):
         """Get a list of arguments based on a comma-separated args config."""
         try:
-            return CONFIG.get(checker, 'args').split(',')
+            return config.get(checker, 'args').split(',')
         except configparser.NoOptionError:
             return []
 
     def _get_flag(arg, checker, option):
         """Get a list of arguments based on a config option."""
         try:
-            return ['--{}={}'.format(arg, CONFIG.get(checker, option))]
+            return ['--{}={}'.format(arg, config.get(checker, option))]
         except configparser.NoOptionError:
             return []
 
@@ -204,7 +204,7 @@ def _get_args(checker):
     elif checker == 'pep257':
         args += _get_flag('ignore', 'pep257', 'disable')
         try:
-            excluded = CONFIG.get('pep257', 'exclude').split(',')
+            excluded = config.get('pep257', 'exclude').split(',')
         except configparser.NoOptionError:
             excluded = []
         if os.name == 'nt':
@@ -226,7 +226,7 @@ def main():
     argv = sys.argv[:]
     check_unittest()
     check_git()
-    for trg in CONFIG.get('DEFAULT', 'targets').split(','):
+    for trg in config.get('DEFAULT', 'targets').split(','):
         print("==================== {} ====================".format(trg))
         check_pep257(trg, _get_args('pep257'))
         for chk in ('pylint', 'flake8'):
