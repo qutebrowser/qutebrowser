@@ -333,7 +333,7 @@ DATA = OrderedDict([
          "Timeout for ambiguous keybindings."),
 
         ('insert-mode-on-plugins',
-         SettingValue(types.Bool(), 'true'),
+         SettingValue(types.Bool(), 'false'),
          "Whether to switch to insert mode when clicking flash and other "
          "plugins."),
 
