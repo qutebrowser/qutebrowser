@@ -112,9 +112,10 @@ class SearchUrlTests(unittest.TestCase):
         urlutils.config = self.config
 
 
-class IsUrlNaiveTests(unittest.TestCase):
+@unittest.mock.patch('qutebrowser.utils.url.config.get', autospec=True)
+class IsUrlTests(unittest.TestCase):
 
-    """Tests for _is_url_naive.
+    """Tests for is_url.
 
     Class attributes:
         URLS: A list of strings which are URLs.
@@ -134,17 +135,19 @@ class IsUrlNaiveTests(unittest.TestCase):
         'foo',
     )
 
-    def test_urls(self):
+    def test_urls(self, configmock):
         """Test things which are URLs."""
+        configmock.return_value = 'naive'
         for url in self.URLS:
             with self.subTest(url=url):
-                self.assertTrue(urlutils._is_url_naive(url), url)
+                self.assertTrue(urlutils.is_url(url), url)
 
-    def test_not_urls(self):
+    def test_not_urls(self, configmock):
         """Test things which are not URLs."""
+        configmock.return_value = 'naive'
         for url in self.NOT_URLS:
             with self.subTest(url=url):
-                self.assertFalse(urlutils._is_url_naive(url), url)
+                self.assertFalse(urlutils.is_url(url), url)
 
 
 if __name__ == '__main__':
