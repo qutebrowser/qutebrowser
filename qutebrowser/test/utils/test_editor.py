@@ -22,6 +22,7 @@
 import os
 import os.path
 import unittest
+import logging
 from unittest.mock import Mock
 
 from PyQt5.QtCore import QProcess
@@ -31,10 +32,15 @@ from qutebrowser.test.stubs import ConfigStub, FakeQProcess
 
 
 def setUpModule():
-    """Mock some things imported in the editor module."""
+    """Disable logging and mock out some imports."""
+    logging.disable(logging.INFO)
     editorutils.message = Mock()
-    editorutils.logger = Mock()
     editorutils.QProcess = FakeQProcess
+
+
+def tearDownModule():
+    """Restore logging."""
+    logging.disable(logging.NOTSET)
 
 
 class ArgTests(unittest.TestCase):

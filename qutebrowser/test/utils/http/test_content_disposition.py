@@ -21,7 +21,7 @@
 
 import os
 import unittest
-from unittest.mock import Mock
+import logging
 
 import qutebrowser.utils.http as httputils
 from qutebrowser.test.stubs import FakeNetworkReply
@@ -894,8 +894,13 @@ class OurTests(AttachmentTestCase):
 
 
 def setUpModule():
-    """Mock out logging in httputils."""
-    httputils.logger = Mock()
+    """Disable logging."""
+    logging.disable(logging.WARNING)
+
+
+def tearDownModule():
+    """Restore logging."""
+    logging.disable(logging.NOTSET)
 
 
 if __name__ == '__main__':

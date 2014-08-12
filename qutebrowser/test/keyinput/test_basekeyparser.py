@@ -21,6 +21,7 @@
 
 """Tests for BaseKeyParser."""
 
+import logging
 import unittest
 from unittest.mock import Mock, patch
 
@@ -42,7 +43,12 @@ CONFIG = {'test': {'<Ctrl-a>': 'ctrla',
 def setUpModule():
     """Mock out some imports in basekeyparser."""
     basekeyparser.QObject = Mock()
-    basekeyparser.logger = Mock()
+    logging.disable(logging.WARNING)
+
+
+def tearDownModule():
+    """Restore mocked out stuff."""
+    logging.disable(logging.NOTSET)
 
 
 class SplitCountTests(unittest.TestCase):
