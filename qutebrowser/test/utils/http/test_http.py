@@ -63,47 +63,5 @@ class ParseContentTypeTests(unittest.TestCase):
         self.assertEqual(rest, ' encoding=UTF-8')
 
 
-class ChangeContentTypeTests(unittest.TestCase):
-
-    """Test for change_content_type."""
-
-    def test_not_existing(self):
-        """Test without any Content-Type header."""
-        reply = FakeNetworkReply()
-        httputils.change_content_type(reply, {'image/example': 'image/jpeg'})
-
-    def test_mimetype(self):
-        """Test with simple Content-Type header."""
-        reply = FakeNetworkReply(headers={'Content-Type': 'image/example'})
-        httputils.change_content_type(reply, {'image/example': 'image/jpeg'})
-        self.assertEqual(reply.headers['Content-Type'], 'image/jpeg')
-
-    def test_empty(self):
-        """Test with empty Content-Type header."""
-        reply = FakeNetworkReply(headers={'Content-Type': ''})
-        httputils.change_content_type(reply, {'image/example': 'image/jpeg'})
-        self.assertEqual(reply.headers['Content-Type'], '')
-
-    def test_additional(self):
-        """Test with Content-Type header with additional informations."""
-        reply = FakeNetworkReply(
-            headers={'Content-Type': 'image/example; encoding=UTF-8'})
-        httputils.change_content_type(reply, {'image/example': 'image/jpeg'})
-        self.assertEqual(reply.headers['Content-Type'],
-                         'image/jpeg; encoding=UTF-8')
-
-    def test_wrong_mapping(self):
-        """Test with a mapping which doesn't match the header."""
-        reply = FakeNetworkReply(headers={'Content-Type': 'image/example'})
-        httputils.change_content_type(reply, {'image/foo': 'image/bar'})
-        self.assertEqual(reply.headers['Content-Type'], 'image/example')
-
-    def test_empty_mapping(self):
-        """Test with a mapping which is empty."""
-        reply = FakeNetworkReply(headers={'Content-Type': 'image/example'})
-        httputils.change_content_type(reply, {})
-        self.assertEqual(reply.headers['Content-Type'], 'image/example')
-
-
 if __name__ == '__main__':
     unittest.main()

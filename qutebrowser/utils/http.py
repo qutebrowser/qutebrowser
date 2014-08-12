@@ -84,27 +84,3 @@ def parse_content_type(reply):
         ret = [content_type, None]
     ret[0] = ret[0].strip()
     return ret
-
-
-def change_content_type(reply, mapping):
-    """Change a content-type of a QNetworkReply.
-
-    Args:
-        reply: The QNetworkReply to handle.
-        mapping: A mapping of source to target content types.
-
-    Return:
-        None (modifies the passed reply).
-    """
-    content_type, rest = parse_content_type(reply)
-    if content_type is None:
-        return
-    try:
-        content_type = mapping[content_type]
-    except KeyError:
-        return
-    if rest is not None:
-        header = ';'.join((content_type, rest))
-    else:
-        header = content_type
-    reply.setHeader(QNetworkRequest.ContentTypeHeader, header)
