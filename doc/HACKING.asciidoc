@@ -175,12 +175,32 @@ Some resources which might be handy:
 
 Related RFCs and standards:
 
-* https://www.rfc-editor.org/rfc/rfc2616.txt[RFC 2616 - Hypertext Transfer
-Protocol -- HTTP/1.1]
-* https://www.rfc-editor.org/rfc/rfc6266.txt[RFC 6266 - Use of the
+* https://tools.ietf.org/html/rfc2616[RFC 2616 - Hypertext Transfer Protocol
+-- HTTP/1.1]
+(http://www.rfc-editor.org/errata_search.php?rfc=2616[Errata])
+* https://tools.ietf.org/html/rfc7230[RFC 7230 - Hypertext Transfer Protocol
+(HTTP/1.1): Message Syntax and Routing]
+(http://www.rfc-editor.org/errata_search.php?rfc=7230[Errata])
+* https://tools.ietf.org/html/rfc7231[RFC 7231 - Hypertext Transfer Protocol
+(HTTP/1.1): Semantics and Content]
+(http://www.rfc-editor.org/errata_search.php?rfc=7231[Errata])
+* https://tools.ietf.org/html/rfc7232[RFC 7232 - Hypertext Transfer Protocol
+(HTTP/1.1): Conditional Requests]
+(http://www.rfc-editor.org/errata_search.php?rfc=7232[Errata])
+* https://tools.ietf.org/html/rfc7233[RFC 7233 - Hypertext Transfer Protocol
+(HTTP/1.1): Range Requests]
+(http://www.rfc-editor.org/errata_search.php?rfc=7233[Errata])
+* https://tools.ietf.org/html/rfc7234[RFC 7234 - Hypertext Transfer Protocol
+(HTTP/1.1): Caching]
+(http://www.rfc-editor.org/errata_search.php?rfc=7234[Errata])
+* https://tools.ietf.org/html/rfc7235[RFC 7235 - Hypertext Transfer Protocol
+(HTTP/1.1): Authentication]
+(http://www.rfc-editor.org/errata_search.php?rfc=7235[Errata])
+* https://tools.ietf.org/html/rfc6266[RFC 6266 - Use of the
 Content-Disposition Header Field in the Hypertext Transfer Protocol (HTTP)]
-* http://www.rfc-editor.org/rfc/rfc6265.txt[RFC 6265 - HTTP State Management
-Mechanism (Cookies)]
+(http://www.rfc-editor.org/errata_search.php?rfc=6266[Errata])
+* http://tools.ietf.org/html/rfc6265[RFC 6265 - HTTP State Management Mechanism
+(Cookies)] (http://www.rfc-editor.org/errata_search.php?rfc=6265[Errata])
 * http://www.cookiecentral.com/faq/#3.5[Netscape Cookie Format]
 * http://www.w3.org/TR/CSS2/[Cascading Style Sheets Level 2 Revision 1 (CSS
 2.1) Specification]
