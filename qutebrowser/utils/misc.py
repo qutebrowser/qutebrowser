@@ -20,6 +20,7 @@
 """Other utilities which don't fit anywhere else. """
 
 import os
+import io
 import sys
 import shlex
 import os.path
@@ -27,6 +28,7 @@ import urllib.request
 from urllib.parse import urljoin, urlencode
 from collections import OrderedDict
 from functools import reduce
+from contextlib import contextmanager
 
 from PyQt5.QtCore import QCoreApplication, QStandardPaths, Qt
 from PyQt5.QtGui import QKeySequence, QColor
@@ -439,3 +441,53 @@ def normalize_keystr(keystr):
     for mod in ('Ctrl', 'Meta', 'Alt', 'Shift'):
         keystr = keystr.replace(mod + '-', mod + '+')
     return keystr.lower()
+
+
+class FakeIOStream(io.TextIOBase):
+
+    """A fake file-like stream which calls a function for write-calls."""
+
+    def __init__(self, write_func):
+        self.write = write_func
+
+    def flush(self):
+        """This is only here to satisfy pylint."""
+        return super().flush()
+
+    def isatty(self):
+        """This is only here to satisfy pylint."""
+        return super().isatty()
+
+
+@contextmanager
+def fake_io(write_func):
+    """Run code with stdout and stderr replaced by FakeIOStreams.
+
+    Args:
+        write_func: The function to call when write is called.
+    """
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+    fake_stderr = FakeIOStream(write_func)
+    fake_stdout = FakeIOStream(write_func)
+    sys.stderr = fake_stderr
+    sys.stdout = fake_stdout
+    yield
+    # If the code we did run did change sys.stdout/sys.stderr, we leave it
+    # unchanged. Otherwise, we reset it.
+    if sys.stdout is fake_stdout:
+        sys.stdout = old_stdout
+    if sys.stderr is fake_stderr:
+        sys.stderr = old_stderr
+
+
+@contextmanager
+def disabled_excepthook():
+    """Run code with the exception hook temporarely disabled."""
+    old_excepthook = sys.excepthook
+    sys.excepthook = sys.__excepthook__
+    yield
+    # If the code we did run did change sys.excepthook, we leave it
+    # unchanged. Otherwise, we reset it.
+    if sys.excepthook is sys.__excepthook__:
+        sys.excepthook = old_excepthook

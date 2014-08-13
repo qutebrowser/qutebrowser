@@ -21,27 +21,12 @@
 
 from code import InteractiveInterpreter
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from PyQt5.QtWidgets import QLineEdit, QTextEdit, QWidget, QVBoxLayout
+
 from qutebrowser.models.cmdhistory import (History, HistoryEmptyError,
                                            HistoryEndReachedError)
-
-
-class ConsoleInteractiveInterpreter(InteractiveInterpreter, QObject):
-
-    """Subclass of InteractiveInterpreter to use a signal instead of stderr.
-
-    FIXME: This approach doesn't actually work.
-    """
-
-    write_output = pyqtSignal(str)
-
-    def __init__(self, parent=None):
-        QObject.__init__(self, parent)
-        InteractiveInterpreter.__init__(self)
-
-    def write(self, data):
-        self.write_output.emit(data)
+from qutebrowser.utils.misc import fake_io, disabled_excepthook
 
 
 class ConsoleLineEdit(QLineEdit):
@@ -54,8 +39,7 @@ class ConsoleLineEdit(QLineEdit):
         super().__init__(parent)
         self._more = False
         self._buffer = []
-        self._interpreter = ConsoleInteractiveInterpreter()
-        self._interpreter.write_output.connect(self.write)
+        self._interpreter = InteractiveInterpreter()
         self.history = History()
         self.returnPressed.connect(self.execute)
 
@@ -71,7 +55,15 @@ class ConsoleLineEdit(QLineEdit):
         """Push a line to the interpreter."""
         self._buffer.append(line)
         source = '\n'.join(self._buffer)
-        self._more = self._interpreter.runsource(source, '<console>')
+        # We do two special things with the contextmanagers here:
+        #   - We replace stdout/stderr to capture output. Even if we could
+        #     override InteractiveInterpreter's write method, most things are
+        #     printed elsewhere (e.g. by exec). Other Python GUI shells do the
+        #     same.
+        #   - We disable our exception hook, so exceptions from the console get
+        #     printed and don't ooen a crashdialog.
+        with fake_io(self.write.emit), disabled_excepthook():
+            self._more = self._interpreter.runsource(source, '<console>')
         if not self._more:
             self._buffer = []
 
