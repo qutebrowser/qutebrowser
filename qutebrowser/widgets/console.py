@@ -19,6 +19,7 @@
 
 """Debugging console."""
 
+import sys
 from code import InteractiveInterpreter
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
@@ -27,21 +28,31 @@ from PyQt5.QtWidgets import QLineEdit, QTextEdit, QWidget, QVBoxLayout
 from qutebrowser.models.cmdhistory import (History, HistoryEmptyError,
                                            HistoryEndReachedError)
 from qutebrowser.utils.misc import fake_io, disabled_excepthook
+from qutebrowser.widgets.misc import CommandLineEdit
 
 
-class ConsoleLineEdit(QLineEdit):
+class ConsoleLineEdit(CommandLineEdit):
 
     """A QLineEdit which executes entered code and provides a history."""
 
     write = pyqtSignal(str)
 
     def __init__(self, parent=None):
-        super().__init__(parent)
+        if not hasattr(sys, 'ps1'):
+            sys.ps1 = '>>> '
+        if not hasattr(sys, 'ps2'):
+            sys.ps2 = '... '
+        super().__init__(parent, prompts=[sys.ps1, sys.ps2])
         self._more = False
         self._buffer = []
         self._interpreter = InteractiveInterpreter()
         self.history = History()
         self.returnPressed.connect(self.execute)
+        self.setText('')
+
+    @property
+    def curprompt(self):
+        return sys.ps2 if self._more else sys.ps1
 
     @pyqtSlot(str)
     def execute(self):
@@ -55,6 +66,7 @@ class ConsoleLineEdit(QLineEdit):
         """Push a line to the interpreter."""
         self._buffer.append(line)
         source = '\n'.join(self._buffer)
+        self.write.emit(self.curprompt + line)
         # We do two special things with the contextmanagers here:
         #   - We replace stdout/stderr to capture output. Even if we could
         #     override InteractiveInterpreter's write method, most things are
@@ -87,6 +99,15 @@ class ConsoleLineEdit(QLineEdit):
         except HistoryEndReachedError:
             return
         self.setText(item)
+
+    def setText(self, text):
+        """Override setText to always prepend the prompt."""
+        super().setText(self.curprompt + text)
+
+    def text(self):
+        """Override text to strip the prompt."""
+        text = super().text()
+        return text[len(self.curprompt):]
 
     def keyPressEvent(self, e):
         """Override keyPressEvent to handle up/down keypresses."""
