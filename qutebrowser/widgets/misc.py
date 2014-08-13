@@ -50,6 +50,7 @@ class CommandLineEdit(QLineEdit):
     Attributes:
         history: The command history object.
         _validator: The current command validator.
+        _promptlen: The length of the current prompt.
     """
 
     def __init__(self, parent=None):
@@ -58,16 +59,26 @@ class CommandLineEdit(QLineEdit):
         self._validator = _CommandValidator(self)
         self.setValidator(self._validator)
         self.textEdited.connect(self.on_text_edited)
+        self.cursorPositionChanged.connect(self.__on_cursor_position_changed)
+        self._promptlen = 0
 
     @pyqtSlot(str)
     def on_text_edited(self, _text):
         """Slot for textEdited. Stop history browsing."""
         self.history.stop()
 
+    @pyqtSlot(int, int)
+    def __on_cursor_position_changed(self, _old, new):
+        """Prevent the cursor moving to the prompt.
+
+        We use __ here to avoid accidentally overriding it in superclasses.
+        """
+        if new < self._promptlen:
+            self.setCursorPosition(self._promptlen)
+
     def set_prompt(self, text):
         self._validator.prompt = text
-        # FIXME we should also adjust offsets so the user can't put the cursor
-        # to the left of the prompt.
+        self._promptlen = len(text)
 
     def __repr__(self):
         return '<{} "{}">'.format(self.__class__.__name__, self.text())
