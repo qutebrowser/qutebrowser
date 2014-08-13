@@ -122,3 +122,4 @@ class ConsoleWidget(QWidget):
         self.vbox.addWidget(self.output)
         self.vbox.addWidget(self.lineedit)
         self.setLayout(self.vbox)
+        self.lineedit.setFocus()
