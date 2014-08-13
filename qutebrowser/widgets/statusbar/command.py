@@ -77,12 +77,7 @@ class Command(MinimalLineEditMixin, CommandLineEdit):
     # for a possible fix.
 
     def __init__(self, parent=None):
-
-        def validator(text):
-            """Check if a given input is valid."""
-            return any(text.startswith(p) for p in STARTCHARS)
-
-        CommandLineEdit.__init__(self, parent, validator)
+        CommandLineEdit.__init__(self, parent)
         MinimalLineEditMixin.__init__(self)
         self.cursor_part = 0
         self.history.history = QApplication.instance().cmd_history.data
@@ -185,7 +180,7 @@ class Command(MinimalLineEditMixin, CommandLineEdit):
             strings: A list of strings to set.
         """
         text = ' '.join(strings)
-        if not any(text.startswith(c) for c in STARTCHARS):
+        if not text[0] in STARTCHARS:
             raise CommandError("Invalid command text '{}'.".format(text))
         self.set_cmd_text(text)
 
@@ -303,3 +298,14 @@ class Command(MinimalLineEditMixin, CommandLineEdit):
         """Extend focusInEvent to enter command mode."""
         modeman.maybe_enter(KeyMode.command, 'cmd focus')
         super().focusInEvent(e)
+
+    def setText(self, text):
+        """Extend setText to set prefix and make sure the prompt is ok."""
+        if not text:
+            pass
+        elif text[0] in STARTCHARS:
+            super().set_prompt(text[0])
+        else:
+            raise AssertionError("setText got called with invalid text "
+                                 "'{}'!".format(text))
+        super().setText(text)

@@ -44,12 +44,8 @@ class ConsoleLineEdit(CommandLineEdit):
             sys.ps1 = '>>> '
         if not hasattr(sys, 'ps2'):
             sys.ps2 = '... '
-
-        def validator(text):
-            """Check if a given input is valid."""
-            return any(text.startswith(p) for p in (sys.ps1, sys.ps2))
-
-        super().__init__(parent, validator)
+        super().__init__(parent)
+        self.set_prompt(sys.ps1)
         self.setFont(config.get('fonts', 'debug-console'))
         self._more = False
         self._buffer = []
@@ -90,6 +86,7 @@ class ConsoleLineEdit(CommandLineEdit):
         #     printed and don't ooen a crashdialog.
         with fake_io(self.write.emit), disabled_excepthook():
             self._more = self._interpreter.runsource(source, '<console>')
+        self.set_prompt(self.curprompt)
         if not self._more:
             self._buffer = []
 

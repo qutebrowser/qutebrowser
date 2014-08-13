@@ -52,15 +52,10 @@ class CommandLineEdit(QLineEdit):
         _validator: The current command validator.
     """
 
-    def __init__(self, parent, validator):
-        """Constructor.
-
-        Args:
-            validator: A function which checks if a given input is valid.
-        """
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.history = History()
-        self._validator = _CommandValidator(validator, parent=self)
+        self._validator = _CommandValidator(self)
         self.setValidator(self._validator)
         self.textEdited.connect(self.on_text_edited)
 
@@ -68,6 +63,11 @@ class CommandLineEdit(QLineEdit):
     def on_text_edited(self, _text):
         """Slot for textEdited. Stop history browsing."""
         self.history.stop()
+
+    def set_prompt(self, text):
+        self._validator.prompt = text
+        # FIXME we should also adjust offsets so the user can't put the cursor
+        # to the left of the prompt.
 
     def __repr__(self):
         return '<{} "{}">'.format(self.__class__.__name__, self.text())
@@ -77,9 +77,9 @@ class _CommandValidator(QValidator):
 
     """Validator to prevent the : from getting deleted."""
 
-    def __init__(self, validator, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self.validator = validator
+        self.prompt = None
 
     def validate(self, string, pos):
         """Override QValidator::validate.
@@ -91,7 +91,7 @@ class _CommandValidator(QValidator):
         Return:
             A tuple (status, string, pos) as a QValidator should.
         """
-        if self.validator(string):
+        if self.prompt is None or string.startswith(self.prompt):
             return (QValidator.Acceptable, string, pos)
         else:
             return (QValidator.Invalid, string, pos)
