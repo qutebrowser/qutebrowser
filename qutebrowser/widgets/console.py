@@ -39,7 +39,7 @@ class ConsoleLineEdit(CommandLineEdit):
 
     write = pyqtSignal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent):
         if not hasattr(sys, 'ps1'):
             sys.ps1 = '>>> '
         if not hasattr(sys, 'ps2'):
@@ -53,6 +53,9 @@ class ConsoleLineEdit(CommandLineEdit):
             '__name__': '__console__',
             '__doc__': None,
             'qApp': QApplication.instance(),
+            # We use parent as self here because the user "feels" the whole
+            # console, not just the line edit.
+            'self': parent,
         }
         self._interpreter = InteractiveInterpreter(interpreter_locals)
         self.history = History()
@@ -158,7 +161,7 @@ class ConsoleWidget(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.lineedit = ConsoleLineEdit()
+        self.lineedit = ConsoleLineEdit(self)
         self.output = ConsoleTextEdit()
         self.lineedit.write.connect(self.output.append)
         self.vbox = QVBoxLayout()
