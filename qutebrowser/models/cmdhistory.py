@@ -45,7 +45,7 @@ class History:
 
     Attributes:
         browsing: If we're currently browsing the history (property).
-        _history: A list of executed commands, with newer commands at the end.
+        history: A list of executed commands, with newer commands at the end.
         _tmphist: Temporary history for history browsing (as NeighborList)
     """
 
@@ -57,12 +57,12 @@ class History:
         """
         self._tmphist = None
         if history is None:
-            self._history = []
+            self.history = []
         else:
-            self._history = history
+            self.history = history
 
     def __getitem__(self, idx):
-        return self._history[idx]
+        return self.history[idx]
 
     @property
     def browsing(self):
@@ -80,9 +80,9 @@ class History:
         """
         logger.debug("Preset text: '{}'".format(text))
         if text:
-            items = [e for e in self._history if e.startswith(text)]
+            items = [e for e in self.history if e.startswith(text)]
         else:
-            items = self._history
+            items = self.history
         if not items:
             raise HistoryEmptyError
         self._tmphist = NeighborList(items)
@@ -131,5 +131,5 @@ class History:
         Args:
             text: The text to append.
         """
-        if not self._history or text != self._history[-1]:
-            self._history.append(text)
+        if not self.history or text != self.history[-1]:
+            self.history.append(text)
