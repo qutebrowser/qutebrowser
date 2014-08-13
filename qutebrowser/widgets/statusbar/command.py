@@ -25,26 +25,24 @@ from PyQt5.QtGui import QValidator
 
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.commands.utils as cmdutils
-from qutebrowser.widgets.misc import MinimalLineEdit
+from qutebrowser.widgets.misc import MinimalLineEditMixin, CommandLineEdit
 from qutebrowser.commands.runners import CommandRunner
 from qutebrowser.keyinput.modeparsers import STARTCHARS
 from qutebrowser.utils.log import completion as logger
-from qutebrowser.models.cmdhistory import (History, HistoryEmptyError,
+from qutebrowser.models.cmdhistory import (HistoryEmptyError,
                                            HistoryEndReachedError)
 from qutebrowser.commands.exceptions import CommandError
 from qutebrowser.utils.usertypes import KeyMode
 
 
-class Command(MinimalLineEdit):
+class Command(MinimalLineEditMixin, CommandLineEdit):
 
     """The commandline part of the statusbar.
 
     Attributes:
-        history: The command history object.
         cursor_part: The part the cursor is currently over.
         parts: A list of strings with the split commandline
         prefix: The prefix currently entered.
-        _validator: The current command validator.
 
     Signals:
         got_cmd: Emitted when a command is triggered by the user.
@@ -79,12 +77,11 @@ class Command(MinimalLineEdit):
     # for a possible fix.
 
     def __init__(self, parent=None):
-        super().__init__(parent)
+        CommandLineEdit.__init__(self, parent, STARTCHARS)
+        MinimalLineEditMixin.__init__(self)
         self.cursor_part = 0
-        self.history = History(QApplication.instance().cmd_history.data)
-        self._validator = _CommandValidator(self)
+        self.history.history = QApplication.instance().cmd_history.data
         self._empty_item_idx = None
-        self.setValidator(self._validator)
         self.textEdited.connect(self.on_text_edited)
         self.cursorPositionChanged.connect(self._update_cursor_part)
         self.cursorPositionChanged.connect(self.on_cursor_position_changed)
@@ -301,23 +298,3 @@ class Command(MinimalLineEdit):
         """Extend focusInEvent to enter command mode."""
         modeman.maybe_enter(KeyMode.command, 'cmd focus')
         super().focusInEvent(e)
-
-
-class _CommandValidator(QValidator):
-
-    """Validator to prevent the : from getting deleted."""
-
-    def validate(self, string, pos):
-        """Override QValidator::validate.
-
-        Args:
-            string: The string to validate.
-            pos: The current curser position.
-
-        Return:
-            A tuple (status, string, pos) as a QValidator should.
-        """
-        if any(string.startswith(c) for c in STARTCHARS):
-            return (QValidator.Acceptable, string, pos)
-        else:
-            return (QValidator.Invalid, string, pos)

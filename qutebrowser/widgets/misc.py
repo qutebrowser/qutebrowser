@@ -20,14 +20,16 @@
 """Misc. widgets used at different places."""
 
 from PyQt5.QtWidgets import QLineEdit
+from PyQt5.QtGui import QValidator
+
+from qutebrowser.models.cmdhistory import History
 
 
-class MinimalLineEdit(QLineEdit):
+class MinimalLineEditMixin:
 
-    """A LineEdit with a minimal look (without borders/background)."""
+    """A mixin to give a QLineEdit a minimal look and nicer repr()."""
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self):
         self.setStyleSheet("""
             QLineEdit {
                 border: 0px;
@@ -38,3 +40,46 @@ class MinimalLineEdit(QLineEdit):
 
     def __repr__(self):
         return '<{} "{}">'.format(self.__class__.__name__, self.text())
+
+
+class CommandLineEdit(QLineEdit):
+
+    """A QLineEdit with a history and prompt chars.
+
+    Attributes:
+        history: The command history object.
+        _validator: The current command validator.
+    """
+
+    def __init__(self, parent, prompts):
+        super().__init__(parent)
+        self.history = History()
+        self._validator = _CommandValidator(prompts, parent=self)
+        self.setValidator(self._validator)
+
+    def __repr__(self):
+        return '<{} "{}">'.format(self.__class__.__name__, self.text())
+
+
+class _CommandValidator(QValidator):
+
+    """Validator to prevent the : from getting deleted."""
+
+    def __init__(self, prompts, parent=None):
+        super().__init__(parent)
+        self.prompts = prompts
+
+    def validate(self, string, pos):
+        """Override QValidator::validate.
+
+        Args:
+            string: The string to validate.
+            pos: The current curser position.
+
+        Return:
+            A tuple (status, string, pos) as a QValidator should.
+        """
+        if any(string.startswith(c) for c in self.prompts):
+            return (QValidator.Acceptable, string, pos)
+        else:
+            return (QValidator.Invalid, string, pos)

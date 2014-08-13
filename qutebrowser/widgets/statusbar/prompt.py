@@ -20,11 +20,18 @@
 """Prompt shown in the statusbar."""
 
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QHBoxLayout, QWidget
+from PyQt5.QtWidgets import QHBoxLayout, QWidget, QLineEdit
 
-from qutebrowser.widgets.misc import MinimalLineEdit
+from qutebrowser.widgets.misc import MinimalLineEditMixin
 from qutebrowser.widgets.statusbar.textbase import TextBase
 from qutebrowser.widgets.statusbar.prompter import Prompter
+
+
+class PromptLineEdit(MinimalLineEditMixin, QLineEdit):
+
+    def __init__(self, parent=None):
+        QLineEdit.__init__(self, parent)
+        MinimalLineEditMixin.__init__(self)
 
 
 class Prompt(QWidget):
@@ -54,7 +61,7 @@ class Prompt(QWidget):
         self.txt = TextBase()
         self._hbox.addWidget(self.txt)
 
-        self.lineedit = MinimalLineEdit()
+        self.lineedit = PromptLineEdit()
         self._hbox.addWidget(self.lineedit)
 
         self.prompter = Prompter(self)
