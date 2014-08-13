@@ -21,7 +21,7 @@
 
 
 import os.path
-import rfc6266
+import qutebrowser.utils.rfc6266 as rfc6266
 from qutebrowser.utils.log import misc as logger
 
 from PyQt5.QtNetwork import QNetworkRequest

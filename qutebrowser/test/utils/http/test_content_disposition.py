@@ -152,7 +152,7 @@ class AttachmentTests(AttachmentTestCase):
         """'ATTACHMENT' only
 
         UA should offer to download the resource.
-        """
+       """
         self._check_unnamed('ATTACHMENT')
 
     def test_attwithasciifilename(self):
