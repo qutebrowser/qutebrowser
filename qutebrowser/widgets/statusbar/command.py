@@ -77,7 +77,12 @@ class Command(MinimalLineEditMixin, CommandLineEdit):
     # for a possible fix.
 
     def __init__(self, parent=None):
-        CommandLineEdit.__init__(self, parent, STARTCHARS)
+
+        def validator(text):
+            """Check if a given input is valid."""
+            return any(text.startswith(p) for p in STARTCHARS)
+
+        CommandLineEdit.__init__(self, parent, validator)
         MinimalLineEditMixin.__init__(self)
         self.cursor_part = 0
         self.history.history = QApplication.instance().cmd_history.data

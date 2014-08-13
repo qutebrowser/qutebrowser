@@ -51,10 +51,15 @@ class CommandLineEdit(QLineEdit):
         _validator: The current command validator.
     """
 
-    def __init__(self, parent, prompts):
+    def __init__(self, parent, validator):
+        """Constructor.
+
+        Args:
+            validator: A function which checks if a given input is valid.
+        """
         super().__init__(parent)
         self.history = History()
-        self._validator = _CommandValidator(prompts, parent=self)
+        self._validator = _CommandValidator(validator, parent=self)
         self.setValidator(self._validator)
 
     def __repr__(self):
@@ -65,9 +70,9 @@ class _CommandValidator(QValidator):
 
     """Validator to prevent the : from getting deleted."""
 
-    def __init__(self, prompts, parent=None):
+    def __init__(self, validator, parent=None):
         super().__init__(parent)
-        self.prompts = prompts
+        self.validator = validator
 
     def validate(self, string, pos):
         """Override QValidator::validate.
@@ -79,7 +84,7 @@ class _CommandValidator(QValidator):
         Return:
             A tuple (status, string, pos) as a QValidator should.
         """
-        if any(string.startswith(c) for c in self.prompts):
+        if self.validator(string):
             return (QValidator.Acceptable, string, pos)
         else:
             return (QValidator.Invalid, string, pos)
