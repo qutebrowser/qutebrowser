@@ -19,6 +19,7 @@
 
 """Misc. widgets used at different places."""
 
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtGui import QValidator
 
@@ -61,6 +62,12 @@ class CommandLineEdit(QLineEdit):
         self.history = History()
         self._validator = _CommandValidator(validator, parent=self)
         self.setValidator(self._validator)
+        self.textEdited.connect(self.on_text_edited)
+
+    @pyqtSlot(str)
+    def on_text_edited(self, _text):
+        """Slot for textEdited. Stop history browsing."""
+        self.history.stop()
 
     def __repr__(self):
         return '<{} "{}">'.format(self.__class__.__name__, self.text())

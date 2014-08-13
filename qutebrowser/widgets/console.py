@@ -64,6 +64,7 @@ class ConsoleLineEdit(CommandLineEdit):
     @pyqtSlot(str)
     def execute(self):
         """Execute the line of code which was entered."""
+        self.history.stop()
         text = self.text()
         self.history.append(text)
         self.push(text)
