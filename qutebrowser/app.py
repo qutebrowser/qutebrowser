@@ -658,7 +658,7 @@ class Application(QApplication):
         self._crashdlg = ReportDialog(pages, history, widgets, objects)
         self._crashdlg.show()
 
-    @cmdutils.register(debug=True, name='debug-console')
+    @cmdutils.register(instance='', debug=True, name='debug-console')
     def show_debugconsole(self):
         """Show the debugging console."""
         self.debugconsole.show()
