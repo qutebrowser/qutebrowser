@@ -141,6 +141,7 @@ class ConsoleTextEdit(QTextEdit):
         self.setAcceptRichText(False)
         self.setReadOnly(True)
         self.setFont(config.get('fonts', 'debug-console'))
+        self.setFocusPolicy(Qt.NoFocus)
 
     def on_config_changed(self, section, option):
         """Update font when config changed."""
