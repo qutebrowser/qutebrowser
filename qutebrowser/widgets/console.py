@@ -23,7 +23,8 @@ import sys
 from code import InteractiveInterpreter
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
-from PyQt5.QtWidgets import QLineEdit, QTextEdit, QWidget, QVBoxLayout
+from PyQt5.QtWidgets import (QLineEdit, QTextEdit, QWidget, QVBoxLayout,
+                             QApplication)
 
 import qutebrowser.config.config as config
 from qutebrowser.models.cmdhistory import (History, HistoryEmptyError,
@@ -52,7 +53,12 @@ class ConsoleLineEdit(CommandLineEdit):
         self.setFont(config.get('fonts', 'debug-console'))
         self._more = False
         self._buffer = []
-        self._interpreter = InteractiveInterpreter()
+        interpreter_locals = {
+            '__name__': '__console__',
+            '__doc__': None,
+            'qApp': QApplication.instance(),
+        }
+        self._interpreter = InteractiveInterpreter(interpreter_locals)
         self.history = History()
         self.returnPressed.connect(self.execute)
         self.setText('')
