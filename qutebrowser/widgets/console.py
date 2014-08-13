@@ -71,9 +71,10 @@ class ConsoleLineEdit(CommandLineEdit):
         """Execute the line of code which was entered."""
         self.history.stop()
         text = self.text()
-        self.history.append(text)
-        self.push(text)
-        self.setText('')
+        if text:
+            self.history.append(text)
+            self.push(text)
+            self.setText('')
 
     def push(self, line):
         """Push a line to the interpreter."""
