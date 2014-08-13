@@ -25,6 +25,7 @@ from code import InteractiveInterpreter
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from PyQt5.QtWidgets import QLineEdit, QTextEdit, QWidget, QVBoxLayout
 
+import qutebrowser.config.config as config
 from qutebrowser.models.cmdhistory import (History, HistoryEmptyError,
                                            HistoryEndReachedError)
 from qutebrowser.utils.misc import fake_io, disabled_excepthook
@@ -43,6 +44,7 @@ class ConsoleLineEdit(CommandLineEdit):
         if not hasattr(sys, 'ps2'):
             sys.ps2 = '... '
         super().__init__(parent, prompts=[sys.ps1, sys.ps2])
+        self.setFont(config.get('fonts', 'debug-console'))
         self._more = False
         self._buffer = []
         self._interpreter = InteractiveInterpreter()
@@ -120,6 +122,25 @@ class ConsoleLineEdit(CommandLineEdit):
         else:
             super().keyPressEvent(e)
 
+    def on_config_changed(self, section, option):
+        """Update font when config changed."""
+        if section == 'fonts' and option == 'debug-console':
+            self.setFont(config.get('fonts', 'debug-console'))
+
+
+class ConsoleTextEdit(QTextEdit):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setAcceptRichText(False)
+        self.setReadOnly(True)
+        self.setFont(config.get('fonts', 'debug-console'))
+
+    def on_config_changed(self, section, option):
+        """Update font when config changed."""
+        if section == 'fonts' and option == 'debug-console':
+            self.setFont(config.get('fonts', 'debug-console'))
+
 
 class ConsoleWidget(QWidget):
 
@@ -128,7 +149,7 @@ class ConsoleWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.lineedit = ConsoleLineEdit()
-        self.output = QTextEdit(acceptRichText=True, readOnly=True)
+        self.output = ConsoleTextEdit()
         self.lineedit.write.connect(self.output.append)
         self.vbox = QVBoxLayout()
         self.vbox.setSpacing(0)
@@ -136,3 +157,9 @@ class ConsoleWidget(QWidget):
         self.vbox.addWidget(self.lineedit)
         self.setLayout(self.vbox)
         self.lineedit.setFocus()
+
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
+        """Update font when config changed."""
+        self.lineedit.on_config_changed(section, option)
+        self.output.on_config_changed(section, option)

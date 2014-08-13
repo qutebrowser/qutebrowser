@@ -949,6 +949,10 @@ DATA = OrderedDict([
          SettingValue(types.Font(), 'bold 12px Monospace'),
          "Font used for the hints."),
 
+        ('debug-console',
+         SettingValue(types.QtFont(), '8pt ${_monospace}'),
+         "Font used for the debugging console."),
+
         ('web-family-standard',
          SettingValue(types.String(none_ok=True), ''),
          "Font family for standard fonts."),
