@@ -33,13 +33,9 @@ import qutebrowser.commands.utils as cmdutils
 import qutebrowser.utils.misc as utils
 from qutebrowser.utils.http import parse_content_disposition
 from qutebrowser.utils.log import downloads as logger
-from qutebrowser.utils.log import fix_rfc2622
 from qutebrowser.utils.usertypes import PromptMode, Question, Timer
 from qutebrowser.utils.qt import qt_ensure_valid
 from qutebrowser.commands.exceptions import CommandError
-
-
-fix_rfc2622()
 
 
 class DownloadItem(QObject):
