@@ -150,21 +150,6 @@ def parse_ext_value(val):
     decoded = percent_decode(coded, encoding=charset)
     return LangTagged(decoded, langtag)
 
-
-# Currently pyPEG2 doesn't handle case-insensivitity:
-# https://bitbucket.org/fdik/pypeg/issue/21/case-insensitive-keywords
-class IKeyword(peg.Keyword):
-    def parse(self, parser, text, pos):
-        m = self.regex.match(text)
-        if m:
-            if m.group(0).upper() == str(self).upper():
-                return text[len(str(self)):], None
-            else:
-                return text, SyntaxError("expecting " + repr(self))
-        else:
-            return text, SyntaxError("expecting " + repr(self))
-
-
 # RFC 2616
 separator_chars = "()<>@,;:\\\"/[]?={} \t"
 ctl_chars = ''.join(chr(i) for i in range(32)) + chr(127)
