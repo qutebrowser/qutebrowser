@@ -33,8 +33,11 @@ class ContentDisposition:
         if assocs is None:
             self.assocs = {}
         else:
-            # XXX Check that parameters aren't repeated
-            self.assocs = assocs
+            self.assocs = dict(assocs)  # So we can change values
+            if 'filename*' in self.assocs:
+                param = self.assocs['filename*']
+                assert isinstance(param, ExtDispositionParm)
+                self.assocs['filename*'] = parse_ext_value(param.value).string
 
     @property
     def filename_unsafe(self):
@@ -55,9 +58,7 @@ class ContentDisposition:
         """
 
         if 'filename*' in self.assocs:
-            param = self.assocs['filename*']
-            assert isinstance(param, ExtDispositionParm)
-            return parse_ext_value(param.value).string
+            return self.assocs['filename*']
         elif 'filename' in self.assocs:
             # XXX Reject non-ascii (parsed via qdtext) here?
             return self.assocs['filename']
