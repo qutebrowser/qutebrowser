@@ -7,19 +7,199 @@ import string
 import re
 
 
+class UniqueNamespace(peg.Namespace):
+
+    """A pyPEG2 namespace which prevents setting a value twice."""
+
+    def __setitem__(self, key, value):
+        if key in self:
+            raise DuplicateParamError(key)
+        super().__setitem__(key, value)
+
+
+# RFC 2616
+separator_chars = "()<>@,;:\\\"/[]?={} \t"
+ctl_chars = ''.join(chr(i) for i in range(32)) + chr(127)
+nontoken_chars = separator_chars + ctl_chars
+
+
+# RFC 5987
+attr_chars_nonalnum = '!#$&+-.^_`|~'
+attr_chars = string.ascii_letters + string.digits + attr_chars_nonalnum
+
+
+# RFC 5987 gives this alternative construction of the token character class
+token_chars = attr_chars + "*'%"
+
+
+# Definitions from https://tools.ietf.org/html/rfc2616#section-2.2
+# token was redefined from attr_chars to avoid using AnyBut,
+# which might include non-ascii octets.
+token_re = '[{}]+'.format(re.escape(token_chars))
+
+class Token(str):
+
+    """A token (RFC 2616, Section 2.2)."""
+
+    grammar = re.compile(token_re)
+
+
+# RFC 2616 says some linear whitespace (LWS) is in fact allowed in text
+# and qdtext; however it also mentions folding that whitespace into
+# a single SP (which isn't in CTL) before interpretation.
+# Assume the caller already that folding when parsing headers.
+
+# NOTE: qdtext also allows non-ascii, which we choose to parse
+# as ISO-8859-1; rejecting it entirely would also be permitted.
+# Some broken browsers attempt encoding-sniffing, which is broken
+# because the spec only allows iso, and because encoding-sniffing
+# can mangle valid values.
+# Everything else in this grammar (including RFC 5987 ext values)
+# is in an ascii-safe encoding.
+
+qdtext_re = r'[^"{}]'.format(re.escape(ctl_chars))
+quoted_pair_re = r'\\[{}]'.format(re.escape(
+    ''.join(chr(i) for i in range(128))))
+
+class QuotedString(str):
+
+    """A quoted string (RFC 2616, Section 2.2)."""
+
+    grammar = re.compile(r'"({}|{})+"'.format(quoted_pair_re, qdtext_re))
+
+    def __str__(self):
+        s = super().__str__()
+        s = s[1:-1]  # remove quotes
+        s = re.sub(r'\\(.)', r'\1', s)  # drop backslashes
+        return s
+
+
+class Value(str):
+
+    """A value. (RFC 2616, Section 3.6)."""
+
+    grammar = [re.compile(token_re), QuotedString]
+
+
+class Charset(str):
+
+    """A charset (RFC5987, Section 3.2.1)."""
+
+    # Other charsets are forbidden, the spec reserves them
+    # for future evolutions.
+    grammar = re.compile('UTF-8|ISO-8859-1', re.I)
+
+
+class Language(str):
+
+    """A language-tag (RFC 5646, Section 2.1).
+
+    FIXME: This grammar is not 100% correct yet.
+    """
+    grammar = re.compile('[A-Za-z0-9-]+')
+
+
+attr_char_re = '[{}]'.format(re.escape(attr_chars))
+hex_digit_re = '%[' + string.hexdigits + ']{2}'
+
+
+class ValueChars(str):
+
+    """A value of an attribute.
+
+    FIXME: Can we merge this with Value?
+    """
+
+    grammar = re.compile('({}|{})*'.format(attr_char_re, hex_digit_re))
+
+
+class ExtValue(peg.List):
+
+    """An ext-value of an attribute (RFC 5987, Section 3.2)."""
+
+    grammar = peg.contiguous(Charset, "'", peg.optional(Language), "'",
+                             ValueChars)
+
+class ExtToken(peg.Symbol):
+
+    """A token introducing an extended value (RFC 6266, Section 4.1)."""
+
+    regex = re.compile(token_re + r'\*')
+
+    def __str__(self):
+        return super().__str__().lower()
+
+
+class NoExtToken(peg.Symbol):
+
+    """A token introducing a normal value (RFC 6266, Section 4.1)."""
+
+    regex = re.compile(token_re + r'(?<!\*)')
+
+    def __str__(self):
+        return super().__str__().lower()
+
+
+class DispositionParm(str):
+
+    """A parameter for the Disposition-Type header (RFC6266, Section 4.1)."""
+
+    grammar = peg.attr('name', NoExtToken), '=', Value
+
+
+class ExtDispositionParm:
+
+    """An extended parameter (RFC6266, Section 4.1)."""
+
+    grammar = peg.attr('name', ExtToken), '=', ExtValue
+
+    def __init__(self, value, name=None):
+        self.name = name
+        self.value = value
+
+
+class DispositionType(peg.List):
+
+    """The disposition type (RFC6266, Section 4.1)."""
+
+    grammar = [re.compile('(inline|attachment)', re.I), Token]
+
+
+class DispositionParmList(UniqueNamespace):
+
+    """A list of disposition parameters (RFC6266, Section 4.1)."""
+
+    grammar = peg.maybe_some(';', [ExtDispositionParm, DispositionParm])
+
+
+class ContentDispositionValue:
+
+    """A complete Content-Disposition value (RFC 6266, Section 4.1)."""
+
+    # Allows nonconformant final semicolon
+    # I've seen it in the wild, and browsers accept it
+    # http://greenbytes.de/tech/tc2231/#attwithasciifilenamenqs
+    grammar = (peg.attr('dtype', DispositionType),
+               peg.attr('params', DispositionParmList),
+               peg.optional(';'))
+
+
 LangTagged = namedtuple('LangTagged', 'string langtag')
 
 
 class DuplicateParamError(Exception):
-    pass
+
+    """Exception raised when a parameter has been given twice."""
+
 
 class InvalidISO8859Error(Exception):
-    pass
+
+    """Exception raised when a byte is invalid in ISO-8859-1."""
 
 
 class ContentDisposition:
-    """
-    Records various indications and hints about content disposition.
+
+    """Records various indications and hints about content disposition.
 
     These can be used to know if a file should be downloaded or
     displayed directly, and to hint what filename it should have
@@ -80,55 +260,31 @@ class ContentDisposition:
         than the standard inline and attachment, it should be handled
         as an attachment.
         """
-
         return self.disposition.lower() == 'inline'
 
     def __repr__(self):
         return 'ContentDisposition(%r, %r, %r)' % (
             self.disposition, self.assocs, self.location)
 
-def fits_inside_codec(text, codec):
-    try:
-        text.encode(codec)
-    except UnicodeEncodeError:
-        return False
-    else:
-        return True
 
-
-def ensure_charset(text, encoding):
-    if isinstance(text, bytes):
-        return text.decode(encoding)
-    else:
-        assert fits_inside_codec(text, encoding)
-        return text
+def normalize_ws(text):
+    """Do LWS (linear whitespace) folding."""
+    return ' '.join(text.split())
 
 
 def parse_headers(content_disposition, location=None, relaxed=False):
-    """Build a ContentDisposition from header values.
-    """
-
+    """Build a ContentDisposition from header values."""
     # We allow non-ascii here (it will only be parsed inside of qdtext, and
     # rejected by the grammar if it appears in other places), although parsing
     # it can be ambiguous.  Parsing it ensures that a non-ambiguous filename*
     # value won't get dismissed because of an unrelated ambiguity in the
     # filename parameter. But it does mean we occasionally give
     # less-than-certain values for some legacy senders.
-    content_disposition = ensure_charset(content_disposition, 'iso-8859-1')
-
-    # Check the caller already did LWS-folding (normally done
-    # when separating header names and values; RFC 2616 section 2.2
-    # says it should be done before interpretation at any rate).
-    # Hopefully space still means what it should in iso-8859-1.
-    # This check is a bit stronger that LWS folding, it will
-    # remove CR and LF even if they aren't part of a CRLF.
-    # However http doesn't allow isolated CR and LF in headers outside
-    # of LWS.
-
-    # Relaxed has two effects (so far):
-    # the grammar allows a final ';' in the header;
-    # we do LWS-folding, and possibly normalise other broken
-    # whitespace, instead of rejecting non-lws-safe text.
+    content_disposition = content_disposition.decode('iso-8859-1')
+    # Our parsing is relaxed in these regards:
+    # - The grammar allows a final ';' in the header;
+    # - We do LWS-folding, and possibly normalise other broken
+    #   whitespace, instead of rejecting non-lws-safe text.
     # XXX Would prefer to accept only the quoted whitespace
     # case, rather than normalising everything.
     content_disposition = normalize_ws(content_disposition)
@@ -142,6 +298,7 @@ def parse_headers(content_disposition, location=None, relaxed=False):
 
 
 def parse_ext_value(val):
+    """Parse the value of an extended attribute."""
     if len(val) == 3:
         charset, langtag, coded = val
     else:
@@ -154,132 +311,3 @@ def parse_ext_value(val):
             if 0x7F <= ord(c) <= 0x9F:
                 raise InvalidISO8859Error(c)
     return LangTagged(decoded, langtag)
-
-# RFC 2616
-separator_chars = "()<>@,;:\\\"/[]?={} \t"
-ctl_chars = ''.join(chr(i) for i in range(32)) + chr(127)
-nontoken_chars = separator_chars + ctl_chars
-
-# RFC 5987
-attr_chars_nonalnum = '!#$&+-.^_`|~'
-attr_chars = string.ascii_letters + string.digits + attr_chars_nonalnum
-
-# RFC 5987 gives this alternative construction of the token character class
-token_chars = attr_chars + "*'%"
-
-
-# Definitions from https://tools.ietf.org/html/rfc2616#section-2.2
-# token was redefined from attr_chars to avoid using AnyBut,
-# which might include non-ascii octets.
-token_re = '[{}]+'.format(re.escape(token_chars))
-class Token(str):
-    grammar = re.compile(token_re)
-
-
-# RFC 2616 says some linear whitespace (LWS) is in fact allowed in text
-# and qdtext; however it also mentions folding that whitespace into
-# a single SP (which isn't in CTL) before interpretation.
-# Assume the caller already that folding when parsing headers.
-
-# NOTE: qdtext also allows non-ascii, which we choose to parse
-# as ISO-8859-1; rejecting it entirely would also be permitted.
-# Some broken browsers attempt encoding-sniffing, which is broken
-# because the spec only allows iso, and because encoding-sniffing
-# can mangle valid values.
-# Everything else in this grammar (including RFC 5987 ext values)
-# is in an ascii-safe encoding.
-# Because of this, this is the only character class to use AnyBut,
-# and all the others are defined with Any.
-
-qdtext_re = r'[^"{}]'.format(re.escape(ctl_chars))
-quoted_pair_re = r'\\[{}]'.format(re.escape(''.join(chr(i) for i in range(128))))
-
-class QuotedString(str):
-    grammar = re.compile(r'"({}|{})+"'.format(quoted_pair_re, qdtext_re))
-
-    def __str__(self):
-        s = super().__str__()
-        s = s[1:-1]
-        s = re.sub(r'\\(.)', r'\1', s)
-        return s
-
-
-class Value(str):
-    grammar = [re.compile(token_re), QuotedString]
-
-# Other charsets are forbidden, the spec reserves them
-# for future evolutions.
-class Charset(str):
-    grammar = re.compile('UTF-8|ISO-8859-1', re.I)
-
-class Language(str):
-    # XXX See RFC 5646 for the correct definition
-    grammar = re.compile('[A-Za-z0-9-]+')
-
-attr_char_re = '[{}]'.format(re.escape(attr_chars))
-hex_digit_re = '%[' + string.hexdigits + ']{2}'
-
-class ValueChars(str):
-    grammar = re.compile('({}|{})*'.format(attr_char_re, hex_digit_re))
-
-class ExtValue(peg.List):
-    grammar = peg.contiguous(Charset, "'", peg.optional(Language), "'", ValueChars)
-
-class ExtToken(peg.Symbol):
-    regex = re.compile(token_re + r'\*')
-
-    def __str__(self):
-        return super().__str__().lower()
-
-class NoExtToken(peg.Symbol):
-    regex = re.compile(token_re + r'(?<!\*)')
-
-    def __str__(self):
-        return super().__str__().lower()
-
-class DispositionParm(str):
-    grammar = peg.attr('name', NoExtToken), '=', Value
-
-class ExtDispositionParm:
-    grammar = peg.attr('name', ExtToken), '=', ExtValue
-
-    def __init__(self, value, name=None):
-        self.name = name
-        self.value = value
-
-class DispositionType(peg.List):
-    grammar = [re.compile('(inline|attachment)', re.I), Token]
-
-class UniqueNamespace(peg.Namespace):
-
-    def __setitem__(self, key, value):
-        if key in self:
-            raise DuplicateParamError(key)
-        super().__setitem__(key, value)
-
-class DispositionParmList(UniqueNamespace):
-    grammar = peg.maybe_some(';', [ExtDispositionParm, DispositionParm])
-
-class ContentDispositionValue:
-    # Allows nonconformant final semicolon
-    # I've seen it in the wild, and browsers accept it
-    # http://greenbytes.de/tech/tc2231/#attwithasciifilenamenqs
-    grammar = (peg.attr('dtype', DispositionType),
-               peg.attr('params', DispositionParmList),
-               peg.optional(';'))
-
-
-def is_lws_safe(text):
-    return normalize_ws(text) == text
-
-
-def normalize_ws(text):
-    return ' '.join(text.split())
-
-
-if __name__ == '__main__':
-    parsed = peg.parse('attachment; filename="foo.html"', ContentDispositionValue)
-    print(parsed.dtype)
-    print(parsed.params)
-    parsed = peg.parse("attachment; filename*=iso-8859-1''foo-%E4.html", ContentDispositionValue)
-    print(parsed.params)
