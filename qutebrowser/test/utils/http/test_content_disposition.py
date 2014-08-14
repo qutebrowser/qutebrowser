@@ -676,7 +676,7 @@ class CharacterSetTests(AttachmentTestCase):
         The octet %82 does not represent a valid ISO-8859-1 code point, so the
         UA should really ignore the parameter.
         """
-        self._check_ignored("iso-8859-1''foo-%c3%a4-%e2%82%ac.html")
+        self._check_ignored("attachment; iso-8859-1''foo-%c3%a4-%e2%82%ac.html")
 
     def test_attwithfn2231iso_bad(self):
         """'attachment', specifying a filename of foo-ä.html.
