@@ -40,6 +40,7 @@ import tokenize
 import configparser
 import argparse
 from collections import OrderedDict
+from functools import partial
 
 import pep257
 from pkg_resources import load_entry_point, DistributionNotFound
@@ -55,15 +56,15 @@ config = configparser.ConfigParser()
 config.read('.run_checks')
 
 
-def run(name, target=None, args=None):
+def run(name, target=None):
     """Run a checker via distutils with optional args.
 
     Arguments:
         name: Name of the checker/binary
         target: The package to check
-        args: Option list of arguments to pass
     """
     # pylint: disable=too-many-branches
+    args = _get_args(name)
     if name == 'pylint':
         scriptdir = os.path.abspath(os.path.dirname(__file__))
         if 'PYTHONPATH' in os.environ:
@@ -80,11 +81,11 @@ def run(name, target=None, args=None):
         args.append(target)
     if args is not None:
         sys.argv += args
-    print("------ {} ------".format(name))
     try:
         ep = load_entry_point(name, 'console_scripts', name)
         ep()
     except SystemExit as e:
+        import pdb; pdb.set_trace()  # XXX BREAKPOINT
         status[status_key] = e
     except DistributionNotFound:
         if args is None:
@@ -105,12 +106,12 @@ def run(name, target=None, args=None):
     print()
 
 
-def check_pep257(target, args=None):
+def check_pep257(target):
     """Run pep257 checker with args passed."""
+    args = _get_args('pep257')
     sys.argv = ['pep257', target]
     if args is not None:
         sys.argv += args
-    print("------ pep257 ------")
     try:
         status['pep257_' + target] = pep257.main(*pep257.parse_options())
     except Exception as e:
@@ -121,7 +122,6 @@ def check_pep257(target, args=None):
 
 def check_unittest():
     """Run the unittest checker."""
-    print("==================== unittest ====================")
     suite = unittest.TestLoader().discover('.')
     result = unittest.TextTestRunner().run(suite)
     print()
@@ -130,7 +130,6 @@ def check_unittest():
 
 def check_git():
     """Check for uncommited git files.."""
-    print("==================== git ====================")
     if not os.path.isdir(".git"):
         print("No .git dir, ignoring")
         status['git'] = False
@@ -154,7 +153,6 @@ def check_git():
 
 def check_vcs_conflict(target):
     """Check VCS conflict markers."""
-    print("------ VCS conflict markers ------")
     try:
         ok = True
         for (dirpath, _dirnames, filenames) in os.walk(target):
@@ -226,27 +224,55 @@ def _get_args(checker):
     return args
 
 
+def _get_checkers(args):
+    """Get a dict of checkers we need to execute."""
+    checkers = OrderedDict([
+        ('global', OrderedDict([
+            ('unittest', check_unittest),
+            ('git', check_git),
+        ])),
+        ('setup', OrderedDict([
+            ('pyroma', partial(run, 'pyroma')),
+            ('check-manifest', partial(run, 'check-manifest')),
+        ])),
+    ])
+    for target in config.get('DEFAULT', 'targets').split(','):
+        checkers[target] = OrderedDict([
+            ('pep257', partial(check_pep257, target)),
+            ('flake8', partial(run, 'flake8', target)),
+            ('vcs', partial(check_vcs_conflict, target)),
+            ('pylint', partial(run, 'pylint', target)),
+        ])
+    return checkers
+
+
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description='Run various checkers.')
     parser.add_argument('-s', '--setup', help="Run additional setup checks",
                         action='store_true')
+    parser.add_argument('checkers', help="Checkers to run (or 'all')",
+                        default='all', nargs='?')
     args = parser.parse_args()
 
-    check_unittest()
-    check_git()
-    for trg in config.get('DEFAULT', 'targets').split(','):
-        print("==================== {} ====================".format(trg))
-        check_pep257(trg, _get_args('pep257'))
-        for chk in ('pylint', 'flake8'):
-            # FIXME what the hell is the flake8 exit status?
-            run(chk, trg, _get_args(chk))
-        check_vcs_conflict(trg)
+    checkers = _get_checkers(args)
 
+    groups = ['global']
+    groups += config.get('DEFAULT', 'targets').split(',')
     if args.setup:
-        print("==================== Setup checks ====================")
-        for chk in ('pyroma', 'check-manifest'):
-            run(chk, args=_get_args(chk))
+        groups.append('setup')
+
+    for group in groups:
+        print()
+        print("==================== {} ====================".format(group))
+        if args.checkers == 'all':
+            configured_checkers = None
+        else:
+            configured_checkers = args.checkers.split(',')
+        for name, func in checkers[group].items():
+            if configured_checkers is None or name in configured_checkers:
+                print("------ {} ------".format(name))
+                func()
 
     print("Exit status values:")
     for (k, v) in status.items():
