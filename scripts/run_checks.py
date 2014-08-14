@@ -260,6 +260,17 @@ def _get_checkers():
     return checkers
 
 
+def _checker_enabled(args, group, name):
+    """Check if a named checker is enabled."""
+    if args.checkers == 'all':
+        if not args.setup and group == 'setup':
+            return False
+        else:
+            return True
+    else:
+        return name in args.checkers.split(',')
+
+
 def main():
     """Main entry point."""
     exit_status = OrderedDict()
@@ -274,22 +285,19 @@ def main():
 
     groups = ['global']
     groups += config.get('DEFAULT', 'targets').split(',')
-    if args.setup:
-        groups.append('setup')
+    groups.append('setup')
 
     for group in groups:
         print()
         print("==================== {} ====================".format(group))
-        if args.checkers == 'all':
-            configured_checkers = None
-        else:
-            configured_checkers = args.checkers.split(',')
         for name, func in checkers[group].items():
-            if configured_checkers is None or name in configured_checkers:
-                print("------ {} ------".format(name))
+            print("------ {} ------".format(name))
+            if _checker_enabled(args, group, name):
                 status = func()
                 exit_status['{}_{}'.format(group, name)] = status
-
+            else:
+                print("Checker disabled.")
+    print()
     print("Exit status values:")
     for (k, v) in exit_status.items():
         print('  {} - {}'.format(k, v))
