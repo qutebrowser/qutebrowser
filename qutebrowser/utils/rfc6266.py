@@ -55,9 +55,9 @@ class ContentDisposition:
         """
 
         if 'filename*' in self.assocs:
-            val = self.assocs['filename*']
-            assert isinstance(val, ExtDispositionParm)
-            return parse_ext_value(val[0]).string
+            param = self.assocs['filename*']
+            assert isinstance(param, ExtDispositionParm)
+            return parse_ext_value(param.value).string
         elif 'filename' in self.assocs:
             # XXX Reject non-ascii (parsed via qdtext) here?
             return self.assocs['filename']
@@ -142,7 +142,6 @@ def parse_headers(content_disposition, location=None, relaxed=False):
 
 
 def parse_ext_value(val):
-    charset = val[0]
     if len(val) == 3:
         charset, langtag, coded = val
     else:
@@ -251,8 +250,12 @@ class NoExtToken(peg.Symbol):
 class DispositionParm(str):
     grammar = peg.attr('name', NoExtToken), '=', Value
 
-class ExtDispositionParm(peg.List):
+class ExtDispositionParm:
     grammar = peg.attr('name', ExtToken), '=', ExtValue
+
+    def __init__(self, value, name=None):
+        self.name = name
+        self.value = value
 
 class DispositionType(peg.List):
     grammar = [re.compile('(inline|attachment)', re.I), Token]
