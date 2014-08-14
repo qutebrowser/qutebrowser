@@ -73,7 +73,7 @@ The following software and libraries are required to run qutebrowser:
 * http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.2 or newer
 (5.3.1 recommended) for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
-* https://github.com/g2p/rfc6266[rfc6266]
+* http://fdik.org/pyPEG/[pyPEG2]
 
 The following libraries are optional and provide colored logging in the
 console:
@@ -86,19 +86,19 @@ On Debian
 
 ----
 # apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python3-pkg-resources python3-pip
-# pip3 install rfc6266
+# pip3 install pypeg2 --allow-external pypeg2 --allow-unverified pypeg2
 ----
 
 On Archlinux
 ~~~~~~~~~~~~
 
 There's an Archlinux package available in `pkg/`. You can install it (and the
-python-rfc6266 dependency) like this:
+python-pypeg2 dependency) like this:
 
 ----
-$ wget https://aur.archlinux.org/packages/py/python-rfc6266/python-rfc6266.tar.gz <1>
-$ tar xzvf python-rfc6266.tar.gz
-$ cd python-rfc6266
+$ wget https://aur.archlinux.org/packages/py/python-pypeg2/python-pypeg2.tar.gz <1>
+$ tar xzvf python-pypeg2.tar.gz
+$ cd python-pypeg2
 $ makepkg -si
 $ cd ..
 
@@ -107,10 +107,10 @@ $ cd qutebrowser
 $ wget http://git.the-compiler.org/qutebrowser/plain/pkg/PKGBUILD.qutebrowser-git -O PKGBUILD
 $ makepkg -si
 $ cd ..
-$ rm -rf python-rfc6266.tar.gz python-rfc6266 qutebrowser
+$ rm -rf python-pypeg2.tar.gz python-pypeg2 qutebrowser
 ----
 <1> Instead of the first block of commands you could also use an AUR helper,
-e.g. +yaourt -S python-rfc6266+.
+e.g. +yaourt -S python-pypeg2+.
 
 As soon as v0.1 is out, there will be a package in the AUR, so this will get
 easier.
@@ -127,7 +127,8 @@ http://www.riverbankcomputing.com/software/pyqt/download5[Riverbank computing]
 to get Qt and PyQt5.
 * Run `scripts/ez_setup.py` to get setuptools.
 * Get pip as described http://stackoverflow.com/a/12476379[on Stack Overflow].
-* Run +pip install rfc6266+ to install rfc6266.
+* Run +pip install --allow-external pypeg2 --allow-unverified pypeg2 pypeg2+ to
+install pypeg2.
 
 As soon as v0.1 is out, a standalone .exe (built with
 http://cx-freeze.sourceforge.net/[cx_Freeze]) will be provided. In the

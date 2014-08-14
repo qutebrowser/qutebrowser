@@ -111,7 +111,7 @@ def main():
     earlyinit.check_qt_version()
     earlyinit.check_pyqt_webkit()
     earlyinit.check_pkg_resources()
-    earlyinit.check_rfc6266()
+    earlyinit.check_pypeg2()
     # We do this import late as we need to fix harfbuzz first.
     from qutebrowser.app import Application
     from qutebrowser.utils.debug import trace_lines

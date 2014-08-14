@@ -231,15 +231,21 @@ def check_pkg_resources():
         _die(text)
 
 
-def check_rfc6266():
-    """Check if rfc6266 is installed."""
+def check_pypeg2():
+    """Check if pypeg2 is installed."""
     try:
-        import rfc6266  # pylint: disable=unused-variable
+        import pypeg2  # pylint: disable=unused-variable
     except ImportError:
-        text = _missing_str("rfc6266",
+        text = _missing_str("pypeg2",
                             debian="No package available, try:\n"
-                                   "pip3 install rfc6266",
-                            arch="pacman -S python-rfc6266",
-                            windows="pip install rfc6266    (using python3)",
-                            pip="rfc6266")
+                                   "pip3 install pypeg2 "
+                                   "--allow-external pypeg2 "
+                                   "--allow-unverified pypeg2",
+                            arch="pacman -S python-pypeg2",
+                            windows="pip install pypeg2 "
+                                    "--allow-external pypeg2 "
+                                    "--allow-unverified pypeg2 "
+                                    "(using python3)",
+                            pip="pypeg2 --allow-external pypeg2 "
+                                "--allow-unverified pypeg2")
         _die(text)

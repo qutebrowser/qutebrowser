@@ -111,11 +111,9 @@ def init_log(args):
     if console is not None:
         if args.logfilter is not None and numeric_level < logging.DEBUG:
             console.addFilter(LogFilter(args.logfilter.split(',')))
-            console.addFilter(LeplFilter())
         root.addHandler(console)
     if ram is not None:
         root.addHandler(ram)
-        ram.addFilter(LeplFilter())
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
     qInstallMessageHandler(qt_message_handler)
@@ -127,23 +125,6 @@ def disable_qt_msghandler():
     old_handler = qInstallMessageHandler(None)
     yield
     qInstallMessageHandler(old_handler)
-
-
-def fix_rfc2622():
-    """Fix the rfc6266 logger.
-
-    In rfc2622 <= v0.04, a NullHandler class is added as handler, instead of an
-    object, which causes an exception later.
-
-    This was fixed in [1], but since v0.05 is not out yet, we work around the
-    issue by deleting the wrong handler.
-
-    This should be executed after init_log is done and rfc6266 is imported, but
-    before using it.
-
-    [1]: https://github.com/g2p/rfc6266/commit/cad58963ed13f5e1068fcc9e4326123b6b2bdcf8
-    """
-    rfc6266.removeHandler(logging.NullHandler)
 
 
 def _init_handlers(level, color, ram_capacity):
@@ -305,22 +286,6 @@ class LogFilter(logging.Filter):
             elif record.name[len(name)] == '.':
                 return True
         return False
-
-
-class LeplFilter(logging.Filter):
-
-    """Filter to filter debug log records by the lepl library."""
-
-    def filter(self, record):
-        """Determine if the specified record is to be logged."""
-        if (record.levelno == logging.INFO and
-                record.name == 'lepl.lexer.rewriters.AddLexer'):
-            # Special useless info message triggered by rfc6266
-            return False
-        if record.levelno > logging.DEBUG:
-            # More important than DEBUG, so we won't filter at all
-            return True
-        return not record.name.startswith('lepl.')
 
 
 class RAMHandler(logging.Handler):
