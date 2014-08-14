@@ -79,14 +79,6 @@ class ContentDisposition:
         return 'ContentDisposition(%r, %r, %r)' % (
             self.disposition, self.assocs, self.location)
 
-
-
-
-def percent_decode(string, encoding):
-    # unquote doesn't default to strict, fix that
-    return urllib.parse.unquote(string, encoding, errors='strict')
-
-
 def fits_inside_codec(text, codec):
     try:
         text.encode(codec)
@@ -147,7 +139,7 @@ def parse_ext_value(val):
     else:
         charset, coded = val
         langtag = None
-    decoded = percent_decode(coded, encoding=charset)
+    decoded = urllib.parse.unquote(coded, charset, errors='strict')
     return LangTagged(decoded, langtag)
 
 # RFC 2616
