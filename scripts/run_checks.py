@@ -26,7 +26,6 @@ Runs flake8, pylint, pep257, a CRLF/whitespace/conflict-checker and
 pyroma/check-manifest by default.
 
 Module attributes:
-    status: An OrderedDict for return status values.
     option: A dictionary with options.
 """
 
@@ -41,6 +40,7 @@ import configparser
 import argparse
 from collections import OrderedDict
 from functools import partial
+from contextlib import contextmanager
 
 import pep257
 from pkg_resources import load_entry_point, DistributionNotFound
@@ -49,11 +49,50 @@ from pkg_resources import load_entry_point, DistributionNotFound
 # of print...
 logging.basicConfig(level=logging.INFO, format='%(msg)s')
 
-status = OrderedDict()
-
 
 config = configparser.ConfigParser()
 config.read('.run_checks')
+
+
+@contextmanager
+def _adjusted_pythonpath(name):
+    """Adjust PYTHONPATH for pylint."""
+    if name == 'pylint':
+        scriptdir = os.path.abspath(os.path.dirname(__file__))
+        if 'PYTHONPATH' in os.environ:
+            old_pythonpath = os.environ['PYTHONPATH']
+            os.environ['PYTHONPATH'] += os.pathsep + scriptdir
+        else:
+            old_pythonpath = None
+            os.environ['PYTHONPATH'] = scriptdir
+    yield
+    if name == 'pylint':
+        if old_pythonpath is not None:
+            os.environ['PYTHONPATH'] = old_pythonpath
+        else:
+            del os.environ['PYTHONPATH']
+
+
+def _run_distutils(name, args):
+    """Run a checker via its distutils entry point."""
+    sys.argv = [name] + args
+    try:
+        ep = load_entry_point(name, 'console_scripts', name)
+        ep()
+    except SystemExit as e:
+        return e.code
+    except Exception as e:
+        print('{}: {}'.format(e.__class__.__name__, e))
+        return None
+
+
+def _run_subprocess(name, args):
+    """Run a checker via subprocess."""
+    try:
+        return subprocess.call([name] + args)
+    except FileNotFoundError as e:
+        print('{}: {}'.format(e.__class__.__name__, e))
+        return None
 
 
 def run(name, target=None):
@@ -65,45 +104,15 @@ def run(name, target=None):
     """
     # pylint: disable=too-many-branches
     args = _get_args(name)
-    if name == 'pylint':
-        scriptdir = os.path.abspath(os.path.dirname(__file__))
-        if 'PYTHONPATH' in os.environ:
-            old_pythonpath = os.environ['PYTHONPATH']
-            os.environ['PYTHONPATH'] += os.pathsep + scriptdir
-        else:
-            old_pythonpath = None
-            os.environ['PYTHONPATH'] = scriptdir
-    sys.argv = [name]
-    if target is None:
-        status_key = name
-    else:
-        status_key = '{}_{}'.format(name, target)
+    if target is not None:
         args.append(target)
-    if args is not None:
-        sys.argv += args
-    try:
-        ep = load_entry_point(name, 'console_scripts', name)
-        ep()
-    except SystemExit as e:
-        import pdb; pdb.set_trace()  # XXX BREAKPOINT
-        status[status_key] = e
-    except DistributionNotFound:
-        if args is None:
-            args = []
+    with _adjusted_pythonpath(name):
         try:
-            status[status_key] = subprocess.call([name] + args)
-        except FileNotFoundError as e:
-            print('{}: {}'.format(e.__class__.__name__, e))
-            status[status_key] = None
-    except Exception as e:
-        print('{}: {}'.format(e.__class__.__name__, e))
-        status[status_key] = None
-    if name == 'pylint':
-        if old_pythonpath is not None:
-            os.environ['PYTHONPATH'] = old_pythonpath
-        else:
-            del os.environ['PYTHONPATH']
+            status = _run_distutils(name, args)
+        except DistributionNotFound:
+            status = _run_subprocess(name, args)
     print()
+    return status
 
 
 def check_pep257(target):
@@ -113,11 +122,13 @@ def check_pep257(target):
     if args is not None:
         sys.argv += args
     try:
-        status['pep257_' + target] = pep257.main(*pep257.parse_options())
+        status = pep257.main(*pep257.parse_options())
+        print()
+        return status
     except Exception as e:
         print('{}: {}'.format(e.__class__.__name__, e))
-        status['pep257_' + target] = None
-    print()
+        print()
+        return None
 
 
 def check_unittest():
@@ -125,16 +136,15 @@ def check_unittest():
     suite = unittest.TestLoader().discover('.')
     result = unittest.TextTestRunner().run(suite)
     print()
-    status['unittest'] = result.wasSuccessful()
+    return result.wasSuccessful()
 
 
 def check_git():
     """Check for uncommited git files.."""
     if not os.path.isdir(".git"):
         print("No .git dir, ignoring")
-        status['git'] = False
         print()
-        return
+        return False
     untracked = []
     gitst = subprocess.check_output(['git', 'status', '--porcelain'])
     gitst = gitst.decode('UTF-8').strip()
@@ -143,12 +153,13 @@ def check_git():
         if s == '??':
             untracked.append(name)
     if untracked:
-        status['git'] = False
+        status = False
         print("Untracked files:")
         print('\n'.join(untracked))
     else:
-        status['git'] = True
+        status = True
     print()
+    return status
 
 
 def check_vcs_conflict(target):
@@ -163,11 +174,12 @@ def check_vcs_conflict(target):
                         if any(line.startswith(c * 7) for c in '<>=|'):
                             print("Found conflict marker in {}".format(fn))
                             ok = False
-        status['vcs_' + target] = ok
+        print()
+        return ok
     except Exception as e:
         print('{}: {}'.format(e.__class__.__name__, e))
-        status['vcs_' + target] = None
-    print()
+        print()
+        return None
 
 
 def _get_args(checker):
@@ -224,8 +236,9 @@ def _get_args(checker):
     return args
 
 
-def _get_checkers(args):
+def _get_checkers():
     """Get a dict of checkers we need to execute."""
+    # "Static" checkers
     checkers = OrderedDict([
         ('global', OrderedDict([
             ('unittest', check_unittest),
@@ -236,6 +249,7 @@ def _get_checkers(args):
             ('check-manifest', partial(run, 'check-manifest')),
         ])),
     ])
+    # "Dynamic" checkers which exist once for each target.
     for target in config.get('DEFAULT', 'targets').split(','):
         checkers[target] = OrderedDict([
             ('pep257', partial(check_pep257, target)),
@@ -248,6 +262,7 @@ def _get_checkers(args):
 
 def main():
     """Main entry point."""
+    exit_status = OrderedDict()
     parser = argparse.ArgumentParser(description='Run various checkers.')
     parser.add_argument('-s', '--setup', help="Run additional setup checks",
                         action='store_true')
@@ -255,7 +270,7 @@ def main():
                         default='all', nargs='?')
     args = parser.parse_args()
 
-    checkers = _get_checkers(args)
+    checkers = _get_checkers()
 
     groups = ['global']
     groups += config.get('DEFAULT', 'targets').split(',')
@@ -272,13 +287,14 @@ def main():
         for name, func in checkers[group].items():
             if configured_checkers is None or name in configured_checkers:
                 print("------ {} ------".format(name))
-                func()
+                status = func()
+                exit_status['{}_{}'.format(group, name)] = status
 
     print("Exit status values:")
-    for (k, v) in status.items():
+    for (k, v) in exit_status.items():
         print('  {} - {}'.format(k, v))
 
-    if all(val in (True, 0) for val in status):
+    if all(val in (True, 0) for val in exit_status):
         return 0
     else:
         return 1
