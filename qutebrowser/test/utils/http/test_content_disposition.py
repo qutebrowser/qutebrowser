@@ -389,8 +389,6 @@ class AttachmentTests(AttachmentTestCase):
         """
         self._check_filename('attachment; filename ="foo.html"', 'foo.html')
 
-    # This should be fixed in the rfc6266 library
-    @unittest.expectedFailure
     def test_attwith2filenames(self):
         """'attachment', specifying two filename parameters.
 
@@ -666,8 +664,6 @@ class CharacterSetTests(AttachmentTestCase):
         self._check_filename("attachment; filename*=UTF-8''foo-a%cc%88.html",
                              'foo-ä.html')
 
-    # This should be fixed in the rfc6266 library
-    @unittest.expectedFailure
     def test_attwithfn2231utf8_bad(self):
         """'attachment', specifying a filename of foo-ä-€.html.
 

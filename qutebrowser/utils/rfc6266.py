@@ -10,6 +10,13 @@ import re
 LangTagged = namedtuple('LangTagged', 'string langtag')
 
 
+class DuplicateParamError(Exception):
+    pass
+
+class InvalidISO8859Error(Exception):
+    pass
+
+
 class ContentDisposition:
     """
     Records various indications and hints about content disposition.
@@ -128,7 +135,7 @@ def parse_headers(content_disposition, location=None, relaxed=False):
 
     try:
         parsed = peg.parse(content_disposition, ContentDispositionValue)
-    except SyntaxError:
+    except (SyntaxError, DuplicateParamError, InvalidISO8859Error):
         return ContentDisposition(location=location)
     return ContentDisposition(
         disposition=parsed.dtype, assocs=parsed.params, location=location)
@@ -141,6 +148,11 @@ def parse_ext_value(val):
         charset, coded = val
         langtag = None
     decoded = urllib.parse.unquote(coded, charset, errors='strict')
+    if charset == 'iso-8859-1':
+        # Fail if the filename contains an invalid ISO-8859-1 char
+        for c in decoded:
+            if 0x7F <= ord(c) <= 0x9F:
+                raise InvalidISO8859Error(c)
     return LangTagged(decoded, langtag)
 
 # RFC 2616
@@ -238,7 +250,14 @@ class ExtDispositionParm:
 class DispositionType(peg.List):
     grammar = [re.compile('(inline|attachment)', re.I), Token]
 
-class DispositionParmList(peg.Namespace):
+class UniqueNamespace(peg.Namespace):
+
+    def __setitem__(self, key, value):
+        if key in self:
+            raise DuplicateParamError(key)
+        super().__setitem__(key, value)
+
+class DispositionParmList(UniqueNamespace):
     grammar = peg.maybe_some(';', [ExtDispositionParm, DispositionParm])
 
 class ContentDispositionValue:
