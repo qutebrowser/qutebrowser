@@ -21,7 +21,6 @@
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QSizePolicy, QApplication
-from PyQt5.QtGui import QValidator
 
 import qutebrowser.keyinput.modeman as modeman
 import qutebrowser.commands.utils as cmdutils

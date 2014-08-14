@@ -29,6 +29,8 @@ from qutebrowser.widgets.statusbar.prompter import Prompter
 
 class PromptLineEdit(MinimalLineEditMixin, QLineEdit):
 
+    """QLineEdit with a minimal stylesheet."""
+
     def __init__(self, parent=None):
         QLineEdit.__init__(self, parent)
         MinimalLineEditMixin.__init__(self)

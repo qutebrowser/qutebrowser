@@ -23,8 +23,7 @@ import sys
 from code import InteractiveInterpreter
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
-from PyQt5.QtWidgets import (QLineEdit, QTextEdit, QWidget, QVBoxLayout,
-                             QApplication)
+from PyQt5.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
 
 import qutebrowser.config.config as config
 from qutebrowser.models.cmdhistory import (History, HistoryEmptyError,
@@ -64,6 +63,7 @@ class ConsoleLineEdit(CommandLineEdit):
 
     @property
     def curprompt(self):
+        """Get the prompt which is visible currently."""
         return sys.ps2 if self._more else sys.ps1
 
     @pyqtSlot(str)
@@ -142,6 +142,8 @@ class ConsoleLineEdit(CommandLineEdit):
 
 
 class ConsoleTextEdit(QTextEdit):
+
+    """Custom QTextEdit for console input."""
 
     def __init__(self, parent=None):
         super().__init__(parent)

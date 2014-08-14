@@ -77,6 +77,11 @@ class CommandLineEdit(QLineEdit):
             self.setCursorPosition(self._promptlen)
 
     def set_prompt(self, text):
+        """Set the current prompt to text.
+
+        This updates the validator, and makes sure the user can't move the
+        cursor behind the prompt.
+        """
         self._validator.prompt = text
         self._promptlen = len(text)
 
