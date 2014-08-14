@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=broad-except
+# pylint: disable=broad-except, no-member
 
 """ Run different codecheckers over a codebase.
 
@@ -42,6 +42,7 @@ from collections import OrderedDict
 from functools import partial
 from contextlib import contextmanager
 
+import colorama as col
 import pep257
 from pkg_resources import load_entry_point, DistributionNotFound
 
@@ -154,7 +155,7 @@ def check_git():
             untracked.append(name)
     if untracked:
         status = False
-        print("Untracked files:")
+        print("{}Untracked files:{}".format(col.Fore.RED, col.Fore.RESET))
         print('\n'.join(untracked))
     else:
         status = True
@@ -273,6 +274,7 @@ def _checker_enabled(args, group, name):
 
 def main():
     """Main entry point."""
+    col.init()
     exit_status = OrderedDict()
     parser = argparse.ArgumentParser(description='Run various checkers.')
     parser.add_argument('-s', '--setup', help="Run additional setup checks",
@@ -289,18 +291,25 @@ def main():
 
     for group in groups:
         print()
-        print("==================== {} ====================".format(group))
+        print("{}==================== {} ===================={}".format(
+            col.Fore.YELLOW, group, col.Fore.RESET))
         for name, func in checkers[group].items():
-            print("------ {} ------".format(name))
+            print("{}------ {} ------{}".format(col.Fore.CYAN, name,
+                                                col.Fore.RESET))
             if _checker_enabled(args, group, name):
                 status = func()
                 exit_status['{}_{}'.format(group, name)] = status
             else:
-                print("Checker disabled.")
+                print("{}Checker disabled.{}".format(
+                    col.Fore.BLUE, col.Fore.RESET))
     print()
-    print("Exit status values:")
+    print("{}Exit status values:{}".format(col.Fore.YELLOW, col.Fore.RESET))
     for (k, v) in exit_status.items():
-        print('  {} - {}'.format(k, v))
+        if v is True or (not isinstance(v, bool) and v == 0):
+            color = col.Fore.GREEN
+        else:
+            color = col.Fore.RED
+        print('{}    {} - {}{}'.format(color, k, v, col.Fore.RESET))
 
     if all(val in (True, 0) for val in exit_status):
         return 0
