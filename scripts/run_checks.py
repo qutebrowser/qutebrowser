@@ -276,6 +276,7 @@ def main():
     """Main entry point."""
     col.init()
     exit_status = OrderedDict()
+    exit_status_bool = {}
     parser = argparse.ArgumentParser(description='Run various checkers.')
     parser.add_argument('-s', '--setup', help="Run additional setup checks",
                         action='store_true')
@@ -298,20 +299,29 @@ def main():
                                                 col.Fore.RESET))
             if _checker_enabled(args, group, name):
                 status = func()
-                exit_status['{}_{}'.format(group, name)] = status
+                key = '{}_{}'.format(group, name)
+                exit_status[key] = status
+                if name == 'flake8':
+                    # pyflakes uses True for errors and False for ok.
+                    exit_status_bool[key] = not status
+                elif isinstance(status, bool):
+                    exit_status_bool[key] = status
+                else:
+                    # sys.exit(0) means no problems -> True, anything != 0
+                    # means problems.
+                    exit_status_bool[key] = (status == 0)
             else:
                 print("{}Checker disabled.{}".format(
                     col.Fore.BLUE, col.Fore.RESET))
     print()
     print("{}Exit status values:{}".format(col.Fore.YELLOW, col.Fore.RESET))
     for (k, v) in exit_status.items():
-        if v is True or (not isinstance(v, bool) and v == 0):
-            color = col.Fore.GREEN
-        else:
-            color = col.Fore.RED
-        print('{}    {} - {}{}'.format(color, k, v, col.Fore.RESET))
+        ok = exit_status_bool[k]
+        color = col.Fore.GREEN if ok else col.Fore.RED
+        print('{}    {} - {} ({}){}'.format(color, k, 'ok' if ok else 'FAIL',
+                                            v, col.Fore.RESET))
 
-    if all(val in (True, 0) for val in exit_status):
+    if all(exit_status_bool):
         return 0
     else:
         return 1
