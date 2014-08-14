@@ -38,6 +38,7 @@ import unittest
 import logging
 import tokenize
 import configparser
+import argparse
 from collections import OrderedDict
 
 import pep257
@@ -227,7 +228,11 @@ def _get_args(checker):
 
 def main():
     """Main entry point."""
-    argv = sys.argv[:]
+    parser = argparse.ArgumentParser(description='Run various checkers.')
+    parser.add_argument('-s', '--setup', help="Run additional setup checks",
+                        action='store_true')
+    args = parser.parse_args()
+
     check_unittest()
     check_git()
     for trg in config.get('DEFAULT', 'targets').split(','):
@@ -238,7 +243,7 @@ def main():
             run(chk, trg, _get_args(chk))
         check_vcs_conflict(trg)
 
-    if '--setup' in argv:
+    if args.setup:
         print("==================== Setup checks ====================")
         for chk in ('pyroma', 'check-manifest'):
             run(chk, args=_get_args(chk))
