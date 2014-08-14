@@ -29,7 +29,6 @@ import pypeg2 as peg
 from qutebrowser.utils.log import rfc6266 as logger
 
 
-
 class UniqueNamespace(peg.Namespace):
 
     """A pyPEG2 namespace which prevents setting a value twice."""
