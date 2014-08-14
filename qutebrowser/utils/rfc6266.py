@@ -1,6 +1,26 @@
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+
+# Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# This file is part of qutebrowser.
+#
+# qutebrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# qutebrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+"""pyPEG parsing for the RFC 6266 (Content-Disposition) header. """
+
 import pypeg2 as peg
 
-import os.path
 from collections import namedtuple
 import urllib.parse
 import string
@@ -37,6 +57,7 @@ token_chars = attr_chars + "*'%"
 # which might include non-ascii octets.
 token_re = '[{}]+'.format(re.escape(token_chars))
 
+
 class Token(str):
 
     """A token (RFC 2616, Section 2.2)."""
@@ -60,6 +81,7 @@ class Token(str):
 qdtext_re = r'[^"{}]'.format(re.escape(ctl_chars))
 quoted_pair_re = r'\\[{}]'.format(re.escape(
     ''.join(chr(i) for i in range(128))))
+
 
 class QuotedString(str):
 
@@ -119,6 +141,7 @@ class ExtValue(peg.List):
 
     grammar = peg.contiguous(Charset, "'", peg.optional(Language), "'",
                              ValueChars)
+
 
 class ExtToken(peg.Symbol):
 
@@ -206,7 +229,7 @@ class ContentDisposition:
     in the download case.
     """
 
-    def __init__(self, disposition='inline', assocs=None, location=None):
+    def __init__(self, disposition='inline', assocs=None):
         """This constructor is used internally after parsing the header.
 
         Instances should generally be created from a factory
@@ -216,7 +239,6 @@ class ContentDisposition:
             self.disposition = 'inline'
         else:
             self.disposition = disposition[0]
-        self.location = location
         if assocs is None:
             self.assocs = {}
         else:
@@ -228,11 +250,7 @@ class ContentDisposition:
 
     @property
     def filename_unsafe(self):
-        """The filename from the Content-Disposition header.
-
-        If a location was passed at instanciation, the basename
-        from that may be used as a fallback. Otherwise, this may
-        be the None value.
+        """The filename from the Content-Disposition header or None.
 
         On safety:
             This property records the intent of the sender.
@@ -249,8 +267,6 @@ class ContentDisposition:
         elif 'filename' in self.assocs:
             # XXX Reject non-ascii (parsed via qdtext) here?
             return self.assocs['filename']
-        elif self.location is not None:
-            return os.path.basename(self.location_path.rstrip('/'))
 
     @property
     def is_inline(self):
@@ -263,8 +279,8 @@ class ContentDisposition:
         return self.disposition.lower() == 'inline'
 
     def __repr__(self):
-        return 'ContentDisposition(%r, %r, %r)' % (
-            self.disposition, self.assocs, self.location)
+        return 'ContentDisposition(%r, %r)' % (
+            self.disposition, self.assocs)
 
 
 def normalize_ws(text):
@@ -272,8 +288,9 @@ def normalize_ws(text):
     return ' '.join(text.split())
 
 
-def parse_headers(content_disposition, location=None, relaxed=False):
+def parse_headers(content_disposition):
     """Build a ContentDisposition from header values."""
+    # pylint: disable=maybe-no-member
     # We allow non-ascii here (it will only be parsed inside of qdtext, and
     # rejected by the grammar if it appears in other places), although parsing
     # it can be ambiguous.  Parsing it ensures that a non-ambiguous filename*
@@ -292,9 +309,10 @@ def parse_headers(content_disposition, location=None, relaxed=False):
     try:
         parsed = peg.parse(content_disposition, ContentDispositionValue)
     except (SyntaxError, DuplicateParamError, InvalidISO8859Error):
-        return ContentDisposition(location=location)
-    return ContentDisposition(
-        disposition=parsed.dtype, assocs=parsed.params, location=location)
+        return ContentDisposition()
+    else:
+        return ContentDisposition(disposition=parsed.dtype,
+                                  assocs=parsed.params)
 
 
 def parse_ext_value(val):
