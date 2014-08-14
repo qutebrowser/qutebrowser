@@ -173,7 +173,13 @@ def _module_versions():
         if ver is None:
             ver = getattr(colorama, '__version__', 'yes')
         lines.append('colorama: {}'.format(ver))
-
+    try:
+        import pypeg2
+    except ImportError:
+        pass
+    else:
+        ver = getattr(pypeg2, '__version__', 'yes')
+        lines.append('pypeg2: {}'.format(ver))
     return lines
 
 
