@@ -41,30 +41,29 @@ def _missing_str(name, debian=None, arch=None, windows=None, pip=None):
         windows: String to be displayed for Windows.
         pip: pypi package name.
     """
-    blocks = ["Fatal error: {} is required to run qutebrowser but could "
-              "not be imported! Maybe it's not installed?".format(name)]
+    blocks = ["Fatal error: <b>{}</b> is required to run qutebrowser but "
+              "could not be imported! Maybe it's not installed?".format(name)]
     if debian is not None:
-        lines = ["On Debian/Ubuntu:"]
-        for line in debian.splitlines():
-            lines.append('    ' + line)
-        blocks.append('\n'.join(lines))
+        lines = ["<b>On Debian/Ubuntu:</b>"]
+        lines += debian.splitlines()
+        blocks.append('<br />'.join(lines))
     if arch is not None:
-        lines = ["On Archlinux:"]
-        for line in arch.splitlines():
-            lines.append('    ' + line)
-        blocks.append('\n'.join(lines))
+        lines = ["<b>On Archlinux:</b>"]
+        lines += arch.splitlines()
+        blocks.append('<br />'.join(lines))
     if windows is not None:
-        lines = ["On Windows:"]
-        for line in windows.splitlines():
-            lines.append('    ' + line)
-        blocks.append('\n'.join(lines))
-    lines = ["For other distributions:",
-             "    Check your package manager for similiarly named packages."]
+        lines = ["<b>On Windows:</b>"]
+        lines += windows.splitlines()
+        blocks.append('<br />'.join(lines))
+    lines = ["<b>For other distributions:</b>",
+             "Check your package manager for similiarly named packages or "
+             "install via pip."]
+    blocks.append('<br />'.join(lines))
     if pip is not None:
-        lines.append("    Or run  pip install {}  (using python3/pip3)".format(
-            pip))
-    blocks.append('\n'.join(lines))
-    return '\n\n'.join(blocks)
+        lines = ["<b>Using pip:</b>"]
+        lines.append("pip3 install {}".format(pip))
+        blocks.append('<br />'.join(lines))
+    return '<br /><br />'.join(blocks)
 
 
 def _die(message, exception=True):
@@ -77,12 +76,14 @@ def _die(message, exception=True):
         exception: Whether to print an exception with --debug.
     """
     from PyQt5.QtWidgets import QApplication, QMessageBox
+    from PyQt5.QtCore import Qt
     if '--debug' in sys.argv and exception:
         print(file=sys.stderr)
         traceback.print_exc()
     app = QApplication(sys.argv)
     msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
                          message)
+    msgbox.setTextFormat(Qt.RichText)
     msgbox.resize(msgbox.sizeHint())
     msgbox.exec_()
     app.quit()
@@ -176,12 +177,15 @@ def check_pyqt_core():
         text = _missing_str('PyQt5',
                             debian="apt-get install python3-pyqt5 "
                                    "python3-pyqt5.qtwebkit",
-                            arch="pacman -S python-pyqt5 qt5-webkit\n"
+                            arch="pacman -S python-pyqt5 qt5-webkit<br />"
                                  "or install the qutebrowser package from AUR",
                             windows="Use the installer by Riverbank computing "
-                                    "or the standalone qutebrowser exe.\n"
+                                    "or the standalone qutebrowser exe.<br />"
                                     "http://www.riverbankcomputing.co.uk/"
                                     "software/pyqt/download5")
+        text = text.replace('<b>', '')
+        text = text.replace('</b>', '')
+        text = text.replace('<br />', '\n')
         if Tk:
             root = Tk()
             root.withdraw()
@@ -237,15 +241,9 @@ def check_pypeg2():
         import pypeg2  # pylint: disable=unused-variable
     except ImportError:
         text = _missing_str("pypeg2",
-                            debian="No package available, try:\n"
-                                   "pip3 install pypeg2 "
-                                   "--allow-external pypeg2 "
-                                   "--allow-unverified pypeg2",
-                            arch="pacman -S python-pypeg2",
-                            windows="pip install pypeg2 "
-                                    "--allow-external pypeg2 "
-                                    "--allow-unverified pypeg2 "
-                                    "(using python3)",
+                            debian="No package available, install via pip.",
+                            arch="Install python-pypeg2 from the AUR",
+                            windows="Install via pip.",
                             pip="pypeg2 --allow-external pypeg2 "
                                 "--allow-unverified pypeg2")
         _die(text)
