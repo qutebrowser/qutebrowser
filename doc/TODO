@@ -55,7 +55,6 @@ Downloads
 Improvements / minor features
 =============================
 
-- Make editor encoding configurable
 - Sane default for editor (maybe via QDesktopServices or so?)
 - We should have something like utils.debug.qenum_key for QFlags.
 - Honour icognito mode for cookies etc.

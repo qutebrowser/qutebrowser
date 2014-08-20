@@ -1826,7 +1826,7 @@ class AutoSearchTests(unittest.TestCase):
         self.assertIsNone(self.t.transform(''))
 
 
-class IgnoreCase(unittest.TestCase):
+class IgnoreCaseTests(unittest.TestCase):
 
     """Test IgnoreCase."""
 
@@ -1870,6 +1870,43 @@ class IgnoreCase(unittest.TestCase):
             for inp in inputs:
                 with self.subTest(inp=inp):
                     self.assertEqual(self.t.transform(inp), out, inp)
+
+    def test_transform_empty(self):
+        """Test transform with none_ok = False and an empty value."""
+        self.assertIsNone(self.t.transform(''))
+
+
+class EncodingTests(unittest.TestCase):
+
+    """Test Encoding."""
+
+    def setUp(self):
+        self.t = conftypes.Encoding()
+
+    def test_validate_empty(self):
+        """Test validate with empty string and none_ok = False."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with empty string and none_ok = True."""
+        t = conftypes.Encoding(none_ok=True)
+        t.validate('')
+
+    def test_validate_valid(self):
+        """Test validate with valid values."""
+        for val in ('utf-8', 'UTF-8', 'iso8859-1'):
+            with self.subTest(val=val):
+                self.t.validate(val)
+
+    def test_validate_invalid(self):
+        """Test validate with an invalid value."""
+        with self.assertRaises(conftypes.ValidationError):
+            self.t.validate('blubber')
+
+    def test_transform(self):
+        """Test if transform doesn't alter the value."""
+        self.assertEqual(self.t.transform('utf-8'), 'utf-8')
 
     def test_transform_empty(self):
         """Test transform with none_ok = False and an empty value."""

@@ -194,6 +194,10 @@ DATA = OrderedDict([
          "Use `{}` for the filename. The value gets split like in a shell, so "
          "you can use `\"` or `'` to quote arguments."),
 
+        ('editor-encoding',
+         SettingValue(types.Encoding(), 'utf-8'),
+         "Encoding to use for editor."),
+
         ('private-browsing',
          SettingValue(types.Bool(), 'false'),
          "Do not record visited pages in the history or store web page "

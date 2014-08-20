@@ -56,21 +56,24 @@ class ArgTests(unittest.TestCase):
 
     def test_simple_start_args(self):
         """Test starting editor without arguments."""
-        editorutils.config = ConfigStub({'general': {'editor': ['bin']}})
+        editorutils.config = ConfigStub(
+            {'general': {'editor': ['bin'], 'editor-encoding': 'utf-8'}})
         self.editor.edit("")
         self.editor.proc.start.assert_called_with("bin", [])
 
     def test_start_args(self):
         """Test starting editor with static arguments."""
         editorutils.config = ConfigStub(
-            {'general': {'editor': ['bin', 'foo', 'bar']}})
+            {'general': {'editor': ['bin', 'foo', 'bar'],
+                         'editor-encoding': 'utf-8'}})
         self.editor.edit("")
         self.editor.proc.start.assert_called_with("bin", ["foo", "bar"])
 
     def test_placeholder(self):
         """Test starting editor with placeholder argument."""
         editorutils.config = ConfigStub(
-            {'general': {'editor': ['bin', 'foo', '{}', 'bar']}})
+            {'general': {'editor': ['bin', 'foo', '{}', 'bar'],
+                         'editor-encoding': 'utf-8'}})
         self.editor.edit("")
         filename = self.editor.filename
         self.editor.proc.start.assert_called_with("bin",
@@ -79,7 +82,8 @@ class ArgTests(unittest.TestCase):
     def test_in_arg_placeholder(self):
         """Test starting editor with placeholder argument inside argument."""
         editorutils.config = ConfigStub(
-            {'general': {'editor': ['bin', 'foo{}bar']}})
+            {'general': {'editor': ['bin', 'foo{}bar'],
+                         'editor-encoding': 'utf-8'}})
         self.editor.edit("")
         self.editor.proc.start.assert_called_with("bin", ["foo{}bar"])
 
@@ -97,7 +101,8 @@ class FileHandlingTests(unittest.TestCase):
 
     def setUp(self):
         self.editor = editorutils.ExternalEditor()
-        editorutils.config = ConfigStub({'general': {'editor': ['']}})
+        editorutils.config = ConfigStub(
+            {'general': {'editor': [''], 'editor-encoding': 'utf-8'}})
 
     def test_file_handling_closed_ok(self):
         """Test file handling when closing with an exitstatus == 0."""
@@ -136,7 +141,8 @@ class TextModifyTests(unittest.TestCase):
     def setUp(self):
         self.editor = editorutils.ExternalEditor()
         self.editor.editing_finished = Mock()
-        editorutils.config = ConfigStub({'general': {'editor': ['']}})
+        editorutils.config = ConfigStub(
+            {'general': {'editor': [''], 'editor-encoding': 'utf-8'}})
 
     def _write(self, text):
         """Write a text to the file opened in the fake editor.
@@ -204,7 +210,8 @@ class ErrorMessageTests(unittest.TestCase):
 
     def setUp(self):
         self.editor = editorutils.ExternalEditor()
-        editorutils.config = ConfigStub({'general': {'editor': ['']}})
+        editorutils.config = ConfigStub(
+            {'general': {'editor': [''], 'editor-encoding': 'utf-8'}})
 
     def test_proc_error(self):
         """Test on_proc_error."""

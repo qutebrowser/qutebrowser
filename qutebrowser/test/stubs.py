@@ -61,11 +61,11 @@ class ConfigStub:
 
     def get(self, sect, opt):
         """Get a value from the config."""
-        sect = self.data[sect]
+        data = self.data[sect]
         try:
-            return sect[opt]
+            return data[opt]
         except KeyError:
-            raise self.NoOptionError
+            raise self.NoOptionError('{} -> {}'.format(sect, opt))
 
 
 class FakeKeyEvent:

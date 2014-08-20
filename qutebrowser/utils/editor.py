@@ -72,7 +72,8 @@ class ExternalEditor(QObject):
                 message.error("Editor did quit abnormally (status {})!".format(
                     exitcode))
                 return
-            with open(self.filename, 'r', encoding='utf-8') as f:
+            encoding = config.get('general', 'editor-encoding')
+            with open(self.filename, 'r', encoding=encoding) as f:
                 text = ''.join(f.readlines())
             logger.debug("Read back: {}".format(text))
             self.editing_finished.emit(text)
@@ -110,7 +111,8 @@ class ExternalEditor(QObject):
         self.text = text
         self.oshandle, self.filename = mkstemp(text=True)
         if text:
-            with open(self.filename, 'w', encoding='utf-8') as f:
+            encoding = config.get('general', 'editor-encoding')
+            with open(self.filename, 'w', encoding=encoding) as f:
                 f.write(text)
         self.proc = QProcess(self)
         self.proc.finished.connect(self.on_proc_closed)

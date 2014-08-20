@@ -21,6 +21,7 @@
 
 import re
 import shlex
+import codecs
 import os.path
 from sre_constants import error as RegexError
 
@@ -1058,6 +1059,24 @@ class KeyBinding(Command):
     """The command of a keybinding."""
 
     pass
+
+
+class Encoding(BaseType):
+
+    """Setting for a python encoding."""
+
+    typestr = 'encoding'
+
+    def validate(self, value):
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
+        try:
+            codecs.lookup(value)
+        except LookupError:
+            raise ValidationError(value, "is not a valid encoding!")
 
 
 class WebSettingsFile(File):
