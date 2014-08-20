@@ -19,6 +19,7 @@
 
 """Make sure open() has an encoding set."""
 
+import astroid
 from pylint.interfaces import IAstroidChecker
 from pylint.checkers import BaseChecker
 from pylint.checkers import utils
@@ -48,10 +49,22 @@ class OpenEncodingChecker(BaseChecker):
     def _check_open_encoding(self, node):
         """Check that an open() call always has an encoding set."""
         try:
-            _encoding = utils.get_argument_from_call(node, position=3,
+            mode_arg = utils.get_argument_from_call(node, position=1,
+                                                    keyword='mode')
+        except utils.NoSuchArgumentError:
+            mode_arg = None
+        try:
+            _encoding = utils.get_argument_from_call(node, position=2,
                                                      keyword='encoding')
         except utils.NoSuchArgumentError:
-            self.add_message('open-without-encoding', node=node)
+            if mode_arg is not None:
+                mode = utils.safe_infer(mode_arg)
+            if (mode_arg is not None and isinstance(mode, astroid.Const) and
+                    'b' in getattr(mode, 'value', '')):
+                # Files opened as binary don't need an encoding.
+                return
+            else:
+                self.add_message('open-without-encoding', node=node)
 
 
 def register(linter):
