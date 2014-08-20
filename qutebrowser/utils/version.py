@@ -128,7 +128,7 @@ def _release_info():
     data = []
     for fn in glob.glob("/etc/*-release"):
         try:
-            with open(fn, 'r') as f:
+            with open(fn, 'r', encoding='utf-8') as f:
                 data.append((fn, ''.join(f.readlines())))
         except IOError as e:
             logger.warning("Error while reading {}: {}: {}".format(

@@ -276,7 +276,7 @@ class Application(QApplication):
                                'crash.log')
         # First check if an old logfile exists.
         if os.path.exists(logname):
-            with open(logname, 'r') as f:
+            with open(logname, 'r', encoding='ascii') as f:
                 data = f.read()
             if data:
                 # Crashlog exists and has data in it, so something crashed
@@ -309,7 +309,7 @@ class Application(QApplication):
         """Start a new logfile and redirect faulthandler to it."""
         logname = os.path.join(get_standard_dir(QStandardPaths.DataLocation),
                                'crash.log')
-        self._crashlogfile = open(logname, 'w')
+        self._crashlogfile = open(logname, 'w', encoding='ascii')
         faulthandler.enable(self._crashlogfile)
         if (hasattr(faulthandler, 'register') and
                 hasattr(signal, 'SIGUSR1')):

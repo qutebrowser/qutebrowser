@@ -35,7 +35,7 @@ BASEDIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
 
 def read_file(name):
     """Get the string contained in the file named name."""
-    with open(name, encoding='utf-8') as f:
+    with open(name, 'r', encoding='utf-8') as f:
         return f.read()
 
 
@@ -87,7 +87,8 @@ def write_git_file():
     gitstr = _git_str()
     if gitstr is None:
         gitstr = ''
-    with open(os.path.join(BASEDIR, 'qutebrowser', 'git-commit-id'), 'w') as f:
+    path = os.path.join(BASEDIR, 'qutebrowser', 'git-commit-id')
+    with open(path, 'w', encoding='utf-8') as f:
         f.write(gitstr)
 
 

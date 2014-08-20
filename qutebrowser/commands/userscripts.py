@@ -78,7 +78,8 @@ class _BlockingFIFOReader(QObject):
         # We also use os.open and os.fdopen rather than built-in open so we can
         # add O_NONBLOCK.
         fd = os.open(self.filepath, os.O_RDWR |
-                     os.O_NONBLOCK)  # pylint: disable=no-member
+                     os.O_NONBLOCK,
+                     encoding='utf-8')  # pylint: disable=no-member
         self.fifo = os.fdopen(fd, 'r')
         while True:
             logger.debug("thread loop")
@@ -279,7 +280,7 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
             got_cmd: Emitted for every command in the file.
         """
         logger.debug("proc finished")
-        with open(self.filepath, 'r') as f:
+        with open(self.filepath, 'r', encoding='utf-8') as f:
             for line in f:
                 self.got_cmd.emit(line.rstrip())
         self._cleanup()

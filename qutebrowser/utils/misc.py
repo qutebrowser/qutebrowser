@@ -78,7 +78,7 @@ def read_file(filename):
     if hasattr(sys, 'frozen'):
         # cx_Freeze doesn't support pkg_resources :(
         fn = os.path.join(os.path.dirname(sys.executable), filename)
-        with open(fn, 'r', encoding='UTF-8') as f:
+        with open(fn, 'r', encoding='utf-8') as f:
             return f.read()
     else:
         return resource_string(qutebrowser.__name__, filename).decode('UTF-8')
@@ -193,7 +193,8 @@ def actute_warning():
             return
     except ValueError:
         pass
-    with open('/usr/share/X11/locale/en_US.UTF-8/Compose', 'r') as f:
+    with open('/usr/share/X11/locale/en_US.UTF-8/Compose', 'r',
+              encoding='utf-8') as f:
         for line in f:
             if '<dead_actute>' in line:
                 if sys.stdout is not None:
