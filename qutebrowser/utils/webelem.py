@@ -227,7 +227,8 @@ def _is_editable_div(elem):
     """
     # Beginnings of div-classes which are actually some kind of editor.
     div_classes = ('CodeMirror',  # Javascript editor over a textarea
-                   'kix-')        # Google Docs editor
+                   'kix-',        # Google Docs editor
+                   'ace_')        # http://ace.c9.io/
     for klass in elem.classes():
         if any([klass.startswith(e) for e in div_classes]):
             return True
