@@ -46,6 +46,10 @@ import colorama as col
 import pep257
 from pkg_resources import load_entry_point, DistributionNotFound
 
+
+sys.path.insert(0, os.getcwd())
+
+
 # We need to do this because pyroma is braindead enough to use logging instead
 # of print...
 logging.basicConfig(level=logging.INFO, format='%(msg)s')
