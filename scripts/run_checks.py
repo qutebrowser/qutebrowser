@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=broad-except
+# pylint: disable=broad-except, no-member
 
 """ Run different codecheckers over a codebase.
 
@@ -42,6 +42,7 @@ from collections import OrderedDict
 from functools import partial
 from contextlib import contextmanager
 
+import colorama as col
 import pep257
 from pkg_resources import load_entry_point, DistributionNotFound
 
@@ -154,7 +155,7 @@ def check_git():
             untracked.append(name)
     if untracked:
         status = False
-        print("Untracked files:")
+        print("{}Untracked files:{}".format(col.Fore.RED, col.Fore.RESET))
         print('\n'.join(untracked))
     else:
         status = True
@@ -260,9 +261,22 @@ def _get_checkers():
     return checkers
 
 
+def _checker_enabled(args, group, name):
+    """Check if a named checker is enabled."""
+    if args.checkers == 'all':
+        if not args.setup and group == 'setup':
+            return False
+        else:
+            return True
+    else:
+        return name in args.checkers.split(',')
+
+
 def main():
     """Main entry point."""
+    col.init()
     exit_status = OrderedDict()
+    exit_status_bool = {}
     parser = argparse.ArgumentParser(description='Run various checkers.')
     parser.add_argument('-s', '--setup', help="Run additional setup checks",
                         action='store_true')
@@ -274,27 +288,40 @@ def main():
 
     groups = ['global']
     groups += config.get('DEFAULT', 'targets').split(',')
-    if args.setup:
-        groups.append('setup')
+    groups.append('setup')
 
     for group in groups:
         print()
-        print("==================== {} ====================".format(group))
-        if args.checkers == 'all':
-            configured_checkers = None
-        else:
-            configured_checkers = args.checkers.split(',')
+        print("{}==================== {} ===================={}".format(
+            col.Fore.YELLOW, group, col.Fore.RESET))
         for name, func in checkers[group].items():
-            if configured_checkers is None or name in configured_checkers:
-                print("------ {} ------".format(name))
+            print("{}------ {} ------{}".format(col.Fore.CYAN, name,
+                                                col.Fore.RESET))
+            if _checker_enabled(args, group, name):
                 status = func()
-                exit_status['{}_{}'.format(group, name)] = status
-
-    print("Exit status values:")
+                key = '{}_{}'.format(group, name)
+                exit_status[key] = status
+                if name == 'flake8':
+                    # pyflakes uses True for errors and False for ok.
+                    exit_status_bool[key] = not status
+                elif isinstance(status, bool):
+                    exit_status_bool[key] = status
+                else:
+                    # sys.exit(0) means no problems -> True, anything != 0
+                    # means problems.
+                    exit_status_bool[key] = (status == 0)
+            else:
+                print("{}Checker disabled.{}".format(
+                    col.Fore.BLUE, col.Fore.RESET))
+    print()
+    print("{}Exit status values:{}".format(col.Fore.YELLOW, col.Fore.RESET))
     for (k, v) in exit_status.items():
-        print('  {} - {}'.format(k, v))
+        ok = exit_status_bool[k]
+        color = col.Fore.GREEN if ok else col.Fore.RED
+        print('{}    {} - {} ({}){}'.format(color, k, 'ok' if ok else 'FAIL',
+                                            v, col.Fore.RESET))
 
-    if all(val in (True, 0) for val in exit_status):
+    if all(exit_status_bool):
         return 0
     else:
         return 1

@@ -106,8 +106,6 @@ https://docs.python.org/3.4/library/unittest.html[unittest] framework
 * http://pylint.org/[pylint]
 * A custom checker for the following things:
     - untracked git files
-    - whitespace/CRLF problems
-    - `set_trace` invocations
     - VCS conflict markers
 
 If you changed `setup.py` or `MANIFEST.in`, add the `--setup` argument to run
@@ -115,6 +113,9 @@ the following additional checkers:
 
 * https://pypi.python.org/pypi/pyroma/0.9.3[pyroma]
 * https://github.com/mgedmin/check-manifest[check-manifest]
+
+It needs all the checkers to be installed and also needs
+https://pypi.python.org/pypi/colorama/[colorama].
 
 Please make sure this script runs without any warnings on your new
 contributions. There's of course the possibility of false-positives, and the
