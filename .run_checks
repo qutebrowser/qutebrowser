@@ -12,7 +12,7 @@ exclude=test_.*,ez_setup
 
 [pylint]
 args=--output-format=colorized,--reports=no,--rcfile=.pylintrc
-plugins=config,crlf,modeline,settrace
+plugins=config,crlf,modeline,settrace,openencoding
 
 [flake8]
 args=--config=.flake8
