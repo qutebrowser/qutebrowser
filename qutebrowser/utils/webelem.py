@@ -258,7 +258,7 @@ def is_editable(elem, strict=False):
         return True
     elif tag == 'input':
         return _is_editable_input(elem)
-    elif tag in ('textarea', 'select'):
+    elif tag == 'textarea':
         return is_writable(elem)
     elif tag in ('embed', 'applet'):
         # Flash/Java/...
