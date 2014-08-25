@@ -123,6 +123,9 @@ style
   tree?
 - Stuff under scripts/ (especially generate_doc and run_checks) could use a
   rewrite.
+- Use 'from qutebrowser.package import module' instead of 'import
+  qutebrowser.package.module as module'.
+- Maybe use less from-imports for classes/functions.
 
 dwb keybindings to possibly implement
 =====================================
