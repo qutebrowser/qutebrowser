@@ -78,8 +78,8 @@ class _BlockingFIFOReader(QObject):
         # We also use os.open and os.fdopen rather than built-in open so we can
         # add O_NONBLOCK.
         fd = os.open(self.filepath, os.O_RDWR |
-                     os.O_NONBLOCK,
-                     encoding='utf-8')  # pylint: disable=no-member
+                     os.O_NONBLOCK,  # pylint: disable=no-member
+                     encoding='utf-8')
         self.fifo = os.fdopen(fd, 'r')
         while True:
             logger.debug("thread loop")
