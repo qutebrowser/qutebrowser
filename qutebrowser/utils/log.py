@@ -36,6 +36,11 @@ try:
     from colorlog import ColoredFormatter
 except ImportError:
     ColoredFormatter = None
+else:
+    # colorlog calls colorama.init() which breaks our sys.stdout/sys.stderr if
+    # they are None.
+    sys.stderr = sys.__stderr__
+    sys.stdout = sys.__stdout__
 try:
     # pylint: disable=import-error
     import colorama
