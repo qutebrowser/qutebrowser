@@ -644,9 +644,13 @@ class CommandDispatcher:
         label = self._tabs.tabText(cur_idx)
         cmdutils.check_overflow(cur_idx, 'int')
         cmdutils.check_overflow(new_idx, 'int')
-        self._tabs.removeTab(cur_idx)
-        self._tabs.insertTab(new_idx, tab, icon, label)
-        self._tabs.setCurrentIndex(new_idx)
+        self._tabs.setUpdatesEnabled(False)
+        try:
+            self._tabs.removeTab(cur_idx)
+            self._tabs.insertTab(new_idx, tab, icon, label)
+            self._tabs.setCurrentIndex(new_idx)
+        finally:
+            self._tabs.setUpdatesEnabled(True)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', split=False)
     def spawn(self, *args):
