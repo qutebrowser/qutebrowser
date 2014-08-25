@@ -54,6 +54,8 @@ Crashes
 - Shutdown is still flaky. (see notes)
 - Segfault on subsonic when clicking next track
 - Assertion failure on subsonic with debug build
+- Assertion failure when clicking on "doc" with debug build on qutebrowser
+  github page
 
 Qt warnings
 -----------
