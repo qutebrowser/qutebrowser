@@ -119,7 +119,9 @@ class CommandDispatcher:
             delta: Delta to the current tab.
         """
         if delta is None:
-            raise ValueError
+            # We don't set delta to 1 in the function arguments because this
+            # gets called from tab_move which has delta set to None by default.
+            delta = 1
         if direction == '-':
             return self._tabs.currentIndex() - delta
         elif direction == '+':
