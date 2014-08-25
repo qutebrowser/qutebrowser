@@ -33,19 +33,19 @@ from PyQt5.QtCore import (QtDebugMsg, QtWarningMsg, QtCriticalMsg, QtFatalMsg,
 # Optional imports
 try:
     # pylint: disable=import-error
+    import colorama
+except ImportError:
+    colorama = None
+try:
+    # pylint: disable=import-error
     from colorlog import ColoredFormatter
 except ImportError:
     ColoredFormatter = None
 else:
-    # colorlog calls colorama.init() which breaks our sys.stdout/sys.stderr if
-    # they are None.
-    sys.stderr = sys.__stderr__
-    sys.stdout = sys.__stdout__
-try:
-    # pylint: disable=import-error
-    import colorama
-except ImportError:
-    colorama = None
+    # colorlog calls colorama.init() which we don't want, also it breaks our
+    # sys.stdout/sys.stderr if they are None.
+    if colorama is not None:
+        colorama.deinit()
 
 # Log formats to use.
 SIMPLE_FMT = '{levelname}: {message}'
