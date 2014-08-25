@@ -562,11 +562,17 @@ class CommandDispatcher:
             sel: True to use primary selection, False to use clipboard
             tab: True to open in a new tab.
         """
-        mode = QClipboard.Selection if sel else QClipboard.Clipboard
-        text = QApplication.clipboard().text(mode)
+        clipboard = QApplication.clipboard()
+        if sel and clipboard.supportsSelection():
+            mode = QClipboard.Selection
+            target = "Primary selection"
+        else:
+            mode = QClipboard.Clipboard
+            target = "Clipboard"
+        text = clipboard.text(mode)
         if not text:
-            raise CommandError("Clipboard is empty.")
-        log.misc.debug("Clipboard contained: '{}'".format(text))
+            raise CommandError("{} is empty.".format(target))
+        log.misc.debug("{} contained: '{}'".format(target, text))
         try:
             url = urlutils.fuzzy_url(text)
         except urlutils.FuzzyUrlError as e:
