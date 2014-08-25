@@ -368,7 +368,7 @@ class IsEditableTests(unittest.TestCase):
     def test_select(self):
         """Test selectbox."""
         elem = FakeWebElement(tagname='select')
-        self.assertTrue(webelem.is_editable(elem))
+        self.assertFalse(webelem.is_editable(elem))
 
     def test_input_disabled(self):
         """Test disabled input element."""
