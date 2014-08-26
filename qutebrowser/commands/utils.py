@@ -27,8 +27,7 @@ import inspect
 import collections
 
 from qutebrowser.utils import usertypes, qtutils
-from qutebrowser.commands import command
-from qutebrowser.commands import exceptions as cmdexc
+from qutebrowser.commands import command, cmdexc
 
 cmd_dict = {}
 

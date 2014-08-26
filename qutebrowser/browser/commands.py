@@ -29,9 +29,8 @@ from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebInspector
 
-from qutebrowser.commands import userscripts
+from qutebrowser.commands import userscripts, cmdexc
 from qutebrowser.commands import utils as cmdutils
-from qutebrowser.commands import exceptions as cmdexc
 from qutebrowser.config import config
 from qutebrowser.browser import hints, quickmarks
 from qutebrowser.utils import (message, webelem, editor, usertypes, log,

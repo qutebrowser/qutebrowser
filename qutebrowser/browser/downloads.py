@@ -28,8 +28,8 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer, QStandardPaths
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
 from qutebrowser.config import config
+from qutebrowser.commands import cmdexc
 from qutebrowser.commands import utils as cmdutils
-from qutebrowser.commands import exceptions as cmdexc
 from qutebrowser.utils import message, http, usertypes, log, utils, qtutils
 
 

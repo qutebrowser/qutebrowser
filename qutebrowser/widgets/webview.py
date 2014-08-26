@@ -28,7 +28,7 @@ from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, webelem, log, usertypes, utils, qtutils
 from qutebrowser.browser import webpage, hints
-from qutebrowser.commands import exceptions as cmdexc
+from qutebrowser.commands import cmdexc
 
 
 LoadStatus = usertypes.enum('LoadStatus', 'none', 'success', 'error', 'warn',

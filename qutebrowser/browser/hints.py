@@ -30,8 +30,7 @@ from PyQt5.QtWidgets import QApplication
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, webelem
-from qutebrowser.commands import userscripts
-from qutebrowser.commands import exceptions as cmdexc
+from qutebrowser.commands import userscripts, cmdexc
 from qutebrowser.utils import usertypes, log, qtutils
 
 

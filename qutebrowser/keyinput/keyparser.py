@@ -21,8 +21,7 @@
 
 from qutebrowser.keyinput.basekeyparser import BaseKeyParser
 from qutebrowser.utils import message
-from qutebrowser.commands import runners
-from qutebrowser.commands import exceptions as cmdexc
+from qutebrowser.commands import runners, cmdexc
 
 
 class CommandKeyParser(BaseKeyParser):

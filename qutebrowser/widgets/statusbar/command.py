@@ -23,9 +23,8 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QSizePolicy, QApplication
 
 from qutebrowser.keyinput import modeman, modeparsers
-from qutebrowser.commands import runners
+from qutebrowser.commands import runners, cmdexc
 from qutebrowser.commands import utils as cmdutils
-from qutebrowser.commands import exceptions as cmdexc
 from qutebrowser.widgets import misc
 from qutebrowser.models import cmdhistory
 from qutebrowser.utils import usertypes, log

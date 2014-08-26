@@ -33,8 +33,7 @@ from PyQt5.QtCore import (pyqtSignal, QObject, QThread, QStandardPaths,
                           QProcessEnvironment, QProcess, QUrl)
 
 from qutebrowser.utils import message, log, utils
-from qutebrowser.commands import runners
-from qutebrowser.commands import exceptions as cmdexc
+from qutebrowser.commands import runners, cmdexc
 
 
 _runners = []
