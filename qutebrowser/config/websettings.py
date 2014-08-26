@@ -31,8 +31,7 @@ from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtCore import QStandardPaths
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes
-from qutebrowser.utils import misc as utils
+from qutebrowser.utils import usertypes, utils
 
 MapType = usertypes.enum('MapType', 'attribute', 'setter', 'static_setter')
 

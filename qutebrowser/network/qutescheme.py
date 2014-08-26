@@ -30,9 +30,8 @@ from PyQt5.QtNetwork import QNetworkReply
 
 import qutebrowser
 from qutebrowser.network import schemehandler
-from qutebrowser.utils import version
+from qutebrowser.utils import version, utils
 from qutebrowser.utils import log as logutils
-from qutebrowser.utils import misc as utils
 
 
 _HTML_TEMPLATE = """

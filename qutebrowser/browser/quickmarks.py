@@ -29,8 +29,7 @@ import collections
 
 from PyQt5.QtCore import QStandardPaths, QUrl
 
-from qutebrowser.utils import message, usertypes
-from qutebrowser.utils import misc as utils
+from qutebrowser.utils import message, usertypes, utils
 from qutebrowser.utils import qt as qtutils
 from qutebrowser.commands import utils as cmdutils
 from qutebrowser.commands import exceptions as cmdexc

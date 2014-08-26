@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
 
 from qutebrowser.config import config
 from qutebrowser.models import cmdhistory
-from qutebrowser.utils import misc as utils
+from qutebrowser.utils import utils
 from qutebrowser.widgets import misc
 
 

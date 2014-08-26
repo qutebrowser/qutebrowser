@@ -30,8 +30,7 @@ from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 from qutebrowser.config import config
 from qutebrowser.commands import utils as cmdutils
 from qutebrowser.commands import exceptions as cmdexc
-from qutebrowser.utils import message, http, usertypes, log
-from qutebrowser.utils import misc as utils
+from qutebrowser.utils import message, http, usertypes, log, utils
 from qutebrowser.utils import qt as qtutils
 
 

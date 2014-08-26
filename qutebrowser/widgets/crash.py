@@ -29,8 +29,7 @@ from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout)
 
 from qutebrowser.config import config
-from qutebrowser.utils import version, log
-from qutebrowser.utils import misc as utils
+from qutebrowser.utils import version, log, utils
 
 
 class _CrashDialog(QDialog):

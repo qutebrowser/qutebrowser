@@ -32,8 +32,7 @@ import functools
 from PyQt5.QtCore import (pyqtSignal, QObject, QThread, QStandardPaths,
                           QProcessEnvironment, QProcess, QUrl)
 
-from qutebrowser.utils import message, log
-from qutebrowser.utils import misc as utils
+from qutebrowser.utils import message, log, utils
 from qutebrowser.commands import runners
 from qutebrowser.commands import exceptions as cmdexc
 

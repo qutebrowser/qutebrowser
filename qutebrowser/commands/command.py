@@ -23,8 +23,7 @@ from PyQt5.QtCore import QCoreApplication, QUrl
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.commands import exceptions as cmdexc
-from qutebrowser.utils import misc as utils
-from qutebrowser.utils import log
+from qutebrowser.utils import log, utils
 
 
 class Command:

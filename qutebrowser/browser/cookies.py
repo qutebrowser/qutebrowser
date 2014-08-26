@@ -23,7 +23,7 @@ from PyQt5.QtNetwork import QNetworkCookie, QNetworkCookieJar
 from PyQt5.QtCore import QStandardPaths, QDateTime
 
 from qutebrowser.config import config, lineparser
-from qutebrowser.utils import misc as utils
+from qutebrowser.utils import utils
 
 
 class CookieJar(QNetworkCookieJar):

@@ -29,8 +29,7 @@ from PyQt5.QtCore import QT_VERSION_STR, PYQT_VERSION_STR, qVersion
 from PyQt5.QtWebKit import qWebKitVersion
 
 import qutebrowser
-from qutebrowser.utils import misc as utils
-from qutebrowser.utils import log
+from qutebrowser.utils import log, utils
 
 
 GPL_BOILERPLATE = """

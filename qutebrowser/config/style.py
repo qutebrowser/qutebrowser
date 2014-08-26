@@ -29,8 +29,7 @@ import functools
 from PyQt5.QtGui import QColor
 
 from qutebrowser.config import config
-from qutebrowser.utils import misc as utils
-from qutebrowser.utils import log
+from qutebrowser.utils import log, utils
 
 
 _colordict = None

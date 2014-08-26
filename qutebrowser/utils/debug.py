@@ -27,8 +27,7 @@ import functools
 
 from PyQt5.QtCore import pyqtRemoveInputHook, QEvent, QCoreApplication
 
-from qutebrowser.utils import misc as utils
-from qutebrowser.utils import log
+from qutebrowser.utils import log, utils
 from qutebrowser.commands import utils as cmdutils
 
 

@@ -26,8 +26,7 @@ import functools
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, log
-from qutebrowser.utils import misc as utils
+from qutebrowser.utils import usertypes, log, utils
 
 
 class BaseKeyParser(QObject):

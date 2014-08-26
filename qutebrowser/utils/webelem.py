@@ -31,8 +31,7 @@ from PyQt5.QtCore import QRect, QUrl
 from PyQt5.QtWebKit import QWebElement
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, usertypes
-from qutebrowser.utils import misc as utils
+from qutebrowser.utils import log, usertypes, utils
 
 
 Group = usertypes.enum('Group', 'all', 'links', 'images', 'url', 'prevnext',
