@@ -347,8 +347,9 @@ following guidelines:
 
 * Convert a string to a QUrl object as early as possible, i.e. directly after
 the user did enter it.
-    - Use `utils.url.fuzzy_url` if the URL is entered by the user somewhere.
-    - Be sure you handle `utils.url.FuzzyError` and display an error
+    - Use `utils.urlutils.fuzzy_url` if the URL is entered by the user
+      somewhere.
+    - Be sure you handle `utils.urlutils.FuzzyError` and display an error
       message to the user.
 * Convert a `QUrl` object to a string as late as possible, e.g. before
 displaying it to the user.

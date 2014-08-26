@@ -19,13 +19,13 @@
 
 # pylint: disable=protected-access
 
-"""Tests for qutebrowser.utils.url."""
+"""Tests for qutebrowser.utils.urlutils."""
 
 import unittest
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import url as urlutils
+from qutebrowser.utils import urlutils
 from qutebrowser.test import stubs
 
 
@@ -112,7 +112,7 @@ class SearchUrlTests(unittest.TestCase):
         urlutils.config = self.config
 
 
-@unittest.mock.patch('qutebrowser.utils.url.config.get', autospec=True)
+@unittest.mock.patch('qutebrowser.utils.urlutils.config.get', autospec=True)
 class IsUrlTests(unittest.TestCase):
 
     """Tests for is_url.

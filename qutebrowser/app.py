@@ -44,8 +44,7 @@ from qutebrowser.browser import quickmarks, cookies, downloads
 from qutebrowser.widgets import mainwindow, console, crash
 from qutebrowser.keyinput import modeparsers, keyparser, modeman
 from qutebrowser.utils import (log, version, message, utilcmds, readline,
-                               utils, qtutils)
-from qutebrowser.utils import url as urlutils
+                               utils, qtutils, urlutils)
 from qutebrowser.utils import usertypes as utypes
 
 
