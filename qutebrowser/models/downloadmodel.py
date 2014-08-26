@@ -57,7 +57,7 @@ class DownloadModel(QAbstractListModel):
     def on_data_changed(self, idx):
         """Update view when DownloadManager data changed."""
         model_idx = self.index(idx, 0)
-        qtutils.qt_ensure_valid(model_idx)
+        qtutils.ensure_valid(model_idx)
         self.dataChanged.emit(model_idx, model_idx)
 
     def last_index(self):
@@ -79,7 +79,7 @@ class DownloadModel(QAbstractListModel):
 
     def data(self, index, role):
         """Download data from DownloadManager."""
-        qtutils.qt_ensure_valid(index)
+        qtutils.ensure_valid(index)
         if index.parent().isValid() or index.column() != 0:
             return QVariant()
 

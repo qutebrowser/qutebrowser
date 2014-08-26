@@ -74,7 +74,7 @@ class BaseCompletionModel(QStandardItemModel):
             index: A QModelIndex of the item to mark.
             needle: The string to mark.
         """
-        qtutils.qt_ensure_valid(index)
+        qtutils.ensure_valid(index)
         haystack = self.data(index)
         marks = self._get_marks(needle, haystack)
         ok = self.setData(index, marks, Role.marks)
@@ -132,7 +132,7 @@ class BaseCompletionModel(QStandardItemModel):
         Return:
             The item flags, or Qt.NoItemFlags on error.
         """
-        qtutils.qt_ensure_valid(index)
+        qtutils.ensure_valid(index)
         if index.parent().isValid():
             # item
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable

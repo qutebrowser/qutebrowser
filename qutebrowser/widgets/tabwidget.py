@@ -211,7 +211,7 @@ class TabBar(QTabBar):
             # If we *do* have enough space, tabs should occupy the whole window
             # width.
             size = QSize(self.width() / self.count(), height)
-        qtutils.qt_ensure_valid(size)
+        qtutils.ensure_valid(size)
         return size
 
     def paintEvent(self, _e):
@@ -311,7 +311,7 @@ class TabBarStyle(QCommonStyle):
         elif element == QStyle.CE_TabBarTabLabel:
             text_rect, icon_rect = self._tab_layout(opt)
             if not opt.icon.isNull():
-                qtutils.qt_ensure_valid(icon_rect)
+                qtutils.ensure_valid(icon_rect)
                 icon_mode = (QIcon.Normal if opt.state & QStyle.State_Enabled
                              else QIcon.Disabled)
                 icon_state = (QIcon.On if opt.state & QStyle.State_Selected
@@ -382,7 +382,7 @@ class TabBarStyle(QCommonStyle):
         padding = self.pixelMetric(PM_TabBarPadding, opt)
         icon_rect = QRect()
         text_rect = QRect(opt.rect)
-        qtutils.qt_ensure_valid(text_rect)
+        qtutils.ensure_valid(text_rect)
         indicator_width = config.get('tabs', 'indicator-width')
         text_rect.adjust(padding, 0, 0, 0)
         if indicator_width != 0:
@@ -419,5 +419,5 @@ class TabBarStyle(QCommonStyle):
                           text_rect.center().y() - tab_icon_size.height() / 2,
                           tab_icon_size.width(), tab_icon_size.height())
         icon_rect = self._style.visualRect(opt.direction, opt.rect, icon_rect)
-        qtutils.qt_ensure_valid(icon_rect)
+        qtutils.ensure_valid(icon_rect)
         return icon_rect

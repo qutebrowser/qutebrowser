@@ -86,7 +86,7 @@ class Application(QApplication):
             # We don't enable this earlier because some imports trigger
             # warnings (which are not our fault).
             warnings.simplefilter('default')
-        qt_args = qtutils.get_qt_args(args)
+        qt_args = qtutils.get_args(args)
         log.init.debug("Qt arguments: {}, based on {}".format(qt_args, args))
         super().__init__(qt_args)
         self._quit_status = {

@@ -81,7 +81,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
         count = 0
         for i in range(self.rowCount()):
             cat = self.index(i, 0)
-            qtutils.qt_ensure_valid(cat)
+            qtutils.ensure_valid(cat)
             count += self.rowCount(cat)
         return count
 
@@ -89,10 +89,10 @@ class CompletionFilterModel(QSortFilterProxyModel):
         """Return the first item in the model."""
         for i in range(self.rowCount()):
             cat = self.index(i, 0)
-            qtutils.qt_ensure_valid(cat)
+            qtutils.ensure_valid(cat)
             if cat.model().hasChildren(cat):
                 index = self.index(0, 0, cat)
-                qtutils.qt_ensure_valid(index)
+                qtutils.ensure_valid(index)
                 return index
         return QModelIndex()
 
@@ -100,10 +100,10 @@ class CompletionFilterModel(QSortFilterProxyModel):
         """Return the last item in the model."""
         for i in range(self.rowCount() - 1, -1, -1):
             cat = self.index(i, 0)
-            qtutils.qt_ensure_valid(cat)
+            qtutils.ensure_valid(cat)
             if cat.model().hasChildren(cat):
                 index = self.index(self.rowCount(cat) - 1, 0, cat)
-                qtutils.qt_ensure_valid(index)
+                qtutils.ensure_valid(index)
                 return index
         return QModelIndex()
 
@@ -111,12 +111,12 @@ class CompletionFilterModel(QSortFilterProxyModel):
         """Mark the given text in all visible items."""
         for i in range(self.rowCount()):
             cat = self.index(i, 0)
-            qtutils.qt_ensure_valid(cat)
+            qtutils.ensure_valid(cat)
             for k in range(self.rowCount(cat)):
                 index = self.index(k, 0, cat)
-                qtutils.qt_ensure_valid(index)
+                qtutils.ensure_valid(index)
                 index = self.mapToSource(index)
-                qtutils.qt_ensure_valid(index)
+                qtutils.ensure_valid(index)
                 self.srcmodel.mark_item(index, text)
 
     def setSourceModel(self, model):
@@ -142,7 +142,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
         if parent == QModelIndex():
             return True
         idx = self.srcmodel.index(row, 0, parent)
-        qtutils.qt_ensure_valid(idx)
+        qtutils.ensure_valid(idx)
         data = self.srcmodel.data(idx)
         # TODO more sophisticated filtering
         if not self.pattern:
@@ -162,8 +162,8 @@ class CompletionFilterModel(QSortFilterProxyModel):
         Return:
             True if left < right, else False
         """
-        qtutils.qt_ensure_valid(lindex)
-        qtutils.qt_ensure_valid(rindex)
+        qtutils.ensure_valid(lindex)
+        qtutils.ensure_valid(rindex)
 
         left_sort = self.srcmodel.data(lindex, role=completion.Role.sort)
         right_sort = self.srcmodel.data(rindex, role=completion.Role.sort)

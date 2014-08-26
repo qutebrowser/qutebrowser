@@ -91,5 +91,5 @@ class DownloadView(QListView):
             size = QSize(0, height + 2)
         else:
             size = QSize(0, 0)
-        qtutils.qt_ensure_valid(size)
+        qtutils.ensure_valid(size)
         return size

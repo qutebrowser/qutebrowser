@@ -244,7 +244,7 @@ instead of using exceptions.
 +
 If a function gets or returns a Qt object which
 has an `.isValid()` method such as `QUrl` or `QModelIndex`, there's a helper
-function `qt_ensure_valid` in `qutebrowser.utils.qt` which should get called on
+function `ensure_valid` in `qutebrowser.utils.qt` which should get called on
 all such objects. It will raise `qutebrowser.utils.qt.QtValueError` if the
 value is not valid.
 +
@@ -372,8 +372,8 @@ displaying it to the user.
 * Name a string URL something like `urlstr`, and a `QUrl` something like `url`.
 * Mention in the docstring whether your function needs a URL string or a
 `QUrl`.
-* Call `qt_ensure_valid` from `utils.qt` whenever getting or creating a
-`QUrl` and take appropriate action if not.
+* Call `ensure_valid` from `utils.qt` whenever getting or creating a `QUrl` and
+take appropriate action if not.
 
 
 Style conventions

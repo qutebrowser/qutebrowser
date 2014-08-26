@@ -65,7 +65,7 @@ def _get_search_url(txt):
     if not term:
         raise FuzzyUrlError("No search term given")
     url = QUrl.fromUserInput(template.format(urllib.parse.quote(term)))
-    qtutils.qt_ensure_valid(url)
+    qtutils.ensure_valid(url)
     return url
 
 
@@ -143,7 +143,7 @@ def fuzzy_url(urlstr):
             url = QUrl.fromUserInput(stripped)
     logger.debug("Converting fuzzy term {} to URL -> {}".format(
                  urlstr, url.toDisplayString()))
-    qtutils.qt_ensure_valid(url)
+    qtutils.ensure_valid(url)
     return url
 
 

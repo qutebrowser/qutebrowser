@@ -301,7 +301,7 @@ class WebView(QWebView):
         Emit:
             titleChanged
         """
-        qtutils.qt_ensure_valid(url)
+        qtutils.ensure_valid(url)
         urlstr = url.toDisplayString()
         log.webview.debug("New title: {}".format(urlstr))
         self.titleChanged.emit(urlstr)
@@ -358,7 +358,7 @@ class WebView(QWebView):
     @pyqtSlot('QUrl')
     def on_url_changed(self, url):
         """Update cur_url when URL has changed."""
-        qtutils.qt_ensure_valid(url)
+        qtutils.ensure_valid(url)
         self.cur_url = url
 
     @pyqtSlot(str, str)

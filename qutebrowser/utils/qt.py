@@ -46,7 +46,7 @@ MINVALS = {
 }
 
 
-def qt_version_check(version, op=operator.ge):
+def version_check(version, op=operator.ge):
     """Check if the Qt runtime version is the version supplied or newer.
 
     Args:
@@ -88,7 +88,7 @@ def check_overflow(arg, ctype, fatal=True):
         return arg
 
 
-def get_qt_args(namespace):
+def get_args(namespace):
     """Get the Qt QApplication arguments based on an argparse namespace.
 
     Args:
@@ -114,10 +114,10 @@ def get_qt_args(namespace):
 
 def check_print_compat():
     """Check if printing should work in the given Qt version."""
-    return not (os.name == 'nt' and qt_version_check('5.3.0', operator.lt))
+    return not (os.name == 'nt' and version_check('5.3.0', operator.lt))
 
 
-def qt_ensure_valid(obj):
+def ensure_valid(obj):
     """Ensure a Qt object with an .isValid() method is valid.
 
     Raise:
@@ -129,7 +129,7 @@ def qt_ensure_valid(obj):
 
 class QtValueError(ValueError):
 
-    """Exception which gets raised by qt_ensure_valid."""
+    """Exception which gets raised by ensure_valid."""
 
     def __init__(self, obj):
         try:

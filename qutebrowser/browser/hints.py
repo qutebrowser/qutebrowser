@@ -340,7 +340,7 @@ class HintManager(QObject):
         Args:
             url: The URL to open as a QURL.
         """
-        qtutils.qt_ensure_valid(url)
+        qtutils.ensure_valid(url)
         sel = self._context.target == Target.yank_primary
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
@@ -354,7 +354,7 @@ class HintManager(QObject):
         Args:
             url: The URL to open as a QUrl.
         """
-        qtutils.qt_ensure_valid(url)
+        qtutils.ensure_valid(url)
         urlstr = url.toDisplayString(QUrl.FullyEncoded)
         args = self._context.get_args(urlstr)
         message.set_cmd_text(' '.join(args))
@@ -370,19 +370,19 @@ class HintManager(QObject):
             message.error("No suitable link found for this element.",
                           immediately=True)
             return
-        qtutils.qt_ensure_valid(url)
+        qtutils.ensure_valid(url)
         self.download_get.emit(url, elem.webFrame().page())
 
     def _call_userscript(self, url):
         """Call an userscript from a hint."""
-        qtutils.qt_ensure_valid(url)
+        qtutils.ensure_valid(url)
         cmd = self._context.args[0]
         args = self._context.args[1:]
         userscripts.run(cmd, *args, url=url)
 
     def _spawn(self, url):
         """Spawn a simple command from a hint."""
-        qtutils.qt_ensure_valid(url)
+        qtutils.ensure_valid(url)
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
         args = self._context.get_args(urlstr)
         subprocess.Popen(args)
@@ -406,7 +406,7 @@ class HintManager(QObject):
         url = QUrl(text)
         if url.isRelative():
             url = baseurl.resolved(url)
-        qtutils.qt_ensure_valid(url)
+        qtutils.ensure_valid(url)
         return url
 
     def _find_prevnext(self, frame, prev=False):

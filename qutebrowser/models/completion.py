@@ -87,7 +87,7 @@ class SettingOptionCompletionModel(basecompletion.BaseCompletionModel):
             return
         val = config.get(section, option, raw=True)
         idx = item.index()
-        qtutils.qt_ensure_valid(idx)
+        qtutils.ensure_valid(idx)
         ok = self.setData(idx, val, Qt.DisplayRole)
         if not ok:
             raise ValueError("Setting data failed! (section: {}, option: {}, "
@@ -138,7 +138,7 @@ class SettingValueCompletionModel(basecompletion.BaseCompletionModel):
         if not value:
             value = '""'
         idx = self.cur_item.index()
-        qtutils.qt_ensure_valid(idx)
+        qtutils.ensure_valid(idx)
         ok = self.setData(idx, value, Qt.DisplayRole)
         if not ok:
             raise ValueError("Setting data failed! (section: {}, option: {}, "

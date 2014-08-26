@@ -190,7 +190,7 @@ def actute_warning():
         return
     # Qt >= 5.3 doesn't seem to be affected
     try:
-        if qtutils.qt_version_check('5.3.0'):
+        if qtutils.version_check('5.3.0'):
             return
     except ValueError:
         pass
@@ -247,8 +247,8 @@ def interpolate_color(start, end, percent, colorspace=QColor.Rgb):
     Raise:
         ValueError if invalid parameters are passed.
     """
-    qtutils.qt_ensure_valid(start)
-    qtutils.qt_ensure_valid(end)
+    qtutils.ensure_valid(start)
+    qtutils.ensure_valid(end)
     out = QColor()
     if colorspace == QColor.Rgb:
         a_c1, a_c2, a_c3, _alpha = start.getRgb()
@@ -271,7 +271,7 @@ def interpolate_color(start, end, percent, colorspace=QColor.Rgb):
     else:
         raise ValueError("Invalid colorspace!")
     out = out.convertTo(start.spec())
-    qtutils.qt_ensure_valid(out)
+    qtutils.ensure_valid(out)
     return out
 
 

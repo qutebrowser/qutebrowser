@@ -79,7 +79,7 @@ class TextBase(QLabel):
         """Extend QLabel::resizeEvent to update the elided text afterwards."""
         super().resizeEvent(e)
         size = e.size()
-        qtutils.qt_ensure_valid(size)
+        qtutils.ensure_valid(size)
         self._update_elided_text(size.width())
 
     def paintEvent(self, e):
@@ -90,6 +90,6 @@ class TextBase(QLabel):
             e.accept()
             painter = QPainter(self)
             geom = self.geometry()
-            qtutils.qt_ensure_valid(geom)
+            qtutils.ensure_valid(geom)
             painter.drawText(0, 0, geom.width(), geom.height(),
                              self.alignment(), self._elided_text)

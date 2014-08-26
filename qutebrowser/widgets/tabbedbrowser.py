@@ -210,7 +210,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         """
         url = self.currentWidget().cur_url
         try:
-            qtutils.qt_ensure_valid(url)
+            qtutils.ensure_valid(url)
         except qtutils.QtValueError as e:
             msg = "Current URL is invalid"
             if e.reason:
@@ -266,7 +266,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         if tab is self.last_focused:
             self.last_focused = None
         if not tab.cur_url.isEmpty():
-            qtutils.qt_ensure_valid(tab.cur_url)
+            qtutils.ensure_valid(tab.cur_url)
             self.url_stack.append(tab.cur_url)
         tab.shutdown()
         self._tabs.remove(tab)
@@ -281,7 +281,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             url: The URL to open as QUrl.
             newtab: True to open URL in a new tab, False otherwise.
         """
-        qtutils.qt_ensure_valid(url)
+        qtutils.ensure_valid(url)
         if newtab:
             self.tabopen(url, background=False)
         else:
@@ -324,7 +324,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             The opened WebView instance.
         """
         if url is not None:
-            qtutils.qt_ensure_valid(url)
+            qtutils.ensure_valid(url)
         log.webview.debug("Creating new tab with URL {}".format(url))
         tab = webview.WebView(self)
         self._connect_tab_signals(tab)

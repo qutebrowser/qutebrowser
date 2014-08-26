@@ -98,12 +98,12 @@ class CompletionItemDelegate(QStyledItemDelegate):
 
         text_rect_ = self._style.subElementRect(
             self._style.SE_ItemViewItemText, self._opt, self._opt.widget)
-        qtutils.qt_ensure_valid(text_rect_)
+        qtutils.ensure_valid(text_rect_)
         margin = self._style.pixelMetric(QStyle.PM_FocusFrameHMargin,
                                          self._opt, self._opt.widget) + 1
         # remove width padding
         text_rect = text_rect_.adjusted(margin, 0, -margin, 0)
-        qtutils.qt_ensure_valid(text_rect)
+        qtutils.ensure_valid(text_rect)
         # move text upwards a bit
         if index.parent().isValid():
             text_rect.adjust(0, -1, 0, -1)
@@ -217,7 +217,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         o.rect = self._style.subElementRect(
             self._style.SE_ItemViewItemFocusRect, self._opt, self._opt.widget)
         o.state |= QStyle.State_KeyboardFocusChange | QStyle.State_Item
-        qtutils.qt_ensure_valid(o.rect)
+        qtutils.ensure_valid(o.rect)
         if state & QStyle.State_Enabled:
             cg = QPalette.Normal
         else:
@@ -253,7 +253,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         docsize = self._doc.size().toSize()
         size = self._style.sizeFromContents(QStyle.CT_ItemViewItem, self._opt,
                                             docsize, self._opt.widget)
-        qtutils.qt_ensure_valid(size)
+        qtutils.ensure_valid(size)
         return size + QSize(10, 3)
 
     def paint(self, painter, option, index):

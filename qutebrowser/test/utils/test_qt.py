@@ -84,7 +84,7 @@ class CheckOverflowTests(unittest.TestCase):
 
 class GetQtArgsTests(unittest.TestCase):
 
-    """Tests for get_qt_args."""
+    """Tests for get_args."""
 
     def setUp(self):
         self.parser = argparse.ArgumentParser()
@@ -109,26 +109,26 @@ class GetQtArgsTests(unittest.TestCase):
     def test_no_qt_args(self):
         """Test commandline with no Qt arguments given."""
         ns = self._namespace(['--foo'], flags=['--foo'])
-        self.assertEqual(qt.get_qt_args(ns), [sys.argv[0]])
+        self.assertEqual(qt.get_args(ns), [sys.argv[0]])
 
     def test_qt_flag(self):
         """Test commandline with a Qt flag."""
         ns = self._namespace(['--foo', '--qt-reverse', '--bar'],
                              flags=['--foo', '--qt-reverse', '--bar'])
-        self.assertEqual(qt.get_qt_args(ns), [sys.argv[0], '-reverse'])
+        self.assertEqual(qt.get_args(ns), [sys.argv[0], '-reverse'])
 
     def test_qt_arg(self):
         """Test commandline with a Qt argument."""
         ns = self._namespace(['--qt-stylesheet', 'foobar'],
                              args=['--qt-stylesheet'])
-        self.assertEqual(qt.get_qt_args(ns), [sys.argv[0], '-stylesheet',
-                                              'foobar'])
+        self.assertEqual(qt.get_args(ns), [sys.argv[0], '-stylesheet',
+                                           'foobar'])
 
     def test_qt_both(self):
         """Test commandline with a Qt argument and flag."""
         ns = self._namespace(['--qt-stylesheet', 'foobar', '--qt-reverse'],
                              flags=['--qt-reverse'], args=['--qt-stylesheet'])
-        qt_args = qt.get_qt_args(ns)
+        qt_args = qt.get_args(ns)
         self.assertEqual(qt_args[0], sys.argv[0])
         self.assertIn('-reverse', qt_args)
         self.assertIn('-stylesheet', qt_args)

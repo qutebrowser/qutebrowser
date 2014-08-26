@@ -167,7 +167,7 @@ class CompletionView(QTreeView):
             # No completion running at the moment, ignore keypress
             return
         idx = self._next_idx(prev)
-        qtutils.qt_ensure_valid(idx)
+        qtutils.ensure_valid(idx)
         self.selectionModel().setCurrentIndex(
             idx, QItemSelectionModel.ClearAndSelect |
             QItemSelectionModel.Rows)
