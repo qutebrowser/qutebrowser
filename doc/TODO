@@ -43,6 +43,7 @@ New big features
 - proper widget for debug logs, with filtering etc.
 - maybe FakeWebView which acts like a WebView in a tab but isn't, to open any
   widget?
+- Bind userscripts to signals (e.g. page_loaded etc.)
 
 Downloads
 =========
@@ -55,6 +56,8 @@ Downloads
 Improvements / minor features
 =============================
 
+- Improve -m error message when we're inside the qutebrowser dir (maybe use a
+  Tk gui?)
 - Sane default for editor (maybe via QDesktopServices or so?)
 - We should have something like utils.debug.qenum_key for QFlags.
 - Honour icognito mode for cookies etc.
@@ -123,9 +126,9 @@ style
   tree?
 - Stuff under scripts/ (especially generate_doc and run_checks) could use a
   rewrite.
-- Use 'from qutebrowser.package import module' instead of 'import
-  qutebrowser.package.module as module'.
-- Maybe use less from-imports for classes/functions.
+- Always use a list as argument for namedtuple?
+- Refactor enum() so it uses a list as second argument (like python
+  enum/namedtuple).
 
 dwb keybindings to possibly implement
 =====================================
