@@ -21,12 +21,12 @@
 
 import os
 import os.path
-from configparser import ConfigParser
+import configparser
 
-import qutebrowser.utils.log as log
+from qutebrowser.utils import log
 
 
-class ReadConfigParser(ConfigParser):
+class ReadConfigParser(configparser.ConfigParser):
 
     """Our own ConfigParser subclass to read the main config.
 

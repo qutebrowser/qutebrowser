@@ -29,7 +29,7 @@ from PyQt5.QtCore import QT_VERSION_STR, PYQT_VERSION_STR, qVersion
 from PyQt5.QtWebKit import qWebKitVersion
 
 import qutebrowser
-from qutebrowser.utils.misc import read_file
+from qutebrowser.utils import misc as utils
 from qutebrowser.utils.log import misc as logger
 
 
@@ -91,7 +91,7 @@ def _git_str():
         return commit
     # If that fails, check the git-commit-id file.
     try:
-        return read_file('git-commit-id')
+        return utils.read_file('git-commit-id')
     except (FileNotFoundError, ImportError):
         return None
 

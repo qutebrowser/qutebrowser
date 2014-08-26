@@ -26,17 +26,17 @@ Module attributes:
 import os
 import os.path
 import tempfile
-from select import select
-from functools import partial
+import select
+import functools
 
 from PyQt5.QtCore import (pyqtSignal, QObject, QThread, QStandardPaths,
                           QProcessEnvironment, QProcess, QUrl)
 
-import qutebrowser.utils.message as message
-from qutebrowser.utils.misc import get_standard_dir
+from qutebrowser.utils import message
+from qutebrowser.utils import misc as utils
 from qutebrowser.utils.log import procs as logger
-from qutebrowser.commands.exceptions import CommandError
-from qutebrowser.commands.runners import CommandRunner
+from qutebrowser.commands import runners
+from qutebrowser.commands import exceptions as cmdexc
 
 
 _runners = []
@@ -83,7 +83,7 @@ class _BlockingFIFOReader(QObject):
         self.fifo = os.fdopen(fd, 'r')
         while True:
             logger.debug("thread loop")
-            ready_r, _ready_w, _ready_e = select([self.fifo], [], [], 1)
+            ready_r, _ready_w, _ready_e = select.select([self.fifo], [], [], 1)
             if ready_r:
                 logger.debug("reading data")
                 for line in self.fifo:
@@ -205,7 +205,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         self.thread = None
 
     def run(self, cmd, *args, env=None):
-        rundir = get_standard_dir(QStandardPaths.RuntimeLocation)
+        rundir = utils.get_standard_dir(QStandardPaths.RuntimeLocation)
         # tempfile.mktemp is deprecated and discouraged, but we use it here to
         # create a FIFO since the only other alternative would be to create a
         # directory and place the FIFO there, which sucks. Since os.kfifo will
@@ -313,7 +313,8 @@ class _DummyUserscriptRunner:
     def run(self, _cmd, *_args, _env=None):
         """Print an error as userscripts are not supported."""
         self.finished.emit()
-        raise CommandError("Userscripts are not supported on this platform!")
+        raise cmdexc.CommandError(
+            "Userscripts are not supported on this platform!")
 
 
 # Here we basically just assign a generic UserscriptRunner class which does the
@@ -329,7 +330,7 @@ else:
 def init():
     """Initialize the global _commandrunner."""
     global _commandrunner
-    _commandrunner = CommandRunner()
+    _commandrunner = runners.CommandRunner()
 
 
 def run(cmd, *args, url):
@@ -341,4 +342,4 @@ def run(cmd, *args, url):
     runner.got_cmd.connect(_commandrunner.run_safely)
     runner.run(cmd, *args, env={'QUTE_URL': urlstr})
     _runners.append(runner)
-    runner.finished.connect(partial(_runners.remove, runner))
+    runner.finished.connect(functools.partial(_runners.remove, runner))

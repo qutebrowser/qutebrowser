@@ -23,7 +23,7 @@ import sys
 import argparse
 import unittest
 
-import qutebrowser.utils.qt as qt
+from qutebrowser.utils import qt
 
 
 class CheckOverflowTests(unittest.TestCase):

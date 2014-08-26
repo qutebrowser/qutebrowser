@@ -38,13 +38,13 @@ import logging
 import tokenize
 import configparser
 import argparse
-from collections import OrderedDict
-from functools import partial
-from contextlib import contextmanager
+import collections
+import functools
+import contextlib
 
 import colorama as col
 import pep257
-from pkg_resources import load_entry_point, DistributionNotFound
+import pkg_resources as pkg
 
 
 sys.path.insert(0, os.getcwd())
@@ -59,7 +59,7 @@ config = configparser.ConfigParser()
 config.read('.run_checks')
 
 
-@contextmanager
+@contextlib.contextmanager
 def _adjusted_pythonpath(name):
     """Adjust PYTHONPATH for pylint."""
     if name == 'pylint':
@@ -82,7 +82,7 @@ def _run_distutils(name, args):
     """Run a checker via its distutils entry point."""
     sys.argv = [name] + args
     try:
-        ep = load_entry_point(name, 'console_scripts', name)
+        ep = pkg.load_entry_point(name, 'console_scripts', name)
         ep()
     except SystemExit as e:
         return e.code
@@ -114,7 +114,7 @@ def run(name, target=None):
     with _adjusted_pythonpath(name):
         try:
             status = _run_distutils(name, args)
-        except DistributionNotFound:
+        except pkg.DistributionNotFound:
             status = _run_subprocess(name, args)
     print()
     return status
@@ -244,23 +244,23 @@ def _get_args(checker):
 def _get_checkers():
     """Get a dict of checkers we need to execute."""
     # "Static" checkers
-    checkers = OrderedDict([
-        ('global', OrderedDict([
+    checkers = collections.OrderedDict([
+        ('global', collections.OrderedDict([
             ('unittest', check_unittest),
             ('git', check_git),
         ])),
-        ('setup', OrderedDict([
-            ('pyroma', partial(run, 'pyroma')),
-            ('check-manifest', partial(run, 'check-manifest')),
+        ('setup', collections.OrderedDict([
+            ('pyroma', functools.partial(run, 'pyroma')),
+            ('check-manifest', functools.partial(run, 'check-manifest')),
         ])),
     ])
     # "Dynamic" checkers which exist once for each target.
     for target in config.get('DEFAULT', 'targets').split(','):
-        checkers[target] = OrderedDict([
-            ('pep257', partial(check_pep257, target)),
-            ('flake8', partial(run, 'flake8', target)),
-            ('vcs', partial(check_vcs_conflict, target)),
-            ('pylint', partial(run, 'pylint', target)),
+        checkers[target] = collections.OrderedDict([
+            ('pep257', functools.partial(check_pep257, target)),
+            ('flake8', functools.partial(run, 'flake8', target)),
+            ('vcs', functools.partial(check_vcs_conflict, target)),
+            ('pylint', functools.partial(run, 'pylint', target)),
         ])
     return checkers
 
@@ -279,7 +279,7 @@ def _checker_enabled(args, group, name):
 def main():
     """Main entry point."""
     col.init()
-    exit_status = OrderedDict()
+    exit_status = collections.OrderedDict()
     exit_status_bool = {}
     parser = argparse.ArgumentParser(description='Run various checkers.')
     parser.add_argument('-s', '--setup', help="Run additional setup checks",

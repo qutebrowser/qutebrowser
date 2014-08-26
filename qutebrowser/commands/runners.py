@@ -22,12 +22,11 @@
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 from PyQt5.QtWebKitWidgets import QWebPage
 
-import qutebrowser.config.config as config
-import qutebrowser.commands.utils as cmdutils
-import qutebrowser.utils.message as message
-from qutebrowser.commands.exceptions import (NoSuchCommandError,
-                                             CommandMetaError, CommandError)
-from qutebrowser.utils.misc import safe_shlex_split
+from qutebrowser.config import config
+from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import exceptions as cmdexc
+from qutebrowser.utils import message
+from qutebrowser.utils import misc as utils
 from qutebrowser.utils.log import commands as logger
 
 
@@ -201,7 +200,7 @@ class CommandRunner:
         """
         parts = text.strip().split(maxsplit=1)
         if not parts:
-            raise NoSuchCommandError("No command given")
+            raise cmdexc.NoSuchCommandError("No command given")
         cmdstr = parts[0]
         if aliases:
             new_cmd = self._get_alias(text, alias_no_args)
@@ -217,11 +216,12 @@ class CommandRunner:
                     parts.append('')
                 return parts
             else:
-                raise NoSuchCommandError('{}: no such command'.format(cmdstr))
+                raise cmdexc.NoSuchCommandError(
+                    '{}: no such command'.format(cmdstr))
         if len(parts) == 1:
             args = []
         elif cmd.split:
-            args = safe_shlex_split(parts[1])
+            args = utils.safe_shlex_split(parts[1])
         else:
             args = parts[1].split(maxsplit=cmd.nargs[0] - 1)
         self._cmd = cmd
@@ -266,7 +266,7 @@ class CommandRunner:
         """Run a command and display exceptions in the statusbar."""
         try:
             self.run(text, count)
-        except (CommandMetaError, CommandError) as e:
+        except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
             message.error(e, immediately=True)
 
     @pyqtSlot(str, int)
@@ -277,5 +277,5 @@ class CommandRunner:
         suitable to use while initializing."""
         try:
             self.run(text, count)
-        except (CommandMetaError, CommandError) as e:
+        except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
             message.error(e)

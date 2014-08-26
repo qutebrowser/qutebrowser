@@ -22,9 +22,8 @@
 from PyQt5.QtNetwork import QNetworkCookie, QNetworkCookieJar
 from PyQt5.QtCore import QStandardPaths, QDateTime
 
-import qutebrowser.config.config as config
-from qutebrowser.config.lineparser import LineConfigParser
-from qutebrowser.utils.misc import get_standard_dir
+from qutebrowser.config import config, lineparser
+from qutebrowser.utils import misc as utils
 
 
 class CookieJar(QNetworkCookieJar):
@@ -33,8 +32,8 @@ class CookieJar(QNetworkCookieJar):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        datadir = get_standard_dir(QStandardPaths.DataLocation)
-        self._linecp = LineConfigParser(datadir, 'cookies')
+        datadir = utils.get_standard_dir(QStandardPaths.DataLocation)
+        self._linecp = lineparser.LineConfigParser(datadir, 'cookies')
         cookies = []
         for line in self._linecp:
             cookies += QNetworkCookie.parseCookies(line.encode('utf-8'))

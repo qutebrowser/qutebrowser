@@ -26,11 +26,11 @@ Module attributes:
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
-from qutebrowser.utils.usertypes import enum
-from qutebrowser.utils.qt import qt_ensure_valid
+from qutebrowser.utils import usertypes
+from qutebrowser.utils import qt as qtutils
 
 
-Role = enum('Role', 'marks', 'sort', start=Qt.UserRole, is_int=True)
+Role = usertypes.enum('Role', 'marks', 'sort', start=Qt.UserRole, is_int=True)
 
 
 class BaseCompletionModel(QStandardItemModel):
@@ -74,7 +74,7 @@ class BaseCompletionModel(QStandardItemModel):
             index: A QModelIndex of the item to mark.
             needle: The string to mark.
         """
-        qt_ensure_valid(index)
+        qtutils.qt_ensure_valid(index)
         haystack = self.data(index)
         marks = self._get_marks(needle, haystack)
         ok = self.setData(index, marks, Role.marks)
@@ -132,7 +132,7 @@ class BaseCompletionModel(QStandardItemModel):
         Return:
             The item flags, or Qt.NoItemFlags on error.
         """
-        qt_ensure_valid(index)
+        qtutils.qt_ensure_valid(index)
         if index.parent().isValid():
             # item
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable

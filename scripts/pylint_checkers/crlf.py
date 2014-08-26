@@ -18,15 +18,14 @@
 
 """Checker for CRLF in files."""
 
-from pylint.interfaces import IRawChecker
-from pylint.checkers import BaseChecker
+from pylint import interfaces, checkers
 
 
-class CrlfChecker(BaseChecker):
+class CrlfChecker(checkers.BaseChecker):
 
     """Check for CRLF in files."""
 
-    __implements__ = IRawChecker
+    __implements__ = interfaces.IRawChecker
 
     name = 'crlf'
     msgs = {'W9001': ('Uses CRLFs', 'crlf', None)}

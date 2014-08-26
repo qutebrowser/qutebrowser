@@ -28,14 +28,11 @@ from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage
 
-import qutebrowser.utils.message as message
-import qutebrowser.config.config as config
-import qutebrowser.utils.log as log
-import qutebrowser.utils.http as http
-from qutebrowser.network.networkmanager import NetworkManager
-from qutebrowser.utils.misc import read_file
-from qutebrowser.utils.qt import check_print_compat
-from qutebrowser.utils.usertypes import PromptMode, ClickTarget
+from qutebrowser.config import config
+from qutebrowser.network import networkmanager
+from qutebrowser.utils import message, usertypes, log, http
+from qutebrowser.utils import misc as utils
+from qutebrowser.utils import qt as qtutils
 
 
 class BrowserPage(QWebPage):
@@ -61,7 +58,7 @@ class BrowserPage(QWebPage):
             QWebPage.ErrorPageExtension: self._handle_errorpage,
             QWebPage.ChooseMultipleFilesExtension: self._handle_multiple_files,
         }
-        self._networkmanager = NetworkManager(self)
+        self._networkmanager = networkmanager.NetworkManager(self)
         self.setNetworkAccessManager(self._networkmanager)
         self.setForwardUnsupportedContent(True)
         self.printRequested.connect(self.on_print_requested)
@@ -83,7 +80,8 @@ class BrowserPage(QWebPage):
 
         http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034385.html
         """
-        answer = message.ask("js: {}".format(msg), PromptMode.text, default)
+        answer = message.ask("js: {}".format(msg), usertypes.PromptMode.text,
+                             default)
         if answer is None:
             return (False, "")
         else:
@@ -122,7 +120,7 @@ class BrowserPage(QWebPage):
         log.webview.debug("Error domain: {}, error code: {}".format(
             info.domain, info.error))
         title = "Error loading page: {}".format(urlstr)
-        errpage.content = read_file('html/error.html').format(
+        errpage.content = utils.read_file('html/error.html').format(
             title=title, url=urlstr, error=info.errorString, icon='')
         return True
 
@@ -158,7 +156,7 @@ class BrowserPage(QWebPage):
 
     def on_print_requested(self, frame):
         """Handle printing when requested via javascript."""
-        if not check_print_compat():
+        if not qtutils.check_print_compat():
             message.error("Printing on Qt < 5.3.0 on Windows is broken, "
                           "please upgrade!", immediately=True)
             return
@@ -246,11 +244,12 @@ class BrowserPage(QWebPage):
 
     def javaScriptAlert(self, _frame, msg):
         """Override javaScriptAlert to use the statusbar."""
-        message.ask("[js alert] {}".format(msg), PromptMode.alert)
+        message.ask("[js alert] {}".format(msg), usertypes.PromptMode.alert)
 
     def javaScriptConfirm(self, _frame, msg):
         """Override javaScriptConfirm to use the statusbar."""
-        ans = message.ask("[js confirm] {}".format(msg), PromptMode.yesno)
+        ans = message.ask("[js confirm] {}".format(msg),
+                          usertypes.PromptMode.yesno)
         return bool(ans)
 
     def javaScriptConsoleMessage(self, msg, line, source):
@@ -270,7 +269,7 @@ class BrowserPage(QWebPage):
     def shouldInterruptJavaScript(self):
         """Override shouldInterruptJavaScript to use the statusbar."""
         answer = message.ask("Interrupt long-running javascript?",
-                             PromptMode.yesno)
+                             usertypes.PromptMode.yesno)
         if answer is None:
             answer = True
         return answer
@@ -298,10 +297,10 @@ class BrowserPage(QWebPage):
             message.error("Invalid link {} clicked!".format(urlstr))
             log.webview.debug(url.errorString())
             return False
-        if self._view.open_target == ClickTarget.tab:
+        if self._view.open_target == usertypes.ClickTarget.tab:
             self._view.tabbedbrowser.tabopen(url, False)
             return False
-        elif self._view.open_target == ClickTarget.tab_bg:
+        elif self._view.open_target == usertypes.ClickTarget.tab_bg:
             self._view.tabbedbrowser.tabopen(url, True)
             return False
         else:

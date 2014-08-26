@@ -29,12 +29,10 @@ import html as pyhtml
 from PyQt5.QtNetwork import QNetworkReply
 
 import qutebrowser
-import qutebrowser.utils.log as logutils
-import qutebrowser.utils.version as version
-from qutebrowser.network.schemehandler import (SchemeHandler,
-                                               SpecialNetworkReply,
-                                               ErrorNetworkReply)
-from qutebrowser.utils.misc import read_file
+from qutebrowser.network import schemehandler
+from qutebrowser.utils import version
+from qutebrowser.utils import log as logutils
+from qutebrowser.utils import misc as utils
 
 
 _HTML_TEMPLATE = """
@@ -73,7 +71,7 @@ def _get_html(title, snippet, head=None):
     return html
 
 
-class QuteSchemeHandler(SchemeHandler):
+class QuteSchemeHandler(schemehandler.SchemeHandler):
 
     """Scheme handler for qute: URLs."""
 
@@ -97,12 +95,13 @@ class QuteSchemeHandler(SchemeHandler):
         except AttributeError:
             errorstr = "No handler found for {}!".format(
                 request.url().toDisplayString())
-            return ErrorNetworkReply(request, errorstr,
-                                     QNetworkReply.ContentNotFoundError,
-                                     self.parent())
+            return schemehandler.ErrorNetworkReply(
+                request, errorstr, QNetworkReply.ContentNotFoundError,
+                self.parent())
         else:
             data = handler()
-        return SpecialNetworkReply(request, data, 'text/html', self.parent())
+        return schemehandler.SpecialNetworkReply(
+            request, data, 'text/html', self.parent())
 
 
 class QuteHandlers:
@@ -171,4 +170,4 @@ class QuteHandlers:
     @classmethod
     def gpl(cls):
         """Handler for qute:gpl. Return HTML content as bytes."""
-        return read_file('html/COPYING.html').encode('ASCII')
+        return utils.read_file('html/COPYING.html').encode('ASCII')

@@ -20,12 +20,12 @@
 """Launcher for an external editor."""
 
 import os
-from tempfile import mkstemp
+import tempfile
 
 from PyQt5.QtCore import pyqtSignal, QProcess, QObject
 
-import qutebrowser.config.config as config
-import qutebrowser.utils.message as message
+from qutebrowser.config import config
+from qutebrowser.utils import message
 from qutebrowser.utils.log import procs as logger
 
 
@@ -109,7 +109,7 @@ class ExternalEditor(QObject):
         if self.text is not None:
             raise ValueError("Already editing a file!")
         self.text = text
-        self.oshandle, self.filename = mkstemp(text=True)
+        self.oshandle, self.filename = tempfile.mkstemp(text=True)
         if text:
             encoding = config.get('general', 'editor-encoding')
             with open(self.filename, 'w', encoding=encoding) as f:

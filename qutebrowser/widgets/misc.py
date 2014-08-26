@@ -23,7 +23,7 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtGui import QValidator
 
-from qutebrowser.models.cmdhistory import History
+from qutebrowser.models import cmdhistory
 
 
 class MinimalLineEditMixin:
@@ -55,7 +55,7 @@ class CommandLineEdit(QLineEdit):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.history = History()
+        self.history = cmdhistory.History()
         self._validator = _CommandValidator(self)
         self.setValidator(self._validator)
         self.textEdited.connect(self.on_text_edited)

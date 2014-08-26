@@ -21,7 +21,7 @@
 
 from PyQt5.QtCore import pyqtSlot
 
-from qutebrowser.utils.usertypes import NeighborList
+from qutebrowser.utils import usertypes
 from qutebrowser.utils.log import misc as logger
 
 
@@ -85,7 +85,7 @@ class History:
             items = self.history
         if not items:
             raise HistoryEmptyError
-        self._tmphist = NeighborList(items)
+        self._tmphist = usertypes.NeighborList(items)
         return self._tmphist.lastitem()
 
     @pyqtSlot()

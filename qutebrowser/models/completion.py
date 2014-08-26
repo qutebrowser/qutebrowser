@@ -21,15 +21,14 @@
 
 from PyQt5.QtCore import pyqtSlot, Qt, QCoreApplication
 
-import qutebrowser.config.config as config
-import qutebrowser.config.configdata as configdata
-from qutebrowser.models.basecompletion import BaseCompletionModel
-from qutebrowser.commands.utils import cmd_dict
+from qutebrowser.config import config, configdata
+from qutebrowser.models import basecompletion
+from qutebrowser.commands import utils as cmdutils
+from qutebrowser.utils import qt as qtutils
 from qutebrowser.utils.log import completion as logger
-from qutebrowser.utils.qt import qt_ensure_valid
 
 
-class SettingSectionCompletionModel(BaseCompletionModel):
+class SettingSectionCompletionModel(basecompletion.BaseCompletionModel):
 
     """A CompletionModel filled with settings sections."""
 
@@ -43,7 +42,7 @@ class SettingSectionCompletionModel(BaseCompletionModel):
             self.new_item(cat, name, desc)
 
 
-class SettingOptionCompletionModel(BaseCompletionModel):
+class SettingOptionCompletionModel(basecompletion.BaseCompletionModel):
 
     """A CompletionModel filled with settings and their descriptions.
 
@@ -88,14 +87,14 @@ class SettingOptionCompletionModel(BaseCompletionModel):
             return
         val = config.get(section, option, raw=True)
         idx = item.index()
-        qt_ensure_valid(idx)
+        qtutils.qt_ensure_valid(idx)
         ok = self.setData(idx, val, Qt.DisplayRole)
         if not ok:
             raise ValueError("Setting data failed! (section: {}, option: {}, "
                              "value: {})".format(section, option, val))
 
 
-class SettingValueCompletionModel(BaseCompletionModel):
+class SettingValueCompletionModel(basecompletion.BaseCompletionModel):
 
     """A CompletionModel filled with setting values.
 
@@ -139,14 +138,14 @@ class SettingValueCompletionModel(BaseCompletionModel):
         if not value:
             value = '""'
         idx = self.cur_item.index()
-        qt_ensure_valid(idx)
+        qtutils.qt_ensure_valid(idx)
         ok = self.setData(idx, value, Qt.DisplayRole)
         if not ok:
             raise ValueError("Setting data failed! (section: {}, option: {}, "
                              "value: {})".format(section, option, value))
 
 
-class CommandCompletionModel(BaseCompletionModel):
+class CommandCompletionModel(basecompletion.BaseCompletionModel):
 
     """A CompletionModel filled with all commands and descriptions."""
 
@@ -154,9 +153,9 @@ class CommandCompletionModel(BaseCompletionModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        assert cmd_dict
+        assert cmdutils.cmd_dict
         cmdlist = []
-        for obj in set(cmd_dict.values()):
+        for obj in set(cmdutils.cmd_dict.values()):
             if obj.hide or (obj.debug and not
                             QCoreApplication.instance().args.debug):
                 pass

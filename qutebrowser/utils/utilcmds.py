@@ -21,10 +21,10 @@
 
 from functools import partial
 
-import qutebrowser.commands.utils as cmdutils
-from qutebrowser.utils.usertypes import Timer
-from qutebrowser.commands.exceptions import CommandError
-from qutebrowser.commands.runners import CommandRunner
+from qutebrowser.utils import usertypes
+from qutebrowser.commands import runners
+from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import exceptions as cmdexc
 
 
 _timers = []
@@ -34,7 +34,7 @@ _commandrunner = None
 def init():
     """Initialize the global _commandrunner."""
     global _commandrunner
-    _commandrunner = CommandRunner()
+    _commandrunner = runners.CommandRunner()
 
 
 @cmdutils.register(nargs=(2, None))
@@ -46,15 +46,15 @@ def later(ms, *command):
         command: The command/args to run.
     """
     ms = int(ms)
-    timer = Timer(name='later')
+    timer = usertypes.Timer(name='later')
     timer.setSingleShot(True)
     if ms < 0:
-        raise CommandError("I can't run something in the past!")
+        raise cmdexc.CommandError("I can't run something in the past!")
     try:
         timer.setInterval(ms)
     except OverflowError:
-        raise CommandError("Numeric argument is too large for internal int "
-                           "representation.")
+        raise cmdexc.CommandError("Numeric argument is too large for internal "
+                                  "int representation.")
     _timers.append(timer)
     cmdline = ' '.join(command)
     timer.timeout.connect(partial(_commandrunner.run_safely, cmdline))

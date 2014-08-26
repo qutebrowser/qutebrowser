@@ -25,18 +25,18 @@ Module attributes:
 
 from PyQt5.QtCore import pyqtSignal, Qt
 
-import qutebrowser.utils.message as message
-import qutebrowser.config.config as config
-from qutebrowser.keyinput.keyparser import CommandKeyParser
-from qutebrowser.utils.usertypes import enum
+from qutebrowser.utils import message
+from qutebrowser.config import config
+from qutebrowser.keyinput import keyparser
+from qutebrowser.utils import usertypes
 from qutebrowser.utils.log import keyboard as logger
 
 
 STARTCHARS = ":/?"
-LastPress = enum('LastPress', 'none', 'filtertext', 'keystring')
+LastPress = usertypes.enum('LastPress', 'none', 'filtertext', 'keystring')
 
 
-class NormalKeyParser(CommandKeyParser):
+class NormalKeyParser(keyparser.CommandKeyParser):
 
     """KeyParser for normalmode with added STARTCHARS detection."""
 
@@ -63,7 +63,7 @@ class NormalKeyParser(CommandKeyParser):
         return super()._handle_single_key(e)
 
 
-class PromptKeyParser(CommandKeyParser):
+class PromptKeyParser(keyparser.CommandKeyParser):
 
     """KeyParser for yes/no prompts."""
 
@@ -77,7 +77,7 @@ class PromptKeyParser(CommandKeyParser):
         return '<{}>'.format(self.__class__.__name__)
 
 
-class HintKeyParser(CommandKeyParser):
+class HintKeyParser(keyparser.CommandKeyParser):
 
     """KeyChainParser for hints.
 

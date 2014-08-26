@@ -29,12 +29,9 @@ except ImportError:
 else:
     SSL_AVAILABLE = QSslSocket.supportsSsl()
 
-import qutebrowser.config.config as config
-import qutebrowser.utils.message as message
-import qutebrowser.utils.log as log
-from qutebrowser.network.qutescheme import QuteSchemeHandler
-from qutebrowser.network.schemehandler import ErrorNetworkReply
-from qutebrowser.utils.usertypes import PromptMode
+from qutebrowser.config import config
+from qutebrowser.utils import message, log, usertypes
+from qutebrowser.network import qutescheme, schemehandler
 
 
 class NetworkManager(QNetworkAccessManager):
@@ -52,7 +49,7 @@ class NetworkManager(QNetworkAccessManager):
         super().__init__(parent)
         self._requests = []
         self._scheme_handlers = {
-            'qute': QuteSchemeHandler(),
+            'qute': qutescheme.QuteSchemeHandler(),
         }
         cookiejar = QCoreApplication.instance().cookiejar
         parent = cookiejar.parent()
@@ -105,14 +102,14 @@ class NetworkManager(QNetworkAccessManager):
     def on_authentication_required(self, _reply, authenticator):
         """Called when a website needs authentication."""
         answer = message.ask("Username ({}):".format(authenticator.realm()),
-                             mode=PromptMode.user_pwd)
+                             mode=usertypes.PromptMode.user_pwd)
         self._fill_authenticator(authenticator, answer)
 
     @pyqtSlot('QNetworkProxy', 'QAuthenticator')
     def on_proxy_authentication_required(self, _proxy, authenticator):
         """Called when a proxy needs authentication."""
         answer = message.ask("Proxy username ({}):".format(
-            authenticator.realm()), mode=PromptMode.user_pwd)
+            authenticator.realm()), mode=usertypes.PromptMode.user_pwd)
         self._fill_authenticator(authenticator, answer)
 
     def createRequest(self, op, req, outgoing_data):
@@ -131,7 +128,7 @@ class NetworkManager(QNetworkAccessManager):
         """
         scheme = req.url().scheme()
         if scheme == 'https' and not SSL_AVAILABLE:
-            return ErrorNetworkReply(
+            return schemehandler.ErrorNetworkReply(
                 req, "SSL is not supported by the installed Qt library!",
                 QNetworkReply.ProtocolUnknownError)
         elif scheme in self._scheme_handlers:

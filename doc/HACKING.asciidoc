@@ -289,7 +289,7 @@ or
 
 [source,python]
 ----
-import qutebrowser.utils.log as log
+from qutebrowser.utils import log
 ...
 log.foo.debug("Hello World")
 ----

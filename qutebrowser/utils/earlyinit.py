@@ -26,9 +26,9 @@ import faulthandler
 import traceback
 import signal
 try:
-    from tkinter import Tk, messagebox  # pylint: disable=import-error
+    import tkinter  # pylint: disable=import-error
 except ImportError:
-    Tk = None
+    tkinter = None
 
 
 def _missing_str(name, debian=None, arch=None, windows=None, pip=None):
@@ -186,10 +186,10 @@ def check_pyqt_core():
         text = text.replace('<b>', '')
         text = text.replace('</b>', '')
         text = text.replace('<br />', '\n')
-        if Tk:
-            root = Tk()
+        if tkinter:
+            root = tkinter.Tk()
             root.withdraw()
-            messagebox.showerror("qutebrowser: Fatal error!", text)
+            tkinter.messagebox.showerror("qutebrowser: Fatal error!", text)
         else:
             print(text, file=sys.stderr)
         if '--debug' in sys.argv:

@@ -20,19 +20,18 @@
 """Debugging console."""
 
 import sys
-from code import InteractiveInterpreter
+import code
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from PyQt5.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
 
-import qutebrowser.config.config as config
-from qutebrowser.models.cmdhistory import (History, HistoryEmptyError,
-                                           HistoryEndReachedError)
-from qutebrowser.utils.misc import fake_io, disabled_excepthook
-from qutebrowser.widgets.misc import CommandLineEdit
+from qutebrowser.config import config
+from qutebrowser.models import cmdhistory
+from qutebrowser.utils import misc as utils
+from qutebrowser.widgets import misc
 
 
-class ConsoleLineEdit(CommandLineEdit):
+class ConsoleLineEdit(misc.CommandLineEdit):
 
     """A QLineEdit which executes entered code and provides a history."""
 
@@ -56,8 +55,8 @@ class ConsoleLineEdit(CommandLineEdit):
             # console, not just the line edit.
             'self': parent,
         }
-        self._interpreter = InteractiveInterpreter(interpreter_locals)
-        self.history = History()
+        self._interpreter = code.InteractiveInterpreter(interpreter_locals)
+        self.history = cmdhistory.History()
         self.returnPressed.connect(self.execute)
         self.setText('')
 
@@ -88,7 +87,7 @@ class ConsoleLineEdit(CommandLineEdit):
         #     same.
         #   - We disable our exception hook, so exceptions from the console get
         #     printed and don't ooen a crashdialog.
-        with fake_io(self.write.emit), disabled_excepthook():
+        with utils.fake_io(self.write.emit), utils.disabled_excepthook():
             self._more = self._interpreter.runsource(source, '<console>')
         self.set_prompt(self.curprompt)
         if not self._more:
@@ -101,7 +100,8 @@ class ConsoleLineEdit(CommandLineEdit):
                 item = self.history.start(self.text().strip())
             else:
                 item = self.history.previtem()
-        except (HistoryEmptyError, HistoryEndReachedError):
+        except (cmdhistory.HistoryEmptyError,
+                cmdhistory.HistoryEndReachedError):
             return
         self.setText(item)
 
@@ -111,7 +111,7 @@ class ConsoleLineEdit(CommandLineEdit):
             return
         try:
             item = self.history.nextitem()
-        except HistoryEndReachedError:
+        except cmdhistory.HistoryEndReachedError:
             return
         self.setText(item)
 

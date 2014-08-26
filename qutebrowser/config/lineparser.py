@@ -24,7 +24,7 @@ import os.path
 
 from PyQt5.QtCore import pyqtSlot
 
-import qutebrowser.utils.log as log
+from qutebrowser.utils import log
 
 
 class LineConfigParser:
@@ -82,7 +82,7 @@ class LineConfigParser:
             log.destroy.debug("No data to save.")
             return
         # We need to import this here because config needs LineConfigParser.
-        import qutebrowser.config.config as config
+        from qutebrowser.config import config
         limit = -1 if self._limit is None else config.get(*self._limit)
         if limit == 0:
             return
@@ -98,7 +98,7 @@ class LineConfigParser:
         if self._limit is None:
             return
         # We need to import this here because config needs LineConfigParser.
-        import qutebrowser.config.config as config
+        from qutebrowser.config import config
         value = config.get(section, option)
         if (section, option) == self._limit and value == 0:
             if os.path.exists(self._configfile):

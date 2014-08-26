@@ -22,18 +22,17 @@
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QHBoxLayout, QWidget, QLineEdit
 
-from qutebrowser.widgets.misc import MinimalLineEditMixin
-from qutebrowser.widgets.statusbar.textbase import TextBase
-from qutebrowser.widgets.statusbar.prompter import Prompter
+from qutebrowser.widgets import misc
+from qutebrowser.widgets.statusbar import textbase, prompter
 
 
-class PromptLineEdit(MinimalLineEditMixin, QLineEdit):
+class PromptLineEdit(misc.MinimalLineEditMixin, QLineEdit):
 
     """QLineEdit with a minimal stylesheet."""
 
     def __init__(self, parent=None):
         QLineEdit.__init__(self, parent)
-        MinimalLineEditMixin.__init__(self)
+        misc.MinimalLineEditMixin.__init__(self)
 
 
 class Prompt(QWidget):
@@ -60,13 +59,13 @@ class Prompt(QWidget):
         self._hbox.setContentsMargins(0, 0, 0, 0)
         self._hbox.setSpacing(5)
 
-        self.txt = TextBase()
+        self.txt = textbase.TextBase()
         self._hbox.addWidget(self.txt)
 
         self.lineedit = PromptLineEdit()
         self._hbox.addWidget(self.lineedit)
 
-        self.prompter = Prompter(self)
+        self.prompter = prompter.Prompter(self)
 
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)

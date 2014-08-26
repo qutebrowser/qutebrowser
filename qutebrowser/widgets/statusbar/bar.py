@@ -19,27 +19,22 @@
 
 """The main statusbar widget."""
 
-from collections import deque
-from datetime import datetime
+import collections
+import datetime
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
-import qutebrowser.keyinput.modeman as modeman
-import qutebrowser.config.config as config
+from qutebrowser.keyinput import modeman
+from qutebrowser.config import config, style
+from qutebrowser.utils import usertypes
 from qutebrowser.utils.log import statusbar as logger
-from qutebrowser.widgets.statusbar.command import Command
-from qutebrowser.widgets.statusbar.progress import Progress
-from qutebrowser.widgets.statusbar.text import Text
-from qutebrowser.widgets.statusbar.keystring import KeyString
-from qutebrowser.widgets.statusbar.percentage import Percentage
-from qutebrowser.widgets.statusbar.url import UrlText
-from qutebrowser.widgets.statusbar.prompt import Prompt
-from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
-from qutebrowser.utils.usertypes import Timer, KeyMode, enum
+from qutebrowser.widgets.statusbar import (command, progress, keystring,
+                                           percentage, url, prompt)
+from qutebrowser.widgets.statusbar import text as textwidget
 
 
-PreviousWidget = enum('PreviousWidget', 'none', 'prompt', 'command')
+PreviousWidget = usertypes.enum('PreviousWidget', 'none', 'prompt', 'command')
 
 
 class StatusBar(QWidget):
@@ -128,7 +123,7 @@ class StatusBar(QWidget):
         super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
         self.setAttribute(Qt.WA_StyledBackground)
-        set_register_stylesheet(self)
+        style.set_register_stylesheet(self)
 
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
 
@@ -143,18 +138,18 @@ class StatusBar(QWidget):
         self._hbox.addLayout(self._stack)
         self._stack.setContentsMargins(0, 0, 0, 0)
 
-        self.cmd = Command()
+        self.cmd = command.Command()
         self._stack.addWidget(self.cmd)
 
-        self.txt = Text()
+        self.txt = textwidget.Text()
         self._stack.addWidget(self.txt)
         self._timer_was_active = False
-        self._text_queue = deque()
-        self._text_pop_timer = Timer(self, 'statusbar_text_pop')
+        self._text_queue = collections.deque()
+        self._text_pop_timer = usertypes.Timer(self, 'statusbar_text_pop')
         self._text_pop_timer.setInterval(config.get('ui', 'message-timeout'))
         self._text_pop_timer.timeout.connect(self._pop_text)
 
-        self.prompt = Prompt()
+        self.prompt = prompt.Prompt()
         self._stack.addWidget(self.prompt)
         self._previous_widget = PreviousWidget.none
 
@@ -165,19 +160,19 @@ class StatusBar(QWidget):
         self.prompt.hide_prompt.connect(self._hide_prompt_widget)
         self._hide_prompt_widget()
 
-        self.keystring = KeyString()
+        self.keystring = keystring.KeyString()
         self._hbox.addWidget(self.keystring)
 
-        self.url = UrlText()
+        self.url = url.UrlText()
         self._hbox.addWidget(self.url)
 
-        self.percentage = Percentage()
+        self.percentage = percentage.Percentage()
         self._hbox.addWidget(self.percentage)
 
         # We add a parent to Progress here because it calls self.show() based
         # on some signals, and if that happens before it's added to the layout,
         # it will quickly blink up as independent window.
-        self.prog = Progress(self)
+        self.prog = progress.Progress(self)
         self._hbox.addWidget(self.prog)
 
     def __repr__(self):
@@ -198,7 +193,7 @@ class StatusBar(QWidget):
         """
         logger.debug("Setting error to {}".format(val))
         self._error = val
-        self.setStyleSheet(get_stylesheet(self.STYLESHEET))
+        self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
         if val:
             # If we got an error while command/prompt was shown, raise the text
             # widget.
@@ -219,7 +214,7 @@ class StatusBar(QWidget):
         """
         logger.debug("Setting prompt_active to {}".format(val))
         self._prompt_active = val
-        self.setStyleSheet(get_stylesheet(self.STYLESHEET))
+        self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
 
     @pyqtProperty(bool)
     def insert_active(self):
@@ -236,7 +231,7 @@ class StatusBar(QWidget):
         """
         logger.debug("Setting insert_active to {}".format(val))
         self._insert_active = val
-        self.setStyleSheet(get_stylesheet(self.STYLESHEET))
+        self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
 
     def _pop_text(self):
         """Display a text in the statusbar and pop it from _text_queue."""
@@ -316,7 +311,7 @@ class StatusBar(QWidget):
         """
         # FIXME probably using a QTime here would be easier.
         logger.debug("Displaying text: {} (error={})".format(text, error))
-        now = datetime.now()
+        now = datetime.datetime.now()
         mindelta = config.get('ui', 'message-timeout')
         delta = (None if self._last_text_time is None
                  else now - self._last_text_time)
@@ -379,20 +374,20 @@ class StatusBar(QWidget):
         """Set a normal (persistent) text in the status bar."""
         self.txt.normaltext = val
 
-    @pyqtSlot(KeyMode)
+    @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
         if mode in modeman.instance().passthrough:
             self.txt.normaltext = "-- {} MODE --".format(mode.name.upper())
-        if mode == KeyMode.insert:
+        if mode == usertypes.KeyMode.insert:
             self.insert_active = True
 
-    @pyqtSlot(KeyMode)
+    @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Clear marked mode."""
         if mode in modeman.instance().passthrough:
             self.txt.normaltext = ""
-        if mode == KeyMode.insert:
+        if mode == usertypes.KeyMode.insert:
             self.insert_active = False
 
     @pyqtSlot(str, str)

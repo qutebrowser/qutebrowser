@@ -20,16 +20,15 @@
 """Make sure open() has an encoding set."""
 
 import astroid
-from pylint.interfaces import IAstroidChecker
-from pylint.checkers import BaseChecker
+from pylint import interfaces, checkers
 from pylint.checkers import utils
 
 
-class OpenEncodingChecker(BaseChecker):
+class OpenEncodingChecker(checkers.BaseChecker):
 
     """Checker to check open() has an encoding set."""
 
-    __implements__ = IAstroidChecker
+    __implements__ = interfaces.IAstroidChecker
     name = 'open-encoding'
 
     msgs = {

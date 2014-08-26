@@ -22,19 +22,17 @@
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QSizePolicy, QApplication
 
-import qutebrowser.keyinput.modeman as modeman
-import qutebrowser.commands.utils as cmdutils
-from qutebrowser.widgets.misc import MinimalLineEditMixin, CommandLineEdit
-from qutebrowser.commands.runners import CommandRunner
-from qutebrowser.keyinput.modeparsers import STARTCHARS
+from qutebrowser.keyinput import modeman, modeparsers
+from qutebrowser.commands import runners
+from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import exceptions as cmdexc
+from qutebrowser.widgets import misc
+from qutebrowser.models import cmdhistory
+from qutebrowser.utils import usertypes
 from qutebrowser.utils.log import completion as logger
-from qutebrowser.models.cmdhistory import (HistoryEmptyError,
-                                           HistoryEndReachedError)
-from qutebrowser.commands.exceptions import CommandError
-from qutebrowser.utils.usertypes import KeyMode
 
 
-class Command(MinimalLineEditMixin, CommandLineEdit):
+class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     """The commandline part of the statusbar.
 
@@ -76,8 +74,8 @@ class Command(MinimalLineEditMixin, CommandLineEdit):
     # for a possible fix.
 
     def __init__(self, parent=None):
-        CommandLineEdit.__init__(self, parent)
-        MinimalLineEditMixin.__init__(self)
+        misc.CommandLineEdit.__init__(self, parent)
+        misc.MinimalLineEditMixin.__init__(self)
         self.cursor_part = 0
         self.history.history = QApplication.instance().cmd_history.data
         self._empty_item_idx = None
@@ -92,7 +90,7 @@ class Command(MinimalLineEditMixin, CommandLineEdit):
         text = self.text()
         if not text:
             return ''
-        elif text[0] in STARTCHARS:
+        elif text[0] in modeparsers.STARTCHARS:
             return text[0]
         else:
             return ''
@@ -109,7 +107,7 @@ class Command(MinimalLineEditMixin, CommandLineEdit):
             # Text is only whitespace so we treat this as a single element with
             # the whitespace.
             return [text]
-        runner = CommandRunner()
+        runner = runners.CommandRunner()
         parts = runner.parse(text, fallback=True, alias_no_args=False)
         if self._empty_item_idx is not None:
             logger.debug("Empty element queued at {}, inserting.".format(
@@ -179,8 +177,9 @@ class Command(MinimalLineEditMixin, CommandLineEdit):
             strings: A list of strings to set.
         """
         text = ' '.join(strings)
-        if not text[0] in STARTCHARS:
-            raise CommandError("Invalid command text '{}'.".format(text))
+        if not text[0] in modeparsers.STARTCHARS:
+            raise cmdexc.CommandError(
+                "Invalid command text '{}'.".format(text))
         self.set_cmd_text(text)
 
     @pyqtSlot(str, bool)
@@ -215,7 +214,7 @@ class Command(MinimalLineEditMixin, CommandLineEdit):
         self.show_cmd.emit()
 
     @cmdutils.register(instance='mainwindow.status.cmd', hide=True,
-                       modes=[KeyMode.command])
+                       modes=[usertypes.KeyMode.command])
     def command_history_prev(self):
         """Go back in the commandline history."""
         try:
@@ -223,26 +222,27 @@ class Command(MinimalLineEditMixin, CommandLineEdit):
                 item = self.history.start(self.text().strip())
             else:
                 item = self.history.previtem()
-        except (HistoryEmptyError, HistoryEndReachedError):
+        except (cmdhistory.HistoryEmptyError,
+                cmdhistory.HistoryEndReachedError):
             return
         if item:
             self.set_cmd_text(item)
 
     @cmdutils.register(instance='mainwindow.status.cmd', hide=True,
-                       modes=[KeyMode.command])
+                       modes=[usertypes.KeyMode.command])
     def command_history_next(self):
         """Go forward in the commandline history."""
         if not self.history.browsing:
             return
         try:
             item = self.history.nextitem()
-        except HistoryEndReachedError:
+        except cmdhistory.HistoryEndReachedError:
             return
         if item:
             self.set_cmd_text(item)
 
     @cmdutils.register(instance='mainwindow.status.cmd', hide=True,
-                       modes=[KeyMode.command])
+                       modes=[usertypes.KeyMode.command])
     def command_accept(self):
         """Execute the command currently in the commandline.
 
@@ -258,7 +258,7 @@ class Command(MinimalLineEditMixin, CommandLineEdit):
         }
         text = self.text()
         self.history.append(text)
-        modeman.leave(KeyMode.command, 'cmd accept')
+        modeman.leave(usertypes.KeyMode.command, 'cmd accept')
         if text[0] in signals:
             signals[text[0]].emit(text.lstrip(text[0]))
 
@@ -271,7 +271,7 @@ class Command(MinimalLineEditMixin, CommandLineEdit):
         # here, but that's already done for us by cursorPositionChanged
         # anyways, so we don't need to do it twice.
 
-    @pyqtSlot(KeyMode)
+    @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Clear up when ommand mode was left.
 
@@ -286,7 +286,7 @@ class Command(MinimalLineEditMixin, CommandLineEdit):
             clear_completion_selection: Always emitted.
             hide_completion: Always emitted so the completion is hidden.
         """
-        if mode == KeyMode.command:
+        if mode == usertypes.KeyMode.command:
             self.setText('')
             self.history.stop()
             self.hide_cmd.emit()
@@ -295,14 +295,14 @@ class Command(MinimalLineEditMixin, CommandLineEdit):
 
     def focusInEvent(self, e):
         """Extend focusInEvent to enter command mode."""
-        modeman.maybe_enter(KeyMode.command, 'cmd focus')
+        modeman.maybe_enter(usertypes.KeyMode.command, 'cmd focus')
         super().focusInEvent(e)
 
     def setText(self, text):
         """Extend setText to set prefix and make sure the prompt is ok."""
         if not text:
             pass
-        elif text[0] in STARTCHARS:
+        elif text[0] in modeparsers.STARTCHARS:
             super().set_prompt(text[0])
         else:
             raise AssertionError("setText got called with invalid text "

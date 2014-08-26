@@ -20,13 +20,13 @@
 """Helpers needed by tests."""
 
 import os
-from contextlib import contextmanager
-from unittest.mock import create_autospec
+import contextlib
+from unittest import mock
 
 from PyQt5.QtGui import QKeyEvent
 
 
-@contextmanager
+@contextlib.contextmanager
 def environ_set_temp(name, value):
     """Set a temporary environment variable."""
     try:
@@ -43,8 +43,8 @@ def environ_set_temp(name, value):
 
 def fake_keyevent(key, modifiers=0, text=''):
     """Generate a new fake QKeyPressEvent."""
-    mock = create_autospec(QKeyEvent, instance=True)
-    mock.key.return_value = key
-    mock.modifiers.return_value = modifiers
-    mock.text.return_value = text
-    return mock
+    evtmock = mock.create_autospec(QKeyEvent, instance=True)
+    evtmock.key.return_value = key
+    evtmock.modifiers.return_value = modifiers
+    evtmock.text.return_value = text
+    return evtmock

@@ -19,9 +19,9 @@
 
 """Setting sections used for qutebrowser."""
 
-from collections import OrderedDict, ChainMap
+import collections
 
-from qutebrowser.config.value import SettingValue
+from qutebrowser.config import value as confvalue
 
 
 class Section:
@@ -108,7 +108,7 @@ class KeyValue(Section):
         super().__init__()
         if not defaults:
             return
-        self.values = OrderedDict()
+        self.values = collections.OrderedDict()
         for (k, v, desc) in defaults:
             assert k not in self.values, k
             self.values[k] = v
@@ -160,17 +160,17 @@ class ValueList(Section):
         self._ordered_value_cache = None
         self.keytype = keytype
         self.valtype = valtype
-        self.layers = OrderedDict([
-            ('default', OrderedDict()),
-            ('conf', OrderedDict()),
-            ('temp', OrderedDict()),
+        self.layers = collections.OrderedDict([
+            ('default', collections.OrderedDict()),
+            ('conf', collections.OrderedDict()),
+            ('temp', collections.OrderedDict()),
         ])
         defaultlayer = self.layers['default']
         for key, value in defaults:
             assert key not in defaultlayer, key
-            defaultlayer[key] = SettingValue(valtype, value)
-        self.values = ChainMap(self.layers['temp'], self.layers['conf'],
-                               self.layers['default'])
+            defaultlayer[key] = confvalue.SettingValue(valtype, value)
+        self.values = collections.ChainMap(
+            self.layers['temp'], self.layers['conf'], self.layers['default'])
 
     @property
     def ordered_values(self):
@@ -180,7 +180,7 @@ class ValueList(Section):
         iterating/items/etc. when order matters.
         """
         if self._ordered_value_cache is None:
-            self._ordered_value_cache = OrderedDict()
+            self._ordered_value_cache = collections.OrderedDict()
             for layer in self.layers.values():
                 self._ordered_value_cache.update(layer)
         return self._ordered_value_cache
@@ -190,14 +190,15 @@ class ValueList(Section):
         if key in self.layers[layer]:
             self.layers[layer][key].setv(layer, value, interpolated)
         else:
-            val = SettingValue(self.valtype)
+            val = confvalue.SettingValue(self.valtype)
             val.setv(layer, value, interpolated)
             self.layers[layer][key] = val
         self._ordered_value_cache = None
 
     def dump_userconfig(self):
         changed = []
-        mapping = ChainMap(self.layers['temp'], self.layers['conf'])
+        mapping = collections.ChainMap(
+            self.layers['temp'], self.layers['conf'])
         for k, v in mapping.items():
             try:
                 if v.value != self.layers['default'][k].value:

@@ -20,8 +20,9 @@
 
 """Entry point for qutebrowser. Simply execute qutebrowser."""
 
-import qutebrowser.qutebrowser
 import sys
+
+import qutebrowser.qutebrowser
 
 
 if __name__ == '__main__':

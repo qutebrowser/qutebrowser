@@ -24,29 +24,28 @@ OrderedDict. This is because we read them from a file at start and write them
 to a file on shutdown, so it makes semse to keep them as strings her.e
 """
 
-from functools import partial
-from collections import OrderedDict
+import functools
+import collections
 
 from PyQt5.QtCore import QStandardPaths, QUrl
 
-import qutebrowser.utils.message as message
-import qutebrowser.commands.utils as cmdutils
-from qutebrowser.utils.usertypes import PromptMode
-from qutebrowser.config.lineparser import LineConfigParser
-from qutebrowser.utils.misc import get_standard_dir
-from qutebrowser.utils.qt import qt_ensure_valid
-from qutebrowser.commands.exceptions import CommandError
+from qutebrowser.utils import message, usertypes
+from qutebrowser.utils import misc as utils
+from qutebrowser.utils import qt as qtutils
+from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import exceptions as cmdexc
+from qutebrowser.config import lineparser
 
 
-marks = OrderedDict()
+marks = collections.OrderedDict()
 linecp = None
 
 
 def init():
     """Read quickmarks from the config file."""
     global linecp
-    confdir = get_standard_dir(QStandardPaths.ConfigLocation)
-    linecp = LineConfigParser(confdir, 'quickmarks')
+    confdir = utils.get_standard_dir(QStandardPaths.ConfigLocation)
+    linecp = lineparser.LineConfigParser(confdir, 'quickmarks')
     for line in linecp:
         try:
             key, url = line.split(maxsplit=1)
@@ -68,10 +67,10 @@ def prompt_save(url):
     Args:
         url: The quickmark url as a QUrl.
     """
-    qt_ensure_valid(url)
+    qtutils.qt_ensure_valid(url)
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
-    message.ask_async("Add quickmark:", PromptMode.text,
-                      partial(quickmark_add, urlstr))
+    message.ask_async("Add quickmark:", usertypes.PromptMode.text,
+                      functools.partial(quickmark_add, urlstr))
 
 
 @cmdutils.register()
@@ -83,9 +82,9 @@ def quickmark_add(urlstr, name):
         name: The name for the new quickmark.
     """
     if not name:
-        raise CommandError("Can't set mark with empty name!")
+        raise cmdexc.CommandError("Can't set mark with empty name!")
     if not urlstr:
-        raise CommandError("Can't set mark with empty URL!")
+        raise cmdexc.CommandError("Can't set mark with empty URL!")
 
     def set_mark():
         """Really set the quickmark."""
@@ -101,10 +100,12 @@ def quickmark_add(urlstr, name):
 def get(name):
     """Get the URL of the quickmark named name as a QUrl."""
     if name not in marks:
-        raise CommandError("Quickmark '{}' does not exist!".format(name))
+        raise cmdexc.CommandError(
+            "Quickmark '{}' does not exist!".format(name))
     urlstr = marks[name]
     url = QUrl(urlstr)
     if not url.isValid():
-        raise CommandError("Invalid URL for quickmark {}: {} ({})".format(
-            name, urlstr, url.errorString()))
+        raise cmdexc.CommandError(
+            "Invalid URL for quickmark {}: {} ({})".format(name, urlstr,
+                                                           url.errorString()))
     return url

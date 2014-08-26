@@ -20,18 +20,17 @@
 """Custom astroid checker for config calls."""
 
 import astroid
-from pylint.interfaces import IAstroidChecker
-from pylint.checkers import BaseChecker
+from pylint import interfaces, checkers
 from pylint.checkers import utils
 
-import qutebrowser.config.configdata as configdata
+from qutebrowser.config import configdata
 
 
-class ConfigChecker(BaseChecker):
+class ConfigChecker(checkers.BaseChecker):
 
     """Custom astroid checker for config calls."""
 
-    __implements__ = IAstroidChecker
+    __implements__ = interfaces.IAstroidChecker
     name = 'config'
     msgs = {
         'E0000': ('"%s -> %s" is no valid config option.', 'bad-config-call',

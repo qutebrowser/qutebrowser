@@ -25,7 +25,7 @@ import os.path
 import sys
 import glob
 import shutil
-from fnmatch import fnmatch
+import fnmatch
 
 
 recursive_lint = ('__pycache__', '*.pyc')
@@ -47,11 +47,17 @@ def remove(path):
             os.remove(path)
 
 
-for elem in lint:
-    for f in glob.glob(elem):
-        remove(f)
+def main():
+    """Clean up lint in the current dir."""
+    for elem in lint:
+        for f in glob.glob(elem):
+            remove(f)
+
+    for root, _dirs, _files in os.walk(os.getcwd()):
+        path = os.path.basename(root)
+        if any([fnmatch.fnmatch(path, e) for e in recursive_lint]):
+            remove(root)
 
 
-for root, dirs, files in os.walk(os.getcwd()):
-    if any([fnmatch(os.path.basename(root), e) for e in recursive_lint]):
-        remove(root)
+if __name__ == '__main__':
+    main()

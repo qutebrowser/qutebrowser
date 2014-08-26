@@ -22,9 +22,9 @@
 from PyQt5.QtCore import pyqtSlot, QSize, Qt
 from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu
 
-from qutebrowser.models.downloadmodel import DownloadModel, Role
-from qutebrowser.config.style import set_register_stylesheet
-from qutebrowser.utils.qt import qt_ensure_valid
+from qutebrowser.models import downloadmodel
+from qutebrowser.config import style
+from qutebrowser.utils import qt as qtutils
 
 
 class DownloadView(QListView):
@@ -49,13 +49,13 @@ class DownloadView(QListView):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        set_register_stylesheet(self)
+        style.set_register_stylesheet(self)
         self.setResizeMode(QListView.Adjust)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         self.setFlow(QListView.LeftToRight)
         self._menu = None
-        self._model = DownloadModel(self)
+        self._model = downloadmodel.DownloadModel(self)
         self._model.rowsInserted.connect(self.updateGeometry)
         self._model.rowsRemoved.connect(self.updateGeometry)
         self.setModel(self._model)
@@ -73,7 +73,7 @@ class DownloadView(QListView):
         index = self.indexAt(point)
         if not index.isValid():
             return
-        item = self.model().data(index, Role.item)
+        item = self.model().data(index, downloadmodel.Role.item)
         self._menu = QMenu(self)
         cancel = self._menu.addAction("Cancel")
         cancel.triggered.connect(item.cancel)
@@ -91,5 +91,5 @@ class DownloadView(QListView):
             size = QSize(0, height + 2)
         else:
             size = QSize(0, 0)
-        qt_ensure_valid(size)
+        qtutils.qt_ensure_valid(size)
         return size

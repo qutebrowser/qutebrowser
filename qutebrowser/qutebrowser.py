@@ -37,14 +37,14 @@ except ImportError:
         sys.exit(100)
 check_python_version()
 
-from argparse import ArgumentParser
-import qutebrowser.utils.earlyinit as earlyinit
+import argparse
+from qutebrowser.utils import earlyinit
 
 
 def get_argparser():
     """Get the argparse parser."""
-    parser = ArgumentParser("usage: qutebrowser",
-                            description=qutebrowser.__description__)
+    parser = argparse.ArgumentParser("usage: qutebrowser",
+                                     description=qutebrowser.__description__)
     parser.add_argument('-c', '--confdir', help="Set config directory (empty "
                         "for no config storage)")
     parser.add_argument('-V', '--version', help="Show version and quit.",
@@ -103,7 +103,7 @@ def main():
     earlyinit.check_pyqt_core()
     # We do this import late as we need to do the version checking first.
     # Note we may not import webkit stuff yet as fix_harfbuzz didn't run.
-    import qutebrowser.utils.log as log
+    from qutebrowser.utils import log
     log.init_log(args)
     log.init.debug("Log initialized.")
     log.init.debug("Doing early init.")
@@ -113,10 +113,10 @@ def main():
     earlyinit.check_pkg_resources()
     earlyinit.check_pypeg2()
     # We do this import late as we need to fix harfbuzz first.
-    from qutebrowser.app import Application
-    from qutebrowser.utils.debug import trace_lines
+    from qutebrowser import app
+    from qutebrowser.utils import debug
     import PyQt5.QtWidgets as QtWidgets
-    app = Application(args)
+    app = app.Application(args)
     # We set qApp explicitely here to reduce the risk of segfaults while
     # quitting.
     # See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/561303/comments/7
@@ -127,6 +127,6 @@ def main():
     ret = app.exec_()
     if args.debug_exit:
         print("Now logging late shutdown.", file=sys.stderr)
-        trace_lines(True)
+        debug.trace_lines(True)
     QtWidgets.qApp = None
     return ret

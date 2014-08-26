@@ -21,21 +21,19 @@
 
 import os
 import os.path
-from functools import partial
-from collections import deque
+import functools
+import collections
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer, QStandardPaths
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
-import qutebrowser.config.config as config
-import qutebrowser.utils.message as message
-import qutebrowser.commands.utils as cmdutils
-import qutebrowser.utils.misc as utils
-from qutebrowser.utils.http import parse_content_disposition
+from qutebrowser.config import config
+from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import exceptions as cmdexc
+from qutebrowser.utils import message, http, usertypes
+from qutebrowser.utils import misc as utils
+from qutebrowser.utils import qt as qtutils
 from qutebrowser.utils.log import downloads as logger
-from qutebrowser.utils.usertypes import PromptMode, Question, Timer
-from qutebrowser.utils.qt import qt_ensure_valid
-from qutebrowser.commands.exceptions import CommandError
 
 
 class DownloadItem(QObject):
@@ -92,7 +90,7 @@ class DownloadItem(QObject):
         self.basename = '???'
         samples = int(self.SPEED_AVG_WINDOW *
                       (1000 / self.SPEED_REFRESH_INTERVAL))
-        self.speed_avg = deque(maxlen=samples)
+        self.speed_avg = collections.deque(maxlen=samples)
         self.fileobj = None
         self.filename = None
         self.is_cancelled = False
@@ -111,7 +109,7 @@ class DownloadItem(QObject):
             QTimer.singleShot(0, lambda: self.error.emit(reply.errorString()))
         if reply.isFinished():
             QTimer.singleShot(0, self.finished.emit)
-        self.timer = Timer(self, 'speed_refresh')
+        self.timer = usertypes.Timer(self, 'speed_refresh')
         self.timer.timeout.connect(self.update_speed)
         self.timer.setInterval(self.SPEED_REFRESH_INTERVAL)
         self.timer.start()
@@ -349,7 +347,7 @@ class DownloadManager(QObject):
             url: The URL to get, as QUrl
             page: The QWebPage to get the download from.
         """
-        qt_ensure_valid(url)
+        qtutils.qt_ensure_valid(url)
         req = QNetworkRequest(url)
         reply = page.networkAccessManager().get(req)
         self.fetch(reply)
@@ -362,7 +360,7 @@ class DownloadManager(QObject):
         try:
             download = self.downloads[count - 1]
         except IndexError:
-            raise CommandError("There's no download {}!".format(count))
+            raise cmdexc.CommandError("There's no download {}!".format(count))
         download.cancel()
 
     @pyqtSlot('QNetworkReply')
@@ -372,25 +370,27 @@ class DownloadManager(QObject):
         Args:
             reply: The QNetworkReply to download.
         """
-        _inline, suggested_filename = parse_content_disposition(reply)
+        _inline, suggested_filename = http.parse_content_disposition(reply)
         logger.debug("fetch: {} -> {}".format(reply.url(), suggested_filename))
         download = DownloadItem(reply, self)
-        download.finished.connect(partial(self.on_finished, download))
-        download.data_changed.connect(partial(self.on_data_changed, download))
+        download.finished.connect(
+            functools.partial(self.on_finished, download))
+        download.data_changed.connect(
+            functools.partial(self.on_data_changed, download))
         download.error.connect(self.on_error)
         download.basename = suggested_filename
         self.download_about_to_be_added.emit(len(self.downloads) + 1)
         self.downloads.append(download)
         self.download_added.emit()
 
-        q = Question(self)
+        q = usertypes.Question(self)
         q.text = "Save file to:"
-        q.mode = PromptMode.text
+        q.mode = usertypes.PromptMode.text
         q.default = suggested_filename
         q.answered.connect(download.set_filename)
         q.cancelled.connect(download.cancel)
         q.completed.connect(q.deleteLater)
-        q.destroyed.connect(partial(self.questions.remove, q))
+        q.destroyed.connect(functools.partial(self.questions.remove, q))
         self.questions.append(q)
         download.cancelled.connect(q.abort)
         message.instance().ask(q, blocking=False)

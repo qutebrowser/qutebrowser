@@ -23,7 +23,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QLabel, QSizePolicy
 from PyQt5.QtGui import QPainter
 
-from qutebrowser.utils.qt import qt_ensure_valid
+from qutebrowser.utils import qt as qtutils
 
 
 class TextBase(QLabel):
@@ -79,7 +79,7 @@ class TextBase(QLabel):
         """Extend QLabel::resizeEvent to update the elided text afterwards."""
         super().resizeEvent(e)
         size = e.size()
-        qt_ensure_valid(size)
+        qtutils.qt_ensure_valid(size)
         self._update_elided_text(size.width())
 
     def paintEvent(self, e):
@@ -90,6 +90,6 @@ class TextBase(QLabel):
             e.accept()
             painter = QPainter(self)
             geom = self.geometry()
-            qt_ensure_valid(geom)
+            qtutils.qt_ensure_valid(geom)
             painter.drawText(0, 0, geom.width(), geom.height(),
                              self.alignment(), self._elided_text)

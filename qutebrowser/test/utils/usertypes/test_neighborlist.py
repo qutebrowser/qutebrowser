@@ -23,7 +23,7 @@
 
 import unittest
 
-from qutebrowser.utils.usertypes import NeighborList
+from qutebrowser.utils import usertypes
 
 
 class InitTests(unittest.TestCase):
@@ -36,27 +36,27 @@ class InitTests(unittest.TestCase):
 
     def test_empty(self):
         """Test constructing an empty NeighborList."""
-        nl = NeighborList()
+        nl = usertypes.NeighborList()
         self.assertEqual(nl.items, [])
 
     def test_items(self):
         """Test constructing an NeighborList with items."""
-        nl = NeighborList([1, 2, 3])
+        nl = usertypes.NeighborList([1, 2, 3])
         self.assertEqual(nl.items, [1, 2, 3])
 
     def test_len(self):
         """Test len() on NeighborList."""
-        nl = NeighborList([1, 2, 3])
+        nl = usertypes.NeighborList([1, 2, 3])
         self.assertEqual(len(nl), 3)
 
     def test_repr(self):
         """Test repr() on NeighborList."""
-        nl = NeighborList([1, 2, 3])
+        nl = usertypes.NeighborList([1, 2, 3])
         self.assertEqual(repr(nl), 'NeighborList([1, 2, 3])')
 
     def test_contains(self):
         """Test 'in' on NeighborList."""
-        nl = NeighborList([1, 2, 3])
+        nl = usertypes.NeighborList([1, 2, 3])
         self.assertIn(2, nl)
         self.assertNotIn(4, nl)
 
@@ -71,17 +71,17 @@ class DefaultTests(unittest.TestCase):
 
     def test_simple(self):
         """Test default with a numeric argument."""
-        nl = NeighborList([1, 2, 3], default=2)
+        nl = usertypes.NeighborList([1, 2, 3], default=2)
         self.assertEqual(nl.idx, 1)
 
     def test_none(self):
         """Test default 'None'."""
-        nl = NeighborList([1, 2, None], default=None)
+        nl = usertypes.NeighborList([1, 2, None], default=None)
         self.assertEqual(nl.idx, 2)
 
     def test_unset(self):
         """Test unset default value."""
-        nl = NeighborList([1, 2, 3])
+        nl = usertypes.NeighborList([1, 2, 3])
         self.assertIsNone(nl.idx)
 
 
@@ -94,7 +94,7 @@ class EmptyTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.nl = NeighborList()
+        self.nl = usertypes.NeighborList()
 
     def test_curitem(self):
         """Test curitem with no item."""
@@ -126,7 +126,7 @@ class ItemTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.nl = NeighborList([1, 2, 3, 4, 5], default=3)
+        self.nl = usertypes.NeighborList([1, 2, 3, 4, 5], default=3)
 
     def test_curitem(self):
         """Test curitem()."""
@@ -183,11 +183,11 @@ class OneTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.nl = NeighborList([1], default=1)
+        self.nl = usertypes.NeighborList([1], default=1)
 
     def test_first_wrap(self):
         """Test out of bounds previtem() with mode=wrap."""
-        self.nl._mode = NeighborList.Modes.wrap
+        self.nl._mode = usertypes.NeighborList.Modes.wrap
         self.nl.firstitem()
         self.assertEqual(self.nl.idx, 0)
         self.assertEqual(self.nl.previtem(), 1)
@@ -195,7 +195,7 @@ class OneTests(unittest.TestCase):
 
     def test_first_block(self):
         """Test out of bounds previtem() with mode=block."""
-        self.nl._mode = NeighborList.Modes.block
+        self.nl._mode = usertypes.NeighborList.Modes.block
         self.nl.firstitem()
         self.assertEqual(self.nl.idx, 0)
         self.assertEqual(self.nl.previtem(), 1)
@@ -203,7 +203,7 @@ class OneTests(unittest.TestCase):
 
     def test_first_raise(self):
         """Test out of bounds previtem() with mode=raise."""
-        self.nl._mode = NeighborList.Modes.exception
+        self.nl._mode = usertypes.NeighborList.Modes.exception
         self.nl.firstitem()
         self.assertEqual(self.nl.idx, 0)
         with self.assertRaises(IndexError):
@@ -212,7 +212,7 @@ class OneTests(unittest.TestCase):
 
     def test_last_wrap(self):
         """Test out of bounds nextitem() with mode=wrap."""
-        self.nl._mode = NeighborList.Modes.wrap
+        self.nl._mode = usertypes.NeighborList.Modes.wrap
         self.nl.lastitem()
         self.assertEqual(self.nl.idx, 0)
         self.assertEqual(self.nl.nextitem(), 1)
@@ -220,7 +220,7 @@ class OneTests(unittest.TestCase):
 
     def test_last_block(self):
         """Test out of bounds nextitem() with mode=block."""
-        self.nl._mode = NeighborList.Modes.block
+        self.nl._mode = usertypes.NeighborList.Modes.block
         self.nl.lastitem()
         self.assertEqual(self.nl.idx, 0)
         self.assertEqual(self.nl.nextitem(), 1)
@@ -228,7 +228,7 @@ class OneTests(unittest.TestCase):
 
     def test_last_raise(self):
         """Test out of bounds nextitem() with mode=raise."""
-        self.nl._mode = NeighborList.Modes.exception
+        self.nl._mode = usertypes.NeighborList.Modes.exception
         self.nl.lastitem()
         self.assertEqual(self.nl.idx, 0)
         with self.assertRaises(IndexError):
@@ -245,8 +245,9 @@ class BlockTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.nl = NeighborList([1, 2, 3, 4, 5], default=3,
-                               mode=NeighborList.Modes.block)
+        self.nl = usertypes.NeighborList(
+            [1, 2, 3, 4, 5], default=3,
+            mode=usertypes.NeighborList.Modes.block)
 
     def test_first(self):
         """Test ouf of bounds previtem()."""
@@ -272,8 +273,8 @@ class WrapTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.nl = NeighborList([1, 2, 3, 4, 5], default=3,
-                               mode=NeighborList.Modes.wrap)
+        self.nl = usertypes.NeighborList(
+            [1, 2, 3, 4, 5], default=3, mode=usertypes.NeighborList.Modes.wrap)
 
     def test_first(self):
         """Test ouf of bounds previtem()."""
@@ -299,8 +300,9 @@ class RaiseTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.nl = NeighborList([1, 2, 3, 4, 5], default=3,
-                               mode=NeighborList.Modes.exception)
+        self.nl = usertypes.NeighborList(
+            [1, 2, 3, 4, 5], default=3,
+            mode=usertypes.NeighborList.Modes.exception)
 
     def test_first(self):
         """Test ouf of bounds previtem()."""
@@ -328,7 +330,7 @@ class SnapInTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.nl = NeighborList([20, 9, 1, 5])
+        self.nl = usertypes.NeighborList([20, 9, 1, 5])
 
     def test_bigger(self):
         """Test fuzzyval with snapping to a bigger value."""

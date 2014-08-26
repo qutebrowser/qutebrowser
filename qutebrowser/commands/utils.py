@@ -24,12 +24,12 @@ Module attributes:
 """
 
 import inspect
-from collections import Iterable
+import collections
 
-import qutebrowser.utils.qt as qtutils
-from qutebrowser.commands.command import Command
-from qutebrowser.commands.exceptions import CommandError
-from qutebrowser.utils.usertypes import KeyMode
+from qutebrowser.utils import usertypes
+from qutebrowser.utils import qt as qtutils
+from qutebrowser.commands import command
+from qutebrowser.commands import exceptions as cmdexc
 
 cmd_dict = {}
 
@@ -49,8 +49,9 @@ def check_overflow(arg, ctype):
     try:
         qtutils.check_overflow(arg, ctype)
     except OverflowError:
-        raise CommandError("Numeric argument is too large for internal {} "
-                           "representation.".format(ctype))
+        raise cmdexc.CommandError(
+            "Numeric argument is too large for internal {} "
+            "representation.".format(ctype))
 
 
 def arg_or_count(arg, count, default=None, countzero=None):
@@ -135,11 +136,11 @@ class register:  # pylint: disable=invalid-name
         self.debug = debug
         if modes is not None:
             for m in modes:
-                if not isinstance(m, KeyMode):
+                if not isinstance(m, usertypes.KeyMode):
                     raise TypeError("Mode {} is no KeyMode member!".format(m))
         if not_modes is not None:
             for m in not_modes:
-                if not isinstance(m, KeyMode):
+                if not isinstance(m, usertypes.KeyMode):
                     raise TypeError("Mode {} is no KeyMode member!".format(m))
 
     def __call__(self, func):
@@ -178,12 +179,11 @@ class register:  # pylint: disable=invalid-name
             desc = func.__doc__.splitlines()[0].strip()
         else:
             desc = ""
-        cmd = Command(name=mainname, split=self.split,
-                      hide=self.hide, nargs=nargs, count=count, desc=desc,
-                      instance=self.instance, handler=func,
-                      completion=self.completion, modes=self.modes,
-                      not_modes=self.not_modes, needs_js=self.needs_js,
-                      debug=self.debug)
+        cmd = command.Command(
+            name=mainname, split=self.split, hide=self.hide, nargs=nargs,
+            count=count, desc=desc, instance=self.instance, handler=func,
+            completion=self.completion, modes=self.modes,
+            not_modes=self.not_modes, needs_js=self.needs_js, debug=self.debug)
         for name in names:
             cmd_dict[name] = cmd
         return func
@@ -209,7 +209,7 @@ class register:  # pylint: disable=invalid-name
         # we assume count always has a default (and it should!)
         if self.nargs is not None:
             # If nargs is overriden, use that.
-            if isinstance(self.nargs, Iterable):
+            if isinstance(self.nargs, collections.Iterable):
                 # Iterable (min, max)
                 # pylint: disable=unpacking-non-sequence
                 minargs, maxargs = self.nargs

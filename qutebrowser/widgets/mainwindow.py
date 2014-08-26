@@ -20,21 +20,17 @@
 """The main window of qutebrowser."""
 
 import binascii
-from base64 import b64decode
+import base64
 
 from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QCoreApplication, QTimer
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
-import qutebrowser.commands.utils as cmdutils
-import qutebrowser.config.config as config
-import qutebrowser.utils.message as message
-import qutebrowser.utils.log as log
-from qutebrowser.widgets.statusbar.bar import StatusBar
-from qutebrowser.widgets.tabbedbrowser import TabbedBrowser
-from qutebrowser.widgets.completion import CompletionView
-from qutebrowser.widgets.downloads import DownloadView
-from qutebrowser.utils.usertypes import PromptMode
-from qutebrowser.utils.qt import check_overflow
+from qutebrowser.commands import utils as cmdutils
+from qutebrowser.config import config
+from qutebrowser.utils import message, log, usertypes
+from qutebrowser.utils import qt as qtutils
+from qutebrowser.widgets import tabbedbrowser, completion, downloads
+from qutebrowser.widgets.statusbar import bar
 
 
 class MainWindow(QWidget):
@@ -57,9 +53,9 @@ class MainWindow(QWidget):
         self.setWindowTitle('qutebrowser')
         try:
             stateconf = QCoreApplication.instance().stateconfig
-            base64 = stateconf['geometry']['mainwindow']
-            log.init.debug("Restoring mainwindow from {}".format(base64))
-            geom = b64decode(base64, validate=True)
+            data = stateconf['geometry']['mainwindow']
+            log.init.debug("Restoring mainwindow from {}".format(data))
+            geom = base64.b64decode(data, validate=True)
         except (KeyError, binascii.Error) as e:
             log.init.warning("Error while reading geometry: {}: {}".format(
                 e.__class__.__name__, e))
@@ -81,17 +77,17 @@ class MainWindow(QWidget):
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
 
-        self.downloadview = DownloadView()
+        self.downloadview = downloads.DownloadView()
         self._vbox.addWidget(self.downloadview)
         self.downloadview.show()
 
-        self.tabs = TabbedBrowser()
+        self.tabs = tabbedbrowser.TabbedBrowser()
         self.tabs.title_changed.connect(self.setWindowTitle)
         self._vbox.addWidget(self.tabs)
 
-        self.completion = CompletionView(self)
+        self.completion = completion.CompletionView(self)
 
-        self.status = StatusBar()
+        self.status = bar.StatusBar()
         self._vbox.addWidget(self.status)
 
         # When we're here the statusbar might not even really exist yet, so
@@ -139,7 +135,7 @@ class MainWindow(QWidget):
         # hpoint now would be the bottom-left edge of the widget if it was on
         # the top of the main window.
         topleft_y = self.height() - self.status.height() - height
-        topleft_y = check_overflow(topleft_y, 'int', fatal=False)
+        topleft_y = qtutils.check_overflow(topleft_y, 'int', fatal=False)
         topleft = QPoint(0, topleft_y)
         bottomright = self.status.geometry().topRight()
         rect = QRect(topleft, bottomright)
@@ -178,7 +174,8 @@ class MainWindow(QWidget):
         else:
             text = "Close {} {}?".format(
                 count, "tab" if count == 1 else "tabs")
-            confirmed = message.ask(text, PromptMode.yesno, default=True)
+            confirmed = message.ask(text, usertypes.PromptMode.yesno,
+                                    default=True)
             if confirmed:
                 e.accept()
             else:

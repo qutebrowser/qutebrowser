@@ -21,17 +21,18 @@
 
 from PyQt5.QtCore import pyqtSlot, pyqtProperty, Qt
 
-from qutebrowser.widgets.webview import LoadStatus
-from qutebrowser.widgets.statusbar.textbase import TextBase
-from qutebrowser.config.style import set_register_stylesheet, get_stylesheet
-from qutebrowser.utils.usertypes import enum
+from qutebrowser.widgets import webview
+from qutebrowser.widgets.statusbar import textbase
+from qutebrowser.config import style
+from qutebrowser.utils import usertypes
 
 
 # Note this has entries for success/error/warn from widgets.webview:LoadStatus
-UrlType = enum('UrlType', 'success', 'error', 'warn', 'hover', 'normal')
+UrlType = usertypes.enum('UrlType', 'success', 'error', 'warn', 'hover',
+                         'normal')
 
 
-class UrlText(TextBase):
+class UrlText(textbase.TextBase):
 
     """URL displayed in the statusbar.
 
@@ -80,7 +81,7 @@ class UrlText(TextBase):
         """Override TextBase.__init__ to elide in the middle by default."""
         super().__init__(parent, Qt.ElideMiddle)
         self.setObjectName(self.__class__.__name__)
-        set_register_stylesheet(self)
+        style.set_register_stylesheet(self)
         self._hover_url = None
         self._normal_url = None
         self._normal_url_type = UrlType.normal
@@ -104,7 +105,7 @@ class UrlText(TextBase):
         if not isinstance(val, UrlType):
             raise TypeError("Type {} is no UrlType member!".format(val))
         self._urltype = val
-        self.setStyleSheet(get_stylesheet(self.STYLESHEET))
+        self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
 
     @property
     def hover_url(self):
@@ -164,8 +165,9 @@ class UrlText(TextBase):
         Args:
             status_str: The LoadStatus as string.
         """
-        status = LoadStatus[status_str]
-        if status in (LoadStatus.success, LoadStatus.error, LoadStatus.warn):
+        status = webview.LoadStatus[status_str]
+        if status in (webview.LoadStatus.success, webview.LoadStatus.error,
+                      webview.LoadStatus.warn):
             self.normal_url_type = UrlType[status_str]
         else:
             self.normal_url_type = UrlType.normal

@@ -19,7 +19,7 @@
 
 """A single value (with multiple layers possibly) in the config."""
 
-from collections import OrderedDict
+import collections
 
 
 class SettingValue:
@@ -43,7 +43,8 @@ class SettingValue:
             default: Raw value to set.
         """
         self.typ = typ
-        self._values = OrderedDict.fromkeys(['temp', 'conf', 'default'])
+        self._values = collections.OrderedDict.fromkeys(
+            ['temp', 'conf', 'default'])
         self._values['default'] = default
 
     def __str__(self):
@@ -72,7 +73,7 @@ class SettingValue:
             startlayer: The first layer to include.
         """
         idx = list(self._values.keys()).index(startlayer)
-        d = OrderedDict(list(self._values.items())[idx:])
+        d = collections.OrderedDict(list(self._values.items())[idx:])
         return d
 
     def get_first_value(self, startlayer=None):

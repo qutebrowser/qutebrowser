@@ -24,11 +24,11 @@
 import os
 import os.path
 
-from scripts.setupcommon import setupdata, write_git_file
+from scripts import setupcommon as common
 
-from scripts.ez_setup import use_setuptools
-use_setuptools()
-from setuptools import setup, find_packages
+from scripts import ez_setup
+ez_setup.use_setuptools()
+import setuptools
 
 
 try:
@@ -38,9 +38,9 @@ except NameError:
 
 
 try:
-    write_git_file()
-    setup(
-        packages=find_packages(exclude=['qutebrowser.test']),
+    common.write_git_file()
+    setuptools.setup(
+        packages=setuptools.find_packages(exclude=['qutebrowser.test']),
         include_package_data=True,
         package_data={'qutebrowser': ['html/*', 'git-commit-id']},
         entry_points={'gui_scripts':
@@ -51,7 +51,7 @@ try:
         extras_require={'nice-debugging': ['colorlog', 'colorama'],
                         'checks': ['flake8', 'pylint', 'check-manifest',
                                    'pyroma']},
-        **setupdata
+        **common.setupdata
     )
 finally:
     if BASEDIR is not None:

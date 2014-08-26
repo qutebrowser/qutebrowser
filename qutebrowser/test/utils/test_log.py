@@ -26,7 +26,7 @@ import unittest
 import argparse
 import sys
 
-import qutebrowser.utils.log as log
+from qutebrowser.utils import log
 
 
 class BaseTest(unittest.TestCase):

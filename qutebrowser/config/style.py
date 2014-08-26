@@ -24,13 +24,13 @@ Module attributes:
     _fontdict: The global cached FontDict.
 """
 
-from functools import partial
+import functools
 
 from PyQt5.QtGui import QColor
 
-import qutebrowser.config.config as config
+from qutebrowser.config import config
+from qutebrowser.utils import misc as utils
 from qutebrowser.utils.log import style as logger
-from qutebrowser.utils.misc import compact_text
 
 
 _colordict = None
@@ -68,9 +68,10 @@ def set_register_stylesheet(obj):
     """
     qss = get_stylesheet(obj.STYLESHEET)
     logger.debug("stylesheet for {}: {}".format(obj.__class__.__name__,
-                                                compact_text(qss)))
+                                                utils.compact_text(qss)))
     obj.setStyleSheet(qss)
-    config.instance().changed.connect(partial(_update_stylesheet, obj))
+    config.instance().changed.connect(
+        functools.partial(_update_stylesheet, obj))
 
 
 def _update_stylesheet(obj, _section, _option):

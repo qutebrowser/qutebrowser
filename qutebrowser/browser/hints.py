@@ -21,28 +21,28 @@
 
 import math
 import subprocess
-from collections import namedtuple
+import collections
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl
 from PyQt5.QtGui import QMouseEvent, QClipboard
 from PyQt5.QtWidgets import QApplication
 
-import qutebrowser.config.config as config
-import qutebrowser.keyinput.modeman as modeman
-import qutebrowser.utils.message as message
-import qutebrowser.utils.webelem as webelem
-import qutebrowser.commands.userscripts as userscripts
-from qutebrowser.commands.exceptions import CommandError
-from qutebrowser.utils.usertypes import enum, KeyMode
+from qutebrowser.config import config
+from qutebrowser.keyinput import modeman
+from qutebrowser.utils import message, webelem
+from qutebrowser.commands import userscripts
+from qutebrowser.commands import exceptions as cmdexc
+from qutebrowser.utils import usertypes
+from qutebrowser.utils import qt as qtutils
 from qutebrowser.utils.log import hints as logger
-from qutebrowser.utils.qt import qt_ensure_valid
 
 
-ElemTuple = namedtuple('ElemTuple', 'elem, label')
+ElemTuple = collections.namedtuple('ElemTuple', 'elem, label')
 
 
-Target = enum('Target', 'normal', 'tab', 'tab_bg', 'yank', 'yank_primary',
-              'fill', 'rapid', 'download', 'userscript', 'spawn')
+Target = usertypes.enum('Target', 'normal', 'tab', 'tab_bg', 'yank',
+                        'yank_primary', 'fill', 'rapid', 'download',
+                        'userscript', 'spawn')
 
 
 class HintContext:
@@ -340,7 +340,7 @@ class HintManager(QObject):
         Args:
             url: The URL to open as a QURL.
         """
-        qt_ensure_valid(url)
+        qtutils.qt_ensure_valid(url)
         sel = self._context.target == Target.yank_primary
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
@@ -354,7 +354,7 @@ class HintManager(QObject):
         Args:
             url: The URL to open as a QUrl.
         """
-        qt_ensure_valid(url)
+        qtutils.qt_ensure_valid(url)
         urlstr = url.toDisplayString(QUrl.FullyEncoded)
         args = self._context.get_args(urlstr)
         message.set_cmd_text(' '.join(args))
@@ -370,19 +370,19 @@ class HintManager(QObject):
             message.error("No suitable link found for this element.",
                           immediately=True)
             return
-        qt_ensure_valid(url)
+        qtutils.qt_ensure_valid(url)
         self.download_get.emit(url, elem.webFrame().page())
 
     def _call_userscript(self, url):
         """Call an userscript from a hint."""
-        qt_ensure_valid(url)
+        qtutils.qt_ensure_valid(url)
         cmd = self._context.args[0]
         args = self._context.args[1:]
         userscripts.run(cmd, *args, url=url)
 
     def _spawn(self, url):
         """Spawn a simple command from a hint."""
-        qt_ensure_valid(url)
+        qtutils.qt_ensure_valid(url)
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
         args = self._context.get_args(urlstr)
         subprocess.Popen(args)
@@ -406,7 +406,7 @@ class HintManager(QObject):
         url = QUrl(text)
         if url.isRelative():
             url = baseurl.resolved(url)
-        qt_ensure_valid(url)
+        qtutils.qt_ensure_valid(url)
         return url
 
     def _find_prevnext(self, frame, prev=False):
@@ -457,11 +457,11 @@ class HintManager(QObject):
         """
         elem = self._find_prevnext(frame, prev)
         if elem is None:
-            raise CommandError("No {} links found!".format(
+            raise cmdexc.CommandError("No {} links found!".format(
                 "prev" if prev else "forward"))
         url = self._resolve_url(elem, baseurl)
         if url is None or not url.isValid():
-            raise CommandError("No {} links found!".format(
+            raise cmdexc.CommandError("No {} links found!".format(
                 "prev" if prev else "forward"))
         self.openurl.emit(url, newtab)
 
@@ -488,12 +488,13 @@ class HintManager(QObject):
             raise ValueError("start() was called with frame=None")
         if target in (Target.userscript, Target.spawn, Target.fill):
             if not args:
-                raise CommandError("Additional arguments are required with "
-                                   "target userscript/spawn/fill.")
+                raise cmdexc.CommandError(
+                    "Additional arguments are required with target "
+                    "userscript/spawn/fill.")
         else:
             if args:
-                raise CommandError("Arguments are only allowed with target "
-                                   "userscript/spawn.")
+                raise cmdexc.CommandError(
+                    "Arguments are only allowed with target userscript/spawn.")
         elems = []
         ctx = HintContext()
         ctx.frames = webelem.get_child_frames(mainframe)
@@ -503,7 +504,7 @@ class HintManager(QObject):
         visible_elems = [e for e in elems if filterfunc(e) and
                          webelem.is_visible(e, mainframe)]
         if not visible_elems:
-            raise CommandError("No elements found.")
+            raise cmdexc.CommandError("No elements found.")
         ctx.target = target
         ctx.baseurl = baseurl
         ctx.args = args
@@ -516,7 +517,7 @@ class HintManager(QObject):
         self._connect_frame_signals()
         self.hint_strings_updated.emit(strings)
         try:
-            modeman.enter(KeyMode.hint, 'HintManager.start')
+            modeman.enter(usertypes.KeyMode.hint, 'HintManager.start')
         except modeman.ModeLockedError:
             self._cleanup()
 
@@ -560,7 +561,7 @@ class HintManager(QObject):
                 visible[k] = e
         if not visible:
             # Whoops, filtered all hints
-            modeman.leave(KeyMode.hint, 'all filtered')
+            modeman.leave(usertypes.KeyMode.hint, 'all filtered')
         elif len(visible) == 1 and config.get('hints', 'auto-follow'):
             # unpacking gets us the first (and only) key in the dict.
             self.fire(*visible)
@@ -606,12 +607,12 @@ class HintManager(QObject):
         else:
             raise ValueError("No suitable handler found!")
         if self._context.target != Target.rapid:
-            modeman.maybe_leave(KeyMode.hint, 'followed')
+            modeman.maybe_leave(usertypes.KeyMode.hint, 'followed')
 
     def follow_hint(self):
         """Follow the currently selected hint."""
         if not self._context.to_follow:
-            raise CommandError("No hint to follow")
+            raise cmdexc.CommandError("No hint to follow")
         self.fire(self._context.to_follow, force=True)
 
     @pyqtSlot('QSize')
@@ -627,16 +628,16 @@ class HintManager(QObject):
             css = self._get_hint_css(elems.elem, elems.label)
             elems.label.setAttribute('style', css)
 
-    @pyqtSlot(KeyMode)
+    @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Stop hinting when insert mode was entered."""
-        if mode == KeyMode.insert:
-            modeman.maybe_leave(KeyMode.hint, 'insert mode')
+        if mode == usertypes.KeyMode.insert:
+            modeman.maybe_leave(usertypes.KeyMode.hint, 'insert mode')
 
-    @pyqtSlot(KeyMode)
+    @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Stop hinting when hinting mode was left."""
-        if mode != KeyMode.hint or self._context is None:
+        if mode != usertypes.KeyMode.hint or self._context is None:
             # We have one HintManager per tab, so when this gets called,
             # self._context might be None, because the current tab is not
             # hinting.

@@ -25,8 +25,8 @@ test_content_disposition.py file.
 
 import unittest
 
-import qutebrowser.utils.http as httputils
-from qutebrowser.test.stubs import FakeNetworkReply
+from qutebrowser.utils import http
+from qutebrowser.test import stubs
 
 
 class ParseContentTypeTests(unittest.TestCase):
@@ -35,30 +35,31 @@ class ParseContentTypeTests(unittest.TestCase):
 
     def test_not_existing(self):
         """Test without any Content-Type header."""
-        reply = FakeNetworkReply()
-        mimetype, rest = httputils.parse_content_type(reply)
+        reply = stubs.FakeNetworkReply()
+        mimetype, rest = http.parse_content_type(reply)
         self.assertIsNone(mimetype)
         self.assertIsNone(rest)
 
     def test_mimetype(self):
         """Test with simple Content-Type header."""
-        reply = FakeNetworkReply(headers={'Content-Type': 'image/example'})
-        mimetype, rest = httputils.parse_content_type(reply)
+        reply = stubs.FakeNetworkReply(
+            headers={'Content-Type': 'image/example'})
+        mimetype, rest = http.parse_content_type(reply)
         self.assertEqual(mimetype, 'image/example')
         self.assertIsNone(rest)
 
     def test_empty(self):
         """Test with empty Content-Type header."""
-        reply = FakeNetworkReply(headers={'Content-Type': ''})
-        mimetype, rest = httputils.parse_content_type(reply)
+        reply = stubs.FakeNetworkReply(headers={'Content-Type': ''})
+        mimetype, rest = http.parse_content_type(reply)
         self.assertEqual(mimetype, '')
         self.assertIsNone(rest)
 
     def test_additional(self):
         """Test with Content-Type header with additional informations."""
-        reply = FakeNetworkReply(
+        reply = stubs.FakeNetworkReply(
             headers={'Content-Type': 'image/example; encoding=UTF-8'})
-        mimetype, rest = httputils.parse_content_type(reply)
+        mimetype, rest = http.parse_content_type(reply)
         self.assertEqual(mimetype, 'image/example')
         self.assertEqual(rest, ' encoding=UTF-8')
 

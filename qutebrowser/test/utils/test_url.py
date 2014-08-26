@@ -25,8 +25,8 @@ import unittest
 
 from PyQt5.QtCore import QUrl
 
-import qutebrowser.utils.url as urlutils
-from qutebrowser.test.stubs import ConfigStub
+from qutebrowser.utils import url as urlutils
+from qutebrowser.test import stubs
 
 
 CONFIG = {
@@ -83,7 +83,7 @@ class SearchUrlTests(unittest.TestCase):
 
     def setUp(self):
         self.config = urlutils.config
-        urlutils.config = ConfigStub(CONFIG)
+        urlutils.config = stubs.ConfigStub(CONFIG)
 
     def test_default_engine(self):
         """Test default search engine."""

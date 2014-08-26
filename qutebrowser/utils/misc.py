@@ -25,17 +25,17 @@ import sys
 import shlex
 import os.path
 import urllib.request
-from urllib.parse import urljoin, urlencode
-from collections import OrderedDict
-from functools import reduce
-from contextlib import contextmanager
+import urllib.parse
+import collections
+import functools
+import contextlib
 
 from PyQt5.QtCore import QCoreApplication, QStandardPaths, Qt
 from PyQt5.QtGui import QKeySequence, QColor
-from pkg_resources import resource_string
+import pkg_resources
 
 import qutebrowser
-from qutebrowser.utils.qt import qt_version_check, qt_ensure_valid
+from qutebrowser.utils import qt as qtutils
 
 
 def elide(text, length):
@@ -81,7 +81,8 @@ def read_file(filename):
         with open(fn, 'r', encoding='utf-8') as f:
             return f.read()
     else:
-        return resource_string(qutebrowser.__name__, filename).decode('UTF-8')
+        data = pkg_resources.resource_string(qutebrowser.__name__, filename)
+        return data.decode('UTF-8')
 
 
 def dotted_getattr(obj, path):
@@ -94,7 +95,7 @@ def dotted_getattr(obj, path):
     Return:
         The object at path.
     """
-    return reduce(getattr, path.split('.'), obj)
+    return functools.reduce(getattr, path.split('.'), obj)
 
 
 def safe_shlex_split(s):
@@ -134,8 +135,8 @@ def pastebin(text):
         'title': "qutebrowser crash",
         'name': "qutebrowser",
     }
-    encoded_data = urlencode(data).encode('utf-8')
-    create_url = urljoin(api_url, 'create')
+    encoded_data = urllib.parse.urlencode(data).encode('utf-8')
+    create_url = urllib.parse.urljoin(api_url, 'create')
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
     }
@@ -189,7 +190,7 @@ def actute_warning():
         return
     # Qt >= 5.3 doesn't seem to be affected
     try:
-        if qt_version_check('5.3.0'):
+        if qtutils.qt_version_check('5.3.0'):
             return
     except ValueError:
         pass
@@ -246,8 +247,8 @@ def interpolate_color(start, end, percent, colorspace=QColor.Rgb):
     Raise:
         ValueError if invalid parameters are passed.
     """
-    qt_ensure_valid(start)
-    qt_ensure_valid(end)
+    qtutils.qt_ensure_valid(start)
+    qtutils.qt_ensure_valid(end)
     out = QColor()
     if colorspace == QColor.Rgb:
         a_c1, a_c2, a_c3, _alpha = start.getRgb()
@@ -270,7 +271,7 @@ def interpolate_color(start, end, percent, colorspace=QColor.Rgb):
     else:
         raise ValueError("Invalid colorspace!")
     out = out.convertTo(start.spec())
-    qt_ensure_valid(out)
+    qtutils.qt_ensure_valid(out)
     return out
 
 
@@ -400,7 +401,7 @@ def keyevent_to_string(e):
         A name of the key (combination) as a string or
         None if only modifiers are pressed..
     """
-    modmask2str = OrderedDict([
+    modmask2str = collections.OrderedDict([
         (Qt.ControlModifier, 'Ctrl'),
         (Qt.AltModifier, 'Alt'),
         (Qt.MetaModifier, 'Meta'),
@@ -460,7 +461,7 @@ class FakeIOStream(io.TextIOBase):
         return super().isatty()
 
 
-@contextmanager
+@contextlib.contextmanager
 def fake_io(write_func):
     """Run code with stdout and stderr replaced by FakeIOStreams.
 
@@ -482,7 +483,7 @@ def fake_io(write_func):
         sys.stderr = old_stderr
 
 
-@contextmanager
+@contextlib.contextmanager
 def disabled_excepthook():
     """Run code with the exception hook temporarely disabled."""
     old_excepthook = sys.excepthook

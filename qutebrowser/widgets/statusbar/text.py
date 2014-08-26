@@ -21,11 +21,11 @@
 
 from PyQt5.QtCore import pyqtSlot
 
-import qutebrowser.config.config as config
-from qutebrowser.widgets.statusbar.textbase import TextBase
+from qutebrowser.config import config
+from qutebrowser.widgets.statusbar import textbase
 
 
-class Text(TextBase):
+class Text(textbase.TextBase):
 
     """Text displayed in the statusbar.
 

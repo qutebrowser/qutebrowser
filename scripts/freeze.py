@@ -27,12 +27,12 @@ Builds a standalone executable.
 import os
 import os.path
 import sys
-from distutils.sysconfig import get_python_lib
+import distutils
 
-from cx_Freeze import setup, Executable
+import cx_Freeze as cx
 
 sys.path.insert(0, os.getcwd())
-from scripts.setupcommon import setupdata, write_git_file
+from scripts import setupcommon
 
 
 try:
@@ -46,7 +46,8 @@ def get_egl_path():
     """Get the path for PyQt5's libEGL.dll."""
     if not sys.platform.startswith('win'):
         return None
-    return os.path.join(get_python_lib(), r'PyQt5\libEGL.dll')
+    return os.path.join(distutils.sysconfig.get_python_lib(),
+                        r'PyQt5\libEGL.dll')
 
 build_exe_options = {
     'include_files': [
@@ -69,20 +70,20 @@ bdist_msi_options = {
 
 base = 'Win32GUI' if sys.platform.startswith('win') else None
 
-executable = Executable('qutebrowser/__main__.py', base=base,
-                        targetName='qutebrowser.exe',
-                        shortcutName='qutebrowser',
-                        shortcutDir='ProgramMenuFolder')
+executable = cx.Executable('qutebrowser/__main__.py', base=base,
+                           targetName='qutebrowser.exe',
+                           shortcutName='qutebrowser',
+                           shortcutDir='ProgramMenuFolder')
 
 try:
-    write_git_file()
-    setup(
+    setupcommon.write_git_file()
+    cx.setup(
         executables=[executable],
         options={
             'build_exe': build_exe_options,
             'bdist_msi': bdist_msi_options,
         },
-        **setupdata
+        **setupcommon.setupdata
     )
 finally:
     if BASEDIR is not None:

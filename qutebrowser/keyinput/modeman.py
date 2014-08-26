@@ -27,11 +27,11 @@ from PyQt5.QtGui import QWindow
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
 from PyQt5.QtWidgets import QApplication
 
-import qutebrowser.config.config as config
-import qutebrowser.commands.utils as cmdutils
+from qutebrowser.config import config
+from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import exceptions as cmdexc
+from qutebrowser.utils import usertypes
 from qutebrowser.utils.log import modes as logger
-from qutebrowser.utils.usertypes import KeyMode
-from qutebrowser.commands.exceptions import CommandError
 
 
 class ModeLockedError(Exception):
@@ -96,8 +96,8 @@ class ModeManager(QObject):
                  arg: The mode which has been left.
     """
 
-    entered = pyqtSignal(KeyMode)
-    left = pyqtSignal(KeyMode)
+    entered = pyqtSignal(usertypes.KeyMode)
+    left = pyqtSignal(usertypes.KeyMode)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -142,7 +142,7 @@ class ModeManager(QObject):
             True if event should be filtered, False otherwise.
         """
         handler = self._handlers[self.mode]
-        if self.mode != KeyMode.insert:
+        if self.mode != usertypes.KeyMode.insert:
             logger.debug("got keypress in mode {} - calling handler {}".format(
                 self.mode, handler.__qualname__))
         handled = handler(event) if handler is not None else False
@@ -161,7 +161,7 @@ class ModeManager(QObject):
         if not filter_this:
             self._releaseevents_to_pass.append(event)
 
-        if self.mode != KeyMode.insert:
+        if self.mode != usertypes.KeyMode.insert:
             logger.debug("handled: {}, forward-unbound-keys: {}, passthrough: "
                          "{}, is_non_alnum: {} --> filter: {}".format(
                              handled, self._forward_unbound_keys,
@@ -186,7 +186,7 @@ class ModeManager(QObject):
             filter_this = False
         else:
             filter_this = True
-        if self.mode != KeyMode.insert:
+        if self.mode != usertypes.KeyMode.insert:
             logger.debug("filter: {}".format(filter_this))
         return filter_this
 
@@ -199,7 +199,7 @@ class ModeManager(QObject):
             passthrough: Whether to pass keybindings in this mode through to
                          the widgets.
         """
-        if not isinstance(mode, KeyMode):
+        if not isinstance(mode, usertypes.KeyMode):
             raise TypeError("Mode {} is no KeyMode member!".format(mode))
         self._handlers[mode] = handler
         if passthrough:
@@ -215,7 +215,7 @@ class ModeManager(QObject):
         Emit:
             entered: With the new mode name.
         """
-        if not isinstance(mode, KeyMode):
+        if not isinstance(mode, usertypes.KeyMode):
             raise TypeError("Mode {} is no KeyMode member!".format(mode))
         if self.locked:
             logger.debug("Not entering mode {} because mode is locked to "
@@ -241,9 +241,9 @@ class ModeManager(QObject):
             mode: The mode to enter.
         """
         try:
-            m = KeyMode[mode]
+            m = usertypes.KeyMode[mode]
         except KeyError:
-            raise CommandError("Mode {} does not exist!".format(mode))
+            raise cmdexc.CommandError("Mode {} does not exist!".format(mode))
         self.enter(m, 'command')
 
     def leave(self, mode, reason=None):
@@ -267,10 +267,10 @@ class ModeManager(QObject):
         self.left.emit(mode)
 
     @cmdutils.register(instance='modeman', name='leave-mode',
-                       not_modes=[KeyMode.normal], hide=True)
+                       not_modes=[usertypes.KeyMode.normal], hide=True)
     def leave_current_mode(self):
         """Leave the mode we're currently in."""
-        if self.mode == KeyMode.normal:
+        if self.mode == usertypes.KeyMode.normal:
             raise ValueError("Can't leave normal mode!")
         self.leave(self.mode, 'leave current')
 

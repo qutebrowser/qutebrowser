@@ -24,21 +24,17 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
-import qutebrowser.config.config as config
-import qutebrowser.keyinput.modeman as modeman
-import qutebrowser.utils.message as message
-import qutebrowser.utils.webelem as webelem
-import qutebrowser.utils.log as log
-from qutebrowser.utils.misc import elide
-from qutebrowser.utils.qt import qt_ensure_valid
-from qutebrowser.browser.webpage import BrowserPage
-from qutebrowser.browser.hints import HintManager
-from qutebrowser.utils.usertypes import (NeighborList, ClickTarget, KeyMode,
-                                         enum)
-from qutebrowser.commands.exceptions import CommandError
+from qutebrowser.config import config
+from qutebrowser.keyinput import modeman
+from qutebrowser.utils import message, webelem, log, usertypes
+from qutebrowser.utils import misc as utils
+from qutebrowser.utils import qt as qtutils
+from qutebrowser.browser import webpage, hints
+from qutebrowser.commands import exceptions as cmdexc
 
 
-LoadStatus = enum('LoadStatus', 'none', 'success', 'error', 'warn', 'loading')
+LoadStatus = usertypes.enum('LoadStatus', 'none', 'success', 'error', 'warn',
+                            'loading')
 
 
 class WebView(QWebView):
@@ -93,7 +89,7 @@ class WebView(QWebView):
         self.statusbar_message = ''
         self._old_scroll_pos = (-1, -1)
         self._open_target = None
-        self.open_target = ClickTarget.normal
+        self.open_target = usertypes.ClickTarget.normal
         self._force_open_target = None
         self._zoom = None
         self._has_ssl_errors = False
@@ -101,9 +97,9 @@ class WebView(QWebView):
         self._cur_url = None
         self.cur_url = QUrl()
         self.progress = 0
-        self._page = BrowserPage(self)
+        self._page = webpage.BrowserPage(self)
         self.setPage(self._page)
-        self.hintmanager = HintManager(self)
+        self.hintmanager = hints.HintManager(self)
         self.hintmanager.mouse_event.connect(self.on_mouse_event)
         self.hintmanager.set_open_target.connect(self.set_force_open_target)
         self._page.linkHovered.connect(self.linkHovered)
@@ -120,7 +116,7 @@ class WebView(QWebView):
 
     def __repr__(self):
         url = self.url().toDisplayString()
-        return "WebView(url='{}')".format(elide(url, 50))
+        return "WebView(url='{}')".format(utils.elide(url, 50))
 
     @property
     def open_target(self):
@@ -130,7 +126,7 @@ class WebView(QWebView):
     @open_target.setter
     def open_target(self, val):
         """Setter for open_target to do type checking."""
-        if not isinstance(val, ClickTarget):
+        if not isinstance(val, usertypes.ClickTarget):
             raise TypeError("Target {} is no ClickTarget member!".format(val))
         self._open_target = val
 
@@ -172,9 +168,10 @@ class WebView(QWebView):
 
     def _init_neighborlist(self):
         """Initialize the _zoom neighborlist."""
-        self._zoom = NeighborList(config.get('ui', 'zoom-levels'),
-                                  default=config.get('ui', 'default-zoom'),
-                                  mode=NeighborList.Modes.block)
+        levels = config.get('ui', 'zoom-levels')
+        default = config.get('ui', 'default-zoom')
+        self._zoom = usertypes.NeighborList(
+            levels, default, mode=usertypes.NeighborList.Modes.block)
 
     def _mousepress_backforward(self, e):
         """Handle back/forward mouse button presses.
@@ -186,13 +183,13 @@ class WebView(QWebView):
             # Back button on mice which have it.
             try:
                 self.go_back()
-            except CommandError as ex:
+            except cmdexc.CommandError as ex:
                 message.error(ex, immediately=True)
         elif e.button() == Qt.XButton2:
             # Forward button on mice which have it.
             try:
                 self.go_forward()
-            except CommandError as ex:
+            except cmdexc.CommandError as ex:
                 message.error(ex, immediately=True)
 
     def _mousepress_insertmode(self, e):
@@ -233,11 +230,11 @@ class WebView(QWebView):
         elif ((hitresult.isContentEditable() and webelem.is_writable(elem)) or
                 webelem.is_editable(elem)):
             log.mouse.debug("Clicked editable element!")
-            modeman.maybe_enter(KeyMode.insert, 'click')
+            modeman.maybe_enter(usertypes.KeyMode.insert, 'click')
         else:
             log.mouse.debug("Clicked non-editable element!")
             if config.get('input', 'auto-leave-insert-mode'):
-                modeman.maybe_leave(KeyMode.insert, 'click')
+                modeman.maybe_leave(usertypes.KeyMode.insert, 'click')
 
     def mouserelease_insertmode(self):
         """If we have an insertmode check scheduled, handle it."""
@@ -247,11 +244,11 @@ class WebView(QWebView):
         elem = webelem.focus_elem(self.page().currentFrame())
         if webelem.is_editable(elem):
             log.mouse.debug("Clicked editable element (delayed)!")
-            modeman.maybe_enter(KeyMode.insert, 'click-delayed')
+            modeman.maybe_enter(usertypes.KeyMode.insert, 'click-delayed')
         else:
             log.mouse.debug("Clicked non-editable element (delayed)!")
             if config.get('input', 'auto-leave-insert-mode'):
-                modeman.maybe_leave(KeyMode.insert, 'click-delayed')
+                modeman.maybe_leave(usertypes.KeyMode.insert, 'click-delayed')
 
     def _mousepress_opentarget(self, e):
         """Set the open target when something was clicked.
@@ -267,13 +264,13 @@ class WebView(QWebView):
         elif (e.button() == Qt.MidButton or
               e.modifiers() & Qt.ControlModifier):
             if config.get('tabs', 'background-tabs'):
-                self.open_target = ClickTarget.tab_bg
+                self.open_target = usertypes.ClickTarget.tab_bg
             else:
-                self.open_target = ClickTarget.tab
+                self.open_target = usertypes.ClickTarget.tab
             log.mouse.debug("Middle click, setting target: {}".format(
                 self.open_target))
         else:
-            self.open_target = ClickTarget.normal
+            self.open_target = usertypes.ClickTarget.normal
             log.mouse.debug("Normal click, setting normal target")
 
     def shutdown(self):
@@ -304,7 +301,7 @@ class WebView(QWebView):
         Emit:
             titleChanged
         """
-        qt_ensure_valid(url)
+        qtutils.qt_ensure_valid(url)
         urlstr = url.toDisplayString()
         log.webview.debug("New title: {}".format(urlstr))
         self.titleChanged.emit(urlstr)
@@ -321,7 +318,7 @@ class WebView(QWebView):
         if fuzzyval:
             self._zoom.fuzzyval = int(perc)
         if perc < 0:
-            raise CommandError("Can't zoom {}%!".format(perc))
+            raise cmdexc.CommandError("Can't zoom {}%!".format(perc))
         self.setZoomFactor(float(perc) / 100)
         message.info("Zoom level: {}%".format(perc))
 
@@ -349,19 +346,19 @@ class WebView(QWebView):
         if self.page().history().canGoBack():
             self.back()
         else:
-            raise CommandError("At beginning of history.")
+            raise cmdexc.CommandError("At beginning of history.")
 
     def go_forward(self):
         """Go forward a page in the history."""
         if self.page().history().canGoForward():
             self.forward()
         else:
-            raise CommandError("At end of history.")
+            raise cmdexc.CommandError("At end of history.")
 
     @pyqtSlot('QUrl')
     def on_url_changed(self, url):
         """Update cur_url when URL has changed."""
-        qt_ensure_valid(url)
+        qtutils.qt_ensure_valid(url)
         self.cur_url = url
 
     @pyqtSlot(str, str)
@@ -394,7 +391,7 @@ class WebView(QWebView):
             self.load_status = LoadStatus.error
         if not config.get('input', 'auto-insert-mode'):
             return
-        if modeman.instance().mode == KeyMode.insert or not ok:
+        if modeman.instance().mode == usertypes.KeyMode.insert or not ok:
             return
         frame = self.page().currentFrame()
         elem = frame.findFirstElement(':focus')
@@ -402,7 +399,7 @@ class WebView(QWebView):
         if elem.isNull():
             log.webview.debug("Focused element is null!")
         elif webelem.is_editable(elem):
-            modeman.maybe_enter(KeyMode.insert, 'load finished')
+            modeman.maybe_enter(usertypes.KeyMode.insert, 'load finished')
 
     @pyqtSlot(str)
     def set_force_open_target(self, target):
@@ -411,7 +408,7 @@ class WebView(QWebView):
         Args:
             target: A string to set self._force_open_target to.
         """
-        t = getattr(ClickTarget, target)
+        t = getattr(usertypes.ClickTarget, target)
         log.webview.debug("Setting force target to {}/{}".format(target, t))
         self._force_open_target = t
 

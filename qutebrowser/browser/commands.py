@@ -29,19 +29,14 @@ from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebInspector
 
-import qutebrowser.commands.utils as cmdutils
-import qutebrowser.config.config as config
-import qutebrowser.browser.hints as hints
-import qutebrowser.utils.message as message
-import qutebrowser.utils.webelem as webelem
-import qutebrowser.browser.quickmarks as quickmarks
-import qutebrowser.utils.log as log
-import qutebrowser.utils.url as urlutils
-import qutebrowser.commands.userscripts as userscripts
-from qutebrowser.utils.qt import check_overflow, check_print_compat
-from qutebrowser.utils.editor import ExternalEditor
-from qutebrowser.commands.exceptions import CommandError
-from qutebrowser.utils.usertypes import KeyMode
+from qutebrowser.commands import userscripts
+from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import exceptions as cmdexc
+from qutebrowser.config import config
+from qutebrowser.browser import hints, quickmarks
+from qutebrowser.utils import message, webelem, editor, usertypes, log
+from qutebrowser.utils import qt as qtutils
+from qutebrowser.utils import url as urlutils
 
 
 class CommandDispatcher:
@@ -82,7 +77,7 @@ class CommandDispatcher:
             perc = int(count)
         else:
             perc = float(perc)
-        perc = check_overflow(perc, 'int', fatal=False)
+        perc = qtutils.check_overflow(perc, 'int', fatal=False)
         frame = self._tabs.currentWidget().page().currentFrame()
         m = frame.scrollBarMaximum(orientation)
         if m == 0:
@@ -94,7 +89,7 @@ class CommandDispatcher:
         widget = self._tabs.currentWidget()
         frame = widget.page().currentFrame()
         if frame is None:
-            raise CommandError("No frame focused!")
+            raise cmdexc.CommandError("No frame focused!")
         widget.hintmanager.follow_prevnext(frame, self._tabs.current_url(),
                                            prev, newtab)
 
@@ -130,10 +125,10 @@ class CommandDispatcher:
     def _tab_focus_last(self):
         """Select the tab which was last focused."""
         if self._tabs.last_focused is None:
-            raise CommandError("No last focused tab!")
+            raise cmdexc.CommandError("No last focused tab!")
         idx = self._tabs.indexOf(self._tabs.last_focused)
         if idx == -1:
-            raise CommandError("Last focused tab vanished!")
+            raise cmdexc.CommandError("Last focused tab vanished!")
         self._tabs.setCurrentIndex(idx)
 
     def _editor_cleanup(self, oshandle, filename):
@@ -142,7 +137,7 @@ class CommandDispatcher:
         try:
             os.remove(filename)
         except PermissionError:
-            raise CommandError("Failed to delete tempfile...")
+            raise cmdexc.CommandError("Failed to delete tempfile...")
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def tab_close(self, count=None):
@@ -173,7 +168,7 @@ class CommandDispatcher:
         try:
             url = urlutils.fuzzy_url(urlstr)
         except urlutils.FuzzyUrlError as e:
-            raise CommandError(e)
+            raise cmdexc.CommandError(e)
         if tab is None:
             if count is None:
                 # We want to open a URL in the current tab, but none exists
@@ -214,9 +209,9 @@ class CommandDispatcher:
         Args:
             count: The tab index to print, or None.
         """
-        if not check_print_compat():
-            raise CommandError("Printing on Qt < 5.3.0 on Windows is broken, "
-                               "please upgrade!")
+        if not qtutils.check_print_compat():
+            raise cmdexc.CommandError(
+                "Printing on Qt < 5.3.0 on Windows is broken, please upgrade!")
         tab = self._tabs.cntwidget(count)
         if tab is not None:
             preview = QPrintPreviewDialog()
@@ -231,9 +226,9 @@ class CommandDispatcher:
         Args:
             count: The tab index to print, or None.
         """
-        if not check_print_compat():
-            raise CommandError("Printing on Qt < 5.3.0 on Windows is broken, "
-                               "please upgrade!")
+        if not qtutils.check_print_compat():
+            raise cmdexc.CommandError(
+                "Printing on Qt < 5.3.0 on Windows is broken, please upgrade!")
         tab = self._tabs.cntwidget(count)
         if tab is not None:
             printdiag = QPrintDialog()
@@ -303,15 +298,17 @@ class CommandDispatcher:
         widget = self._tabs.currentWidget()
         frame = widget.page().mainFrame()
         if frame is None:
-            raise CommandError("No frame focused!")
+            raise cmdexc.CommandError("No frame focused!")
         try:
             group_enum = webelem.Group[group.replace('-', '_')]
         except KeyError:
-            raise CommandError("Unknown hinting group {}!".format(group))
+            raise cmdexc.CommandError("Unknown hinting group {}!".format(
+                group))
         try:
             target_enum = hints.Target[target.replace('-', '_')]
         except KeyError:
-            raise CommandError("Unknown hinting target {}!".format(target))
+            raise cmdexc.CommandError("Unknown hinting target {}!".format(
+                target))
         widget.hintmanager.start(frame, self._tabs.current_url(), group_enum,
                                  target_enum, *args)
 
@@ -488,7 +485,7 @@ class CommandDispatcher:
         try:
             level = cmdutils.arg_or_count(zoom, count, default=100)
         except ValueError as e:
-            raise CommandError(e)
+            raise cmdexc.CommandError(e)
         tab = self._tabs.currentWidget()
         tab.zoom_perc(level)
 
@@ -506,7 +503,7 @@ class CommandDispatcher:
         try:
             url = urlutils.fuzzy_url(urlstr)
         except urlutils.FuzzyUrlError as e:
-            raise CommandError(e)
+            raise cmdexc.CommandError(e)
         self._tabs.tabopen(url, background=False, explicit=True)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', split=False)
@@ -515,7 +512,7 @@ class CommandDispatcher:
         try:
             url = urlutils.fuzzy_url(urlstr)
         except urlutils.FuzzyUrlError as e:
-            raise CommandError(e)
+            raise cmdexc.CommandError(e)
         self._tabs.tabopen(url, background=True, explicit=True)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
@@ -524,7 +521,7 @@ class CommandDispatcher:
         if self._tabs.url_stack:
             self._tabs.tabopen(self._tabs.url_stack.pop())
         else:
-            raise CommandError("Nothing to undo!")
+            raise cmdexc.CommandError("Nothing to undo!")
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def tab_prev(self, count=1):
@@ -539,7 +536,7 @@ class CommandDispatcher:
         elif config.get('tabs', 'wrap'):
             self._tabs.setCurrentIndex(newidx % self._tabs.count())
         else:
-            raise CommandError("First tab")
+            raise cmdexc.CommandError("First tab")
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def tab_next(self, count=1):
@@ -554,7 +551,7 @@ class CommandDispatcher:
         elif config.get('tabs', 'wrap'):
             self._tabs.setCurrentIndex(newidx % self._tabs.count())
         else:
-            raise CommandError("Last tab")
+            raise cmdexc.CommandError("Last tab")
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', nargs=(0, 1))
     def paste(self, sel=False, tab=False):
@@ -573,12 +570,12 @@ class CommandDispatcher:
             target = "Clipboard"
         text = clipboard.text(mode)
         if not text:
-            raise CommandError("{} is empty.".format(target))
+            raise cmdexc.CommandError("{} is empty.".format(target))
         log.misc.debug("{} contained: '{}'".format(target, text))
         try:
             url = urlutils.fuzzy_url(text)
         except urlutils.FuzzyUrlError as e:
-            raise CommandError(e)
+            raise cmdexc.CommandError(e)
         if tab:
             self._tabs.tabopen(url, explicit=True)
         else:
@@ -610,12 +607,13 @@ class CommandDispatcher:
             idx = cmdutils.arg_or_count(index, count, default=1,
                                         countzero=self._tabs.count())
         except ValueError as e:
-            raise CommandError(e)
+            raise cmdexc.CommandError(e)
         cmdutils.check_overflow(idx + 1, 'int')
         if 1 <= idx <= self._tabs.count():
             self._tabs.setCurrentIndex(idx - 1)
         else:
-            raise CommandError("There's no tab with index {}!".format(idx))
+            raise cmdexc.CommandError("There's no tab with index {}!".format(
+                idx))
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def tab_move(self, direction=None, count=None):
@@ -632,11 +630,13 @@ class CommandDispatcher:
             try:
                 new_idx = self._tab_move_relative(direction, count)
             except ValueError:
-                raise CommandError("Count must be given for relative moving!")
+                raise cmdexc.CommandError("Count must be given for relative "
+                                          "moving!")
         else:
-            raise CommandError("Invalid direction '{}'!".format(direction))
+            raise cmdexc.CommandError("Invalid direction '{}'!".format(
+                direction))
         if not 0 <= new_idx < self._tabs.count():
-            raise CommandError("Can't move tab to position {}!".format(
+            raise cmdexc.CommandError("Can't move tab to position {}!".format(
                 new_idx))
         tab = self._tabs.currentWidget()
         cur_idx = self._tabs.currentIndex()
@@ -697,7 +697,7 @@ class CommandDispatcher:
         urlstr = quickmarks.get(name)
         url = QUrl(urlstr)
         if not url.isValid():
-            raise CommandError("Invalid URL {} ({})".format(
+            raise cmdexc.CommandError("Invalid URL {} ({})".format(
                 urlstr, url.errorString()))
         self._tabs.currentWidget().openurl(url)
 
@@ -719,8 +719,9 @@ class CommandDispatcher:
         cur = self._tabs.currentWidget()
         if cur.inspector is None:
             if not config.get('general', 'developer-extras'):
-                raise CommandError("Please enable developer-extras before "
-                                   "using the webinspector!")
+                raise cmdexc.CommandError(
+                    "Please enable developer-extras before using the "
+                    "webinspector!")
             cur.inspector = QWebInspector()
             cur.inspector.setPage(cur.page())
             cur.inspector.show()
@@ -728,8 +729,9 @@ class CommandDispatcher:
             cur.inspector.hide()
         else:
             if not config.get('general', 'developer-extras'):
-                raise CommandError("Please enable developer-extras before "
-                                   "using the webinspector!")
+                raise cmdexc.CommandError(
+                    "Please enable developer-extras before using the "
+                    "webinspector!")
             else:
                 cur.inspector.show()
 
@@ -739,7 +741,8 @@ class CommandDispatcher:
         page = self._tabs.currentWidget().page()
         self._tabs.download_get.emit(self._tabs.current_url(), page)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd', modes=[KeyMode.insert],
+    @cmdutils.register(instance='mainwindow.tabs.cmd',
+                       modes=[usertypes.KeyMode.insert],
                        hide=True)
     def open_editor(self):
         """Open an external editor with the currently selected form field.
@@ -756,14 +759,14 @@ class CommandDispatcher:
         frame = self._tabs.currentWidget().page().currentFrame()
         elem = webelem.focus_elem(frame)
         if elem.isNull():
-            raise CommandError("No element focused!")
+            raise cmdexc.CommandError("No element focused!")
         if not webelem.is_editable(elem, strict=True):
-            raise CommandError("Focused element is not editable!")
+            raise cmdexc.CommandError("Focused element is not editable!")
         if webelem.is_content_editable(elem):
             text = elem.toPlainText()
         else:
             text = elem.evaluateJavaScript('this.value')
-        self._editor = ExternalEditor(self._tabs)
+        self._editor = editor.ExternalEditor(self._tabs)
         self._editor.editing_finished.connect(
             partial(self.on_editing_finished, elem))
         self._editor.edit(text)
@@ -778,7 +781,7 @@ class CommandDispatcher:
             text: The new text to insert.
         """
         if elem.isNull():
-            raise CommandError("Element vanished while editing!")
+            raise cmdexc.CommandError("Element vanished while editing!")
         if webelem.is_content_editable(elem):
             log.misc.debug("Filling element {} via setPlainText.".format(
                 webelem.debug_text(elem)))

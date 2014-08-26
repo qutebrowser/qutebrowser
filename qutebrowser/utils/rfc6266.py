@@ -19,7 +19,7 @@
 
 """pyPEG parsing for the RFC 6266 (Content-Disposition) header. """
 
-from collections import namedtuple
+import collections
 import urllib.parse
 import string
 import re
@@ -209,7 +209,7 @@ class ContentDispositionValue:
                peg.optional(';'))
 
 
-LangTagged = namedtuple('LangTagged', 'string langtag')
+LangTagged = collections.namedtuple('LangTagged', 'string langtag')
 
 
 class DuplicateParamError(Exception):

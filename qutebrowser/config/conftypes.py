@@ -23,13 +23,13 @@ import re
 import shlex
 import codecs
 import os.path
-from sre_constants import error as RegexError
+import sre_constants
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
 
-import qutebrowser.commands.utils as cmdutils
+from qutebrowser.commands import utils as cmdutils
 
 
 SYSTEM_PROXY = object()  # Return value for Proxy type
@@ -734,7 +734,7 @@ class Regex(BaseType):
                 raise ValidationError(value, "may not be empty!")
         try:
             re.compile(value, self.flags)
-        except RegexError as e:
+        except sre_constants.error as e:
             raise ValidationError(value, "must be a valid regex - " + str(e))
 
     def transform(self, value):
@@ -762,7 +762,7 @@ class RegexList(List):
     def validate(self, value):
         try:
             vals = self.transform(value)
-        except RegexError as e:
+        except sre_constants.error as e:
             raise ValidationError(value, "must be a list valid regexes - " +
                                   str(e))
         if not self.none_ok and None in vals:

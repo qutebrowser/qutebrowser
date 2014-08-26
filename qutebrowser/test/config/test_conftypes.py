@@ -19,13 +19,13 @@
 """Tests for qutebrowser.config.conftypes."""
 
 import unittest
-import unittest.mock as mock
 import re
-from collections import namedtuple
+import collections
+from unittest import mock
 
-import qutebrowser.config.conftypes as conftypes
-from qutebrowser.test.stubs import FakeCmdUtils, FakeCommand
-from qutebrowser.utils.debug import qenum_key
+from qutebrowser.config import conftypes
+from qutebrowser.test import stubs
+from qutebrowser.utils import debug
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
@@ -37,9 +37,10 @@ class Font(QFont):
     """A QFont with a nicer repr()."""
 
     def __repr__(self):
+        weight = debug.qenum_key(QFont, self.weight(), add_base=True,
+                                 klass=QFont.Weight)
         return '<Font family={}, pt={}, px={}, weight={}, style={}>'.format(
-            self.family(), self.pointSize(), self.pixelSize(),
-            qenum_key(QFont, self.weight(), add_base=True, klass=QFont.Weight),
+            self.family(), self.pointSize(), self.pixelSize(), weight,
             self.style())
 
     @classmethod
@@ -853,10 +854,10 @@ class CommandTests(unittest.TestCase):
     def setUp(self):
         self.old_cmdutils = conftypes.cmdutils
         commands = {
-            'cmd1': FakeCommand("desc 1"),
-            'cmd2': FakeCommand("desc 2"),
+            'cmd1': stubs.FakeCommand("desc 1"),
+            'cmd2': stubs.FakeCommand("desc 2"),
         }
-        conftypes.cmdutils = FakeCmdUtils(commands)
+        conftypes.cmdutils = stubs.FakeCmdUtils(commands)
         self.t = conftypes.Command()
 
     def tearDown(self):
@@ -1057,7 +1058,8 @@ class QssColorTests(QtColorTests):
                 self.assertEqual(self.t.transform(v), v, v)
 
 
-FontDesc = namedtuple('FontDesc', ['style', 'weight', 'pt', 'px', 'family'])
+FontDesc = collections.namedtuple('FontDesc',
+                                  ['style', 'weight', 'pt', 'px', 'family'])
 
 
 class FontTests(unittest.TestCase):

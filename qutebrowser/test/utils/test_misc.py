@@ -24,14 +24,14 @@ import sys
 import shutil
 import unittest
 import os.path
-from tempfile import mkdtemp
+import tempfile
 
 from PyQt5.QtCore import QStandardPaths, QCoreApplication, Qt
 from PyQt5.QtGui import QColor
 
-import qutebrowser.utils.misc as utils
-from qutebrowser.test.helpers import environ_set_temp, fake_keyevent
-from qutebrowser.utils.qt import QtValueError
+from qutebrowser.utils import misc as utils
+from qutebrowser.utils import qt as qtutils
+from qutebrowser.test import helpers
 
 
 class Color(QColor):
@@ -157,14 +157,14 @@ class GetStandardDirLinuxTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.temp_dir = mkdtemp()
+        self.temp_dir = tempfile.mkdtemp()
         self.app = QCoreApplication([])
         self.app.setApplicationName('qutebrowser')
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_data_explicit(self):
         """Test data dir with XDG_DATA_HOME explicitely set."""
-        with environ_set_temp('XDG_DATA_HOME', self.temp_dir):
+        with helpers.environ_set_temp('XDG_DATA_HOME', self.temp_dir):
             cur_dir = utils.get_standard_dir(QStandardPaths.DataLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir,
                                                    'qutebrowser'))
@@ -173,7 +173,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_config_explicit(self):
         """Test config dir with XDG_CONFIG_HOME explicitely set."""
-        with environ_set_temp('XDG_CONFIG_HOME', self.temp_dir):
+        with helpers.environ_set_temp('XDG_CONFIG_HOME', self.temp_dir):
             cur_dir = utils.get_standard_dir(QStandardPaths.ConfigLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir,
                                                    'qutebrowser'))
@@ -182,7 +182,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_cache_explicit(self):
         """Test cache dir with XDG_CACHE_HOME explicitely set."""
-        with environ_set_temp('XDG_CACHE_HOME', self.temp_dir):
+        with helpers.environ_set_temp('XDG_CACHE_HOME', self.temp_dir):
             cur_dir = utils.get_standard_dir(QStandardPaths.CacheLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir,
                                                    'qutebrowser'))
@@ -191,7 +191,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_data(self):
         """Test data dir with XDG_DATA_HOME not set."""
-        with environ_set_temp('HOME', self.temp_dir):
+        with helpers.environ_set_temp('HOME', self.temp_dir):
             cur_dir = utils.get_standard_dir(QStandardPaths.DataLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir, '.local',
                                                    'share', 'qutebrowser'))
@@ -200,7 +200,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_config(self):
         """Test config dir with XDG_CONFIG_HOME not set."""
-        with environ_set_temp('HOME', self.temp_dir):
+        with helpers.environ_set_temp('HOME', self.temp_dir):
             cur_dir = utils.get_standard_dir(
                 QStandardPaths.ConfigLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir, '.config',
@@ -210,7 +210,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_cache(self):
         """Test cache dir with XDG_CACHE_HOME not set."""
-        with environ_set_temp('HOME', self.temp_dir):
+        with helpers.environ_set_temp('HOME', self.temp_dir):
             cur_dir = utils.get_standard_dir(QStandardPaths.CacheLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir, '.cache',
                                                    'qutebrowser'))
@@ -286,12 +286,12 @@ class InterpolateColorTests(unittest.TestCase):
 
     def test_invalid_start(self):
         """Test an invalid start color."""
-        with self.assertRaises(QtValueError):
+        with self.assertRaises(qtutils.QtValueError):
             utils.interpolate_color(Color(), self.white, 0)
 
     def test_invalid_end(self):
         """Test an invalid end color."""
-        with self.assertRaises(QtValueError):
+        with self.assertRaises(qtutils.QtValueError):
             utils.interpolate_color(self.white, Color(), 0)
 
     def test_invalid_percentage(self):
@@ -464,29 +464,31 @@ class KeyEventToStringTests(unittest.TestCase):
 
     def test_only_control(self):
         """Test keyeevent when only control is pressed."""
-        evt = fake_keyevent(key=Qt.Key_Control, modifiers=Qt.ControlModifier)
+        evt = helpers.fake_keyevent(key=Qt.Key_Control,
+                                    modifiers=Qt.ControlModifier)
         self.assertIsNone(utils.keyevent_to_string(evt))
 
     def test_only_hyper_l(self):
         """Test keyeevent when only Hyper_L is pressed."""
-        evt = fake_keyevent(key=Qt.Key_Hyper_L, modifiers=Qt.MetaModifier)
+        evt = helpers.fake_keyevent(key=Qt.Key_Hyper_L,
+                                    modifiers=Qt.MetaModifier)
         self.assertIsNone(utils.keyevent_to_string(evt))
 
     def test_only_key(self):
         """Test with a simple key pressed."""
-        evt = fake_keyevent(key=Qt.Key_A)
+        evt = helpers.fake_keyevent(key=Qt.Key_A)
         self.assertEqual(utils.keyevent_to_string(evt), 'A')
 
     def test_key_and_modifier(self):
         """Test with key and modifier pressed."""
-        evt = fake_keyevent(key=Qt.Key_A, modifiers=Qt.ControlModifier)
+        evt = helpers.fake_keyevent(key=Qt.Key_A, modifiers=Qt.ControlModifier)
         self.assertEqual(utils.keyevent_to_string(evt), 'Ctrl+A')
 
     def test_key_and_modifiers(self):
         """Test with key and multiple modifier pressed."""
-        evt = fake_keyevent(key=Qt.Key_A,
-                            modifiers=(Qt.ControlModifier | Qt.AltModifier |
-                                       Qt.MetaModifier | Qt.ShiftModifier))
+        evt = helpers.fake_keyevent(
+            key=Qt.Key_A, modifiers=(Qt.ControlModifier | Qt.AltModifier |
+                                     Qt.MetaModifier | Qt.ShiftModifier))
         self.assertEqual(utils.keyevent_to_string(evt),
                          'Ctrl+Alt+Meta+Shift+A')
 

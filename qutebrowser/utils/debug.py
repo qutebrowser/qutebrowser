@@ -23,13 +23,13 @@ import re
 import pdb
 import sys
 import types
-from functools import wraps
+import functools
 
 from PyQt5.QtCore import pyqtRemoveInputHook, QEvent, QCoreApplication
 
-from qutebrowser.utils.misc import elide, compact_text
+from qutebrowser.utils import misc as utils
 from qutebrowser.utils.log import misc as logger
-import qutebrowser.commands.utils as cmdutils
+from qutebrowser.commands import utils as cmdutils
 
 
 @cmdutils.register(debug=True, name='debug-set-trace')
@@ -89,7 +89,7 @@ def log_events(klass):
     """Class decorator to log Qt events."""
     old_event = klass.event
 
-    @wraps(old_event)
+    @functools.wraps(old_event)
     def new_event(self, e, *args, **kwargs):
         """Wrapper for event() which logs events."""
         logger.debug("Event in {}: {}".format(klass.__name__,
@@ -115,7 +115,7 @@ def trace_lines(do_trace):
         if sys is not None:
             loc = '{}:{}'.format(frame.f_code.co_filename, frame.f_lineno)
             if arg is not None:
-                arg = compact_text(str(arg), 200)
+                arg = utils.compact_text(str(arg), 200)
             else:
                 arg = ''
             print("{:11} {:80} {}".format(event, loc, arg), file=sys.stderr)
@@ -228,5 +228,6 @@ def dbg_signal(sig, args):
     Return:
         A human-readable string representation of signal/args.
     """
-    argstr = ', '.join([elide(str(a).replace('\n', ' '), 20) for a in args])
+    argstr = ', '.join([utils.elide(str(a).replace('\n', ' '), 20)
+                        for a in args])
     return '{}({})'.format(signal_name(sig), argstr)

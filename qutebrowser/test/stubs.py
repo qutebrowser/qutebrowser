@@ -21,7 +21,7 @@
 
 """Fake objects/stubs."""
 
-from unittest.mock import Mock
+from unittest import mock
 
 from PyQt5.QtCore import QPoint, QProcess
 from PyQt5.QtWebKit import QWebElement
@@ -73,9 +73,9 @@ class FakeKeyEvent:
     """Fake QKeyPressEvent stub."""
 
     def __init__(self, key, modifiers=0, text=''):
-        self.key = Mock(return_value=key)
-        self.text = Mock(return_value=text)
-        self.modifiers = Mock(return_value=modifiers)
+        self.key = mock.Mock(return_value=key)
+        self.text = mock.Mock(return_value=text)
+        self.modifiers = mock.Mock(return_value=modifiers)
 
 
 class FakeWebElement:
@@ -99,10 +99,10 @@ class FakeWebElement:
         Raise:
             ValueError if element is not null and geometry/frame are not given.
         """
-        self.geometry = Mock(return_value=geometry)
-        self.webFrame = Mock(return_value=frame)
-        self.isNull = Mock(return_value=null)
-        self.tagName = Mock(return_value=tagname)
+        self.geometry = mock.Mock(return_value=geometry)
+        self.webFrame = mock.Mock(return_value=frame)
+        self.isNull = mock.Mock(return_value=null)
+        self.tagName = mock.Mock(return_value=tagname)
         self._visibility = visibility
         self._display = display
         self._attributes = attributes
@@ -170,9 +170,9 @@ class FakeWebFrame:
         """
         if scroll is None:
             scroll = QPoint(0, 0)
-        self.geometry = Mock(return_value=geometry)
-        self.scrollPosition = Mock(return_value=scroll)
-        self.parentFrame = Mock(return_value=parent)
+        self.geometry = mock.Mock(return_value=geometry)
+        self.scrollPosition = mock.Mock(return_value=scroll)
+        self.parentFrame = mock.Mock(return_value=parent)
 
 
 class FakeChildrenFrame:
@@ -182,7 +182,7 @@ class FakeChildrenFrame:
     def __init__(self, children=None):
         if children is None:
             children = []
-        self.childFrames = Mock(return_value=children)
+        self.childFrames = mock.Mock(return_value=children)
 
 
 class FakeQApplication:
@@ -190,8 +190,8 @@ class FakeQApplication:
     """Stub to insert as QApplication module."""
 
     def __init__(self, focus):
-        self.focusWidget = Mock(return_value=focus)
-        self.instance = Mock(return_value=self)
+        self.focusWidget = mock.Mock(return_value=focus)
+        self.instance = mock.Mock(return_value=self)
 
 
 class FakeUrl:
@@ -199,7 +199,7 @@ class FakeUrl:
     """QUrl stub which provides .path()."""
 
     def __init__(self, path=None):
-        self.path = Mock(return_value=path)
+        self.path = mock.Mock(return_value=path)
 
 
 class FakeNetworkReply:
@@ -217,7 +217,7 @@ class FakeNetworkReply:
             self.headers = {}
         else:
             self.headers = headers
-        self.url = Mock(return_value=url)
+        self.url = mock.Mock(return_value=url)
 
     def hasRawHeader(self, name):
         """Check if the reply has a certain header.
@@ -282,9 +282,9 @@ class FakeQProcess:
     UnknownError = QProcess.UnknownError
 
     def __init__(self, parent=None):  # pylint: disable=unused-argument
-        self.finished = Mock()
-        self.error = Mock()
-        self.start = Mock()
+        self.finished = mock.Mock()
+        self.error = mock.Mock()
+        self.start = mock.Mock()
 
 
 class FakeSignal:

@@ -23,19 +23,19 @@ import os
 import os.path
 import unittest
 import logging
-from unittest.mock import Mock
+from unittest import mock
 
 from PyQt5.QtCore import QProcess
 
-import qutebrowser.utils.editor as editorutils
-from qutebrowser.test.stubs import ConfigStub, FakeQProcess
+from qutebrowser.utils import editor
+from qutebrowser.test import stubs
 
 
 def setUpModule():
     """Disable logging and mock out some imports."""
     logging.disable(logging.INFO)
-    editorutils.message = Mock()
-    editorutils.QProcess = FakeQProcess
+    editor.message = mock.Mock()
+    editor.QProcess = stubs.FakeQProcess
 
 
 def tearDownModule():
@@ -52,18 +52,18 @@ class ArgTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.editor = editorutils.ExternalEditor()
+        self.editor = editor.ExternalEditor()
 
     def test_simple_start_args(self):
         """Test starting editor without arguments."""
-        editorutils.config = ConfigStub(
+        editor.config = stubs.ConfigStub(
             {'general': {'editor': ['bin'], 'editor-encoding': 'utf-8'}})
         self.editor.edit("")
         self.editor.proc.start.assert_called_with("bin", [])
 
     def test_start_args(self):
         """Test starting editor with static arguments."""
-        editorutils.config = ConfigStub(
+        editor.config = stubs.ConfigStub(
             {'general': {'editor': ['bin', 'foo', 'bar'],
                          'editor-encoding': 'utf-8'}})
         self.editor.edit("")
@@ -71,7 +71,7 @@ class ArgTests(unittest.TestCase):
 
     def test_placeholder(self):
         """Test starting editor with placeholder argument."""
-        editorutils.config = ConfigStub(
+        editor.config = stubs.ConfigStub(
             {'general': {'editor': ['bin', 'foo', '{}', 'bar'],
                          'editor-encoding': 'utf-8'}})
         self.editor.edit("")
@@ -81,7 +81,7 @@ class ArgTests(unittest.TestCase):
 
     def test_in_arg_placeholder(self):
         """Test starting editor with placeholder argument inside argument."""
-        editorutils.config = ConfigStub(
+        editor.config = stubs.ConfigStub(
             {'general': {'editor': ['bin', 'foo{}bar'],
                          'editor-encoding': 'utf-8'}})
         self.editor.edit("")
@@ -100,8 +100,8 @@ class FileHandlingTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.editor = editorutils.ExternalEditor()
-        editorutils.config = ConfigStub(
+        self.editor = editor.ExternalEditor()
+        editor.config = stubs.ConfigStub(
             {'general': {'editor': [''], 'editor-encoding': 'utf-8'}})
 
     def test_file_handling_closed_ok(self):
@@ -139,9 +139,9 @@ class TextModifyTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.editor = editorutils.ExternalEditor()
-        self.editor.editing_finished = Mock()
-        editorutils.config = ConfigStub(
+        self.editor = editor.ExternalEditor()
+        self.editor.editing_finished = mock.Mock()
+        editor.config = stubs.ConfigStub(
             {'general': {'editor': [''], 'editor-encoding': 'utf-8'}})
 
     def _write(self, text):
@@ -209,21 +209,21 @@ class ErrorMessageTests(unittest.TestCase):
     # pylint: disable=maybe-no-member
 
     def setUp(self):
-        self.editor = editorutils.ExternalEditor()
-        editorutils.config = ConfigStub(
+        self.editor = editor.ExternalEditor()
+        editor.config = stubs.ConfigStub(
             {'general': {'editor': [''], 'editor-encoding': 'utf-8'}})
 
     def test_proc_error(self):
         """Test on_proc_error."""
         self.editor.edit("")
         self.editor.on_proc_error(QProcess.Crashed)
-        self.assertTrue(editorutils.message.error.called)
+        self.assertTrue(editor.message.error.called)
 
     def test_proc_return(self):
         """Test on_proc_finished with a bad exit status."""
         self.editor.edit("")
         self.editor.on_proc_closed(1, QProcess.NormalExit)
-        self.assertTrue(editorutils.message.error.called)
+        self.assertTrue(editor.message.error.called)
 
 
 if __name__ == '__main__':

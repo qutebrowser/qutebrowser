@@ -24,9 +24,8 @@ import os
 import sys
 import html as pyhtml
 import logging
-from contextlib import contextmanager
-from logging import getLogger
-from collections import deque
+import contextlib
+import collections
 
 from PyQt5.QtCore import (QtDebugMsg, QtWarningMsg, QtCriticalMsg, QtFatalMsg,
                           qInstallMessageHandler)
@@ -38,9 +37,9 @@ except ImportError:
     colorama = None
 try:
     # pylint: disable=import-error
-    from colorlog import ColoredFormatter
+    import colorlog
 except ImportError:
-    ColoredFormatter = None
+    colorlog = None
 else:
     # colorlog calls colorama.init() which we don't want, also it breaks our
     # sys.stdout/sys.stderr if they are None. Bugreports:
@@ -81,25 +80,25 @@ LOG_COLORS = {
 
 # The different loggers used.
 
-statusbar = getLogger('statusbar')
-completion = getLogger('completion')
-destroy = getLogger('destroy')
-modes = getLogger('modes')
-webview = getLogger('webview')
-mouse = getLogger('mouse')
-misc = getLogger('misc')
-url = getLogger('url')
-procs = getLogger('procs')
-commands = getLogger('commands')
-init = getLogger('init')
-signals = getLogger('signals')
-hints = getLogger('hints')
-keyboard = getLogger('keyboard')
-downloads = getLogger('downloads')
-js = getLogger('js')  # Javascript console messages
-qt = getLogger('qt')  # Warnings produced by Qt
-style = getLogger('style')
-rfc6266 = getLogger('rfc6266')
+statusbar = logging.getLogger('statusbar')
+completion = logging.getLogger('completion')
+destroy = logging.getLogger('destroy')
+modes = logging.getLogger('modes')
+webview = logging.getLogger('webview')
+mouse = logging.getLogger('mouse')
+misc = logging.getLogger('misc')
+url = logging.getLogger('url')
+procs = logging.getLogger('procs')
+commands = logging.getLogger('commands')
+init = logging.getLogger('init')
+signals = logging.getLogger('signals')
+hints = logging.getLogger('hints')
+keyboard = logging.getLogger('keyboard')
+downloads = logging.getLogger('downloads')
+js = logging.getLogger('js')  # Javascript console messages
+qt = logging.getLogger('qt')  # Warnings produced by Qt
+style = logging.getLogger('style')
+rfc6266 = logging.getLogger('rfc6266')
 
 
 ram_handler = None
@@ -114,7 +113,7 @@ def init_log(args):
         raise ValueError("Invalid log level: {}".format(args.loglevel))
 
     console, ram = _init_handlers(numeric_level, args.color, args.loglines)
-    root = getLogger()
+    root = logging.getLogger()
     if console is not None:
         if args.logfilter is not None:
             console.addFilter(LogFilter(args.logfilter.split(',')))
@@ -126,7 +125,7 @@ def init_log(args):
     qInstallMessageHandler(qt_message_handler)
 
 
-@contextmanager
+@contextlib.contextmanager
 def disable_qt_msghandler():
     """Contextmanager which temporarely disables the Qt message handler."""
     old_handler = qInstallMessageHandler(None)
@@ -191,10 +190,10 @@ def _init_formatters(level, color):
     if sys.stderr is None:
         return None, ram_formatter, html_formatter, False
     use_colorama = False
-    if (ColoredFormatter is not None and (os.name == 'posix' or colorama) and
+    if (colorlog is not None and (os.name == 'posix' or colorama) and
             sys.stderr.isatty() and color):
-        console_formatter = ColoredFormatter(console_fmt_colored, DATEFMT,
-                                             log_colors=LOG_COLORS)
+        console_formatter = colorlog.ColoredFormatter(
+            console_fmt_colored, DATEFMT, log_colors=LOG_COLORS)
         if colorama:
             use_colorama = True
     else:
@@ -310,9 +309,9 @@ class RAMHandler(logging.Handler):
         super().__init__()
         self.html_formatter = None
         if capacity != -1:
-            self.data = deque(maxlen=capacity)
+            self.data = collections.deque(maxlen=capacity)
         else:
-            self.data = deque()
+            self.data = collections.deque()
 
     def emit(self, record):
         self.data.append(record)

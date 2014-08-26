@@ -20,10 +20,9 @@
 """Advanced keyparsers."""
 
 from qutebrowser.keyinput.basekeyparser import BaseKeyParser
-import qutebrowser.utils.message as message
-
-from qutebrowser.commands.runners import CommandRunner
-from qutebrowser.commands.exceptions import CommandMetaError, CommandError
+from qutebrowser.utils import message
+from qutebrowser.commands import runners
+from qutebrowser.commands import exceptions as cmdexc
 
 
 class CommandKeyParser(BaseKeyParser):
@@ -37,12 +36,12 @@ class CommandKeyParser(BaseKeyParser):
     def __init__(self, parent=None, supports_count=None,
                  supports_chains=False):
         super().__init__(parent, supports_count, supports_chains)
-        self.commandrunner = CommandRunner()
+        self.commandrunner = runners.CommandRunner()
 
     def execute(self, cmdstr, _keytype, count=None):
         try:
             self.commandrunner.run(cmdstr, count)
-        except (CommandMetaError, CommandError) as e:
+        except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
             message.error(e, immediately=True)
 
 

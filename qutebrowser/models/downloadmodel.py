@@ -23,12 +23,12 @@ from PyQt5.QtCore import (pyqtSlot, Qt, QVariant, QAbstractListModel,
                           QModelIndex)
 from PyQt5.QtWidgets import QApplication
 
-import qutebrowser.config.config as config
-from qutebrowser.utils.usertypes import enum
-from qutebrowser.utils.qt import qt_ensure_valid
+from qutebrowser.config import config
+from qutebrowser.utils import usertypes
+from qutebrowser.utils import qt as qtutils
 
 
-Role = enum('Role', 'item', start=Qt.UserRole, is_int=True)
+Role = usertypes.enum('Role', 'item', start=Qt.UserRole, is_int=True)
 
 
 class DownloadModel(QAbstractListModel):
@@ -57,7 +57,7 @@ class DownloadModel(QAbstractListModel):
     def on_data_changed(self, idx):
         """Update view when DownloadManager data changed."""
         model_idx = self.index(idx, 0)
-        qt_ensure_valid(model_idx)
+        qtutils.qt_ensure_valid(model_idx)
         self.dataChanged.emit(model_idx, model_idx)
 
     def last_index(self):
@@ -79,7 +79,7 @@ class DownloadModel(QAbstractListModel):
 
     def data(self, index, role):
         """Download data from DownloadManager."""
-        qt_ensure_valid(index)
+        qtutils.qt_ensure_valid(index)
         if index.parent().isValid() or index.column() != 0:
             return QVariant()
 

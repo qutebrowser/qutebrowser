@@ -19,10 +19,10 @@
 
 """Keychain string displayed in the statusbar."""
 
-from qutebrowser.widgets.statusbar.textbase import TextBase
+from qutebrowser.widgets.statusbar import textbase
 
 
-class KeyString(TextBase):
+class KeyString(textbase.TextBase):
 
     """Keychain string displayed in the statusbar."""
 

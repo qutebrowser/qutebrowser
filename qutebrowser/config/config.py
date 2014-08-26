@@ -28,18 +28,15 @@ import os
 import os.path
 import textwrap
 import configparser
-from configparser import ExtendedInterpolation
-from collections.abc import MutableMapping
+import collections.abc
 
 from PyQt5.QtCore import pyqtSignal, QObject, QCoreApplication
 
-import qutebrowser.config.configdata as configdata
-import qutebrowser.commands.utils as cmdutils
-import qutebrowser.utils.message as message
-import qutebrowser.utils.log as log
-from qutebrowser.config.iniparsers import ReadConfigParser
-from qutebrowser.config.conftypes import ValidationError
-from qutebrowser.commands.exceptions import CommandError
+from qutebrowser.utils import log
+from qutebrowser.config import configdata, iniparsers, conftypes
+from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import exceptions as cmdexc
+from qutebrowser.utils import message
 from qutebrowser.utils.usertypes import Completion
 
 
@@ -114,7 +111,7 @@ class ConfigManager(QObject):
     def __init__(self, configdir, fname, parent=None):
         super().__init__(parent)
         self.sections = configdata.DATA
-        self._configparser = ReadConfigParser(configdir, fname)
+        self._configparser = iniparsers.ReadConfigParser(configdir, fname)
         self._configfile = os.path.join(configdir, fname)
         self._wrapper_args = {
             'width': 72,
@@ -124,7 +121,7 @@ class ConfigManager(QObject):
         }
         self._configdir = configdir
         self._fname = fname
-        self._interpolation = ExtendedInterpolation()
+        self._interpolation = configparser.ExtendedInterpolation()
         self._proxies = {}
         for sectname in self.sections.keys():
             self._proxies[sectname] = SectionProxy(self, sectname)
@@ -227,7 +224,7 @@ class ConfigManager(QObject):
                 k = k.replace('<eq>', '=')
                 try:
                     self.set('conf', sectname, k, v)
-                except ValidationError as e:
+                except conftypes.ValidationError as e:
                     e.section = sectname
                     e.option = k
                     raise
@@ -299,7 +296,8 @@ class ConfigManager(QObject):
         try:
             val = self.get(sectname, optname, transformed=False)
         except (NoOptionError, NoSectionError) as e:
-            raise CommandError("get: {} - {}".format(e.__class__.__name__, e))
+            raise cmdexc.CommandError("get: {} - {}".format(
+                e.__class__.__name__, e))
         else:
             message.info("{} {} = {}".format(sectname, optname, val),
                          immediately=True)
@@ -350,9 +348,10 @@ class ConfigManager(QObject):
         """
         try:
             self.set('conf', sectname, optname, value)
-        except (NoOptionError, NoSectionError, ValidationError,
+        except (NoOptionError, NoSectionError, conftypes.ValidationError,
                 ValueError) as e:
-            raise CommandError("set: {} - {}".format(e.__class__.__name__, e))
+            raise cmdexc.CommandError("set: {} - {}".format(
+                e.__class__.__name__, e))
 
     @cmdutils.register(name='set-temp', instance='config',
                        completion=[Completion.section, Completion.option,
@@ -371,8 +370,9 @@ class ConfigManager(QObject):
         """
         try:
             self.set('temp', sectname, optname, value)
-        except (NoOptionError, NoSectionError, ValidationError) as e:
-            raise CommandError("set: {} - {}".format(e.__class__.__name__, e))
+        except (NoOptionError, NoSectionError, conftypes.ValidationError) as e:
+            raise cmdexc.CommandError("set: {} - {}".format(
+                e.__class__.__name__, e))
 
     def set(self, layer, sectname, optname, value):
         """Set an option.
@@ -442,7 +442,7 @@ class ConfigManager(QObject):
         return val
 
 
-class SectionProxy(MutableMapping):
+class SectionProxy(collections.abc.MutableMapping):
 
     """A proxy for a single section from a config.
 

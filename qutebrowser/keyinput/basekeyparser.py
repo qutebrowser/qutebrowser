@@ -21,14 +21,14 @@
 
 import re
 import string
-from functools import partial
+import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject
 
-import qutebrowser.config.config as config
-from qutebrowser.utils.usertypes import enum, Timer
+from qutebrowser.config import config
+from qutebrowser.utils import usertypes
+from qutebrowser.utils import misc as utils
 from qutebrowser.utils.log import keyboard as logger
-from qutebrowser.utils.misc import keyevent_to_string, normalize_keystr
 
 
 class BaseKeyParser(QObject):
@@ -71,8 +71,9 @@ class BaseKeyParser(QObject):
     keystring_updated = pyqtSignal(str)
     do_log = True
 
-    Match = enum('Match', 'partial', 'definitive', 'ambiguous', 'none')
-    Type = enum('Type', 'chain', 'special')
+    Match = usertypes.enum('Match', 'partial', 'definitive', 'ambiguous',
+                           'none')
+    Type = usertypes.enum('Type', 'chain', 'special')
 
     def __init__(self, parent=None, supports_count=None,
                  supports_chains=False):
@@ -113,7 +114,7 @@ class BaseKeyParser(QObject):
         Return:
             True if event has been handled, False otherwise.
         """
-        binding = keyevent_to_string(e)
+        binding = utils.keyevent_to_string(e)
         if binding is None:
             self._debug_log("Ignoring only-modifier keyeevent.")
             return False
@@ -266,11 +267,11 @@ class BaseKeyParser(QObject):
             # execute in `time' ms
             self._debug_log("Scheduling execution of {} in {}ms".format(
                 binding, time))
-            self._timer = Timer(self, 'ambigious_match')
+            self._timer = usertypes.Timer(self, 'ambigious_match')
             self._timer.setSingleShot(True)
             self._timer.setInterval(time)
-            self._timer.timeout.connect(partial(self.delayed_exec, binding,
-                                                count))
+            self._timer.timeout.connect(
+                functools.partial(self.delayed_exec, binding, count))
             self._timer.start()
 
     def delayed_exec(self, command, count):
@@ -329,7 +330,7 @@ class BaseKeyParser(QObject):
             if not cmd:
                 continue
             elif key.startswith('<') and key.endswith('>'):
-                keystr = normalize_keystr(key[1:-1])
+                keystr = utils.normalize_keystr(key[1:-1])
                 self.special_bindings[keystr] = cmd
             elif self._supports_chains:
                 self.bindings[key] = cmd

@@ -30,11 +30,11 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtCore import QStandardPaths
 
-import qutebrowser.config.config as config
-from qutebrowser.utils.usertypes import enum
-from qutebrowser.utils.misc import get_standard_dir
+from qutebrowser.config import config
+from qutebrowser.utils import usertypes
+from qutebrowser.utils import misc as utils
 
-MapType = enum('MapType', 'attribute', 'setter', 'static_setter')
+MapType = usertypes.enum('MapType', 'attribute', 'setter', 'static_setter')
 
 
 MAPPINGS = {
@@ -177,7 +177,7 @@ def _set_setting(typ, arg, value):
 def init():
     """Initialize the global QWebSettings."""
     global settings
-    cachedir = get_standard_dir(QStandardPaths.CacheLocation)
+    cachedir = utils.get_standard_dir(QStandardPaths.CacheLocation)
     QWebSettings.enablePersistentStorage(cachedir)
     settings = QWebSettings.globalSettings()
     for sectname, section in MAPPINGS.items():

@@ -21,12 +21,12 @@
 
 import inspect
 import unittest
-from unittest.mock import Mock
+from unittest import mock
 
 from PyQt5.QtWidgets import QLineEdit
 
-import qutebrowser.utils.readline as readline
-from qutebrowser.test.stubs import FakeQApplication
+from qutebrowser.utils import readline
+from qutebrowser.test import stubs
 
 
 class NoneWidgetTests(unittest.TestCase):
@@ -34,7 +34,7 @@ class NoneWidgetTests(unittest.TestCase):
     """Tests when the focused widget is None."""
 
     def setUp(self):
-        readline.QApplication = FakeQApplication(None)
+        readline.QApplication = stubs.FakeQApplication(None)
         self.bridge = readline.ReadlineBridge()
 
     def test_none(self):
@@ -50,9 +50,9 @@ class ReadlineBridgeTest(unittest.TestCase):
     """Tests for readline bridge."""
 
     def setUp(self):
-        self.qle = Mock()
+        self.qle = mock.Mock()
         self.qle.__class__ = QLineEdit
-        readline.QApplication = FakeQApplication(self.qle)
+        readline.QApplication = stubs.FakeQApplication(self.qle)
         self.bridge = readline.ReadlineBridge()
 
     def _set_selected_text(self, text):

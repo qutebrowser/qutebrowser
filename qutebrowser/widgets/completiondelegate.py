@@ -28,10 +28,9 @@ from PyQt5.QtCore import QRectF, QSize, Qt
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QTextCursor, QAbstractTextDocumentLayout)
 
-import qutebrowser.config.config as config
-from qutebrowser.models.basecompletion import Role
-from qutebrowser.config.style import get_stylesheet
-from qutebrowser.utils.qt import qt_ensure_valid
+from qutebrowser.config import config, style
+from qutebrowser.models import basecompletion
+from qutebrowser.utils import qt as qtutils
 
 
 class CompletionItemDelegate(QStyledItemDelegate):
@@ -99,12 +98,12 @@ class CompletionItemDelegate(QStyledItemDelegate):
 
         text_rect_ = self._style.subElementRect(
             self._style.SE_ItemViewItemText, self._opt, self._opt.widget)
-        qt_ensure_valid(text_rect_)
+        qtutils.qt_ensure_valid(text_rect_)
         margin = self._style.pixelMetric(QStyle.PM_FocusFrameHMargin,
                                          self._opt, self._opt.widget) + 1
         # remove width padding
         text_rect = text_rect_.adjusted(margin, 0, -margin, 0)
-        qt_ensure_valid(text_rect)
+        qtutils.qt_ensure_valid(text_rect)
         # move text upwards a bit
         if index.parent().isValid():
             text_rect.adjust(0, -1, 0, -1)
@@ -189,7 +188,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
             self._doc.setHtml('<b>{}</b>'.format(html.escape(self._opt.text)))
         self._doc.setDefaultFont(self._opt.font)
         self._doc.setDefaultTextOption(text_option)
-        self._doc.setDefaultStyleSheet(get_stylesheet("""
+        self._doc.setDefaultStyleSheet(style.get_stylesheet("""
             .highlight {{
                 {color[completion.match.fg]}
             }}
@@ -197,7 +196,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self._doc.setDocumentMargin(2)
 
         if index.column() == 0:
-            marks = index.data(Role.marks)
+            marks = index.data(basecompletion.Role.marks)
             if marks is None:
                 return
             for mark in marks:
@@ -218,7 +217,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         o.rect = self._style.subElementRect(
             self._style.SE_ItemViewItemFocusRect, self._opt, self._opt.widget)
         o.state |= QStyle.State_KeyboardFocusChange | QStyle.State_Item
-        qt_ensure_valid(o.rect)
+        qtutils.qt_ensure_valid(o.rect)
         if state & QStyle.State_Enabled:
             cg = QPalette.Normal
         else:
@@ -254,7 +253,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         docsize = self._doc.size().toSize()
         size = self._style.sizeFromContents(QStyle.CT_ItemViewItem, self._opt,
                                             docsize, self._opt.widget)
-        qt_ensure_valid(size)
+        qtutils.qt_ensure_valid(size)
         return size + QSize(10, 3)
 
     def paint(self, painter, option, index):

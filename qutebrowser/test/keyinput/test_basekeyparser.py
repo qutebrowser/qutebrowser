@@ -23,13 +23,13 @@
 
 import logging
 import unittest
-from unittest.mock import Mock, patch
-
-import qutebrowser.keyinput.basekeyparser as basekeyparser
-from qutebrowser.test.stubs import ConfigStub
-from qutebrowser.test.helpers import fake_keyevent
+from unittest import mock
 
 from PyQt5.QtCore import Qt
+
+from qutebrowser.keyinput import basekeyparser
+from qutebrowser.test import stubs, helpers
+
 
 CONFIG = {'test': {'<Ctrl-a>': 'ctrla',
                    'a': 'a',
@@ -42,7 +42,7 @@ CONFIG = {'test': {'<Ctrl-a>': 'ctrla',
 
 def setUpModule():
     """Mock out some imports in basekeyparser."""
-    basekeyparser.QObject = Mock()
+    basekeyparser.QObject = mock.Mock()
     logging.disable(logging.WARNING)
 
 
@@ -99,8 +99,8 @@ class ReadConfigTests(unittest.TestCase):
     """Test reading the config."""
 
     def setUp(self):
-        basekeyparser.config = ConfigStub(CONFIG)
-        basekeyparser.Timer = Mock()
+        basekeyparser.config = stubs.ConfigStub(CONFIG)
+        basekeyparser.usertypes.Timer = mock.Mock()
 
     def test_read_config_invalid(self):
         """Test reading config without setting it before."""
@@ -131,31 +131,32 @@ class SpecialKeysTests(unittest.TestCase):
     """
 
     def setUp(self):
-        patcher = patch('qutebrowser.keyinput.basekeyparser.Timer',
-                        autospec=True)
+        patcher = mock.patch(
+            'qutebrowser.keyinput.basekeyparser.usertypes.Timer',
+            autospec=True)
         patcher.start()
         self.addCleanup(patcher.stop)
-        basekeyparser.config = ConfigStub(CONFIG)
+        basekeyparser.config = stubs.ConfigStub(CONFIG)
         self.kp = basekeyparser.BaseKeyParser()
-        self.kp.execute = Mock()
+        self.kp.execute = mock.Mock()
         self.kp.read_config('test')
 
     def test_valid_key(self):
         """Test a valid special keyevent."""
-        self.kp.handle(fake_keyevent(Qt.Key_A, Qt.ControlModifier))
-        self.kp.handle(fake_keyevent(Qt.Key_X, Qt.ControlModifier))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, Qt.ControlModifier))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_X, Qt.ControlModifier))
         self.kp.execute.assert_called_once_with('ctrla', self.kp.Type.special)
 
     def test_invalid_key(self):
         """Test an invalid special keyevent."""
-        self.kp.handle(fake_keyevent(Qt.Key_A, (Qt.ControlModifier |
-                                                Qt.AltModifier)))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, (Qt.ControlModifier |
+                                                        Qt.AltModifier)))
         self.assertFalse(self.kp.execute.called)
 
     def test_keychain(self):
         """Test a keychain."""
-        self.kp.handle(fake_keyevent(Qt.Key_B))
-        self.kp.handle(fake_keyevent(Qt.Key_A))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_B))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_A))
         self.assertFalse(self.kp.execute.called)
 
 
@@ -170,35 +171,35 @@ class KeyChainTests(unittest.TestCase):
 
     def setUp(self):
         """Set up mocks and read the test config."""
-        basekeyparser.config = ConfigStub(CONFIG)
-        self.timermock = Mock()
-        basekeyparser.Timer = Mock(return_value=self.timermock)
+        basekeyparser.config = stubs.ConfigStub(CONFIG)
+        self.timermock = mock.Mock()
+        basekeyparser.usertypes.Timer = mock.Mock(return_value=self.timermock)
         self.kp = basekeyparser.BaseKeyParser(supports_chains=True,
                                               supports_count=False)
-        self.kp.execute = Mock()
+        self.kp.execute = mock.Mock()
         self.kp.read_config('test')
 
     def test_valid_special_key(self):
         """Test valid special key."""
-        self.kp.handle(fake_keyevent(Qt.Key_A, Qt.ControlModifier))
-        self.kp.handle(fake_keyevent(Qt.Key_X, Qt.ControlModifier))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, Qt.ControlModifier))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_X, Qt.ControlModifier))
         self.kp.execute.assert_called_once_with('ctrla', self.kp.Type.special)
         self.assertEqual(self.kp._keystring, '')
 
     def test_invalid_special_key(self):
         """Test invalid special key."""
-        self.kp.handle(fake_keyevent(Qt.Key_A, (Qt.ControlModifier |
-                                                Qt.AltModifier)))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, (Qt.ControlModifier |
+                                                        Qt.AltModifier)))
         self.assertFalse(self.kp.execute.called)
         self.assertEqual(self.kp._keystring, '')
 
     def test_keychain(self):
         """Test valid keychain."""
         # Press 'x' which is ignored because of no match
-        self.kp.handle(fake_keyevent(Qt.Key_X, text='x'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_X, text='x'))
         # Then start the real chain
-        self.kp.handle(fake_keyevent(Qt.Key_B, text='b'))
-        self.kp.handle(fake_keyevent(Qt.Key_A, text='a'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_B, text='b'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='a'))
         self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, None)
         self.assertEqual(self.kp._keystring, '')
 
@@ -206,9 +207,10 @@ class KeyChainTests(unittest.TestCase):
         """Test ambigious keychain."""
         # We start with 'a' where the keychain gives us an ambigious result.
         # Then we check if the timer has been set up correctly
-        self.kp.handle(fake_keyevent(Qt.Key_A, text='a'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='a'))
         self.assertFalse(self.kp.execute.called)
-        basekeyparser.Timer.assert_called_once_with(self.kp, 'ambigious_match')
+        basekeyparser.usertypes.Timer.assert_called_once_with(
+            self.kp, 'ambigious_match')
         self.timermock.setSingleShot.assert_called_once_with(True)
         self.timermock.setInterval.assert_called_once_with(100)
         self.assertTrue(self.timermock.timeout.connect.called)
@@ -216,15 +218,15 @@ class KeyChainTests(unittest.TestCase):
         self.timermock.start.assert_called_once_with()
         # Now we type an 'x' and check 'ax' has been executed and the timer
         # stopped.
-        self.kp.handle(fake_keyevent(Qt.Key_X, text='x'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_X, text='x'))
         self.kp.execute.assert_called_once_with('ax', self.kp.Type.chain, None)
         self.timermock.stop.assert_called_once_with()
         self.assertEqual(self.kp._keystring, '')
 
     def test_invalid_keychain(self):
         """Test invalid keychain."""
-        self.kp.handle(fake_keyevent(Qt.Key_B, text='b'))
-        self.kp.handle(fake_keyevent(Qt.Key_C, text='c'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_B, text='b'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_C, text='c'))
         self.assertEqual(self.kp._keystring, '')
 
 
@@ -233,53 +235,53 @@ class CountTests(unittest.TestCase):
     """Test execute() with counts."""
 
     def setUp(self):
-        basekeyparser.config = ConfigStub(CONFIG)
-        basekeyparser.Timer = Mock()
+        basekeyparser.config = stubs.ConfigStub(CONFIG)
+        basekeyparser.usertypes.Timer = mock.Mock()
         self.kp = basekeyparser.BaseKeyParser(supports_chains=True,
                                               supports_count=True)
-        self.kp.execute = Mock()
+        self.kp.execute = mock.Mock()
         self.kp.read_config('test')
 
     def test_no_count(self):
         """Test with no count added."""
-        self.kp.handle(fake_keyevent(Qt.Key_B, text='b'))
-        self.kp.handle(fake_keyevent(Qt.Key_A, text='a'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_B, text='b'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='a'))
         self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, None)
         self.assertEqual(self.kp._keystring, '')
 
     def test_count_0(self):
         """Test with count=0."""
-        self.kp.handle(fake_keyevent(Qt.Key_0, text='0'))
-        self.kp.handle(fake_keyevent(Qt.Key_B, text='b'))
-        self.kp.handle(fake_keyevent(Qt.Key_A, text='a'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_0, text='0'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_B, text='b'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='a'))
         self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, 0)
         self.assertEqual(self.kp._keystring, '')
 
     def test_count_42(self):
         """Test with count=42."""
-        self.kp.handle(fake_keyevent(Qt.Key_4, text='4'))
-        self.kp.handle(fake_keyevent(Qt.Key_2, text='2'))
-        self.kp.handle(fake_keyevent(Qt.Key_B, text='b'))
-        self.kp.handle(fake_keyevent(Qt.Key_A, text='a'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_4, text='4'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_2, text='2'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_B, text='b'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='a'))
         self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, 42)
         self.assertEqual(self.kp._keystring, '')
 
     def test_count_42_invalid(self):
         """Test with count=42 and invalid command."""
         # Invalid call with ccx gets ignored
-        self.kp.handle(fake_keyevent(Qt.Key_4, text='4'))
-        self.kp.handle(fake_keyevent(Qt.Key_2, text='2'))
-        self.kp.handle(fake_keyevent(Qt.Key_B, text='c'))
-        self.kp.handle(fake_keyevent(Qt.Key_A, text='c'))
-        self.kp.handle(fake_keyevent(Qt.Key_A, text='x'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_4, text='4'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_2, text='2'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_B, text='c'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='c'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='x'))
         self.assertFalse(self.kp.execute.called)
         self.assertEqual(self.kp._keystring, '')
         # Valid call with ccc gets the correct count
-        self.kp.handle(fake_keyevent(Qt.Key_4, text='2'))
-        self.kp.handle(fake_keyevent(Qt.Key_2, text='3'))
-        self.kp.handle(fake_keyevent(Qt.Key_B, text='c'))
-        self.kp.handle(fake_keyevent(Qt.Key_A, text='c'))
-        self.kp.handle(fake_keyevent(Qt.Key_A, text='c'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_4, text='2'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_2, text='3'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_B, text='c'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='c'))
+        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='c'))
         self.kp.execute.assert_called_once_with('ccc', self.kp.Type.chain, 23)
         self.assertEqual(self.kp._keystring, '')
 

@@ -19,12 +19,12 @@
 
 """A filter for signals which either filters or passes them."""
 
-from functools import partial
+import functools
 
 from PyQt5.QtCore import QObject
 
-from qutebrowser.utils.debug import dbg_signal, signal_name
-from qutebrowser.widgets.webview import WebView
+from qutebrowser.utils import debug
+from qutebrowser.widgets import webview
 from qutebrowser.utils.log import signals as logger
 
 
@@ -58,10 +58,10 @@ class SignalFilter(QObject):
         Return:
             A partial functon calling _filter_signals with a signal.
         """
-        if not isinstance(tab, WebView):
+        if not isinstance(tab, webview.WebView):
             raise ValueError("Tried to create filter for {} which is no "
                              "WebView!".format(tab))
-        return partial(self._filter_signals, signal, tab)
+        return functools.partial(self._filter_signals, signal, tab)
 
     def _filter_signals(self, signal, tab, *args):
         """Filter signals and trigger TabbedBrowser signals if needed.
@@ -80,7 +80,7 @@ class SignalFilter(QObject):
         Emit:
             The target signal if the sender was the current widget.
         """
-        log_signal = signal_name(signal) not in self.BLACKLIST
+        log_signal = debug.signal_name(signal) not in self.BLACKLIST
         try:
             tabidx = self._tabs.indexOf(tab)
         except RuntimeError:
@@ -89,9 +89,9 @@ class SignalFilter(QObject):
         if tabidx == self._tabs.currentIndex():
             if log_signal:
                 logger.debug("emitting: {} (tab {})".format(
-                    dbg_signal(signal, args), tabidx))
+                    debug.dbg_signal(signal, args), tabidx))
             signal.emit(*args)
         else:
             if log_signal:
                 logger.debug("ignoring: {} (tab {})".format(
-                    dbg_signal(signal, args), tabidx))
+                    debug.dbg_signal(signal, args), tabidx))

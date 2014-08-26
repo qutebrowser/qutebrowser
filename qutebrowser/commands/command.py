@@ -22,9 +22,8 @@
 from PyQt5.QtCore import QCoreApplication, QUrl
 from PyQt5.QtWebKit import QWebSettings
 
-from qutebrowser.commands.exceptions import (ArgumentCountError,
-                                             PrerequisitesError)
-from qutebrowser.utils.misc import dotted_getattr
+from qutebrowser.commands import exceptions as cmdexc
+from qutebrowser.utils import misc as utils
 from qutebrowser.utils.log import commands as logger
 
 
@@ -84,16 +83,18 @@ class Command:
         curmode = QCoreApplication.instance().modeman.mode
         if self.modes is not None and curmode not in self.modes:
             mode_names = '/'.join(mode.name for mode in self.modes)
-            raise PrerequisitesError("{}: This command is only allowed in {} "
-                                     "mode.".format(self.name, mode_names))
+            raise cmdexc.PrerequisitesError(
+                "{}: This command is only allowed in {} mode.".format(
+                    self.name, mode_names))
         elif self.not_modes is not None and curmode in self.not_modes:
             mode_names = '/'.join(mode.name for mode in self.not_modes)
-            raise PrerequisitesError("{}: This command is not allowed in {} "
-                                     "mode.".format(self.name, mode_names))
+            raise cmdexc.PrerequisitesError(
+                "{}: This command is not allowed in {} mode.".format(
+                    self.name, mode_names))
         if self.needs_js and not QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
-            raise PrerequisitesError("{}: This command needs javascript "
-                                     "enabled.".format(self.name))
+            raise cmdexc.PrerequisitesError(
+                "{}: This command needs javascript enabled.".format(self.name))
         if self.nargs[1] is None and self.nargs[0] <= len(args):
             pass
         elif self.nargs[0] <= len(args) <= self.nargs[1]:
@@ -105,8 +106,9 @@ class Command:
                 argcnt = '{}-inf'.format(self.nargs[0])
             else:
                 argcnt = '{}-{}'.format(self.nargs[0], self.nargs[1])
-            raise ArgumentCountError("{}: {} args expected, but got {}".format(
-                self.name, argcnt, len(args)))
+            raise cmdexc.ArgumentCountError(
+                "{}: {} args expected, but got {}".format(self.name, argcnt,
+                                                          len(args)))
 
     def run(self, args=None, count=None):
         """Run the command.
@@ -142,7 +144,7 @@ class Command:
             if self.instance == '':
                 obj = app
             else:
-                obj = dotted_getattr(app, self.instance)
+                obj = utils.dotted_getattr(app, self.instance)
             new_args.insert(0, obj)
 
         if count is not None and self.count:

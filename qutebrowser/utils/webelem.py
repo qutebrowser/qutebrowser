@@ -30,13 +30,13 @@ Module attributes:
 from PyQt5.QtCore import QRect, QUrl
 from PyQt5.QtWebKit import QWebElement
 
-import qutebrowser.utils.log as log
-import qutebrowser.config.config as config
-from qutebrowser.utils.usertypes import enum
-from qutebrowser.utils.misc import compact_text
+from qutebrowser.config import config
+from qutebrowser.utils import log, usertypes
+from qutebrowser.utils import misc as utils
 
 
-Group = enum('Group', 'all', 'links', 'images', 'url', 'prevnext', 'focus')
+Group = usertypes.enum('Group', 'all', 'links', 'images', 'url', 'prevnext',
+                       'focus')
 
 
 SELECTORS = {
@@ -284,4 +284,4 @@ def focus_elem(frame):
 
 def debug_text(elem):
     """Get a text based on an element suitable for debug output."""
-    return compact_text(elem.toOuterXml(), 500)
+    return utils.compact_text(elem.toOuterXml(), 500)

@@ -26,46 +26,28 @@ import faulthandler
 import configparser
 import signal
 import warnings
-from bdb import BdbQuit
-from base64 import b64encode
-from functools import partial
+import bdb
+import base64
+import functools
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.QtCore import (pyqtSlot, QTimer, QEventLoop, Qt, QStandardPaths,
                           qInstallMessageHandler, QObject, QUrl)
 
 import qutebrowser
-import qutebrowser.commands.utils as cmdutils
-import qutebrowser.config.style as style
-import qutebrowser.config.config as config
-import qutebrowser.network.qutescheme as qutescheme
-import qutebrowser.config.websettings as websettings
-import qutebrowser.network.proxy as proxy
-import qutebrowser.browser.quickmarks as quickmarks
-import qutebrowser.utils.log as log
-import qutebrowser.utils.version as version
-import qutebrowser.utils.url as urlutils
-import qutebrowser.utils.message as message
-import qutebrowser.commands.userscripts as userscripts
-import qutebrowser.utils.utilcmds as utilcmds
-from qutebrowser.config.config import ConfigManager
-from qutebrowser.keyinput.modeman import ModeManager
-from qutebrowser.widgets.mainwindow import MainWindow
-from qutebrowser.widgets.console import ConsoleWidget
-from qutebrowser.widgets.crash import (ExceptionCrashDialog, FatalCrashDialog,
-                                       ReportDialog)
-from qutebrowser.keyinput.modeparsers import (NormalKeyParser, HintKeyParser,
-                                              PromptKeyParser)
-from qutebrowser.keyinput.keyparser import PassthroughKeyParser
-from qutebrowser.commands.runners import CommandRunner, SearchRunner
-from qutebrowser.config.iniparsers import ReadWriteConfigParser
-from qutebrowser.config.lineparser import LineConfigParser
-from qutebrowser.browser.cookies import CookieJar
-from qutebrowser.browser.downloads import DownloadManager
-from qutebrowser.utils.misc import get_standard_dir, actute_warning
-from qutebrowser.utils.qt import get_qt_args
-from qutebrowser.utils.readline import ReadlineBridge
-from qutebrowser.utils.usertypes import Timer, KeyMode
+from qutebrowser.commands import userscripts, runners
+from qutebrowser.commands import utils as cmdutils
+from qutebrowser.config import (style, config, websettings, iniparsers,
+                                lineparser, conftypes)
+from qutebrowser.network import qutescheme, proxy
+from qutebrowser.browser import quickmarks, cookies, downloads
+from qutebrowser.widgets import mainwindow, console, crash
+from qutebrowser.keyinput import modeparsers, keyparser, modeman
+from qutebrowser.utils import log, version, message, utilcmds, readline
+from qutebrowser.utils import url as urlutils
+from qutebrowser.utils import misc as utils
+from qutebrowser.utils import qt as qtutils
+from qutebrowser.utils import usertypes as utypes
 
 
 class Application(QApplication):
@@ -104,9 +86,9 @@ class Application(QApplication):
             # We don't enable this earlier because some imports trigger
             # warnings (which are not our fault).
             warnings.simplefilter('default')
-        qt_args = get_qt_args(args)
+        qt_args = qtutils.get_qt_args(args)
         log.init.debug("Qt arguments: {}, based on {}".format(qt_args, args))
-        super().__init__(get_qt_args(args))
+        super().__init__(qt_args)
         self._quit_status = {
             'crash': True,
             'tabs': False,
@@ -129,7 +111,7 @@ class Application(QApplication):
         self.args = args
         log.init.debug("Starting init...")
         self._init_misc()
-        actute_warning()
+        utils.actute_warning()
         log.init.debug("Initializing config...")
         self._init_config()
         log.init.debug("Initializing crashlog...")
@@ -147,25 +129,25 @@ class Application(QApplication):
         log.init.debug("Initializing utility commands...")
         utilcmds.init()
         log.init.debug("Initializing cookies...")
-        self.cookiejar = CookieJar(self)
+        self.cookiejar = cookies.CookieJar(self)
         log.init.debug("Initializing commands...")
-        self.commandrunner = CommandRunner()
+        self.commandrunner = runners.CommandRunner()
         log.init.debug("Initializing search...")
-        self.searchrunner = SearchRunner(self)
+        self.searchrunner = runners.SearchRunner(self)
         log.init.debug("Initializing downloads...")
-        self.downloadmanager = DownloadManager(self)
+        self.downloadmanager = downloads.DownloadManager(self)
         log.init.debug("Initializing main window...")
-        self.mainwindow = MainWindow()
+        self.mainwindow = mainwindow.MainWindow()
         self.modeman.mainwindow = self.mainwindow
         log.init.debug("Initializing debug console...")
-        self.debugconsole = ConsoleWidget()
+        self.debugconsole = console.ConsoleWidget()
         log.init.debug("Initializing eventfilter...")
         self.installEventFilter(self.modeman)
         self.setQuitOnLastWindowClosed(False)
 
         log.init.debug("Connecting signals...")
         self._connect_signals()
-        self.modeman.enter(KeyMode.normal, 'init')
+        self.modeman.enter(utypes.KeyMode.normal, 'init')
 
         log.init.debug("Showing mainwindow...")
         if not args.nowindow:
@@ -183,14 +165,15 @@ class Application(QApplication):
     def _init_config(self):
         """Inizialize and read the config."""
         if self.args.confdir is None:
-            confdir = get_standard_dir(QStandardPaths.ConfigLocation)
+            confdir = utils.get_standard_dir(QStandardPaths.ConfigLocation)
         elif self.args.confdir == '':
             confdir = None
         else:
             confdir = self.args.confdir
         try:
-            self.config = ConfigManager(confdir, 'qutebrowser.conf', self)
-        except (config.ValidationError,
+            self.config = config.ConfigManager(confdir, 'qutebrowser.conf',
+                                               self)
+        except (conftypes.ValidationError,
                 config.NoOptionError,
                 config.InterpolationSyntaxError,
                 configparser.InterpolationError,
@@ -207,47 +190,49 @@ class Application(QApplication):
             msgbox.exec_()
             # We didn't really initialize much so far, so we just quit hard.
             sys.exit(1)
-        self.stateconfig = ReadWriteConfigParser(confdir, 'state')
-        self.cmd_history = LineConfigParser(confdir, 'cmd_history',
-                                            ('completion', 'history-length'))
+        self.stateconfig = iniparsers.ReadWriteConfigParser(confdir, 'state')
+        self.cmd_history = lineparser.LineConfigParser(
+            confdir, 'cmd_history', ('completion', 'history-length'))
 
     def _init_modes(self):
         """Inizialize the mode manager and the keyparsers."""
         self._keyparsers = {
-            KeyMode.normal:
-                NormalKeyParser(self),
-            KeyMode.hint:
-                HintKeyParser(self),
-            KeyMode.insert:
-                PassthroughKeyParser('keybind.insert', self),
-            KeyMode.passthrough:
-                PassthroughKeyParser('keybind.passthrough', self),
-            KeyMode.command:
-                PassthroughKeyParser('keybind.command', self),
-            KeyMode.prompt:
-                PassthroughKeyParser('keybind.prompt', self, warn=False),
-            KeyMode.yesno:
-                PromptKeyParser(self),
+            utypes.KeyMode.normal:
+                modeparsers.NormalKeyParser(self),
+            utypes.KeyMode.hint:
+                modeparsers.HintKeyParser(self),
+            utypes.KeyMode.insert:
+                keyparser.PassthroughKeyParser('keybind.insert', self),
+            utypes.KeyMode.passthrough:
+                keyparser.PassthroughKeyParser('keybind.passthrough', self),
+            utypes.KeyMode.command:
+                keyparser.PassthroughKeyParser('keybind.command', self),
+            utypes.KeyMode.prompt:
+                keyparser.PassthroughKeyParser('keybind.prompt', self,
+                                               warn=False),
+            utypes.KeyMode.yesno:
+                modeparsers.PromptKeyParser(self),
         }
-        self.modeman = ModeManager(self)
-        self.modeman.register(KeyMode.normal,
-                              self._keyparsers[KeyMode.normal].handle)
-        self.modeman.register(KeyMode.hint,
-                              self._keyparsers[KeyMode.hint].handle)
-        self.modeman.register(KeyMode.insert,
-                              self._keyparsers[KeyMode.insert].handle,
+        self.modeman = modeman.ModeManager(self)
+        self.modeman.register(utypes.KeyMode.normal,
+                              self._keyparsers[utypes.KeyMode.normal].handle)
+        self.modeman.register(utypes.KeyMode.hint,
+                              self._keyparsers[utypes.KeyMode.hint].handle)
+        self.modeman.register(utypes.KeyMode.insert,
+                              self._keyparsers[utypes.KeyMode.insert].handle,
                               passthrough=True)
-        self.modeman.register(KeyMode.passthrough,
-                              self._keyparsers[KeyMode.passthrough].handle,
+        self.modeman.register(
+            utypes.KeyMode.passthrough,
+            self._keyparsers[utypes.KeyMode.passthrough].handle,
+            passthrough=True)
+        self.modeman.register(utypes.KeyMode.command,
+                              self._keyparsers[utypes.KeyMode.command].handle,
                               passthrough=True)
-        self.modeman.register(KeyMode.command,
-                              self._keyparsers[KeyMode.command].handle,
+        self.modeman.register(utypes.KeyMode.prompt,
+                              self._keyparsers[utypes.KeyMode.prompt].handle,
                               passthrough=True)
-        self.modeman.register(KeyMode.prompt,
-                              self._keyparsers[KeyMode.prompt].handle,
-                              passthrough=True)
-        self.modeman.register(KeyMode.yesno,
-                              self._keyparsers[KeyMode.yesno].handle)
+        self.modeman.register(utypes.KeyMode.yesno,
+                              self._keyparsers[utypes.KeyMode.yesno].handle)
 
     def _init_misc(self):
         """Initialize misc things."""
@@ -263,7 +248,7 @@ class Application(QApplication):
         self.setApplicationName("qutebrowser")
         self.setApplicationVersion(qutebrowser.__version__)
         self.messagebridge = message.MessageBridge(self)
-        self.rl_bridge = ReadlineBridge()
+        self.rl_bridge = readline.ReadlineBridge()
 
     def _handle_segfault(self):
         """Handle a segfault from a previous run."""
@@ -272,8 +257,8 @@ class Application(QApplication):
         # However this also means if the logfile is there for some weird
         # reason, we'll *always* log to stderr, but that's still better than no
         # dialogs at all.
-        logname = os.path.join(get_standard_dir(QStandardPaths.DataLocation),
-                               'crash.log')
+        path = utils.get_standard_dir(QStandardPaths.DataLocation)
+        logname = os.path.join(path, 'crash.log')
         # First check if an old logfile exists.
         if os.path.exists(logname):
             with open(logname, 'r', encoding='ascii') as f:
@@ -287,7 +272,7 @@ class Application(QApplication):
                     log.init.warning("Could not remove crash log!")
                 else:
                     self._init_crashlogfile()
-                self._crashdlg = FatalCrashDialog(data)
+                self._crashdlg = crash.FatalCrashDialog(data)
                 self._crashdlg.show()
             else:
                 # Crashlog exists but without data.
@@ -307,8 +292,8 @@ class Application(QApplication):
 
     def _init_crashlogfile(self):
         """Start a new logfile and redirect faulthandler to it."""
-        logname = os.path.join(get_standard_dir(QStandardPaths.DataLocation),
-                               'crash.log')
+        path = utils.get_standard_dir(QStandardPaths.DataLocation)
+        logname = os.path.join(path, 'crash.log')
         self._crashlogfile = open(logname, 'w', encoding='ascii')
         faulthandler.enable(self._crashlogfile)
         if (hasattr(faulthandler, 'register') and
@@ -360,7 +345,7 @@ class Application(QApplication):
         """
         signal.signal(signal.SIGINT, self.interrupt)
         signal.signal(signal.SIGTERM, self.interrupt)
-        timer = Timer(self, 'python_hacks')
+        timer = utypes.Timer(self, 'python_hacks')
         timer.start(500)
         timer.timeout.connect(lambda: None)
         self._timers.append(timer)
@@ -392,15 +377,16 @@ class Application(QApplication):
         cmd.got_search_rev.connect(self.searchrunner.search_rev)
         cmd.returnPressed.connect(tabs.setFocus)
         self.searchrunner.do_search.connect(tabs.search)
-        kp[KeyMode.normal].keystring_updated.connect(status.keystring.setText)
+        kp[utypes.KeyMode.normal].keystring_updated.connect(
+            status.keystring.setText)
         tabs.got_cmd.connect(self.commandrunner.run_safely)
 
         # hints
-        kp[KeyMode.hint].fire_hint.connect(tabs.fire_hint)
-        kp[KeyMode.hint].filter_hints.connect(tabs.filter_hints)
-        kp[KeyMode.hint].keystring_updated.connect(tabs.handle_hint_key)
+        kp[utypes.KeyMode.hint].fire_hint.connect(tabs.fire_hint)
+        kp[utypes.KeyMode.hint].filter_hints.connect(tabs.filter_hints)
+        kp[utypes.KeyMode.hint].keystring_updated.connect(tabs.handle_hint_key)
         tabs.hint_strings_updated.connect(
-            kp[KeyMode.hint].on_hint_strings_updated)
+            kp[utypes.KeyMode.hint].on_hint_strings_updated)
 
         # messages
         self.messagebridge.s_error.connect(status.disp_error)
@@ -413,8 +399,8 @@ class Application(QApplication):
         # config
         self.config.style_changed.connect(style.invalidate_caches)
         for obj in (tabs, completion, self.mainwindow, self.cmd_history,
-                    websettings, kp[KeyMode.normal], self.modeman, status,
-                    status.txt):
+                    websettings, kp[utypes.KeyMode.normal], self.modeman,
+                    status, status.txt):
             self.config.changed.connect(obj.on_config_changed)
 
         # statusbar
@@ -498,7 +484,8 @@ class Application(QApplication):
 
     def _save_geometry(self):
         """Save the window geometry to the state config."""
-        geom = b64encode(bytes(self.mainwindow.saveGeometry())).decode('ASCII')
+        data = bytes(self.mainwindow.saveGeometry())
+        geom = base64.b64encode(data).decode('ASCII')
         try:
             self.stateconfig.add_section('geometry')
         except configparser.DuplicateSectionError:
@@ -530,7 +517,7 @@ class Application(QApplication):
         """
         # pylint: disable=broad-except
 
-        if exctype is BdbQuit or not issubclass(exctype, Exception):
+        if exctype is bdb.BdbQuit or not issubclass(exctype, Exception):
             # pdb exit, KeyboardInterrupt, ...
             try:
                 self.shutdown()
@@ -580,8 +567,8 @@ class Application(QApplication):
             log.destroy.debug("Error while preventing shutdown: {}: {}".format(
                 e.__class__.__name__, e))
         QApplication.closeAllWindows()
-        self._crashdlg = ExceptionCrashDialog(pages, history, exc, widgets,
-                                              objects)
+        self._crashdlg = crash.ExceptionCrashDialog(pages, history, exc,
+                                                    widgets, objects)
         ret = self._crashdlg.exec_()
         if ret == QDialog.Accepted:  # restore
             self.restart(shutdown=False, pages=pages)
@@ -655,7 +642,7 @@ class Application(QApplication):
         history = self.mainwindow.status.cmd.history[-5:]
         widgets = self.get_all_widgets()
         objects = self.get_all_objects()
-        self._crashdlg = ReportDialog(pages, history, widgets, objects)
+        self._crashdlg = crash.ReportDialog(pages, history, widgets, objects)
         self._crashdlg.show()
 
     @cmdutils.register(instance='', debug=True, name='debug-console')
@@ -674,7 +661,7 @@ class Application(QApplication):
         signal.signal(signal.SIGINT, self.interrupt_forcefully)
         signal.signal(signal.SIGTERM, self.interrupt_forcefully)
         # If we call shutdown directly here, we get a segfault.
-        QTimer.singleShot(0, partial(self.shutdown, 128 + signum))
+        QTimer.singleShot(0, functools.partial(self.shutdown, 128 + signum))
 
     def interrupt_forcefully(self, signum, _frame):
         """Interrupt forcefully on the second SIGINT/SIGTERM request.
@@ -689,7 +676,7 @@ class Application(QApplication):
         signal.signal(signal.SIGTERM, self.interrupt_really_forcefully)
         # This *should* work without a QTimer, but because of the trouble in
         # self.interrupt we're better safe than sorry.
-        QTimer.singleShot(0, partial(self.exit, 128 + signum))
+        QTimer.singleShot(0, functools.partial(self.exit, 128 + signum))
 
     def interrupt_really_forcefully(self, signum, _frame):
         """Interrupt with even more force on the third SIGINT/SIGTERM request.
@@ -722,7 +709,7 @@ class Application(QApplication):
             # in the real main event loop, or we'll get a segfault.
             log.destroy.debug("Deferring real shutdown because question was "
                               "active.")
-            QTimer.singleShot(0, partial(self._shutdown, status))
+            QTimer.singleShot(0, functools.partial(self._shutdown, status))
         else:
             # If we have no questions to shut down, we are already in the real
             # event loop, so we can shut down immediately.
@@ -773,7 +760,7 @@ class Application(QApplication):
         log.destroy.debug("Deferring QApplication::exit...")
         # We use a singleshot timer to exit here to minimize the likelyhood of
         # segfaults.
-        QTimer.singleShot(0, partial(self.exit, status))
+        QTimer.singleShot(0, functools.partial(self.exit, status))
 
     def exit(self, status):
         """Extend QApplication::exit to log the event."""

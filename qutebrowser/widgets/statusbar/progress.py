@@ -22,8 +22,8 @@
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QProgressBar, QSizePolicy
 
-from qutebrowser.widgets.webview import LoadStatus
-from qutebrowser.config.style import set_register_stylesheet
+from qutebrowser.widgets import webview
+from qutebrowser.config import style
 
 
 class Progress(QProgressBar):
@@ -50,7 +50,7 @@ class Progress(QProgressBar):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        set_register_stylesheet(self)
+        style.set_register_stylesheet(self)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Ignored)
         self.setTextVisible(False)
         self.hide()
@@ -72,7 +72,7 @@ class Progress(QProgressBar):
             # sometimes.
             return
         self.setValue(tab.progress)
-        if tab.load_status == LoadStatus.loading:
+        if tab.load_status == webview.LoadStatus.loading:
             self.show()
         else:
             self.hide()

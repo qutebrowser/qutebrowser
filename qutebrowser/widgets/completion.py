@@ -26,13 +26,11 @@ subclasses to provide completions.
 from PyQt5.QtWidgets import QStyle, QTreeView, QSizePolicy
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel
 
-import qutebrowser.config.config as config
-import qutebrowser.commands.utils as cmdutils
-from qutebrowser.widgets.completiondelegate import CompletionItemDelegate
-from qutebrowser.config.style import set_register_stylesheet
-from qutebrowser.utils.completer import Completer
-from qutebrowser.utils.qt import qt_ensure_valid
-from qutebrowser.utils.usertypes import KeyMode
+from qutebrowser.commands import utils as cmdutils
+from qutebrowser.config import config, style
+from qutebrowser.widgets import completiondelegate
+from qutebrowser.utils import completer, usertypes
+from qutebrowser.utils import qt as qtutils
 
 
 class CompletionView(QTreeView):
@@ -94,12 +92,12 @@ class CompletionView(QTreeView):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.completer = Completer(self)
+        self.completer = completer.Completer(self)
         self.enabled = config.get('completion', 'show')
 
-        self._delegate = CompletionItemDelegate(self)
+        self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
-        set_register_stylesheet(self)
+        style.set_register_stylesheet(self)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.setHeaderHidden(True)
         self.setIndentation(0)
@@ -169,7 +167,7 @@ class CompletionView(QTreeView):
             # No completion running at the moment, ignore keypress
             return
         idx = self._next_idx(prev)
-        qt_ensure_valid(idx)
+        qtutils.qt_ensure_valid(idx)
         self.selectionModel().setCurrentIndex(
             idx, QItemSelectionModel.ClearAndSelect |
             QItemSelectionModel.Rows)
@@ -212,13 +210,13 @@ class CompletionView(QTreeView):
             selmod.clearCurrentIndex()
 
     @cmdutils.register(instance='mainwindow.completion', hide=True,
-                       modes=[KeyMode.command])
+                       modes=[usertypes.KeyMode.command])
     def completion_item_prev(self):
         """Select the previous completion item."""
         self._next_prev_item(prev=True)
 
     @cmdutils.register(instance='mainwindow.completion', hide=True,
-                       modes=[KeyMode.command])
+                       modes=[usertypes.KeyMode.command])
     def completion_item_next(self):
         """Select the next completion item."""
         self._next_prev_item(prev=False)

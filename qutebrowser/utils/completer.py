@@ -21,15 +21,12 @@
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
-import qutebrowser.config.config as config
-import qutebrowser.config.configdata as configdata
-import qutebrowser.commands.utils as cmdutils
+from qutebrowser.config import config, configdata
+from qutebrowser.commands import utils as cmdutils
+from qutebrowser.utils import usertypes
 from qutebrowser.utils.log import completion as logger
+from qutebrowser.models import completion as models
 from qutebrowser.models.completionfilter import CompletionFilterModel as CFM
-from qutebrowser.models.completion import (
-    CommandCompletionModel, SettingSectionCompletionModel,
-    SettingOptionCompletionModel, SettingValueCompletionModel)
-from qutebrowser.utils.usertypes import Completion
 
 
 class Completer(QObject):
@@ -58,31 +55,32 @@ class Completer(QObject):
         self.ignore_change = False
 
         self._models = {
-            Completion.option: {},
-            Completion.value: {},
+            usertypes.Completion.option: {},
+            usertypes.Completion.value: {},
         }
         self._init_command_completion()
         self._init_setting_completions()
 
     def _init_command_completion(self):
         """Initialize the command completion model."""
-        self._models[Completion.command] = CFM(
-            CommandCompletionModel(self), self)
+        self._models[usertypes.Completion.command] = CFM(
+            models.CommandCompletionModel(self), self)
 
     def _init_setting_completions(self):
         """Initialize setting completion models."""
-        self._models[Completion.section] = CFM(
-            SettingSectionCompletionModel(self), self)
-        self._models[Completion.option] = {}
-        self._models[Completion.value] = {}
+        self._models[usertypes.Completion.section] = CFM(
+            models.SettingSectionCompletionModel(self), self)
+        self._models[usertypes.Completion.option] = {}
+        self._models[usertypes.Completion.value] = {}
         for sectname in configdata.DATA:
-            model = SettingOptionCompletionModel(sectname, self)
-            self._models[Completion.option][sectname] = CFM(model, self)
+            model = models.SettingOptionCompletionModel(sectname, self)
+            self._models[usertypes.Completion.option][sectname] = CFM(
+                model, self)
             config.instance().changed.connect(model.on_config_changed)
-            self._models[Completion.value][sectname] = {}
+            self._models[usertypes.Completion.value][sectname] = {}
             for opt in configdata.DATA[sectname].keys():
-                model = SettingValueCompletionModel(sectname, opt, self)
-                self._models[Completion.value][sectname][opt] = CFM(
+                model = models.SettingValueCompletionModel(sectname, opt, self)
+                self._models[usertypes.Completion.value][sectname][opt] = CFM(
                     model, self)
                 config.instance().changed.connect(model.on_config_changed)
 
@@ -95,7 +93,7 @@ class Completer(QObject):
         """
         if cursor_part == 0:
             # '|' or 'set|'
-            return self._models[Completion.command]
+            return self._models[usertypes.Completion.command]
         # delegate completion to command
         try:
             completions = cmdutils.cmd_dict[parts[0]].completion
@@ -115,10 +113,10 @@ class Completer(QObject):
             return None
         dbg_completions[idx] = '*' + dbg_completions[idx] + '*'
         logger.debug("completions: {}".format(', '.join(dbg_completions)))
-        if completion == Completion.option:
+        if completion == usertypes.Completion.option:
             section = parts[cursor_part - 1]
             model = self._models[completion].get(section)
-        elif completion == Completion.value:
+        elif completion == usertypes.Completion.value:
             section = parts[cursor_part - 2]
             option = parts[cursor_part - 1]
             try:

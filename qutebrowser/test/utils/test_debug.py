@@ -24,8 +24,8 @@ import unittest
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QStyle, QFrame
 
-import qutebrowser.utils.debug as debug
-from qutebrowser.test.stubs import FakeSignal
+from qutebrowser.utils import debug
+from qutebrowser.test import stubs
 
 
 class QEnumKeyTests(unittest.TestCase):
@@ -123,7 +123,7 @@ class TestDebug(unittest.TestCase):
     """Test signal debug output functions."""
 
     def setUp(self):
-        self.signal = FakeSignal()
+        self.signal = stubs.FakeSignal()
 
     def test_signal_name(self):
         """Test signal_name()."""

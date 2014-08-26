@@ -19,29 +19,25 @@
 
 """The main tabbed browser widget."""
 
-from functools import partial
+import functools
 
 from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QSize, QTimer
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWebKitWidgets import QWebPage
 
-import qutebrowser.config.config as config
-import qutebrowser.commands.utils as cmdutils
-import qutebrowser.keyinput.modeman as modeman
-import qutebrowser.utils.log as log
-import qutebrowser.utils.misc as utils
-import qutebrowser.utils.message as message
-from qutebrowser.widgets.tabwidget import TabWidget
-from qutebrowser.widgets.webview import WebView
-from qutebrowser.browser.signalfilter import SignalFilter
-from qutebrowser.browser.commands import CommandDispatcher
-from qutebrowser.utils.qt import qt_ensure_valid, QtValueError
-from qutebrowser.commands.exceptions import CommandError
-from qutebrowser.utils.usertypes import KeyMode
+from qutebrowser.config import config
+from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import exceptions as cmdexc
+from qutebrowser.keyinput import modeman
+from qutebrowser.widgets import tabwidget, webview
+from qutebrowser.browser import signalfilter, commands
+from qutebrowser.utils import log, message, usertypes
+from qutebrowser.utils import misc as utils
+from qutebrowser.utils import qt as qtutils
 
 
-class TabbedBrowser(TabWidget):
+class TabbedBrowser(tabwidget.TabWidget):
 
     """A TabWidget with QWebViews inside.
 
@@ -104,7 +100,7 @@ class TabbedBrowser(TabWidget):
     quit = pyqtSignal()
     resized = pyqtSignal('QRect')
     got_cmd = pyqtSignal(str)
-    current_tab_changed = pyqtSignal(WebView)
+    current_tab_changed = pyqtSignal(webview.WebView)
     title_changed = pyqtSignal(str)
 
     def __init__(self, parent=None):
@@ -116,8 +112,8 @@ class TabbedBrowser(TabWidget):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._tabs = []
         self.url_stack = []
-        self._filter = SignalFilter(self)
-        self.cmd = CommandDispatcher(self)
+        self._filter = signalfilter.SignalFilter(self)
+        self.cmd = commands.CommandDispatcher(self)
         self.last_focused = None
         self._now_focused = None
         # FIXME adjust this to font size
@@ -159,7 +155,8 @@ class TabbedBrowser(TabWidget):
             self._filter.create(self.cur_url_text_changed, tab))
         tab.load_status_changed.connect(
             self._filter.create(self.cur_load_status_changed, tab))
-        tab.url_text_changed.connect(partial(self.on_url_text_changed, tab))
+        tab.url_text_changed.connect(
+            functools.partial(self.on_url_text_changed, tab))
         # hintmanager
         tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)
         tab.hintmanager.download_get.connect(self.download_get)
@@ -168,13 +165,18 @@ class TabbedBrowser(TabWidget):
         # downloads
         page.start_download.connect(self.start_download)
         # misc
-        tab.titleChanged.connect(partial(self.on_title_changed, tab))
-        tab.iconChanged.connect(partial(self.on_icon_changed, tab))
-        tab.loadProgress.connect(partial(self.on_load_progress, tab))
-        frame.loadFinished.connect(partial(self.on_load_finished, tab))
-        frame.loadStarted.connect(partial(self.on_load_started, tab))
+        tab.titleChanged.connect(
+            functools.partial(self.on_title_changed, tab))
+        tab.iconChanged.connect(
+            functools.partial(self.on_icon_changed, tab))
+        tab.loadProgress.connect(
+            functools.partial(self.on_load_progress, tab))
+        frame.loadFinished.connect(
+            functools.partial(self.on_load_finished, tab))
+        frame.loadStarted.connect(
+            functools.partial(self.on_load_started, tab))
         page.windowCloseRequested.connect(
-            partial(self.on_window_close_requested, tab))
+            functools.partial(self.on_window_close_requested, tab))
 
     def cntwidget(self, count=None):
         """Return a widget based on a count/idx.
@@ -208,13 +210,13 @@ class TabbedBrowser(TabWidget):
         """
         url = self.currentWidget().cur_url
         try:
-            qt_ensure_valid(url)
-        except QtValueError as e:
+            qtutils.qt_ensure_valid(url)
+        except qtutils.QtValueError as e:
             msg = "Current URL is invalid"
             if e.reason:
                 msg += " ({})".format(e.reason)
             msg += "!"
-            raise CommandError(msg)
+            raise cmdexc.CommandError(msg)
         return url
 
     def shutdown(self):
@@ -264,7 +266,7 @@ class TabbedBrowser(TabWidget):
         if tab is self.last_focused:
             self.last_focused = None
         if not tab.cur_url.isEmpty():
-            qt_ensure_valid(tab.cur_url)
+            qtutils.qt_ensure_valid(tab.cur_url)
             self.url_stack.append(tab.cur_url)
         tab.shutdown()
         self._tabs.remove(tab)
@@ -279,7 +281,7 @@ class TabbedBrowser(TabWidget):
             url: The URL to open as QUrl.
             newtab: True to open URL in a new tab, False otherwise.
         """
-        qt_ensure_valid(url)
+        qtutils.qt_ensure_valid(url)
         if newtab:
             self.tabopen(url, background=False)
         else:
@@ -295,7 +297,7 @@ class TabbedBrowser(TabWidget):
             return
         self.close_tab(tab)
 
-    @pyqtSlot(WebView)
+    @pyqtSlot(webview.WebView)
     def on_window_close_requested(self, widget):
         """Close a tab with a widget given."""
         self.close_tab(widget)
@@ -322,9 +324,9 @@ class TabbedBrowser(TabWidget):
             The opened WebView instance.
         """
         if url is not None:
-            qt_ensure_valid(url)
+            qtutils.qt_ensure_valid(url)
         log.webview.debug("Creating new tab with URL {}".format(url))
-        tab = WebView(self)
+        tab = webview.WebView(self)
         self._connect_tab_signals(tab)
         self._tabs.append(tab)
         if explicit:
@@ -440,10 +442,10 @@ class TabbedBrowser(TabWidget):
     @pyqtSlot()
     def on_cur_load_started(self):
         """Leave insert/hint mode when loading started."""
-        modeman.maybe_leave(KeyMode.insert, 'load started')
-        modeman.maybe_leave(KeyMode.hint, 'load started')
+        modeman.maybe_leave(usertypes.KeyMode.insert, 'load started')
+        modeman.maybe_leave(usertypes.KeyMode.hint, 'load started')
 
-    @pyqtSlot(WebView, str)
+    @pyqtSlot(webview.WebView, str)
     def on_title_changed(self, tab, text):
         """Set the title of a tab.
 
@@ -470,7 +472,7 @@ class TabbedBrowser(TabWidget):
         if idx == self.currentIndex():
             self.title_changed.emit('{} - qutebrowser'.format(text))
 
-    @pyqtSlot(WebView, str)
+    @pyqtSlot(webview.WebView, str)
     def on_url_text_changed(self, tab, url):
         """Set the new URL as title if there's no title yet.
 
@@ -490,7 +492,7 @@ class TabbedBrowser(TabWidget):
         if not self.tabText(idx):
             self.setTabText(idx, url)
 
-    @pyqtSlot(WebView)
+    @pyqtSlot(webview.WebView)
     def on_icon_changed(self, tab):
         """Set the icon of a tab.
 
@@ -512,10 +514,10 @@ class TabbedBrowser(TabWidget):
             return
         self.setTabIcon(idx, tab.icon())
 
-    @pyqtSlot(KeyMode)
+    @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Give focus to current tab if command mode was left."""
-        if mode == KeyMode.command:
+        if mode == usertypes.KeyMode.command:
             self.currentWidget().setFocus()
 
     @pyqtSlot(int)
@@ -523,7 +525,7 @@ class TabbedBrowser(TabWidget):
         """Set last_focused and leave hinting mode when focus changed."""
         tab = self.widget(idx)
         tab.setFocus()
-        modeman.maybe_leave(KeyMode.hint, 'tab changed')
+        modeman.maybe_leave(usertypes.KeyMode.hint, 'tab changed')
         self.last_focused = self._now_focused
         self._now_focused = tab
         self.current_tab_changed.emit(tab)

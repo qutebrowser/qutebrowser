@@ -21,10 +21,10 @@
 
 from PyQt5.QtCore import pyqtSlot
 
-from qutebrowser.widgets.statusbar.textbase import TextBase
+from qutebrowser.widgets.statusbar import textbase
 
 
-class Percentage(TextBase):
+class Percentage(textbase.TextBase):
 
     """Reading percentage displayed in the statusbar."""
 

@@ -21,17 +21,16 @@
 
 import sys
 import traceback
-from urllib.error import URLError
-from getpass import getuser
+import urllib.error
+import getpass
 
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout)
 
-import qutebrowser.config.config as config
-import qutebrowser.utils.misc as utils
-import qutebrowser.utils.log as logutils
-from qutebrowser.utils.version import version
+from qutebrowser.config import config
+from qutebrowser.utils import version, log
+from qutebrowser.utils import misc as utils
 
 
 class _CrashDialog(QDialog):
@@ -124,11 +123,11 @@ class _CrashDialog(QDialog):
         ]
         try:
             self._crash_info.append(("Contact info",
-                                     "User: {}".format(getuser())))
+                                     "User: {}".format(getpass.getuser())))
         except Exception as e:  # pylint: disable=broad-except
             self._crash_info.append(("Contact info", "User: {}: {}".format(
                                      e.__class__.__name__, e)))
-        self._crash_info.append(("Version info", version()))
+        self._crash_info.append(("Version info", version.version()))
         try:
             self._crash_info.append(("Config",
                                      config.instance().dump_userconfig()))
@@ -156,7 +155,7 @@ class _CrashDialog(QDialog):
         """Paste the crash info into the pastebin."""
         try:
             url = utils.pastebin(self._txt.toPlainText())
-        except (URLError, ValueError) as e:
+        except (urllib.error.URLError, ValueError) as e:
             self._url.setText('Error while reporting: {}: {}'.format(
                 e.__class__.__name__, e))
             return
@@ -228,8 +227,7 @@ class ExceptionCrashDialog(_CrashDialog):
             ("Objects", self._objects),
         ]
         try:
-            self._crash_info.append(("Debug log",
-                                     logutils.ram_handler.dump_log()))
+            self._crash_info.append(("Debug log", log.ram_handler.dump_log()))
         except AttributeError as e:
             self._crash_info.append(("Debug log", "{}: {}".format(
                 e.__class__.__name__, e)))
@@ -245,8 +243,8 @@ class FatalCrashDialog(_CrashDialog):
         _btn_pastebin: The pastebin button.
     """
 
-    def __init__(self, log, parent=None):
-        self._log = log
+    def __init__(self, text, parent=None):
+        self._log = text
         self._btn_ok = None
         self._btn_pastebin = None
         super().__init__(parent)
@@ -329,8 +327,7 @@ class ReportDialog(_CrashDialog):
             ("Objects", self._objects),
         ]
         try:
-            self._crash_info.append(("Debug log",
-                                     logutils.ram_handler.dump_log()))
+            self._crash_info.append(("Debug log", log.ram_handler.dump_log()))
         except AttributeError as e:
             self._crash_info.append(("Debug log", "{}: {}".format(
                 e.__class__.__name__, e)))

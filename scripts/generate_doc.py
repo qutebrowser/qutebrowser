@@ -27,18 +27,18 @@ import html
 import shutil
 import inspect
 import subprocess
-from collections import Counter, OrderedDict
-from tempfile import mkstemp
+import collections
+import tempfile
 
 sys.path.insert(0, os.getcwd())
 
 import qutebrowser
 # We import qutebrowser.app so all @cmdutils-register decorators are run.
 import qutebrowser.app
-import qutebrowser.commands.utils as cmdutils
-import qutebrowser.config.configdata as configdata
-import qutebrowser.qutebrowser as qutequtebrowser
-from qutebrowser.utils.usertypes import enum
+from qutebrowser import qutebrowser as qutequtebrowser
+from qutebrowser.commands import utils as cmdutils
+from qutebrowser.config import configdata
+from qutebrowser.utils import usertypes
 
 
 def _open_file(name, mode='w'):
@@ -58,8 +58,9 @@ def _parse_docstring(func):  # noqa
         A (short_desc, long_desc, arg_descs) tuple.
     """
     # pylint: disable=too-many-branches
-    State = enum('State', 'short', 'desc',  # pylint: disable=invalid-name
-                 'desc_hidden', 'arg_start', 'arg_inside', 'misc')
+    State = usertypes.enum('State', 'short',  # pylint: disable=invalid-name
+                           'desc', 'desc_hidden', 'arg_start', 'arg_inside',
+                           'misc')
     doc = inspect.getdoc(func)
     lines = doc.splitlines()
 
@@ -67,7 +68,7 @@ def _parse_docstring(func):  # noqa
 
     short_desc = []
     long_desc = []
-    arg_descs = OrderedDict()
+    arg_descs = collections.OrderedDict()
     cur_arg_name = None
 
     for line in lines:
@@ -385,7 +386,7 @@ def generate_settings(f):
 def _get_authors():
     """Get a list of authors based on git commit logs."""
     commits = subprocess.check_output(['git', 'log', '--format=%aN'])
-    cnt = Counter(commits.decode('utf-8').splitlines())
+    cnt = collections.Counter(commits.decode('utf-8').splitlines())
     return sorted(cnt, key=lambda k: cnt[k])
 
 
@@ -442,7 +443,7 @@ def generate_manpage_resources(f):
 
 def regenerate_authors(filename):
     """Re-generate the authors inside README based on the commits made."""
-    oshandle, tmpname = mkstemp()
+    oshandle, tmpname = tempfile.mkstemp()
     with _open_file(filename, mode='r') as infile, \
             _open_file(oshandle, mode='w') as temp:
         ignore = False

@@ -20,15 +20,14 @@
 
 import os.path
 
-from pylint.interfaces import IRawChecker
-from pylint.checkers import BaseChecker
+from pylint import interfaces, checkers
 
 
-class ModelineChecker(BaseChecker):
+class ModelineChecker(checkers.BaseChecker):
 
     """Check for vim modelines in files."""
 
-    __implements__ = IRawChecker
+    __implements__ = interfaces.IRawChecker
 
     name = 'modeline'
     msgs = {'W9002': ('Does not have vim modeline', 'modeline-missing', None),

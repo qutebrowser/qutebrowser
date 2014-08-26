@@ -21,7 +21,7 @@
 
 from PyQt5.QtCore import pyqtSignal, QCoreApplication, QObject, QTimer
 
-from qutebrowser.utils.usertypes import PromptMode, Question
+from qutebrowser.utils import usertypes
 from qutebrowser.utils.log import misc as logger
 
 
@@ -64,7 +64,7 @@ def ask(message, mode, default=None):
     Return:
         The answer the user gave or None if the prompt was cancelled.
     """
-    q = Question()
+    q = usertypes.Question()
     q.text = message
     q.mode = mode
     q.default = default
@@ -75,9 +75,9 @@ def ask(message, mode, default=None):
 
 def alert(message):
     """Display an alert which needs to be confirmed."""
-    q = Question()
+    q = usertypes.Question()
     q.text = message
-    q.mode = PromptMode.alert
+    q.mode = usertypes.PromptMode.alert
     instance().ask(q, blocking=True)
     q.deleteLater()
 
@@ -91,10 +91,10 @@ def ask_async(message, mode, handler, default=None):
         handler: The function to get called with the answer as argument.
         default: The default value to display.
     """
-    if not isinstance(mode, PromptMode):
+    if not isinstance(mode, usertypes.PromptMode):
         raise TypeError("Mode {} is no PromptMode member!".format(mode))
     bridge = instance()
-    q = Question(bridge)
+    q = usertypes.Question(bridge)
     q.text = message
     q.mode = mode
     q.default = default
@@ -113,9 +113,9 @@ def confirm_async(message, yes_action, no_action=None, default=None):
         default: True/False to set a default value, or None.
     """
     bridge = instance()
-    q = Question(bridge)
+    q = usertypes.Question(bridge)
     q.text = message
-    q.mode = PromptMode.yesno
+    q.mode = usertypes.PromptMode.yesno
     q.default = default
     q.answered_yes.connect(yes_action)
     if no_action is not None:
@@ -152,7 +152,7 @@ class MessageBridge(QObject):
     s_info = pyqtSignal(str, bool)
     s_set_text = pyqtSignal(str)
     s_set_cmd_text = pyqtSignal(str)
-    s_question = pyqtSignal(Question, bool)
+    s_question = pyqtSignal(usertypes.Question, bool)
 
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
