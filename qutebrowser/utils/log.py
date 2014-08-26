@@ -43,7 +43,9 @@ except ImportError:
     ColoredFormatter = None
 else:
     # colorlog calls colorama.init() which we don't want, also it breaks our
-    # sys.stdout/sys.stderr if they are None.
+    # sys.stdout/sys.stderr if they are None. Bugreports:
+    # https://code.google.com/p/colorama/issues/detail?id=61
+    # https://github.com/borntyping/python-colorlog/issues/13
     if colorama is not None:
         colorama.deinit()
 
