@@ -32,8 +32,7 @@ from qutebrowser.commands import exceptions as cmdexc
 from qutebrowser.keyinput import modeman
 from qutebrowser.widgets import tabwidget, webview
 from qutebrowser.browser import signalfilter, commands
-from qutebrowser.utils import log, message, usertypes, utils
-from qutebrowser.utils import qt as qtutils
+from qutebrowser.utils import log, message, usertypes, utils, qtutils
 
 
 class TabbedBrowser(tabwidget.TabWidget):

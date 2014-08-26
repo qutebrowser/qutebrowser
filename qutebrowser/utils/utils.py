@@ -35,7 +35,7 @@ from PyQt5.QtGui import QKeySequence, QColor
 import pkg_resources
 
 import qutebrowser
-from qutebrowser.utils import qt as qtutils
+from qutebrowser.utils import qtutils
 
 
 def elide(text, length):

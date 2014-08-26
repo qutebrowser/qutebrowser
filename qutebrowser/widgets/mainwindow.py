@@ -27,8 +27,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
 from qutebrowser.commands import utils as cmdutils
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes
-from qutebrowser.utils import qt as qtutils
+from qutebrowser.utils import message, log, usertypes, qtutils
 from qutebrowser.widgets import tabbedbrowser, completion, downloads
 from qutebrowser.widgets.statusbar import bar
 

@@ -30,8 +30,7 @@ from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.network import networkmanager
-from qutebrowser.utils import message, usertypes, log, http, utils
-from qutebrowser.utils import qt as qtutils
+from qutebrowser.utils import message, usertypes, log, http, utils, qtutils
 
 
 class BrowserPage(QWebPage):

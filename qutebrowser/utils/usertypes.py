@@ -29,8 +29,7 @@ import enum as pyenum
 
 from PyQt5.QtCore import pyqtSignal, QObject, QTimer
 
-from qutebrowser.utils import qt as qtutils
-from qutebrowser.utils import log
+from qutebrowser.utils import log, qtutils
 
 
 _UNSET = object()

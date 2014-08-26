@@ -27,8 +27,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QHostInfo
 
 from qutebrowser.config import config
-from qutebrowser.utils import qt as qtutils
-from qutebrowser.utils import log
+from qutebrowser.utils import log, qtutils
 
 
 # FIXME: we probably could raise some exceptions on invalid URLs

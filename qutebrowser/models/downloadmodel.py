@@ -24,8 +24,7 @@ from PyQt5.QtCore import (pyqtSlot, Qt, QVariant, QAbstractListModel,
 from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes
-from qutebrowser.utils import qt as qtutils
+from qutebrowser.utils import usertypes, qtutils
 
 
 Role = usertypes.enum('Role', 'item', start=Qt.UserRole, is_int=True)

@@ -30,7 +30,7 @@ from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
 
 from qutebrowser.config import config, style
 from qutebrowser.models import basecompletion
-from qutebrowser.utils import qt as qtutils
+from qutebrowser.utils import qtutils
 
 
 class CompletionItemDelegate(QStyledItemDelegate):

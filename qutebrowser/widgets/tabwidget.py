@@ -32,7 +32,7 @@ from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QApplication)
 from PyQt5.QtGui import QIcon, QPalette, QColor
 
-from qutebrowser.utils import qt as qtutils
+from qutebrowser.utils import qtutils
 from qutebrowser.config import config
 
 

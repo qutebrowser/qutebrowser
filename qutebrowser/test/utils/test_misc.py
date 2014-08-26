@@ -29,8 +29,7 @@ import tempfile
 from PyQt5.QtCore import QStandardPaths, QCoreApplication, Qt
 from PyQt5.QtGui import QColor
 
-from qutebrowser.utils import utils
-from qutebrowser.utils import qt as qtutils
+from qutebrowser.utils import utils, qtutils
 from qutebrowser.test import helpers
 
 

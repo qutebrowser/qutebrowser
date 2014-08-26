@@ -34,8 +34,7 @@ from qutebrowser.commands import utils as cmdutils
 from qutebrowser.commands import exceptions as cmdexc
 from qutebrowser.config import config
 from qutebrowser.browser import hints, quickmarks
-from qutebrowser.utils import message, webelem, editor, usertypes, log
-from qutebrowser.utils import qt as qtutils
+from qutebrowser.utils import message, webelem, editor, usertypes, log, qtutils
 from qutebrowser.utils import url as urlutils
 
 

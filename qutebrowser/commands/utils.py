@@ -26,8 +26,7 @@ Module attributes:
 import inspect
 import collections
 
-from qutebrowser.utils import usertypes
-from qutebrowser.utils import qt as qtutils
+from qutebrowser.utils import usertypes, qtutils
 from qutebrowser.commands import command
 from qutebrowser.commands import exceptions as cmdexc
 

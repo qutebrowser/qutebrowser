@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu
 
 from qutebrowser.models import downloadmodel
 from qutebrowser.config import style
-from qutebrowser.utils import qt as qtutils
+from qutebrowser.utils import qtutils
 
 
 class DownloadView(QListView):

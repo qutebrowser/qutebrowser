@@ -17,13 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.utils.qt."""
+"""Tests for qutebrowser.utils.qtutils."""
 
 import sys
 import argparse
 import unittest
 
-from qutebrowser.utils import qt
+from qutebrowser.utils import qtutils
 
 
 class CheckOverflowTests(unittest.TestCase):
@@ -63,7 +63,7 @@ class CheckOverflowTests(unittest.TestCase):
         for ctype, vals in self.GOOD_VALUES.items():
             for val in vals:
                 with self.subTest(ctype=ctype, val=val):
-                    qt.check_overflow(val, ctype)
+                    qtutils.check_overflow(val, ctype)
 
     def test_bad_values_fatal(self):
         """Test values which are outside bounds with fatal=True."""
@@ -71,14 +71,14 @@ class CheckOverflowTests(unittest.TestCase):
             for (val, _) in vals:
                 with self.subTest(ctype=ctype, val=val):
                     with self.assertRaises(OverflowError):
-                        qt.check_overflow(val, ctype)
+                        qtutils.check_overflow(val, ctype)
 
     def test_bad_values_nonfatal(self):
         """Test values which are outside bounds with fatal=False."""
         for ctype, vals in self.BAD_VALUES.items():
             for (val, replacement) in vals:
                 with self.subTest(ctype=ctype, val=val):
-                    newval = qt.check_overflow(val, ctype, fatal=False)
+                    newval = qtutils.check_overflow(val, ctype, fatal=False)
                     self.assertEqual(newval, replacement)
 
 
@@ -109,26 +109,26 @@ class GetQtArgsTests(unittest.TestCase):
     def test_no_qt_args(self):
         """Test commandline with no Qt arguments given."""
         ns = self._namespace(['--foo'], flags=['--foo'])
-        self.assertEqual(qt.get_args(ns), [sys.argv[0]])
+        self.assertEqual(qtutils.get_args(ns), [sys.argv[0]])
 
     def test_qt_flag(self):
         """Test commandline with a Qt flag."""
         ns = self._namespace(['--foo', '--qt-reverse', '--bar'],
                              flags=['--foo', '--qt-reverse', '--bar'])
-        self.assertEqual(qt.get_args(ns), [sys.argv[0], '-reverse'])
+        self.assertEqual(qtutils.get_args(ns), [sys.argv[0], '-reverse'])
 
     def test_qt_arg(self):
         """Test commandline with a Qt argument."""
         ns = self._namespace(['--qt-stylesheet', 'foobar'],
                              args=['--qt-stylesheet'])
-        self.assertEqual(qt.get_args(ns), [sys.argv[0], '-stylesheet',
-                                           'foobar'])
+        self.assertEqual(qtutils.get_args(ns), [sys.argv[0], '-stylesheet',
+                                                'foobar'])
 
     def test_qt_both(self):
         """Test commandline with a Qt argument and flag."""
         ns = self._namespace(['--qt-stylesheet', 'foobar', '--qt-reverse'],
                              flags=['--qt-reverse'], args=['--qt-stylesheet'])
-        qt_args = qt.get_args(ns)
+        qt_args = qtutils.get_args(ns)
         self.assertEqual(qt_args[0], sys.argv[0])
         self.assertIn('-reverse', qt_args)
         self.assertIn('-stylesheet', qt_args)

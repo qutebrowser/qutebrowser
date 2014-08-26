@@ -26,8 +26,7 @@ from PyQt5.QtWidgets import QLineEdit
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.commands import utils as cmdutils
-from qutebrowser.utils import usertypes, log
-from qutebrowser.utils import qt as qtutils
+from qutebrowser.utils import usertypes, log, qtutils
 
 
 PromptContext = collections.namedtuple('PromptContext',

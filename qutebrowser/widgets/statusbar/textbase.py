@@ -23,7 +23,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QLabel, QSizePolicy
 from PyQt5.QtGui import QPainter
 
-from qutebrowser.utils import qt as qtutils
+from qutebrowser.utils import qtutils
 
 
 class TextBase(QLabel):

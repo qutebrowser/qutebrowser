@@ -26,8 +26,7 @@ Module attributes:
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
-from qutebrowser.utils import usertypes
-from qutebrowser.utils import qt as qtutils
+from qutebrowser.utils import usertypes, qtutils
 
 
 Role = usertypes.enum('Role', 'marks', 'sort', start=Qt.UserRole, is_int=True)

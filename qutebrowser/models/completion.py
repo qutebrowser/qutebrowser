@@ -24,8 +24,7 @@ from PyQt5.QtCore import pyqtSlot, Qt, QCoreApplication
 from qutebrowser.config import config, configdata
 from qutebrowser.models import basecompletion
 from qutebrowser.commands import utils as cmdutils
-from qutebrowser.utils import qt as qtutils
-from qutebrowser.utils import log
+from qutebrowser.utils import log, qtutils
 
 
 class SettingSectionCompletionModel(basecompletion.BaseCompletionModel):
