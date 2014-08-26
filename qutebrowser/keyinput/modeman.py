@@ -30,8 +30,7 @@ from PyQt5.QtWidgets import QApplication
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc
 from qutebrowser.commands import utils as cmdutils
-from qutebrowser.utils import usertypes
-from qutebrowser.utils import log
+from qutebrowser.utils import usertypes, log
 
 
 class ModeLockedError(Exception):
