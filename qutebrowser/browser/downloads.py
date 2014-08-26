@@ -30,10 +30,9 @@ from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 from qutebrowser.config import config
 from qutebrowser.commands import utils as cmdutils
 from qutebrowser.commands import exceptions as cmdexc
-from qutebrowser.utils import message, http, usertypes
+from qutebrowser.utils import message, http, usertypes, log
 from qutebrowser.utils import misc as utils
 from qutebrowser.utils import qt as qtutils
-from qutebrowser.utils.log import downloads as logger
 
 
 class DownloadItem(QObject):
@@ -184,7 +183,7 @@ class DownloadItem(QObject):
 
     def cancel(self):
         """Cancel the download."""
-        logger.debug("cancelled")
+        log.downloads.debug("cancelled")
         self.cancelled.emit()
         self.is_cancelled = True
         self.reply.abort()
@@ -210,7 +209,7 @@ class DownloadItem(QObject):
                 download_dir = utils.get_standard_dir(
                     QStandardPaths.DownloadLocation)
             target = os.path.join(download_dir, filename)
-        logger.debug("Setting filename to {}".format(filename))
+        log.downloads.debug("Setting filename to {}".format(filename))
         if self.filename is not None:
             raise ValueError("Filename was already set! filename: {}, "
                              "existing: {}".format(filename, self.filename))
@@ -232,14 +231,14 @@ class DownloadItem(QObject):
 
     def delayed_write(self):
         """Write buffered data to disk and finish the QNetworkReply."""
-        logger.debug("Doing delayed write...")
+        log.downloads.debug("Doing delayed write...")
         self._do_delayed_write = False
         self.fileobj.write(self.reply.readAll())
         self.fileobj.close()
         self.reply.close()
         self.reply.deleteLater()
         self.finished.emit()
-        logger.debug("Download finished")
+        log.downloads.debug("Download finished")
 
     @pyqtSlot(int, int)
     def on_download_progress(self, bytes_done, bytes_total):
@@ -267,7 +266,7 @@ class DownloadItem(QObject):
         self.timer.stop()
         if self.is_cancelled:
             return
-        logger.debug("Reply finished, fileobj {}".format(self.fileobj))
+        log.downloads.debug("Reply finished, fileobj {}".format(self.fileobj))
         if self.fileobj is None:
             # We'll handle emptying the buffer and cleaning up as soon as the
             # filename is set.
@@ -371,7 +370,8 @@ class DownloadManager(QObject):
             reply: The QNetworkReply to download.
         """
         _inline, suggested_filename = http.parse_content_disposition(reply)
-        logger.debug("fetch: {} -> {}".format(reply.url(), suggested_filename))
+        log.downloads.debug("fetch: {} -> {}".format(reply.url(),
+                                                     suggested_filename))
         download = DownloadItem(reply, self)
         download.finished.connect(
             functools.partial(self.on_finished, download))
@@ -398,7 +398,7 @@ class DownloadManager(QObject):
     @pyqtSlot(DownloadItem)
     def on_finished(self, download):
         """Remove finished download."""
-        logger.debug("on_finished: {}".format(download))
+        log.downloads.debug("on_finished: {}".format(download))
         idx = self.downloads.index(download)
         self.download_about_to_be_finished.emit(idx)
         del self.downloads[idx]

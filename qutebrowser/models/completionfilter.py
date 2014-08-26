@@ -27,7 +27,7 @@ from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex
 
 from qutebrowser.models import basecompletion as completion
 from qutebrowser.utils import qt as qtutils
-from qutebrowser.utils.log import completion as logger
+from qutebrowser.utils import log
 
 
 class CompletionFilterModel(QSortFilterProxyModel):
@@ -121,7 +121,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
 
     def setSourceModel(self, model):
         """Override QSortFilterProxyModel's setSourceModel to clear pattern."""
-        logger.debug("Setting source model: {}".format(model))
+        log.completion.debug("Setting source model: {}".format(model))
         self.pattern = ''
         self.srcmodel = model
         super().setSourceModel(model)

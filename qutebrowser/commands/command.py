@@ -24,7 +24,7 @@ from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.commands import exceptions as cmdexc
 from qutebrowser.utils import misc as utils
-from qutebrowser.utils.log import commands as logger
+from qutebrowser.utils import log
 
 
 class Command:
@@ -124,7 +124,7 @@ class Command:
             dbgout += args
         if count is not None:
             dbgout.append("(count={})".format(count))
-        logger.debug(' '.join(dbgout))
+        log.commands.debug(' '.join(dbgout))
 
         kwargs = {}
         app = QCoreApplication.instance()

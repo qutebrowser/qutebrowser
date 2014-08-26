@@ -30,7 +30,7 @@ from PyQt5.QtGui import QColor
 
 from qutebrowser.config import config
 from qutebrowser.utils import misc as utils
-from qutebrowser.utils.log import style as logger
+from qutebrowser.utils import log
 
 
 _colordict = None
@@ -67,8 +67,8 @@ def set_register_stylesheet(obj):
              Must have a STYLESHEET attribute.
     """
     qss = get_stylesheet(obj.STYLESHEET)
-    logger.debug("stylesheet for {}: {}".format(obj.__class__.__name__,
-                                                utils.compact_text(qss)))
+    log.style.debug("stylesheet for {}: {}".format(obj.__class__.__name__,
+                                                   utils.compact_text(qss)))
     obj.setStyleSheet(qss)
     config.instance().changed.connect(
         functools.partial(_update_stylesheet, obj))
@@ -110,7 +110,7 @@ class ColorDict(dict):
         try:
             val = super().__getitem__(key)
         except KeyError as e:
-            logger.warning("No color defined for {}!".format(e))
+            log.style.warning("No color defined for {}!".format(e))
             return ''
         if isinstance(val, QColor):
             # This could happen when accidentaly declarding something as

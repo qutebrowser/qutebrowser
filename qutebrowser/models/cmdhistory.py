@@ -21,8 +21,7 @@
 
 from PyQt5.QtCore import pyqtSlot
 
-from qutebrowser.utils import usertypes
-from qutebrowser.utils.log import misc as logger
+from qutebrowser.utils import usertypes, log
 
 
 class HistoryEmptyError(Exception):
@@ -78,7 +77,7 @@ class History:
         Args:
             text: The preset text.
         """
-        logger.debug("Preset text: '{}'".format(text))
+        log.misc.debug("Preset text: '{}'".format(text))
         if text:
             items = [e for e in self.history if e.startswith(text)]
         else:

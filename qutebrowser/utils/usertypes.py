@@ -30,7 +30,7 @@ import enum as pyenum
 from PyQt5.QtCore import pyqtSignal, QObject, QTimer
 
 from qutebrowser.utils import qt as qtutils
-from qutebrowser.utils.log import misc as logger
+from qutebrowser.utils import log
 
 
 _UNSET = object()
@@ -181,8 +181,8 @@ class NeighborList(collections.abc.Sequence):
             IndexError if the border of the list is reached and mode is
                        exception.
         """
-        logger.debug("{} items, idx {}, offset {}".format(len(self._items),
-                                                          self.idx, offset))
+        log.misc.debug("{} items, idx {}, offset {}".format(
+            len(self._items), self.idx, offset))
         if not self._items:
             raise IndexError("No items found!")
         if self.fuzzyval is not None:
@@ -347,7 +347,7 @@ class Question(QObject):
             # FIXME
             # We seem to get "pyqtSignal must be bound to a QObject, not
             # 'Question' here, which makes no sense at all..."
-            logger.debug("Error while aborting question: {}: {}".format(
+            log.misc.debug("Error while aborting question: {}: {}".format(
                 e.__class__.__name__, e))
 
 

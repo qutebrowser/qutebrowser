@@ -22,7 +22,7 @@
 
 import os.path
 from qutebrowser.utils import rfc6266
-from qutebrowser.utils.log import misc as logger
+from qutebrowser.utils import log
 
 from PyQt5.QtNetwork import QNetworkRequest
 
@@ -48,7 +48,7 @@ def parse_content_disposition(reply):
                 bytes(reply.rawHeader('Content-Disposition')))
             filename = content_disposition.filename_unsafe
         except UnicodeDecodeError as e:
-            logger.warning("Error while getting filename: {}: {}".format(
+            log.misc.warning("Error while getting filename: {}: {}".format(
                 e.__class__.__name__, e))
             filename = None
         else:

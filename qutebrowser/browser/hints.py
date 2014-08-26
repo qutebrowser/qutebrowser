@@ -32,9 +32,8 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, webelem
 from qutebrowser.commands import userscripts
 from qutebrowser.commands import exceptions as cmdexc
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, log
 from qutebrowser.utils import qt as qtutils
-from qutebrowser.utils.log import hints as logger
 
 
 ElemTuple = collections.namedtuple('ElemTuple', 'elem, label')
@@ -321,8 +320,8 @@ class HintManager(QObject):
         # e.g. parse (-webkit-)border-radius correctly and click text fields at
         # the bottom right, and everything else on the top left or so.
         pos = webelem.rect_on_view(elem).center()
-        logger.debug("Clicking on '{}' at {}/{}".format(elem.toPlainText(),
-                                                        pos.x(), pos.y()))
+        log.hints.debug("Clicking on '{}' at {}/{}".format(elem.toPlainText(),
+                                                           pos.x(), pos.y()))
         events = (
             QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
                         Qt.NoModifier),
@@ -440,9 +439,9 @@ class HintManager(QObject):
             # making sure we don't connect a frame which already was connected
             # at some point earlier.
             if f in self._context.connected_frames:
-                logger.debug("Frame {} already connected!".format(f))
+                log.hints.debug("Frame {} already connected!".format(f))
             else:
-                logger.debug("Connecting frame {}".format(f))
+                log.hints.debug("Connecting frame {}".format(f))
                 f.contentsSizeChanged.connect(self.on_contents_size_changed)
                 self._context.connected_frames.append(f)
 
@@ -523,7 +522,7 @@ class HintManager(QObject):
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
-        logger.debug("Handling new keystring: '{}'".format(keystr))
+        log.hints.debug("Handling new keystring: '{}'".format(keystr))
         for (string, elems) in self._context.elems.items():
             if string.startswith(keystr):
                 matched = string[:len(keystr)]
@@ -621,9 +620,9 @@ class HintManager(QObject):
         if self._context is None:
             # We got here because of some earlier hinting, but we can't simply
             # disconnect frames as this leads to occasional segfaults :-/
-            logger.debug("Not hinting!")
+            log.hints.debug("Not hinting!")
             return
-        logger.debug("Contents size changed...!")
+        log.hints.debug("Contents size changed...!")
         for elems in self._context.elems.values():
             css = self._get_hint_css(elems.elem, elems.label)
             elems.label.setAttribute('style', css)

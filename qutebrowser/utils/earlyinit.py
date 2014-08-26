@@ -143,26 +143,27 @@ def fix_harfbuzz(args):
     Args:
         args: The argparse namespace.
     """
-    from qutebrowser.utils.log import init as logger
+    from qutebrowser.utils import log
     from PyQt5.QtCore import qVersion
     if 'PyQt5.QtWidgets' in sys.modules:
-        logger.warning("Harfbuzz fix attempted but QtWidgets is already "
-                       "imported!")
+        log.init.warning("Harfbuzz fix attempted but QtWidgets is already "
+                         "imported!")
     if sys.platform.startswith('linux') and args.harfbuzz == 'auto':
         if qVersion() == '5.3.0':
-            logger.debug("Using new harfbuzz engine (auto)")
+            log.init.debug("Using new harfbuzz engine (auto)")
             os.environ['QT_HARFBUZZ'] = 'new'
         else:
-            logger.debug("Using old harfbuzz engine (auto)")
+            log.init.debug("Using old harfbuzz engine (auto)")
             os.environ['QT_HARFBUZZ'] = 'old'
     elif args.harfbuzz in ('old', 'new'):
         # forced harfbuzz variant
         # FIXME looking at the Qt code, 'new' isn't a valid value, but leaving
         # it empty and using new yields different behaviour...
-        logger.debug("Using {} harfbuzz engine (forced)".format(args.harfbuzz))
+        log.init.debug("Using {} harfbuzz engine (forced)".format(
+            args.harfbuzz))
         os.environ['QT_HARFBUZZ'] = args.harfbuzz
     else:
-        logger.debug("Using system harfbuzz engine")
+        log.init.debug("Using system harfbuzz engine")
 
 
 # At this point we can safely import Qt stuff, but we can't be sure it's

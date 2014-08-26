@@ -28,7 +28,7 @@ import functools
 from PyQt5.QtCore import pyqtRemoveInputHook, QEvent, QCoreApplication
 
 from qutebrowser.utils import misc as utils
-from qutebrowser.utils.log import misc as logger
+from qutebrowser.utils import log
 from qutebrowser.commands import utils as cmdutils
 
 
@@ -75,14 +75,14 @@ def debug_crash(typ='exception'):
 def debug_all_widgets():
     """Print a list of all widgets to debug log."""
     s = QCoreApplication.instance().get_all_widgets()
-    logger.debug(s)
+    log.misc.debug(s)
 
 
 @cmdutils.register(debug=True)
 def debug_all_objects():
     """Print a list of  all objects to the debug log."""
     s = QCoreApplication.instance().get_all_objects()
-    logger.debug(s)
+    log.misc.debug(s)
 
 
 def log_events(klass):
@@ -92,8 +92,8 @@ def log_events(klass):
     @functools.wraps(old_event)
     def new_event(self, e, *args, **kwargs):
         """Wrapper for event() which logs events."""
-        logger.debug("Event in {}: {}".format(klass.__name__,
-                                              qenum_key(QEvent, e.type())))
+        log.misc.debug("Event in {}: {}".format(klass.__name__,
+                                                qenum_key(QEvent, e.type())))
         return old_event(self, e, *args, **kwargs)
 
     klass.event = new_event

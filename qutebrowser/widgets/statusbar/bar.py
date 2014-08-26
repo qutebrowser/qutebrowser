@@ -27,8 +27,7 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config, style
-from qutebrowser.utils import usertypes
-from qutebrowser.utils.log import statusbar as logger
+from qutebrowser.utils import usertypes, log
 from qutebrowser.widgets.statusbar import (command, progress, keystring,
                                            percentage, url, prompt)
 from qutebrowser.widgets.statusbar import text as textwidget
@@ -191,7 +190,7 @@ class StatusBar(QWidget):
         Re-set the stylesheet after setting the value, so everything gets
         updated by Qt properly.
         """
-        logger.debug("Setting error to {}".format(val))
+        log.statusbar.debug("Setting error to {}".format(val))
         self._error = val
         self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
         if val:
@@ -212,7 +211,7 @@ class StatusBar(QWidget):
         Re-set the stylesheet after setting the value, so everything gets
         updated by Qt properly.
         """
-        logger.debug("Setting prompt_active to {}".format(val))
+        log.statusbar.debug("Setting prompt_active to {}".format(val))
         self._prompt_active = val
         self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
 
@@ -229,7 +228,7 @@ class StatusBar(QWidget):
         Re-set the stylesheet after setting the value, so everything gets
         updated by Qt properly.
         """
-        logger.debug("Setting insert_active to {}".format(val))
+        log.statusbar.debug("Setting insert_active to {}".format(val))
         self._insert_active = val
         self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
 
@@ -251,9 +250,9 @@ class StatusBar(QWidget):
             else:
                 raise AssertionError("Unknown _previous_widget!")
             return
-        logger.debug("Displaying {} message: {}".format(
+        log.statusbar.debug("Displaying {} message: {}".format(
             'error' if error else 'text', text))
-        logger.debug("Remaining: {}".format(self._text_queue))
+        log.statusbar.debug("Remaining: {}".format(self._text_queue))
         self.error = error
         self.txt.temptext = text
 
@@ -268,7 +267,8 @@ class StatusBar(QWidget):
 
     def _hide_cmd_widget(self):
         """Show temporary text instead of command widget."""
-        logger.debug("Hiding cmd widget, queue: {}".format(self._text_queue))
+        log.statusbar.debug("Hiding cmd widget, queue: {}".format(
+            self._text_queue))
         self._previous_widget = PreviousWidget.none
         if self._timer_was_active:
             # Restart the text pop timer if it was active before hiding.
@@ -291,7 +291,7 @@ class StatusBar(QWidget):
         """Show temporary text instead of prompt widget."""
         self.prompt_active = False
         self._previous_widget = PreviousWidget.none
-        logger.debug("Hiding prompt widget, queue: {}".format(
+        log.statusbar.debug("Hiding prompt widget, queue: {}".format(
             self._text_queue))
         if self._timer_was_active:
             # Restart the text pop timer if it was active before hiding.
@@ -310,40 +310,42 @@ class StatusBar(QWidget):
                          queued.
         """
         # FIXME probably using a QTime here would be easier.
-        logger.debug("Displaying text: {} (error={})".format(text, error))
+        log.statusbar.debug("Displaying text: {} (error={})".format(
+            text, error))
         now = datetime.datetime.now()
         mindelta = config.get('ui', 'message-timeout')
         delta = (None if self._last_text_time is None
                  else now - self._last_text_time)
         self._last_text_time = now
-        logger.debug("queue: {} / delta: {}".format(self._text_queue, delta))
+        log.statusbar.debug("queue: {} / delta: {}".format(
+            self._text_queue, delta))
         if not self._text_queue and (delta is None or delta.total_seconds() *
                                      1000.0 > mindelta):
             # If the queue is empty and we didn't print messages for long
             # enough, we can take the short route and display the message
             # immediately. We then start the pop_timer only to restore the
             # normal state in 2 seconds.
-            logger.debug("Displaying immediately")
+            log.statusbar.debug("Displaying immediately")
             self.error = error
             self.txt.temptext = text
             self._text_pop_timer.start()
         elif self._text_queue and self._text_queue[-1] == (error, text):
             # If we get the same message multiple times in a row and we're
             # still displaying it *anyways* we ignore the new one
-            logger.debug("ignoring")
+            log.statusbar.debug("ignoring")
         elif immediately:
             # This message is a reaction to a keypress and should be displayed
             # immediately, temporarely interrupting the message queue.
             # We display this immediately and restart the timer.to clear it and
             # display the rest of the queue later.
-            logger.debug("Moving to beginning of queue")
+            log.statusbar.debug("Moving to beginning of queue")
             self.error = error
             self.txt.temptext = text
             self._text_pop_timer.start()
         else:
             # There are still some messages to be displayed, so we queue this
             # up.
-            logger.debug("queueing")
+            log.statusbar.debug("queueing")
             self._text_queue.append((error, text))
             self._text_pop_timer.start()
 

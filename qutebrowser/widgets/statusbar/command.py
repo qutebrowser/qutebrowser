@@ -28,8 +28,7 @@ from qutebrowser.commands import utils as cmdutils
 from qutebrowser.commands import exceptions as cmdexc
 from qutebrowser.widgets import misc
 from qutebrowser.models import cmdhistory
-from qutebrowser.utils import usertypes
-from qutebrowser.utils.log import completion as logger
+from qutebrowser.utils import usertypes, log
 
 
 class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
@@ -110,10 +109,10 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         runner = runners.CommandRunner()
         parts = runner.parse(text, fallback=True, alias_no_args=False)
         if self._empty_item_idx is not None:
-            logger.debug("Empty element queued at {}, inserting.".format(
-                self._empty_item_idx))
+            log.completion.debug("Empty element queued at {}, "
+                                 "inserting.".format(self._empty_item_idx))
             parts.insert(self._empty_item_idx, '')
-        #logger.debug("Splitting '{}' -> {}".format(text, parts))
+        #log.completion.debug("Splitting '{}' -> {}".format(text, parts))
         return parts
 
     @pyqtSlot()
@@ -136,8 +135,8 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
                     self._empty_item_idx = None
                 break
             cursor_pos -= (len(part) + 1)  # FIXME are spaces always 1 char?
-        logger.debug("cursor_part {}, spaces {}".format(self.cursor_part,
-                                                        spaces))
+        log.completion.debug("cursor_part {}, spaces {}".format(
+            self.cursor_part, spaces))
         return
 
     @pyqtSlot()
@@ -193,8 +192,8 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
                        completing the current item.
         """
         parts = self.parts[:]
-        logger.debug("changing part {} to '{}'".format(self.cursor_part,
-                                                       newtext))
+        log.completion.debug("changing part {} to '{}'".format(
+            self.cursor_part, newtext))
         parts[self.cursor_part] = newtext
         # We want to place the cursor directly after the part we just changed.
         cursor_str = self.prefix + ' '.join(parts[:self.cursor_part + 1])
@@ -208,7 +207,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             # part in the commandline, we automatically add a space.
             text += ' '
         self.setText(text)
-        logger.debug("Placing cursor after '{}'".format(cursor_str))
+        log.completion.debug("Placing cursor after '{}'".format(cursor_str))
         self.setCursorPosition(len(cursor_str))
         self.setFocus()
         self.show_cmd.emit()

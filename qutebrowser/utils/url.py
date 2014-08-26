@@ -28,7 +28,7 @@ from PyQt5.QtNetwork import QHostInfo
 
 from qutebrowser.config import config
 from qutebrowser.utils import qt as qtutils
-from qutebrowser.utils.log import url as logger
+from qutebrowser.utils import log
 
 
 # FIXME: we probably could raise some exceptions on invalid URLs
@@ -46,7 +46,7 @@ def _get_search_url(txt):
     Raise:
         FuzzyUrlError if there is no template or no search term was found.
     """
-    logger.debug("Finding search engine for '{}'".format(txt))
+    log.url.debug("Finding search engine for '{}'".format(txt))
     r = re.compile(r'(^|\s+)!(\w+)($|\s+)')
     m = r.search(txt)
     if m:
@@ -57,11 +57,11 @@ def _get_search_url(txt):
             raise FuzzyUrlError("Search engine {} not found!".format(
                 engine))
         term = r.sub('', txt)
-        logger.debug("engine {}, term '{}'".format(engine, term))
+        log.url.debug("engine {}, term '{}'".format(engine, term))
     else:
         template = config.get('searchengines', 'DEFAULT')
         term = txt
-        logger.debug("engine: default, term '{}'".format(txt))
+        log.url.debug("engine: default, term '{}'".format(txt))
     if not term:
         raise FuzzyUrlError("No search term given")
     url = QUrl.fromUserInput(template.format(urllib.parse.quote(term)))
@@ -103,7 +103,7 @@ def _is_url_dns(url):
     if not url.isValid():
         return False
     host = url.host()
-    logger.debug("DNS request for {}".format(host))
+    log.url.debug("DNS request for {}".format(host))
     if not host:
         return False
     info = QHostInfo.fromName(host)
@@ -122,27 +122,27 @@ def fuzzy_url(urlstr):
     path = os.path.abspath(os.path.expanduser(urlstr))
     stripped = urlstr.strip()
     if os.path.exists(path):
-        logger.debug("URL is a local file")
+        log.url.debug("URL is a local file")
         url = QUrl.fromLocalFile(path)
     elif (not _has_explicit_scheme(QUrl(urlstr)) and
             os.path.exists(os.path.abspath(path))):
         # We do this here rather than in the first block because we first want
         # to make sure it's not an URL like http://, because os.path.abspath
         # would mangle that.
-        logger.debug("URL is a relative local file")
+        log.url.debug("URL is a relative local file")
         url = QUrl.fromLocalFile(os.path.abspath(path))
     elif is_url(stripped):
         # probably an address
-        logger.debug("URL is a fuzzy address")
+        log.url.debug("URL is a fuzzy address")
         url = QUrl.fromUserInput(urlstr)
     else:  # probably a search term
-        logger.debug("URL is a fuzzy search term")
+        log.url.debug("URL is a fuzzy search term")
         try:
             url = _get_search_url(urlstr)
         except ValueError:  # invalid search engine
             url = QUrl.fromUserInput(stripped)
-    logger.debug("Converting fuzzy term {} to URL -> {}".format(
-                 urlstr, url.toDisplayString()))
+    log.url.debug("Converting fuzzy term {} to URL -> {}".format(
+                  urlstr, url.toDisplayString()))
     qtutils.ensure_valid(url)
     return url
 
@@ -182,8 +182,8 @@ def is_url(urlstr):
     """
     autosearch = config.get('general', 'auto-search')
 
-    logger.debug("Checking if '{}' is a URL (autosearch={}).".format(
-                 urlstr, autosearch))
+    log.url.debug("Checking if '{}' is a URL (autosearch={}).".format(
+                  urlstr, autosearch))
     qurl = QUrl(urlstr)
 
     if not autosearch:
@@ -192,23 +192,23 @@ def is_url(urlstr):
 
     if _has_explicit_scheme(qurl):
         # URLs with explicit schemes are always URLs
-        logger.debug("Contains explicit scheme")
+        log.url.debug("Contains explicit scheme")
         return True
     elif ' ' in urlstr:
         # A URL will never contain a space
-        logger.debug("Contains space -> no URL")
+        log.url.debug("Contains space -> no URL")
         return False
     elif is_special_url(qurl):
         # Special URLs are always URLs, even with autosearch=False
-        logger.debug("Is an special URL.")
+        log.url.debug("Is an special URL.")
         return True
     elif autosearch == 'dns':
-        logger.debug("Checking via DNS")
+        log.url.debug("Checking via DNS")
         # We want to use fromUserInput here, as the user might enter "foo.de"
         # and that should be treated as URL here.
         return _is_url_dns(QUrl.fromUserInput(urlstr))
     elif autosearch == 'naive':
-        logger.debug("Checking via naive check")
+        log.url.debug("Checking via naive check")
         return _is_url_naive(urlstr)
     else:
         raise ValueError("Invalid autosearch value")

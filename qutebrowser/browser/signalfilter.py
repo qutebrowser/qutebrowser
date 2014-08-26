@@ -23,9 +23,8 @@ import functools
 
 from PyQt5.QtCore import QObject
 
-from qutebrowser.utils import debug
+from qutebrowser.utils import debug, log
 from qutebrowser.widgets import webview
-from qutebrowser.utils.log import signals as logger
 
 
 class SignalFilter(QObject):
@@ -88,10 +87,10 @@ class SignalFilter(QObject):
             return
         if tabidx == self._tabs.currentIndex():
             if log_signal:
-                logger.debug("emitting: {} (tab {})".format(
+                log.signals.debug("emitting: {} (tab {})".format(
                     debug.dbg_signal(signal, args), tabidx))
             signal.emit(*args)
         else:
             if log_signal:
-                logger.debug("ignoring: {} (tab {})".format(
+                log.signals.debug("ignoring: {} (tab {})".format(
                     debug.dbg_signal(signal, args), tabidx))

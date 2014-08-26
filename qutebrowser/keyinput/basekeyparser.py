@@ -26,9 +26,8 @@ import functools
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, log
 from qutebrowser.utils import misc as utils
-from qutebrowser.utils.log import keyboard as logger
 
 
 class BaseKeyParser(QObject):
@@ -101,7 +100,7 @@ class BaseKeyParser(QObject):
             message: The message to log.
         """
         if self.do_log:
-            logger.debug(message)
+            log.keyboard.debug(message)
 
     def _handle_special_key(self, e):
         """Handle a new keypress with special keys (<Foo>).
@@ -246,7 +245,7 @@ class BaseKeyParser(QObject):
         """Stop a delayed execution if any is running."""
         if self._timer is not None:
             if self.do_log:
-                logger.debug("Stopping delayed execution.")
+                log.keyboard.debug("Stopping delayed execution.")
             self._timer.stop()
             self._timer = None
 
@@ -325,7 +324,7 @@ class BaseKeyParser(QObject):
         self.special_bindings = {}
         sect = config.section(sectname)
         if not sect.items():
-            logger.warning("No keybindings defined!")
+            log.keyboard.warning("No keybindings defined!")
         for (key, cmd) in sect.items():
             if not cmd:
                 continue
@@ -335,7 +334,7 @@ class BaseKeyParser(QObject):
             elif self._supports_chains:
                 self.bindings[key] = cmd
             elif self.warn_on_keychains:
-                logger.warning(
+                log.keyboard.warning(
                     "Ignoring keychain '{}' in section '{}' because "
                     "keychains are not supported there.".format(key, sectname))
 

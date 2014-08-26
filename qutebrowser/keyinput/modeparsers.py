@@ -28,8 +28,7 @@ from PyQt5.QtCore import pyqtSignal, Qt
 from qutebrowser.utils import message
 from qutebrowser.config import config
 from qutebrowser.keyinput import keyparser
-from qutebrowser.utils import usertypes
-from qutebrowser.utils.log import keyboard as logger
+from qutebrowser.utils import usertypes, log
 
 
 STARTCHARS = ":/?"
@@ -129,12 +128,13 @@ class HintKeyParser(keyparser.CommandKeyParser):
             filter_hints: Emitted when filter string has changed.
             keystring_updated: Emitted when keystring has been changed.
         """
-        logger.debug("Got special key 0x{:x} text {}".format(
+        log.keyboard.debug("Got special key 0x{:x} text {}".format(
             e.key(), e.text()))
         if e.key() == Qt.Key_Backspace:
-            logger.debug("Got backspace, mode {}, filtertext '{}', keystring "
-                         "'{}'".format(self.last_press, self._filtertext,
-                                       self._keystring))
+            log.keyboard.debug("Got backspace, mode {}, filtertext '{}', "
+                               "keystring '{}'".format(self.last_press,
+                                                       self._filtertext,
+                                                       self._keystring))
             if self.last_press == LastPress.filtertext and self._filtertext:
                 self._filtertext = self._filtertext[:-1]
                 self.filter_hints.emit(self._filtertext)

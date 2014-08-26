@@ -23,8 +23,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
 from qutebrowser.config import config, configdata
 from qutebrowser.commands import utils as cmdutils
-from qutebrowser.utils import usertypes
-from qutebrowser.utils.log import completion as logger
+from qutebrowser.utils import usertypes, log
 from qutebrowser.models import completion as models
 from qutebrowser.models.completionfilter import CompletionFilterModel as CFM
 
@@ -109,10 +108,12 @@ class Completer(QObject):
             completion = completions[idx]
         except IndexError:
             # More arguments than completions
-            logger.debug("completions: {}".format(', '.join(dbg_completions)))
+            log.completion.debug("completions: {}".format(
+                ', '.join(dbg_completions)))
             return None
         dbg_completions[idx] = '*' + dbg_completions[idx] + '*'
-        logger.debug("completions: {}".format(', '.join(dbg_completions)))
+        log.completion.debug("completions: {}".format(
+            ', '.join(dbg_completions)))
         if completion == usertypes.Completion.option:
             section = parts[cursor_part - 1]
             model = self._models[completion].get(section)
@@ -168,7 +169,7 @@ class Completer(QObject):
             cursor_part: The part the cursor is currently over.
         """
         if self.ignore_change:
-            logger.debug("Ignoring completion update")
+            log.completion.debug("Ignoring completion update")
             return
 
         if prefix != ':':
@@ -187,14 +188,15 @@ class Completer(QObject):
                 self.view.set_model(model)
 
         if model is None:
-            logger.debug("No completion model for {}.".format(parts))
+            log.completion.debug("No completion model for {}.".format(parts))
             return
 
         pattern = parts[cursor_part] if parts else ''
         self.view.model().pattern = pattern
 
-        logger.debug("New completion for {}: {}, with pattern '{}'".format(
-            parts, model.srcmodel.__class__.__name__, pattern))
+        log.completion.debug(
+            "New completion for {}: {}, with pattern '{}'".format(
+                parts, model.srcmodel.__class__.__name__, pattern))
 
         if self.view.model().item_count == 0:
             self.view.hide()

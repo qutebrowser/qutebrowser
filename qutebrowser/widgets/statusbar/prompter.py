@@ -26,9 +26,8 @@ from PyQt5.QtWidgets import QLineEdit
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.commands import utils as cmdutils
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, log
 from qutebrowser.utils import qt as qtutils
-from qutebrowser.utils.log import statusbar as logger
 
 
 PromptContext = collections.namedtuple('PromptContext',
@@ -81,7 +80,7 @@ class Prompter:
 
     def _pop(self):
         """Pop a question from the queue and ask it, if there are any."""
-        logger.debug("Popping from queue {}".format(self._queue))
+        log.statusbar.debug("Popping from queue {}".format(self._queue))
         if self._queue:
             self.ask_question(self._queue.popleft(), blocking=False)
 
@@ -104,7 +103,7 @@ class Prompter:
 
         Return: True if a context was restored, False otherwise.
         """
-        logger.debug("Restoring context {}".format(ctx))
+        log.statusbar.debug("Restoring context {}".format(ctx))
         if ctx is None:
             self._prompt.hide_prompt.emit()
             self._busy = False
@@ -263,13 +262,14 @@ class Prompter:
             The answer of the user when blocking=True.
             None if blocking=False.
         """
-        logger.debug("Asking question {}, blocking {}, loops {}, queue "
-                     "{}".format(question, blocking, self._loops, self._queue))
+        log.statusbar.debug("Asking question {}, blocking {}, loops {}, queue "
+                            "{}".format(question, blocking, self._loops,
+                                        self._queue))
 
         if self._busy and not blocking:
             # We got an async question, but we're already busy with one, so we
             # just queue it up for later.
-            logger.debug("Adding {} to queue.".format(question))
+            log.statusbar.debug("Adding {} to queue.".format(question))
             self._queue.append(question)
             return
 

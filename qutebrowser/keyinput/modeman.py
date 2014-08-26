@@ -31,7 +31,7 @@ from qutebrowser.config import config
 from qutebrowser.commands import utils as cmdutils
 from qutebrowser.commands import exceptions as cmdexc
 from qutebrowser.utils import usertypes
-from qutebrowser.utils.log import modes as logger
+from qutebrowser.utils import log
 
 
 class ModeLockedError(Exception):
@@ -67,7 +67,7 @@ def maybe_leave(mode, reason=None):
     try:
         instance().leave(mode, reason)
     except ValueError as e:
-        logger.debug(e)
+        log.modes.debug(e)
 
 
 class ModeManager(QObject):
@@ -143,8 +143,8 @@ class ModeManager(QObject):
         """
         handler = self._handlers[self.mode]
         if self.mode != usertypes.KeyMode.insert:
-            logger.debug("got keypress in mode {} - calling handler {}".format(
-                self.mode, handler.__qualname__))
+            log.modes.debug("got keypress in mode {} - calling handler "
+                            "{}".format(self.mode, handler.__qualname__))
         handled = handler(event) if handler is not None else False
 
         is_non_alnum = bool(event.modifiers()) or not event.text().strip()
@@ -162,11 +162,11 @@ class ModeManager(QObject):
             self._releaseevents_to_pass.append(event)
 
         if self.mode != usertypes.KeyMode.insert:
-            logger.debug("handled: {}, forward-unbound-keys: {}, passthrough: "
-                         "{}, is_non_alnum: {} --> filter: {}".format(
-                             handled, self._forward_unbound_keys,
-                             self.mode in self.passthrough, is_non_alnum,
-                             filter_this))
+            log.modes.debug("handled: {}, forward-unbound-keys: {}, "
+                            "passthrough: {}, is_non_alnum: {} --> filter: "
+                            "{}".format(handled, self._forward_unbound_keys,
+                                        self.mode in self.passthrough,
+                                        is_non_alnum, filter_this))
         return filter_this
 
     def _eventFilter_keyrelease(self, event):
@@ -187,7 +187,7 @@ class ModeManager(QObject):
         else:
             filter_this = True
         if self.mode != usertypes.KeyMode.insert:
-            logger.debug("filter: {}".format(filter_this))
+            log.modes.debug("filter: {}".format(filter_this))
         return filter_this
 
     def register(self, mode, handler, passthrough=False):
@@ -218,19 +218,19 @@ class ModeManager(QObject):
         if not isinstance(mode, usertypes.KeyMode):
             raise TypeError("Mode {} is no KeyMode member!".format(mode))
         if self.locked:
-            logger.debug("Not entering mode {} because mode is locked to "
-                         "{}.".format(mode, self.mode))
+            log.modes.debug("Not entering mode {} because mode is locked to "
+                            "{}.".format(mode, self.mode))
             raise ModeLockedError("Mode is currently locked to {}".format(
                 self.mode))
-        logger.debug("Entering mode {}{}".format(
+        log.modes.debug("Entering mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
         if mode not in self._handlers:
             raise ValueError("No handler for mode {}".format(mode))
         if self._mode_stack and self._mode_stack[-1] == mode:
-            logger.debug("Already at end of stack, doing nothing")
+            log.modes.debug("Already at end of stack, doing nothing")
             return
         self._mode_stack.append(mode)
-        logger.debug("New mode stack: {}".format(self._mode_stack))
+        log.modes.debug("New mode stack: {}".format(self._mode_stack))
         self.entered.emit(mode)
 
     @cmdutils.register(instance='modeman', hide=True)
@@ -261,7 +261,7 @@ class ModeManager(QObject):
         except ValueError:
             raise ValueError("Mode {} not on mode stack!".format(mode))
         self.locked = False
-        logger.debug("Leaving mode {}{}, new mode stack {}".format(
+        log.modes.debug("Leaving mode {}{}, new mode stack {}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason),
             self._mode_stack))
         self.left.emit(mode)

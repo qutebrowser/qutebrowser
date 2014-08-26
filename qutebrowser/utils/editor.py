@@ -25,8 +25,7 @@ import tempfile
 from PyQt5.QtCore import pyqtSignal, QProcess, QObject
 
 from qutebrowser.config import config
-from qutebrowser.utils import message
-from qutebrowser.utils.log import procs as logger
+from qutebrowser.utils import message, log
 
 
 class ExternalEditor(QObject):
@@ -60,7 +59,7 @@ class ExternalEditor(QObject):
         Emit:
             editing_finished: If process exited normally.
         """
-        logger.debug("Editor closed")
+        log.procs.debug("Editor closed")
         if exitstatus != QProcess.NormalExit:
             # No error/cleanup here, since we already handle this in
             # on_proc_error
@@ -75,7 +74,7 @@ class ExternalEditor(QObject):
             encoding = config.get('general', 'editor-encoding')
             with open(self.filename, 'r', encoding=encoding) as f:
                 text = ''.join(f.readlines())
-            logger.debug("Read back: {}".format(text))
+            log.procs.debug("Read back: {}".format(text))
             self.editing_finished.emit(text)
         finally:
             self._cleanup()
@@ -120,5 +119,5 @@ class ExternalEditor(QObject):
         editor = config.get('general', 'editor')
         executable = editor[0]
         args = [self.filename if arg == '{}' else arg for arg in editor[1:]]
-        logger.debug("Calling \"{}\" with args {}".format(executable, args))
+        log.procs.debug("Calling \"{}\" with args {}".format(executable, args))
         self.proc.start(executable, args)

@@ -276,16 +276,7 @@ doesn't fit in any of the logging categories, simply add a new line like this:
 foo = getLogger('foo')
 ----
 
-Then in your source files, you have two different possibilities:
-
-[source,python]
-----
-from qutebrowser.utils.log import foo as logger
-...
-logger.debug("Hello World")
-----
-
-or
+Then in your source files, do this:
 
 [source,python]
 ----
@@ -293,9 +284,6 @@ from qutebrowser.utils import log
 ...
 log.foo.debug("Hello World")
 ----
-
-Use the first approach if you only need to use a single logging category. If
-you need more than one category, use the second approach instead.
 
 The following logging levels are available for every logger:
 

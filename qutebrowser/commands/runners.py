@@ -25,9 +25,8 @@ from PyQt5.QtWebKitWidgets import QWebPage
 from qutebrowser.config import config
 from qutebrowser.commands import utils as cmdutils
 from qutebrowser.commands import exceptions as cmdexc
-from qutebrowser.utils import message
+from qutebrowser.utils import message, log
 from qutebrowser.utils import misc as utils
-from qutebrowser.utils.log import commands as logger
 
 
 class SearchRunner(QObject):
@@ -205,7 +204,7 @@ class CommandRunner:
         if aliases:
             new_cmd = self._get_alias(text, alias_no_args)
             if new_cmd is not None:
-                logger.debug("Re-parsing with '{}'.".format(new_cmd))
+                log.commands.debug("Re-parsing with '{}'.".format(new_cmd))
                 return self.parse(new_cmd, aliases=False)
         try:
             cmd = cmdutils.cmd_dict[cmdstr]

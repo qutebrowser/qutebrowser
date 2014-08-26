@@ -25,7 +25,7 @@ from qutebrowser.config import config, configdata
 from qutebrowser.models import basecompletion
 from qutebrowser.commands import utils as cmdutils
 from qutebrowser.utils import qt as qtutils
-from qutebrowser.utils.log import completion as logger
+from qutebrowser.utils import log
 
 
 class SettingSectionCompletionModel(basecompletion.BaseCompletionModel):
@@ -81,7 +81,7 @@ class SettingOptionCompletionModel(basecompletion.BaseCompletionModel):
         try:
             item = self._misc_items[option]
         except KeyError:
-            logger.debug("Couldn't get item {}.{} from model!".format(
+            log.completion.debug("Couldn't get item {}.{} from model!".format(
                 section, option))
             # changed before init
             return

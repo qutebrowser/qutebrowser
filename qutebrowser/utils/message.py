@@ -21,8 +21,7 @@
 
 from PyQt5.QtCore import pyqtSignal, QCoreApplication, QObject, QTimer
 
-from qutebrowser.utils import usertypes
-from qutebrowser.utils.log import misc as logger
+from qutebrowser.utils import usertypes, log
 
 
 def instance():
@@ -182,7 +181,7 @@ class MessageBridge(QObject):
                          messages should be queued.
         """
         msg = str(msg)
-        logger.error(msg)
+        log.misc.error(msg)
         self._emit_later(self.s_error, msg, immediately)
 
     def info(self, msg, immediately=True):
@@ -193,7 +192,7 @@ class MessageBridge(QObject):
             do rarely happen without user interaction.
         """
         msg = str(msg)
-        logger.info(msg)
+        log.misc.info(msg)
         self._emit_later(self.s_info, msg, immediately)
 
     def set_cmd_text(self, text):
@@ -203,7 +202,7 @@ class MessageBridge(QObject):
             text: The text to set.
         """
         text = str(text)
-        logger.debug(text)
+        log.misc.debug(text)
         self._emit_later(self.s_set_cmd_text, text)
 
     def set_text(self, text):
@@ -213,7 +212,7 @@ class MessageBridge(QObject):
             text: The text to set.
         """
         text = str(text)
-        logger.debug(text)
+        log.misc.debug(text)
         self._emit_later(self.s_set_text, text)
 
     def ask(self, question, blocking):
