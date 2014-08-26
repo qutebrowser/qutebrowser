@@ -306,7 +306,7 @@ Creating a new command is straightforward:
 
 [source,python]
 ----
-import qutebrowser.commands.utils as cmdutils
+import qutebrowser.commands.cmdutils
 
 ...
 

@@ -35,8 +35,7 @@ from PyQt5.QtCore import (pyqtSlot, QTimer, QEventLoop, Qt, QStandardPaths,
                           qInstallMessageHandler, QObject, QUrl)
 
 import qutebrowser
-from qutebrowser.commands import userscripts, runners
-from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import userscripts, runners, cmdutils
 from qutebrowser.config import (style, config, websettings, iniparsers,
                                 lineparser, conftypes)
 from qutebrowser.network import qutescheme, proxy

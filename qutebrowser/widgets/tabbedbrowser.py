@@ -27,8 +27,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
-from qutebrowser.commands import cmdexc
-from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.keyinput import modeman
 from qutebrowser.widgets import tabwidget, webview
 from qutebrowser.browser import signalfilter, commands

@@ -25,7 +25,7 @@ from PyQt5.QtCore import pyqtSlot, QTimer
 from PyQt5.QtWidgets import QLineEdit
 
 from qutebrowser.keyinput import modeman
-from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import cmdutils
 from qutebrowser.utils import usertypes, log, qtutils
 
 

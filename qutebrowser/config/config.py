@@ -34,8 +34,7 @@ from PyQt5.QtCore import pyqtSignal, QObject, QCoreApplication
 
 from qutebrowser.utils import log
 from qutebrowser.config import configdata, iniparsers, conftypes
-from qutebrowser.commands import cmdexc
-from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import message
 from qutebrowser.utils.usertypes import Completion
 

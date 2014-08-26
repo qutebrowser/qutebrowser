@@ -22,7 +22,7 @@
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
 from qutebrowser.config import config, configdata
-from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import cmdutils
 from qutebrowser.utils import usertypes, log
 from qutebrowser.models import completion as models
 from qutebrowser.models.completionfilter import CompletionFilterModel as CFM

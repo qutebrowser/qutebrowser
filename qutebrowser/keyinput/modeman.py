@@ -28,8 +28,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
 from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.config import config
-from qutebrowser.commands import cmdexc
-from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import usertypes, log
 
 

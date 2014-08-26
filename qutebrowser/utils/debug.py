@@ -28,7 +28,7 @@ import functools
 from PyQt5.QtCore import pyqtRemoveInputHook, QEvent, QCoreApplication
 
 from qutebrowser.utils import log, utils
-from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import cmdutils
 
 
 @cmdutils.register(debug=True, name='debug-set-trace')

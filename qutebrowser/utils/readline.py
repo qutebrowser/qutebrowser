@@ -21,7 +21,7 @@
 
 from PyQt5.QtWidgets import QApplication, QLineEdit
 
-from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import cmdutils
 from qutebrowser.utils import usertypes as typ
 
 

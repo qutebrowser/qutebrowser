@@ -26,7 +26,7 @@ subclasses to provide completions.
 from PyQt5.QtWidgets import QStyle, QTreeView, QSizePolicy
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel
 
-from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import cmdutils
 from qutebrowser.config import config, style
 from qutebrowser.widgets import completiondelegate
 from qutebrowser.utils import completer, usertypes, qtutils

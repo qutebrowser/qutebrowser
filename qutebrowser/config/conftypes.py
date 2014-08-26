@@ -29,7 +29,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
 
-from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import cmdutils
 
 
 SYSTEM_PROXY = object()  # Return value for Proxy type

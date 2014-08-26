@@ -22,8 +22,7 @@
 from functools import partial
 
 from qutebrowser.utils import usertypes
-from qutebrowser.commands import runners, cmdexc
-from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import runners, cmdexc, cmdutils
 
 
 _timers = []

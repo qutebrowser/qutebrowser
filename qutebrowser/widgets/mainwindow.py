@@ -25,7 +25,7 @@ import base64
 from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QCoreApplication, QTimer
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
-from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import message, log, usertypes, qtutils
 from qutebrowser.widgets import tabbedbrowser, completion, downloads

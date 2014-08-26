@@ -36,7 +36,7 @@ import qutebrowser
 # We import qutebrowser.app so all @cmdutils-register decorators are run.
 import qutebrowser.app
 from qutebrowser import qutebrowser as qutequtebrowser
-from qutebrowser.commands import utils as cmdutils
+from qutebrowser.commands import cmdutils
 from qutebrowser.config import configdata
 from qutebrowser.utils import usertypes
 

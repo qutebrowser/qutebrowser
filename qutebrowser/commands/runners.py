@@ -23,8 +23,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
-from qutebrowser.commands import utils as cmdutils
-from qutebrowser.commands import cmdexc
+from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import message, log, utils
 
 
