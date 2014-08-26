@@ -33,7 +33,7 @@ import collections.abc
 from PyQt5.QtCore import pyqtSignal, QObject, QCoreApplication
 
 from qutebrowser.utils import log
-from qutebrowser.config import configdata, iniparsers, conftypes
+from qutebrowser.config import configdata, iniparsers, configtypes
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import message
 from qutebrowser.utils.usertypes import Completion
@@ -223,7 +223,7 @@ class ConfigManager(QObject):
                 k = k.replace('<eq>', '=')
                 try:
                     self.set('conf', sectname, k, v)
-                except conftypes.ValidationError as e:
+                except configtypes.ValidationError as e:
                     e.section = sectname
                     e.option = k
                     raise
@@ -347,7 +347,7 @@ class ConfigManager(QObject):
         """
         try:
             self.set('conf', sectname, optname, value)
-        except (NoOptionError, NoSectionError, conftypes.ValidationError,
+        except (NoOptionError, NoSectionError, configtypes.ValidationError,
                 ValueError) as e:
             raise cmdexc.CommandError("set: {} - {}".format(
                 e.__class__.__name__, e))
@@ -369,7 +369,8 @@ class ConfigManager(QObject):
         """
         try:
             self.set('temp', sectname, optname, value)
-        except (NoOptionError, NoSectionError, conftypes.ValidationError) as e:
+        except (NoOptionError, NoSectionError,
+                configtypes.ValidationError) as e:
             raise cmdexc.CommandError("set: {} - {}".format(
                 e.__class__.__name__, e))
 

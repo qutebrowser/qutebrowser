@@ -37,7 +37,7 @@ from PyQt5.QtCore import (pyqtSlot, QTimer, QEventLoop, Qt, QStandardPaths,
 import qutebrowser
 from qutebrowser.commands import userscripts, runners, cmdutils
 from qutebrowser.config import (style, config, websettings, iniparsers,
-                                lineparser, conftypes)
+                                lineparser, configtypes)
 from qutebrowser.network import qutescheme, proxy
 from qutebrowser.browser import quickmarks, cookies, downloads
 from qutebrowser.widgets import mainwindow, console, crash
@@ -170,7 +170,7 @@ class Application(QApplication):
         try:
             self.config = config.ConfigManager(confdir, 'qutebrowser.conf',
                                                self)
-        except (conftypes.ValidationError,
+        except (configtypes.ValidationError,
                 config.NoOptionError,
                 config.InterpolationSyntaxError,
                 configparser.InterpolationError,

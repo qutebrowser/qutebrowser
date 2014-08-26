@@ -22,7 +22,7 @@
 
 from PyQt5.QtNetwork import QNetworkProxyFactory
 
-from qutebrowser.config import config, conftypes
+from qutebrowser.config import config, configtypes
 
 
 def init():
@@ -44,7 +44,7 @@ class ProxyFactory(QNetworkProxyFactory):
             A list of QNetworkProxy objects in order of preference.
         """
         proxy = config.get('network', 'proxy')
-        if proxy is conftypes.SYSTEM_PROXY:
+        if proxy is configtypes.SYSTEM_PROXY:
             return QNetworkProxyFactory.systemProxyForQuery(query)
         else:
             return [proxy]
