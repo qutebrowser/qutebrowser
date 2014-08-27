@@ -33,9 +33,9 @@
 
     /usr/lib/python3/ mr,
     /usr/lib/python3/** mr,
-    /usr/lib/python3.4/ r,
-    /usr/lib/python3.4/** mr,
-    /usr/bin/python3.4 r,
+    /usr/lib/python3.?/ r,
+    /usr/lib/python3.?/** mr,
+    /usr/bin/python3.? r,
 
     @{HOME}/.config/qutebrowser/** krw,
     @{HOME}/.local/share/qutebrowser/** krw,
