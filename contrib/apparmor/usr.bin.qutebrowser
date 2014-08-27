@@ -27,6 +27,7 @@
     /usr/lib/python3.?/** mr,
     /usr/local/lib/python3.?/** r,
 
+    /proc/*/mounts r,
     /tmp/* krw,
 
     @{HOME}/.config/qutebrowser/** krw,
