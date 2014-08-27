@@ -3,48 +3,33 @@
 
 #include <tunables/global>
 
-/usr/local/bin/qutebrowser {
+/usr/bin/qutebrowser {
 
+    #include <abstractions/base>
+    #include <abstractions/audio>
+    #include <abstractions/fonts>
+    #include <abstractions/kde>
+    #include <abstractions/user-download>
     #include <abstractions/X>
+
     capability dac_override,
 
-    /etc/localtime r,
-    /etc/ld.so.cache r,
-    /etc/locale.alias r,
-    /etc/fonts/fonts.conf r,
-    /etc/fonts/conf.d/ r,
-    /etc/fonts/conf.d/* r,
-    /etc/fonts/conf.avail/* r,
-    /etc/ssl/openssl.cnf r,
     /etc/nsswitch.conf r,
     /etc/resolv.conf r,
     /etc/host.conf r,
-    /etc/gai.conf r,
     /etc/hosts r,
     /etc/passwd r,
+    /etc/gai.conf r,
+    /etc/ssl/openssl.cnf r,
     /etc/ssl/certs/ r,
 
-    /usr/local/bin/ r,
-    /usr/local/bin/qutebrowser rix,
+    /usr/bin/ r,
+    /usr/bin/qutebrowser rix,
+    /usr/lib/python3.4/** r,
     /usr/local/lib/python3.4/** r,
-    /usr/local/share/fonts/ r,
-    /usr/share/fonts/ r,
-    /usr/share/fonts/** r,
-    /usr/share/fontconfig/** r,
-    /usr/share/poppler/** r,
-    /usr/share/mime/** r,
     /usr/share/ca-certificates/** r,
-    /usr/lib/x86_64-linux-gnu/** mr,
-    /usr/lib/mozilla/plugins/ r,
-    /usr/lib/gstreamer-0.10/ r,
-    /usr/lib/flashplugin-nonfree/libflashplayer.so mr,
-    /usr/lib/locale/locale-archive r,
-    /lib/x86_64-linux-gnu/* mr,
-    /var/cache/fontconfig/** r,
-    /proc/meminfo r,
+
     /proc/** r,
-    /dev/urandom r,
-    /sys/devices/system/cpu/online r,
 
     /usr/lib/python3/ mr,
     /usr/lib/python3/** mr,
@@ -52,11 +37,10 @@
     /usr/lib/python3.4/** mr,
     /usr/bin/python3.4 r,
 
-    @{HOME}/.Xauthority r,
-    @{HOME}/.config/** krw,
-    @{HOME}/.local/** krw,
-    @{HOME}/.cache/** krw,
-    @{HOME}/.gstreamer-0.10/* krw,
+    @{HOME}/.config/qutebrowser/** krw,
+    @{HOME}/.local/share/qutebrowser/** krw,
+    @{HOME}/.cache/qutebrowser/** krw,
+    @{HOME}/.gstreamer-0.10/* r,
 
 }
 
