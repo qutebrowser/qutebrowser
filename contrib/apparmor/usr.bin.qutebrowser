@@ -6,6 +6,7 @@
 /usr/bin/qutebrowser {
 
     #include <abstractions/base>
+    #include <abstractions/nameservice>
     #include <abstractions/audio>
     #include <abstractions/fonts>
     #include <abstractions/kde>
@@ -14,12 +15,6 @@
 
     capability dac_override,
 
-    /etc/nsswitch.conf r,
-    /etc/resolv.conf r,
-    /etc/host.conf r,
-    /etc/hosts r,
-    /etc/passwd r,
-    /etc/gai.conf r,
     /etc/ssl/openssl.cnf r,
     /etc/ssl/certs/ r,
 
