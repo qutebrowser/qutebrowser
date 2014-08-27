@@ -43,6 +43,7 @@ New big features
 - maybe FakeWebView which acts like a WebView in a tab but isn't, to open any
   widget?
 - Bind userscripts to signals (e.g. page_loaded etc.)
+- Multiple rendering engines, especially QGraphicsWebView + OpenGL
 
 Downloads
 =========
