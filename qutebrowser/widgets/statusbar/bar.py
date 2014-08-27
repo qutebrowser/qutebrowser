@@ -190,6 +190,11 @@ class StatusBar(QWidget):
         Re-set the stylesheet after setting the value, so everything gets
         updated by Qt properly.
         """
+        if self._error == val:
+            # This gets called a lot (e.g. if the completion selection was
+            # changed), and setStyleSheet is relatively expensive, so we ignore
+            # this if there's nothing to change.
+            return
         log.statusbar.debug("Setting error to {}".format(val))
         self._error = val
         self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
