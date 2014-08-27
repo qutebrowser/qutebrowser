@@ -25,9 +25,7 @@
 
     /usr/bin/ r,
     /usr/bin/qutebrowser rix,
-    /usr/lib/python3.4/** r,
-    /usr/local/lib/python3.4/** r,
-    /usr/share/ca-certificates/** r,
+    /usr/bin/python3.? r,
 
     /proc/** r,
 
@@ -35,7 +33,8 @@
     /usr/lib/python3/** mr,
     /usr/lib/python3.?/ r,
     /usr/lib/python3.?/** mr,
-    /usr/bin/python3.? r,
+    /usr/local/lib/python3.?/** r,
+    /usr/share/ca-certificates/** r,
 
     @{HOME}/.config/qutebrowser/** krw,
     @{HOME}/.local/share/qutebrowser/** krw,
