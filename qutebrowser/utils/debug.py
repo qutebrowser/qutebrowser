@@ -84,11 +84,13 @@ def debug_all_objects():
     s = QCoreApplication.instance().get_all_objects()
     log.misc.debug(s)
 
+
 @cmdutils.register(debug=True)
 def debug_cache_stats():
     """Print config LRU cache stats."""
     info = config.instance().get.cache_info()
     log.misc.debug(info)
+
 
 def log_events(klass):
     """Class decorator to log Qt events."""
