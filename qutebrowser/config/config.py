@@ -27,6 +27,7 @@ we borrow some methods and classes from there where it makes sense.
 import os
 import os.path
 import textwrap
+import functools
 import configparser
 import collections.abc
 
@@ -277,6 +278,7 @@ class ConfigManager(QObject):
         existed = optname in sectdict
         if existed:
             del sectdict[optname]
+            self.get.cache_clear()
         return existed
 
     @cmdutils.register(name='get', instance='config',
@@ -301,6 +303,7 @@ class ConfigManager(QObject):
             message.info("{} {} = {}".format(sectname, optname, val),
                          immediately=True)
 
+    @functools.lru_cache()
     def get(self, sectname, optname, raw=False, transformed=True):
         """Get the value from a section/option.
 
@@ -411,6 +414,7 @@ class ConfigManager(QObject):
             if sectname in ('colors', 'fonts'):
                 self.style_changed.emit(sectname, optname)
             self.changed.emit(sectname, optname)
+            self.get.cache_clear()
 
     @cmdutils.register(instance='config')
     def save(self):
