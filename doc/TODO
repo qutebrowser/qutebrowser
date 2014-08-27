@@ -19,7 +19,7 @@ Before 0.1
 - Implement some optional stuff from http://greenbytes.de/tech/tc2231/
   (especially filename with Content-Disposition: inline)
 - Icon
-- Use profiler to check what uses most CPU -> probably add config cache
+- Use profiler to check what uses most CPU
 
 New big features
 ================
