@@ -7,6 +7,8 @@
 
     #include <abstractions/base>
     #include <abstractions/nameservice>
+    #include <abstractions/openssl>
+    #include <abstractions/ssl_certs>
     #include <abstractions/audio>
     #include <abstractions/fonts>
     #include <abstractions/kde>
@@ -15,21 +17,17 @@
 
     capability dac_override,
 
-    /etc/ssl/openssl.cnf r,
-    /etc/ssl/certs/ r,
-
     /usr/bin/ r,
     /usr/bin/qutebrowser rix,
     /usr/bin/python3.? r,
-
-    /proc/** r,
 
     /usr/lib/python3/ mr,
     /usr/lib/python3/** mr,
     /usr/lib/python3.?/ r,
     /usr/lib/python3.?/** mr,
     /usr/local/lib/python3.?/** r,
-    /usr/share/ca-certificates/** r,
+
+    /tmp/* krw,
 
     @{HOME}/.config/qutebrowser/** krw,
     @{HOME}/.local/share/qutebrowser/** krw,
