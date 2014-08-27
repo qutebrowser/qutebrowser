@@ -3,7 +3,7 @@
 
 #include <tunables/global>
 
-/usr/bin/qutebrowser {
+profile qutebrowser /usr/{local/,}bin/qutebrowser {
 
     #include <abstractions/base>
     #include <abstractions/nameservice>
@@ -17,8 +17,8 @@
 
     capability dac_override,
 
-    /usr/bin/ r,
-    /usr/bin/qutebrowser rix,
+    /usr/{local/,}bin/ r,
+    /usr/{local/,}bin/qutebrowser rix,
     /usr/bin/python3.? r,
 
     /usr/lib/python3/ mr,
