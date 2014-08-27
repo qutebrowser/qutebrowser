@@ -19,7 +19,6 @@ Before 0.1
 - Implement some optional stuff from http://greenbytes.de/tech/tc2231/
   (especially filename with Content-Disposition: inline)
 - Icon
-- Use profiler to check what uses most CPU
 
 New big features
 ================
@@ -59,7 +58,7 @@ Improvements / minor features
 - Improve -m error message when we're inside the qutebrowser dir (maybe use a
   Tk gui?)
 - Sane default for editor (maybe via QDesktopServices or so?)
-- We should have something like utils.debug.qenum_key for QFlags.
+- Make utils.debug.qenum_key work properly.
 - Honour icognito mode for cookies etc.
 - Make sure commands in config are _complete_
 - Config should check for unknown sections

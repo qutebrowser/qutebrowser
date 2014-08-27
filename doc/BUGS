@@ -38,7 +38,7 @@ Input
 - seir sometimes sees "-- COMMAND MODE --" even though that should never
   happen.
 - Shift-Insert in commandline pastes clipboard instead of primary selection
-- Auto-insert-mode sometimes doesn't work correctly
+- Auto-insert-mode sometimes doesn't work correctly (e.g. login form of Gitlab)
 - Sidewise scrolling via mousewheel broken
 
 Rendering
@@ -82,11 +82,9 @@ Misc
 ----
 
 - All kind of FIXMEs
-- --logfilter is broken
 - On doodle, when modifying something on http://doodle.com/create and clicking
   a link to leave the page, with some random clicking it's somehow possible to
-  get out of yesno mode.
-  We also should prevent entering any other mode while in prompt mode.
+  get out of yesno mode. (probably fixed?)
 - Opening via commandline / startpage doesn't work with absolute file paths.
 - Relative file paths and ~ don't work at all.
 - Config errors on start shouldn't be hard errors
@@ -94,7 +92,7 @@ Misc
 - Clicking links/email in crash dialog should open browser/mailclient under
   windows
 - Current font handling is rather broken (rejecting invalid values / setting
-  multiple font families)
+  multiple font families) - we should use PyPEG2 instead.
 
 Tests
 -----
