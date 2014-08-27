@@ -411,10 +411,10 @@ class ConfigManager(QObject):
         except KeyError:
             raise NoOptionError(optname, sectname)
         else:
+            self.get.cache_clear()
             if sectname in ('colors', 'fonts'):
                 self.style_changed.emit(sectname, optname)
             self.changed.emit(sectname, optname)
-            self.get.cache_clear()
 
     @cmdutils.register(instance='config')
     def save(self):
