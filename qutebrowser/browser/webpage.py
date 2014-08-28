@@ -242,17 +242,15 @@ class BrowserPage(QWebPage):
             return handler(opt, out)
         except BaseException as e:
             # Due to a bug in PyQt, exceptions inside extension() get swallowed
-            # for some reason. Here we set up a single-shot QTimer to re-raise
-            # them when we're back in the mainloop.
+            # for some reason.
             # http://www.riverbankcomputing.com/pipermail/pyqt/2014-August/034722.html
             #
-            # Note we somehow can't re-raise with the correct traceback here.
-            # Using "raise from" or ".with_traceback()" just ignores the
-            # exception again.
-            exc = e  # needed for the closure
-            def raise_():
-                raise exc
-            QTimer.singleShot(0, raise_)
+            # We used to re-raise the exception with a single-shot QTimer here,
+            # but that lead to a strange proble with a KeyError with some
+            # random jinja template stuff as content. For now, we only log it,
+            # so it doesn't pass 100% silently.
+            log.webview.exception("Error inside WebPage::extension: "
+                                  "{}: {}".format(e.__class__.__name__, e))
             return False
 
     def javaScriptAlert(self, _frame, msg):
