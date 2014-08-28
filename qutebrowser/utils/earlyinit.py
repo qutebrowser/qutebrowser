@@ -248,3 +248,17 @@ def check_pypeg2():
                             pip="pypeg2 --allow-external pypeg2 "
                                 "--allow-unverified pypeg2")
         _die(text)
+
+
+def check_jinja2():
+    """Check if jinja2 is installed."""
+    try:
+        import jinja2  # pylint: disable=unused-variable
+    except ImportError:
+        text = _missing_str("jinja2",
+                            debian="apt-get install python3-jinja2",
+                            arch="Install python-jinja from the AUR",
+                            windows="Install from http://www.lfd.uci.edu/"
+                                    "~gohlke/pythonlibs/#jinja2 or via pip.",
+                            pip="jinja2")
+        _die(text)

@@ -47,7 +47,7 @@ try:
                       ['qutebrowser = qutebrowser.qutebrowser:main']},
         test_suite='qutebrowser.test',
         zip_safe=True,
-        install_requires=['pypeg2'],
+        install_requires=['pypeg2', 'jinja2'],
         extras_require={'nice-debugging': ['colorlog', 'colorama'],
                         'checks': ['flake8', 'pylint', 'check-manifest',
                                    'pyroma']},

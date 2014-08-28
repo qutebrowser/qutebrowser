@@ -179,6 +179,13 @@ def _module_versions():
     else:
         ver = getattr(pypeg2, '__version__', 'yes')
         lines.append('pypeg2: {}'.format(ver))
+    try:
+        import jinja2
+    except ImportError:
+        pass
+    else:
+        ver = getattr(jinja2, '__version__', 'yes')
+        lines.append('jinja2: {}'.format(ver))
     return lines
 
 
