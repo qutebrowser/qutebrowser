@@ -17,12 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Utilities related to the look&feel of qutebrowser.
-
-Module attributes:
-    _colordict: The global cached ColorDict.
-    _fontdict: The global cached FontDict.
-"""
+"""Utilities related to the look&feel of qutebrowser."""
 
 import functools
 
@@ -32,10 +27,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import log, utils
 
 
-_colordict = None
-_fontdict = None
-
-
+@functools.lru_cache(maxsize=16)
 def get_stylesheet(template):
     """Format a stylesheet based on a template.
 
@@ -45,12 +37,9 @@ def get_stylesheet(template):
     Return:
         The formatted template as string.
     """
-    global _colordict, _fontdict
-    if _colordict is None:
-        _colordict = ColorDict(config.section('colors'))
-    if _fontdict is None:
-        _fontdict = FontDict(config.section('fonts'))
-    return template.strip().format(color=_colordict, font=_fontdict,
+    colordict = ColorDict(config.section('colors'))
+    fontdict = FontDict(config.section('fonts'))
+    return template.strip().format(color=colordict, font=fontdict,
                                    config=config.instance())
 
 
@@ -76,15 +65,6 @@ def set_register_stylesheet(obj):
 def _update_stylesheet(obj, _section, _option):
     """Update the stylesheet for obj."""
     obj.setStyleSheet(get_stylesheet(obj.STYLESHEET))
-
-
-def invalidate_caches(section, _option):
-    """Invalidate cached dicts."""
-    global _colordict, _fontdict
-    if section == 'colors':
-        _colordict = None
-    elif section == 'fonts':
-        _fontdict = None
 
 
 class ColorDict(dict):
