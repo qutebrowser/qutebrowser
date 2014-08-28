@@ -7,16 +7,16 @@ Based on html/error.html from dwb
 <html>
     <head>
         <meta charset="utf-8">
-        <title>{title}</title>
-        <!--<link rel='icon' type='image/png' href="{icon}">-->
+        <title>{{ title }}</title>
+        <!--<link rel='icon' type='image/png' href="{{ icon }}">-->
         <style type="text/css">
-            body {{
+            body {
                 background-color: #fff;
                 margin: 0;
                 padding: 0;
-            }}
+            }
 
-            #errorContainer {{
+            #errorContainer {
                 background: #fff;
                 min-width: 35em;
                 max-width: 35em;
@@ -26,25 +26,25 @@ Based on html/error.html from dwb
                 padding: 10px;
                 border: 2px solid #eee;
                 -webkit-border-radius: 5px;
-            }}
+            }
 
-            #errorTitleText {{
+            #errorTitleText {
                 font-size: 118%;
                 font-weight: bold;
-            }}
+            }
 
-            #errorMessageText {{
+            #errorMessageText {
                 font-size: 80%;
-            }}
+            }
         </style>
         <script type="text/javascript">
             function tryagain()
-            {{
+            {
                 location.reload();
-            }}
-            function searchFor(uri) {{
+            }
+            function searchFor(uri) {
                 location.href = uri;
-            }}
+            }
         </script>
     </head>
     <body>
@@ -53,8 +53,8 @@ Based on html/error.html from dwb
                 <p id="errorTitleText">Unable to load page</p>
             </div>
             <div id="errorMessage">
-                <p>Problem occurred while loading the URL {url}</p>
-                <p id="errorMessageText">{error}</p>
+                <p>Problem occurred while loading the URL {{ url }}</p>
+                <p id="errorMessageText">{{ error }}</p>
             </p>
             </div>
 

@@ -30,7 +30,7 @@ from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.network import networkmanager
-from qutebrowser.utils import message, usertypes, log, http, utils, qtutils
+from qutebrowser.utils import message, usertypes, log, http, jinja, qtutils
 
 
 class BrowserPage(QWebPage):
@@ -118,7 +118,7 @@ class BrowserPage(QWebPage):
         log.webview.debug("Error domain: {}, error code: {}".format(
             info.domain, info.error))
         title = "Error loading page: {}".format(urlstr)
-        errpage.content = utils.read_file('html/error.html').format(
+        errpage.content = jinja.env.get_template('error.html').render(
             title=title, url=urlstr, error=info.errorString, icon='')
         return True
 
