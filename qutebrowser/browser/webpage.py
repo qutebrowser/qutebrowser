@@ -22,7 +22,7 @@
 from functools import partial
 
 import sip
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, PYQT_VERSION, Qt
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, PYQT_VERSION, Qt, QTimer
 from PyQt5.QtNetwork import QNetworkReply
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtPrintSupport import QPrintDialog
@@ -234,11 +234,26 @@ class BrowserPage(QWebPage):
             Handler return value.
         """
         try:
-            handler = self._extension_handlers[ext]
-        except KeyError:
-            log.webview.warning("Extension {} not supported!".format(ext))
-            return super().extension(ext, opt, out)
-        return handler(opt, out)
+            try:
+                handler = self._extension_handlers[ext]
+            except KeyError:
+                log.webview.warning("Extension {} not supported!".format(ext))
+                return super().extension(ext, opt, out)
+            return handler(opt, out)
+        except BaseException as e:
+            # Due to a bug in PyQt, exceptions inside extension() get swallowed
+            # for some reason. Here we set up a single-shot QTimer to re-raise
+            # them when we're back in the mainloop.
+            # http://www.riverbankcomputing.com/pipermail/pyqt/2014-August/034722.html
+            #
+            # Note we somehow can't re-raise with the correct traceback here.
+            # Using "raise from" or ".with_traceback()" just ignores the
+            # exception again.
+            exc = e  # needed for the closure
+            def raise_():
+                raise exc
+            QTimer.singleShot(0, raise_)
+            return False
 
     def javaScriptAlert(self, _frame, msg):
         """Override javaScriptAlert to use the statusbar."""
