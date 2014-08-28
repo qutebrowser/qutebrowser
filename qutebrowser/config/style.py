@@ -103,20 +103,6 @@ class ColorDict(dict):
         else:
             return val
 
-    def getraw(self, key):
-        """Get a value without the transformations done in __getitem__.
-
-        Args:
-            key: The key to get from the dict.
-
-        Return:
-            A value, or None if the value wasn't found.
-        """
-        try:
-            return super().__getitem__(key)
-        except KeyError:
-            return None
-
 
 class FontDict(dict):
 
@@ -140,17 +126,3 @@ class FontDict(dict):
             return ''
         else:
             return 'font: {};'.format(val)
-
-    def getraw(self, key):
-        """Get a value without the transformations done in __getitem__.
-
-        Args:
-            key: The key to get from the dict.
-
-        Return:
-            A value, or None if the value wasn't found.
-        """
-        try:
-            return super().__getitem__(key)
-        except KeyError:
-            return None
