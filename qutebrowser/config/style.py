@@ -21,6 +21,7 @@
 
 import functools
 
+import jinja2
 from PyQt5.QtGui import QColor
 
 from qutebrowser.config import config
@@ -28,19 +29,20 @@ from qutebrowser.utils import log, utils
 
 
 @functools.lru_cache(maxsize=16)
-def get_stylesheet(template):
+def get_stylesheet(template_str):
     """Format a stylesheet based on a template.
 
     Args:
-        template: The stylesheet template as string.
+        template_str: The stylesheet template as string.
 
     Return:
         The formatted template as string.
     """
     colordict = ColorDict(config.section('colors'))
     fontdict = FontDict(config.section('fonts'))
-    return template.strip().format(color=colordict, font=fontdict,
-                                   config=config.instance())
+    template = jinja2.Template(template_str)
+    return template.render(color=colordict, font=fontdict,
+                           config=config.instance())
 
 
 def set_register_stylesheet(obj):

@@ -32,16 +32,16 @@ class Progress(QProgressBar):
 
     # FIXME for some reason, margin-left is not shown
     STYLESHEET = """
-        QProgressBar {{
+        QProgressBar {
             border-radius: 0px;
             border: 2px solid transparent;
             margin-left: 1px;
             background-color: transparent;
-        }}
+        }
 
-        QProgressBar::chunk {{
-            {color[statusbar.progress.bg]}
-        }}
+        QProgressBar::chunk {
+            {{color['statusbar.progress.bg']}}
+        }
     """
 
     def __init__(self, parent=None):

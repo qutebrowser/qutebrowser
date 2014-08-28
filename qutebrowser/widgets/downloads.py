@@ -37,14 +37,14 @@ class DownloadView(QListView):
     """
 
     STYLESHEET = """
-        QListView {{
-            {color[downloads.bg.bar]}
-            {font[downloads]}
-        }}
+        QListView {
+            {{color['downloads.bg.bar']}}
+            {{font['downloads']}}
+        }
 
-        QListView::item {{
+        QListView::item {
             padding-right: 2px;
-        }}
+        }
     """
 
     def __init__(self, parent=None):
