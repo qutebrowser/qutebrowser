@@ -54,23 +54,23 @@ class UrlText(textbase.TextBase):
 
     STYLESHEET = """
         QLabel#UrlText[urltype="normal"] {
-            {{color['statusbar.url.fg']}}
+            {{ color['statusbar.url.fg'] }}
         }
 
         QLabel#UrlText[urltype="success"] {
-            {{color['statusbar.url.fg.success']}}
+            {{ color['statusbar.url.fg.success'] }}
         }
 
         QLabel#UrlText[urltype="error"] {
-            {{color['statusbar.url.fg.error']}}
+            {{ color['statusbar.url.fg.error'] }}
         }
 
         QLabel#UrlText[urltype="warn"] {
-            {{color['statusbar.url.fg.warn']}}
+            {{ color['statusbar.url.fg.warn'] }}
         }
 
         QLabel#UrlText[urltype="hover"] {
-            {{color['statusbar.url.fg.hover']}}
+            {{ color['statusbar.url.fg.hover'] }}
         }
     """
 

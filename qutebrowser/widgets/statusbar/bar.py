@@ -94,24 +94,24 @@ class StatusBar(QWidget):
 
     STYLESHEET = """
         QWidget#StatusBar {
-            {{color['statusbar.bg']}}
+            {{ color['statusbar.bg'] }}
         }
 
         QWidget#StatusBar[insert_active="true"] {
-            {{color['statusbar.bg.insert']}}
+            {{ color['statusbar.bg.insert'] }}
         }
 
         QWidget#StatusBar[prompt_active="true"] {
-            {{color['statusbar.bg.prompt']}}
+            {{ color['statusbar.bg.prompt'] }}
         }
 
         QWidget#StatusBar[error="true"] {
-            {{color['statusbar.bg.error']}}
+            {{ color['statusbar.bg.error'] }}
         }
 
         QWidget {
-            {{color['statusbar.fg']}}
-            {{font['statusbar']}}
+            {{ color['statusbar.fg'] }}
+            {{ font['statusbar'] }}
         }
     """
 
