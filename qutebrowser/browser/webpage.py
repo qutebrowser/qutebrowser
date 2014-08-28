@@ -19,7 +19,7 @@
 
 """The main browser widgets."""
 
-from functools import partial
+import functools
 
 import sip
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, PYQT_VERSION, Qt, QTimer
@@ -197,8 +197,8 @@ class BrowserPage(QWebPage):
             if reply.isFinished():
                 self.display_content(reply, 'image/jpeg')
             else:
-                reply.finished.connect(
-                    partial(self.display_content, reply, 'image/jpeg'))
+                reply.finished.connect(functools.partial(
+                    self.display_content, reply, 'image/jpeg'))
         else:
             # Unknown mimetype, so download anyways.
             self.start_download.emit(reply)
