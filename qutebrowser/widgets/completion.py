@@ -42,7 +42,6 @@ class CompletionView(QTreeView):
     Highlights completions based on marks in the Role.marks data.
 
     Class attributes:
-        STYLESHEET: The stylesheet template for the CompletionView.
         COLUMN_WIDTHS: A list of column widths, in percent.
 
     Attributes:

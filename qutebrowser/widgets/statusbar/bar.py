@@ -40,9 +40,6 @@ class StatusBar(QWidget):
 
     """The statusbar at the bottom of the mainwindow.
 
-    Class attributes:
-        STYLESHEET: The stylesheet template.
-
     Attributes:
         cmd: The Command widget in the statusbar.
         txt: The Text widget in the statusbar.

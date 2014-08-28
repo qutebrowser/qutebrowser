@@ -36,9 +36,6 @@ class UrlText(textbase.TextBase):
 
     """URL displayed in the statusbar.
 
-    Class attributes:
-        STYLESHEET: The stylesheet template.
-
     Attributes:
         normal_url: The normal URL to be displayed as a UrlType instance.
         normal_url_type: The type of the normal URL as a UrlType instance.

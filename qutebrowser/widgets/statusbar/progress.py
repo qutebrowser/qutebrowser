@@ -28,11 +28,7 @@ from qutebrowser.config import style
 
 class Progress(QProgressBar):
 
-    """The progress bar part of the status bar.
-
-    Class attributes:
-        STYLESHEET: The stylesheet template.
-    """
+    """The progress bar part of the status bar."""
 
     # FIXME for some reason, margin-left is not shown
     STYLESHEET = """
