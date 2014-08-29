@@ -22,7 +22,7 @@
 import functools
 
 import sip
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, PYQT_VERSION, Qt, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, PYQT_VERSION, Qt
 from PyQt5.QtNetwork import QNetworkReply
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtPrintSupport import QPrintDialog
@@ -118,7 +118,8 @@ class BrowserPage(QWebPage):
         log.webview.debug("Error domain: {}, error code: {}".format(
             info.domain, info.error))
         title = "Error loading page: {}".format(urlstr)
-        errpage.content = jinja.env.get_template('error.html').render(
+        template = jinja.env.get_template('error.html')
+        errpage.content = template.render(  # pylint: disable=maybe-no-member
             title=title, url=urlstr, error=info.errorString, icon='')
         return True
 
@@ -240,7 +241,7 @@ class BrowserPage(QWebPage):
                 log.webview.warning("Extension {} not supported!".format(ext))
                 return super().extension(ext, opt, out)
             return handler(opt, out)
-        except BaseException as e:
+        except:  # pylint: disable=bare-except
             # Due to a bug in PyQt, exceptions inside extension() get swallowed
             # for some reason.
             # http://www.riverbankcomputing.com/pipermail/pyqt/2014-August/034722.html
@@ -249,8 +250,7 @@ class BrowserPage(QWebPage):
             # but that lead to a strange proble with a KeyError with some
             # random jinja template stuff as content. For now, we only log it,
             # so it doesn't pass 100% silently.
-            log.webview.exception("Error inside WebPage::extension: "
-                                  "{}: {}".format(e.__class__.__name__, e))
+            log.webview.exception("Error inside WebPage::extension")
             return False
 
     def javaScriptAlert(self, _frame, msg):

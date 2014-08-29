@@ -33,7 +33,7 @@ class Loader(jinja2.BaseLoader):
     def __init__(self, subdir):
         self.subdir = subdir
 
-    def get_source(self, env, template):
+    def get_source(self, _env, template):
         path = os.path.join(self.subdir, template)
         try:
             source = utils.read_file(path)
