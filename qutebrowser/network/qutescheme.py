@@ -20,11 +20,8 @@
 """Handler functions for different qute:... pages.
 
 Module attributes:
-    _HTML_TEMPLATE: The HTML boilerplate used to convert text into html.
     pyeval_output: The output of the last :pyeval command.
 """
-
-import html as pyhtml
 
 from PyQt5.QtNetwork import QNetworkReply
 
@@ -34,40 +31,7 @@ from qutebrowser.utils import version, utils, jinja
 from qutebrowser.utils import log as logutils
 
 
-_HTML_TEMPLATE = """
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>{title}</title>
-  {head}
-</head>
-<body>
-{body}
-</body>
-</html>
-"""
-
-
 pyeval_output = ":pyeval was never called"
-
-
-def _get_html(title, snippet, head=None):
-    """Add HTML boilerplate to a html snippet.
-
-    Args:
-        title: The title the page should have.
-        snippet: The html snippet.
-        head: Additional stuff to put in <head>
-
-    Return:
-        HTML content as bytes.
-    """
-    if head is None:
-        head = ""
-    html = _HTML_TEMPLATE.format(title=title, body=snippet, head=head).encode(
-        'UTF-8', errors='xmlcharrefreplace')
-    return html
 
 
 class QuteSchemeHandler(schemehandler.SchemeHandler):
@@ -136,35 +100,13 @@ class QuteHandlers:
     @classmethod
     def log(cls):
         """Handler for qute:log. Return HTML content as bytes."""
-        style = """
-        <style type="text/css">
-            body {
-                background-color: black;
-                color: white;
-                font-size: 11px;
-            }
-
-            table {
-                border: 1px solid grey;
-                border-collapse: collapse;
-            }
-
-            pre {
-                margin: 2px;
-            }
-
-            th, td {
-                border: 1px solid grey;
-                padding-left: 5px;
-                padding-right: 5px;
-            }
-        </style>
-        """
         if logutils.ram_handler is None:
-            html = "<p>Log output was disabled.</p>"
+            html_log = None
         else:
-            html = logutils.ram_handler.dump_log(html=True)
-        return _get_html('log', html, head=style)
+            html_log = logutils.ram_handler.dump_log(html=True)
+        html = jinja.env.get_template('log.html').render(
+            title='log', content=html_log)
+        return html.encode('UTF-8', errors='xmlcharrefreplace')
 
     @classmethod
     def gpl(cls):
