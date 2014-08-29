@@ -30,7 +30,7 @@ from PyQt5.QtNetwork import QNetworkReply
 
 import qutebrowser
 from qutebrowser.network import schemehandler
-from qutebrowser.utils import version, utils
+from qutebrowser.utils import version, utils, jinja
 from qutebrowser.utils import log as logutils
 
 
@@ -110,28 +110,28 @@ class QuteHandlers:
     @classmethod
     def pyeval(cls):
         """Handler for qute:pyeval. Return HTML content as bytes."""
-        text = pyhtml.escape(pyeval_output)
-        return _get_html('pyeval', '<pre>{}</pre>'.format(text))
+        html = jinja.env.get_template('pre.html').render(
+            title='pyeval', content=pyeval_output)
+        return html.encode('UTF-8', errors='xmlcharrefreplace')
 
     @classmethod
     def version(cls):
         """Handler for qute:version. Return HTML content as bytes."""
-        text = pyhtml.escape(version.version())
-        html = '<h1>Version info</h1>'
-        html += '<p>{}</p>'.format(text.replace('\n', '<br/>'))
-        html += '<h1>Copyright info</h1>'
-        html += '<p>{}</p>'.format(qutebrowser.__copyright__)
-        html += version.GPL_BOILERPLATE_HTML
-        return _get_html('Version', html)
+        html = jinja.env.get_template('version.html').render(
+            title='Version info', version=version.version(),
+            copyright=qutebrowser.__copyright__)
+        return html.encode('UTF-8', errors='xmlcharrefreplace')
 
     @classmethod
     def plainlog(cls):
-        """Handler for qute:log. Return HTML content as bytes."""
+        """Handler for qute:plainlog. Return HTML content as bytes."""
         if logutils.ram_handler is None:
             text = "Log output was disabled."
         else:
-            text = pyhtml.escape(logutils.ram_handler.dump_log())
-        return _get_html('log', '<pre>{}</pre>'.format(text))
+            text = logutils.ram_handler.dump_log()
+        html = jinja.env.get_template('pre.html').render(
+            title='log', content=text)
+        return html.encode('UTF-8', errors='xmlcharrefreplace')
 
     @classmethod
     def log(cls):
