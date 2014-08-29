@@ -70,6 +70,7 @@ EXTENDED_FMT_HTML = (
 )
 DATEFMT = '%H:%M:%S'
 LOG_COLORS = {
+    'VDEBUG': 'white',
     'DEBUG': 'white',
     'INFO': 'green',
     'WARNING': 'yellow',
@@ -78,8 +79,29 @@ LOG_COLORS = {
 }
 
 
-# The different loggers used.
+# We first monkey-patch logging to support our VDEBUG level before getting the
+# loggers.  Based on http://stackoverflow.com/a/13638084
+VDEBUG_LEVEL = 9
+logging.addLevelName(VDEBUG_LEVEL, 'VDEBUG')
+logging.VDEBUG = VDEBUG_LEVEL
 
+
+def vdebug(self, message, *args, **kwargs):
+    """Log with a VDEBUG level.
+
+    VDEBUG is used when a debug message is rather verbose, and probably of
+    little use to the end user or for post-mortem debugging, i.e. the content
+    probably won't change unless the code changes.
+    """
+    if self.isEnabledFor(VDEBUG_LEVEL):
+        # pylint: disable=protected-access
+        self._log(VDEBUG_LEVEL, message, args, **kwargs)
+
+
+logging.Logger.vdebug = vdebug
+
+
+# The different loggers used.
 statusbar = logging.getLogger('statusbar')
 completion = logging.getLogger('completion')
 destroy = logging.getLogger('destroy')
@@ -106,7 +128,7 @@ ram_handler = None
 
 def init_log(args):
     """Init loggers based on the argparse namespace passed."""
-    level = 'DEBUG' if args.debug else args.loglevel.upper()
+    level = 'VDEBUG' if args.debug else args.loglevel.upper()
     try:
         numeric_level = getattr(logging, level)
     except AttributeError:
@@ -314,7 +336,9 @@ class RAMHandler(logging.Handler):
             self.data = collections.deque()
 
     def emit(self, record):
-        self.data.append(record)
+        if record.levelno >= logging.DEBUG:
+            # We don't log VDEBUG to RAM.
+            self.data.append(record)
 
     def dump_log(self, html=False):
         """Dump the complete formatted log data as as string."""

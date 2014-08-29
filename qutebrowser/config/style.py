@@ -66,8 +66,8 @@ def set_register_stylesheet(obj):
              Must have a STYLESHEET attribute.
     """
     qss = get_stylesheet(obj.STYLESHEET)
-    log.style.debug("stylesheet for {}: {}".format(obj.__class__.__name__,
-                                                   utils.compact_text(qss)))
+    log.style.vdebug("stylesheet for {}: {}".format(
+        obj.__class__.__name__, qss))
     obj.setStyleSheet(qss)
     config.instance().changed.connect(
         functools.partial(_update_stylesheet, obj))
