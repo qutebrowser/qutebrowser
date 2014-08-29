@@ -13,4 +13,5 @@ __pycache__
 .ropeproject
 # We can probably remove these later
 *.asciidoc
-*.html
+/doc/*.html
+/README.html
