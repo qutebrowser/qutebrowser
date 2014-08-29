@@ -1,5 +1,13 @@
 {% extends "base.html" %}
 
+{% block script %}
+window.onload=toBottom;
+
+function toBottom() {
+    window.scrollTo(0, document.body.scrollHeight);
+}
+{% endblock %}
+
 {% block style %}
 body {
     background-color: black;
