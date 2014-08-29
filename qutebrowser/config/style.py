@@ -25,7 +25,7 @@ import jinja2
 from PyQt5.QtGui import QColor
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, utils
+from qutebrowser.utils import log
 
 
 @functools.lru_cache(maxsize=16)
