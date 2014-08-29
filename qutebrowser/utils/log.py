@@ -341,13 +341,12 @@ class RAMHandler(logging.Handler):
             self.data.append(record)
 
     def dump_log(self, html=False):
-        """Dump the complete formatted log data as as string."""
-        if html:
-            fmt = self.html_formatter.format
-            lines = ['<table>']
-        else:
-            fmt = self.format
-            lines = []
+        """Dump the complete formatted log data as as string.
+
+        FIXME: We should do all the HTML formatter via jinja2.
+        """
+        lines = []
+        fmt = self.html_formatter.format if html else self.format
         self.acquire()
         try:
             records = list(self.data)
@@ -355,8 +354,6 @@ class RAMHandler(logging.Handler):
             self.release()
         for record in records:
             lines.append(fmt(record))
-        if html:
-            lines.append('</table>')
         return '\n'.join(lines)
 
 

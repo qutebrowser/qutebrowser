@@ -394,7 +394,7 @@ class Application(QApplication):
             status.prompt.prompter.ask_question, Qt.DirectConnection)
 
         # config
-        self.config.style_changed.connect(style.invalidate_caches)
+        self.config.style_changed.connect(style.get_stylesheet.cache_clear)
         for obj in (tabs, completion, self.mainwindow, self.cmd_history,
                     websettings, kp[utypes.KeyMode.normal], self.modeman,
                     status, status.txt):

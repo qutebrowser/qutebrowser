@@ -36,9 +36,6 @@ class UrlText(textbase.TextBase):
 
     """URL displayed in the statusbar.
 
-    Class attributes:
-        STYLESHEET: The stylesheet template.
-
     Attributes:
         normal_url: The normal URL to be displayed as a UrlType instance.
         normal_url_type: The type of the normal URL as a UrlType instance.
@@ -56,25 +53,25 @@ class UrlText(textbase.TextBase):
     _urltype = None
 
     STYLESHEET = """
-        QLabel#UrlText[urltype="normal"] {{
-            {color[statusbar.url.fg]}
-        }}
+        QLabel#UrlText[urltype="normal"] {
+            {{ color['statusbar.url.fg'] }}
+        }
 
-        QLabel#UrlText[urltype="success"] {{
-            {color[statusbar.url.fg.success]}
-        }}
+        QLabel#UrlText[urltype="success"] {
+            {{ color['statusbar.url.fg.success'] }}
+        }
 
-        QLabel#UrlText[urltype="error"] {{
-            {color[statusbar.url.fg.error]}
-        }}
+        QLabel#UrlText[urltype="error"] {
+            {{ color['statusbar.url.fg.error'] }}
+        }
 
-        QLabel#UrlText[urltype="warn"] {{
-            {color[statusbar.url.fg.warn]}
-        }}
+        QLabel#UrlText[urltype="warn"] {
+            {{ color['statusbar.url.fg.warn'] }}
+        }
 
-        QLabel#UrlText[urltype="hover"] {{
-            {color[statusbar.url.fg.hover]}
-        }}
+        QLabel#UrlText[urltype="hover"] {
+            {{ color['statusbar.url.fg.hover'] }}
+        }
     """
 
     def __init__(self, parent=None):

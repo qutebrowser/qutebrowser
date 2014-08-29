@@ -29,7 +29,7 @@ from PyQt5.QtCore import pyqtRemoveInputHook, QEvent, QCoreApplication
 
 from qutebrowser.utils import log, utils
 from qutebrowser.commands import cmdutils
-from qutebrowser.config import config
+from qutebrowser.config import config, style
 
 
 @cmdutils.register(debug=True, name='debug-set-trace')
@@ -87,9 +87,11 @@ def debug_all_objects():
 
 @cmdutils.register(debug=True)
 def debug_cache_stats():
-    """Print config LRU cache stats."""
-    info = config.instance().get.cache_info()
-    log.misc.debug(info)
+    """Print LRU cache stats."""
+    config_info = config.instance().get.cache_info()
+    style_info = style.get_stylesheet.cache_info()
+    log.misc.debug('config: {}'.format(config_info))
+    log.misc.debug('style: {}'.format(style_info))
 
 
 def log_events(klass):

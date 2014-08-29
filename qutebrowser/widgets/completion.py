@@ -42,7 +42,6 @@ class CompletionView(QTreeView):
     Highlights completions based on marks in the Role.marks data.
 
     Class attributes:
-        STYLESHEET: The stylesheet template for the CompletionView.
         COLUMN_WIDTHS: A list of column widths, in percent.
 
     Attributes:
@@ -59,29 +58,31 @@ class CompletionView(QTreeView):
     # Drawing the item foreground will be done by CompletionItemDelegate, so we
     # don't define that in this stylesheet.
     STYLESHEET = """
-        QTreeView {{
-            {font[completion]}
-            {color[completion.bg]}
+        QTreeView {
+            {{ font['completion'] }}
+            {{ color['completion.bg'] }}
             outline: 0;
-        }}
+        }
 
-        QTreeView::item:disabled {{
-            {color[completion.category.bg]}
-            border-top: 1px solid {color[completion.category.border.top]};
+        QTreeView::item:disabled {
+            {{ color['completion.category.bg'] }}
+            border-top: 1px solid
+                {{ color['completion.category.border.top'] }};
             border-bottom: 1px solid
-                {color[completion.category.border.bottom]};
-        }}
+                {{ color['completion.category.border.bottom'] }};
+        }
 
-        QTreeView::item:selected, QTreeView::item:selected:hover {{
-            border-top: 1px solid {color[completion.item.selected.border.top]};
+        QTreeView::item:selected, QTreeView::item:selected:hover {
+            border-top: 1px solid
+                {{ color['completion.item.selected.border.top'] }};
             border-bottom: 1px solid
-                {color[completion.item.selected.border.bottom]};
-            {color[completion.item.selected.bg]}
-        }}
+                {{ color['completion.item.selected.border.bottom'] }};
+            {{ color['completion.item.selected.bg'] }}
+        }
 
-        QTreeView:item::hover {{
+        QTreeView:item::hover {
             border: 0px;
-        }}
+        }
     """
     COLUMN_WIDTHS = (20, 70, 10)
 

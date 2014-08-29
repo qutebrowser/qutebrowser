@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block style %}
+body {
+    background-color: black;
+    color: white;
+    font-size: 11px;
+}
+
+table {
+    border: 1px solid grey;
+    border-collapse: collapse;
+}
+
+pre {
+    margin: 2px;
+}
+
+th, td {
+    border: 1px solid grey;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+{% if content %}
+<table>
+{{ content | safe() }}
+</table>
+{% else %}
+<p>Log output was disabled.</p>
+{% endif %}
+{% endblock %}

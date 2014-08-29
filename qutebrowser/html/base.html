@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!--
+vim: ft=html fileencoding=utf-8 sts=4 sw=4 et:
+-->
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>{{ title }}</title>
+        {% if icon %}
+            <link rel='icon' type='image/png' href="{{ icon }}">
+        {% endif %}
+        <style type="text/css">
+            {% block style %}
+            body {
+                background-color: #fff;
+                margin: 0;
+                padding: 0;
+            }
+            {% endblock %}
+        </style>
+        <script type="text/javascript">
+            {% block script %}
+            {% endblock %}
+        </script>
+    </head>
+    <body>
+        {% block content %}
+        {% endblock %}
+    </body>
+</html>

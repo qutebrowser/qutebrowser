@@ -40,9 +40,6 @@ class StatusBar(QWidget):
 
     """The statusbar at the bottom of the mainwindow.
 
-    Class attributes:
-        STYLESHEET: The stylesheet template.
-
     Attributes:
         cmd: The Command widget in the statusbar.
         txt: The Text widget in the statusbar.
@@ -96,26 +93,26 @@ class StatusBar(QWidget):
     _insert_active = False
 
     STYLESHEET = """
-        QWidget#StatusBar {{
-            {color[statusbar.bg]}
-        }}
+        QWidget#StatusBar {
+            {{ color['statusbar.bg'] }}
+        }
 
-        QWidget#StatusBar[insert_active="true"] {{
-            {color[statusbar.bg.insert]}
-        }}
+        QWidget#StatusBar[insert_active="true"] {
+            {{ color['statusbar.bg.insert'] }}
+        }
 
-        QWidget#StatusBar[prompt_active="true"] {{
-            {color[statusbar.bg.prompt]}
-        }}
+        QWidget#StatusBar[prompt_active="true"] {
+            {{ color['statusbar.bg.prompt'] }}
+        }
 
-        QWidget#StatusBar[error="true"] {{
-            {color[statusbar.bg.error]}
-        }}
+        QWidget#StatusBar[error="true"] {
+            {{ color['statusbar.bg.error'] }}
+        }
 
-        QWidget {{
-            {color[statusbar.fg]}
-            {font[statusbar]}
-        }}
+        QWidget {
+            {{ color['statusbar.fg'] }}
+            {{ font['statusbar'] }}
+        }
     """
 
     def __init__(self, parent=None):
