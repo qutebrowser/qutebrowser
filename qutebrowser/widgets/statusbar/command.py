@@ -19,7 +19,7 @@
 
 """The commandline in the statusbar."""
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from PyQt5.QtWidgets import QSizePolicy, QApplication
 
 from qutebrowser.keyinput import modeman, modeparsers
@@ -305,3 +305,16 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             raise AssertionError("setText got called with invalid text "
                                  "'{}'!".format(text))
         super().setText(text)
+
+    def keyPressEvent(self, e):
+        """Override keyPressEvent to ignore Return key presses.
+
+        If this widget is focused, we are in passthrough key mode, and
+        Enter/Shift+Enter/etc. will cause QLineEdit to think it's finished
+        without command_accept to be called.
+        """
+        if e.key() == Qt.Key_Return:
+            e.ignore()
+            return
+        else:
+            super().keyPressEvent(e)
