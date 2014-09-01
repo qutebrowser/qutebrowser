@@ -48,7 +48,6 @@ New big features
 Downloads
 =========
 
-- Download to default filename if only path is given
 - Remember last path for prompt, if explicitely set.
 - re-ask instead of killing download if path is invalid
 - open files

@@ -198,22 +198,31 @@ class DownloadItem(QObject):
             filename: The full filename to save the download to.
                       None: special value to stop the download.
         """
-        if os.path.isabs(filename):
-            target = os.path.expanduser(filename)
+        if self.filename is not None:
+            raise ValueError("Filename was already set! filename: {}, "
+                             "existing: {}".format(filename, self.filename))
+        filename = os.path.expanduser(filename)
+        if os.path.isabs(filename) and os.path.isdir(filename):
+            # We got an absolute directory from the user, so we save it under
+            # the default filename in that directory.
+            self.filename = os.path.join(filename, self.basename)
+        elif os.path.isabs(filename):
+            # We got an absolute filename from the user, so we save it under
+            # that filename.
+            self.filename = filename
+            self.basename = os.path.basename(self.filename)
         else:
+            # We only got a filename (without directory) from the user, so we
+            # save it under that filename in the default directory.
             download_dir = config.get('storage', 'download-directory')
             if download_dir is None:
                 download_dir = utils.get_standard_dir(
                     QStandardPaths.DownloadLocation)
-            target = os.path.join(download_dir, filename)
+            self.filename = os.path.join(download_dir, filename)
+            self.basename = filename
         log.downloads.debug("Setting filename to {}".format(filename))
-        if self.filename is not None:
-            raise ValueError("Filename was already set! filename: {}, "
-                             "existing: {}".format(filename, self.filename))
-        self.filename = target
-        self.basename = os.path.basename(target)
         try:
-            self.fileobj = open(target, 'wb')
+            self.fileobj = open(self.filename, 'wb')
             if self._do_delayed_write:
                 # Downloading to the buffer in RAM has already finished so we
                 # write out the data and clean up now.
