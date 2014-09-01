@@ -26,6 +26,8 @@ Module attributes:
     settings: The global QWebSettings singleton instance.
 """
 
+import os.path
+
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtCore import QStandardPaths
@@ -175,9 +177,17 @@ def _set_setting(typ, arg, value):
 
 def init():
     """Initialize the global QWebSettings."""
-    global settings
     cachedir = utils.get_standard_dir(QStandardPaths.CacheLocation)
-    QWebSettings.enablePersistentStorage(cachedir)
+    QWebSettings.setIconDatabasePath(cachedir)
+    QWebSettings.setOfflineWebApplicationCachePath(
+        os.path.join(cachedir, 'application-cache'))
+    datadir = utils.get_standard_dir(QStandardPaths.DataLocation)
+    QWebSettings.globalSettings().setLocalStoragePath(
+        os.path.join(datadir, 'local-storage'))
+    QWebSettings.setOfflineStoragePath(
+        os.path.join(datadir, 'offline-storage'))
+
+    global settings
     settings = QWebSettings.globalSettings()
     for sectname, section in MAPPINGS.items():
         for optname, (typ, arg) in section.items():
