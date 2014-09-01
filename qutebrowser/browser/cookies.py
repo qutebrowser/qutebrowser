@@ -33,10 +33,11 @@ class CookieJar(QNetworkCookieJar):
     def __init__(self, parent=None):
         super().__init__(parent)
         datadir = utils.get_standard_dir(QStandardPaths.DataLocation)
-        self._linecp = lineparser.LineConfigParser(datadir, 'cookies')
+        self._linecp = lineparser.LineConfigParser(datadir, 'cookies',
+                                                   binary=True)
         cookies = []
         for line in self._linecp:
-            cookies += QNetworkCookie.parseCookies(line.encode('utf-8'))
+            cookies += QNetworkCookie.parseCookies(line)
         self.setAllCookies(cookies)
 
     def purge_old_cookies(self):
@@ -72,6 +73,6 @@ class CookieJar(QNetworkCookieJar):
         lines = []
         for cookie in self.allCookies():
             if not cookie.isSessionCookie():
-                lines.append(bytes(cookie.toRawForm()).decode('utf-8'))
+                lines.append(cookie.toRawForm())
         self._linecp.data = lines
         self._linecp.save()

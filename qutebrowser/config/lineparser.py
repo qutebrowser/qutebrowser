@@ -35,19 +35,22 @@ class LineConfigParser:
         data: A list of lines.
         _configdir: The directory to read the config from.
         _configfile: The config file path.
+        _binary: Whether to open the file in binary mode.
     """
 
-    def __init__(self, configdir, fname, limit=None):
+    def __init__(self, configdir, fname, limit=None, binary=False):
         """Config constructor.
 
         Args:
             configdir: Directory to read the config from.
             fname: Filename of the config file.
             limit: Config tuple (section, option) which contains a limit.
+            binary: Whether to open the file in binary mode.
         """
         self._configdir = configdir
         self._configfile = os.path.join(self._configdir, fname)
         self._limit = limit
+        self._binary = binary
         if not os.path.isfile(self._configfile):
             self.data = []
         else:
@@ -60,8 +63,12 @@ class LineConfigParser:
 
     def read(self, filename):
         """Read the data from a file."""
-        with open(filename, 'r', encoding='utf-8') as f:
-            self.data = [line.rstrip('\n') for line in f.readlines()]
+        if self._binary:
+            with open(filename, 'rb') as f:
+                self.data = [line.rstrip(b'\n') for line in f.readlines()]
+        else:
+            with open(filename, 'r', encoding='utf-8') as f:
+                self.data = [line.rstrip('\n') for line in f.readlines()]
 
     def write(self, fp, limit=-1):
         """Write the data to a file.
@@ -74,7 +81,10 @@ class LineConfigParser:
             data = self.data
         else:
             data = self.data[-limit:]
-        fp.write('\n'.join(data))
+        if self._binary:
+            fp.write(b'\n'.join(data))
+        else:
+            fp.write('\n'.join(data))
 
     def save(self):
         """Save the config file."""
@@ -89,8 +99,12 @@ class LineConfigParser:
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
         log.destroy.debug("Saving config to {}".format(self._configfile))
-        with open(self._configfile, 'w', encoding='utf-8') as f:
-            self.write(f, limit)
+        if self._binary:
+            with open(self._configfile, 'wb') as f:
+                self.write(f, limit)
+        else:
+            with open(self._configfile, 'w', encoding='utf-8') as f:
+                self.write(f, limit)
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
