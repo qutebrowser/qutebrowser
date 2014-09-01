@@ -85,8 +85,6 @@ Misc
 - On doodle, when modifying something on http://doodle.com/create and clicking
   a link to leave the page, with some random clicking it's somehow possible to
   get out of yesno mode. (probably fixed?)
-- Opening via commandline / startpage doesn't work with absolute file paths.
-- Relative file paths and ~ don't work at all.
 - Config errors on start shouldn't be hard errors
   (e.g. when an user-stylesheet file is deleted)
 - Clicking links/email in crash dialog should open browser/mailclient under
