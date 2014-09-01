@@ -479,6 +479,10 @@ DATA = collections.OrderedDict([
         ('local-storage',
          SettingValue(typ.Bool(), 'true'),
          "Whether support for the HTML 5 local storage feature is enabled."),
+
+        ('cache-size',
+         SettingValue(typ.Int(minval=0, maxval=MAXVALS['int64']), '52428800'),
+         "Size of the HTTP network cache."),
     )),
 
     ('permissions', sect.KeyValue(

@@ -39,7 +39,7 @@ from qutebrowser.commands import userscripts, runners, cmdutils
 from qutebrowser.config import (style, config, websettings, iniparsers,
                                 lineparser, configtypes)
 from qutebrowser.network import qutescheme, proxy
-from qutebrowser.browser import quickmarks, cookies, downloads
+from qutebrowser.browser import quickmarks, cookies, downloads, cache
 from qutebrowser.widgets import mainwindow, console, crash
 from qutebrowser.keyinput import modeparsers, keyparser, modeman
 from qutebrowser.utils import (log, version, message, utilcmds, readline,
@@ -62,6 +62,7 @@ class Application(QApplication):
         messagebridge: The global MessageBridge instance.
         modeman: The global ModeManager instance.
         cookiejar: The global CookieJar instance.
+        cache: The global DiskCache instance.
         rl_bridge: The ReadlineBridge being used.
         args: ArgumentParser instance.
         _keyparsers: A mapping from modes to keyparsers.
@@ -127,6 +128,8 @@ class Application(QApplication):
         utilcmds.init()
         log.init.debug("Initializing cookies...")
         self.cookiejar = cookies.CookieJar(self)
+        log.init.debug("Initializing cache...")
+        self.cache = cache.DiskCache(self)
         log.init.debug("Initializing commands...")
         self.commandrunner = runners.CommandRunner()
         log.init.debug("Initializing search...")
