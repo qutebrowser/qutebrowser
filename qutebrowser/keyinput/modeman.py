@@ -114,19 +114,6 @@ class ModeManager(QObject):
     @property
     def mode(self):
         """Read-only property for the current mode."""
-        # WORKAROUND
-        # For some reason, on Ubuntu (Python 3.3.2, PyQt 5.0.1, Qt 5.0.2) there
-        # is a lingering exception here sometimes. With this construct, we
-        # clear this exception which makes no sense at all anyways.
-        # Details:
-        # http://www.riverbankcomputing.com/pipermail/pyqt/2014-May/034196.html
-        # If we wouldn't clear the exception, we would actually get an
-        # AttributeError for the mode property in eventFilter because of
-        # another PyQt oddity.
-        try:
-            raise
-        except:  # pylint: disable=bare-except
-            pass
         if not self._mode_stack:
             return None
         return self._mode_stack[-1]
