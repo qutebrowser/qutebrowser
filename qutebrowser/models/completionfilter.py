@@ -35,7 +35,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
 
     Attributes:
         srcmodel: The source model of this QSFPM.
-        _pattern: The pattern to filter with, used in pattern property.
+        _pattern: The pattern to filter with.
     """
 
     def __init__(self, source, parent=None):
@@ -44,13 +44,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
         self.srcmodel = source
         self._pattern = ''
 
-    @property
-    def pattern(self):
-        """Getter for pattern."""
-        return self._pattern
-
-    @pattern.setter
-    def pattern(self, val):
+    def set_pattern(self, val):
         """Setter for pattern.
 
         Invalidates the filter and re-sorts the model.
@@ -70,8 +64,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
             self.sort(sortcol)
         self.invalidate()
 
-    @property
-    def item_count(self):
+    def count(self):
         """Get the count of non-toplevel items currently visible.
 
         Note this only iterates one level deep, as we only need root items
@@ -121,7 +114,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
     def setSourceModel(self, model):
         """Override QSortFilterProxyModel's setSourceModel to clear pattern."""
         log.completion.debug("Setting source model: {}".format(model))
-        self.pattern = ''
+        self.set_pattern('')
         self.srcmodel = model
         super().setSourceModel(model)
 
@@ -135,7 +128,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
             parent: The parent item QModelIndex.
 
         Return:
-            True if self.pattern is contained in item, or if it's a root item
+            True if self._pattern is contained in item, or if it's a root item
             (category). False in all other cases
         """
         if parent == QModelIndex():
@@ -144,14 +137,14 @@ class CompletionFilterModel(QSortFilterProxyModel):
         qtutils.ensure_valid(idx)
         data = self.srcmodel.data(idx)
         # TODO more sophisticated filtering
-        if not self.pattern:
+        if not self._pattern:
             return True
-        return self.pattern in data
+        return self._pattern in data
 
     def lessThan(self, lindex, rindex):
         """Custom sorting implementation.
 
-        Prefers all items which start with self.pattern. Other than that, uses
+        Prefers all items which start with self._pattern. Other than that, uses
         normal Python string sorting.
 
         Args:
@@ -173,8 +166,8 @@ class CompletionFilterModel(QSortFilterProxyModel):
         left = self.srcmodel.data(lindex)
         right = self.srcmodel.data(rindex)
 
-        leftstart = left.startswith(self.pattern)
-        rightstart = right.startswith(self.pattern)
+        leftstart = left.startswith(self._pattern)
+        rightstart = right.startswith(self._pattern)
 
         if leftstart and rightstart:
             return left < right

@@ -120,12 +120,11 @@ class KeyValue(Section):
     def dump_userconfig(self):
         changed = []
         for k, v in self.items():
-            if (v.values['temp'] is not None and
-                    v.values['temp'] != v.values['default']):
-                changed.append((k, v.values['temp']))
-            elif (v.values['conf'] is not None and
-                    v.values['conf'] != v.values['default']):
-                changed.append((k, v.values['conf']))
+            vals = v.values
+            if vals['temp'] is not None and vals['temp'] != vals['default']:
+                changed.append((k, vals['temp']))
+            elif vals['conf'] is not None and vals['conf'] != vals['default']:
+                changed.append((k, vals['conf']))
         return changed
 
 
@@ -172,8 +171,7 @@ class ValueList(Section):
         self.values = collections.ChainMap(
             self.layers['temp'], self.layers['conf'], self.layers['default'])
 
-    @property
-    def ordered_values(self):
+    def _ordered_values(self):
         """Get ordered values in layers.
 
         This is more expensive than the ChainMap, but we need this for
@@ -201,20 +199,20 @@ class ValueList(Section):
             self.layers['temp'], self.layers['conf'])
         for k, v in mapping.items():
             try:
-                if v.value != self.layers['default'][k].value:
-                    changed.append((k, v.value))
+                if v.value() != self.layers['default'][k].value():
+                    changed.append((k, v.value()))
             except KeyError:
-                changed.append((k, v.value))
+                changed.append((k, v.value()))
         return changed
 
     def __iter__(self):
         """Iterate over all set values."""
-        return self.ordered_values.__iter__()
+        return self._ordered_values().__iter__()
 
     def items(self):
         """Get dict items."""
-        return self.ordered_values.items()
+        return self._ordered_values().items()
 
     def keys(self):
         """Get value keys."""
-        return self.ordered_values.keys()
+        return self._ordered_values().keys()

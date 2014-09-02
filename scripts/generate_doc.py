@@ -376,9 +376,9 @@ def generate_settings(f):
                         except KeyError:
                             f.write(" * +{}+".format(val) + "\n")
                     f.write("\n")
-                if option.default:
+                if option.default():
                     f.write("Default: +pass:[{}]+\n".format(html.escape(
-                        option.default)))
+                        option.default())))
                 else:
                     f.write("Default: empty\n")
 

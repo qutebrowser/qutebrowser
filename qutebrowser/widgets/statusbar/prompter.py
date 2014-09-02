@@ -283,7 +283,7 @@ class Prompter:
         try:
             modeman.enter(mode, 'question asked')
         except modeman.ModeLockedError:
-            if modeman.instance().mode != usertypes.KeyMode.prompt:
+            if modeman.instance().mode() != usertypes.KeyMode.prompt:
                 question.abort()
                 return None
         modeman.instance().locked = True

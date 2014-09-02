@@ -43,7 +43,6 @@ class History:
     """Command history.
 
     Attributes:
-        browsing: If we're currently browsing the history (property).
         history: A list of executed commands, with newer commands at the end.
         _tmphist: Temporary history for history browsing (as NeighborList)
     """
@@ -63,8 +62,7 @@ class History:
     def __getitem__(self, idx):
         return self.history[idx]
 
-    @property
-    def browsing(self):
+    def is_browsing(self):
         """Check _tmphist to see if we're browsing."""
         return self._tmphist is not None
 
@@ -101,7 +99,7 @@ class History:
             ValueError if start() wasn't called.
             HistoryEndReachedError if the first item was reached.
         """
-        if not self.browsing:
+        if not self.is_browsing():
             raise ValueError("Currently not browsing history")
         try:
             return self._tmphist.previtem()
@@ -117,7 +115,7 @@ class History:
             ValueError if start() wasn't called.
             HistoryEndReachedError if the last item was reached.
         """
-        if not self.browsing:
+        if not self.is_browsing():
             raise ValueError("Currently not browsing history")
         try:
             return self._tmphist.nextitem()

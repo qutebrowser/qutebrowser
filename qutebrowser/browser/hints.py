@@ -65,24 +65,12 @@ class HintContext:
 
     def __init__(self):
         self.elems = {}
-        self._target = None
+        self.target = None
         self.baseurl = None
         self.to_follow = None
         self.frames = []
         self.connected_frames = []
         self.args = []
-
-    @property
-    def target(self):
-        """Getter for target so we can define a setter."""
-        return self._target
-
-    @target.setter
-    def target(self, val):
-        """Setter for target to do type checking."""
-        if not isinstance(val, Target):
-            raise TypeError("Target {} is no Target member!".format(val))
-        self._target = val
 
     def get_args(self, urlstr):
         """Get the arguments, with {hint-url} replaced by the given URL."""

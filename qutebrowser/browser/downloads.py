@@ -43,14 +43,10 @@ class DownloadItem(QObject):
 
     Attributes:
         reply: The QNetworkReply associated with this download.
-        percentage: How many percent were downloaded successfully.
-                    None if unknown.
         bytes_done: How many bytes there are already downloaded.
         bytes_total: The total count of bytes.
                      None if the total is unknown.
         speed: The current download speed, in bytes per second.
-        remaining_time: The time remaining for the download.
-                        None if not enough data is available yet.
         fileobj: The file object to download the file to.
         filename: The filename of the download.
         is_cancelled: Whether the download was cancelled.
@@ -120,13 +116,19 @@ class DownloadItem(QObject):
         """
         speed = utils.format_size(self.speed, suffix='B/s')
         down = utils.format_size(self.bytes_done, suffix='B')
-        if all(e is None for e in (self.percentage, self.remaining_time,
-                                   self.bytes_total)):
+        perc = self._percentage()
+        remaining = self._remaining_time()
+        if all(e is None for e in (perc, remaining, self.bytes_total)):
             return ('{name} [{speed:>10}|{down}]'.format(
                 name=self.basename, speed=speed, down=down))
-        perc = '??' if self.percentage is None else round(self.percentage)
-        remaining = (utils.format_seconds(self.remaining_time)
-                     if self.remaining_time is not None else '?')
+        if perc is None:
+            perc = '??'
+        else:
+            perc = round(perc)
+        if remaining is None:
+            remaining = '?'
+        else:
+            remaining = utils.format_seconds(remaining)
         total = utils.format_size(self.bytes_total, suffix='B')
         return ('{name} [{speed:>10}|{remaining:>5}|{perc:>2}%|'
                 '{down}/{total}]'.format(name=self.basename, speed=speed,
@@ -145,17 +147,15 @@ class DownloadItem(QObject):
                 self.error.emit(e.strerror)
         self.finished.emit()
 
-    @property
-    def percentage(self):
-        """Property to get the current download percentage."""
+    def _percentage(self):
+        """The current download percentage, or None if unknown."""
         if self.bytes_total == 0 or self.bytes_total is None:
             return None
         else:
             return 100 * self.bytes_done / self.bytes_total
 
-    @property
-    def remaining_time(self):
-        """Property to get the remaining download time in seconds."""
+    def _remaining_time(self):
+        """The remaining download time in seconds, or None."""
         if self.bytes_total is None or not self.speed_avg:
             # No average yet or we don't know the total size.
             return None
@@ -172,10 +172,10 @@ class DownloadItem(QObject):
         start = config.get('colors', 'downloads.bg.start')
         stop = config.get('colors', 'downloads.bg.stop')
         system = config.get('colors', 'downloads.bg.system')
-        if self.percentage is None:
+        if self._percentage() is None:
             return start
         else:
-            return utils.interpolate_color(start, stop, self.percentage,
+            return utils.interpolate_color(start, stop, self._percentage(),
                                            system)
 
     def cancel(self):

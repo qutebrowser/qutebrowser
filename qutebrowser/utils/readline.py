@@ -36,8 +36,7 @@ class ReadlineBridge:
     def __init__(self):
         self.deleted = {}
 
-    @property
-    def widget(self):
+    def _widget(self):
         """Get the currently active QLineEdit."""
         w = QApplication.instance().focusWidget()
         if isinstance(w, QLineEdit):
@@ -52,9 +51,10 @@ class ReadlineBridge:
 
         This acts like readline's backward-char.
         """
-        if self.widget is None:
+        widget = self._widget()
+        if widget is None:
             return
-        self.widget.cursorBackward(False)
+        widget.cursorBackward(False)
 
     @cmdutils.register(instance='rl_bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
@@ -63,9 +63,10 @@ class ReadlineBridge:
 
         This acts like readline's forward-char.
         """
-        if self.widget is None:
+        widget = self._widget()
+        if widget is None:
             return
-        self.widget.cursorForward(False)
+        widget.cursorForward(False)
 
     @cmdutils.register(instance='rl_bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
@@ -74,9 +75,10 @@ class ReadlineBridge:
 
         This acts like readline's backward-word.
         """
-        if self.widget is None:
+        widget = self._widget()
+        if widget is None:
             return
-        self.widget.cursorWordBackward(False)
+        widget.cursorWordBackward(False)
 
     @cmdutils.register(instance='rl_bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
@@ -85,9 +87,10 @@ class ReadlineBridge:
 
         This acts like readline's forward-word.
         """
-        if self.widget is None:
+        widget = self._widget()
+        if widget is None:
             return
-        self.widget.cursorWordForward(False)
+        widget.cursorWordForward(False)
 
     @cmdutils.register(instance='rl_bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
@@ -96,9 +99,10 @@ class ReadlineBridge:
 
         This acts like readline's beginning-of-line.
         """
-        if self.widget is None:
+        widget = self._widget()
+        if widget is None:
             return
-        self.widget.home(False)
+        widget.home(False)
 
     @cmdutils.register(instance='rl_bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
@@ -107,9 +111,10 @@ class ReadlineBridge:
 
         This acts like readline's end-of-line.
         """
-        if self.widget is None:
+        widget = self._widget()
+        if widget is None:
             return
-        self.widget.end(False)
+        widget.end(False)
 
     @cmdutils.register(instance='rl_bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
@@ -118,11 +123,12 @@ class ReadlineBridge:
 
         This acts like readline's unix-line-discard.
         """
-        if self.widget is None:
+        widget = self._widget()
+        if widget is None:
             return
-        self.widget.home(True)
-        self.deleted[self.widget] = self.widget.selectedText()
-        self.widget.del_()
+        widget.home(True)
+        self.deleted[widget] = widget.selectedText()
+        widget.del_()
 
     @cmdutils.register(instance='rl_bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
@@ -131,11 +137,12 @@ class ReadlineBridge:
 
         This acts like readline's kill-line.
         """
-        if self.widget is None:
+        widget = self._widget()
+        if widget is None:
             return
-        self.widget.end(True)
-        self.deleted[self.widget] = self.widget.selectedText()
-        self.widget.del_()
+        widget.end(True)
+        self.deleted[widget] = widget.selectedText()
+        widget.del_()
 
     @cmdutils.register(instance='rl_bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
@@ -144,11 +151,12 @@ class ReadlineBridge:
 
         This acts like readline's unix-word-rubout.
         """
-        if self.widget is None:
+        widget = self._widget()
+        if widget is None:
             return
-        self.widget.cursorWordBackward(True)
-        self.deleted[self.widget] = self.widget.selectedText()
-        self.widget.del_()
+        widget.cursorWordBackward(True)
+        self.deleted[widget] = widget.selectedText()
+        widget.del_()
 
     @cmdutils.register(instance='rl_bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
@@ -157,11 +165,12 @@ class ReadlineBridge:
 
         This acts like readline's kill-word.
         """
-        if self.widget is None:
+        widget = self._widget()
+        if widget is None:
             return
-        self.widget.cursorWordForward(True)
-        self.deleted[self.widget] = self.widget.selectedText()
-        self.widget.del_()
+        widget.cursorWordForward(True)
+        self.deleted[widget] = widget.selectedText()
+        widget.del_()
 
     @cmdutils.register(instance='rl_bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
@@ -170,9 +179,10 @@ class ReadlineBridge:
 
         This acts like readline's yank.
         """
-        if self.widget is None or self.widget not in self.deleted:
+        widget = self._widget()
+        if widget is None or widget not in self.deleted:
             return
-        self.widget.insert(self.deleted[self.widget])
+        widget.insert(self.deleted[widget])
 
     @cmdutils.register(instance='rl_bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
@@ -181,9 +191,10 @@ class ReadlineBridge:
 
         This acts like readline's delete-char.
         """
-        if self.widget is None:
+        widget = self._widget()
+        if widget is None:
             return
-        self.widget.del_()
+        widget.del_()
 
     @cmdutils.register(instance='rl_bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
@@ -192,6 +203,7 @@ class ReadlineBridge:
 
         This acts like readline's backward-delete-char.
         """
-        if self.widget is None:
+        widget = self._widget()
+        if widget is None:
             return
-        self.widget.backspace()
+        widget.backspace()

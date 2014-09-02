@@ -81,9 +81,8 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.cursorPositionChanged.connect(self.on_cursor_position_changed)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
 
-    @property
     def prefix(self):
-        """Property to get the current command prefix entered."""
+        """Get the currently entered command prefix."""
         text = self.text()
         if not text:
             return ''
@@ -92,10 +91,9 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         else:
             return ''
 
-    @property
-    def parts(self):
-        """Property to get the text split up in parts."""
-        text = self.text()[len(self.prefix):]
+    def split(self):
+        """Get the text split up in parts."""
+        text = self.text()[len(self.prefix()):]
         if not text:
             # When only ":" is entered, we already have one imaginary part,
             # which just is empty at the moment.
@@ -122,8 +120,8 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             spaces = True
         else:
             spaces = False
-        cursor_pos -= len(self.prefix)
-        for i, part in enumerate(self.parts):
+        cursor_pos -= len(self.prefix())
+        for i, part in enumerate(self.split()):
             if cursor_pos <= len(part):
                 # foo| bar
                 self.cursor_part = i
@@ -140,7 +138,8 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     @pyqtSlot()
     def on_cursor_position_changed(self):
         """Update completion when the cursor position changed."""
-        self.update_completion.emit(self.prefix, self.parts, self.cursor_part)
+        self.update_completion.emit(self.prefix(), self.split(),
+                                    self.cursor_part)
 
     @pyqtSlot(str)
     def set_cmd_text(self, text):
@@ -156,7 +155,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.setText(text)
         if old_text != text:
             # We want the completion to pop out here.
-            self.update_completion.emit(self.prefix, self.parts,
+            self.update_completion.emit(self.prefix(), self.split(),
                                         self.cursor_part)
         self.setFocus()
         self.show_cmd.emit()
@@ -189,17 +188,17 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
                        including a trailing space and we shouldn't continue
                        completing the current item.
         """
-        parts = self.parts[:]
+        parts = self.split()
         log.completion.debug("changing part {} to '{}'".format(
             self.cursor_part, newtext))
         parts[self.cursor_part] = newtext
         # We want to place the cursor directly after the part we just changed.
-        cursor_str = self.prefix + ' '.join(parts[:self.cursor_part + 1])
+        cursor_str = self.prefix() + ' '.join(parts[:self.cursor_part + 1])
         if immediate:
             # If we should complete immediately, we want to move the cursor by
             # one more char, to get to the next field.
             cursor_str += ' '
-        text = self.prefix + ' '.join(parts)
+        text = self.prefix() + ' '.join(parts)
         if immediate and self.cursor_part == len(parts) - 1:
             # If we should complete immediately and we're completing the last
             # part in the commandline, we automatically add a space.
@@ -215,7 +214,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     def command_history_prev(self):
         """Go back in the commandline history."""
         try:
-            if not self.history.browsing:
+            if not self.history.is_browsing():
                 item = self.history.start(self.text().strip())
             else:
                 item = self.history.previtem()
@@ -229,7 +228,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
                        modes=[usertypes.KeyMode.command])
     def command_history_next(self):
         """Go forward in the commandline history."""
-        if not self.history.browsing:
+        if not self.history.is_browsing():
             return
         try:
             item = self.history.nextitem()

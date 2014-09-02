@@ -37,9 +37,9 @@ class UrlText(textbase.TextBase):
     """URL displayed in the statusbar.
 
     Attributes:
-        normal_url: The normal URL to be displayed as a UrlType instance.
-        normal_url_type: The type of the normal URL as a UrlType instance.
-        hover_url: The URL we're currently hovering over.
+        _normal_url: The normal URL to be displayed as a UrlType instance.
+        _normal_url_type: The type of the normal URL as a UrlType instance.
+        _hover_url: The URL we're currently hovering over.
         _ssl_errors: Whether SSL errors occured while loading.
 
     Class attributes:
@@ -96,64 +96,18 @@ class UrlText(textbase.TextBase):
         else:
             return self._urltype.name
 
-    @urltype.setter
-    def urltype(self, val):
-        """Setter for self.urltype to update stylesheets after it is set."""
-        if not isinstance(val, UrlType):
-            raise TypeError("Type {} is no UrlType member!".format(val))
-        self._urltype = val
-        self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
-
-    @property
-    def hover_url(self):
-        """Getter so we can define a setter."""
-        return self._hover_url
-
-    @hover_url.setter
-    def hover_url(self, val):
-        """Setter to update displayed URL when hover_url was set."""
-        self._hover_url = val
-        self._update_url()
-
-    @property
-    def normal_url(self):
-        """Getter so we can define a setter."""
-        return self._normal_url
-
-    @normal_url.setter
-    def normal_url(self, val):
-        """Setter to update displayed URL when normal_url was set."""
-        self._normal_url = val
-        self._update_url()
-
-    @property
-    def normal_url_type(self):
-        """Getter so we can define a setter."""
-        return self._normal_url_type
-
-    @normal_url_type.setter
-    def normal_url_type(self, val):
-        """Setter to update displayed URL when normal_url_type was set.
-
-        Args:
-            val: The value as an UrlType instance.
-        """
-        if not isinstance(val, UrlType):
-            raise TypeError("Type {} is no UrlType member!".format(val))
-        self._normal_url_type = val
-        self._update_url()
-
     def _update_url(self):
         """Update the displayed URL if the url or the hover url changed."""
-        if self.hover_url is not None:
-            self.setText(self.hover_url)
-            self.urltype = UrlType.hover
-        elif self.normal_url is not None:
-            self.setText(self.normal_url)
-            self.urltype = self.normal_url_type
+        if self._hover_url is not None:
+            self.setText(self._hover_url)
+            self._urltype = UrlType.hover
+        elif self._normal_url is not None:
+            self.setText(self._normal_url)
+            self._urltype = self._normal_url_type
         else:
             self.setText('')
-            self.urltype = UrlType.normal
+            self._urltype = UrlType.normal
+        self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
 
     @pyqtSlot(str)
     def on_load_status_changed(self, status_str):
@@ -165,9 +119,10 @@ class UrlText(textbase.TextBase):
         status = webview.LoadStatus[status_str]
         if status in (webview.LoadStatus.success, webview.LoadStatus.error,
                       webview.LoadStatus.warn):
-            self.normal_url_type = UrlType[status_str]
+            self._normal_url_type = UrlType[status_str]
         else:
-            self.normal_url_type = UrlType.normal
+            self._normal_url_type = UrlType.normal
+        self._update_url()
 
     @pyqtSlot(str)
     def set_url(self, s):
@@ -176,8 +131,9 @@ class UrlText(textbase.TextBase):
         Args:
             s: The URL to set as string.
         """
-        self.normal_url = s
-        self.normal_url_type = UrlType.normal
+        self._normal_url = s
+        self._normal_url_type = UrlType.normal
+        self._update_url()
 
     @pyqtSlot(str, str, str)
     def set_hover_url(self, link, _title, _text):
@@ -192,13 +148,15 @@ class UrlText(textbase.TextBase):
             _text: The text of the hovered link (string)
         """
         if link:
-            self.hover_url = link
+            self._hover_url = link
         else:
-            self.hover_url = None
+            self._hover_url = None
+        self._update_url()
 
     @pyqtSlot(int)
     def on_tab_changed(self, tab):
         """Update URL if the tab changed."""
-        self.hover_url = None
-        self.normal_url = tab.cur_url.toDisplayString()
+        self._hover_url = None
+        self._normal_url = tab.cur_url.toDisplayString()
         self.on_load_status_changed(tab.load_status.name)
+        self._update_url()

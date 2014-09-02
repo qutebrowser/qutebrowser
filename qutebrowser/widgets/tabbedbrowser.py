@@ -120,12 +120,12 @@ class TabbedBrowser(tabwidget.TabWidget):
         return '<{} with {} tabs>'.format(self.__class__.__name__,
                                           self.count())
 
-    @property
     def widgets(self):
         """Get a list of open tab widgets.
 
         We don't implement this as generator so we can delete tabs while
-        iterating over the list."""
+        iterating over the list.
+        """
         w = []
         for i in range(self.count()):
             w.append(self.widget(i))
@@ -227,7 +227,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         except TypeError as e:
             log.destroy.debug("Error while shutting down tabs: {}: {}".format(
                 e.__class__.__name__, e))
-        for tab in self.widgets:
+        for tab in self.widgets():
             self._remove_tab(tab)
 
     def close_tab(self, tab):
@@ -413,7 +413,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             tab.on_config_changed(section, option)
         if (section, option) == ('tabbar', 'show-favicons'):
             show = config.get('tabs', 'show-favicons')
-            for i, tab in enumerate(self.widgets):
+            for i, tab in enumerate(self.widgets()):
                 if show:
                     self.setTabIcon(i, tab.icon())
                 else:

@@ -148,8 +148,7 @@ class Completer(QObject):
         data = model.data(indexes[0])
         if data is None:
             return
-        if model.item_count == 1 and config.get('completion',
-                                                'quick-complete'):
+        if model.count() == 1 and config.get('completion', 'quick-complete'):
             # If we only have one item, we want to apply it immediately
             # and go on to the next part.
             self.change_completed_part.emit(data, True)
@@ -192,13 +191,13 @@ class Completer(QObject):
             return
 
         pattern = parts[cursor_part] if parts else ''
-        self.view.model().pattern = pattern
+        self.view.model().set_pattern(pattern)
 
         log.completion.debug(
             "New completion for {}: {}, with pattern '{}'".format(
                 parts, model.srcmodel.__class__.__name__, pattern))
 
-        if self.view.model().item_count == 0:
+        if self.view.model().count() == 0:
             self.view.hide()
             return
 

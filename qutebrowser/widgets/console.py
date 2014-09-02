@@ -60,8 +60,7 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         self.returnPressed.connect(self.execute)
         self.setText('')
 
-    @property
-    def curprompt(self):
+    def _curprompt(self):
         """Get the prompt which is visible currently."""
         return sys.ps2 if self._more else sys.ps1
 
@@ -79,7 +78,7 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         """Push a line to the interpreter."""
         self._buffer.append(line)
         source = '\n'.join(self._buffer)
-        self.write.emit(self.curprompt + line)
+        self.write.emit(self._curprompt() + line)
         # We do two special things with the contextmanagers here:
         #   - We replace stdout/stderr to capture output. Even if we could
         #     override InteractiveInterpreter's write method, most things are
@@ -89,14 +88,14 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         #     printed and don't ooen a crashdialog.
         with utils.fake_io(self.write.emit), utils.disabled_excepthook():
             self._more = self._interpreter.runsource(source, '<console>')
-        self.set_prompt(self.curprompt)
+        self.set_prompt(self._curprompt())
         if not self._more:
             self._buffer = []
 
     def history_prev(self):
         """Go back in the history."""
         try:
-            if not self.history.browsing:
+            if not self.history.is_browsing():
                 item = self.history.start(self.text().strip())
             else:
                 item = self.history.previtem()
@@ -107,7 +106,7 @@ class ConsoleLineEdit(misc.CommandLineEdit):
 
     def history_next(self):
         """Go forward in the history."""
-        if not self.history.browsing:
+        if not self.history.is_browsing():
             return
         try:
             item = self.history.nextitem()
@@ -117,12 +116,12 @@ class ConsoleLineEdit(misc.CommandLineEdit):
 
     def setText(self, text):
         """Override setText to always prepend the prompt."""
-        super().setText(self.curprompt + text)
+        super().setText(self._curprompt() + text)
 
     def text(self):
         """Override text to strip the prompt."""
         text = super().text()
-        return text[len(self.curprompt):]
+        return text[len(self._curprompt()):]
 
     def keyPressEvent(self, e):
         """Override keyPressEvent to handle up/down keypresses."""

@@ -23,6 +23,7 @@ from PyQt5.QtCore import pyqtSlot
 
 from qutebrowser.config import config
 from qutebrowser.widgets.statusbar import textbase
+from qutebrowser.utils import usertypes
 
 
 class Text(textbase.TextBase):
@@ -31,15 +32,14 @@ class Text(textbase.TextBase):
 
     Attributes:
         _normaltext: The "permanent" text. Never automatically cleared.
-                     Accessed via normaltext property.
         _temptext: The temporary text to display.
-                   Accessed via temptext property.
         _jstext: The text javascript wants to display.
-                 Accessed via jstext property.
 
         The temptext is shown from StatusBar when a temporary text or error is
         available. If not, the permanent text is shown.
     """
+
+    Text = usertypes.enum('Text', 'normal', 'temp', 'js')
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -47,64 +47,48 @@ class Text(textbase.TextBase):
         self._temptext = ''
         self._jstext = ''
 
-    @property
-    def normaltext(self):
-        """Getter for normaltext so we can define a setter."""
-        return self._normaltext
+    def set_text(self, which, text):
+        """Set a text.
 
-    @normaltext.setter
-    def normaltext(self, val):
-        """Setter for normaltext to update text display after setting."""
-        self._normaltext = val
-        self._update_text()
-
-    @property
-    def temptext(self):
-        """Getter for temptext so we can define a setter."""
-        return self._temptext
-
-    @temptext.setter
-    def temptext(self, val):
-        """Setter for temptext to update text display after setting."""
-        self._temptext = val
-        self._update_text()
-
-    @property
-    def jstext(self):
-        """Getter for jstext so we can define a setter."""
-        return self._jstext
-
-    @jstext.setter
-    def jstext(self, val):
-        """Setter for jstext to update text display after setting."""
-        self._jstext = val
+        Args:
+            which: Which text to set, a self.Text instance.
+            text: The text to set.
+        """
+        if which is self.Text.normal:
+            self._normaltext = text
+        elif which is self.Text.temp:
+            self._temptext = text
+        elif which is self.Text.js:
+            self._jstext = text
+        else:
+            raise ValueError("Invalid value {} for which!".format(which))
         self._update_text()
 
     def _update_text(self):
         """Update QLabel text when needed."""
-        if self.temptext:
-            self.setText(self.temptext)
-        elif self.jstext and config.get('ui', 'display-statusbar-messages'):
-            self.setText(self.jstext)
-        elif self.normaltext:
-            self.setText(self.normaltext)
+        if self._temptext:
+            self.setText(self._temptext)
+        elif self._jstext and config.get('ui', 'display-statusbar-messages'):
+            self.setText(self._jstext)
+        elif self._normaltext:
+            self.setText(self._normaltext)
         else:
             self.setText('')
 
     @pyqtSlot(str)
     def on_statusbar_message(self, val):
         """Called when javascript tries to set a statusbar message."""
-        self.jstext = val
+        self._jstext = val
 
     @pyqtSlot()
     def on_load_started(self):
         """Clear jstext when page loading started."""
-        self.jstext = ''
+        self._jstext = ''
 
     @pyqtSlot(int)
     def on_tab_changed(self, tab):
         """Set the correct jstext when the current tab changed."""
-        self.jstext = tab.statusbar_message
+        self._jstext = tab.statusbar_message
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):

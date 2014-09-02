@@ -491,7 +491,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def tab_only(self):
         """Close all tabs except for the current one."""
-        for tab in self._tabs.widgets:
+        for tab in self._tabs.widgets():
             if tab is self._tabs.currentWidget():
                 continue
             self._tabs.close_tab(tab)

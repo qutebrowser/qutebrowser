@@ -65,14 +65,12 @@ class StatusBar(QWidget):
                 For some reason we need to have this as class attribute so
                 pyqtProperty works correctly.
 
-        _prompt_active: If we're currently in prompt-mode, accessed through the
-                        prompt_active property.
+        _prompt_active: If we're currently in prompt-mode.
 
                         For some reason we need to have this as class attribute
                         so pyqtProperty works correctly.
 
-        _insert_active: If we're currently in insert mode, accessed through the
-                        insert_active property.
+        _insert_active: If we're currently in insert mode.
 
                         For some reason we need to have this as class attribute
                         so pyqtProperty works correctly.
@@ -180,8 +178,7 @@ class StatusBar(QWidget):
         # pylint: disable=method-hidden
         return self._error
 
-    @error.setter
-    def error(self, val):
+    def _set_error(self, val):
         """Setter for self.error, so it can be used as Qt property.
 
         Re-set the stylesheet after setting the value, so everything gets
@@ -206,9 +203,8 @@ class StatusBar(QWidget):
         # pylint: disable=method-hidden
         return self._prompt_active
 
-    @prompt_active.setter
-    def prompt_active(self, val):
-        """Setter for self.prompt_active, so it can be used as Qt property.
+    def _set_prompt_active(self, val):
+        """Setter for self.prompt_active.
 
         Re-set the stylesheet after setting the value, so everything gets
         updated by Qt properly.
@@ -223,9 +219,8 @@ class StatusBar(QWidget):
         # pylint: disable=method-hidden
         return self._insert_active
 
-    @insert_active.setter
-    def insert_active(self, val):
-        """Setter for self.insert_active, so it can be used as Qt property.
+    def _set_insert_active(self, val):
+        """Setter for self.insert_active.
 
         Re-set the stylesheet after setting the value, so everything gets
         updated by Qt properly.
@@ -239,8 +234,8 @@ class StatusBar(QWidget):
         try:
             error, text = self._text_queue.popleft()
         except IndexError:
-            self.error = False
-            self.txt.temptext = ''
+            self._set_error(False)
+            self.txt.set_text(self.txt.Text.temp, '')
             self._text_pop_timer.stop()
             # If a previous widget was interrupted by an error, restore it.
             if self._previous_widget == PreviousWidget.prompt:
@@ -255,12 +250,12 @@ class StatusBar(QWidget):
         log.statusbar.debug("Displaying {} message: {}".format(
             'error' if error else 'text', text))
         log.statusbar.debug("Remaining: {}".format(self._text_queue))
-        self.error = error
-        self.txt.temptext = text
+        self._set_error(error)
+        self.txt.set_text(self.txt.Text.temp, text)
 
     def _show_cmd_widget(self):
         """Show command widget instead of temporary text."""
-        self.error = False
+        self._set_error(False)
         self._previous_widget = PreviousWidget.prompt
         if self._text_pop_timer.isActive():
             self._timer_was_active = True
@@ -281,8 +276,8 @@ class StatusBar(QWidget):
 
     def _show_prompt_widget(self):
         """Show prompt widget instead of temporary text."""
-        self.error = False
-        self.prompt_active = True
+        self._set_error(False)
+        self._set_prompt_active(True)
         self._previous_widget = PreviousWidget.prompt
         if self._text_pop_timer.isActive():
             self._timer_was_active = True
@@ -291,7 +286,7 @@ class StatusBar(QWidget):
 
     def _hide_prompt_widget(self):
         """Show temporary text instead of prompt widget."""
-        self.prompt_active = False
+        self._set_prompt_active(False)
         self._previous_widget = PreviousWidget.none
         log.statusbar.debug("Hiding prompt widget, queue: {}".format(
             self._text_queue))
@@ -328,8 +323,8 @@ class StatusBar(QWidget):
             # immediately. We then start the pop_timer only to restore the
             # normal state in 2 seconds.
             log.statusbar.debug("Displaying immediately")
-            self.error = error
-            self.txt.temptext = text
+            self._set_error(error)
+            self.txt.set_text(self.txt.Text.temp, text)
             self._text_pop_timer.start()
         elif self._text_queue and self._text_queue[-1] == (error, text):
             # If we get the same message multiple times in a row and we're
@@ -341,8 +336,8 @@ class StatusBar(QWidget):
             # We display this immediately and restart the timer.to clear it and
             # display the rest of the queue later.
             log.statusbar.debug("Moving to beginning of queue")
-            self.error = error
-            self.txt.temptext = text
+            self._set_error(error)
+            self.txt.set_text(self.txt.Text.temp, text)
             self._text_pop_timer.start()
         else:
             # There are still some messages to be displayed, so we queue this
@@ -376,23 +371,24 @@ class StatusBar(QWidget):
     @pyqtSlot(str)
     def set_text(self, val):
         """Set a normal (persistent) text in the status bar."""
-        self.txt.normaltext = val
+        self.txt.set_text(self.txt.Text.normal, val)
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
         if mode in modeman.instance().passthrough:
-            self.txt.normaltext = "-- {} MODE --".format(mode.name.upper())
+            text = "-- {} MODE --".format(mode.name.upper())
+            self.txt.set_text(self.txt.Text.normal, text)
         if mode == usertypes.KeyMode.insert:
-            self.insert_active = True
+            self._set_insert_active(True)
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Clear marked mode."""
         if mode in modeman.instance().passthrough:
-            self.txt.normaltext = ""
+            self.txt.set_text(self.txt.Text.normal, '')
         if mode == usertypes.KeyMode.insert:
-            self.insert_active = False
+            self._set_insert_active(False)
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):

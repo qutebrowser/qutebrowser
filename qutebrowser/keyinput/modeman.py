@@ -73,7 +73,6 @@ class ModeManager(QObject):
     """Manager for keyboard modes.
 
     Attributes:
-        mode: The current mode (readonly property).
         passthrough: A list of modes in which to pass through events.
         mainwindow: The mainwindow object
         locked: Whether current mode is locked. This means the current mode can
@@ -109,11 +108,10 @@ class ModeManager(QObject):
                                                 'forward-unbound-keys')
 
     def __repr__(self):
-        return '<{} mode={}>'.format(self.__class__.__name__, self.mode)
+        return '<{} mode={}>'.format(self.__class__.__name__, self.mode())
 
-    @property
     def mode(self):
-        """Read-only property for the current mode."""
+        """Get the current mode.."""
         if not self._mode_stack:
             return None
         return self._mode_stack[-1]
@@ -127,17 +125,18 @@ class ModeManager(QObject):
         Return:
             True if event should be filtered, False otherwise.
         """
-        handler = self._handlers[self.mode]
-        if self.mode != usertypes.KeyMode.insert:
+        curmode = self.mode()
+        handler = self._handlers[curmode]
+        if curmode != usertypes.KeyMode.insert:
             log.modes.debug("got keypress in mode {} - calling handler "
-                            "{}".format(self.mode, handler.__qualname__))
+                            "{}".format(curmode, handler.__qualname__))
         handled = handler(event) if handler is not None else False
 
         is_non_alnum = bool(event.modifiers()) or not event.text().strip()
 
         if handled:
             filter_this = True
-        elif (self.mode in self.passthrough or
+        elif (curmode in self.passthrough or
                 self._forward_unbound_keys == 'all' or
                 (self._forward_unbound_keys == 'auto' and is_non_alnum)):
             filter_this = False
@@ -147,11 +146,11 @@ class ModeManager(QObject):
         if not filter_this:
             self._releaseevents_to_pass.append(event)
 
-        if self.mode != usertypes.KeyMode.insert:
+        if curmode != usertypes.KeyMode.insert:
             log.modes.debug("handled: {}, forward-unbound-keys: {}, "
                             "passthrough: {}, is_non_alnum: {} --> filter: "
                             "{}".format(handled, self._forward_unbound_keys,
-                                        self.mode in self.passthrough,
+                                        curmode in self.passthrough,
                                         is_non_alnum, filter_this))
         return filter_this
 
@@ -172,7 +171,7 @@ class ModeManager(QObject):
             filter_this = False
         else:
             filter_this = True
-        if self.mode != usertypes.KeyMode.insert:
+        if self.mode() != usertypes.KeyMode.insert:
             log.modes.debug("filter: {}".format(filter_this))
         return filter_this
 
@@ -205,9 +204,9 @@ class ModeManager(QObject):
             raise TypeError("Mode {} is no KeyMode member!".format(mode))
         if self.locked:
             log.modes.debug("Not entering mode {} because mode is locked to "
-                            "{}.".format(mode, self.mode))
+                            "{}.".format(mode, self.mode()))
             raise ModeLockedError("Mode is currently locked to {}".format(
-                self.mode))
+                self.mode()))
         log.modes.debug("Entering mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
         if mode not in self._handlers:
@@ -256,9 +255,9 @@ class ModeManager(QObject):
                        not_modes=[usertypes.KeyMode.normal], hide=True)
     def leave_current_mode(self):
         """Leave the mode we're currently in."""
-        if self.mode == usertypes.KeyMode.normal:
+        if self.mode() == usertypes.KeyMode.normal:
             raise ValueError("Can't leave normal mode!")
-        self.leave(self.mode, 'leave current')
+        self.leave(self.mode(), 'leave current')
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
@@ -278,7 +277,7 @@ class ModeManager(QObject):
         Return:
             True if event should be filtered, False otherwise.
         """
-        if self.mode is None:
+        if self.mode() is None:
             # We got events before mode is set, so just pass them through.
             return False
         typ = event.type()

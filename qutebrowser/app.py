@@ -471,7 +471,7 @@ class Application(QApplication):
             return pages
         if self.mainwindow.tabs is None:
             return pages
-        for tab in self.mainwindow.tabs.widgets:
+        for tab in self.mainwindow.tabs.widgets():
             try:
                 url = tab.cur_url.toString(
                     QUrl.RemovePassword | QUrl.FullyEncoded)
@@ -586,7 +586,7 @@ class Application(QApplication):
         # exceptions occur.
         if pages is None:
             pages = []
-            for tab in self.mainwindow.tabs.widgets:
+            for tab in self.mainwindow.tabs.widgets():
                 urlstr = tab.cur_url.toString(
                     QUrl.RemovePassword | QUrl.FullyEncoded)
                 if urlstr:

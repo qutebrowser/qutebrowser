@@ -50,15 +50,14 @@ class WebView(QWebView):
         scroll_pos: The current scroll position as (x%, y%) tuple.
         statusbar_message: The current javscript statusbar message.
         inspector: The QWebInspector used for this webview.
+        load_status: loading status of this page (index into LoadStatus)
         open_target: Where to open the next tab ("normal", "tab", "tab_bg")
         _page: The QWebPage behind the view
         _cur_url: The current URL (accessed via cur_url property).
-        _load_status: loading status of this page (index into LoadStatus)
-                      Accessed via load_status property.
         _has_ssl_errors: Whether SSL errors occured during loading.
         _zoom: A NeighborList with the zoom levels.
         _old_scroll_pos: The old scroll position.
-        _force_open_target: Override for _open_target.
+        _force_open_target: Override for open_target.
         _check_insertmode: If True, in mouseReleaseEvent we should check if we
                            need to enter/leave insert mode.
 
@@ -78,7 +77,6 @@ class WebView(QWebView):
 
     def __init__(self, parent):
         super().__init__(parent)
-        self._load_status = None
         self.load_status = LoadStatus.none
         self._check_insertmode = False
         self.tabbedbrowser = parent
@@ -86,7 +84,6 @@ class WebView(QWebView):
         self.scroll_pos = (-1, -1)
         self.statusbar_message = ''
         self._old_scroll_pos = (-1, -1)
-        self._open_target = None
         self.open_target = usertypes.ClickTarget.normal
         self._force_open_target = None
         self._zoom = None
@@ -116,25 +113,7 @@ class WebView(QWebView):
         url = self.url().toDisplayString()
         return "WebView(url='{}')".format(utils.elide(url, 50))
 
-    @property
-    def open_target(self):
-        """Getter for open_target so we can define a setter."""
-        return self._open_target
-
-    @open_target.setter
-    def open_target(self, val):
-        """Setter for open_target to do type checking."""
-        if not isinstance(val, usertypes.ClickTarget):
-            raise TypeError("Target {} is no ClickTarget member!".format(val))
-        self._open_target = val
-
-    @property
-    def load_status(self):
-        """Getter for load_status."""
-        return self._load_status
-
-    @load_status.setter
-    def load_status(self, val):
+    def _set_load_status(self, val):
         """Setter for load_status.
 
         Emit:
@@ -143,26 +122,8 @@ class WebView(QWebView):
         if not isinstance(val, LoadStatus):
             raise TypeError("Type {} is no LoadStatus member!".format(val))
         log.webview.debug("load status for {}: {}".format(repr(self), val))
-        self._load_status = val
+        self.load_status = val
         self.load_status_changed.emit(val.name)
-
-    @property
-    def cur_url(self):
-        """Getter for cur_url so we can define a setter."""
-        return self._cur_url
-
-    @cur_url.setter
-    def cur_url(self, url):
-        """Setter for cur_url to emit a signal..
-
-        Arg:
-            url: The new URL as a QUrl.
-
-        Emit:
-            url_text_changed: Always emitted.
-        """
-        self._cur_url = url
-        self.url_text_changed.emit(url.toDisplayString())
 
     def _init_neighborlist(self):
         """Initialize the _zoom neighborlist."""
@@ -302,6 +263,7 @@ class WebView(QWebView):
         log.webview.debug("New title: {}".format(urlstr))
         self.titleChanged.emit(urlstr)
         self.cur_url = url
+        self.url_text_changed.emit(url.toDisplayString())
         return self.load(url)
 
     def zoom_perc(self, perc, fuzzyval=True):
@@ -356,6 +318,7 @@ class WebView(QWebView):
         """Update cur_url when URL has changed."""
         qtutils.ensure_valid(url)
         self.cur_url = url
+        self.url_text_changed.emit(url.toDisplayString())
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
@@ -374,20 +337,20 @@ class WebView(QWebView):
         """Leave insert/hint mode and set vars when a new page is loading."""
         self.progress = 0
         self._has_ssl_errors = False
-        self.load_status = LoadStatus.loading
+        self._set_load_status(LoadStatus.loading)
 
     @pyqtSlot(bool)
     def on_load_finished(self, ok):
         """Handle auto-insert-mode after loading finished."""
         if ok and not self._has_ssl_errors:
-            self.load_status = LoadStatus.success
+            self._set_load_status(LoadStatus.success)
         elif ok:
-            self.load_status = LoadStatus.warn
+            self._set_load_status(LoadStatus.warn)
         else:
-            self.load_status = LoadStatus.error
+            self._set_load_status(LoadStatus.error)
         if not config.get('input', 'auto-insert-mode'):
             return
-        if modeman.instance().mode == usertypes.KeyMode.insert or not ok:
+        if modeman.instance().mode() == usertypes.KeyMode.insert or not ok:
             return
         frame = self.page().currentFrame()
         elem = frame.findFirstElement(':focus')
@@ -467,7 +430,7 @@ class WebView(QWebView):
 
         This does the following things:
             - Check if a link was clicked with the middle button or Ctrl and
-              set the _open_target attribute accordingly.
+              set the open_target attribute accordingly.
             - Emit the editable_elem_selected signal if an editable element was
               clicked.
 

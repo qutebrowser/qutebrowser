@@ -198,7 +198,7 @@ class ConfigManager(QObject):
         """Get the option items as string for sect."""
         lines = []
         for optname, option in sect.items():
-            value = option.get_first_value(startlayer='conf')
+            value = option.value(startlayer='conf')
             for c in self.KEY_ESCAPE:
                 if optname.startswith(c):
                     optname = optname.replace(c, self.ESCAPE_CHAR + c, 1)
@@ -243,7 +243,7 @@ class ConfigManager(QObject):
         if not raw:
             raise ValueError("items() with raw=True is not implemented!")
         for optname, option in self.sections[sectname].items():
-            items.append((optname, option.value))
+            items.append((optname, option.value()))
         return items
 
     def has_option(self, sectname, optname):
@@ -325,10 +325,10 @@ class ConfigManager(QObject):
         except KeyError:
             raise NoOptionError(optname, sectname)
         if raw:
-            return val.value
-        mapping = {key: val.value for key, val in sect.values.items()}
+            return val.value()
+        mapping = {key: val.value() for key, val in sect.values.items()}
         newval = self._interpolation.before_get(self, sectname, optname,
-                                                val.value, mapping)
+                                                val.value(), mapping)
         if transformed:
             newval = val.typ.transform(newval)
         return newval
@@ -403,7 +403,7 @@ class ConfigManager(QObject):
             sect = self.sections[sectname]
         except KeyError:
             raise NoSectionError(sectname)
-        mapping = {key: val.value for key, val in sect.values.items()}
+        mapping = {key: val.value() for key, val in sect.values.items()}
         interpolated = self._interpolation.before_get(self, sectname, optname,
                                                       value, mapping)
         try:
@@ -462,27 +462,27 @@ class SectionProxy(collections.abc.MutableMapping):
             conf: The Config object.
             name: The section name.
         """
-        self._conf = conf
-        self._name = name
+        self.conf = conf
+        self.name = name
 
     def __repr__(self):
-        return '<{} {}>'.format(self.__class__.__name__, self._name)
+        return '<{} {}>'.format(self.__class__.__name__, self.name)
 
     def __getitem__(self, key):
-        if not self._conf.has_option(self._name, key):
+        if not self.conf.has_option(self.name, key):
             raise KeyError(key)
-        return self._conf.get(self._name, key)
+        return self.conf.get(self.name, key)
 
     def __setitem__(self, key, value):
-        return self._conf.set('conf', self._name, key, value)
+        return self.conf.set('conf', self.name, key, value)
 
     def __delitem__(self, key):
-        if not (self._conf.has_option(self._name, key) and
-                self._conf.remove_option(self._name, key)):
+        if not (self.conf.has_option(self.name, key) and
+                self.conf.remove_option(self.name, key)):
             raise KeyError(key)
 
     def __contains__(self, key):
-        return self._conf.has_option(self._name, key)
+        return self.conf.has_option(self.name, key)
 
     def __len__(self):
         return len(self._options())
@@ -492,7 +492,7 @@ class SectionProxy(collections.abc.MutableMapping):
 
     def _options(self):
         """Get the option keys from this section."""
-        return self._conf.sections[self._name].keys()
+        return self.conf.sections[self.name].keys()
 
     def get(self, optname, *, raw=False):  # pylint: disable=arguments-differ
         """Get a value from this section.
@@ -504,14 +504,4 @@ class SectionProxy(collections.abc.MutableMapping):
             optname: The option name to get.
             raw: Whether to get a raw value or not.
         """
-        return self._conf.get(self._name, optname, raw=raw)
-
-    @property
-    def conf(self):
-        """The conf object of the proxy is read-only."""
-        return self._conf
-
-    @property
-    def name(self):
-        """The name of the section on a proxy is read-only."""
-        return self._name
+        return self.conf.get(self.name, optname, raw=raw)

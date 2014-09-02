@@ -31,8 +31,8 @@ class SettingValue:
     Attributes:
         typ: A BaseType subclass instance.
         value: (readonly property) The currently valid, most important value.
-        _values: An OrderedDict with the values on different layers, with the
-                 most significant layer first.
+        values: An OrderedDict with the values on different layers, with the
+                most significant layer first.
     """
 
     def __init__(self, typ, default=None):
@@ -43,28 +43,17 @@ class SettingValue:
             default: Raw value to set.
         """
         self.typ = typ
-        self._values = collections.OrderedDict.fromkeys(
+        self.values = collections.OrderedDict.fromkeys(
             ['temp', 'conf', 'default'])
-        self._values['default'] = default
+        self.values['default'] = default
 
     def __str__(self):
         """Get raw string value."""
         return self.value
 
-    @property
-    def value(self):
-        """Get the currently valid value."""
-        return self.get_first_value()
-
-    @property
     def default(self):
         """Get the default value."""
-        return self._values['default']
-
-    @property
-    def values(self):
-        """Readonly property for _values."""
-        return self._values
+        return self.values['default']
 
     def getlayers(self, startlayer):
         """Get a dict of values starting with startlayer.
@@ -72,18 +61,18 @@ class SettingValue:
         Args:
             startlayer: The first layer to include.
         """
-        idx = list(self._values.keys()).index(startlayer)
-        d = collections.OrderedDict(list(self._values.items())[idx:])
+        idx = list(self.values.keys()).index(startlayer)
+        d = collections.OrderedDict(list(self.values.items())[idx:])
         return d
 
-    def get_first_value(self, startlayer=None):
+    def value(self, startlayer=None):
         """Get the first valid value starting from startlayer.
 
         Args:
             startlayer: The first layer to include.
         """
         if startlayer is None:
-            d = self._values
+            d = self.values
         else:
             d = self.getlayers(startlayer)
         for val in d.values():
@@ -94,8 +83,7 @@ class SettingValue:
 
     def transformed(self):
         """Get the transformed value."""
-        v = self.value
-        return self.typ.transform(v)
+        return self.typ.transform(self.value())
 
     def setv(self, layer, value, interpolated):
         """Set the value on a layer.
@@ -107,4 +95,4 @@ class SettingValue:
             interpolated: The interpolated value, for typechecking.
         """
         self.typ.validate(interpolated)
-        self._values[layer] = value
+        self.values[layer] = value

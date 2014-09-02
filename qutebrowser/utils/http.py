@@ -46,13 +46,13 @@ def parse_content_disposition(reply):
         try:
             content_disposition = rfc6266.parse_headers(
                 bytes(reply.rawHeader('Content-Disposition')))
-            filename = content_disposition.filename_unsafe
+            filename = content_disposition.filename()
         except UnicodeDecodeError as e:
             log.misc.warning("Error while getting filename: {}: {}".format(
                 e.__class__.__name__, e))
             filename = None
         else:
-            is_inline = content_disposition.is_inline
+            is_inline = content_disposition.is_inline()
     # Then try to get filename from url
     if not filename:
         filename = reply.url().path()

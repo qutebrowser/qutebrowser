@@ -250,18 +250,17 @@ class ContentDisposition:
                 assert isinstance(param, ExtDispositionParm)
                 self.assocs['filename*'] = parse_ext_value(param.value).string
 
-    @property
-    def filename_unsafe(self):
+    def filename(self):
         """The filename from the Content-Disposition header or None.
 
         On safety:
-            This property records the intent of the sender.
 
-            You shouldn't use this sender-controlled value as a filesystem
-        path, it can be insecure. Serving files with this filename can be
-        dangerous as well, due to a certain browser using the part after the
-        dot for mime-sniffing.
-        Saving it to a database is fine by itself though.
+        This property records the intent of the sender.
+
+        You shouldn't use this sender-controlled value as a filesystem path, it
+        can be insecure. Serving files with this filename can be dangerous as
+        well, due to a certain browser using the part after the dot for
+        mime-sniffing.  Saving it to a database is fine by itself though.
         """
 
         if 'filename*' in self.assocs:
@@ -270,11 +269,10 @@ class ContentDisposition:
             # XXX Reject non-ascii (parsed via qdtext) here?
             return self.assocs['filename']
 
-    @property
     def is_inline(self):
-        """If this property is true, the file should be handled inline.
+        """Return if the file should be handled inline.
 
-        Otherwise, and unless your application supports other dispositions
+        If not, and unless your application supports other dispositions
         than the standard inline and attachment, it should be handled
         as an attachment.
         """
