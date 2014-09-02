@@ -35,15 +35,14 @@ def init():
     _commandrunner = runners.CommandRunner()
 
 
-@cmdutils.register(nargs=(2, None))
-def later(ms, *command):
+@cmdutils.register()
+def later(ms : int, *command : {'nargs': '+'}):
     """Execute a command after some time.
 
     Args:
         ms: How many milliseconds to wait.
         command: The command/args to run.
     """
-    ms = int(ms)
     timer = usertypes.Timer(name='later')
     timer.setSingleShot(True)
     if ms < 0:

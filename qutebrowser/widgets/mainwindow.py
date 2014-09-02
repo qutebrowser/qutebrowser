@@ -141,7 +141,7 @@ class MainWindow(QWidget):
         if rect.isValid():
             self.completion.setGeometry(rect)
 
-    @cmdutils.register(instance='mainwindow', name=['quit', 'q'], nargs=0)
+    @cmdutils.register(instance='mainwindow', name=['quit', 'q'])
     def close(self):
         """Quit qutebrowser.
 

@@ -32,7 +32,7 @@ from qutebrowser.config import config, style
 
 
 @cmdutils.register(debug=True)
-def debug_crash(typ='exception'):
+def debug_crash(typ : ('exception', 'segfault') = 'exception'):
     """Crash for debugging purposes.
 
     Args:

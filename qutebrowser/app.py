@@ -581,7 +581,7 @@ class Application(QApplication):
         self._destroy_crashlogfile()
         sys.exit(1)
 
-    @cmdutils.register(instance='', nargs=0)
+    @cmdutils.register(instance='', ignore_args=True)
     def restart(self, shutdown=True, pages=None):
         """Restart qutebrowser while keeping existing tabs open."""
         # We don't use _recover_pages here as it's too forgiving when

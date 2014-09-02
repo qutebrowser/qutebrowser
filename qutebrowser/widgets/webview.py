@@ -221,20 +221,20 @@ class WebView(QWebView):
             e: The QMouseEvent.
         """
         if self._force_open_target is not None:
-            self.open_target = self._force_open_target
+            self._open_target = self._force_open_target
             self._force_open_target = None
             log.mouse.debug("Setting force target: {}".format(
-                self.open_target))
+                self._open_target))
         elif (e.button() == Qt.MidButton or
               e.modifiers() & Qt.ControlModifier):
             if config.get('tabs', 'background-tabs'):
-                self.open_target = usertypes.ClickTarget.tab_bg
+                self._open_target = usertypes.ClickTarget.tab_bg
             else:
-                self.open_target = usertypes.ClickTarget.tab
+                self._open_target = usertypes.ClickTarget.tab
             log.mouse.debug("Middle click, setting target: {}".format(
-                self.open_target))
+                self._open_target))
         else:
-            self.open_target = usertypes.ClickTarget.normal
+            self._open_target = usertypes.ClickTarget.normal
             log.mouse.debug("Normal click, setting normal target")
 
     def shutdown(self):

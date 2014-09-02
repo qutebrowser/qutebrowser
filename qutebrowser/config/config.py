@@ -336,7 +336,7 @@ class ConfigManager(QObject):
     @cmdutils.register(name='set', instance='config',
                        completion=[Completion.section, Completion.option,
                                    Completion.value])
-    def set_wrapper(self, sectname, optname, value):
+    def set_command(self, sectname, optname, value, temp=False):
         """Set an option.
 
         //
@@ -347,33 +347,12 @@ class ConfigManager(QObject):
             sectname: The section where the option is in.
             optname: The name of the option.
             value: The value to set.
+            temp: Set value temporarely.
         """
         try:
-            self.set('conf', sectname, optname, value)
+            self.set('temp' if temp else 'conf', sectname, optname, value)
         except (NoOptionError, NoSectionError, configtypes.ValidationError,
                 ValueError) as e:
-            raise cmdexc.CommandError("set: {} - {}".format(
-                e.__class__.__name__, e))
-
-    @cmdutils.register(name='set-temp', instance='config',
-                       completion=[Completion.section, Completion.option,
-                                   Completion.value])
-    def set_temp_wrapper(self, sectname, optname, value):
-        """Set a temporary option.
-
-        //
-
-        Wrapper for self.set() to output exceptions in the status bar.
-
-        Args:
-            sectname: The section where the option is in.
-            optname: The name of the option.
-            value: The value to set.
-        """
-        try:
-            self.set('temp', sectname, optname, value)
-        except (NoOptionError, NoSectionError,
-                configtypes.ValidationError) as e:
             raise cmdexc.CommandError("set: {} - {}".format(
                 e.__class__.__name__, e))
 
