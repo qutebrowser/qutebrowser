@@ -65,7 +65,7 @@ class BrowserPage(QWebPage):
         self._view = view
 
         if PYQT_VERSION > 0x050300:
-            # This is broken in Qt <= 5.3.0.
+            # WORKAROUND (remove this when we bump the requirements to 5.3.1)
             # See http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034385.html
             # pylint: disable=invalid-name
             self.javaScriptPrompt = self._javascript_prompt
@@ -242,14 +242,19 @@ class BrowserPage(QWebPage):
                 return super().extension(ext, opt, out)
             return handler(opt, out)
         except:  # pylint: disable=bare-except
-            # Due to a bug in PyQt, exceptions inside extension() get swallowed
-            # for some reason.
+            # WORKAROUND:
+            #
+            # Due to a bug in PyQt, exceptions inside extension() get
+            # swallowed:
             # http://www.riverbankcomputing.com/pipermail/pyqt/2014-August/034722.html
             #
             # We used to re-raise the exception with a single-shot QTimer here,
             # but that lead to a strange proble with a KeyError with some
             # random jinja template stuff as content. For now, we only log it,
             # so it doesn't pass 100% silently.
+            #
+            # FIXME: This should be fixed with PyQt 5.3.2 - re-check when it's
+            # out and raise the exception normally if possible.
             log.webview.exception("Error inside WebPage::extension")
             return False
 

@@ -207,6 +207,7 @@ class CommandDispatcher:
             count: The tab index to print, or None.
         """
         if not qtutils.check_print_compat():
+            # WORKAROUND (remove this when we bump the requirements to 5.3.0)
             raise cmdexc.CommandError(
                 "Printing on Qt < 5.3.0 on Windows is broken, please upgrade!")
         tab = self._tabs.cntwidget(count)
@@ -224,6 +225,7 @@ class CommandDispatcher:
             count: The tab index to print, or None.
         """
         if not qtutils.check_print_compat():
+            # WORKAROUND (remove this when we bump the requirements to 5.3.0)
             raise cmdexc.CommandError(
                 "Printing on Qt < 5.3.0 on Windows is broken, please upgrade!")
         tab = self._tabs.cntwidget(count)

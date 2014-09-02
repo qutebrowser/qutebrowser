@@ -114,6 +114,7 @@ class ModeManager(QObject):
     @property
     def mode(self):
         """Read-only property for the current mode."""
+        # WORKAROUND
         # For some reason, on Ubuntu (Python 3.3.2, PyQt 5.0.1, Qt 5.0.2) there
         # is a lingering exception here sometimes. With this construct, we
         # clear this exception which makes no sense at all anyways.

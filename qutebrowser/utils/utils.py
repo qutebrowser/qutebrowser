@@ -170,7 +170,7 @@ def get_standard_dir(typ):
         appname = qapp.applicationName()
         if (typ == QStandardPaths.ConfigLocation and
                 path.split(os.sep)[-1] != appname):
-            # Workaround for
+            # WORKAROUND - see
             # https://bugreports.qt-project.org/browse/QTBUG-38872
             path = os.path.join(path, appname)
         if not os.path.exists(path):
@@ -182,6 +182,7 @@ def get_standard_dir(typ):
 
 def actute_warning():
     """Display a warning about the dead_actute issue if needed."""
+    # WORKAROUND (remove this when we bump the requirements to 5.3.0)
     # Non linux OS' aren't affected
     if not sys.platform.startswith('linux'):
         return

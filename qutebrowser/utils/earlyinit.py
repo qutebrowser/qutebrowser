@@ -140,6 +140,8 @@ def fix_harfbuzz(args):
 
     IMPORTANT: This needs to be done before QWidgets is imported in any way!
 
+    WORKAROUND (remove this when we bump the requirements to 5.3.1)
+
     Args:
         args: The argparse namespace.
     """

@@ -65,7 +65,13 @@ class TextBase(QLabel):
         This update the elided text after setting the text, and also works
         around a weird QLabel redrawing bug where it doesn't redraw correctly
         when the text is empty -- we explicitely need to call repaint() to
-        resolve this. See http://stackoverflow.com/q/21890462/2085149
+        resolve this.
+
+        More info:
+
+        http://stackoverflow.com/q/21890462/2085149
+        https://bugreports.qt-project.org/browse/QTBUG-36945
+        https://codereview.qt-project.org/#/c/79181/
 
         Args:
             txt: The text to set (string).
@@ -73,6 +79,7 @@ class TextBase(QLabel):
         super().setText(txt)
         self._update_elided_text(self.geometry().width())
         if not txt:
+            # WORKAROUND
             self.repaint()
 
     def resizeEvent(self, e):

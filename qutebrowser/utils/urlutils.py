@@ -232,6 +232,8 @@ def qurl_from_user_input(urlstr):
     IPv6, so we first try to handle it as a valid IPv6, and if that fails we
     use QUrl.fromUserInput.
 
+    WORKAROUND - https://bugreports.qt-project.org/browse/QTBUG-41089
+
     Args:
         urlstr: The URL as string.
 

@@ -114,6 +114,7 @@ def get_args(namespace):
 
 def check_print_compat():
     """Check if printing should work in the given Qt version."""
+    # WORKAROUND (remove this when we bump the requirements to 5.3.0)
     return not (os.name == 'nt' and version_check('5.3.0', operator.lt))
 
 

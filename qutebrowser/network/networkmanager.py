@@ -146,6 +146,8 @@ class NetworkManager(QNetworkAccessManager):
             req.setRawHeader('Accept-Language'.encode('ascii'),
                              accept_language.encode('ascii'))
         if PYQT_VERSION < 0x050301:
+            # WORKAROUND (remove this when we bump the requirements to 5.3.1)
+            #
             # If we don't disable our message handler, we get a freeze if a
             # warning is printed due to a PyQt bug, e.g. when clicking a
             # currency on http://ch.mouser.com/localsites/
