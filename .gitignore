@@ -10,7 +10,6 @@ __pycache__
 /setuptools-*.egg
 /setuptools-*.zip
 /qutebrowser/git-commit-id
-.ropeproject
 # We can probably remove these later
 *.asciidoc
 /doc/*.html
