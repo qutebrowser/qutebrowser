@@ -278,14 +278,12 @@ class WebView(QWebView):
         settings = self.settings()
         settings.setAttribute(QWebSettings.JavascriptEnabled, False)
         self.stop()
-        nam = self.page().networkAccessManager()
+        self.page().networkAccessManager().shutdown()
         # Explicitely releasing the page here seems to prevent some segfaults
         # when quitting.
         # Copied from:
         # https://code.google.com/p/webscraping/source/browse/webkit.py#325
         self.setPage(None)
-        nam.shutdown()
-        del nam
 
     def openurl(self, url):
         """Open a URL in the browser.
