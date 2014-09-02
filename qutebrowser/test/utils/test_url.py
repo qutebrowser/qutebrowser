@@ -131,6 +131,7 @@ class IsUrlTests(unittest.TestCase):
         '::1',
         '2001:41d0:2:6c11::1',
         '94.23.233.17',
+        'http://user:password@qutebrowser.org/foo?bar=baz#fish',
     )
 
     NOT_URLS = (
