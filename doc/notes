@@ -1,9 +1,3 @@
-click inspirations
-===================
-
-- Editor: https://github.com/mitsuhiko/click/blob/master/click/_termui_impl.py#L311
-- Types: https://github.com/mitsuhiko/click/blob/master/click/types.py
-
 Multiwindow
 ===========
 
@@ -34,6 +28,11 @@ http://stackoverflow.com/a/8795563/2085149
 http://nullege.com/codes/show/src%40n%40i%40ninja-ide2-2.1.1%40ninja_ide%40core%40ipc.py/20/PyQt4.QtNetwork.QLocalSocket/python
 http://nullege.com/codes/show/src%40t%40a%40taurus-3.0.0%40lib%40taurus%40qt%40qtgui%40container%40taurusmainwindow.py/780/PyQt4.QtNetwork.QLocalSocket/python
 http://nullege.com/codes/show/src%40h%40e%40Heliotrope-HEAD%40purple_server.py/95/PyQt4.QtNetwork.QLocalSocket/python
+http://qt-project.org/doc/qt-4.8/qlocalserver.html
+https://gitorious.org/qsingleapplication/qsingleapplication/source/ca13324b0f5bdfcaf4e379a78108f0bd85fed98a:qSingleApplication.py#L49
+http://www.dallagnese.fr/en/computers-it/recette-python-qt4-qsingleapplication-pyside/
+http://stackoverflow.com/questions/8786136/pyqt-how-to-detect-and-close-ui-if-its-already-running
+http://stackoverflow.com/questions/12712360/qtsingleapplication-for-pyside-or-pyqt
 
 
 Netscape cookies
@@ -45,13 +44,6 @@ http://qt-project.org/doc/qt-4.8/qnetworkcookie.html
 - Second column (flag): TRUE if domain starts with ., else FALSE
 - if a cookie is a http-only cookie domain is prepended with a #HttpOnly_
 - Python's http.cookiejar.MozillaCookieJar might help
-
-
-
-Caching
-=======
-
-QNetworkManager.setCache() and use a QNetworkDiskCache probably
 
 
 Element selection detection
@@ -69,12 +61,3 @@ Completion view (not QTreeView)
 
 Perhaps using a QHBoxLayout of QTableViews and creating/destroying them based
 on the completion would be a better idea?
-
-
-Debug console
-=============
-
-https://github.com/karelklic/flashfit/blob/1a2393cb2fb3e44d2e34bf568386d9d4a9b22148/gui_console.py
-http://code.google.com/p/pyqtlive/source/browse/pycute4.py
-http://stackoverflow.com/questions/12431555/enabling-code-completion-in-an-embedded-python-interpreter
-http://docs.projexsoftware.com/wp-content/docs/projexui/0.5.1/api/projexui/widgets/xconsoleedit-source.html
