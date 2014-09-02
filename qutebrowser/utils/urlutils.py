@@ -21,6 +21,7 @@
 
 import re
 import os.path
+import ipaddress
 import urllib.parse
 
 from PyQt5.QtCore import QUrl
@@ -78,9 +79,18 @@ def _is_url_naive(urlstr):
         True if the URL really is a URL, False otherwise.
     """
     url = QUrl.fromUserInput(urlstr)
-    # We don't use url here because fromUserInput appends http://
-    # automatically.
-    if not url.isValid():
+    try:
+        ipaddress.ip_address(urlstr)
+    except ValueError:
+        pass
+    else:
+        # Valid IPv4/IPv6 address
+        return True
+    if re.search(r'^[0-9.]+$', urlstr):
+        # Qt treats things like "23.42" or "1337" as valid URLs which we don't
+        # want to. Note we already filtered *real* valid IPs above.
+        return False
+    elif not url.isValid():
         return False
     elif '.' in url.host():
         return True

@@ -126,6 +126,10 @@ class IsUrlTests(unittest.TestCase):
         'http://foobar',
         'localhost:8080',
         'qutebrowser.org',
+        '127.0.0.1',
+        '::1',
+        '2001:41d0:2:6c11::1',
+        '94.23.233.17',
     )
 
     NOT_URLS = (
@@ -133,6 +137,10 @@ class IsUrlTests(unittest.TestCase):
         'localhost test',
         'another . test',
         'foo',
+        'this is: not an URL',
+        '23.42',
+        '1337',
+        'deadbeef',
     )
 
     def test_urls(self, configmock):
