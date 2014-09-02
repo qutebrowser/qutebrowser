@@ -193,6 +193,8 @@ def is_url(urlstr):
 
     log.url.debug("Checking if '{}' is a URL (autosearch={}).".format(
                   urlstr, autosearch))
+
+    url = urlstr.strip()
     qurl = QUrl(urlstr)
 
     if not autosearch:

@@ -126,6 +126,7 @@ class IsUrlTests(unittest.TestCase):
         'http://foobar',
         'localhost:8080',
         'qutebrowser.org',
+        ' qutebrowser.org ',
         '127.0.0.1',
         '::1',
         '2001:41d0:2:6c11::1',
