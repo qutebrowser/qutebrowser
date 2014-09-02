@@ -159,5 +159,38 @@ class IsUrlTests(unittest.TestCase):
                 self.assertFalse(urlutils.is_url(url), url)
 
 
+class QurlFromUserInputTests(unittest.TestCase):
+
+    """Tests for qurl_from_user_input."""
+
+    def test_url(self):
+        """Test a normal URL."""
+        self.assertEqual(
+            urlutils.qurl_from_user_input('qutebrowser.org').toString(),
+            'http://qutebrowser.org')
+
+    def test_url_http(self):
+        """Test a normal URL with http://."""
+        self.assertEqual(
+            urlutils.qurl_from_user_input('http://qutebrowser.org').toString(),
+            'http://qutebrowser.org')
+
+    def test_ipv6_bare(self):
+        """Test an IPv6 without brackets."""
+        self.assertEqual(urlutils.qurl_from_user_input('::1/foo').toString(),
+                         'http://[::1]/foo')
+
+    def test_ipv6(self):
+        """Test an IPv6 with brackets."""
+        self.assertEqual(urlutils.qurl_from_user_input('[::1]/foo').toString(),
+                         'http://[::1]/foo')
+
+    def test_ipv6_http(self):
+        """Test an IPv6 with http:// and brackets."""
+        self.assertEqual(
+            urlutils.qurl_from_user_input('http://[::1]').toString(),
+            'http://[::1]')
+
+
 if __name__ == '__main__':
     unittest.main()

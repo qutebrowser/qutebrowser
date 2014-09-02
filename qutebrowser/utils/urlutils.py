@@ -64,7 +64,7 @@ def _get_search_url(txt):
         log.url.debug("engine: default, term '{}'".format(txt))
     if not term:
         raise FuzzyUrlError("No search term given")
-    url = QUrl.fromUserInput(template.format(urllib.parse.quote(term)))
+    url = qurl_from_user_input(template.format(urllib.parse.quote(term)))
     qtutils.ensure_valid(url)
     return url
 
@@ -78,7 +78,7 @@ def _is_url_naive(urlstr):
     Return:
         True if the URL really is a URL, False otherwise.
     """
-    url = QUrl.fromUserInput(urlstr)
+    url = qurl_from_user_input(urlstr)
     try:
         ipaddress.ip_address(urlstr)
     except ValueError:
@@ -104,7 +104,7 @@ def _is_url_dns(url):
     """Check if a URL is really a URL via DNS.
 
     Args:
-        url: The URL to check for as QUrl, ideally via QUrl::fromUserInput.
+        url: The URL to check for as QUrl, ideally via qurl_from_user_input.
 
     Return:
         True if the URL really is a URL, False otherwise.
@@ -143,13 +143,13 @@ def fuzzy_url(urlstr):
     elif is_url(stripped):
         # probably an address
         log.url.debug("URL is a fuzzy address")
-        url = QUrl.fromUserInput(urlstr)
+        url = qurl_from_user_input(urlstr)
     else:  # probably a search term
         log.url.debug("URL is a fuzzy search term")
         try:
             url = _get_search_url(urlstr)
         except ValueError:  # invalid search engine
-            url = QUrl.fromUserInput(stripped)
+            url = qurl_from_user_input(stripped)
     log.url.debug("Converting fuzzy term {} to URL -> {}".format(
                   urlstr, url.toDisplayString()))
     qtutils.ensure_valid(url)
@@ -215,14 +215,45 @@ def is_url(urlstr):
         return True
     elif autosearch == 'dns':
         log.url.debug("Checking via DNS")
-        # We want to use fromUserInput here, as the user might enter "foo.de"
-        # and that should be treated as URL here.
-        return _is_url_dns(QUrl.fromUserInput(urlstr))
+        # We want to use qurl_from_user_input here, as the user might enter
+        # "foo.de" and that should be treated as URL here.
+        return _is_url_dns(qurl_from_user_input(urlstr))
     elif autosearch == 'naive':
         log.url.debug("Checking via naive check")
         return _is_url_naive(urlstr)
     else:
         raise ValueError("Invalid autosearch value")
+
+
+def qurl_from_user_input(urlstr):
+    """Get a QUrl based on an user input. Additionally handles IPv6 addresses.
+
+    QUrl.fromUserInput handles something like '::1' as a file URL instead of an
+    IPv6, so we first try to handle it as a valid IPv6, and if that fails we
+    use QUrl.fromUserInput.
+
+    Args:
+        urlstr: The URL as string.
+
+    Return:
+        The converted QUrl.
+    """
+    # First we try very liberally to separate something like an IPv6 from the
+    # rest (e.g. path info or parameters)
+    match = re.match(r'\[?([0-9a-fA-F:.]+)\]?(.*)', urlstr.strip())
+    if match:
+        ipstr, rest = match.groups()
+    else:
+        ipstr = urlstr.strip()
+        rest = ''
+    # Then we try to parse it as an IPv6, and if we fail use
+    # QUrl.fromUserInput.
+    try:
+        ipaddress.IPv6Address(ipstr)
+    except ipaddress.AddressValueError:
+        return QUrl.fromUserInput(urlstr)
+    else:
+        return QUrl('http://[{}]{}'.format(ipstr, rest))
 
 
 class FuzzyUrlError(Exception):
