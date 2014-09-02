@@ -44,7 +44,7 @@ class NetworkManager(QNetworkAccessManager):
                           schemes.
     """
 
-    def __init__(self, cookiejar=None, parent=None):
+    def __init__(self, parent=None):
         log.init.debug("Initializing NetworkManager")
         super().__init__(parent)
         self._requests = []
