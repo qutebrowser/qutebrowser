@@ -176,6 +176,9 @@ Some resources which might be handy:
 
 Related RFCs and standards:
 
+HTTP
+^^^^
+
 * https://tools.ietf.org/html/rfc2616[RFC 2616 - Hypertext Transfer Protocol
 -- HTTP/1.1]
 (http://www.rfc-editor.org/errata_search.php?rfc=2616[Errata])
@@ -203,17 +206,23 @@ Encoding for Hypertext Transfer Protocol (HTTP) Header Field Parameters]
 * https://tools.ietf.org/html/rfc6266[RFC 6266 - Use of the
 Content-Disposition Header Field in the Hypertext Transfer Protocol (HTTP)]
 (http://www.rfc-editor.org/errata_search.php?rfc=6266[Errata])
-* https://tools.ietf.org/html/rfc5646[RFC 5646 - Tags for Identifying
-Languages] (http://www.rfc-editor.org/errata_search.php?rfc=5646[Errata])
 * http://tools.ietf.org/html/rfc6265[RFC 6265 - HTTP State Management Mechanism
 (Cookies)] (http://www.rfc-editor.org/errata_search.php?rfc=6265[Errata])
 * http://www.cookiecentral.com/faq/#3.5[Netscape Cookie Format]
+
+Other
+^^^^^
+
+* https://tools.ietf.org/html/rfc5646[RFC 5646 - Tags for Identifying
+Languages] (http://www.rfc-editor.org/errata_search.php?rfc=5646[Errata])
 * http://www.w3.org/TR/CSS2/[Cascading Style Sheets Level 2 Revision 1 (CSS
 2.1) Specification]
 * http://qt-project.org/doc/qt-4.8/stylesheet-reference.html[Qt Style Sheets
 Reference]
 * http://mimesniff.spec.whatwg.org/[MIME Sniffing Standard]
 * http://spec.whatwg.org/[WHATWG specifications]
+* http://www.w3.org/html/wg/drafts/html/master/Overview.html[HTML 5.1 Nightly]
+* http://www.w3.org/TR/webstorage/[Web Storage]
 
 Hints
 -----
