@@ -60,6 +60,13 @@ class CommandDispatcher:
         self._tabs = parent
         self._editor = None
 
+    def _current_widget(self):
+        """Get the currently active widget from a command."""
+        widget = self._tabs.currentWidget()
+        if widget is None:
+            raise cmdexc.CommandError("No WebView available yet!")
+        return widget
+
     def _scroll_percent(self, perc=None, count=None, orientation=None):
         """Inner logic for scroll_percent_(x|y).
 
@@ -75,7 +82,7 @@ class CommandDispatcher:
         else:
             perc = float(perc)
         perc = qtutils.check_overflow(perc, 'int', fatal=False)
-        frame = self._tabs.currentWidget().page().currentFrame()
+        frame = self._current_widget().page().currentFrame()
         m = frame.scrollBarMaximum(orientation)
         if m == 0:
             return
@@ -83,7 +90,7 @@ class CommandDispatcher:
 
     def _prevnext(self, prev, newtab):
         """Inner logic for {tab,}{prev,next}page."""
-        widget = self._tabs.currentWidget()
+        widget = self._current_widget()
         frame = widget.page().currentFrame()
         if frame is None:
             raise cmdexc.CommandError("No frame focused!")
@@ -242,7 +249,7 @@ class CommandDispatcher:
             count: How many pages to go back.
         """
         for _ in range(count):
-            self._tabs.currentWidget().go_back()
+            self._current_widget().go_back()
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def forward(self, count=1):
@@ -252,7 +259,7 @@ class CommandDispatcher:
             count: How many pages to go forward.
         """
         for _ in range(count):
-            self._tabs.currentWidget().go_forward()
+            self._current_widget().go_forward()
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def hint(self, group='all', target='normal', *args):
@@ -294,7 +301,7 @@ class CommandDispatcher:
                                 `{hint-url}` will get replaced by the selected
                                 URL.
         """
-        widget = self._tabs.currentWidget()
+        widget = self._current_widget()
         frame = widget.page().mainFrame()
         if frame is None:
             raise cmdexc.CommandError("No frame focused!")
@@ -314,7 +321,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def follow_hint(self):
         """Follow the currently selected hint."""
-        self._tabs.currentWidget().hintmanager.follow_hint()
+        self._current_widget().hintmanager.follow_hint()
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def prev_page(self):
@@ -365,7 +372,7 @@ class CommandDispatcher:
         dy = int(int(count) * float(dy))
         cmdutils.check_overflow(dx, 'int')
         cmdutils.check_overflow(dy, 'int')
-        self._tabs.currentWidget().page().currentFrame().scroll(dx, dy)
+        self._current_widget().page().currentFrame().scroll(dx, dy)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def scroll_perc_x(self, perc=None, count=None):
@@ -402,7 +409,7 @@ class CommandDispatcher:
             y: How many pages to scroll down.
             count: multiplier
         """
-        frame = self._tabs.currentWidget().page().currentFrame()
+        frame = self._current_widget().page().currentFrame()
         size = frame.geometry()
         dx = int(count) * float(x) * size.width()
         dy = int(count) * float(y) * size.height()
@@ -457,7 +464,7 @@ class CommandDispatcher:
         Args:
             count: How many steps to zoom in.
         """
-        tab = self._tabs.currentWidget()
+        tab = self._current_widget()
         tab.zoom(count)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
@@ -467,7 +474,7 @@ class CommandDispatcher:
         Args:
             count: How many steps to zoom out.
         """
-        tab = self._tabs.currentWidget()
+        tab = self._current_widget()
         tab.zoom(-count)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
@@ -485,14 +492,14 @@ class CommandDispatcher:
             level = cmdutils.arg_or_count(zoom, count, default=100)
         except ValueError as e:
             raise cmdexc.CommandError(e)
-        tab = self._tabs.currentWidget()
+        tab = self._current_widget()
         tab.zoom_perc(level)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def tab_only(self):
         """Close all tabs except for the current one."""
         for tab in self._tabs.widgets():
-            if tab is self._tabs.currentWidget():
+            if tab is self._current_widget():
                 continue
             self._tabs.close_tab(tab)
 
@@ -578,7 +585,7 @@ class CommandDispatcher:
         if tab:
             self._tabs.tabopen(url, explicit=True)
         else:
-            widget = self._tabs.currentWidget()
+            widget = self._current_widget()
             widget.openurl(url)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
@@ -637,7 +644,7 @@ class CommandDispatcher:
         if not 0 <= new_idx < self._tabs.count():
             raise cmdexc.CommandError("Can't move tab to position {}!".format(
                 new_idx))
-        tab = self._tabs.currentWidget()
+        tab = self._current_widget()
         cur_idx = self._tabs.currentIndex()
         icon = self._tabs.tabIcon(cur_idx)
         label = self._tabs.tabText(cur_idx)
@@ -698,7 +705,7 @@ class CommandDispatcher:
         if not url.isValid():
             raise cmdexc.CommandError("Invalid URL {} ({})".format(
                 urlstr, url.errorString()))
-        self._tabs.currentWidget().openurl(url)
+        self._current_widget().openurl(url)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def quickmark_load_tab(self, name):
@@ -715,7 +722,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='mainwindow.tabs.cmd', name='inspector')
     def toggle_inspector(self):
         """Toggle the web inspector."""
-        cur = self._tabs.currentWidget()
+        cur = self._current_widget()
         if cur.inspector is None:
             if not config.get('general', 'developer-extras'):
                 raise cmdexc.CommandError(
@@ -737,7 +744,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def download_page(self):
         """Download the current page."""
-        page = self._tabs.currentWidget().page()
+        page = self._current_widget().page()
         self._tabs.download_get.emit(self._tabs.current_url(), page)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd',
@@ -755,7 +762,7 @@ class CommandDispatcher:
         easier to execute some code as soon as the process has been finished
         and do everything async.
         """
-        frame = self._tabs.currentWidget().page().currentFrame()
+        frame = self._current_widget().page().currentFrame()
         elem = webelem.focus_elem(frame)
         if elem.isNull():
             raise cmdexc.CommandError("No element focused!")
