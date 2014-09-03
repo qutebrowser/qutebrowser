@@ -233,6 +233,8 @@ def qurl_from_user_input(urlstr):
     use QUrl.fromUserInput.
 
     WORKAROUND - https://bugreports.qt-project.org/browse/QTBUG-41089
+    FIXME - Maybe https://codereview.qt-project.org/#/c/93851/ has a better way
+            to solve this?
 
     Args:
         urlstr: The URL as string.
