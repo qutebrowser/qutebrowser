@@ -19,10 +19,11 @@
 
 """Misc. utility commands exposed to the user."""
 
+import types
+import functools
 
-from PyQt5.QtCore import pyqtRemoveInputHook, QCoreApplication
 
-from functools import partial
+from PyQt5.QtCore import QCoreApplication
 
 from qutebrowser.utils import usertypes, log
 from qutebrowser.commands import runners, cmdexc, cmdutils
@@ -40,7 +41,7 @@ def init():
 
 
 @cmdutils.register()
-def later(ms : int, *command : {'nargs': '+'}):
+def later(ms: int, *command: {'nargs': '+'}):
     """Execute a command after some time.
 
     Args:
@@ -58,31 +59,14 @@ def later(ms : int, *command : {'nargs': '+'}):
                                   "int representation.")
     _timers.append(timer)
     cmdline = ' '.join(command)
-    timer.timeout.connect(partial(_commandrunner.run_safely, cmdline))
+    timer.timeout.connect(functools.partial(
+        _commandrunner.run_safely, cmdline))
     timer.timeout.connect(lambda: _timers.remove(timer))
     timer.start()
 
 
-@cmdutils.register(debug=True, name='debug-set-trace')
-def set_trace():
-    """Break into the debugger in the shell.
-
-    //
-
-    Based on http://stackoverflow.com/a/1745965/2085149
-    """
-    if sys.stdout is not None:
-        sys.stdout.flush()
-    print()
-    print("When done debugging, remember to execute:")
-    print("  from PyQt5 import QtCore; QtCore.pyqtRestoreInputHook()")
-    print("before executing c(ontinue).")
-    pyqtRemoveInputHook()
-    pdb.set_trace()
-
-
 @cmdutils.register(debug=True)
-def debug_crash(typ : ('exception', 'segfault') = 'exception'):
+def debug_crash(typ: ('exception', 'segfault')='exception'):
     """Crash for debugging purposes.
 
     Args:

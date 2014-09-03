@@ -43,6 +43,7 @@ class Command:
         needs_js: Whether the command needs javascript enabled
         debug: Whether this is a debugging command (only shown with --debug).
         parser: The ArgumentParser to use to parse this command.
+        type_conv: A mapping of conversion functions for arguments.
     """
 
     # TODO:
@@ -50,7 +51,8 @@ class Command:
     # this might be combined with help texts or so as well
 
     def __init__(self, name, split, hide, count, desc, instance, handler,
-                 completion, modes, not_modes, needs_js, debug, parser):
+                 completion, modes, not_modes, needs_js, is_debug, parser,
+                 type_conv):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-arguments
         self.name = name
@@ -64,8 +66,9 @@ class Command:
         self.modes = modes
         self.not_modes = not_modes
         self.needs_js = needs_js
-        self.debug = debug
+        self.debug = is_debug
         self.parser = parser
+        self.type_conv = type_conv
 
     def _check_prerequisites(self):
         """Check if the command is permitted to run currently.
@@ -114,7 +117,7 @@ class Command:
         try:
             namespace = self.parser.parse_args(args)
         except argparser.ArgumentParserError as e:
-            message.error(str(e))
+            message.error('{}: {}'.format(self.name, e))
             return
 
         for name, arg in vars(namespace).items():
@@ -124,6 +127,12 @@ class Command:
                 # FIXME: This approach is rather naive, but for now it works.
                 posargs += arg
             else:
+                if name in self.type_conv:
+                    # We convert enum types after getting the values from
+                    # argparse, because argparse's choices argument is
+                    # processed after type conversation, which is not what we
+                    # want.
+                    arg = self.type_conv[name](arg)
                 kwargs[name] = arg
 
         if self.instance is not None:
@@ -140,4 +149,7 @@ class Command:
         self._check_prerequisites()
         log.commands.debug('Calling {}'.format(
             debug.format_call(self.handler, posargs, kwargs)))
+        # FIXME this won't work properly if some arguments are required to be
+        # positional, e.g.:
+        #   def fun(one=True, two=False, *args)
         self.handler(*posargs, **kwargs)

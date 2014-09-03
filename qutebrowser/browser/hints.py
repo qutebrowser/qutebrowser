@@ -20,6 +20,7 @@
 """A HintManager to draw hints over links."""
 
 import math
+import shlex
 import subprocess
 import collections
 
@@ -472,7 +473,7 @@ class HintManager(QObject):
         self.openurl.emit(url, newtab)
 
     def start(self, mainframe, baseurl, group=webelem.Group.all,
-              target=Target.normal, *args):
+              target=Target.normal, args=None):
         """Start hinting.
 
         Args:
@@ -480,7 +481,7 @@ class HintManager(QObject):
             baseurl: URL of the current page.
             group: Which group of elements to hint.
             target: What to do with the link. See attribute docstring.
-            *args: Arguments for userscript/download
+            args: Arguments for userscript/download
 
         Emit:
             hint_strings_updated: Emitted to update keypraser.
@@ -493,14 +494,13 @@ class HintManager(QObject):
             # on_mode_left, we are extra careful here.
             raise ValueError("start() was called with frame=None")
         if target in (Target.userscript, Target.spawn, Target.fill):
-            if not args:
+            if args is None:
                 raise cmdexc.CommandError(
-                    "Additional arguments are required with target "
-                    "userscript/spawn/fill.")
+                    "'args' is required with target userscript/spawn/fill.")
         else:
-            if args:
+            if args is not None:
                 raise cmdexc.CommandError(
-                    "Arguments are only allowed with target userscript/spawn.")
+                    "'args' is only allowed with target userscript/spawn.")
         elems = []
         ctx = HintContext()
         ctx.frames = webelem.get_child_frames(mainframe)
@@ -514,7 +514,13 @@ class HintManager(QObject):
             raise cmdexc.CommandError("No elements found.")
         ctx.target = target
         ctx.baseurl = baseurl
-        ctx.args = args
+        if args is None:
+            ctx.args = None
+        else:
+            try:
+                ctx.args = shlex.split(args)
+            except ValueError as e:
+                raise cmdexc.CommandError("Could not split args: {}".format(e))
         message.instance().set_text(self.HINT_TEXTS[target])
         strings = self._hint_strings(visible_elems)
         for e, string in zip(visible_elems, strings):

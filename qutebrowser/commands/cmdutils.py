@@ -23,11 +23,11 @@ Module attributes:
     cmd_dict: A mapping from command-strings to command objects.
 """
 
-import enum
 import inspect
 import collections
 
-from qutebrowser.utils import usertypes, qtutils, log, debug
+from qutebrowser.utils import usertypes, qtutils, log, utils
+from qutebrowser.utils import debug as debugutils
 from qutebrowser.commands import command, cmdexc, argparser
 
 cmd_dict = {}
@@ -160,15 +160,16 @@ class register:  # pylint: disable=invalid-name
         """
         names = self._get_names(func)
         log.commands.vdebug("Registering command {}".format(names[0]))
-        if any(name in cmd_dict for name in names):
-            raise ValueError("{} is already registered!".format(name))
-        has_count, desc, parser = self._inspect_func(func)
+        for name in names:
+            if name in cmd_dict:
+                raise ValueError("{} is already registered!".format(name))
+        has_count, desc, parser, type_conv = self._inspect_func(func)
         cmd = command.Command(
             name=names[0], split=self.split, hide=self.hide, count=has_count,
             desc=desc, instance=self.instance, handler=func,
             completion=self.completion, modes=self.modes,
-            not_modes=self.not_modes, needs_js=self.needs_js, debug=self.debug,
-            parser=parser)
+            not_modes=self.not_modes, needs_js=self.needs_js,
+            is_debug=self.debug, parser=parser, type_conv=type_conv)
         for name in names:
             cmd_dict[name] = cmd
         return func
@@ -202,15 +203,17 @@ class register:  # pylint: disable=invalid-name
             func: The function to look at.
 
         Return:
-            A (has_count, desc, parser) tuple.
+            A (has_count, desc, parser, type_conv) tuple.
                 has_count: Whether the command supports a count.
                 desc: The description of the command.
                 parser: The ArgumentParser to use when parsing the commandline.
+                type_conv: A mapping of args to type converter callables.
         """
+        type_conv = {}
         signature = inspect.signature(func)
         if 'self' in signature.parameters and self.instance is None:
             raise ValueError("{} is a class method, but instance was not "
-                             "given!".format(mainname))
+                             "given!".format(self.name[0]))
         has_count = 'count' in signature.parameters
         parser = argparser.ArgumentParser()
         if func.__doc__ is not None:
@@ -224,42 +227,63 @@ class register:  # pylint: disable=invalid-name
                 args = []
                 kwargs = {}
                 annotation_info = self._parse_annotation(param)
-                if annotation_info.typ is not None:
-                    typ = annotation_info.typ
-                else:
-                    typ = self._infer_type(param)
-                kwargs.update(self._type_to_argparse(typ))
+                kwargs.update(self._param_to_argparse_kw(
+                    param, annotation_info))
                 kwargs.update(annotation_info.kwargs)
-                if (param.kind == inspect.Parameter.VAR_POSITIONAL and
-                        'nargs' not in kwargs):  # annotation_info overrides it
-                    kwargs['nargs'] = '*'
-                is_flag = typ == bool
-                args += self._get_argparse_args(param, annotation_info,
-                                                is_flag)
-                callsig = debug.format_call(parser.add_argument, args,
-                                            kwargs, full=False)
+                args += self._param_to_argparse_pos(param, annotation_info)
+                typ = self._get_type(param, annotation_info)
+                if utils.is_enum(typ):
+                    type_conv[param.name] = argparser.enum_getter(typ)
+                elif isinstance(typ, tuple):
+                    type_conv[param.name] = argparser.multitype_conv(typ)
+                callsig = debugutils.format_call(parser.add_argument, args,
+                                                 kwargs, full=False)
                 log.commands.vdebug('Adding arg {} of type {} -> {}'.format(
                     param.name, typ, callsig))
                 parser.add_argument(*args, **kwargs)
-        return has_count, desc, parser
+        return has_count, desc, parser, type_conv
 
-    def _get_argparse_args(self, param, annotation_info, is_flag):
+    def _param_to_argparse_pos(self, param, annotation_info):
         """Get a list of positional argparse arguments.
 
         Args:
             param: The inspect.Parameter instance for the current parameter.
             annotation_info: An AnnotationInfo tuple for the parameter.
-            is_flag: Whether the option is a flag or not.
         """
         args = []
         name = annotation_info.name or param.name
         shortname = annotation_info.flag or param.name[0]
-        if is_flag:
+        if self._get_type(param, annotation_info) == bool:
             args.append('--{}'.format(name))
             args.append('-{}'.format(shortname))
         else:
             args.append(name)
         return args
+
+    def _param_to_argparse_kw(self, param, annotation_info):
+        """Get argparse keyword arguments for a parameter.
+
+        Args:
+            param: The inspect.Parameter object to get the args for.
+            annotation_info: An AnnotationInfo tuple for the parameter.
+        """
+        kwargs = {}
+        typ = self._get_type(param, annotation_info)
+        if isinstance(typ, tuple):
+            pass
+        elif utils.is_enum(typ):
+            kwargs['choices'] = [e.name.replace('_', '-') for e in typ]
+        elif typ is bool:
+            kwargs['action'] = 'store_true'
+        elif typ is not None:
+            kwargs['type'] = typ
+
+        if param.kind == inspect.Parameter.VAR_POSITIONAL:
+            kwargs['nargs'] = '*'
+        elif typ is not bool and param.default is not inspect.Parameter.empty:
+            kwargs['default'] = param.default
+            kwargs['nargs'] = '?'
+        return kwargs
 
     def _parse_annotation(self, param):
         """Get argparse arguments and type from a parameter annotation.
@@ -276,8 +300,9 @@ class register:  # pylint: disable=invalid-name
                 name: The long name if overridden.
         """
         info = {'kwargs': {}, 'typ': None, 'flag': None, 'name': None}
-        log.commands.vdebug("Parsing annotation {}".format(param.annotation))
         if param.annotation is not inspect.Parameter.empty:
+            log.commands.vdebug("Parsing annotation {}".format(
+                param.annotation))
             if isinstance(param.annotation, dict):
                 for field in ('type', 'flag', 'name'):
                     if field in param.annotation:
@@ -288,27 +313,16 @@ class register:  # pylint: disable=invalid-name
                 info['typ'] = param.annotation
         return self.AnnotationInfo(**info)
 
-    def _infer_type(self, param):
-        """Get the type of an argument from its default value."""
-        if param.default is None or param.default is inspect.Parameter.empty:
+    def _get_type(self, param, annotation_info):
+        """Get the type of an argument from its default value or annotation.
+
+        Args:
+            param: The inspect.Parameter to look at.
+            annotation_info: An AnnotationInfo tuple which overrides the type.
+        """
+        if annotation_info.typ is not None:
+            return annotation_info.typ
+        elif param.default is None or param.default is inspect.Parameter.empty:
             return None
         else:
             return type(param.default)
-
-    def _type_to_argparse(self, typ):
-        """Get argparse keyword arguments based on a type."""
-        kwargs = {}
-        try:
-            is_enum = issubclass(typ, enum.Enum)
-        except TypeError:
-            is_enum = False
-        if isinstance(typ, tuple):
-            kwargs['choices'] = typ
-        elif is_enum:
-            kwargs['choices'] = [e.name.replace('_', '-') for e in typ]
-        elif typ is bool:
-            kwargs['action'] = 'store_true'
-        elif typ is not None:
-            kwargs['type'] = typ
-
-        return kwargs

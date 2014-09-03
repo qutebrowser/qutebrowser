@@ -233,7 +233,7 @@ class CommandDispatcher:
             else:
                 diag = QPrintDialog()
                 diag.setAttribute(Qt.WA_DeleteOnClose)
-                diag.open(lambda: tab.print(printdiag.printer()))
+                diag.open(lambda: tab.print(diag.printer()))
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def back(self, count=1):
@@ -257,7 +257,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def hint(self, group=webelem.Group.all, target=hints.Target.normal,
-             *args : {'nargs': '*'}):
+             args=None):
         """Start hinting.
 
         Args:
@@ -286,7 +286,7 @@ class CommandDispatcher:
                                 link.
                 - `spawn`: Spawn a command.
 
-            *args: Arguments for spawn/userscript/fill.
+            args: Arguments for spawn/userscript/fill.
 
                 - With `spawn`: The executable and arguments to spawn.
                                 `{hint-url}` will get replaced by the selected
@@ -301,7 +301,7 @@ class CommandDispatcher:
         if frame is None:
             raise cmdexc.CommandError("No frame focused!")
         widget.hintmanager.start(frame, self._tabs.current_url(), group,
-                                 target, *args)
+                                 target, args)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def follow_hint(self):
@@ -333,7 +333,7 @@ class CommandDispatcher:
         self._prevnext(prev=False, newtab=tab)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
-    def scroll(self, dx : float, dy : float, count=1):
+    def scroll(self, dx: float, dy: float, count=1):
         """Scroll the current tab by 'count * dx/dy'.
 
         Args:
@@ -348,8 +348,8 @@ class CommandDispatcher:
         self._current_widget().page().currentFrame().scroll(dx, dy)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
-    def scroll_perc(self, perc : float = None,
-                    horizontal : {'flag': 'x'} = False, count=None):
+    def scroll_perc(self, perc: float=None,
+                    horizontal: {'flag': 'x'}=False, count=None):
         """Scroll to a specific percentage of the page.
 
         The percentage can be given either as argument or as count.
@@ -364,7 +364,7 @@ class CommandDispatcher:
                              Qt.Horizontal if horizontal else Qt.Vertical)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
-    def scroll_page(self, x : int, y : int, count=1):
+    def scroll_page(self, x: float, y: float, count=1):
         """Scroll the frame page-wise.
 
         Args:
@@ -402,7 +402,8 @@ class CommandDispatcher:
             target = "clipboard"
         log.misc.debug("Yanking to {}: '{}'".format(target, s))
         clipboard.setText(s, mode)
-        message.info("URL yanked to {}".format(target))
+        what = 'Title' if title else 'URL'
+        message.info("{} yanked to {}".format(what, target))
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def zoom_in(self, count=1):
@@ -518,7 +519,7 @@ class CommandDispatcher:
             widget.openurl(url)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
-    def tab_focus(self, index : int = None, count=None):
+    def tab_focus(self, index: (int, 'last')=None, count=None):
         """Select the tab given as argument/[count].
 
         Args:
@@ -542,7 +543,7 @@ class CommandDispatcher:
                 idx))
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
-    def tab_move(self, direction : ('+', '-') = None, count=None):
+    def tab_move(self, direction: ('+', '-')=None, count=None):
         """Move the current tab.
 
         Args:

@@ -19,7 +19,11 @@
 
 """argparse.ArgumentParser subclass to parse qutebrowser commands."""
 
+
 import argparse
+
+from qutebrowser.commands import cmdexc
+from qutebrowser.utils import utils
 
 
 class ArgumentParserError(Exception):
@@ -29,6 +33,8 @@ class ArgumentParserError(Exception):
 
 class ArgumentParser(argparse.ArgumentParser):
 
+    """Subclass ArgumentParser to be more suitable for runtime parsing."""
+
     def __init__(self):
         super().__init__(add_help=False)
 
@@ -37,4 +43,46 @@ class ArgumentParser(argparse.ArgumentParser):
                              'Status: {}, message: {}'.format(status, msg))
 
     def error(self, msg):
-        raise ArgumentParserError(msg)
+        raise ArgumentParserError(msg[0].upper() + msg[1:])
+
+
+def enum_getter(enum):
+    """Function factory to get an enum getter."""
+
+    def _get_enum_item(key):
+        """Helper function to get an enum item.
+
+        Passes through existing items unmodified.
+        """
+        if isinstance(key, enum):
+            return key
+        try:
+            return enum[key.replace('-', '_')]
+        except KeyError:
+            raise cmdexc.ArgumentTypeError("Invalid value {}.".format(key))
+
+    return _get_enum_item
+
+
+def multitype_conv(tpl):
+    """Function factory to get a type converter for a choice of types."""
+
+    def _convert(value):
+        """Convert a value according to an iterable of possible arg types."""
+        for typ in tpl:
+            if isinstance(typ, str):
+                if value == typ:
+                    return value
+            elif utils.is_enum(typ):
+                return enum_getter(typ)(value)
+            elif callable(typ):
+                # int, float, etc.
+                if isinstance(value, typ):
+                    return value
+                try:
+                    return typ(value)
+                except ValueError:
+                    pass
+        raise cmdexc.ArgumentTypeError('Invalid value {}.'.format(value))
+
+    return _convert

@@ -22,6 +22,7 @@
 import os
 import io
 import sys
+import enum
 import shlex
 import os.path
 import urllib.request
@@ -494,3 +495,11 @@ def disabled_excepthook():
     # unchanged. Otherwise, we reset it.
     if sys.excepthook is sys.__excepthook__:
         sys.excepthook = old_excepthook
+
+
+def is_enum(obj):
+    """Check if a given object is an enum."""
+    try:
+        return issubclass(obj, enum.Enum)
+    except TypeError:
+        return False

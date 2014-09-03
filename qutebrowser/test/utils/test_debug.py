@@ -137,13 +137,13 @@ class TestDebug(unittest.TestCase):
     def test_dbg_signal_eliding(self):
         """Test eliding in dbg_signal()."""
         self.assertEqual(debug.dbg_signal(self.signal,
-                                          [12345678901234567890123]),
-                         'fake(1234567890123456789\u2026)')
+                                          ['x' * 201]),
+                         "fake('{}\u2026)".format('x' * 198))
 
     def test_dbg_signal_newline(self):
         """Test dbg_signal() with a newline."""
         self.assertEqual(debug.dbg_signal(self.signal, ['foo\nbar']),
-                         'fake(foo bar)')
+                         r"fake('foo\nbar')")
 
 
 if __name__ == '__main__':

@@ -21,58 +21,11 @@
 
 import re
 import sys
-import types
 import functools
 
 from PyQt5.QtCore import QEvent, QCoreApplication
 
 from qutebrowser.utils import log, utils
-from qutebrowser.commands import cmdutils
-from qutebrowser.config import config, style
-
-
-@cmdutils.register(debug=True)
-def debug_crash(typ : ('exception', 'segfault') = 'exception'):
-    """Crash for debugging purposes.
-
-    Args:
-        typ: either 'exception' or 'segfault'.
-
-    Raises:
-        raises Exception when typ is not segfault.
-        segfaults when typ is (you don't say...)
-    """
-    if typ == 'segfault':
-        # From python's Lib/test/crashers/bogus_code_obj.py
-        co = types.CodeType(0, 0, 0, 0, 0, b'\x04\x71\x00\x00', (), (), (),
-                            '', '', 1, b'')
-        exec(co)  # pylint: disable=exec-used
-        raise Exception("Segfault failed (wat.)")
-    else:
-        raise Exception("Forced crash")
-
-
-@cmdutils.register(debug=True)
-def debug_all_widgets():
-    """Print a list of all widgets to debug log."""
-    s = QCoreApplication.instance().get_all_widgets()
-    log.misc.debug(s)
-
-
-@cmdutils.register(debug=True)
-def debug_all_objects():
-    """Print a list of  all objects to the debug log."""
-    s = QCoreApplication.instance().get_all_objects()
-    log.misc.debug(s)
-
-
-@cmdutils.register(debug=True)
-def debug_cache_stats():
-    """Print LRU cache stats."""
-    config_info = config.instance().get.cache_info()
-    style_info = style.get_stylesheet.cache_info()
-    log.misc.debug('config: {}'.format(config_info))
-    log.misc.debug('style: {}'.format(style_info))
 
 
 def log_events(klass):
@@ -211,12 +164,12 @@ def signal_name(sig):
 def _format_args(args=None, kwargs=None):
     """Format a list of arguments/kwargs to a function-call like string."""
     if args is not None:
-        arglist = [utils.compact_text(repr(arg), 50) for arg in args]
+        arglist = [utils.compact_text(repr(arg), 200) for arg in args]
     else:
         arglist = []
     if kwargs is not None:
         for k, v in kwargs.items():
-            arglist.append('{}={}'.format(k, utils.compact_text(repr(v), 50)))
+            arglist.append('{}={}'.format(k, utils.compact_text(repr(v), 200)))
     return ', '.join(arglist)
 
 

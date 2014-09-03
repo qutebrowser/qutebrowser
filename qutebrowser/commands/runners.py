@@ -27,6 +27,20 @@ from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import message, log, utils
 
 
+def replace_variables(arglist):
+    """Utility function to replace variables like {url} in a list of args."""
+    args = []
+    for arg in arglist:
+        if arg == '{url}':
+            app = QCoreApplication.instance()
+            url = app.mainwindow.tabs.current_url().toString(
+                QUrl.FullyEncoded | QUrl.RemovePassword)
+            args.append(url)
+        else:
+            args.append(arg)
+    return args
+
+
 class SearchRunner(QObject):
 
     """Run searches on webpages.
@@ -219,6 +233,14 @@ class CommandRunner:
             else:
                 raise cmdexc.NoSuchCommandError(
                     '{}: no such command'.format(cmdstr))
+        self._split_args(argstr)
+        retargs = self._args[:]
+        if text.endswith(' '):
+            retargs.append('')
+        return [cmdstr] + retargs
+
+    def _split_args(self, argstr):
+        """Split the arguments from an arg string."""
         if argstr is None:
             self._args = []
         elif self._cmd.split:
@@ -244,10 +266,6 @@ class CommandRunner:
                 # If there are only flags, we got it right on the first try
                 # already.
                 self._args = split_args
-        retargs = self._args[:]
-        if text.endswith(' '):
-            retargs.append('')
-        return [cmdstr] + retargs
 
     def run(self, text, count=None):
         """Parse a command from a line of text and run it.
@@ -261,15 +279,11 @@ class CommandRunner:
                 self.run(sub, count)
             return
         self.parse(text)
-        app = QCoreApplication.instance()
-        cur_url = app.mainwindow.tabs.current_url().toString(
-            QUrl.FullyEncoded | QUrl.RemovePassword)
-        self._args = [cur_url if e == '{url}' else e for e in self._args]
+        args = replace_variables(self._args)
         if count is not None:
-            self._cmd.run(self._args, count=count)
+            self._cmd.run(args, count=count)
         else:
-            self._cmd.run(self._args)
-
+            self._cmd.run(args)
 
     @pyqtSlot(str, int)
     def run_safely(self, text, count=None):
