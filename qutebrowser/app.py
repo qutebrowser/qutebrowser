@@ -392,6 +392,8 @@ class Application(QApplication):
         self.messagebridge.s_error.connect(status.disp_error)
         self.messagebridge.s_info.connect(status.disp_temp_text)
         self.messagebridge.s_set_text.connect(status.set_text)
+        self.messagebridge.s_maybe_reset_text.connect(
+            status.txt.maybe_reset_text)
         self.messagebridge.s_set_cmd_text.connect(cmd.set_cmd_text)
         self.messagebridge.s_question.connect(
             status.prompt.prompter.ask_question, Qt.DirectConnection)

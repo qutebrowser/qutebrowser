@@ -23,7 +23,7 @@ from PyQt5.QtCore import pyqtSlot
 
 from qutebrowser.config import config
 from qutebrowser.widgets.statusbar import textbase
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, log
 
 
 class Text(textbase.TextBase):
@@ -54,6 +54,8 @@ class Text(textbase.TextBase):
             which: Which text to set, a self.Text instance.
             text: The text to set.
         """
+        log.statusbar.debug("Setting {} text to '{}'.".format(
+            which.name, text))
         if which is self.Text.normal:
             self._normaltext = text
         elif which is self.Text.temp:
@@ -63,6 +65,15 @@ class Text(textbase.TextBase):
         else:
             raise ValueError("Invalid value {} for which!".format(which))
         self._update_text()
+
+    @pyqtSlot(str)
+    def maybe_reset_text(self, text):
+        """Clear a normal text if it still matches an expected text."""
+        if self._normaltext == text:
+            log.misc.debug("Resetting: '{}'".format(text))
+            self.set_text(self.Text.normal, '')
+        else:
+            log.misc.debug("Ignoring reset: '{}'".format(text))
 
     def _update_text(self):
         """Update QLabel text when needed."""

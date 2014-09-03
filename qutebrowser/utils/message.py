@@ -136,6 +136,8 @@ class MessageBridge(QObject):
                 args: See s_error.
         s_set_text: Set a persistent text in the statusbar.
                     arg: The text to set.
+        s_maybe_reset_text: Reset the text if it hasn't been changed yet.
+                            arg: The expected text.
         s_set_cmd_text: Pre-set a text for the commandline prompt.
                         arg: The text to set.
 
@@ -150,6 +152,7 @@ class MessageBridge(QObject):
     s_error = pyqtSignal(str, bool)
     s_info = pyqtSignal(str, bool)
     s_set_text = pyqtSignal(str)
+    s_maybe_reset_text = pyqtSignal(str)
     s_set_cmd_text = pyqtSignal(str)
     s_question = pyqtSignal(usertypes.Question, bool)
 
@@ -214,6 +217,14 @@ class MessageBridge(QObject):
         text = str(text)
         log.misc.debug(text)
         self._emit_later(self.s_set_text, text)
+
+    def maybe_reset_text(self, text):
+        """Reset the text in the statusbar if it matches an expected text.
+
+        Args:
+            text: The expected text.
+        """
+        self._emit_later(self.s_maybe_reset_text, str(text))
 
     def ask(self, question, blocking):
         """Ask a question to the user.

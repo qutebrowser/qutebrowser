@@ -157,8 +157,9 @@ class HintManager(QObject):
         for elem in self._context.elems.values():
             if not elem.label.isNull():
                 elem.label.removeFromDocument()
+        text = self.HINT_TEXTS[self._context.target]
+        message.instance().maybe_reset_text(text)
         self._context = None
-        message.instance().set_text('')
 
     def _hint_strings(self, elems):
         """Calculate the hint strings for elems.
