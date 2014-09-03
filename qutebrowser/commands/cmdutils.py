@@ -27,7 +27,7 @@ import enum
 import inspect
 import collections
 
-from qutebrowser.utils import usertypes, qtutils, log
+from qutebrowser.utils import usertypes, qtutils, log, debug
 from qutebrowser.commands import command, cmdexc, argparser
 
 cmd_dict = {}
@@ -236,9 +236,10 @@ class register:  # pylint: disable=invalid-name
                 is_flag = typ == bool
                 args += self._get_argparse_args(param, annotation_info,
                                                 is_flag)
-                log.commands.vdebug('Adding argument {} of type {} -> '
-                                    'args {}, kwargs {}'.format(
-                                        param.name, typ, args, kwargs))
+                callsig = debug.format_call(parser.add_argument, args,
+                                            kwargs, full=False)
+                log.commands.vdebug('Adding arg {} of type {} -> {}'.format(
+                    param.name, typ, callsig))
                 parser.add_argument(*args, **kwargs)
         return has_count, desc, parser
 

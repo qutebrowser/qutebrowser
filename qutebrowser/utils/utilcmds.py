@@ -19,10 +19,14 @@
 
 """Misc. utility commands exposed to the user."""
 
+
+from PyQt5.QtCore import pyqtRemoveInputHook, QCoreApplication
+
 from functools import partial
 
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, log
 from qutebrowser.commands import runners, cmdexc, cmdutils
+from qutebrowser.config import config, style
 
 
 _timers = []
@@ -57,3 +61,65 @@ def later(ms : int, *command : {'nargs': '+'}):
     timer.timeout.connect(partial(_commandrunner.run_safely, cmdline))
     timer.timeout.connect(lambda: _timers.remove(timer))
     timer.start()
+
+
+@cmdutils.register(debug=True, name='debug-set-trace')
+def set_trace():
+    """Break into the debugger in the shell.
+
+    //
+
+    Based on http://stackoverflow.com/a/1745965/2085149
+    """
+    if sys.stdout is not None:
+        sys.stdout.flush()
+    print()
+    print("When done debugging, remember to execute:")
+    print("  from PyQt5 import QtCore; QtCore.pyqtRestoreInputHook()")
+    print("before executing c(ontinue).")
+    pyqtRemoveInputHook()
+    pdb.set_trace()
+
+
+@cmdutils.register(debug=True)
+def debug_crash(typ : ('exception', 'segfault') = 'exception'):
+    """Crash for debugging purposes.
+
+    Args:
+        typ: either 'exception' or 'segfault'.
+
+    Raises:
+        raises Exception when typ is not segfault.
+        segfaults when typ is (you don't say...)
+    """
+    if typ == 'segfault':
+        # From python's Lib/test/crashers/bogus_code_obj.py
+        co = types.CodeType(0, 0, 0, 0, 0, b'\x04\x71\x00\x00', (), (), (),
+                            '', '', 1, b'')
+        exec(co)  # pylint: disable=exec-used
+        raise Exception("Segfault failed (wat.)")
+    else:
+        raise Exception("Forced crash")
+
+
+@cmdutils.register(debug=True)
+def debug_all_widgets():
+    """Print a list of all widgets to debug log."""
+    s = QCoreApplication.instance().get_all_widgets()
+    log.misc.debug(s)
+
+
+@cmdutils.register(debug=True)
+def debug_all_objects():
+    """Print a list of  all objects to the debug log."""
+    s = QCoreApplication.instance().get_all_objects()
+    log.misc.debug(s)
+
+
+@cmdutils.register(debug=True)
+def debug_cache_stats():
+    """Print LRU cache stats."""
+    config_info = config.instance().get.cache_info()
+    style_info = style.get_stylesheet.cache_info()
+    log.misc.debug('config: {}'.format(config_info))
+    log.misc.debug('style: {}'.format(style_info))

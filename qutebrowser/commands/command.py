@@ -23,7 +23,7 @@ from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.commands import cmdexc, argparser
-from qutebrowser.utils import log, utils, message
+from qutebrowser.utils import log, utils, message, debug
 
 
 class Command:
@@ -138,6 +138,6 @@ class Command:
             kwargs = {'count': count}
 
         self._check_prerequisites()
-        log.commands.debug('posargs: {}'.format(posargs))
-        log.commands.debug('kwargs: {}'.format(kwargs))
+        log.commands.debug('Calling {}'.format(
+            debug.format_call(self.handler, posargs, kwargs)))
         self.handler(*posargs, **kwargs)

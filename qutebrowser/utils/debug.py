@@ -208,6 +208,18 @@ def signal_name(sig):
     return m.group(1)
 
 
+def _format_args(args=None, kwargs=None):
+    """Format a list of arguments/kwargs to a function-call like string."""
+    if args is not None:
+        arglist = [utils.compact_text(repr(arg), 50) for arg in args]
+    else:
+        arglist = []
+    if kwargs is not None:
+        for k, v in kwargs.items():
+            arglist.append('{}={}'.format(k, utils.compact_text(repr(v), 50)))
+    return ', '.join(arglist)
+
+
 def dbg_signal(sig, args):
     """Get a string representation of a signal for debugging.
 
@@ -218,6 +230,26 @@ def dbg_signal(sig, args):
     Return:
         A human-readable string representation of signal/args.
     """
-    argstr = ', '.join([utils.elide(str(a).replace('\n', ' '), 20)
-                        for a in args])
-    return '{}({})'.format(signal_name(sig), argstr)
+    return '{}({})'.format(signal_name(sig), _format_args(args))
+
+
+def format_call(func, args=None, kwargs=None, full=True):
+    """Get a string representation of a function calls with the given args.
+
+    Args:
+        func: The callable to print.
+        args: A list of positional arguments.
+        kwargs: A dict of named arguments.
+        full: Whether to print the full name
+
+    Return:
+        A string with the function call.
+    """
+    if full:
+        if func.__module__ is not None:
+            name = '.'.join([func.__module__, func.__qualname__])
+        else:
+            name = func.__qualname__
+    else:
+        name = func.__name__
+    return '{}({})'.format(name, _format_args(args, kwargs))
