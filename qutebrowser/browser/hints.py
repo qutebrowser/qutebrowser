@@ -402,7 +402,12 @@ class HintManager(QObject):
             webelem.SELECTORS[webelem.Group.links])
         rel_values = ('prev', 'previous') if prev else ('next')
         for e in elems:
-            if e.attribute('rel') in rel_values:
+            if not e.hasAttribute('rel'):
+                continue
+            rel_attr = e.attribute('rel')
+            if rel_attr in rel_values:
+                log.hints.debug("Found '{}' with rel={}".format(
+                    webelem.debug_text(e), rel_attr))
                 return e
         # Then check for regular links/buttons.
         elems = frame.findAllElements(
@@ -411,9 +416,17 @@ class HintManager(QObject):
         if not elems:
             return None
         for regex in config.get('hints', option):
+            log.hints.vdebug("== Checking regex '{}'.".format(regex.pattern))
             for e in elems:
-                if regex.search(e.toPlainText()):
+                text = e.toPlainText()
+                if not text:
+                    continue
+                if regex.search(text):
+                    log.hints.debug("Regex '{}' matched on '{}'.".format(
+                        regex.pattern, text))
                     return e
+                else:
+                    log.hints.vdebug("No match on '{}'!".format(text))
         return None
 
     def _connect_frame_signals(self):
