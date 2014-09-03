@@ -116,7 +116,11 @@ def main():
     # We do this import late as we need to fix harfbuzz first.
     from qutebrowser import app
     from qutebrowser.utils import debug
+    from PyQt5.QtCore import pyqtRemoveInputHook
     import PyQt5.QtWidgets as QtWidgets
+    # We don't use qutebrowser via the interactive shell, but we want to be
+    # able to use pdb.
+    pyqtRemoveInputHook()
     app = app.Application(args)
     # We set qApp explicitely here to reduce the risk of segfaults while
     # quitting.

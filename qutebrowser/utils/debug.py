@@ -20,7 +20,6 @@
 """Utilities used for debugging."""
 
 import re
-import pdb
 import sys
 import types
 import functools
@@ -30,24 +29,6 @@ from PyQt5.QtCore import pyqtRemoveInputHook, QEvent, QCoreApplication
 from qutebrowser.utils import log, utils
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import config, style
-
-
-@cmdutils.register(debug=True, name='debug-set-trace')
-def set_trace():
-    """Break into the debugger in the shell.
-
-    //
-
-    Based on http://stackoverflow.com/a/1745965/2085149
-    """
-    if sys.stdout is not None:
-        sys.stdout.flush()
-    print()
-    print("When done debugging, remember to execute:")
-    print("  from PyQt5 import QtCore; QtCore.pyqtRestoreInputHook()")
-    print("before executing c(ontinue).")
-    pyqtRemoveInputHook()
-    pdb.set_trace()
 
 
 @cmdutils.register(debug=True)

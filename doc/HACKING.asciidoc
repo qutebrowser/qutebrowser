@@ -151,9 +151,7 @@ Debugging
 ~~~~~~~~~
 
 In the `qutebrowser.utils.debug` module there are some useful functions for
-debugging. In particular you should use `set_trace` from
-`qutebrowser.utils.debug` instead of `pdb` to set breakpoints or you'll get
-annoying Qt error messages.
+debugging.
 
 When starting qutebrowser with the `--debug` flag you also get useful debug
 logs. You can add +--logfilter _category[,category,...]_+ to restrict logging
