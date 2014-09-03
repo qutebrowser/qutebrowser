@@ -46,6 +46,8 @@ else:
     # sys.stdout/sys.stderr if they are None. Bugreports:
     # https://code.google.com/p/colorama/issues/detail?id=61
     # https://github.com/borntyping/python-colorlog/issues/13
+    # This should be (partially) fixed in colorama 0.3.2.
+    # (stream only gets wrapped if it's not None)
     if colorama is not None:
         colorama.deinit()
 
