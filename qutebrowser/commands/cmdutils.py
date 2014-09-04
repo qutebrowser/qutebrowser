@@ -135,6 +135,8 @@ class register:  # pylint: disable=invalid-name
         self.needs_js = needs_js
         self.debug = debug
         self.ignore_args = ignore_args
+        self.parser = None
+        self.func = None
         if modes is not None:
             for m in modes:
                 if not isinstance(m, usertypes.KeyMode):
@@ -158,23 +160,25 @@ class register:  # pylint: disable=invalid-name
         Return:
             The original function (unmodified).
         """
-        names = self._get_names(func)
+        self.func = func
+        names = self._get_names()
         log.commands.vdebug("Registering command {}".format(names[0]))
         for name in names:
             if name in cmd_dict:
                 raise ValueError("{} is already registered!".format(name))
-        has_count, desc, parser, type_conv = self._inspect_func(func)
+        self.parser = argparser.ArgumentParser(names[0])
+        has_count, desc, type_conv = self._inspect_func()
         cmd = command.Command(
             name=names[0], split=self.split, hide=self.hide, count=has_count,
             desc=desc, instance=self.instance, handler=func,
             completion=self.completion, modes=self.modes,
             not_modes=self.not_modes, needs_js=self.needs_js,
-            is_debug=self.debug, parser=parser, type_conv=type_conv)
+            is_debug=self.debug, parser=self.parser, type_conv=type_conv)
         for name in names:
             cmd_dict[name] = cmd
         return func
 
-    def _get_names(self, func):
+    def _get_names(self):
         """Get the name(s) which should be used for the current command.
 
         If the name hasn't been overridden explicitely, the function name is
@@ -183,41 +187,33 @@ class register:  # pylint: disable=invalid-name
         If it has been set, it can either be a string which is
         used directly, or an iterable.
 
-        Args:
-            func: The function to get the name for.
-
         Return:
             A list of names, with the main name being the first item.
         """
         if self.name is None:
-            return [func.__name__.lower().replace('_', '-')]
+            return [self.func.__name__.lower().replace('_', '-')]
         elif isinstance(self.name, str):
             return [self.name]
         else:
             return self.name
 
-    def _inspect_func(self, func):
-        """Inspect a function to get useful informations from it.
-
-        Args:
-            func: The function to look at.
+    def _inspect_func(self):
+        """Inspect the function to get useful informations from it.
 
         Return:
             A (has_count, desc, parser, type_conv) tuple.
                 has_count: Whether the command supports a count.
                 desc: The description of the command.
-                parser: The ArgumentParser to use when parsing the commandline.
                 type_conv: A mapping of args to type converter callables.
         """
         type_conv = {}
-        signature = inspect.signature(func)
+        signature = inspect.signature(self.func)
         if 'self' in signature.parameters and self.instance is None:
             raise ValueError("{} is a class method, but instance was not "
                              "given!".format(self.name[0]))
         has_count = 'count' in signature.parameters
-        parser = argparser.ArgumentParser()
-        if func.__doc__ is not None:
-            desc = func.__doc__.splitlines()[0].strip()
+        if self.func.__doc__ is not None:
+            desc = self.func.__doc__.splitlines()[0].strip()
         else:
             desc = ""
         if not self.ignore_args:
@@ -236,12 +232,12 @@ class register:  # pylint: disable=invalid-name
                     type_conv[param.name] = argparser.enum_getter(typ)
                 elif isinstance(typ, tuple):
                     type_conv[param.name] = argparser.multitype_conv(typ)
-                callsig = debugutils.format_call(parser.add_argument, args,
-                                                 kwargs, full=False)
+                callsig = debugutils.format_call(self.parser.add_argument,
+                                                 args, kwargs, full=False)
                 log.commands.vdebug('Adding arg {} of type {} -> {}'.format(
                     param.name, typ, callsig))
-                parser.add_argument(*args, **kwargs)
-        return has_count, desc, parser, type_conv
+                self.parser.add_argument(*args, **kwargs)
+        return has_count, desc, type_conv
 
     def _param_to_argparse_pos(self, param, annotation_info):
         """Get a list of positional argparse arguments.
