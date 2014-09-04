@@ -119,6 +119,10 @@ class Command:
         except argparser.ArgumentParserError as e:
             message.error('{}: {}'.format(self.name, e))
             return
+        except argparser.ArgumentParserExit as e:
+            log.commands.debug("argparser exited with status {}: {}".format(
+                e.status, e))
+            return
 
         for name, arg in vars(namespace).items():
             if isinstance(arg, list):

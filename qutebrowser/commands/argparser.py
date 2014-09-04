@@ -31,6 +31,15 @@ class ArgumentParserError(Exception):
     """Exception raised when the ArgumentParser signals an error."""
 
 
+class ArgumentParserExit(Exception):
+
+    """Exception raised when the argument parser exitted."""
+
+    def __init__(self, status, msg):
+        self.status = status
+        super().__init__(msg)
+
+
 class ArgumentParser(argparse.ArgumentParser):
 
     """Subclass ArgumentParser to be more suitable for runtime parsing."""
@@ -39,8 +48,7 @@ class ArgumentParser(argparse.ArgumentParser):
         super().__init__(add_help=False)
 
     def exit(self, status=0, msg=None):
-        raise AssertionError('exit called, this should never happen. '
-                             'Status: {}, message: {}'.format(status, msg))
+        raise ArgumentParserExit(status, msg)
 
     def error(self, msg):
         raise ArgumentParserError(msg[0].upper() + msg[1:])
