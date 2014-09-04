@@ -51,3 +51,6 @@ defining-attr-methods=__init__,__new__,setUp
 
 [DESIGN]
 max-args=10
+
+[TYPECHECK]
+ignored-classes=WebElementWrapper

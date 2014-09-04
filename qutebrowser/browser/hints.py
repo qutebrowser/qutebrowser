@@ -155,8 +155,10 @@ class HintManager(QObject):
     def _cleanup(self):
         """Clean up after hinting."""
         for elem in self._context.elems.values():
-            if not elem.label.isNull():
+            try:
                 elem.label.removeFromDocument()
+            except webelem.IsNullError:
+                pass
         text = self.HINT_TEXTS[self._context.target]
         message.instance().maybe_reset_text(text)
         self._context = None
@@ -263,7 +265,7 @@ class HintManager(QObject):
         Return:
             The CSS to set as a string.
         """
-        if label is None or label.attribute('hidden') != 'true':
+        if label is None or label['hidden'] != 'true':
             display = 'inline'
         else:
             display = 'none'
@@ -290,7 +292,9 @@ class HintManager(QObject):
         # See: http://stackoverflow.com/q/7364852/2085149
         doc.appendInside('<span class="qutehint" style="{}">{}</span>'.format(
                          css, string))
-        return doc.lastChild()
+        elem = webelem.WebElementWrapper(doc.lastChild())
+        elem['hidden'] = 'false'
+        return elem
 
     def _click(self, elem):
         """Click an element.
@@ -306,9 +310,9 @@ class HintManager(QObject):
         # FIXME Instead of clicking the center, we could have nicer heuristics.
         # e.g. parse (-webkit-)border-radius correctly and click text fields at
         # the bottom right, and everything else on the top left or so.
-        pos = webelem.rect_on_view(elem).center()
-        log.hints.debug("Clicking on '{}' at {}/{}".format(elem.toPlainText(),
-                                                           pos.x(), pos.y()))
+        pos = elem.rect_on_view().center()
+        log.hints.debug("Clicking on '{}' at {}/{}".format(
+            elem, pos.x(), pos.y()))
         events = (
             QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
                         Qt.NoModifier),
@@ -384,7 +388,7 @@ class HintManager(QObject):
         Return:
             A QUrl with the absolute URL, or None.
         """
-        text = elem.attribute('href')
+        text = elem['href']
         if not text:
             return None
         if baseurl is None:
@@ -402,12 +406,14 @@ class HintManager(QObject):
             webelem.SELECTORS[webelem.Group.links])
         rel_values = ('prev', 'previous') if prev else ('next')
         for e in elems:
-            if not e.hasAttribute('rel'):
+            e = webelem.WebElementWrapper(e)
+            try:
+                rel_attr = e['rel']
+            except KeyError:
                 continue
-            rel_attr = e.attribute('rel')
             if rel_attr in rel_values:
                 log.hints.debug("Found '{}' with rel={}".format(
-                    webelem.debug_text(e), rel_attr))
+                    e.debug_text(), rel_attr))
                 return e
         # Then check for regular links/buttons.
         elems = frame.findAllElements(
@@ -418,7 +424,8 @@ class HintManager(QObject):
         for regex in config.get('hints', option):
             log.hints.vdebug("== Checking regex '{}'.".format(regex.pattern))
             for e in elems:
-                text = e.toPlainText()
+                e = webelem.WebElementWrapper(e)
+                text = str(e)
                 if not text:
                     continue
                 if regex.search(text):
@@ -498,10 +505,11 @@ class HintManager(QObject):
         ctx = HintContext()
         ctx.frames = webelem.get_child_frames(mainframe)
         for f in ctx.frames:
-            elems += f.findAllElements(webelem.SELECTORS[group])
+            for e in f.findAllElements(webelem.SELECTORS[group]):
+                elems.append(webelem.WebElementWrapper(e))
         filterfunc = webelem.FILTERS.get(group, lambda e: True)
         visible_elems = [e for e in elems if filterfunc(e) and
-                         webelem.is_visible(e, mainframe)]
+                         e.is_visible(mainframe)]
         if not visible_elems:
             raise cmdexc.CommandError("No elements found.")
         ctx.target = target
@@ -529,34 +537,34 @@ class HintManager(QObject):
                 rest = string[len(keystr):]
                 elems.label.setInnerXml('<font color="{}">{}</font>{}'.format(
                     config.get('colors', 'hints.fg.match'), matched, rest))
-                if elems.label.attribute('hidden') == 'true':
+                if elems.label['hidden'] == 'true':
                     # hidden element which matches again -> unhide it
-                    elems.label.setAttribute('hidden', 'false')
+                    elems.label['hidden'] = 'false'
                     css = self._get_hint_css(elems.elem, elems.label)
-                    elems.label.setAttribute('style', css)
+                    elems.label['style'] = css
             else:
                 # element doesn't match anymore -> hide it
-                elems.label.setAttribute('hidden', 'true')
+                elems.label['hidden'] = 'true'
                 css = self._get_hint_css(elems.elem, elems.label)
-                elems.label.setAttribute('style', css)
+                elems.label['style'] = css
 
     def filter_hints(self, filterstr):
         """Filter displayed hints according to a text."""
         for elems in self._context.elems.values():
-            if elems.elem.toPlainText().lower().startswith(filterstr):
-                if elems.label.attribute('hidden') == 'true':
+            if str(elems.elem).lower().startswith(filterstr):
+                if elems.label['hidden'] == 'true':
                     # hidden element which matches again -> unhide it
-                    elems.label.setAttribute('hidden', 'false')
+                    elems.label['hidden'] = 'false'
                     css = self._get_hint_css(elems.elem, elems.label)
-                    elems.label.setAttribute('style', css)
+                    elems.label['style'] = css
             else:
                 # element doesn't match anymore -> hide it
-                elems.label.setAttribute('hidden', 'true')
+                elems.label['hidden'] = 'true'
                 css = self._get_hint_css(elems.elem, elems.label)
-                elems.label.setAttribute('style', css)
+                elems.label['style'] = css
         visible = {}
         for k, e in self._context.elems.items():
-            if e.label.attribute('hidden') != 'true':
+            if e.label['hidden'] != 'true':
                 visible[k] = e
         if not visible:
             # Whoops, filtered all hints
@@ -625,7 +633,7 @@ class HintManager(QObject):
         log.hints.debug("Contents size changed...!")
         for elems in self._context.elems.values():
             css = self._get_hint_css(elems.elem, elems.label)
-            elems.label.setAttribute('style', css)
+            elems.label['style'] = css
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):

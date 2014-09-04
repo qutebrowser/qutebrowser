@@ -763,13 +763,14 @@ class CommandDispatcher:
         and do everything async.
         """
         frame = self._current_widget().page().currentFrame()
-        elem = webelem.focus_elem(frame)
-        if elem.isNull():
+        try:
+            elem = webelem.focus_elem(frame)
+        except webelem.IsNullError:
             raise cmdexc.CommandError("No element focused!")
-        if not webelem.is_editable(elem, strict=True):
+        if not elem.is_editable(strict=True):
             raise cmdexc.CommandError("Focused element is not editable!")
-        if webelem.is_content_editable(elem):
-            text = elem.toPlainText()
+        if elem.is_content_editable():
+            text = str(elem)
         else:
             text = elem.evaluateJavaScript('this.value')
         self._editor = editor.ExternalEditor(self._tabs)
@@ -783,17 +784,18 @@ class CommandDispatcher:
         Callback for QProcess when the editor was closed.
 
         Args:
-            elem: The QWebElement which was modified.
+            elem: The WebElementWrapper which was modified.
             text: The new text to insert.
         """
-        if elem.isNull():
+        try:
+            if elem.is_content_editable():
+                log.misc.debug("Filling element {} via setPlainText.".format(
+                    elem.debug_text()))
+                elem.setPlainText(text)
+            else:
+                log.misc.debug("Filling element {} via javascript.".format(
+                    elem.debug_text()))
+                text = webelem.javascript_escape(text)
+                elem.evaluateJavaScript("this.value='{}'".format(text))
+        except webelem.IsNullError:
             raise cmdexc.CommandError("Element vanished while editing!")
-        if webelem.is_content_editable(elem):
-            log.misc.debug("Filling element {} via setPlainText.".format(
-                webelem.debug_text(elem)))
-            elem.setPlainText(text)
-        else:
-            log.misc.debug("Filling element {} via javascript.".format(
-                webelem.debug_text(elem)))
-            text = webelem.javascript_escape(text)
-            elem.evaluateJavaScript("this.value='{}'".format(text))

@@ -24,7 +24,6 @@
 from unittest import mock
 
 from PyQt5.QtCore import QPoint, QProcess
-from PyQt5.QtWebKit import QWebElement
 from PyQt5.QtNetwork import QNetworkRequest
 
 
@@ -76,84 +75,6 @@ class FakeKeyEvent:
         self.key = mock.Mock(return_value=key)
         self.text = mock.Mock(return_value=text)
         self.modifiers = mock.Mock(return_value=modifiers)
-
-
-class FakeWebElement:
-
-    """A stub for QWebElement."""
-
-    def __init__(self, geometry=None, frame=None, null=False, visibility='',
-                 display='', attributes=None, tagname=None, classes=None):
-        """Constructor.
-
-        Args:
-            geometry: The geometry of the QWebElement as QRect.
-            frame: The QWebFrame the element is in.
-            null: Whether the element is null or not.
-            visibility: The CSS visibility style property calue.
-            display: The CSS display style property calue.
-            attributes: Boolean HTML attributes to be added.
-            tagname: The tag name.
-            classes: HTML classes to be added.
-
-        Raise:
-            ValueError if element is not null and geometry/frame are not given.
-        """
-        self.geometry = mock.Mock(return_value=geometry)
-        self.webFrame = mock.Mock(return_value=frame)
-        self.isNull = mock.Mock(return_value=null)
-        self.tagName = mock.Mock(return_value=tagname)
-        self._visibility = visibility
-        self._display = display
-        self._attributes = attributes
-        self._classes = classes
-
-    def toOuterXml(self):
-        """Imitate toOuterXml."""
-        return '<fakeelem>'
-
-    def styleProperty(self, name, strategy):
-        """Return the CSS style property named name.
-
-        Only display/visibility and ComputedStyle are simulated.
-
-        Raise:
-            ValueError if strategy is not ComputedStyle or name is not
-                       visibility/display.
-        """
-        if strategy != QWebElement.ComputedStyle:
-            raise ValueError("styleProperty called with strategy != "
-                             "ComputedStyle ({})!".format(strategy))
-        if name == 'visibility':
-            return self._visibility
-        elif name == 'display':
-            return self._display
-        else:
-            raise ValueError("styleProperty called with unknown name "
-                             "'{}'".format(name))
-
-    def hasAttribute(self, name):
-        """Check if the element has an attribute named name."""
-        if self._attributes is None:
-            return False
-        else:
-            return name in self._attributes
-
-    def attribute(self, name):
-        """Get the attribute named name."""
-        if self._attributes is None:
-            return ''
-        try:
-            return self._attributes[name]
-        except KeyError:
-            return ''
-
-    def classes(self):
-        """Get the classes of the object."""
-        if self._classes is not None:
-            return self._classes.split(' ')
-        else:
-            return []
 
 
 class FakeWebFrame:

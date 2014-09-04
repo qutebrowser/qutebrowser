@@ -177,8 +177,9 @@ class WebView(QWebView):
             log.mouse.debug("Hitresult is null!")
             self._check_insertmode = True
             return
-        elem = hitresult.element()
-        if elem.isNull():
+        try:
+            elem = webelem.WebElementWrapper(hitresult.element())
+        except webelem.IsNullError:
             # For some reason, the hitresult element can be a null element
             # sometimes (e.g. when clicking the timetable fields on
             # http://www.sbb.ch/ ). If this is the case, we schedule a check
@@ -186,8 +187,8 @@ class WebView(QWebView):
             log.mouse.debug("Hitresult element is null!")
             self._check_insertmode = True
             return
-        elif ((hitresult.isContentEditable() and webelem.is_writable(elem)) or
-                webelem.is_editable(elem)):
+        if ((hitresult.isContentEditable() and elem.is_writable()) or
+                elem.is_editable(elem)):
             log.mouse.debug("Clicked editable element!")
             modeman.maybe_enter(usertypes.KeyMode.insert, 'click')
         else:
@@ -200,8 +201,12 @@ class WebView(QWebView):
         if not self._check_insertmode:
             return
         self._check_insertmode = False
-        elem = webelem.focus_elem(self.page().currentFrame())
-        if webelem.is_editable(elem):
+        try:
+            elem = webelem.focus_elem(self.page().currentFrame())
+        except webelem.IsNullError:
+            log.mouse.warning("Element vanished!")
+            return
+        if elem.is_editable():
             log.mouse.debug("Clicked editable element (delayed)!")
             modeman.maybe_enter(usertypes.KeyMode.insert, 'click-delayed')
         else:
@@ -353,11 +358,13 @@ class WebView(QWebView):
         if modeman.instance().mode() == usertypes.KeyMode.insert or not ok:
             return
         frame = self.page().currentFrame()
-        elem = frame.findFirstElement(':focus')
-        log.modes.debug("focus element: {}".format(elem.toOuterXml()))
-        if elem.isNull():
+        try:
+            elem = webelem.WebElementWrapper(frame.findFirstElement(':focus'))
+        except webelem.IsNullError:
             log.webview.debug("Focused element is null!")
-        elif webelem.is_editable(elem):
+            return
+        log.modes.debug("focus element: {}".format(repr(elem)))
+        if elem.is_editable():
             modeman.maybe_enter(usertypes.KeyMode.insert, 'load finished')
 
     @pyqtSlot(str)
