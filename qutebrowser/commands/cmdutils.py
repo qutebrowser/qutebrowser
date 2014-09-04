@@ -167,6 +167,9 @@ class register:  # pylint: disable=invalid-name
             if name in cmd_dict:
                 raise ValueError("{} is already registered!".format(name))
         self.parser = argparser.ArgumentParser(names[0])
+        self.parser.add_argument('-h', '--help', action=argparser.HelpAction,
+                                default=argparser.SUPPRESS, nargs=0,
+                                help="Show this help message.")
         has_count, desc, type_conv = self._inspect_func()
         cmd = command.Command(
             name=names[0], split=self.split, hide=self.hide, count=has_count,
