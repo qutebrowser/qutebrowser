@@ -453,6 +453,46 @@ class HintManager(QObject):
                 f.contentsSizeChanged.connect(self.on_contents_size_changed)
                 self._context.connected_frames.append(f)
 
+    def _check_args(self, target, args):
+        """Check the arguments passed to start() and raise if they're wrong.
+
+        Args:
+            target: A Target enum member.
+            args: Arguments for userscript/download
+        """
+        if not isinstance(target, Target):
+            raise TypeError("Target {} is no Target member!".format(target))
+        if target in (Target.userscript, Target.spawn, Target.fill):
+            if args is None:
+                raise cmdexc.CommandError(
+                    "'args' is required with target userscript/spawn/fill.")
+        else:
+            if args is not None:
+                raise cmdexc.CommandError(
+                    "'args' is only allowed with target userscript/spawn.")
+
+    def _init_elements(self, mainframe, group):
+        """Initialize the elements and labels based on the context set.
+
+        Args:
+            mainframe: The main QWebFrame.
+            group: A Group enum member (which elements to find).
+        """
+        elems = []
+        for f in self._context.frames:
+            for e in f.findAllElements(webelem.SELECTORS[group]):
+                elems.append(webelem.WebElementWrapper(e))
+        filterfunc = webelem.FILTERS.get(group, lambda e: True)
+        visible_elems = [e for e in elems if filterfunc(e) and
+                         e.is_visible(mainframe)]
+        if not visible_elems:
+            raise cmdexc.CommandError("No elements found.")
+        strings = self._hint_strings(visible_elems)
+        for e, string in zip(visible_elems, strings):
+            label = self._draw_label(e, string)
+            self._context.elems[string] = ElemTuple(e, label)
+        self.hint_strings_updated.emit(strings)
+
     def follow_prevnext(self, frame, baseurl, prev=False, newtab=False):
         """Click a "previous"/"next" element on the page.
 
@@ -486,49 +526,26 @@ class HintManager(QObject):
         Emit:
             hint_strings_updated: Emitted to update keypraser.
         """
-        if not isinstance(target, Target):
-            raise TypeError("Target {} is no Target member!".format(target))
+        self._check_args(target, args)
         if mainframe is None:
             # This should never happen since we check frame before calling
             # start. But since we had a bug where frame is None in
             # on_mode_left, we are extra careful here.
             raise ValueError("start() was called with frame=None")
-        if target in (Target.userscript, Target.spawn, Target.fill):
-            if args is None:
-                raise cmdexc.CommandError(
-                    "'args' is required with target userscript/spawn/fill.")
-        else:
-            if args is not None:
-                raise cmdexc.CommandError(
-                    "'args' is only allowed with target userscript/spawn.")
-        elems = []
-        ctx = HintContext()
-        ctx.frames = webelem.get_child_frames(mainframe)
-        for f in ctx.frames:
-            for e in f.findAllElements(webelem.SELECTORS[group]):
-                elems.append(webelem.WebElementWrapper(e))
-        filterfunc = webelem.FILTERS.get(group, lambda e: True)
-        visible_elems = [e for e in elems if filterfunc(e) and
-                         e.is_visible(mainframe)]
-        if not visible_elems:
-            raise cmdexc.CommandError("No elements found.")
-        ctx.target = target
-        ctx.baseurl = baseurl
+        self._context = HintContext()
+        self._context.target = target
+        self._context.baseurl = baseurl
+        self._context.frames = webelem.get_child_frames(mainframe)
         if args is None:
-            ctx.args = None
+            self._context.args = None
         else:
             try:
-                ctx.args = shlex.split(args)
+                self._context.args = shlex.split(args)
             except ValueError as e:
                 raise cmdexc.CommandError("Could not split args: {}".format(e))
+        self._init_elements(mainframe, group)
         message.instance().set_text(self.HINT_TEXTS[target])
-        strings = self._hint_strings(visible_elems)
-        for e, string in zip(visible_elems, strings):
-            label = self._draw_label(e, string)
-            ctx.elems[string] = ElemTuple(e, label)
-        self._context = ctx
         self._connect_frame_signals()
-        self.hint_strings_updated.emit(strings)
         try:
             modeman.enter(usertypes.KeyMode.hint, 'HintManager.start')
         except modeman.ModeLockedError:
