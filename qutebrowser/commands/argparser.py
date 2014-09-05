@@ -57,9 +57,9 @@ class ArgumentParser(argparse.ArgumentParser):
 
     """Subclass ArgumentParser to be more suitable for runtime parsing."""
 
-    def __init__(self, name):
+    def __init__(self, name, *args, **kwargs):
         self.name = name
-        super().__init__(add_help=False)
+        super().__init__(*args, add_help=False, prog=name, **kwargs)
 
     def exit(self, status=0, msg=None):
         raise ArgumentParserExit(status, msg)
