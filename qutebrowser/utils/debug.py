@@ -23,7 +23,7 @@ import re
 import sys
 import functools
 
-from PyQt5.QtCore import QEvent, QCoreApplication
+from PyQt5.QtCore import QEvent
 
 from qutebrowser.utils import log, utils
 

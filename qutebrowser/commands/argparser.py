@@ -47,6 +47,12 @@ class ArgumentParserExit(Exception):
 
 class HelpAction(argparse.Action):
 
+    """Argparse action to open the help page in the browser.
+
+    This is horrible encapsulation, but I can't think of a good way to do this
+    better...
+    """
+
     def __call__(self, parser, _namespace, _values, _option_string=None):
         QCoreApplication.instance().mainwindow.tabs.tabopen(
             QUrl('qute:help/commands.html#{}'.format(parser.name)))
