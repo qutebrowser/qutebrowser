@@ -11,6 +11,5 @@ __pycache__
 /setuptools-*.zip
 /qutebrowser/git-commit-id
 # We can probably remove these later
-*.asciidoc
 /doc/*.html
 /README.html
