@@ -47,27 +47,10 @@ def _open_file(name, mode='w'):
 
 def _get_cmd_syntax(name, cmd):
     """Get the command syntax for a command."""
-    words = []
-    argspec = inspect.getfullargspec(cmd.handler)
-    if argspec.defaults is not None:
-        defaults = dict(zip(reversed(argspec.args),
-                        reversed(list(argspec.defaults))))
-    else:
-        defaults = {}
-    words.append(name)
-    minargs, maxargs = cmd.nargs
-    i = 1
-    for arg in argspec.args:
-        if arg in ['self', 'count']:
-            continue
-        if minargs is not None and i <= minargs:
-            words.append('<{}>'.format(arg))
-        elif maxargs is None or i <= maxargs:
-            words.append('[<{}>]'.format(arg))
-        i += 1
-    if argspec.varargs is not None:
-        words.append('[<{name}> [...]]'.format(name=argspec.varargs))
-    return (' '.join(words), defaults)
+    usage = cmd.parser.format_usage()
+    if usage.startswith('usage: '):
+        usage = usage[7:]
+    return usage
 
 
 def _get_command_quickref(cmds):
@@ -105,7 +88,7 @@ def _get_command_doc(name, cmd):
     """Generate the documentation for a command."""
     output = ['[[cmd-{}]]'.format(name)]
     output += ['==== {}'.format(name)]
-    syntax, defaults = _get_cmd_syntax(name, cmd)
+    syntax = _get_cmd_syntax(name, cmd)
     if syntax != name:
         output.append('Syntax: +:{}+'.format(syntax))
     output.append("")
@@ -119,12 +102,6 @@ def _get_command_doc(name, cmd):
             text = desc.splitlines()
             firstline = text[0].replace(', or None', '')
             item = "* +{}+: {}".format(arg, firstline)
-            if arg in defaults:
-                val = defaults[arg]
-                if val is None:
-                    item += " (optional)\n"
-                else:
-                    item += " (default: +{}+)\n".format(defaults[arg])
             item += '\n'.join(text[1:])
             output.append(item)
         output.append("")
