@@ -137,6 +137,7 @@ class register:  # pylint: disable=invalid-name
         self.ignore_args = ignore_args
         self.parser = None
         self.func = None
+        self.docparser = None
         if modes is not None:
             for m in modes:
                 if not isinstance(m, usertypes.KeyMode):
@@ -166,10 +167,13 @@ class register:  # pylint: disable=invalid-name
         for name in names:
             if name in cmd_dict:
                 raise ValueError("{} is already registered!".format(name))
-        self.parser = argparser.ArgumentParser(names[0])
+        self.docparser = utils.DocstringParser(func)
+        self.parser = argparser.ArgumentParser(
+            names[0], description=self.docparser.short_desc,
+            epilog=self.docparser.long_desc)
         self.parser.add_argument('-h', '--help', action=argparser.HelpAction,
-                                default=argparser.SUPPRESS, nargs=0,
-                                help="Show this help message.")
+                                 default=argparser.SUPPRESS, nargs=0,
+                                 help=argparser.SUPPRESS)
         has_count, desc, type_conv = self._inspect_func()
         cmd = command.Command(
             name=names[0], split=self.split, hide=self.hide, count=has_count,
@@ -267,7 +271,13 @@ class register:  # pylint: disable=invalid-name
             annotation_info: An AnnotationInfo tuple for the parameter.
         """
         kwargs = {}
+
+        try:
+            kwargs['help'] = self.docparser.arg_descs[param.name]
+        except KeyError:
+            pass
         typ = self._get_type(param, annotation_info)
+
         if isinstance(typ, tuple):
             pass
         elif utils.is_enum(typ):
@@ -282,6 +292,7 @@ class register:  # pylint: disable=invalid-name
         elif typ is not bool and param.default is not inspect.Parameter.empty:
             kwargs['default'] = param.default
             kwargs['nargs'] = '?'
+
         return kwargs
 
     def _parse_annotation(self, param):

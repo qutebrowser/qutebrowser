@@ -20,7 +20,6 @@
 
 """Generate asciidoc source for qutebrowser based on docstrings."""
 
-import re
 import os
 import sys
 import html
@@ -38,81 +37,12 @@ import qutebrowser.app
 from qutebrowser import qutebrowser as qutequtebrowser
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configdata
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import utils
 
 
 def _open_file(name, mode='w'):
     """Open a file with a preset newline/encoding mode."""
     return open(name, mode, newline='\n', encoding='utf-8')
-
-
-def _parse_docstring(func):  # noqa
-    """Generate documentation based on a docstring of a command handler.
-
-    The docstring needs to follow the format described in HACKING.
-
-    Args:
-        func: The function to generate the docstring for.
-
-    Return:
-        A (short_desc, long_desc, arg_descs) tuple.
-    """
-    # pylint: disable=too-many-branches
-    State = usertypes.enum('State', 'short',  # pylint: disable=invalid-name
-                           'desc', 'desc_hidden', 'arg_start', 'arg_inside',
-                           'misc')
-    doc = inspect.getdoc(func)
-    lines = doc.splitlines()
-
-    cur_state = State.short
-
-    short_desc = []
-    long_desc = []
-    arg_descs = collections.OrderedDict()
-    cur_arg_name = None
-
-    for line in lines:
-        if cur_state == State.short:
-            if not line:
-                cur_state = State.desc
-            else:
-                short_desc.append(line.strip())
-        elif cur_state == State.desc:
-            if line.startswith('Args:'):
-                cur_state = State.arg_start
-            elif line.startswith('Emit:') or line.startswith('Raise:'):
-                cur_state = State.misc
-            elif line.strip() == '//':
-                cur_state = State.desc_hidden
-            elif line.strip():
-                long_desc.append(line.strip())
-        elif cur_state == State.misc:
-            if line.startswith('Args:'):
-                cur_state = State.arg_start
-            else:
-                pass
-        elif cur_state == State.desc_hidden:
-            if line.startswith('Args:'):
-                cur_state = State.arg_start
-        elif cur_state == State.arg_start:
-            cur_arg_name, argdesc = line.split(':', maxsplit=1)
-            cur_arg_name = cur_arg_name.strip().lstrip('*')
-            arg_descs[cur_arg_name] = [argdesc.strip()]
-            cur_state = State.arg_inside
-        elif cur_state == State.arg_inside:
-            if re.match('^[A-Z][a-z]+:$', line):
-                if not arg_descs[cur_arg_name][-1].strip():
-                    arg_descs[cur_arg_name] = arg_descs[cur_arg_name][:-1]
-                    break
-            elif not line.strip():
-                arg_descs[cur_arg_name].append('\n\n')
-            elif line[4:].startswith(' '):
-                arg_descs[cur_arg_name].append(line.strip() + '\n')
-            else:
-                cur_arg_name, argdesc = line.split(':', maxsplit=1)
-                cur_arg_name = cur_arg_name.strip().lstrip('*')
-                arg_descs[cur_arg_name] = [argdesc.strip()]
-    return (short_desc, long_desc, arg_descs)
 
 
 def _get_cmd_syntax(name, cmd):
@@ -179,14 +109,14 @@ def _get_command_doc(name, cmd):
     if syntax != name:
         output.append('Syntax: +:{}+'.format(syntax))
     output.append("")
-    short_desc, long_desc, arg_descs = _parse_docstring(cmd.handler)
-    output.append(' '.join(short_desc))
+    parser = utils.DocstringParser(cmd.handler)
+    output.append(parser.short_desc)
     output.append("")
-    output.append(' '.join(long_desc))
-    if arg_descs:
+    output.append(parser.long_desc)
+    if parser.arg_descs:
         output.append("")
-        for arg, desc in arg_descs.items():
-            text = ' '.join(desc).splitlines()
+        for arg, desc in parser.arg_descs.items():
+            text = desc.splitlines()
             firstline = text[0].replace(', or None', '')
             item = "* +{}+: {}".format(arg, firstline)
             if arg in defaults:
