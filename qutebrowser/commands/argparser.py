@@ -97,7 +97,7 @@ def multitype_conv(tpl):
 
     def _convert(value):
         """Convert a value according to an iterable of possible arg types."""
-        for typ in tpl:
+        for typ in set(tpl):
             if isinstance(typ, str):
                 if value == typ:
                     return value
