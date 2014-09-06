@@ -238,6 +238,8 @@ class register:  # pylint: disable=invalid-name
                 if utils.is_enum(typ):
                     type_conv[param.name] = argparser.enum_getter(typ)
                 elif isinstance(typ, tuple):
+                    if param.default is not inspect.Parameter.empty:
+                        typ = typ + (type(param.default),)
                     type_conv[param.name] = argparser.multitype_conv(typ)
                 callsig = debugutils.format_call(self.parser.add_argument,
                                                  args, kwargs, full=False)
