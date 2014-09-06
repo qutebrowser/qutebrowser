@@ -109,7 +109,7 @@ def multitype_conv(tpl):
                     return value
                 try:
                     return typ(value)
-                except ValueError:
+                except (TypeError, ValueError):
                     pass
         raise cmdexc.ArgumentTypeError('Invalid value {}.'.format(value))
 
