@@ -24,11 +24,14 @@ import os
 import sys
 import html
 import shutil
+import os.path
 import inspect
 import subprocess
 import collections
 import tempfile
 import argparse
+
+import colorama as col
 
 sys.path.insert(0, os.getcwd())
 
@@ -383,8 +386,32 @@ def regenerate_manpage(filename):
     _format_block(filename, 'options', options)
 
 
+def call_asciidoc(src, dst):
+    print("{}Calling asciidoc for {}...{}".format(
+        col.Fore.CYAN, os.path.basename(src), col.Fore.RESET))
+    args = ['asciidoc']
+    if dst is not None:
+        args += ['--out-file', dst]
+    args.append(src)
+    try:
+        subprocess.check_call(args)
+    except subprocess.CalledProcessError as e:
+        print(''.join([col.Fore.RED, str(e), col.Fore.RESET]))
+        sys.exit(1)
+
+
 if __name__ == '__main__':
+    print("{}Generating asciidoc files...{}".format(
+        col.Fore.CYAN, col.Fore.RESET))
     regenerate_manpage('doc/qutebrowser.1.asciidoc')
     generate_settings('doc/settings.asciidoc')
     generate_commands('doc/commands.asciidoc')
     regenerate_authors('README.asciidoc')
+    asciidoc_files = [('doc/qutebrowser.1.asciidoc', None),
+                      ('doc/settings.asciidoc',
+                       'qutebrowser/doc/settings.html'),
+                      ('doc/commands.asciidoc',
+                       'qutebrowser/doc/commands.html'),
+                      ('README.asciidoc', None)]
+    for src, dst in asciidoc_files:
+        call_asciidoc(src, dst)
