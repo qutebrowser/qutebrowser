@@ -620,7 +620,13 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def quickmark_load(self, name, tab=False, bg=False):
-        """Load a quickmark."""
+        """Load a quickmark.
+
+        Args:
+            name: The name of the quickmark to load.
+            tab: Whether to load the quickmark in a new tab.
+            bg: Whether to load the quickmark in the background.
+        """
         urlstr = quickmarks.get(name)
         url = QUrl(urlstr)
         if not url.isValid():
