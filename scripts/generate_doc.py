@@ -28,6 +28,7 @@ import inspect
 import subprocess
 import collections
 import tempfile
+import argparse
 
 sys.path.insert(0, os.getcwd())
 
@@ -40,16 +41,71 @@ from qutebrowser.config import configdata
 from qutebrowser.utils import utils
 
 
+class UsageFormatter(argparse.HelpFormatter):
+
+    """Patched HelpFormatter to include some asciidoc markup in the usage.
+
+    This does some horrible things, but the alternative would be to reimplement
+    argparse.HelpFormatter while copying 99% of the code :-/
+    """
+
+    def _format_usage(self, usage, actions, groups, _prefix):
+        """Override _format_usage to not add the 'usage:' prefix."""
+        return super()._format_usage(usage, actions, groups, '')
+
+    def _metavar_formatter(self, action, default_metavar):
+        """Override _metavar_formatter to add asciidoc markup to metavars.
+
+        Most code here is copied from Python 3.4's argparse.py.
+        """
+        if action.metavar is not None:
+            result = "'{}'".format(action.metavar)
+        elif action.choices is not None:
+            choice_strs = [str(choice) for choice in action.choices]
+            result = '{%s}' % ','.join('*{}*'.format(e) for e in choice_strs)
+        else:
+            result = "'{}'".format(default_metavar)
+
+        def fmt(tuple_size):
+            if isinstance(result, tuple):
+                return result
+            else:
+                return (result, ) * tuple_size
+        return fmt
+
+    def _format_actions_usage(self, actions, groups):
+        """Override _format_actions_usage to add asciidoc markup to flags.
+
+        Because argparse.py's _format_actions_usage is very complex, we first
+        monkey-patch the option strings to include the asciidoc markup, then
+        run the original method, then undo the patching.
+        """
+        old_option_strings = {}
+        for action in actions:
+            old_option_strings[action] = action.option_strings[:]
+            action.option_strings = ['*{}*'.format(s)
+                                     for s in action.option_strings]
+        ret = super()._format_actions_usage(actions, groups)
+        for action in actions:
+            action.option_strings = old_option_strings[action]
+        return ret
+
+
 def _open_file(name, mode='w'):
     """Open a file with a preset newline/encoding mode."""
     return open(name, mode, newline='\n', encoding='utf-8')
 
 
 def _get_cmd_syntax(name, cmd):
-    """Get the command syntax for a command."""
-    usage = cmd.parser.format_usage()
-    if usage.startswith('usage: '):
-        usage = usage[7:]
+    """Get the command syntax for a command.
+
+    We monkey-patch the parser's formatter_class here to use our UsageFormatter
+    which adds some asciidoc markup.
+    """
+    old_fmt_class = cmd.parser.formatter_class
+    cmd.parser.formatter_class = UsageFormatter
+    usage = cmd.parser.format_usage().rstrip()
+    cmd.parser.formatter_class = old_fmt_class
     return usage
 
 
@@ -61,7 +117,7 @@ def _get_command_quickref(cmds):
     out.append('|Command|Description')
     for name, cmd in cmds:
         desc = inspect.getdoc(cmd.handler).splitlines()[0]
-        out.append('|<<cmd-{},{}>>|{}'.format(name, name, desc))
+        out.append('|<<{},{}>>|{}'.format(name, name, desc))
     out.append('|==============')
     return '\n'.join(out)
 
@@ -86,16 +142,17 @@ def _get_setting_quickref():
 
 def _get_command_doc(name, cmd):
     """Generate the documentation for a command."""
-    output = ['[[cmd-{}]]'.format(name)]
+    output = ['[[{}]]'.format(name)]
     output += ['==== {}'.format(name)]
     syntax = _get_cmd_syntax(name, cmd)
     if syntax != name:
         output.append('Syntax: +:{}+'.format(syntax))
-    output.append("")
+        output.append("")
     parser = utils.DocstringParser(cmd.handler)
     output.append(parser.short_desc)
-    output.append("")
-    output.append(parser.long_desc)
+    if parser.long_desc:
+        output.append("")
+        output.append(parser.long_desc)
     if parser.arg_descs:
         output.append("")
         for arg, desc in parser.arg_descs.items():
@@ -104,7 +161,7 @@ def _get_command_doc(name, cmd):
             item = "* +{}+: {}".format(arg, firstline)
             item += '\n'.join(text[1:])
             output.append(item)
-        output.append("")
+    output.append("")
     output.append("")
     return '\n'.join(output)
 
@@ -154,80 +211,83 @@ def _format_action(action):
     return '{}\n    {}\n'.format(invocation, action.help)
 
 
-def generate_commands(f):
+def generate_commands(filename):
     """Generate the complete commands section."""
-    f.write('\n')
-    f.write("== COMMANDS\n")
-    normal_cmds = []
-    hidden_cmds = []
-    debug_cmds = []
-    for name, cmd in cmdutils.cmd_dict.items():
-        if cmd.hide:
-            hidden_cmds.append((name, cmd))
-        elif cmd.debug:
-            debug_cmds.append((name, cmd))
-        else:
-            normal_cmds.append((name, cmd))
-    normal_cmds.sort()
-    hidden_cmds.sort()
-    debug_cmds.sort()
-    f.write("\n")
-    f.write("=== Normal commands\n")
-    f.write(".Quick reference\n")
-    f.write(_get_command_quickref(normal_cmds) + "\n")
-    for name, cmd in normal_cmds:
-        f.write(_get_command_doc(name, cmd) + "\n")
-    f.write("\n")
-    f.write("=== Hidden commands\n")
-    f.write(".Quick reference\n")
-    f.write(_get_command_quickref(hidden_cmds) + "\n")
-    for name, cmd in hidden_cmds:
-        f.write(_get_command_doc(name, cmd) + "\n")
-    f.write("\n")
-    f.write("=== Debugging commands\n")
-    f.write("These commands are mainly intended for debugging. They are "
-            "hidden if qutebrowser was started without the `--debug`-flag.\n")
-    f.write("\n")
-    f.write(".Quick reference\n")
-    f.write(_get_command_quickref(debug_cmds) + "\n")
-    for name, cmd in debug_cmds:
-        f.write(_get_command_doc(name, cmd) + "\n")
-
-
-def generate_settings(f):
-    """Generate the complete settings section."""
-    f.write("\n")
-    f.write("== SETTINGS\n")
-    f.write(_get_setting_quickref() + "\n")
-    for sectname, sect in configdata.DATA.items():
+    with _open_file(filename) as f:
+        f.write('\n')
+        f.write("== COMMANDS\n")
+        normal_cmds = []
+        hidden_cmds = []
+        debug_cmds = []
+        for name, cmd in cmdutils.cmd_dict.items():
+            if cmd.hide:
+                hidden_cmds.append((name, cmd))
+            elif cmd.debug:
+                debug_cmds.append((name, cmd))
+            else:
+                normal_cmds.append((name, cmd))
+        normal_cmds.sort()
+        hidden_cmds.sort()
+        debug_cmds.sort()
         f.write("\n")
-        f.write("=== {}".format(sectname) + "\n")
-        f.write(configdata.SECTION_DESC[sectname] + "\n")
-        if not getattr(sect, 'descriptions'):
-            pass
-        else:
-            for optname, option in sect.items():
-                f.write("\n")
-                f.write('[[setting-{}-{}]]'.format(sectname, optname) + "\n")
-                f.write("==== {}".format(optname) + "\n")
-                f.write(sect.descriptions[optname] + "\n")
-                f.write("\n")
-                valid_values = option.typ.valid_values
-                if valid_values is not None:
-                    f.write("Valid values:\n")
+        f.write("=== Normal commands\n")
+        f.write(".Quick reference\n")
+        f.write(_get_command_quickref(normal_cmds) + "\n\n")
+        for name, cmd in normal_cmds:
+            f.write(_get_command_doc(name, cmd))
+        f.write("\n")
+        f.write("=== Hidden commands\n")
+        f.write(".Quick reference\n")
+        f.write(_get_command_quickref(hidden_cmds))
+        for name, cmd in hidden_cmds:
+            f.write(_get_command_doc(name, cmd))
+        f.write("\n")
+        f.write("=== Debugging commands\n")
+        f.write("These commands are mainly intended for debugging. They are "
+                "hidden if qutebrowser was started without the "
+                "`--debug`-flag.\n")
+        f.write("\n")
+        f.write(".Quick reference\n")
+        f.write(_get_command_quickref(debug_cmds))
+        for name, cmd in debug_cmds:
+            f.write(_get_command_doc(name, cmd))
+
+
+def generate_settings(filename):
+    """Generate the complete settings section."""
+    with _open_file(filename) as f:
+        f.write("\n")
+        f.write("== SETTINGS\n")
+        f.write(_get_setting_quickref() + "\n")
+        for sectname, sect in configdata.DATA.items():
+            f.write("\n")
+            f.write("=== {}".format(sectname) + "\n")
+            f.write(configdata.SECTION_DESC[sectname] + "\n")
+            if not getattr(sect, 'descriptions'):
+                pass
+            else:
+                for optname, option in sect.items():
                     f.write("\n")
-                    for val in valid_values:
-                        try:
-                            desc = valid_values.descriptions[val]
-                            f.write(" * +{}+: {}".format(val, desc) + "\n")
-                        except KeyError:
-                            f.write(" * +{}+".format(val) + "\n")
+                    f.write('[[{}-{}]]'.format(sectname, optname) + "\n")
+                    f.write("==== {}".format(optname) + "\n")
+                    f.write(sect.descriptions[optname] + "\n")
                     f.write("\n")
-                if option.default():
-                    f.write("Default: +pass:[{}]+\n".format(html.escape(
-                        option.default())))
-                else:
-                    f.write("Default: empty\n")
+                    valid_values = option.typ.valid_values
+                    if valid_values is not None:
+                        f.write("Valid values:\n")
+                        f.write("\n")
+                        for val in valid_values:
+                            try:
+                                desc = valid_values.descriptions[val]
+                                f.write(" * +{}+: {}".format(val, desc) + "\n")
+                            except KeyError:
+                                f.write(" * +{}+".format(val) + "\n")
+                        f.write("\n")
+                    if option.default():
+                        f.write("Default: +pass:[{}]+\n".format(html.escape(
+                            option.default())))
+                    else:
+                        f.write("Default: empty\n")
 
 
 def _get_authors():
@@ -312,6 +372,6 @@ def regenerate_manpage(filename):
 
 if __name__ == '__main__':
     regenerate_manpage('doc/qutebrowser.1.asciidoc')
-    #generate_settings(fobj)
-    #generate_commands(fobj)
+    generate_settings('doc/settings.asciidoc')
+    generate_commands('doc/commands.asciidoc')
     regenerate_authors('README.asciidoc')
