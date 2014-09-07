@@ -410,9 +410,9 @@ if __name__ == '__main__':
     regenerate_authors('README.asciidoc')
     asciidoc_files = [('doc/qutebrowser.1.asciidoc', None),
                       ('doc/settings.asciidoc',
-                       'qutebrowser/doc/settings.html'),
+                       'qutebrowser/html/doc/settings.html'),
                       ('doc/commands.asciidoc',
-                       'qutebrowser/doc/commands.html'),
+                       'qutebrowser/html/doc/commands.html'),
                       ('README.asciidoc', None)]
     for src, dst in asciidoc_files:
         call_asciidoc(src, dst)

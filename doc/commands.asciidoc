@@ -1,0 +1,622 @@
+= Commands
+
+== Normal commands
+.Quick reference
+[options="header",width="75%",cols="25%,75%"]
+|==============
+|Command|Description
+|<<back,back>>|Go back in the history of the current tab.
+|<<cancel-download,cancel-download>>|Cancel the first/[count]th download.
+|<<download-page,download-page>>|Download the current page.
+|<<forward,forward>>|Go forward in the history of the current tab.
+|<<get,get>>|Get the value from a section/option.
+|<<hint,hint>>|Start hinting.
+|<<home,home>>|Open main startpage in current tab.
+|<<inspector,inspector>>|Toggle the web inspector.
+|<<later,later>>|Execute a command after some time.
+|<<next-page,next-page>>|Open a "next" link.
+|<<open,open>>|Open a URL in the current/[count]th tab.
+|<<paste,paste>>|Open a page from the clipboard.
+|<<prev-page,prev-page>>|Open a "previous" link.
+|<<print,print>>|Print the current/[count]th tab.
+|<<q,q>>|Quit qutebrowser.
+|<<quickmark-add,quickmark-add>>|Add a new quickmark.
+|<<quickmark-load,quickmark-load>>|Load a quickmark.
+|<<quickmark-save,quickmark-save>>|Save the current page as a quickmark.
+|<<quit,quit>>|Quit qutebrowser.
+|<<reload,reload>>|Reload the current/[count]th tab.
+|<<report,report>>|Report a bug in qutebrowser.
+|<<restart,restart>>|Restart qutebrowser while keeping existing tabs open.
+|<<run-userscript,run-userscript>>|Run an userscript given as argument.
+|<<save,save>>|Save the config file.
+|<<set,set>>|Set an option.
+|<<set-cmd-text,set-cmd-text>>|Preset the statusbar to some text.
+|<<spawn,spawn>>|Spawn a command in a shell.
+|<<stop,stop>>|Stop loading in the current/[count]th tab.
+|<<tab-close,tab-close>>|Close the current/[count]th tab.
+|<<tab-focus,tab-focus>>|Select the tab given as argument/[count].
+|<<tab-move,tab-move>>|Move the current tab.
+|<<tab-next,tab-next>>|Switch to the next tab, or switch [count] tabs forward.
+|<<tab-only,tab-only>>|Close all tabs except for the current one.
+|<<tab-prev,tab-prev>>|Switch to the previous tab, or switch [count] tabs back.
+|<<undo,undo>>|Re-open a closed tab (optionally skipping [count] closed tabs).
+|<<yank,yank>>|Yank the current URL/title to the clipboard or primary selection.
+|<<zoom,zoom>>|Set the zoom level for the current tab.
+|<<zoom-in,zoom-in>>|Increase the zoom level for the current tab.
+|<<zoom-out,zoom-out>>|Decrease the zoom level for the current tab.
+|==============
+[[back]]
+=== back
+Go back in the history of the current tab.
+
+[[cancel-download]]
+=== cancel-download
+Cancel the first/[count]th download.
+
+[[download-page]]
+=== download-page
+Download the current page.
+
+[[forward]]
+=== forward
+Go forward in the history of the current tab.
+
+[[get]]
+=== get
+Syntax: +:get 'sectname' 'optname'+
+
+Get the value from a section/option.
+
+==== positional arguments
+* +'sectname'+: The section where the option is in.
+* +'optname'+: The name of the option.
+
+[[hint]]
+=== hint
+Syntax: +:hint ['group'] ['target'] ['args']+
+
+Start hinting.
+
+==== positional arguments
+* +'group'+: The hinting mode to use. 
+
+ - `all`: All clickable elements.
+ - `links`: Only links.
+ - `images`: Only images.
+ 
+
+
+* +'target'+: What to do with the selected element. 
+
+ - `normal`: Open the link in the current tab.
+ - `tab`: Open the link in a new tab.
+ - `tab-bg`: Open the link in a new background tab.
+ - `yank`: Yank the link to the clipboard.
+ - `yank-primary`: Yank the link to the primary selection.
+ - `fill`: Fill the commandline with the command given as
+ argument.
+ - `cmd-tab`: Fill the commandline with `:open -t` and the
+ link.
+ - `cmd-tag-bg`: Fill the commandline with `:open -b` and
+ the link.
+ - `rapid`: Open the link in a new tab and stay in hinting mode.
+ - `download`: Download the link.
+ - `userscript`: Call an userscript with `$QUTE_URL` set to the
+ link.
+ - `spawn`: Spawn a command.
+ 
+
+
+* +'args'+: Arguments for spawn/userscript/fill. 
+
+ - With `spawn`: The executable and arguments to spawn.
+ `{hint-url}` will get replaced by the selected
+ URL.
+ - With `userscript`: The userscript to execute.
+ - With `fill`: The command to fill the statusbar with.
+ `{hint-url}` will get replaced by the selected
+ URL.
+
+
+[[home]]
+=== home
+Open main startpage in current tab.
+
+[[inspector]]
+=== inspector
+Toggle the web inspector.
+
+[[later]]
+=== later
+Syntax: +:later 'ms' 'command' ['command' ...]+
+
+Execute a command after some time.
+
+==== positional arguments
+* +'ms'+: How many milliseconds to wait.
+* +'command'+: The command/args to run.
+
+[[next-page]]
+=== next-page
+Syntax: +:next-page [*--tab*]+
+
+Open a "next" link.
+
+This tries to automatically click on typical "Next Page" links using some heuristics.
+
+==== optional arguments
+* +*-t*+, +*--tab*+: Whether to open a new tab.
+
+[[open]]
+=== open
+Syntax: +:open [*--bg*] [*--tab*] 'urlstr'+
+
+Open a URL in the current/[count]th tab.
+
+==== positional arguments
+* +'urlstr'+: The URL to open, as string.
+
+==== optional arguments
+* +*-b*+, +*--bg*+: Whether to open in a background tab.
+* +*-t*+, +*--tab*+: Whether to open in a tab.
+
+[[paste]]
+=== paste
+Syntax: +:paste [*--sel*] [*--tab*]+
+
+Open a page from the clipboard.
+
+==== optional arguments
+* +*-s*+, +*--sel*+: True to use primary selection, False to use clipboard
+* +*-t*+, +*--tab*+: True to open in a new tab.
+
+[[prev-page]]
+=== prev-page
+Syntax: +:prev-page [*--tab*]+
+
+Open a "previous" link.
+
+This tries to automaticall click on typical "Previous Page" links using some heuristics.
+
+==== optional arguments
+* +*-t*+, +*--tab*+: Whether to open a new tab.
+
+[[print]]
+=== print
+Syntax: +:print [*--preview*]+
+
+Print the current/[count]th tab.
+
+==== optional arguments
+* +*-p*+, +*--preview*+: Whether to preview instead of printing.
+
+[[q]]
+=== q
+Syntax: +:quit+
+
+Quit qutebrowser.
+
+[[quickmark-add]]
+=== quickmark-add
+Syntax: +:quickmark-add 'urlstr' 'name'+
+
+Add a new quickmark.
+
+==== positional arguments
+* +'urlstr'+: The url to add as quickmark, as string.
+* +'name'+: The name for the new quickmark.
+
+[[quickmark-load]]
+=== quickmark-load
+Syntax: +:quickmark-load [*--tab*] [*--bg*] 'name'+
+
+Load a quickmark.
+
+==== positional arguments
+* +'name'+: The name of the quickmark to load.
+
+==== optional arguments
+* +*-t*+, +*--tab*+: Whether to load the quickmark in a new tab.
+* +*-b*+, +*--bg*+: Whether to load the quickmark in the background.
+
+[[quickmark-save]]
+=== quickmark-save
+Save the current page as a quickmark.
+
+[[quit]]
+=== quit
+Quit qutebrowser.
+
+[[reload]]
+=== reload
+Reload the current/[count]th tab.
+
+[[report]]
+=== report
+Report a bug in qutebrowser.
+
+[[restart]]
+=== restart
+Restart qutebrowser while keeping existing tabs open.
+
+[[run-userscript]]
+=== run-userscript
+Syntax: +:run-userscript 'cmd' ['args' ['args' ...]]+
+
+Run an userscript given as argument.
+
+==== positional arguments
+* +'cmd'+: The userscript to run.
+* +'args'+: Arguments to pass to the userscript.
+
+[[save]]
+=== save
+Save the config file.
+
+[[set]]
+=== set
+Syntax: +:set [*--temp*] 'sectname' 'optname' 'value'+
+
+Set an option.
+
+==== positional arguments
+* +'sectname'+: The section where the option is in.
+* +'optname'+: The name of the option.
+* +'value'+: The value to set.
+
+==== optional arguments
+* +*-t*+, +*--temp*+: Set value temporarely.
+
+[[set-cmd-text]]
+=== set-cmd-text
+Syntax: +:set-cmd-text 'text'+
+
+Preset the statusbar to some text.
+
+==== positional arguments
+* +'text'+: The commandline to set.
+
+[[spawn]]
+=== spawn
+Syntax: +:spawn ['args' ['args' ...]]+
+
+Spawn a command in a shell.
+
+Note the {url} variable which gets replaced by the current URL might be useful here.
+
+==== positional arguments
+* +'args'+: The commandline to execute.
+
+[[stop]]
+=== stop
+Stop loading in the current/[count]th tab.
+
+[[tab-close]]
+=== tab-close
+Close the current/[count]th tab.
+
+[[tab-focus]]
+=== tab-focus
+Syntax: +:tab-focus ['index']+
+
+Select the tab given as argument/[count].
+
+==== positional arguments
+* +'index'+: The tab index to focus, starting with 1. The special value `last` focuses the last focused tab.
+
+
+[[tab-move]]
+=== tab-move
+Syntax: +:tab-move ['direction']+
+
+Move the current tab.
+
+==== positional arguments
+* +'direction'+: + or - for relative moving, none for absolute.
+
+[[tab-next]]
+=== tab-next
+Switch to the next tab, or switch [count] tabs forward.
+
+[[tab-only]]
+=== tab-only
+Close all tabs except for the current one.
+
+[[tab-prev]]
+=== tab-prev
+Switch to the previous tab, or switch [count] tabs back.
+
+[[undo]]
+=== undo
+Re-open a closed tab (optionally skipping [count] closed tabs).
+
+[[yank]]
+=== yank
+Syntax: +:yank [*--title*] [*--sel*]+
+
+Yank the current URL/title to the clipboard or primary selection.
+
+==== optional arguments
+* +*-t*+, +*--title*+: Whether to yank the title instead of the URL.
+* +*-s*+, +*--sel*+: True to use primary selection, False to use clipboard
+
+[[zoom]]
+=== zoom
+Syntax: +:zoom ['zoom']+
+
+Set the zoom level for the current tab.
+
+The zoom can be given as argument or as [count]. If neither of both is given, the zoom is set to 100%.
+
+==== positional arguments
+* +'zoom'+: The zoom percentage to set.
+
+[[zoom-in]]
+=== zoom-in
+Increase the zoom level for the current tab.
+
+[[zoom-out]]
+=== zoom-out
+Decrease the zoom level for the current tab.
+
+
+== Hidden commands
+.Quick reference
+[options="header",width="75%",cols="25%,75%"]
+|==============
+|Command|Description
+|<<command-accept,command-accept>>|Execute the command currently in the commandline.
+|<<command-history-next,command-history-next>>|Go forward in the commandline history.
+|<<command-history-prev,command-history-prev>>|Go back in the commandline history.
+|<<completion-item-next,completion-item-next>>|Select the next completion item.
+|<<completion-item-prev,completion-item-prev>>|Select the previous completion item.
+|<<enter-mode,enter-mode>>|Enter a key mode.
+|<<follow-hint,follow-hint>>|Follow the currently selected hint.
+|<<leave-mode,leave-mode>>|Leave the mode we're currently in.
+|<<open-editor,open-editor>>|Open an external editor with the currently selected form field.
+|<<prompt-accept,prompt-accept>>|Accept the current prompt.
+|<<prompt-no,prompt-no>>|Answer no to a yes/no prompt.
+|<<prompt-yes,prompt-yes>>|Answer yes to a yes/no prompt.
+|<<rl-backward-char,rl-backward-char>>|Move back a character.
+|<<rl-backward-delete-char,rl-backward-delete-char>>|Delete the character before the cursor.
+|<<rl-backward-word,rl-backward-word>>|Move back to the start of the current or previous word.
+|<<rl-beginning-of-line,rl-beginning-of-line>>|Move to the start of the line.
+|<<rl-delete-char,rl-delete-char>>|Delete the character after the cursor.
+|<<rl-end-of-line,rl-end-of-line>>|Move to the end of the line.
+|<<rl-forward-char,rl-forward-char>>|Move forward a character.
+|<<rl-forward-word,rl-forward-word>>|Move forward to the end of the next word.
+|<<rl-kill-line,rl-kill-line>>|Remove chars from the cursor to the end of the line.
+|<<rl-kill-word,rl-kill-word>>|Remove chars from the cursor to the end of the current word.
+|<<rl-unix-line-discard,rl-unix-line-discard>>|Remove chars backward from the cursor to the beginning of the line.
+|<<rl-unix-word-rubout,rl-unix-word-rubout>>|Remove chars from the cursor to the beginning of the word.
+|<<rl-yank,rl-yank>>|Paste the most recently deleted text.
+|<<scroll,scroll>>|Scroll the current tab by 'count * dx/dy'.
+|<<scroll-page,scroll-page>>|Scroll the frame page-wise.
+|<<scroll-perc,scroll-perc>>|Scroll to a specific percentage of the page.
+|<<search-next,search-next>>|Continue the search to the ([count]th) next term.
+|<<search-prev,search-prev>>|Continue the search to the ([count]th) previous term.
+|==============
+[[command-accept]]
+=== command-accept
+Execute the command currently in the commandline.
+
+[[command-history-next]]
+=== command-history-next
+Go forward in the commandline history.
+
+[[command-history-prev]]
+=== command-history-prev
+Go back in the commandline history.
+
+[[completion-item-next]]
+=== completion-item-next
+Select the next completion item.
+
+[[completion-item-prev]]
+=== completion-item-prev
+Select the previous completion item.
+
+[[enter-mode]]
+=== enter-mode
+Syntax: +:enter-mode 'mode'+
+
+Enter a key mode.
+
+==== positional arguments
+* +'mode'+: The mode to enter.
+
+[[follow-hint]]
+=== follow-hint
+Follow the currently selected hint.
+
+[[leave-mode]]
+=== leave-mode
+Leave the mode we're currently in.
+
+[[open-editor]]
+=== open-editor
+Open an external editor with the currently selected form field.
+
+The editor which should be launched can be configured via the `general -> editor` config option.
+
+[[prompt-accept]]
+=== prompt-accept
+Accept the current prompt.
+
+[[prompt-no]]
+=== prompt-no
+Answer no to a yes/no prompt.
+
+[[prompt-yes]]
+=== prompt-yes
+Answer yes to a yes/no prompt.
+
+[[rl-backward-char]]
+=== rl-backward-char
+Move back a character.
+
+This acts like readline's backward-char.
+
+[[rl-backward-delete-char]]
+=== rl-backward-delete-char
+Delete the character before the cursor.
+
+This acts like readline's backward-delete-char.
+
+[[rl-backward-word]]
+=== rl-backward-word
+Move back to the start of the current or previous word.
+
+This acts like readline's backward-word.
+
+[[rl-beginning-of-line]]
+=== rl-beginning-of-line
+Move to the start of the line.
+
+This acts like readline's beginning-of-line.
+
+[[rl-delete-char]]
+=== rl-delete-char
+Delete the character after the cursor.
+
+This acts like readline's delete-char.
+
+[[rl-end-of-line]]
+=== rl-end-of-line
+Move to the end of the line.
+
+This acts like readline's end-of-line.
+
+[[rl-forward-char]]
+=== rl-forward-char
+Move forward a character.
+
+This acts like readline's forward-char.
+
+[[rl-forward-word]]
+=== rl-forward-word
+Move forward to the end of the next word.
+
+This acts like readline's forward-word.
+
+[[rl-kill-line]]
+=== rl-kill-line
+Remove chars from the cursor to the end of the line.
+
+This acts like readline's kill-line.
+
+[[rl-kill-word]]
+=== rl-kill-word
+Remove chars from the cursor to the end of the current word.
+
+This acts like readline's kill-word.
+
+[[rl-unix-line-discard]]
+=== rl-unix-line-discard
+Remove chars backward from the cursor to the beginning of the line.
+
+This acts like readline's unix-line-discard.
+
+[[rl-unix-word-rubout]]
+=== rl-unix-word-rubout
+Remove chars from the cursor to the beginning of the word.
+
+This acts like readline's unix-word-rubout.
+
+[[rl-yank]]
+=== rl-yank
+Paste the most recently deleted text.
+
+This acts like readline's yank.
+
+[[scroll]]
+=== scroll
+Syntax: +:scroll 'dx' 'dy'+
+
+Scroll the current tab by 'count * dx/dy'.
+
+==== positional arguments
+* +'dx'+: How much to scroll in x-direction.
+* +'dy'+: How much to scroll in x-direction.
+
+[[scroll-page]]
+=== scroll-page
+Syntax: +:scroll-page 'x' 'y'+
+
+Scroll the frame page-wise.
+
+==== positional arguments
+* +'x'+: How many pages to scroll to the right.
+* +'y'+: How many pages to scroll down.
+
+[[scroll-perc]]
+=== scroll-perc
+Syntax: +:scroll-perc [*--horizontal*] ['perc']+
+
+Scroll to a specific percentage of the page.
+
+The percentage can be given either as argument or as count. If no percentage is given, the page is scrolled to the end.
+
+==== positional arguments
+* +'perc'+: Percentage to scroll.
+
+==== optional arguments
+* +*-x*+, +*--horizontal*+: Whether to scroll horizontally.
+
+[[search-next]]
+=== search-next
+Continue the search to the ([count]th) next term.
+
+[[search-prev]]
+=== search-prev
+Continue the search to the ([count]th) previous term.
+
+
+== Debugging commands
+These commands are mainly intended for debugging. They are hidden if qutebrowser was started without the `--debug`-flag.
+
+.Quick reference
+[options="header",width="75%",cols="25%,75%"]
+|==============
+|Command|Description
+|<<debug-all-objects,debug-all-objects>>|Print a list of  all objects to the debug log.
+|<<debug-all-widgets,debug-all-widgets>>|Print a list of all widgets to debug log.
+|<<debug-cache-stats,debug-cache-stats>>|Print LRU cache stats.
+|<<debug-console,debug-console>>|Show the debugging console.
+|<<debug-crash,debug-crash>>|Crash for debugging purposes.
+|<<debug-pyeval,debug-pyeval>>|Evaluate a python string and display the results as a webpage.
+|==============
+[[debug-all-objects]]
+=== debug-all-objects
+Print a list of  all objects to the debug log.
+
+[[debug-all-widgets]]
+=== debug-all-widgets
+Print a list of all widgets to debug log.
+
+[[debug-cache-stats]]
+=== debug-cache-stats
+Print LRU cache stats.
+
+[[debug-console]]
+=== debug-console
+Show the debugging console.
+
+[[debug-crash]]
+=== debug-crash
+Syntax: +:debug-crash ['typ']+
+
+Crash for debugging purposes.
+
+==== positional arguments
+* +'typ'+: either 'exception' or 'segfault'.
+
+[[debug-pyeval]]
+=== debug-pyeval
+Syntax: +:debug-pyeval 's'+
+
+Evaluate a python string and display the results as a webpage.
+
+==== positional arguments
+* +'s'+: The string to evaluate.
+

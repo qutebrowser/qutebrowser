@@ -1,0 +1,1255 @@
+= Settings
+
+.Quick reference for section ``general''
+[options="header",width="75%",cols="25%,75%"]
+|==============
+|Setting|Description
+|<<setting-general-ignore-case,ignore-case>>|Whether to find text on a page case-insensitively.
+|<<setting-general-wrap-search,wrap-search>>|Whether to wrap finding text to the top when arriving at the end.
+|<<setting-general-startpage,startpage>>|The default page(s) to open at the start, separated by commas.
+|<<setting-general-auto-search,auto-search>>|Whether to start a search when something else than a URL is entered.
+|<<setting-general-auto-save-config,auto-save-config>>|Whether to save the config automatically on quit.
+|<<setting-general-editor,editor>>|The editor (and arguments) to use for the `open-editor` command.
+|<<setting-general-editor-encoding,editor-encoding>>|Encoding to use for editor.
+|<<setting-general-private-browsing,private-browsing>>|Do not record visited pages in the history or store web page icons.
+|<<setting-general-developer-extras,developer-extras>>|Enable extra tools for Web developers.
+|<<setting-general-print-element-backgrounds,print-element-backgrounds>>|Whether the background color and images are also drawn when the page is printed.
+|<<setting-general-xss-auditing,xss-auditing>>|Whether load requests should be monitored for cross-site scripting attempts.
+|<<setting-general-site-specific-quirks,site-specific-quirks>>|Enable workarounds for broken sites.
+|<<setting-general-default-encoding,default-encoding>>|Default encoding to use for websites.
+|==============
+
+.Quick reference for section ``ui''
+[options="header",width="75%",cols="25%,75%"]
+|==============
+|Setting|Description
+|<<setting-ui-zoom-levels,zoom-levels>>|The available zoom levels, separated by commas.
+|<<setting-ui-default-zoom,default-zoom>>|The default zoom level.
+|<<setting-ui-message-timeout,message-timeout>>|Time (in ms) to show messages in the statusbar for.
+|<<setting-ui-confirm-quit,confirm-quit>>|Whether to confirm quitting the application.
+|<<setting-ui-display-statusbar-messages,display-statusbar-messages>>|Whether to display javascript statusbar messages.
+|<<setting-ui-zoom-text-only,zoom-text-only>>|Whether the zoom factor on a frame applies only to the text or to all content.
+|<<setting-ui-frame-flattening,frame-flattening>>|Whether to  expand each subframe to its contents.
+|<<setting-ui-user-stylesheet,user-stylesheet>>|User stylesheet to use.
+|<<setting-ui-css-media-type,css-media-type>>|Set the CSS media type.
+|==============
+
+.Quick reference for section ``network''
+[options="header",width="75%",cols="25%,75%"]
+|==============
+|Setting|Description
+|<<setting-network-do-not-track,do-not-track>>|Value to send in the `DNT` header.
+|<<setting-network-accept-language,accept-language>>|Value to send in the `accept-language` header.
+|<<setting-network-user-agent,user-agent>>|User agent to send. Empty to send the default.
+|<<setting-network-proxy,proxy>>|The proxy to use.
+|<<setting-network-ssl-strict,ssl-strict>>|Whether to validate SSL handshakes.
+|<<setting-network-dns-prefetch,dns-prefetch>>|Whether to try to pre-fetch DNS entries to speed up browsing.
+|==============
+
+.Quick reference for section ``completion''
+[options="header",width="75%",cols="25%,75%"]
+|==============
+|Setting|Description
+|<<setting-completion-show,show>>|Whether to show the autocompletion window.
+|<<setting-completion-height,height>>|The height of the completion, in px or as percentage of the window.
+|<<setting-completion-history-length,history-length>>|How many commands to save in the history.
+|<<setting-completion-quick-complete,quick-complete>>|Whether to move on to the next part when there's only one possible completion left.
+|<<setting-completion-shrink,shrink>>|Whether to shrink the completion to be smaller than the configured size if there are no scrollbars.
+|==============
+
+.Quick reference for section ``input''
+[options="header",width="75%",cols="25%,75%"]
+|==============
+|Setting|Description
+|<<setting-input-timeout,timeout>>|Timeout for ambiguous keybindings.
+|<<setting-input-insert-mode-on-plugins,insert-mode-on-plugins>>|Whether to switch to insert mode when clicking flash and other plugins.
+|<<setting-input-auto-leave-insert-mode,auto-leave-insert-mode>>|Whether to leave insert mode if a non-editable element is clicked.
+|<<setting-input-auto-insert-mode,auto-insert-mode>>|Whether to automatically enter insert mode if an editable element is focused after page load.
+|<<setting-input-forward-unbound-keys,forward-unbound-keys>>|Whether to forward unbound keys to the webview in normal mode.
+|<<setting-input-spatial-navigation,spatial-navigation>>|Enables or disables the Spatial Navigation feature
+|<<setting-input-links-included-in-focus-chain,links-included-in-focus-chain>>|Whether hyperlinks should be included in the keyboard focus chain.
+|==============
+
+.Quick reference for section ``tabs''
+[options="header",width="75%",cols="25%,75%"]
+|==============
+|Setting|Description
+|<<setting-tabs-background-tabs,background-tabs>>|Whether to open new tabs (middleclick/ctrl+click) in background.
+|<<setting-tabs-select-on-remove,select-on-remove>>|Which tab to select when the focused tab is removed.
+|<<setting-tabs-new-tab-position,new-tab-position>>|How new tabs are positioned.
+|<<setting-tabs-new-tab-position-explicit,new-tab-position-explicit>>|How new tabs opened explicitely are positioned.
+|<<setting-tabs-last-close,last-close>>|Behaviour when the last tab is closed.
+|<<setting-tabs-wrap,wrap>>|Whether to wrap when changing tabs.
+|<<setting-tabs-movable,movable>>|Whether tabs should be movable.
+|<<setting-tabs-close-mouse-button,close-mouse-button>>|On which mouse button to close tabs.
+|<<setting-tabs-position,position>>|The position of the tab bar.
+|<<setting-tabs-show-favicons,show-favicons>>|Whether to show favicons in the tab bar.
+|<<setting-tabs-width,width>>|The width of the tab bar if it's vertical, in px or as percentage of the window.
+|<<setting-tabs-indicator-width,indicator-width>>|Width of the progress indicator (0 to disable).
+|<<setting-tabs-indicator-space,indicator-space>>|Spacing between tab edge and indicator.
+|==============
+
+.Quick reference for section ``storage''
+[options="header",width="75%",cols="25%,75%"]
+|==============
+|Setting|Description
+|<<setting-storage-download-directory,download-directory>>|The directory to save downloads to. An empty value selects a sensible os-specific default.
+|<<setting-storage-maximum-pages-in-cache,maximum-pages-in-cache>>|The maximum number of pages to hold in the memory page cache.
+|<<setting-storage-object-cache-capacities,object-cache-capacities>>|The capacities for the memory cache for dead objects such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, cacheMaxDead, totalCapacity.
+|<<setting-storage-offline-storage-default-quota,offline-storage-default-quota>>|Default quota for new offline storage databases.
+|<<setting-storage-offline-web-application-cache-quota,offline-web-application-cache-quota>>|Quota for the offline web application cache.
+|<<setting-storage-offline-storage-database,offline-storage-database>>|Whether support for the HTML 5 offline storage feature is enabled.
+|<<setting-storage-offline-web-application-storage,offline-web-application-storage>>|Whether support for the HTML 5 web application cache feature is enabled.
+|<<setting-storage-local-storage,local-storage>>|Whether support for the HTML 5 local storage feature is enabled.
+|<<setting-storage-cache-size,cache-size>>|Size of the HTTP network cache.
+|==============
+
+.Quick reference for section ``permissions''
+[options="header",width="75%",cols="25%,75%"]
+|==============
+|Setting|Description
+|<<setting-permissions-allow-images,allow-images>>|Whether images are automatically loaded in web pages.
+|<<setting-permissions-allow-javascript,allow-javascript>>|Enables or disables the running of JavaScript programs.
+|<<setting-permissions-allow-plugins,allow-plugins>>|Enables or disables plugins in Web pages.
+|<<setting-permissions-javascript-can-open-windows,javascript-can-open-windows>>|Whether JavaScript programs can open new windows.
+|<<setting-permissions-javascript-can-close-windows,javascript-can-close-windows>>|Whether JavaScript programs can close windows.
+|<<setting-permissions-javascript-can-access-clipboard,javascript-can-access-clipboard>>|Whether JavaScript programs can read or write to the clipboard.
+|<<setting-permissions-local-content-can-access-remote-urls,local-content-can-access-remote-urls>>|Whether locally loaded documents are allowed to access remote urls.
+|<<setting-permissions-local-content-can-access-file-urls,local-content-can-access-file-urls>>|Whether locally loaded documents are allowed to access other local urls.
+|<<setting-permissions-cookies-accept,cookies-accept>>|Whether to accept cookies.
+|<<setting-permissions-cookies-store,cookies-store>>|Whether to store cookies.
+|==============
+
+.Quick reference for section ``hints''
+[options="header",width="75%",cols="25%,75%"]
+|==============
+|Setting|Description
+|<<setting-hints-border,border>>|CSS border value for hints.
+|<<setting-hints-opacity,opacity>>|Opacity for hints.
+|<<setting-hints-mode,mode>>|Mode to use for hints.
+|<<setting-hints-chars,chars>>|Chars used for hint strings.
+|<<setting-hints-auto-follow,auto-follow>>|Whether to auto-follow a hint if there's only one left.
+|<<setting-hints-next-regexes,next-regexes>>|A comma-separated list of regexes to use for 'next' links.
+|<<setting-hints-prev-regexes,prev-regexes>>|A comma-separated list of regexes to use for 'prev' links.
+|==============
+
+.Quick reference for section ``colors''
+[options="header",width="75%",cols="25%,75%"]
+|==============
+|Setting|Description
+|<<setting-colors-completion.fg,completion.fg>>|Text color of the completion widget.
+|<<setting-colors-completion.bg,completion.bg>>|Background color of the completion widget.
+|<<setting-colors-completion.item.bg,completion.item.bg>>|Background color of completion widget items.
+|<<setting-colors-completion.category.fg,completion.category.fg>>|Foreground color of completion widget category headers.
+|<<setting-colors-completion.category.bg,completion.category.bg>>|Background color of the completion widget category headers.
+|<<setting-colors-completion.category.border.top,completion.category.border.top>>|Top border color of the completion widget category headers.
+|<<setting-colors-completion.category.border.bottom,completion.category.border.bottom>>|Bottom border color of the completion widget category headers.
+|<<setting-colors-completion.item.selected.fg,completion.item.selected.fg>>|Foreground color of the selected completion item.
+|<<setting-colors-completion.item.selected.bg,completion.item.selected.bg>>|Background color of the selected completion item.
+|<<setting-colors-completion.item.selected.border.top,completion.item.selected.border.top>>|Top border color of the completion widget category headers.
+|<<setting-colors-completion.item.selected.border.bottom,completion.item.selected.border.bottom>>|Bottom border color of the selected completion item.
+|<<setting-colors-completion.match.fg,completion.match.fg>>|Foreground color of the matched text in the completion.
+|<<setting-colors-statusbar.bg,statusbar.bg>>|Foreground color of the statusbar.
+|<<setting-colors-statusbar.fg,statusbar.fg>>|Foreground color of the statusbar.
+|<<setting-colors-statusbar.bg.error,statusbar.bg.error>>|Background color of the statusbar if there was an error.
+|<<setting-colors-statusbar.bg.prompt,statusbar.bg.prompt>>|Background color of the statusbar if there is a prompt.
+|<<setting-colors-statusbar.bg.insert,statusbar.bg.insert>>|Background color of the statusbar in insert mode.
+|<<setting-colors-statusbar.progress.bg,statusbar.progress.bg>>|Background color of the progress bar.
+|<<setting-colors-statusbar.url.fg,statusbar.url.fg>>|Default foreground color of the URL in the statusbar.
+|<<setting-colors-statusbar.url.fg.success,statusbar.url.fg.success>>|Foreground color of the URL in the statusbar on successful load.
+|<<setting-colors-statusbar.url.fg.error,statusbar.url.fg.error>>|Foreground color of the URL in the statusbar on error.
+|<<setting-colors-statusbar.url.fg.warn,statusbar.url.fg.warn>>|Foreground color of the URL in the statusbar when there's a warning.
+|<<setting-colors-statusbar.url.fg.hover,statusbar.url.fg.hover>>|Foreground color of the URL in the statusbar for hovered links.
+|<<setting-colors-tab.fg,tab.fg>>|Foreground color of tabs.
+|<<setting-colors-tab.bg.odd,tab.bg.odd>>|Background color of unselected odd tabs.
+|<<setting-colors-tab.bg.even,tab.bg.even>>|Background color of unselected even tabs.
+|<<setting-colors-tab.bg.selected,tab.bg.selected>>|Background color of selected tabs.
+|<<setting-colors-tab.bg.bar,tab.bg.bar>>|Background color of the tabbar.
+|<<setting-colors-tab.indicator.start,tab.indicator.start>>|Color gradient start for the tab indicator.
+|<<setting-colors-tab.indicator.stop,tab.indicator.stop>>|Color gradient end for the tab indicator.
+|<<setting-colors-tab.indicator.error,tab.indicator.error>>|Color for the tab indicator on errors..
+|<<setting-colors-tab.indicator.system,tab.indicator.system>>|Color gradient interpolation system for the tab indicator.
+|<<setting-colors-tab.seperator,tab.seperator>>|Color for the tab seperator.
+|<<setting-colors-hints.fg,hints.fg>>|Font color for hints.
+|<<setting-colors-hints.fg.match,hints.fg.match>>|Font color for the matched part of hints.
+|<<setting-colors-hints.bg,hints.bg>>|Background color for hints.
+|<<setting-colors-downloads.fg,downloads.fg>>|Foreground color for downloads.
+|<<setting-colors-downloads.bg.bar,downloads.bg.bar>>|Background color for the download bar.
+|<<setting-colors-downloads.bg.start,downloads.bg.start>>|Color gradient start for downloads.
+|<<setting-colors-downloads.bg.stop,downloads.bg.stop>>|Color gradient end for downloads.
+|<<setting-colors-downloads.bg.system,downloads.bg.system>>|Color gradient interpolation system for downloads.
+|==============
+
+.Quick reference for section ``fonts''
+[options="header",width="75%",cols="25%,75%"]
+|==============
+|Setting|Description
+|<<setting-fonts-_monospace,_monospace>>|Default monospace fonts.
+|<<setting-fonts-completion,completion>>|Font used in the completion widget.
+|<<setting-fonts-tabbar,tabbar>>|Font used in the tabbar.
+|<<setting-fonts-statusbar,statusbar>>|Font used in the statusbar.
+|<<setting-fonts-downloads,downloads>>|Font used for the downloadbar.
+|<<setting-fonts-hints,hints>>|Font used for the hints.
+|<<setting-fonts-debug-console,debug-console>>|Font used for the debugging console.
+|<<setting-fonts-web-family-standard,web-family-standard>>|Font family for standard fonts.
+|<<setting-fonts-web-family-fixed,web-family-fixed>>|Font family for fixed fonts.
+|<<setting-fonts-web-family-serif,web-family-serif>>|Font family for serif fonts.
+|<<setting-fonts-web-family-sans-serif,web-family-sans-serif>>|Font family for sans-serif fonts.
+|<<setting-fonts-web-family-cursive,web-family-cursive>>|Font family for cursive fonts.
+|<<setting-fonts-web-family-fantasy,web-family-fantasy>>|Font family for fantasy fonts.
+|<<setting-fonts-web-size-minimum,web-size-minimum>>|The hard minimum font size.
+|<<setting-fonts-web-size-minimum-logical,web-size-minimum-logical>>|The minimum logical font size that is applied when zooming out.
+|<<setting-fonts-web-size-default,web-size-default>>|The default font size for regular text.
+|<<setting-fonts-web-size-default-fixed,web-size-default-fixed>>|The default font size for fixed-pitch text.
+|==============
+
+== general
+General/miscellaneous options.
+
+[[general-ignore-case]]
+=== ignore-case
+Whether to find text on a page case-insensitively.
+
+Default: +pass:[smart]+
+
+[[general-wrap-search]]
+=== wrap-search
+Whether to wrap finding text to the top when arriving at the end.
+
+Default: +pass:[true]+
+
+[[general-startpage]]
+=== startpage
+The default page(s) to open at the start, separated by commas.
+
+Default: +pass:[http://www.duckduckgo.com]+
+
+[[general-auto-search]]
+=== auto-search
+Whether to start a search when something else than a URL is entered.
+
+Valid values:
+
+ * +naive+: Use simple/naive check.
+ * +dns+: Use DNS requests (might be slow!).
+ * +false+: Never search automatically.
+
+Default: +pass:[naive]+
+
+[[general-auto-save-config]]
+=== auto-save-config
+Whether to save the config automatically on quit.
+
+Default: +pass:[true]+
+
+[[general-editor]]
+=== editor
+The editor (and arguments) to use for the `open-editor` command.
+
+Use `{}` for the filename. The value gets split like in a shell, so you can use `"` or `'` to quote arguments.
+
+Default: +pass:[gvim -f &quot;{}&quot;]+
+
+[[general-editor-encoding]]
+=== editor-encoding
+Encoding to use for editor.
+
+Default: +pass:[utf-8]+
+
+[[general-private-browsing]]
+=== private-browsing
+Do not record visited pages in the history or store web page icons.
+
+Default: +pass:[false]+
+
+[[general-developer-extras]]
+=== developer-extras
+Enable extra tools for Web developers.
+
+This needs to be enabled for `:inspector` to work and also adds an _Inspect_ entry to the context menu.
+
+Default: +pass:[false]+
+
+[[general-print-element-backgrounds]]
+=== print-element-backgrounds
+Whether the background color and images are also drawn when the page is printed.
+
+Default: +pass:[true]+
+
+[[general-xss-auditing]]
+=== xss-auditing
+Whether load requests should be monitored for cross-site scripting attempts.
+
+Suspicious scripts will be blocked and reported in the inspector's JavaScript console. Enabling this feature might have an impact on performance.
+
+Default: +pass:[false]+
+
+[[general-site-specific-quirks]]
+=== site-specific-quirks
+Enable workarounds for broken sites.
+
+Default: +pass:[true]+
+
+[[general-default-encoding]]
+=== default-encoding
+Default encoding to use for websites.
+
+The encoding must be a string describing an encoding such as _utf-8_, _iso-8859-1_, etc. If left empty a default value will be used.
+
+Default: empty
+
+== ui
+General options related to the user interface.
+
+[[ui-zoom-levels]]
+=== zoom-levels
+The available zoom levels, separated by commas.
+
+Default: +pass:[25%,33%,50%,67%,75%,90%,100%,110%,125%,150%,175%,200%,250%,300%,400%,500%]+
+
+[[ui-default-zoom]]
+=== default-zoom
+The default zoom level.
+
+Default: +pass:[100%]+
+
+[[ui-message-timeout]]
+=== message-timeout
+Time (in ms) to show messages in the statusbar for.
+
+Default: +pass:[2000]+
+
+[[ui-confirm-quit]]
+=== confirm-quit
+Whether to confirm quitting the application.
+
+Valid values:
+
+ * +always+: Always show a confirmation.
+ * +multiple-tabs+: Show a confirmation if multiple tabs are opened.
+ * +never+: Never show a confirmation.
+
+Default: +pass:[never]+
+
+[[ui-display-statusbar-messages]]
+=== display-statusbar-messages
+Whether to display javascript statusbar messages.
+
+Default: +pass:[false]+
+
+[[ui-zoom-text-only]]
+=== zoom-text-only
+Whether the zoom factor on a frame applies only to the text or to all content.
+
+Default: +pass:[false]+
+
+[[ui-frame-flattening]]
+=== frame-flattening
+Whether to  expand each subframe to its contents.
+
+This will flatten all the frames to become one scrollable page.
+
+Default: +pass:[false]+
+
+[[ui-user-stylesheet]]
+=== user-stylesheet
+User stylesheet to use.
+
+Default: empty
+
+[[ui-css-media-type]]
+=== css-media-type
+Set the CSS media type.
+
+Default: empty
+
+== network
+Settings related to the network.
+
+[[network-do-not-track]]
+=== do-not-track
+Value to send in the `DNT` header.
+
+Default: +pass:[true]+
+
+[[network-accept-language]]
+=== accept-language
+Value to send in the `accept-language` header.
+
+Default: +pass:[en-US,en]+
+
+[[network-user-agent]]
+=== user-agent
+User agent to send. Empty to send the default.
+
+Default: empty
+
+[[network-proxy]]
+=== proxy
+The proxy to use.
+
+In addition to the listed values, you can use a `socks://...` or `http://...` URL.
+
+Valid values:
+
+ * +system+: Use the system wide proxy.
+ * +none+: Don't use any proxy
+
+Default: +pass:[system]+
+
+[[network-ssl-strict]]
+=== ssl-strict
+Whether to validate SSL handshakes.
+
+Default: +pass:[true]+
+
+[[network-dns-prefetch]]
+=== dns-prefetch
+Whether to try to pre-fetch DNS entries to speed up browsing.
+
+Default: +pass:[true]+
+
+== completion
+Options related to completion and command history.
+
+[[completion-show]]
+=== show
+Whether to show the autocompletion window.
+
+Default: +pass:[true]+
+
+[[completion-height]]
+=== height
+The height of the completion, in px or as percentage of the window.
+
+Default: +pass:[50%]+
+
+[[completion-history-length]]
+=== history-length
+How many commands to save in the history.
+
+0: no history / -1: unlimited
+
+Default: +pass:[100]+
+
+[[completion-quick-complete]]
+=== quick-complete
+Whether to move on to the next part when there's only one possible completion left.
+
+Default: +pass:[true]+
+
+[[completion-shrink]]
+=== shrink
+Whether to shrink the completion to be smaller than the configured size if there are no scrollbars.
+
+Default: +pass:[false]+
+
+== input
+Options related to input modes.
+
+[[input-timeout]]
+=== timeout
+Timeout for ambiguous keybindings.
+
+Default: +pass:[500]+
+
+[[input-insert-mode-on-plugins]]
+=== insert-mode-on-plugins
+Whether to switch to insert mode when clicking flash and other plugins.
+
+Default: +pass:[false]+
+
+[[input-auto-leave-insert-mode]]
+=== auto-leave-insert-mode
+Whether to leave insert mode if a non-editable element is clicked.
+
+Default: +pass:[true]+
+
+[[input-auto-insert-mode]]
+=== auto-insert-mode
+Whether to automatically enter insert mode if an editable element is focused after page load.
+
+Default: +pass:[false]+
+
+[[input-forward-unbound-keys]]
+=== forward-unbound-keys
+Whether to forward unbound keys to the webview in normal mode.
+
+Valid values:
+
+ * +all+: Forward all unbound keys.
+ * +auto+: Forward unbound non-alphanumeric keys.
+ * +none+: Don't forward any keys.
+
+Default: +pass:[auto]+
+
+[[input-spatial-navigation]]
+=== spatial-navigation
+Enables or disables the Spatial Navigation feature
+
+Spatial navigation consists in the ability to navigate between focusable elements in a Web page, such as hyperlinks and form controls, by using Left, Right, Up and Down arrow keys. For example, if a user presses the Right key, heuristics determine whether there is an element he might be trying to reach towards the right and which element he probably wants.
+
+Default: +pass:[false]+
+
+[[input-links-included-in-focus-chain]]
+=== links-included-in-focus-chain
+Whether hyperlinks should be included in the keyboard focus chain.
+
+Default: +pass:[true]+
+
+== tabs
+Configuration of the tab bar.
+
+[[tabs-background-tabs]]
+=== background-tabs
+Whether to open new tabs (middleclick/ctrl+click) in background.
+
+Default: +pass:[false]+
+
+[[tabs-select-on-remove]]
+=== select-on-remove
+Which tab to select when the focused tab is removed.
+
+Valid values:
+
+ * +left+: Select the tab on the left.
+ * +right+: Select the tab on the right.
+ * +previous+: Select the previously selected tab.
+
+Default: +pass:[right]+
+
+[[tabs-new-tab-position]]
+=== new-tab-position
+How new tabs are positioned.
+
+Valid values:
+
+ * +left+: On the left of the current tab.
+ * +right+: On the right of the current tab.
+ * +first+: At the left end.
+ * +last+: At the right end.
+
+Default: +pass:[right]+
+
+[[tabs-new-tab-position-explicit]]
+=== new-tab-position-explicit
+How new tabs opened explicitely are positioned.
+
+Valid values:
+
+ * +left+: On the left of the current tab.
+ * +right+: On the right of the current tab.
+ * +first+: At the left end.
+ * +last+: At the right end.
+
+Default: +pass:[last]+
+
+[[tabs-last-close]]
+=== last-close
+Behaviour when the last tab is closed.
+
+Valid values:
+
+ * +ignore+: Don't do anything.
+ * +blank+: Load a blank page.
+ * +quit+: Quit qutebrowser.
+
+Default: +pass:[ignore]+
+
+[[tabs-wrap]]
+=== wrap
+Whether to wrap when changing tabs.
+
+Default: +pass:[true]+
+
+[[tabs-movable]]
+=== movable
+Whether tabs should be movable.
+
+Default: +pass:[true]+
+
+[[tabs-close-mouse-button]]
+=== close-mouse-button
+On which mouse button to close tabs.
+
+Valid values:
+
+ * +right+: Close tabs on right-click.
+ * +middle+: Close tabs on middle-click.
+ * +none+: Don't close tabs using the mouse.
+
+Default: +pass:[middle]+
+
+[[tabs-position]]
+=== position
+The position of the tab bar.
+
+Valid values:
+
+ * +north+
+ * +south+
+ * +east+
+ * +west+
+
+Default: +pass:[north]+
+
+[[tabs-show-favicons]]
+=== show-favicons
+Whether to show favicons in the tab bar.
+
+Default: +pass:[true]+
+
+[[tabs-width]]
+=== width
+The width of the tab bar if it's vertical, in px or as percentage of the window.
+
+Default: +pass:[20%]+
+
+[[tabs-indicator-width]]
+=== indicator-width
+Width of the progress indicator (0 to disable).
+
+Default: +pass:[3]+
+
+[[tabs-indicator-space]]
+=== indicator-space
+Spacing between tab edge and indicator.
+
+Default: +pass:[3]+
+
+== storage
+Settings related to cache and storage.
+
+[[storage-download-directory]]
+=== download-directory
+The directory to save downloads to. An empty value selects a sensible os-specific default.
+
+Default: empty
+
+[[storage-maximum-pages-in-cache]]
+=== maximum-pages-in-cache
+The maximum number of pages to hold in the memory page cache.
+
+The Page Cache allows for a nicer user experience when navigating forth or back to pages in the forward/back history, by pausing and resuming up to _n_ pages.
+
+For more information about the feature, please refer to: http://webkit.org/blog/427/webkit-page-cache-i-the-basics/
+
+Default: empty
+
+[[storage-object-cache-capacities]]
+=== object-cache-capacities
+The capacities for the memory cache for dead objects such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, cacheMaxDead, totalCapacity.
+
+The _cacheMinDeadCapacity_ specifies the minimum number of bytes that dead objects should consume when the cache is under pressure.
+
+_cacheMaxDead_ is the maximum number of bytes that dead objects should consume when the cache is *not* under pressure.
+
+_totalCapacity_ specifies the maximum number of bytes that the cache should consume *overall*.
+
+Default: empty
+
+[[storage-offline-storage-default-quota]]
+=== offline-storage-default-quota
+Default quota for new offline storage databases.
+
+Default: empty
+
+[[storage-offline-web-application-cache-quota]]
+=== offline-web-application-cache-quota
+Quota for the offline web application cache.
+
+Default: empty
+
+[[storage-offline-storage-database]]
+=== offline-storage-database
+Whether support for the HTML 5 offline storage feature is enabled.
+
+Default: +pass:[true]+
+
+[[storage-offline-web-application-storage]]
+=== offline-web-application-storage
+Whether support for the HTML 5 web application cache feature is enabled.
+
+An application cache acts like an HTTP cache in some sense. For documents that use the application cache via JavaScript, the loader engine will first ask the application cache for the contents, before hitting the network.
+
+The feature is described in details at: http://dev.w3.org/html5/spec/Overview.html#appcache
+
+Default: +pass:[true]+
+
+[[storage-local-storage]]
+=== local-storage
+Whether support for the HTML 5 local storage feature is enabled.
+
+Default: +pass:[true]+
+
+[[storage-cache-size]]
+=== cache-size
+Size of the HTTP network cache.
+
+Default: +pass:[52428800]+
+
+== permissions
+Loaded plugins/scripts and allowed actions.
+
+[[permissions-allow-images]]
+=== allow-images
+Whether images are automatically loaded in web pages.
+
+Default: +pass:[true]+
+
+[[permissions-allow-javascript]]
+=== allow-javascript
+Enables or disables the running of JavaScript programs.
+
+Default: +pass:[true]+
+
+[[permissions-allow-plugins]]
+=== allow-plugins
+Enables or disables plugins in Web pages.
+
+Qt plugins with a mimetype such as "application/x-qt-plugin" are not affected by this setting.
+
+Default: +pass:[false]+
+
+[[permissions-javascript-can-open-windows]]
+=== javascript-can-open-windows
+Whether JavaScript programs can open new windows.
+
+Default: +pass:[false]+
+
+[[permissions-javascript-can-close-windows]]
+=== javascript-can-close-windows
+Whether JavaScript programs can close windows.
+
+Default: +pass:[false]+
+
+[[permissions-javascript-can-access-clipboard]]
+=== javascript-can-access-clipboard
+Whether JavaScript programs can read or write to the clipboard.
+
+Default: +pass:[false]+
+
+[[permissions-local-content-can-access-remote-urls]]
+=== local-content-can-access-remote-urls
+Whether locally loaded documents are allowed to access remote urls.
+
+Default: +pass:[false]+
+
+[[permissions-local-content-can-access-file-urls]]
+=== local-content-can-access-file-urls
+Whether locally loaded documents are allowed to access other local urls.
+
+Default: +pass:[true]+
+
+[[permissions-cookies-accept]]
+=== cookies-accept
+Whether to accept cookies.
+
+Valid values:
+
+ * +default+: Default QtWebKit behaviour.
+ * +never+: Don't accept cookies at all.
+
+Default: +pass:[default]+
+
+[[permissions-cookies-store]]
+=== cookies-store
+Whether to store cookies.
+
+Default: +pass:[true]+
+
+== hints
+Hinting settings.
+
+[[hints-border]]
+=== border
+CSS border value for hints.
+
+Default: +pass:[1px solid #E3BE23]+
+
+[[hints-opacity]]
+=== opacity
+Opacity for hints.
+
+Default: +pass:[0.7]+
+
+[[hints-mode]]
+=== mode
+Mode to use for hints.
+
+Valid values:
+
+ * +number+: Use numeric hints.
+ * +letter+: Use the chars in the hints -> chars setting.
+
+Default: +pass:[letter]+
+
+[[hints-chars]]
+=== chars
+Chars used for hint strings.
+
+Default: +pass:[asdfghjkl]+
+
+[[hints-auto-follow]]
+=== auto-follow
+Whether to auto-follow a hint if there's only one left.
+
+Default: +pass:[true]+
+
+[[hints-next-regexes]]
+=== next-regexes
+A comma-separated list of regexes to use for 'next' links.
+
+Default: +pass:[\bnext\b,\bmore\b,\bnewer\b,\b[&gt;→≫]\b,\b(&gt;&gt;|»)\b]+
+
+[[hints-prev-regexes]]
+=== prev-regexes
+A comma-separated list of regexes to use for 'prev' links.
+
+Default: +pass:[\bprev(ious)?\b,\bback\b,\bolder\b,\b[&lt;←≪]\b,\b(&lt;&lt;|«)\b]+
+
+== searchengines
+Definitions of search engines which can be used via the address bar.
+The searchengine named `DEFAULT` is used when `general -> auto-search` is true and something else than a URL was entered to be opened. Other search engines can be used via the bang-syntax, e.g. `:open qutebrowser !google`. The string `{}` will be replaced by the search term, use `{{` and `}}` for literal `{`/`}` signs.
+
+== keybind
+Bindings from a key(chain) to a command.
+For special keys (can't be part of a keychain), enclose them in `<`...`>`. For modifiers, you can use either `-` or `+` as delimiters, and these names:
+
+ * Control: `Control`, `Ctrl`
+ * Meta:    `Meta`, `Windows`, `Mod4`
+ * Alt:     `Alt`, `Mod1`
+ * Shift:   `Shift`
+
+For simple keys (no `<>`-signs), a capital letter means the key is pressed with Shift. For special keys (with `<>`-signs), you need to explicitely add `Shift-` to match a key pressed with shift. You can bind multiple commands by separating them with `;;`.
+
+== keybind.insert
+Keybindings for insert mode.
+Since normal keypresses are passed through, only special keys are supported in this mode.
+Useful hidden commands to map in this section:
+
+ * `open-editor`: Open a texteditor with the focused field.
+ * `leave-mode`: Leave the command mode.
+
+== keybind.hint
+Keybindings for hint mode.
+Since normal keypresses are passed through, only special keys are supported in this mode.
+Useful hidden commands to map in this section:
+
+ * `follow-hint`: Follow the currently selected hint.
+ * `leave-mode`: Leave the command mode.
+
+== keybind.passthrough
+Keybindings for passthrough mode.
+Since normal keypresses are passed through, only special keys are supported in this mode.
+Useful hidden commands to map in this section:
+
+ * `leave-mode`: Leave the passthrough mode.
+
+== keybind.command
+Keybindings for command mode.
+Since normal keypresses are passed through, only special keys are supported in this mode.
+Useful hidden commands to map in this section:
+
+ * `command-history-prev`: Switch to previous command in history.
+ * `command-history-next`: Switch to next command in history.
+ * `completion-item-prev`: Select previous item in completion.
+ * `completion-item-next`: Select next item in completion.
+ * `command-accept`: Execute the command currently in the commandline.
+ * `leave-mode`: Leave the command mode.
+
+== keybind.prompt
+Keybindings for prompts in the status line.
+You can bind normal keys in this mode, but they will be only active when a yes/no-prompt is asked. For other prompt modes, you can only bind special keys.
+Useful hidden commands to map in this section:
+
+ * `prompt-accept`: Confirm the entered value.
+ * `prompt-yes`: Answer yes to a yes/no question.
+ * `prompt-no`: Answer no to a yes/no question.
+ * `leave-mode`: Leave the prompt mode.
+
+== aliases
+Aliases for commands.
+By default, no aliases are defined. Example which adds a new command `:qtb` to open qutebrowsers website:
+
+`qtb = open http://www.qutebrowser.org/`
+
+== colors
+Colors used in the UI.
+A value can be in one of the following format:
+
+ * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB`
+ * A SVG color name as specified in http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification].
+ * transparent (no color)
+ * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages)
+ * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
+ * A gradient as explained in http://qt-project.org/doc/qt-4.8/stylesheet-reference.html#list-of-property-types[the Qt documentation] under ``Gradient''.
+
+The `hints.*` values are a special case as they're real CSS colors, not Qt-CSS colors. There, for a gradient, you need to use `-webkit-gradient`, see https://www.webkit.org/blog/175/introducing-css-gradients/[the WebKit documentation].
+
+[[colors-completion.fg]]
+=== completion.fg
+Text color of the completion widget.
+
+Default: +pass:[white]+
+
+[[colors-completion.bg]]
+=== completion.bg
+Background color of the completion widget.
+
+Default: +pass:[#333333]+
+
+[[colors-completion.item.bg]]
+=== completion.item.bg
+Background color of completion widget items.
+
+Default: +pass:[${completion.bg}]+
+
+[[colors-completion.category.fg]]
+=== completion.category.fg
+Foreground color of completion widget category headers.
+
+Default: +pass:[white]+
+
+[[colors-completion.category.bg]]
+=== completion.category.bg
+Background color of the completion widget category headers.
+
+Default: +pass:[qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #888888, stop:1 #505050)]+
+
+[[colors-completion.category.border.top]]
+=== completion.category.border.top
+Top border color of the completion widget category headers.
+
+Default: +pass:[black]+
+
+[[colors-completion.category.border.bottom]]
+=== completion.category.border.bottom
+Bottom border color of the completion widget category headers.
+
+Default: +pass:[${completion.category.border.top}]+
+
+[[colors-completion.item.selected.fg]]
+=== completion.item.selected.fg
+Foreground color of the selected completion item.
+
+Default: +pass:[black]+
+
+[[colors-completion.item.selected.bg]]
+=== completion.item.selected.bg
+Background color of the selected completion item.
+
+Default: +pass:[#e8c000]+
+
+[[colors-completion.item.selected.border.top]]
+=== completion.item.selected.border.top
+Top border color of the completion widget category headers.
+
+Default: +pass:[#bbbb00]+
+
+[[colors-completion.item.selected.border.bottom]]
+=== completion.item.selected.border.bottom
+Bottom border color of the selected completion item.
+
+Default: +pass:[${completion.item.selected.border.top}]+
+
+[[colors-completion.match.fg]]
+=== completion.match.fg
+Foreground color of the matched text in the completion.
+
+Default: +pass:[#ff4444]+
+
+[[colors-statusbar.bg]]
+=== statusbar.bg
+Foreground color of the statusbar.
+
+Default: +pass:[black]+
+
+[[colors-statusbar.fg]]
+=== statusbar.fg
+Foreground color of the statusbar.
+
+Default: +pass:[white]+
+
+[[colors-statusbar.bg.error]]
+=== statusbar.bg.error
+Background color of the statusbar if there was an error.
+
+Default: +pass:[red]+
+
+[[colors-statusbar.bg.prompt]]
+=== statusbar.bg.prompt
+Background color of the statusbar if there is a prompt.
+
+Default: +pass:[darkblue]+
+
+[[colors-statusbar.bg.insert]]
+=== statusbar.bg.insert
+Background color of the statusbar in insert mode.
+
+Default: +pass:[darkgreen]+
+
+[[colors-statusbar.progress.bg]]
+=== statusbar.progress.bg
+Background color of the progress bar.
+
+Default: +pass:[white]+
+
+[[colors-statusbar.url.fg]]
+=== statusbar.url.fg
+Default foreground color of the URL in the statusbar.
+
+Default: +pass:[${statusbar.fg}]+
+
+[[colors-statusbar.url.fg.success]]
+=== statusbar.url.fg.success
+Foreground color of the URL in the statusbar on successful load.
+
+Default: +pass:[lime]+
+
+[[colors-statusbar.url.fg.error]]
+=== statusbar.url.fg.error
+Foreground color of the URL in the statusbar on error.
+
+Default: +pass:[orange]+
+
+[[colors-statusbar.url.fg.warn]]
+=== statusbar.url.fg.warn
+Foreground color of the URL in the statusbar when there's a warning.
+
+Default: +pass:[yellow]+
+
+[[colors-statusbar.url.fg.hover]]
+=== statusbar.url.fg.hover
+Foreground color of the URL in the statusbar for hovered links.
+
+Default: +pass:[aqua]+
+
+[[colors-tab.fg]]
+=== tab.fg
+Foreground color of tabs.
+
+Default: +pass:[white]+
+
+[[colors-tab.bg.odd]]
+=== tab.bg.odd
+Background color of unselected odd tabs.
+
+Default: +pass:[grey]+
+
+[[colors-tab.bg.even]]
+=== tab.bg.even
+Background color of unselected even tabs.
+
+Default: +pass:[darkgrey]+
+
+[[colors-tab.bg.selected]]
+=== tab.bg.selected
+Background color of selected tabs.
+
+Default: +pass:[black]+
+
+[[colors-tab.bg.bar]]
+=== tab.bg.bar
+Background color of the tabbar.
+
+Default: +pass:[#555555]+
+
+[[colors-tab.indicator.start]]
+=== tab.indicator.start
+Color gradient start for the tab indicator.
+
+Default: +pass:[#0000aa]+
+
+[[colors-tab.indicator.stop]]
+=== tab.indicator.stop
+Color gradient end for the tab indicator.
+
+Default: +pass:[#00aa00]+
+
+[[colors-tab.indicator.error]]
+=== tab.indicator.error
+Color for the tab indicator on errors..
+
+Default: +pass:[#ff0000]+
+
+[[colors-tab.indicator.system]]
+=== tab.indicator.system
+Color gradient interpolation system for the tab indicator.
+
+Valid values:
+
+ * +rgb+: Interpolate in the RGB color system.
+ * +hsv+: Interpolate in the HSV color system.
+ * +hsl+: Interpolate in the HSL color system.
+
+Default: +pass:[rgb]+
+
+[[colors-tab.seperator]]
+=== tab.seperator
+Color for the tab seperator.
+
+Default: +pass:[#555555]+
+
+[[colors-hints.fg]]
+=== hints.fg
+Font color for hints.
+
+Default: +pass:[black]+
+
+[[colors-hints.fg.match]]
+=== hints.fg.match
+Font color for the matched part of hints.
+
+Default: +pass:[green]+
+
+[[colors-hints.bg]]
+=== hints.bg
+Background color for hints.
+
+Default: +pass:[-webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF785), color-stop(100%,#FFC542))]+
+
+[[colors-downloads.fg]]
+=== downloads.fg
+Foreground color for downloads.
+
+Default: +pass:[#ffffff]+
+
+[[colors-downloads.bg.bar]]
+=== downloads.bg.bar
+Background color for the download bar.
+
+Default: +pass:[black]+
+
+[[colors-downloads.bg.start]]
+=== downloads.bg.start
+Color gradient start for downloads.
+
+Default: +pass:[#0000aa]+
+
+[[colors-downloads.bg.stop]]
+=== downloads.bg.stop
+Color gradient end for downloads.
+
+Default: +pass:[#00aa00]+
+
+[[colors-downloads.bg.system]]
+=== downloads.bg.system
+Color gradient interpolation system for downloads.
+
+Valid values:
+
+ * +rgb+: Interpolate in the RGB color system.
+ * +hsv+: Interpolate in the HSV color system.
+ * +hsl+: Interpolate in the HSL color system.
+
+Default: +pass:[rgb]+
+
+== fonts
+Fonts used for the UI, with optional style/weight/size.
+
+ * Style: `normal`/`italic`/`oblique`
+ * Weight: `normal`, `bold`, `100`..`900`
+ * Size: _number_ `px`/`pt`
+
+[[fonts-_monospace]]
+=== _monospace
+Default monospace fonts.
+
+Default: +pass:[Terminus, Monospace, &quot;DejaVu Sans Mono&quot;, Consolas, Monaco, &quot;Bitstream Vera Sans Mono&quot;, &quot;Andale Mono&quot;, &quot;Liberation Mono&quot;, &quot;Courier New&quot;, Courier, monospace, Fixed, Terminal]+
+
+[[fonts-completion]]
+=== completion
+Font used in the completion widget.
+
+Default: +pass:[8pt ${_monospace}]+
+
+[[fonts-tabbar]]
+=== tabbar
+Font used in the tabbar.
+
+Default: +pass:[8pt ${_monospace}]+
+
+[[fonts-statusbar]]
+=== statusbar
+Font used in the statusbar.
+
+Default: +pass:[8pt ${_monospace}]+
+
+[[fonts-downloads]]
+=== downloads
+Font used for the downloadbar.
+
+Default: +pass:[8pt ${_monospace}]+
+
+[[fonts-hints]]
+=== hints
+Font used for the hints.
+
+Default: +pass:[bold 12px Monospace]+
+
+[[fonts-debug-console]]
+=== debug-console
+Font used for the debugging console.
+
+Default: +pass:[8pt ${_monospace}]+
+
+[[fonts-web-family-standard]]
+=== web-family-standard
+Font family for standard fonts.
+
+Default: empty
+
+[[fonts-web-family-fixed]]
+=== web-family-fixed
+Font family for fixed fonts.
+
+Default: empty
+
+[[fonts-web-family-serif]]
+=== web-family-serif
+Font family for serif fonts.
+
+Default: empty
+
+[[fonts-web-family-sans-serif]]
+=== web-family-sans-serif
+Font family for sans-serif fonts.
+
+Default: empty
+
+[[fonts-web-family-cursive]]
+=== web-family-cursive
+Font family for cursive fonts.
+
+Default: empty
+
+[[fonts-web-family-fantasy]]
+=== web-family-fantasy
+Font family for fantasy fonts.
+
+Default: empty
+
+[[fonts-web-size-minimum]]
+=== web-size-minimum
+The hard minimum font size.
+
+Default: empty
+
+[[fonts-web-size-minimum-logical]]
+=== web-size-minimum-logical
+The minimum logical font size that is applied when zooming out.
+
+Default: empty
+
+[[fonts-web-size-default]]
+=== web-size-default
+The default font size for regular text.
+
+Default: empty
+
+[[fonts-web-size-default-fixed]]
+=== web-size-default-fixed
+The default font size for fixed-pitch text.
+
+Default: empty

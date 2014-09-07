@@ -55,7 +55,7 @@ class HelpAction(argparse.Action):
 
     def __call__(self, parser, _namespace, _values, _option_string=None):
         QCoreApplication.instance().mainwindow.tabs.tabopen(
-            QUrl('qute:help/commands.html#{}'.format(parser.name)))
+            QUrl('qute://help/commands.html#{}'.format(parser.name)))
         parser.exit()
 
 
