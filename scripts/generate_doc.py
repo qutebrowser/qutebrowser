@@ -131,6 +131,7 @@ def _get_setting_quickref():
     for sectname, sect in configdata.DATA.items():
         if not getattr(sect, 'descriptions'):
             continue
+        out.append("")
         out.append(".Quick reference for section ``{}''".format(sectname))
         out.append('[options="header",width="75%",cols="25%,75%"]')
         out.append('|==============')
