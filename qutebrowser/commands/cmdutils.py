@@ -138,6 +138,8 @@ class register:  # pylint: disable=invalid-name
         self.parser = None
         self.func = None
         self.docparser = None
+        self.opt_args = collections.OrderedDict()
+        self.pos_args = []
         if modes is not None:
             for m in modes:
                 if not isinstance(m, usertypes.KeyMode):
@@ -180,7 +182,8 @@ class register:  # pylint: disable=invalid-name
             desc=desc, instance=self.instance, handler=func,
             completion=self.completion, modes=self.modes,
             not_modes=self.not_modes, needs_js=self.needs_js,
-            is_debug=self.debug, parser=self.parser, type_conv=type_conv)
+            is_debug=self.debug, parser=self.parser, type_conv=type_conv,
+            opt_args=self.opt_args, pos_args=self.pos_args)
         for name in names:
             cmd_dict[name] = cmd
         return func
@@ -259,10 +262,14 @@ class register:  # pylint: disable=invalid-name
         name = annotation_info.name or param.name
         shortname = annotation_info.flag or param.name[0]
         if self._get_type(param, annotation_info) == bool:
-            args.append('--{}'.format(name))
-            args.append('-{}'.format(shortname))
+            long_flag = '--{}'.format(name)
+            short_flag = '-{}'.format(shortname)
+            args.append(long_flag)
+            args.append(short_flag)
+            self.opt_args[name] = long_flag, short_flag
         else:
             args.append(name)
+            self.pos_args.append(name)
         return args
 
     def _param_to_argparse_kw(self, param, annotation_info):

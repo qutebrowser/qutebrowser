@@ -153,14 +153,28 @@ def _get_command_doc(name, cmd):
     if parser.long_desc:
         output.append("")
         output.append(parser.long_desc)
-    if parser.arg_descs:
+
+    if cmd.pos_args:
         output.append("")
-        for arg, desc in parser.arg_descs.items():
-            text = desc.splitlines()
-            firstline = text[0].replace(', or None', '')
-            item = "* +{}+: {}".format(arg, firstline)
-            item += '\n'.join(text[1:])
-            output.append(item)
+        output.append('===== {}'.format("positional arguments"))
+        for arg in cmd.pos_args:
+            try:
+                output.append('* +{}+: {}'.format(arg, parser.arg_descs[arg]))
+            except KeyError as e:
+                raise KeyError("No description for arg {} of command "
+                               "'{}'!".format(e, cmd.name))
+
+    if cmd.opt_args:
+        output.append("")
+        output.append('===== {}'.format("optional arguments"))
+        for arg, (long_flag, short_flag) in cmd.opt_args.items():
+            try:
+                output.append('* +{}+, +{}+: {}'.format(
+                    short_flag, long_flag, parser.arg_descs[arg]))
+            except KeyError:
+                raise KeyError("No description for arg {} of command "
+                               "'{}'!".format(e, cmd.name))
+
     output.append("")
     output.append("")
     return '\n'.join(output)

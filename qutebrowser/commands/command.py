@@ -52,7 +52,7 @@ class Command:
 
     def __init__(self, name, split, hide, count, desc, instance, handler,
                  completion, modes, not_modes, needs_js, is_debug, parser,
-                 type_conv):
+                 type_conv, opt_args, pos_args):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-arguments
         self.name = name
@@ -69,6 +69,8 @@ class Command:
         self.debug = is_debug
         self.parser = parser
         self.type_conv = type_conv
+        self.opt_args = opt_args
+        self.pos_args = pos_args
 
     def _check_prerequisites(self):
         """Check if the command is permitted to run currently.
