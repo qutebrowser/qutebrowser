@@ -229,7 +229,6 @@ def _format_action(action):
 def generate_commands(filename):
     """Generate the complete commands section."""
     with _open_file(filename) as f:
-        f.write('\n')
         f.write("= Commands\n")
         normal_cmds = []
         hidden_cmds = []
@@ -271,7 +270,6 @@ def generate_commands(filename):
 def generate_settings(filename):
     """Generate the complete settings section."""
     with _open_file(filename) as f:
-        f.write("\n")
         f.write("= Settings\n")
         f.write(_get_setting_quickref() + "\n")
         for sectname, sect in configdata.DATA.items():
