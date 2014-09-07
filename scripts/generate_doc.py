@@ -143,7 +143,7 @@ def _get_setting_quickref():
 def _get_command_doc(name, cmd):
     """Generate the documentation for a command."""
     output = ['[[{}]]'.format(name)]
-    output += ['==== {}'.format(name)]
+    output += ['=== {}'.format(name)]
     syntax = _get_cmd_syntax(name, cmd)
     if syntax != name:
         output.append('Syntax: +:{}+'.format(syntax))
@@ -156,7 +156,7 @@ def _get_command_doc(name, cmd):
 
     if cmd.pos_args:
         output.append("")
-        output.append('===== {}'.format("positional arguments"))
+        output.append("==== positional arguments")
         for arg in cmd.pos_args:
             try:
                 output.append('* +{}+: {}'.format(arg, parser.arg_descs[arg]))
@@ -166,7 +166,7 @@ def _get_command_doc(name, cmd):
 
     if cmd.opt_args:
         output.append("")
-        output.append('===== {}'.format("optional arguments"))
+        output.append("==== optional arguments")
         for arg, (long_flag, short_flag) in cmd.opt_args.items():
             try:
                 output.append('* +{}+, +{}+: {}'.format(
@@ -229,7 +229,7 @@ def generate_commands(filename):
     """Generate the complete commands section."""
     with _open_file(filename) as f:
         f.write('\n')
-        f.write("== COMMANDS\n")
+        f.write("= Commands\n")
         normal_cmds = []
         hidden_cmds = []
         debug_cmds = []
@@ -244,19 +244,19 @@ def generate_commands(filename):
         hidden_cmds.sort()
         debug_cmds.sort()
         f.write("\n")
-        f.write("=== Normal commands\n")
+        f.write("== Normal commands\n")
         f.write(".Quick reference\n")
         f.write(_get_command_quickref(normal_cmds) + "\n\n")
         for name, cmd in normal_cmds:
             f.write(_get_command_doc(name, cmd))
         f.write("\n")
-        f.write("=== Hidden commands\n")
+        f.write("== Hidden commands\n")
         f.write(".Quick reference\n")
         f.write(_get_command_quickref(hidden_cmds))
         for name, cmd in hidden_cmds:
             f.write(_get_command_doc(name, cmd))
         f.write("\n")
-        f.write("=== Debugging commands\n")
+        f.write("== Debugging commands\n")
         f.write("These commands are mainly intended for debugging. They are "
                 "hidden if qutebrowser was started without the "
                 "`--debug`-flag.\n")
@@ -271,11 +271,11 @@ def generate_settings(filename):
     """Generate the complete settings section."""
     with _open_file(filename) as f:
         f.write("\n")
-        f.write("== SETTINGS\n")
+        f.write("= Settings\n")
         f.write(_get_setting_quickref() + "\n")
         for sectname, sect in configdata.DATA.items():
             f.write("\n")
-            f.write("=== {}".format(sectname) + "\n")
+            f.write("== {}".format(sectname) + "\n")
             f.write(configdata.SECTION_DESC[sectname] + "\n")
             if not getattr(sect, 'descriptions'):
                 pass
@@ -283,7 +283,7 @@ def generate_settings(filename):
                 for optname, option in sect.items():
                     f.write("\n")
                     f.write('[[{}-{}]]'.format(sectname, optname) + "\n")
-                    f.write("==== {}".format(optname) + "\n")
+                    f.write("=== {}".format(optname) + "\n")
                     f.write(sect.descriptions[optname] + "\n")
                     f.write("\n")
                     valid_values = option.typ.valid_values
