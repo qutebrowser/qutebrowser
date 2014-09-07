@@ -151,7 +151,7 @@ def _format_action(action):
             for opt in action.option_strings:
                 parts.append('*{}* {}'.format(opt, args_string))
         invocation = ', '.join(parts) + '::'
-    return '{}\n    {}\n\n'.format(invocation, action.help)
+    return '{}\n    {}\n'.format(invocation, action.help)
 
 
 def generate_commands(f):
@@ -293,19 +293,20 @@ def regenerate_manpage(filename):
     """Update manpage OPTIONS using an argparse parser."""
     # pylint: disable=protected-access
     parser = qutequtebrowser.get_argparser()
-    options = []
+    groups = []
     # positionals, optionals and user-defined groups
     for group in parser._action_groups:
-        options.append('=== {}\n'.format(group.title))
+        groupdata = []
+        groupdata.append('=== {}'.format(group.title))
         if group.description is not None:
-            options.append(group.description + '\n')
+            groupdata.append(group.description)
         for action in group._group_actions:
-            options.append(_format_action(action))
-        options.append('\n')
+            groupdata.append(_format_action(action))
+        groups.append('\n'.join(groupdata))
+    options = '\n'.join(groups)
     # epilog
     if parser.epilog is not None:
         options.append(parser.epilog)
-    options.append('\n')
     _format_block(filename, 'options', options)
 
 

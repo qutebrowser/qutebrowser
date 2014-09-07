@@ -30,7 +30,6 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 *'URL'*::
     URLs to open on startup.
 
-
 === optional arguments
 *-h*, *--help*::
     show this help message and exit
@@ -40,7 +39,6 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
 *-V*, *--version*::
     Show version and quit.
-
 
 === debug arguments
 *-l* 'LOGLEVEL', *--loglevel* 'LOGLEVEL'::
@@ -81,9 +79,6 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
 *--qt-qmljsdebugger* 'port:PORT[,block]'::
     Activate the QML/JS debugger with a specified port. 'block' is optional and will make the application wait until a debugger connects to it.
-
-
-
 // QUTE_OPTIONS_END
 
 == BUGS
