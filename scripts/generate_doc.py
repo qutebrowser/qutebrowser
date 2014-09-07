@@ -159,7 +159,8 @@ def _get_command_doc(name, cmd):
         output.append("==== positional arguments")
         for arg in cmd.pos_args:
             try:
-                output.append('* +{}+: {}'.format(arg, parser.arg_descs[arg]))
+                output.append("* +'{}'+: {}".format(arg,
+                                                    parser.arg_descs[arg]))
             except KeyError as e:
                 raise KeyError("No description for arg {} of command "
                                "'{}'!".format(e, cmd.name))
@@ -169,7 +170,7 @@ def _get_command_doc(name, cmd):
         output.append("==== optional arguments")
         for arg, (long_flag, short_flag) in cmd.opt_args.items():
             try:
-                output.append('* +{}+, +{}+: {}'.format(
+                output.append('* +*{}*+, +*{}*+: {}'.format(
                     short_flag, long_flag, parser.arg_descs[arg]))
             except KeyError:
                 raise KeyError("No description for arg {} of command "
