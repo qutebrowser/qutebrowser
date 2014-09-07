@@ -247,13 +247,13 @@ def generate_commands(filename):
         f.write("\n")
         f.write("== Normal commands\n")
         f.write(".Quick reference\n")
-        f.write(_get_command_quickref(normal_cmds) + "\n\n")
+        f.write(_get_command_quickref(normal_cmds) + '\n')
         for name, cmd in normal_cmds:
             f.write(_get_command_doc(name, cmd))
         f.write("\n")
         f.write("== Hidden commands\n")
         f.write(".Quick reference\n")
-        f.write(_get_command_quickref(hidden_cmds))
+        f.write(_get_command_quickref(hidden_cmds) + '\n')
         for name, cmd in hidden_cmds:
             f.write(_get_command_doc(name, cmd))
         f.write("\n")
@@ -263,7 +263,7 @@ def generate_commands(filename):
                 "`--debug`-flag.\n")
         f.write("\n")
         f.write(".Quick reference\n")
-        f.write(_get_command_quickref(debug_cmds))
+        f.write(_get_command_quickref(debug_cmds) + '\n')
         for name, cmd in debug_cmds:
             f.write(_get_command_doc(name, cmd))
 
