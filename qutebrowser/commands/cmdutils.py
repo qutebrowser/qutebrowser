@@ -291,6 +291,7 @@ class register:  # pylint: disable=invalid-name
             pass
         elif utils.is_enum(typ):
             kwargs['choices'] = [e.name.replace('_', '-') for e in typ]
+            kwargs['metavar'] = param.name
         elif typ is bool:
             kwargs['action'] = 'store_true'
         elif typ is not None:
