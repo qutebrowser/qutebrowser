@@ -396,7 +396,11 @@ def call_asciidoc(src, dst):
     """
     print("{}Calling asciidoc for {}...{}".format(
         col.Fore.CYAN, os.path.basename(src), col.Fore.RESET))
-    args = ['asciidoc']
+    if os.name == 'nt':
+        # FIXME this is highly specific to my machine
+        args = [r'C:\Python27\python', r'J:\bin\asciidoc-8.6.9\asciidoc.py']
+    else:
+        args = ['asciidoc']
     if dst is not None:
         args += ['--out-file', dst]
     args.append(src)
