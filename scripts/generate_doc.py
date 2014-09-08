@@ -35,10 +35,9 @@ import colorama as col
 
 sys.path.insert(0, os.getcwd())
 
-import qutebrowser
 # We import qutebrowser.app so all @cmdutils-register decorators are run.
 import qutebrowser.app
-from qutebrowser import qutebrowser as qutequtebrowser
+from qutebrowser import qutebrowser
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configdata
 from qutebrowser.utils import utils
@@ -70,6 +69,7 @@ class UsageFormatter(argparse.HelpFormatter):
             result = "'{}'".format(default_metavar)
 
         def fmt(tuple_size):
+            """Format the result according to the tuple size."""
             if isinstance(result, tuple):
                 return result
             else:
@@ -99,7 +99,7 @@ def _open_file(name, mode='w'):
     return open(name, mode, newline='\n', encoding='utf-8')
 
 
-def _get_cmd_syntax(name, cmd):
+def _get_cmd_syntax(_name, cmd):
     """Get the command syntax for a command.
 
     We monkey-patch the parser's formatter_class here to use our UsageFormatter
@@ -369,7 +369,7 @@ def regenerate_authors(filename):
 def regenerate_manpage(filename):
     """Update manpage OPTIONS using an argparse parser."""
     # pylint: disable=protected-access
-    parser = qutequtebrowser.get_argparser()
+    parser = qutebrowser.get_argparser()
     groups = []
     # positionals, optionals and user-defined groups
     for group in parser._action_groups:
@@ -388,6 +388,12 @@ def regenerate_manpage(filename):
 
 
 def call_asciidoc(src, dst):
+    """Call asciidoc for the given files.
+
+    Args:
+        src: The source .asciidoc file.
+        dst: The destination .html file, or None to auto-guess.
+    """
     print("{}Calling asciidoc for {}...{}".format(
         col.Fore.CYAN, os.path.basename(src), col.Fore.RESET))
     args = ['asciidoc']
@@ -401,7 +407,8 @@ def call_asciidoc(src, dst):
         sys.exit(1)
 
 
-if __name__ == '__main__':
+def main():
+    """Regenerate all documentation."""
     print("{}Generating asciidoc files...{}".format(
         col.Fore.CYAN, col.Fore.RESET))
     regenerate_manpage('doc/qutebrowser.1.asciidoc')
@@ -416,3 +423,6 @@ if __name__ == '__main__':
                       ('README.asciidoc', None)]
     for src, dst in asciidoc_files:
         call_asciidoc(src, dst)
+
+if __name__ == '__main__':
+    main()

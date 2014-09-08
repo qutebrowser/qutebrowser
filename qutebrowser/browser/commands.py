@@ -670,7 +670,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='mainwindow.tabs.cmd', name='help',
                        completion=[usertypes.Completion.helptopic])
     def show_help(self, topic):
-        """Show help about a command or setting.
+        r"""Show help about a command or setting.
 
         Args:
             topic: The topic to show help for.

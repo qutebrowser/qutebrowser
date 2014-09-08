@@ -54,7 +54,7 @@ class Command:
                  completion, modes, not_modes, needs_js, is_debug, parser,
                  type_conv, opt_args, pos_args):
         # I really don't know how to solve this in a better way, I tried.
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-arguments,too-many-locals
         self.name = name
         self.split = split
         self.hide = hide

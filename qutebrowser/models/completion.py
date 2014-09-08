@@ -167,7 +167,6 @@ class CommandCompletionModel(basecompletion.BaseCompletionModel):
             self.new_item(cat, name, desc)
 
 
-
 class HelpCompletionModel(basecompletion.BaseCompletionModel):
 
     """A CompletionModel filled with help topics."""
@@ -180,6 +179,7 @@ class HelpCompletionModel(basecompletion.BaseCompletionModel):
         self._init_settings()
 
     def _init_commands(self):
+        """Fill completion with :command entries."""
         assert cmdutils.cmd_dict
         cmdlist = []
         for obj in set(cmdutils.cmd_dict.values()):
@@ -193,6 +193,7 @@ class HelpCompletionModel(basecompletion.BaseCompletionModel):
             self.new_item(cat, name, desc)
 
     def _init_settings(self):
+        """Fill completion with section->option entries."""
         cat = self.new_category("Settings")
         for sectname, sectdata in configdata.DATA.items():
             for optname in sectdata.keys():
