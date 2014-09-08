@@ -26,8 +26,8 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.utils import message, webelem, log, usertypes, utils, qtutils
-from qutebrowser.browser import webpage, hints
+from qutebrowser.utils import message, log, usertypes, utils, qtutils
+from qutebrowser.browser import webpage, hints, webelem
 from qutebrowser.commands import cmdexc
 
 

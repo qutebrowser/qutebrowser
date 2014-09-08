@@ -29,9 +29,9 @@ from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.utils import message, webelem
+from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, cmdexc
-from qutebrowser.utils import usertypes, log, qtutils
+from qutebrowser.utils import usertypes, log, qtutils, message
 
 
 ElemTuple = collections.namedtuple('ElemTuple', 'elem, label')

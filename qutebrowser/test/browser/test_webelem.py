@@ -28,7 +28,7 @@ import collections.abc
 from PyQt5.QtCore import QRect, QPoint
 from PyQt5.QtWebKit import QWebElement
 
-from qutebrowser.utils import webelem
+from qutebrowser.browser import webelem
 from qutebrowser.test import stubs
 
 

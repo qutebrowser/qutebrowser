@@ -31,9 +31,9 @@ from PyQt5.QtWebKitWidgets import QWebInspector
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils
 from qutebrowser.config import config
-from qutebrowser.browser import hints, quickmarks
-from qutebrowser.utils import (message, webelem, editor, usertypes, log,
-                               qtutils, urlutils)
+from qutebrowser.browser import hints, quickmarks, webelem
+from qutebrowser.utils import (message, editor, usertypes, log, qtutils,
+                               urlutils)
 
 
 class CommandDispatcher:
