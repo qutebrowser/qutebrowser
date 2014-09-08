@@ -19,8 +19,6 @@
 
 """Completer attached to a CompletionView."""
 
-import shlex
-
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
 from qutebrowser.config import config, configdata
@@ -131,6 +129,21 @@ class Completer(QObject):
             model = self._models.get(completion)
         return model
 
+    def _quote(self, s):
+        """Quote s if it needs quoting for the commandline.
+
+        Note we don't use shlex.quote because that quotes a lot of shell
+        metachars we don't need to have quoted.
+        """
+        if not s:
+            return "''"
+        elif any(c in s for c in ' \'\t\n\\'):
+            # use single quotes, and put single quotes into double quotes
+            # the string $'b is then quoted as '$'"'"'b'
+            return "'" + s.replace("'", "'\"'\"'") + "'"
+        else:
+            return s
+
     def selection_changed(self, selected, _deselected):
         """Emit change_completed_part if a new item was selected.
 
@@ -150,7 +163,7 @@ class Completer(QObject):
         data = model.data(indexes[0])
         if data is None:
             return
-        data = shlex.quote(data)
+        data = self._quote(data)
         if model.count() == 1 and config.get('completion', 'quick-complete'):
             # If we only have one item, we want to apply it immediately
             # and go on to the next part.
