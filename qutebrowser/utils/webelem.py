@@ -301,7 +301,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
         self._check_vanished()
         roles = ('combobox', 'textbox')
         log.misc.debug("Checking if element is editable: {}".format(
-            self.debug_text()))
+            repr(self)))
         tag = self._elem.tagName().lower()
         if self.is_content_editable() and self.is_writable():
             return True
@@ -324,7 +324,7 @@ class WebElementWrapper(collections.abc.MutableMapping):
     def debug_text(self):
         """Get a text based on an element suitable for debug output."""
         self._check_vanished()
-        return utils.compact_text(repr(self._elem), 500)
+        return utils.compact_text(self._elem.toOuterXml(), 500)
 
 
 def javascript_escape(text):
