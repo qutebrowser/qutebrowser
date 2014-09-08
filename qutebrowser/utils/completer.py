@@ -19,6 +19,8 @@
 
 """Completer attached to a CompletionView."""
 
+import shlex
+
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
 from qutebrowser.config import config, configdata
@@ -148,6 +150,7 @@ class Completer(QObject):
         data = model.data(indexes[0])
         if data is None:
             return
+        data = shlex.quote(data)
         if model.count() == 1 and config.get('completion', 'quick-complete'):
             # If we only have one item, we want to apply it immediately
             # and go on to the next part.
