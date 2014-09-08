@@ -669,7 +669,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', name='help',
                        completion=[usertypes.Completion.helptopic])
-    def show_help(self, topic):
+    def show_help(self, topic=None):
         r"""Show help about a command or setting.
 
         Args:
@@ -678,7 +678,9 @@ class CommandDispatcher:
                    - :__command__ for commands.
                    - __section__\->__option__ for settings.
         """
-        if topic.startswith(':'):
+        if topic is None:
+            path = 'index.html'
+        elif topic.startswith(':'):
             command = topic[1:]
             if command not in cmdutils.cmd_dict:
                 raise cmdexc.CommandError("Invalid command {}!".format(

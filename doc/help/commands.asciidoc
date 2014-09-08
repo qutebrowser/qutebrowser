@@ -74,7 +74,7 @@ Get the value from a section/option.
 
 [[help]]
 === help
-Syntax: +:help 'topic'+
+Syntax: +:help ['topic']+
 
 Show help about a command or setting.
 

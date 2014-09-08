@@ -22,6 +22,7 @@
 
 import os
 import sys
+import glob
 import html
 import shutil
 import os.path
@@ -416,15 +417,22 @@ def main():
     print("{}Generating asciidoc files...{}".format(
         col.Fore.CYAN, col.Fore.RESET))
     regenerate_manpage('doc/qutebrowser.1.asciidoc')
-    generate_settings('doc/settings.asciidoc')
-    generate_commands('doc/commands.asciidoc')
+    generate_settings('doc/help/settings.asciidoc')
+    generate_commands('doc/help/commands.asciidoc')
     regenerate_authors('README.asciidoc')
-    asciidoc_files = [('doc/qutebrowser.1.asciidoc', None),
-                      ('doc/settings.asciidoc',
-                       'qutebrowser/html/doc/settings.html'),
-                      ('doc/commands.asciidoc',
-                       'qutebrowser/html/doc/commands.html'),
-                      ('README.asciidoc', None)]
+    asciidoc_files = [
+        ('doc/qutebrowser.1.asciidoc', None),
+        ('README.asciidoc', None),
+        ('doc/FAQ.asciidoc', 'qutebrowser/html/doc/FAQ.html'),
+    ]
+    try:
+        os.mkdir('qutebrowser/html/doc')
+    except FileExistsError:
+        pass
+    for src in glob.glob('doc/help/*.asciidoc'):
+        name, _ext = os.path.splitext(os.path.basename(src))
+        dst = 'qutebrowser/html/doc/{}.html'.format(name)
+        asciidoc_files.append((src, dst))
     for src, dst in asciidoc_files:
         call_asciidoc(src, dst)
 
