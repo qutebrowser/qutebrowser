@@ -188,7 +188,7 @@ class WebView(QWebView):
             self._check_insertmode = True
             return
         if ((hitresult.isContentEditable() and elem.is_writable()) or
-                elem.is_editable(elem)):
+                elem.is_editable()):
             log.mouse.debug("Clicked editable element!")
             modeman.maybe_enter(usertypes.KeyMode.insert, 'click')
         else:
