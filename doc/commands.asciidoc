@@ -10,6 +10,7 @@
 |<<download-page,download-page>>|Download the current page.
 |<<forward,forward>>|Go forward in the history of the current tab.
 |<<get,get>>|Get the value from a section/option.
+|<<help,help>>|Show help about a command or setting.
 |<<hint,hint>>|Start hinting.
 |<<home,home>>|Open main startpage in current tab.
 |<<inspector,inspector>>|Toggle the web inspector.
@@ -70,6 +71,19 @@ Get the value from a section/option.
 ==== positional arguments
 * +'sectname'+: The section where the option is in.
 * +'optname'+: The name of the option.
+
+[[help]]
+=== help
+Syntax: +:help 'topic'+
+
+Show help about a command or setting.
+
+==== positional arguments
+* +'topic'+: The topic to show help for. 
+
+ - :__command__ for commands.
+ - __section__\->__option__ for settings.
+
 
 [[hint]]
 === hint

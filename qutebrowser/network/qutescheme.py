@@ -127,4 +127,5 @@ class QuteHandlers:
     def help(cls, request):
         """Handler for qute:help. Return HTML content as bytes."""
         path = 'html/doc/{}'.format(request.url().path())
-        return utils.read_file(path).encode('ASCII')
+        return utils.read_file(path).encode('UTF-8',
+                                            errors='xmlcharrefreplace')

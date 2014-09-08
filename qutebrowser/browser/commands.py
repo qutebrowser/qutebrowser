@@ -667,6 +667,41 @@ class CommandDispatcher:
         page = self._current_widget().page()
         self._tabs.download_get.emit(self._tabs.current_url(), page)
 
+    @cmdutils.register(instance='mainwindow.tabs.cmd', name='help',
+                       completion=[usertypes.Completion.helptopic])
+    def show_help(self, topic):
+        """Show help about a command or setting.
+
+        Args:
+            topic: The topic to show help for.
+
+                   - :__command__ for commands.
+                   - __section__\->__option__ for settings.
+        """
+        if topic.startswith(':'):
+            command = topic[1:]
+            if command not in cmdutils.cmd_dict:
+                raise cmdexc.CommandError("Invalid command {}!".format(
+                    command))
+            path = 'commands.html#{}'.format(command)
+        elif '->' in topic:
+            parts = topic.split('->')
+            if len(parts) != 2:
+                raise cmdexc.CommandError("Invalid help topic {}!".format(
+                    topic))
+            try:
+                config.get(*parts)
+            except config.NoSectionError:
+                raise cmdexc.CommandError("Invalid section {}!".format(
+                    parts[0]))
+            except config.NoOptionError:
+                raise cmdexc.CommandError("Invalid option {}!".format(
+                    parts[1]))
+            path = 'settings.html#{}'.format(topic.replace('->', '-'))
+        else:
+            raise cmdexc.CommandError("Invalid help topic {}!".format(topic))
+        self.openurl('qute://help/{}'.format(path))
+
     @cmdutils.register(instance='mainwindow.tabs.cmd',
                        modes=[usertypes.KeyMode.insert],
                        hide=True)
