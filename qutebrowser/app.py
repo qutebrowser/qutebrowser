@@ -37,7 +37,7 @@ from PyQt5.QtCore import (pyqtSlot, QTimer, QEventLoop, Qt, QStandardPaths,
 import qutebrowser
 from qutebrowser.commands import userscripts, runners, cmdutils
 from qutebrowser.config import (style, config, websettings, iniparsers,
-                                lineparser, configtypes)
+                                lineparser, configtypes, keyconfparser)
 from qutebrowser.network import qutescheme, proxy
 from qutebrowser.browser import quickmarks, cookies, downloads, cache
 from qutebrowser.widgets import mainwindow, console, crash
@@ -190,6 +190,19 @@ class Application(QApplication):
             msgbox.exec_()
             # We didn't really initialize much so far, so we just quit hard.
             sys.exit(1)
+        try:
+            self.keyconfig = keyconfparser.KeyConfigParser(confdir, 'keys')
+        except keyconfparser.KeyConfigError as e:
+            log.init.exception(e)
+            errstr = "Error while reading key config:\n"
+            if hasattr(e, 'lineno'):
+                errstr += "In line {}: ".format(e.lineno)
+            errstr += str(e)
+            msgbox = QMessageBox(QMessageBox.Critical,
+                                 "Error while reading key config!", errstr)
+            msgbox.exec_()
+            # We didn't really initialize much so far, so we just quit hard.
+            sys.exit(1)
         self.stateconfig = iniparsers.ReadWriteConfigParser(confdir, 'state')
         self.cmd_history = lineparser.LineConfigParser(
             confdir, 'cmd_history', ('completion', 'history-length'))
@@ -202,14 +215,13 @@ class Application(QApplication):
             utypes.KeyMode.hint:
                 modeparsers.HintKeyParser(self),
             utypes.KeyMode.insert:
-                keyparser.PassthroughKeyParser('keybind.insert', self),
+                keyparser.PassthroughKeyParser('insert', self),
             utypes.KeyMode.passthrough:
-                keyparser.PassthroughKeyParser('keybind.passthrough', self),
+                keyparser.PassthroughKeyParser('passthrough', self),
             utypes.KeyMode.command:
-                keyparser.PassthroughKeyParser('keybind.command', self),
+                keyparser.PassthroughKeyParser('command', self),
             utypes.KeyMode.prompt:
-                keyparser.PassthroughKeyParser('keybind.prompt', self,
-                                               warn=False),
+                keyparser.PassthroughKeyParser('prompt', self, warn=False),
             utypes.KeyMode.yesno:
                 modeparsers.PromptKeyParser(self),
         }
