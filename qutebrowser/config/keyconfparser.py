@@ -22,8 +22,10 @@
 import collections
 import os.path
 
+from PyQt5.QtCore import pyqtSignal, QObject
+
 from qutebrowser.config import configdata, textwrapper
-from qutebrowser.commands import cmdutils
+from qutebrowser.commands import cmdutils, cmdexc
 from qutebrowser.utils import log
 
 
@@ -40,17 +42,28 @@ class KeyConfigError(Exception):
         self.lineno = None
 
 
-class KeyConfigParser:
+class KeyConfigParser(QObject):
 
-    """Parser for the keybind config."""
+    """Parser for the keybind config.
 
-    def __init__(self, configdir, fname):
+    Attributes:
+        FIXME
+
+    Signals:
+        changed: Emitted when the config has changed.
+                 arg: Name of the mode which was changed.
+    """
+
+    changed = pyqtSignal(str)
+
+    def __init__(self, configdir, fname, parent=None):
         """Constructor.
 
         Args:
             configdir: The directory to save the configs in.
             fname: The filename of the config.
         """
+        super().__init__(parent)
         self._configdir = configdir
         self._configfile = os.path.join(self._configdir, fname)
         self._cur_section = None
@@ -106,6 +119,35 @@ class KeyConfigParser:
         with open(self._configfile, 'w', encoding='utf-8') as f:
             f.write(str(self))
 
+    @cmdutils.register(instance='keyconfig')
+    def bind(self, key, command, mode=None):
+        """Bind a key to a command.
+
+        //
+
+        FIXME: We should use the KeyMode enum here, and some argparser type for
+               a comma-separated list of enums.
+
+        Args:
+            key: The keychain or special key (inside <...>) to bind.
+            command: The command to execute.
+            mode: A comma-separated list of modes to bind the key in
+                  (default: normal mode).
+        """
+        if mode is None:
+            mode = 'normal'
+        for m in mode.split(','):
+            if m not in configdata.KEY_DATA:
+                raise cmdexc.CommandError("Invalid mode {}!".format(m))
+        if command.split(maxsplit=1)[0] not in cmdutils.cmd_dict:
+            raise cmdexc.CommandError("Invalid command {}!".format(command))
+        try:
+            self._add_binding(mode, key, command)
+        except KeyConfigError as e:
+            raise cmdexc.CommandError(e)
+        for m in mode.split(','):
+            self.changed.emit(m)
+
     def _normalize_sectname(self, s):
         """Normalize a section string like 'foo, bar,baz' to 'bar,baz,foo'."""
         return ','.join(sorted(s.split(',')))
@@ -120,6 +162,7 @@ class KeyConfigParser:
                 for command, keychains in sect.items():
                     for e in keychains:
                         self._add_binding(sectname, e, command)
+            self.changed.emit(sectname)
 
     def _read(self):
         """Read the config file from disk and parse it."""
@@ -141,6 +184,8 @@ class KeyConfigParser:
                 except KeyConfigError as e:
                     e.lineno = i
                     raise
+        for sectname in self.keybindings:
+            self.changed.emit(sectname)
 
     def _read_command(self, line):
         """Read a command from a line."""
@@ -164,6 +209,8 @@ class KeyConfigParser:
 
     def _add_binding(self, sectname, keychain, command):
         """Add a new binding from keychain to command in section sectname."""
+        log.keyboard.debug("Adding binding {} -> {} in mode {}.".format(
+            keychain, command, sectname))
         if sectname not in self.keybindings:
             self.keybindings[sectname] = collections.OrderedDict()
         if keychain in self.get_bindings_for(sectname):

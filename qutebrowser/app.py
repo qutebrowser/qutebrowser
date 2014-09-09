@@ -415,9 +415,10 @@ class Application(QApplication):
         # config
         self.config.style_changed.connect(style.get_stylesheet.cache_clear)
         for obj in (tabs, completion, self.mainwindow, self.cmd_history,
-                    websettings, kp[utypes.KeyMode.normal], self.modeman,
-                    status, status.txt):
+                    websettings, self.modeman, status, status.txt):
             self.config.changed.connect(obj.on_config_changed)
+        for obj in kp.values():
+            self.keyconfig.changed.connect(obj.on_keyconfig_changed)
 
         # statusbar
         # FIXME some of these probably only should be triggered on mainframe

@@ -345,11 +345,11 @@ class BaseKeyParser(QObject):
         """
         raise NotImplementedError
 
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, _option):
+    @pyqtSlot(str)
+    def on_keyconfig_changed(self, mode):
         """Re-read the config if a keybinding was changed."""
         if self._modename is None:
             raise AttributeError("on_config_changed called but no section "
                                  "defined!")
-        if section == self._modename:
+        if mode == self._modename:
             self.read_config()
