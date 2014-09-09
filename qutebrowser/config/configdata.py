@@ -784,7 +784,18 @@ DATA = collections.OrderedDict([
 KEY_FIRST_COMMENT = """
 # vim: ft=conf
 #
-# Bindings from a key(chain) to a command.
+# In this config file, qutebrowser's keybindings are configured.
+# The format looks like this:
+#
+# [keymode]
+#
+# command
+#   keychain
+#   keychain2
+#   ...
+#
+# All blank lines and lines starting with '#' are ignored.
+# Inline-comments are not permitted.
 #
 # For special keys (can't be part of a keychain), enclose them in `<`...`>`.
 # For modifiers, you can use either `-` or `+` as delimiters, and these names:
@@ -855,7 +866,7 @@ KEY_DATA = collections.OrderedDict([
         ('set-cmd-text ":open -b "', ['xo']),
         ('set-cmd-text ":open -b {url}"', ['xO']),
         ('open -t about:blank', ['ga']),
-        ('tab-close', ['d']),
+        ('tab-close', ['d', '<Ctrl-W>']),
         ('tab-only', ['co']),
         ('tab-focus', ['T']),
         ('tab-move', ['gm']),
@@ -864,7 +875,7 @@ KEY_DATA = collections.OrderedDict([
         ('tab-next', ['J']),
         ('tab-prev', ['K']),
         ('reload', ['r']),
-        ('back', ['H']),
+        ('back', ['H', '<Backspace>']),
         ('forward', ['L']),
         ('hint', ['f']),
         ('hint all tab', ['F']),
@@ -883,7 +894,7 @@ KEY_DATA = collections.OrderedDict([
         ('scroll 0 50', ['j']),
         ('scroll 0 -50', ['k']),
         ('scroll 50 0', ['l']),
-        ('undo', ['u']),
+        ('undo', ['u', '<Ctrl-Shift-T>']),
         ('scroll-perc 0', ['gg']),
         ('scroll-perc', ['G']),
         ('search-next', ['n']),
@@ -917,8 +928,6 @@ KEY_DATA = collections.OrderedDict([
         ('tab-focus last', ['<Ctrl-Tab>']),
         ('enter-mode passthrough', ['<Ctrl-V>']),
         ('quit', ['<Ctrl-Q>']),
-        ('undo', ['<Ctrl-Shift-T>']),
-        ('tab-close', ['<Ctrl-W>']),
         ('open -t about:blank', ['<Ctrl-T>']),
         ('scroll-page 0 1', ['<Ctrl-F>']),
         ('scroll-page 0 -1', ['<Ctrl-B>']),
@@ -933,7 +942,6 @@ KEY_DATA = collections.OrderedDict([
         ('tab-focus 7', ['<Alt-7>']),
         ('tab-focus 8', ['<Alt-8>']),
         ('tab-focus 9', ['<Alt-9>']),
-        ('back', ['<Backspace>']),
         ('home', ['<Ctrl-h>']),
         ('stop', ['<Ctrl-s>']),
         ('print', ['<Ctrl-Alt-p>']),
