@@ -35,8 +35,8 @@ class KeyConfigError(Exception):
         lineno: The config line in which the exception occured.
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, msg=None):
+        super().__init__(msg)
         self.lineno = None
 
 
@@ -163,6 +163,8 @@ class KeyConfigParser:
         """Add a new binding from keychain to command in section sectname."""
         if sectname not in self.keybindings:
             self.keybindings[sectname] = collections.OrderedDict()
+        if keychain in self.get_bindings_for(sectname):
+            raise KeyConfigError("Duplicate keychain '{}'!".format(keychain))
         self.keybindings[sectname][keychain] = command
 
     def get_bindings_for(self, section):
