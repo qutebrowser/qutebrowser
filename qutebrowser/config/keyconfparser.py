@@ -123,11 +123,6 @@ class KeyConfigParser(QObject):
     def bind(self, key, command, mode=None):
         """Bind a key to a command.
 
-        //
-
-        FIXME: We should use the KeyMode enum here, and some argparser type for
-               a comma-separated list of enums.
-
         Args:
             key: The keychain or special key (inside <...>) to bind.
             command: The command to execute.
@@ -136,6 +131,7 @@ class KeyConfigParser(QObject):
         """
         if mode is None:
             mode = 'normal'
+        mode = self._normalize_sectname(mode)
         for m in mode.split(','):
             if m not in configdata.KEY_DATA:
                 raise cmdexc.CommandError("Invalid mode {}!".format(m))
@@ -147,6 +143,35 @@ class KeyConfigParser(QObject):
             raise cmdexc.CommandError(e)
         for m in mode.split(','):
             self.changed.emit(m)
+
+    @cmdutils.register(instance='keyconfig')
+    def unbind(self, key, mode=None):
+        """Unbind a keychain.
+
+        Args:
+            key: The keychain or special key (inside <...>) to bind.
+            mode: A comma-separated list of modes to unbind the key in
+                  (default: normal mode).
+        """
+        if mode is None:
+            mode = 'normal'
+        mode = self._normalize_sectname(mode)
+        for m in mode.split(','):
+            if m not in configdata.KEY_DATA:
+                raise cmdexc.CommandError("Invalid mode {}!".format(m))
+        try:
+            sect = self.keybindings[mode]
+        except KeyError as e:
+            raise cmdexc.CommandError("Can't find mode section '{}'!".format(
+                sect))
+        try:
+            del sect[key]
+        except KeyError as e:
+            raise cmdexc.CommandError("Can't find binding '{}' in section "
+                                      "'{}'!".format(key, mode))
+        else:
+            for m in mode.split(','):
+                self.changed.emit(m)
 
     def _normalize_sectname(self, s):
         """Normalize a section string like 'foo, bar,baz' to 'bar,baz,foo'."""
