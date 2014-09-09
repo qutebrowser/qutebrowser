@@ -26,7 +26,6 @@ we borrow some methods and classes from there where it makes sense.
 
 import os
 import os.path
-import textwrap
 import functools
 import configparser
 import collections.abc
@@ -34,7 +33,7 @@ import collections.abc
 from PyQt5.QtCore import pyqtSignal, QObject, QCoreApplication
 
 from qutebrowser.utils import log
-from qutebrowser.config import configdata, iniparsers, configtypes
+from qutebrowser.config import configdata, iniparsers, configtypes, textwrapper
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import message
 from qutebrowser.utils.usertypes import Completion
@@ -89,7 +88,6 @@ class ConfigManager(QObject):
         sections: The configuration data as an OrderedDict.
         _fname: The filename to be opened.
         _configparser: A ReadConfigParser instance to load the config.
-        _wrapper_args: A dict with the default kwargs for the config wrappers.
         _configdir: The dictionary to read the config from and save it in.
         _configfile: The config file path.
         _interpolation: An configparser.Interpolation object
@@ -113,12 +111,6 @@ class ConfigManager(QObject):
         self.sections = configdata.DATA
         self._configparser = iniparsers.ReadConfigParser(configdir, fname)
         self._configfile = os.path.join(configdir, fname)
-        self._wrapper_args = {
-            'width': 72,
-            'replace_whitespace': False,
-            'break_long_words': False,
-            'break_on_hyphens': False,
-        }
         self._configdir = configdir
         self._fname = fname
         self._interpolation = configparser.ExtendedInterpolation()
@@ -146,9 +138,7 @@ class ConfigManager(QObject):
 
     def _str_section_desc(self, sectname):
         """Get the section description string for sectname."""
-        wrapper = textwrap.TextWrapper(initial_indent='# ',
-                                       subsequent_indent='# ',
-                                       **self._wrapper_args)
+        wrapper = textwrapper.TextWrapper()
         lines = []
         seclines = configdata.SECTION_DESC[sectname].splitlines()
         for secline in seclines:
@@ -160,9 +150,8 @@ class ConfigManager(QObject):
 
     def _str_option_desc(self, sectname, sect):
         """Get the option description strings for sect/sectname."""
-        wrapper = textwrap.TextWrapper(initial_indent='#' + ' ' * 5,
-                                       subsequent_indent='#' + ' ' * 5,
-                                       **self._wrapper_args)
+        wrapper = textwrapper.TextWrapper(initial_indent='#' + ' ' * 5,
+                                          subsequent_indent='#' + ' ' * 5)
         lines = []
         if not getattr(sect, 'descriptions', None):
             return lines

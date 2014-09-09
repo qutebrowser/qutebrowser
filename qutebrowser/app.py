@@ -192,7 +192,8 @@ class Application(QApplication):
             # We didn't really initialize much so far, so we just quit hard.
             sys.exit(1)
         try:
-            self.keyconfig = keyconfparser.KeyConfigParser(confdir, 'keys')
+            self.keyconfig = keyconfparser.KeyConfigParser(
+                confdir, 'keys.conf')
         except keyconfparser.KeyConfigError as e:
             log.init.exception(e)
             errstr = "Error while reading key config:\n"
@@ -730,7 +731,7 @@ class Application(QApplication):
             # event loop, so we can shut down immediately.
             self._shutdown(status)
 
-    def _shutdown(self, status):
+    def _shutdown(self, status):  # noqa
         """Second stage of shutdown."""
         log.destroy.debug("Stage 2 of shutting down...")
         # Remove eventfilter
@@ -745,7 +746,10 @@ class Application(QApplication):
         if hasattr(self, 'config') and self.config is not None:
             to_save = []
             if self.config.get('general', 'auto-save-config'):
-                to_save.append(("config", self.config.save))
+                if hasattr(self, 'config'):
+                    to_save.append(("config", self.config.save))
+                if hasattr(self, 'keyconfig'):
+                    to_save.append(("keyconfig", self.keyconfig.save))
             to_save += [("window geometry", self._save_geometry),
                         ("quickmarks", quickmarks.save)]
             if hasattr(self, 'cmd_history'):

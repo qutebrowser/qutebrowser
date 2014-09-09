@@ -780,7 +780,10 @@ DATA = collections.OrderedDict([
     )),
 ])
 
-KEYBINDINGS = """
+
+KEY_FIRST_COMMENT = """
+# vim: ft=conf
+#
 # Bindings from a key(chain) to a command.
 #
 # For special keys (can't be part of a keychain), enclose them in `<`...`>`.
@@ -795,412 +798,187 @@ KEYBINDINGS = """
 # with Shift. For special keys (with `<>`-signs), you need to explicitely add
 # `Shift-` to match a key pressed with shift.  You can bind multiple commands
 # by separating them with `;;`.
-
-[normal]
-
-set-cmd-text ":open "
-    o
-
-set-cmd-text ":open {url}"
-    go
-
-set-cmd-text ":open -t "
-    O
-
-set-cmd-text ":open -t {url}"
-    gO
-
-set-cmd-text ":open -b "
-    xo
-
-set-cmd-text ":open -b {url}"
-    xO
-
-open -t about:blank
-    ga
-
-tab-close
-    d
-
-tab-only
-    co
-
-tab-focus
-    T
-
-tab-move
-    gm
-
-tab-move -
-    gl
-
-tab-move +
-    gr
-
-tab-next
-    J
-
-tab-prev
-    K
-
-reload
-    r
-
-back
-    H
-
-forward
-    L
-
-hint
-    f
-
-hint all tab
-    F
-
-hint all tab-bg
-    ;b
-
-hint images
-    ;i
-
-hint images tab
-    ;I
-
-hint images tab-bg
-    .i
-
-hint links fill ":open {hint-url}"
-    ;o
-
-hint links fill ":open -t {hint-url}"
-    ;O
-
-hint links fill ":open -b {hint-url}"
-    .o
-
-hint links yank
-    ;y
-
-hint links yank-primary
-    ;Y
-
-hint links rapid
-    ;r
-
-hint links download
-    ;d
-
-scroll -50 0
-    h
-
-scroll 0 50
-    j
-
-scroll 0 -50
-    k
-
-scroll 50 0
-    l
-
-undo
-    u
-
-scroll-perc 0
-    gg
-
-scroll-perc
-    G
-
-search-next
-    n
-
-search-prev
-    N
-
-enter-mode insert
-    i
-
-yank
-    yy
-
-yank -s
-    yY
-
-yank -t
-    yt
-
-yank -ts
-    yT
-
-paste
-    pp
-
-paste -s
-    pP
-
-paste -t
-    Pp
-
-paste -ts
-    PP
-
-quickmark-save
-    m
-
-set-cmd-text ":quickmark-load "
-    b
-
-set-cmd-text ":quickmark-load -t "
-    B
-
-save
-    sf
-
-set-cmd-text ":set "
-    ss
-
-set-cmd-text ":set -t "
-    sl
-
-set-cmd-text ":set keybind "
-    sk
-
-zoom-out
-    -
-
-zoom-in
-    +
-
-zoom
-    =
-
-prev-page
-    [[
-
-next-page
-    ]]
-
-prev-page -t
-    {{
-
-next-page -t
-    }}
-
-inspector
-    wi
-
-download-page
-    gd
-
-cancel-download
-    ad
-
-tab-focus last
-    <Ctrl-Tab>
-
-enter-mode passthrough
-    <Ctrl-V>
-
-quit
-    <Ctrl-Q>
-
-undo
-    <Ctrl-Shift-T>
-
-tab-close
-    <Ctrl-W>
-
-open -t about:blank
-    <Ctrl-T>
-
-scroll-page 0 1
-    <Ctrl-F>
-
-scroll-page 0 -1
-    <Ctrl-B>
-
-scroll-page 0 0.5
-    <Ctrl-D>
-
-scroll-page 0 -0.5
-    <Ctrl-U>
-
-tab-focus 1
-    <Alt-1>
-
-tab-focus 2
-    <Alt-2>
-
-tab-focus 3
-    <Alt-3>
-
-tab-focus 4
-    <Alt-4>
-
-tab-focus 5
-    <Alt-5>
-
-tab-focus 6
-    <Alt-6>
-
-tab-focus 7
-    <Alt-7>
-
-tab-focus 8
-    <Alt-8>
-
-tab-focus 9
-    <Alt-9>
-
-back
-    <Backspace>
-
-home
-    <Ctrl-h>
-
-stop
-    <Ctrl-s>
-
-print
-    <Ctrl-Alt-p>
-
-[insert,hint,passthrough,command,prompt]
-
-leave-mode
-    <Escape>
-    <Ctrl-N>
-    <Ctrl-[>
-
-[passthrough]
-# Keybindings for passthrough mode.
-#
-# Since normal keypresses are passed through, only special keys are supported
-# in this section.
-
-[insert]
-
-# Since normal keypresses are passed through, only special keys are supported
-# in this section.
-#
-# Useful hidden commands to map in this section:
-#  * `open-editor`: Open a texteditor with the focused field.
-
-open-editor
-    <Ctrl-E>
-
-[hint]
-
-# Since normal keypresses are passed through, only special keys are supported
-# in this section.
-#
-# Useful hidden commands to map in this section:
-#
-# * `follow-hint`: Follow the currently selected hint.
-
-follow-hint
-    <Return>
-
-[command,prompt]
-
-rl-backward-char
-    <Ctrl-B>
-
-rl-forward-char
-    <Ctrl-F>
-
-rl-backward-word
-    <Alt-B>
-
-rl-forward-word
-    <Alt-F>
-
-rl-beginning-of-line
-    <Ctrl-A>
-
-rl-end-of-line
-    <Ctrl-E>
-
-rl-unix-line-discard
-    <Ctrl-U>
-
-rl-kill-line
-    <Ctrl-K>
-
-rl-kill-word
-    <Alt-D>
-
-rl-unix-word-rubout
-    <Ctrl-W>
-
-rl-yank
-    <Ctrl-Y>
-
-rl-delete-char
-    <Ctrl-?>
-
-rl-backward-delete-char
-    <Ctrl-H>
-
-
-[command]
-
-# Since normal keypresses are passed through, only special keys are
-# supported in this mode.
-
-# Useful hidden commands to map in this section:
-#
-#  * `command-history-prev`: Switch to previous command in history.
-#  * `command-history-next`: Switch to next command in history.
-#  * `completion-item-prev`: Select previous item in completion.
-#  * `completion-item-next`: Select next item in completion.
-#  * `command-accept`: Execute the command currently in the commandline.
-#  * `leave-mode`: Leave the command mode.
-
-command-history-prev
-    <Ctrl-P>
-
-command-history-next
-    <Ctrl-N>
-
-completion-item-prev
-    <Shift-Tab>
-
-completion-item-prev
-    <Up>
-
-completion-item-next
-    <Tab>
-
-completion-item-next
-    <Down>
-
-command-accept
-    <Return>
-    <Ctrl-J>
-    <Shift-Return>
-
-[prompt]
-
-# You can bind normal keys in this mode, but they will be only active when a
-# yes/no-prompt is asked. For other prompt modes, you can only bind special
-# keys.
-
-# Useful hidden commands to map in this section:
-#
-#  * `prompt-accept`: Confirm the entered value.
-#  * `prompt-yes`: Answer yes to a yes/no question.
-#  * `prompt-no`: Answer no to a yes/no question.
-#  * `leave-mode`: Leave the prompt mode.
-
-prompt-accept
-    <Return>
-    <Shift-Return>
-    <Ctrl-J>
-
-prompt-yes
-    y
-
-prompt-no
-    n
 """
+
+KEY_SECTION_DESC = {
+    'all': "Keybindings active in all modes.",
+    'normal': "Keybindings for normal mode.",
+    'insert': (
+        "Keybindings for insert mode.\n"
+        "Since normal keypresses are passed through, only special keys are "
+        "supported in this mode.\n"
+        "Useful hidden commands to map in this section:\n\n"
+        " * `open-editor`: Open a texteditor with the focused field."),
+    'hint': (
+        "Keybindings for hint mode.\n"
+        "Since normal keypresses are passed through, only special keys are "
+        "supported in this mode.\n"
+        "Useful hidden commands to map in this section:\n\n"
+        " * `follow-hint`: Follow the currently selected hint."),
+    'passthrough': (
+        "Keybindings for passthrough mode.\n"
+        "Since normal keypresses are passed through, only special keys are "
+        "supported in this mode."),
+    'command': (
+        "Keybindings for command mode.\n"
+        "Since normal keypresses are passed through, only special keys are "
+        "supported in this mode.\n"
+        "Useful hidden commands to map in this section:\n\n"
+        " * `command-history-prev`: Switch to previous command in history.\n"
+        " * `command-history-next`: Switch to next command in history.\n"
+        " * `completion-item-prev`: Select previous item in completion.\n"
+        " * `completion-item-next`: Select next item in completion.\n"
+        " * `command-accept`: Execute the command currently in the "
+        "commandline."),
+    'prompt': (
+        "Keybindings for prompts in the status line.\n"
+        "You can bind normal keys in this mode, but they will be only active "
+        "when a yes/no-prompt is asked. For other prompt modes, you can only "
+        "bind special keys.\n"
+        "Useful hidden commands to map in this section:\n\n"
+        " * `prompt-accept`: Confirm the entered value.\n"
+        " * `prompt-yes`: Answer yes to a yes/no question.\n"
+        " * `prompt-no`: Answer no to a yes/no question."),
+}
+
+
+KEY_DATA = collections.OrderedDict([
+    ('all', collections.OrderedDict([
+        ('leave-mode', ['<Escape>', '<Ctrl-[>']),
+    ])),
+
+    ('normal', collections.OrderedDict([
+        ('set-cmd-text ":open "', ['o']),
+        ('set-cmd-text ":open {url}"', ['go']),
+        ('set-cmd-text ":open -t "', ['O']),
+        ('set-cmd-text ":open -t {url}"', ['gO']),
+        ('set-cmd-text ":open -b "', ['xo']),
+        ('set-cmd-text ":open -b {url}"', ['xO']),
+        ('open -t about:blank', ['ga']),
+        ('tab-close', ['d']),
+        ('tab-only', ['co']),
+        ('tab-focus', ['T']),
+        ('tab-move', ['gm']),
+        ('tab-move -', ['gl']),
+        ('tab-move +', ['gr']),
+        ('tab-next', ['J']),
+        ('tab-prev', ['K']),
+        ('reload', ['r']),
+        ('back', ['H']),
+        ('forward', ['L']),
+        ('hint', ['f']),
+        ('hint all tab', ['F']),
+        ('hint all tab-bg', [';b']),
+        ('hint images', [';i']),
+        ('hint images tab', [';I']),
+        ('hint images tab-bg', ['.i']),
+        ('hint links fill ":open {hint-url}"', [';o']),
+        ('hint links fill ":open -t {hint-url}"', [';O']),
+        ('hint links fill ":open -b {hint-url}"', ['.o']),
+        ('hint links yank', [';y']),
+        ('hint links yank-primary', [';Y']),
+        ('hint links rapid', [';r']),
+        ('hint links download', [';d']),
+        ('scroll -50 0', ['h']),
+        ('scroll 0 50', ['j']),
+        ('scroll 0 -50', ['k']),
+        ('scroll 50 0', ['l']),
+        ('undo', ['u']),
+        ('scroll-perc 0', ['gg']),
+        ('scroll-perc', ['G']),
+        ('search-next', ['n']),
+        ('search-prev', ['N']),
+        ('enter-mode insert', ['i']),
+        ('yank', ['yy']),
+        ('yank -s', ['yY']),
+        ('yank -t', ['yt']),
+        ('yank -ts', ['yT']),
+        ('paste', ['pp']),
+        ('paste -s', ['pP']),
+        ('paste -t', ['Pp']),
+        ('paste -ts', ['PP']),
+        ('quickmark-save', ['m']),
+        ('set-cmd-text ":quickmark-load "', ['b']),
+        ('set-cmd-text ":quickmark-load -t "', ['B']),
+        ('save', ['sf']),
+        ('set-cmd-text ":set "', ['ss']),
+        ('set-cmd-text ":set -t "', ['sl']),
+        ('set-cmd-text ":set keybind "', ['sk']),
+        ('zoom-out', ['-']),
+        ('zoom-in', ['+']),
+        ('zoom', ['=']),
+        ('prev-page', ['[[']),
+        ('next-page', [']]']),
+        ('prev-page -t', ['{{']),
+        ('next-page -t', ['}}']),
+        ('inspector', ['wi']),
+        ('download-page', ['gd']),
+        ('cancel-download', ['ad']),
+        ('tab-focus last', ['<Ctrl-Tab>']),
+        ('enter-mode passthrough', ['<Ctrl-V>']),
+        ('quit', ['<Ctrl-Q>']),
+        ('undo', ['<Ctrl-Shift-T>']),
+        ('tab-close', ['<Ctrl-W>']),
+        ('open -t about:blank', ['<Ctrl-T>']),
+        ('scroll-page 0 1', ['<Ctrl-F>']),
+        ('scroll-page 0 -1', ['<Ctrl-B>']),
+        ('scroll-page 0 0.5', ['<Ctrl-D>']),
+        ('scroll-page 0 -0.5', ['<Ctrl-U>']),
+        ('tab-focus 1', ['<Alt-1>']),
+        ('tab-focus 2', ['<Alt-2>']),
+        ('tab-focus 3', ['<Alt-3>']),
+        ('tab-focus 4', ['<Alt-4>']),
+        ('tab-focus 5', ['<Alt-5>']),
+        ('tab-focus 6', ['<Alt-6>']),
+        ('tab-focus 7', ['<Alt-7>']),
+        ('tab-focus 8', ['<Alt-8>']),
+        ('tab-focus 9', ['<Alt-9>']),
+        ('back', ['<Backspace>']),
+        ('home', ['<Ctrl-h>']),
+        ('stop', ['<Ctrl-s>']),
+        ('print', ['<Ctrl-Alt-p>']),
+    ])),
+
+    ('insert', collections.OrderedDict([
+        ('open-editor', ['<Ctrl-E>']),
+    ])),
+
+    ('hint', collections.OrderedDict([
+        ('follow-hint', ['<Return>']),
+    ])),
+
+    ('passthrough', {}),
+
+    ('command', collections.OrderedDict([
+        ('command-history-prev', ['<Ctrl-P>']),
+        ('command-history-next', ['<Ctrl-N>']),
+        ('completion-item-prev', ['<Shift-Tab>']),
+        ('completion-item-prev', ['<Up>']),
+        ('completion-item-next', ['<Tab>']),
+        ('completion-item-next', ['<Down>']),
+        ('command-accept', ['<Return>', '<Ctrl-J>', '<Shift-Return>']),
+    ])),
+
+    ('prompt', collections.OrderedDict([
+        ('prompt-accept', ['<Return>', '<Ctrl-J>']),
+        ('prompt-accept', ['<Shift-Return>']),
+        ('prompt-yes', ['y']),
+        ('prompt-no', ['n']),
+    ])),
+
+    ('command,prompt', collections.OrderedDict([
+        ('rl-backward-char', ['<Ctrl-B>']),
+        ('rl-forward-char', ['<Ctrl-F>']),
+        ('rl-backward-word', ['<Alt-B>']),
+        ('rl-forward-word', ['<Alt-F>']),
+        ('rl-beginning-of-line', ['<Ctrl-A>']),
+        ('rl-end-of-line', ['<Ctrl-E>']),
+        ('rl-unix-line-discard', ['<Ctrl-U>']),
+        ('rl-kill-line', ['<Ctrl-K>']),
+        ('rl-kill-word', ['<Alt-D>']),
+        ('rl-unix-word-rubout', ['<Ctrl-W>']),
+        ('rl-yank', ['<Ctrl-Y>']),
+        ('rl-delete-char', ['<Ctrl-?>']),
+        ('rl-backward-delete-char', ['<Ctrl-H>']),
+    ])),
+])

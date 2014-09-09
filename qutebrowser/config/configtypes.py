@@ -1042,25 +1042,6 @@ class SearchEngineUrl(BaseType):
                 url.errorString()))
 
 
-class KeyBindingName(BaseType):
-
-    """The name (keys) of a keybinding."""
-
-    def validate(self, value):
-        if not value:
-            if self.none_ok:
-                return
-            else:
-                raise ValidationError(value, "may not be empty!")
-
-
-class KeyBinding(Command):
-
-    """The command of a keybinding."""
-
-    pass
-
-
 class Encoding(BaseType):
 
     """Setting for a python encoding."""

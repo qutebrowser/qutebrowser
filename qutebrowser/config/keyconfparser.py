@@ -19,10 +19,10 @@
 
 """Parser for the key configuration."""
 
-
+import collections
 import os.path
 
-from qutebrowser.config import configdata
+from qutebrowser.config import configdata, textwrapper
 from qutebrowser.commands import cmdutils
 from qutebrowser.utils import log
 
@@ -56,12 +56,67 @@ class KeyConfigParser:
         self._cur_section = None
         self._cur_command = None
         # Mapping of section name(s) to keybinding -> command dicts.
-        self.keybindings = {}
+        self.keybindings = collections.OrderedDict()
         if not os.path.exists(self._configfile):
-            log.init.debug("Creating initial keybinding config.")
-            with open(self._configfile, 'w', encoding='utf-8') as f:
-                f.write(configdata.KEYBINDINGS)
-        self._read()
+            self._load_default()
+        else:
+            self._read()
+        log.init.debug("Loaded bindings: {}".format(self.keybindings))
+
+    def __str__(self):
+        """Get the config as string."""
+        lines = configdata.KEY_FIRST_COMMENT.strip('\n').splitlines()
+        lines.append('')
+        for sectname, sect in self.keybindings.items():
+            lines.append('[{}]'.format(sectname))
+            lines += self._str_section_desc(sectname)
+            lines.append('')
+            data = collections.OrderedDict()
+            for key, cmd in sect.items():
+                if cmd in data:
+                    data[cmd].append(key)
+                else:
+                    data[cmd] = [key]
+            for cmd, keys in data.items():
+                lines.append(cmd)
+                for k in keys:
+                    lines.append(' ' * 4 + k)
+                lines.append('')
+        return '\n'.join(lines) + '\n'
+
+    def _str_section_desc(self, sectname):
+        """Get the section description string for sectname."""
+        wrapper = textwrapper.TextWrapper()
+        lines = []
+        try:
+            seclines = configdata.KEY_SECTION_DESC[sectname].splitlines()
+        except KeyError:
+            return []
+        else:
+            for secline in seclines:
+                if 'http://' in secline or 'https://' in secline:
+                    lines.append('# ' + secline)
+                else:
+                    lines += wrapper.wrap(secline)
+            return lines
+
+    def save(self):
+        """Save the key config file."""
+        log.destroy.debug("Saving key config to {}".format(self._configfile))
+        with open(self._configfile, 'w', encoding='utf-8') as f:
+            f.write(str(self))
+
+    def _normalize_sectname(self, s):
+        """Normalize a section string like 'foo, bar,baz' to 'bar,baz,foo'."""
+        return ','.join(sorted(s.split(',')))
+
+    def _load_default(self):
+        """Load the built-in default keybindings."""
+        for sectname, sect in configdata.KEY_DATA.items():
+            sectname = self._normalize_sectname(sectname)
+            for command, keychains in sect.items():
+                for e in keychains:
+                    self._add_binding(sectname, e, command)
 
     def _read(self):
         """Read the config file from disk and parse it."""
@@ -72,7 +127,8 @@ class KeyConfigParser:
                     if not line.strip() or line.startswith('#'):
                         continue
                     elif line.startswith('[') and line.endswith(']'):
-                        self._cur_section = line[1:-1]
+                        sectname = line[1:-1]
+                        self._cur_section = self._normalize_sectname(sectname)
                     elif line.startswith((' ', '\t')):
                         line = line.strip()
                         self._read_keybinding(line)
@@ -101,10 +157,13 @@ class KeyConfigParser:
                                  "command!".format(line))
         else:
             assert self._cur_section is not None
-            if self._cur_section not in self.keybindings:
-                self.keybindings[self._cur_section] = {}
-            section_bindings = self.keybindings[self._cur_section]
-            section_bindings[line] = self._cur_command
+            self._add_binding(self._cur_section, line, self._cur_command)
+
+    def _add_binding(self, sectname, keychain, command):
+        """Add a new binding from keychain to command in section sectname."""
+        if sectname not in self.keybindings:
+            self.keybindings[sectname] = collections.OrderedDict()
+        self.keybindings[sectname][keychain] = command
 
     def get_bindings_for(self, section):
         """Get a dict with all merged keybindings for a section."""
@@ -113,4 +172,8 @@ class KeyConfigParser:
             sects = [s.strip() for s in sectstring.split(',')]
             if any(s == section for s in sects):
                 bindings.update(d)
+        try:
+            bindings.update(self.keybindings['all'])
+        except KeyError:
+            pass
         return bindings

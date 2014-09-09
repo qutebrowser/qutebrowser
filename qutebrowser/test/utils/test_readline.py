@@ -34,7 +34,8 @@ class NoneWidgetTests(unittest.TestCase):
     """Tests when the focused widget is None."""
 
     def setUp(self):
-        readline.QApplication = stubs.FakeQApplication(None)
+        readline.QApplication = stubs.FakeQApplication()
+        readline.QApplication.focusWidget = mock.Mock(return_value=None)
         self.bridge = readline.ReadlineBridge()
 
     def test_none(self):
@@ -52,7 +53,7 @@ class ReadlineBridgeTest(unittest.TestCase):
     def setUp(self):
         self.qle = mock.Mock()
         self.qle.__class__ = QLineEdit
-        readline.QApplication = stubs.FakeQApplication(self.qle)
+        readline.QApplication.focusWidget = mock.Mock(return_value=self.qle)
         self.bridge = readline.ReadlineBridge()
 
     def _set_selected_text(self, text):
