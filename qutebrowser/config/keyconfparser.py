@@ -114,9 +114,12 @@ class KeyConfigParser:
         """Load the built-in default keybindings."""
         for sectname, sect in configdata.KEY_DATA.items():
             sectname = self._normalize_sectname(sectname)
-            for command, keychains in sect.items():
-                for e in keychains:
-                    self._add_binding(sectname, e, command)
+            if not sect:
+                self.keybindings[sectname] = collections.OrderedDict()
+            else:
+                for command, keychains in sect.items():
+                    for e in keychains:
+                        self._add_binding(sectname, e, command)
 
     def _read(self):
         """Read the config file from disk and parse it."""
