@@ -29,7 +29,15 @@ from qutebrowser.utils import log
 
 class KeyConfigError(Exception):
 
-    """Raised on errors with the key config."""
+    """Raised on errors with the key config.
+
+    Attributes:
+        lineno: The config line in which the exception occured.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.lineno = None
 
 
 class KeyConfigParser:

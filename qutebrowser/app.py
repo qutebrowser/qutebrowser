@@ -103,6 +103,7 @@ class Application(QApplication):
         self.modeman = None
         self.cmd_history = None
         self.config = None
+        self.keyconfig = None
 
         sys.excepthook = self._exception_hook
 
@@ -195,7 +196,7 @@ class Application(QApplication):
         except keyconfparser.KeyConfigError as e:
             log.init.exception(e)
             errstr = "Error while reading key config:\n"
-            if hasattr(e, 'lineno'):
+            if e.lineno is not None:
                 errstr += "In line {}: ".format(e.lineno)
             errstr += str(e)
             msgbox = QMessageBox(QMessageBox.Critical,
