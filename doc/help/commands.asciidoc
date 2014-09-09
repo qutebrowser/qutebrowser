@@ -6,6 +6,7 @@
 |==============
 |Command|Description
 |<<back,back>>|Go back in the history of the current tab.
+|<<bind,bind>>|Bind a key to a command.
 |<<cancel-download,cancel-download>>|Cancel the first/[count]th download.
 |<<download-page,download-page>>|Download the current page.
 |<<forward,forward>>|Go forward in the history of the current tab.
@@ -40,6 +41,7 @@
 |<<tab-next,tab-next>>|Switch to the next tab, or switch [count] tabs forward.
 |<<tab-only,tab-only>>|Close all tabs except for the current one.
 |<<tab-prev,tab-prev>>|Switch to the previous tab, or switch [count] tabs back.
+|<<unbind,unbind>>|Unbind a keychain.
 |<<undo,undo>>|Re-open a closed tab (optionally skipping [count] closed tabs).
 |<<yank,yank>>|Yank the current URL/title to the clipboard or primary selection.
 |<<zoom,zoom>>|Set the zoom level for the current tab.
@@ -49,6 +51,18 @@
 [[back]]
 === back
 Go back in the history of the current tab.
+
+[[bind]]
+=== bind
+Syntax: +:bind 'key' 'command' ['mode']+
+
+Bind a key to a command.
+
+==== positional arguments
+* +'key'+: The keychain or special key (inside <...>) to bind.
+* +'command'+: The command to execute.
+* +'mode'+: A comma-separated list of modes to bind the key in (default: normal mode).
+
 
 [[cancel-download]]
 === cancel-download
@@ -339,6 +353,17 @@ Close all tabs except for the current one.
 [[tab-prev]]
 === tab-prev
 Switch to the previous tab, or switch [count] tabs back.
+
+[[unbind]]
+=== unbind
+Syntax: +:unbind 'key' ['mode']+
+
+Unbind a keychain.
+
+==== positional arguments
+* +'key'+: The keychain or special key (inside <...>) to bind.
+* +'mode'+: A comma-separated list of modes to unbind the key in (default: normal mode).
+
 
 [[undo]]
 === undo

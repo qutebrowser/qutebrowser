@@ -812,62 +812,6 @@ Default: +pass:[\bprev(ious)?\b,\bback\b,\bolder\b,\b[&lt;←≪]\b,\b(&lt;&lt;|
 Definitions of search engines which can be used via the address bar.
 The searchengine named `DEFAULT` is used when `general -> auto-search` is true and something else than a URL was entered to be opened. Other search engines can be used via the bang-syntax, e.g. `:open qutebrowser !google`. The string `{}` will be replaced by the search term, use `{{` and `}}` for literal `{`/`}` signs.
 
-== keybind
-Bindings from a key(chain) to a command.
-For special keys (can't be part of a keychain), enclose them in `<`...`>`. For modifiers, you can use either `-` or `+` as delimiters, and these names:
-
- * Control: `Control`, `Ctrl`
- * Meta:    `Meta`, `Windows`, `Mod4`
- * Alt:     `Alt`, `Mod1`
- * Shift:   `Shift`
-
-For simple keys (no `<>`-signs), a capital letter means the key is pressed with Shift. For special keys (with `<>`-signs), you need to explicitely add `Shift-` to match a key pressed with shift. You can bind multiple commands by separating them with `;;`.
-
-== keybind.insert
-Keybindings for insert mode.
-Since normal keypresses are passed through, only special keys are supported in this mode.
-Useful hidden commands to map in this section:
-
- * `open-editor`: Open a texteditor with the focused field.
- * `leave-mode`: Leave the command mode.
-
-== keybind.hint
-Keybindings for hint mode.
-Since normal keypresses are passed through, only special keys are supported in this mode.
-Useful hidden commands to map in this section:
-
- * `follow-hint`: Follow the currently selected hint.
- * `leave-mode`: Leave the command mode.
-
-== keybind.passthrough
-Keybindings for passthrough mode.
-Since normal keypresses are passed through, only special keys are supported in this mode.
-Useful hidden commands to map in this section:
-
- * `leave-mode`: Leave the passthrough mode.
-
-== keybind.command
-Keybindings for command mode.
-Since normal keypresses are passed through, only special keys are supported in this mode.
-Useful hidden commands to map in this section:
-
- * `command-history-prev`: Switch to previous command in history.
- * `command-history-next`: Switch to next command in history.
- * `completion-item-prev`: Select previous item in completion.
- * `completion-item-next`: Select next item in completion.
- * `command-accept`: Execute the command currently in the commandline.
- * `leave-mode`: Leave the command mode.
-
-== keybind.prompt
-Keybindings for prompts in the status line.
-You can bind normal keys in this mode, but they will be only active when a yes/no-prompt is asked. For other prompt modes, you can only bind special keys.
-Useful hidden commands to map in this section:
-
- * `prompt-accept`: Confirm the entered value.
- * `prompt-yes`: Answer yes to a yes/no question.
- * `prompt-no`: Answer no to a yes/no question.
- * `leave-mode`: Leave the prompt mode.
-
 == aliases
 Aliases for commands.
 By default, no aliases are defined. Example which adds a new command `:qtb` to open qutebrowsers website:
