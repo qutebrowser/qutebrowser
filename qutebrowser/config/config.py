@@ -75,6 +75,13 @@ class InterpolationSyntaxError(ValueError):
     pass
 
 
+class UnknownSectionError(Exception):
+
+    """Exception raised when there was an unknwon section in the config."""
+
+    pass
+
+
 class ConfigManager(QObject):
 
     """Configuration manager for qutebrowser.
@@ -203,7 +210,11 @@ class ConfigManager(QObject):
         Args:
             cp: The configparser instance to read the values from.
         """
-        for sectname in self.sections.keys():
+        for sectname in cp:
+            if sectname is not 'DEFAULT' and sectname not in self.sections:
+                raise UnknownSectionError("Unknown section '{}'!".format(
+                    sectname))
+        for sectname in self.sections:
             if sectname not in cp:
                 continue
             for k, v in cp[sectname].items():

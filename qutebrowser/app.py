@@ -176,6 +176,8 @@ class Application(QApplication):
                                                self)
         except (configtypes.ValidationError,
                 config.NoOptionError,
+                config.NoSectionError,
+                config.UnknownSectionError,
                 config.InterpolationSyntaxError,
                 configparser.InterpolationError,
                 configparser.DuplicateSectionError,
