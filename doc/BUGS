@@ -35,6 +35,8 @@ Webview
 Input
 -----
 
+- going to passthrough mode (Ctrl-V) then clicking element to go to insert
+  mode, then leaving insert mode clears statusbar text.
 - seir sometimes sees "-- COMMAND MODE --" even though that should never
   happen.
 - Shift-Insert in commandline pastes clipboard instead of primary selection

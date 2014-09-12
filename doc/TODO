@@ -54,6 +54,13 @@ Downloads
 Improvements / minor features
 =============================
 
+- Command/page to show all keybindings?
+- File moves:
+    - state should be in data, not config
+    - data/cache should be in subdirs on Windows if everything is in the same
+      dir.
+- view_source using pygments
+- check what exceptions open() calls could possibly throw
 - Improve -m error message when we're inside the qutebrowser dir (maybe use a
   Tk gui?)
 - Sane default for editor (maybe via QDesktopServices or so?)
