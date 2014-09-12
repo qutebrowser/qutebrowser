@@ -797,6 +797,10 @@ KEY_FIRST_COMMENT = """
 # All blank lines and lines starting with '#' are ignored.
 # Inline-comments are not permitted.
 #
+# keymode is a comma separated list of modes in which the keybinding should be
+# active. If keymode starts with !, the keybinding is active in all modes
+# except the listed modes.
+#
 # For special keys (can't be part of a keychain), enclose them in `<`...`>`.
 # For modifiers, you can use either `-` or `+` as delimiters, and these names:
 #
@@ -854,7 +858,7 @@ KEY_SECTION_DESC = {
 
 
 KEY_DATA = collections.OrderedDict([
-    ('all', collections.OrderedDict([
+    ('!normal', collections.OrderedDict([
         ('leave-mode', ['<Escape>', '<Ctrl-[>']),
     ])),
 

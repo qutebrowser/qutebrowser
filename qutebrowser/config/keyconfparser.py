@@ -175,7 +175,15 @@ class KeyConfigParser(QObject):
 
     def _normalize_sectname(self, s):
         """Normalize a section string like 'foo, bar,baz' to 'bar,baz,foo'."""
-        return ','.join(sorted(s.split(',')))
+        if s.startswith('!'):
+            inverted = True
+            s = s[1:]
+        else:
+            inverted = False
+        sections = ','.join(sorted(s.split(',')))
+        if inverted:
+            sections = '!' + sections
+        return sections
 
     def _load_default(self):
         """Load the built-in default keybindings."""
@@ -246,8 +254,14 @@ class KeyConfigParser(QObject):
         """Get a dict with all merged keybindings for a section."""
         bindings = {}
         for sectstring, d in self.keybindings.items():
+            if sectstring.startswith('!'):
+                inverted = True
+                sectstring = sectstring[1:]
+            else:
+                inverted = False
             sects = [s.strip() for s in sectstring.split(',')]
-            if any(s == section for s in sects):
+            matches = any(s == section for s in sects)
+            if (not inverted and matches) or (inverted and not matches):
                 bindings.update(d)
         try:
             bindings.update(self.keybindings['all'])
