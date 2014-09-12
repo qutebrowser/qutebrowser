@@ -193,7 +193,7 @@ Open a URL in the current/[count]th tab.
 * +*-t*+, +*--tab*+: Open in a new tab.
 
 ==== count
-The tab index to open the URL in, or None.
+The tab index to open the URL in.
 
 [[paste]]
 === paste
@@ -227,7 +227,7 @@ Print the current/[count]th tab.
 * +*-p*+, +*--preview*+: Show preview instead of printing.
 
 ==== count
-The tab index to print, or None.
+The tab index to print.
 
 [[quickmark-add]]
 === quickmark-add
@@ -265,7 +265,7 @@ Quit qutebrowser.
 Reload the current/[count]th tab.
 
 ==== count
-The tab index to reload, or None.
+The tab index to reload.
 
 [[report]]
 === report
@@ -328,14 +328,14 @@ Note the {url} variable which gets replaced by the current URL might be useful h
 Stop loading in the current/[count]th tab.
 
 ==== count
-The tab index to stop, or None.
+The tab index to stop.
 
 [[tab-close]]
 === tab-close
 Close the current/[count]th tab.
 
 ==== count
-The tab index to close, or None
+The tab index to close
 
 [[tab-focus]]
 === tab-focus

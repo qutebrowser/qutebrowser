@@ -543,7 +543,7 @@ class DocstringParser:
             if stop:
                 break
         for k, v in self.arg_descs.items():
-            self.arg_descs[k] = ' '.join(v)
+            self.arg_descs[k] = ' '.join(v).replace(', or None', '')
         self.long_desc = ' '.join(self.long_desc)
         self.short_desc = ' '.join(self.short_desc)
 
