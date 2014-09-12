@@ -229,6 +229,29 @@ class ConfigManager(QObject):
                     e.option = k
                     raise
 
+    def _emit_changed(self, sectname, optname):
+        """Emit the appropriate signals for a changed config option."""
+        log.misc.debug("Config option changed: {} -> {}".format(
+            sectname, optname))
+        if sectname in ('colors', 'fonts'):
+            self.style_changed.emit(sectname, optname)
+        self.changed.emit(sectname, optname)
+
+    def _after_set(self, changed_sect, changed_opt):
+        """Clean up caches and emit signals after an option has been set."""
+        self.get.cache_clear()
+        self._emit_changed(changed_sect, changed_opt)
+        # Options in the same section and ${optname} interpolation.
+        for optname, option in self.sections[changed_sect].items():
+            if '${' + changed_opt + '}' in option.value():
+                self._emit_changed(changed_sect, optname)
+        # Options in any section and ${sectname:optname} interpolation.
+        for sectname, section in self.sections.items():
+            for optname, option in section.items():
+                if ('${' + changed_sect + ':' + changed_opt + '}' in
+                        option.value()):
+                    self._emit_changed(sectname, optname)
+
     def items(self, sectname, raw=True):
         """Get a list of (optname, value) tuples for a section.
 
@@ -411,10 +434,7 @@ class ConfigManager(QObject):
         except KeyError:
             raise NoOptionError(optname, sectname)
         else:
-            self.get.cache_clear()
-            if sectname in ('colors', 'fonts'):
-                self.style_changed.emit(sectname, optname)
-            self.changed.emit(sectname, optname)
+            self._after_set(sectname, optname)
 
     @cmdutils.register(instance='config')
     def save(self):
