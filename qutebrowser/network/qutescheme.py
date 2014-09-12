@@ -31,8 +31,7 @@ from PyQt5.QtNetwork import QNetworkReply
 
 import qutebrowser
 from qutebrowser.network import schemehandler
-from qutebrowser.utils import version, utils, jinja
-from qutebrowser.utils import log as logutils
+from qutebrowser.utils import version, utils, jinja, log
 
 
 pyeval_output = ":pyeval was never called"
@@ -56,14 +55,14 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
         path = request.url().path()
         host = request.url().host()
         # An url like "qute:foo" is split as "scheme:path", not "scheme:host".
-        logutils.misc.debug("url: {}, path: {}, host {}".format(
+        log.misc.debug("url: {}, path: {}, host {}".format(
             request.url().toDisplayString(), path, host))
         try:
-            handler = getattr(QuteHandlers, path)
-        except AttributeError:
+            handler = HANDLERS[path]
+        except KeyError:
             try:
-                handler = getattr(QuteHandlers, host)
-            except AttributeError:
+                handler = HANDLERS[host]
+            except KeyError:
                 errorstr = "No handler found for {}!".format(
                     request.url().toDisplayString())
                 return schemehandler.ErrorNetworkReply(
@@ -79,58 +78,63 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
             request, data, 'text/html', self.parent())
 
 
-class QuteHandlers:
+def qute_pyeval(_request):
+    """Handler for qute:pyeval. Return HTML content as bytes."""
+    html = jinja.env.get_template('pre.html').render(
+        title='pyeval', content=pyeval_output)
+    return html.encode('UTF-8', errors='xmlcharrefreplace')
 
-    """Handlers for qute:... pages."""
 
-    @classmethod
-    def pyeval(cls, _request):
-        """Handler for qute:pyeval. Return HTML content as bytes."""
-        html = jinja.env.get_template('pre.html').render(
-            title='pyeval', content=pyeval_output)
-        return html.encode('UTF-8', errors='xmlcharrefreplace')
+def qute_version(_request):
+    """Handler for qute:version. Return HTML content as bytes."""
+    html = jinja.env.get_template('version.html').render(
+        title='Version info', version=version.version(),
+        copyright=qutebrowser.__copyright__)
+    return html.encode('UTF-8', errors='xmlcharrefreplace')
 
-    @classmethod
-    def version(cls, _request):
-        """Handler for qute:version. Return HTML content as bytes."""
-        html = jinja.env.get_template('version.html').render(
-            title='Version info', version=version.version(),
-            copyright=qutebrowser.__copyright__)
-        return html.encode('UTF-8', errors='xmlcharrefreplace')
 
-    @classmethod
-    def plainlog(cls, _request):
-        """Handler for qute:plainlog. Return HTML content as bytes."""
-        if logutils.ram_handler is None:
-            text = "Log output was disabled."
-        else:
-            text = logutils.ram_handler.dump_log()
-        html = jinja.env.get_template('pre.html').render(
-            title='log', content=text)
-        return html.encode('UTF-8', errors='xmlcharrefreplace')
+def qute_plainlog(_request):
+    """Handler for qute:plainlog. Return HTML content as bytes."""
+    if log.ram_handler is None:
+        text = "Log output was disabled."
+    else:
+        text = log.ram_handler.dump_log()
+    html = jinja.env.get_template('pre.html').render(title='log', content=text)
+    return html.encode('UTF-8', errors='xmlcharrefreplace')
 
-    @classmethod
-    def log(cls, _request):
-        """Handler for qute:log. Return HTML content as bytes."""
-        if logutils.ram_handler is None:
-            html_log = None
-        else:
-            html_log = logutils.ram_handler.dump_log(html=True)
-        html = jinja.env.get_template('log.html').render(
-            title='log', content=html_log)
-        return html.encode('UTF-8', errors='xmlcharrefreplace')
 
-    @classmethod
-    def gpl(cls, _request):
-        """Handler for qute:gpl. Return HTML content as bytes."""
-        return utils.read_file('html/COPYING.html').encode('ASCII')
+def qute_log(_request):
+    """Handler for qute:log. Return HTML content as bytes."""
+    if log.ram_handler is None:
+        html_log = None
+    else:
+        html_log = log.ram_handler.dump_log(html=True)
+    html = jinja.env.get_template('log.html').render(
+        title='log', content=html_log)
+    return html.encode('UTF-8', errors='xmlcharrefreplace')
 
-    @classmethod
-    def help(cls, request):
-        """Handler for qute:help. Return HTML content as bytes."""
-        urlpath = request.url().path()
-        if not urlpath or urlpath == '/':
-            urlpath = 'index.html'
-        path = 'html/doc/{}'.format(urlpath)
-        return utils.read_file(path).encode('UTF-8',
-                                            errors='xmlcharrefreplace')
+
+def qute_gpl(_request):
+    """Handler for qute:gpl. Return HTML content as bytes."""
+    return utils.read_file('html/COPYING.html').encode('ASCII')
+
+
+def qute_help(request):
+    """Handler for qute:help. Return HTML content as bytes."""
+    urlpath = request.url().path()
+    if not urlpath or urlpath == '/':
+        urlpath = 'index.html'
+    path = 'html/doc/{}'.format(urlpath)
+    return utils.read_file(path).encode('UTF-8', errors='xmlcharrefreplace')
+
+
+HANDLERS = {
+    'pyeval': qute_pyeval,
+    'version': qute_version,
+    'plainlog': qute_plainlog,
+    'log': qute_log,
+    'gpl': qute_gpl,
+    'help': qute_help,
+}
+
+
