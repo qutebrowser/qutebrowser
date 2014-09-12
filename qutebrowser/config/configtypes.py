@@ -909,7 +909,7 @@ class WebKitBytesList(List):
                                          "set!".format(self.length))
 
 
-class ShellCommand(String):
+class ShellCommand(BaseType):
 
     """A shellcommand which is split via shlex.
 
@@ -920,7 +920,7 @@ class ShellCommand(String):
     typestr = 'shell-command'
 
     def __init__(self, placeholder=False, none_ok=False):
-        super().__init__(none_ok=none_ok)
+        super().__init__(none_ok)
         self.placeholder = placeholder
 
     def validate(self, value):
@@ -929,9 +929,12 @@ class ShellCommand(String):
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
-        super().validate(value)
         if self.placeholder and '{}' not in self.transform(value):
             raise ValidationError(value, "needs to contain a {}-placeholder.")
+        try:
+            shlex.split(value)
+        except ValueError as e:
+            raise ValidationError(value, str(e))
 
     def transform(self, value):
         if not value:
