@@ -239,6 +239,8 @@ def generate_commands(filename):
         hidden_cmds = []
         debug_cmds = []
         for name, cmd in cmdutils.cmd_dict.items():
+            if name in cmdutils.aliases:
+                continue
             if cmd.hide:
                 hidden_cmds.append((name, cmd))
             elif cmd.debug:

@@ -159,17 +159,17 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', name='open',
                        split=False)
-    def openurl(self, urlstr, bg=False, tab=False, count=None):
+    def openurl(self, url, bg=False, tab=False, count=None):
         """Open a URL in the current/[count]th tab.
 
         Args:
-            urlstr: The URL to open, as string.
-            bg: Whether to open in a background tab.
-            tab: Whether to open in a tab.
+            url: The URL to open.
+            bg: Open in a new background tab.
+            tab: Open in a new tab.
             count: The tab index to open the URL in, or None.
         """
         try:
-            url = urlutils.fuzzy_url(urlstr)
+            url = urlutils.fuzzy_url(url)
         except urlutils.FuzzyUrlError as e:
             raise cmdexc.CommandError(e)
         if tab:
@@ -216,7 +216,7 @@ class CommandDispatcher:
         """Print the current/[count]th tab.
 
         Args:
-            preview: Whether to preview instead of printing.
+            preview: Show preview instead of printing.
             count: The tab index to print, or None.
         """
         if not qtutils.check_print_compat():
@@ -276,10 +276,6 @@ class CommandDispatcher:
                 - `yank-primary`: Yank the link to the primary selection.
                 - `fill`: Fill the commandline with the command given as
                           argument.
-                - `cmd-tab`: Fill the commandline with `:open -t` and the
-                             link.
-                - `cmd-tag-bg`: Fill the commandline with `:open -b` and
-                                the link.
                 - `rapid`: Open the link in a new tab and stay in hinting mode.
                 - `download`: Download the link.
                 - `userscript`: Call an userscript with `$QUTE_URL` set to the
@@ -312,11 +308,11 @@ class CommandDispatcher:
     def prev_page(self, tab=False):
         """Open a "previous" link.
 
-        This tries to automaticall click on typical "Previous Page" links using
-        some heuristics.
+        This tries to automatically click on typical _Previous Page_ links
+        using some heuristics.
 
         Args:
-            tab: Whether to open a new tab.
+            tab: Open in a new tab.
         """
         self._prevnext(prev=True, newtab=tab)
 
@@ -324,11 +320,11 @@ class CommandDispatcher:
     def next_page(self, tab=False):
         """Open a "next" link.
 
-        This tries to automatically click on typical "Next Page" links using
+        This tries to automatically click on typical _Next Page_ links using
         some heuristics.
 
         Args:
-            tab: Whether to open a new tab.
+            tab: Open in a new tab.
         """
         self._prevnext(prev=False, newtab=tab)
 
@@ -357,7 +353,7 @@ class CommandDispatcher:
 
         Args:
             perc: Percentage to scroll.
-            horizontal: Whether to scroll horizontally.
+            horizontal: Scroll horizontally instead of vertically.
             count: Percentage to scroll.
         """
         self._scroll_percent(perc, count,
@@ -385,8 +381,8 @@ class CommandDispatcher:
         """Yank the current URL/title to the clipboard or primary selection.
 
         Args:
-            sel: True to use primary selection, False to use clipboard
-            title: Whether to yank the title instead of the URL.
+            sel: Use the primary selection instead of the clipboard.
+            title: Yank the title instead of the URL.
         """
         clipboard = QApplication.clipboard()
         if title:
@@ -490,12 +486,13 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Last tab")
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
-    def paste(self, sel=False, tab=False):
+    def paste(self, sel=False, tab=False, bg=False):
         """Open a page from the clipboard.
 
         Args:
-            sel: True to use primary selection, False to use clipboard
-            tab: True to open in a new tab.
+            sel: Use the primary selection instead of the clipboard.
+            tab: Open in a new tab.
+            bg: Open in a background tab.
         """
         clipboard = QApplication.clipboard()
         if sel and clipboard.supportsSelection():
@@ -513,7 +510,9 @@ class CommandDispatcher:
         except urlutils.FuzzyUrlError as e:
             raise cmdexc.CommandError(e)
         if tab:
-            self._tabs.tabopen(url, explicit=True)
+            self._tabs.tabopen(url, background=False, explicit=True)
+        elif bg:
+            self._tabs.tabopen(url, background=True, explicit=True)
         else:
             widget = self._current_widget()
             widget.openurl(url)
@@ -547,7 +546,8 @@ class CommandDispatcher:
         """Move the current tab.
 
         Args:
-            direction: + or - for relative moving, none for absolute.
+            direction: `+` or `-` for relative moving, not given for absolute
+                       moving.
             count: If moving absolutely: New position (default: 0)
                    If moving relatively: Offset.
         """
@@ -624,8 +624,8 @@ class CommandDispatcher:
 
         Args:
             name: The name of the quickmark to load.
-            tab: Whether to load the quickmark in a new tab.
-            bg: Whether to load the quickmark in the background.
+            tab: Load the quickmark in a new tab.
+            bg: Load the quickmark in a new background tab.
         """
         urlstr = quickmarks.get(name)
         url = QUrl(urlstr)

@@ -283,7 +283,7 @@ class ConfigManager(QObject):
 
     @cmdutils.register(name='get', instance='config',
                        completion=[Completion.section, Completion.option])
-    def get_wrapper(self, sectname, optname):
+    def get_command(self, section, option):
         """Get the value from a section/option.
 
         //
@@ -291,16 +291,16 @@ class ConfigManager(QObject):
         Wrapper for the get-command to output the value in the status bar.
 
         Args:
-            sectname: The section where the option is in.
-            optname: The name of the option.
+            section: The section where the option is in.
+            option: The name of the option.
         """
         try:
-            val = self.get(sectname, optname, transformed=False)
+            val = self.get(section, option, transformed=False)
         except (NoOptionError, NoSectionError) as e:
             raise cmdexc.CommandError("get: {} - {}".format(
                 e.__class__.__name__, e))
         else:
-            message.info("{} {} = {}".format(sectname, optname, val),
+            message.info("{} {} = {}".format(section, option, val),
                          immediately=True)
 
     @functools.lru_cache()
@@ -336,7 +336,7 @@ class ConfigManager(QObject):
     @cmdutils.register(name='set', instance='config',
                        completion=[Completion.section, Completion.option,
                                    Completion.value])
-    def set_command(self, sectname, optname, value, temp=False):
+    def set_command(self, section, option, value, temp=False):
         """Set an option.
 
         //
@@ -344,13 +344,14 @@ class ConfigManager(QObject):
         Wrapper for self.set() to output exceptions in the status bar.
 
         Args:
-            sectname: The section where the option is in.
-            optname: The name of the option.
+            section: The section where the option is in.
+            option: The name of the option.
             value: The value to set.
-            temp: Set value temporarely.
+            temp: Set value temporarily.
         """
         try:
-            self.set('temp' if temp else 'conf', sectname, optname, value)
+            layer = 'temp' if temp else 'conf'
+            self.set(layer, section, option, value)
         except (NoOptionError, NoSectionError, configtypes.ValidationError,
                 ValueError) as e:
             raise cmdexc.CommandError("set: {} - {}".format(

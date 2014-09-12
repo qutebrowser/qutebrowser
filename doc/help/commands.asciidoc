@@ -21,7 +21,6 @@
 |<<paste,paste>>|Open a page from the clipboard.
 |<<prev-page,prev-page>>|Open a "previous" link.
 |<<print,print>>|Print the current/[count]th tab.
-|<<q,q>>|Quit qutebrowser.
 |<<quickmark-add,quickmark-add>>|Add a new quickmark.
 |<<quickmark-load,quickmark-load>>|Load a quickmark.
 |<<quickmark-save,quickmark-save>>|Save the current page as a quickmark.
@@ -59,9 +58,9 @@ Syntax: +:bind 'key' 'command' ['mode']+
 Bind a key to a command.
 
 ==== positional arguments
-* +'key'+: The keychain or special key (inside <...>) to bind.
+* +'key'+: The keychain or special key (inside `<...>`) to bind.
 * +'command'+: The command to execute.
-* +'mode'+: A comma-separated list of modes to bind the key in (default: normal mode).
+* +'mode'+: A comma-separated list of modes to bind the key in (default: `normal`).
 
 
 [[cancel-download]]
@@ -78,13 +77,13 @@ Go forward in the history of the current tab.
 
 [[get]]
 === get
-Syntax: +:get 'sectname' 'optname'+
+Syntax: +:get 'section' 'option'+
 
 Get the value from a section/option.
 
 ==== positional arguments
-* +'sectname'+: The section where the option is in.
-* +'optname'+: The name of the option.
+* +'section'+: The section where the option is in.
+* +'option'+: The name of the option.
 
 [[help]]
 === help
@@ -123,10 +122,6 @@ Start hinting.
  - `yank-primary`: Yank the link to the primary selection.
  - `fill`: Fill the commandline with the command given as
  argument.
- - `cmd-tab`: Fill the commandline with `:open -t` and the
- link.
- - `cmd-tag-bg`: Fill the commandline with `:open -b` and
- the link.
  - `rapid`: Open the link in a new tab and stay in hinting mode.
  - `download`: Download the link.
  - `userscript`: Call an userscript with `$QUTE_URL` set to the
@@ -156,13 +151,13 @@ Toggle the web inspector.
 
 [[later]]
 === later
-Syntax: +:later 'ms' 'command' ['command' ...]+
+Syntax: +:later 'ms' 'command'+
 
 Execute a command after some time.
 
 ==== positional arguments
 * +'ms'+: How many milliseconds to wait.
-* +'command'+: The command/args to run.
+* +'command'+: The command to run.
 
 [[next-page]]
 === next-page
@@ -170,33 +165,34 @@ Syntax: +:next-page [*--tab*]+
 
 Open a "next" link.
 
-This tries to automatically click on typical "Next Page" links using some heuristics.
+This tries to automatically click on typical _Next Page_ links using some heuristics.
 
 ==== optional arguments
-* +*-t*+, +*--tab*+: Whether to open a new tab.
+* +*-t*+, +*--tab*+: Open in a new tab.
 
 [[open]]
 === open
-Syntax: +:open [*--bg*] [*--tab*] 'urlstr'+
+Syntax: +:open [*--bg*] [*--tab*] 'url'+
 
 Open a URL in the current/[count]th tab.
 
 ==== positional arguments
-* +'urlstr'+: The URL to open, as string.
+* +'url'+: The URL to open.
 
 ==== optional arguments
-* +*-b*+, +*--bg*+: Whether to open in a background tab.
-* +*-t*+, +*--tab*+: Whether to open in a tab.
+* +*-b*+, +*--bg*+: Open in a new background tab.
+* +*-t*+, +*--tab*+: Open in a new tab.
 
 [[paste]]
 === paste
-Syntax: +:paste [*--sel*] [*--tab*]+
+Syntax: +:paste [*--sel*] [*--tab*] [*--bg*]+
 
 Open a page from the clipboard.
 
 ==== optional arguments
-* +*-s*+, +*--sel*+: True to use primary selection, False to use clipboard
-* +*-t*+, +*--tab*+: True to open in a new tab.
+* +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
+* +*-t*+, +*--tab*+: Open in a new tab.
+* +*-b*+, +*--bg*+: Open in a background tab.
 
 [[prev-page]]
 === prev-page
@@ -204,10 +200,10 @@ Syntax: +:prev-page [*--tab*]+
 
 Open a "previous" link.
 
-This tries to automaticall click on typical "Previous Page" links using some heuristics.
+This tries to automatically click on typical _Previous Page_ links using some heuristics.
 
 ==== optional arguments
-* +*-t*+, +*--tab*+: Whether to open a new tab.
+* +*-t*+, +*--tab*+: Open in a new tab.
 
 [[print]]
 === print
@@ -216,22 +212,16 @@ Syntax: +:print [*--preview*]+
 Print the current/[count]th tab.
 
 ==== optional arguments
-* +*-p*+, +*--preview*+: Whether to preview instead of printing.
-
-[[q]]
-=== q
-Syntax: +:quit+
-
-Quit qutebrowser.
+* +*-p*+, +*--preview*+: Show preview instead of printing.
 
 [[quickmark-add]]
 === quickmark-add
-Syntax: +:quickmark-add 'urlstr' 'name'+
+Syntax: +:quickmark-add 'url' 'name'+
 
 Add a new quickmark.
 
 ==== positional arguments
-* +'urlstr'+: The url to add as quickmark, as string.
+* +'url'+: The url to add as quickmark.
 * +'name'+: The name for the new quickmark.
 
 [[quickmark-load]]
@@ -244,8 +234,8 @@ Load a quickmark.
 * +'name'+: The name of the quickmark to load.
 
 ==== optional arguments
-* +*-t*+, +*--tab*+: Whether to load the quickmark in a new tab.
-* +*-b*+, +*--bg*+: Whether to load the quickmark in the background.
+* +*-t*+, +*--tab*+: Load the quickmark in a new tab.
+* +*-b*+, +*--bg*+: Load the quickmark in a new background tab.
 
 [[quickmark-save]]
 === quickmark-save
@@ -283,17 +273,17 @@ Save the config file.
 
 [[set]]
 === set
-Syntax: +:set [*--temp*] 'sectname' 'optname' 'value'+
+Syntax: +:set [*--temp*] 'section' 'option' 'value'+
 
 Set an option.
 
 ==== positional arguments
-* +'sectname'+: The section where the option is in.
-* +'optname'+: The name of the option.
+* +'section'+: The section where the option is in.
+* +'option'+: The name of the option.
 * +'value'+: The value to set.
 
 ==== optional arguments
-* +*-t*+, +*--temp*+: Set value temporarely.
+* +*-t*+, +*--temp*+: Set value temporarily.
 
 [[set-cmd-text]]
 === set-cmd-text
@@ -340,7 +330,8 @@ Syntax: +:tab-move ['direction']+
 Move the current tab.
 
 ==== positional arguments
-* +'direction'+: + or - for relative moving, none for absolute.
+* +'direction'+: `+` or `-` for relative moving, not given for absolute moving.
+
 
 [[tab-next]]
 === tab-next
@@ -361,8 +352,8 @@ Syntax: +:unbind 'key' ['mode']+
 Unbind a keychain.
 
 ==== positional arguments
-* +'key'+: The keychain or special key (inside <...>) to bind.
-* +'mode'+: A comma-separated list of modes to unbind the key in (default: normal mode).
+* +'key'+: The keychain or special key (inside <...>) to unbind.
+* +'mode'+: A comma-separated list of modes to unbind the key in (default: `normal`).
 
 
 [[undo]]
@@ -376,8 +367,8 @@ Syntax: +:yank [*--title*] [*--sel*]+
 Yank the current URL/title to the clipboard or primary selection.
 
 ==== optional arguments
-* +*-t*+, +*--title*+: Whether to yank the title instead of the URL.
-* +*-s*+, +*--sel*+: True to use primary selection, False to use clipboard
+* +*-t*+, +*--title*+: Yank the title instead of the URL.
+* +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
 
 [[zoom]]
 === zoom
@@ -600,7 +591,7 @@ The percentage can be given either as argument or as count. If no percentage is 
 * +'perc'+: Percentage to scroll.
 
 ==== optional arguments
-* +*-x*+, +*--horizontal*+: Whether to scroll horizontally.
+* +*-x*+, +*--horizontal*+: Scroll horizontally instead of vertically.
 
 [[search-next]]
 === search-next

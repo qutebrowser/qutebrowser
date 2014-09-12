@@ -31,6 +31,7 @@ from qutebrowser.utils import debug as debugutils
 from qutebrowser.commands import command, cmdexc, argparser
 
 cmd_dict = {}
+aliases = []
 
 
 def check_overflow(arg, ctype):
@@ -163,6 +164,7 @@ class register:  # pylint: disable=invalid-name
         Return:
             The original function (unmodified).
         """
+        global aliases, cmd_dict
         self.func = func
         names = self._get_names()
         log.commands.vdebug("Registering command {}".format(names[0]))
@@ -186,6 +188,7 @@ class register:  # pylint: disable=invalid-name
             opt_args=self.opt_args, pos_args=self.pos_args)
         for name in names:
             cmd_dict[name] = cmd
+        aliases += names[1:]
         return func
 
     def _get_names(self):

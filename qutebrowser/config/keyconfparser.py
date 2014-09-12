@@ -124,10 +124,10 @@ class KeyConfigParser(QObject):
         """Bind a key to a command.
 
         Args:
-            key: The keychain or special key (inside <...>) to bind.
+            key: The keychain or special key (inside `<...>`) to bind.
             command: The command to execute.
             mode: A comma-separated list of modes to bind the key in
-                  (default: normal mode).
+                  (default: `normal`).
         """
         if mode is None:
             mode = 'normal'
@@ -149,9 +149,9 @@ class KeyConfigParser(QObject):
         """Unbind a keychain.
 
         Args:
-            key: The keychain or special key (inside <...>) to bind.
+            key: The keychain or special key (inside <...>) to unbind.
             mode: A comma-separated list of modes to unbind the key in
-                  (default: normal mode).
+                  (default: `normal`).
         """
         if mode is None:
             mode = 'normal'
