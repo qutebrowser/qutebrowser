@@ -181,6 +181,11 @@ def _get_command_doc(name, cmd):
                 raise KeyError("No description for arg {} of command "
                                "'{}'!".format(e, cmd.name))
 
+    if cmd.count:
+        output.append("")
+        output.append("==== count")
+        output.append(parser.arg_descs['count'])
+
     output.append("")
     output.append("")
     return '\n'.join(output)

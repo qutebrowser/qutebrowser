@@ -51,6 +51,9 @@
 === back
 Go back in the history of the current tab.
 
+==== count
+How many pages to go back.
+
 [[bind]]
 === bind
 Syntax: +:bind 'key' 'command' ['mode']+
@@ -67,6 +70,9 @@ Bind a key to a command.
 === cancel-download
 Cancel the first/[count]th download.
 
+==== count
+The index of the download to cancel.
+
 [[download-page]]
 === download-page
 Download the current page.
@@ -74,6 +80,9 @@ Download the current page.
 [[forward]]
 === forward
 Go forward in the history of the current tab.
+
+==== count
+How many pages to go forward.
 
 [[get]]
 === get
@@ -183,6 +192,9 @@ Open a URL in the current/[count]th tab.
 * +*-b*+, +*--bg*+: Open in a new background tab.
 * +*-t*+, +*--tab*+: Open in a new tab.
 
+==== count
+The tab index to open the URL in, or None.
+
 [[paste]]
 === paste
 Syntax: +:paste [*--sel*] [*--tab*] [*--bg*]+
@@ -213,6 +225,9 @@ Print the current/[count]th tab.
 
 ==== optional arguments
 * +*-p*+, +*--preview*+: Show preview instead of printing.
+
+==== count
+The tab index to print, or None.
 
 [[quickmark-add]]
 === quickmark-add
@@ -248,6 +263,9 @@ Quit qutebrowser.
 [[reload]]
 === reload
 Reload the current/[count]th tab.
+
+==== count
+The tab index to reload, or None.
 
 [[report]]
 === report
@@ -309,9 +327,15 @@ Note the {url} variable which gets replaced by the current URL might be useful h
 === stop
 Stop loading in the current/[count]th tab.
 
+==== count
+The tab index to stop, or None.
+
 [[tab-close]]
 === tab-close
 Close the current/[count]th tab.
+
+==== count
+The tab index to close, or None
 
 [[tab-focus]]
 === tab-focus
@@ -323,6 +347,9 @@ Select the tab given as argument/[count].
 * +'index'+: The tab index to focus, starting with 1. The special value `last` focuses the last focused tab.
 
 
+==== count
+The tab index to focus, starting with 1.
+
 [[tab-move]]
 === tab-move
 Syntax: +:tab-move ['direction']+
@@ -333,9 +360,16 @@ Move the current tab.
 * +'direction'+: `+` or `-` for relative moving, not given for absolute moving.
 
 
+==== count
+If moving absolutely: New position (default: 0) If moving relatively: Offset.
+
+
 [[tab-next]]
 === tab-next
 Switch to the next tab, or switch [count] tabs forward.
+
+==== count
+How many tabs to switch forward.
 
 [[tab-only]]
 === tab-only
@@ -344,6 +378,9 @@ Close all tabs except for the current one.
 [[tab-prev]]
 === tab-prev
 Switch to the previous tab, or switch [count] tabs back.
+
+==== count
+How many tabs to switch back.
 
 [[unbind]]
 === unbind
@@ -381,13 +418,22 @@ The zoom can be given as argument or as [count]. If neither of both is given, th
 ==== positional arguments
 * +'zoom'+: The zoom percentage to set.
 
+==== count
+The zoom percentage to set.
+
 [[zoom-in]]
 === zoom-in
 Increase the zoom level for the current tab.
 
+==== count
+How many steps to zoom in.
+
 [[zoom-out]]
 === zoom-out
 Decrease the zoom level for the current tab.
+
+==== count
+How many steps to zoom out.
 
 
 == Hidden commands
@@ -569,6 +615,9 @@ Scroll the current tab by 'count * dx/dy'.
 * +'dx'+: How much to scroll in x-direction.
 * +'dy'+: How much to scroll in x-direction.
 
+==== count
+multiplier
+
 [[scroll-page]]
 === scroll-page
 Syntax: +:scroll-page 'x' 'y'+
@@ -578,6 +627,9 @@ Scroll the frame page-wise.
 ==== positional arguments
 * +'x'+: How many pages to scroll to the right.
 * +'y'+: How many pages to scroll down.
+
+==== count
+multiplier
 
 [[scroll-perc]]
 === scroll-perc
@@ -593,13 +645,22 @@ The percentage can be given either as argument or as count. If no percentage is 
 ==== optional arguments
 * +*-x*+, +*--horizontal*+: Scroll horizontally instead of vertically.
 
+==== count
+Percentage to scroll.
+
 [[search-next]]
 === search-next
 Continue the search to the ([count]th) next term.
 
+==== count
+How many elements to ignore.
+
 [[search-prev]]
 === search-prev
 Continue the search to the ([count]th) previous term.
+
+==== count
+How many elements to ignore.
 
 
 == Debugging commands
