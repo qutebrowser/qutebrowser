@@ -83,7 +83,7 @@ class TabWidget(QTabWidget):
     def on_config_changed(self, section, option):
         """Update attributes when config changed."""
         self.tabBar().on_config_changed(section, option)
-        if section == 'tabbar':
+        if section == 'tabs':
             self._init_config()
 
 

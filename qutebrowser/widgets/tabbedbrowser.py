@@ -411,7 +411,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         super().on_config_changed(section, option)
         for tab in self._tabs:
             tab.on_config_changed(section, option)
-        if (section, option) == ('tabbar', 'show-favicons'):
+        if (section, option) == ('tabs', 'show-favicons'):
             show = config.get('tabs', 'show-favicons')
             for i, tab in enumerate(self.widgets()):
                 if show:
