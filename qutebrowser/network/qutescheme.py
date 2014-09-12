@@ -128,6 +128,9 @@ class QuteHandlers:
     @classmethod
     def help(cls, request):
         """Handler for qute:help. Return HTML content as bytes."""
-        path = 'html/doc/{}'.format(request.url().path())
+        urlpath = request.url().path()
+        if not urlpath or urlpath == '/':
+            urlpath = 'index.html'
+        path = 'html/doc/{}'.format(urlpath)
         return utils.read_file(path).encode('UTF-8',
                                             errors='xmlcharrefreplace')
