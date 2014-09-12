@@ -32,6 +32,8 @@ New big features
     Certificate Patrol
     https://chrome.google.com/webstore/detail/remove-google-redirects/ccenmflbeofaceccfhhggbagkblihpoh
 - session handling / saving
+    -> commandline parameter for session name, then tab list and history gets
+    saved under that name and can be re-loaded.
 - multi window (see notes)
 - IPC, like dwb -x (see notes)
 - Bookmarks
