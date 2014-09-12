@@ -10,7 +10,7 @@ url="http://www.qutebrowser.org/"
 license=('GPL')
 depends=('python>=3.4' 'python-setuptools' 'python-pyqt5>=5.2' 'qt5-base>=5.2'
          'qt5-webkit>=5.2' 'libxkbcommon-x11' 'python-pypeg2' 'python-jinja')
-makedepends=('python' 'python-setuptools')
+makedepends=('python' 'python-setuptools' 'asciidoc')
 optdepends=('python-colorlog: colored logging output')
 options=(!emptydirs)
 source=('qutebrowser::git://the-compiler.org/qutebrowser')
@@ -24,4 +24,6 @@ pkgver() {
 package() {
   cd "$srcdir/qutebrowser"
   python setup.py install --root="$pkgdir/" --optimize=1
+  a2x -f manpage doc/qutebrowser.1.asciidoc
+  install -Dm644 doc/qutebrowser.1 "$pkgdir/usr/share/man/man1/qutebrowser.1"
 }
