@@ -960,16 +960,13 @@ KEY_DATA = collections.OrderedDict([
     ('command', collections.OrderedDict([
         ('command-history-prev', ['<Ctrl-P>']),
         ('command-history-next', ['<Ctrl-N>']),
-        ('completion-item-prev', ['<Shift-Tab>']),
-        ('completion-item-prev', ['<Up>']),
-        ('completion-item-next', ['<Tab>']),
-        ('completion-item-next', ['<Down>']),
+        ('completion-item-prev', ['<Shift-Tab>', '<Up>']),
+        ('completion-item-next', ['<Tab>', '<Down>']),
         ('command-accept', ['<Return>', '<Ctrl-J>', '<Shift-Return>']),
     ])),
 
     ('prompt', collections.OrderedDict([
-        ('prompt-accept', ['<Return>', '<Ctrl-J>']),
-        ('prompt-accept', ['<Shift-Return>']),
+        ('prompt-accept', ['<Return>', '<Ctrl-J>', '<Shift-Return>']),
         ('prompt-yes', ['y']),
         ('prompt-no', ['n']),
     ])),
