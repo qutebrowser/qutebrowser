@@ -94,6 +94,7 @@ class ConfigManager(QObject):
         _configfile: The config file path.
         _interpolation: An configparser.Interpolation object
         _proxies: configparser.SectionProxy objects for sections.
+        _initialized: Whether the ConfigManager is fully initialized yet.
 
     Signals:
         changed: Gets emitted when the config has changed.
@@ -110,6 +111,7 @@ class ConfigManager(QObject):
 
     def __init__(self, configdir, fname, parent=None):
         super().__init__(parent)
+        self._initialized = False
         self.sections = configdata.DATA
         self._configparser = iniparsers.ReadConfigParser(configdir, fname)
         self._configfile = os.path.join(configdir, fname)
@@ -126,6 +128,7 @@ class ConfigManager(QObject):
         for sectname in self.sections.keys():
             self._proxies[sectname] = SectionProxy(self, sectname)
         self._from_cp(self._configparser)
+        self._initialized=True
 
     def __getitem__(self, key):
         """Get a section from the config."""
@@ -339,6 +342,9 @@ class ConfigManager(QObject):
         Return:
             The value of the option.
         """
+        if not self._initialized:
+            raise Exception("get got called before initialisation was "
+                            "complete!")
         try:
             sect = self.sections[sectname]
         except KeyError:
@@ -434,7 +440,8 @@ class ConfigManager(QObject):
         except KeyError:
             raise NoOptionError(optname, sectname)
         else:
-            self._after_set(sectname, optname)
+            if self._initialized:
+                self._after_set(sectname, optname)
 
     @cmdutils.register(instance='config')
     def save(self):
