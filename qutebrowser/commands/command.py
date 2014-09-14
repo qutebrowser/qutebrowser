@@ -19,6 +19,8 @@
 
 """Contains the Command class, a skeleton for a command."""
 
+import inspect
+
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWebKit import QWebSettings
 
@@ -126,36 +128,51 @@ class Command:
                 e.status, e))
             return
 
-        for name, arg in vars(namespace).items():
-            if isinstance(arg, list):
-                # If we got a list, we assume that's our *args, so we don't add
-                # it to kwargs.
-                # FIXME: This approach is rather naive, but for now it works.
-                posargs += arg
+        signature = inspect.signature(self.handler)
+
+        for i, param in enumerate(signature.parameters.values()):
+            if i == 0 and self.instance is not None:
+                # Special case for 'self'.
+                assert param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+                if self.instance == '':
+                    obj = app
+                else:
+                    obj = utils.dotted_getattr(app, self.instance)
+                posargs.append(obj)
+                continue
+            elif param.name == 'count':
+                # Special case for 'count'.
+                if not self.count:
+                    raise TypeError("{}: count argument given with a command "
+                                    "which does not support count!".format(
+                                    self.name))
+                if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
+                    posargs.append(count)
+                elif param.kind == inspect.Parameter.KEYWORD_ONLY:
+                    kwargs['count'] = count
+                else:
+                    raise TypeError("{}: invalid parameter type {} for "
+                                    "argument 'count'!".format(
+                                        self.name, param.kind))
+                continue
+            value = getattr(namespace, param.name)
+            if param.name in self.type_conv:
+                # We convert enum types after getting the values from
+                # argparse, because argparse's choices argument is
+                # processed after type conversation, which is not what we
+                # want.
+                value = self.type_conv[param.name](value)
+            if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
+                posargs.append(value)
+            elif param.kind == inspect.Parameter.VAR_POSITIONAL:
+                posargs += value
+            elif param.kind == inspect.Parameter.KEYWORD_ONLY:
+                kwargs[param.name] = value
             else:
-                if name in self.type_conv:
-                    # We convert enum types after getting the values from
-                    # argparse, because argparse's choices argument is
-                    # processed after type conversation, which is not what we
-                    # want.
-                    arg = self.type_conv[name](arg)
-                kwargs[name] = arg
-
-        if self.instance is not None:
-            # Add the 'self' parameter.
-            if self.instance == '':
-                obj = app
-            else:
-                obj = utils.dotted_getattr(app, self.instance)
-            posargs.insert(0, obj)
-
-        if count is not None and self.count:
-            kwargs = {'count': count}
-
+                raise TypeError("{}: Invalid parameter type {} for argument "
+                                "'{}'!".format(
+                                    self.name, param.kind, param.name))
         self._check_prerequisites()
         log.commands.debug('Calling {}'.format(
             debug.format_call(self.handler, posargs, kwargs)))
-        # FIXME this won't work properly if some arguments are required to be
-        # positional, e.g.:
-        #   def fun(one=True, two=False, *args)
         self.handler(*posargs, **kwargs)
