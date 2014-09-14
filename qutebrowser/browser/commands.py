@@ -257,7 +257,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def hint(self, group=webelem.Group.all, target=hints.Target.normal,
-             args=None):
+             *args : {'nargs': '*'}):
         """Start hinting.
 
         Args:
@@ -282,7 +282,7 @@ class CommandDispatcher:
                                 link.
                 - `spawn`: Spawn a command.
 
-            args: Arguments for spawn/userscript/fill.
+            *args: Arguments for spawn/userscript/fill.
 
                 - With `spawn`: The executable and arguments to spawn.
                                 `{hint-url}` will get replaced by the selected
@@ -297,7 +297,7 @@ class CommandDispatcher:
         if frame is None:
             raise cmdexc.CommandError("No frame focused!")
         widget.hintmanager.start(frame, self._tabs.current_url(), group,
-                                 target, args)
+                                 target, *args)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def follow_hint(self):
