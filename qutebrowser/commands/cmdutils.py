@@ -271,7 +271,8 @@ class register:  # pylint: disable=invalid-name
         args = []
         name = annotation_info.name or param.name
         shortname = annotation_info.flag or param.name[0]
-        if self._get_type(param, annotation_info) == bool:
+        if (self._get_type(param, annotation_info) == bool or
+                param.kind == inspect.Parameter.KEYWORD_ONLY):
             long_flag = '--{}'.format(name)
             short_flag = '-{}'.format(shortname)
             args.append(long_flag)
@@ -309,6 +310,8 @@ class register:  # pylint: disable=invalid-name
 
         if param.kind == inspect.Parameter.VAR_POSITIONAL:
             kwargs['nargs'] = '+'
+        elif param.kind == inspect.Parameter.KEYWORD_ONLY:
+            kwargs['default'] = param.default
         elif typ is not bool and param.default is not inspect.Parameter.empty:
             kwargs['default'] = param.default
             kwargs['nargs'] = '?'
