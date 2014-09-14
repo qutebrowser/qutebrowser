@@ -147,9 +147,13 @@ class Command:
                                     "which does not support count!".format(
                                     self.name))
                 if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
-                    posargs.append(count)
+                    if count is not None:
+                        posargs.append(count)
+                    else:
+                        posargs.append(param.default)
                 elif param.kind == inspect.Parameter.KEYWORD_ONLY:
-                    kwargs['count'] = count
+                    if count is not None:
+                        kwargs['count'] = count
                 else:
                     raise TypeError("{}: invalid parameter type {} for "
                                     "argument 'count'!".format(
