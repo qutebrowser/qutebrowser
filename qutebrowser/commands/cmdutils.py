@@ -222,8 +222,8 @@ class register:  # pylint: disable=invalid-name
         type_conv = {}
         signature = inspect.signature(self.func)
         if 'self' in signature.parameters and self.instance is None:
-            raise ValueError("{} is a class method, but instance was not "
-                             "given!".format(self.name[0]))
+            raise TypeError("{} is a class method, but instance was not "
+                            "given!".format(self.name[0]))
         has_count = 'count' in signature.parameters
         doc = inspect.getdoc(self.func)
         if doc is not None:
