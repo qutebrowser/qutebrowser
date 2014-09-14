@@ -136,5 +136,3 @@ HANDLERS = {
     'gpl': qute_gpl,
     'help': qute_help,
 }
-
-

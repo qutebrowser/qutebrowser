@@ -161,12 +161,12 @@ class KeyConfigParser(QObject):
                 raise cmdexc.CommandError("Invalid mode {}!".format(m))
         try:
             sect = self.keybindings[mode]
-        except KeyError as e:
+        except KeyError:
             raise cmdexc.CommandError("Can't find mode section '{}'!".format(
                 sect))
         try:
             del sect[key]
-        except KeyError as e:
+        except KeyError:
             raise cmdexc.CommandError("Can't find binding '{}' in section "
                                       "'{}'!".format(key, mode))
         else:

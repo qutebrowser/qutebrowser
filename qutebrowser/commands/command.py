@@ -98,59 +98,45 @@ class Command:
             raise cmdexc.PrerequisitesError(
                 "{}: This command needs javascript enabled.".format(self.name))
 
-    def run(self, args=None, count=None):
-        """Run the command.
-
-        Note we don't catch CommandError here as it might happen async.
+    def _get_args(self, func, count,  # noqa, pylint: disable=too-many-branches
+                  namespace):
+        """Get arguments for a function call.
 
         Args:
-            args: Arguments to the command.
-            count: Command repetition count.
+            func: The function to be called.
+            count: The count to be added to the call.
+            namespace: The argparse namespace.
+
+        Return:
+            An (args, kwargs) tuple.
         """
-        dbgout = ["command called:", self.name]
-        if args:
-            dbgout.append(str(args))
-        if count is not None:
-            dbgout.append("(count={})".format(count))
-        log.commands.debug(' '.join(dbgout))
 
-        posargs = []
+        args = []
         kwargs = {}
-        app = QCoreApplication.instance()
-
-        try:
-            namespace = self.parser.parse_args(args)
-        except argparser.ArgumentParserError as e:
-            message.error('{}: {}'.format(self.name, e))
-            return
-        except argparser.ArgumentParserExit as e:
-            log.commands.debug("argparser exited with status {}: {}".format(
-                e.status, e))
-            return
-
-        signature = inspect.signature(self.handler)
+        signature = inspect.signature(func)
 
         for i, param in enumerate(signature.parameters.values()):
             if i == 0 and self.instance is not None:
                 # Special case for 'self'.
                 assert param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+                app = QCoreApplication.instance()
                 if self.instance == '':
                     obj = app
                 else:
                     obj = utils.dotted_getattr(app, self.instance)
-                posargs.append(obj)
+                args.append(obj)
                 continue
             elif param.name == 'count':
                 # Special case for 'count'.
                 if not self.count:
                     raise TypeError("{}: count argument given with a command "
                                     "which does not support count!".format(
-                                    self.name))
+                                        self.name))
                 if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
                     if count is not None:
-                        posargs.append(count)
+                        args.append(count)
                     else:
-                        posargs.append(param.default)
+                        args.append(param.default)
                 elif param.kind == inspect.Parameter.KEYWORD_ONLY:
                     if count is not None:
                         kwargs['count'] = count
@@ -167,16 +153,43 @@ class Command:
                 # want.
                 value = self.type_conv[param.name](value)
             if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
-                posargs.append(value)
+                args.append(value)
             elif param.kind == inspect.Parameter.VAR_POSITIONAL:
                 if value is not None:
-                    posargs += value
+                    args += value
             elif param.kind == inspect.Parameter.KEYWORD_ONLY:
                 kwargs[param.name] = value
             else:
                 raise TypeError("{}: Invalid parameter type {} for argument "
                                 "'{}'!".format(
                                     self.name, param.kind, param.name))
+        return args, kwargs
+
+    def run(self, args=None, count=None):
+        """Run the command.
+
+        Note we don't catch CommandError here as it might happen async.
+
+        Args:
+            args: Arguments to the command.
+            count: Command repetition count.
+        """
+        dbgout = ["command called:", self.name]
+        if args:
+            dbgout.append(str(args))
+        if count is not None:
+            dbgout.append("(count={})".format(count))
+        log.commands.debug(' '.join(dbgout))
+        try:
+            namespace = self.parser.parse_args(args)
+        except argparser.ArgumentParserError as e:
+            message.error('{}: {}'.format(self.name, e))
+            return
+        except argparser.ArgumentParserExit as e:
+            log.commands.debug("argparser exited with status {}: {}".format(
+                e.status, e))
+            return
+        posargs, kwargs = self._get_args(self.handler, count, namespace)
         self._check_prerequisites()
         log.commands.debug('Calling {}'.format(
             debug.format_call(self.handler, posargs, kwargs)))

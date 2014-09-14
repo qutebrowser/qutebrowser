@@ -283,7 +283,8 @@ class ConfigManager(QObject):
 
     @cmdutils.register(name='get', instance='config',
                        completion=[Completion.section, Completion.option])
-    def get_command(self, section, option):
+    def get_command(self, sectname: {'name': 'section'},
+                    optname: {'name': 'option'}):
         """Get the value from a section/option.
 
         //
@@ -291,16 +292,16 @@ class ConfigManager(QObject):
         Wrapper for the get-command to output the value in the status bar.
 
         Args:
-            section: The section where the option is in.
-            option: The name of the option.
+            sectname: The section where the option is in.
+            optname: The name of the option.
         """
         try:
-            val = self.get(section, option, transformed=False)
+            val = self.get(sectname, optname, transformed=False)
         except (NoOptionError, NoSectionError) as e:
             raise cmdexc.CommandError("get: {} - {}".format(
                 e.__class__.__name__, e))
         else:
-            message.info("{} {} = {}".format(section, option, val),
+            message.info("{} {} = {}".format(sectname, optname, val),
                          immediately=True)
 
     @functools.lru_cache()
@@ -336,7 +337,8 @@ class ConfigManager(QObject):
     @cmdutils.register(name='set', instance='config',
                        completion=[Completion.section, Completion.option,
                                    Completion.value])
-    def set_command(self, section, option, value, temp=False):
+    def set_command(self, section,  # pylint: disable=redefined-outer-name
+                    option, value, temp=False):
         """Set an option.
 
         //

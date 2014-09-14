@@ -257,7 +257,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def hint(self, group=webelem.Group.all, target=hints.Target.normal,
-             *args : {'nargs': '*'}):
+             *args: {'nargs': '*'}):
         """Start hinting.
 
         Args:
@@ -603,7 +603,7 @@ class CommandDispatcher:
         self.openurl(config.get('general', 'startpage')[0])
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
-    def run_userscript(self, cmd, *args : {'nargs': '*'}):
+    def run_userscript(self, cmd, *args: {'nargs': '*'}):
         """Run an userscript given as argument.
 
         Args:

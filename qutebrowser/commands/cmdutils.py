@@ -164,7 +164,7 @@ class register:  # pylint: disable=invalid-name
         Return:
             The original function (unmodified).
         """
-        global aliases, cmd_dict
+        global aliases
         self.func = func
         names = self._get_names()
         log.commands.vdebug("Registering command {}".format(names[0]))
@@ -178,6 +178,7 @@ class register:  # pylint: disable=invalid-name
         self.parser.add_argument('-h', '--help', action=argparser.HelpAction,
                                  default=argparser.SUPPRESS, nargs=0,
                                  help=argparser.SUPPRESS)
+        self._check_func()
         has_count, desc, type_conv = self._inspect_func()
         cmd = command.Command(
             name=names[0], split=self.split, hide=self.hide, count=has_count,
@@ -210,6 +211,35 @@ class register:  # pylint: disable=invalid-name
         else:
             return self.name
 
+    def _check_func(self):
+        """Make sure the function parameters don't violate any rules."""
+        signature = inspect.signature(self.func)
+        if 'self' in signature.parameters and self.instance is None:
+            raise TypeError("{} is a class method, but instance was not "
+                            "given!".format(self.name[0]))
+        elif 'self' not in signature.parameters and self.instance is not None:
+            raise TypeError("{} is not a class method, but instance was "
+                            "given!".format(self.name[0]))
+        elif inspect.getfullargspec(self.func).varkw is not None:
+            raise TypeError("{}: functions with varkw arguments are not "
+                            "supported!".format(self.name[0]))
+
+    def _get_typeconv(self, param, typ):
+        """Get a dict with a type conversion for the parameter.
+
+        Args:
+            param: The inspect.Parameter to handle.
+            typ: The type of the parameter.
+        """
+        type_conv = {}
+        if utils.is_enum(typ):
+            type_conv[param.name] = argparser.enum_getter(typ)
+        elif isinstance(typ, tuple):
+            if param.default is not inspect.Parameter.empty:
+                typ = typ + (type(param.default),)
+            type_conv[param.name] = argparser.multitype_conv(typ)
+        return type_conv
+
     def _inspect_func(self):
         """Inspect the function to get useful informations from it.
 
@@ -221,15 +251,6 @@ class register:  # pylint: disable=invalid-name
         """
         type_conv = {}
         signature = inspect.signature(self.func)
-        if 'self' in signature.parameters and self.instance is None:
-            raise TypeError("{} is a class method, but instance was not "
-                            "given!".format(self.name[0]))
-        elif 'self' not in signature.parameters and self.instance is not None:
-            raise TypeError("{} is not a class method, but instance was "
-                            "given!".format(self.name[0]))
-        elif inspect.getfullargspec(self.func).varkw is not None:
-            raise TypeError("{}: functions with varkw arguments are not "
-                            "supported!".format(self.name[0]))
         has_count = 'count' in signature.parameters
         doc = inspect.getdoc(self.func)
         if doc is not None:
@@ -240,27 +261,17 @@ class register:  # pylint: disable=invalid-name
             for param in signature.parameters.values():
                 if param.name in ('self', 'count'):
                     continue
-                argparse_args = []
-                argparse_kwargs = {}
                 annotation_info = self._parse_annotation(param)
+                typ = self._get_type(param, annotation_info)
                 args, kwargs = self._param_to_argparse_args(
                     param, annotation_info)
-                argparse_args += args
-                argparse_kwargs.update(kwargs)
-                argparse_kwargs.update(annotation_info.kwargs)
-                typ = self._get_type(param, annotation_info)
-                if utils.is_enum(typ):
-                    type_conv[param.name] = argparser.enum_getter(typ)
-                elif isinstance(typ, tuple):
-                    if param.default is not inspect.Parameter.empty:
-                        typ = typ + (type(param.default),)
-                    type_conv[param.name] = argparser.multitype_conv(typ)
+                type_conv.update(self._get_typeconv(param, typ))
                 callsig = debugutils.format_call(
-                    self.parser.add_argument, argparse_args, argparse_kwargs,
+                    self.parser.add_argument, args, kwargs,
                     full=False)
                 log.commands.vdebug('Adding arg {} of type {} -> {}'.format(
                     param.name, typ, callsig))
-                self.parser.add_argument(*argparse_args, **argparse_kwargs)
+                self.parser.add_argument(*args, **kwargs)
         return has_count, desc, type_conv
 
     def _param_to_argparse_args(self, param, annotation_info):
@@ -317,7 +328,7 @@ class register:  # pylint: disable=invalid-name
         else:
             args.append(name)
             self.pos_args.append(name)
-
+        kwargs.update(annotation_info.kwargs)
         return args, kwargs
 
     def _parse_annotation(self, param):
