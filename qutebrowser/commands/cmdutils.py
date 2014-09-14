@@ -240,13 +240,14 @@ class register:  # pylint: disable=invalid-name
             for param in signature.parameters.values():
                 if param.name in ('self', 'count'):
                     continue
-                args = []
-                kwargs = {}
+                argparse_args = []
+                argparse_kwargs = {}
                 annotation_info = self._parse_annotation(param)
-                kwargs.update(self._param_to_argparse_kw(
-                    param, annotation_info))
-                kwargs.update(annotation_info.kwargs)
-                args += self._param_to_argparse_pos(param, annotation_info)
+                args, kwargs = self._param_to_argparse_args(
+                    param, annotation_info)
+                argparse_args += args
+                argparse_kwargs.update(kwargs)
+                argparse_kwargs.update(annotation_info.kwargs)
                 typ = self._get_type(param, annotation_info)
                 if utils.is_enum(typ):
                     type_conv[param.name] = argparser.enum_getter(typ)
@@ -254,25 +255,60 @@ class register:  # pylint: disable=invalid-name
                     if param.default is not inspect.Parameter.empty:
                         typ = typ + (type(param.default),)
                     type_conv[param.name] = argparser.multitype_conv(typ)
-                callsig = debugutils.format_call(self.parser.add_argument,
-                                                 args, kwargs, full=False)
+                callsig = debugutils.format_call(
+                    self.parser.add_argument, argparse_args, argparse_kwargs,
+                    full=False)
                 log.commands.vdebug('Adding arg {} of type {} -> {}'.format(
                     param.name, typ, callsig))
-                self.parser.add_argument(*args, **kwargs)
+                self.parser.add_argument(*argparse_args, **argparse_kwargs)
         return has_count, desc, type_conv
 
-    def _param_to_argparse_pos(self, param, annotation_info):
-        """Get a list of positional argparse arguments.
+    def _param_to_argparse_args(self, param, annotation_info):
+        """Get argparse arguments for a parameter.
+
+        Return:
+            An (args, kwargs) tuple.
 
         Args:
-            param: The inspect.Parameter instance for the current parameter.
+            param: The inspect.Parameter object to get the args for.
             annotation_info: An AnnotationInfo tuple for the parameter.
         """
+
+        ParamType = usertypes.enum('ParamType', 'flag', 'positional')
+
+        kwargs = {}
+        typ = self._get_type(param, annotation_info)
+        param_type = ParamType.positional
+
+        try:
+            kwargs['help'] = self.docparser.arg_descs[param.name]
+        except KeyError:
+            pass
+
+        if isinstance(typ, tuple):
+            pass
+        elif utils.is_enum(typ):
+            kwargs['choices'] = [e.name.replace('_', '-') for e in typ]
+            kwargs['metavar'] = param.name
+        elif typ is bool:
+            param_type = ParamType.flag
+            kwargs['action'] = 'store_true'
+        elif typ is not None:
+            kwargs['type'] = typ
+
+        if param.kind == inspect.Parameter.VAR_POSITIONAL:
+            kwargs['nargs'] = '+'
+        elif param.kind == inspect.Parameter.KEYWORD_ONLY:
+            param_type = ParamType.flag
+            kwargs['default'] = param.default
+        elif typ is not bool and param.default is not inspect.Parameter.empty:
+            kwargs['default'] = param.default
+            kwargs['nargs'] = '?'
+
         args = []
         name = annotation_info.name or param.name
         shortname = annotation_info.flag or param.name[0]
-        if (self._get_type(param, annotation_info) == bool or
-                param.kind == inspect.Parameter.KEYWORD_ONLY):
+        if param_type == ParamType.flag:
             long_flag = '--{}'.format(name)
             short_flag = '-{}'.format(shortname)
             args.append(long_flag)
@@ -281,42 +317,8 @@ class register:  # pylint: disable=invalid-name
         else:
             args.append(name)
             self.pos_args.append(name)
-        return args
 
-    def _param_to_argparse_kw(self, param, annotation_info):
-        """Get argparse keyword arguments for a parameter.
-
-        Args:
-            param: The inspect.Parameter object to get the args for.
-            annotation_info: An AnnotationInfo tuple for the parameter.
-        """
-        kwargs = {}
-
-        try:
-            kwargs['help'] = self.docparser.arg_descs[param.name]
-        except KeyError:
-            pass
-        typ = self._get_type(param, annotation_info)
-
-        if isinstance(typ, tuple):
-            pass
-        elif utils.is_enum(typ):
-            kwargs['choices'] = [e.name.replace('_', '-') for e in typ]
-            kwargs['metavar'] = param.name
-        elif typ is bool:
-            kwargs['action'] = 'store_true'
-        elif typ is not None:
-            kwargs['type'] = typ
-
-        if param.kind == inspect.Parameter.VAR_POSITIONAL:
-            kwargs['nargs'] = '+'
-        elif param.kind == inspect.Parameter.KEYWORD_ONLY:
-            kwargs['default'] = param.default
-        elif typ is not bool and param.default is not inspect.Parameter.empty:
-            kwargs['default'] = param.default
-            kwargs['nargs'] = '?'
-
-        return kwargs
+        return args, kwargs
 
     def _parse_annotation(self, param):
         """Get argparse arguments and type from a parameter annotation.
