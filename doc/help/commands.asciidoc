@@ -56,14 +56,16 @@ How many pages to go back.
 
 [[bind]]
 === bind
-Syntax: +:bind 'key' 'command' ['command' ...] ['mode']+
+Syntax: +:bind [*--mode* 'MODE'] 'key' 'command' ['command' ...]+
 
 Bind a key to a command.
 
 ==== positional arguments
 * +'key'+: The keychain or special key (inside `<...>`) to bind.
 * +'command'+: The command to execute, with optional args.
-* +'mode'+: A comma-separated list of modes to bind the key in (default: `normal`).
+
+==== optional arguments
+* +*-m*+, +*--mode*+: A comma-separated list of modes to bind the key in (default: `normal`).
 
 
 [[cancel-download]]
@@ -109,7 +111,7 @@ Show help about a command or setting.
 
 [[hint]]
 === hint
-Syntax: +:hint ['group'] ['target'] ['args']+
+Syntax: +:hint ['group'] ['target'] ['args' ['args' ...]]+
 
 Start hinting.
 
