@@ -308,7 +308,7 @@ class register:  # pylint: disable=invalid-name
             kwargs['type'] = typ
 
         if param.kind == inspect.Parameter.VAR_POSITIONAL:
-            kwargs['nargs'] = '*'
+            kwargs['nargs'] = '+'
         elif typ is not bool and param.default is not inspect.Parameter.empty:
             kwargs['default'] = param.default
             kwargs['nargs'] = '?'

@@ -603,7 +603,7 @@ class CommandDispatcher:
         self.openurl(config.get('general', 'startpage')[0])
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
-    def run_userscript(self, cmd, *args):
+    def run_userscript(self, cmd, *args : {'nargs': '*'}):
         """Run an userscript given as argument.
 
         Args:
