@@ -120,12 +120,12 @@ class KeyConfigParser(QObject):
             f.write(str(self))
 
     @cmdutils.register(instance='keyconfig')
-    def bind(self, key, command, mode=None):
+    def bind(self, key, *command, mode=None):
         """Bind a key to a command.
 
         Args:
             key: The keychain or special key (inside `<...>`) to bind.
-            command: The command to execute.
+            *command: The command to execute, with optional args.
             mode: A comma-separated list of modes to bind the key in
                   (default: `normal`).
         """
@@ -135,10 +135,10 @@ class KeyConfigParser(QObject):
         for m in mode.split(','):
             if m not in configdata.KEY_DATA:
                 raise cmdexc.CommandError("Invalid mode {}!".format(m))
-        if command.split(maxsplit=1)[0] not in cmdutils.cmd_dict:
-            raise cmdexc.CommandError("Invalid command {}!".format(command))
+        if command[0] not in cmdutils.cmd_dict:
+            raise cmdexc.CommandError("Invalid command {}!".format(command[0]))
         try:
-            self._add_binding(mode, key, command)
+            self._add_binding(mode, key, *command)
         except KeyConfigError as e:
             raise cmdexc.CommandError(e)
         for m in mode.split(','):

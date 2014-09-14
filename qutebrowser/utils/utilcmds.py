@@ -19,7 +19,6 @@
 
 """Misc. utility commands exposed to the user."""
 
-import shlex
 import types
 import functools
 
@@ -42,12 +41,12 @@ def init():
 
 
 @cmdutils.register()
-def later(ms: int, command):
+def later(ms: int, *command):
     """Execute a command after some time.
 
     Args:
         ms: How many milliseconds to wait.
-        command: The command to run.
+        *command: The command to run, with optional args.
     """
     timer = usertypes.Timer(name='later')
     timer.setSingleShot(True)
@@ -59,10 +58,7 @@ def later(ms: int, command):
         raise cmdexc.CommandError("Numeric argument is too large for internal "
                                   "int representation.")
     _timers.append(timer)
-    try:
-        cmdline = shlex.split(command)
-    except ValueError as e:
-        raise cmdexc.CommandError("Could not split command: {}".format(e))
+    cmdline = ' '.join(command)
     timer.timeout.connect(functools.partial(
         _commandrunner.run_safely, cmdline))
     timer.timeout.connect(lambda: _timers.remove(timer))

@@ -20,7 +20,6 @@
 """A HintManager to draw hints over links."""
 
 import math
-import shlex
 import subprocess
 import collections
 
@@ -453,7 +452,7 @@ class HintManager(QObject):
                 f.contentsSizeChanged.connect(self.on_contents_size_changed)
                 self._context.connected_frames.append(f)
 
-    def _check_args(self, target, args):
+    def _check_args(self, target, *args):
         """Check the arguments passed to start() and raise if they're wrong.
 
         Args:
@@ -463,11 +462,11 @@ class HintManager(QObject):
         if not isinstance(target, Target):
             raise TypeError("Target {} is no Target member!".format(target))
         if target in (Target.userscript, Target.spawn, Target.fill):
-            if args is None:
+            if not args:
                 raise cmdexc.CommandError(
                     "'args' is required with target userscript/spawn/fill.")
         else:
-            if args is not None:
+            if args:
                 raise cmdexc.CommandError(
                     "'args' is only allowed with target userscript/spawn.")
 
@@ -513,7 +512,7 @@ class HintManager(QObject):
         self.openurl.emit(url, newtab)
 
     def start(self, mainframe, baseurl, group=webelem.Group.all,
-              target=Target.normal, args=None):
+              target=Target.normal, *args):
         """Start hinting.
 
         Args:
@@ -521,12 +520,12 @@ class HintManager(QObject):
             baseurl: URL of the current page.
             group: Which group of elements to hint.
             target: What to do with the link. See attribute docstring.
-            args: Arguments for userscript/download
+            *args: Arguments for userscript/download
 
         Emit:
             hint_strings_updated: Emitted to update keypraser.
         """
-        self._check_args(target, args)
+        self._check_args(target, *args)
         if mainframe is None:
             # This should never happen since we check frame before calling
             # start. But since we had a bug where frame is None in
@@ -536,13 +535,7 @@ class HintManager(QObject):
         self._context.target = target
         self._context.baseurl = baseurl
         self._context.frames = webelem.get_child_frames(mainframe)
-        if args is None:
-            self._context.args = None
-        else:
-            try:
-                self._context.args = shlex.split(args)
-            except ValueError as e:
-                raise cmdexc.CommandError("Could not split args: {}".format(e))
+        self._context.args = args
         self._init_elements(mainframe, group)
         message.instance().set_text(self.HINT_TEXTS[target])
         self._connect_frame_signals()
