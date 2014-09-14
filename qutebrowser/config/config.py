@@ -337,8 +337,8 @@ class ConfigManager(QObject):
     @cmdutils.register(name='set', instance='config',
                        completion=[Completion.section, Completion.option,
                                    Completion.value])
-    def set_command(self, section,  # pylint: disable=redefined-outer-name
-                    option, value, temp=False):
+    def set_command(self, sectname: {'name': 'section'},
+                    optname: {'name': 'option'}, value, temp=False):
         """Set an option.
 
         //
@@ -346,14 +346,14 @@ class ConfigManager(QObject):
         Wrapper for self.set() to output exceptions in the status bar.
 
         Args:
-            section: The section where the option is in.
-            option: The name of the option.
+            sectname: The section where the option is in.
+            optname: The name of the option.
             value: The value to set.
             temp: Set value temporarily.
         """
         try:
             layer = 'temp' if temp else 'conf'
-            self.set(layer, section, option, value)
+            self.set(layer, sectname, optname, value)
         except (NoOptionError, NoSectionError, configtypes.ValidationError,
                 ValueError) as e:
             raise cmdexc.CommandError("set: {} - {}".format(
