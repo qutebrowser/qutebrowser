@@ -56,13 +56,13 @@ How many pages to go back.
 
 [[bind]]
 === bind
-Syntax: +:bind 'key' 'command' ['mode']+
+Syntax: +:bind 'key' 'command' ['command' ...] ['mode']+
 
 Bind a key to a command.
 
 ==== positional arguments
 * +'key'+: The keychain or special key (inside `<...>`) to bind.
-* +'command'+: The command to execute.
+* +'command'+: The command to execute, with optional args.
 * +'mode'+: A comma-separated list of modes to bind the key in (default: `normal`).
 
 
@@ -160,13 +160,13 @@ Toggle the web inspector.
 
 [[later]]
 === later
-Syntax: +:later 'ms' 'command'+
+Syntax: +:later 'ms' 'command' ['command' ...]+
 
 Execute a command after some time.
 
 ==== positional arguments
 * +'ms'+: How many milliseconds to wait.
-* +'command'+: The command to run.
+* +'command'+: The command to run, with optional args.
 
 [[next-page]]
 === next-page
@@ -314,7 +314,7 @@ Preset the statusbar to some text.
 
 [[spawn]]
 === spawn
-Syntax: +:spawn ['args' ['args' ...]]+
+Syntax: +:spawn 'args' ['args' ...]+
 
 Spawn a command in a shell.
 
