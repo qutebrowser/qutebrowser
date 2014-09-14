@@ -169,7 +169,8 @@ class Command:
             if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
                 posargs.append(value)
             elif param.kind == inspect.Parameter.VAR_POSITIONAL:
-                posargs += value
+                if value is not None:
+                    posargs += value
             elif param.kind == inspect.Parameter.KEYWORD_ONLY:
                 kwargs[param.name] = value
             else:
