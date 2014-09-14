@@ -225,8 +225,9 @@ class register:  # pylint: disable=invalid-name
             raise ValueError("{} is a class method, but instance was not "
                              "given!".format(self.name[0]))
         has_count = 'count' in signature.parameters
-        if self.func.__doc__ is not None:
-            desc = self.func.__doc__.splitlines()[0].strip()
+        doc = inspect.getdoc(self.func)
+        if doc is not None:
+            desc = doc.splitlines()[0].strip()
         else:
             desc = ""
         if not self.ignore_args:
