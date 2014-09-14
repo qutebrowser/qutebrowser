@@ -162,9 +162,9 @@ def _get_command_doc(name, cmd):
     if cmd.pos_args:
         output.append("")
         output.append("==== positional arguments")
-        for arg in cmd.pos_args:
+        for arg, name in cmd.pos_args:
             try:
-                output.append("* +'{}'+: {}".format(arg,
+                output.append("* +'{}'+: {}".format(name,
                                                     parser.arg_descs[arg]))
             except KeyError as e:
                 raise KeyError("No description for arg {} of command "

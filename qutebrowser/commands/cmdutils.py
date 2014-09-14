@@ -324,10 +324,10 @@ class register:  # pylint: disable=invalid-name
             short_flag = '-{}'.format(shortname)
             args.append(long_flag)
             args.append(short_flag)
-            self.opt_args[name] = long_flag, short_flag
+            self.opt_args[param.name] = long_flag, short_flag
         else:
             args.append(name)
-            self.pos_args.append(name)
+            self.pos_args.append((param.name, name))
         kwargs.update(annotation_info.kwargs)
         return args, kwargs
 
