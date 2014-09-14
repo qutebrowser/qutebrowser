@@ -227,6 +227,9 @@ class register:  # pylint: disable=invalid-name
         elif 'self' not in signature.parameters and self.instance is not None:
             raise TypeError("{} is not a class method, but instance was "
                             "given!".format(self.name[0]))
+        elif inspect.getfullargspec(self.func).varkw is not None:
+            raise TypeError("{}: functions with varkw arguments are not "
+                            "supported!".format(self.name[0]))
         has_count = 'count' in signature.parameters
         doc = inspect.getdoc(self.func)
         if doc is not None:
