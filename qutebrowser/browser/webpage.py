@@ -242,21 +242,21 @@ class BrowserPage(QWebPage):
                 return super().extension(ext, opt, out)
             return handler(opt, out)
         except:  # pylint: disable=bare-except
-            # WORKAROUND:
-            #
-            # Due to a bug in PyQt, exceptions inside extension() get
-            # swallowed:
-            # http://www.riverbankcomputing.com/pipermail/pyqt/2014-August/034722.html
-            #
-            # We used to re-raise the exception with a single-shot QTimer here,
-            # but that lead to a strange proble with a KeyError with some
-            # random jinja template stuff as content. For now, we only log it,
-            # so it doesn't pass 100% silently.
-            #
-            # FIXME: This should be fixed with PyQt 5.3.2 - re-check when it's
-            # out and raise the exception normally if possible.
-            log.webview.exception("Error inside WebPage::extension")
-            return False
+            if PYQT_VERSION >= 0x50302:
+                raise
+            else:
+                # WORKAROUND:
+                #
+                # Due to a bug in PyQt, exceptions inside extension() get
+                # swallowed:
+                # http://www.riverbankcomputing.com/pipermail/pyqt/2014-August/034722.html
+                #
+                # We used to re-raise the exception with a single-shot QTimer
+                # here, but that lead to a strange proble with a KeyError with
+                # some random jinja template stuff as content. For now, we only
+                # log it, so it doesn't pass 100% silently.
+                log.webview.exception("Error inside WebPage::extension")
+                return False
 
     def javaScriptAlert(self, _frame, msg):
         """Override javaScriptAlert to use the statusbar."""
