@@ -167,6 +167,13 @@ def _module_versions():
     else:
         ver = getattr(jinja2, '__version__', 'yes')
         lines.append('jinja2: {}'.format(ver))
+    try:
+        import pygments
+    except ImportError:
+        pass
+    else:
+        ver = getattr(pygments, '__version__', 'yes')
+        lines.append('pygments: {}'.format(ver))
     return lines
 
 

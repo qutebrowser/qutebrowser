@@ -75,6 +75,7 @@ The following software and libraries are required to run qutebrowser:
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
 * http://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
+* http://pygments.org/[pygments]
 
 The following libraries are optional and provide colored logging in the
 console:
@@ -87,7 +88,7 @@ On Debian
 
 ----
 # apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python3-pkg-resources
-python3-pip python3-jinja2
+python3-pip python3-jinja2 python3-pygments
 # pip3 install pypeg2 --allow-external pypeg2 --allow-unverified pypeg2
 ----
 
@@ -132,6 +133,7 @@ to get Qt and PyQt5.
 * Run +pip install --allow-external pypeg2 --allow-unverified pypeg2 pypeg2+ to
 install pypeg2.
 * Run +pip install jinja2+ to install jinja2.
+* Run +pip install pygments+ to install pygments.
 
 As soon as v0.1 is out, a standalone .exe (built with
 http://cx-freeze.sourceforge.net/[cx_Freeze]) will be provided. In the

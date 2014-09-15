@@ -264,3 +264,17 @@ def check_jinja2():
                                     "~gohlke/pythonlibs/#jinja2 or via pip.",
                             pip="jinja2")
         _die(text)
+
+
+def check_pygments():
+    """Check if pygments is installed."""
+    try:
+        import pygments  # pylint: disable=unused-variable
+    except ImportError:
+        text = _missing_str("pygments",
+                            debian="apt-get install python3-pygments",
+                            arch="Install python-jinja from the AUR",
+                            windows="Install from http://www.lfd.uci.edu/"
+                                    "~gohlke/pythonlibs/#pygments or via pip.",
+                            pip="pygments")
+        _die(text)

@@ -113,6 +113,7 @@ def main():
     earlyinit.check_pkg_resources()
     earlyinit.check_pypeg2()
     earlyinit.check_jinja2()
+    earlyinit.check_pygments()
     # We do this import late as we need to fix harfbuzz first.
     from qutebrowser import app
     from qutebrowser.utils import debug
