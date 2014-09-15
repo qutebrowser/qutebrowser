@@ -52,6 +52,8 @@ class WebView(QWebView):
         inspector: The QWebInspector used for this webview.
         load_status: loading status of this page (index into LoadStatus)
         open_target: Where to open the next tab ("normal", "tab", "tab_bg")
+        viewing_source: Whether the webview is currently displaying source
+                        code.
         _page: The QWebPage behind the view
         _cur_url: The current URL (accessed via cur_url property).
         _has_ssl_errors: Whether SSL errors occured during loading.
@@ -107,6 +109,7 @@ class WebView(QWebView):
             lambda msg: setattr(self, 'statusbar_message', msg))
         self.page().networkAccessManager().sslErrors.connect(
             lambda *args: setattr(self, '_has_ssl_errors', True))
+        self.viewing_source = False
         # FIXME find some way to hide scrollbars without setScrollBarPolicy
 
     def __repr__(self):
@@ -341,6 +344,7 @@ class WebView(QWebView):
     def on_load_started(self):
         """Leave insert/hint mode and set vars when a new page is loading."""
         self.progress = 0
+        self.viewing_source = False
         self._has_ssl_errors = False
         self._set_load_status(LoadStatus.loading)
 

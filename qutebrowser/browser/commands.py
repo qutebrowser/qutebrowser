@@ -28,6 +28,9 @@ from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 from PyQt5.QtWebKitWidgets import QWebInspector
+import pygments
+import pygments.lexers
+import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils
 from qutebrowser.config import config
@@ -746,6 +749,22 @@ class CommandDispatcher:
         """Download the current page."""
         page = self._current_widget().page()
         self._tabs.download_get.emit(self._tabs.current_url(), page)
+
+    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    def view_source(self):
+        """Show the source of the current page."""
+        widget = self._current_widget()
+        if widget.viewing_source:
+            raise cmdexc.CommandError("Already viewing source!")
+        frame = widget.page().currentFrame()
+        url = self._tabs.current_url()
+        html = frame.toHtml()
+        lexer = pygments.lexers.HtmlLexer()
+        formatter = pygments.formatters.HtmlFormatter(full=True)
+        highlighted = pygments.highlight(html, lexer, formatter)
+        tab = self._tabs.tabopen(explicit=True)
+        tab.setHtml(highlighted, url)
+        tab.viewing_source = True
 
     @cmdutils.register(instance='mainwindow.tabs.cmd',
                        modes=[usertypes.KeyMode.insert],
