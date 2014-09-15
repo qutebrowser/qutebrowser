@@ -283,9 +283,6 @@ Save current session and exit (command save_session, aliases: wq).
 gZZ
 Save current session with name and exit (command save_named_session, aliases: wqn).
 
-gf
-Toggle "view source" (command view_source, aliases: source, so).
-
 gs
 Add a searchengine. Textfields can be chosen with tab and a keyword must be specified. The first defined searchengine will be the default searchengine. The keyword can be used in all open commands, e.g. :open <keyword> <searchterm> (command save_search_field, aliases: search).
 
