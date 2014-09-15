@@ -931,9 +931,9 @@ DATA = collections.OrderedDict([
     ('fonts', sect.KeyValue(
         ('_monospace',
          SettingValue(typ.Font(), 'Terminus, Monospace, "DejaVu Sans Mono", '
-                      'Consolas, Monaco, "Bitstream Vera Sans Mono", '
-                      '"Andale Mono", "Liberation Mono", "Courier New", '
-                      'Courier, monospace, Fixed, Terminal'),
+                      'Monaco, "Bitstream Vera Sans Mono", "Andale Mono", '
+                      '"Liberation Mono", "Courier New", Courier, monospace, '
+                      'Fixed, Consolas, Terminal'),
          "Default monospace fonts."),
 
         ('completion',
