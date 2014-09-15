@@ -388,15 +388,17 @@ class HintManager(QObject):
         Return:
             A QUrl with the absolute URL, or None.
         """
-        text = elem['href']
-        if not text:
+        try:
+            text = elem['href']
+        except KeyError:
             return None
-        if baseurl is None:
-            baseurl = self._context.baseurl
         url = QUrl(text)
+        if not url.isValid():
+            return None
         if url.isRelative():
+            if baseurl is None:
+                baseurl = self._context.baseurl
             url = baseurl.resolved(url)
-        qtutils.ensure_valid(url)
         return url
 
     def _find_prevnext(self, frame, prev=False):
@@ -466,7 +468,7 @@ class HintManager(QObject):
             raise cmdexc.CommandError("No {} links found!".format(
                 "prev" if prev else "forward"))
         url = self._resolve_url(elem, baseurl)
-        if url is None or not url.isValid():
+        if url is None:
             raise cmdexc.CommandError("No {} links found!".format(
                 "prev" if prev else "forward"))
         self.openurl.emit(url, newtab)
