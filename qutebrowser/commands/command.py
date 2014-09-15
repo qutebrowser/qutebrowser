@@ -51,10 +51,12 @@ class Command:
 
     Class attributes:
         AnnotationInfo: Named tuple for info from an annotation.
+        ParamType: Enum for an argparse parameter type.
     """
 
     AnnotationInfo = collections.namedtuple('AnnotationInfo',
                                             'kwargs, typ, name, flag')
+    ParamType = usertypes.enum('ParamType', 'flag', 'positional')
 
     def __init__(self, name, split, hide, instance, completion, modes,
                  not_modes, needs_js, is_debug, ignore_args,
@@ -201,11 +203,9 @@ class Command:
             annotation_info: An AnnotationInfo tuple for the parameter.
         """
 
-        ParamType = usertypes.enum('ParamType', 'flag', 'positional')
-
         kwargs = {}
         typ = self._get_type(param, annotation_info)
-        param_type = ParamType.positional
+        param_type = self.ParamType.positional
 
         try:
             kwargs['help'] = self.docparser.arg_descs[param.name]
@@ -218,7 +218,7 @@ class Command:
             kwargs['choices'] = [e.name.replace('_', '-') for e in typ]
             kwargs['metavar'] = param.name
         elif typ is bool:
-            param_type = ParamType.flag
+            param_type = self.ParamType.flag
             kwargs['action'] = 'store_true'
         elif typ is not None:
             kwargs['type'] = typ
@@ -226,7 +226,7 @@ class Command:
         if param.kind == inspect.Parameter.VAR_POSITIONAL:
             kwargs['nargs'] = '+'
         elif param.kind == inspect.Parameter.KEYWORD_ONLY:
-            param_type = ParamType.flag
+            param_type = self.ParamType.flag
             kwargs['default'] = param.default
         elif typ is not bool and param.default is not inspect.Parameter.empty:
             kwargs['default'] = param.default
@@ -235,15 +235,17 @@ class Command:
         args = []
         name = annotation_info.name or param.name
         shortname = annotation_info.flag or param.name[0]
-        if param_type == ParamType.flag:
+        if param_type == self.ParamType.flag:
             long_flag = '--{}'.format(name)
             short_flag = '-{}'.format(shortname)
             args.append(long_flag)
             args.append(short_flag)
             self.opt_args[param.name] = long_flag, short_flag
-        else:
+        elif param_type == self.ParamType.positional:
             args.append(name)
             self.pos_args.append((param.name, name))
+        else:
+            raise ValueError("Invalid ParamType {}!".format(param_type))
         kwargs.update(annotation_info.kwargs)
         return args, kwargs
 
