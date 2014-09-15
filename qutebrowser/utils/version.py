@@ -122,7 +122,8 @@ def _module_versions():
     Return:
         A list of lines with version info.
     """
-    # pylint: disable=import-error,unused-variable
+    # We should find a way to rewrite this using __import__ or so.
+    # pylint: disable=import-error,unused-variable,too-many-branches
     lines = []
     try:
         import sipconfig

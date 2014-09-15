@@ -128,7 +128,7 @@ class ConfigManager(QObject):
         for sectname in self.sections.keys():
             self._proxies[sectname] = SectionProxy(self, sectname)
         self._from_cp(self._configparser)
-        self._initialized=True
+        self._initialized = True
 
     def __getitem__(self, key):
         """Get a section from the config."""
@@ -249,8 +249,8 @@ class ConfigManager(QObject):
             if '${' + changed_opt + '}' in option.value():
                 self._emit_changed(changed_sect, optname)
         # Options in any section and ${sectname:optname} interpolation.
-        for sectname, section in self.sections.items():
-            for optname, option in section.items():
+        for sectname, sect in self.sections.items():
+            for optname, option in sect.items():
                 if ('${' + changed_sect + ':' + changed_opt + '}' in
                         option.value()):
                     self._emit_changed(sectname, optname)
