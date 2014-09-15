@@ -649,6 +649,7 @@ DATA = collections.OrderedDict([
         ('wi', 'inspector'),
         ('gd', 'download-page'),
         ('ad', 'cancel-download'),
+        ('gf', 'view-source'),
         ('<Ctrl-Tab>', 'tab-focus last'),
         ('<Ctrl-V>', 'enter-mode passthrough'),
         ('<Ctrl-Q>', 'quit'),
