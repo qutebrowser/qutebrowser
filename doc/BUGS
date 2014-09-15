@@ -53,11 +53,23 @@ Rendering
 Crashes
 -------
 
-- Segfaults when trying to load http://cmpl.cc/downloads/hlwm-tablet.mkv and
-  with youtube HTML5 player.
 - restart sometimes abort()s on QApplication __init__ (V155) (probably fixed?)
 - Shutdown is still flaky. (see notes)
+
+- Segfaults when trying to load http://cmpl.cc/downloads/hlwm-tablet.mkv and
+  with youtube HTML5 player.
 - Segfault on subsonic when clicking next track
+- iggy has segfault on
+  http://docs.saltstack.com/en/latest/topics/tutorials/pillar.html on Debian in
+  VMware.
+  Infos: http://paste.the-compiler.org/view/4f6f3084
+  backtrace: http://paste.the-compiler.org/view/d846e448
+- Segfaults when exiting while prompt is showing
+
+- Hang on http://abcnews.go.com/Business/us-s/story?id=18230346 when video
+  starts playing.
+- Random hangs in windows (look at memory dumps)
+
 - Assertion failure on subsonic with debug build
 - Assertion failure when clicking on "doc" with debug build on qutebrowser
   github page
