@@ -56,6 +56,10 @@ Downloads
 Improvements / minor features
 =============================
 
+- earlyinit: Show installing python-pip3 and call pip3 instead of pip for
+  debian
+- README: Add single apt-get line for all dependencies
+- Don't use colorama in scripts
 - Command/page to show all keybindings?
 - File moves:
     - state should be in data, not config
@@ -138,6 +142,10 @@ style
   enum/namedtuple).
 - Config init and some persistent objects should be moved out of QApplication.
 - Use separate logger for config
+- Fix spelling of "temporarely"
+- Refactor earlyinit library checking so functions don't need to be called
+  individually.
+- Refactor utils.version to use programmatic imports and a dict.
 
 dwb keybindings to possibly implement
 =====================================

@@ -32,6 +32,9 @@ Webview
   succeeds).
 - Opening editor is broken on http://p.cmpl.cc/ (probably a CodeMirror issue?)
 - Middle-clicking anchors doesn't actually move to the anchor in the new tab
+- lots of "Element vanished" warnings on
+  http://docs.saltstack.com/en/latest/topics/tutorials/pillar.html when
+  clicking
 
 Input
 -----
@@ -106,6 +109,8 @@ Misc
   windows
 - Current font handling is rather broken (rejecting invalid values / setting
   multiple font families) - we should use PyPEG2 instead.
+- On first start: KeyError because geometry couldn't be read logged as WARNING.
+- tabs don't redraw properly when changing font
 
 Tests
 -----
