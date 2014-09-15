@@ -43,7 +43,7 @@ from qutebrowser.browser import quickmarks, cookies, downloads, cache
 from qutebrowser.widgets import mainwindow, console, crash
 from qutebrowser.keyinput import modeparsers, keyparser, modeman
 from qutebrowser.utils import (log, version, message, utilcmds, readline,
-                               utils, qtutils, urlutils)
+                               utils, qtutils, urlutils, debug)
 from qutebrowser.utils import usertypes as utypes
 
 
@@ -767,4 +767,7 @@ class Application(QApplication):
     def exit(self, status):
         """Extend QApplication::exit to log the event."""
         log.destroy.debug("Now calling QApplication::exit.")
+        if self.args.debug_exit:
+            print("Now logging late shutdown.", file=sys.stderr)
+            debug.trace_lines(True)
         super().exit(status)

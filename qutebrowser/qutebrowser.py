@@ -116,7 +116,6 @@ def main():
     earlyinit.check_pygments()
     # We do this import late as we need to fix harfbuzz first.
     from qutebrowser import app
-    from qutebrowser.utils import debug
     from PyQt5.QtCore import pyqtRemoveInputHook
     import PyQt5.QtWidgets as QtWidgets
     # We don't use qutebrowser via the interactive shell, but we want to be
@@ -131,8 +130,5 @@ def main():
     # FIXME: We should do another attempt at contacting upstream about this.
     QtWidgets.qApp = app
     ret = app.exec_()
-    if args.debug_exit:
-        print("Now logging late shutdown.", file=sys.stderr)
-        debug.trace_lines(True)
     QtWidgets.qApp = None
     return ret
