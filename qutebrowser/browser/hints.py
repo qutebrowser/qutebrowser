@@ -392,10 +392,10 @@ class HintManager(QObject):
             text = elem['href']
         except KeyError:
             return None
-        if baseurl is None:
-            baseurl = self._context.baseurl
         url = QUrl(text)
         if url.isRelative():
+            if baseurl is None:
+                baseurl = self._context.baseurl
             url = baseurl.resolved(url)
         qtutils.ensure_valid(url)
         return url
