@@ -20,12 +20,13 @@
 """Contains the Command class, a skeleton for a command."""
 
 import inspect
+import collections
 
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.commands import cmdexc, argparser
-from qutebrowser.utils import log, utils, message, debug
+from qutebrowser.utils import log, utils, message, debug, usertypes
 
 
 class Command:
@@ -47,33 +48,44 @@ class Command:
         parser: The ArgumentParser to use to parse this command.
         type_conv: A mapping of conversion functions for arguments.
         name_conv: A mapping of argument names to parameter names.
+
+    Class attributes:
+        AnnotationInfo: Named tuple for info from an annotation.
     """
 
-    # TODO:
-    # we should probably have some kind of typing / argument casting for args
-    # this might be combined with help texts or so as well
+    AnnotationInfo = collections.namedtuple('AnnotationInfo',
+                                            'kwargs, typ, name, flag')
 
-    def __init__(self, name, split, hide, count, desc, instance, handler,
-                 completion, modes, not_modes, needs_js, is_debug, parser,
-                 type_conv, opt_args, pos_args, name_conv):
+    def __init__(self, name, split, hide, instance, completion, modes,
+                 not_modes, needs_js, is_debug, ignore_args,
+                 handler):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-arguments,too-many-locals
         self.name = name
         self.split = split
         self.hide = hide
-        self.count = count
-        self.desc = desc
         self.instance = instance
-        self.handler = handler
         self.completion = completion
         self.modes = modes
         self.not_modes = not_modes
         self.needs_js = needs_js
         self.debug = is_debug
-        self.parser = parser
+        self.ignore_args = ignore_args
+        self.handler = handler
+        self.docparser = utils.DocstringParser(handler)
+        self.parser = argparser.ArgumentParser(
+            name, description=self.docparser.short_desc,
+            epilog=self.docparser.long_desc)
+        self.parser.add_argument('-h', '--help', action=argparser.HelpAction,
+                                 default=argparser.SUPPRESS, nargs=0,
+                                 help=argparser.SUPPRESS)
+        self._check_func()
+        self.opt_args = collections.OrderedDict()
+        self.pos_args = []
+        has_count, desc, type_conv, name_conv = self._inspect_func()
+        self.has_count = has_count
+        self.desc = desc
         self.type_conv = type_conv
-        self.opt_args = opt_args
-        self.pos_args = pos_args
         self.name_conv = name_conv
 
     def _check_prerequisites(self):
@@ -100,8 +112,185 @@ class Command:
             raise cmdexc.PrerequisitesError(
                 "{}: This command needs javascript enabled.".format(self.name))
 
-    def _get_args(self, func, count,  # noqa, pylint: disable=too-many-branches
-                  namespace):
+    def _check_func(self):
+        """Make sure the function parameters don't violate any rules."""
+        signature = inspect.signature(self.handler)
+        if 'self' in signature.parameters and self.instance is None:
+            raise TypeError("{} is a class method, but instance was not "
+                            "given!".format(self.name[0]))
+        elif 'self' not in signature.parameters and self.instance is not None:
+            raise TypeError("{} is not a class method, but instance was "
+                            "given!".format(self.name[0]))
+        elif inspect.getfullargspec(self.handler).varkw is not None:
+            raise TypeError("{}: functions with varkw arguments are not "
+                            "supported!".format(self.name[0]))
+
+    def _get_typeconv(self, param, typ):
+        """Get a dict with a type conversion for the parameter.
+
+        Args:
+            param: The inspect.Parameter to handle.
+            typ: The type of the parameter.
+        """
+        type_conv = {}
+        if utils.is_enum(typ):
+            type_conv[param.name] = argparser.enum_getter(typ)
+        elif isinstance(typ, tuple):
+            if param.default is not inspect.Parameter.empty:
+                typ = typ + (type(param.default),)
+            type_conv[param.name] = argparser.multitype_conv(typ)
+        return type_conv
+
+    def _get_nameconv(self, param, annotation_info):
+        """Get a dict with a name conversion for the paraeter.
+
+        Args:
+            param: The inspect.Parameter to handle.
+            annotation_info: The AnnotationInfo tuple for the parameter.
+        """
+        d = {}
+        if annotation_info.name is not None:
+            d[param.name] = annotation_info.name
+        return d
+
+    def _inspect_func(self):
+        """Inspect the function to get useful informations from it.
+
+        Return:
+            A (has_count, desc, parser, type_conv) tuple.
+                has_count: Whether the command supports a count.
+                desc: The description of the command.
+                type_conv: A mapping of args to type converter callables.
+                name_conv: A mapping of names to convert.
+        """
+        type_conv = {}
+        name_conv = {}
+        signature = inspect.signature(self.handler)
+        has_count = 'count' in signature.parameters
+        doc = inspect.getdoc(self.handler)
+        if doc is not None:
+            desc = doc.splitlines()[0].strip()
+        else:
+            desc = ""
+        if not self.ignore_args:
+            for param in signature.parameters.values():
+                if param.name in ('self', 'count'):
+                    continue
+                annotation_info = self._parse_annotation(param)
+                typ = self._get_type(param, annotation_info)
+                args, kwargs = self._param_to_argparse_args(
+                    param, annotation_info)
+                type_conv.update(self._get_typeconv(param, typ))
+                name_conv.update(self._get_nameconv(param, annotation_info))
+                callsig = debug.format_call(
+                    self.parser.add_argument, args, kwargs,
+                    full=False)
+                log.commands.vdebug('Adding arg {} of type {} -> {}'.format(
+                    param.name, typ, callsig))
+                self.parser.add_argument(*args, **kwargs)
+        return has_count, desc, type_conv, name_conv
+
+    def _param_to_argparse_args(self, param, annotation_info):
+        """Get argparse arguments for a parameter.
+
+        Return:
+            An (args, kwargs) tuple.
+
+        Args:
+            param: The inspect.Parameter object to get the args for.
+            annotation_info: An AnnotationInfo tuple for the parameter.
+        """
+
+        ParamType = usertypes.enum('ParamType', 'flag', 'positional')
+
+        kwargs = {}
+        typ = self._get_type(param, annotation_info)
+        param_type = ParamType.positional
+
+        try:
+            kwargs['help'] = self.docparser.arg_descs[param.name]
+        except KeyError:
+            pass
+
+        if isinstance(typ, tuple):
+            pass
+        elif utils.is_enum(typ):
+            kwargs['choices'] = [e.name.replace('_', '-') for e in typ]
+            kwargs['metavar'] = param.name
+        elif typ is bool:
+            param_type = ParamType.flag
+            kwargs['action'] = 'store_true'
+        elif typ is not None:
+            kwargs['type'] = typ
+
+        if param.kind == inspect.Parameter.VAR_POSITIONAL:
+            kwargs['nargs'] = '+'
+        elif param.kind == inspect.Parameter.KEYWORD_ONLY:
+            param_type = ParamType.flag
+            kwargs['default'] = param.default
+        elif typ is not bool and param.default is not inspect.Parameter.empty:
+            kwargs['default'] = param.default
+            kwargs['nargs'] = '?'
+
+        args = []
+        name = annotation_info.name or param.name
+        shortname = annotation_info.flag or param.name[0]
+        if param_type == ParamType.flag:
+            long_flag = '--{}'.format(name)
+            short_flag = '-{}'.format(shortname)
+            args.append(long_flag)
+            args.append(short_flag)
+            self.opt_args[param.name] = long_flag, short_flag
+        else:
+            args.append(name)
+            self.pos_args.append((param.name, name))
+        kwargs.update(annotation_info.kwargs)
+        return args, kwargs
+
+    def _parse_annotation(self, param):
+        """Get argparse arguments and type from a parameter annotation.
+
+        Args:
+            param: A inspect.Parameter instance.
+
+        Return:
+            An AnnotationInfo namedtuple.
+                kwargs: A dict of keyword args to add to the
+                       argparse.ArgumentParser.add_argument call.
+                typ: The type to use for this argument.
+                flag: The short name/flag if overridden.
+                name: The long name if overridden.
+        """
+        info = {'kwargs': {}, 'typ': None, 'flag': None, 'name': None}
+        if param.annotation is not inspect.Parameter.empty:
+            log.commands.vdebug("Parsing annotation {}".format(
+                param.annotation))
+            if isinstance(param.annotation, dict):
+                for field in ('type', 'flag', 'name'):
+                    if field in param.annotation:
+                        info[field] = param.annotation[field]
+                        del param.annotation[field]
+                info['kwargs'] = param.annotation
+            else:
+                info['typ'] = param.annotation
+        return self.AnnotationInfo(**info)
+
+    def _get_type(self, param, annotation_info):
+        """Get the type of an argument from its default value or annotation.
+
+        Args:
+            param: The inspect.Parameter to look at.
+            annotation_info: An AnnotationInfo tuple which overrides the type.
+        """
+        if annotation_info.typ is not None:
+            return annotation_info.typ
+        elif param.default is None or param.default is inspect.Parameter.empty:
+            return None
+        else:
+            return type(param.default)
+
+    def _get_call_args(self, func,  # noqa, pylint: disable=too-many-branches
+                       count, namespace):
         """Get arguments for a function call.
 
         Args:
@@ -130,7 +319,7 @@ class Command:
                 continue
             elif param.name == 'count':
                 # Special case for 'count'.
-                if not self.count:
+                if not self.has_count:
                     raise TypeError("{}: count argument given with a command "
                                     "which does not support count!".format(
                                         self.name))
@@ -192,7 +381,7 @@ class Command:
             log.commands.debug("argparser exited with status {}: {}".format(
                 e.status, e))
             return
-        posargs, kwargs = self._get_args(self.handler, count, namespace)
+        posargs, kwargs = self._get_call_args(self.handler, count, namespace)
         self._check_prerequisites()
         log.commands.debug('Calling {}'.format(
             debug.format_call(self.handler, posargs, kwargs)))
