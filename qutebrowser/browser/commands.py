@@ -760,7 +760,8 @@ class CommandDispatcher:
         url = self._tabs.current_url()
         html = frame.toHtml()
         lexer = pygments.lexers.HtmlLexer()
-        formatter = pygments.formatters.HtmlFormatter(full=True)
+        formatter = pygments.formatters.HtmlFormatter(
+            full=True, linenos='table')
         highlighted = pygments.highlight(html, lexer, formatter)
         tab = self._tabs.tabopen(explicit=True)
         tab.setHtml(highlighted, url)
