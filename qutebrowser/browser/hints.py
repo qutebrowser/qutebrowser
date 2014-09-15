@@ -388,8 +388,9 @@ class HintManager(QObject):
         Return:
             A QUrl with the absolute URL, or None.
         """
-        text = elem['href']
-        if not text:
+        try:
+            text = elem['href']
+        except KeyError:
             return None
         if baseurl is None:
             baseurl = self._context.baseurl
