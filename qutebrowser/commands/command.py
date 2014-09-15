@@ -83,6 +83,8 @@ class Command:
                                  help=argparser.SUPPRESS)
         self._check_func()
         self.opt_args = collections.OrderedDict()
+        self.namespace = None
+        self.count = None
         self.pos_args = []
         has_count, desc, type_conv, name_conv = self._inspect_func()
         self.has_count = has_count
@@ -291,14 +293,58 @@ class Command:
         else:
             return type(param.default)
 
-    def _get_call_args(self, func,  # noqa, pylint: disable=too-many-branches
-                       count, namespace):
-        """Get arguments for a function call.
+    def _get_self_arg(self, param, args):
+        """Get the self argument for a function call.
 
-        Args:
-            func: The function to be called.
-            count: The count to be added to the call.
-            namespace: The argparse namespace.
+        Arguments:
+            param: The count parameter.
+            args: The positional argument list. Gets modified directly.
+        """
+        assert param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+        app = QCoreApplication.instance()
+        if self.instance == '':
+            obj = app
+        else:
+            obj = utils.dotted_getattr(app, self.instance)
+        args.append(obj)
+
+    def _get_count_arg(self, param, args, kwargs):
+        """Add the count argument to a function call.
+
+        Arguments:
+            param: The count parameter.
+            args: The positional argument list. Gets modified directly.
+            kwargs: The keyword argument dict. Gets modified directly.
+        """
+        if not self.has_count:
+            raise TypeError("{}: count argument given with a command which "
+                            "does not support count!".format(self.name))
+        if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
+            if self.count is not None:
+                args.append(self.count)
+            else:
+                args.append(param.default)
+        elif param.kind == inspect.Parameter.KEYWORD_ONLY:
+            if self.count is not None:
+                kwargs['count'] = self.count
+        else:
+            raise TypeError("{}: invalid parameter type {} for argument "
+                            "'count'!".format(self.name, param.kind))
+
+    def _get_param_name_and_value(self, param):
+        """Get the converted name and value for an inspect.Parameter."""
+        name = self.name_conv.get(param.name, param.name)
+        value = getattr(self.namespace, name)
+        if param.name in self.type_conv:
+            # We convert enum types after getting the values from
+            # argparse, because argparse's choices argument is
+            # processed after type conversation, which is not what we
+            # want.
+            value = self.type_conv[param.name](value)
+        return name, value
+
+    def _get_call_args(self):
+        """Get arguments for a function call.
 
         Return:
             An (args, kwargs) tuple.
@@ -306,46 +352,18 @@ class Command:
 
         args = []
         kwargs = {}
-        signature = inspect.signature(func)
+        signature = inspect.signature(self.handler)
 
         for i, param in enumerate(signature.parameters.values()):
             if i == 0 and self.instance is not None:
                 # Special case for 'self'.
-                assert param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
-                app = QCoreApplication.instance()
-                if self.instance == '':
-                    obj = app
-                else:
-                    obj = utils.dotted_getattr(app, self.instance)
-                args.append(obj)
+                self._get_self_arg(param, args)
                 continue
             elif param.name == 'count':
                 # Special case for 'count'.
-                if not self.has_count:
-                    raise TypeError("{}: count argument given with a command "
-                                    "which does not support count!".format(
-                                        self.name))
-                if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
-                    if count is not None:
-                        args.append(count)
-                    else:
-                        args.append(param.default)
-                elif param.kind == inspect.Parameter.KEYWORD_ONLY:
-                    if count is not None:
-                        kwargs['count'] = count
-                else:
-                    raise TypeError("{}: invalid parameter type {} for "
-                                    "argument 'count'!".format(
-                                        self.name, param.kind))
+                self._get_count_arg(param, args, kwargs)
                 continue
-            name = self.name_conv.get(param.name, param.name)
-            value = getattr(namespace, name)
-            if param.name in self.type_conv:
-                # We convert enum types after getting the values from
-                # argparse, because argparse's choices argument is
-                # processed after type conversation, which is not what we
-                # want.
-                value = self.type_conv[param.name](value)
+            name, value = self._get_param_name_and_value(param)
             if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
                 args.append(value)
             elif param.kind == inspect.Parameter.VAR_POSITIONAL:
@@ -375,7 +393,7 @@ class Command:
             dbgout.append("(count={})".format(count))
         log.commands.debug(' '.join(dbgout))
         try:
-            namespace = self.parser.parse_args(args)
+            self.namespace = self.parser.parse_args(args)
         except argparser.ArgumentParserError as e:
             message.error('{}: {}'.format(self.name, e))
             return
@@ -383,7 +401,8 @@ class Command:
             log.commands.debug("argparser exited with status {}: {}".format(
                 e.status, e))
             return
-        posargs, kwargs = self._get_call_args(self.handler, count, namespace)
+        self.count = count
+        posargs, kwargs = self._get_call_args()
         self._check_prerequisites()
         log.commands.debug('Calling {}'.format(
             debug.format_call(self.handler, posargs, kwargs)))
