@@ -10,7 +10,6 @@
 |<<cancel-download,cancel-download>>|Cancel the first/[count]th download.
 |<<download-page,download-page>>|Download the current page.
 |<<forward,forward>>|Go forward in the history of the current tab.
-|<<get,get>>|Get the value from a section/option.
 |<<help,help>>|Show help about a command or setting.
 |<<hint,hint>>|Start hinting.
 |<<home,home>>|Open main startpage in current tab.
@@ -85,16 +84,6 @@ Go forward in the history of the current tab.
 
 ==== count
 How many pages to go forward.
-
-[[get]]
-=== get
-Syntax: +:get 'section' 'option'+
-
-Get the value from a section/option.
-
-==== positional arguments
-* +'section'+: The section where the option is in.
-* +'option'+: The name of the option.
 
 [[help]]
 === help
@@ -293,9 +282,11 @@ Save the config file.
 
 [[set]]
 === set
-Syntax: +:set [*--temp*] 'section' 'option' 'value'+
+Syntax: +:set [*--temp*] 'section' 'option' ['value']+
 
 Set an option.
+
+If the option name ends with '?', the value of the option is shown instead.
 
 ==== positional arguments
 * +'section'+: The section where the option is in.

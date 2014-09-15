@@ -281,29 +281,6 @@ class ConfigManager(QObject):
             self.get.cache_clear()
         return existed
 
-    @cmdutils.register(name='get', instance='config',
-                       completion=[Completion.section, Completion.option])
-    def get_command(self, sectname: {'name': 'section'},
-                    optname: {'name': 'option'}):
-        """Get the value from a section/option.
-
-        //
-
-        Wrapper for the get-command to output the value in the status bar.
-
-        Args:
-            sectname: The section where the option is in.
-            optname: The name of the option.
-        """
-        try:
-            val = self.get(sectname, optname, transformed=False)
-        except (NoOptionError, NoSectionError) as e:
-            raise cmdexc.CommandError("get: {} - {}".format(
-                e.__class__.__name__, e))
-        else:
-            message.info("{} {} = {}".format(sectname, optname, val),
-                         immediately=True)
-
     @functools.lru_cache()
     def get(self, sectname, optname, raw=False, transformed=True):
         """Get the value from a section/option.
@@ -338,8 +315,11 @@ class ConfigManager(QObject):
                        completion=[Completion.section, Completion.option,
                                    Completion.value])
     def set_command(self, sectname: {'name': 'section'},
-                    optname: {'name': 'option'}, value, temp=False):
+                    optname: {'name': 'option'}, value=None, temp=False):
         """Set an option.
+
+        If the option name ends with '?', the value of the option is shown
+        instead.
 
         //
 
@@ -352,8 +332,16 @@ class ConfigManager(QObject):
             temp: Set value temporarily.
         """
         try:
-            layer = 'temp' if temp else 'conf'
-            self.set(layer, sectname, optname, value)
+            if optname.endswith('?'):
+                val = self.get(sectname, optname[:-1], transformed=False)
+                message.info("{} {} = {}".format(sectname, optname[:-1], val),
+                             immediately=True)
+            else:
+                if value is None:
+                    raise cmdexc.CommandError("set: The following arguments "
+                                              "are required: value")
+                layer = 'temp' if temp else 'conf'
+                self.set(layer, sectname, optname, value)
         except (NoOptionError, NoSectionError, configtypes.ValidationError,
                 ValueError) as e:
             raise cmdexc.CommandError("set: {} - {}".format(
