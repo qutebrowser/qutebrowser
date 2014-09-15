@@ -46,6 +46,7 @@ class Command:
         debug: Whether this is a debugging command (only shown with --debug).
         parser: The ArgumentParser to use to parse this command.
         type_conv: A mapping of conversion functions for arguments.
+        name_conv: A mapping of argument names to parameter names.
     """
 
     # TODO:
@@ -54,7 +55,7 @@ class Command:
 
     def __init__(self, name, split, hide, count, desc, instance, handler,
                  completion, modes, not_modes, needs_js, is_debug, parser,
-                 type_conv, opt_args, pos_args):
+                 type_conv, opt_args, pos_args, name_conv):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-arguments,too-many-locals
         self.name = name
@@ -73,6 +74,7 @@ class Command:
         self.type_conv = type_conv
         self.opt_args = opt_args
         self.pos_args = pos_args
+        self.name_conv = name_conv
 
     def _check_prerequisites(self):
         """Check if the command is permitted to run currently.
@@ -145,7 +147,8 @@ class Command:
                                     "argument 'count'!".format(
                                         self.name, param.kind))
                 continue
-            value = getattr(namespace, param.name)
+            name = self.name_conv.get(param.name, param.name)
+            value = getattr(namespace, name)
             if param.name in self.type_conv:
                 # We convert enum types after getting the values from
                 # argparse, because argparse's choices argument is
@@ -158,7 +161,7 @@ class Command:
                 if value is not None:
                     args += value
             elif param.kind == inspect.Parameter.KEYWORD_ONLY:
-                kwargs[param.name] = value
+                kwargs[name] = value
             else:
                 raise TypeError("{}: Invalid parameter type {} for argument "
                                 "'{}'!".format(

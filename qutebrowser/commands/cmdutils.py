@@ -179,14 +179,15 @@ class register:  # pylint: disable=invalid-name
                                  default=argparser.SUPPRESS, nargs=0,
                                  help=argparser.SUPPRESS)
         self._check_func()
-        has_count, desc, type_conv = self._inspect_func()
+        has_count, desc, type_conv, name_conv = self._inspect_func()
         cmd = command.Command(
             name=names[0], split=self.split, hide=self.hide, count=has_count,
             desc=desc, instance=self.instance, handler=func,
             completion=self.completion, modes=self.modes,
             not_modes=self.not_modes, needs_js=self.needs_js,
             is_debug=self.debug, parser=self.parser, type_conv=type_conv,
-            opt_args=self.opt_args, pos_args=self.pos_args)
+            opt_args=self.opt_args, pos_args=self.pos_args,
+            name_conv=name_conv)
         for name in names:
             cmd_dict[name] = cmd
         aliases += names[1:]
@@ -240,6 +241,18 @@ class register:  # pylint: disable=invalid-name
             type_conv[param.name] = argparser.multitype_conv(typ)
         return type_conv
 
+    def _get_nameconv(self, param, annotation_info):
+        """Get a dict with a name conversion for the paraeter.
+
+        Args:
+            param: The inspect.Parameter to handle.
+            annotation_info: The AnnotationInfo tuple for the parameter.
+        """
+        d = {}
+        if annotation_info.name is not None:
+            d[param.name] = annotation_info.name
+        return d
+
     def _inspect_func(self):
         """Inspect the function to get useful informations from it.
 
@@ -248,8 +261,10 @@ class register:  # pylint: disable=invalid-name
                 has_count: Whether the command supports a count.
                 desc: The description of the command.
                 type_conv: A mapping of args to type converter callables.
+                name_conv: A mapping of names to convert.
         """
         type_conv = {}
+        name_conv = {}
         signature = inspect.signature(self.func)
         has_count = 'count' in signature.parameters
         doc = inspect.getdoc(self.func)
@@ -266,13 +281,14 @@ class register:  # pylint: disable=invalid-name
                 args, kwargs = self._param_to_argparse_args(
                     param, annotation_info)
                 type_conv.update(self._get_typeconv(param, typ))
+                name_conv.update(self._get_nameconv(param, annotation_info))
                 callsig = debugutils.format_call(
                     self.parser.add_argument, args, kwargs,
                     full=False)
                 log.commands.vdebug('Adding arg {} of type {} -> {}'.format(
                     param.name, typ, callsig))
                 self.parser.add_argument(*args, **kwargs)
-        return has_count, desc, type_conv
+        return has_count, desc, type_conv, name_conv
 
     def _param_to_argparse_args(self, param, annotation_info):
         """Get argparse arguments for a parameter.
