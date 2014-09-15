@@ -172,6 +172,16 @@ Some resources which might be handy:
 * http://httpbin.org/[httpbin, a test service for HTTP requests/responses]
 * http://requestb.in/[RequestBin, a service to inspect HTTP requests]
 
+Documentation of used Python libraries:
+
+* http://jinja.pocoo.org/docs/dev/[jinja2]
+* http://pygments.org/docs/[pygments]
+* http://fdik.org/pyPEG/index.html[pyPEG2]
+* http://pythonhosted.org/setuptools/[setuptools]
+* http://cx-freeze.readthedocs.org/en/latest/overview.html[cx_Freeze]
+* https://pypi.python.org/pypi/colorama[colorama]
+* https://pypi.python.org/pypi/colorlog[colorlog]
+
 Related RFCs and standards:
 
 HTTP
