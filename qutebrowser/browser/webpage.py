@@ -30,7 +30,8 @@ from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.network import networkmanager
-from qutebrowser.utils import message, usertypes, log, http, jinja, qtutils
+from qutebrowser.utils import (message, usertypes, log, http, jinja, qtutils,
+                               utils)
 
 
 class BrowserPage(QWebPage):
@@ -223,6 +224,9 @@ class BrowserPage(QWebPage):
         """
         return ext in self._extension_handlers
 
+    # WORKAROUND for:
+    # http://www.riverbankcomputing.com/pipermail/pyqt/2014-August/034722.html
+    @utils.prevent_exceptions(False, PYQT_VERSION < 0x50302)
     def extension(self, ext, opt, out):
         """Override QWebPage::extension to provide error pages.
 
@@ -235,28 +239,11 @@ class BrowserPage(QWebPage):
             Handler return value.
         """
         try:
-            try:
-                handler = self._extension_handlers[ext]
-            except KeyError:
-                log.webview.warning("Extension {} not supported!".format(ext))
-                return super().extension(ext, opt, out)
-            return handler(opt, out)
-        except:  # pylint: disable=bare-except
-            if PYQT_VERSION >= 0x50302:
-                raise
-            else:
-                # WORKAROUND:
-                #
-                # Due to a bug in PyQt, exceptions inside extension() get
-                # swallowed:
-                # http://www.riverbankcomputing.com/pipermail/pyqt/2014-August/034722.html
-                #
-                # We used to re-raise the exception with a single-shot QTimer
-                # here, but that lead to a strange proble with a KeyError with
-                # some random jinja template stuff as content. For now, we only
-                # log it, so it doesn't pass 100% silently.
-                log.webview.exception("Error inside WebPage::extension")
-                return False
+            handler = self._extension_handlers[ext]
+        except KeyError:
+            log.webview.warning("Extension {} not supported!".format(ext))
+            return super().extension(ext, opt, out)
+        return handler(opt, out)
 
     def javaScriptAlert(self, _frame, msg):
         """Override javaScriptAlert to use the statusbar."""

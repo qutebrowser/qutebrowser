@@ -35,7 +35,7 @@ from PyQt5.QtGui import QKeySequence, QColor
 import pkg_resources
 
 import qutebrowser
-from qutebrowser.utils import qtutils
+from qutebrowser.utils import qtutils, log
 
 
 def elide(text, length):
@@ -494,3 +494,59 @@ def disabled_excepthook():
     # unchanged. Otherwise, we reset it.
     if sys.excepthook is sys.__excepthook__:
         sys.excepthook = old_excepthook
+
+
+class prevent_exceptions:  # pylint: disable=invalid-name
+
+    """Decorator to ignore and log exceptions.
+
+    This needs to be used for some places where PyQt segfaults on exceptions or
+    silently ignores them.
+
+    We used to re-raise the exception with a single-shot QTimer in a similiar
+    case, but that lead to a strange proble with a KeyError with some random
+    jinja template stuff as content. For now, we only log it, so it doesn't
+    pass 100% silently.
+
+    This could also be a function, but as a class (with a "wrong" name) it's
+    much cleaner to implement.
+
+    Attributes:
+        retval: The value to return in case of an exception.
+        predicate: The condition which needs to be True to prevent exceptions
+    """
+
+    def __init__(self, retval, predicate=True):
+        """Save decorator arguments.
+
+        Gets called on parse-time with the decorator arguments.
+
+        Args:
+            See class attributes.
+        """
+        self.retval = retval
+        self.predicate = predicate
+
+    def __call__(self, func):
+        """Gets called when a function should be decorated.
+
+        Args:
+            func: The function to be decorated.
+
+        Return:
+            The decorated function.
+        """
+        if not self.predicate:
+            return func
+
+        retval = self.retval
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except BaseException:
+                log.misc.exception("Error in {}".format(func.__qualname__))
+                return retval
+
+        return wrapper
