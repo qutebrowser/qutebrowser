@@ -97,26 +97,13 @@ def get_argparser():
 
 def main():
     """Main entry point for qutebrowser."""
-    earlyinit.init_faulthandler()
     parser = get_argparser()
     args = parser.parse_args()
-    earlyinit.check_pyqt_core()
-    # We do this import late as we need to do the version checking first.
-    # Note we may not import webkit stuff yet as fix_harfbuzz didn't run.
-    from qutebrowser.utils import log
-    log.init_log(args)
-    log.init.debug("Log initialized.")
-    log.init.debug("Doing early init.")
-    earlyinit.fix_harfbuzz(args)
-    earlyinit.check_qt_version()
-    earlyinit.check_libraries()
-    # We do this import late as we need to fix harfbuzz first.
+    earlyinit.earlyinit(args)
+    # We do this imports late as earlyinit needs to be run first (because of
+    # the harfbuzz fix and version checking).
     from qutebrowser import app
-    from PyQt5.QtCore import pyqtRemoveInputHook
     import PyQt5.QtWidgets as QtWidgets
-    # We don't use qutebrowser via the interactive shell, but we want to be
-    # able to use pdb.
-    pyqtRemoveInputHook()
     app = app.Application(args)
     # We set qApp explicitely here to reduce the risk of segfaults while
     # quitting.

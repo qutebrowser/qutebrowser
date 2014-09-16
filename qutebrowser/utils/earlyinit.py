@@ -25,10 +25,14 @@ import sys
 import faulthandler
 import traceback
 import signal
+import operator
+import importlib
 try:
     import tkinter  # pylint: disable=import-error
 except ImportError:
     tkinter = None
+# NOTE: No qutebrowser or PyQt import should be done here, as some early
+# initialisation needs to take place before that!
 
 
 def _missing_str(name, debian=None, arch=None, windows=None, pip=None):
@@ -90,8 +94,6 @@ def _die(message, exception=True):
     sys.exit(1)
 
 
-# Now we initialize the faulthandler as early as possible, so we theoretically
-# could catch segfaults occuring later.
 def init_faulthandler():
     """Enable faulthandler module if available.
 
@@ -116,8 +118,6 @@ def init_faulthandler():
         faulthandler.register(signal.SIGUSR1)  # pylint: disable=no-member
 
 
-# Now the faulthandler is enabled we fix the Qt harfbuzzing library, before
-# importing QtWidgets.
 def fix_harfbuzz(args):
     """Fix harfbuzz issues.
 
@@ -168,10 +168,6 @@ def fix_harfbuzz(args):
         log.init.debug("Using system harfbuzz engine")
 
 
-# At this point we can safely import Qt stuff, but we can't be sure it's
-# actually available.
-# Here we check if QtCore is available, and if not, print a message to the
-# console.
 def check_pyqt_core():
     """Check if PyQt core is installed."""
     try:
@@ -201,11 +197,8 @@ def check_pyqt_core():
         sys.exit(1)
 
 
-# Now we can be sure QtCore is available, so we can print dialogs on errors, so
-# people only using the GUI notice them as well.
 def check_qt_version():
     """Check if the Qt version is recent enough."""
-    import operator
     from PyQt5.QtCore import qVersion
     from qutebrowser.utils import qtutils
     if qtutils.version_check('5.2.0', operator.lt):
@@ -216,7 +209,6 @@ def check_qt_version():
 
 def check_libraries():
     """Check if all needed Python libraries are installed."""
-    import importlib
     modules = {
         'PyQt5.QtWebKit':
             _missing_str("QtWebKit",
@@ -256,3 +248,49 @@ def check_libraries():
             importlib.import_module(name)
         except ImportError:
             _die(text)
+
+
+def remove_inputhook():
+    """Remove the PyQt input hook.
+
+    Doing this means we can't use the interactive shell anymore (which we don't
+    anyways), but we can use pdb instead."""
+    from PyQt5.QtCore import pyqtRemoveInputHook
+    pyqtRemoveInputHook()
+
+
+def init_log(args):
+    """Initialize logging.
+
+    Args:
+        args: The argparse namespace.
+    """
+    from qutebrowser.utils import log
+    log.init_log(args)
+    log.init.debug("Log initialized.")
+
+
+def earlyinit(args):
+    """Do all needed early initialisation.
+
+    Note that it's vital the other earlyinit functions get called in the right
+    order!
+
+    Args:
+        args: The argparse namespace.
+    """
+    # First we initialize the faulthandler as early as possible, so we
+    # theoretically could catch segfaults occuring later during earlyinit.
+    init_faulthandler()
+    # Here we check if QtCore is available, and if not, print a message to the
+    # console or via Tk.
+    check_pyqt_core()
+    # Now the faulthandler is enabled we fix the Qt harfbuzzing library, before
+    # importing QtWidgets.
+    fix_harfbuzz(args)
+    # Now we can be sure QtCore is available, so we can print dialogs on
+    # errors, so people only using the GUI notice them as well.
+    check_qt_version()
+    remove_inputhook()
+    check_libraries()
+    init_log(args)
