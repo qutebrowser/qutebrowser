@@ -139,9 +139,6 @@ style
 - Config init and some persistent objects should be moved out of QApplication.
 - Use separate logger for config
 - Fix spelling of "temporarely"
-- Refactor earlyinit library checking so functions don't need to be called
-  individually.
-- Refactor utils.version to use programmatic imports and a dict.
 
 dwb keybindings to possibly implement
 =====================================
