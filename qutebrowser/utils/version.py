@@ -24,6 +24,8 @@ import glob
 import os.path
 import platform
 import subprocess
+import importlib
+import collections
 
 from PyQt5.QtCore import QT_VERSION_STR, PYQT_VERSION_STR, qVersion
 from PyQt5.QtWebKit import qWebKitVersion
@@ -122,8 +124,6 @@ def _module_versions():
     Return:
         A list of lines with version info.
     """
-    # We should find a way to rewrite this using __import__ or so.
-    # pylint: disable=import-error,unused-variable,too-many-branches
     lines = []
     try:
         import sipconfig
@@ -137,44 +137,29 @@ def _module_versions():
             log.misc.warning("Error while getting SIP version: {}: {}".format(
                 e.__class__.__name__, e))
             lines.append('SIP: ?')
-
-    try:
-        import colorlog
-    except ImportError:
-        pass
-    else:
-        lines.append('colorlog: yes')
-
-    try:
-        import colorama
-    except ImportError:
-        pass
-    else:
-        ver = getattr(colorama, 'VERSION', None)
-        if ver is None:
-            ver = getattr(colorama, '__version__', 'yes')
-        lines.append('colorama: {}'.format(ver))
-    try:
-        import pypeg2
-    except ImportError:
-        pass
-    else:
-        ver = getattr(pypeg2, '__version__', 'yes')
-        lines.append('pypeg2: {}'.format(ver))
-    try:
-        import jinja2
-    except ImportError:
-        pass
-    else:
-        ver = getattr(jinja2, '__version__', 'yes')
-        lines.append('jinja2: {}'.format(ver))
-    try:
-        import pygments
-    except ImportError:
-        pass
-    else:
-        ver = getattr(pygments, '__version__', 'yes')
-        lines.append('pygments: {}'.format(ver))
+    modules = collections.OrderedDict([
+        ('colorlog', []),
+        ('colorama', ['VERSION', '__version__']),
+        ('pypeg2', ['__version__']),
+        ('jinja2', ['__version__']),
+        ('pygments', ['__version__']),
+    ])
+    for name, attributes in modules.items():
+        try:
+            module = importlib.import_module(name)
+        except ImportError:
+            text = '{}: no'.format(name)
+        else:
+            for attr in attributes:
+                try:
+                    text = '{}: {}'.format(name, getattr(module, attr))
+                except AttributeError:
+                    pass
+                else:
+                    break
+            else:
+                text = '{}: yes'.format(name)
+        lines.append(text)
     return lines
 
 
