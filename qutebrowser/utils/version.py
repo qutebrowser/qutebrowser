@@ -64,9 +64,8 @@ def _git_str():
         try:
             gitpath = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    os.path.pardir, os.path.pardir)
-        except NameError as e:
-            log.misc.debug("Error while getting git path: {}: {}".format(
-                           e.__class__.__name__, e))
+        except NameError:
+            log.misc.exception("Error while getting git path")
         else:
             commit = _git_str_subprocess(gitpath)
     if commit is not None:
@@ -112,9 +111,8 @@ def _release_info():
         try:
             with open(fn, 'r', encoding='utf-8') as f:
                 data.append((fn, ''.join(f.readlines())))
-        except IOError as e:
-            log.misc.warning("Error while reading {}: {}: {}".format(
-                fn, e.__class__.__name__, e))
+        except IOError:
+            log.misc.exception("Error while reading {}.".format(fn))
     return data
 
 
@@ -133,9 +131,8 @@ def _module_versions():
         try:
             lines.append('SIP: {}'.format(
                 sipconfig.Configuration().sip_version_str))
-        except (AttributeError, TypeError) as e:
-            log.misc.warning("Error while getting SIP version: {}: {}".format(
-                e.__class__.__name__, e))
+        except (AttributeError, TypeError):
+            log.misc.exception("Error while getting SIP version")
             lines.append('SIP: ?')
     modules = collections.OrderedDict([
         ('colorlog', []),

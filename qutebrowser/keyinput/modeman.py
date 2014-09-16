@@ -65,6 +65,7 @@ def maybe_leave(mode, reason=None):
     try:
         instance().leave(mode, reason)
     except ValueError as e:
+        # This is rather likely to happen, so we only log to debug log.
         log.modes.debug(e)
 
 

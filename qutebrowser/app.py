@@ -29,6 +29,7 @@ import warnings
 import bdb
 import base64
 import functools
+import traceback
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.QtCore import (pyqtSlot, QTimer, QEventLoop, Qt, QStandardPaths,
@@ -479,9 +480,8 @@ class Application(QApplication):
                     QUrl.RemovePassword | QUrl.FullyEncoded)
                 if url:
                     pages.append(url)
-            except Exception as e:  # pylint: disable=broad-except
-                log.destroy.debug("Error while recovering tab: {}: {}".format(
-                    e.__class__.__name__, e))
+            except Exception:  # pylint: disable=broad-except
+                log.destroy.exception("Error while recovering tab")
         return pages
 
     def _save_geometry(self):
@@ -508,8 +508,8 @@ class Application(QApplication):
         self._crashlogfile.close()
         try:
             os.remove(self._crashlogfile.name)
-        except (PermissionError, FileNotFoundError) as e:
-            log.destroy.warning("Could not remove crash log ({})!".format(e))
+        except (PermissionError, FileNotFoundError):
+            log.destroy.exception("Could not remove crash log!")
 
     def _exception_hook(self, exctype, excvalue, tb):
         """Handle uncaught python exceptions.
@@ -524,9 +524,8 @@ class Application(QApplication):
             try:
                 self.shutdown()
                 return
-            except Exception as e:
-                log.init.debug("Error while shutting down: {}: {}".format(
-                    e.__class__.__name__, e))
+            except Exception:
+                log.init.exception("Error while shutting down")
                 self.quit()
                 return
 
@@ -537,37 +536,32 @@ class Application(QApplication):
 
         try:
             pages = self._recover_pages()
-        except Exception as e:
-            log.destroy.debug("Error while recovering pages: {}: {}".format(
-                e.__class__.__name__, e))
+        except Exception:
+            log.destroy.exception("Error while recovering pages")
             pages = []
 
         try:
             history = self.mainwindow.status.cmd.history[-5:]
-        except Exception as e:
-            log.destroy.debug("Error while getting history: {}: {}".format(
-                e.__class__.__name__, e))
+        except Exception:
+            log.destroy.exception("Error while getting history: {}")
             history = []
 
         try:
             widgets = self.get_all_widgets()
-        except Exception as e:
-            log.destroy.debug("Error while getting widgets: {}: {}".format(
-                e.__class__.__name__, e))
+        except Exception:
+            log.destroy.exception("Error while getting widgets")
             widgets = ""
 
         try:
             objects = self.get_all_objects()
-        except Exception as e:
-            log.destroy.debug("Error while getting objects: {}: {}".format(
-                e.__class__.__name__, e))
+        except Exception:
+            log.destroy.exception("Error while getting objects")
             objects = ""
 
         try:
             self.lastWindowClosed.disconnect(self.shutdown)
-        except TypeError as e:
-            log.destroy.debug("Error while preventing shutdown: {}: {}".format(
-                e.__class__.__name__, e))
+        except TypeError:
+            log.destroy.exception("Error while preventing shutdown")
         QApplication.closeAllWindows()
         self._crashdlg = crash.ExceptionCrashDialog(pages, history, exc,
                                                     widgets, objects)
@@ -632,8 +626,8 @@ class Application(QApplication):
         try:
             r = eval(s)  # pylint: disable=eval-used
             out = repr(r)
-        except Exception as e:  # pylint: disable=broad-except
-            out = ': '.join([e.__class__.__name__, str(e)])
+        except Exception:  # pylint: disable=broad-except
+            out = traceback.format_exc()
         qutescheme.pyeval_output = out
         self.mainwindow.tabs.openurl(QUrl('qute:pyeval'), newtab=True)
 

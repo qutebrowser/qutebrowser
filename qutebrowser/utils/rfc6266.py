@@ -309,9 +309,8 @@ def parse_headers(content_disposition):
     content_disposition = normalize_ws(content_disposition)
     try:
         parsed = peg.parse(content_disposition, ContentDispositionValue)
-    except (SyntaxError, DuplicateParamError, InvalidISO8859Error) as e:
-        log.rfc6266.warning("Error while parsing Content-Disposition: "
-                            "{} - {}".format(e.__class__.__name__, e))
+    except (SyntaxError, DuplicateParamError, InvalidISO8859Error):
+        log.rfc6266.exception("Error while parsing Content-Disposition")
         return ContentDisposition()
     else:
         return ContentDisposition(disposition=parsed.dtype,

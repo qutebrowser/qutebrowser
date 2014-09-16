@@ -55,16 +55,17 @@ class MainWindow(QWidget):
             data = stateconf['geometry']['mainwindow']
             log.init.debug("Restoring mainwindow from {}".format(data))
             geom = base64.b64decode(data, validate=True)
-        except (KeyError, binascii.Error) as e:
-            log.init.warning("Error while reading geometry: {}: {}".format(
-                e.__class__.__name__, e))
+        except KeyError:
+            # First start
+            pass
+        except binascii.Error:
+            log.init.exception("Error while reading geometry")
             self._set_default_geometry()
         else:
             try:
                 ok = self.restoreGeometry(geom)
             except KeyError:
-                log.init.warning("Error while restoring geometry: {}: "
-                                 "{}".format(e.__class__.__name__, e))
+                log.init.exception("Error while restoring geometry.")
                 self._set_default_geometry()
             if not ok:
                 log.init.warning("Error while restoring geometry.")

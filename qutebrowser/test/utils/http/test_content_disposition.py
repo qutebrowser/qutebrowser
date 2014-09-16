@@ -893,7 +893,7 @@ class OurTests(AttachmentTestCase):
 
 def setUpModule():
     """Disable logging."""
-    logging.disable(logging.WARNING)
+    logging.disable(logging.ERROR)
 
 
 def tearDownModule():

@@ -21,6 +21,7 @@
 
 
 import os.path
+
 from qutebrowser.utils import rfc6266
 from qutebrowser.utils import log
 
@@ -47,10 +48,8 @@ def parse_content_disposition(reply):
             content_disposition = rfc6266.parse_headers(
                 bytes(reply.rawHeader('Content-Disposition')))
             filename = content_disposition.filename()
-        except UnicodeDecodeError as e:
-            log.misc.warning("Error while getting filename: {}: {}".format(
-                e.__class__.__name__, e))
-            filename = None
+        except UnicodeDecodeError:
+            log.misc.exception("Error while decoding filename")
         else:
             is_inline = content_disposition.is_inline()
     # Then try to get filename from url

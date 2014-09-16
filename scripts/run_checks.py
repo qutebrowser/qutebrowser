@@ -41,6 +41,7 @@ import argparse
 import collections
 import functools
 import contextlib
+import traceback
 
 import colorama as col
 import pep257
@@ -86,8 +87,8 @@ def _run_distutils(name, args):
         ep()
     except SystemExit as e:
         return e.code
-    except Exception as e:
-        print('{}: {}'.format(e.__class__.__name__, e))
+    except Exception:
+        traceback.print_exc()
         return None
 
 
@@ -95,8 +96,8 @@ def _run_subprocess(name, args):
     """Run a checker via subprocess."""
     try:
         return subprocess.call([name] + args)
-    except FileNotFoundError as e:
-        print('{}: {}'.format(e.__class__.__name__, e))
+    except FileNotFoundError:
+        traceback.print_exc()
         return None
 
 
@@ -130,9 +131,8 @@ def check_pep257(target):
         status = pep257.main(*pep257.parse_options())
         print()
         return status
-    except Exception as e:
-        print('{}: {}'.format(e.__class__.__name__, e))
-        print()
+    except Exception:
+        traceback.print_exc()
         return None
 
 
@@ -181,9 +181,8 @@ def check_vcs_conflict(target):
                             ok = False
         print()
         return ok
-    except Exception as e:
-        print('{}: {}'.format(e.__class__.__name__, e))
-        print()
+    except Exception:
+        traceback.print_exc()
         return None
 
 

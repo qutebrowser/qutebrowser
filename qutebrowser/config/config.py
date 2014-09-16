@@ -178,9 +178,9 @@ class ConfigManager(QObject):
             lines.append("# {}{}:".format(optname, typestr))
             try:
                 desc = self.sections[sectname].descriptions[optname]
-            except KeyError as e:
-                log.misc.debug("No description for {}.{}! ({}: {})".format(
-                    sectname, optname, e.__class__.__name__, e))
+            except KeyError:
+                log.misc.exception("No description for {}.{}!".format(
+                    sectname, optname))
                 continue
             for descline in desc.splitlines():
                 lines += wrapper.wrap(descline)
