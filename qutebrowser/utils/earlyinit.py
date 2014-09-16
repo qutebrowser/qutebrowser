@@ -244,7 +244,8 @@ def check_pypeg2():
         import pypeg2  # pylint: disable=unused-variable
     except ImportError:
         text = _missing_str("pypeg2",
-                            debian="No package available, install via pip.",
+                            debian="No package available, do 'apt-get install "
+                                   "python3-pip' and then install via pip3.",
                             arch="Install python-pypeg2 from the AUR",
                             windows="Install via pip.",
                             pip="pypeg2 --allow-external pypeg2 "
