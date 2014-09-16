@@ -132,8 +132,10 @@ to get Qt and PyQt5.
 * Get pip as described http://stackoverflow.com/a/12476379[on Stack Overflow].
 * Run +pip install --allow-external pypeg2 --allow-unverified pypeg2 pypeg2+ to
 install pypeg2.
-* Run +pip install jinja2+ to install jinja2.
-* Run +pip install pygments+ to install pygments.
+* Run +pip install jinja2+ to install jinja2, or install it from
+http://www.lfd.uci.edu/~gohlke/pythonlibs/#jinja2.
+* Run +pip install pygments+ to install pygments, or install it from
+http://www.lfd.uci.edu/~gohlke/pythonlibs/#pygments.
 
 As soon as v0.1 is out, a standalone .exe (built with
 http://cx-freeze.sourceforge.net/[cx_Freeze]) will be provided. In the
