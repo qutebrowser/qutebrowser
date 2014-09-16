@@ -214,68 +214,45 @@ def check_qt_version():
         _die(text, exception=False)
 
 
-def check_pyqt_webkit():
-    """Check if PyQt WebKit is installed."""
-    try:
-        import PyQt5.QtWebKit  # pylint: disable=unused-variable
-    except ImportError:
-        text = _missing_str("QtWebKit",
-                            debian="apt-get install python3-pyqt5.qtwebkit",
-                            arch="pacman -S qt5-webkit")
-        _die(text)
-
-
-def check_pkg_resources():
-    """Check if pkg_resources is installed."""
-    try:
-        import pkg_resources  # pylint: disable=unused-variable
-    except ImportError:
-        text = _missing_str("pkg_resources",
-                            debian="apt-get install python3-pkg-resources",
-                            arch="pacman -S python-setuptools",
-                            windows="Run   python -m ensurepip  "
-                                    "(python >= 3.4) or scripts/ez_setup.py.")
-        _die(text)
-
-
-def check_pypeg2():
-    """Check if pypeg2 is installed."""
-    try:
-        import pypeg2  # pylint: disable=unused-variable
-    except ImportError:
-        text = _missing_str("pypeg2",
-                            debian="No package available, do 'apt-get install "
-                                   "python3-pip' and then install via pip3.",
-                            arch="Install python-pypeg2 from the AUR",
-                            windows="Install via pip.",
-                            pip="pypeg2 --allow-external pypeg2 "
-                                "--allow-unverified pypeg2")
-        _die(text)
-
-
-def check_jinja2():
-    """Check if jinja2 is installed."""
-    try:
-        import jinja2  # pylint: disable=unused-variable
-    except ImportError:
-        text = _missing_str("jinja2",
-                            debian="apt-get install python3-jinja2",
-                            arch="Install python-jinja from the AUR",
-                            windows="Install from http://www.lfd.uci.edu/"
-                                    "~gohlke/pythonlibs/#jinja2 or via pip.",
-                            pip="jinja2")
-        _die(text)
-
-
-def check_pygments():
-    """Check if pygments is installed."""
-    try:
-        import pygments  # pylint: disable=unused-variable
-    except ImportError:
-        text = _missing_str("pygments",
-                            debian="apt-get install python3-pygments",
-                            arch="Install python-jinja from the AUR",
-                            windows="Install from http://www.lfd.uci.edu/"
-                                    "~gohlke/pythonlibs/#pygments or via pip.",
-                            pip="pygments")
-        _die(text)
+def check_libraries():
+    """Check if all needed Python libraries are installed."""
+    import importlib
+    modules = {
+        'PyQt5.QtWebKit':
+            _missing_str("QtWebKit",
+                         debian="apt-get install python3-pyqt5.qtwebkit",
+                         arch="pacman -S qt5-webkit"),
+        'pkg_resources':
+            _missing_str("pkg_resources",
+                         debian="apt-get install python3-pkg-resources",
+                         arch="pacman -S python-setuptools",
+                         windows="Run   python -m ensurepip  "
+                                 "(python >= 3.4) or scripts/ez_setup.py."),
+        'pypeg2':
+            _missing_str("pypeg2",
+                         debian="No package available, do 'apt-get install "
+                                "python3-pip' and then install via pip3.",
+                         arch="Install python-pypeg2 from the AUR",
+                         windows="Install via pip.",
+                         pip="pypeg2 --allow-external pypeg2 "
+                             "--allow-unverified pypeg2"),
+        'jinja2':
+            _missing_str("jinja2",
+                         debian="apt-get install python3-jinja2",
+                         arch="Install python-jinja from the AUR",
+                         windows="Install from http://www.lfd.uci.edu/"
+                                 "~gohlke/pythonlibs/#jinja2 or via pip.",
+                         pip="jinja2"),
+        'pygments':
+            _missing_str("pygments",
+                         debian="apt-get install python3-pygments",
+                         arch="Install python-jinja from the AUR",
+                         windows="Install from http://www.lfd.uci.edu/"
+                                 "~gohlke/pythonlibs/#pygments or via pip.",
+                         pip="pygments"),
+    }
+    for name, text in modules.items():
+        try:
+            importlib.import_module(name)
+        except ImportError:
+            _die(text)

@@ -109,11 +109,7 @@ def main():
     log.init.debug("Doing early init.")
     earlyinit.fix_harfbuzz(args)
     earlyinit.check_qt_version()
-    earlyinit.check_pyqt_webkit()
-    earlyinit.check_pkg_resources()
-    earlyinit.check_pypeg2()
-    earlyinit.check_jinja2()
-    earlyinit.check_pygments()
+    earlyinit.check_libraries()
     # We do this import late as we need to fix harfbuzz first.
     from qutebrowser import app
     from PyQt5.QtCore import pyqtRemoveInputHook
