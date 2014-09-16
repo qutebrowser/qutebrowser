@@ -122,6 +122,10 @@ Upstream Bugs
 
 - Web inspector is blank unless .hide()/.show() is called.
     Asked on SO: http://stackoverflow.com/q/23499159/2085149
-    TODO: report Qt bug
+    TODO: Report to PyQt/Qt
 
 - Various segfaults on youtube videos
+
+- Follow up on Bugzilla font issue
+
+- Report some other crashes

@@ -56,7 +56,10 @@ Downloads
 Improvements / minor features
 =============================
 
+- Update for Qt 5.3.2 (remove fixed workarounds, test if ANGLE issue is fixed,
+  test if letter spacing is fixed)
 - Don't use colorama in scripts
+- Stop using cwd in scripts (use something with os.path.pardir and __file__)
 - Command/page to show all keybindings?
 - File moves:
     - state should be in data, not config
