@@ -73,7 +73,7 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
                 data = handler()
             return schemehandler.SpecialNetworkReply(
                 request, data, 'text/html', self.parent())
-        except BaseException as e:
+        except:  # pylint: disable=bare-except
             # WORKAROUND
             # Any exception raised in here will trigger a segfault.
             # To prevent this, we return a page with the exception info.
