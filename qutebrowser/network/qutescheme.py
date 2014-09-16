@@ -55,36 +55,23 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
         Return:
             A QNetworkReply.
         """
+        path = request.url().path()
+        # An url like "qute:foo" is split as "scheme:path", not
+        # "scheme:host".
+        logutils.misc.debug("url: {}, path: {}".format(
+            request.url().toDisplayString(), path))
         try:
-            path = request.url().path()
-            # An url like "qute:foo" is split as "scheme:path", not
-            # "scheme:host".
-            logutils.misc.debug("url: {}, path: {}".format(
-                request.url().toDisplayString(), path))
-            try:
-                handler = getattr(QuteHandlers, path)
-            except AttributeError:
-                errorstr = "No handler found for {}!".format(
-                    request.url().toDisplayString())
-                return schemehandler.ErrorNetworkReply(
-                    request, errorstr, QNetworkReply.ContentNotFoundError,
-                    self.parent())
-            else:
-                data = handler()
-            return schemehandler.SpecialNetworkReply(
-                request, data, 'text/html', self.parent())
-        except:  # pylint: disable=bare-except
-            # WORKAROUND
-            # Any exception raised in here will trigger a segfault.
-            # To prevent this, we return a page with the exception info.
-            # FIXME: We should report this to PyQt upstream.
-            text = "Exception in QuteSchemeHandler.createRequest:\n\n"
-            text += traceback.format_exc()
-            text += ("\nPlease use :report to report a bug and add the "
-                     "information printed here by hand.")
-            data = text.encode('utf-8')
-            return schemehandler.SpecialNetworkReply(
-                request, data, 'text/plain', self.parent())
+            handler = getattr(QuteHandlers, path)
+        except AttributeError:
+            errorstr = "No handler found for {}!".format(
+                request.url().toDisplayString())
+            return schemehandler.ErrorNetworkReply(
+                request, errorstr, QNetworkReply.ContentNotFoundError,
+                self.parent())
+        else:
+            data = handler()
+        return schemehandler.SpecialNetworkReply(
+            request, data, 'text/html', self.parent())
 
 
 class QuteHandlers:
