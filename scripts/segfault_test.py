@@ -68,7 +68,9 @@ def main():
         # pages which previously caused problems
         pages = ['http://www.binpress.com/', 'http://www.20min.ch/',
                  'https://imzdl.com/', 'http://www.the-compiler.org/',
-                 'http://phoronix.com', 'http://lenta.ru/']
+                 'http://phoronix.com', 'http://lenta.ru/',
+                 'http://david.li/flow/',
+                 'http://salt.readthedocs.org/en/latest/topics/pillar/']
     else:
         pages = sys.argv[1:]
     for page in pages:
