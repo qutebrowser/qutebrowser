@@ -22,7 +22,6 @@
 
 import os
 import sys
-import glob
 import html
 import shutil
 import os.path
@@ -38,6 +37,7 @@ sys.path.insert(0, os.getcwd())
 
 # We import qutebrowser.app so all @cmdutils-register decorators are run.
 import qutebrowser.app
+from scripts import asciidoc2html
 from qutebrowser import qutebrowser
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configdata
@@ -395,30 +395,6 @@ def regenerate_manpage(filename):
     _format_block(filename, 'options', options)
 
 
-def call_asciidoc(src, dst):
-    """Call asciidoc for the given files.
-
-    Args:
-        src: The source .asciidoc file.
-        dst: The destination .html file, or None to auto-guess.
-    """
-    print("{}Calling asciidoc for {}...{}".format(
-        col.Fore.CYAN, os.path.basename(src), col.Fore.RESET))
-    if os.name == 'nt':
-        # FIXME this is highly specific to my machine
-        args = [r'C:\Python27\python', r'J:\bin\asciidoc-8.6.9\asciidoc.py']
-    else:
-        args = ['asciidoc']
-    if dst is not None:
-        args += ['--out-file', dst]
-    args.append(src)
-    try:
-        subprocess.check_call(args)
-    except subprocess.CalledProcessError as e:
-        print(''.join([col.Fore.RED, str(e), col.Fore.RESET]))
-        sys.exit(1)
-
-
 def main():
     """Regenerate all documentation."""
     print("{}Generating asciidoc files...{}".format(
@@ -427,21 +403,9 @@ def main():
     generate_settings('doc/help/settings.asciidoc')
     generate_commands('doc/help/commands.asciidoc')
     regenerate_authors('README.asciidoc')
-    asciidoc_files = [
-        ('doc/qutebrowser.1.asciidoc', None),
-        ('README.asciidoc', None),
-        ('doc/FAQ.asciidoc', 'qutebrowser/html/doc/FAQ.html'),
-    ]
-    try:
-        os.mkdir('qutebrowser/html/doc')
-    except FileExistsError:
-        pass
-    for src in glob.glob('doc/help/*.asciidoc'):
-        name, _ext = os.path.splitext(os.path.basename(src))
-        dst = 'qutebrowser/html/doc/{}.html'.format(name)
-        asciidoc_files.append((src, dst))
-    for src, dst in asciidoc_files:
-        call_asciidoc(src, dst)
+    if '--html' in sys.argv:
+        asciidoc2html.main()
+
 
 if __name__ == '__main__':
     main()
