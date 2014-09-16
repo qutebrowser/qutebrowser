@@ -66,11 +66,23 @@ def main():
     retvals = []
     if len(sys.argv) < 2:
         # pages which previously caused problems
-        pages = ['http://www.binpress.com/', 'http://www.20min.ch/',
-                 'https://imzdl.com/', 'http://www.the-compiler.org/',
-                 'http://phoronix.com', 'http://lenta.ru/',
-                 'http://david.li/flow/',
-                 'http://salt.readthedocs.org/en/latest/topics/pillar/']
+        pages = [
+            # ANGLE, https://bugreports.qt-project.org/browse/QTBUG-39723
+            'http://www.binpress.com/',
+            'http://david.li/flow/',
+            'https://imzdl.com/',
+            # not reproducable
+            # https://bugreports.qt-project.org/browse/QTBUG-39847
+            'http://www.20min.ch/',
+            # HarfBuzz, https://bugreports.qt-project.org/browse/QTBUG-39278
+            'http://www.the-compiler.org/',
+            'http://phoronix.com',
+            'http://twitter.com',
+            # HarfBuzz #2, https://bugreports.qt-project.org/browse/QTBUG-36099
+            'http://lenta.ru/',
+            # Unknown, https://bugreports.qt-project.org/browse/QTBUG-41360
+            'http://salt.readthedocs.org/en/latest/topics/pillar/'
+        ]
     else:
         pages = sys.argv[1:]
     for page in pages:
