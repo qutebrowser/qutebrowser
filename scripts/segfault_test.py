@@ -68,42 +68,46 @@ def main():
         # pages which previously caused problems
         pages = [
             # ANGLE, https://bugreports.qt-project.org/browse/QTBUG-39723
-            'http://www.binpress.com/',
-            'http://david.li/flow/',
-            'https://imzdl.com/',
+            ('http://www.binpress.com/', False),
+            ('http://david.li/flow/', False),
+            ('https://imzdl.com/', False),
             # not reproducable
             # https://bugreports.qt-project.org/browse/QTBUG-39847
-            'http://www.20min.ch/',
+            ('http://www.20min.ch/', True),
             # HarfBuzz, https://bugreports.qt-project.org/browse/QTBUG-39278
-            'http://www.the-compiler.org/',
-            'http://phoronix.com',
-            'http://twitter.com',
+            ('http://www.the-compiler.org/', True),
+            ('http://phoronix.com', True),
+            ('http://twitter.com', True),
             # HarfBuzz #2, https://bugreports.qt-project.org/browse/QTBUG-36099
-            'http://lenta.ru/',
+            ('http://lenta.ru/', True),
             # Unknown, https://bugreports.qt-project.org/browse/QTBUG-41360
-            'http://salt.readthedocs.org/en/latest/topics/pillar/'
+            ('http://salt.readthedocs.org/en/latest/topics/pillar/', True),
         ]
     else:
-        pages = sys.argv[1:]
-    for page in pages:
+        pages = [(e, True) for e in sys.argv[1:]]
+    for page, test_harfbuzz in pages:
         print("{}==== {} ===={}".format(col.Style.BRIGHT, page,
                                         col.Style.NORMAL))
-        print("With system harfbuzz:")
+        if test_harfbuzz:
+            print("With system harfbuzz:")
         ret = subprocess.call([sys.executable, '-c', SCRIPT, page])
         print_ret(ret)
         retvals.append(ret)
-        print("With QT_HARFBUZZ=old:")
-        env = dict(os.environ)
-        env['QT_HARFBUZZ'] = 'old'
-        ret = subprocess.call([sys.executable, '-c', SCRIPT, page], env=env)
-        print_ret(ret)
-        retvals.append(ret)
-        print("With QT_HARFBUZZ=nev:")
-        env = dict(os.environ)
-        env['QT_HARFBUZZ'] = 'new'
-        ret = subprocess.call([sys.executable, '-c', SCRIPT, page], env=env)
-        print_ret(ret)
-        retvals.append(ret)
+        if test_harfbuzz:
+            print("With QT_HARFBUZZ=old:")
+            env = dict(os.environ)
+            env['QT_HARFBUZZ'] = 'old'
+            ret = subprocess.call([sys.executable, '-c', SCRIPT, page],
+                                  env=env)
+            print_ret(ret)
+            retvals.append(ret)
+            print("With QT_HARFBUZZ=new:")
+            env = dict(os.environ)
+            env['QT_HARFBUZZ'] = 'new'
+            ret = subprocess.call([sys.executable, '-c', SCRIPT, page],
+                                  env=env)
+            print_ret(ret)
+            retvals.append(ret)
     if all(r == 0 for r in retvals):
         sys.exit(0)
     else:
