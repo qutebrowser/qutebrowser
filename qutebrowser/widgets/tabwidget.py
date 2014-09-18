@@ -26,7 +26,7 @@ Module attributes:
 
 import functools
 
-from PyQt5.QtCore import pyqtSlot, Qt, QSize, QRect, QPoint
+from PyQt5.QtCore import pyqtSlot, Qt, QSize, QRect, QPoint, QTimer
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab,
                              QApplication)
@@ -108,10 +108,19 @@ class TabBar(QTabBar):
         p = self.palette()
         p.setColor(QPalette.Window, config.get('colors', 'tab.bg.bar'))
         self.setPalette(p)
+        QTimer.singleShot(0, self._autohide)
 
     def __repr__(self):
         return '<{} with {} tabs>'.format(self.__class__.__name__,
                                           self.count())
+
+    def _autohide(self):
+        """Auto-hide the tabbar if needed."""
+        auto_hide = config.get('tabs', 'auto-hide')
+        if auto_hide and self.count() == 1:
+            self.hide()
+        else:
+            self.show()
 
     def refresh(self):
         """Properly repaint the tab bar and relayout tabs."""
@@ -139,11 +148,7 @@ class TabBar(QTabBar):
             p.setColor(QPalette.Window, config.get('colors', 'tab.bg.bar'))
             self.setPalette(p)
         elif section == 'tabs' and option == 'auto-hide':
-            hide = config.get('tabs', 'auto-hide')
-            if hide and self.count() == 1:
-                self.hide()
-            elif not hide:
-                self.show()
+            self._autohide()
 
     def mousePressEvent(self, e):
         """Override mousePressEvent to close tabs if configured."""
@@ -248,14 +253,12 @@ class TabBar(QTabBar):
 
     def tabInserted(self, idx):
         """Show the tabbar if configured to hide and >1 tab is open."""
-        if self.count() > 1 and config.get('tabs', 'auto-hide'):
-            self.show()
+        self._autohide()
         super().tabInserted(idx)
 
     def tabRemoved(self, idx):
         """Hide the tabbar if configured when only one tab is open."""
-        if self.count() <= 1 and config.get('tabs', 'auto-hide'):
-            self.hide()
+        self._autohide()
         super().tabRemoved(idx)
 
 
