@@ -21,6 +21,8 @@
 import unittest
 import re
 import collections
+import os.path
+import base64
 from unittest import mock
 
 from qutebrowser.config import configtypes
@@ -1759,20 +1761,27 @@ class KeyBindingNameTests(unittest.TestCase):
         self.assertEqual(self.t.transform("foobar"), "foobar")
 
 
-class WebSettingsFileTests(unittest.TestCase):
+class UserStyleSheetTests(unittest.TestCase):
 
-    """Test WebSettingsFile."""
+    """Test UserStyleSheet."""
 
     def setUp(self):
-        self.t = configtypes.WebSettingsFile()
+        self.t = configtypes.UserStyleSheet()
 
     def test_transform_empty(self):
         """Test transform with an empty value."""
         self.assertIsNone(self.t.transform(''))
 
-    def test_transform(self):
-        """Test transform with a value."""
-        self.assertEqual(self.t.transform("/foo/bar"), QUrl("file:///foo/bar"))
+    def test_transform_file(self):
+        """Test transform with a filename."""
+        path = os.path.join(os.path.sep, 'foo', 'bar')
+        self.assertEqual(self.t.transform(path), QUrl("file:///foo/bar"))
+
+    def test_transform_base64(self):
+        """Test transform with a data string."""
+        b64 = base64.b64encode(b"test").decode('ascii')
+        url = QUrl("data:text/css;charset=utf-8;base64,{}".format(b64))
+        self.assertEqual(self.t.transform("test"), url)
 
 
 class AutoSearchTests(unittest.TestCase):

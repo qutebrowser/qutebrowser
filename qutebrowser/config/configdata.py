@@ -268,7 +268,7 @@ DATA = collections.OrderedDict([
          "This will flatten all the frames to become one scrollable page."),
 
         ('user-stylesheet',
-         SettingValue(typ.WebSettingsFile(), ''),
+         SettingValue(typ.UserStyleSheet(), ''),
          "User stylesheet to use."),
 
         ('css-media-type',

@@ -21,6 +21,7 @@
 
 import re
 import shlex
+import base64
 import codecs
 import os.path
 import sre_constants
@@ -1082,20 +1083,43 @@ class Encoding(BaseType):
             raise ValidationError(value, "is not a valid encoding!")
 
 
-class WebSettingsFile(File):
+class UserStyleSheet(File):
 
-    """QWebSettings file."""
+    """QWebSettings UserStyleSheet."""
 
-    typestr = 'file'
+    typestr = 'user-stylesheet'
 
     def __init__(self):
         super().__init__(none_ok=True)
 
+    def validate(self, value):
+        if not value:
+            if self.none_ok:
+                return
+            else:
+                raise ValidationError(value, "may not be empty!")
+        value = os.path.expanduser(value)
+        if not os.path.isabs(value):
+            # probably a CSS, so we don't handle it as filename.
+            # FIXME We just try if it is encodable, maybe we should validate
+            # CSS?
+            try:
+                value.encode('utf-8')
+            except UnicodeEncodeError as e:
+                raise ValidationError(value, str(e))
+            return
+        elif not os.path.isfile(value):
+            raise ValidationError(value, "must be a valid file!")
+
     def transform(self, value):
+        path = os.path.expanduser(value)
         if not value:
             return None
+        elif os.path.isabs(path):
+            return QUrl.fromLocalFile(path)
         else:
-            return QUrl.fromLocalFile(value)
+            data = base64.b64encode(value.encode('utf-8')).decode('ascii')
+            return QUrl("data:text/css;charset=utf-8;base64,{}".format(data))
 
 
 class AutoSearch(BaseType):
