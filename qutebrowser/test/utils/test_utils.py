@@ -137,7 +137,7 @@ class SafeShlexSplitTests(unittest.TestCase):
 
     def test_escaped_single(self):
         """Test safe_shlex_split with a single escaped string."""
-        items = utils.safe_shlex_split(r"one 'two\' three' four")
+        items = utils.safe_shlex_split(r"one 'two'\'' three' four")
         self.assertEqual(items, ['one', "two' three", 'four'])
 
     def test_unbalanced_quotes(self):
