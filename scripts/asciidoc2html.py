@@ -21,10 +21,13 @@
 """Generate the html documentation based on the asciidoc files."""
 
 import os
+import sys
 import subprocess
 import glob
 
-import colorama as col
+sys.path.insert(0, os.getcwd())
+
+from scripts import utils
 
 
 def call_asciidoc(src, dst):
@@ -34,8 +37,8 @@ def call_asciidoc(src, dst):
         src: The source .asciidoc file.
         dst: The destination .html file, or None to auto-guess.
     """
-    print("{}Calling asciidoc for {}...{}".format(
-        col.Fore.CYAN, os.path.basename(src), col.Fore.RESET))
+    utils.print_col("Calling asciidoc for {}...".format(
+        os.path.basename(src)), 'cyan')
     if os.name == 'nt':
         # FIXME this is highly specific to my machine
         args = [r'C:\Python27\python', r'J:\bin\asciidoc-8.6.9\asciidoc.py']
@@ -47,11 +50,12 @@ def call_asciidoc(src, dst):
     try:
         subprocess.check_call(args)
     except subprocess.CalledProcessError as e:
-        print(''.join([col.Fore.RED, str(e), col.Fore.RESET]))
+        utils.print_col(str(e), 'red')
         sys.exit(1)
 
 
-def main():
+def main(colors=False):
+    utils.use_color = colors
     asciidoc_files = [
         ('doc/qutebrowser.1.asciidoc', None),
         ('README.asciidoc', None),
@@ -70,4 +74,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(colors=True)
