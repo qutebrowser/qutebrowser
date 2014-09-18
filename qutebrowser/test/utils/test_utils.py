@@ -125,15 +125,30 @@ class SafeShlexSplitTests(unittest.TestCase):
         items = utils.safe_shlex_split('one "two three" four')
         self.assertEqual(items, ['one', 'two three', 'four'])
 
+    def test_single_quoted(self):
+        """Test safe_shlex_split with a single quoted string."""
+        items = utils.safe_shlex_split("one 'two three' four")
+        self.assertEqual(items, ['one', 'two three', 'four'])
+
     def test_escaped(self):
         """Test safe_shlex_split with a normal escaped string."""
         items = utils.safe_shlex_split(r'one "two\" three" four')
         self.assertEqual(items, ['one', 'two" three', 'four'])
 
+    def test_escaped_single(self):
+        """Test safe_shlex_split with a single escaped string."""
+        items = utils.safe_shlex_split(r"one 'two\' three' four")
+        self.assertEqual(items, ['one', "two' three", 'four'])
+
     def test_unbalanced_quotes(self):
         """Test safe_shlex_split with unbalanded quotes."""
         items = utils.safe_shlex_split(r'one "two three')
         self.assertEqual(items, ['one', 'two three'])
+
+    def test_unbalanced_single_quotes(self):
+        """Test safe_shlex_split with unbalanded single quotes."""
+        items = utils.safe_shlex_split(r"one 'two three")
+        self.assertEqual(items, ['one', "two three"])
 
     def test_unfinished_escape(self):
         """Test safe_shlex_split with an unfinished escape."""
