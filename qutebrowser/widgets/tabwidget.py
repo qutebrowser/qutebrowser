@@ -138,6 +138,12 @@ class TabBar(QTabBar):
             p = self.palette()
             p.setColor(QPalette.Window, config.get('colors', 'tab.bg.bar'))
             self.setPalette(p)
+        elif section == 'tabs' and option == 'auto-hide':
+            hide = config.get('tabs', 'auto-hide')
+            if hide and self.count() == 1:
+                self.hide()
+            elif not hide:
+                self.show()
 
     def mousePressEvent(self, e):
         """Override mousePressEvent to close tabs if configured."""
@@ -239,6 +245,18 @@ class TabBar(QTabBar):
                 # the visible tab bar.
                 continue
             p.drawControl(QStyle.CE_TabBarTab, tab)
+
+    def tabInserted(self, idx):
+        """Show the tabbar if configured to hide and >1 tab is open."""
+        if self.count() > 1 and config.get('tabs', 'auto-hide'):
+            self.show()
+        super().tabInserted(idx)
+
+    def tabRemoved(self, idx):
+        """Hide the tabbar if configured when only one tab is open."""
+        if self.count() <= 1 and config.get('tabs', 'auto-hide'):
+            self.hide()
+        super().tabRemoved(idx)
 
 
 class TabBarStyle(QCommonStyle):
