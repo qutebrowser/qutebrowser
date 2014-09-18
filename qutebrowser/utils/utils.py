@@ -111,6 +111,8 @@ def safe_shlex_split(s):
     Since shlex raises ValueError in both cases we unfortunately
     have to parse the exception string...
     """
+    if s is None:
+        raise TypeError("Can't split None!")
     while True:
         try:
             return shlex.split(s)
