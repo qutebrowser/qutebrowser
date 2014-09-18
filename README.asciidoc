@@ -121,6 +121,14 @@ easier.
 // Install https://aur.archlinux.org/packages/qutebrowser-git/[qutebrowser-git]
 // from the AUR.
 
+On Gentoo
+~~~~~~~~~
+
+Running qutebrowser on Gentoo is unfortunately rather hard because Qt5 and
+PyQt5 are not packaged officially. https://github.com/posativ[@posativ] has
+written https://gist.github.com/posativ/30668ee3472c6d0649e8[a howto] with
+steps to get it running.
+
 On Windows
 ~~~~~~~~~~
 
