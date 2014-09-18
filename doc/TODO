@@ -142,6 +142,7 @@ style
 - Fix spelling of "temporarely"
 - Make more stuff private
 - Don't keep references to parent QObjects!
+- Use /usr/bin/env python for scripts.
 
 dwb keybindings to possibly implement
 =====================================
