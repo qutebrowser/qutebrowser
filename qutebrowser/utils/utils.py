@@ -113,9 +113,11 @@ def safe_shlex_split(s):
     """
     if s is None:
         raise TypeError("Can't split None!")
-    while True:
+    tokens = None
+    orig_s = s
+    for i in range(3):
         try:
-            return shlex.split(s)
+            tokens = shlex.split(s)
         except ValueError as e:
             if str(e) == "No closing quotation":
                 # e.g.   eggs "bacon ham
@@ -127,6 +129,11 @@ def safe_shlex_split(s):
                 s += '\\'
             else:
                 raise
+    if tokens is None:
+        raise AssertionError("Gave up splitting >{}< after {} tries. "
+                             "Attempted fixup: >{}<. This is a bug.".format(
+                                 orig_s, i, s))
+    return tokens
 
 
 def pastebin(text):
