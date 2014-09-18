@@ -98,6 +98,16 @@ def dotted_getattr(obj, path):
     return functools.reduce(getattr, path.split('.'), obj)
 
 
+def _get_lexer(s):
+    """Get an shlex lexer for safe_shlex_split."""
+    if s is None:
+        raise TypeError("Refusing to create a lexer with s=None!")
+    lexer = shlex.shlex(s, posix=True)
+    lexer.whitespace_split = True
+    lexer.commenters = ''
+    return lexer
+
+
 def safe_shlex_split(s):
     r"""Split a string via shlex safely (don't bail out on unbalanced quotes).
 
@@ -113,24 +123,22 @@ def safe_shlex_split(s):
 
     We try 3 times so multiple errors can be fixed.
     """
-    if s is None:
-        raise TypeError("Can't split None!")
     tokens = None
     orig_s = s
     for i in range(3):
+        lexer = _get_lexer(s)
         try:
-            tokens = shlex.split(s)
+            tokens = list(lexer)
         except ValueError as e:
-            if str(e) == "No closing quotation":
-                # e.g.   eggs "bacon ham
-                # -> we fix this as   eggs "bacon ham"
-                s += '"'
-            elif str(e) == "No escaped character":
-                # e.g.   eggs\
-                # -> we fix this as  eggs\\
-                s += '\\'
-            else:
+            if str(e) not in ("No closing quotation", "No escaped character"):
                 raise
+            # eggs "bacon ham -> eggs "bacon ham"
+            # eggs\ -> eggs\\
+            if lexer.state not in "\"'\\":
+                raise AssertionError(
+                    "Lexer state is >{}< while parsing >{}< (attempted fixup: "
+                    ">{}<)".format(lexer.state, orig_s, s))
+            s += lexer.state
     if tokens is None:
         raise AssertionError("Gave up splitting >{}< after {} tries. "
                              "Attempted fixup: >{}<. This is a bug.".format(
