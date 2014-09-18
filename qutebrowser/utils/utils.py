@@ -123,7 +123,6 @@ def safe_shlex_split(s):
 
     We try 3 times so multiple errors can be fixed.
     """
-    tokens = None
     orig_s = s
     for i in range(3):
         lexer = _get_lexer(s)
@@ -139,11 +138,11 @@ def safe_shlex_split(s):
                     "Lexer state is >{}< while parsing >{}< (attempted fixup: "
                     ">{}<)".format(lexer.state, orig_s, s))
             s += lexer.state
-    if tokens is None:
-        raise AssertionError("Gave up splitting >{}< after {} tries. "
-                             "Attempted fixup: >{}<. This is a bug.".format(
-                                 orig_s, i, s))
-    return tokens
+        else:
+            return tokens
+    # We should never arrive here.
+    raise AssertionError("Gave up splitting >{}< after {} tries. "
+                         "Attempted fixup: >{}<.".format(orig_s, i, s))
 
 
 def pastebin(text):
