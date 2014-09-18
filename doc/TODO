@@ -140,6 +140,8 @@ style
 - Config init and some persistent objects should be moved out of QApplication.
 - Use separate logger for config
 - Fix spelling of "temporarely"
+- Make more stuff private
+- Don't keep references to parent QObjects!
 
 dwb keybindings to possibly implement
 =====================================
