@@ -102,7 +102,7 @@ def safe_shlex_split(s):
     r"""Split a string via shlex safely (don't bail out on unbalanced quotes).
 
     We split while the user is typing (for completion), and as
-    soon as " or \ is typed, the string is invalid for shlex,
+    soon as ", ' or \ is typed, the string is invalid for shlex,
     because it encounters EOF while in quote/escape state.
 
     Here we fix this error temporarely so shlex doesn't blow up,
@@ -110,6 +110,8 @@ def safe_shlex_split(s):
 
     Since shlex raises ValueError in both cases we unfortunately
     have to parse the exception string...
+
+    We try 3 times so multiple errors can be fixed.
     """
     if s is None:
         raise TypeError("Can't split None!")
