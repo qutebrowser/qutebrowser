@@ -110,7 +110,6 @@ class WebView(QWebView):
         self.page().networkAccessManager().sslErrors.connect(
             lambda *args: setattr(self, '_has_ssl_errors', True))
         self.viewing_source = False
-        # FIXME find some way to hide scrollbars without setScrollBarPolicy
 
     def __repr__(self):
         url = self.url().toDisplayString()
