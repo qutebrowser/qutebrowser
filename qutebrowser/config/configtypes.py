@@ -657,7 +657,7 @@ class Font(BaseType):
                 (?P<size>[0-9]+((\.[0-9]+)?[pP][tT]|[pP][xX]))
             )\                     # size/weight/style are space-separated
         )*                         # 0-inf size/weight/style tags
-        (?P<family>[A-Za-z, "]*)$  # mandatory font family""", re.VERBOSE)
+        (?P<family>[A-Za-z, "-]*)$  # mandatory font family""", re.VERBOSE)
 
     def validate(self, value):
         if not value:
