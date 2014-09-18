@@ -124,7 +124,7 @@ def _module_versions():
     """
     lines = []
     try:
-        import sipconfig
+        import sipconfig  # pylint: disable=import-error,unused-variable
     except ImportError:
         pass
     else:

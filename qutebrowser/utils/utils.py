@@ -133,7 +133,7 @@ def safe_shlex_split(s):
                 raise
             # eggs "bacon ham -> eggs "bacon ham"
             # eggs\ -> eggs\\
-            if lexer.state not in "\"'\\":
+            if lexer.state not in lexer.escape + lexer.quotes:
                 raise AssertionError(
                     "Lexer state is >{}< while parsing >{}< (attempted fixup: "
                     ">{}<)".format(lexer.state, orig_s, s))
@@ -141,8 +141,9 @@ def safe_shlex_split(s):
         else:
             return tokens
     # We should never arrive here.
-    raise AssertionError("Gave up splitting >{}< after {} tries. "
-                         "Attempted fixup: >{}<.".format(orig_s, i, s))
+    raise AssertionError(
+        "Gave up splitting >{}< after {} tries. Attempted fixup: >{}<.".format(
+            orig_s, i, s))  # pylint: disable=undefined-loop-variable
 
 
 def pastebin(text):
@@ -560,7 +561,7 @@ class prevent_exceptions:  # pylint: disable=invalid-name
         retval = self.retval
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs):  # pylint: disable=missing-docstring
             try:
                 return func(*args, **kwargs)
             except BaseException:

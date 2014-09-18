@@ -27,8 +27,6 @@ Module attributes:
     pyeval_output: The output of the last :pyeval command.
 """
 
-import traceback
-
 from PyQt5.QtNetwork import QNetworkReply
 
 import qutebrowser
