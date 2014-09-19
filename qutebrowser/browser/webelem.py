@@ -98,15 +98,15 @@ class WebElementWrapper(collections.abc.MutableMapping):
 
             method = getattr(self._elem, name)
 
-            @functools.wraps(method)
             def _wrapper(meth, *args, **kwargs):
                 # pylint: disable=missing-docstring
                 self._check_vanished()
                 return meth(*args, **kwargs)
 
             wrapper = functools.partial(_wrapper, method)
-            functools.update_wrapper(wrapper, method)
-
+            # We used to do functools.update_wrapper here, but for some reason
+            # when using hints with many links, this accounted for nearly 50%
+            # of the time when profiling, which is unacceptable.
             setattr(self, name, wrapper)
 
     def __str__(self):
