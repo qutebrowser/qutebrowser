@@ -9,15 +9,17 @@ Before 0.1
 - Single-instance and multi-window
 - Maybe test under other platforms
 - Autosave feature (against segfaults/...)
-- Save tabs feature
+- Save tabs feature with sessions
+    -> commandline parameter for session name, then tab list and history gets
+    saved under that name and can be re-loaded.
 - More dwb keybindings
 - Use  :open engine searchterm   syntax for searching
 - ssl-strict=ask
 - Use argparse and do something like click for command arguments, then we can
   have flags etc.
-- Implement some optional stuff from http://greenbytes.de/tech/tc2231/
-  (especially filename with Content-Disposition: inline)
 - Icon
+- Bookmarks?
+- Completion for quickmarks/bookmarks?
 
 New big features
 ================
@@ -31,12 +33,8 @@ New big features
     NoScript
     Certificate Patrol
     https://chrome.google.com/webstore/detail/remove-google-redirects/ccenmflbeofaceccfhhggbagkblihpoh
-- session handling / saving
-    -> commandline parameter for session name, then tab list and history gets
-    saved under that name and can be re-loaded.
 - multi window (see notes)
 - IPC, like dwb -x (see notes)
-- Bookmarks
 - Internationalization
 - more completions (URLs, ...)
 - proper webpage history
@@ -44,7 +42,7 @@ New big features
 - maybe FakeWebView which acts like a WebView in a tab but isn't, to open any
   widget?
 - Bind userscripts to signals (e.g. page_loaded etc.)
-- Multiple rendering engines, especially QGraphicsWebView + OpenGL
+- Multiple rendering engines, especially QGraphicsWebView + OpenGL, QWebEngine
 
 Downloads
 =========
@@ -56,6 +54,8 @@ Downloads
 Improvements / minor features
 =============================
 
+- Implement some optional stuff from http://greenbytes.de/tech/tc2231/
+  (especially filename with Content-Disposition: inline)
 - Don't use colorama in scripts
 - Stop using cwd in scripts (use something with os.path.pardir and __file__)
 - Command/page to show all keybindings?
@@ -64,6 +64,7 @@ Improvements / minor features
     - data/cache should be in subdirs on Windows if everything is in the same
       dir.
 - check what exceptions open() calls could possibly throw
+- Create ~/.config etc. if they don't exist
 - Improve -m error message when we're inside the qutebrowser dir (maybe use a
   Tk gui?)
 - Sane default for editor (maybe via QDesktopServices or so?)
@@ -143,6 +144,10 @@ style
 - Make more stuff private
 - Don't keep references to parent QObjects!
 - Use /usr/bin/env python for scripts.
+- Use unittest.Mock and especially unittest.patch more.
+- Use decorators for on_config_changed
+    - Will also make it easier to implement section-changed handlers for
+      :reload
 
 dwb keybindings to possibly implement
 =====================================

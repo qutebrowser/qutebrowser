@@ -15,9 +15,6 @@ Downloads
 Webview
 -------
 
-- Hinting got really slow (new webelement api?)
-- Hint positions wrong in wordpress admin interface
-- Rightclick -> Copy link copies relative links
 - F on duckduckgo result page opens in current page
 
   It seems we don't get a linkClicked signal there.
@@ -56,17 +53,9 @@ Rendering
 Crashes
 -------
 
-- restart sometimes abort()s on QApplication __init__ (V155) (probably fixed?)
-- Shutdown is still flaky. (see notes)
-
 - Segfaults when trying to load http://cmpl.cc/downloads/hlwm-tablet.mkv and
   with youtube HTML5 player.
 - Segfault on subsonic when clicking next track
-- iggy has segfault on
-  http://docs.saltstack.com/en/latest/topics/tutorials/pillar.html on Debian in
-  VMware.
-  Infos: http://paste.the-compiler.org/view/4f6f3084
-  backtrace: http://paste.the-compiler.org/view/d846e448
 - Segfaults when exiting while prompt is showing
 
 - Hang on http://abcnews.go.com/Business/us-s/story?id=18230346 when video
@@ -87,8 +76,6 @@ Qt warnings
   this problem.
 
   WARNING: QXcbWindow: Unhandled client message: "_GTK_LOAD_ICONTHEMES"
-
-  INFO: Lexer rewriter used, but no tokens found.
 
   WARNING: QIODevice::read: device not open
 
@@ -112,11 +99,6 @@ Misc
 - On first start: KeyError because geometry couldn't be read logged as WARNING.
 - tabs don't redraw properly when changing font
 
-Tests
------
-
-- Use unittest.Mock and especially unittest.patch more.
-
 Upstream Bugs
 =============
 
@@ -125,7 +107,5 @@ Upstream Bugs
     TODO: Report to PyQt/Qt
 
 - Various segfaults on youtube videos
-
-- Follow up on Bugzilla font issue
 
 - Report some other crashes
