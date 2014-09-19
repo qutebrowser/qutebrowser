@@ -507,19 +507,21 @@ class HintManager(QObject):
         ctx = HintContext()
         ctx.frames = webelem.get_child_frames(mainframe)
         for f in ctx.frames:
-            for e in f.findAllElements(webelem.SELECTORS[group]):
-                elems.append(webelem.WebElementWrapper(e))
+            elems += f.findAllElements(webelem.SELECTORS[group])
+        elems = [e for e in elems if webelem.is_visible(e, mainframe)]
+        # We wrap the elements late for performance reasons, as wrapping 1000s
+        # of elements (with ~50 methods each) just takes too much time...
+        elems = [webelem.WebElementWrapper(e) for e in elems]
         filterfunc = webelem.FILTERS.get(group, lambda e: True)
-        visible_elems = [e for e in elems if filterfunc(e) and
-                         e.is_visible(mainframe)]
-        if not visible_elems:
+        elems = [e for e in elems if filterfunc(e)]
+        if not elems:
             raise cmdexc.CommandError("No elements found.")
         ctx.target = target
         ctx.baseurl = baseurl
         ctx.args = args
         message.instance().set_text(self.HINT_TEXTS[target])
-        strings = self._hint_strings(visible_elems)
-        for e, string in zip(visible_elems, strings):
+        strings = self._hint_strings(elems)
+        for e, string in zip(elems, strings):
             label = self._draw_label(e, string)
             ctx.elems[string] = ElemTuple(e, label)
         self._context = ctx
