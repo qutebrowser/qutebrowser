@@ -336,7 +336,7 @@ def focus_elem(frame):
     return WebElementWrapper(elem)
 
 
-def rect_on_view(elem):
+def rect_on_view(elem, elem_geometry=None):
     """Get the geometry of the element relative to the webview.
 
     We need this as a standalone function (as opposed to a WebElementWrapper
@@ -345,11 +345,16 @@ def rect_on_view(elem):
 
     Args:
         elem: The QWebElement to get the rect for.
+        elem_geometry: The geometry of the element, or None.
+                       Calling QWebElement::geometry is rather expensive so we
+                       want to avoid doing it twice.
     """
     if elem.isNull():
         raise IsNullError("Got called on a null element!")
+    if elem_geometry is None:
+        elem_geometry = elem.geometry()
     frame = elem.webFrame()
-    rect = QRect(elem.geometry())
+    rect = QRect(elem_geometry)
     while frame is not None:
         rect.translate(frame.geometry().topLeft())
         rect.translate(frame.scrollPosition() * -1)
@@ -378,35 +383,35 @@ def is_visible(elem, mainframe):
     for k, v in hidden_attributes.items():
         if elem.styleProperty(k, QWebElement.ComputedStyle) == v:
             return False
-    geometry = elem.geometry()
-    if not geometry.isValid() and geometry.x() == 0:
+    elem_geometry = elem.geometry()
+    if not elem_geometry.isValid() and elem_geometry.x() == 0:
         # Most likely an invisible link
         return False
     # First check if the element is visible on screen
-    elem_rect = rect_on_view(elem)
+    elem_rect = rect_on_view(elem, elem_geometry=elem_geometry)
+    mainframe_geometry = mainframe.geometry()
     if elem_rect.isValid():
-        visible_on_screen = mainframe.geometry().intersects(elem_rect)
+        visible_on_screen = mainframe_geometry.intersects(elem_rect)
     else:
         # We got an invalid rectangle (width/height 0/0 probably), but this
         # can still be a valid link.
-        visible_on_screen = mainframe.geometry().contains(
+        visible_on_screen = mainframe_geometry.contains(
             elem_rect.topLeft())
     # Then check if it's visible in its frame if it's not in the main
     # frame.
     elem_frame = elem.webFrame()
-    elem_rect = elem.geometry()
     framegeom = QRect(elem_frame.geometry())
     if not framegeom.isValid():
         visible_in_frame = False
     elif elem_frame.parentFrame() is not None:
         framegeom.moveTo(0, 0)
         framegeom.translate(elem_frame.scrollPosition())
-        if elem_rect.isValid():
-            visible_in_frame = framegeom.intersects(elem_rect)
+        if elem_geometry.isValid():
+            visible_in_frame = framegeom.intersects(elem_geometry)
         else:
             # We got an invalid rectangle (width/height 0/0 probably), but
             # this can still be a valid link.
-            visible_in_frame = framegeom.contains(elem_rect.topLeft())
+            visible_in_frame = framegeom.contains(elem_geometry.topLeft())
     else:
         visible_in_frame = visible_on_screen
     return all([visible_on_screen, visible_in_frame])
