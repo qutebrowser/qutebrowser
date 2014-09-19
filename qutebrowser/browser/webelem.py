@@ -70,6 +70,8 @@ class WebElementWrapper(collections.abc.MutableMapping):
     """A wrapper around QWebElement to make it more intelligent."""
 
     def __init__(self, elem):
+        if isinstance(elem, self.__class__):
+            raise TypeError("Trying to wrap a wrapper!")
         if elem.isNull():
             raise IsNullError('{} is a null element!'.format(elem))
         self._elem = elem
