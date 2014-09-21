@@ -117,6 +117,9 @@ Improvements / minor features
 - Add FIFOHandler based on asyncio
 - Lazy tab loading
 - Add command shortcuts to command completion
+- Ctrl-m as enter in commandline? (works in forms)
+- Readline shortcuts in forms?
+
 
 hints
 -----
