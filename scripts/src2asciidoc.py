@@ -139,7 +139,7 @@ def _get_setting_quickref():
         out.append('|Setting|Description')
         for optname, _option in sect.items():
             desc = sect.descriptions[optname].splitlines()[0]
-            out.append('|<<setting-{}-{},{}>>|{}'.format(
+            out.append('|<<{}-{},{}>>|{}'.format(
                 sectname, optname, optname, desc))
         out.append('|==============')
     return '\n'.join(out)

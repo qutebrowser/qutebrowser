@@ -4,203 +4,203 @@
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
-|<<setting-general-ignore-case,ignore-case>>|Whether to find text on a page case-insensitively.
-|<<setting-general-wrap-search,wrap-search>>|Whether to wrap finding text to the top when arriving at the end.
-|<<setting-general-startpage,startpage>>|The default page(s) to open at the start, separated by commas.
-|<<setting-general-auto-search,auto-search>>|Whether to start a search when something else than a URL is entered.
-|<<setting-general-auto-save-config,auto-save-config>>|Whether to save the config automatically on quit.
-|<<setting-general-editor,editor>>|The editor (and arguments) to use for the `open-editor` command.
-|<<setting-general-editor-encoding,editor-encoding>>|Encoding to use for editor.
-|<<setting-general-private-browsing,private-browsing>>|Do not record visited pages in the history or store web page icons.
-|<<setting-general-developer-extras,developer-extras>>|Enable extra tools for Web developers.
-|<<setting-general-print-element-backgrounds,print-element-backgrounds>>|Whether the background color and images are also drawn when the page is printed.
-|<<setting-general-xss-auditing,xss-auditing>>|Whether load requests should be monitored for cross-site scripting attempts.
-|<<setting-general-site-specific-quirks,site-specific-quirks>>|Enable workarounds for broken sites.
-|<<setting-general-default-encoding,default-encoding>>|Default encoding to use for websites.
+|<<general-ignore-case,ignore-case>>|Whether to find text on a page case-insensitively.
+|<<general-wrap-search,wrap-search>>|Whether to wrap finding text to the top when arriving at the end.
+|<<general-startpage,startpage>>|The default page(s) to open at the start, separated by commas.
+|<<general-auto-search,auto-search>>|Whether to start a search when something else than a URL is entered.
+|<<general-auto-save-config,auto-save-config>>|Whether to save the config automatically on quit.
+|<<general-editor,editor>>|The editor (and arguments) to use for the `open-editor` command.
+|<<general-editor-encoding,editor-encoding>>|Encoding to use for editor.
+|<<general-private-browsing,private-browsing>>|Do not record visited pages in the history or store web page icons.
+|<<general-developer-extras,developer-extras>>|Enable extra tools for Web developers.
+|<<general-print-element-backgrounds,print-element-backgrounds>>|Whether the background color and images are also drawn when the page is printed.
+|<<general-xss-auditing,xss-auditing>>|Whether load requests should be monitored for cross-site scripting attempts.
+|<<general-site-specific-quirks,site-specific-quirks>>|Enable workarounds for broken sites.
+|<<general-default-encoding,default-encoding>>|Default encoding to use for websites.
 |==============
 
 .Quick reference for section ``ui''
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
-|<<setting-ui-zoom-levels,zoom-levels>>|The available zoom levels, separated by commas.
-|<<setting-ui-default-zoom,default-zoom>>|The default zoom level.
-|<<setting-ui-message-timeout,message-timeout>>|Time (in ms) to show messages in the statusbar for.
-|<<setting-ui-confirm-quit,confirm-quit>>|Whether to confirm quitting the application.
-|<<setting-ui-display-statusbar-messages,display-statusbar-messages>>|Whether to display javascript statusbar messages.
-|<<setting-ui-zoom-text-only,zoom-text-only>>|Whether the zoom factor on a frame applies only to the text or to all content.
-|<<setting-ui-frame-flattening,frame-flattening>>|Whether to  expand each subframe to its contents.
-|<<setting-ui-user-stylesheet,user-stylesheet>>|User stylesheet to use.
-|<<setting-ui-css-media-type,css-media-type>>|Set the CSS media type.
+|<<ui-zoom-levels,zoom-levels>>|The available zoom levels, separated by commas.
+|<<ui-default-zoom,default-zoom>>|The default zoom level.
+|<<ui-message-timeout,message-timeout>>|Time (in ms) to show messages in the statusbar for.
+|<<ui-confirm-quit,confirm-quit>>|Whether to confirm quitting the application.
+|<<ui-display-statusbar-messages,display-statusbar-messages>>|Whether to display javascript statusbar messages.
+|<<ui-zoom-text-only,zoom-text-only>>|Whether the zoom factor on a frame applies only to the text or to all content.
+|<<ui-frame-flattening,frame-flattening>>|Whether to  expand each subframe to its contents.
+|<<ui-user-stylesheet,user-stylesheet>>|User stylesheet to use.
+|<<ui-css-media-type,css-media-type>>|Set the CSS media type.
 |==============
 
 .Quick reference for section ``network''
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
-|<<setting-network-do-not-track,do-not-track>>|Value to send in the `DNT` header.
-|<<setting-network-accept-language,accept-language>>|Value to send in the `accept-language` header.
-|<<setting-network-user-agent,user-agent>>|User agent to send. Empty to send the default.
-|<<setting-network-proxy,proxy>>|The proxy to use.
-|<<setting-network-ssl-strict,ssl-strict>>|Whether to validate SSL handshakes.
-|<<setting-network-dns-prefetch,dns-prefetch>>|Whether to try to pre-fetch DNS entries to speed up browsing.
+|<<network-do-not-track,do-not-track>>|Value to send in the `DNT` header.
+|<<network-accept-language,accept-language>>|Value to send in the `accept-language` header.
+|<<network-user-agent,user-agent>>|User agent to send. Empty to send the default.
+|<<network-proxy,proxy>>|The proxy to use.
+|<<network-ssl-strict,ssl-strict>>|Whether to validate SSL handshakes.
+|<<network-dns-prefetch,dns-prefetch>>|Whether to try to pre-fetch DNS entries to speed up browsing.
 |==============
 
 .Quick reference for section ``completion''
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
-|<<setting-completion-show,show>>|Whether to show the autocompletion window.
-|<<setting-completion-height,height>>|The height of the completion, in px or as percentage of the window.
-|<<setting-completion-history-length,history-length>>|How many commands to save in the history.
-|<<setting-completion-quick-complete,quick-complete>>|Whether to move on to the next part when there's only one possible completion left.
-|<<setting-completion-shrink,shrink>>|Whether to shrink the completion to be smaller than the configured size if there are no scrollbars.
+|<<completion-show,show>>|Whether to show the autocompletion window.
+|<<completion-height,height>>|The height of the completion, in px or as percentage of the window.
+|<<completion-history-length,history-length>>|How many commands to save in the history.
+|<<completion-quick-complete,quick-complete>>|Whether to move on to the next part when there's only one possible completion left.
+|<<completion-shrink,shrink>>|Whether to shrink the completion to be smaller than the configured size if there are no scrollbars.
 |==============
 
 .Quick reference for section ``input''
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
-|<<setting-input-timeout,timeout>>|Timeout for ambiguous keybindings.
-|<<setting-input-insert-mode-on-plugins,insert-mode-on-plugins>>|Whether to switch to insert mode when clicking flash and other plugins.
-|<<setting-input-auto-leave-insert-mode,auto-leave-insert-mode>>|Whether to leave insert mode if a non-editable element is clicked.
-|<<setting-input-auto-insert-mode,auto-insert-mode>>|Whether to automatically enter insert mode if an editable element is focused after page load.
-|<<setting-input-forward-unbound-keys,forward-unbound-keys>>|Whether to forward unbound keys to the webview in normal mode.
-|<<setting-input-spatial-navigation,spatial-navigation>>|Enables or disables the Spatial Navigation feature
-|<<setting-input-links-included-in-focus-chain,links-included-in-focus-chain>>|Whether hyperlinks should be included in the keyboard focus chain.
+|<<input-timeout,timeout>>|Timeout for ambiguous keybindings.
+|<<input-insert-mode-on-plugins,insert-mode-on-plugins>>|Whether to switch to insert mode when clicking flash and other plugins.
+|<<input-auto-leave-insert-mode,auto-leave-insert-mode>>|Whether to leave insert mode if a non-editable element is clicked.
+|<<input-auto-insert-mode,auto-insert-mode>>|Whether to automatically enter insert mode if an editable element is focused after page load.
+|<<input-forward-unbound-keys,forward-unbound-keys>>|Whether to forward unbound keys to the webview in normal mode.
+|<<input-spatial-navigation,spatial-navigation>>|Enables or disables the Spatial Navigation feature
+|<<input-links-included-in-focus-chain,links-included-in-focus-chain>>|Whether hyperlinks should be included in the keyboard focus chain.
 |==============
 
 .Quick reference for section ``tabs''
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
-|<<setting-tabs-background-tabs,background-tabs>>|Whether to open new tabs (middleclick/ctrl+click) in background.
-|<<setting-tabs-select-on-remove,select-on-remove>>|Which tab to select when the focused tab is removed.
-|<<setting-tabs-new-tab-position,new-tab-position>>|How new tabs are positioned.
-|<<setting-tabs-new-tab-position-explicit,new-tab-position-explicit>>|How new tabs opened explicitely are positioned.
-|<<setting-tabs-last-close,last-close>>|Behaviour when the last tab is closed.
-|<<setting-tabs-wrap,wrap>>|Whether to wrap when changing tabs.
-|<<setting-tabs-movable,movable>>|Whether tabs should be movable.
-|<<setting-tabs-close-mouse-button,close-mouse-button>>|On which mouse button to close tabs.
-|<<setting-tabs-position,position>>|The position of the tab bar.
-|<<setting-tabs-show-favicons,show-favicons>>|Whether to show favicons in the tab bar.
-|<<setting-tabs-width,width>>|The width of the tab bar if it's vertical, in px or as percentage of the window.
-|<<setting-tabs-indicator-width,indicator-width>>|Width of the progress indicator (0 to disable).
-|<<setting-tabs-indicator-space,indicator-space>>|Spacing between tab edge and indicator.
+|<<tabs-background-tabs,background-tabs>>|Whether to open new tabs (middleclick/ctrl+click) in background.
+|<<tabs-select-on-remove,select-on-remove>>|Which tab to select when the focused tab is removed.
+|<<tabs-new-tab-position,new-tab-position>>|How new tabs are positioned.
+|<<tabs-new-tab-position-explicit,new-tab-position-explicit>>|How new tabs opened explicitely are positioned.
+|<<tabs-last-close,last-close>>|Behaviour when the last tab is closed.
+|<<tabs-wrap,wrap>>|Whether to wrap when changing tabs.
+|<<tabs-movable,movable>>|Whether tabs should be movable.
+|<<tabs-close-mouse-button,close-mouse-button>>|On which mouse button to close tabs.
+|<<tabs-position,position>>|The position of the tab bar.
+|<<tabs-show-favicons,show-favicons>>|Whether to show favicons in the tab bar.
+|<<tabs-width,width>>|The width of the tab bar if it's vertical, in px or as percentage of the window.
+|<<tabs-indicator-width,indicator-width>>|Width of the progress indicator (0 to disable).
+|<<tabs-indicator-space,indicator-space>>|Spacing between tab edge and indicator.
 |==============
 
 .Quick reference for section ``storage''
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
-|<<setting-storage-download-directory,download-directory>>|The directory to save downloads to. An empty value selects a sensible os-specific default.
-|<<setting-storage-maximum-pages-in-cache,maximum-pages-in-cache>>|The maximum number of pages to hold in the memory page cache.
-|<<setting-storage-object-cache-capacities,object-cache-capacities>>|The capacities for the memory cache for dead objects such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, cacheMaxDead, totalCapacity.
-|<<setting-storage-offline-storage-default-quota,offline-storage-default-quota>>|Default quota for new offline storage databases.
-|<<setting-storage-offline-web-application-cache-quota,offline-web-application-cache-quota>>|Quota for the offline web application cache.
-|<<setting-storage-offline-storage-database,offline-storage-database>>|Whether support for the HTML 5 offline storage feature is enabled.
-|<<setting-storage-offline-web-application-storage,offline-web-application-storage>>|Whether support for the HTML 5 web application cache feature is enabled.
-|<<setting-storage-local-storage,local-storage>>|Whether support for the HTML 5 local storage feature is enabled.
-|<<setting-storage-cache-size,cache-size>>|Size of the HTTP network cache.
+|<<storage-download-directory,download-directory>>|The directory to save downloads to. An empty value selects a sensible os-specific default.
+|<<storage-maximum-pages-in-cache,maximum-pages-in-cache>>|The maximum number of pages to hold in the memory page cache.
+|<<storage-object-cache-capacities,object-cache-capacities>>|The capacities for the memory cache for dead objects such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, cacheMaxDead, totalCapacity.
+|<<storage-offline-storage-default-quota,offline-storage-default-quota>>|Default quota for new offline storage databases.
+|<<storage-offline-web-application-cache-quota,offline-web-application-cache-quota>>|Quota for the offline web application cache.
+|<<storage-offline-storage-database,offline-storage-database>>|Whether support for the HTML 5 offline storage feature is enabled.
+|<<storage-offline-web-application-storage,offline-web-application-storage>>|Whether support for the HTML 5 web application cache feature is enabled.
+|<<storage-local-storage,local-storage>>|Whether support for the HTML 5 local storage feature is enabled.
+|<<storage-cache-size,cache-size>>|Size of the HTTP network cache.
 |==============
 
 .Quick reference for section ``permissions''
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
-|<<setting-permissions-allow-images,allow-images>>|Whether images are automatically loaded in web pages.
-|<<setting-permissions-allow-javascript,allow-javascript>>|Enables or disables the running of JavaScript programs.
-|<<setting-permissions-allow-plugins,allow-plugins>>|Enables or disables plugins in Web pages.
-|<<setting-permissions-javascript-can-open-windows,javascript-can-open-windows>>|Whether JavaScript programs can open new windows.
-|<<setting-permissions-javascript-can-close-windows,javascript-can-close-windows>>|Whether JavaScript programs can close windows.
-|<<setting-permissions-javascript-can-access-clipboard,javascript-can-access-clipboard>>|Whether JavaScript programs can read or write to the clipboard.
-|<<setting-permissions-local-content-can-access-remote-urls,local-content-can-access-remote-urls>>|Whether locally loaded documents are allowed to access remote urls.
-|<<setting-permissions-local-content-can-access-file-urls,local-content-can-access-file-urls>>|Whether locally loaded documents are allowed to access other local urls.
-|<<setting-permissions-cookies-accept,cookies-accept>>|Whether to accept cookies.
-|<<setting-permissions-cookies-store,cookies-store>>|Whether to store cookies.
+|<<permissions-allow-images,allow-images>>|Whether images are automatically loaded in web pages.
+|<<permissions-allow-javascript,allow-javascript>>|Enables or disables the running of JavaScript programs.
+|<<permissions-allow-plugins,allow-plugins>>|Enables or disables plugins in Web pages.
+|<<permissions-javascript-can-open-windows,javascript-can-open-windows>>|Whether JavaScript programs can open new windows.
+|<<permissions-javascript-can-close-windows,javascript-can-close-windows>>|Whether JavaScript programs can close windows.
+|<<permissions-javascript-can-access-clipboard,javascript-can-access-clipboard>>|Whether JavaScript programs can read or write to the clipboard.
+|<<permissions-local-content-can-access-remote-urls,local-content-can-access-remote-urls>>|Whether locally loaded documents are allowed to access remote urls.
+|<<permissions-local-content-can-access-file-urls,local-content-can-access-file-urls>>|Whether locally loaded documents are allowed to access other local urls.
+|<<permissions-cookies-accept,cookies-accept>>|Whether to accept cookies.
+|<<permissions-cookies-store,cookies-store>>|Whether to store cookies.
 |==============
 
 .Quick reference for section ``hints''
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
-|<<setting-hints-border,border>>|CSS border value for hints.
-|<<setting-hints-opacity,opacity>>|Opacity for hints.
-|<<setting-hints-mode,mode>>|Mode to use for hints.
-|<<setting-hints-chars,chars>>|Chars used for hint strings.
-|<<setting-hints-auto-follow,auto-follow>>|Whether to auto-follow a hint if there's only one left.
-|<<setting-hints-next-regexes,next-regexes>>|A comma-separated list of regexes to use for 'next' links.
-|<<setting-hints-prev-regexes,prev-regexes>>|A comma-separated list of regexes to use for 'prev' links.
+|<<hints-border,border>>|CSS border value for hints.
+|<<hints-opacity,opacity>>|Opacity for hints.
+|<<hints-mode,mode>>|Mode to use for hints.
+|<<hints-chars,chars>>|Chars used for hint strings.
+|<<hints-auto-follow,auto-follow>>|Whether to auto-follow a hint if there's only one left.
+|<<hints-next-regexes,next-regexes>>|A comma-separated list of regexes to use for 'next' links.
+|<<hints-prev-regexes,prev-regexes>>|A comma-separated list of regexes to use for 'prev' links.
 |==============
 
 .Quick reference for section ``colors''
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
-|<<setting-colors-completion.fg,completion.fg>>|Text color of the completion widget.
-|<<setting-colors-completion.bg,completion.bg>>|Background color of the completion widget.
-|<<setting-colors-completion.item.bg,completion.item.bg>>|Background color of completion widget items.
-|<<setting-colors-completion.category.fg,completion.category.fg>>|Foreground color of completion widget category headers.
-|<<setting-colors-completion.category.bg,completion.category.bg>>|Background color of the completion widget category headers.
-|<<setting-colors-completion.category.border.top,completion.category.border.top>>|Top border color of the completion widget category headers.
-|<<setting-colors-completion.category.border.bottom,completion.category.border.bottom>>|Bottom border color of the completion widget category headers.
-|<<setting-colors-completion.item.selected.fg,completion.item.selected.fg>>|Foreground color of the selected completion item.
-|<<setting-colors-completion.item.selected.bg,completion.item.selected.bg>>|Background color of the selected completion item.
-|<<setting-colors-completion.item.selected.border.top,completion.item.selected.border.top>>|Top border color of the completion widget category headers.
-|<<setting-colors-completion.item.selected.border.bottom,completion.item.selected.border.bottom>>|Bottom border color of the selected completion item.
-|<<setting-colors-completion.match.fg,completion.match.fg>>|Foreground color of the matched text in the completion.
-|<<setting-colors-statusbar.bg,statusbar.bg>>|Foreground color of the statusbar.
-|<<setting-colors-statusbar.fg,statusbar.fg>>|Foreground color of the statusbar.
-|<<setting-colors-statusbar.bg.error,statusbar.bg.error>>|Background color of the statusbar if there was an error.
-|<<setting-colors-statusbar.bg.prompt,statusbar.bg.prompt>>|Background color of the statusbar if there is a prompt.
-|<<setting-colors-statusbar.bg.insert,statusbar.bg.insert>>|Background color of the statusbar in insert mode.
-|<<setting-colors-statusbar.progress.bg,statusbar.progress.bg>>|Background color of the progress bar.
-|<<setting-colors-statusbar.url.fg,statusbar.url.fg>>|Default foreground color of the URL in the statusbar.
-|<<setting-colors-statusbar.url.fg.success,statusbar.url.fg.success>>|Foreground color of the URL in the statusbar on successful load.
-|<<setting-colors-statusbar.url.fg.error,statusbar.url.fg.error>>|Foreground color of the URL in the statusbar on error.
-|<<setting-colors-statusbar.url.fg.warn,statusbar.url.fg.warn>>|Foreground color of the URL in the statusbar when there's a warning.
-|<<setting-colors-statusbar.url.fg.hover,statusbar.url.fg.hover>>|Foreground color of the URL in the statusbar for hovered links.
-|<<setting-colors-tab.fg,tab.fg>>|Foreground color of tabs.
-|<<setting-colors-tab.bg.odd,tab.bg.odd>>|Background color of unselected odd tabs.
-|<<setting-colors-tab.bg.even,tab.bg.even>>|Background color of unselected even tabs.
-|<<setting-colors-tab.bg.selected,tab.bg.selected>>|Background color of selected tabs.
-|<<setting-colors-tab.bg.bar,tab.bg.bar>>|Background color of the tabbar.
-|<<setting-colors-tab.indicator.start,tab.indicator.start>>|Color gradient start for the tab indicator.
-|<<setting-colors-tab.indicator.stop,tab.indicator.stop>>|Color gradient end for the tab indicator.
-|<<setting-colors-tab.indicator.error,tab.indicator.error>>|Color for the tab indicator on errors..
-|<<setting-colors-tab.indicator.system,tab.indicator.system>>|Color gradient interpolation system for the tab indicator.
-|<<setting-colors-tab.seperator,tab.seperator>>|Color for the tab seperator.
-|<<setting-colors-hints.fg,hints.fg>>|Font color for hints.
-|<<setting-colors-hints.fg.match,hints.fg.match>>|Font color for the matched part of hints.
-|<<setting-colors-hints.bg,hints.bg>>|Background color for hints.
-|<<setting-colors-downloads.fg,downloads.fg>>|Foreground color for downloads.
-|<<setting-colors-downloads.bg.bar,downloads.bg.bar>>|Background color for the download bar.
-|<<setting-colors-downloads.bg.start,downloads.bg.start>>|Color gradient start for downloads.
-|<<setting-colors-downloads.bg.stop,downloads.bg.stop>>|Color gradient end for downloads.
-|<<setting-colors-downloads.bg.system,downloads.bg.system>>|Color gradient interpolation system for downloads.
+|<<colors-completion.fg,completion.fg>>|Text color of the completion widget.
+|<<colors-completion.bg,completion.bg>>|Background color of the completion widget.
+|<<colors-completion.item.bg,completion.item.bg>>|Background color of completion widget items.
+|<<colors-completion.category.fg,completion.category.fg>>|Foreground color of completion widget category headers.
+|<<colors-completion.category.bg,completion.category.bg>>|Background color of the completion widget category headers.
+|<<colors-completion.category.border.top,completion.category.border.top>>|Top border color of the completion widget category headers.
+|<<colors-completion.category.border.bottom,completion.category.border.bottom>>|Bottom border color of the completion widget category headers.
+|<<colors-completion.item.selected.fg,completion.item.selected.fg>>|Foreground color of the selected completion item.
+|<<colors-completion.item.selected.bg,completion.item.selected.bg>>|Background color of the selected completion item.
+|<<colors-completion.item.selected.border.top,completion.item.selected.border.top>>|Top border color of the completion widget category headers.
+|<<colors-completion.item.selected.border.bottom,completion.item.selected.border.bottom>>|Bottom border color of the selected completion item.
+|<<colors-completion.match.fg,completion.match.fg>>|Foreground color of the matched text in the completion.
+|<<colors-statusbar.bg,statusbar.bg>>|Foreground color of the statusbar.
+|<<colors-statusbar.fg,statusbar.fg>>|Foreground color of the statusbar.
+|<<colors-statusbar.bg.error,statusbar.bg.error>>|Background color of the statusbar if there was an error.
+|<<colors-statusbar.bg.prompt,statusbar.bg.prompt>>|Background color of the statusbar if there is a prompt.
+|<<colors-statusbar.bg.insert,statusbar.bg.insert>>|Background color of the statusbar in insert mode.
+|<<colors-statusbar.progress.bg,statusbar.progress.bg>>|Background color of the progress bar.
+|<<colors-statusbar.url.fg,statusbar.url.fg>>|Default foreground color of the URL in the statusbar.
+|<<colors-statusbar.url.fg.success,statusbar.url.fg.success>>|Foreground color of the URL in the statusbar on successful load.
+|<<colors-statusbar.url.fg.error,statusbar.url.fg.error>>|Foreground color of the URL in the statusbar on error.
+|<<colors-statusbar.url.fg.warn,statusbar.url.fg.warn>>|Foreground color of the URL in the statusbar when there's a warning.
+|<<colors-statusbar.url.fg.hover,statusbar.url.fg.hover>>|Foreground color of the URL in the statusbar for hovered links.
+|<<colors-tab.fg,tab.fg>>|Foreground color of tabs.
+|<<colors-tab.bg.odd,tab.bg.odd>>|Background color of unselected odd tabs.
+|<<colors-tab.bg.even,tab.bg.even>>|Background color of unselected even tabs.
+|<<colors-tab.bg.selected,tab.bg.selected>>|Background color of selected tabs.
+|<<colors-tab.bg.bar,tab.bg.bar>>|Background color of the tabbar.
+|<<colors-tab.indicator.start,tab.indicator.start>>|Color gradient start for the tab indicator.
+|<<colors-tab.indicator.stop,tab.indicator.stop>>|Color gradient end for the tab indicator.
+|<<colors-tab.indicator.error,tab.indicator.error>>|Color for the tab indicator on errors..
+|<<colors-tab.indicator.system,tab.indicator.system>>|Color gradient interpolation system for the tab indicator.
+|<<colors-tab.seperator,tab.seperator>>|Color for the tab seperator.
+|<<colors-hints.fg,hints.fg>>|Font color for hints.
+|<<colors-hints.fg.match,hints.fg.match>>|Font color for the matched part of hints.
+|<<colors-hints.bg,hints.bg>>|Background color for hints.
+|<<colors-downloads.fg,downloads.fg>>|Foreground color for downloads.
+|<<colors-downloads.bg.bar,downloads.bg.bar>>|Background color for the download bar.
+|<<colors-downloads.bg.start,downloads.bg.start>>|Color gradient start for downloads.
+|<<colors-downloads.bg.stop,downloads.bg.stop>>|Color gradient end for downloads.
+|<<colors-downloads.bg.system,downloads.bg.system>>|Color gradient interpolation system for downloads.
 |==============
 
 .Quick reference for section ``fonts''
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
-|<<setting-fonts-_monospace,_monospace>>|Default monospace fonts.
-|<<setting-fonts-completion,completion>>|Font used in the completion widget.
-|<<setting-fonts-tabbar,tabbar>>|Font used in the tabbar.
-|<<setting-fonts-statusbar,statusbar>>|Font used in the statusbar.
-|<<setting-fonts-downloads,downloads>>|Font used for the downloadbar.
-|<<setting-fonts-hints,hints>>|Font used for the hints.
-|<<setting-fonts-debug-console,debug-console>>|Font used for the debugging console.
-|<<setting-fonts-web-family-standard,web-family-standard>>|Font family for standard fonts.
-|<<setting-fonts-web-family-fixed,web-family-fixed>>|Font family for fixed fonts.
-|<<setting-fonts-web-family-serif,web-family-serif>>|Font family for serif fonts.
-|<<setting-fonts-web-family-sans-serif,web-family-sans-serif>>|Font family for sans-serif fonts.
-|<<setting-fonts-web-family-cursive,web-family-cursive>>|Font family for cursive fonts.
-|<<setting-fonts-web-family-fantasy,web-family-fantasy>>|Font family for fantasy fonts.
-|<<setting-fonts-web-size-minimum,web-size-minimum>>|The hard minimum font size.
-|<<setting-fonts-web-size-minimum-logical,web-size-minimum-logical>>|The minimum logical font size that is applied when zooming out.
-|<<setting-fonts-web-size-default,web-size-default>>|The default font size for regular text.
-|<<setting-fonts-web-size-default-fixed,web-size-default-fixed>>|The default font size for fixed-pitch text.
+|<<fonts-_monospace,_monospace>>|Default monospace fonts.
+|<<fonts-completion,completion>>|Font used in the completion widget.
+|<<fonts-tabbar,tabbar>>|Font used in the tabbar.
+|<<fonts-statusbar,statusbar>>|Font used in the statusbar.
+|<<fonts-downloads,downloads>>|Font used for the downloadbar.
+|<<fonts-hints,hints>>|Font used for the hints.
+|<<fonts-debug-console,debug-console>>|Font used for the debugging console.
+|<<fonts-web-family-standard,web-family-standard>>|Font family for standard fonts.
+|<<fonts-web-family-fixed,web-family-fixed>>|Font family for fixed fonts.
+|<<fonts-web-family-serif,web-family-serif>>|Font family for serif fonts.
+|<<fonts-web-family-sans-serif,web-family-sans-serif>>|Font family for sans-serif fonts.
+|<<fonts-web-family-cursive,web-family-cursive>>|Font family for cursive fonts.
+|<<fonts-web-family-fantasy,web-family-fantasy>>|Font family for fantasy fonts.
+|<<fonts-web-size-minimum,web-size-minimum>>|The hard minimum font size.
+|<<fonts-web-size-minimum-logical,web-size-minimum-logical>>|The minimum logical font size that is applied when zooming out.
+|<<fonts-web-size-default,web-size-default>>|The default font size for regular text.
+|<<fonts-web-size-default-fixed,web-size-default-fixed>>|The default font size for fixed-pitch text.
 |==============
 
 == general
