@@ -507,6 +507,36 @@ def is_enum(obj):
         return False
 
 
+def is_git_repo():
+    """Check if we're running from a git repository."""
+    gitfolder = os.path.join(qutebrowser.basedir, os.path.pardir, '.git')
+    return os.path.isdir(gitfolder)
+
+
+def docs_up_to_date(path):
+    """Check if the generated html documentation is up to date.
+
+    Args:
+        path: The path of the document to check.
+
+    Return:
+        True if they are up to date or we couldn't check.
+        False if they are outdated.
+    """
+    if hasattr(sys, 'frozen') or not is_git_repo():
+        return True
+    html_path = os.path.join(qutebrowser.basedir, 'html', 'doc', path)
+    filename = os.path.splitext(path)[0]
+    asciidoc_path = os.path.join(qutebrowser.basedir, os.path.pardir,
+                                 'doc', 'help', filename + '.asciidoc')
+    try:
+        html_time = os.path.getmtime(html_path)
+        asciidoc_time = os.path.getmtime(asciidoc_path)
+    except FileNotFoundError:
+        return True
+    return asciidoc_time <= html_time
+
+
 class DocstringParser:
 
     """Generate documentation based on a docstring of a command handler.

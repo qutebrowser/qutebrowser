@@ -31,7 +31,7 @@ from PyQt5.QtNetwork import QNetworkReply
 
 import qutebrowser
 from qutebrowser.network import schemehandler
-from qutebrowser.utils import version, utils, jinja, log
+from qutebrowser.utils import version, utils, jinja, log, message
 
 
 pyeval_output = ":pyeval was never called"
@@ -137,6 +137,11 @@ def qute_help(request):
     urlpath = request.url().path()
     if not urlpath or urlpath == '/':
         urlpath = 'index.html'
+    else:
+        urlpath = urlpath.lstrip('/')
+    if not utils.docs_up_to_date(urlpath):
+        message.error("Your documentation is outdated! Please re-run scripts/"
+                      "asciidoc2html.py.")
     path = 'html/doc/{}'.format(urlpath)
     return utils.read_file(path).encode('UTF-8', errors='xmlcharrefreplace')
 
