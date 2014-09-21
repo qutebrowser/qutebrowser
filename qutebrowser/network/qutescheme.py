@@ -121,6 +121,19 @@ def qute_gpl(_request):
 
 def qute_help(request):
     """Handler for qute:help. Return HTML content as bytes."""
+    try:
+        utils.read_file('html/doc/index.html')
+    except FileNotFoundError:
+        html = jinja.env.get_template('error.html').render(
+            title="Error while loading documentation",
+            url=request.url().toDisplayString(),
+            error="This most likely means the documentation was not generated "
+                  "properly. If you are running qutebrowser from the git "
+                  "repository, please run scripts/asciidoc2html.py."
+                  "If you're running a released version this is a bug, please "
+                  "use :report to report it.",
+            icon='')
+        return html.encode('UTF-8', errors='xmlcharrefreplace')
     urlpath = request.url().path()
     if not urlpath or urlpath == '/':
         urlpath = 'index.html'
