@@ -56,8 +56,6 @@ Improvements / minor features
 
 - Implement some optional stuff from http://greenbytes.de/tech/tc2231/
   (especially filename with Content-Disposition: inline)
-- Don't use colorama in scripts
-- Stop using cwd in scripts (use something with os.path.pardir and __file__)
 - Command/page to show all keybindings?
 - File moves:
     - state should be in data, not config
@@ -72,15 +70,6 @@ Improvements / minor features
 - Honour icognito mode for cookies etc.
 - Make sure commands in config are _complete_
 - Config should check for unknown sections
-
-- We should use a different config file for keybindings for the following
-  reasons:
-
-  - Special chars in keychains make it hard to bind those.
-  - The concept of "default keys get re-added" is confusing when using
-    keychains as the left-hand-side. But when using it as the RHS, binding
-    multiple keybindings to the same command gets tricky.
-
 - Print keybinding for command in completion [konubinix]
 - "go up in the URL path" mapped to gu for example [egan]
 - command which closes other tabs in a direction [egan]
@@ -146,7 +135,6 @@ style
 - Fix spelling of "temporarely"
 - Make more stuff private
 - Don't keep references to parent QObjects!
-- Use /usr/bin/env python for scripts.
 - Use unittest.Mock and especially unittest.patch more.
 - Use decorators for on_config_changed
     - Will also make it easier to implement section-changed handlers for
