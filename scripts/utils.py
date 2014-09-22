@@ -19,8 +19,20 @@
 
 """Utility functions for scripts."""
 
+import os
 
 use_color = True
+
+
+# Import side-effects are an evil thing, but here it's okay so scripts using
+# colors work on Windows as well.
+try:
+    import colorama
+except ImportError:
+    if os.name == 'nt':
+        use_color = False
+else:
+    colorama.init()
 
 
 fg_colors = {
