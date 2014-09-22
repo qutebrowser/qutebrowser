@@ -89,15 +89,6 @@ class CommandDispatcher:
             return
         frame.setScrollBarValue(orientation, int(m * perc / 100))
 
-    def _prevnext(self, prev, newtab):
-        """Inner logic for :navigate {prev,next}."""
-        widget = self._current_widget()
-        frame = widget.page().currentFrame()
-        if frame is None:
-            raise cmdexc.CommandError("No frame focused!")
-        widget.hintmanager.follow_prevnext(frame, self._tabs.current_url(),
-                                           prev, newtab)
-
     def _tab_move_absolute(self, idx):
         """Get an index for moving a tab absolutely.
 
@@ -322,10 +313,20 @@ class CommandDispatcher:
 
             tab: Open in a new tab.
         """
+        widget = self._current_widget()
+        frame = widget.page().currentFrame()
+        url = self._tabs.current_url()
+        if frame is None:
+            raise cmdexc.CommandError("No frame focused!")
         if where == 'prev':
-            self._prevnext(prev=True, newtab=tab)
+            widget.hintmanager.follow_prevnext(frame, url, prev=True,
+                                               newtab=tab)
         elif where == 'next':
-            self._prevnext(prev=False, newtab=tab)
+            widget.hintmanager.follow_prevnext(frame, url, prev=False,
+                                               newtab=tab)
+        else:
+            raise ValueError("Got called with invalid value {} for "
+                             "`where'.".format(where))
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def scroll(self, dx: float, dy: float, count=1):
