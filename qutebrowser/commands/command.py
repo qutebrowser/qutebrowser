@@ -354,6 +354,12 @@ class Command:
         kwargs = {}
         signature = inspect.signature(self.handler)
 
+        if self.ignore_args:
+            if self.instance is not None:
+                param = list(signature.parameters.values())[0]
+                self._get_self_arg(param, args)
+            return args, kwargs
+
         for i, param in enumerate(signature.parameters.values()):
             if i == 0 and self.instance is not None:
                 # Special case for 'self'.
