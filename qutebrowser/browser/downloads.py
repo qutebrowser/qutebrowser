@@ -137,6 +137,12 @@ class DownloadItem(QObject):
 
     def _die(self, msg):
         """Abort the download and emit an error."""
+        self.reply.downloadProgress.disconnect()
+        self.reply.finished.disconnect()
+        self.reply.error.disconnect()
+        self.reply.readyRead.disconnect()
+        self.bytes_done = self.bytes_total
+        self.timer.stop()
         self.error.emit(msg)
         self.reply.abort()
         self.reply.deleteLater()
