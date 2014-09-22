@@ -30,7 +30,7 @@
 |<<ui-display-statusbar-messages,display-statusbar-messages>>|Whether to display javascript statusbar messages.
 |<<ui-zoom-text-only,zoom-text-only>>|Whether the zoom factor on a frame applies only to the text or to all content.
 |<<ui-frame-flattening,frame-flattening>>|Whether to  expand each subframe to its contents.
-|<<ui-user-stylesheet,user-stylesheet>>|User stylesheet to use.
+|<<ui-user-stylesheet,user-stylesheet>>|User stylesheet to use (absolute filename or CSS string).
 |<<ui-css-media-type,css-media-type>>|Set the CSS media type.
 |==============
 
@@ -79,6 +79,7 @@
 |<<tabs-new-tab-position,new-tab-position>>|How new tabs are positioned.
 |<<tabs-new-tab-position-explicit,new-tab-position-explicit>>|How new tabs opened explicitely are positioned.
 |<<tabs-last-close,last-close>>|Behaviour when the last tab is closed.
+|<<tabs-auto-hide,auto-hide>>|Hide the tabbar if only one tab is open.
 |<<tabs-wrap,wrap>>|Whether to wrap when changing tabs.
 |<<tabs-movable,movable>>|Whether tabs should be movable.
 |<<tabs-close-mouse-button,close-mouse-button>>|On which mouse button to close tabs.
@@ -353,9 +354,9 @@ Default: +pass:[false]+
 
 [[ui-user-stylesheet]]
 === user-stylesheet
-User stylesheet to use.
+User stylesheet to use (absolute filename or CSS string).
 
-Default: empty
+Default: +pass:[::-webkit-scrollbar { width: 0px; height: 0px; }]+
 
 [[ui-css-media-type]]
 === css-media-type
@@ -555,6 +556,12 @@ Valid values:
  * +quit+: Quit qutebrowser.
 
 Default: +pass:[ignore]+
+
+[[tabs-auto-hide]]
+=== auto-hide
+Hide the tabbar if only one tab is open.
+
+Default: +pass:[false]+
 
 [[tabs-wrap]]
 === wrap
@@ -1100,7 +1107,7 @@ Fonts used for the UI, with optional style/weight/size.
 === _monospace
 Default monospace fonts.
 
-Default: +pass:[Terminus, Monospace, &quot;DejaVu Sans Mono&quot;, Consolas, Monaco, &quot;Bitstream Vera Sans Mono&quot;, &quot;Andale Mono&quot;, &quot;Liberation Mono&quot;, &quot;Courier New&quot;, Courier, monospace, Fixed, Terminal]+
+Default: +pass:[Terminus, Monospace, &quot;DejaVu Sans Mono&quot;, Monaco, &quot;Bitstream Vera Sans Mono&quot;, &quot;Andale Mono&quot;, &quot;Liberation Mono&quot;, &quot;Courier New&quot;, Courier, monospace, Fixed, Consolas, Terminal]+
 
 [[fonts-completion]]
 === completion

@@ -15,10 +15,9 @@
 |<<home,home>>|Open main startpage in current tab.
 |<<inspector,inspector>>|Toggle the web inspector.
 |<<later,later>>|Execute a command after some time.
-|<<next-page,next-page>>|Open a "next" link.
+|<<navigate,navigate>>|Open typical prev/next links.
 |<<open,open>>|Open a URL in the current/[count]th tab.
 |<<paste,paste>>|Open a page from the clipboard.
-|<<prev-page,prev-page>>|Open a "previous" link.
 |<<print,print>>|Print the current/[count]th tab.
 |<<quickmark-add,quickmark-add>>|Add a new quickmark.
 |<<quickmark-load,quickmark-load>>|Load a quickmark.
@@ -41,6 +40,7 @@
 |<<tab-prev,tab-prev>>|Switch to the previous tab, or switch [count] tabs back.
 |<<unbind,unbind>>|Unbind a keychain.
 |<<undo,undo>>|Re-open a closed tab (optionally skipping [count] closed tabs).
+|<<view-source,view-source>>|Show the source of the current page.
 |<<yank,yank>>|Yank the current URL/title to the clipboard or primary selection.
 |<<zoom,zoom>>|Set the zoom level for the current tab.
 |<<zoom-in,zoom-in>>|Increase the zoom level for the current tab.
@@ -159,13 +159,22 @@ Execute a command after some time.
 * +'ms'+: How many milliseconds to wait.
 * +'command'+: The command to run, with optional args.
 
-[[next-page]]
-=== next-page
-Syntax: +:next-page [*--tab*]+
+[[navigate]]
+=== navigate
+Syntax: +:navigate [*--tab*] 'where'+
 
-Open a "next" link.
+Open typical prev/next links.
 
-This tries to automatically click on typical _Next Page_ links using some heuristics.
+This tries to automatically click on typical _Previous Page_ or _Next Page_ links using some heuristics.
+
+==== positional arguments
+* +'where'+: What to open. 
+
+ - `prev`: Open a _previous_ link.
+ - `next`: Open a _next_ link.
+ 
+
+
 
 ==== optional arguments
 * +*-t*+, +*--tab*+: Open in a new tab.
@@ -196,17 +205,6 @@ Open a page from the clipboard.
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
 * +*-t*+, +*--tab*+: Open in a new tab.
 * +*-b*+, +*--bg*+: Open in a background tab.
-
-[[prev-page]]
-=== prev-page
-Syntax: +:prev-page [*--tab*]+
-
-Open a "previous" link.
-
-This tries to automatically click on typical _Previous Page_ links using some heuristics.
-
-==== optional arguments
-* +*-t*+, +*--tab*+: Open in a new tab.
 
 [[print]]
 === print
@@ -389,6 +387,10 @@ Unbind a keychain.
 [[undo]]
 === undo
 Re-open a closed tab (optionally skipping [count] closed tabs).
+
+[[view-source]]
+=== view-source
+Show the source of the current page.
 
 [[yank]]
 === yank
