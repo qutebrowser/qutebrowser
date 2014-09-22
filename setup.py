@@ -29,12 +29,25 @@ from scripts import setupcommon as common
 from scripts import ez_setup
 ez_setup.use_setuptools()
 import setuptools
+from setuptools.command.sdist import sdist as cmd_sdist
+from setuptools.command.bdist_rpm import bdist_rpm as cmd_bdist_rpm
+from setuptools.command.bdist_wininst import bdist_wininst as cmd_bdist_wininst
+from setuptools.command.bdist_egg import bdist_egg as cmd_bdist_egg
+from setuptools.command.develop import develop as cmd_develop
 
 
 try:
     BASEDIR = os.path.dirname(os.path.realpath(__file__))
 except NameError:
     BASEDIR = None
+
+
+command_classes = {}
+command_classes['sdist'] = common.patch_docgen(cmd_sdist)
+command_classes['bdist_rpm'] = common.patch_docgen(cmd_bdist_rpm)
+command_classes['bdist_wininst'] = common.patch_docgen(cmd_bdist_wininst)
+command_classes['bdist_egg'] = common.patch_docgen(cmd_bdist_egg)
+command_classes['develop'] = common.patch_docgen(cmd_develop)
 
 
 try:
@@ -50,6 +63,7 @@ try:
         extras_require={'nice-debugging': ['colorlog', 'colorama'],
                         'checks': ['flake8', 'pylint', 'check-manifest',
                                    'pyroma']},
+        cmdclass=command_classes,
         **common.setupdata
     )
 finally:

@@ -92,6 +92,24 @@ def write_git_file():
         f.write(gitstr)
 
 
+def patch_docgen(cls):
+    """Class decorator to patch a setuptool command to generate docs.
+
+    Based on:
+    http://www.niteoweb.com/blog/setuptools-run-custom-code-during-install
+    """
+
+    orig_run = cls.run
+
+    def run(*args, **kwargs):
+        from scripts import asciidoc2html
+        asciidoc2html.main(colors=False)
+        return orig_run(*args, **kwargs)
+
+    cls.run = run
+    return cls
+
+
 setupdata = {
     'name': 'qutebrowser',
     'version': '.'.join(map(str, _get_constant('version_info'))),
