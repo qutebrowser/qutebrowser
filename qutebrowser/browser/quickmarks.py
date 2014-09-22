@@ -71,21 +71,21 @@ def prompt_save(url):
 
 
 @cmdutils.register()
-def quickmark_add(urlstr, name):
+def quickmark_add(url, name):
     """Add a new quickmark.
 
     Args:
-        urlstr: The url to add as quickmark, as string.
+        url: The url to add as quickmark.
         name: The name for the new quickmark.
     """
     if not name:
         raise cmdexc.CommandError("Can't set mark with empty name!")
-    if not urlstr:
+    if not url:
         raise cmdexc.CommandError("Can't set mark with empty URL!")
 
     def set_mark():
         """Really set the quickmark."""
-        marks[name] = urlstr
+        marks[name] = url
 
     if name in marks:
         message.confirm_async("Override existing quickmark?", set_mark,

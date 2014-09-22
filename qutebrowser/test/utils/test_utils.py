@@ -21,6 +21,7 @@
 
 import os
 import sys
+import enum
 import shutil
 import unittest
 import os.path
@@ -524,6 +525,26 @@ class NormalizeTests(unittest.TestCase):
         for orig, repl in strings:
             with self.subTest(orig=orig):
                 self.assertEqual(utils.normalize_keystr(orig), repl)
+
+
+class IsEnumTests(unittest.TestCase):
+
+    """Test is_enum."""
+
+    def test_enum(self):
+        """Test is_enum with an enum."""
+        e = enum.Enum('Foo', 'bar, baz')
+        self.assertTrue(utils.is_enum(e))
+
+    def test_class(self):
+        """Test is_enum with a non-enum class."""
+        # pylint: disable=multiple-statements,missing-docstring
+        class Test: pass
+        self.assertFalse(utils.is_enum(Test))
+
+    def test_object(self):
+        """Test is_enum with a non-enum object."""
+        self.assertFalse(utils.is_enum(23))
 
 
 if __name__ == '__main__':

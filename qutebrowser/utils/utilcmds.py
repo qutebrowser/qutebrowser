@@ -19,10 +19,15 @@
 
 """Misc. utility commands exposed to the user."""
 
-from functools import partial
+import types
+import functools
 
-from qutebrowser.utils import usertypes
+
+from PyQt5.QtCore import QCoreApplication
+
+from qutebrowser.utils import usertypes, log
 from qutebrowser.commands import runners, cmdexc, cmdutils
+from qutebrowser.config import config, style
 
 
 _timers = []
@@ -35,15 +40,14 @@ def init():
     _commandrunner = runners.CommandRunner()
 
 
-@cmdutils.register(nargs=(2, None))
-def later(ms, *command):
+@cmdutils.register()
+def later(ms: int, *command):
     """Execute a command after some time.
 
     Args:
         ms: How many milliseconds to wait.
-        command: The command/args to run.
+        *command: The command to run, with optional args.
     """
-    ms = int(ms)
     timer = usertypes.Timer(name='later')
     timer.setSingleShot(True)
     if ms < 0:
@@ -55,6 +59,51 @@ def later(ms, *command):
                                   "int representation.")
     _timers.append(timer)
     cmdline = ' '.join(command)
-    timer.timeout.connect(partial(_commandrunner.run_safely, cmdline))
+    timer.timeout.connect(functools.partial(
+        _commandrunner.run_safely, cmdline))
     timer.timeout.connect(lambda: _timers.remove(timer))
     timer.start()
+
+
+@cmdutils.register(debug=True)
+def debug_crash(typ: ('exception', 'segfault')='exception'):
+    """Crash for debugging purposes.
+
+    Args:
+        typ: either 'exception' or 'segfault'.
+
+    Raises:
+        raises Exception when typ is not segfault.
+        segfaults when typ is (you don't say...)
+    """
+    if typ == 'segfault':
+        # From python's Lib/test/crashers/bogus_code_obj.py
+        co = types.CodeType(0, 0, 0, 0, 0, b'\x04\x71\x00\x00', (), (), (),
+                            '', '', 1, b'')
+        exec(co)  # pylint: disable=exec-used
+        raise Exception("Segfault failed (wat.)")
+    else:
+        raise Exception("Forced crash")
+
+
+@cmdutils.register(debug=True)
+def debug_all_widgets():
+    """Print a list of all widgets to debug log."""
+    s = QCoreApplication.instance().get_all_widgets()
+    log.misc.debug(s)
+
+
+@cmdutils.register(debug=True)
+def debug_all_objects():
+    """Print a list of  all objects to the debug log."""
+    s = QCoreApplication.instance().get_all_objects()
+    log.misc.debug(s)
+
+
+@cmdutils.register(debug=True)
+def debug_cache_stats():
+    """Print LRU cache stats."""
+    config_info = config.instance().get.cache_info()
+    style_info = style.get_stylesheet.cache_info()
+    log.misc.debug('config: {}'.format(config_info))
+    log.misc.debug('style: {}'.format(style_info))

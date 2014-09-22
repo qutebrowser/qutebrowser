@@ -23,7 +23,7 @@ import re
 import string
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject, QCoreApplication
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils
@@ -57,7 +57,7 @@ class BaseKeyParser(QObject):
                            keychains in a section which does not support them.
         _keystring: The currently entered key sequence
         _timer: Timer for delayed execution.
-        _confsectname: The name of the configsection.
+        _modename: The name of the input mode associated with this keyparser.
         _supports_count: Whether count is supported
         _supports_chains: Whether keychains are supported
 
@@ -77,7 +77,7 @@ class BaseKeyParser(QObject):
                  supports_chains=False):
         super().__init__(parent)
         self._timer = None
-        self._confsectname = None
+        self._modename = None
         self._keystring = ''
         if supports_count is None:
             supports_count = supports_chains
@@ -303,28 +303,26 @@ class BaseKeyParser(QObject):
         self.keystring_updated.emit(self._keystring)
         return handled
 
-    def read_config(self, sectname=None):
+    def read_config(self, modename=None):
         """Read the configuration.
 
         Config format: key = command, e.g.:
             <Ctrl+Q> = quit
 
         Args:
-            sectname: Name of the section to read.
+            modename: Name of the mode to use.
         """
-        if sectname is None:
-            if self._confsectname is None:
-                raise ValueError("read_config called with no section, but "
+        if modename is None:
+            if self._modename is None:
+                raise ValueError("read_config called with no mode given, but "
                                  "None defined so far!")
-            sectname = self._confsectname
+            modename = self._modename
         else:
-            self._confsectname = sectname
+            self._modename = modename
         self.bindings = {}
         self.special_bindings = {}
-        sect = config.section(sectname)
-        if not sect.items():
-            log.keyboard.warning("No keybindings defined!")
-        for (key, cmd) in sect.items():
+        keyconfparser = QCoreApplication.instance().keyconfig
+        for (key, cmd) in keyconfparser.get_bindings_for(modename).items():
             if not cmd:
                 continue
             elif key.startswith('<') and key.endswith('>'):
@@ -334,8 +332,8 @@ class BaseKeyParser(QObject):
                 self.bindings[key] = cmd
             elif self.warn_on_keychains:
                 log.keyboard.warning(
-                    "Ignoring keychain '{}' in section '{}' because "
-                    "keychains are not supported there.".format(key, sectname))
+                    "Ignoring keychain '{}' in mode '{}' because "
+                    "keychains are not supported there.".format(key, modename))
 
     def execute(self, cmdstr, keytype, count=None):
         """Handle a completed keychain.
@@ -347,11 +345,11 @@ class BaseKeyParser(QObject):
         """
         raise NotImplementedError
 
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, _option):
+    @pyqtSlot(str)
+    def on_keyconfig_changed(self, mode):
         """Re-read the config if a keybinding was changed."""
-        if self._confsectname is None:
+        if self._modename is None:
             raise AttributeError("on_config_changed called but no section "
                                  "defined!")
-        if section == self._confsectname:
+        if mode == self._modename:
             self.read_config()

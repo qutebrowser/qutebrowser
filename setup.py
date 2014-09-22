@@ -42,7 +42,6 @@ try:
     setuptools.setup(
         packages=setuptools.find_packages(exclude=['qutebrowser.test']),
         include_package_data=True,
-        package_data={'qutebrowser': ['html/*', 'git-commit-id']},
         entry_points={'gui_scripts':
                       ['qutebrowser = qutebrowser.qutebrowser:main']},
         test_suite='qutebrowser.test',

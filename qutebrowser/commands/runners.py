@@ -19,12 +19,26 @@
 
 """Module containing command managers (SearchRunner and CommandRunner)."""
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QCoreApplication, QUrl
 from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import message, log, utils
+
+
+def replace_variables(arglist):
+    """Utility function to replace variables like {url} in a list of args."""
+    args = []
+    for arg in arglist:
+        if arg == '{url}':
+            app = QCoreApplication.instance()
+            url = app.mainwindow.tabs.current_url().toString(
+                QUrl.FullyEncoded | QUrl.RemovePassword)
+            args.append(url)
+        else:
+            args.append(arg)
+    return args
 
 
 class SearchRunner(QObject):
@@ -198,14 +212,18 @@ class CommandRunner:
         parts = text.strip().split(maxsplit=1)
         if not parts:
             raise cmdexc.NoSuchCommandError("No command given")
-        cmdstr = parts[0]
+        elif len(parts) > 1:
+            cmdstr, argstr = parts
+        else:
+            cmdstr = parts[0]
+            argstr = None
         if aliases:
             new_cmd = self._get_alias(text, alias_no_args)
             if new_cmd is not None:
                 log.commands.debug("Re-parsing with '{}'.".format(new_cmd))
                 return self.parse(new_cmd, aliases=False)
         try:
-            cmd = cmdutils.cmd_dict[cmdstr]
+            self._cmd = cmdutils.cmd_dict[cmdstr]
         except KeyError:
             if fallback:
                 parts = text.split(' ')
@@ -215,36 +233,42 @@ class CommandRunner:
             else:
                 raise cmdexc.NoSuchCommandError(
                     '{}: no such command'.format(cmdstr))
-        if len(parts) == 1:
-            args = []
-        elif cmd.split:
-            args = utils.safe_shlex_split(parts[1])
-        else:
-            args = parts[1].split(maxsplit=cmd.nargs[0] - 1)
-        self._cmd = cmd
-        self._args = args
-        retargs = args[:]
+        self._split_args(argstr)
+        retargs = self._args[:]
         if text.endswith(' '):
             retargs.append('')
         return [cmdstr] + retargs
 
-    def _check(self):
-        """Check if the argument count for the command is correct."""
-        self._cmd.check(self._args)
-
-    def _run(self, count=None):
-        """Run a command with an optional count.
-
-        Args:
-            count: Count to pass to the command.
-        """
-        if count is not None:
-            self._cmd.run(self._args, count=count)
+    def _split_args(self, argstr):
+        """Split the arguments from an arg string."""
+        if argstr is None:
+            self._args = []
+        elif self._cmd.split:
+            self._args = utils.safe_shlex_split(argstr)
         else:
-            self._cmd.run(self._args)
+            # If split=False, we still want to split the flags, but not
+            # everything after that.
+            # We first split the arg string and check the index of the first
+            # non-flag args, then we re-split again properly.
+            # example:
+            #
+            # input: "--foo -v bar baz"
+            # first split: ['--foo', '-v', 'bar', 'baz']
+            #                0        1     2      3
+            # second split: ['--foo', '-v', 'bar baz']
+            # (maxsplit=2)
+            split_args = argstr.split()
+            for i, arg in enumerate(split_args):
+                if not arg.startswith('-'):
+                    self._args = argstr.split(maxsplit=i)
+                    break
+            else:
+                # If there are only flags, we got it right on the first try
+                # already.
+                self._args = split_args
 
     def run(self, text, count=None):
-        """Parse a command from a line of text.
+        """Parse a command from a line of text and run it.
 
         Args:
             text: The text to parse.
@@ -255,8 +279,11 @@ class CommandRunner:
                 self.run(sub, count)
             return
         self.parse(text)
-        self._check()
-        self._run(count=count)
+        args = replace_variables(self._args)
+        if count is not None:
+            self._cmd.run(args, count=count)
+        else:
+            self._cmd.run(args)
 
     @pyqtSlot(str, int)
     def run_safely(self, text, count=None):

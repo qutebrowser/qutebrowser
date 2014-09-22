@@ -49,6 +49,13 @@ class ArgumentCountError(CommandMetaError):
     pass
 
 
+class ArgumentTypeError(CommandMetaError):
+
+    """Raised when an argument had an invalid type."""
+
+    pass
+
+
 class PrerequisitesError(CommandMetaError):
 
     """Raised when a cmd can't be used because some prerequisites aren't met.

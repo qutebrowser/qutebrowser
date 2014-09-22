@@ -23,13 +23,11 @@ Module attributes:
     cmd_dict: A mapping from command-strings to command objects.
 """
 
-import inspect
-import collections
-
-from qutebrowser.utils import usertypes, qtutils
+from qutebrowser.utils import usertypes, qtutils, log
 from qutebrowser.commands import command, cmdexc
 
 cmd_dict = {}
+aliases = []
 
 
 def check_overflow(arg, ctype):
@@ -68,23 +66,19 @@ def arg_or_count(arg, count, default=None, countzero=None):
         The value to use.
 
     Raise:
-        ValueError: If nothing was set or the value couldn't be converted to
-                    an integer.
+        ValueError: If nothing was set.
     """
     if count is not None and arg is not None:
         raise ValueError("Both count and argument given!")
     elif arg is not None:
-        try:
-            return int(arg)
-        except ValueError:
-            raise ValueError("Invalid number: {}".format(arg))
+        return arg
     elif count is not None:
         if countzero is not None and count == 0:
             return countzero
         else:
-            return int(count)
+            return count
     elif default is not None:
-        return int(default)
+        return default
     else:
         raise ValueError("Either count or argument have to be set!")
 
@@ -99,7 +93,6 @@ class register:  # pylint: disable=invalid-name
     Attributes:
         instance: The instance to be used as "self", as a dotted string.
         name: The name (as string) or names (as list) of the command.
-        nargs: A (minargs, maxargs) tuple of valid argument counts, or an int.
         split: Whether to split the arguments.
         hide: Whether to hide the command or not.
         completion: Which completion to use for arguments, as a list of
@@ -107,11 +100,12 @@ class register:  # pylint: disable=invalid-name
         modes/not_modes: List of modes to use/not use.
         needs_js: If javascript is needed for this command.
         debug: Whether this is a debugging command (only shown with --debug).
+        ignore_args: Whether to ignore the arguments of the function.
     """
 
-    def __init__(self, instance=None, name=None, nargs=None, split=True,
-                 hide=False, completion=None, modes=None, not_modes=None,
-                 needs_js=False, debug=False):
+    def __init__(self, instance=None, name=None, split=True, hide=False,
+                 completion=None, modes=None, not_modes=None, needs_js=False,
+                 debug=False, ignore_args=False):
         """Save decorator arguments.
 
         Gets called on parse-time with the decorator arguments.
@@ -125,13 +119,13 @@ class register:  # pylint: disable=invalid-name
         self.name = name
         self.split = split
         self.hide = hide
-        self.nargs = nargs
         self.instance = instance
         self.completion = completion
         self.modes = modes
         self.not_modes = not_modes
         self.needs_js = needs_js
         self.debug = debug
+        self.ignore_args = ignore_args
         if modes is not None:
             for m in modes:
                 if not isinstance(m, usertypes.KeyMode):
@@ -140,6 +134,28 @@ class register:  # pylint: disable=invalid-name
             for m in not_modes:
                 if not isinstance(m, usertypes.KeyMode):
                     raise TypeError("Mode {} is no KeyMode member!".format(m))
+
+    def _get_names(self, func):
+        """Get the name(s) which should be used for the current command.
+
+        If the name hasn't been overridden explicitely, the function name is
+        transformed.
+
+        If it has been set, it can either be a string which is
+        used directly, or an iterable.
+
+        Args:
+            func: The function to get the name of.
+
+        Return:
+            A list of names, with the main name being the first item.
+        """
+        if self.name is None:
+            return [func.__name__.lower().replace('_', '-')]
+        elif isinstance(self.name, str):
+            return [self.name]
+        else:
+            return self.name
 
     def __call__(self, func):
         """Register the command before running the function.
@@ -155,74 +171,18 @@ class register:  # pylint: disable=invalid-name
         Return:
             The original function (unmodified).
         """
-        names = []
-        if self.name is None:
-            name = func.__name__.lower().replace('_', '-')
-        else:
-            name = self.name
-        if isinstance(name, str):
-            mainname = name
-            names.append(name)
-        else:
-            mainname = name[0]
-            names += name
-        if mainname in cmd_dict:
-            raise ValueError("{} is already registered!".format(name))
-        argspec = inspect.getfullargspec(func)
-        if 'self' in argspec.args and self.instance is None:
-            raise ValueError("{} is a class method, but instance was not "
-                             "given!".format(mainname))
-        count, nargs = self._get_nargs_count(argspec)
-        if func.__doc__ is not None:
-            desc = func.__doc__.splitlines()[0].strip()
-        else:
-            desc = ""
+        global aliases
+        names = self._get_names(func)
+        log.commands.vdebug("Registering command {}".format(names[0]))
+        for name in names:
+            if name in cmd_dict:
+                raise ValueError("{} is already registered!".format(name))
         cmd = command.Command(
-            name=mainname, split=self.split, hide=self.hide, nargs=nargs,
-            count=count, desc=desc, instance=self.instance, handler=func,
-            completion=self.completion, modes=self.modes,
-            not_modes=self.not_modes, needs_js=self.needs_js, debug=self.debug)
+            name=names[0], split=self.split, hide=self.hide,
+            instance=self.instance, completion=self.completion,
+            modes=self.modes, not_modes=self.not_modes, needs_js=self.needs_js,
+            is_debug=self.debug, ignore_args=self.ignore_args, handler=func)
         for name in names:
             cmd_dict[name] = cmd
+        aliases += names[1:]
         return func
-
-    def _get_nargs_count(self, spec):
-        """Get the number of command-arguments and count-support for a func.
-
-        Args:
-            spec: A FullArgSpec as returned by inspect.
-
-        Return:
-            A (count, (minargs, maxargs)) tuple, with maxargs=None if there are
-            infinite args. count is True if the function supports count, else
-            False.
-
-            Mapping from old nargs format to (minargs, maxargs):
-                ?   (0, 1)
-                N   (N, N)
-                +   (1, None)
-                *   (0, None)
-        """
-        count = 'count' in spec.args
-        # we assume count always has a default (and it should!)
-        if self.nargs is not None:
-            # If nargs is overriden, use that.
-            if isinstance(self.nargs, collections.Iterable):
-                # Iterable (min, max)
-                # pylint: disable=unpacking-non-sequence
-                minargs, maxargs = self.nargs
-            else:
-                # Single int
-                minargs, maxargs = self.nargs, self.nargs
-        else:
-            defaultcount = (len(spec.defaults) if spec.defaults is not None
-                            else 0)
-            argcount = len(spec.args)
-            if 'self' in spec.args:
-                argcount -= 1
-            minargs = argcount - defaultcount
-            if spec.varargs is not None:
-                maxargs = None
-            else:
-                maxargs = argcount - int(count)  # -1 if count is defined
-        return (count, (minargs, maxargs))

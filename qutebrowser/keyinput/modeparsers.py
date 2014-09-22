@@ -41,7 +41,7 @@ class NormalKeyParser(keyparser.CommandKeyParser):
 
     def __init__(self, parent=None):
         super().__init__(parent, supports_count=True, supports_chains=True)
-        self.read_config('keybind')
+        self.read_config('normal')
 
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
@@ -69,8 +69,8 @@ class PromptKeyParser(keyparser.CommandKeyParser):
     def __init__(self, parent=None):
         super().__init__(parent, supports_count=False, supports_chains=True)
         # We don't want an extra section for this in the config, so we just
-        # abuse the keybind.prompt section.
-        self.read_config('keybind.prompt')
+        # abuse the prompt section.
+        self.read_config('prompt')
 
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
@@ -98,7 +98,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
         super().__init__(parent, supports_count=False, supports_chains=True)
         self._filtertext = ''
         self._last_press = LastPress.none
-        self.read_config('keybind.hint')
+        self.read_config('hint')
 
     def _handle_special_key(self, e):
         """Override _handle_special_key to handle string filtering.

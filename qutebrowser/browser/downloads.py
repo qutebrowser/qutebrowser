@@ -365,7 +365,11 @@ class DownloadManager(QObject):
 
     @cmdutils.register(instance='downloadmanager')
     def cancel_download(self, count=1):
-        """Cancel the first/[count]th download."""
+        """Cancel the first/[count]th download.
+
+        Args:
+            count: The index of the download to cancel.
+        """
         if count == 0:
             return
         try:

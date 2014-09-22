@@ -46,6 +46,10 @@ After installing the <<requirements,requirements>>, you have these options:
 * Run `python3 setup.py install` to install qutebrowser, then call
 `qutebrowser`.
 
+NOTE: If you're running qutebrowser from the git repository rather than a
+released version, you should run `scripts/asciidoc2html.py` to generate the
+documentation.
+
 Contributions / Bugs
 --------------------
 

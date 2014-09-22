@@ -38,7 +38,7 @@ from PyQt5.QtCore import (pyqtSlot, QTimer, QEventLoop, Qt, QStandardPaths,
 import qutebrowser
 from qutebrowser.commands import userscripts, runners, cmdutils
 from qutebrowser.config import (style, config, websettings, iniparsers,
-                                lineparser, configtypes)
+                                lineparser, configtypes, keyconfparser)
 from qutebrowser.network import qutescheme, proxy
 from qutebrowser.browser import quickmarks, cookies, downloads, cache
 from qutebrowser.widgets import mainwindow, console, crash
@@ -104,6 +104,7 @@ class Application(QApplication):
         self.modeman = None
         self.cmd_history = None
         self.config = None
+        self.keyconfig = None
 
         sys.excepthook = self._exception_hook
 
@@ -176,6 +177,8 @@ class Application(QApplication):
                                                self)
         except (configtypes.ValidationError,
                 config.NoOptionError,
+                config.NoSectionError,
+                config.UnknownSectionError,
                 config.InterpolationSyntaxError,
                 configparser.InterpolationError,
                 configparser.DuplicateSectionError,
@@ -191,6 +194,20 @@ class Application(QApplication):
             msgbox.exec_()
             # We didn't really initialize much so far, so we just quit hard.
             sys.exit(1)
+        try:
+            self.keyconfig = keyconfparser.KeyConfigParser(
+                confdir, 'keys.conf')
+        except keyconfparser.KeyConfigError as e:
+            log.init.exception(e)
+            errstr = "Error while reading key config:\n"
+            if e.lineno is not None:
+                errstr += "In line {}: ".format(e.lineno)
+            errstr += str(e)
+            msgbox = QMessageBox(QMessageBox.Critical,
+                                 "Error while reading key config!", errstr)
+            msgbox.exec_()
+            # We didn't really initialize much so far, so we just quit hard.
+            sys.exit(1)
         self.stateconfig = iniparsers.ReadWriteConfigParser(confdir, 'state')
         self.cmd_history = lineparser.LineConfigParser(
             confdir, 'cmd_history', ('completion', 'history-length'))
@@ -203,14 +220,13 @@ class Application(QApplication):
             utypes.KeyMode.hint:
                 modeparsers.HintKeyParser(self),
             utypes.KeyMode.insert:
-                keyparser.PassthroughKeyParser('keybind.insert', self),
+                keyparser.PassthroughKeyParser('insert', self),
             utypes.KeyMode.passthrough:
-                keyparser.PassthroughKeyParser('keybind.passthrough', self),
+                keyparser.PassthroughKeyParser('passthrough', self),
             utypes.KeyMode.command:
-                keyparser.PassthroughKeyParser('keybind.command', self),
+                keyparser.PassthroughKeyParser('command', self),
             utypes.KeyMode.prompt:
-                keyparser.PassthroughKeyParser('keybind.prompt', self,
-                                               warn=False),
+                keyparser.PassthroughKeyParser('prompt', self, warn=False),
             utypes.KeyMode.yesno:
                 modeparsers.PromptKeyParser(self),
         }
@@ -402,9 +418,10 @@ class Application(QApplication):
         # config
         self.config.style_changed.connect(style.get_stylesheet.cache_clear)
         for obj in (tabs, completion, self.mainwindow, self.cmd_history,
-                    websettings, kp[utypes.KeyMode.normal], self.modeman,
-                    status, status.txt):
+                    websettings, self.modeman, status, status.txt):
             self.config.changed.connect(obj.on_config_changed)
+        for obj in kp.values():
+            self.keyconfig.changed.connect(obj.on_keyconfig_changed)
 
         # statusbar
         # FIXME some of these probably only should be triggered on mainframe
@@ -575,7 +592,7 @@ class Application(QApplication):
         self._destroy_crashlogfile()
         sys.exit(1)
 
-    @cmdutils.register(instance='', nargs=0)
+    @cmdutils.register(instance='', ignore_args=True)
     def restart(self, shutdown=True, pages=None):
         """Restart qutebrowser while keeping existing tabs open."""
         # We don't use _recover_pages here as it's too forgiving when
@@ -711,7 +728,7 @@ class Application(QApplication):
             # event loop, so we can shut down immediately.
             self._shutdown(status)
 
-    def _shutdown(self, status):
+    def _shutdown(self, status):  # noqa
         """Second stage of shutdown."""
         log.destroy.debug("Stage 2 of shutting down...")
         # Remove eventfilter
@@ -726,7 +743,10 @@ class Application(QApplication):
         if hasattr(self, 'config') and self.config is not None:
             to_save = []
             if self.config.get('general', 'auto-save-config'):
-                to_save.append(("config", self.config.save))
+                if hasattr(self, 'config'):
+                    to_save.append(("config", self.config.save))
+                if hasattr(self, 'keyconfig'):
+                    to_save.append(("keyconfig", self.keyconfig.save))
             to_save += [("window geometry", self._save_geometry),
                         ("quickmarks", quickmarks.save)]
             if hasattr(self, 'cmd_history'):

@@ -58,7 +58,7 @@ class SettingOptionCompletionModel(basecompletion.BaseCompletionModel):
         sectdata = configdata.DATA[section]
         self._misc_items = {}
         self._section = section
-        for name, _ in sectdata.items():
+        for name in sectdata.keys():
             try:
                 desc = sectdata.descriptions[name]
             except (KeyError, AttributeError):
@@ -165,3 +165,45 @@ class CommandCompletionModel(basecompletion.BaseCompletionModel):
         cat = self.new_category("Commands")
         for (name, desc) in sorted(cmdlist):
             self.new_item(cat, name, desc)
+
+
+class HelpCompletionModel(basecompletion.BaseCompletionModel):
+
+    """A CompletionModel filled with help topics."""
+
+    # pylint: disable=abstract-method
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._init_commands()
+        self._init_settings()
+
+    def _init_commands(self):
+        """Fill completion with :command entries."""
+        assert cmdutils.cmd_dict
+        cmdlist = []
+        for obj in set(cmdutils.cmd_dict.values()):
+            if obj.hide or (obj.debug and not
+                            QCoreApplication.instance().args.debug):
+                pass
+            else:
+                cmdlist.append((':' + obj.name, obj.desc))
+        cat = self.new_category("Commands")
+        for (name, desc) in sorted(cmdlist):
+            self.new_item(cat, name, desc)
+
+    def _init_settings(self):
+        """Fill completion with section->option entries."""
+        cat = self.new_category("Settings")
+        for sectname, sectdata in configdata.DATA.items():
+            for optname in sectdata.keys():
+                try:
+                    desc = sectdata.descriptions[optname]
+                except (KeyError, AttributeError):
+                    # Some stuff (especially ValueList items) don't have a
+                    # description.
+                    desc = ""
+                else:
+                    desc = desc.splitlines()[0]
+                name = '{}->{}'.format(sectname, optname)
+                self.new_item(cat, name, desc)

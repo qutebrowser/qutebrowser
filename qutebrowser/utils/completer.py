@@ -57,13 +57,15 @@ class Completer(QObject):
             usertypes.Completion.option: {},
             usertypes.Completion.value: {},
         }
-        self._init_command_completion()
+        self._init_static_completions()
         self._init_setting_completions()
 
-    def _init_command_completion(self):
-        """Initialize the command completion model."""
+    def _init_static_completions(self):
+        """Initialize the static completion models."""
         self._models[usertypes.Completion.command] = CFM(
             models.CommandCompletionModel(self), self)
+        self._models[usertypes.Completion.helptopic] = CFM(
+            models.HelpCompletionModel(self), self)
 
     def _init_setting_completions(self):
         """Initialize setting completion models."""

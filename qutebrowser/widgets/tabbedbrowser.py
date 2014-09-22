@@ -22,7 +22,7 @@
 import functools
 
 from PyQt5.QtWidgets import QSizePolicy
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QSize, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QSize, QTimer, QUrl
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWebKitWidgets import QWebPage
 
@@ -205,7 +205,11 @@ class TabbedBrowser(tabwidget.TabWidget):
         Raise:
             CommandError if the current URL is invalid.
         """
-        url = self.currentWidget().cur_url
+        widget = self.currentWidget()
+        if widget is None:
+            url = QUrl()
+        else:
+            url = widget.cur_url
         try:
             qtutils.ensure_valid(url)
         except qtutils.QtValueError as e:

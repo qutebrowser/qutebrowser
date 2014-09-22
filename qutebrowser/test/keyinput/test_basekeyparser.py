@@ -31,13 +31,15 @@ from qutebrowser.keyinput import basekeyparser
 from qutebrowser.test import stubs, helpers
 
 
-CONFIG = {'test': {'<Ctrl-a>': 'ctrla',
-                   'a': 'a',
-                   'ba': 'ba',
-                   'ax': 'ax',
-                   'ccc': 'ccc'},
-          'input': {'timeout': 100},
-          'test2': {'foo': 'bar', '<Ctrl+X>': 'ctrlx'}}
+CONFIG = {'input': {'timeout': 100}}
+
+
+BINDINGS = {'test': {'<Ctrl-a>': 'ctrla',
+                     'a': 'a',
+                     'ba': 'ba',
+                     'ax': 'ax',
+                     'ccc': 'ccc'},
+            'test2': {'foo': 'bar', '<Ctrl+X>': 'ctrlx'}}
 
 
 def setUpModule():
@@ -49,6 +51,14 @@ def setUpModule():
 def tearDownModule():
     """Restore mocked out stuff."""
     logging.disable(logging.NOTSET)
+
+
+def _get_fake_application():
+    """Construct a fake QApplication with a keyconfig."""
+    app = stubs.FakeQApplication()
+    app.keyconfig = mock.Mock(spec=['get_bindings_for'])
+    app.keyconfig.get_bindings_for.side_effect = lambda s: BINDINGS[s]
+    return app
 
 
 class SplitCountTests(unittest.TestCase):
@@ -99,7 +109,7 @@ class ReadConfigTests(unittest.TestCase):
     """Test reading the config."""
 
     def setUp(self):
-        basekeyparser.config = stubs.ConfigStub(CONFIG)
+        basekeyparser.QCoreApplication = _get_fake_application()
         basekeyparser.usertypes.Timer = mock.Mock()
 
     def test_read_config_invalid(self):
@@ -136,7 +146,7 @@ class SpecialKeysTests(unittest.TestCase):
             autospec=True)
         patcher.start()
         self.addCleanup(patcher.stop)
-        basekeyparser.config = stubs.ConfigStub(CONFIG)
+        basekeyparser.QCoreApplication = _get_fake_application()
         self.kp = basekeyparser.BaseKeyParser()
         self.kp.execute = mock.Mock()
         self.kp.read_config('test')
@@ -171,7 +181,7 @@ class KeyChainTests(unittest.TestCase):
 
     def setUp(self):
         """Set up mocks and read the test config."""
-        basekeyparser.config = stubs.ConfigStub(CONFIG)
+        basekeyparser.QCoreApplication = _get_fake_application()
         self.timermock = mock.Mock()
         basekeyparser.usertypes.Timer = mock.Mock(return_value=self.timermock)
         self.kp = basekeyparser.BaseKeyParser(supports_chains=True,
@@ -205,6 +215,7 @@ class KeyChainTests(unittest.TestCase):
 
     def test_ambigious_keychain(self):
         """Test ambigious keychain."""
+        basekeyparser.config = stubs.ConfigStub(CONFIG)
         # We start with 'a' where the keychain gives us an ambigious result.
         # Then we check if the timer has been set up correctly
         self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='a'))
@@ -235,7 +246,7 @@ class CountTests(unittest.TestCase):
     """Test execute() with counts."""
 
     def setUp(self):
-        basekeyparser.config = stubs.ConfigStub(CONFIG)
+        basekeyparser.QCoreApplication = _get_fake_application()
         basekeyparser.usertypes.Timer = mock.Mock()
         self.kp = basekeyparser.BaseKeyParser(supports_chains=True,
                                               supports_count=True)

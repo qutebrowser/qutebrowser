@@ -110,8 +110,7 @@ class FakeQApplication:
 
     """Stub to insert as QApplication module."""
 
-    def __init__(self, focus):
-        self.focusWidget = mock.Mock(return_value=focus)
+    def __init__(self):
         self.instance = mock.Mock(return_value=self)
 
 

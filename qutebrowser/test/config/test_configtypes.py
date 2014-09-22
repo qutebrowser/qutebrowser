@@ -1735,32 +1735,6 @@ class SearchEngineUrlTests(unittest.TestCase):
         self.assertEqual(self.t.transform("foobar"), "foobar")
 
 
-class KeyBindingNameTests(unittest.TestCase):
-
-    """Test KeyBindingName."""
-
-    def setUp(self):
-        self.t = configtypes.KeyBindingName()
-
-    def test_validate_empty(self):
-        """Test validate with empty string and none_ok = False."""
-        with self.assertRaises(configtypes.ValidationError):
-            self.t.validate('')
-
-    def test_validate_empty_none_ok(self):
-        """Test validate with empty string and none_ok = True."""
-        t = configtypes.KeyBindingName(none_ok=True)
-        t.validate('')
-
-    def test_transform_empty(self):
-        """Test transform with an empty value."""
-        self.assertIsNone(self.t.transform(''))
-
-    def test_transform(self):
-        """Test transform with a value."""
-        self.assertEqual(self.t.transform("foobar"), "foobar")
-
-
 class UserStyleSheetTests(unittest.TestCase):
 
     """Test UserStyleSheet."""

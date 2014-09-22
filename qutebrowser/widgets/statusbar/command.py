@@ -19,7 +19,7 @@
 
 """The commandline in the statusbar."""
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QCoreApplication, QUrl
 from PyQt5.QtWidgets import QSizePolicy, QApplication
 
 from qutebrowser.keyinput import modeman, modeparsers
@@ -161,7 +161,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.show_cmd.emit()
 
     @cmdutils.register(instance='mainwindow.status.cmd', name='set-cmd-text')
-    def set_cmd_text_command(self, *strings):
+    def set_cmd_text_command(self, text):
         """Preset the statusbar to some text.
 
         //
@@ -170,9 +170,16 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         strings which will get joined.
 
         Args:
-            strings: A list of strings to set.
+            text: The commandline to set.
         """
-        text = ' '.join(strings)
+        app = QCoreApplication.instance()
+        url = app.mainwindow.tabs.current_url().toString(
+            QUrl.FullyEncoded | QUrl.RemovePassword)
+        # FIXME we currently replace the URL in any place in the arguments,
+        # rather than just replacing it if it is a dedicated argument. We could
+        # split the args, but then trailing spaces would be lost, so I'm not
+        # sure what's the best thing to do here
+        text = text.replace('{url}', url)
         if not text[0] in modeparsers.STARTCHARS:
             raise cmdexc.CommandError(
                 "Invalid command text '{}'.".format(text))

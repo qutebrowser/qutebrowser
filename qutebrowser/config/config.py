@@ -26,7 +26,6 @@ we borrow some methods and classes from there where it makes sense.
 
 import os
 import os.path
-import textwrap
 import functools
 import configparser
 import collections.abc
@@ -34,7 +33,7 @@ import collections.abc
 from PyQt5.QtCore import pyqtSignal, QObject, QCoreApplication
 
 from qutebrowser.utils import log
-from qutebrowser.config import configdata, iniparsers, configtypes
+from qutebrowser.config import configdata, iniparsers, configtypes, textwrapper
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import message
 from qutebrowser.utils.usertypes import Completion
@@ -76,6 +75,13 @@ class InterpolationSyntaxError(ValueError):
     pass
 
 
+class UnknownSectionError(Exception):
+
+    """Exception raised when there was an unknwon section in the config."""
+
+    pass
+
+
 class ConfigManager(QObject):
 
     """Configuration manager for qutebrowser.
@@ -89,7 +95,6 @@ class ConfigManager(QObject):
         sections: The configuration data as an OrderedDict.
         _fname: The filename to be opened.
         _configparser: A ReadConfigParser instance to load the config.
-        _wrapper_args: A dict with the default kwargs for the config wrappers.
         _configdir: The dictionary to read the config from and save it in.
         _configfile: The config file path.
         _interpolation: An configparser.Interpolation object
@@ -115,12 +120,6 @@ class ConfigManager(QObject):
         self.sections = configdata.DATA
         self._configparser = iniparsers.ReadConfigParser(configdir, fname)
         self._configfile = os.path.join(configdir, fname)
-        self._wrapper_args = {
-            'width': 72,
-            'replace_whitespace': False,
-            'break_long_words': False,
-            'break_on_hyphens': False,
-        }
         self._configdir = configdir
         self._fname = fname
         self._interpolation = configparser.ExtendedInterpolation()
@@ -149,9 +148,7 @@ class ConfigManager(QObject):
 
     def _str_section_desc(self, sectname):
         """Get the section description string for sectname."""
-        wrapper = textwrap.TextWrapper(initial_indent='# ',
-                                       subsequent_indent='# ',
-                                       **self._wrapper_args)
+        wrapper = textwrapper.TextWrapper()
         lines = []
         seclines = configdata.SECTION_DESC[sectname].splitlines()
         for secline in seclines:
@@ -163,9 +160,8 @@ class ConfigManager(QObject):
 
     def _str_option_desc(self, sectname, sect):
         """Get the option description strings for sect/sectname."""
-        wrapper = textwrap.TextWrapper(initial_indent='#' + ' ' * 5,
-                                       subsequent_indent='#' + ' ' * 5,
-                                       **self._wrapper_args)
+        wrapper = textwrapper.TextWrapper(initial_indent='#' + ' ' * 5,
+                                          subsequent_indent='#' + ' ' * 5)
         lines = []
         if not getattr(sect, 'descriptions', None):
             return lines
@@ -217,7 +213,11 @@ class ConfigManager(QObject):
         Args:
             cp: The configparser instance to read the values from.
         """
-        for sectname in self.sections.keys():
+        for sectname in cp:
+            if sectname is not 'DEFAULT' and sectname not in self.sections:
+                raise UnknownSectionError("Unknown section '{}'!".format(
+                    sectname))
+        for sectname in self.sections:
             if sectname not in cp:
                 continue
             for k, v in cp[sectname].items():
@@ -307,28 +307,6 @@ class ConfigManager(QObject):
             self.get.cache_clear()
         return existed
 
-    @cmdutils.register(name='get', instance='config',
-                       completion=[Completion.section, Completion.option])
-    def get_wrapper(self, sectname, optname):
-        """Get the value from a section/option.
-
-        //
-
-        Wrapper for the get-command to output the value in the status bar.
-
-        Args:
-            sectname: The section where the option is in.
-            optname: The name of the option.
-        """
-        try:
-            val = self.get(sectname, optname, transformed=False)
-        except (NoOptionError, NoSectionError) as e:
-            raise cmdexc.CommandError("get: {} - {}".format(
-                e.__class__.__name__, e))
-        else:
-            message.info("{} {} = {}".format(sectname, optname, val),
-                         immediately=True)
-
     @functools.lru_cache()
     def get(self, sectname, optname, raw=False, transformed=True):
         """Get the value from a section/option.
@@ -365,9 +343,13 @@ class ConfigManager(QObject):
     @cmdutils.register(name='set', instance='config',
                        completion=[Completion.section, Completion.option,
                                    Completion.value])
-    def set_wrapper(self, sectname, optname, value):
+    def set_command(self, sectname: {'name': 'section'},
+                    optname: {'name': 'option'}, value=None, temp=False):
         """Set an option.
 
+        If the option name ends with '?', the value of the option is shown
+        instead.
+
         //
 
         Wrapper for self.set() to output exceptions in the status bar.
@@ -376,33 +358,21 @@ class ConfigManager(QObject):
             sectname: The section where the option is in.
             optname: The name of the option.
             value: The value to set.
+            temp: Set value temporarily.
         """
         try:
-            self.set('conf', sectname, optname, value)
+            if optname.endswith('?'):
+                val = self.get(sectname, optname[:-1], transformed=False)
+                message.info("{} {} = {}".format(sectname, optname[:-1], val),
+                             immediately=True)
+            else:
+                if value is None:
+                    raise cmdexc.CommandError("set: The following arguments "
+                                              "are required: value")
+                layer = 'temp' if temp else 'conf'
+                self.set(layer, sectname, optname, value)
         except (NoOptionError, NoSectionError, configtypes.ValidationError,
                 ValueError) as e:
-            raise cmdexc.CommandError("set: {} - {}".format(
-                e.__class__.__name__, e))
-
-    @cmdutils.register(name='set-temp', instance='config',
-                       completion=[Completion.section, Completion.option,
-                                   Completion.value])
-    def set_temp_wrapper(self, sectname, optname, value):
-        """Set a temporary option.
-
-        //
-
-        Wrapper for self.set() to output exceptions in the status bar.
-
-        Args:
-            sectname: The section where the option is in.
-            optname: The name of the option.
-            value: The value to set.
-        """
-        try:
-            self.set('temp', sectname, optname, value)
-        except (NoOptionError, NoSectionError,
-                configtypes.ValidationError) as e:
             raise cmdexc.CommandError("set: {} - {}".format(
                 e.__class__.__name__, e))
 

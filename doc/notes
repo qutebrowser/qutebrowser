@@ -61,3 +61,17 @@ Completion view (not QTreeView)
 
 Perhaps using a QHBoxLayout of QTableViews and creating/destroying them based
 on the completion would be a better idea?
+
+HTML help pages
+===============
+
+- Only generate HTML when releasing (and ship it with the releases!)
+  (setuptools integration)
+X Update asciidoc along with source updates
+X Provide script to generate HTML from asciidoc
+- Show error page with some instructions when HTMLs are missing.
+- Show some kind of message when:
+    - .html files are found
+    - .asciidoc files are found (because qutebrowser is running locally from
+      gitrepo)
+    - .asciidoc files are newer than .html files
