@@ -21,6 +21,7 @@
 
 import os
 import subprocess
+import posixpath
 from functools import partial
 
 from PyQt5.QtWidgets import QApplication
@@ -299,17 +300,20 @@ class CommandDispatcher:
         self._current_widget().hintmanager.follow_hint()
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
-    def navigate(self, where : ('prev', 'next'), tab=False):
-        """Open typical prev/next links.
+    def navigate(self, where: ('prev', 'next', 'up'), tab=False):
+        """Open typical prev/next links or navigate using the URL path.
 
         This tries to automatically click on typical _Previous Page_ or
         _Next Page_ links using some heuristics.
+
+        Alternatively it can navigate by changing the current URL.
 
         Args:
             where: What to open.
 
                 - `prev`: Open a _previous_ link.
                 - `next`: Open a _next_ link.
+                - `up`: Go up a level in the current URL.
 
             tab: Open in a new tab.
         """
@@ -324,6 +328,16 @@ class CommandDispatcher:
         elif where == 'next':
             widget.hintmanager.follow_prevnext(frame, url, prev=False,
                                                newtab=tab)
+        elif where == 'up':
+            path = url.path()
+            if not path or path == '/':
+                raise cmdexc.CommandError("Can't go up!")
+            new_path = posixpath.join(path, posixpath.pardir)
+            url.setPath(new_path)
+            if tab:
+                self._tabs.tabopen(url, background=False, explicit=True)
+            else:
+                widget.openurl(url)
         else:
             raise ValueError("Got called with invalid value {} for "
                              "`where'.".format(where))

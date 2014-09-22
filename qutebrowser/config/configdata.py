@@ -931,6 +931,8 @@ KEY_DATA = collections.OrderedDict([
         ('navigate next', [']]']),
         ('navigate prev -t', ['{{']),
         ('navigate next -t', ['}}']),
+        ('navigate up', ['gu']),
+        ('navigate up -t', ['gU']),
         ('inspector', ['wi']),
         ('download-page', ['gd']),
         ('cancel-download', ['ad']),

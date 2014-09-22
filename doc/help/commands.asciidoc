@@ -15,7 +15,7 @@
 |<<home,home>>|Open main startpage in current tab.
 |<<inspector,inspector>>|Toggle the web inspector.
 |<<later,later>>|Execute a command after some time.
-|<<navigate,navigate>>|Open typical prev/next links.
+|<<navigate,navigate>>|Open typical prev/next links or navigate using the URL path.
 |<<open,open>>|Open a URL in the current/[count]th tab.
 |<<paste,paste>>|Open a page from the clipboard.
 |<<print,print>>|Print the current/[count]th tab.
@@ -163,15 +163,16 @@ Execute a command after some time.
 === navigate
 Syntax: +:navigate [*--tab*] 'where'+
 
-Open typical prev/next links.
+Open typical prev/next links or navigate using the URL path.
 
-This tries to automatically click on typical _Previous Page_ or _Next Page_ links using some heuristics.
+This tries to automatically click on typical _Previous Page_ or _Next Page_ links using some heuristics. Alternatively it can navigate by changing the current URL.
 
 ==== positional arguments
 * +'where'+: What to open. 
 
  - `prev`: Open a _previous_ link.
  - `next`: Open a _next_ link.
+ - `up`: Go up a level in the current URL.
  
 
 
