@@ -23,6 +23,7 @@ pkgver() {
 
 package() {
   cd "$srcdir/qutebrowser"
+  python scripts/asciidoc2html.py
   python setup.py install --root="$pkgdir/" --optimize=1
   a2x -f manpage doc/qutebrowser.1.asciidoc
   install -Dm644 doc/qutebrowser.1 "$pkgdir/usr/share/man/man1/qutebrowser.1"
