@@ -10,6 +10,6 @@ __pycache__
 /setuptools-*.egg
 /setuptools-*.zip
 /qutebrowser/git-commit-id
-# We can probably remove these later
 /doc/*.html
 /README.html
+/qutebrowser/html/doc/
