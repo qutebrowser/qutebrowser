@@ -308,28 +308,24 @@ class CommandDispatcher:
         self._current_widget().hintmanager.follow_hint()
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
-    def prev_page(self, tab=False):
-        """Open a "previous" link.
+    def navigate(self, where : ('prev', 'next'), tab=False):
+        """Open typical prev/next links.
 
-        This tries to automatically click on typical _Previous Page_ links
-        using some heuristics.
-
-        Args:
-            tab: Open in a new tab.
-        """
-        self._prevnext(prev=True, newtab=tab)
-
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
-    def next_page(self, tab=False):
-        """Open a "next" link.
-
-        This tries to automatically click on typical _Next Page_ links using
-        some heuristics.
+        This tries to automatically click on typical _Previous Page_ or
+        _Next Page_ links using some heuristics.
 
         Args:
+            where: What to open.
+
+                - `prev`: Open a _previous_ link.
+                - `next`: Open a _next_ link.
+
             tab: Open in a new tab.
         """
-        self._prevnext(prev=False, newtab=tab)
+        if where == 'prev':
+            self._prevnext(prev=True, newtab=tab)
+        elif where == 'next':
+            self._prevnext(prev=False, newtab=tab)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
     def scroll(self, dx: float, dy: float, count=1):
