@@ -152,7 +152,7 @@ def init_log(args):
 
 @contextlib.contextmanager
 def disable_qt_msghandler():
-    """Contextmanager which temporarely disables the Qt message handler."""
+    """Contextmanager which temporarily disables the Qt message handler."""
     old_handler = qInstallMessageHandler(None)
     yield
     qInstallMessageHandler(old_handler)

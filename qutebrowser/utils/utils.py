@@ -118,7 +118,7 @@ def safe_shlex_split(s):
     soon as ", ' or \ is typed, the string is invalid for shlex,
     because it encounters EOF while in quote/escape state.
 
-    Here we fix this error temporarely so shlex doesn't blow up,
+    Here we fix this error temporarily so shlex doesn't blow up,
     and then retry splitting again.
 
     Since shlex raises ValueError in both cases we unfortunately
@@ -179,7 +179,7 @@ def get_standard_dir(typ):
     """
     qapp = QCoreApplication.instance()
     orgname = qapp.organizationName()
-    # We need to temporarely unset the organisationname here since the
+    # We need to temporarily unset the organisationname here since the
     # webinspector wants it to be set to store its persistent data correctly,
     # but we don't want that to happen.
     qapp.setOrganizationName(None)
@@ -508,7 +508,7 @@ def fake_io(write_func):
 
 @contextlib.contextmanager
 def disabled_excepthook():
-    """Run code with the exception hook temporarely disabled."""
+    """Run code with the exception hook temporarily disabled."""
     old_excepthook = sys.excepthook
     sys.excepthook = sys.__excepthook__
     yield

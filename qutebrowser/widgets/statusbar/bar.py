@@ -332,7 +332,7 @@ class StatusBar(QWidget):
             log.statusbar.debug("ignoring")
         elif immediately:
             # This message is a reaction to a keypress and should be displayed
-            # immediately, temporarely interrupting the message queue.
+            # immediately, temporarily interrupting the message queue.
             # We display this immediately and restart the timer.to clear it and
             # display the rest of the queue later.
             log.statusbar.debug("Moving to beginning of queue")
