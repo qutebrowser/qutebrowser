@@ -90,7 +90,7 @@ class CommandDispatcher:
         frame.setScrollBarValue(orientation, int(m * perc / 100))
 
     def _prevnext(self, prev, newtab):
-        """Inner logic for {tab,}{prev,next}page."""
+        """Inner logic for :navigate {prev,next}."""
         widget = self._current_widget()
         frame = widget.page().currentFrame()
         if frame is None:
