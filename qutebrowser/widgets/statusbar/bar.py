@@ -107,7 +107,7 @@ class StatusBar(QWidget):
             {{ color['statusbar.bg.error'] }}
         }
 
-        QWidget {
+        QLabel, QLineEdit {
             {{ color['statusbar.fg'] }}
             {{ font['statusbar'] }}
         }
