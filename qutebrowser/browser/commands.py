@@ -318,6 +318,53 @@ class CommandDispatcher:
         """Follow the currently selected hint."""
         self._current_widget().hintmanager.follow_hint()
 
+    def _navigate_incdec(self, url, tab, incdec):
+        """Helper method for :navigate when `where' is increment/decrement.
+
+        Args:
+            url: The current url.
+            tab: Whether to open the link in a new tab.
+            incdec: Either 'increment' or 'decrement'.
+        """
+        encoded = bytes(url.toEncoded()).decode('ascii')
+        # Get the last number in a string
+        match = re.match(r'(.*\D|^)(\d+)(.*)', encoded)
+        if not match:
+            raise cmdexc.CommandError("No number found in URL!")
+        pre, number, post = match.groups()
+        if not number:
+            raise cmdexc.CommandError("No number found in URL!")
+        try:
+            val = int(number)
+        except ValueError:
+            raise cmdexc.CommandError("Could not parse number '{}'.".format(
+                number))
+        if incdec == 'decrement':
+            if val <= 0:
+                raise cmdexc.CommandError("Can't decrement {}!".format(val))
+            val -= 1
+        elif incdec == 'increment':
+            val += 1
+        else:
+            raise ValueError("Invalid value {} for indec!".format(incdec))
+        urlstr = ''.join([pre, str(val), post]).encode('ascii')
+        new_url = QUrl.fromEncoded(urlstr)
+        self._open(new_url, tab, background=False)
+
+    def _navigate_up(self, url, tab):
+        """Helper method for :navigate when `where' is up.
+
+        Args:
+            url: The current url.
+            tab: Whether to open the link in a new tab.
+        """
+        path = url.path()
+        if not path or path == '/':
+            raise cmdexc.CommandError("Can't go up!")
+        new_path = posixpath.join(path, posixpath.pardir)
+        url.setPath(new_path)
+        self._open(url, tab, background=False)
+
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def navigate(self, where: ('prev', 'next', 'up', 'increment', 'decrement'),
                  tab=False):
@@ -351,36 +398,9 @@ class CommandDispatcher:
             widget.hintmanager.follow_prevnext(frame, url, prev=False,
                                                newtab=tab)
         elif where == 'up':
-            path = url.path()
-            if not path or path == '/':
-                raise cmdexc.CommandError("Can't go up!")
-            new_path = posixpath.join(path, posixpath.pardir)
-            url.setPath(new_path)
-            self._open(url, tab, background=False)
+            self._navigate_up(url, tab)
         elif where in ('decrement', 'increment'):
-            encoded = bytes(url.toEncoded()).decode('ascii')
-            # Get the last number in a string
-            match = re.match(r'(.*\D|^)(\d+)(.*)', encoded)
-            if not match:
-                raise cmdexc.CommandError("No number found in URL!")
-            pre, number, post = match.groups()
-            if not number:
-                raise cmdexc.CommandError("No number found in URL!")
-            try:
-                val = int(number)
-            except ValueError:
-                raise cmdexc.CommandError(
-                    "Could not parse number '{}'.".format(number))
-            if where == 'decrement':
-                if val <= 0:
-                    raise cmdexc.CommandError("Can't decrement {}!".format(
-                        val))
-                val -= 1
-            else:
-                val += 1
-            urlstr = ''.join([pre, str(val), post]).encode('ascii')
-            new_url = QUrl.fromEncoded(urlstr)
-            self._open(new_url, tab, background=False)
+            self._navigate_incdec(url, tab, where)
         else:
             raise ValueError("Got called with invalid value {} for "
                              "`where'.".format(where))
