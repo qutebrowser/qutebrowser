@@ -94,7 +94,6 @@ Improvements / minor features
 - clear cookies command
 - keybind/aliases should have completion for commands/arguments
 - Hiding scrollbars
-- Ctrl+A/X to increase/decrease last number in URL
 - Add more element-selection-detection code (with options?) (see notes)
 - somehow unfocus elements (hide blinking cursor) when insert mode is left?
 - Copy link location on crash mail should not copy mailto:

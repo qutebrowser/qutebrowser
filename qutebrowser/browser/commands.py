@@ -19,6 +19,7 @@
 
 """Command dispatcher for TabbedBrowser."""
 
+import re
 import os
 import subprocess
 import posixpath
@@ -300,7 +301,8 @@ class CommandDispatcher:
         self._current_widget().hintmanager.follow_hint()
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
-    def navigate(self, where: ('prev', 'next', 'up'), tab=False):
+    def navigate(self, where: ('prev', 'next', 'up', 'increment', 'decrement'),
+                 tab=False):
         """Open typical prev/next links or navigate using the URL path.
 
         This tries to automatically click on typical _Previous Page_ or
@@ -314,6 +316,8 @@ class CommandDispatcher:
                 - `prev`: Open a _previous_ link.
                 - `next`: Open a _next_ link.
                 - `up`: Go up a level in the current URL.
+                - `increment`: Increment the last number in the URL.
+                - `decrement`: Decrement the last number in the URL.
 
             tab: Open in a new tab.
         """
@@ -338,6 +342,33 @@ class CommandDispatcher:
                 self._tabs.tabopen(url, background=False, explicit=True)
             else:
                 widget.openurl(url)
+        elif where in ('decrement', 'increment'):
+            encoded = bytes(url.toEncoded()).decode('ascii')
+            # Get the last number in a string
+            match = re.match(r'(.*\D|^)(\d+)(.*)', encoded)
+            if not match:
+                raise cmdexc.CommandError("No number found in URL!")
+            pre, number, post = match.groups()
+            if not number:
+                raise cmdexc.CommandError("No number found in URL!")
+            try:
+                val = int(number)
+            except ValueError:
+                raise cmdexc.CommandError(
+                    "Could not parse number '{}'.".format(number))
+            if where == 'decrement':
+                if val <= 0:
+                    raise cmdexc.CommandError("Can't decrement {}!".format(
+                        val))
+                val -= 1
+            else:
+                val += 1
+            urlstr = ''.join([pre, str(val), post]).encode('ascii')
+            new_url = QUrl.fromEncoded(urlstr)
+            if tab:
+                self._tabs.tabopen(new_url, background=False, explicit=True)
+            else:
+                widget.openurl(new_url)
         else:
             raise ValueError("Got called with invalid value {} for "
                              "`where'.".format(where))
