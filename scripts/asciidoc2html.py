@@ -57,8 +57,6 @@ def call_asciidoc(src, dst):
 def main(colors=False):
     utils.use_color = colors
     asciidoc_files = [
-        ('doc/qutebrowser.1.asciidoc', None),
-        ('README.asciidoc', None),
         ('doc/FAQ.asciidoc', 'qutebrowser/html/doc/FAQ.html'),
     ]
     try:
