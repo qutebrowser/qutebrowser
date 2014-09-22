@@ -482,6 +482,7 @@ class HintManager(QObject):
         elems = []
         for f in self._context.frames:
             elems += f.findAllElements(webelem.SELECTORS[group])
+        elems = [e for e in elems if webelem.is_visible(e, mainframe)]
         # We wrap the elements late for performance reasons, as wrapping 1000s
         # of elements (with ~50 methods each) just takes too much time...
         elems = [webelem.WebElementWrapper(e) for e in elems]
