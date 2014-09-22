@@ -31,17 +31,15 @@ import collections
 import tempfile
 import argparse
 
-import colorama as col
-
 sys.path.insert(0, os.getcwd())
 
 # We import qutebrowser.app so all @cmdutils-register decorators are run.
 import qutebrowser.app
-from scripts import asciidoc2html
+from scripts import asciidoc2html, utils
 from qutebrowser import qutebrowser
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configdata
-from qutebrowser.utils import utils
+from qutebrowser.utils import utils as quteutils
 
 
 class UsageFormatter(argparse.HelpFormatter):
@@ -153,7 +151,7 @@ def _get_command_doc(name, cmd):
     if syntax != name:
         output.append('Syntax: +:{}+'.format(syntax))
         output.append("")
-    parser = utils.DocstringParser(cmd.handler)
+    parser = quteutils.DocstringParser(cmd.handler)
     output.append(parser.short_desc)
     if parser.long_desc:
         output.append("")
@@ -397,8 +395,7 @@ def regenerate_manpage(filename):
 
 def main():
     """Regenerate all documentation."""
-    print("{}Generating asciidoc files...{}".format(
-        col.Fore.CYAN, col.Fore.RESET))
+    utils.print_col("Generating asciidoc files...", 'cyan')
     regenerate_manpage('doc/qutebrowser.1.asciidoc')
     generate_settings('doc/help/settings.asciidoc')
     generate_commands('doc/help/commands.asciidoc')

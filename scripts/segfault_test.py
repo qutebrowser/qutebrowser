@@ -25,7 +25,9 @@ import signal
 import sys
 import subprocess
 
-import colorama as col
+sys.path.insert(0, os.getcwd())
+
+from scripts import utils
 
 
 SCRIPT = """
@@ -53,11 +55,11 @@ app.exec_()
 def print_ret(ret):
     """Print information about an exit status."""
     if ret == 0:
-        print("{}success{}".format(col.Fore.GREEN, col.Fore.RESET))
+        utils.print_col("success", 'green')
     elif ret == -signal.SIGSEGV:
-        print("{}segfault{}".format(col.Fore.RED, col.Fore.RESET))
+        utils.print_col("segfault", 'red')
     else:
-        print("{}error {}{}".format(col.Fore.YELLOW, ret, col.Fore.RESET))
+        utils.print_col("error {}".format(ret), 'yellow')
     print()
 
 
@@ -86,8 +88,7 @@ def main():
     else:
         pages = [(e, True) for e in sys.argv[1:]]
     for page, test_harfbuzz in pages:
-        print("{}==== {} ===={}".format(col.Style.BRIGHT, page,
-                                        col.Style.NORMAL))
+        utils.print_bold("==== {} ====".format(page))
         if test_harfbuzz:
             print("With system harfbuzz:")
         ret = subprocess.call([sys.executable, '-c', SCRIPT, page])

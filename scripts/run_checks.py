@@ -43,12 +43,13 @@ import functools
 import contextlib
 import traceback
 
-import colorama as col
 import pep257
 import pkg_resources as pkg
 
 
 sys.path.insert(0, os.getcwd())
+
+from scripts import utils
 
 
 # We need to do this because pyroma is braindead enough to use logging instead
@@ -159,7 +160,7 @@ def check_git():
             untracked.append(name)
     if untracked:
         status = False
-        print("{}Untracked files:{}".format(col.Fore.RED, col.Fore.RESET))
+        utils.print_col("Untracked files:", 'red')
         print('\n'.join(untracked))
     else:
         status = True
@@ -277,7 +278,6 @@ def _checker_enabled(args, group, name):
 
 def main():
     """Main entry point."""
-    col.init()
     exit_status = collections.OrderedDict()
     exit_status_bool = {}
     parser = argparse.ArgumentParser(description='Run various checkers.')
@@ -295,11 +295,10 @@ def main():
 
     for group in groups:
         print()
-        print("{}==================== {} ===================={}".format(
-            col.Fore.YELLOW, group, col.Fore.RESET))
+        utils.print_col("==================== {} ====================".format(
+            group), 'yellow')
         for name, func in checkers[group].items():
-            print("{}------ {} ------{}".format(col.Fore.CYAN, name,
-                                                col.Fore.RESET))
+            utils.print_col("------ {} ------".format(name), 'cyan')
             if _checker_enabled(args, group, name):
                 status = func()
                 key = '{}_{}'.format(group, name)
@@ -314,15 +313,14 @@ def main():
                     # means problems.
                     exit_status_bool[key] = (status == 0)
             else:
-                print("{}Checker disabled.{}".format(
-                    col.Fore.BLUE, col.Fore.RESET))
+                utils.print_col("Checker disabled.", 'blue')
     print()
-    print("{}Exit status values:{}".format(col.Fore.YELLOW, col.Fore.RESET))
+    utils.print_col("Exit status values:", 'yellow')
     for (k, v) in exit_status.items():
         ok = exit_status_bool[k]
-        color = col.Fore.GREEN if ok else col.Fore.RED
-        print('{}    {} - {} ({}){}'.format(color, k, 'ok' if ok else 'FAIL',
-                                            v, col.Fore.RESET))
+        color = 'green' if ok else 'red'
+        utils.print_col(
+            '    {} - {} ({})'.format(k, 'ok' if ok else 'FAIL', v), color)
 
     if all(exit_status_bool):
         return 0
