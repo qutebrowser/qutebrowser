@@ -28,7 +28,7 @@ import tempfile
 import subprocess
 import shutil
 
-sys.path.insert(0, os.getcwd())
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
 import qutebrowser.qutebrowser  # pylint: disable=unused-import
 

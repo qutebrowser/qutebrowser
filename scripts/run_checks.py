@@ -47,7 +47,7 @@ import pep257
 import pkg_resources as pkg
 
 
-sys.path.insert(0, os.getcwd())
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
 from scripts import utils
 

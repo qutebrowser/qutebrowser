@@ -26,7 +26,7 @@ import ast
 import os
 import os.path
 import subprocess
-sys.path.insert(0, os.getcwd())
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
 
 BASEDIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),

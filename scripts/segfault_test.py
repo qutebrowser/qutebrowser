@@ -24,8 +24,9 @@ import os
 import signal
 import sys
 import subprocess
+import os.path
 
-sys.path.insert(0, os.getcwd())
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
 from scripts import utils
 

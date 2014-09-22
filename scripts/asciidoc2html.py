@@ -21,11 +21,12 @@
 """Generate the html documentation based on the asciidoc files."""
 
 import os
+import os.path
 import sys
 import subprocess
 import glob
 
-sys.path.insert(0, os.getcwd())
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
 from scripts import utils
 
