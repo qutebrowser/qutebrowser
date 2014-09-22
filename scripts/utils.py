@@ -1,4 +1,5 @@
-#!/usr/bin/python3 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+#!/usr/bin/python3
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2014 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
@@ -48,6 +49,7 @@ term_attributes = {
 
 
 def _esc(code):
+    """Get an ANSII color code based on a color number."""
     return '\033[{}m'.format(code)
 
 
