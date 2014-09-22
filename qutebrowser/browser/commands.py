@@ -72,6 +72,24 @@ class CommandDispatcher:
             raise cmdexc.CommandError("No WebView available yet!")
         return widget
 
+    def _open(self, url, tab, background):
+        """Helper function to open a page.
+
+        Args:
+            url: The URL to open as QUrl.
+            tab: Whether to open in a new tab.
+            background: Whether to open in the background.
+        """
+        if tab and background:
+            raise cmdexc.CommandError("Only one of -t/-b can be given!")
+        elif tab:
+            self._tabs.tabopen(url, background=False, explicit=True)
+        elif background:
+            self._tabs.tabopen(url, background=True, explicit=True)
+        else:
+            widget = self._current_widget()
+            widget.openurl(url)
+
     def _scroll_percent(self, perc=None, count=None, orientation=None):
         """Inner logic for scroll_percent_(x|y).
 
@@ -338,10 +356,7 @@ class CommandDispatcher:
                 raise cmdexc.CommandError("Can't go up!")
             new_path = posixpath.join(path, posixpath.pardir)
             url.setPath(new_path)
-            if tab:
-                self._tabs.tabopen(url, background=False, explicit=True)
-            else:
-                widget.openurl(url)
+            self._open(url, tab, background=False)
         elif where in ('decrement', 'increment'):
             encoded = bytes(url.toEncoded()).decode('ascii')
             # Get the last number in a string
@@ -365,10 +380,7 @@ class CommandDispatcher:
                 val += 1
             urlstr = ''.join([pre, str(val), post]).encode('ascii')
             new_url = QUrl.fromEncoded(urlstr)
-            if tab:
-                self._tabs.tabopen(new_url, background=False, explicit=True)
-            else:
-                widget.openurl(new_url)
+            self._open(new_url, tab, background=False)
         else:
             raise ValueError("Got called with invalid value {} for "
                              "`where'.".format(where))
@@ -554,13 +566,7 @@ class CommandDispatcher:
             url = urlutils.fuzzy_url(text)
         except urlutils.FuzzyUrlError as e:
             raise cmdexc.CommandError(e)
-        if tab:
-            self._tabs.tabopen(url, background=False, explicit=True)
-        elif bg:
-            self._tabs.tabopen(url, background=True, explicit=True)
-        else:
-            widget = self._current_widget()
-            widget.openurl(url)
+        self._open(url, tab, bg)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd')
     def tab_focus(self, index: (int, 'last')=None, count=None):
@@ -677,12 +683,7 @@ class CommandDispatcher:
         if not url.isValid():
             raise cmdexc.CommandError("Invalid URL {} ({})".format(
                 urlstr, url.errorString()))
-        if tab:
-            self._tabs.tabopen(url, background=False, explicit=True)
-        elif bg:
-            self._tabs.tabopen(url, background=True, explicit=True)
-        else:
-            self._current_widget().openurl(url)
+        self._open(url, tab, bg)
 
     @cmdutils.register(instance='mainwindow.tabs.cmd', name='inspector')
     def toggle_inspector(self):
