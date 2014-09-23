@@ -32,6 +32,7 @@ Webview
 - lots of "Element vanished" warnings on
   http://docs.saltstack.com/en/latest/topics/tutorials/pillar.html when
   clicking
+- Hints don't work on Google+ - https://paste.xinu.at/EGJEh/
 
 Input
 -----
