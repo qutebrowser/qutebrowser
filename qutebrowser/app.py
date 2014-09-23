@@ -55,8 +55,6 @@ class Application(QApplication):
     Attributes:
         obj: The object registry.
         mainwindow: The MainWindow QWidget.
-        debugconsole: The ConsoleWidget for debugging.
-        commandrunner: The main CommandRunner instance.
         searchrunner: The main SearchRunner instance.
         config: The main ConfigManager
         stateconfig: The "state" ReadWriteConfigParser instance.
@@ -67,6 +65,8 @@ class Application(QApplication):
         cache: The global DiskCache instance.
         rl_bridge: The ReadlineBridge being used.
         args: ArgumentParser instance.
+        _commandrunner: The main CommandRunner instance.
+        _debugconsole: The ConsoleWidget for debugging.
         _keyparsers: A mapping from modes to keyparsers.
         _timers: List of used QTimers so they don't get GCed.
         _shutting_down: True if we're currently shutting down.
@@ -135,7 +135,7 @@ class Application(QApplication):
         log.init.debug("Initializing cache...")
         self.cache = cache.DiskCache(self)
         log.init.debug("Initializing commands...")
-        self.commandrunner = runners.CommandRunner()
+        self._commandrunner = runners.CommandRunner()
         log.init.debug("Initializing search...")
         self.searchrunner = runners.SearchRunner(self)
         log.init.debug("Initializing downloads...")
@@ -144,7 +144,7 @@ class Application(QApplication):
         self.mainwindow = mainwindow.MainWindow()
         self.modeman.mainwindow = self.mainwindow
         log.init.debug("Initializing debug console...")
-        self.debugconsole = console.ConsoleWidget()
+        self._debugconsole = console.ConsoleWidget()
         log.init.debug("Initializing eventfilter...")
         self.installEventFilter(self.modeman)
         self.setQuitOnLastWindowClosed(False)
@@ -334,7 +334,7 @@ class Application(QApplication):
         for cmd in self.args.command:
             if cmd.startswith(':'):
                 log.init.debug("Startup cmd {}".format(cmd))
-                self.commandrunner.run_safely_init(cmd.lstrip(':'))
+                self._commandrunner.run_safely_init(cmd.lstrip(':'))
             else:
                 log.init.debug("Startup URL {}".format(cmd))
                 try:
@@ -391,14 +391,14 @@ class Application(QApplication):
         self.modeman.left.connect(status.prompt.prompter.on_mode_left)
 
         # commands
-        cmd.got_cmd.connect(self.commandrunner.run_safely)
+        cmd.got_cmd.connect(self._commandrunner.run_safely)
         cmd.got_search.connect(self.searchrunner.search)
         cmd.got_search_rev.connect(self.searchrunner.search_rev)
         cmd.returnPressed.connect(tabs.setFocus)
         self.searchrunner.do_search.connect(tabs.search)
         kp[utypes.KeyMode.normal].keystring_updated.connect(
             status.keystring.setText)
-        tabs.got_cmd.connect(self.commandrunner.run_safely)
+        tabs.got_cmd.connect(self._commandrunner.run_safely)
 
         # hints
         kp[utypes.KeyMode.hint].fire_hint.connect(tabs.fire_hint)
@@ -664,7 +664,7 @@ class Application(QApplication):
     @cmdutils.register(instance='', debug=True, name='debug-console')
     def show_debugconsole(self):
         """Show the debugging console."""
-        self.debugconsole.show()
+        self._debugconsole.show()
 
     def interrupt(self, signum, _frame):
         """Handler for signals to gracefully shutdown (SIGINT/SIGTERM).
