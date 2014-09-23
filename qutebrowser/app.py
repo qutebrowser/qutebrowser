@@ -53,7 +53,8 @@ class Application(QApplication):
     """Main application instance.
 
     Attributes:
-        registry: The object registry.
+        registry: The object registry of global objects.
+        meta_registry: The object registry of object registries.
         mainwindow: The MainWindow QWidget.
         searchrunner: The main SearchRunner instance.
         config: The main ConfigManager
@@ -92,7 +93,9 @@ class Application(QApplication):
             'tabs': False,
             'main': False,
         }
+        self.meta_registry = utypes.ObjectRegistry()
         self.registry = utypes.ObjectRegistry()
+        self.meta_registry['global'] = self.registry
         self._timers = []
         self._shutting_down = False
         self._keyparsers = None
@@ -473,9 +476,21 @@ class Application(QApplication):
             lines.append('    ' * depth + repr(kid))
             self._get_pyqt_objects(lines, kid, depth + 1)
 
+    def _get_registered_objects(self):
+        """Get all registered objects in all registries as a string."""
+        blocks = []
+        lines = []
+        for name, registry in self.meta_registry.items():
+            blocks.append((name, registry.dump_objects()))
+        for name, data in blocks:
+            lines.append("'{}' object registry:".format(name))
+            for line in data:
+                lines.append("    {}".format(line))
+        return lines
+
     def get_all_objects(self):
         """Get all children of an object recursively as a string."""
-        qtb_lines = self.registry.dump_objects()
+        qtb_lines = self._get_registered_objects()
         pyqt_lines = []
         self._get_pyqt_objects(pyqt_lines, self)
         pyqt_lines.insert(0, '{} PyQt objects:'.format(len(pyqt_lines)))
