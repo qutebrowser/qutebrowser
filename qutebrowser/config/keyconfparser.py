@@ -138,7 +138,7 @@ class KeyConfigParser(QObject):
         if command[0] not in cmdutils.cmd_dict:
             raise cmdexc.CommandError("Invalid command {}!".format(command[0]))
         try:
-            self._add_binding(mode, key, *command)
+            self._add_binding(mode, key, ' '.join(command))
         except KeyConfigError as e:
             raise cmdexc.CommandError(e)
         for m in mode.split(','):
