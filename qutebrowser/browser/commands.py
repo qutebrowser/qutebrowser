@@ -65,6 +65,9 @@ class CommandDispatcher:
         self._tabs = parent
         self._editor = None
 
+    def __repr__(self):
+        return '<{}>'.format(self.__class__.__name__)
+
     def _current_widget(self):
         """Get the currently active widget from a command."""
         widget = self._tabs.currentWidget()

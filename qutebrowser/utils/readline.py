@@ -36,6 +36,9 @@ class ReadlineBridge:
     def __init__(self):
         self.deleted = {}
 
+    def __repr__(self):
+        return '<{}>'.format(self.__class__.__name__)
+
     def _widget(self):
         """Get the currently active QLineEdit."""
         w = QApplication.instance().focusWidget()

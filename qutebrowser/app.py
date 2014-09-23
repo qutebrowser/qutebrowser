@@ -156,6 +156,9 @@ class Application(QApplication):
         if self._crashdlg is not None:
             self._crashdlg.raise_()
 
+    def __repr__(self):
+        return '<{}>'.format(self.__class__.__name__)
+
     def _init_config(self):
         """Inizialize and read the config."""
         if self._args.confdir is None:

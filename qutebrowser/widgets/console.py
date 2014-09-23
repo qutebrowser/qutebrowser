@@ -151,6 +151,9 @@ class ConsoleTextEdit(QTextEdit):
         self.setFont(config.get('fonts', 'debug-console'))
         self.setFocusPolicy(Qt.NoFocus)
 
+    def __repr__(self):
+        return '<{}>'.format(self.__class__.__name__)
+
     def on_config_changed(self, section, option):
         """Update font when config changed."""
         if section == 'fonts' and option == 'debug-console':
@@ -172,6 +175,10 @@ class ConsoleWidget(QWidget):
         self.vbox.addWidget(self.lineedit)
         self.setLayout(self.vbox)
         self.lineedit.setFocus()
+
+    def __repr__(self):
+        return '<{}, visible={}>'.format(
+            self.__class__.__name__, self.isVisible())
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):

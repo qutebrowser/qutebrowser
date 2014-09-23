@@ -65,6 +65,7 @@ class KeyConfigParser(QObject):
         """
         super().__init__(parent)
         self._configdir = configdir
+        self._fname = fname
         self._configfile = os.path.join(self._configdir, fname)
         self._cur_section = None
         self._cur_command = None
@@ -96,6 +97,10 @@ class KeyConfigParser(QObject):
                     lines.append(' ' * 4 + k)
                 lines.append('')
         return '\n'.join(lines) + '\n'
+
+    def __repr__(self):
+        return '{}("{}", "{}")'.format(
+            self.__class__.__name__, self._configdir, self._fname)
 
     def _str_section_desc(self, sectname):
         """Get the section description string for sectname."""

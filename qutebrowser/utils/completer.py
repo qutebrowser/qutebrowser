@@ -60,6 +60,9 @@ class Completer(QObject):
         self._init_static_completions()
         self._init_setting_completions()
 
+    def __repr__(self):
+        return '<{}>'.format(self.__class__.__name__)
+
     def _init_static_completions(self):
         """Initialize the static completion models."""
         self._models[usertypes.Completion.command] = CFM(
