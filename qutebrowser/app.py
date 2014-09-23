@@ -91,7 +91,6 @@ class Application(QApplication):
         self._keyparsers = None
         self._crashdlg = None
         self._crashlogfile = None
-        self.keyconfig = None
 
         sys.excepthook = self._exception_hook
 
@@ -190,8 +189,7 @@ class Application(QApplication):
         else:
             self.registry['config'] = config_obj
         try:
-            self.keyconfig = keyconfparser.KeyConfigParser(
-                confdir, 'keys.conf')
+            keyconfig = keyconfparser.KeyConfigParser(confdir, 'keys.conf')
         except keyconfparser.KeyConfigError as e:
             log.init.exception(e)
             errstr = "Error while reading key config:\n"
@@ -203,6 +201,8 @@ class Application(QApplication):
             msgbox.exec_()
             # We didn't really initialize much so far, so we just quit hard.
             sys.exit(1)
+        else:
+            self.registry['keyconfig'] = keyconfig
         stateconfig = iniparsers.ReadWriteConfigParser(confdir, 'state')
         self.registry['stateconfig'] = stateconfig
         cmd_history = lineparser.LineConfigParser(
@@ -385,6 +385,7 @@ class Application(QApplication):
         cmd_history = self.registry['cmd_history']
         downloadmanager = self.registry['downloadmanager']
         config_obj = self.registry['config']
+        keyconfig = self.registry['keyconfig']
 
         # misc
         self.lastWindowClosed.connect(self.shutdown)
@@ -428,7 +429,7 @@ class Application(QApplication):
                     websettings, modeman, status, status.txt):
             config_obj.changed.connect(obj.on_config_changed)
         for obj in kp.values():
-            self.keyconfig.changed.connect(obj.on_keyconfig_changed)
+            keyconfig.changed.connect(obj.on_keyconfig_changed)
 
         # statusbar
         # FIXME some of these probably only should be triggered on mainframe
@@ -770,10 +771,13 @@ class Application(QApplication):
         else:
             to_save = []
             if config.get('general', 'auto-save-config'):
-                if hasattr(self, 'config'):
-                    to_save.append(("config", config_obj.save))
-                if hasattr(self, 'keyconfig'):
-                    to_save.append(("keyconfig", self.keyconfig.save))
+                to_save.append(("config", config_obj.save))
+                try:
+                    keyconfig = self.registry['keyconfig']
+                except KeyError:
+                    pass
+                else:
+                    to_save.append(("keyconfig", keyconfig.save))
             to_save += [("window geometry", self._save_geometry),
                         ("quickmarks", quickmarks.save)]
             try:
