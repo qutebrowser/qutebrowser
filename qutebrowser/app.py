@@ -58,7 +58,7 @@ class Application(QApplication):
         mainwindow: The MainWindow QWidget.
         config: The main ConfigManager
         cmd_history: The "cmd_history" LineConfigParser instance.
-        args: ArgumentParser instance.
+        _args: ArgumentParser instance.
         _commandrunner: The main CommandRunner instance.
         _debugconsole: The ConsoleWidget for debugging.
         _keyparsers: A mapping from modes to keyparsers.
@@ -101,7 +101,8 @@ class Application(QApplication):
 
         sys.excepthook = self._exception_hook
 
-        self.args = args
+        self._args = args
+        self.registry['args'] = args
         log.init.debug("Starting init...")
         self._init_misc()
         utils.actute_warning()
@@ -162,12 +163,12 @@ class Application(QApplication):
 
     def _init_config(self):
         """Inizialize and read the config."""
-        if self.args.confdir is None:
+        if self._args.confdir is None:
             confdir = utils.get_standard_dir(QStandardPaths.ConfigLocation)
-        elif self.args.confdir == '':
+        elif self._args.confdir == '':
             confdir = None
         else:
-            confdir = self.args.confdir
+            confdir = self._args.confdir
         try:
             self.config = config.ConfigManager(confdir, 'qutebrowser.conf',
                                                self)
@@ -251,7 +252,7 @@ class Application(QApplication):
 
     def _init_misc(self):
         """Initialize misc things."""
-        if self.args.version:
+        if self._args.version:
             print(version.version())
             print()
             print()
@@ -329,7 +330,7 @@ class Application(QApplication):
         self.processEvents(QEventLoop.ExcludeUserInputEvents |
                            QEventLoop.ExcludeSocketNotifiers)
         tabbedbrowser = self.registry['tabbedbrowser']
-        for cmd in self.args.command:
+        for cmd in self._args.command:
             if cmd.startswith(':'):
                 log.init.debug("Startup cmd {}".format(cmd))
                 self._commandrunner.run_safely_init(cmd.lstrip(':'))
@@ -813,7 +814,7 @@ class Application(QApplication):
     def exit(self, status):
         """Extend QApplication::exit to log the event."""
         log.destroy.debug("Now calling QApplication::exit.")
-        if self.args.debug_exit:
+        if self._args.debug_exit:
             print("Now logging late shutdown.", file=sys.stderr)
             debug.trace_lines(True)
         super().exit(status)
