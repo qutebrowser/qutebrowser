@@ -133,7 +133,8 @@ class Application(QApplication):
         searchrunner = runners.SearchRunner(self)
         self.registry['searchrunner'] = searchrunner
         log.init.debug("Initializing downloads...")
-        self.downloadmanager = downloads.DownloadManager(self)
+        downloadmanager = downloads.DownloadManager(self)
+        self.registry['downloadmanager'] = downloadmanager
         log.init.debug("Initializing main window...")
         mainwin = mainwindow.MainWindow()
         self.registry['mainwindow'] = mainwin
@@ -383,6 +384,7 @@ class Application(QApplication):
         modeman = self.registry['modeman']
         prompter = self.registry['prompter']
         cmd_history = self.registry['cmd_history']
+        downloadmanager = self.registry['downloadmanager']
 
         # misc
         self.lastWindowClosed.connect(self.shutdown)
@@ -457,8 +459,8 @@ class Application(QApplication):
         completer.change_completed_part.connect(cmd.on_change_completed_part)
 
         # downloads
-        tabs.start_download.connect(self.downloadmanager.fetch)
-        tabs.download_get.connect(self.downloadmanager.get)
+        tabs.start_download.connect(downloadmanager.fetch)
+        tabs.download_get.connect(downloadmanager.get)
 
     def _get_widgets(self):
         """Get a string list of all widgets."""
