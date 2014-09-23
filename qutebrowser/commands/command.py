@@ -304,7 +304,11 @@ class Command:
         app = QCoreApplication.instance()
         if self.instance == '':
             obj = app
+        elif self.instance in app.registry:
+            # Use object registry where available
+            obj = app.registry[self.instance]
         else:
+            # FIXME remove this
             obj = utils.dotted_getattr(app, self.instance)
         args.append(obj)
 
