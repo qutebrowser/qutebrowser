@@ -54,7 +54,6 @@ class TabbedBrowser(tabwidget.TabWidget):
                          tabbar -> new-tab-position set to 'left'.
         _tab_insert_idx_right: Same as above, for 'right'.
         url_stack: Stack of URLs of closed tabs.
-        cmd: A TabCommandDispatcher instance.
         last_focused: The tab which was focused last.
 
     Signals:
@@ -110,7 +109,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._tabs = []
         self.url_stack = []
         self._filter = signalfilter.SignalFilter(self)
-        self.cmd = commands.CommandDispatcher(self)
+        dispatcher = commands.CommandDispatcher(self)
+        utils.register_object('command-dispatcher', dispatcher)
         self.last_focused = None
         self._now_focused = None
         # FIXME adjust this to font size
