@@ -70,7 +70,6 @@ class ModeManager(QObject):
 
     Attributes:
         passthrough: A list of modes in which to pass through events.
-        mainwindow: The mainwindow object
         locked: Whether current mode is locked. This means the current mode can
                 still be left (then locked will be reset), but no new mode can
                 be entered while the current mode is active.
@@ -94,7 +93,6 @@ class ModeManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.mainwindow = None
         self.locked = False
         self._handlers = {}
         self.passthrough = []
@@ -284,7 +282,8 @@ class ModeManager(QObject):
             # We already handled this same event at some point earlier, so
             # we're not interested in it anymore.
             return False
-        if QApplication.instance().activeWindow() is not self.mainwindow:
+        if (QApplication.instance().activeWindow() is not
+                utils.get_object('mainwindow')):
             # Some other window (print dialog, etc.) is focused so we pass
             # the event through.
             return False

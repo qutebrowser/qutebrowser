@@ -135,8 +135,8 @@ class Application(QApplication):
         log.init.debug("Initializing downloads...")
         self.downloadmanager = downloads.DownloadManager(self)
         log.init.debug("Initializing main window...")
-        self.mainwindow = mainwindow.MainWindow()
-        modeman_obj.mainwindow = self.mainwindow
+        mainwin = mainwindow.MainWindow()
+        self.registry['mainwindow'] = mainwin
         log.init.debug("Initializing debug console...")
         self._debugconsole = console.ConsoleWidget()
         log.init.debug("Initializing eventfilter...")
@@ -149,7 +149,7 @@ class Application(QApplication):
 
         log.init.debug("Showing mainwindow...")
         if not args.nowindow:
-            self.mainwindow.show()
+            mainwin.show()
         log.init.debug("Applying python hacks...")
         self._python_hacks()
         QTimer.singleShot(0, self._process_init_args)
@@ -371,7 +371,8 @@ class Application(QApplication):
         # pylint: disable=too-many-statements
         # syntactic sugar
         kp = self._keyparsers
-        status = self.mainwindow.status
+        mainwin = self.registry['mainwindow']
+        status = mainwin.status
         completion = self.registry['completion']
         tabs = self.registry['tabbedbrowser']
         cmd = self.registry['status-cmd']
@@ -419,7 +420,7 @@ class Application(QApplication):
 
         # config
         self.config.style_changed.connect(style.get_stylesheet.cache_clear)
-        for obj in (tabs, completion, self.mainwindow, self.cmd_history,
+        for obj in (tabs, completion, mainwin, self.cmd_history,
                     websettings, modeman, status, status.txt):
             self.config.changed.connect(obj.on_config_changed)
         for obj in kp.values():
@@ -527,7 +528,7 @@ class Application(QApplication):
     def _save_geometry(self):
         """Save the window geometry to the state config."""
         stateconfig = self.registry['stateconfig']
-        data = bytes(self.mainwindow.saveGeometry())
+        data = bytes(self.registry['mainwindow'].saveGeometry())
         geom = base64.b64encode(data).decode('ASCII')
         try:
             stateconfig.add_section('geometry')
