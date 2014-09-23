@@ -61,8 +61,6 @@ class Application(QApplication):
         cmd_history: The "cmd_history" LineConfigParser instance.
         messagebridge: The global MessageBridge instance.
         modeman: The global ModeManager instance.
-        cookiejar: The global CookieJar instance.
-        cache: The global DiskCache instance.
         rl_bridge: The ReadlineBridge being used.
         args: ArgumentParser instance.
         _commandrunner: The main CommandRunner instance.
@@ -131,9 +129,11 @@ class Application(QApplication):
         log.init.debug("Initializing utility commands...")
         utilcmds.init()
         log.init.debug("Initializing cookies...")
-        self.cookiejar = cookies.CookieJar(self)
+        cookiejar = cookies.CookieJar(self)
+        self.obj.register('cookiejar', cookiejar)
         log.init.debug("Initializing cache...")
-        self.cache = cache.DiskCache(self)
+        diskcache = cache.DiskCache(self)
+        self.obj.register('cache', diskcache)
         log.init.debug("Initializing commands...")
         self._commandrunner = runners.CommandRunner()
         log.init.debug("Initializing search...")
@@ -756,8 +756,12 @@ class Application(QApplication):
                 to_save.append(("command history", self.cmd_history.save))
             if hasattr(self, 'stateconfig'):
                 to_save.append(("window geometry", self.stateconfig.save))
-            if hasattr(self, 'cookiejar'):
-                to_save.append(("cookies", self.cookiejar.save))
+            try:
+                cookiejar = self.obj.get('cookiejar')
+            except KeyError:
+                pass
+            else:
+                to_save.append(("cookies", cookiejar.save))
             for what, handler in to_save:
                 log.destroy.debug("Saving {} (handler: {})".format(
                     what, handler.__qualname__))

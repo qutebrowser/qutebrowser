@@ -51,13 +51,17 @@ class NetworkManager(QNetworkAccessManager):
         self._scheme_handlers = {
             'qute': qutescheme.QuteSchemeHandler(),
         }
+
+        # We have a shared cookie jar and cache - we restore their parents so
+        # we don't take ownership of them.
         app = QCoreApplication.instance()
-        self.setCookieJar(app.cookiejar)
-        self.setCache(app.cache)
-        # We have a shared cookie jar and cache , so we don't want the
-        # NetworkManager to take ownership of them.
-        app.cookiejar.setParent(app)
-        app.cache.setParent(app)
+        cookiejar = utils.get_object('cookiejar')
+        self.setCookieJar(cookiejar)
+        cookiejar.setParent(app)
+        cache = utils.get_object('cache')
+        self.setCache(cache)
+        cache.setParent(app)
+
         if SSL_AVAILABLE:
             self.sslErrors.connect(self.on_ssl_errors)
         self.authenticationRequired.connect(self.on_authentication_required)
