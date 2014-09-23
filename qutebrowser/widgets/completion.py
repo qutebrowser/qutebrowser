@@ -210,13 +210,13 @@ class CompletionView(QTreeView):
             selmod.clearSelection()
             selmod.clearCurrentIndex()
 
-    @cmdutils.register(instance='mainwindow.completion', hide=True,
+    @cmdutils.register(instance='completion', hide=True,
                        modes=[usertypes.KeyMode.command])
     def completion_item_prev(self):
         """Select the previous completion item."""
         self._next_prev_item(prev=True)
 
-    @cmdutils.register(instance='mainwindow.completion', hide=True,
+    @cmdutils.register(instance='completion', hide=True,
                        modes=[usertypes.KeyMode.command])
     def completion_item_next(self):
         """Select the next completion item."""

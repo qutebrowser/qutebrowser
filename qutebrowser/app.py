@@ -372,7 +372,7 @@ class Application(QApplication):
         # syntactic sugar
         kp = self._keyparsers
         status = self.mainwindow.status
-        completion = self.mainwindow.completion
+        completion = self.registry['completion']
         tabs = self.mainwindow.tabs
         cmd = self.registry['status-cmd']
         completer = self.registry['completer']

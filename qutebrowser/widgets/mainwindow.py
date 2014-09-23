@@ -85,7 +85,8 @@ class MainWindow(QWidget):
         self.tabs.title_changed.connect(self.setWindowTitle)
         self._vbox.addWidget(self.tabs)
 
-        self.completion = completion.CompletionView(self)
+        self._completion = completion.CompletionView(self)
+        utils.register_object('completion', self._completion)
 
         self.status = bar.StatusBar()
         self._vbox.addWidget(self.status)
@@ -93,7 +94,8 @@ class MainWindow(QWidget):
         # When we're here the statusbar might not even really exist yet, so
         # resizing will fail. Therefore, we use singleShot QTimers to make sure
         # we defer this until everything else is initialized.
-        QTimer.singleShot(0, lambda: self.completion.resize_completion.connect(
+        QTimer.singleShot(
+            0, lambda: self._completion.resize_completion.connect(
             self.resize_completion))
         QTimer.singleShot(0, self.resize_completion)
         #self.retranslateUi(MainWindow)
@@ -126,8 +128,8 @@ class MainWindow(QWidget):
         # Shrink to content size if needed and shrinking is enabled
         if config.get('completion', 'shrink'):
             contents_height = (
-                self.completion.viewportSizeHint().height() +
-                self.completion.horizontalScrollBar().sizeHint().height())
+                self._completion.viewportSizeHint().height() +
+                self._completion.horizontalScrollBar().sizeHint().height())
             if contents_height <= height:
                 height = contents_height
         else:
@@ -140,7 +142,7 @@ class MainWindow(QWidget):
         bottomright = self.status.geometry().topRight()
         rect = QRect(topleft, bottomright)
         if rect.isValid():
-            self.completion.setGeometry(rect)
+            self._completion.setGeometry(rect)
 
     @cmdutils.register(instance='mainwindow', name=['quit', 'q'])
     def close(self):
