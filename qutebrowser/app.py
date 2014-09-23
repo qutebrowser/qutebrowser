@@ -62,7 +62,6 @@ class Application(QApplication):
         cmd_history: The "cmd_history" LineConfigParser instance.
         messagebridge: The global MessageBridge instance.
         modeman: The global ModeManager instance.
-        rl_bridge: The ReadlineBridge being used.
         args: ArgumentParser instance.
         _commandrunner: The main CommandRunner instance.
         _debugconsole: The ConsoleWidget for debugging.
@@ -101,7 +100,6 @@ class Application(QApplication):
         self._keyparsers = None
         self._crashdlg = None
         self._crashlogfile = None
-        self.rl_bridge = None
         self.messagebridge = None
         self.stateconfig = None
         self.modeman = None
@@ -270,7 +268,8 @@ class Application(QApplication):
         self.setApplicationName("qutebrowser")
         self.setApplicationVersion(qutebrowser.__version__)
         self.messagebridge = message.MessageBridge(self)
-        self.rl_bridge = readline.ReadlineBridge()
+        rl_bridge = readline.ReadlineBridge()
+        self.registry['rl_bridge'] = rl_bridge
 
     def _handle_segfault(self):
         """Handle a segfault from a previous run."""
