@@ -58,7 +58,6 @@ class Application(QApplication):
         mainwindow: The MainWindow QWidget.
         config: The main ConfigManager
         cmd_history: The "cmd_history" LineConfigParser instance.
-        modeman: The global ModeManager instance.
         args: ArgumentParser instance.
         _commandrunner: The main CommandRunner instance.
         _debugconsole: The ConsoleWidget for debugging.
@@ -95,7 +94,6 @@ class Application(QApplication):
         self._keyparsers = None
         self._crashdlg = None
         self._crashlogfile = None
-        self.modeman = None
         self.cmd_history = None
         self.config = None
         self.keyconfig = None
@@ -112,6 +110,7 @@ class Application(QApplication):
         self._handle_segfault()
         log.init.debug("Initializing modes...")
         self._init_modes()
+        modeman_obj = self.registry['modeman']
         log.init.debug("Initializing websettings...")
         websettings.init()
         log.init.debug("Initializing quickmarks...")
@@ -137,16 +136,16 @@ class Application(QApplication):
         self.downloadmanager = downloads.DownloadManager(self)
         log.init.debug("Initializing main window...")
         self.mainwindow = mainwindow.MainWindow()
-        self.modeman.mainwindow = self.mainwindow
+        modeman_obj.mainwindow = self.mainwindow
         log.init.debug("Initializing debug console...")
         self._debugconsole = console.ConsoleWidget()
         log.init.debug("Initializing eventfilter...")
-        self.installEventFilter(self.modeman)
+        self.installEventFilter(modeman_obj)
         self.setQuitOnLastWindowClosed(False)
 
         log.init.debug("Connecting signals...")
         self._connect_signals()
-        self.modeman.enter(utypes.KeyMode.normal, 'init')
+        modeman.enter(utypes.KeyMode.normal, 'init')
 
         log.init.debug("Showing mainwindow...")
         if not args.nowindow:
@@ -227,26 +226,27 @@ class Application(QApplication):
             utypes.KeyMode.yesno:
                 modeparsers.PromptKeyParser(self),
         }
-        self.modeman = modeman.ModeManager(self)
-        self.modeman.register(utypes.KeyMode.normal,
-                              self._keyparsers[utypes.KeyMode.normal].handle)
-        self.modeman.register(utypes.KeyMode.hint,
-                              self._keyparsers[utypes.KeyMode.hint].handle)
-        self.modeman.register(utypes.KeyMode.insert,
-                              self._keyparsers[utypes.KeyMode.insert].handle,
-                              passthrough=True)
-        self.modeman.register(
+        modeman_obj = modeman.ModeManager(self)
+        self.registry['modeman'] = modeman_obj
+        modeman_obj.register(utypes.KeyMode.normal,
+                             self._keyparsers[utypes.KeyMode.normal].handle)
+        modeman_obj.register(utypes.KeyMode.hint,
+                             self._keyparsers[utypes.KeyMode.hint].handle)
+        modeman_obj.register(utypes.KeyMode.insert,
+                             self._keyparsers[utypes.KeyMode.insert].handle,
+                             passthrough=True)
+        modeman_obj.register(
             utypes.KeyMode.passthrough,
             self._keyparsers[utypes.KeyMode.passthrough].handle,
             passthrough=True)
-        self.modeman.register(utypes.KeyMode.command,
-                              self._keyparsers[utypes.KeyMode.command].handle,
-                              passthrough=True)
-        self.modeman.register(utypes.KeyMode.prompt,
-                              self._keyparsers[utypes.KeyMode.prompt].handle,
-                              passthrough=True)
-        self.modeman.register(utypes.KeyMode.yesno,
-                              self._keyparsers[utypes.KeyMode.yesno].handle)
+        modeman_obj.register(utypes.KeyMode.command,
+                             self._keyparsers[utypes.KeyMode.command].handle,
+                             passthrough=True)
+        modeman_obj.register(utypes.KeyMode.prompt,
+                             self._keyparsers[utypes.KeyMode.prompt].handle,
+                             passthrough=True)
+        modeman_obj.register(utypes.KeyMode.yesno,
+                             self._keyparsers[utypes.KeyMode.yesno].handle)
 
     def _init_misc(self):
         """Initialize misc things."""
@@ -378,16 +378,17 @@ class Application(QApplication):
         completer = self.mainwindow.completion.completer
         searchrunner = self.registry['searchrunner']
         messagebridge = self.registry['messagebridge']
+        modeman = self.registry['modeman']
 
         # misc
         self.lastWindowClosed.connect(self.shutdown)
         tabs.quit.connect(self.shutdown)
 
         # status bar
-        self.modeman.entered.connect(status.on_mode_entered)
-        self.modeman.left.connect(status.on_mode_left)
-        self.modeman.left.connect(status.cmd.on_mode_left)
-        self.modeman.left.connect(status.prompt.prompter.on_mode_left)
+        modeman.entered.connect(status.on_mode_entered)
+        modeman.left.connect(status.on_mode_left)
+        modeman.left.connect(status.cmd.on_mode_left)
+        modeman.left.connect(status.prompt.prompter.on_mode_left)
 
         # commands
         cmd.got_cmd.connect(self._commandrunner.run_safely)
@@ -418,7 +419,7 @@ class Application(QApplication):
         # config
         self.config.style_changed.connect(style.get_stylesheet.cache_clear)
         for obj in (tabs, completion, self.mainwindow, self.cmd_history,
-                    websettings, self.modeman, status, status.txt):
+                    websettings, modeman, status, status.txt):
             self.config.changed.connect(obj.on_config_changed)
         for obj in kp.values():
             self.keyconfig.changed.connect(obj.on_keyconfig_changed)
@@ -444,7 +445,7 @@ class Application(QApplication):
         tabs.cur_load_status_changed.connect(status.url.on_load_status_changed)
 
         # command input / completion
-        self.modeman.left.connect(tabs.on_mode_left)
+        modeman.left.connect(tabs.on_mode_left)
         cmd.clear_completion_selection.connect(
             completion.on_clear_completion_selection)
         cmd.hide_completion.connect(completion.hide)
@@ -747,9 +748,11 @@ class Application(QApplication):
         """Second stage of shutdown."""
         log.destroy.debug("Stage 2 of shutting down...")
         # Remove eventfilter
-        if self.modeman is not None:
+        try:
             log.destroy.debug("Removing eventfilter...")
-            self.removeEventFilter(self.modeman)
+            self.removeEventFilter(self.registry['modeman'])
+        except KeyError:
+            pass
         # Close all tabs
         if self.mainwindow is not None:
             log.destroy.debug("Closing tabs...")

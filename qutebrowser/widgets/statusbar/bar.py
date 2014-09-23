@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config, style
-from qutebrowser.utils import usertypes, log
+from qutebrowser.utils import usertypes, log, utils
 from qutebrowser.widgets.statusbar import (command, progress, keystring,
                                            percentage, url, prompt)
 from qutebrowser.widgets.statusbar import text as textwidget
@@ -376,7 +376,7 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
-        if mode in modeman.instance().passthrough:
+        if mode in utils.get_object('modeman').passthrough:
             text = "-- {} MODE --".format(mode.name.upper())
             self.txt.set_text(self.txt.Text.normal, text)
         if mode == usertypes.KeyMode.insert:
@@ -385,7 +385,7 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Clear marked mode."""
-        if mode in modeman.instance().passthrough:
+        if mode in utils.get_object('modeman').passthrough:
             self.txt.set_text(self.txt.Text.normal, '')
         if mode == usertypes.KeyMode.insert:
             self._set_insert_active(False)

@@ -98,9 +98,7 @@ class Command:
         Raise:
             PrerequisitesError if the command can't be called currently.
         """
-        # We don't use modeman.instance() here to avoid a circular import
-        # of qutebrowser.keyinput.modeman.
-        curmode = QCoreApplication.instance().modeman.mode()
+        curmode = utils.get_object('modeman').mode()
         if self.modes is not None and curmode not in self.modes:
             mode_names = '/'.join(mode.name for mode in self.modes)
             raise cmdexc.PrerequisitesError(

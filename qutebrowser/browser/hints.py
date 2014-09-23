@@ -149,8 +149,8 @@ class HintManager(QObject):
         """
         super().__init__(parent)
         self._context = None
-        modeman.instance().left.connect(self.on_mode_left)
-        modeman.instance().entered.connect(self.on_mode_entered)
+        utils.get_object('modeman').left.connect(self.on_mode_left)
+        utils.get_object('modeman').entered.connect(self.on_mode_entered)
 
     def _cleanup(self):
         """Clean up after hinting."""

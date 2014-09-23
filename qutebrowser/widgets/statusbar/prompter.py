@@ -280,13 +280,14 @@ class Prompter:
         self.question = question
         mode = self._display_question()
         question.aborted.connect(lambda: modeman.maybe_leave(mode, 'aborted'))
+        modeman_obj = utils.get_object('modeman')
         try:
             modeman.enter(mode, 'question asked')
         except modeman.ModeLockedError:
-            if modeman.instance().mode() != usertypes.KeyMode.prompt:
+            if modeman_obj.mode() != usertypes.KeyMode.prompt:
                 question.abort()
                 return None
-        modeman.instance().locked = True
+        modeman_obj.locked = True
         if blocking:
             loop = qtutils.EventLoop()
             self._loops.append(loop)

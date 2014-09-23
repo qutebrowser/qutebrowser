@@ -29,7 +29,7 @@ from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import usertypes, log
+from qutebrowser.utils import usertypes, log, utils
 
 
 class ModeLockedError(Exception):
@@ -37,25 +37,20 @@ class ModeLockedError(Exception):
     """Exception raised when the mode is currently locked."""
 
 
-def instance():
-    """Get the global modeman instance."""
-    return QApplication.instance().modeman
-
-
 def enter(mode, reason=None):
     """Enter the mode 'mode'."""
-    instance().enter(mode, reason)
+    utils.get_object('modeman').enter(mode, reason)
 
 
 def leave(mode, reason=None):
     """Leave the mode 'mode'."""
-    instance().leave(mode, reason)
+    utils.get_object('modeman').leave(mode, reason)
 
 
 def maybe_enter(mode, reason=None):
     """Convenience method to enter 'mode' without exceptions."""
     try:
-        instance().enter(mode, reason)
+        utils.get_object('modeman').enter(mode, reason)
     except ModeLockedError:
         pass
 
@@ -63,7 +58,7 @@ def maybe_enter(mode, reason=None):
 def maybe_leave(mode, reason=None):
     """Convenience method to leave 'mode' without exceptions."""
     try:
-        instance().leave(mode, reason)
+        utils.get_object('modeman').leave(mode, reason)
     except ValueError as e:
         # This is rather likely to happen, so we only log to debug log.
         log.modes.debug(e)
