@@ -19,14 +19,14 @@
 
 """The commandline in the statusbar."""
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QCoreApplication, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QUrl
 from PyQt5.QtWidgets import QSizePolicy, QApplication
 
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.commands import runners, cmdexc, cmdutils
 from qutebrowser.widgets import misc
 from qutebrowser.models import cmdhistory
-from qutebrowser.utils import usertypes, log
+from qutebrowser.utils import usertypes, log, utils
 
 
 class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
@@ -172,8 +172,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         Args:
             text: The commandline to set.
         """
-        app = QCoreApplication.instance()
-        url = app.mainwindow.tabs.current_url().toString(
+        url = utils.get_object('tabbedbrowser').current_url().toString(
             QUrl.FullyEncoded | QUrl.RemovePassword)
         # FIXME we currently replace the URL in any place in the arguments,
         # rather than just replacing it if it is a dedicated argument. We could

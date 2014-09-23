@@ -40,9 +40,9 @@ class MainWindow(QWidget):
     signals.
 
     Attributes:
-        tabs: The TabbedBrowser widget.
         status: The StatusBar widget.
         downloadview: The DownloadView widget.
+        _tabbedbrowser: The TabbedBrowser widget.
         _vbox: The main QVBoxLayout.
     """
 
@@ -81,9 +81,10 @@ class MainWindow(QWidget):
         self._vbox.addWidget(self.downloadview)
         self.downloadview.show()
 
-        self.tabs = tabbedbrowser.TabbedBrowser()
-        self.tabs.title_changed.connect(self.setWindowTitle)
-        self._vbox.addWidget(self.tabs)
+        self._tabbedbrowser = tabbedbrowser.TabbedBrowser()
+        self._tabbedbrowser.title_changed.connect(self.setWindowTitle)
+        utils.register_object('tabbedbrowser', self._tabbedbrowser)
+        self._vbox.addWidget(self._tabbedbrowser)
 
         self._completion = completion.CompletionView(self)
         utils.register_object('completion', self._completion)
@@ -163,12 +164,12 @@ class MainWindow(QWidget):
         super().resizeEvent(e)
         self.resize_completion()
         self.downloadview.updateGeometry()
-        self.tabs.tabBar().refresh()
+        self._tabbedbrowser.tabBar().refresh()
 
     def closeEvent(self, e):
         """Override closeEvent to display a confirmation if needed."""
         confirm_quit = config.get('ui', 'confirm-quit')
-        count = self.tabs.count()
+        count = self._tabbedbrowser.count()
         if confirm_quit == 'never':
             e.accept()
         elif confirm_quit == 'multiple-tabs' and count <= 1:

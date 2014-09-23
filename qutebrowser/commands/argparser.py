@@ -22,7 +22,7 @@
 
 import argparse
 
-from PyQt5.QtCore import QCoreApplication, QUrl
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.commands import cmdexc
 from qutebrowser.utils import utils
@@ -54,7 +54,7 @@ class HelpAction(argparse.Action):
     """
 
     def __call__(self, parser, _namespace, _values, _option_string=None):
-        QCoreApplication.instance().mainwindow.tabs.tabopen(
+        utils.get_object('tabbedbrowser').tabopen(
             QUrl('qute://help/commands.html#{}'.format(parser.name)))
         parser.exit()
 

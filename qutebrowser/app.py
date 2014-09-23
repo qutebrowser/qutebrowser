@@ -327,7 +327,7 @@ class Application(QApplication):
         # we make sure the GUI is refreshed here, so the start seems faster.
         self.processEvents(QEventLoop.ExcludeUserInputEvents |
                            QEventLoop.ExcludeSocketNotifiers)
-
+        tabbedbrowser = self.registry['tabbedbrowser']
         for cmd in self.args.command:
             if cmd.startswith(':'):
                 log.init.debug("Startup cmd {}".format(cmd))
@@ -340,9 +340,9 @@ class Application(QApplication):
                     message.error("Error in startup argument '{}': {}".format(
                         cmd, e))
                 else:
-                    self.mainwindow.tabs.tabopen(url)
+                    tabbedbrowser.tabopen(url)
 
-        if self.mainwindow.tabs.count() == 0:
+        if tabbedbrowser.count() == 0:
             log.init.debug("Opening startpage")
             for urlstr in self.config.get('general', 'startpage'):
                 try:
@@ -350,7 +350,7 @@ class Application(QApplication):
                 except urlutils.FuzzyUrlError as e:
                     message.error("Error when opening startpage: {}".format(e))
                 else:
-                    self.mainwindow.tabs.tabopen(url)
+                    tabbedbrowser.tabopen(url)
 
     def _python_hacks(self):
         """Get around some PyQt-oddities by evil hacks.
@@ -373,7 +373,7 @@ class Application(QApplication):
         kp = self._keyparsers
         status = self.mainwindow.status
         completion = self.registry['completion']
-        tabs = self.mainwindow.tabs
+        tabs = self.registry['tabbedbrowser']
         cmd = self.registry['status-cmd']
         completer = self.registry['completer']
         searchrunner = self.registry['searchrunner']
@@ -509,12 +509,12 @@ class Application(QApplication):
         Return:
             A list of open pages, or an empty list.
         """
+        try:
+            tabbedbrowser = self.registry['tabbedbrowser']
+        except KeyError:
+            return []
         pages = []
-        if self.mainwindow is None:
-            return pages
-        if self.mainwindow.tabs is None:
-            return pages
-        for tab in self.mainwindow.tabs.widgets():
+        for tab in tabbedbrowser.widgets():
             try:
                 url = tab.cur_url.toString(
                     QUrl.RemovePassword | QUrl.FullyEncoded)
@@ -617,7 +617,7 @@ class Application(QApplication):
         # exceptions occur.
         if pages is None:
             pages = []
-            for tab in self.mainwindow.tabs.widgets():
+            for tab in utils.get_object('tabbedbrowser').widgets():
                 urlstr = tab.cur_url.toString(
                     QUrl.RemovePassword | QUrl.FullyEncoded)
                 if urlstr:
@@ -664,7 +664,8 @@ class Application(QApplication):
         except Exception:  # pylint: disable=broad-except
             out = traceback.format_exc()
         qutescheme.pyeval_output = out
-        self.mainwindow.tabs.openurl(QUrl('qute:pyeval'), newtab=True)
+        self.registry['tabbedbrowser'].openurl(
+            QUrl('qute:pyeval'), newtab=True)
 
     @cmdutils.register(instance='')
     def report(self):
@@ -755,9 +756,11 @@ class Application(QApplication):
         except KeyError:
             pass
         # Close all tabs
-        if self.mainwindow is not None:
+        try:
             log.destroy.debug("Closing tabs...")
-            self.mainwindow.tabs.shutdown()
+            self.registry['tabbedbrowser'].shutdown()
+        except KeyError:
+            pass
         # Save everything
         if hasattr(self, 'config') and self.config is not None:
             to_save = []

@@ -19,7 +19,7 @@
 
 """Module containing command managers (SearchRunner and CommandRunner)."""
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QCoreApplication, QUrl
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QUrl
 from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
@@ -32,8 +32,7 @@ def replace_variables(arglist):
     args = []
     for arg in arglist:
         if arg == '{url}':
-            app = QCoreApplication.instance()
-            url = app.mainwindow.tabs.current_url().toString(
+            url = utils.get_object('tabbedbrowser').current_url().toString(
                 QUrl.FullyEncoded | QUrl.RemovePassword)
             args.append(url)
         else:
