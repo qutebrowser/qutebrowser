@@ -90,6 +90,7 @@ class Application(QApplication):
         self.meta_registry = utypes.ObjectRegistry()
         self.registry = utypes.ObjectRegistry()
         self.meta_registry['global'] = self.registry
+        self.registry['app'] = self
         self._shutting_down = False
         self._keyparsers = None
         self._crashdlg = None
@@ -611,7 +612,7 @@ class Application(QApplication):
         self._destroy_crashlogfile()
         sys.exit(1)
 
-    @cmdutils.register(instance='', ignore_args=True)
+    @cmdutils.register(instance='app', ignore_args=True)
     def restart(self, shutdown=True, pages=None):
         """Restart qutebrowser while keeping existing tabs open."""
         # We don't use _recover_pages here as it's too forgiving when
@@ -647,7 +648,7 @@ class Application(QApplication):
         if shutdown:
             self.shutdown()
 
-    @cmdutils.register(instance='', split=False, debug=True)
+    @cmdutils.register(instance='app', split=False, debug=True)
     def debug_pyeval(self, s):
         """Evaluate a python string and display the results as a webpage.
 
@@ -668,7 +669,7 @@ class Application(QApplication):
         self.registry['tabbedbrowser'].openurl(
             QUrl('qute:pyeval'), newtab=True)
 
-    @cmdutils.register(instance='')
+    @cmdutils.register(instance='app')
     def report(self):
         """Report a bug in qutebrowser."""
         pages = self._recover_pages()
@@ -677,7 +678,7 @@ class Application(QApplication):
         self._crashdlg = crash.ReportDialog(pages, history, objects)
         self._crashdlg.show()
 
-    @cmdutils.register(instance='', debug=True, name='debug-console')
+    @cmdutils.register(instance='app', debug=True, name='debug-console')
     def show_debugconsole(self):
         """Show the debugging console."""
         self._debugconsole.show()
