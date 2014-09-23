@@ -53,7 +53,7 @@ class Application(QApplication):
     """Main application instance.
 
     Attributes:
-        obj: The object registry.
+        registry: The object registry.
         mainwindow: The MainWindow QWidget.
         searchrunner: The main SearchRunner instance.
         config: The main ConfigManager
@@ -92,7 +92,7 @@ class Application(QApplication):
             'tabs': False,
             'main': False,
         }
-        self.obj = utypes.ObjectRegistry()
+        self.registry = utypes.ObjectRegistry()
         self._timers = []
         self._shutting_down = False
         self._keyparsers = None
@@ -130,10 +130,10 @@ class Application(QApplication):
         utilcmds.init()
         log.init.debug("Initializing cookies...")
         cookiejar = cookies.CookieJar(self)
-        self.obj['cookiejar'] = cookiejar
+        self.registry['cookiejar'] = cookiejar
         log.init.debug("Initializing cache...")
         diskcache = cache.DiskCache(self)
-        self.obj['cache'] = diskcache
+        self.registry['cache'] = diskcache
         log.init.debug("Initializing commands...")
         self._commandrunner = runners.CommandRunner()
         log.init.debug("Initializing search...")
@@ -475,7 +475,7 @@ class Application(QApplication):
 
     def get_all_objects(self):
         """Get all children of an object recursively as a string."""
-        qtb_lines = self.obj.dump_objects()
+        qtb_lines = self.registry.dump_objects()
         pyqt_lines = []
         self._get_pyqt_objects(pyqt_lines, self)
         pyqt_lines.insert(0, '{} PyQt objects:'.format(len(pyqt_lines)))
@@ -757,7 +757,7 @@ class Application(QApplication):
             if hasattr(self, 'stateconfig'):
                 to_save.append(("window geometry", self.stateconfig.save))
             try:
-                cookiejar = self.obj['cookiejar']
+                cookiejar = self.registry['cookiejar']
             except KeyError:
                 pass
             else:
