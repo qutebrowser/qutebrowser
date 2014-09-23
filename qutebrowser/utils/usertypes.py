@@ -406,9 +406,8 @@ class ObjectRegistry(collections.UserDict):
         super().__setitem__(name, obj)
 
     def dump_objects(self):
-        """Dump all objects as a string."""
+        """Dump all objects as a list of strings."""
         lines = []
         for name, obj in self.data.items():
-            lines.append("     {}: {}".format(name, repr(obj)))
-        lines.insert(0, '{} objects:'.format(len(self.data)))
+            lines.append("{}: {}".format(name, repr(obj)))
         return lines

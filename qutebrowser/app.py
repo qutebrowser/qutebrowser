@@ -483,18 +483,24 @@ class Application(QApplication):
         for name, registry in self.meta_registry.items():
             blocks.append((name, registry.dump_objects()))
         for name, data in blocks:
-            lines.append("'{}' object registry:".format(name))
+            lines.append("{} object registry - {} objects:".format(
+                name, len(data)))
             for line in data:
                 lines.append("    {}".format(line))
         return lines
 
     def get_all_objects(self):
         """Get all children of an object recursively as a string."""
-        qtb_lines = self._get_registered_objects()
+        output = ['']
+        output += self._get_registered_objects()
+        output += ['']
         pyqt_lines = []
         self._get_pyqt_objects(pyqt_lines, self)
-        pyqt_lines.insert(0, '{} PyQt objects:'.format(len(pyqt_lines)))
-        return '\n'.join([''] + qtb_lines + [''] + pyqt_lines)
+        pyqt_lines = ['    ' + e for e in pyqt_lines]
+        pyqt_lines.insert(0, 'Qt objects - {} objects:'.format(
+            len(pyqt_lines)))
+        output += pyqt_lines
+        return '\n'.join(output)
 
     def _recover_pages(self):
         """Try to recover all open pages.
