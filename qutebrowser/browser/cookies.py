@@ -40,6 +40,10 @@ class CookieJar(QNetworkCookieJar):
             cookies += QNetworkCookie.parseCookies(line)
         self.setAllCookies(cookies)
 
+    def __repr__(self):
+        return '<{} count={}>'.format(
+            self.__class__.__name__, len(self.allCookies()))
+
     def purge_old_cookies(self):
         """Purge expired cookies from the cookie jar."""
         # Based on:
