@@ -475,10 +475,11 @@ class Application(QApplication):
 
     def get_all_objects(self):
         """Get all children of an object recursively as a string."""
-        lines = []
-        self._get_pyqt_objects(lines, self)
-        lines.insert(0, '{} objects:'.format(len(lines)))
-        return '\n'.join(lines)
+        qtb_lines = self.obj.dump_objects()
+        pyqt_lines = []
+        self._get_pyqt_objects(pyqt_lines, self)
+        pyqt_lines.insert(0, '{} PyQt objects:'.format(len(pyqt_lines)))
+        return '\n'.join([''] + qtb_lines + [''] + pyqt_lines)
 
     def _recover_pages(self):
         """Try to recover all open pages.
