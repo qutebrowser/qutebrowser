@@ -26,7 +26,7 @@ from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.commands import cmdexc, argparser
-from qutebrowser.utils import log, utils, message, debug, usertypes
+from qutebrowser.utils import log, utils, message, debug, usertypes, docutils
 
 
 class Command:
@@ -74,7 +74,7 @@ class Command:
         self.debug = is_debug
         self.ignore_args = ignore_args
         self.handler = handler
-        self.docparser = utils.DocstringParser(handler)
+        self.docparser = docutils.DocstringParser(handler)
         self.parser = argparser.ArgumentParser(
             name, description=self.docparser.short_desc,
             epilog=self.docparser.long_desc)

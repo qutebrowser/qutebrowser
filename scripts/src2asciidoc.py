@@ -39,7 +39,7 @@ from scripts import asciidoc2html, utils
 from qutebrowser import qutebrowser
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configdata
-from qutebrowser.utils import utils as quteutils
+from qutebrowser.utils import docutils
 
 
 class UsageFormatter(argparse.HelpFormatter):
@@ -151,7 +151,7 @@ def _get_command_doc(name, cmd):
     if syntax != name:
         output.append('Syntax: +:{}+'.format(syntax))
         output.append("")
-    parser = quteutils.DocstringParser(cmd.handler)
+    parser = docutils.DocstringParser(cmd.handler)
     output.append(parser.short_desc)
     if parser.long_desc:
         output.append("")
