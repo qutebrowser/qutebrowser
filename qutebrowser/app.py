@@ -57,7 +57,6 @@ class Application(QApplication):
         meta_registry: The object registry of object registries.
         mainwindow: The MainWindow QWidget.
         config: The main ConfigManager
-        cmd_history: The "cmd_history" LineConfigParser instance.
         _args: ArgumentParser instance.
         _commandrunner: The main CommandRunner instance.
         _debugconsole: The ConsoleWidget for debugging.
@@ -95,7 +94,6 @@ class Application(QApplication):
         self._keyparsers = None
         self._crashdlg = None
         self._crashlogfile = None
-        self.cmd_history = None
         self.config = None
         self.keyconfig = None
 
@@ -207,8 +205,9 @@ class Application(QApplication):
             sys.exit(1)
         stateconfig = iniparsers.ReadWriteConfigParser(confdir, 'state')
         self.registry['stateconfig'] = stateconfig
-        self.cmd_history = lineparser.LineConfigParser(
+        cmd_history = lineparser.LineConfigParser(
             confdir, 'cmd_history', ('completion', 'history-length'))
+        self.registry['cmd_history'] = cmd_history
 
     def _init_modes(self):
         """Inizialize the mode manager and the keyparsers."""
@@ -383,6 +382,7 @@ class Application(QApplication):
         messagebridge = self.registry['messagebridge']
         modeman = self.registry['modeman']
         prompter = self.registry['prompter']
+        cmd_history = self.registry['cmd_history']
 
         # misc
         self.lastWindowClosed.connect(self.shutdown)
@@ -422,7 +422,7 @@ class Application(QApplication):
 
         # config
         self.config.style_changed.connect(style.get_stylesheet.cache_clear)
-        for obj in (tabs, completion, mainwin, self.cmd_history,
+        for obj in (tabs, completion, mainwin, cmd_history,
                     websettings, modeman, status, status.txt):
             self.config.changed.connect(obj.on_config_changed)
         for obj in kp.values():
@@ -774,8 +774,12 @@ class Application(QApplication):
                     to_save.append(("keyconfig", self.keyconfig.save))
             to_save += [("window geometry", self._save_geometry),
                         ("quickmarks", quickmarks.save)]
-            if hasattr(self, 'cmd_history'):
-                to_save.append(("command history", self.cmd_history.save))
+            try:
+                cmd_history = self.registry['cmd_history']
+            except KeyError:
+                pass
+            else:
+                to_save.append(("command history", cmd_history.save))
             try:
                 stateconfig = self.registry['stateconfig']
             except KeyError:

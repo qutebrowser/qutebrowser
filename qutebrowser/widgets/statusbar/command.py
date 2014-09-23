@@ -20,7 +20,7 @@
 """The commandline in the statusbar."""
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QUrl
-from PyQt5.QtWidgets import QSizePolicy, QApplication
+from PyQt5.QtWidgets import QSizePolicy
 
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.commands import runners, cmdexc, cmdutils
@@ -74,7 +74,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         misc.CommandLineEdit.__init__(self, parent)
         misc.MinimalLineEditMixin.__init__(self)
         self.cursor_part = 0
-        self.history.history = QApplication.instance().cmd_history.data
+        self.history.history = utils.get_object('cmd_history').data
         self._empty_item_idx = None
         self.textEdited.connect(self.on_text_edited)
         self.cursorPositionChanged.connect(self._update_cursor_part)
