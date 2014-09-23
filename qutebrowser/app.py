@@ -55,7 +55,6 @@ class Application(QApplication):
     Attributes:
         registry: The object registry of global objects.
         meta_registry: The object registry of object registries.
-        mainwindow: The MainWindow QWidget.
         _args: ArgumentParser instance.
         _commandrunner: The main CommandRunner instance.
         _debugconsole: The ConsoleWidget for debugging.
