@@ -56,7 +56,6 @@ class Application(QApplication):
         registry: The object registry of global objects.
         meta_registry: The object registry of object registries.
         mainwindow: The MainWindow QWidget.
-        searchrunner: The main SearchRunner instance.
         config: The main ConfigManager
         stateconfig: The "state" ReadWriteConfigParser instance.
         cmd_history: The "cmd_history" LineConfigParser instance.
@@ -138,7 +137,8 @@ class Application(QApplication):
         log.init.debug("Initializing commands...")
         self._commandrunner = runners.CommandRunner()
         log.init.debug("Initializing search...")
-        self.searchrunner = runners.SearchRunner(self)
+        searchrunner = runners.SearchRunner(self)
+        self.registry['searchrunner'] = searchrunner
         log.init.debug("Initializing downloads...")
         self.downloadmanager = downloads.DownloadManager(self)
         log.init.debug("Initializing main window...")
@@ -381,6 +381,7 @@ class Application(QApplication):
         tabs = self.mainwindow.tabs
         cmd = self.mainwindow.status.cmd
         completer = self.mainwindow.completion.completer
+        searchrunner = self.registry['searchrunner']
 
         # misc
         self.lastWindowClosed.connect(self.shutdown)
@@ -394,10 +395,10 @@ class Application(QApplication):
 
         # commands
         cmd.got_cmd.connect(self._commandrunner.run_safely)
-        cmd.got_search.connect(self.searchrunner.search)
-        cmd.got_search_rev.connect(self.searchrunner.search_rev)
+        cmd.got_search.connect(searchrunner.search)
+        cmd.got_search_rev.connect(searchrunner.search_rev)
         cmd.returnPressed.connect(tabs.setFocus)
-        self.searchrunner.do_search.connect(tabs.search)
+        searchrunner.do_search.connect(tabs.search)
         kp[utypes.KeyMode.normal].keystring_updated.connect(
             status.keystring.setText)
         tabs.got_cmd.connect(self._commandrunner.run_safely)
