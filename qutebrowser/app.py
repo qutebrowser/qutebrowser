@@ -63,7 +63,6 @@ class Application(QApplication):
         _commandrunner: The main CommandRunner instance.
         _debugconsole: The ConsoleWidget for debugging.
         _keyparsers: A mapping from modes to keyparsers.
-        _timers: List of used QTimers so they don't get GCed.
         _shutting_down: True if we're currently shutting down.
         _quit_status: The current quitting status.
         _crashdlg: The crash dialog currently open.
@@ -92,7 +91,6 @@ class Application(QApplication):
         self.meta_registry = utypes.ObjectRegistry()
         self.registry = utypes.ObjectRegistry()
         self.meta_registry['global'] = self.registry
-        self._timers = []
         self._shutting_down = False
         self._keyparsers = None
         self._crashdlg = None
@@ -155,8 +153,7 @@ class Application(QApplication):
             self.mainwindow.show()
         log.init.debug("Applying python hacks...")
         self._python_hacks()
-        timer = QTimer.singleShot(0, self._process_init_args)
-        self._timers.append(timer)
+        QTimer.singleShot(0, self._process_init_args)
 
         log.init.debug("Init done!")
 
@@ -367,7 +364,7 @@ class Application(QApplication):
         timer = utypes.Timer(self, 'python_hacks')
         timer.start(500)
         timer.timeout.connect(lambda: None)
-        self._timers.append(timer)
+        self.registry['python_hack_timer'] = timer
 
     def _connect_signals(self):
         """Connect all signals to their slots."""
