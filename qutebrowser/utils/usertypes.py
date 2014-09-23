@@ -24,6 +24,7 @@ Module attributes:
 """
 
 import operator
+import collections
 import collections.abc
 import enum as pyenum
 
@@ -383,7 +384,7 @@ class Timer(QTimer):
             super().start()
 
 
-class ObjectRegistry:
+class ObjectRegistry(collections.UserDict):
 
     """A registry of long-living objects in qutebrowser.
 
@@ -394,55 +395,20 @@ class ObjectRegistry:
         cache: DiskCache instance.
     """
 
-    def __init__(self):
-        self._objects = {}
-        self._objects['global'] = {}
-
-    def get(self, name, scope='global'):
-        """Get an object from the object registry.
-
-        Args:
-            name: The name of the object to get.
-            scope: The scope the object is registered in.
-
-        Return:
-            The registered object.
-        """
-        try:
-            objects = self._objects[scope]
-        except KeyError:
-            raise KeyError("Invalid scope '{}'.".format(scope))
-        try:
-            obj = objects[name]
-        except KeyError:
-            raise KeyError("No object '{}' in scope '{}'!".format(obj, scope))
-        return obj
-
-    def register(self, name, obj, scope='global'):
+    def __setitem__(self, name, obj):
         """Register an object in the object registry.
 
-        Args:
-            name: The name to register the object as.
-            obj: The object to register.
-            scope: The scope to register the object in.
+        Prevents duplicated registrations.
         """
-        if scope not in self._objects:
-            raise KeyError("Invalid scope '{}'.".format(scope))
-        if name in self._objects[scope]:
-            existing_obj = self._objects[scope][name]
+        if name in self.data:
             raise KeyError("Object '{}' is already registered in scope "
-                           "'{}' ({})!".format(name, scope, existing_obj))
-        self._objects[scope][name] = obj
+                           "'{}' ({})!".format(name, scope, self.data[name]))
+        super().__setitem__(name, obj)
 
     def dump_objects(self):
         """Dump all objects as a string."""
         lines = []
-        count = 0
-        for scope, objects in self._objects.items():
-            if objects:
-                lines.append("Scope {}:".format(scope))
-            for name, obj in objects.items():
-                lines.append("     {}: {}".format(name, repr(obj)))
-                count += 1
-        lines.insert(0, '{} qutebrowser objects:'.format(count))
+        for name, obj in self.data.items():
+            lines.append("     {}: {}".format(name, repr(obj)))
+        lines.insert(0, '{} objects:'.format(len(self.data)))
         return lines

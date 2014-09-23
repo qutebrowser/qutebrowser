@@ -130,10 +130,10 @@ class Application(QApplication):
         utilcmds.init()
         log.init.debug("Initializing cookies...")
         cookiejar = cookies.CookieJar(self)
-        self.obj.register('cookiejar', cookiejar)
+        self.obj['cookiejar'] = cookiejar
         log.init.debug("Initializing cache...")
         diskcache = cache.DiskCache(self)
-        self.obj.register('cache', diskcache)
+        self.obj['cache'] = diskcache
         log.init.debug("Initializing commands...")
         self._commandrunner = runners.CommandRunner()
         log.init.debug("Initializing search...")
@@ -757,7 +757,7 @@ class Application(QApplication):
             if hasattr(self, 'stateconfig'):
                 to_save.append(("window geometry", self.stateconfig.save))
             try:
-                cookiejar = self.obj.get('cookiejar')
+                cookiejar = self.obj['cookiejar']
             except KeyError:
                 pass
             else:

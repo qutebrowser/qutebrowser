@@ -580,11 +580,11 @@ def is_enum(obj):
         return False
 
 
-def get_object(name, scope='global'):
+def get_object(name):
     """Helper function to get an object."""
-    return QCoreApplication.instance().obj.get(name, scope)
+    return QCoreApplication.instance().obj[name]
 
 
-def register_object(name, obj, scope='global'):
+def register_object(name, obj):
     """Helper function to register an object."""
-    return QCoreApplication.instance().obj.register(name, obj, scope)
+    QCoreApplication.instance().obj[name] = obj
