@@ -25,7 +25,7 @@ import functools
 
 from PyQt5.QtCore import QCoreApplication
 
-from qutebrowser.utils import usertypes, log
+from qutebrowser.utils import usertypes, log, utils
 from qutebrowser.commands import runners, cmdexc, cmdutils
 from qutebrowser.config import config, style
 
@@ -100,3 +100,9 @@ def debug_cache_stats():
     style_info = style.get_stylesheet.cache_info()
     log.misc.debug('config: {}'.format(config_info))
     log.misc.debug('style: {}'.format(style_info))
+
+
+@cmdutils.register(debug=True)
+def debug_console():
+    """Show the debugging console."""
+    utils.get_object('debug-console').show()

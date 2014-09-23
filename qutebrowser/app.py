@@ -57,7 +57,6 @@ class Application(QApplication):
         meta_registry: The object registry of object registries.
         _args: ArgumentParser instance.
         _commandrunner: The main CommandRunner instance.
-        _debugconsole: The ConsoleWidget for debugging.
         _keyparsers: A mapping from modes to keyparsers.
         _shutting_down: True if we're currently shutting down.
         _quit_status: The current quitting status.
@@ -136,7 +135,8 @@ class Application(QApplication):
         mainwin = mainwindow.MainWindow()
         self.registry['mainwindow'] = mainwin
         log.init.debug("Initializing debug console...")
-        self._debugconsole = console.ConsoleWidget()
+        debug_console = console.ConsoleWidget()
+        self.registry['debug-console'] = debug_console
         log.init.debug("Initializing eventfilter...")
         self.installEventFilter(modeman_obj)
         self.setQuitOnLastWindowClosed(False)
@@ -680,11 +680,6 @@ class Application(QApplication):
         objects = self.get_all_objects()
         self._crashdlg = crash.ReportDialog(pages, history, objects)
         self._crashdlg.show()
-
-    @cmdutils.register(instance='app', debug=True, name='debug-console')
-    def show_debugconsole(self):
-        """Show the debugging console."""
-        self._debugconsole.show()
 
     def interrupt(self, signum, _frame):
         """Handler for signals to gracefully shutdown (SIGINT/SIGTERM).
