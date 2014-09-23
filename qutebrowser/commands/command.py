@@ -22,7 +22,6 @@
 import inspect
 import collections
 
-from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.commands import cmdexc, argparser
@@ -299,15 +298,7 @@ class Command:
             args: The positional argument list. Gets modified directly.
         """
         assert param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
-        app = QCoreApplication.instance()
-        if self.instance == '':
-            obj = app
-        elif self.instance in app.registry:
-            # Use object registry where available
-            obj = app.registry[self.instance]
-        else:
-            # FIXME remove this
-            obj = utils.dotted_getattr(app, self.instance)
+        obj = utils.get_object(self.instance)
         args.append(obj)
 
     def _get_count_arg(self, param, args, kwargs):
