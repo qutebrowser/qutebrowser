@@ -58,7 +58,6 @@ class Application(QApplication):
         mainwindow: The MainWindow QWidget.
         config: The main ConfigManager
         cmd_history: The "cmd_history" LineConfigParser instance.
-        messagebridge: The global MessageBridge instance.
         modeman: The global ModeManager instance.
         args: ArgumentParser instance.
         _commandrunner: The main CommandRunner instance.
@@ -98,7 +97,6 @@ class Application(QApplication):
         self._keyparsers = None
         self._crashdlg = None
         self._crashlogfile = None
-        self.messagebridge = None
         self.modeman = None
         self.cmd_history = None
         self.config = None
@@ -266,7 +264,8 @@ class Application(QApplication):
         self.setOrganizationName("qutebrowser")
         self.setApplicationName("qutebrowser")
         self.setApplicationVersion(qutebrowser.__version__)
-        self.messagebridge = message.MessageBridge(self)
+        messagebridge = message.MessageBridge(self)
+        self.registry['messagebridge'] = messagebridge
         rl_bridge = readline.ReadlineBridge()
         self.registry['rl_bridge'] = rl_bridge
 
@@ -381,6 +380,7 @@ class Application(QApplication):
         cmd = self.mainwindow.status.cmd
         completer = self.mainwindow.completion.completer
         searchrunner = self.registry['searchrunner']
+        messagebridge = self.registry['messagebridge']
 
         # misc
         self.lastWindowClosed.connect(self.shutdown)
@@ -410,14 +410,13 @@ class Application(QApplication):
             kp[utypes.KeyMode.hint].on_hint_strings_updated)
 
         # messages
-        self.messagebridge.s_error.connect(status.disp_error)
-        self.messagebridge.s_info.connect(status.disp_temp_text)
-        self.messagebridge.s_set_text.connect(status.set_text)
-        self.messagebridge.s_maybe_reset_text.connect(
-            status.txt.maybe_reset_text)
-        self.messagebridge.s_set_cmd_text.connect(cmd.set_cmd_text)
-        self.messagebridge.s_question.connect(
-            status.prompt.prompter.ask_question, Qt.DirectConnection)
+        messagebridge.s_error.connect(status.disp_error)
+        messagebridge.s_info.connect(status.disp_temp_text)
+        messagebridge.s_set_text.connect(status.set_text)
+        messagebridge.s_maybe_reset_text.connect(status.txt.maybe_reset_text)
+        messagebridge.s_set_cmd_text.connect(cmd.set_cmd_text)
+        messagebridge.s_question.connect(status.prompt.prompter.ask_question,
+                                         Qt.DirectConnection)
 
         # config
         self.config.style_changed.connect(style.get_stylesheet.cache_clear)

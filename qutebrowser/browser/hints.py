@@ -31,7 +31,7 @@ from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, cmdexc
-from qutebrowser.utils import usertypes, log, qtutils, message
+from qutebrowser.utils import usertypes, log, qtutils, message, utils
 
 
 ElemTuple = collections.namedtuple('ElemTuple', 'elem, label')
@@ -160,7 +160,7 @@ class HintManager(QObject):
             except webelem.IsNullError:
                 pass
         text = self.HINT_TEXTS[self._context.target]
-        message.instance().maybe_reset_text(text)
+        utils.get_object('messagebridge').maybe_reset_text(text)
         self._context = None
 
     def _hint_strings(self, elems):
@@ -541,7 +541,7 @@ class HintManager(QObject):
         self._context.frames = webelem.get_child_frames(mainframe)
         self._context.args = args
         self._init_elements(mainframe, group)
-        message.instance().set_text(self.HINT_TEXTS[target])
+        utils.get_object('messagebridge').set_text(self.HINT_TEXTS[target])
         self._connect_frame_signals()
         try:
             modeman.enter(usertypes.KeyMode.hint, 'HintManager.start')

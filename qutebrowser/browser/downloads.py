@@ -409,7 +409,7 @@ class DownloadManager(QObject):
         q.destroyed.connect(functools.partial(self.questions.remove, q))
         self.questions.append(q)
         download.cancelled.connect(q.abort)
-        message.instance().ask(q, blocking=False)
+        utils.get_object('message').ask(q, blocking=False)
 
     @pyqtSlot(DownloadItem)
     def on_finished(self, download):
