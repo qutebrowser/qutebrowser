@@ -56,7 +56,6 @@ class Application(QApplication):
         registry: The object registry of global objects.
         meta_registry: The object registry of object registries.
         mainwindow: The MainWindow QWidget.
-        config: The main ConfigManager
         _args: ArgumentParser instance.
         _commandrunner: The main CommandRunner instance.
         _debugconsole: The ConsoleWidget for debugging.
@@ -94,7 +93,6 @@ class Application(QApplication):
         self._keyparsers = None
         self._crashdlg = None
         self._crashlogfile = None
-        self.config = None
         self.keyconfig = None
 
         sys.excepthook = self._exception_hook
@@ -169,8 +167,8 @@ class Application(QApplication):
         else:
             confdir = self._args.confdir
         try:
-            self.config = config.ConfigManager(confdir, 'qutebrowser.conf',
-                                               self)
+            config_obj = config.ConfigManager(
+                confdir, 'qutebrowser.conf', self)
         except (configtypes.ValidationError,
                 config.NoOptionError,
                 config.NoSectionError,
@@ -190,6 +188,8 @@ class Application(QApplication):
             msgbox.exec_()
             # We didn't really initialize much so far, so we just quit hard.
             sys.exit(1)
+        else:
+            self.registry['config'] = config_obj
         try:
             self.keyconfig = keyconfparser.KeyConfigParser(
                 confdir, 'keys.conf')
@@ -346,7 +346,7 @@ class Application(QApplication):
 
         if tabbedbrowser.count() == 0:
             log.init.debug("Opening startpage")
-            for urlstr in self.config.get('general', 'startpage'):
+            for urlstr in config.get('general', 'startpage'):
                 try:
                     url = urlutils.fuzzy_url(urlstr)
                 except urlutils.FuzzyUrlError as e:
@@ -385,6 +385,7 @@ class Application(QApplication):
         prompter = self.registry['prompter']
         cmd_history = self.registry['cmd_history']
         downloadmanager = self.registry['downloadmanager']
+        config_obj = self.registry['config']
 
         # misc
         self.lastWindowClosed.connect(self.shutdown)
@@ -423,10 +424,10 @@ class Application(QApplication):
                                          Qt.DirectConnection)
 
         # config
-        self.config.style_changed.connect(style.get_stylesheet.cache_clear)
+        config_obj.style_changed.connect(style.get_stylesheet.cache_clear)
         for obj in (tabs, completion, mainwin, cmd_history,
                     websettings, modeman, status, status.txt):
-            self.config.changed.connect(obj.on_config_changed)
+            config_obj.changed.connect(obj.on_config_changed)
         for obj in kp.values():
             self.keyconfig.changed.connect(obj.on_keyconfig_changed)
 
@@ -767,11 +768,16 @@ class Application(QApplication):
         except KeyError:
             pass
         # Save everything
-        if hasattr(self, 'config') and self.config is not None:
+        try:
+            config_obj = self.registry['config']
+        except KeyError:
+            log.destroy.debug("Config not initialized yet, so not saving "
+                              "anything.")
+        else:
             to_save = []
-            if self.config.get('general', 'auto-save-config'):
+            if config.get('general', 'auto-save-config'):
                 if hasattr(self, 'config'):
-                    to_save.append(("config", self.config.save))
+                    to_save.append(("config", config_obj.save))
                 if hasattr(self, 'keyconfig'):
                     to_save.append(("keyconfig", self.keyconfig.save))
             to_save += [("window geometry", self._save_geometry),
@@ -802,9 +808,6 @@ class Application(QApplication):
                 except AttributeError as e:
                     log.destroy.warning("Could not save {}.".format(what))
                     log.destroy.debug(e)
-        else:
-            log.destroy.debug("Config not initialized yet, so not saving "
-                              "anything.")
         # Re-enable faulthandler to stdout, then remove crash log
         log.destroy.debug("Deactiving crash log...")
         self._destroy_crashlogfile()

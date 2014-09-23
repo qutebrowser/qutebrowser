@@ -23,7 +23,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
 from qutebrowser.config import config, configdata
 from qutebrowser.commands import cmdutils
-from qutebrowser.utils import usertypes, log
+from qutebrowser.utils import usertypes, log, utils
 from qutebrowser.models import completion as models
 from qutebrowser.models.completionfilter import CompletionFilterModel as CFM
 
@@ -69,6 +69,7 @@ class Completer(QObject):
 
     def _init_setting_completions(self):
         """Initialize setting completion models."""
+        config_obj = utils.get_object('config')
         self._models[usertypes.Completion.section] = CFM(
             models.SettingSectionCompletionModel(self), self)
         self._models[usertypes.Completion.option] = {}
@@ -77,13 +78,13 @@ class Completer(QObject):
             model = models.SettingOptionCompletionModel(sectname, self)
             self._models[usertypes.Completion.option][sectname] = CFM(
                 model, self)
-            config.instance().changed.connect(model.on_config_changed)
+            config_obj.changed.connect(model.on_config_changed)
             self._models[usertypes.Completion.value][sectname] = {}
             for opt in configdata.DATA[sectname].keys():
                 model = models.SettingValueCompletionModel(sectname, opt, self)
                 self._models[usertypes.Completion.value][sectname][opt] = CFM(
                     model, self)
-                config.instance().changed.connect(model.on_config_changed)
+                config_obj.changed.connect(model.on_config_changed)
 
     def _get_new_completion(self, parts, cursor_part):
         """Get a new completion model.
