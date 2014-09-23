@@ -57,7 +57,6 @@ class Application(QApplication):
         meta_registry: The object registry of object registries.
         mainwindow: The MainWindow QWidget.
         config: The main ConfigManager
-        stateconfig: The "state" ReadWriteConfigParser instance.
         cmd_history: The "cmd_history" LineConfigParser instance.
         messagebridge: The global MessageBridge instance.
         modeman: The global ModeManager instance.
@@ -100,7 +99,6 @@ class Application(QApplication):
         self._crashdlg = None
         self._crashlogfile = None
         self.messagebridge = None
-        self.stateconfig = None
         self.modeman = None
         self.cmd_history = None
         self.config = None
@@ -211,7 +209,8 @@ class Application(QApplication):
             msgbox.exec_()
             # We didn't really initialize much so far, so we just quit hard.
             sys.exit(1)
-        self.stateconfig = iniparsers.ReadWriteConfigParser(confdir, 'state')
+        stateconfig = iniparsers.ReadWriteConfigParser(confdir, 'state')
+        self.registry['stateconfig'] = stateconfig
         self.cmd_history = lineparser.LineConfigParser(
             confdir, 'cmd_history', ('completion', 'history-length'))
 
@@ -529,13 +528,14 @@ class Application(QApplication):
 
     def _save_geometry(self):
         """Save the window geometry to the state config."""
+        stateconfig = self.registry['stateconfig']
         data = bytes(self.mainwindow.saveGeometry())
         geom = base64.b64encode(data).decode('ASCII')
         try:
-            self.stateconfig.add_section('geometry')
+            stateconfig.add_section('geometry')
         except configparser.DuplicateSectionError:
             pass
-        self.stateconfig['geometry']['mainwindow'] = geom
+        stateconfig['geometry']['mainwindow'] = geom
 
     def _destroy_crashlogfile(self):
         """Clean up the crash log file and delete it."""
@@ -770,8 +770,12 @@ class Application(QApplication):
                         ("quickmarks", quickmarks.save)]
             if hasattr(self, 'cmd_history'):
                 to_save.append(("command history", self.cmd_history.save))
-            if hasattr(self, 'stateconfig'):
-                to_save.append(("window geometry", self.stateconfig.save))
+            try:
+                stateconfig = self.registry['stateconfig']
+            except KeyError:
+                pass
+            else:
+                to_save.append(("window geometry", stateconfig.save))
             try:
                 cookiejar = self.registry['cookiejar']
             except KeyError:

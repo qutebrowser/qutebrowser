@@ -22,12 +22,12 @@
 import binascii
 import base64
 
-from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QCoreApplication, QTimer
+from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes, qtutils
+from qutebrowser.utils import message, log, usertypes, qtutils, utils
 from qutebrowser.widgets import tabbedbrowser, completion, downloads
 from qutebrowser.widgets.statusbar import bar
 
@@ -50,8 +50,8 @@ class MainWindow(QWidget):
         super().__init__(parent)
 
         self.setWindowTitle('qutebrowser')
+        stateconf = utils.get_object('stateconfig')
         try:
-            stateconf = QCoreApplication.instance().stateconfig
             data = stateconf['geometry']['mainwindow']
             log.init.debug("Restoring mainwindow from {}".format(data))
             geom = base64.b64decode(data, validate=True)
