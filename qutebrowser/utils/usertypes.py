@@ -24,6 +24,7 @@ Module attributes:
 """
 
 import operator
+import functools
 import collections
 import collections.abc
 import enum as pyenum
@@ -398,12 +399,22 @@ class ObjectRegistry(collections.UserDict):
     def __setitem__(self, name, obj):
         """Register an object in the object registry.
 
-        Prevents duplicated registrations.
+        Prevents duplicated registrations and sets a slot to remove QObjects
+        when they are destroyed.
         """
         if name in self.data:
             raise KeyError("Object '{}' is already registered ({})!".format(
                            name, repr(self.data[name])))
+        if isinstance(obj, QObject):
+            obj.destroyed.connect(functools.partial(self.on_destroyed, name))
         super().__setitem__(name, obj)
+
+    def on_destroyed(self, name):
+        """Remove a destroyed QObject."""
+        try:
+            del self[name]
+        except KeyError:
+            pass
 
     def dump_objects(self):
         """Dump all objects as a list of strings."""
