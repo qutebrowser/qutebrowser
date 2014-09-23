@@ -374,7 +374,7 @@ class Application(QApplication):
         status = self.mainwindow.status
         completion = self.mainwindow.completion
         tabs = self.mainwindow.tabs
-        cmd = self.mainwindow.status.cmd
+        cmd = self.registry['status-cmd']
         completer = self.registry['completer']
         searchrunner = self.registry['searchrunner']
         messagebridge = self.registry['messagebridge']
@@ -387,7 +387,7 @@ class Application(QApplication):
         # status bar
         modeman.entered.connect(status.on_mode_entered)
         modeman.left.connect(status.on_mode_left)
-        modeman.left.connect(status.cmd.on_mode_left)
+        modeman.left.connect(cmd.on_mode_left)
         modeman.left.connect(status.prompt.prompter.on_mode_left)
 
         # commands
@@ -581,7 +581,7 @@ class Application(QApplication):
             pages = []
 
         try:
-            history = self.mainwindow.status.cmd.history[-5:]
+            history = self.registry['status-cmd'].history[-5:]
         except Exception:
             log.destroy.exception("Error while getting history: {}")
             history = []
@@ -669,7 +669,7 @@ class Application(QApplication):
     def report(self):
         """Report a bug in qutebrowser."""
         pages = self._recover_pages()
-        history = self.mainwindow.status.cmd.history[-5:]
+        history = self.registry['status-cmd'].history[-5:]
         objects = self.get_all_objects()
         self._crashdlg = crash.ReportDialog(pages, history, objects)
         self._crashdlg.show()

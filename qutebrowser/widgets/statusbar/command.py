@@ -160,7 +160,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.setFocus()
         self.show_cmd.emit()
 
-    @cmdutils.register(instance='mainwindow.status.cmd', name='set-cmd-text')
+    @cmdutils.register(instance='status-cmd', name='set-cmd-text')
     def set_cmd_text_command(self, text):
         """Preset the statusbar to some text.
 
@@ -216,7 +216,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.setFocus()
         self.show_cmd.emit()
 
-    @cmdutils.register(instance='mainwindow.status.cmd', hide=True,
+    @cmdutils.register(instance='status-cmd', hide=True,
                        modes=[usertypes.KeyMode.command])
     def command_history_prev(self):
         """Go back in the commandline history."""
@@ -231,7 +231,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         if item:
             self.set_cmd_text(item)
 
-    @cmdutils.register(instance='mainwindow.status.cmd', hide=True,
+    @cmdutils.register(instance='status-cmd', hide=True,
                        modes=[usertypes.KeyMode.command])
     def command_history_next(self):
         """Go forward in the commandline history."""
@@ -244,7 +244,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         if item:
             self.set_cmd_text(item)
 
-    @cmdutils.register(instance='mainwindow.status.cmd', hide=True,
+    @cmdutils.register(instance='status-cmd', hide=True,
                        modes=[usertypes.KeyMode.command])
     def command_accept(self):
         """Execute the command currently in the commandline.
