@@ -53,6 +53,7 @@ class Application(QApplication):
     """Main application instance.
 
     Attributes:
+        obj: The object registry.
         mainwindow: The MainWindow QWidget.
         debugconsole: The ConsoleWidget for debugging.
         commandrunner: The main CommandRunner instance.
@@ -93,6 +94,7 @@ class Application(QApplication):
             'tabs': False,
             'main': False,
         }
+        self.obj = utypes.ObjectRegistry()
         self._timers = []
         self._shutting_down = False
         self._keyparsers = None
