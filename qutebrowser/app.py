@@ -465,17 +465,17 @@ class Application(QApplication):
             lines.append(repr(w))
         return '\n'.join(lines)
 
-    def get_all_objects(self, obj=None, depth=0, lines=None):
-        """Get all children of an object recursively as a string."""
-        if lines is None:
-            lines = []
-        if obj is None:
-            obj = self
+    def _get_pyqt_objects(self, lines, obj, depth=0):
+        """Recursive method for get_all_objects to get Qt objects."""
         for kid in obj.findChildren(QObject):
             lines.append('    ' * depth + repr(kid))
-            self.get_all_objects(kid, depth + 1, lines)
-        if depth == 0:
-            lines.insert(0, '{} objects:'.format(len(lines)))
+            self._get_pyqt_objects(lines, kid, depth + 1)
+
+    def get_all_objects(self):
+        """Get all children of an object recursively as a string."""
+        lines = []
+        self._get_pyqt_objects(lines, self)
+        lines.insert(0, '{} objects:'.format(len(lines)))
         return '\n'.join(lines)
 
     def _recover_pages(self):
