@@ -19,7 +19,7 @@
 
 """Message singleton so we don't have to define unneeded signals."""
 
-from PyQt5.QtCore import pyqtSignal, QCoreApplication, QObject, QTimer
+from PyQt5.QtCore import pyqtSignal, QObject, QTimer
 
 from qutebrowser.utils import usertypes, log, utils
 

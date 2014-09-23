@@ -25,7 +25,6 @@ import datetime
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
-from qutebrowser.keyinput import modeman
 from qutebrowser.config import config, style
 from qutebrowser.utils import usertypes, log, utils
 from qutebrowser.widgets.statusbar import (command, progress, keystring,

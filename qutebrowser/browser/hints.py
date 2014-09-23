@@ -270,8 +270,9 @@ class HintManager(QObject):
         else:
             display = 'none'
         rect = elem.geometry()
-        return self.HINT_CSS.format(left=rect.x(), top=rect.y(),
-                                    config=config.instance(), display=display)
+        return self.HINT_CSS.format(
+            left=rect.x(), top=rect.y(), config=utils.get_object('config'),
+            display=display)
 
     def _draw_label(self, elem, string):
         """Draw a hint label over an element.

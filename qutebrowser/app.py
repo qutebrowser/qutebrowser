@@ -369,7 +369,7 @@ class Application(QApplication):
 
     def _connect_signals(self):
         """Connect all signals to their slots."""
-        # pylint: disable=too-many-statements
+        # pylint: disable=too-many-statements, too-many-locals
         # syntactic sugar
         kp = self._keyparsers
         main_window = self.registry['main-window']
@@ -747,8 +747,10 @@ class Application(QApplication):
             # event loop, so we can shut down immediately.
             self._shutdown(status)
 
-    def _shutdown(self, status):  # noqa, pylint: disable=too-many-branches
+    def _shutdown(self, status):  # noqa
         """Second stage of shutdown."""
+        # pylint: disable=too-many-branches, too-many-statements
+        # FIXME refactor this
         log.destroy.debug("Stage 2 of shutting down...")
         # Remove eventfilter
         try:

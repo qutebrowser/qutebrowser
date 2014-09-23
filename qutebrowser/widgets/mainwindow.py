@@ -95,16 +95,18 @@ class MainWindow(QWidget):
         # When we're here the statusbar might not even really exist yet, so
         # resizing will fail. Therefore, we use singleShot QTimers to make sure
         # we defer this until everything else is initialized.
-        QTimer.singleShot(
-            0, lambda: self._completion.resize_completion.connect(
-            self.resize_completion))
-        QTimer.singleShot(0, self.resize_completion)
+        QTimer.singleShot(0, self._connect_resize_completion)
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
+
+    def _connect_resize_completion(self):
+        """Connect the resize_completion signal and resize it once."""
+        self._completion.resize_completion.connect(self.resize_completion)
+        self.resize_completion()
 
     def _set_default_geometry(self):
         """Set some sensible default geometry."""

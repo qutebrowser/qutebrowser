@@ -359,7 +359,7 @@ class WebView(QWebView):
         if not config.get('input', 'auto-insert-mode'):
             return
         cur_mode = utils.get_object('mode-manager').mode()
-        if curmode == usertypes.KeyMode.insert or not ok:
+        if cur_mode == usertypes.KeyMode.insert or not ok:
             return
         frame = self.page().currentFrame()
         try:
