@@ -379,6 +379,7 @@ class Application(QApplication):
         searchrunner = self.registry['searchrunner']
         messagebridge = self.registry['messagebridge']
         modeman = self.registry['modeman']
+        prompter = self.registry['prompter']
 
         # misc
         self.lastWindowClosed.connect(self.shutdown)
@@ -388,7 +389,7 @@ class Application(QApplication):
         modeman.entered.connect(status.on_mode_entered)
         modeman.left.connect(status.on_mode_left)
         modeman.left.connect(cmd.on_mode_left)
-        modeman.left.connect(status.prompt.prompter.on_mode_left)
+        modeman.left.connect(prompter.on_mode_left)
 
         # commands
         cmd.got_cmd.connect(self._commandrunner.run_safely)
@@ -413,7 +414,7 @@ class Application(QApplication):
         messagebridge.s_set_text.connect(status.set_text)
         messagebridge.s_maybe_reset_text.connect(status.txt.maybe_reset_text)
         messagebridge.s_set_cmd_text.connect(cmd.set_cmd_text)
-        messagebridge.s_question.connect(status.prompt.prompter.ask_question,
+        messagebridge.s_question.connect(prompter.ask_question,
                                          Qt.DirectConnection)
 
         # config
@@ -730,7 +731,7 @@ class Application(QApplication):
             return
         self._shutting_down = True
         log.destroy.debug("Shutting down with status {}...".format(status))
-        if self.mainwindow.status.prompt.prompter.shutdown():
+        if self.registry['prompter'].shutdown():
             # If shutdown was called while we were asking a question, we're in
             # a still sub-eventloop (which gets quitted now) and not in the
             # main one.

@@ -24,6 +24,7 @@ from PyQt5.QtWidgets import QHBoxLayout, QWidget, QLineEdit
 
 from qutebrowser.widgets import misc
 from qutebrowser.widgets.statusbar import textbase, prompter
+from qutebrowser.utils import utils
 
 
 class PromptLineEdit(misc.MinimalLineEditMixin, QLineEdit):
@@ -40,7 +41,6 @@ class Prompt(QWidget):
     """The prompt widget shown in the statusbar.
 
     Attributes:
-        prompter: The Prompter instance assosciated with this Prompt.
         txt: The TextBase instance (QLabel) used to display the prompt text.
         lineedit: The MinimalLineEdit instance (QLineEdit) used for the input.
         _hbox: The QHBoxLayout used to display the text and prompt.
@@ -65,7 +65,8 @@ class Prompt(QWidget):
         self.lineedit = PromptLineEdit()
         self._hbox.addWidget(self.lineedit)
 
-        self.prompter = prompter.Prompter(self)
+        prompter_obj = prompter.Prompter(self)
+        utils.register_object('prompter', prompter_obj)
 
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)

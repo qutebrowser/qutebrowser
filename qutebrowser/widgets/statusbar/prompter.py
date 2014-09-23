@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import QLineEdit
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.commands import cmdutils
-from qutebrowser.utils import usertypes, log, qtutils
+from qutebrowser.utils import usertypes, log, qtutils, utils
 
 
 PromptContext = collections.namedtuple('PromptContext',
@@ -185,7 +185,7 @@ class Prompter:
             if self.question.answer is None and not self.question.is_aborted:
                 self.question.cancel()
 
-    @cmdutils.register(instance='mainwindow.status.prompt.prompter', hide=True,
+    @cmdutils.register(instance='prompter', hide=True,
                        modes=[usertypes.KeyMode.prompt,
                               usertypes.KeyMode.yesno])
     def prompt_accept(self):
@@ -227,7 +227,7 @@ class Prompter:
         else:
             raise ValueError("Invalid question mode!")
 
-    @cmdutils.register(instance='mainwindow.status.prompt.prompter', hide=True,
+    @cmdutils.register(instance='prompter', hide=True,
                        modes=[usertypes.KeyMode.yesno])
     def prompt_yes(self):
         """Answer yes to a yes/no prompt."""
@@ -238,7 +238,7 @@ class Prompter:
         modeman.leave(usertypes.KeyMode.yesno, 'yesno accept')
         self.question.done()
 
-    @cmdutils.register(instance='mainwindow.status.prompt.prompter', hide=True,
+    @cmdutils.register(instance='prompter', hide=True,
                        modes=[usertypes.KeyMode.yesno])
     def prompt_no(self):
         """Answer no to a yes/no prompt."""
