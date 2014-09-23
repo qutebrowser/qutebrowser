@@ -87,13 +87,6 @@ def debug_crash(typ: ('exception', 'segfault')='exception'):
 
 
 @cmdutils.register(debug=True)
-def debug_all_widgets():
-    """Print a list of all widgets to debug log."""
-    s = QCoreApplication.instance().get_all_widgets()
-    log.misc.debug(s)
-
-
-@cmdutils.register(debug=True)
 def debug_all_objects():
     """Print a list of  all objects to the debug log."""
     s = QCoreApplication.instance().get_all_objects()

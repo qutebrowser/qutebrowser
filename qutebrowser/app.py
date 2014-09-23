@@ -460,15 +460,11 @@ class Application(QApplication):
         tabs.start_download.connect(self.downloadmanager.fetch)
         tabs.download_get.connect(self.downloadmanager.get)
 
-    def get_all_widgets(self):
+    def _get_widgets(self):
         """Get a string list of all widgets."""
-        lines = []
         widgets = self.allWidgets()
         widgets.sort(key=lambda e: repr(e))
-        lines.append("{} widgets".format(len(widgets)))
-        for w in widgets:
-            lines.append(repr(w))
-        return '\n'.join(lines)
+        return [repr(w) for w in widgets]
 
     def _get_pyqt_objects(self, lines, obj, depth=0):
         """Recursive method for get_all_objects to get Qt objects."""
@@ -500,6 +496,12 @@ class Application(QApplication):
         pyqt_lines.insert(0, 'Qt objects - {} objects:'.format(
             len(pyqt_lines)))
         output += pyqt_lines
+        output += ['']
+        widget_lines = self._get_widgets()
+        widget_lines = ['    ' + e for e in widget_lines]
+        widget_lines.insert(0, "Qt widgets - {} objects".format(
+            len(widget_lines)))
+        output += widget_lines
         return '\n'.join(output)
 
     def _recover_pages(self):
@@ -588,12 +590,6 @@ class Application(QApplication):
             history = []
 
         try:
-            widgets = self.get_all_widgets()
-        except Exception:
-            log.destroy.exception("Error while getting widgets")
-            widgets = ""
-
-        try:
             objects = self.get_all_objects()
         except Exception:
             log.destroy.exception("Error while getting objects")
@@ -605,7 +601,7 @@ class Application(QApplication):
             log.destroy.exception("Error while preventing shutdown")
         QApplication.closeAllWindows()
         self._crashdlg = crash.ExceptionCrashDialog(pages, history, exc,
-                                                    widgets, objects)
+                                                    objects)
         ret = self._crashdlg.exec_()
         if ret == QDialog.Accepted:  # restore
             self.restart(shutdown=False, pages=pages)
@@ -677,9 +673,8 @@ class Application(QApplication):
         """Report a bug in qutebrowser."""
         pages = self._recover_pages()
         history = self.mainwindow.status.cmd.history[-5:]
-        widgets = self.get_all_widgets()
         objects = self.get_all_objects()
-        self._crashdlg = crash.ReportDialog(pages, history, widgets, objects)
+        self._crashdlg = crash.ReportDialog(pages, history, objects)
         self._crashdlg.show()
 
     @cmdutils.register(instance='', debug=True, name='debug-console')
