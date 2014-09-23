@@ -747,7 +747,7 @@ class Application(QApplication):
             # event loop, so we can shut down immediately.
             self._shutdown(status)
 
-    def _shutdown(self, status):  # noqa
+    def _shutdown(self, status):  # noqa, pylint: disable=too-many-branches
         """Second stage of shutdown."""
         log.destroy.debug("Stage 2 of shutting down...")
         # Remove eventfilter

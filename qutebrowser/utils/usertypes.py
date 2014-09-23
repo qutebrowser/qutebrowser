@@ -401,8 +401,8 @@ class ObjectRegistry(collections.UserDict):
         Prevents duplicated registrations.
         """
         if name in self.data:
-            raise KeyError("Object '{}' is already registered in scope "
-                           "'{}' ({})!".format(name, scope, self.data[name]))
+            raise KeyError("Object '{}' is already registered ({})!".format(
+                           name, repr(self.data[name])))
         super().__setitem__(name, obj)
 
     def dump_objects(self):
