@@ -578,3 +578,13 @@ def is_enum(obj):
         return issubclass(obj, enum.Enum)
     except TypeError:
         return False
+
+
+def get_object(name, scope='global'):
+    """Helper function to get an object."""
+    return QCoreApplication.instance().obj.get(name, scope)
+
+
+def register_object(name, obj, scope='global'):
+    """Helper function to register an object."""
+    return QCoreApplication.instance().obj.register(name, obj, scope)
