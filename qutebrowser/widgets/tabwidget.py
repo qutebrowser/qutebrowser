@@ -209,7 +209,7 @@ class TabBar(QTabBar):
             confwidth = str(config.get('tabs', 'width'))
             if confwidth.endswith('%'):
                 perc = int(confwidth.rstrip('%'))
-                width = utils.get_object('mainwindow').width() * perc / 100
+                width = utils.get_object('main-window').width() * perc / 100
             else:
                 width = int(confwidth)
             size = QSize(max(minimum_size.width(), width), height)

@@ -44,7 +44,7 @@ class ReadlineBridge:
         else:
             return None
 
-    @cmdutils.register(instance='rl_bridge', hide=True,
+    @cmdutils.register(instance='readline-bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
     def rl_backward_char(self):
         """Move back a character.
@@ -56,7 +56,7 @@ class ReadlineBridge:
             return
         widget.cursorBackward(False)
 
-    @cmdutils.register(instance='rl_bridge', hide=True,
+    @cmdutils.register(instance='readline-bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
     def rl_forward_char(self):
         """Move forward a character.
@@ -68,7 +68,7 @@ class ReadlineBridge:
             return
         widget.cursorForward(False)
 
-    @cmdutils.register(instance='rl_bridge', hide=True,
+    @cmdutils.register(instance='readline-bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
     def rl_backward_word(self):
         """Move back to the start of the current or previous word.
@@ -80,7 +80,7 @@ class ReadlineBridge:
             return
         widget.cursorWordBackward(False)
 
-    @cmdutils.register(instance='rl_bridge', hide=True,
+    @cmdutils.register(instance='readline-bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
     def rl_forward_word(self):
         """Move forward to the end of the next word.
@@ -92,7 +92,7 @@ class ReadlineBridge:
             return
         widget.cursorWordForward(False)
 
-    @cmdutils.register(instance='rl_bridge', hide=True,
+    @cmdutils.register(instance='readline-bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
     def rl_beginning_of_line(self):
         """Move to the start of the line.
@@ -104,7 +104,7 @@ class ReadlineBridge:
             return
         widget.home(False)
 
-    @cmdutils.register(instance='rl_bridge', hide=True,
+    @cmdutils.register(instance='readline-bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
     def rl_end_of_line(self):
         """Move to the end of the line.
@@ -116,7 +116,7 @@ class ReadlineBridge:
             return
         widget.end(False)
 
-    @cmdutils.register(instance='rl_bridge', hide=True,
+    @cmdutils.register(instance='readline-bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
     def rl_unix_line_discard(self):
         """Remove chars backward from the cursor to the beginning of the line.
@@ -130,7 +130,7 @@ class ReadlineBridge:
         self.deleted[widget] = widget.selectedText()
         widget.del_()
 
-    @cmdutils.register(instance='rl_bridge', hide=True,
+    @cmdutils.register(instance='readline-bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
     def rl_kill_line(self):
         """Remove chars from the cursor to the end of the line.
@@ -144,7 +144,7 @@ class ReadlineBridge:
         self.deleted[widget] = widget.selectedText()
         widget.del_()
 
-    @cmdutils.register(instance='rl_bridge', hide=True,
+    @cmdutils.register(instance='readline-bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
     def rl_unix_word_rubout(self):
         """Remove chars from the cursor to the beginning of the word.
@@ -158,7 +158,7 @@ class ReadlineBridge:
         self.deleted[widget] = widget.selectedText()
         widget.del_()
 
-    @cmdutils.register(instance='rl_bridge', hide=True,
+    @cmdutils.register(instance='readline-bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
     def rl_kill_word(self):
         """Remove chars from the cursor to the end of the current word.
@@ -172,7 +172,7 @@ class ReadlineBridge:
         self.deleted[widget] = widget.selectedText()
         widget.del_()
 
-    @cmdutils.register(instance='rl_bridge', hide=True,
+    @cmdutils.register(instance='readline-bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
     def rl_yank(self):
         """Paste the most recently deleted text.
@@ -184,7 +184,7 @@ class ReadlineBridge:
             return
         widget.insert(self.deleted[widget])
 
-    @cmdutils.register(instance='rl_bridge', hide=True,
+    @cmdutils.register(instance='readline-bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
     def rl_delete_char(self):
         """Delete the character after the cursor.
@@ -196,7 +196,7 @@ class ReadlineBridge:
             return
         widget.del_()
 
-    @cmdutils.register(instance='rl_bridge', hide=True,
+    @cmdutils.register(instance='readline-bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
     def rl_backward_delete_char(self):
         """Delete the character before the cursor.

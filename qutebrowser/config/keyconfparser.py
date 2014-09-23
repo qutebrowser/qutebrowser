@@ -119,7 +119,7 @@ class KeyConfigParser(QObject):
         with open(self._configfile, 'w', encoding='utf-8') as f:
             f.write(str(self))
 
-    @cmdutils.register(instance='keyconfig')
+    @cmdutils.register(instance='key-config')
     def bind(self, key, *command, mode=None):
         """Bind a key to a command.
 
@@ -144,7 +144,7 @@ class KeyConfigParser(QObject):
         for m in mode.split(','):
             self.changed.emit(m)
 
-    @cmdutils.register(instance='keyconfig')
+    @cmdutils.register(instance='key-config')
     def unbind(self, key, mode=None):
         """Unbind a keychain.
 

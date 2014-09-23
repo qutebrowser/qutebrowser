@@ -42,7 +42,7 @@ class MainWindow(QWidget):
     Attributes:
         status: The StatusBar widget.
         downloadview: The DownloadView widget.
-        _tabbedbrowser: The TabbedBrowser widget.
+        _tabbed_browser: The TabbedBrowser widget.
         _vbox: The main QVBoxLayout.
     """
 
@@ -50,9 +50,9 @@ class MainWindow(QWidget):
         super().__init__(parent)
 
         self.setWindowTitle('qutebrowser')
-        stateconf = utils.get_object('stateconfig')
+        state_config = utils.get_object('state-config')
         try:
-            data = stateconf['geometry']['mainwindow']
+            data = state_config['geometry']['mainwindow']
             log.init.debug("Restoring mainwindow from {}".format(data))
             geom = base64.b64decode(data, validate=True)
         except KeyError:
@@ -81,10 +81,10 @@ class MainWindow(QWidget):
         self._vbox.addWidget(self.downloadview)
         self.downloadview.show()
 
-        self._tabbedbrowser = tabbedbrowser.TabbedBrowser()
-        self._tabbedbrowser.title_changed.connect(self.setWindowTitle)
-        utils.register_object('tabbedbrowser', self._tabbedbrowser)
-        self._vbox.addWidget(self._tabbedbrowser)
+        self._tabbed_browser = tabbedbrowser.TabbedBrowser()
+        self._tabbed_browser.title_changed.connect(self.setWindowTitle)
+        utils.register_object('tabbed-browser', self._tabbed_browser)
+        self._vbox.addWidget(self._tabbed_browser)
 
         self._completion = completion.CompletionView(self)
         utils.register_object('completion', self._completion)
@@ -145,7 +145,7 @@ class MainWindow(QWidget):
         if rect.isValid():
             self._completion.setGeometry(rect)
 
-    @cmdutils.register(instance='mainwindow', name=['quit', 'q'])
+    @cmdutils.register(instance='main-window', name=['quit', 'q'])
     def close(self):
         """Quit qutebrowser.
 
@@ -164,12 +164,12 @@ class MainWindow(QWidget):
         super().resizeEvent(e)
         self.resize_completion()
         self.downloadview.updateGeometry()
-        self._tabbedbrowser.tabBar().refresh()
+        self._tabbed_browser.tabBar().refresh()
 
     def closeEvent(self, e):
         """Override closeEvent to display a confirmation if needed."""
         confirm_quit = config.get('ui', 'confirm-quit')
-        count = self._tabbedbrowser.count()
+        count = self._tabbed_browser.count()
         if confirm_quit == 'never':
             e.accept()
         elif confirm_quit == 'multiple-tabs' and count <= 1:

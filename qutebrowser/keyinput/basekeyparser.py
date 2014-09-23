@@ -321,7 +321,7 @@ class BaseKeyParser(QObject):
             self._modename = modename
         self.bindings = {}
         self.special_bindings = {}
-        keyconfparser = utils.get_object('keyconfig')
+        keyconfparser = utils.get_object('key-config')
         for (key, cmd) in keyconfparser.get_bindings_for(modename).items():
             if not cmd:
                 continue

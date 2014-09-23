@@ -363,7 +363,7 @@ class DownloadManager(QObject):
         reply = page.networkAccessManager().get(req)
         self.fetch(reply)
 
-    @cmdutils.register(instance='downloadmanager')
+    @cmdutils.register(instance='download-manager')
     def cancel_download(self, count=1):
         """Cancel the first/[count]th download.
 
@@ -409,7 +409,7 @@ class DownloadManager(QObject):
         q.destroyed.connect(functools.partial(self.questions.remove, q))
         self.questions.append(q)
         download.cancelled.connect(q.abort)
-        utils.get_object('messagebridge').ask(q, blocking=False)
+        utils.get_object('message-bridge').ask(q, blocking=False)
 
     @pyqtSlot(DownloadItem)
     def on_finished(self, download):

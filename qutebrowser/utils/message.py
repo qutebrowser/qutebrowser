@@ -30,7 +30,7 @@ def error(message, immediately=False):
     Args:
         See MessageBridge.error.
     """
-    utils.get_object('messagebridge').error(message, immediately)
+    utils.get_object('message-bridge').error(message, immediately)
 
 
 def info(message, immediately=True):
@@ -39,12 +39,12 @@ def info(message, immediately=True):
     Args:
         See MessageBridge.info.
     """
-    utils.get_object('messagebridge').info(message, immediately)
+    utils.get_object('message-bridge').info(message, immediately)
 
 
 def set_cmd_text(txt):
     """Convienience function to Set the statusbar command line to a text."""
-    utils.get_object('messagebridge').set_cmd_text(txt)
+    utils.get_object('message-bridge').set_cmd_text(txt)
 
 
 def ask(message, mode, default=None):
@@ -62,7 +62,7 @@ def ask(message, mode, default=None):
     q.text = message
     q.mode = mode
     q.default = default
-    utils.get_object('messagebridge').ask(q, blocking=True)
+    utils.get_object('message-bridge').ask(q, blocking=True)
     q.deleteLater()
     return q.answer
 
@@ -72,7 +72,7 @@ def alert(message):
     q = usertypes.Question()
     q.text = message
     q.mode = usertypes.PromptMode.alert
-    utils.get_object('messagebridge').ask(q, blocking=True)
+    utils.get_object('message-bridge').ask(q, blocking=True)
     q.deleteLater()
 
 
@@ -87,7 +87,7 @@ def ask_async(message, mode, handler, default=None):
     """
     if not isinstance(mode, usertypes.PromptMode):
         raise TypeError("Mode {} is no PromptMode member!".format(mode))
-    bridge = utils.get_object('messagebridge')
+    bridge = utils.get_object('message-bridge')
     q = usertypes.Question(bridge)
     q.text = message
     q.mode = mode
@@ -106,7 +106,7 @@ def confirm_async(message, yes_action, no_action=None, default=None):
         no_action: Callable to be called when the user answered no.
         default: True/False to set a default value, or None.
     """
-    bridge = utils.get_object('messagebridge')
+    bridge = utils.get_object('message-bridge')
     q = usertypes.Question(bridge)
     q.text = message
     q.mode = usertypes.PromptMode.yesno

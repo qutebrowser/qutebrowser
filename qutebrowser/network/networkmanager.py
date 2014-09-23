@@ -55,9 +55,9 @@ class NetworkManager(QNetworkAccessManager):
         # We have a shared cookie jar and cache - we restore their parents so
         # we don't take ownership of them.
         app = QCoreApplication.instance()
-        cookiejar = utils.get_object('cookiejar')
-        self.setCookieJar(cookiejar)
-        cookiejar.setParent(app)
+        cookie_jar = utils.get_object('cookie-jar')
+        self.setCookieJar(cookie_jar)
+        cookie_jar.setParent(app)
         cache = utils.get_object('cache')
         self.setCache(cache)
         cache.setParent(app)

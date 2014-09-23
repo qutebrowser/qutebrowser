@@ -97,7 +97,7 @@ class Command:
         Raise:
             PrerequisitesError if the command can't be called currently.
         """
-        curmode = utils.get_object('modeman').mode()
+        curmode = utils.get_object('mode-manager').mode()
         if self.modes is not None and curmode not in self.modes:
             mode_names = '/'.join(mode.name for mode in self.modes)
             raise cmdexc.PrerequisitesError(

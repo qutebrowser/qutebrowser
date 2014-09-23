@@ -133,7 +133,7 @@ class StatusBar(QWidget):
         self._stack.setContentsMargins(0, 0, 0, 0)
 
         self._cmd = command.Command()
-        utils.register_object('status-cmd', self._cmd)
+        utils.register_object('status-command', self._cmd)
         self._stack.addWidget(self._cmd)
 
         self.txt = textwidget.Text()
@@ -377,7 +377,7 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
-        if mode in utils.get_object('modeman').passthrough:
+        if mode in utils.get_object('mode-manager').passthrough:
             text = "-- {} MODE --".format(mode.name.upper())
             self.txt.set_text(self.txt.Text.normal, text)
         if mode == usertypes.KeyMode.insert:
@@ -386,7 +386,7 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Clear marked mode."""
-        if mode in utils.get_object('modeman').passthrough:
+        if mode in utils.get_object('mode-manager').passthrough:
             self.txt.set_text(self.txt.Text.normal, '')
         if mode == usertypes.KeyMode.insert:
             self._set_insert_active(False)

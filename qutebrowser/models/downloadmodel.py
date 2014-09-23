@@ -39,14 +39,14 @@ class DownloadModel(QAbstractListModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        downloadmanager = utils.get_object('downloadmanager')
-        downloadmanager.download_about_to_be_added.connect(
+        download_manager = utils.get_object('download-manager')
+        download_manager.download_about_to_be_added.connect(
             lambda idx: self.beginInsertRows(QModelIndex(), idx, idx))
-        downloadmanager.download_added.connect(self.endInsertRows)
-        downloadmanager.download_about_to_be_finished.connect(
+        download_manager.download_added.connect(self.endInsertRows)
+        download_manager.download_about_to_be_finished.connect(
             lambda idx: self.beginRemoveRows(QModelIndex(), idx, idx))
-        downloadmanager.download_finished.connect(self.endRemoveRows)
-        downloadmanager.data_changed.connect(self.on_data_changed)
+        download_manager.download_finished.connect(self.endRemoveRows)
+        download_manager.data_changed.connect(self.on_data_changed)
 
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
@@ -81,7 +81,7 @@ class DownloadModel(QAbstractListModel):
         if index.parent().isValid() or index.column() != 0:
             return QVariant()
 
-        item = utils.get_object('downloadmanager').downloads[index.row()]
+        item = utils.get_object('download-manager').downloads[index.row()]
         if role == Qt.DisplayRole:
             data = str(item)
         elif role == Qt.ForegroundRole:
@@ -105,4 +105,4 @@ class DownloadModel(QAbstractListModel):
         if parent.isValid():
             # We don't have children
             return 0
-        return len(utils.get_object('downloadmanager').downloads)
+        return len(utils.get_object('download-manager').downloads)

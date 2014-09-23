@@ -390,10 +390,6 @@ class ObjectRegistry(collections.UserDict):
     """A registry of long-living objects in qutebrowser.
 
     Inspired by the eric IDE code (E5Gui/E5Application.py).
-
-    Objects registered globally:
-        cookiejar: CookieJar instance.
-        cache: DiskCache instance.
     """
 
     def __setitem__(self, name, obj):

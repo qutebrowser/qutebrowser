@@ -74,7 +74,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         misc.CommandLineEdit.__init__(self, parent)
         misc.MinimalLineEditMixin.__init__(self)
         self.cursor_part = 0
-        self.history.history = utils.get_object('cmd_history').data
+        self.history.history = utils.get_object('command-history').data
         self._empty_item_idx = None
         self.textEdited.connect(self.on_text_edited)
         self.cursorPositionChanged.connect(self._update_cursor_part)
@@ -160,7 +160,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.setFocus()
         self.show_cmd.emit()
 
-    @cmdutils.register(instance='status-cmd', name='set-cmd-text')
+    @cmdutils.register(instance='status-command', name='set-cmd-text')
     def set_cmd_text_command(self, text):
         """Preset the statusbar to some text.
 
@@ -172,7 +172,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         Args:
             text: The commandline to set.
         """
-        url = utils.get_object('tabbedbrowser').current_url().toString(
+        url = utils.get_object('tabbed-browser').current_url().toString(
             QUrl.FullyEncoded | QUrl.RemovePassword)
         # FIXME we currently replace the URL in any place in the arguments,
         # rather than just replacing it if it is a dedicated argument. We could
@@ -215,7 +215,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.setFocus()
         self.show_cmd.emit()
 
-    @cmdutils.register(instance='status-cmd', hide=True,
+    @cmdutils.register(instance='status-command', hide=True,
                        modes=[usertypes.KeyMode.command])
     def command_history_prev(self):
         """Go back in the commandline history."""
@@ -230,7 +230,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         if item:
             self.set_cmd_text(item)
 
-    @cmdutils.register(instance='status-cmd', hide=True,
+    @cmdutils.register(instance='status-command', hide=True,
                        modes=[usertypes.KeyMode.command])
     def command_history_next(self):
         """Go forward in the commandline history."""
@@ -243,7 +243,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         if item:
             self.set_cmd_text(item)
 
-    @cmdutils.register(instance='status-cmd', hide=True,
+    @cmdutils.register(instance='status-command', hide=True,
                        modes=[usertypes.KeyMode.command])
     def command_accept(self):
         """Execute the command currently in the commandline.

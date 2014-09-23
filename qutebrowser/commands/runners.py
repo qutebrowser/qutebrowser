@@ -32,7 +32,7 @@ def replace_variables(arglist):
     args = []
     for arg in arglist:
         if arg == '{url}':
-            url = utils.get_object('tabbedbrowser').current_url().toString(
+            url = utils.get_object('tabbed-browser').current_url().toString(
                 QUrl.FullyEncoded | QUrl.RemovePassword)
             args.append(url)
         else:
@@ -114,7 +114,7 @@ class SearchRunner(QObject):
         """
         self._search(text, rev=True)
 
-    @cmdutils.register(instance='searchrunner', hide=True)
+    @cmdutils.register(instance='search-runner', hide=True)
     def search_next(self, count=1):
         """Continue the search to the ([count]th) next term.
 
@@ -128,7 +128,7 @@ class SearchRunner(QObject):
             for _ in range(count):
                 self.do_search.emit(self._text, self._flags)
 
-    @cmdutils.register(instance='searchrunner', hide=True)
+    @cmdutils.register(instance='search-runner', hide=True)
     def search_prev(self, count=1):
         """Continue the search to the ([count]th) previous term.
 

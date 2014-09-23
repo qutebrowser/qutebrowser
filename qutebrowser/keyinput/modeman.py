@@ -39,18 +39,18 @@ class ModeLockedError(Exception):
 
 def enter(mode, reason=None):
     """Enter the mode 'mode'."""
-    utils.get_object('modeman').enter(mode, reason)
+    utils.get_object('mode-manager').enter(mode, reason)
 
 
 def leave(mode, reason=None):
     """Leave the mode 'mode'."""
-    utils.get_object('modeman').leave(mode, reason)
+    utils.get_object('mode-manager').leave(mode, reason)
 
 
 def maybe_enter(mode, reason=None):
     """Convenience method to enter 'mode' without exceptions."""
     try:
-        utils.get_object('modeman').enter(mode, reason)
+        utils.get_object('mode-manager').enter(mode, reason)
     except ModeLockedError:
         pass
 
@@ -58,7 +58,7 @@ def maybe_enter(mode, reason=None):
 def maybe_leave(mode, reason=None):
     """Convenience method to leave 'mode' without exceptions."""
     try:
-        utils.get_object('modeman').leave(mode, reason)
+        utils.get_object('mode-manager').leave(mode, reason)
     except ValueError as e:
         # This is rather likely to happen, so we only log to debug log.
         log.modes.debug(e)
@@ -212,7 +212,7 @@ class ModeManager(QObject):
         log.modes.debug("New mode stack: {}".format(self._mode_stack))
         self.entered.emit(mode)
 
-    @cmdutils.register(instance='modeman', hide=True)
+    @cmdutils.register(instance='mode-manager', hide=True)
     def enter_mode(self, mode):
         """Enter a key mode.
 
@@ -245,7 +245,7 @@ class ModeManager(QObject):
             self._mode_stack))
         self.left.emit(mode)
 
-    @cmdutils.register(instance='modeman', name='leave-mode',
+    @cmdutils.register(instance='mode-manager', name='leave-mode',
                        not_modes=[usertypes.KeyMode.normal], hide=True)
     def leave_current_mode(self):
         """Leave the mode we're currently in."""
@@ -283,7 +283,7 @@ class ModeManager(QObject):
             # we're not interested in it anymore.
             return False
         if (QApplication.instance().activeWindow() is not
-                utils.get_object('mainwindow')):
+                utils.get_object('main-window')):
             # Some other window (print dialog, etc.) is focused so we pass
             # the event through.
             return False

@@ -149,8 +149,8 @@ class HintManager(QObject):
         """
         super().__init__(parent)
         self._context = None
-        utils.get_object('modeman').left.connect(self.on_mode_left)
-        utils.get_object('modeman').entered.connect(self.on_mode_entered)
+        utils.get_object('mode-manager').left.connect(self.on_mode_left)
+        utils.get_object('mode-manager').entered.connect(self.on_mode_entered)
 
     def _cleanup(self):
         """Clean up after hinting."""
@@ -160,7 +160,7 @@ class HintManager(QObject):
             except webelem.IsNullError:
                 pass
         text = self.HINT_TEXTS[self._context.target]
-        utils.get_object('messagebridge').maybe_reset_text(text)
+        utils.get_object('message-bridge').maybe_reset_text(text)
         self._context = None
 
     def _hint_strings(self, elems):
@@ -541,7 +541,7 @@ class HintManager(QObject):
         self._context.frames = webelem.get_child_frames(mainframe)
         self._context.args = args
         self._init_elements(mainframe, group)
-        utils.get_object('messagebridge').set_text(self.HINT_TEXTS[target])
+        utils.get_object('message-bridge').set_text(self.HINT_TEXTS[target])
         self._connect_frame_signals()
         try:
             modeman.enter(usertypes.KeyMode.hint, 'HintManager.start')
