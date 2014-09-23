@@ -29,7 +29,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import config, style
 from qutebrowser.widgets import completiondelegate
-from qutebrowser.utils import completer, usertypes, qtutils
+from qutebrowser.utils import completer, usertypes, qtutils, utils
 
 
 class CompletionView(QTreeView):
@@ -45,7 +45,6 @@ class CompletionView(QTreeView):
         COLUMN_WIDTHS: A list of column widths, in percent.
 
     Attributes:
-        completer: The Completer instance to use.
         enabled: Whether showing the CompletionView is enabled.
         _height: The height to use for the CompletionView.
         _height_perc: Either None or a percentage if height should be relative.
@@ -92,7 +91,8 @@ class CompletionView(QTreeView):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.completer = completer.Completer(self)
+        completer_obj = completer.Completer(self)
+        utils.register_object('completer', completer_obj)
         self.enabled = config.get('completion', 'show')
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
@@ -225,7 +225,7 @@ class CompletionView(QTreeView):
     def selectionChanged(self, selected, deselected):
         """Extend selectionChanged to call completers selection_changed."""
         super().selectionChanged(selected, deselected)
-        self.completer.selection_changed(selected, deselected)
+        utils.get_object('completer').selection_changed(selected, deselected)
 
     def resizeEvent(self, e):
         """Extend resizeEvent to adjust column size."""

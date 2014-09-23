@@ -375,7 +375,7 @@ class Application(QApplication):
         completion = self.mainwindow.completion
         tabs = self.mainwindow.tabs
         cmd = self.mainwindow.status.cmd
-        completer = self.mainwindow.completion.completer
+        completer = self.registry['completer']
         searchrunner = self.registry['searchrunner']
         messagebridge = self.registry['messagebridge']
         modeman = self.registry['modeman']
