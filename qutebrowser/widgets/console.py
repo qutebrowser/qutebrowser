@@ -33,7 +33,14 @@ from qutebrowser.widgets import misc
 
 class ConsoleLineEdit(misc.CommandLineEdit):
 
-    """A QLineEdit which executes entered code and provides a history."""
+    """A QLineEdit which executes entered code and provides a history.
+
+    Attributes:
+        _history: The command history of executed commands.
+        _more: A flag which is set when more input is expected.
+        _buffer: The buffer for multiline commands.
+        _interpreter: The InteractiveInterpreter to execute code with.
+    """
 
     write = pyqtSignal(str)
 
@@ -162,7 +169,13 @@ class ConsoleTextEdit(QTextEdit):
 
 class ConsoleWidget(QWidget):
 
-    """A widget with an interactive Python console."""
+    """A widget with an interactive Python console.
+
+    Attributes:
+        _lineedit: The line edit in the console.
+        _output: The output widget in the console.
+        _vbox: The layout which contains everything.
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)

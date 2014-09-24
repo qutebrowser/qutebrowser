@@ -362,7 +362,12 @@ class RAMHandler(logging.Handler):
 
 class HTMLFormatter(logging.Formatter):
 
-    """Formatter for HTML-colored log messages, similiar to colorlog."""
+    """Formatter for HTML-colored log messages, similiar to colorlog.
+
+    Attributes:
+        _log_colors: The colors to use for logging levels.
+        _colordict: The colordict passed to the logger.
+    """
 
     def __init__(self, fmt, datefmt, log_colors):
         """Constructor.

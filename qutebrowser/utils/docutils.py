@@ -64,6 +64,13 @@ class DocstringParser:
     """Generate documentation based on a docstring of a command handler.
 
     The docstring needs to follow the format described in HACKING.
+
+    Attributes:
+        _state: The current state of the parser state machine.
+        _cur_arg_name: The name of the argument we're currently handling.
+        short_desc: The short description of the function.
+        long_desc: The long description of the function.
+        arg_descs: A dict of argument names to their descriptions
     """
 
     State = usertypes.enum('State', 'short', 'desc', 'desc_hidden',

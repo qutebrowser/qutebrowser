@@ -98,7 +98,11 @@ class CommandLineEdit(QLineEdit):
 
 class _CommandValidator(QValidator):
 
-    """Validator to prevent the : from getting deleted."""
+    """Validator to prevent the : from getting deleted.
+
+    Attributes:
+        prompt: The current prompt.
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)

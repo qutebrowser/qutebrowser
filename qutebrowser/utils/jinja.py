@@ -28,7 +28,11 @@ from qutebrowser.utils import utils
 
 class Loader(jinja2.BaseLoader):
 
-    """Jinja loader which uses utils.read_file to load templates."""
+    """Jinja loader which uses utils.read_file to load templates.
+
+    Attributes:
+        _subdir: The subdirectory to find templates in.
+    """
 
     def __init__(self, subdir):
         self._subdir = subdir

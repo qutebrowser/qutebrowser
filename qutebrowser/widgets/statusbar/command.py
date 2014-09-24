@@ -34,9 +34,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     """The commandline part of the statusbar.
 
     Attributes:
-        cursor_part: The part the cursor is currently over.
-        parts: A list of strings with the split commandline
-        prefix: The prefix currently entered.
+        _cursor_part: The part the cursor is currently over.
 
     Signals:
         got_cmd: Emitted when a command is triggered by the user.

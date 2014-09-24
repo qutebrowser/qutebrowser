@@ -30,7 +30,14 @@ from qutebrowser.utils import message, log
 
 class ExternalEditor(QObject):
 
-    """Class to simplify editing a text in an external editor."""
+    """Class to simplify editing a text in an external editor.
+
+    Attributes:
+        _text: The current text before the editor is opened.
+        _oshandle: The OS level handle to the tmpfile.
+        _filehandle: The file handle to the tmpfile.
+        _proc: The QProcess of the editor.
+    """
 
     editing_finished = pyqtSignal(str)
 

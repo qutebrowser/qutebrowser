@@ -258,6 +258,9 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
 
     This also means the userscript *has* to use >> (append) rather than >
     (overwrite) to write to the file!
+
+    Attributes:
+        _oshandle: The oshandle of the temp file.
     """
 
     def __init__(self, parent=None):

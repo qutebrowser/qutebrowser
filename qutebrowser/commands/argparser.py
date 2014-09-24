@@ -38,7 +38,11 @@ class ArgumentParserError(Exception):
 
 class ArgumentParserExit(Exception):
 
-    """Exception raised when the argument parser exitted."""
+    """Exception raised when the argument parser exitted.
+
+    Attributes:
+        status: The exit status.
+    """
 
     def __init__(self, status, msg):
         self.status = status
@@ -61,7 +65,11 @@ class HelpAction(argparse.Action):
 
 class ArgumentParser(argparse.ArgumentParser):
 
-    """Subclass ArgumentParser to be more suitable for runtime parsing."""
+    """Subclass ArgumentParser to be more suitable for runtime parsing.
+
+    Attributes:
+        name: The command name.
+    """
 
     def __init__(self, name, *args, **kwargs):
         self.name = name
