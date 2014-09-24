@@ -31,7 +31,7 @@ from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.keyinput import modeman
 from qutebrowser.widgets import tabwidget, webview
 from qutebrowser.browser import signalfilter, commands
-from qutebrowser.utils import log, message, usertypes, utils, qtutils
+from qutebrowser.utils import log, message, usertypes, utils, qtutils, objreg
 
 
 class TabbedBrowser(tabwidget.TabWidget):
@@ -109,7 +109,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         self.url_stack = []
         self._filter = signalfilter.SignalFilter(self)
         dispatcher = commands.CommandDispatcher(self)
-        utils.register_object('command-dispatcher', dispatcher)
+        objreg.register('command-dispatcher', dispatcher)
         self._now_focused = None
         # FIXME adjust this to font size
         self.setIconSize(QSize(12, 12))
@@ -261,8 +261,8 @@ class TabbedBrowser(tabwidget.TabWidget):
                 tab))
         if tab is self._now_focused:
             self._now_focused = None
-        if tab is utils.get_object('last-focused-tab', None):
-            utils.delete_object('last-focused-tab')
+        if tab is objreg.get('last-focused-tab', None):
+            objreg.delete('last-focused-tab')
         if not tab.cur_url.isEmpty():
             qtutils.ensure_valid(tab.cur_url)
             self.url_stack.append(tab.cur_url)
@@ -525,8 +525,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         tab.setFocus()
         modeman.maybe_leave(usertypes.KeyMode.hint, 'tab changed')
         if self._now_focused is not None:
-            utils.register_object('last-focused-tab', self._now_focused,
-                                update=True)
+            objreg.register('last-focused-tab', self._now_focused, update=True)
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
         self.title_changed.emit('{} - qutebrowser'.format(self.tabText(idx)))

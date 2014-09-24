@@ -29,7 +29,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import config, style
 from qutebrowser.widgets import completiondelegate
-from qutebrowser.utils import completer, usertypes, qtutils, utils
+from qutebrowser.utils import completer, usertypes, qtutils, objreg
 
 
 class CompletionView(QTreeView):
@@ -92,7 +92,7 @@ class CompletionView(QTreeView):
     def __init__(self, parent=None):
         super().__init__(parent)
         completer_obj = completer.Completer(self)
-        utils.register_object('completer', completer_obj)
+        objreg.register('completer', completer_obj)
         self.enabled = config.get('completion', 'show')
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
@@ -225,7 +225,7 @@ class CompletionView(QTreeView):
     def selectionChanged(self, selected, deselected):
         """Extend selectionChanged to call completers selection_changed."""
         super().selectionChanged(selected, deselected)
-        utils.get_object('completer').selection_changed(selected, deselected)
+        objreg.get('completer').selection_changed(selected, deselected)
 
     def resizeEvent(self, e):
         """Extend resizeEvent to adjust column size."""

@@ -29,7 +29,8 @@ from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, http, usertypes, log, utils, qtutils
+from qutebrowser.utils import (message, http, usertypes, log, utils, qtutils,
+                               objreg)
 
 
 class DownloadItem(QObject):
@@ -409,7 +410,7 @@ class DownloadManager(QObject):
         q.destroyed.connect(functools.partial(self.questions.remove, q))
         self.questions.append(q)
         download.cancelled.connect(q.abort)
-        utils.get_object('message-bridge').ask(q, blocking=False)
+        objreg.get('message-bridge').ask(q, blocking=False)
 
     @pyqtSlot(DownloadItem)
     def on_finished(self, download):

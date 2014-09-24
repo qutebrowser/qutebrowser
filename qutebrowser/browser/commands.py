@@ -38,7 +38,7 @@ from qutebrowser.commands import userscripts, cmdexc, cmdutils
 from qutebrowser.config import config
 from qutebrowser.browser import hints, quickmarks, webelem
 from qutebrowser.utils import (message, editor, usertypes, log, qtutils,
-                               urlutils, utils)
+                               urlutils, objreg)
 
 
 class CommandDispatcher:
@@ -143,7 +143,7 @@ class CommandDispatcher:
     def _tab_focus_last(self):
         """Select the tab which was last focused."""
         try:
-            tab = utils.get_object('last-focused-tab')
+            tab = objreg.get('last-focused-tab')
         except KeyError:
             raise cmdexc.CommandError("No last focused tab!")
         idx = self._tabs.indexOf(tab)

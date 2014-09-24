@@ -26,7 +26,7 @@ from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.commands import runners, cmdexc, cmdutils
 from qutebrowser.widgets import misc
 from qutebrowser.models import cmdhistory
-from qutebrowser.utils import usertypes, log, utils
+from qutebrowser.utils import usertypes, log, objreg
 
 
 class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
@@ -74,7 +74,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         misc.CommandLineEdit.__init__(self, parent)
         misc.MinimalLineEditMixin.__init__(self)
         self.cursor_part = 0
-        self.history.history = utils.get_object('command-history').data
+        self.history.history = objreg.get('command-history').data
         self._empty_item_idx = None
         self.textEdited.connect(self.on_text_edited)
         self.cursorPositionChanged.connect(self._update_cursor_part)
@@ -172,7 +172,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         Args:
             text: The commandline to set.
         """
-        url = utils.get_object('tabbed-browser').current_url().toString(
+        url = objreg.get('tabbed-browser').current_url().toString(
             QUrl.FullyEncoded | QUrl.RemovePassword)
         # FIXME we currently replace the URL in any place in the arguments,
         # rather than just replacing it if it is a dedicated argument. We could

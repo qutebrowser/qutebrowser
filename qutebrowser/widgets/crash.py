@@ -29,7 +29,7 @@ from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout)
 
-from qutebrowser.utils import version, log, utils
+from qutebrowser.utils import version, log, utils, objreg
 
 
 class _CrashDialog(QDialog):
@@ -130,7 +130,7 @@ class _CrashDialog(QDialog):
         except Exception:
             self._crash_info.append(("Version info", traceback.format_exc()))
         try:
-            conf = utils.get_object('config')
+            conf = objreg.get('config')
             self._crash_info.append(("Config", conf.dump_userconfig()))
         except Exception:
             self._crash_info.append(("Config", traceback.format_exc()))

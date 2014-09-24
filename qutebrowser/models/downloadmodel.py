@@ -23,7 +23,7 @@ from PyQt5.QtCore import (pyqtSlot, Qt, QVariant, QAbstractListModel,
                           QModelIndex)
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, qtutils, utils
+from qutebrowser.utils import usertypes, qtutils, objreg
 
 
 Role = usertypes.enum('Role', 'item', start=Qt.UserRole, is_int=True)
@@ -39,7 +39,7 @@ class DownloadModel(QAbstractListModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        download_manager = utils.get_object('download-manager')
+        download_manager = objreg.get('download-manager')
         download_manager.download_about_to_be_added.connect(
             lambda idx: self.beginInsertRows(QModelIndex(), idx, idx))
         download_manager.download_added.connect(self.endInsertRows)
@@ -81,7 +81,7 @@ class DownloadModel(QAbstractListModel):
         if index.parent().isValid() or index.column() != 0:
             return QVariant()
 
-        item = utils.get_object('download-manager').downloads[index.row()]
+        item = objreg.get('download-manager').downloads[index.row()]
         if role == Qt.DisplayRole:
             data = str(item)
         elif role == Qt.ForegroundRole:
@@ -105,4 +105,4 @@ class DownloadModel(QAbstractListModel):
         if parent.isValid():
             # We don't have children
             return 0
-        return len(utils.get_object('download-manager').downloads)
+        return len(objreg.get('download-manager').downloads)

@@ -24,8 +24,6 @@ Module attributes:
 """
 
 import operator
-import functools
-import collections
 import collections.abc
 import enum as pyenum
 
@@ -383,34 +381,3 @@ class Timer(QTimer):
             super().start(msec)
         else:
             super().start()
-
-
-class ObjectRegistry(collections.UserDict):
-
-    """A registry of long-living objects in qutebrowser.
-
-    Inspired by the eric IDE code (E5Gui/E5Application.py).
-    """
-
-    def __setitem__(self, name, obj):
-        """Register an object in the object registry.
-
-        Sets a slot to remove QObjects when they are destroyed.
-        """
-        if isinstance(obj, QObject):
-            obj.destroyed.connect(functools.partial(self.on_destroyed, name))
-        super().__setitem__(name, obj)
-
-    def on_destroyed(self, name):
-        """Remove a destroyed QObject."""
-        try:
-            del self[name]
-        except KeyError:
-            pass
-
-    def dump_objects(self):
-        """Dump all objects as a list of strings."""
-        lines = []
-        for name, obj in self.data.items():
-            lines.append("{}: {}".format(name, repr(obj)))
-        return lines

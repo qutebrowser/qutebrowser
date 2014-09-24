@@ -29,7 +29,7 @@ from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import usertypes, log, utils
+from qutebrowser.utils import usertypes, log, objreg
 
 
 class ModeLockedError(Exception):
@@ -39,18 +39,18 @@ class ModeLockedError(Exception):
 
 def enter(mode, reason=None):
     """Enter the mode 'mode'."""
-    utils.get_object('mode-manager').enter(mode, reason)
+    objreg.get('mode-manager').enter(mode, reason)
 
 
 def leave(mode, reason=None):
     """Leave the mode 'mode'."""
-    utils.get_object('mode-manager').leave(mode, reason)
+    objreg.get('mode-manager').leave(mode, reason)
 
 
 def maybe_enter(mode, reason=None):
     """Convenience method to enter 'mode' without exceptions."""
     try:
-        utils.get_object('mode-manager').enter(mode, reason)
+        objreg.get('mode-manager').enter(mode, reason)
     except ModeLockedError:
         pass
 
@@ -58,7 +58,7 @@ def maybe_enter(mode, reason=None):
 def maybe_leave(mode, reason=None):
     """Convenience method to leave 'mode' without exceptions."""
     try:
-        utils.get_object('mode-manager').leave(mode, reason)
+        objreg.get('mode-manager').leave(mode, reason)
     except ValueError as e:
         # This is rather likely to happen, so we only log to debug log.
         log.modes.debug(e)
@@ -283,7 +283,7 @@ class ModeManager(QObject):
             # we're not interested in it anymore.
             return False
         if (QApplication.instance().activeWindow() is not
-                utils.get_object('main-window')):
+                objreg.get('main-window')):
             # Some other window (print dialog, etc.) is focused so we pass
             # the event through.
             return False

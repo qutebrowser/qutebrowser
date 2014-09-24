@@ -44,7 +44,7 @@ from qutebrowser.browser import quickmarks, cookies, downloads, cache
 from qutebrowser.widgets import mainwindow, console, crash
 from qutebrowser.keyinput import modeparsers, keyparser, modeman
 from qutebrowser.utils import (log, version, message, utilcmds, readline,
-                               utils, qtutils, urlutils, debug)
+                               utils, qtutils, urlutils, debug, objreg)
 from qutebrowser.utils import usertypes as utypes
 
 
@@ -83,8 +83,8 @@ class Application(QApplication):
             'tabs': False,
             'main': False,
         }
-        self.meta_registry = utypes.ObjectRegistry()
-        self.registry = utypes.ObjectRegistry()
+        self.meta_registry = objreg.ObjectRegistry()
+        self.registry = objreg.ObjectRegistry()
         self.meta_registry['global'] = self.registry
         self.registry['app'] = self
         self._shutting_down = False
@@ -626,7 +626,7 @@ class Application(QApplication):
         # exceptions occur.
         if pages is None:
             pages = []
-            for tab in utils.get_object('tabbed-browser').widgets():
+            for tab in objreg.get('tabbed-browser').widgets():
                 urlstr = tab.cur_url.toString(
                     QUrl.RemovePassword | QUrl.FullyEncoded)
                 if urlstr:

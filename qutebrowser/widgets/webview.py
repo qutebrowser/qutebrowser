@@ -26,7 +26,7 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.utils import message, log, usertypes, utils, qtutils
+from qutebrowser.utils import message, log, usertypes, utils, qtutils, objreg
 from qutebrowser.browser import webpage, hints, webelem
 from qutebrowser.commands import cmdexc
 
@@ -358,7 +358,7 @@ class WebView(QWebView):
             self._set_load_status(LoadStatus.error)
         if not config.get('input', 'auto-insert-mode'):
             return
-        cur_mode = utils.get_object('mode-manager').mode()
+        cur_mode = objreg.get('mode-manager').mode()
         if cur_mode == usertypes.KeyMode.insert or not ok:
             return
         frame = self.page().currentFrame()

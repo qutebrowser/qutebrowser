@@ -25,7 +25,7 @@ import functools
 
 from PyQt5.QtCore import QCoreApplication
 
-from qutebrowser.utils import usertypes, log, utils
+from qutebrowser.utils import usertypes, log, objreg
 from qutebrowser.commands import runners, cmdexc, cmdutils
 from qutebrowser.config import style
 
@@ -96,7 +96,7 @@ def debug_all_objects():
 @cmdutils.register(debug=True)
 def debug_cache_stats():
     """Print LRU cache stats."""
-    config_info = utils.get_object('config').get.cache_info()
+    config_info = objreg.get('config').get.cache_info()
     style_info = style.get_stylesheet.cache_info()
     log.misc.debug('config: {}'.format(config_info))
     log.misc.debug('style: {}'.format(style_info))
@@ -105,4 +105,4 @@ def debug_cache_stats():
 @cmdutils.register(debug=True)
 def debug_console():
     """Show the debugging console."""
-    utils.get_object('debug-console').show()
+    objreg.get('debug-console').show()

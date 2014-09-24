@@ -35,18 +35,18 @@ from PyQt5.QtCore import pyqtSignal, QObject
 from qutebrowser.utils import log
 from qutebrowser.config import configdata, iniparsers, configtypes, textwrapper
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, utils
+from qutebrowser.utils import message, objreg
 from qutebrowser.utils.usertypes import Completion
 
 
 def get(*args, **kwargs):
     """Convenience method to call get(...) of the config instance."""
-    return utils.get_object('config').get(*args, **kwargs)
+    return objreg.get('config').get(*args, **kwargs)
 
 
 def section(sect):
     """Get a config section from the global config."""
-    return utils.get_object('config')[sect]
+    return objreg.get('config')[sect]
 
 
 class NoSectionError(configparser.NoSectionError):

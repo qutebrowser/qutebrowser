@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.config import config, style
-from qutebrowser.utils import usertypes, log, utils
+from qutebrowser.utils import usertypes, log, objreg
 from qutebrowser.widgets.statusbar import (command, progress, keystring,
                                            percentage, url, prompt)
 from qutebrowser.widgets.statusbar import text as textwidget
@@ -132,7 +132,7 @@ class StatusBar(QWidget):
         self._stack.setContentsMargins(0, 0, 0, 0)
 
         self._cmd = command.Command()
-        utils.register_object('status-command', self._cmd)
+        objreg.register('status-command', self._cmd)
         self._stack.addWidget(self._cmd)
 
         self.txt = textwidget.Text()
@@ -376,7 +376,7 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
-        if mode in utils.get_object('mode-manager').passthrough:
+        if mode in objreg.get('mode-manager').passthrough:
             text = "-- {} MODE --".format(mode.name.upper())
             self.txt.set_text(self.txt.Text.normal, text)
         if mode == usertypes.KeyMode.insert:
@@ -385,7 +385,7 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Clear marked mode."""
-        if mode in utils.get_object('mode-manager').passthrough:
+        if mode in objreg.get('mode-manager').passthrough:
             self.txt.set_text(self.txt.Text.normal, '')
         if mode == usertypes.KeyMode.insert:
             self._set_insert_active(False)

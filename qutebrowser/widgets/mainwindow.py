@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes, qtutils, utils
+from qutebrowser.utils import message, log, usertypes, qtutils, objreg
 from qutebrowser.widgets import tabbedbrowser, completion, downloads
 from qutebrowser.widgets.statusbar import bar
 
@@ -50,7 +50,7 @@ class MainWindow(QWidget):
         super().__init__(parent)
 
         self.setWindowTitle('qutebrowser')
-        state_config = utils.get_object('state-config')
+        state_config = objreg.get('state-config')
         try:
             data = state_config['geometry']['mainwindow']
             log.init.debug("Restoring mainwindow from {}".format(data))
@@ -83,11 +83,11 @@ class MainWindow(QWidget):
 
         self._tabbed_browser = tabbedbrowser.TabbedBrowser()
         self._tabbed_browser.title_changed.connect(self.setWindowTitle)
-        utils.register_object('tabbed-browser', self._tabbed_browser)
+        objreg.register('tabbed-browser', self._tabbed_browser)
         self._vbox.addWidget(self._tabbed_browser)
 
         self._completion = completion.CompletionView(self)
-        utils.register_object('completion', self._completion)
+        objreg.register('completion', self._completion)
 
         self.status = bar.StatusBar()
         self._vbox.addWidget(self.status)

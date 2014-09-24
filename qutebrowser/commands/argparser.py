@@ -25,7 +25,7 @@ import argparse
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.commands import cmdexc
-from qutebrowser.utils import utils
+from qutebrowser.utils import utils, objreg
 
 
 SUPPRESS = argparse.SUPPRESS
@@ -54,7 +54,7 @@ class HelpAction(argparse.Action):
     """
 
     def __call__(self, parser, _namespace, _values, _option_string=None):
-        utils.get_object('tabbed-browser').tabopen(
+        objreg.get('tabbed-browser').tabopen(
             QUrl('qute://help/commands.html#{}'.format(parser.name)))
         parser.exit()
 

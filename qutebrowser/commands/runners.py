@@ -24,7 +24,7 @@ from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, log, utils
+from qutebrowser.utils import message, log, utils, objreg
 
 
 def replace_variables(arglist):
@@ -32,7 +32,7 @@ def replace_variables(arglist):
     args = []
     for arg in arglist:
         if arg == '{url}':
-            url = utils.get_object('tabbed-browser').current_url().toString(
+            url = objreg.get('tabbed-browser').current_url().toString(
                 QUrl.FullyEncoded | QUrl.RemovePassword)
             args.append(url)
         else:

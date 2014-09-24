@@ -26,7 +26,7 @@ import functools
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, log, utils
+from qutebrowser.utils import usertypes, log, utils, objreg
 
 
 class BaseKeyParser(QObject):
@@ -321,7 +321,7 @@ class BaseKeyParser(QObject):
             self._modename = modename
         self.bindings = {}
         self.special_bindings = {}
-        keyconfparser = utils.get_object('key-config')
+        keyconfparser = objreg.get('key-config')
         for (key, cmd) in keyconfparser.get_bindings_for(modename).items():
             if not cmd:
                 continue

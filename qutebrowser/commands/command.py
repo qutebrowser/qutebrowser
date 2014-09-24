@@ -25,7 +25,8 @@ import collections
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.commands import cmdexc, argparser
-from qutebrowser.utils import log, utils, message, debug, usertypes, docutils
+from qutebrowser.utils import (log, utils, message, debug, usertypes, docutils,
+                               objreg)
 
 
 class Command:
@@ -97,7 +98,7 @@ class Command:
         Raise:
             PrerequisitesError if the command can't be called currently.
         """
-        curmode = utils.get_object('mode-manager').mode()
+        curmode = objreg.get('mode-manager').mode()
         if self.modes is not None and curmode not in self.modes:
             mode_names = '/'.join(mode.name for mode in self.modes)
             raise cmdexc.PrerequisitesError(
@@ -298,7 +299,7 @@ class Command:
             args: The positional argument list. Gets modified directly.
         """
         assert param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
-        obj = utils.get_object(self.instance)
+        obj = objreg.get(self.instance)
         args.append(obj)
 
     def _get_count_arg(self, param, args, kwargs):

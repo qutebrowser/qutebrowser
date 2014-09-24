@@ -31,7 +31,7 @@ from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, cmdexc
-from qutebrowser.utils import usertypes, log, qtutils, message, utils
+from qutebrowser.utils import usertypes, log, qtutils, message, objreg
 
 
 ElemTuple = collections.namedtuple('ElemTuple', 'elem, label')
@@ -149,8 +149,8 @@ class HintManager(QObject):
         """
         super().__init__(parent)
         self._context = None
-        utils.get_object('mode-manager').left.connect(self.on_mode_left)
-        utils.get_object('mode-manager').entered.connect(self.on_mode_entered)
+        objreg.get('mode-manager').left.connect(self.on_mode_left)
+        objreg.get('mode-manager').entered.connect(self.on_mode_entered)
 
     def _cleanup(self):
         """Clean up after hinting."""
@@ -160,7 +160,7 @@ class HintManager(QObject):
             except webelem.IsNullError:
                 pass
         text = self.HINT_TEXTS[self._context.target]
-        utils.get_object('message-bridge').maybe_reset_text(text)
+        objreg.get('message-bridge').maybe_reset_text(text)
         self._context = None
 
     def _hint_strings(self, elems):
@@ -271,7 +271,7 @@ class HintManager(QObject):
             display = 'none'
         rect = elem.geometry()
         return self.HINT_CSS.format(
-            left=rect.x(), top=rect.y(), config=utils.get_object('config'),
+            left=rect.x(), top=rect.y(), config=objreg.get('config'),
             display=display)
 
     def _draw_label(self, elem, string):
@@ -542,7 +542,7 @@ class HintManager(QObject):
         self._context.frames = webelem.get_child_frames(mainframe)
         self._context.args = args
         self._init_elements(mainframe, group)
-        utils.get_object('message-bridge').set_text(self.HINT_TEXTS[target])
+        objreg.get('message-bridge').set_text(self.HINT_TEXTS[target])
         self._connect_frame_signals()
         try:
             modeman.enter(usertypes.KeyMode.hint, 'HintManager.start')

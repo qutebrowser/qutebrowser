@@ -23,7 +23,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
 from qutebrowser.config import config, configdata
 from qutebrowser.commands import cmdutils
-from qutebrowser.utils import usertypes, log, utils
+from qutebrowser.utils import usertypes, log, objreg
 from qutebrowser.models import completion as models
 from qutebrowser.models.completionfilter import CompletionFilterModel as CFM
 
@@ -72,7 +72,7 @@ class Completer(QObject):
 
     def _init_setting_completions(self):
         """Initialize setting completion models."""
-        config_obj = utils.get_object('config')
+        config_obj = objreg.get('config')
         self._models[usertypes.Completion.section] = CFM(
             models.SettingSectionCompletionModel(self), self)
         self._models[usertypes.Completion.option] = {}

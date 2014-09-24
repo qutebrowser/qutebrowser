@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import QLineEdit
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.commands import cmdutils
-from qutebrowser.utils import usertypes, log, qtutils, utils
+from qutebrowser.utils import usertypes, log, qtutils, objreg
 
 
 PromptContext = collections.namedtuple('PromptContext',
@@ -280,7 +280,7 @@ class Prompter:
         self.question = question
         mode = self._display_question()
         question.aborted.connect(lambda: modeman.maybe_leave(mode, 'aborted'))
-        mode_manager = utils.get_object('mode-manager')
+        mode_manager = objreg.get('mode-manager')
         try:
             modeman.enter(mode, 'question asked')
         except modeman.ModeLockedError:

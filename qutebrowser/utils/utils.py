@@ -39,9 +39,6 @@ import qutebrowser
 from qutebrowser.utils import qtutils, log
 
 
-_UNSET = object()
-
-
 def elide(text, length):
     """Elide text so it uses a maximum of length chars."""
     if length < 1:
@@ -581,38 +578,3 @@ def is_enum(obj):
         return issubclass(obj, enum.Enum)
     except TypeError:
         return False
-
-
-def get_object(name, default=_UNSET):
-    """Helper function to get an object.
-
-    Args:
-        default: A default to return if the object does not exist.
-    """
-    try:
-        return QCoreApplication.instance().registry[name]
-    except KeyError:
-        if default is not _UNSET:
-            return default
-        else:
-            raise
-
-
-def register_object(name, obj, update=False):
-    """Helper function to register an object.
-
-    Args:
-        name: The name the object will be registered as.
-        obj: The object to register.
-        update: If True, allows to update an already registered object.
-    """
-    registry = QCoreApplication.instance().registry
-    if not update and name in registry:
-        raise KeyError("Object '{}' is already registered ({})!".format(
-                       name, repr(registry[name])))
-    registry[name] = obj
-
-
-def delete_object(name):
-    """Helper function to unregister an object."""
-    del QCoreApplication.instance().registry[name]
