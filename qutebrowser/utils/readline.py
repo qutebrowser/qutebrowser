@@ -30,11 +30,11 @@ class ReadlineBridge:
     """Bridge which provides readline-like commands for the current QLineEdit.
 
     Attributes:
-        deleted: Mapping from widgets to their last deleted text.
+        _deleted: Mapping from widgets to their last deleted text.
     """
 
     def __init__(self):
-        self.deleted = {}
+        self._deleted = {}
 
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
@@ -130,7 +130,7 @@ class ReadlineBridge:
         if widget is None:
             return
         widget.home(True)
-        self.deleted[widget] = widget.selectedText()
+        self._deleted[widget] = widget.selectedText()
         widget.del_()
 
     @cmdutils.register(instance='readline-bridge', hide=True,
@@ -144,7 +144,7 @@ class ReadlineBridge:
         if widget is None:
             return
         widget.end(True)
-        self.deleted[widget] = widget.selectedText()
+        self._deleted[widget] = widget.selectedText()
         widget.del_()
 
     @cmdutils.register(instance='readline-bridge', hide=True,
@@ -158,7 +158,7 @@ class ReadlineBridge:
         if widget is None:
             return
         widget.cursorWordBackward(True)
-        self.deleted[widget] = widget.selectedText()
+        self._deleted[widget] = widget.selectedText()
         widget.del_()
 
     @cmdutils.register(instance='readline-bridge', hide=True,
@@ -172,7 +172,7 @@ class ReadlineBridge:
         if widget is None:
             return
         widget.cursorWordForward(True)
-        self.deleted[widget] = widget.selectedText()
+        self._deleted[widget] = widget.selectedText()
         widget.del_()
 
     @cmdutils.register(instance='readline-bridge', hide=True,
@@ -183,9 +183,9 @@ class ReadlineBridge:
         This acts like readline's yank.
         """
         widget = self._widget()
-        if widget is None or widget not in self.deleted:
+        if widget is None or widget not in self._deleted:
             return
-        widget.insert(self.deleted[widget])
+        widget.insert(self._deleted[widget])
 
     @cmdutils.register(instance='readline-bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])

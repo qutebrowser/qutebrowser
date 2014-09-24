@@ -57,7 +57,7 @@ class Prompter:
     up the *new* question.
 
     Attributes:
-        question: A Question object with the question to be asked to the user.
+        _question: A Question object with the question to be asked to the user.
         _loops: A list of local EventLoops to spin in when blocking.
         _queue: A deque of waiting questions.
     """
@@ -86,7 +86,7 @@ class Prompter:
         if not self._busy:
             return None
         prompt = objreg.get('prompt')
-        ctx = PromptContext(question=self.question,
+        ctx = PromptContext(question=self._question,
                             text=prompt.txt.text(),
                             input_text=prompt.lineedit.text(),
                             echo_mode=prompt.lineedit.echoMode(),
@@ -107,7 +107,7 @@ class Prompter:
             prompt.hide_prompt.emit()
             self._busy = False
             return False
-        self.question = ctx.question
+        self._question = ctx.question
         prompt.txt.setText(ctx.text)
         prompt.lineedit.setText(ctx.input_text)
         prompt.lineedit.setEchoMode(ctx.echo_mode)
@@ -115,7 +115,7 @@ class Prompter:
         return True
 
     def _display_question(self):
-        """Display the question saved in self.question.
+        """Display the question saved in self._question.
 
         Return:
             The mode which should be entered.
@@ -124,30 +124,30 @@ class Prompter:
             ValueError if the set PromptMode is invalid.
         """
         prompt = objreg.get('prompt')
-        if self.question.mode == usertypes.PromptMode.yesno:
-            if self.question.default is None:
+        if self._question.mode == usertypes.PromptMode.yesno:
+            if self._question.default is None:
                 suffix = ""
-            elif self.question.default:
+            elif self._question.default:
                 suffix = " (yes)"
             else:
                 suffix = " (no)"
-            prompt.txt.setText(self.question.text + suffix)
+            prompt.txt.setText(self._question.text + suffix)
             prompt.lineedit.hide()
             mode = usertypes.KeyMode.yesno
-        elif self.question.mode == usertypes.PromptMode.text:
-            prompt.txt.setText(self.question.text)
-            if self.question.default:
-                prompt.lineedit.setText(self.question.default)
+        elif self._question.mode == usertypes.PromptMode.text:
+            prompt.txt.setText(self._question.text)
+            if self._question.default:
+                prompt.lineedit.setText(self._question.default)
             prompt.lineedit.show()
             mode = usertypes.KeyMode.prompt
-        elif self.question.mode == usertypes.PromptMode.user_pwd:
-            prompt.txt.setText(self.question.text)
-            if self.question.default:
-                prompt.lineedit.setText(self.question.default)
+        elif self._question.mode == usertypes.PromptMode.user_pwd:
+            prompt.txt.setText(self._question.text)
+            if self._question.default:
+                prompt.lineedit.setText(self._question.default)
             prompt.lineedit.show()
             mode = usertypes.KeyMode.prompt
-        elif self.question.mode == usertypes.PromptMode.alert:
-            prompt.txt.setText(self.question.text + ' (ok)')
+        elif self._question.mode == usertypes.PromptMode.alert:
+            prompt.txt.setText(self._question.text + ' (ok)')
             prompt.lineedit.hide()
             mode = usertypes.KeyMode.prompt
         else:
@@ -184,8 +184,8 @@ class Prompter:
             prompt.lineedit.setEchoMode(QLineEdit.Normal)
             prompt.hide_prompt.emit()
             self._busy = False
-            if self.question.answer is None and not self.question.is_aborted:
-                self.question.cancel()
+            if self._question.answer is None and not self._question.is_aborted:
+                self._question.cancel()
 
     @cmdutils.register(instance='prompter', hide=True,
                        modes=[usertypes.KeyMode.prompt,
@@ -199,34 +199,34 @@ class Prompter:
         for the password or leaves the mode.
         """
         prompt = objreg.get('prompt')
-        if (self.question.mode == usertypes.PromptMode.user_pwd and
-                self.question.user is None):
+        if (self._question.mode == usertypes.PromptMode.user_pwd and
+                self._question.user is None):
             # User just entered an username
-            self.question.user = prompt.lineedit.text()
+            self._question.user = prompt.lineedit.text()
             prompt.txt.setText("Password:")
             prompt.lineedit.clear()
             prompt.lineedit.setEchoMode(QLineEdit.Password)
-        elif self.question.mode == usertypes.PromptMode.user_pwd:
+        elif self._question.mode == usertypes.PromptMode.user_pwd:
             # User just entered a password
             password = prompt.lineedit.text()
-            self.question.answer = (self.question.user, password)
+            self._question.answer = (self._question.user, password)
             modeman.leave(usertypes.KeyMode.prompt, 'prompt accept')
-            self.question.done()
-        elif self.question.mode == usertypes.PromptMode.text:
+            self._question.done()
+        elif self._question.mode == usertypes.PromptMode.text:
             # User just entered text.
-            self.question.answer = prompt.lineedit.text()
+            self._question.answer = prompt.lineedit.text()
             modeman.leave(usertypes.KeyMode.prompt, 'prompt accept')
-            self.question.done()
-        elif self.question.mode == usertypes.PromptMode.yesno:
+            self._question.done()
+        elif self._question.mode == usertypes.PromptMode.yesno:
             # User wants to accept the default of a yes/no question.
-            self.question.answer = self.question.default
+            self._question.answer = self._question.default
             modeman.leave(usertypes.KeyMode.yesno, 'yesno accept')
-            self.question.done()
-        elif self.question.mode == usertypes.PromptMode.alert:
+            self._question.done()
+        elif self._question.mode == usertypes.PromptMode.alert:
             # User acknowledged an alert
-            self.question.answer = None
+            self._question.answer = None
             modeman.leave(usertypes.KeyMode.prompt, 'alert accept')
-            self.question.done()
+            self._question.done()
         else:
             raise ValueError("Invalid question mode!")
 
@@ -234,23 +234,23 @@ class Prompter:
                        modes=[usertypes.KeyMode.yesno])
     def prompt_yes(self):
         """Answer yes to a yes/no prompt."""
-        if self.question.mode != usertypes.PromptMode.yesno:
+        if self._question.mode != usertypes.PromptMode.yesno:
             # We just ignore this if we don't have a yes/no question.
             return
-        self.question.answer = True
+        self._question.answer = True
         modeman.leave(usertypes.KeyMode.yesno, 'yesno accept')
-        self.question.done()
+        self._question.done()
 
     @cmdutils.register(instance='prompter', hide=True,
                        modes=[usertypes.KeyMode.yesno])
     def prompt_no(self):
         """Answer no to a yes/no prompt."""
-        if self.question.mode != usertypes.PromptMode.yesno:
+        if self._question.mode != usertypes.PromptMode.yesno:
             # We just ignore this if we don't have a yes/no question.
             return
-        self.question.answer = False
+        self._question.answer = False
         modeman.leave(usertypes.KeyMode.yesno, 'prompt accept')
-        self.question.done()
+        self._question.done()
 
     @pyqtSlot(usertypes.Question, bool)
     def ask_question(self, question, blocking):
@@ -280,7 +280,7 @@ class Prompter:
             # restore it after exec, if exec gets called multiple times.
             context = self._get_ctx()
 
-        self.question = question
+        self._question = question
         mode = self._display_question()
         question.aborted.connect(lambda: modeman.maybe_leave(mode, 'aborted'))
         mode_manager = objreg.get('mode-manager')
@@ -303,6 +303,6 @@ class Prompter:
                 # questions.
                 if self._queue:
                     self._pop_later()
-            return self.question.answer
+            return self._question.answer
         else:
             question.completed.connect(self._pop_later)

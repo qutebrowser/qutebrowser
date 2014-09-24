@@ -33,7 +33,7 @@ class Completer(QObject):
     """Completer which manages completions in a CompletionView.
 
     Attributes:
-        ignore_change: Whether to ignore the next completion update.
+        _ignore_change: Whether to ignore the next completion update.
         _models: dict of available completion models.
 
     Signals:
@@ -48,8 +48,8 @@ class Completer(QObject):
     change_completed_part = pyqtSignal(str, bool)
 
     def __init__(self, parent=None):
-        super().__init__()
-        self.ignore_change = False
+        super().__init__(parent)
+        self._ignore_change = False
 
         self._models = {
             usertypes.Completion.option: {},
@@ -177,9 +177,9 @@ class Completer(QObject):
             # and go on to the next part.
             self.change_completed_part.emit(data, True)
         else:
-            self.ignore_change = True
+            self._ignore_change = True
             self.change_completed_part.emit(data, False)
-            self.ignore_change = False
+            self._ignore_change = False
 
     @pyqtSlot(str, list, int)
     def on_update_completion(self, prefix, parts, cursor_part):
@@ -191,7 +191,7 @@ class Completer(QObject):
             text: The new text
             cursor_part: The part the cursor is currently over.
         """
-        if self.ignore_change:
+        if self._ignore_change:
             log.completion.debug("Ignoring completion update")
             return
 

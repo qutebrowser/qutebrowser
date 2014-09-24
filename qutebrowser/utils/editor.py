@@ -36,16 +36,16 @@ class ExternalEditor(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.text = None
-        self.oshandle = None
-        self.filename = None
-        self.proc = None
+        self._text = None
+        self._oshandle = None
+        self._filename = None
+        self._proc = None
 
     def _cleanup(self):
         """Clean up temporary files after the editor closed."""
-        os.close(self.oshandle)
+        os.close(self._oshandle)
         try:
-            os.remove(self.filename)
+            os.remove(self._filename)
         except PermissionError as e:
             # NOTE: Do not replace this with "raise CommandError" as it's
             # executed async.
@@ -72,7 +72,7 @@ class ExternalEditor(QObject):
                     exitcode))
                 return
             encoding = config.get('general', 'editor-encoding')
-            with open(self.filename, 'r', encoding=encoding) as f:
+            with open(self._filename, 'r', encoding=encoding) as f:
                 text = ''.join(f.readlines())
             log.procs.debug("Read back: {}".format(text))
             self.editing_finished.emit(text)
@@ -105,19 +105,19 @@ class ExternalEditor(QObject):
         Emit:
             editing_finished with the new text if editing finshed successfully.
         """
-        if self.text is not None:
+        if self._text is not None:
             raise ValueError("Already editing a file!")
-        self.text = text
-        self.oshandle, self.filename = tempfile.mkstemp(text=True)
+        self._text = text
+        self._oshandle, self._filename = tempfile.mkstemp(text=True)
         if text:
             encoding = config.get('general', 'editor-encoding')
-            with open(self.filename, 'w', encoding=encoding) as f:
+            with open(self._filename, 'w', encoding=encoding) as f:
                 f.write(text)
-        self.proc = QProcess(self)
-        self.proc.finished.connect(self.on_proc_closed)
-        self.proc.error.connect(self.on_proc_error)
+        self._proc = QProcess(self)
+        self._proc.finished.connect(self.on_proc_closed)
+        self._proc.error.connect(self.on_proc_error)
         editor = config.get('general', 'editor')
         executable = editor[0]
-        args = [self.filename if arg == '{}' else arg for arg in editor[1:]]
+        args = [self._filename if arg == '{}' else arg for arg in editor[1:]]
         log.procs.debug("Calling \"{}\" with args {}".format(executable, args))
-        self.proc.start(executable, args)
+        self._proc.start(executable, args)

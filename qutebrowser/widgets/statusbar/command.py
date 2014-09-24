@@ -73,7 +73,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     def __init__(self, parent=None):
         misc.CommandLineEdit.__init__(self, parent)
         misc.MinimalLineEditMixin.__init__(self)
-        self.cursor_part = 0
+        self._cursor_part = 0
         self.history.history = objreg.get('command-history').data
         self._empty_item_idx = None
         self.textEdited.connect(self.on_text_edited)
@@ -124,7 +124,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         for i, part in enumerate(self.split()):
             if cursor_pos <= len(part):
                 # foo| bar
-                self.cursor_part = i
+                self._cursor_part = i
                 if spaces:
                     self._empty_item_idx = i
                 else:
@@ -132,14 +132,14 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
                 break
             cursor_pos -= (len(part) + 1)  # FIXME are spaces always 1 char?
         log.completion.debug("cursor_part {}, spaces {}".format(
-            self.cursor_part, spaces))
+            self._cursor_part, spaces))
         return
 
     @pyqtSlot()
     def on_cursor_position_changed(self):
         """Update completion when the cursor position changed."""
         self.update_completion.emit(self.prefix(), self.split(),
-                                    self.cursor_part)
+                                    self._cursor_part)
 
     @pyqtSlot(str)
     def set_cmd_text(self, text):
@@ -156,7 +156,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         if old_text != text:
             # We want the completion to pop out here.
             self.update_completion.emit(self.prefix(), self.split(),
-                                        self.cursor_part)
+                                        self._cursor_part)
         self.setFocus()
         self.show_cmd.emit()
 
@@ -196,16 +196,16 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         """
         parts = self.split()
         log.completion.debug("changing part {} to '{}'".format(
-            self.cursor_part, newtext))
-        parts[self.cursor_part] = newtext
+            self._cursor_part, newtext))
+        parts[self._cursor_part] = newtext
         # We want to place the cursor directly after the part we just changed.
-        cursor_str = self.prefix() + ' '.join(parts[:self.cursor_part + 1])
+        cursor_str = self.prefix() + ' '.join(parts[:self._cursor_part + 1])
         if immediate:
             # If we should complete immediately, we want to move the cursor by
             # one more char, to get to the next field.
             cursor_str += ' '
         text = self.prefix() + ' '.join(parts)
-        if immediate and self.cursor_part == len(parts) - 1:
+        if immediate and self._cursor_part == len(parts) - 1:
             # If we should complete immediately and we're completing the last
             # part in the commandline, we automatically add a space.
             text += ' '

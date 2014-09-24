@@ -171,18 +171,18 @@ class RAMHandlerTests(BaseTest):
         """Test handler with exactly as much records as it can hold."""
         self.logger.debug("One")
         self.logger.debug("Two")
-        self.assertEqual(len(self.handler.data), 2)
-        self.assertEqual(self.handler.data[0].msg, "One")
-        self.assertEqual(self.handler.data[1].msg, "Two")
+        self.assertEqual(len(self.handler._data), 2)
+        self.assertEqual(self.handler._data[0].msg, "One")
+        self.assertEqual(self.handler._data[1].msg, "Two")
 
     def test_overflow(self):
         """Test handler with more records as it can hold."""
         self.logger.debug("One")
         self.logger.debug("Two")
         self.logger.debug("Three")
-        self.assertEqual(len(self.handler.data), 2)
-        self.assertEqual(self.handler.data[0].msg, "Two")
-        self.assertEqual(self.handler.data[1].msg, "Three")
+        self.assertEqual(len(self.handler._data), 2)
+        self.assertEqual(self.handler._data[0].msg, "Two")
+        self.assertEqual(self.handler._data[1].msg, "Three")
 
     def test_dump_log(self):
         """Test dump_log()."""

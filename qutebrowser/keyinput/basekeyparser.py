@@ -53,8 +53,8 @@ class BaseKeyParser(QObject):
     Attributes:
         bindings: Bound keybindings
         special_bindings: Bound special bindings (<Foo>).
-        warn_on_keychains: Whether a warning should be logged when binding
-                           keychains in a section which does not support them.
+        _warn_on_keychains: Whether a warning should be logged when binding
+                            keychains in a section which does not support them.
         _keystring: The currently entered key sequence
         _timer: Timer for delayed execution.
         _modename: The name of the input mode associated with this keyparser.
@@ -83,7 +83,7 @@ class BaseKeyParser(QObject):
             supports_count = supports_chains
         self._supports_count = supports_count
         self._supports_chains = supports_chains
-        self.warn_on_keychains = True
+        self._warn_on_keychains = True
         self.bindings = {}
         self.special_bindings = {}
 
@@ -330,7 +330,7 @@ class BaseKeyParser(QObject):
                 self.special_bindings[keystr] = cmd
             elif self._supports_chains:
                 self.bindings[key] = cmd
-            elif self.warn_on_keychains:
+            elif self._warn_on_keychains:
                 log.keyboard.warning(
                     "Ignoring keychain '{}' in mode '{}' because "
                     "keychains are not supported there.".format(key, modename))

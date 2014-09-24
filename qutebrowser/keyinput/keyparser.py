@@ -29,17 +29,17 @@ class CommandKeyParser(BaseKeyParser):
     """KeyChainParser for command bindings.
 
     Attributes:
-        commandrunner: CommandRunner instance.
+        _commandrunner: CommandRunner instance.
     """
 
     def __init__(self, parent=None, supports_count=None,
                  supports_chains=False):
         super().__init__(parent, supports_count, supports_chains)
-        self.commandrunner = runners.CommandRunner()
+        self._commandrunner = runners.CommandRunner()
 
     def execute(self, cmdstr, _keytype, count=None):
         try:
-            self.commandrunner.run(cmdstr, count)
+            self._commandrunner.run(cmdstr, count)
         except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
             message.error(e, immediately=True)
 
@@ -66,10 +66,10 @@ class PassthroughKeyParser(CommandKeyParser):
         """
         super().__init__(parent, supports_chains=False)
         self.log = False
-        self.warn_on_keychains = warn
+        self._warn_on_keychains = warn
         self.read_config(mode)
         self._mode = mode
 
     def __repr__(self):
         return '<{} mode={}, warn={})'.format(
-            self.__class__.__name__, self._mode, self.warn_on_keychains)
+            self.__class__.__name__, self._mode, self._warn_on_keychains)

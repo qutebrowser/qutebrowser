@@ -41,7 +41,7 @@ class MainWindow(QWidget):
 
     Attributes:
         status: The StatusBar widget.
-        downloadview: The DownloadView widget.
+        _downloadview: The DownloadView widget.
         _tabbed_browser: The TabbedBrowser widget.
         _vbox: The main QVBoxLayout.
     """
@@ -77,9 +77,9 @@ class MainWindow(QWidget):
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
 
-        self.downloadview = downloads.DownloadView()
-        self._vbox.addWidget(self.downloadview)
-        self.downloadview.show()
+        self._downloadview = downloads.DownloadView()
+        self._vbox.addWidget(self._downloadview)
+        self._downloadview.show()
 
         self._tabbed_browser = tabbedbrowser.TabbedBrowser()
         self._tabbed_browser.title_changed.connect(self.setWindowTitle)
@@ -164,7 +164,7 @@ class MainWindow(QWidget):
         """
         super().resizeEvent(e)
         self.resize_completion()
-        self.downloadview.updateGeometry()
+        self._downloadview.updateGeometry()
         self._tabbed_browser.tabBar().refresh()
 
     def closeEvent(self, e):

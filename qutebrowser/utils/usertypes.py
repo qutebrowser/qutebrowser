@@ -71,8 +71,8 @@ class NeighborList(collections.abc.Sequence):
         Modes: Different modes, see constructor documentation.
 
     Attributes:
-        idx: The current position in the list.
         fuzzyval: The value which is currently set but not in the list.
+        _idx: The current position in the list.
         _items: A list of all items, accessed through item property.
         _mode: The current mode.
     """
@@ -98,9 +98,9 @@ class NeighborList(collections.abc.Sequence):
             self._items = list(items)
         self._default = default
         if default is not _UNSET:
-            self.idx = self._items.index(default)
+            self._idx = self._items.index(default)
         else:
-            self.idx = None
+            self._idx = None
         self._mode = mode
         self.fuzzyval = None
 
@@ -128,7 +128,7 @@ class NeighborList(collections.abc.Sequence):
         items = [(idx, e) for (idx, e) in enumerate(self._items)
                  if op(e, self.fuzzyval)]
         close_item = min(items, key=lambda tpl: abs(self.fuzzyval - tpl[1]))
-        self.idx = close_item[0]
+        self._idx = close_item[0]
         return self.fuzzyval not in self._items
 
     def _get_new_item(self, offset):
@@ -145,21 +145,21 @@ class NeighborList(collections.abc.Sequence):
                        exception.
         """
         try:
-            if self.idx + offset >= 0:
-                new = self._items[self.idx + offset]
+            if self._idx + offset >= 0:
+                new = self._items[self._idx + offset]
             else:
                 raise IndexError
         except IndexError:
             if self._mode == self.Modes.block:
                 new = self.curitem()
             elif self._mode == self.Modes.wrap:
-                self.idx += offset
-                self.idx %= len(self.items)
+                self._idx += offset
+                self._idx %= len(self.items)
                 new = self.curitem()
             elif self._mode == self.Modes.exception:
                 raise
         else:
-            self.idx += offset
+            self._idx += offset
         return new
 
     @property
@@ -181,7 +181,7 @@ class NeighborList(collections.abc.Sequence):
                        exception.
         """
         log.misc.debug("{} items, idx {}, offset {}".format(
-            len(self._items), self.idx, offset))
+            len(self._items), self._idx, offset))
         if not self._items:
             raise IndexError("No items found!")
         if self.fuzzyval is not None:
@@ -198,8 +198,8 @@ class NeighborList(collections.abc.Sequence):
 
     def curitem(self):
         """Get the current item in the list."""
-        if self.idx is not None:
-            return self._items[self.idx]
+        if self._idx is not None:
+            return self._items[self._idx]
         else:
             raise IndexError("No current item!")
 
@@ -215,14 +215,14 @@ class NeighborList(collections.abc.Sequence):
         """Get the first item in the list."""
         if not self._items:
             raise IndexError("No items found!")
-        self.idx = 0
+        self._idx = 0
         return self.curitem()
 
     def lastitem(self):
         """Get the last item in the list."""
         if not self._items:
             raise IndexError("No items found!")
-        self.idx = len(self._items) - 1
+        self._idx = len(self._items) - 1
         return self.curitem()
 
     def reset(self):
@@ -230,7 +230,7 @@ class NeighborList(collections.abc.Sequence):
         if self._default is _UNSET:
             raise ValueError("No default set!")
         else:
-            self.idx = self._items.index(self._default)
+            self._idx = self._items.index(self._default)
             return self.curitem()
 
 

@@ -19,6 +19,8 @@
 
 """Tests for qutebrowser.utils.editor."""
 
+# pylint: disable=protected-access
+
 import os
 import os.path
 import unittest
@@ -59,7 +61,7 @@ class ArgTests(unittest.TestCase):
         editor.config = stubs.ConfigStub(
             {'general': {'editor': ['bin'], 'editor-encoding': 'utf-8'}})
         self.editor.edit("")
-        self.editor.proc.start.assert_called_with("bin", [])
+        self.editor._proc.start.assert_called_with("bin", [])
 
     def test_start_args(self):
         """Test starting editor with static arguments."""
@@ -67,7 +69,7 @@ class ArgTests(unittest.TestCase):
             {'general': {'editor': ['bin', 'foo', 'bar'],
                          'editor-encoding': 'utf-8'}})
         self.editor.edit("")
-        self.editor.proc.start.assert_called_with("bin", ["foo", "bar"])
+        self.editor._proc.start.assert_called_with("bin", ["foo", "bar"])
 
     def test_placeholder(self):
         """Test starting editor with placeholder argument."""
@@ -75,9 +77,9 @@ class ArgTests(unittest.TestCase):
             {'general': {'editor': ['bin', 'foo', '{}', 'bar'],
                          'editor-encoding': 'utf-8'}})
         self.editor.edit("")
-        filename = self.editor.filename
-        self.editor.proc.start.assert_called_with("bin",
-                                                  ["foo", filename, "bar"])
+        filename = self.editor._filename
+        self.editor._proc.start.assert_called_with("bin",
+                                                   ["foo", filename, "bar"])
 
     def test_in_arg_placeholder(self):
         """Test starting editor with placeholder argument inside argument."""
@@ -85,7 +87,7 @@ class ArgTests(unittest.TestCase):
             {'general': {'editor': ['bin', 'foo{}bar'],
                          'editor-encoding': 'utf-8'}})
         self.editor.edit("")
-        self.editor.proc.start.assert_called_with("bin", ["foo{}bar"])
+        self.editor._proc.start.assert_called_with("bin", ["foo{}bar"])
 
     def tearDown(self):
         self.editor._cleanup()  # pylint: disable=protected-access
@@ -107,7 +109,7 @@ class FileHandlingTests(unittest.TestCase):
     def test_file_handling_closed_ok(self):
         """Test file handling when closing with an exitstatus == 0."""
         self.editor.edit("")
-        filename = self.editor.filename
+        filename = self.editor._filename
         self.assertTrue(os.path.exists(filename))
         self.editor.on_proc_closed(0, QProcess.NormalExit)
         self.assertFalse(os.path.exists(filename))
@@ -115,7 +117,7 @@ class FileHandlingTests(unittest.TestCase):
     def test_file_handling_closed_error(self):
         """Test file handling when closing with an exitstatus != 0."""
         self.editor.edit("")
-        filename = self.editor.filename
+        filename = self.editor._filename
         self.assertTrue(os.path.exists(filename))
         self.editor.on_proc_closed(1, QProcess.NormalExit)
         self.assertFalse(os.path.exists(filename))
@@ -123,7 +125,7 @@ class FileHandlingTests(unittest.TestCase):
     def test_file_handling_closed_crash(self):
         """Test file handling when closing with a crash."""
         self.editor.edit("")
-        filename = self.editor.filename
+        filename = self.editor._filename
         self.assertTrue(os.path.exists(filename))
         self.editor.on_proc_error(QProcess.Crashed)
         self.editor.on_proc_closed(0, QProcess.CrashExit)
@@ -150,7 +152,7 @@ class TextModifyTests(unittest.TestCase):
         Args:
             text: The text to write to the file.
         """
-        filename = self.editor.filename
+        filename = self.editor._filename
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(text)
 
@@ -160,7 +162,7 @@ class TextModifyTests(unittest.TestCase):
         Return:
             The text which was read.
         """
-        filename = self.editor.filename
+        filename = self.editor._filename
         with open(filename, 'r', encoding='utf-8') as f:
             data = f.read()
         return data

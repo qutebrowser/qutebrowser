@@ -75,12 +75,13 @@ class DocstringParser:
         Args:
             func: The function to parse the docstring for.
         """
-        self.state = self.State.short
+        self._state = self.State.short
+        self._cur_arg_name = None
         self.short_desc = []
         self.long_desc = []
         self.arg_descs = collections.OrderedDict()
-        self.cur_arg_name = None
-        self.handlers = {
+        doc = inspect.getdoc(func)
+        handlers = {
             self.State.short: self._parse_short,
             self.State.desc: self._parse_desc,
             self.State.desc_hidden: self._skip,
@@ -88,9 +89,8 @@ class DocstringParser:
             self.State.arg_inside: self._parse_arg_inside,
             self.State.misc: self._skip,
         }
-        doc = inspect.getdoc(func)
         for line in doc.splitlines():
-            handler = self.handlers[self.state]
+            handler = handlers[self._state]
             stop = handler(line)
             if stop:
                 break
@@ -101,41 +101,41 @@ class DocstringParser:
 
     def _process_arg(self, line):
         """Helper method to process a line like 'fooarg: Blah blub'."""
-        self.cur_arg_name, argdesc = line.split(':', maxsplit=1)
-        self.cur_arg_name = self.cur_arg_name.strip().lstrip('*')
-        self.arg_descs[self.cur_arg_name] = [argdesc.strip()]
+        self._cur_arg_name, argdesc = line.split(':', maxsplit=1)
+        self._cur_arg_name = self._cur_arg_name.strip().lstrip('*')
+        self.arg_descs[self._cur_arg_name] = [argdesc.strip()]
 
     def _skip(self, line):
         """Handler to ignore everything until we get 'Args:'."""
         if line.startswith('Args:'):
-            self.state = self.State.arg_start
+            self._state = self.State.arg_start
 
     def _parse_short(self, line):
         """Parse the short description (first block) in the docstring."""
         if not line:
-            self.state = self.State.desc
+            self._state = self.State.desc
         else:
             self.short_desc.append(line.strip())
 
     def _parse_desc(self, line):
         """Parse the long description in the docstring."""
         if line.startswith('Args:'):
-            self.state = self.State.arg_start
+            self._state = self.State.arg_start
         elif line.startswith('Emit:') or line.startswith('Raise:'):
-            self.state = self.State.misc
+            self._state = self.State.misc
         elif line.strip() == '//':
-            self.state = self.State.desc_hidden
+            self._state = self.State.desc_hidden
         elif line.strip():
             self.long_desc.append(line.strip())
 
     def _parse_arg_start(self, line):
         """Parse first argument line."""
         self._process_arg(line)
-        self.state = self.State.arg_inside
+        self._state = self.State.arg_inside
 
     def _parse_arg_inside(self, line):
         """Parse subsequent argument lines."""
-        argname = self.cur_arg_name
+        argname = self._cur_arg_name
         if re.match(r'^[A-Z][a-z]+:$', line):
             if not self.arg_descs[argname][-1].strip():
                 self.arg_descs[argname] = self.arg_descs[argname][:-1]
