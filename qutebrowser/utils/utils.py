@@ -613,3 +613,6 @@ def register_object(name, obj, update=False):
     registry[name] = obj
 
 
+def delete_object(name):
+    """Helper function to unregister an object."""
+    del QCoreApplication.instance().registry[name]
