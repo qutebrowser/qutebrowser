@@ -51,7 +51,6 @@ class WebView(QWebView):
         open_target: Where to open the next tab ("normal", "tab", "tab_bg")
         viewing_source: Whether the webview is currently displaying source
                         code.
-        _page: The QWebPage behind the view
         _cur_url: The current URL (accessed via cur_url property).
         _has_ssl_errors: Whether SSL errors occured during loading.
         _zoom: A NeighborList with the zoom levels.
@@ -90,16 +89,16 @@ class WebView(QWebView):
         self._cur_url = None
         self.cur_url = QUrl()
         self.progress = 0
-        self._page = webpage.BrowserPage(self)
-        self.setPage(self._page)
+        page = webpage.BrowserPage(self)
+        self.setPage(page)
         self.hintmanager = hints.HintManager(self)
         self.hintmanager.mouse_event.connect(self.on_mouse_event)
         self.hintmanager.set_open_target.connect(self.set_force_open_target)
-        self._page.linkHovered.connect(self.linkHovered)
-        self._page.mainFrame().loadStarted.connect(self.on_load_started)
-        self._page.change_title.connect(self.titleChanged)
+        page.linkHovered.connect(self.linkHovered)
+        page.mainFrame().loadStarted.connect(self.on_load_started)
+        page.change_title.connect(self.titleChanged)
         self.urlChanged.connect(self.on_url_changed)
-        self._page.mainFrame().loadFinished.connect(self.on_load_finished)
+        page.mainFrame().loadFinished.connect(self.on_load_finished)
         self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
         self.page().statusBarMessage.connect(
             lambda msg: setattr(self, 'statusbar_message', msg))
