@@ -40,7 +40,6 @@ class BrowserPage(QWebPage):
 
     Attributes:
         _extension_handlers: Mapping of QWebPage extensions to their handlers.
-        _view: The QWebView associated with this page.
         _networkmnager: The NetworkManager used.
 
     Signals:
@@ -51,8 +50,8 @@ class BrowserPage(QWebPage):
     start_download = pyqtSignal('QNetworkReply*')
     change_title = pyqtSignal(str)
 
-    def __init__(self, view):
-        super().__init__(view)
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self._extension_handlers = {
             QWebPage.ErrorPageExtension: self._handle_errorpage,
             QWebPage.ChooseMultipleFilesExtension: self._handle_multiple_files,
@@ -63,7 +62,6 @@ class BrowserPage(QWebPage):
         self.printRequested.connect(self.on_print_requested)
         self.downloadRequested.connect(self.on_download_requested)
         self.unsupportedContent.connect(self.on_unsupported_content)
-        self._view = view
 
         if PYQT_VERSION > 0x050300:
             # WORKAROUND (remove this when we bump the requirements to 5.3.1)
@@ -300,10 +298,10 @@ class BrowserPage(QWebPage):
             message.error("Invalid link {} clicked!".format(urlstr))
             log.webview.debug(url.errorString())
             return False
-        if self._view.open_target == usertypes.ClickTarget.tab:
+        if self.view().open_target == usertypes.ClickTarget.tab:
             objreg.get('tabbed-browser').tabopen(url, False)
             return False
-        elif self._view.open_target == usertypes.ClickTarget.tab_bg:
+        elif self.view().open_target == usertypes.ClickTarget.tab_bg:
             objreg.get('tabbed-browser').tabopen(url, True)
             return False
         else:
