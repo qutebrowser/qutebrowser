@@ -42,7 +42,7 @@ class TabWidget(QTabWidget):
 
     """The tabwidget used for TabbedBrowser."""
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super().__init__(parent)
         bar = TabBar()
         self.setTabBar(bar)
