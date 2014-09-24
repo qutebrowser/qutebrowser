@@ -27,7 +27,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.commands import cmdexc
 from qutebrowser.keyinput import modeman
 from qutebrowser.widgets import tabwidget, webview
 from qutebrowser.browser import signalfilter, commands
@@ -109,7 +109,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._url_stack = []
         objreg.register('url-stack', self._url_stack)
         self._filter = signalfilter.SignalFilter(self)
-        dispatcher = commands.CommandDispatcher(self)
+        dispatcher = commands.CommandDispatcher()
         objreg.register('command-dispatcher', dispatcher)
         self._now_focused = None
         # FIXME adjust this to font size
