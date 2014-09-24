@@ -67,6 +67,9 @@ Crashes
 - Assertion failure when clicking on "doc" with debug build on qutebrowser
   github page
 
+- Segfault in mouseReleaseEvent when clicking close in js window on
+  http://www.pageresource.com/jscript/jwinopen.htm
+
 Qt warnings
 -----------
 
