@@ -31,7 +31,8 @@ from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, cmdexc
-from qutebrowser.utils import usertypes, log, qtutils, message, objreg
+from qutebrowser.utils import (usertypes, log, qtutils, message, objreg,
+                               cmdutils)
 
 
 ElemTuple = collections.namedtuple('ElemTuple', 'elem, label')
@@ -103,9 +104,6 @@ class HintManager(QObject):
                  arg 0: URL to open as QUrl.
                  arg 1: True if it should be opened in a new tab, else False.
         set_open_target: Set a new target to open the links in.
-        download_get: Download an URL.
-                      arg 0: The URL to download, as QUrl.
-                      arg 1: The QWebPage to download the URL in.
     """
 
     HINT_CSS = """
@@ -139,7 +137,6 @@ class HintManager(QObject):
     mouse_event = pyqtSignal('QMouseEvent')
     openurl = pyqtSignal('QUrl', bool)
     set_open_target = pyqtSignal(str)
-    download_get = pyqtSignal('QUrl', 'QWebPage')
 
     def __init__(self, parent=None):
         """Constructor.
@@ -362,7 +359,7 @@ class HintManager(QObject):
                           immediately=True)
             return
         qtutils.ensure_valid(url)
-        self.download_get.emit(url, elem.webFrame().page())
+        cmdreg.get('download-manager').get(url, elem.webFrame().page())
 
     def _call_userscript(self, url):
         """Call an userscript from a hint."""

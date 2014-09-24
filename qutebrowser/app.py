@@ -459,7 +459,6 @@ class Application(QApplication):
 
         # downloads
         tabs.start_download.connect(download_manager.fetch)
-        tabs.download_get.connect(download_manager.get)
 
     def _get_widgets(self):
         """Get a string list of all widgets."""

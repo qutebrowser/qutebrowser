@@ -766,8 +766,7 @@ class CommandDispatcher:
     def download_page(self):
         """Download the current page."""
         page = self._current_widget().page()
-        tabbed_browser = objreg.get('tabbed-browser')
-        tabbed_browser.download_get.emit(self._current_url(), page)
+        objreg.get('download-manager').get(self._current_url(), page)
 
     @cmdutils.register(instance='command-dispatcher')
     def view_source(self):
