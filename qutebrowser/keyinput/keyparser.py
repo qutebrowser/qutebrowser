@@ -65,7 +65,6 @@ class PassthroughKeyParser(CommandKeyParser):
             warn: Whether to warn if an ignored key was bound.
         """
         super().__init__(parent, supports_chains=False)
-        self.log = False
         self._warn_on_keychains = warn
         self.read_config(mode)
         self._mode = mode
