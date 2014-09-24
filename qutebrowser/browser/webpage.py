@@ -301,10 +301,10 @@ class BrowserPage(QWebPage):
             log.webview.debug(url.errorString())
             return False
         if self._view.open_target == usertypes.ClickTarget.tab:
-            self._view.tabbedbrowser.tabopen(url, False)
+            objreg.get('tabbed-browser').tabopen(url, False)
             return False
         elif self._view.open_target == usertypes.ClickTarget.tab_bg:
-            self._view.tabbedbrowser.tabopen(url, True)
+            objreg.get('tabbed-browser').tabopen(url, True)
             return False
         else:
             self.change_title.emit(urlstr)

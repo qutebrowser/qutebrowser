@@ -43,9 +43,6 @@ class WebView(QWebView):
 
     Attributes:
         hintmanager: The HintManager instance for this view.
-        tabbedbrowser: The TabbedBrowser this WebView is part of.
-                       We need this rather than signals to make createWindow
-                       work.
         progress: loading progress of this page.
         scroll_pos: The current scroll position as (x%, y%) tuple.
         statusbar_message: The current javscript statusbar message.
@@ -77,11 +74,10 @@ class WebView(QWebView):
     load_status_changed = pyqtSignal(str)
     url_text_changed = pyqtSignal(str)
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.load_status = LoadStatus.none
         self._check_insertmode = False
-        self.tabbedbrowser = parent
         self.inspector = None
         self.scroll_pos = (-1, -1)
         self.statusbar_message = ''
@@ -404,7 +400,7 @@ class WebView(QWebView):
         if wintype == QWebPage.WebModalDialog:
             log.webview.warning("WebModalDialog requested, but we don't "
                                 "support that!")
-        return self.tabbedbrowser.tabopen()
+        return objreg.get('tabbed-browser').tabopen()
 
     def paintEvent(self, e):
         """Extend paintEvent to emit a signal if the scroll position changed.
