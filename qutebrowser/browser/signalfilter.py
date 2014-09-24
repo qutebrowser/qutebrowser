@@ -23,7 +23,7 @@ import functools
 
 from PyQt5.QtCore import QObject
 
-from qutebrowser.utils import debug, log
+from qutebrowser.utils import debug, log, objreg
 from qutebrowser.widgets import webview
 
 
@@ -34,18 +34,11 @@ class SignalFilter(QObject):
     Signals are only passed to the parent TabbedBrowser if they originated in
     the currently shown widget.
 
-    Attributes:
-        _tabs: The QTabWidget associated with this SignalFilter.
-
     Class attributes:
         BLACKLIST: List of signal names which should not be logged.
     """
 
     BLACKLIST = ['cur_scroll_perc_changed', 'cur_progress']
-
-    def __init__(self, tabs):
-        super().__init__(tabs)
-        self._tabs = tabs
 
     def create(self, signal, tab):
         """Factory for partial _filter_signals functions.
@@ -80,12 +73,13 @@ class SignalFilter(QObject):
             The target signal if the sender was the current widget.
         """
         log_signal = debug.signal_name(signal) not in self.BLACKLIST
+        tabbed_browser = objreg.get('tabbed-browser')
         try:
-            tabidx = self._tabs.indexOf(tab)
+            tabidx = tabbed_browser.indexOf(tab)
         except RuntimeError:
             # The tab has been deleted already
             return
-        if tabidx == self._tabs.currentIndex():
+        if tabidx == tabbed_browser.currentIndex():
             if log_signal:
                 log.signals.debug("emitting: {} (tab {})".format(
                     debug.dbg_signal(signal, args), tabidx))
