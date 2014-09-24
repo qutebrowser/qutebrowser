@@ -53,7 +53,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         _tab_insert_idx_left: Where to insert a new tab with
                          tabbar -> new-tab-position set to 'left'.
         _tab_insert_idx_right: Same as above, for 'right'.
-        url_stack: Stack of URLs of closed tabs.
+        _url_stack: Stack of URLs of closed tabs.
 
     Signals:
         cur_progress: Progress of the current tab changed (loadProgress).
@@ -106,7 +106,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         self.currentChanged.connect(self.on_current_changed)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._tabs = []
-        self.url_stack = []
+        self._url_stack = []
+        objreg.register('url-stack', self._url_stack)
         self._filter = signalfilter.SignalFilter(self)
         dispatcher = commands.CommandDispatcher(self)
         objreg.register('command-dispatcher', dispatcher)
@@ -265,7 +266,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             objreg.delete('last-focused-tab')
         if not tab.cur_url.isEmpty():
             qtutils.ensure_valid(tab.cur_url)
-            self.url_stack.append(tab.cur_url)
+            self._url_stack.append(tab.cur_url)
         tab.shutdown()
         self._tabs.remove(tab)
         self.removeTab(idx)
