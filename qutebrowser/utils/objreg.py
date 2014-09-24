@@ -77,14 +77,24 @@ meta_registry = ObjectRegistry()
 meta_registry['global'] = global_registry
 
 
-def get(name, default=_UNSET):
+def _get_registry(scope):
+    """Get the correct registry for a given scope."""
+    if scope == 'global':
+        return global_registry
+    else:
+        raise ValueError("Invalid scope '{}'!".format(scope))
+
+
+
+def get(name, default=_UNSET, scope='global'):
     """Helper function to get an object.
 
     Args:
         default: A default to return if the object does not exist.
     """
+    reg = _get_registry(scope)
     try:
-        return global_registry[name]
+        return reg[name]
     except KeyError:
         if default is not _UNSET:
             return default
@@ -92,7 +102,7 @@ def get(name, default=_UNSET):
             raise
 
 
-def register(name, obj, update=False):
+def register(name, obj, update=False, scope='global'):
     """Helper function to register an object.
 
     Args:
@@ -100,12 +110,14 @@ def register(name, obj, update=False):
         obj: The object to register.
         update: If True, allows to update an already registered object.
     """
-    if not update and name in global_registry:
+    reg = _get_registry(scope)
+    if not update and name in reg:
         raise KeyError("Object '{}' is already registered ({})!".format(
-                       name, repr(global_registry[name])))
-    global_registry[name] = obj
+                       name, repr(reg[name])))
+    reg[name] = obj
 
 
-def delete(name):
+def delete(name, scope='global'):
     """Helper function to unregister an object."""
-    del global_registry[name]
+    reg = _get_registry(scope)
+    del reg[name]
