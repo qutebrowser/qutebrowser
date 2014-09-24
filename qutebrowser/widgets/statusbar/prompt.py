@@ -66,7 +66,7 @@ class Prompt(QWidget):
         self.lineedit = PromptLineEdit()
         self._hbox.addWidget(self.lineedit)
 
-        prompter_obj = prompter.Prompter(self)
+        prompter_obj = prompter.Prompter()
         objreg.register('prompter', prompter_obj)
 
     def __repr__(self):

@@ -62,8 +62,8 @@ class Prompter:
         _queue: A deque of waiting questions.
     """
 
-    def __init__(self, prompt):
-        self.question = None
+    def __init__(self):
+        self._question = None
         self._loops = []
         self._queue = collections.deque()
         self._busy = False
