@@ -23,7 +23,7 @@
 import collections
 import functools
 
-from PyQt5.QtCore import QCoreApplication, QObject
+from PyQt5.QtCore import QObject
 
 
 class UnsetObject:
@@ -70,6 +70,9 @@ class ObjectRegistry(collections.UserDict):
         return lines
 
 
+global_registry = ObjectRegistry()
+
+
 def get(name, default=_UNSET):
     """Helper function to get an object.
 
@@ -77,7 +80,7 @@ def get(name, default=_UNSET):
         default: A default to return if the object does not exist.
     """
     try:
-        return QCoreApplication.instance().registry[name]
+        return global_registry[name]
     except KeyError:
         if default is not _UNSET:
             return default
@@ -93,13 +96,12 @@ def register(name, obj, update=False):
         obj: The object to register.
         update: If True, allows to update an already registered object.
     """
-    registry = QCoreApplication.instance().registry
-    if not update and name in registry:
+    if not update and name in global_registry:
         raise KeyError("Object '{}' is already registered ({})!".format(
-                       name, repr(registry[name])))
-    registry[name] = obj
+                       name, repr(global_registry[name])))
+    global_registry[name] = obj
 
 
 def delete(name):
     """Helper function to unregister an object."""
-    del QCoreApplication.instance().registry[name]
+    del global_registry[name]

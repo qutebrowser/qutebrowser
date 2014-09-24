@@ -53,7 +53,6 @@ class Application(QApplication):
     """Main application instance.
 
     Attributes:
-        registry: The object registry of global objects.
         meta_registry: The object registry of object registries.
         _args: ArgumentParser instance.
         _commandrunner: The main CommandRunner instance.
@@ -84,8 +83,7 @@ class Application(QApplication):
             'main': False,
         }
         self.meta_registry = objreg.ObjectRegistry()
-        self.registry = objreg.ObjectRegistry()
-        self.meta_registry['global'] = self.registry
+        self.meta_registry['global'] = objreg.global_registry
         objreg.register('app', self)
         self._shutting_down = False
         self._keyparsers = None
