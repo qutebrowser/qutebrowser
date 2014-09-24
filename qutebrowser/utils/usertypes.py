@@ -51,18 +51,6 @@ def enum(name, *items, start=1, is_int=False):
     return base(name, enums)
 
 
-class EnumBase(type):
-
-    """Metaclass for enums to provide __getitem__ for reverse mapping."""
-
-    def __init__(cls, name, base, fields):
-        super().__init__(name, base, fields)
-        cls._mapping = dict((v, k) for k, v in fields.items())
-
-    def __getitem__(cls, key):
-        return cls._mapping[key]
-
-
 class NeighborList(collections.abc.Sequence):
 
     """A list of items which saves it current position.
