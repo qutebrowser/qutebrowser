@@ -174,25 +174,6 @@ class TabbedBrowser(tabwidget.TabWidget):
         page.windowCloseRequested.connect(
             functools.partial(self.on_window_close_requested, tab))
 
-    def cntwidget(self, count=None):
-        """Return a widget based on a count/idx.
-
-        Args:
-            count: The tab index, or None.
-
-        Return:
-            The current widget if count is None.
-            The widget with the given tab ID if count is given.
-            None if no widget was found.
-        """
-        if count is None:
-            return self.currentWidget()
-        elif 1 <= count <= self.count():
-            cmdutils.check_overflow(count + 1, 'int')
-            return self.widget(count - 1)
-        else:
-            return None
-
     def current_url(self):
         """Get the URL of the current tab.
 

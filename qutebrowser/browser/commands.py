@@ -92,6 +92,26 @@ class CommandDispatcher:
             widget = self._current_widget()
             widget.openurl(url)
 
+    def _cntwidget(self, count=None):
+        """Return a widget based on a count/idx.
+
+        Args:
+            count: The tab index, or None.
+
+        Return:
+            The current widget if count is None.
+            The widget with the given tab ID if count is given.
+            None if no widget was found.
+        """
+        if count is None:
+            return self._tabs.currentWidget()
+        elif 1 <= count <= self._tabs.count():
+            cmdutils.check_overflow(count + 1, 'int')
+            return self._tabs.widget(count - 1)
+        else:
+            return None
+
+
     def _scroll_percent(self, perc=None, count=None, orientation=None):
         """Inner logic for scroll_percent_(x|y).
 
@@ -170,7 +190,7 @@ class CommandDispatcher:
             quit: If last tab was closed and last-close in config is set to
                   quit.
         """
-        tab = self._tabs.cntwidget(count)
+        tab = self._cntwidget(count)
         if tab is None:
             return
         self._tabs.close_tab(tab)
@@ -195,7 +215,7 @@ class CommandDispatcher:
         elif bg:
             self._tabs.tabopen(url, background=True, explicit=True)
         else:
-            curtab = self._tabs.cntwidget(count)
+            curtab = self._cntwidget(count)
             if curtab is None:
                 if count is None:
                     # We want to open a URL in the current tab, but none exists
@@ -214,7 +234,7 @@ class CommandDispatcher:
         Args:
             count: The tab index to reload, or None.
         """
-        tab = self._tabs.cntwidget(count)
+        tab = self._cntwidget(count)
         if tab is not None:
             tab.reload()
 
@@ -225,7 +245,7 @@ class CommandDispatcher:
         Args:
             count: The tab index to stop, or None.
         """
-        tab = self._tabs.cntwidget(count)
+        tab = self._cntwidget(count)
         if tab is not None:
             tab.stop()
 
@@ -241,7 +261,7 @@ class CommandDispatcher:
             # WORKAROUND (remove this when we bump the requirements to 5.3.0)
             raise cmdexc.CommandError(
                 "Printing on Qt < 5.3.0 on Windows is broken, please upgrade!")
-        tab = self._tabs.cntwidget(count)
+        tab = self._cntwidget(count)
         if tab is not None:
             if preview:
                 diag = QPrintPreviewDialog()
