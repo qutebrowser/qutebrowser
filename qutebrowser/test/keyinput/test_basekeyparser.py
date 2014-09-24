@@ -29,6 +29,7 @@ from PyQt5.QtCore import Qt
 
 from qutebrowser.keyinput import basekeyparser
 from qutebrowser.test import stubs, helpers
+from qutebrowser.utils import objreg
 
 
 CONFIG = {'input': {'timeout': 100}}
@@ -42,6 +43,10 @@ BINDINGS = {'test': {'<Ctrl-a>': 'ctrla',
             'test2': {'foo': 'bar', '<Ctrl+X>': 'ctrlx'}}
 
 
+fake_keyconfig = mock.Mock(spec=['get_bindings_for'])
+fake_keyconfig.get_bindings_for.side_effect = lambda s: BINDINGS[s]
+
+
 def setUpModule():
     """Mock out some imports in basekeyparser."""
     basekeyparser.QObject = mock.Mock()
@@ -51,14 +56,6 @@ def setUpModule():
 def tearDownModule():
     """Restore mocked out stuff."""
     logging.disable(logging.NOTSET)
-
-
-def _get_fake_application():
-    """Construct a fake QApplication with a keyconfig."""
-    app = stubs.FakeQApplication()
-    app.keyconfig = mock.Mock(spec=['get_bindings_for'])
-    app.keyconfig.get_bindings_for.side_effect = lambda s: BINDINGS[s]
-    return app
 
 
 class SplitCountTests(unittest.TestCase):
@@ -109,8 +106,11 @@ class ReadConfigTests(unittest.TestCase):
     """Test reading the config."""
 
     def setUp(self):
-        basekeyparser.QCoreApplication = _get_fake_application()
+        objreg.register('key-config', fake_keyconfig)
         basekeyparser.usertypes.Timer = mock.Mock()
+
+    def tearDown(self):
+        objreg.delete('key-config')
 
     def test_read_config_invalid(self):
         """Test reading config without setting it before."""
@@ -145,11 +145,14 @@ class SpecialKeysTests(unittest.TestCase):
             'qutebrowser.keyinput.basekeyparser.usertypes.Timer',
             autospec=True)
         patcher.start()
+        objreg.register('key-config', fake_keyconfig)
         self.addCleanup(patcher.stop)
-        basekeyparser.QCoreApplication = _get_fake_application()
         self.kp = basekeyparser.BaseKeyParser()
         self.kp.execute = mock.Mock()
         self.kp.read_config('test')
+
+    def tearDown(self):
+        objreg.delete('key-config')
 
     def test_valid_key(self):
         """Test a valid special keyevent."""
@@ -181,13 +184,16 @@ class KeyChainTests(unittest.TestCase):
 
     def setUp(self):
         """Set up mocks and read the test config."""
-        basekeyparser.QCoreApplication = _get_fake_application()
+        objreg.register('key-config', fake_keyconfig)
         self.timermock = mock.Mock()
         basekeyparser.usertypes.Timer = mock.Mock(return_value=self.timermock)
         self.kp = basekeyparser.BaseKeyParser(supports_chains=True,
                                               supports_count=False)
         self.kp.execute = mock.Mock()
         self.kp.read_config('test')
+
+    def tearDown(self):
+        objreg.delete('key-config')
 
     def test_valid_special_key(self):
         """Test valid special key."""
@@ -246,7 +252,7 @@ class CountTests(unittest.TestCase):
     """Test execute() with counts."""
 
     def setUp(self):
-        basekeyparser.QCoreApplication = _get_fake_application()
+        objreg.register('key-config', fake_keyconfig)
         basekeyparser.usertypes.Timer = mock.Mock()
         self.kp = basekeyparser.BaseKeyParser(supports_chains=True,
                                               supports_count=True)
@@ -295,6 +301,9 @@ class CountTests(unittest.TestCase):
         self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='c'))
         self.kp.execute.assert_called_once_with('ccc', self.kp.Type.chain, 23)
         self.assertEqual(self.kp._keystring, '')
+
+    def tearDown(self):
+        objreg.delete('key-config')
 
 
 if __name__ == '__main__':
