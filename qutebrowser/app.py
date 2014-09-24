@@ -86,7 +86,7 @@ class Application(QApplication):
         self.meta_registry = objreg.ObjectRegistry()
         self.registry = objreg.ObjectRegistry()
         self.meta_registry['global'] = self.registry
-        self.registry['app'] = self
+        objreg.register('app', self)
         self._shutting_down = False
         self._keyparsers = None
         self._crashdlg = None
@@ -95,7 +95,7 @@ class Application(QApplication):
         sys.excepthook = self._exception_hook
 
         self._args = args
-        self.registry['args'] = args
+        objreg.register('args', args)
         log.init.debug("Starting init...")
         self._init_misc()
         utils.actute_warning()
@@ -105,7 +105,7 @@ class Application(QApplication):
         self._handle_segfault()
         log.init.debug("Initializing modes...")
         self._init_modes()
-        mode_manager = self.registry['mode-manager']
+        mode_manager = objreg.get('mode-manager')
         log.init.debug("Initializing websettings...")
         websettings.init()
         log.init.debug("Initializing quickmarks...")
@@ -118,24 +118,24 @@ class Application(QApplication):
         utilcmds.init()
         log.init.debug("Initializing cookies...")
         cookie_jar = cookies.CookieJar(self)
-        self.registry['cookie-jar'] = cookie_jar
+        objreg.register('cookie-jar', cookie_jar)
         log.init.debug("Initializing cache...")
         diskcache = cache.DiskCache(self)
-        self.registry['cache'] = diskcache
+        objreg.register('cache', diskcache)
         log.init.debug("Initializing commands...")
         self._commandrunner = runners.CommandRunner()
         log.init.debug("Initializing search...")
         search_runner = runners.SearchRunner(self)
-        self.registry['search-runner'] = search_runner
+        objreg.register('search-runner', search_runner)
         log.init.debug("Initializing downloads...")
         download_manager = downloads.DownloadManager(self)
-        self.registry['download-manager'] = download_manager
+        objreg.register('download-manager', download_manager)
         log.init.debug("Initializing main window...")
         main_window = mainwindow.MainWindow()
-        self.registry['main-window'] = main_window
+        objreg.register('main-window', main_window)
         log.init.debug("Initializing debug console...")
         debug_console = console.ConsoleWidget()
-        self.registry['debug-console'] = debug_console
+        objreg.register('debug-console', debug_console)
         log.init.debug("Initializing eventfilter...")
         self.installEventFilter(mode_manager)
         self.setQuitOnLastWindowClosed(False)
@@ -190,7 +190,7 @@ class Application(QApplication):
             # We didn't really initialize much so far, so we just quit hard.
             sys.exit(1)
         else:
-            self.registry['config'] = config_obj
+            objreg.register('config', config_obj)
         try:
             key_config = keyconfparser.KeyConfigParser(confdir, 'keys.conf')
         except keyconfparser.KeyConfigError as e:
@@ -205,12 +205,12 @@ class Application(QApplication):
             # We didn't really initialize much so far, so we just quit hard.
             sys.exit(1)
         else:
-            self.registry['key-config'] = key_config
+            objreg.register('key-config', key_config)
         state_config = iniparsers.ReadWriteConfigParser(confdir, 'state')
-        self.registry['state-config'] = state_config
+        objreg.register('state-config', state_config)
         command_history = lineparser.LineConfigParser(
             confdir, 'cmd_history', ('completion', 'history-length'))
-        self.registry['command-history'] = command_history
+        objreg.register('command-history', command_history)
 
     def _init_modes(self):
         """Inizialize the mode manager and the keyparsers."""
@@ -231,7 +231,7 @@ class Application(QApplication):
                 modeparsers.PromptKeyParser(self),
         }
         mode_manager = modeman.ModeManager(self)
-        self.registry['mode-manager'] = mode_manager
+        objreg.register('mode-manager', mode_manager)
         mode_manager.register(utypes.KeyMode.normal,
                               self._keyparsers[utypes.KeyMode.normal].handle)
         mode_manager.register(utypes.KeyMode.hint,
@@ -266,9 +266,9 @@ class Application(QApplication):
         self.setApplicationName("qutebrowser")
         self.setApplicationVersion(qutebrowser.__version__)
         message_bridge = message.MessageBridge(self)
-        self.registry['message-bridge'] = message_bridge
+        objreg.register('message-bridge', message_bridge)
         readline_bridge = readline.ReadlineBridge()
-        self.registry['readline-bridge'] = readline_bridge
+        objreg.register('readline-bridge', readline_bridge)
 
     def _handle_segfault(self):
         """Handle a segfault from a previous run."""
@@ -331,7 +331,7 @@ class Application(QApplication):
         # we make sure the GUI is refreshed here, so the start seems faster.
         self.processEvents(QEventLoop.ExcludeUserInputEvents |
                            QEventLoop.ExcludeSocketNotifiers)
-        tabbed_browser = self.registry['tabbed-browser']
+        tabbed_browser = objreg.get('tabbed-browser')
         for cmd in self._args.command:
             if cmd.startswith(':'):
                 log.init.debug("Startup cmd {}".format(cmd))
@@ -368,27 +368,27 @@ class Application(QApplication):
         timer = utypes.Timer(self, 'python_hacks')
         timer.start(500)
         timer.timeout.connect(lambda: None)
-        self.registry['python-hack-timer'] = timer
+        objreg.register('python-hack-timer', timer)
 
     def _connect_signals(self):
         """Connect all signals to their slots."""
         # pylint: disable=too-many-statements, too-many-locals
         # syntactic sugar
         kp = self._keyparsers
-        main_window = self.registry['main-window']
+        main_window = objreg.get('main-window')
         status = main_window.status
-        completion = self.registry['completion']
-        tabs = self.registry['tabbed-browser']
-        cmd = self.registry['status-command']
-        completer = self.registry['completer']
-        search_runner = self.registry['search-runner']
-        message_bridge = self.registry['message-bridge']
-        mode_manager = self.registry['mode-manager']
-        prompter = self.registry['prompter']
-        command_history = self.registry['command-history']
-        download_manager = self.registry['download-manager']
-        config_obj = self.registry['config']
-        key_config = self.registry['key-config']
+        completion = objreg.get('completion')
+        tabs = objreg.get('tabbed-browser')
+        cmd = objreg.get('status-command')
+        completer = objreg.get('completer')
+        search_runner = objreg.get('search-runner')
+        message_bridge = objreg.get('message-bridge')
+        mode_manager = objreg.get('mode-manager')
+        prompter = objreg.get('prompter')
+        command_history = objreg.get('command-history')
+        download_manager = objreg.get('download-manager')
+        config_obj = objreg.get('config')
+        key_config = objreg.get('key-config')
 
         # misc
         self.lastWindowClosed.connect(self.shutdown)
@@ -519,7 +519,7 @@ class Application(QApplication):
             A list of open pages, or an empty list.
         """
         try:
-            tabbed_browser = self.registry['tabbed-browser']
+            tabbed_browser = objreg.get('tabbed-browser')
         except KeyError:
             return []
         pages = []
@@ -535,8 +535,8 @@ class Application(QApplication):
 
     def _save_geometry(self):
         """Save the window geometry to the state config."""
-        state_config = self.registry['state-config']
-        data = bytes(self.registry['main-window'].saveGeometry())
+        state_config = objreg.get('state-config')
+        data = bytes(objreg.get('main-window').saveGeometry())
         geom = base64.b64encode(data).decode('ASCII')
         try:
             state_config.add_section('geometry')
@@ -591,7 +591,7 @@ class Application(QApplication):
             pages = []
 
         try:
-            history = self.registry['status-command'].history[-5:]
+            history = objreg.get('status-command').history[-5:]
         except Exception:
             log.destroy.exception("Error while getting history: {}")
             history = []
@@ -673,14 +673,13 @@ class Application(QApplication):
         except Exception:  # pylint: disable=broad-except
             out = traceback.format_exc()
         qutescheme.pyeval_output = out
-        self.registry['tabbed-browser'].openurl(
-            QUrl('qute:pyeval'), newtab=True)
+        objreg.get('tabbed-browser').openurl(QUrl('qute:pyeval'), newtab=True)
 
     @cmdutils.register(instance='app')
     def report(self):
         """Report a bug in qutebrowser."""
         pages = self._recover_pages()
-        history = self.registry['status-command'].history[-5:]
+        history = objreg.get('status-command').history[-5:]
         objects = self.get_all_objects()
         self._crashdlg = crash.ReportDialog(pages, history, objects)
         self._crashdlg.show()
@@ -736,7 +735,7 @@ class Application(QApplication):
             return
         self._shutting_down = True
         log.destroy.debug("Shutting down with status {}...".format(status))
-        if self.registry['prompter'].shutdown():
+        if objreg.get('prompter').shutdown():
             # If shutdown was called while we were asking a question, we're in
             # a still sub-eventloop (which gets quitted now) and not in the
             # main one.
@@ -758,18 +757,18 @@ class Application(QApplication):
         # Remove eventfilter
         try:
             log.destroy.debug("Removing eventfilter...")
-            self.removeEventFilter(self.registry['mode-manager'])
+            self.removeEventFilter(objreg.get('mode-manager'))
         except KeyError:
             pass
         # Close all tabs
         try:
             log.destroy.debug("Closing tabs...")
-            self.registry['tabbed-browser'].shutdown()
+            objreg.get('tabbed-browser').shutdown()
         except KeyError:
             pass
         # Save everything
         try:
-            config_obj = self.registry['config']
+            config_obj = objreg.get('config')
         except KeyError:
             log.destroy.debug("Config not initialized yet, so not saving "
                               "anything.")
@@ -778,7 +777,7 @@ class Application(QApplication):
             if config.get('general', 'auto-save-config'):
                 to_save.append(("config", config_obj.save))
                 try:
-                    key_config = self.registry['key-config']
+                    key_config = objreg.get('key-config')
                 except KeyError:
                     pass
                 else:
@@ -786,19 +785,19 @@ class Application(QApplication):
             to_save += [("window geometry", self._save_geometry),
                         ("quickmarks", quickmarks.save)]
             try:
-                command_history = self.registry['command-history']
+                command_history = objreg.get('command-history')
             except KeyError:
                 pass
             else:
                 to_save.append(("command history", command_history.save))
             try:
-                state_config = self.registry['state-config']
+                state_config = objreg.get('state-config')
             except KeyError:
                 pass
             else:
                 to_save.append(("window geometry", state_config.save))
             try:
-                cookie_jar = self.registry['cookie-jar']
+                cookie_jar = objreg.get('cookie-jar')
             except KeyError:
                 pass
             else:
