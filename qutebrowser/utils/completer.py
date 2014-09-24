@@ -33,7 +33,6 @@ class Completer(QObject):
     """Completer which manages completions in a CompletionView.
 
     Attributes:
-        view: The CompletionView associated with this completer.
         ignore_change: Whether to ignore the next completion update.
         _models: dict of available completion models.
 
@@ -48,9 +47,8 @@ class Completer(QObject):
 
     change_completed_part = pyqtSignal(str, bool)
 
-    def __init__(self, view):
-        super().__init__(view)
-        self.view = view
+    def __init__(self, parent=None):
+        super().__init__()
         self.ignore_change = False
 
         self._models = {
@@ -62,6 +60,10 @@ class Completer(QObject):
 
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
+
+    def _model(self):
+        """Convienience method to get the current completion model."""
+        return objreg.get('completion').model()
 
     def _init_static_completions(self):
         """Initialize the static completion models."""
@@ -165,7 +167,7 @@ class Completer(QObject):
         indexes = selected.indexes()
         if not indexes:
             return
-        model = self.view.model()
+        model = self._model()
         data = model.data(indexes[0])
         if data is None:
             return
@@ -193,36 +195,38 @@ class Completer(QObject):
             log.completion.debug("Ignoring completion update")
             return
 
+        completion = objreg.get('completion')
+
         if prefix != ':':
             # This is a search or gibberish, so we don't need to complete
             # anything (yet)
             # FIXME complete searchs
-            self.view.hide()
+            completion.hide()
             return
 
         model = self._get_new_completion(parts, cursor_part)
 
-        if model != self.view.model():
+        if model != self._model():
             if model is None:
-                self.view.hide()
+                completion.hide()
             else:
-                self.view.set_model(model)
+                completion.set_model(model)
 
         if model is None:
             log.completion.debug("No completion model for {}.".format(parts))
             return
 
         pattern = parts[cursor_part] if parts else ''
-        self.view.model().set_pattern(pattern)
+        self._model().set_pattern(pattern)
 
         log.completion.debug(
             "New completion for {}: {}, with pattern '{}'".format(
                 parts, model.srcmodel.__class__.__name__, pattern))
 
-        if self.view.model().count() == 0:
-            self.view.hide()
+        if self._model().count() == 0:
+            completion.hide()
             return
 
-        self.view.model().mark_all_items(pattern)
-        if self.view.enabled:
-            self.view.show()
+        self._model().mark_all_items(pattern)
+        if completion.enabled:
+            completion.show()

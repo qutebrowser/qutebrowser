@@ -87,7 +87,6 @@ class MainWindow(QWidget):
         self._vbox.addWidget(self._tabbed_browser)
 
         self._completion = completion.CompletionView(self)
-        objreg.register('completion', self._completion)
 
         self.status = bar.StatusBar()
         self._vbox.addWidget(self.status)
