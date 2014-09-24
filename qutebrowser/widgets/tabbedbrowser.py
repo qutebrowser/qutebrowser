@@ -54,7 +54,6 @@ class TabbedBrowser(tabwidget.TabWidget):
                          tabbar -> new-tab-position set to 'left'.
         _tab_insert_idx_right: Same as above, for 'right'.
         url_stack: Stack of URLs of closed tabs.
-        last_focused: The tab which was focused last.
 
     Signals:
         cur_progress: Progress of the current tab changed (loadProgress).
@@ -111,7 +110,6 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._filter = signalfilter.SignalFilter(self)
         dispatcher = commands.CommandDispatcher(self)
         utils.register_object('command-dispatcher', dispatcher)
-        self.last_focused = None
         self._now_focused = None
         # FIXME adjust this to font size
         self.setIconSize(QSize(12, 12))
@@ -263,8 +261,8 @@ class TabbedBrowser(tabwidget.TabWidget):
                 tab))
         if tab is self._now_focused:
             self._now_focused = None
-        if tab is self.last_focused:
-            self.last_focused = None
+        if tab is utils.get_object('last-focused-tab', None):
+            utils.delete_object('last-focused-tab')
         if not tab.cur_url.isEmpty():
             qtutils.ensure_valid(tab.cur_url)
             self.url_stack.append(tab.cur_url)
@@ -522,11 +520,13 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     @pyqtSlot(int)
     def on_current_changed(self, idx):
-        """Set last_focused and leave hinting mode when focus changed."""
+        """Set last-focused-tab and leave hinting mode when focus changed."""
         tab = self.widget(idx)
         tab.setFocus()
         modeman.maybe_leave(usertypes.KeyMode.hint, 'tab changed')
-        self.last_focused = self._now_focused
+        if self._now_focused is not None:
+            utils.register_object('last-focused-tab', self._now_focused,
+                                update=True)
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
         self.title_changed.emit('{} - qutebrowser'.format(self.tabText(idx)))

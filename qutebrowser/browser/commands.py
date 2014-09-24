@@ -38,7 +38,7 @@ from qutebrowser.commands import userscripts, cmdexc, cmdutils
 from qutebrowser.config import config
 from qutebrowser.browser import hints, quickmarks, webelem
 from qutebrowser.utils import (message, editor, usertypes, log, qtutils,
-                               urlutils)
+                               urlutils, utils)
 
 
 class CommandDispatcher:
@@ -52,7 +52,6 @@ class CommandDispatcher:
     cmdutils.register() decorators are run, currentWidget() will return None.
 
     Attributes:
-        _tabs: The TabbedBrowser object.
         _editor: The ExternalEditor object.
     """
 
@@ -143,9 +142,11 @@ class CommandDispatcher:
 
     def _tab_focus_last(self):
         """Select the tab which was last focused."""
-        if self._tabs.last_focused is None:
+        try:
+            tab = utils.get_object('last-focused-tab')
+        except KeyError:
             raise cmdexc.CommandError("No last focused tab!")
-        idx = self._tabs.indexOf(self._tabs.last_focused)
+        idx = self._tabs.indexOf(tab)
         if idx == -1:
             raise cmdexc.CommandError("Last focused tab vanished!")
         self._tabs.setCurrentIndex(idx)
