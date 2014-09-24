@@ -26,7 +26,17 @@ import functools
 from PyQt5.QtCore import QCoreApplication, QObject
 
 
-_UNSET = object()
+class UnsetObject:
+
+    """Class for an unset object.
+
+    Only used (rather than object) so we can tell pylint to shut up about it.
+    """
+
+    __slots__ = ()
+
+
+_UNSET = UnsetObject()
 
 
 class ObjectRegistry(collections.UserDict):
