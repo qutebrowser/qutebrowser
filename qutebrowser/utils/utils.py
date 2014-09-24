@@ -585,6 +585,18 @@ def get_object(name):
     return QCoreApplication.instance().registry[name]
 
 
-def register_object(name, obj):
-    """Helper function to register an object."""
-    QCoreApplication.instance().registry[name] = obj
+def register_object(name, obj, update=False):
+    """Helper function to register an object.
+
+    Args:
+        name: The name the object will be registered as.
+        obj: The object to register.
+        update: If True, allows to update an already registered object.
+    """
+    registry = QCoreApplication.instance().registry
+    if not update and name in registry:
+        raise KeyError("Object '{}' is already registered ({})!".format(
+                       name, repr(registry[name])))
+    registry[name] = obj
+
+
