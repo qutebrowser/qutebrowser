@@ -70,7 +70,11 @@ class ObjectRegistry(collections.UserDict):
         return lines
 
 
+# The registry for global objects
 global_registry = ObjectRegistry()
+# The object registry of object registries.
+meta_registry = ObjectRegistry()
+meta_registry['global'] = global_registry
 
 
 def get(name, default=_UNSET):

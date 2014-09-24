@@ -53,7 +53,6 @@ class Application(QApplication):
     """Main application instance.
 
     Attributes:
-        meta_registry: The object registry of object registries.
         _args: ArgumentParser instance.
         _commandrunner: The main CommandRunner instance.
         _keyparsers: A mapping from modes to keyparsers.
@@ -82,8 +81,6 @@ class Application(QApplication):
             'tabs': False,
             'main': False,
         }
-        self.meta_registry = objreg.ObjectRegistry()
-        self.meta_registry['global'] = objreg.global_registry
         objreg.register('app', self)
         self._shutting_down = False
         self._keyparsers = None
@@ -480,7 +477,7 @@ class Application(QApplication):
         """Get all registered objects in all registries as a string."""
         blocks = []
         lines = []
-        for name, registry in self.meta_registry.items():
+        for name, registry in objreg.meta_registry.items():
             blocks.append((name, registry.dump_objects()))
         for name, data in blocks:
             lines.append("{} object registry - {} objects:".format(
