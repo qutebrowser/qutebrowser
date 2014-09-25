@@ -40,7 +40,7 @@ from qutebrowser.commands import userscripts, runners, cmdutils
 from qutebrowser.config import (style, config, websettings, iniparsers,
                                 lineparser, configtypes, keyconfparser)
 from qutebrowser.network import qutescheme, proxy
-from qutebrowser.browser import quickmarks, cookies, downloads, cache
+from qutebrowser.browser import quickmarks, cookies, downloads, cache, hints
 from qutebrowser.widgets import mainwindow, console, crash
 from qutebrowser.keyinput import modeparsers, keyparser, modeman
 from qutebrowser.utils import (log, version, message, utilcmds, readline,
@@ -387,6 +387,7 @@ class Application(QApplication):
         # misc
         self.lastWindowClosed.connect(self.shutdown)
         tabs.quit.connect(self.shutdown)
+        mode_manager.entered.connect(hints.on_mode_entered)
 
         # status bar
         mode_manager.entered.connect(status.on_mode_entered)

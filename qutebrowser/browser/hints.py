@@ -42,6 +42,13 @@ Target = usertypes.enum('Target', 'normal', 'tab', 'tab_bg', 'yank',
                         'userscript', 'spawn')
 
 
+@pyqtSlot(usertypes.KeyMode)
+def on_mode_entered(mode):
+    """Stop hinting when insert mode was entered."""
+    if mode == usertypes.KeyMode.insert:
+        modeman.maybe_leave(usertypes.KeyMode.hint, 'insert mode')
+
+
 class HintContext:
 
     """Context namespace used for hinting.
@@ -139,7 +146,6 @@ class HintManager(QObject):
         super().__init__(parent)
         self._context = None
         objreg.get('mode-manager').left.connect(self.on_mode_left)
-        objreg.get('mode-manager').entered.connect(self.on_mode_entered)
 
     def _cleanup(self):
         """Clean up after hinting."""
@@ -675,12 +681,6 @@ class HintManager(QObject):
         for elems in self._context.elems.values():
             css = self._get_hint_css(elems.elem, elems.label)
             elems.label['style'] = css
-
-    @pyqtSlot(usertypes.KeyMode)
-    def on_mode_entered(self, mode):
-        """Stop hinting when insert mode was entered."""
-        if mode == usertypes.KeyMode.insert:
-            modeman.maybe_leave(usertypes.KeyMode.hint, 'insert mode')
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
