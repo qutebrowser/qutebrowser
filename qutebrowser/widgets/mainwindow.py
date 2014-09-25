@@ -57,7 +57,7 @@ class MainWindow(QWidget):
             geom = base64.b64decode(data, validate=True)
         except KeyError:
             # First start
-            pass
+            self._set_default_geometry()
         except binascii.Error:
             log.init.exception("Error while reading geometry")
             self._set_default_geometry()
