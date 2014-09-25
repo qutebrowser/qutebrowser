@@ -49,6 +49,7 @@ class Command:
         _not_modes: The modes the command can not be executed in.
         _count: Whether the command supports a count, or not.
         _instance: The object to bind 'self' to.
+        _scope: The scope to get _instance for in the object registry.
 
     Class attributes:
         AnnotationInfo: Named tuple for info from an annotation.
@@ -61,7 +62,7 @@ class Command:
 
     def __init__(self, name, split, hide, instance, completion, modes,
                  not_modes, needs_js, is_debug, ignore_args,
-                 handler):
+                 handler, scope):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-arguments,too-many-locals
         self.name = name
@@ -71,6 +72,7 @@ class Command:
         self.completion = completion
         self._modes = modes
         self._not_modes = not_modes
+        self._scope = scope
         self._needs_js = needs_js
         self.debug = is_debug
         self.ignore_args = ignore_args
@@ -300,7 +302,7 @@ class Command:
             args: The positional argument list. Gets modified directly.
         """
         assert param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
-        obj = objreg.get(self._instance)
+        obj = objreg.get(self._instance, scope=self._scope)
         args.append(obj)
 
     def _get_count_arg(self, param, args, kwargs):

@@ -91,7 +91,8 @@ class register:  # pylint: disable=invalid-name
     much cleaner to implement.
 
     Attributes:
-        _instance: The instance to be used as "self", as a dotted string.
+        _instance: The object from the object registry to be used as "self".
+        _scope: The scope to get _instance for.
         _name: The name (as string) or names (as list) of the command.
         _split: Whether to split the arguments.
         _hide: Whether to hide the command or not.
@@ -105,7 +106,7 @@ class register:  # pylint: disable=invalid-name
 
     def __init__(self, instance=None, name=None, split=True, hide=False,
                  completion=None, modes=None, not_modes=None, needs_js=False,
-                 debug=False, ignore_args=False):
+                 debug=False, ignore_args=False, scope='global'):
         """Save decorator arguments.
 
         Gets called on parse-time with the decorator arguments.
@@ -120,6 +121,7 @@ class register:  # pylint: disable=invalid-name
         self._split = split
         self._hide = hide
         self._instance = instance
+        self._scope = scope
         self._completion = completion
         self._modes = modes
         self._not_modes = not_modes
@@ -179,10 +181,10 @@ class register:  # pylint: disable=invalid-name
                 raise ValueError("{} is already registered!".format(name))
         cmd = command.Command(
             name=names[0], split=self._split, hide=self._hide,
-            instance=self._instance, completion=self._completion,
-            modes=self._modes, not_modes=self._not_modes,
-            needs_js=self._needs_js, is_debug=self._debug,
-            ignore_args=self._ignore_args, handler=func)
+            instance=self._instance, scope=self._scope,
+            completion=self._completion, modes=self._modes,
+            not_modes=self._not_modes, needs_js=self._needs_js,
+            is_debug=self._debug, ignore_args=self._ignore_args, handler=func)
         for name in names:
             cmd_dict[name] = cmd
         aliases += names[1:]
