@@ -102,7 +102,6 @@ class WebView(QWebView):
         objreg.register('tab-{}'.format(tab_id), self.registry, scope='meta')
         page.linkHovered.connect(self.linkHovered)
         page.mainFrame().loadStarted.connect(self.on_load_started)
-        page.change_title.connect(self.titleChanged)
         self.urlChanged.connect(self.on_url_changed)
         page.mainFrame().loadFinished.connect(self.on_load_finished)
         self.loadProgress.connect(lambda p: setattr(self, 'progress', p))

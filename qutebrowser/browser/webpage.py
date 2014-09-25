@@ -44,11 +44,9 @@ class BrowserPage(QWebPage):
 
     Signals:
         start_download: Emitted when a file should be downloaded.
-        change_title: Emitted when the title should be changed.
     """
 
     start_download = pyqtSignal('QNetworkReply*')
-    change_title = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -305,5 +303,4 @@ class BrowserPage(QWebPage):
             objreg.get('tabbed-browser').tabopen(url, True)
             return False
         else:
-            self.change_title.emit(urlstr)
             return True
