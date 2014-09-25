@@ -608,7 +608,11 @@ class Application(QApplication):
         log.destroy.debug("sys.path: {}".format(sys.path))
         log.destroy.debug("sys.argv: {}".format(sys.argv))
         log.destroy.debug("frozen: {}".format(hasattr(sys, 'frozen')))
-        if hasattr(sys, 'frozen'):
+        if os.path.basename(sys.argv[0]) == 'qutebrowser':
+            # Launched via launcher script
+            args = [sys.argv[0]]
+            cwd = None
+        elif hasattr(sys, 'frozen'):
             args = [sys.executable]
             cwd = os.path.abspath(os.path.dirname(sys.executable))
         else:
@@ -624,7 +628,10 @@ class Application(QApplication):
         log.destroy.debug("args: {}".format(args))
         log.destroy.debug("cwd: {}".format(cwd))
         # Open a new process and immediately shutdown the existing one
-        subprocess.Popen(args, cwd=cwd)
+        if cwd is None:
+            subprocess.Popen(args)
+        else:
+            subprocess.Popen(args, cwd=cwd)
         if shutdown:
             self.shutdown()
 
