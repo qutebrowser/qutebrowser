@@ -36,6 +36,13 @@ class UnsetObject:
     __slots__ = ()
 
 
+class RegistryUnavailableError(Exception):
+
+    """Exception raised when a certain registry does not exist yet."""
+
+    pass
+
+
 _UNSET = UnsetObject()
 
 
@@ -81,6 +88,11 @@ def _get_registry(scope):
     """Get the correct registry for a given scope."""
     if scope == 'global':
         return global_registry
+    elif scope == 'tab':
+        widget = get('tabbed-browser').currentWidget()
+        if widget is None:
+            raise RegistryUnavailableError(scope)
+        return widget.registry
     else:
         raise ValueError("Invalid scope '{}'!".format(scope))
 

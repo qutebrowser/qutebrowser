@@ -51,6 +51,7 @@ class WebView(QWebView):
         open_target: Where to open the next tab ("normal", "tab", "tab_bg")
         viewing_source: Whether the webview is currently displaying source
                         code.
+        registry: The ObjectRegistry associated with this tab.
         _cur_url: The current URL (accessed via cur_url property).
         _has_ssl_errors: Whether SSL errors occured during loading.
         _zoom: A NeighborList with the zoom levels.
@@ -89,6 +90,8 @@ class WebView(QWebView):
         self._cur_url = None
         self.cur_url = QUrl()
         self.progress = 0
+        self.registry = objreg.ObjectRegistry()
+        objreg.register('webview', self, registry=self.registry)
         page = webpage.BrowserPage(self)
         self.setPage(page)
         self.hintmanager = hints.HintManager(self)
