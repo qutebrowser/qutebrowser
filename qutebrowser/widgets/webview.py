@@ -98,6 +98,8 @@ class WebView(QWebView):
         hintmanager.mouse_event.connect(self.on_mouse_event)
         hintmanager.set_open_target.connect(self.set_force_open_target)
         objreg.register('hintmanager', hintmanager, registry=self.registry)
+        tab_id = next(usertypes.tab_id_gen)
+        objreg.register('tab-{}'.format(tab_id), self.registry, scope='meta')
         page.linkHovered.connect(self.linkHovered)
         page.mainFrame().loadStarted.connect(self.on_load_started)
         page.change_title.connect(self.titleChanged)
