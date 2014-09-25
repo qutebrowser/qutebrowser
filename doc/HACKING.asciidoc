@@ -295,7 +295,7 @@ mainly intended for debugging.
 
 A new object can be registered by using
 +objreg.register(_name_, _object_[, scope=_scope_])+. An object should not be
-registered twice. To update it, `update=True` has to been passed.
+registered twice. To update it, `update=True` has to be given.
 
 An object can be retrieved by using +objreg.get(_name_[, scope=_scope_])+. The
 default scope is `global`.
@@ -372,15 +372,12 @@ support a count which will be passed in the argument.
 
 If the function is a method of a class, the `@cmdutils.register` decorator
 needs to have an `instance=...` parameter which points to the (single/main)
-instance of the class. Registering commands with multiple instances is not
-supported. For an example on how to solve that problem, see
-`qutebrowser.browser.command` which dispatches commands to the currently active
-tab.
+instance of the class.
 
 The `instance` parameter is the name of an object in the object registry, which
 then gets passed as the `self` parameter to the handler. The `scope` argument
 selects which object registry (global, per-tab, etc.) to use.  See the
-<<object-registry object registry>> section for details.
+<<object-registry,object registry>> section for details.
 
 There are also other arguments to customize the way the command is registered,
 see the class documentation for `register` in `qutebrowser.commands.utils` for

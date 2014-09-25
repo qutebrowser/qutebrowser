@@ -130,12 +130,11 @@ style
   enum/namedtuple).
 - Config init and some persistent objects should be moved out of QApplication.
 - Use separate logger for config
-- Make more stuff private
-- Don't keep references to parent QObjects!
 - Use unittest.Mock and especially unittest.patch more.
 - Use decorators for on_config_changed
     - Will also make it easier to implement section-changed handlers for
       :reload
+- Check where using signals would be better than objreg.get.
 
 dwb keybindings to possibly implement
 =====================================
