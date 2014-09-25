@@ -26,6 +26,7 @@ SECTION_DESC: A dictionary with descriptions for sections.
 DATA: The config defaults, an OrderedDict of sections.
 """
 
+import sys
 import re
 import collections
 
@@ -108,6 +109,9 @@ SECTION_DESC = {
         " * Weight: `normal`, `bold`, `100`..`900`\n"
         " * Size: _number_ `px`/`pt`"),
 }
+
+
+DEFAULT_FONT_SIZE = '10pt' if sys.platform == 'darwin' else '8pt'
 
 
 DATA = collections.OrderedDict([
@@ -716,19 +720,19 @@ DATA = collections.OrderedDict([
          "Default monospace fonts."),
 
         ('completion',
-         SettingValue(typ.Font(), '8pt ${_monospace}'),
+         SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
          "Font used in the completion widget."),
 
         ('tabbar',
-         SettingValue(typ.QtFont(), '8pt ${_monospace}'),
+         SettingValue(typ.QtFont(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
          "Font used in the tabbar."),
 
         ('statusbar',
-         SettingValue(typ.Font(), '8pt ${_monospace}'),
+         SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
          "Font used in the statusbar."),
 
         ('downloads',
-         SettingValue(typ.Font(), '8pt ${_monospace}'),
+         SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
          "Font used for the downloadbar."),
 
         ('hints',
@@ -736,7 +740,7 @@ DATA = collections.OrderedDict([
          "Font used for the hints."),
 
         ('debug-console',
-         SettingValue(typ.QtFont(), '8pt ${_monospace}'),
+         SettingValue(typ.QtFont(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
          "Font used for the debugging console."),
 
         ('web-family-standard',
