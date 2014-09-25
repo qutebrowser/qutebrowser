@@ -98,7 +98,6 @@ Misc
   windows
 - Current font handling is rather broken (rejecting invalid values / setting
   multiple font families) - we should use PyPEG2 instead.
-- OS X shows focus rectangle in minimal input field.
 
 Upstream Bugs
 =============

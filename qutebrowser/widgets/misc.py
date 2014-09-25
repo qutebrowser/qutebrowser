@@ -19,7 +19,7 @@
 
 """Misc. widgets used at different places."""
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtGui import QValidator
 
@@ -38,6 +38,7 @@ class MinimalLineEditMixin:
                 background-color: transparent;
             }
         """)
+        self.setAttribute(Qt.WA_MacShowFocusRect, False)
 
     def __repr__(self):
         return '<{} "{}">'.format(self.__class__.__name__, self.text())
