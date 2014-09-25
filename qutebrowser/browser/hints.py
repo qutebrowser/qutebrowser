@@ -30,9 +30,8 @@ from PyQt5.QtWidgets import QApplication
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.browser import webelem
-from qutebrowser.commands import userscripts, cmdexc
-from qutebrowser.utils import (usertypes, log, qtutils, message, objreg,
-                               cmdutils)
+from qutebrowser.commands import userscripts, cmdexc, cmdutils
+from qutebrowser.utils import usertypes, log, qtutils, message, objreg
 
 
 ElemTuple = collections.namedtuple('ElemTuple', 'elem, label')
@@ -96,13 +95,8 @@ class HintManager(QObject):
         _context: The HintContext for the current invocation.
 
     Signals:
-        hint_strings_updated: Emitted when the possible hint strings changed.
-                              arg: A list of hint strings.
         mouse_event: Mouse event to be posted in the web view.
                      arg: A QMouseEvent
-        openurl: Open a new URL
-                 arg 0: URL to open as QUrl.
-                 arg 1: True if it should be opened in a new tab, else False.
         set_open_target: Set a new target to open the links in.
     """
 
@@ -133,9 +127,7 @@ class HintManager(QObject):
         Target.spawn: "Spawn command via hint...",
     }
 
-    hint_strings_updated = pyqtSignal(list)
     mouse_event = pyqtSignal('QMouseEvent')
-    openurl = pyqtSignal('QUrl', bool)
     set_open_target = pyqtSignal(str)
 
     def __init__(self, parent=None):
@@ -492,7 +484,8 @@ class HintManager(QObject):
         for e, string in zip(elems, strings):
             label = self._draw_label(e, string)
             self._context.elems[string] = ElemTuple(e, label)
-        self.hint_strings_updated.emit(strings)
+        keyparser = objreg.get('keyparsers')[usertypes.KeyMode.hint]
+        keyparser.update_bindings(strings)
 
     def follow_prevnext(self, frame, baseurl, prev=False, newtab=False):
         """Click a "previous"/"next" element on the page.
@@ -511,31 +504,60 @@ class HintManager(QObject):
         if url is None:
             raise cmdexc.CommandError("No {} links found!".format(
                 "prev" if prev else "forward"))
-        self.openurl.emit(url, newtab)
+        qtutils.ensure_valid(url)
+        if newtab:
+            objreg.get('tabbed-browser').tabopen(url, background=False)
+        else:
+            objreg.get('webview', scope='tab').openurl(url)
 
-    def start(self, mainframe, baseurl, group=webelem.Group.all,
-              target=Target.normal, *args):
+    @cmdutils.register(instance='hintmanager', scope='tab', name='hint')
+    def start(self, group=webelem.Group.all, target=Target.normal,
+              *args: {'nargs': '*'}):
         """Start hinting.
 
         Args:
-            mainframe: The main QWebFrame.
-            baseurl: URL of the current page.
-            group: Which group of elements to hint.
-            target: What to do with the link. See attribute docstring.
-            *args: Arguments for userscript/download
+            group: The hinting mode to use.
 
-        Emit:
-            hint_strings_updated: Emitted to update keypraser.
+                - `all`: All clickable elements.
+                - `links`: Only links.
+                - `images`: Only images.
+
+            target: What to do with the selected element.
+
+                - `normal`: Open the link in the current tab.
+                - `tab`: Open the link in a new tab.
+                - `tab-bg`: Open the link in a new background tab.
+                - `yank`: Yank the link to the clipboard.
+                - `yank-primary`: Yank the link to the primary selection.
+                - `fill`: Fill the commandline with the command given as
+                          argument.
+                - `rapid`: Open the link in a new tab and stay in hinting mode.
+                - `download`: Download the link.
+                - `userscript`: Call an userscript with `$QUTE_URL` set to the
+                                link.
+                - `spawn`: Spawn a command.
+
+            *args: Arguments for spawn/userscript/fill.
+
+                - With `spawn`: The executable and arguments to spawn.
+                                `{hint-url}` will get replaced by the selected
+                                URL.
+                - With `userscript`: The userscript to execute.
+                - With `fill`: The command to fill the statusbar with.
+                                `{hint-url}` will get replaced by the selected
+                                URL.
         """
-        self._check_args(target, *args)
+        tabbed_browser = objreg.get('tabbed-browser')
+        widget = tabbed_browser.currentWidget()
+        if widget is None:
+            raise cmdexc.CommandError("No WebView available yet!")
+        mainframe = widget.page().mainFrame()
         if mainframe is None:
-            # This should never happen since we check frame before calling
-            # start. But since we had a bug where frame is None in
-            # on_mode_left, we are extra careful here.
-            raise ValueError("start() was called with frame=None")
+            raise cmdexc.CommandError("No frame focused!")
+        self._check_args(target, *args)
         self._context = HintContext()
         self._context.target = target
-        self._context.baseurl = baseurl
+        self._context.baseurl = tabbed_browser.current_url()
         self._context.frames = webelem.get_child_frames(mainframe)
         self._context.args = args
         self._init_elements(mainframe, group)
@@ -634,6 +656,7 @@ class HintManager(QObject):
         if self._context.target != Target.rapid:
             modeman.maybe_leave(usertypes.KeyMode.hint, 'followed')
 
+    @cmdutils.register(instance='hintmanager', scope='tab', hide=True)
     def follow_hint(self):
         """Follow the currently selected hint."""
         if not self._context.to_follow:

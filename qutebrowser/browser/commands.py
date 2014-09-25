@@ -302,55 +302,6 @@ class CommandDispatcher:
         for _ in range(count):
             self._current_widget().go_forward()
 
-    @cmdutils.register(instance='command-dispatcher')
-    def hint(self, group=webelem.Group.all, target=hints.Target.normal,
-             *args: {'nargs': '*'}):
-        """Start hinting.
-
-        Args:
-            group: The hinting mode to use.
-
-                - `all`: All clickable elements.
-                - `links`: Only links.
-                - `images`: Only images.
-
-            target: What to do with the selected element.
-
-                - `normal`: Open the link in the current tab.
-                - `tab`: Open the link in a new tab.
-                - `tab-bg`: Open the link in a new background tab.
-                - `yank`: Yank the link to the clipboard.
-                - `yank-primary`: Yank the link to the primary selection.
-                - `fill`: Fill the commandline with the command given as
-                          argument.
-                - `rapid`: Open the link in a new tab and stay in hinting mode.
-                - `download`: Download the link.
-                - `userscript`: Call an userscript with `$QUTE_URL` set to the
-                                link.
-                - `spawn`: Spawn a command.
-
-            *args: Arguments for spawn/userscript/fill.
-
-                - With `spawn`: The executable and arguments to spawn.
-                                `{hint-url}` will get replaced by the selected
-                                URL.
-                - With `userscript`: The userscript to execute.
-                - With `fill`: The command to fill the statusbar with.
-                                `{hint-url}` will get replaced by the selected
-                                URL.
-        """
-        widget = self._current_widget()
-        frame = widget.page().mainFrame()
-        if frame is None:
-            raise cmdexc.CommandError("No frame focused!")
-        widget.hintmanager.start(frame, self._current_url(), group, target,
-                                 *args)
-
-    @cmdutils.register(instance='command-dispatcher', hide=True)
-    def follow_hint(self):
-        """Follow the currently selected hint."""
-        self._current_widget().hintmanager.follow_hint()
-
     def _navigate_incdec(self, url, tab, incdec):
         """Helper method for :navigate when `where' is increment/decrement.
 
@@ -424,12 +375,11 @@ class CommandDispatcher:
         url = self._current_url()
         if frame is None:
             raise cmdexc.CommandError("No frame focused!")
+        hintmanager = objreg.get('hintmanager', scope='tab')
         if where == 'prev':
-            widget.hintmanager.follow_prevnext(frame, url, prev=True,
-                                               newtab=tab)
+            hintmanager.follow_prevnext(frame, url, prev=True, newtab=tab)
         elif where == 'next':
-            widget.hintmanager.follow_prevnext(frame, url, prev=False,
-                                               newtab=tab)
+            hintmanager.follow_prevnext(frame, url, prev=False, newtab=tab)
         elif where == 'up':
             self._navigate_up(url, tab)
         elif where in ('decrement', 'increment'):

@@ -67,8 +67,6 @@ class TabbedBrowser(tabwidget.TabWidget):
                                  arg 1: x-position in %.
                                  arg 2: y-position in %.
         cur_load_status_changed: Loading status of current tab changed.
-        hint_strings_updated: Hint strings were updated.
-                              arg: A list of hint strings.
         quit: The last tab was closed, quit application.
         resized: Emitted when the browser window has resized, so the completion
                  widget can adjust its size to it.
@@ -89,7 +87,6 @@ class TabbedBrowser(tabwidget.TabWidget):
     cur_scroll_perc_changed = pyqtSignal(int, int)
     cur_load_status_changed = pyqtSignal(str)
     start_download = pyqtSignal('QNetworkReply*')
-    hint_strings_updated = pyqtSignal(list)
     quit = pyqtSignal()
     resized = pyqtSignal('QRect')
     got_cmd = pyqtSignal(str)
@@ -151,9 +148,6 @@ class TabbedBrowser(tabwidget.TabWidget):
             self._filter.create(self.cur_load_status_changed, tab))
         tab.url_text_changed.connect(
             functools.partial(self.on_url_text_changed, tab))
-        # hintmanager
-        tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)
-        tab.hintmanager.openurl.connect(self.openurl)
         self.cur_load_started.connect(self.on_cur_load_started)
         # downloads
         page.start_download.connect(self.start_download)
@@ -369,21 +363,6 @@ class TabbedBrowser(tabwidget.TabWidget):
                                  immediately=True)
             # We first want QWebPage to refresh.
             QTimer.singleShot(0, check_scroll_pos)
-
-    @pyqtSlot(str)
-    def handle_hint_key(self, keystr):
-        """Handle a new hint keypress."""
-        self.currentWidget().hintmanager.handle_partial_key(keystr)
-
-    @pyqtSlot(str)
-    def fire_hint(self, keystr):
-        """Fire a completed hint."""
-        self.currentWidget().hintmanager.fire(keystr)
-
-    @pyqtSlot(str)
-    def filter_hints(self, filterstr):
-        """Filter displayed hints."""
-        self.currentWidget().hintmanager.filter_hints(filterstr)
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):

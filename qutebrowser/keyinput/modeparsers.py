@@ -23,12 +23,12 @@ Module attributes:
     STARTCHARS: Possible chars for starting a commandline input.
 """
 
-from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 
 from qutebrowser.utils import message
 from qutebrowser.config import config
 from qutebrowser.keyinput import keyparser
-from qutebrowser.utils import usertypes, log
+from qutebrowser.utils import usertypes, log, objreg
 
 
 STARTCHARS = ":/?"
@@ -80,25 +80,17 @@ class HintKeyParser(keyparser.CommandKeyParser):
 
     """KeyChainParser for hints.
 
-    Signals:
-        fire_hint: When a hint keybinding was completed.
-                   Arg: the keystring/hint string pressed.
-        filter_hints: When the filter text changed.
-                      Arg: the text to filter hints with.
-
     Attributes:
         _filtertext: The text to filter with.
         _last_press: The nature of the last keypress, a LastPress member.
     """
-
-    fire_hint = pyqtSignal(str)
-    filter_hints = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent, supports_count=False, supports_chains=True)
         self._filtertext = ''
         self._last_press = LastPress.none
         self.read_config('hint')
+        self.keystring_updated.connect(self.on_keystring_updated)
 
     def _handle_special_key(self, e):
         """Override _handle_special_key to handle string filtering.
@@ -112,11 +104,11 @@ class HintKeyParser(keyparser.CommandKeyParser):
             True if event has been handled, False otherwise.
 
         Emit:
-            filter_hints: Emitted when filter string has changed.
             keystring_updated: Emitted when keystring has been changed.
         """
         log.keyboard.debug("Got special key 0x{:x} text {}".format(
             e.key(), e.text()))
+        hintmanager = objreg.get('hintmanager', scope='tab')
         if e.key() == Qt.Key_Backspace:
             log.keyboard.debug("Got backspace, mode {}, filtertext '{}', "
                                "keystring '{}'".format(self._last_press,
@@ -124,7 +116,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
                                                        self._keystring))
             if self._last_press == LastPress.filtertext and self._filtertext:
                 self._filtertext = self._filtertext[:-1]
-                self.filter_hints.emit(self._filtertext)
+                hintmanager.filter_hints(self._filtertext)
                 return True
             elif self._last_press == LastPress.keystring and self._keystring:
                 self._keystring = self._keystring[:-1]
@@ -138,7 +130,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
             return super()._handle_special_key(e)
         else:
             self._filtertext += e.text()
-            self.filter_hints.emit(self._filtertext)
+            hintmanager.filter_hints(self._filtertext)
             self._last_press = LastPress.filtertext
             return True
 
@@ -167,24 +159,25 @@ class HintKeyParser(keyparser.CommandKeyParser):
             return self._handle_special_key(e)
 
     def execute(self, cmdstr, keytype, count=None):
-        """Handle a completed keychain.
-
-        Emit:
-            fire_hint: Emitted if keytype is chain
-        """
+        """Handle a completed keychain."""
         if not isinstance(keytype, self.Type):
             raise TypeError("Type {} is no Type member!".format(keytype))
         if keytype == self.Type.chain:
-            self.fire_hint.emit(cmdstr)
+            objreg.get('hintmanager', scope='tab').fire(cmdstr)
         else:
             # execute as command
             super().execute(cmdstr, keytype, count)
 
-    def on_hint_strings_updated(self, strings):
-        """Handler for HintManager's hint_strings_updated.
+    def update_bindings(self, strings):
+        """Update bindings when the hint strings changed.
 
         Args:
             strings: A list of hint strings.
         """
         self.bindings = {s: s for s in strings}
         self._filtertext = ''
+
+    @pyqtSlot(str)
+    def on_keystring_updated(self, keystr):
+        """Update hintmanager when the keystring was updated."""
+        objreg.get('hintmanager', scope='tab').handle_partial_key(keystr)

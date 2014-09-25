@@ -404,13 +404,6 @@ class Application(QApplication):
             status.keystring.setText)
         tabs.got_cmd.connect(self._commandrunner.run_safely)
 
-        # hints
-        kp[utypes.KeyMode.hint].fire_hint.connect(tabs.fire_hint)
-        kp[utypes.KeyMode.hint].filter_hints.connect(tabs.filter_hints)
-        kp[utypes.KeyMode.hint].keystring_updated.connect(tabs.handle_hint_key)
-        tabs.hint_strings_updated.connect(
-            kp[utypes.KeyMode.hint].on_hint_strings_updated)
-
         # messages
         message_bridge.s_error.connect(status.disp_error)
         message_bridge.s_info.connect(status.disp_temp_text)
