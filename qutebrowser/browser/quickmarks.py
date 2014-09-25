@@ -78,10 +78,14 @@ def quickmark_add(url, name):
         url: The url to add as quickmark.
         name: The name for the new quickmark.
     """
+    # We don't raise cmdexc.CommandError here as this can be called async via
+    # prompt_save.
     if not name:
-        raise cmdexc.CommandError("Can't set mark with empty name!")
+        message.error("Can't set mark with empty name!")
+        return
     if not url:
-        raise cmdexc.CommandError("Can't set mark with empty URL!")
+        message.error("Can't set mark with empty URL!")
+        return
 
     def set_mark():
         """Really set the quickmark."""
