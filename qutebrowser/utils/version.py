@@ -174,7 +174,9 @@ def _os_info():
     elif sys.platform == 'win32':
         osver = ', '.join(platform.win32_ver())
     elif sys.platform == 'darwin':
-        osver = ', '.join(platform.mac_ver())
+        mac_ver = platform.mac_ver()
+        versioninfo = '.'.join(mac_ver.versioninfo)
+        osver = ', '.join(mac_ver.release, versioninfo, mac_ver.machine)
     else:
         osver = '?'
     lines.append('OS Version: {}'.format(osver))
