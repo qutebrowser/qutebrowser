@@ -131,12 +131,15 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         return text[len(self._curprompt()):]
 
     def keyPressEvent(self, e):
-        """Override keyPressEvent to handle up/down keypresses."""
+        """Override keyPressEvent to handle special keypresses."""
         if e.key() == Qt.Key_Up:
             self.history_prev()
             e.accept()
         elif e.key() == Qt.Key_Down:
             self.history_next()
+            e.accept()
+        elif e.modifiers() & Qt.ControlModifier and e.key() == Qt.Key_C:
+            self.setText('')
             e.accept()
         else:
             super().keyPressEvent(e)
