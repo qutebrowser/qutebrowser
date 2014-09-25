@@ -37,6 +37,11 @@ class ModeLockedError(Exception):
     """Exception raised when the mode is currently locked."""
 
 
+class NotInModeError(Exception):
+
+    """Exception raised when we want to leave a mode we're not in."""
+
+
 def enter(mode, reason=None):
     """Enter the mode 'mode'."""
     objreg.get('mode-manager').enter(mode, reason)
@@ -59,9 +64,9 @@ def maybe_leave(mode, reason=None):
     """Convenience method to leave 'mode' without exceptions."""
     try:
         objreg.get('mode-manager').leave(mode, reason)
-    except ValueError as e:
+    except NotInModeError as e:
         # This is rather likely to happen, so we only log to debug log.
-        log.modes.debug(e)
+        log.modes.debug("{} (leave reason: {})".format(e, reason))
 
 
 class ModeManager(QObject):
@@ -238,7 +243,7 @@ class ModeManager(QObject):
         try:
             self._mode_stack.remove(mode)
         except ValueError:
-            raise ValueError("Mode {} not on mode stack!".format(mode))
+            raise NotInModeError("Mode {} not on mode stack!".format(mode))
         self.locked = False
         log.modes.debug("Leaving mode {}{}, new mode stack {}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason),
