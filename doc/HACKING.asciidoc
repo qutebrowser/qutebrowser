@@ -276,6 +276,38 @@ range-checked using `qutebrowser.utils.check_overflow`, or passing a value
 which is too large should be avoided by other means (e.g. by setting a maximum
 value for a config object).
 
+[[object-registry]]
+The object registry
+~~~~~~~~~~~~~~~~~~~
+
+The object registry in `qutebrowser.utils.objreg` is a collection of
+dictionaries which map object names to the actual long-living objects.
+
+There are currently these object registries, also called 'scopes':
+
+* The `global` scope, with objects which are used globally (`config`,
+`cookie-jar`, etc.)
+* The `tab` scope with objects which are per-tab (`hintmanager`, `webview`,
+etc.). Passing this scope to `objreg.get()` always selects the object in the
+currently focused tab.
+* The `meta` scope which is an object registry of all other object registries,
+mainly intended for debugging.
+
+A new object can be registered by using
++objreg.register(_name_, _object_[, scope=_scope_])+. An object should not be
+registered twice. To update it, `update=True` has to been passed.
+
+An object can be retrieved by using +objreg.get(_name_[, scope=_scope_])+. The
+default scope is `global`.
+
+All objects can be printed by starting with the `--debug` flag and using the
+`:debug-all-objects` command.
+
+The registry is mainly used for <<commands,command handlers>> but also can be
+useful in places where using Qt's
+http://qt-project.org/doc/qt-5/signalsandslots.html[signals and slots]
+mechanism would be difficult.
+
 Logging
 ~~~~~~~
 
@@ -313,6 +345,7 @@ The following logging levels are available for every logger:
 |debug     |Verbose debugging informations.
 |=======================================================================
 
+[[commands]]
 Commands
 ~~~~~~~~
 
@@ -344,11 +377,10 @@ supported. For an example on how to solve that problem, see
 `qutebrowser.browser.command` which dispatches commands to the currently active
 tab.
 
-The `instance` parameter is a dotted attribute-path, leading from the main
-Application instance to your object instance.
-For example, if the Application object has an attribute `status`, which then
-has an attribute `prompt` and commands are registered there, the parameter
-would be `status.prompt`.
+The `instance` parameter is the name of an object in the object registry, which
+then gets passed as the `self` parameter to the handler. The `scope` argument
+selects which object registry (global, per-tab, etc.) to use.  See the
+<<object-registry object registry>> section for details.
 
 There are also other arguments to customize the way the command is registered,
 see the class documentation for `register` in `qutebrowser.commands.utils` for
