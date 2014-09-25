@@ -93,6 +93,8 @@ def _get_registry(scope):
         if widget is None:
             raise RegistryUnavailableError(scope)
         return widget.registry
+    elif scope == 'meta':
+        return meta_registry
     else:
         raise ValueError("Invalid scope '{}'!".format(scope))
 
