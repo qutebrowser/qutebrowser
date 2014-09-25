@@ -91,17 +91,13 @@ Misc
 ----
 
 - All kind of FIXMEs
-- On doodle, when modifying something on http://doodle.com/create and clicking
-  a link to leave the page, with some random clicking it's somehow possible to
-  get out of yesno mode. (probably fixed?)
+- "Are you sure you want to stay" links show suboptimal text.
 - Config errors on start shouldn't be hard errors
   (e.g. when an user-stylesheet file is deleted)
 - Clicking links/email in crash dialog should open browser/mailclient under
   windows
 - Current font handling is rather broken (rejecting invalid values / setting
   multiple font families) - we should use PyPEG2 instead.
-- On first start: KeyError because geometry couldn't be read logged as WARNING.
-- tabs don't redraw properly when changing font
 
 Upstream Bugs
 =============
