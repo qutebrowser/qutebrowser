@@ -351,7 +351,7 @@ class HintManager(QObject):
                           immediately=True)
             return
         qtutils.ensure_valid(url)
-        cmdreg.get('download-manager').get(url, elem.webFrame().page())
+        objreg.get('download-manager').get(url, elem.webFrame().page())
 
     def _call_userscript(self, url):
         """Call an userscript from a hint."""

@@ -99,7 +99,6 @@ def _get_registry(scope):
         raise ValueError("Invalid scope '{}'!".format(scope))
 
 
-
 def get(name, default=_UNSET, scope='global'):
     """Helper function to get an object.
 

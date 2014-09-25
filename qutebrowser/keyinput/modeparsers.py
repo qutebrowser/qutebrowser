@@ -23,7 +23,7 @@ Module attributes:
     STARTCHARS: Possible chars for starting a commandline input.
 """
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
+from PyQt5.QtCore import pyqtSlot, Qt
 
 from qutebrowser.utils import message
 from qutebrowser.config import config

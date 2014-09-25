@@ -36,7 +36,7 @@ import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils
 from qutebrowser.config import config
-from qutebrowser.browser import hints, quickmarks, webelem
+from qutebrowser.browser import quickmarks, webelem
 from qutebrowser.utils import (message, editor, usertypes, log, qtutils,
                                urlutils, objreg)
 
