@@ -63,6 +63,8 @@ Improvements / minor features
       dir.
 - check what exceptions open() calls could possibly throw
 - Create ~/.config etc. if they don't exist
+- Add CACHEDIR.TAG to cache
+  http://www.brynosaurus.com/cachedir/spec.html
 - Improve -m error message when we're inside the qutebrowser dir (maybe use a
   Tk gui?)
 - Sane default for editor (maybe via QDesktopServices or so?)
