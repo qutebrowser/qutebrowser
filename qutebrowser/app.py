@@ -55,7 +55,6 @@ class Application(QApplication):
     Attributes:
         _args: ArgumentParser instance.
         _commandrunner: The main CommandRunner instance.
-        _keyparsers: A mapping from modes to keyparsers.
         _shutting_down: True if we're currently shutting down.
         _quit_status: The current quitting status.
         _crashdlg: The crash dialog currently open.
@@ -83,7 +82,6 @@ class Application(QApplication):
         }
         objreg.register('app', self)
         self._shutting_down = False
-        self._keyparsers = None
         self._crashdlg = None
         self._crashlogfile = None
 
@@ -209,7 +207,7 @@ class Application(QApplication):
 
     def _init_modes(self):
         """Inizialize the mode manager and the keyparsers."""
-        self._keyparsers = {
+        keyparsers = {
             utypes.KeyMode.normal:
                 modeparsers.NormalKeyParser(self),
             utypes.KeyMode.hint:
@@ -225,27 +223,28 @@ class Application(QApplication):
             utypes.KeyMode.yesno:
                 modeparsers.PromptKeyParser(self),
         }
+        objreg.register('keyparsers', keyparsers)
         mode_manager = modeman.ModeManager(self)
         objreg.register('mode-manager', mode_manager)
         mode_manager.register(utypes.KeyMode.normal,
-                              self._keyparsers[utypes.KeyMode.normal].handle)
+                              keyparsers[utypes.KeyMode.normal].handle)
         mode_manager.register(utypes.KeyMode.hint,
-                              self._keyparsers[utypes.KeyMode.hint].handle)
+                              keyparsers[utypes.KeyMode.hint].handle)
         mode_manager.register(utypes.KeyMode.insert,
-                              self._keyparsers[utypes.KeyMode.insert].handle,
+                              keyparsers[utypes.KeyMode.insert].handle,
                               passthrough=True)
         mode_manager.register(
             utypes.KeyMode.passthrough,
-            self._keyparsers[utypes.KeyMode.passthrough].handle,
+            keyparsers[utypes.KeyMode.passthrough].handle,
             passthrough=True)
         mode_manager.register(utypes.KeyMode.command,
-                              self._keyparsers[utypes.KeyMode.command].handle,
+                              keyparsers[utypes.KeyMode.command].handle,
                               passthrough=True)
         mode_manager.register(utypes.KeyMode.prompt,
-                              self._keyparsers[utypes.KeyMode.prompt].handle,
+                              keyparsers[utypes.KeyMode.prompt].handle,
                               passthrough=True)
         mode_manager.register(utypes.KeyMode.yesno,
-                              self._keyparsers[utypes.KeyMode.yesno].handle)
+                              keyparsers[utypes.KeyMode.yesno].handle)
 
     def _init_misc(self):
         """Initialize misc things."""
@@ -369,7 +368,7 @@ class Application(QApplication):
         """Connect all signals to their slots."""
         # pylint: disable=too-many-statements, too-many-locals
         # syntactic sugar
-        kp = self._keyparsers
+        kp = objreg.get('keyparsers')
         main_window = objreg.get('main-window')
         status = main_window.status
         completion = objreg.get('completion')
