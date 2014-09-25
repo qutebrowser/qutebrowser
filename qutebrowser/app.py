@@ -729,7 +729,8 @@ class Application(QApplication):
             return
         self._shutting_down = True
         log.destroy.debug("Shutting down with status {}...".format(status))
-        if objreg.get('prompter').shutdown():
+        prompter = objreg.get('prompter', None)
+        if prompter is not None and prompter.shutdown():
             # If shutdown was called while we were asking a question, we're in
             # a still sub-eventloop (which gets quitted now) and not in the
             # main one.
