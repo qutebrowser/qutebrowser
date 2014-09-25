@@ -28,11 +28,10 @@ import functools
 
 from PyQt5.QtCore import pyqtSlot, Qt, QSize, QRect, QPoint, QTimer
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
-                             QStyle, QStylePainter, QStyleOptionTab,
-                             QApplication)
+                             QStyle, QStylePainter, QStyleOptionTab)
 from PyQt5.QtGui import QIcon, QPalette, QColor
 
-from qutebrowser.utils import qtutils
+from qutebrowser.utils import qtutils, objreg
 from qutebrowser.config import config
 
 
@@ -43,7 +42,7 @@ class TabWidget(QTabWidget):
 
     """The tabwidget used for TabbedBrowser."""
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super().__init__(parent)
         bar = TabBar()
         self.setTabBar(bar)
@@ -210,7 +209,7 @@ class TabBar(QTabBar):
             confwidth = str(config.get('tabs', 'width'))
             if confwidth.endswith('%'):
                 perc = int(confwidth.rstrip('%'))
-                width = QApplication.instance().mainwindow.width() * perc / 100
+                width = objreg.get('main-window').width() * perc / 100
             else:
                 width = int(confwidth)
             size = QSize(max(minimum_size.width(), width), height)

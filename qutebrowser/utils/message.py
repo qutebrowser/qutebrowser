@@ -19,14 +19,9 @@
 
 """Message singleton so we don't have to define unneeded signals."""
 
-from PyQt5.QtCore import pyqtSignal, QCoreApplication, QObject, QTimer
+from PyQt5.QtCore import pyqtSignal, QObject, QTimer
 
-from qutebrowser.utils import usertypes, log
-
-
-def instance():
-    """Get the global messagebridge instance."""
-    return QCoreApplication.instance().messagebridge
+from qutebrowser.utils import usertypes, log, objreg
 
 
 def error(message, immediately=False):
@@ -35,7 +30,7 @@ def error(message, immediately=False):
     Args:
         See MessageBridge.error.
     """
-    instance().error(message, immediately)
+    objreg.get('message-bridge').error(message, immediately)
 
 
 def info(message, immediately=True):
@@ -44,12 +39,12 @@ def info(message, immediately=True):
     Args:
         See MessageBridge.info.
     """
-    instance().info(message, immediately)
+    objreg.get('message-bridge').info(message, immediately)
 
 
 def set_cmd_text(txt):
     """Convienience function to Set the statusbar command line to a text."""
-    instance().set_cmd_text(txt)
+    objreg.get('message-bridge').set_cmd_text(txt)
 
 
 def ask(message, mode, default=None):
@@ -67,7 +62,7 @@ def ask(message, mode, default=None):
     q.text = message
     q.mode = mode
     q.default = default
-    instance().ask(q, blocking=True)
+    objreg.get('message-bridge').ask(q, blocking=True)
     q.deleteLater()
     return q.answer
 
@@ -77,7 +72,7 @@ def alert(message):
     q = usertypes.Question()
     q.text = message
     q.mode = usertypes.PromptMode.alert
-    instance().ask(q, blocking=True)
+    objreg.get('message-bridge').ask(q, blocking=True)
     q.deleteLater()
 
 
@@ -92,7 +87,7 @@ def ask_async(message, mode, handler, default=None):
     """
     if not isinstance(mode, usertypes.PromptMode):
         raise TypeError("Mode {} is no PromptMode member!".format(mode))
-    bridge = instance()
+    bridge = objreg.get('message-bridge')
     q = usertypes.Question(bridge)
     q.text = message
     q.mode = mode
@@ -111,7 +106,7 @@ def confirm_async(message, yes_action, no_action=None, default=None):
         no_action: Callable to be called when the user answered no.
         default: True/False to set a default value, or None.
     """
-    bridge = instance()
+    bridge = objreg.get('message-bridge')
     q = usertypes.Question(bridge)
     q.text = message
     q.mode = usertypes.PromptMode.yesno

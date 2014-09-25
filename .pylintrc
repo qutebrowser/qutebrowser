@@ -53,4 +53,4 @@ defining-attr-methods=__init__,__new__,setUp
 max-args=10
 
 [TYPECHECK]
-ignored-classes=WebElementWrapper,AnsiCodes
+ignored-classes=WebElementWrapper,AnsiCodes,UnsetObject

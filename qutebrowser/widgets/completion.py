@@ -29,7 +29,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import config, style
 from qutebrowser.widgets import completiondelegate
-from qutebrowser.utils import completer, usertypes, qtutils
+from qutebrowser.utils import completer, usertypes, qtutils, objreg
 
 
 class CompletionView(QTreeView):
@@ -45,7 +45,6 @@ class CompletionView(QTreeView):
         COLUMN_WIDTHS: A list of column widths, in percent.
 
     Attributes:
-        completer: The Completer instance to use.
         enabled: Whether showing the CompletionView is enabled.
         _height: The height to use for the CompletionView.
         _height_perc: Either None or a percentage if height should be relative.
@@ -92,7 +91,9 @@ class CompletionView(QTreeView):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.completer = completer.Completer(self)
+        objreg.register('completion', self)
+        completer_obj = completer.Completer()
+        objreg.register('completer', completer_obj)
         self.enabled = config.get('completion', 'show')
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
@@ -210,13 +211,13 @@ class CompletionView(QTreeView):
             selmod.clearSelection()
             selmod.clearCurrentIndex()
 
-    @cmdutils.register(instance='mainwindow.completion', hide=True,
+    @cmdutils.register(instance='completion', hide=True,
                        modes=[usertypes.KeyMode.command])
     def completion_item_prev(self):
         """Select the previous completion item."""
         self._next_prev_item(prev=True)
 
-    @cmdutils.register(instance='mainwindow.completion', hide=True,
+    @cmdutils.register(instance='completion', hide=True,
                        modes=[usertypes.KeyMode.command])
     def completion_item_next(self):
         """Select the next completion item."""
@@ -225,7 +226,7 @@ class CompletionView(QTreeView):
     def selectionChanged(self, selected, deselected):
         """Extend selectionChanged to call completers selection_changed."""
         super().selectionChanged(selected, deselected)
-        self.completer.selection_changed(selected, deselected)
+        objreg.get('completer').selection_changed(selected, deselected)
 
     def resizeEvent(self, e):
         """Extend resizeEvent to adjust column size."""

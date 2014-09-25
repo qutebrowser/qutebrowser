@@ -35,6 +35,7 @@ class LineConfigParser:
         data: A list of lines.
         _configdir: The directory to read the config from.
         _configfile: The config file path.
+        _fname: Filename of the config.
         _binary: Whether to open the file in binary mode.
     """
 
@@ -49,6 +50,7 @@ class LineConfigParser:
         """
         self._configdir = configdir
         self._configfile = os.path.join(self._configdir, fname)
+        self._fname = fname
         self._limit = limit
         self._binary = binary
         if not os.path.isfile(self._configfile):
@@ -56,6 +58,11 @@ class LineConfigParser:
         else:
             log.init.debug("Reading config from {}".format(self._configfile))
             self.read(self._configfile)
+
+    def __repr__(self):
+        return '{}("{}", "{}", limit={}, binary={})'.format(
+            self.__class__.__name__, self._configdir, self._fname, self._limit,
+            self._binary)
 
     def __iter__(self):
         """Iterate over the set data."""

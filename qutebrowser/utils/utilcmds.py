@@ -25,9 +25,9 @@ import functools
 
 from PyQt5.QtCore import QCoreApplication
 
-from qutebrowser.utils import usertypes, log
+from qutebrowser.utils import usertypes, log, objreg
 from qutebrowser.commands import runners, cmdexc, cmdutils
-from qutebrowser.config import config, style
+from qutebrowser.config import style
 
 
 _timers = []
@@ -87,13 +87,6 @@ def debug_crash(typ: ('exception', 'segfault')='exception'):
 
 
 @cmdutils.register(debug=True)
-def debug_all_widgets():
-    """Print a list of all widgets to debug log."""
-    s = QCoreApplication.instance().get_all_widgets()
-    log.misc.debug(s)
-
-
-@cmdutils.register(debug=True)
 def debug_all_objects():
     """Print a list of  all objects to the debug log."""
     s = QCoreApplication.instance().get_all_objects()
@@ -103,7 +96,13 @@ def debug_all_objects():
 @cmdutils.register(debug=True)
 def debug_cache_stats():
     """Print LRU cache stats."""
-    config_info = config.instance().get.cache_info()
+    config_info = objreg.get('config').get.cache_info()
     style_info = style.get_stylesheet.cache_info()
     log.misc.debug('config: {}'.format(config_info))
     log.misc.debug('style: {}'.format(style_info))
+
+
+@cmdutils.register(debug=True)
+def debug_console():
+    """Show the debugging console."""
+    objreg.get('debug-console').show()

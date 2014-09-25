@@ -19,12 +19,12 @@
 
 """Module containing command managers (SearchRunner and CommandRunner)."""
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QCoreApplication, QUrl
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QUrl
 from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, log, utils
+from qutebrowser.utils import message, log, utils, objreg
 
 
 def replace_variables(arglist):
@@ -32,8 +32,7 @@ def replace_variables(arglist):
     args = []
     for arg in arglist:
         if arg == '{url}':
-            app = QCoreApplication.instance()
-            url = app.mainwindow.tabs.current_url().toString(
+            url = objreg.get('tabbed-browser').current_url().toString(
                 QUrl.FullyEncoded | QUrl.RemovePassword)
             args.append(url)
         else:
@@ -115,7 +114,7 @@ class SearchRunner(QObject):
         """
         self._search(text, rev=True)
 
-    @cmdutils.register(instance='searchrunner', hide=True)
+    @cmdutils.register(instance='search-runner', hide=True)
     def search_next(self, count=1):
         """Continue the search to the ([count]th) next term.
 
@@ -129,7 +128,7 @@ class SearchRunner(QObject):
             for _ in range(count):
                 self.do_search.emit(self._text, self._flags)
 
-    @cmdutils.register(instance='searchrunner', hide=True)
+    @cmdutils.register(instance='search-runner', hide=True)
     def search_prev(self, count=1):
         """Continue the search to the ([count]th) previous term.
 

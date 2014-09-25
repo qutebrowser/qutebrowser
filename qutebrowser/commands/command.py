@@ -22,11 +22,11 @@
 import inspect
 import collections
 
-from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.commands import cmdexc, argparser
-from qutebrowser.utils import log, utils, message, debug, usertypes, docutils
+from qutebrowser.utils import (log, utils, message, debug, usertypes, docutils,
+                               objreg)
 
 
 class Command:
@@ -37,17 +37,19 @@ class Command:
         name: The main name of the command.
         split: Whether to split the arguments.
         hide: Whether to hide the arguments or not.
-        count: Whether the command supports a count, or not.
         desc: The description of the command.
-        instance: How to get to the "self" argument of the handler.
-                  A dotted string as viewed from app.py, or None.
         handler: The handler function to call.
         completion: Completions to use for arguments, as a list of strings.
-        needs_js: Whether the command needs javascript enabled
         debug: Whether this is a debugging command (only shown with --debug).
         parser: The ArgumentParser to use to parse this command.
-        type_conv: A mapping of conversion functions for arguments.
-        name_conv: A mapping of argument names to parameter names.
+        _type_conv: A mapping of conversion functions for arguments.
+        _name_conv: A mapping of argument names to parameter names.
+        _needs_js: Whether the command needs javascript enabled
+        _modes: The modes the command can be executed in.
+        _not_modes: The modes the command can not be executed in.
+        _count: Whether the command supports a count, or not.
+        _instance: The object to bind 'self' to.
+        _scope: The scope to get _instance for in the object registry.
 
     Class attributes:
         AnnotationInfo: Named tuple for info from an annotation.
@@ -60,17 +62,18 @@ class Command:
 
     def __init__(self, name, split, hide, instance, completion, modes,
                  not_modes, needs_js, is_debug, ignore_args,
-                 handler):
+                 handler, scope):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-arguments,too-many-locals
         self.name = name
         self.split = split
         self.hide = hide
-        self.instance = instance
+        self._instance = instance
         self.completion = completion
-        self.modes = modes
-        self.not_modes = not_modes
-        self.needs_js = needs_js
+        self._modes = modes
+        self._not_modes = not_modes
+        self._scope = scope
+        self._needs_js = needs_js
         self.debug = is_debug
         self.ignore_args = ignore_args
         self.handler = handler
@@ -84,13 +87,13 @@ class Command:
         self._check_func()
         self.opt_args = collections.OrderedDict()
         self.namespace = None
-        self.count = None
+        self._count = None
         self.pos_args = []
         has_count, desc, type_conv, name_conv = self._inspect_func()
         self.has_count = has_count
         self.desc = desc
-        self.type_conv = type_conv
-        self.name_conv = name_conv
+        self._type_conv = type_conv
+        self._name_conv = name_conv
 
     def _check_prerequisites(self):
         """Check if the command is permitted to run currently.
@@ -98,20 +101,18 @@ class Command:
         Raise:
             PrerequisitesError if the command can't be called currently.
         """
-        # We don't use modeman.instance() here to avoid a circular import
-        # of qutebrowser.keyinput.modeman.
-        curmode = QCoreApplication.instance().modeman.mode()
-        if self.modes is not None and curmode not in self.modes:
-            mode_names = '/'.join(mode.name for mode in self.modes)
+        curmode = objreg.get('mode-manager').mode()
+        if self._modes is not None and curmode not in self._modes:
+            mode_names = '/'.join(mode.name for mode in self._modes)
             raise cmdexc.PrerequisitesError(
                 "{}: This command is only allowed in {} mode.".format(
                     self.name, mode_names))
-        elif self.not_modes is not None and curmode in self.not_modes:
-            mode_names = '/'.join(mode.name for mode in self.not_modes)
+        elif self._not_modes is not None and curmode in self._not_modes:
+            mode_names = '/'.join(mode.name for mode in self._not_modes)
             raise cmdexc.PrerequisitesError(
                 "{}: This command is not allowed in {} mode.".format(
                     self.name, mode_names))
-        if self.needs_js and not QWebSettings.globalSettings().testAttribute(
+        if self._needs_js and not QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
             raise cmdexc.PrerequisitesError(
                 "{}: This command needs javascript enabled.".format(self.name))
@@ -119,10 +120,10 @@ class Command:
     def _check_func(self):
         """Make sure the function parameters don't violate any rules."""
         signature = inspect.signature(self.handler)
-        if 'self' in signature.parameters and self.instance is None:
+        if 'self' in signature.parameters and self._instance is None:
             raise TypeError("{} is a class method, but instance was not "
                             "given!".format(self.name[0]))
-        elif 'self' not in signature.parameters and self.instance is not None:
+        elif 'self' not in signature.parameters and self._instance is not None:
             raise TypeError("{} is not a class method, but instance was "
                             "given!".format(self.name[0]))
         elif inspect.getfullargspec(self.handler).varkw is not None:
@@ -301,11 +302,7 @@ class Command:
             args: The positional argument list. Gets modified directly.
         """
         assert param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
-        app = QCoreApplication.instance()
-        if self.instance == '':
-            obj = app
-        else:
-            obj = utils.dotted_getattr(app, self.instance)
+        obj = objreg.get(self._instance, scope=self._scope)
         args.append(obj)
 
     def _get_count_arg(self, param, args, kwargs):
@@ -320,27 +317,27 @@ class Command:
             raise TypeError("{}: count argument given with a command which "
                             "does not support count!".format(self.name))
         if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
-            if self.count is not None:
-                args.append(self.count)
+            if self._count is not None:
+                args.append(self._count)
             else:
                 args.append(param.default)
         elif param.kind == inspect.Parameter.KEYWORD_ONLY:
-            if self.count is not None:
-                kwargs['count'] = self.count
+            if self._count is not None:
+                kwargs['count'] = self._count
         else:
             raise TypeError("{}: invalid parameter type {} for argument "
                             "'count'!".format(self.name, param.kind))
 
     def _get_param_name_and_value(self, param):
         """Get the converted name and value for an inspect.Parameter."""
-        name = self.name_conv.get(param.name, param.name)
+        name = self._name_conv.get(param.name, param.name)
         value = getattr(self.namespace, name)
-        if param.name in self.type_conv:
+        if param.name in self._type_conv:
             # We convert enum types after getting the values from
             # argparse, because argparse's choices argument is
             # processed after type conversation, which is not what we
             # want.
-            value = self.type_conv[param.name](value)
+            value = self._type_conv[param.name](value)
         return name, value
 
     def _get_call_args(self):
@@ -355,13 +352,13 @@ class Command:
         signature = inspect.signature(self.handler)
 
         if self.ignore_args:
-            if self.instance is not None:
+            if self._instance is not None:
                 param = list(signature.parameters.values())[0]
                 self._get_self_arg(param, args)
             return args, kwargs
 
         for i, param in enumerate(signature.parameters.values()):
-            if i == 0 and self.instance is not None:
+            if i == 0 and self._instance is not None:
                 # Special case for 'self'.
                 self._get_self_arg(param, args)
                 continue
@@ -407,7 +404,7 @@ class Command:
             log.commands.debug("argparser exited with status {}: {}".format(
                 e.status, e))
             return
-        self.count = count
+        self._count = count
         posargs, kwargs = self._get_call_args()
         self._check_prerequisites()
         log.commands.debug('Calling {}'.format(

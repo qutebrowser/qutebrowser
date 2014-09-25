@@ -29,8 +29,7 @@ from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout)
 
-from qutebrowser.config import config
-from qutebrowser.utils import version, log, utils
+from qutebrowser.utils import version, log, utils, objreg
 
 
 class _CrashDialog(QDialog):
@@ -131,8 +130,8 @@ class _CrashDialog(QDialog):
         except Exception:
             self._crash_info.append(("Version info", traceback.format_exc()))
         try:
-            self._crash_info.append(("Config",
-                                     config.instance().dump_userconfig()))
+            conf = objreg.get('config')
+            self._crash_info.append(("Config", conf.dump_userconfig()))
         except Exception:
             self._crash_info.append(("Config", traceback.format_exc()))
 
@@ -176,18 +175,16 @@ class ExceptionCrashDialog(_CrashDialog):
         _pages: A list of the open pages (URLs as strings)
         _cmdhist: A list with the command history (as strings)
         _exc: An exception tuple (type, value, traceback)
-        _widgets: A list of active widgets as string.
         _objects: A list of all QObjects as string.
     """
 
-    def __init__(self, pages, cmdhist, exc, widgets, objects, parent=None):
+    def __init__(self, pages, cmdhist, exc, objects, parent=None):
         self._pages = pages
         self._cmdhist = cmdhist
         self._exc = exc
         self._btn_quit = None
         self._btn_restore = None
         self._btn_pastebin = None
-        self._widgets = widgets
         self._objects = objects
         super().__init__(parent)
         self.setModal(True)
@@ -225,7 +222,6 @@ class ExceptionCrashDialog(_CrashDialog):
             ("Commandline args", ' '.join(sys.argv[1:])),
             ("Open Pages", '\n'.join(self._pages)),
             ("Command history", '\n'.join(self._cmdhist)),
-            ("Widgets", self._widgets),
             ("Objects", self._objects),
         ]
         try:
@@ -285,16 +281,14 @@ class ReportDialog(_CrashDialog):
         _btn_pastebin: The pastebin button.
         _pages: A list of the open pages (URLs as strings)
         _cmdhist: A list with the command history (as strings)
-        _widgets: A list of active widgets as string.
         _objects: A list of all QObjects as string.
     """
 
-    def __init__(self, pages, cmdhist, widgets, objects, parent=None):
+    def __init__(self, pages, cmdhist, objects, parent=None):
         self._pages = pages
         self._cmdhist = cmdhist
         self._btn_ok = None
         self._btn_pastebin = None
-        self._widgets = widgets
         self._objects = objects
         super().__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -324,7 +318,6 @@ class ReportDialog(_CrashDialog):
             ("Commandline args", ' '.join(sys.argv[1:])),
             ("Open Pages", '\n'.join(self._pages)),
             ("Command history", '\n'.join(self._cmdhist)),
-            ("Widgets", self._widgets),
             ("Objects", self._objects),
         ]
         try:

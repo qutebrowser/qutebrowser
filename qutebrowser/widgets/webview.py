@@ -26,7 +26,7 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.utils import message, log, usertypes, utils, qtutils
+from qutebrowser.utils import message, log, usertypes, utils, qtutils, objreg
 from qutebrowser.browser import webpage, hints, webelem
 from qutebrowser.commands import cmdexc
 
@@ -43,9 +43,6 @@ class WebView(QWebView):
 
     Attributes:
         hintmanager: The HintManager instance for this view.
-        tabbedbrowser: The TabbedBrowser this WebView is part of.
-                       We need this rather than signals to make createWindow
-                       work.
         progress: loading progress of this page.
         scroll_pos: The current scroll position as (x%, y%) tuple.
         statusbar_message: The current javscript statusbar message.
@@ -54,7 +51,7 @@ class WebView(QWebView):
         open_target: Where to open the next tab ("normal", "tab", "tab_bg")
         viewing_source: Whether the webview is currently displaying source
                         code.
-        _page: The QWebPage behind the view
+        registry: The ObjectRegistry associated with this tab.
         _cur_url: The current URL (accessed via cur_url property).
         _has_ssl_errors: Whether SSL errors occured during loading.
         _zoom: A NeighborList with the zoom levels.
@@ -77,11 +74,10 @@ class WebView(QWebView):
     load_status_changed = pyqtSignal(str)
     url_text_changed = pyqtSignal(str)
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.load_status = LoadStatus.none
         self._check_insertmode = False
-        self.tabbedbrowser = parent
         self.inspector = None
         self.scroll_pos = (-1, -1)
         self.statusbar_message = ''
@@ -94,16 +90,21 @@ class WebView(QWebView):
         self._cur_url = None
         self.cur_url = QUrl()
         self.progress = 0
-        self._page = webpage.BrowserPage(self)
-        self.setPage(self._page)
-        self.hintmanager = hints.HintManager(self)
-        self.hintmanager.mouse_event.connect(self.on_mouse_event)
-        self.hintmanager.set_open_target.connect(self.set_force_open_target)
-        self._page.linkHovered.connect(self.linkHovered)
-        self._page.mainFrame().loadStarted.connect(self.on_load_started)
-        self._page.change_title.connect(self.titleChanged)
+        self.registry = objreg.ObjectRegistry()
+        objreg.register('webview', self, registry=self.registry)
+        page = webpage.BrowserPage(self)
+        self.setPage(page)
+        hintmanager = hints.HintManager(self)
+        hintmanager.mouse_event.connect(self.on_mouse_event)
+        hintmanager.set_open_target.connect(self.set_force_open_target)
+        objreg.register('hintmanager', hintmanager, registry=self.registry)
+        tab_id = next(usertypes.tab_id_gen)
+        objreg.register('tab-{}'.format(tab_id), self.registry, scope='meta')
+        page.linkHovered.connect(self.linkHovered)
+        page.mainFrame().loadStarted.connect(self.on_load_started)
+        page.change_title.connect(self.titleChanged)
         self.urlChanged.connect(self.on_url_changed)
-        self._page.mainFrame().loadFinished.connect(self.on_load_finished)
+        page.mainFrame().loadFinished.connect(self.on_load_finished)
         self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
         self.page().statusBarMessage.connect(
             lambda msg: setattr(self, 'statusbar_message', msg))
@@ -358,7 +359,8 @@ class WebView(QWebView):
             self._set_load_status(LoadStatus.error)
         if not config.get('input', 'auto-insert-mode'):
             return
-        if modeman.instance().mode() == usertypes.KeyMode.insert or not ok:
+        cur_mode = objreg.get('mode-manager').mode()
+        if cur_mode == usertypes.KeyMode.insert or not ok:
             return
         frame = self.page().currentFrame()
         try:
@@ -403,7 +405,7 @@ class WebView(QWebView):
         if wintype == QWebPage.WebModalDialog:
             log.webview.warning("WebModalDialog requested, but we don't "
                                 "support that!")
-        return self.tabbedbrowser.tabopen()
+        return objreg.get('tabbed-browser').tabopen()
 
     def paintEvent(self, e):
         """Extend paintEvent to emit a signal if the scroll position changed.

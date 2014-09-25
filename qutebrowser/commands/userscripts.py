@@ -51,7 +51,7 @@ class _BlockingFIFOReader(QObject):
     was requested.
 
     Attributes:
-        filepath: The filename of the FIFO to read.
+        _filepath: The filename of the FIFO to read.
         fifo: The file object which is being read.
 
     Signals:
@@ -65,7 +65,7 @@ class _BlockingFIFOReader(QObject):
 
     def __init__(self, filepath, parent=None):
         super().__init__(parent)
-        self.filepath = filepath
+        self._filepath = filepath
         self.fifo = None
 
     def read(self):
@@ -74,7 +74,7 @@ class _BlockingFIFOReader(QObject):
         # See http://www.outflux.net/blog/archives/2008/03/09/using-select-on-a-fifo/
         # We also use os.open and os.fdopen rather than built-in open so we can
         # add O_NONBLOCK.
-        fd = os.open(self.filepath, os.O_RDWR |
+        fd = os.open(self._filepath, os.O_RDWR |
                      os.O_NONBLOCK,  # pylint: disable=no-member
                      encoding='utf-8')
         self.fifo = os.fdopen(fd, 'r')
@@ -96,8 +96,8 @@ class _BaseUserscriptRunner(QObject):
     """Common part between the Windows and the POSIX userscript runners.
 
     Attributes:
-        filepath: The path of the file/FIFO which is being read.
-        proc: The QProcess which is being executed.
+        _filepath: The path of the file/FIFO which is being read.
+        _proc: The QProcess which is being executed.
 
     Class attributes:
         PROCESS_MESSAGES: A mapping of QProcess::ProcessError members to
@@ -124,8 +124,8 @@ class _BaseUserscriptRunner(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.filepath = None
-        self.proc = None
+        self._filepath = None
+        self._proc = None
 
     def _run_process(self, cmd, *args, env):
         """Start the given command via QProcess.
@@ -135,27 +135,27 @@ class _BaseUserscriptRunner(QObject):
             *args: The arguments to hand to the command
             env: A dictionary of environment variables to add.
         """
-        self.proc = QProcess(self)
+        self._proc = QProcess(self)
         procenv = QProcessEnvironment.systemEnvironment()
-        procenv.insert('QUTE_FIFO', self.filepath)
+        procenv.insert('QUTE_FIFO', self._filepath)
         if env is not None:
             for k, v in env.items():
                 procenv.insert(k, v)
-        self.proc.setProcessEnvironment(procenv)
-        self.proc.error.connect(self.on_proc_error)
-        self.proc.finished.connect(self.on_proc_finished)
-        self.proc.start(cmd, args)
+        self._proc.setProcessEnvironment(procenv)
+        self._proc.error.connect(self.on_proc_error)
+        self._proc.finished.connect(self.on_proc_finished)
+        self._proc.start(cmd, args)
 
     def _cleanup(self):
         """Clean up the temporary file."""
         try:
-            os.remove(self.filepath)
+            os.remove(self._filepath)
         except PermissionError as e:
             # NOTE: Do not replace this with "raise CommandError" as it's
             # executed async.
             message.error("Failed to delete tempfile... ({})".format(e))
-        self.filepath = None
-        self.proc = None
+        self._filepath = None
+        self._proc = None
 
     def run(self, cmd, *args, env=None):
         """Run the userscript given.
@@ -192,14 +192,14 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
     executed immediately when they arrive in the FIFO.
 
     Attributes:
-        reader: The _BlockingFIFOReader instance.
-        thread: The QThread where reader runs.
+        _reader: The _BlockingFIFOReader instance.
+        _thread: The QThread where reader runs.
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.reader = None
-        self.thread = None
+        self._reader = None
+        self._thread = None
 
     def run(self, cmd, *args, env=None):
         rundir = utils.get_standard_dir(QStandardPaths.RuntimeLocation)
@@ -208,43 +208,43 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         # directory and place the FIFO there, which sucks. Since os.kfifo will
         # raise an exception anyways when the path doesn't exist, it shouldn't
         # be a big issue.
-        self.filepath = tempfile.mktemp(prefix='userscript-', dir=rundir)
-        os.mkfifo(self.filepath)  # pylint: disable=no-member
+        self._filepath = tempfile.mktemp(prefix='userscript-', dir=rundir)
+        os.mkfifo(self._filepath)  # pylint: disable=no-member
 
-        self.reader = _BlockingFIFOReader(self.filepath)
-        self.thread = QThread(self)
-        self.reader.moveToThread(self.thread)
-        self.reader.got_line.connect(self.got_cmd)
-        self.thread.started.connect(self.reader.read)
-        self.reader.finished.connect(self.on_reader_finished)
-        self.thread.finished.connect(self.on_thread_finished)
+        self._reader = _BlockingFIFOReader(self._filepath)
+        self._thread = QThread(self)
+        self._reader.moveToThread(self._thread)
+        self._reader.got_line.connect(self.got_cmd)
+        self._thread.started.connect(self._reader.read)
+        self._reader.finished.connect(self.on_reader_finished)
+        self._thread.finished.connect(self.on_thread_finished)
 
         self._run_process(cmd, *args, env=env)
-        self.thread.start()
+        self._thread.start()
 
     def on_proc_finished(self):
         """Interrupt the reader when the process finished."""
         log.procs.debug("proc finished")
-        self.thread.requestInterruption()
+        self._thread.requestInterruption()
 
     def on_proc_error(self, error):
         """Interrupt the reader when the process had an error."""
         super().on_proc_error(error)
-        self.thread.requestInterruption()
+        self._thread.requestInterruption()
 
     def on_reader_finished(self):
         """Quit the thread and clean up when the reader finished."""
         log.procs.debug("reader finished")
-        self.thread.quit()
-        self.reader.fifo.close()
-        self.reader.deleteLater()
+        self._thread.quit()
+        self._reader.fifo.close()
+        self._reader.deleteLater()
         super()._cleanup()
         self.finished.emit()
 
     def on_thread_finished(self):
         """Clean up the QThread object when the thread finished."""
         log.procs.debug("thread finished")
-        self.thread.deleteLater()
+        self._thread.deleteLater()
 
 
 class _WindowsUserscriptRunner(_BaseUserscriptRunner):
@@ -258,17 +258,20 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
 
     This also means the userscript *has* to use >> (append) rather than >
     (overwrite) to write to the file!
+
+    Attributes:
+        _oshandle: The oshandle of the temp file.
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.oshandle = None
+        self._oshandle = None
 
     def _cleanup(self):
         """Clean up temporary files after the userscript finished."""
-        os.close(self.oshandle)
+        os.close(self._oshandle)
         super()._cleanup()
-        self.oshandle = None
+        self._oshandle = None
 
     def on_proc_finished(self):
         """Read back the commands when the process finished.
@@ -277,7 +280,7 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
             got_cmd: Emitted for every command in the file.
         """
         log.procs.debug("proc finished")
-        with open(self.filepath, 'r', encoding='utf-8') as f:
+        with open(self._filepath, 'r', encoding='utf-8') as f:
             for line in f:
                 self.got_cmd.emit(line.rstrip())
         self._cleanup()
@@ -290,7 +293,7 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
         self.finished.emit()
 
     def run(self, cmd, *args, env=None):
-        self.oshandle, self.filepath = tempfile.mkstemp(text=True)
+        self._oshandle, self._filepath = tempfile.mkstemp(text=True)
         self._run_process(cmd, *args, env=env)
 
 

@@ -29,7 +29,7 @@ from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import usertypes, log
+from qutebrowser.utils import usertypes, log, objreg
 
 
 class ModeLockedError(Exception):
@@ -37,25 +37,20 @@ class ModeLockedError(Exception):
     """Exception raised when the mode is currently locked."""
 
 
-def instance():
-    """Get the global modeman instance."""
-    return QApplication.instance().modeman
-
-
 def enter(mode, reason=None):
     """Enter the mode 'mode'."""
-    instance().enter(mode, reason)
+    objreg.get('mode-manager').enter(mode, reason)
 
 
 def leave(mode, reason=None):
     """Leave the mode 'mode'."""
-    instance().leave(mode, reason)
+    objreg.get('mode-manager').leave(mode, reason)
 
 
 def maybe_enter(mode, reason=None):
     """Convenience method to enter 'mode' without exceptions."""
     try:
-        instance().enter(mode, reason)
+        objreg.get('mode-manager').enter(mode, reason)
     except ModeLockedError:
         pass
 
@@ -63,7 +58,7 @@ def maybe_enter(mode, reason=None):
 def maybe_leave(mode, reason=None):
     """Convenience method to leave 'mode' without exceptions."""
     try:
-        instance().leave(mode, reason)
+        objreg.get('mode-manager').leave(mode, reason)
     except ValueError as e:
         # This is rather likely to happen, so we only log to debug log.
         log.modes.debug(e)
@@ -75,7 +70,6 @@ class ModeManager(QObject):
 
     Attributes:
         passthrough: A list of modes in which to pass through events.
-        mainwindow: The mainwindow object
         locked: Whether current mode is locked. This means the current mode can
                 still be left (then locked will be reset), but no new mode can
                 be entered while the current mode is active.
@@ -99,7 +93,6 @@ class ModeManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.mainwindow = None
         self.locked = False
         self._handlers = {}
         self.passthrough = []
@@ -219,7 +212,7 @@ class ModeManager(QObject):
         log.modes.debug("New mode stack: {}".format(self._mode_stack))
         self.entered.emit(mode)
 
-    @cmdutils.register(instance='modeman', hide=True)
+    @cmdutils.register(instance='mode-manager', hide=True)
     def enter_mode(self, mode):
         """Enter a key mode.
 
@@ -252,7 +245,7 @@ class ModeManager(QObject):
             self._mode_stack))
         self.left.emit(mode)
 
-    @cmdutils.register(instance='modeman', name='leave-mode',
+    @cmdutils.register(instance='mode-manager', name='leave-mode',
                        not_modes=[usertypes.KeyMode.normal], hide=True)
     def leave_current_mode(self):
         """Leave the mode we're currently in."""
@@ -289,7 +282,8 @@ class ModeManager(QObject):
             # We already handled this same event at some point earlier, so
             # we're not interested in it anymore.
             return False
-        if QApplication.instance().activeWindow() is not self.mainwindow:
+        if (QApplication.instance().activeWindow() is not
+                objreg.get('main-window')):
             # Some other window (print dialog, etc.) is focused so we pass
             # the event through.
             return False

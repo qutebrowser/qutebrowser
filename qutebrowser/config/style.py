@@ -25,7 +25,7 @@ import jinja2
 from PyQt5.QtGui import QColor
 
 from qutebrowser.config import config
-from qutebrowser.utils import log
+from qutebrowser.utils import log, objreg
 
 
 @functools.lru_cache(maxsize=16)
@@ -42,7 +42,7 @@ def get_stylesheet(template_str):
     fontdict = FontDict(config.section('fonts'))
     template = jinja2.Template(template_str)
     return template.render(color=colordict, font=fontdict,
-                           config=config.instance())
+                           config=objreg.get('config'))
 
 
 def set_register_stylesheet(obj):
@@ -60,8 +60,8 @@ def set_register_stylesheet(obj):
     log.style.vdebug("stylesheet for {}: {}".format(
         obj.__class__.__name__, qss))
     obj.setStyleSheet(qss)
-    config.instance().changed.connect(
-        functools.partial(_update_stylesheet, obj))
+    objreg.get('config').changed.connect(functools.partial(
+        _update_stylesheet, obj))
 
 
 def _update_stylesheet(obj, _section, _option):

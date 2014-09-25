@@ -23,7 +23,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
 from qutebrowser.config import config, configdata
 from qutebrowser.commands import cmdutils
-from qutebrowser.utils import usertypes, log
+from qutebrowser.utils import usertypes, log, objreg
 from qutebrowser.models import completion as models
 from qutebrowser.models.completionfilter import CompletionFilterModel as CFM
 
@@ -33,8 +33,7 @@ class Completer(QObject):
     """Completer which manages completions in a CompletionView.
 
     Attributes:
-        view: The CompletionView associated with this completer.
-        ignore_change: Whether to ignore the next completion update.
+        _ignore_change: Whether to ignore the next completion update.
         _models: dict of available completion models.
 
     Signals:
@@ -48,10 +47,9 @@ class Completer(QObject):
 
     change_completed_part = pyqtSignal(str, bool)
 
-    def __init__(self, view):
-        super().__init__(view)
-        self.view = view
-        self.ignore_change = False
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._ignore_change = False
 
         self._models = {
             usertypes.Completion.option: {},
@@ -59,6 +57,13 @@ class Completer(QObject):
         }
         self._init_static_completions()
         self._init_setting_completions()
+
+    def __repr__(self):
+        return '<{}>'.format(self.__class__.__name__)
+
+    def _model(self):
+        """Convienience method to get the current completion model."""
+        return objreg.get('completion').model()
 
     def _init_static_completions(self):
         """Initialize the static completion models."""
@@ -69,6 +74,7 @@ class Completer(QObject):
 
     def _init_setting_completions(self):
         """Initialize setting completion models."""
+        config_obj = objreg.get('config')
         self._models[usertypes.Completion.section] = CFM(
             models.SettingSectionCompletionModel(self), self)
         self._models[usertypes.Completion.option] = {}
@@ -77,13 +83,13 @@ class Completer(QObject):
             model = models.SettingOptionCompletionModel(sectname, self)
             self._models[usertypes.Completion.option][sectname] = CFM(
                 model, self)
-            config.instance().changed.connect(model.on_config_changed)
+            config_obj.changed.connect(model.on_config_changed)
             self._models[usertypes.Completion.value][sectname] = {}
             for opt in configdata.DATA[sectname].keys():
                 model = models.SettingValueCompletionModel(sectname, opt, self)
                 self._models[usertypes.Completion.value][sectname][opt] = CFM(
                     model, self)
-                config.instance().changed.connect(model.on_config_changed)
+                config_obj.changed.connect(model.on_config_changed)
 
     def _get_new_completion(self, parts, cursor_part):
         """Get a new completion model.
@@ -161,7 +167,7 @@ class Completer(QObject):
         indexes = selected.indexes()
         if not indexes:
             return
-        model = self.view.model()
+        model = self._model()
         data = model.data(indexes[0])
         if data is None:
             return
@@ -171,9 +177,9 @@ class Completer(QObject):
             # and go on to the next part.
             self.change_completed_part.emit(data, True)
         else:
-            self.ignore_change = True
+            self._ignore_change = True
             self.change_completed_part.emit(data, False)
-            self.ignore_change = False
+            self._ignore_change = False
 
     @pyqtSlot(str, list, int)
     def on_update_completion(self, prefix, parts, cursor_part):
@@ -185,40 +191,42 @@ class Completer(QObject):
             text: The new text
             cursor_part: The part the cursor is currently over.
         """
-        if self.ignore_change:
+        if self._ignore_change:
             log.completion.debug("Ignoring completion update")
             return
+
+        completion = objreg.get('completion')
 
         if prefix != ':':
             # This is a search or gibberish, so we don't need to complete
             # anything (yet)
             # FIXME complete searchs
-            self.view.hide()
+            completion.hide()
             return
 
         model = self._get_new_completion(parts, cursor_part)
 
-        if model != self.view.model():
+        if model != self._model():
             if model is None:
-                self.view.hide()
+                completion.hide()
             else:
-                self.view.set_model(model)
+                completion.set_model(model)
 
         if model is None:
             log.completion.debug("No completion model for {}.".format(parts))
             return
 
         pattern = parts[cursor_part] if parts else ''
-        self.view.model().set_pattern(pattern)
+        self._model().set_pattern(pattern)
 
         log.completion.debug(
             "New completion for {}: {}, with pattern '{}'".format(
-                parts, model.srcmodel.__class__.__name__, pattern))
+                parts, model.sourceModel().__class__.__name__, pattern))
 
-        if self.view.model().count() == 0:
-            self.view.hide()
+        if self._model().count() == 0:
+            completion.hide()
             return
 
-        self.view.model().mark_all_items(pattern)
-        if self.view.enabled:
-            self.view.show()
+        self._model().mark_all_items(pattern)
+        if completion.enabled:
+            completion.show()

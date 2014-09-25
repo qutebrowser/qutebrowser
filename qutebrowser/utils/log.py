@@ -295,21 +295,21 @@ class LogFilter(logging.Filter):
     comma-separated list instead.
 
     Attributes:
-        names: A list of names that should be logged.
+        _names: A list of names that should be logged.
     """
 
     def __init__(self, names):
         super().__init__()
-        self.names = names
+        self._names = names
 
     def filter(self, record):
         """Determine if the specified record is to be logged."""
-        if self.names is None:
+        if self._names is None:
             return True
         if record.levelno > logging.DEBUG:
             # More important than DEBUG, so we won't filter at all
             return True
-        for name in self.names:
+        for name in self._names:
             if record.name == name:
                 return True
             elif not record.name.startswith(name):
@@ -327,21 +327,21 @@ class RAMHandler(logging.Handler):
     uses a simple list rather than a deque.
 
     Attributes:
-        data: A deque containing the logging records.
+        _data: A deque containing the logging records.
     """
 
     def __init__(self, capacity):
         super().__init__()
         self.html_formatter = None
         if capacity != -1:
-            self.data = collections.deque(maxlen=capacity)
+            self._data = collections.deque(maxlen=capacity)
         else:
-            self.data = collections.deque()
+            self._data = collections.deque()
 
     def emit(self, record):
         if record.levelno >= logging.DEBUG:
             # We don't log VDEBUG to RAM.
-            self.data.append(record)
+            self._data.append(record)
 
     def dump_log(self, html=False):
         """Dump the complete formatted log data as as string.
@@ -352,7 +352,7 @@ class RAMHandler(logging.Handler):
         fmt = self.html_formatter.format if html else self.format
         self.acquire()
         try:
-            records = list(self.data)
+            records = list(self._data)
         finally:
             self.release()
         for record in records:
@@ -362,7 +362,12 @@ class RAMHandler(logging.Handler):
 
 class HTMLFormatter(logging.Formatter):
 
-    """Formatter for HTML-colored log messages, similiar to colorlog."""
+    """Formatter for HTML-colored log messages, similiar to colorlog.
+
+    Attributes:
+        _log_colors: The colors to use for logging levels.
+        _colordict: The colordict passed to the logger.
+    """
 
     def __init__(self, fmt, datefmt, log_colors):
         """Constructor.

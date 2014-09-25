@@ -33,7 +33,14 @@ from qutebrowser.widgets import misc
 
 class ConsoleLineEdit(misc.CommandLineEdit):
 
-    """A QLineEdit which executes entered code and provides a history."""
+    """A QLineEdit which executes entered code and provides a history.
+
+    Attributes:
+        _history: The command history of executed commands.
+        _more: A flag which is set when more input is expected.
+        _buffer: The buffer for multiline commands.
+        _interpreter: The InteractiveInterpreter to execute code with.
+    """
 
     write = pyqtSignal(str)
 
@@ -56,7 +63,7 @@ class ConsoleLineEdit(misc.CommandLineEdit):
             'self': parent,
         }
         self._interpreter = code.InteractiveInterpreter(interpreter_locals)
-        self.history = cmdhistory.History()
+        self._history = cmdhistory.History()
         self.returnPressed.connect(self.execute)
         self.setText('')
 
@@ -67,10 +74,10 @@ class ConsoleLineEdit(misc.CommandLineEdit):
     @pyqtSlot(str)
     def execute(self):
         """Execute the line of code which was entered."""
-        self.history.stop()
+        self._history.stop()
         text = self.text()
         if text:
-            self.history.append(text)
+            self._history.append(text)
             self.push(text)
             self.setText('')
 
@@ -95,10 +102,10 @@ class ConsoleLineEdit(misc.CommandLineEdit):
     def history_prev(self):
         """Go back in the history."""
         try:
-            if not self.history.is_browsing():
-                item = self.history.start(self.text().strip())
+            if not self._history.is_browsing():
+                item = self._history.start(self.text().strip())
             else:
-                item = self.history.previtem()
+                item = self._history.previtem()
         except (cmdhistory.HistoryEmptyError,
                 cmdhistory.HistoryEndReachedError):
             return
@@ -106,10 +113,10 @@ class ConsoleLineEdit(misc.CommandLineEdit):
 
     def history_next(self):
         """Go forward in the history."""
-        if not self.history.is_browsing():
+        if not self._history.is_browsing():
             return
         try:
-            item = self.history.nextitem()
+            item = self._history.nextitem()
         except cmdhistory.HistoryEndReachedError:
             return
         self.setText(item)
@@ -151,6 +158,9 @@ class ConsoleTextEdit(QTextEdit):
         self.setFont(config.get('fonts', 'debug-console'))
         self.setFocusPolicy(Qt.NoFocus)
 
+    def __repr__(self):
+        return '<{}>'.format(self.__class__.__name__)
+
     def on_config_changed(self, section, option):
         """Update font when config changed."""
         if section == 'fonts' and option == 'debug-console':
@@ -159,22 +169,32 @@ class ConsoleTextEdit(QTextEdit):
 
 class ConsoleWidget(QWidget):
 
-    """A widget with an interactive Python console."""
+    """A widget with an interactive Python console.
+
+    Attributes:
+        _lineedit: The line edit in the console.
+        _output: The output widget in the console.
+        _vbox: The layout which contains everything.
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.lineedit = ConsoleLineEdit(self)
-        self.output = ConsoleTextEdit()
-        self.lineedit.write.connect(self.output.append)
-        self.vbox = QVBoxLayout()
-        self.vbox.setSpacing(0)
-        self.vbox.addWidget(self.output)
-        self.vbox.addWidget(self.lineedit)
-        self.setLayout(self.vbox)
-        self.lineedit.setFocus()
+        self._lineedit = ConsoleLineEdit(self)
+        self._output = ConsoleTextEdit()
+        self._lineedit.write.connect(self._output.append)
+        self._vbox = QVBoxLayout()
+        self._vbox.setSpacing(0)
+        self._vbox.addWidget(self._output)
+        self._vbox.addWidget(self._lineedit)
+        self.setLayout(self._vbox)
+        self._lineedit.setFocus()
+
+    def __repr__(self):
+        return '<{}, visible={}>'.format(
+            self.__class__.__name__, self.isVisible())
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update font when config changed."""
-        self.lineedit.on_config_changed(section, option)
-        self.output.on_config_changed(section, option)
+        self._lineedit.on_config_changed(section, option)
+        self._output.on_config_changed(section, option)

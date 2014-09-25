@@ -86,7 +86,7 @@ class BaseType:
     """A type used for a setting value.
 
     Attributes:
-        none_ok: Whether to convert to None for an empty string.
+        _none_ok: Whether to convert to None for an empty string.
 
     Class attributes:
         valid_values: Possible values if they can be expressed as a fixed
@@ -98,7 +98,7 @@ class BaseType:
     valid_values = None
 
     def __init__(self, none_ok=False):
-        self.none_ok = none_ok
+        self._none_ok = none_ok
 
     def transform(self, value):
         """Transform the setting value.
@@ -132,7 +132,7 @@ class BaseType:
             NotImplementedError if self.valid_values is not defined and this
                                 method should be overridden.
         """
-        if not value and self.none_ok:
+        if not value and self._none_ok:
             return
         if self.valid_values is not None:
             if value not in self.valid_values:
@@ -196,7 +196,7 @@ class String(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -224,7 +224,7 @@ class List(BaseType):
     def validate(self, value):
         vals = self.transform(value)
         if None in vals:
-            if self.none_ok:
+            if self._none_ok:
                 pass
             else:
                 raise ValidationError(value, "items may not be empty!")
@@ -252,7 +252,7 @@ class Bool(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -290,7 +290,7 @@ class Int(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -321,7 +321,7 @@ class IntList(List):
             vals = self.transform(value)
         except ValueError:
             raise ValidationError(value, "must be a list of integers!")
-        if None in vals and not self.none_ok:
+        if None in vals and not self._none_ok:
             raise ValidationError(value, "items may not be empty!")
 
 
@@ -352,7 +352,7 @@ class Float(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -395,7 +395,7 @@ class Perc(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty")
@@ -442,7 +442,7 @@ class PercList(List):
         try:
             for val in vals:
                 if val is None:
-                    if self.none_ok:
+                    if self._none_ok:
                         continue
                     else:
                         raise ValidationError(value, "items may not be empty!")
@@ -481,7 +481,7 @@ class PercOrInt(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -517,7 +517,7 @@ class Command(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -541,7 +541,7 @@ class ColorSystem(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -567,7 +567,7 @@ class QtColor(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -591,7 +591,7 @@ class CssColor(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -626,7 +626,7 @@ class QssColor(CssColor):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -662,7 +662,7 @@ class Font(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -729,7 +729,7 @@ class Regex(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -766,7 +766,7 @@ class RegexList(List):
         except sre_constants.error as e:
             raise ValidationError(value, "must be a list valid regexes - " +
                                   str(e))
-        if not self.none_ok and None in vals:
+        if not self._none_ok and None in vals:
             raise ValidationError(value, "items may not be empty!")
 
 
@@ -778,7 +778,7 @@ class File(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -802,7 +802,7 @@ class Directory(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -903,7 +903,7 @@ class WebKitBytesList(List):
         vals = super().transform(value)
         for val in vals:
             self.bytestype.validate(val)
-        if None in vals and not self.none_ok:
+        if None in vals and not self._none_ok:
             raise ValidationError(value, "items may not be empty!")
         if self.length is not None and len(vals) != self.length:
             raise ValidationError(value, "exactly {} values need to be "
@@ -926,7 +926,7 @@ class ShellCommand(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -975,7 +975,7 @@ class Proxy(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -1022,7 +1022,7 @@ class SearchEngineName(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -1034,7 +1034,7 @@ class SearchEngineUrl(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -1054,7 +1054,7 @@ class Encoding(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -1075,7 +1075,7 @@ class UserStyleSheet(File):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")
@@ -1117,7 +1117,7 @@ class AutoSearch(BaseType):
 
     def validate(self, value):
         if not value:
-            if self.none_ok:
+            if self._none_ok:
                 return
             else:
                 raise ValidationError(value, "may not be empty!")

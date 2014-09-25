@@ -19,6 +19,8 @@
 
 """Tests for qutebrowser.utils.readline."""
 
+# pylint: disable=protected-access
+
 import inspect
 import unittest
 from unittest import mock
@@ -105,7 +107,7 @@ class ReadlineBridgeTest(unittest.TestCase):
         self._set_selected_text("delete test")
         self.bridge.rl_unix_line_discard()
         self.qle.home.assert_called_with(True)
-        self.assertEqual(self.bridge.deleted[self.qle], "delete test")
+        self.assertEqual(self.bridge._deleted[self.qle], "delete test")
         self.qle.del_.assert_called_with()
         self.bridge.rl_yank()
         self.qle.insert.assert_called_with("delete test")
@@ -115,7 +117,7 @@ class ReadlineBridgeTest(unittest.TestCase):
         self._set_selected_text("delete test")
         self.bridge.rl_kill_line()
         self.qle.end.assert_called_with(True)
-        self.assertEqual(self.bridge.deleted[self.qle], "delete test")
+        self.assertEqual(self.bridge._deleted[self.qle], "delete test")
         self.qle.del_.assert_called_with()
         self.bridge.rl_yank()
         self.qle.insert.assert_called_with("delete test")
@@ -125,7 +127,7 @@ class ReadlineBridgeTest(unittest.TestCase):
         self._set_selected_text("delete test")
         self.bridge.rl_unix_word_rubout()
         self.qle.cursorWordBackward.assert_called_with(True)
-        self.assertEqual(self.bridge.deleted[self.qle], "delete test")
+        self.assertEqual(self.bridge._deleted[self.qle], "delete test")
         self.qle.del_.assert_called_with()
         self.bridge.rl_yank()
         self.qle.insert.assert_called_with("delete test")
@@ -135,7 +137,7 @@ class ReadlineBridgeTest(unittest.TestCase):
         self._set_selected_text("delete test")
         self.bridge.rl_kill_word()
         self.qle.cursorWordForward.assert_called_with(True)
-        self.assertEqual(self.bridge.deleted[self.qle], "delete test")
+        self.assertEqual(self.bridge._deleted[self.qle], "delete test")
         self.qle.del_.assert_called_with()
         self.bridge.rl_yank()
         self.qle.insert.assert_called_with("delete test")

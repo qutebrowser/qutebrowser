@@ -19,11 +19,11 @@
 
 """CompletionModels for different usages."""
 
-from PyQt5.QtCore import pyqtSlot, Qt, QCoreApplication
+from PyQt5.QtCore import pyqtSlot, Qt
 
 from qutebrowser.config import config, configdata
 from qutebrowser.models import basecompletion
-from qutebrowser.utils import log, qtutils
+from qutebrowser.utils import log, qtutils, objreg
 from qutebrowser.commands import cmdutils
 
 
@@ -155,8 +155,7 @@ class CommandCompletionModel(basecompletion.BaseCompletionModel):
         assert cmdutils.cmd_dict
         cmdlist = []
         for obj in set(cmdutils.cmd_dict.values()):
-            if obj.hide or (obj.debug and not
-                            QCoreApplication.instance().args.debug):
+            if obj.hide or (obj.debug and not objreg.get('args').debug):
                 pass
             else:
                 cmdlist.append((obj.name, obj.desc))
@@ -183,8 +182,7 @@ class HelpCompletionModel(basecompletion.BaseCompletionModel):
         assert cmdutils.cmd_dict
         cmdlist = []
         for obj in set(cmdutils.cmd_dict.values()):
-            if obj.hide or (obj.debug and not
-                            QCoreApplication.instance().args.debug):
+            if obj.hide or (obj.debug and not objreg.get('args').debug):
                 pass
             else:
                 cmdlist.append((':' + obj.name, obj.desc))

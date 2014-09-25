@@ -22,10 +22,10 @@
 
 import argparse
 
-from PyQt5.QtCore import QCoreApplication, QUrl
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.commands import cmdexc
-from qutebrowser.utils import utils
+from qutebrowser.utils import utils, objreg
 
 
 SUPPRESS = argparse.SUPPRESS
@@ -38,7 +38,11 @@ class ArgumentParserError(Exception):
 
 class ArgumentParserExit(Exception):
 
-    """Exception raised when the argument parser exitted."""
+    """Exception raised when the argument parser exitted.
+
+    Attributes:
+        status: The exit status.
+    """
 
     def __init__(self, status, msg):
         self.status = status
@@ -54,14 +58,18 @@ class HelpAction(argparse.Action):
     """
 
     def __call__(self, parser, _namespace, _values, _option_string=None):
-        QCoreApplication.instance().mainwindow.tabs.tabopen(
+        objreg.get('tabbed-browser').tabopen(
             QUrl('qute://help/commands.html#{}'.format(parser.name)))
         parser.exit()
 
 
 class ArgumentParser(argparse.ArgumentParser):
 
-    """Subclass ArgumentParser to be more suitable for runtime parsing."""
+    """Subclass ArgumentParser to be more suitable for runtime parsing.
+
+    Attributes:
+        name: The command name.
+    """
 
     def __init__(self, name, *args, **kwargs):
         self.name = name

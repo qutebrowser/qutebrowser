@@ -37,3 +37,8 @@ class DiskCache(QNetworkDiskCache):
         cache_dir = utils.get_standard_dir(QStandardPaths.CacheLocation)
         self.setCacheDirectory(os.path.join(cache_dir, 'http'))
         self.setMaximumCacheSize(config.get('storage', 'cache-size'))
+
+    def __repr__(self):
+        return '<{} size={}, maxsize={}, path="{}">'.format(
+            self.__class__.__name__, self.cacheSize(), self.maximumCacheSize(),
+            self.cacheDirectory())

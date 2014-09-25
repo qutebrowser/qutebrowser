@@ -22,12 +22,12 @@
 import binascii
 import base64
 
-from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QCoreApplication, QTimer
+from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes, qtutils
+from qutebrowser.utils import message, log, usertypes, qtutils, objreg
 from qutebrowser.widgets import tabbedbrowser, completion, downloads
 from qutebrowser.widgets.statusbar import bar
 
@@ -40,9 +40,9 @@ class MainWindow(QWidget):
     signals.
 
     Attributes:
-        tabs: The TabbedBrowser widget.
         status: The StatusBar widget.
-        downloadview: The DownloadView widget.
+        _downloadview: The DownloadView widget.
+        _tabbed_browser: The TabbedBrowser widget.
         _vbox: The main QVBoxLayout.
     """
 
@@ -50,9 +50,9 @@ class MainWindow(QWidget):
         super().__init__(parent)
 
         self.setWindowTitle('qutebrowser')
+        state_config = objreg.get('state-config')
         try:
-            stateconf = QCoreApplication.instance().stateconfig
-            data = stateconf['geometry']['mainwindow']
+            data = state_config['geometry']['mainwindow']
             log.init.debug("Restoring mainwindow from {}".format(data))
             geom = base64.b64decode(data, validate=True)
         except KeyError:
@@ -77,15 +77,16 @@ class MainWindow(QWidget):
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
 
-        self.downloadview = downloads.DownloadView()
-        self._vbox.addWidget(self.downloadview)
-        self.downloadview.show()
+        self._downloadview = downloads.DownloadView()
+        self._vbox.addWidget(self._downloadview)
+        self._downloadview.show()
 
-        self.tabs = tabbedbrowser.TabbedBrowser()
-        self.tabs.title_changed.connect(self.setWindowTitle)
-        self._vbox.addWidget(self.tabs)
+        self._tabbed_browser = tabbedbrowser.TabbedBrowser()
+        self._tabbed_browser.title_changed.connect(self.setWindowTitle)
+        objreg.register('tabbed-browser', self._tabbed_browser)
+        self._vbox.addWidget(self._tabbed_browser)
 
-        self.completion = completion.CompletionView(self)
+        self._completion = completion.CompletionView(self)
 
         self.status = bar.StatusBar()
         self._vbox.addWidget(self.status)
@@ -93,15 +94,18 @@ class MainWindow(QWidget):
         # When we're here the statusbar might not even really exist yet, so
         # resizing will fail. Therefore, we use singleShot QTimers to make sure
         # we defer this until everything else is initialized.
-        QTimer.singleShot(0, lambda: self.completion.resize_completion.connect(
-            self.resize_completion))
-        QTimer.singleShot(0, self.resize_completion)
+        QTimer.singleShot(0, self._connect_resize_completion)
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
+
+    def _connect_resize_completion(self):
+        """Connect the resize_completion signal and resize it once."""
+        self._completion.resize_completion.connect(self.resize_completion)
+        self.resize_completion()
 
     def _set_default_geometry(self):
         """Set some sensible default geometry."""
@@ -126,8 +130,8 @@ class MainWindow(QWidget):
         # Shrink to content size if needed and shrinking is enabled
         if config.get('completion', 'shrink'):
             contents_height = (
-                self.completion.viewportSizeHint().height() +
-                self.completion.horizontalScrollBar().sizeHint().height())
+                self._completion.viewportSizeHint().height() +
+                self._completion.horizontalScrollBar().sizeHint().height())
             if contents_height <= height:
                 height = contents_height
         else:
@@ -140,9 +144,9 @@ class MainWindow(QWidget):
         bottomright = self.status.geometry().topRight()
         rect = QRect(topleft, bottomright)
         if rect.isValid():
-            self.completion.setGeometry(rect)
+            self._completion.setGeometry(rect)
 
-    @cmdutils.register(instance='mainwindow', name=['quit', 'q'])
+    @cmdutils.register(instance='main-window', name=['quit', 'q'])
     def close(self):
         """Quit qutebrowser.
 
@@ -160,13 +164,13 @@ class MainWindow(QWidget):
         """
         super().resizeEvent(e)
         self.resize_completion()
-        self.downloadview.updateGeometry()
-        self.tabs.tabBar().refresh()
+        self._downloadview.updateGeometry()
+        self._tabbed_browser.tabBar().refresh()
 
     def closeEvent(self, e):
         """Override closeEvent to display a confirmation if needed."""
         confirm_quit = config.get('ui', 'confirm-quit')
-        count = self.tabs.count()
+        count = self._tabbed_browser.count()
         if confirm_quit == 'never':
             e.accept()
         elif confirm_quit == 'multiple-tabs' and count <= 1:

@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import QLineEdit
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.commands import cmdutils
-from qutebrowser.utils import usertypes, log, qtutils
+from qutebrowser.utils import usertypes, log, qtutils, objreg
 
 
 PromptContext = collections.namedtuple('PromptContext',
@@ -57,18 +57,16 @@ class Prompter:
     up the *new* question.
 
     Attributes:
-        question: A Question object with the question to be asked to the user.
+        _question: A Question object with the question to be asked to the user.
         _loops: A list of local EventLoops to spin in when blocking.
         _queue: A deque of waiting questions.
-        _prompt: The associated Prompt widget.
     """
 
-    def __init__(self, prompt):
-        self.question = None
+    def __init__(self):
+        self._question = None
         self._loops = []
         self._queue = collections.deque()
         self._busy = False
-        self._prompt = prompt
 
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
@@ -87,11 +85,12 @@ class Prompter:
         """Get a PromptContext based on the current state."""
         if not self._busy:
             return None
-        ctx = PromptContext(question=self.question,
-                            text=self._prompt.txt.text(),
-                            input_text=self._prompt.lineedit.text(),
-                            echo_mode=self._prompt.lineedit.echoMode(),
-                            input_visible=self._prompt.lineedit.isVisible())
+        prompt = objreg.get('prompt')
+        ctx = PromptContext(question=self._question,
+                            text=prompt.txt.text(),
+                            input_text=prompt.lineedit.text(),
+                            echo_mode=prompt.lineedit.echoMode(),
+                            input_visible=prompt.lineedit.isVisible())
         return ctx
 
     def _restore_ctx(self, ctx):
@@ -103,19 +102,20 @@ class Prompter:
         Return: True if a context was restored, False otherwise.
         """
         log.statusbar.debug("Restoring context {}".format(ctx))
+        prompt = objreg.get('prompt')
         if ctx is None:
-            self._prompt.hide_prompt.emit()
+            prompt.hide_prompt.emit()
             self._busy = False
             return False
-        self.question = ctx.question
-        self._prompt.txt.setText(ctx.text)
-        self._prompt.lineedit.setText(ctx.input_text)
-        self._prompt.lineedit.setEchoMode(ctx.echo_mode)
-        self._prompt.lineedit.setVisible(ctx.input_visible)
+        self._question = ctx.question
+        prompt.txt.setText(ctx.text)
+        prompt.lineedit.setText(ctx.input_text)
+        prompt.lineedit.setEchoMode(ctx.echo_mode)
+        prompt.lineedit.setVisible(ctx.input_visible)
         return True
 
     def _display_question(self):
-        """Display the question saved in self.question.
+        """Display the question saved in self._question.
 
         Return:
             The mode which should be entered.
@@ -123,36 +123,37 @@ class Prompter:
         Raise:
             ValueError if the set PromptMode is invalid.
         """
-        if self.question.mode == usertypes.PromptMode.yesno:
-            if self.question.default is None:
+        prompt = objreg.get('prompt')
+        if self._question.mode == usertypes.PromptMode.yesno:
+            if self._question.default is None:
                 suffix = ""
-            elif self.question.default:
+            elif self._question.default:
                 suffix = " (yes)"
             else:
                 suffix = " (no)"
-            self._prompt.txt.setText(self.question.text + suffix)
-            self._prompt.lineedit.hide()
+            prompt.txt.setText(self._question.text + suffix)
+            prompt.lineedit.hide()
             mode = usertypes.KeyMode.yesno
-        elif self.question.mode == usertypes.PromptMode.text:
-            self._prompt.txt.setText(self.question.text)
-            if self.question.default:
-                self._prompt.lineedit.setText(self.question.default)
-            self._prompt.lineedit.show()
+        elif self._question.mode == usertypes.PromptMode.text:
+            prompt.txt.setText(self._question.text)
+            if self._question.default:
+                prompt.lineedit.setText(self._question.default)
+            prompt.lineedit.show()
             mode = usertypes.KeyMode.prompt
-        elif self.question.mode == usertypes.PromptMode.user_pwd:
-            self._prompt.txt.setText(self.question.text)
-            if self.question.default:
-                self._prompt.lineedit.setText(self.question.default)
-            self._prompt.lineedit.show()
+        elif self._question.mode == usertypes.PromptMode.user_pwd:
+            prompt.txt.setText(self._question.text)
+            if self._question.default:
+                prompt.lineedit.setText(self._question.default)
+            prompt.lineedit.show()
             mode = usertypes.KeyMode.prompt
-        elif self.question.mode == usertypes.PromptMode.alert:
-            self._prompt.txt.setText(self.question.text + ' (ok)')
-            self._prompt.lineedit.hide()
+        elif self._question.mode == usertypes.PromptMode.alert:
+            prompt.txt.setText(self._question.text + ' (ok)')
+            prompt.lineedit.hide()
             mode = usertypes.KeyMode.prompt
         else:
             raise ValueError("Invalid prompt mode!")
-        self._prompt.lineedit.setFocus()
-        self._prompt.show_prompt.emit()
+        prompt.lineedit.setFocus()
+        prompt.show_prompt.emit()
         self._busy = True
         return mode
 
@@ -176,16 +177,17 @@ class Prompter:
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Clear and reset input when the mode was left."""
+        prompt = objreg.get('prompt')
         if mode in (usertypes.KeyMode.prompt, usertypes.KeyMode.yesno):
-            self._prompt.txt.setText('')
-            self._prompt.lineedit.clear()
-            self._prompt.lineedit.setEchoMode(QLineEdit.Normal)
-            self._prompt.hide_prompt.emit()
+            prompt.txt.setText('')
+            prompt.lineedit.clear()
+            prompt.lineedit.setEchoMode(QLineEdit.Normal)
+            prompt.hide_prompt.emit()
             self._busy = False
-            if self.question.answer is None and not self.question.is_aborted:
-                self.question.cancel()
+            if self._question.answer is None and not self._question.is_aborted:
+                self._question.cancel()
 
-    @cmdutils.register(instance='mainwindow.status.prompt.prompter', hide=True,
+    @cmdutils.register(instance='prompter', hide=True,
                        modes=[usertypes.KeyMode.prompt,
                               usertypes.KeyMode.yesno])
     def prompt_accept(self):
@@ -196,58 +198,59 @@ class Prompter:
         This executes the next action depending on the question mode, e.g. asks
         for the password or leaves the mode.
         """
-        if (self.question.mode == usertypes.PromptMode.user_pwd and
-                self.question.user is None):
+        prompt = objreg.get('prompt')
+        if (self._question.mode == usertypes.PromptMode.user_pwd and
+                self._question.user is None):
             # User just entered an username
-            self.question.user = self._prompt.lineedit.text()
-            self._prompt.txt.setText("Password:")
-            self._prompt.lineedit.clear()
-            self._prompt.lineedit.setEchoMode(QLineEdit.Password)
-        elif self.question.mode == usertypes.PromptMode.user_pwd:
+            self._question.user = prompt.lineedit.text()
+            prompt.txt.setText("Password:")
+            prompt.lineedit.clear()
+            prompt.lineedit.setEchoMode(QLineEdit.Password)
+        elif self._question.mode == usertypes.PromptMode.user_pwd:
             # User just entered a password
-            password = self._prompt.lineedit.text()
-            self.question.answer = (self.question.user, password)
+            password = prompt.lineedit.text()
+            self._question.answer = (self._question.user, password)
             modeman.leave(usertypes.KeyMode.prompt, 'prompt accept')
-            self.question.done()
-        elif self.question.mode == usertypes.PromptMode.text:
+            self._question.done()
+        elif self._question.mode == usertypes.PromptMode.text:
             # User just entered text.
-            self.question.answer = self._prompt.lineedit.text()
+            self._question.answer = prompt.lineedit.text()
             modeman.leave(usertypes.KeyMode.prompt, 'prompt accept')
-            self.question.done()
-        elif self.question.mode == usertypes.PromptMode.yesno:
+            self._question.done()
+        elif self._question.mode == usertypes.PromptMode.yesno:
             # User wants to accept the default of a yes/no question.
-            self.question.answer = self.question.default
+            self._question.answer = self._question.default
             modeman.leave(usertypes.KeyMode.yesno, 'yesno accept')
-            self.question.done()
-        elif self.question.mode == usertypes.PromptMode.alert:
+            self._question.done()
+        elif self._question.mode == usertypes.PromptMode.alert:
             # User acknowledged an alert
-            self.question.answer = None
+            self._question.answer = None
             modeman.leave(usertypes.KeyMode.prompt, 'alert accept')
-            self.question.done()
+            self._question.done()
         else:
             raise ValueError("Invalid question mode!")
 
-    @cmdutils.register(instance='mainwindow.status.prompt.prompter', hide=True,
+    @cmdutils.register(instance='prompter', hide=True,
                        modes=[usertypes.KeyMode.yesno])
     def prompt_yes(self):
         """Answer yes to a yes/no prompt."""
-        if self.question.mode != usertypes.PromptMode.yesno:
+        if self._question.mode != usertypes.PromptMode.yesno:
             # We just ignore this if we don't have a yes/no question.
             return
-        self.question.answer = True
+        self._question.answer = True
         modeman.leave(usertypes.KeyMode.yesno, 'yesno accept')
-        self.question.done()
+        self._question.done()
 
-    @cmdutils.register(instance='mainwindow.status.prompt.prompter', hide=True,
+    @cmdutils.register(instance='prompter', hide=True,
                        modes=[usertypes.KeyMode.yesno])
     def prompt_no(self):
         """Answer no to a yes/no prompt."""
-        if self.question.mode != usertypes.PromptMode.yesno:
+        if self._question.mode != usertypes.PromptMode.yesno:
             # We just ignore this if we don't have a yes/no question.
             return
-        self.question.answer = False
+        self._question.answer = False
         modeman.leave(usertypes.KeyMode.yesno, 'prompt accept')
-        self.question.done()
+        self._question.done()
 
     @pyqtSlot(usertypes.Question, bool)
     def ask_question(self, question, blocking):
@@ -277,16 +280,17 @@ class Prompter:
             # restore it after exec, if exec gets called multiple times.
             context = self._get_ctx()
 
-        self.question = question
+        self._question = question
         mode = self._display_question()
         question.aborted.connect(lambda: modeman.maybe_leave(mode, 'aborted'))
+        mode_manager = objreg.get('mode-manager')
         try:
             modeman.enter(mode, 'question asked')
         except modeman.ModeLockedError:
-            if modeman.instance().mode() != usertypes.KeyMode.prompt:
+            if mode_manager.mode() != usertypes.KeyMode.prompt:
                 question.abort()
                 return None
-        modeman.instance().locked = True
+        mode_manager.locked = True
         if blocking:
             loop = qtutils.EventLoop()
             self._loops.append(loop)
@@ -299,6 +303,6 @@ class Prompter:
                 # questions.
                 if self._queue:
                     self._pop_later()
-            return self.question.answer
+            return self._question.answer
         else:
             question.completed.connect(self._pop_later)

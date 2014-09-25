@@ -19,14 +19,14 @@
 
 """The commandline in the statusbar."""
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QCoreApplication, QUrl
-from PyQt5.QtWidgets import QSizePolicy, QApplication
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QUrl
+from PyQt5.QtWidgets import QSizePolicy
 
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.commands import runners, cmdexc, cmdutils
 from qutebrowser.widgets import misc
 from qutebrowser.models import cmdhistory
-from qutebrowser.utils import usertypes, log
+from qutebrowser.utils import usertypes, log, objreg
 
 
 class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
@@ -34,9 +34,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     """The commandline part of the statusbar.
 
     Attributes:
-        cursor_part: The part the cursor is currently over.
-        parts: A list of strings with the split commandline
-        prefix: The prefix currently entered.
+        _cursor_part: The part the cursor is currently over.
 
     Signals:
         got_cmd: Emitted when a command is triggered by the user.
@@ -73,8 +71,8 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     def __init__(self, parent=None):
         misc.CommandLineEdit.__init__(self, parent)
         misc.MinimalLineEditMixin.__init__(self)
-        self.cursor_part = 0
-        self.history.history = QApplication.instance().cmd_history.data
+        self._cursor_part = 0
+        self.history.history = objreg.get('command-history').data
         self._empty_item_idx = None
         self.textEdited.connect(self.on_text_edited)
         self.cursorPositionChanged.connect(self._update_cursor_part)
@@ -124,7 +122,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         for i, part in enumerate(self.split()):
             if cursor_pos <= len(part):
                 # foo| bar
-                self.cursor_part = i
+                self._cursor_part = i
                 if spaces:
                     self._empty_item_idx = i
                 else:
@@ -132,14 +130,14 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
                 break
             cursor_pos -= (len(part) + 1)  # FIXME are spaces always 1 char?
         log.completion.debug("cursor_part {}, spaces {}".format(
-            self.cursor_part, spaces))
+            self._cursor_part, spaces))
         return
 
     @pyqtSlot()
     def on_cursor_position_changed(self):
         """Update completion when the cursor position changed."""
         self.update_completion.emit(self.prefix(), self.split(),
-                                    self.cursor_part)
+                                    self._cursor_part)
 
     @pyqtSlot(str)
     def set_cmd_text(self, text):
@@ -156,11 +154,11 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         if old_text != text:
             # We want the completion to pop out here.
             self.update_completion.emit(self.prefix(), self.split(),
-                                        self.cursor_part)
+                                        self._cursor_part)
         self.setFocus()
         self.show_cmd.emit()
 
-    @cmdutils.register(instance='mainwindow.status.cmd', name='set-cmd-text')
+    @cmdutils.register(instance='status-command', name='set-cmd-text')
     def set_cmd_text_command(self, text):
         """Preset the statusbar to some text.
 
@@ -172,8 +170,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         Args:
             text: The commandline to set.
         """
-        app = QCoreApplication.instance()
-        url = app.mainwindow.tabs.current_url().toString(
+        url = objreg.get('tabbed-browser').current_url().toString(
             QUrl.FullyEncoded | QUrl.RemovePassword)
         # FIXME we currently replace the URL in any place in the arguments,
         # rather than just replacing it if it is a dedicated argument. We could
@@ -197,16 +194,16 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         """
         parts = self.split()
         log.completion.debug("changing part {} to '{}'".format(
-            self.cursor_part, newtext))
-        parts[self.cursor_part] = newtext
+            self._cursor_part, newtext))
+        parts[self._cursor_part] = newtext
         # We want to place the cursor directly after the part we just changed.
-        cursor_str = self.prefix() + ' '.join(parts[:self.cursor_part + 1])
+        cursor_str = self.prefix() + ' '.join(parts[:self._cursor_part + 1])
         if immediate:
             # If we should complete immediately, we want to move the cursor by
             # one more char, to get to the next field.
             cursor_str += ' '
         text = self.prefix() + ' '.join(parts)
-        if immediate and self.cursor_part == len(parts) - 1:
+        if immediate and self._cursor_part == len(parts) - 1:
             # If we should complete immediately and we're completing the last
             # part in the commandline, we automatically add a space.
             text += ' '
@@ -216,7 +213,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.setFocus()
         self.show_cmd.emit()
 
-    @cmdutils.register(instance='mainwindow.status.cmd', hide=True,
+    @cmdutils.register(instance='status-command', hide=True,
                        modes=[usertypes.KeyMode.command])
     def command_history_prev(self):
         """Go back in the commandline history."""
@@ -231,7 +228,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         if item:
             self.set_cmd_text(item)
 
-    @cmdutils.register(instance='mainwindow.status.cmd', hide=True,
+    @cmdutils.register(instance='status-command', hide=True,
                        modes=[usertypes.KeyMode.command])
     def command_history_next(self):
         """Go forward in the commandline history."""
@@ -244,7 +241,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         if item:
             self.set_cmd_text(item)
 
-    @cmdutils.register(instance='mainwindow.status.cmd', hide=True,
+    @cmdutils.register(instance='status-command', hide=True,
                        modes=[usertypes.KeyMode.command])
     def command_accept(self):
         """Execute the command currently in the commandline.

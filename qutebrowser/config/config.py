@@ -30,28 +30,23 @@ import functools
 import configparser
 import collections.abc
 
-from PyQt5.QtCore import pyqtSignal, QObject, QCoreApplication
+from PyQt5.QtCore import pyqtSignal, QObject
 
 from qutebrowser.utils import log
 from qutebrowser.config import configdata, iniparsers, configtypes, textwrapper
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message
+from qutebrowser.utils import message, objreg
 from qutebrowser.utils.usertypes import Completion
-
-
-def instance():
-    """Get the global config instance."""
-    return QCoreApplication.instance().config
 
 
 def get(*args, **kwargs):
     """Convenience method to call get(...) of the config instance."""
-    return instance().get(*args, **kwargs)
+    return objreg.get('config').get(*args, **kwargs)
 
 
 def section(sect):
     """Get a config section from the global config."""
-    return instance()[sect]
+    return objreg.get('config')[sect]
 
 
 class NoSectionError(configparser.NoSectionError):

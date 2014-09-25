@@ -32,6 +32,7 @@ class ReadConfigParser(configparser.ConfigParser):
 
     Attributes:
         _configdir: The directory to read the config from.
+        _fname: The filename of the config.
         _configfile: The config file path.
     """
 
@@ -45,11 +46,16 @@ class ReadConfigParser(configparser.ConfigParser):
         super().__init__(interpolation=None, comment_prefixes='#')
         self.optionxform = lambda opt: opt  # be case-insensitive
         self._configdir = configdir
+        self._fname = fname
         self._configfile = os.path.join(self._configdir, fname)
         if not os.path.isfile(self._configfile):
             return
         log.init.debug("Reading config from {}".format(self._configfile))
         self.read(self._configfile, encoding='utf-8')
+
+    def __repr__(self):
+        return '{}("{}", "{}")'.format(
+            self.__class__.__name__, self._configdir, self._fname)
 
 
 class ReadWriteConfigParser(ReadConfigParser):

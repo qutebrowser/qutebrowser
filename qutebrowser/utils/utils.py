@@ -532,8 +532,8 @@ class prevent_exceptions:  # pylint: disable=invalid-name
     much cleaner to implement.
 
     Attributes:
-        retval: The value to return in case of an exception.
-        predicate: The condition which needs to be True to prevent exceptions
+        _retval: The value to return in case of an exception.
+        _predicate: The condition which needs to be True to prevent exceptions
     """
 
     def __init__(self, retval, predicate=True):
@@ -544,8 +544,8 @@ class prevent_exceptions:  # pylint: disable=invalid-name
         Args:
             See class attributes.
         """
-        self.retval = retval
-        self.predicate = predicate
+        self._retval = retval
+        self._predicate = predicate
 
     def __call__(self, func):
         """Gets called when a function should be decorated.
@@ -556,10 +556,10 @@ class prevent_exceptions:  # pylint: disable=invalid-name
         Return:
             The decorated function.
         """
-        if not self.predicate:
+        if not self._predicate:
             return func
 
-        retval = self.retval
+        retval = self._retval
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):  # pylint: disable=missing-docstring

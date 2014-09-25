@@ -65,6 +65,7 @@ class KeyConfigParser(QObject):
         """
         super().__init__(parent)
         self._configdir = configdir
+        self._fname = fname
         self._configfile = os.path.join(self._configdir, fname)
         self._cur_section = None
         self._cur_command = None
@@ -97,6 +98,10 @@ class KeyConfigParser(QObject):
                 lines.append('')
         return '\n'.join(lines) + '\n'
 
+    def __repr__(self):
+        return '{}("{}", "{}")'.format(
+            self.__class__.__name__, self._configdir, self._fname)
+
     def _str_section_desc(self, sectname):
         """Get the section description string for sectname."""
         wrapper = textwrapper.TextWrapper()
@@ -119,7 +124,7 @@ class KeyConfigParser(QObject):
         with open(self._configfile, 'w', encoding='utf-8') as f:
             f.write(str(self))
 
-    @cmdutils.register(instance='keyconfig')
+    @cmdutils.register(instance='key-config')
     def bind(self, key, *command, mode=None):
         """Bind a key to a command.
 
@@ -144,7 +149,7 @@ class KeyConfigParser(QObject):
         for m in mode.split(','):
             self.changed.emit(m)
 
-    @cmdutils.register(instance='keyconfig')
+    @cmdutils.register(instance='key-config')
     def unbind(self, key, mode=None):
         """Unbind a keychain.
 

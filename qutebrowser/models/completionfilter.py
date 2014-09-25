@@ -34,14 +34,12 @@ class CompletionFilterModel(QSortFilterProxyModel):
     """Subclass of QSortFilterProxyModel with custom sorting/filtering.
 
     Attributes:
-        srcmodel: The source model of this QSFPM.
         _pattern: The pattern to filter with.
     """
 
     def __init__(self, source, parent=None):
         super().__init__(parent)
         super().setSourceModel(source)
-        self.srcmodel = source
         self._pattern = ''
 
     def set_pattern(self, val):
@@ -59,7 +57,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
         self.invalidateFilter()
         sortcol = 0
         try:
-            self.srcmodel.sort(sortcol)
+            self.sourceModel().sort(sortcol)
         except NotImplementedError:
             self.sort(sortcol)
         self.invalidate()
@@ -109,13 +107,12 @@ class CompletionFilterModel(QSortFilterProxyModel):
                 qtutils.ensure_valid(index)
                 index = self.mapToSource(index)
                 qtutils.ensure_valid(index)
-                self.srcmodel.mark_item(index, text)
+                self.sourceModel().mark_item(index, text)
 
     def setSourceModel(self, model):
         """Override QSortFilterProxyModel's setSourceModel to clear pattern."""
         log.completion.debug("Setting source model: {}".format(model))
         self.set_pattern('')
-        self.srcmodel = model
         super().setSourceModel(model)
 
     def filterAcceptsRow(self, row, parent):
@@ -133,9 +130,9 @@ class CompletionFilterModel(QSortFilterProxyModel):
         """
         if parent == QModelIndex():
             return True
-        idx = self.srcmodel.index(row, 0, parent)
+        idx = self.sourceModel().index(row, 0, parent)
         qtutils.ensure_valid(idx)
-        data = self.srcmodel.data(idx)
+        data = self.sourceModel().data(idx)
         # TODO more sophisticated filtering
         if not self._pattern:
             return True
@@ -157,14 +154,16 @@ class CompletionFilterModel(QSortFilterProxyModel):
         qtutils.ensure_valid(lindex)
         qtutils.ensure_valid(rindex)
 
-        left_sort = self.srcmodel.data(lindex, role=completion.Role.sort)
-        right_sort = self.srcmodel.data(rindex, role=completion.Role.sort)
+        srcmodel = self.sourceModel()
+
+        left_sort = srcmodel.data(lindex, role=completion.Role.sort)
+        right_sort = srcmodel.data(rindex, role=completion.Role.sort)
 
         if left_sort is not None and right_sort is not None:
             return left_sort < right_sort
 
-        left = self.srcmodel.data(lindex)
-        right = self.srcmodel.data(rindex)
+        left = srcmodel.data(lindex)
+        right = srcmodel.data(rindex)
 
         leftstart = left.startswith(self._pattern)
         rightstart = right.startswith(self._pattern)

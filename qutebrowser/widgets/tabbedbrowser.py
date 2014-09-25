@@ -27,11 +27,11 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.commands import cmdexc
 from qutebrowser.keyinput import modeman
 from qutebrowser.widgets import tabwidget, webview
 from qutebrowser.browser import signalfilter, commands
-from qutebrowser.utils import log, message, usertypes, utils, qtutils
+from qutebrowser.utils import log, message, usertypes, utils, qtutils, objreg
 
 
 class TabbedBrowser(tabwidget.TabWidget):
@@ -53,9 +53,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         _tab_insert_idx_left: Where to insert a new tab with
                          tabbar -> new-tab-position set to 'left'.
         _tab_insert_idx_right: Same as above, for 'right'.
-        url_stack: Stack of URLs of closed tabs.
-        cmd: A TabCommandDispatcher instance.
-        last_focused: The tab which was focused last.
+        _url_stack: Stack of URLs of closed tabs.
 
     Signals:
         cur_progress: Progress of the current tab changed (loadProgress).
@@ -69,8 +67,6 @@ class TabbedBrowser(tabwidget.TabWidget):
                                  arg 1: x-position in %.
                                  arg 2: y-position in %.
         cur_load_status_changed: Loading status of current tab changed.
-        hint_strings_updated: Hint strings were updated.
-                              arg: A list of hint strings.
         quit: The last tab was closed, quit application.
         resized: Emitted when the browser window has resized, so the completion
                  widget can adjust its size to it.
@@ -80,7 +76,6 @@ class TabbedBrowser(tabwidget.TabWidget):
         current_tab_changed: The current tab changed to the emitted WebView.
         title_changed: Emitted when the application title should be changed.
                        arg: The new title as string.
-        download_get: Emitted when a QUrl should be downloaded.
     """
 
     cur_progress = pyqtSignal(int)
@@ -92,8 +87,6 @@ class TabbedBrowser(tabwidget.TabWidget):
     cur_scroll_perc_changed = pyqtSignal(int, int)
     cur_load_status_changed = pyqtSignal(str)
     start_download = pyqtSignal('QNetworkReply*')
-    download_get = pyqtSignal('QUrl', 'QWebPage')
-    hint_strings_updated = pyqtSignal(list)
     quit = pyqtSignal()
     resized = pyqtSignal('QRect')
     got_cmd = pyqtSignal(str)
@@ -108,10 +101,11 @@ class TabbedBrowser(tabwidget.TabWidget):
         self.currentChanged.connect(self.on_current_changed)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._tabs = []
-        self.url_stack = []
+        self._url_stack = []
+        objreg.register('url-stack', self._url_stack)
         self._filter = signalfilter.SignalFilter(self)
-        self.cmd = commands.CommandDispatcher(self)
-        self.last_focused = None
+        dispatcher = commands.CommandDispatcher()
+        objreg.register('command-dispatcher', dispatcher)
         self._now_focused = None
         # FIXME adjust this to font size
         self.setIconSize(QSize(12, 12))
@@ -154,10 +148,6 @@ class TabbedBrowser(tabwidget.TabWidget):
             self._filter.create(self.cur_load_status_changed, tab))
         tab.url_text_changed.connect(
             functools.partial(self.on_url_text_changed, tab))
-        # hintmanager
-        tab.hintmanager.hint_strings_updated.connect(self.hint_strings_updated)
-        tab.hintmanager.download_get.connect(self.download_get)
-        tab.hintmanager.openurl.connect(self.openurl)
         self.cur_load_started.connect(self.on_cur_load_started)
         # downloads
         page.start_download.connect(self.start_download)
@@ -174,25 +164,6 @@ class TabbedBrowser(tabwidget.TabWidget):
             functools.partial(self.on_load_started, tab))
         page.windowCloseRequested.connect(
             functools.partial(self.on_window_close_requested, tab))
-
-    def cntwidget(self, count=None):
-        """Return a widget based on a count/idx.
-
-        Args:
-            count: The tab index, or None.
-
-        Return:
-            The current widget if count is None.
-            The widget with the given tab ID if count is given.
-            None if no widget was found.
-        """
-        if count is None:
-            return self.currentWidget()
-        elif 1 <= count <= self.count():
-            cmdutils.check_overflow(count + 1, 'int')
-            return self.widget(count - 1)
-        else:
-            return None
 
     def current_url(self):
         """Get the URL of the current tab.
@@ -263,11 +234,11 @@ class TabbedBrowser(tabwidget.TabWidget):
                 tab))
         if tab is self._now_focused:
             self._now_focused = None
-        if tab is self.last_focused:
-            self.last_focused = None
+        if tab is objreg.get('last-focused-tab', None):
+            objreg.delete('last-focused-tab')
         if not tab.cur_url.isEmpty():
             qtutils.ensure_valid(tab.cur_url)
-            self.url_stack.append(tab.cur_url)
+            self._url_stack.append(tab.cur_url)
         tab.shutdown()
         self._tabs.remove(tab)
         self.removeTab(idx)
@@ -393,21 +364,6 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We first want QWebPage to refresh.
             QTimer.singleShot(0, check_scroll_pos)
 
-    @pyqtSlot(str)
-    def handle_hint_key(self, keystr):
-        """Handle a new hint keypress."""
-        self.currentWidget().hintmanager.handle_partial_key(keystr)
-
-    @pyqtSlot(str)
-    def fire_hint(self, keystr):
-        """Fire a completed hint."""
-        self.currentWidget().hintmanager.fire(keystr)
-
-    @pyqtSlot(str)
-    def filter_hints(self, filterstr):
-        """Filter displayed hints."""
-        self.currentWidget().hintmanager.filter_hints(filterstr)
-
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update tab config when config was changed."""
@@ -522,11 +478,12 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     @pyqtSlot(int)
     def on_current_changed(self, idx):
-        """Set last_focused and leave hinting mode when focus changed."""
+        """Set last-focused-tab and leave hinting mode when focus changed."""
         tab = self.widget(idx)
         tab.setFocus()
         modeman.maybe_leave(usertypes.KeyMode.hint, 'tab changed')
-        self.last_focused = self._now_focused
+        if self._now_focused is not None:
+            objreg.register('last-focused-tab', self._now_focused, update=True)
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
         self.title_changed.emit('{} - qutebrowser'.format(self.tabText(idx)))

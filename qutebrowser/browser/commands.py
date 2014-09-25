@@ -36,9 +36,9 @@ import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils
 from qutebrowser.config import config
-from qutebrowser.browser import hints, quickmarks, webelem
+from qutebrowser.browser import quickmarks, webelem
 from qutebrowser.utils import (message, editor, usertypes, log, qtutils,
-                               urlutils)
+                               urlutils, objreg)
 
 
 class CommandDispatcher:
@@ -52,22 +52,34 @@ class CommandDispatcher:
     cmdutils.register() decorators are run, currentWidget() will return None.
 
     Attributes:
-        _tabs: The TabbedBrowser object.
         _editor: The ExternalEditor object.
     """
 
-    def __init__(self, parent):
-        """Constructor.
-
-        Args:
-            parent: The TabbedBrowser for this dispatcher.
-        """
-        self._tabs = parent
+    def __init__(self):
         self._editor = None
+
+    def __repr__(self):
+        return '<{}>'.format(self.__class__.__name__)
+
+    def _count(self):
+        """Convenience method to get the widget count."""
+        return objreg.get('tabbed-browser').count()
+
+    def _set_current_index(self, idx):
+        """Convenience method to set the current widget index."""
+        return objreg.get('tabbed-browser').setCurrentIndex(idx)
+
+    def _current_index(self):
+        """Convenience method to get the current widget index."""
+        return objreg.get('tabbed-browser').currentIndex()
+
+    def _current_url(self):
+        """Convenience method to get the current url."""
+        return objreg.get('tabbed-browser').current_url()
 
     def _current_widget(self):
         """Get the currently active widget from a command."""
-        widget = self._tabs.currentWidget()
+        widget = objreg.get('tabbed-browser').currentWidget()
         if widget is None:
             raise cmdexc.CommandError("No WebView available yet!")
         return widget
@@ -80,15 +92,36 @@ class CommandDispatcher:
             tab: Whether to open in a new tab.
             background: Whether to open in the background.
         """
+        tabbed_browser = objreg.get('tabbed-browser')
         if tab and background:
             raise cmdexc.CommandError("Only one of -t/-b can be given!")
         elif tab:
-            self._tabs.tabopen(url, background=False, explicit=True)
+            tabbed_browser.tabopen(url, background=False, explicit=True)
         elif background:
-            self._tabs.tabopen(url, background=True, explicit=True)
+            tabbed_browser.tabopen(url, background=True, explicit=True)
         else:
             widget = self._current_widget()
             widget.openurl(url)
+
+    def _cntwidget(self, count=None):
+        """Return a widget based on a count/idx.
+
+        Args:
+            count: The tab index, or None.
+
+        Return:
+            The current widget if count is None.
+            The widget with the given tab ID if count is given.
+            None if no widget was found.
+        """
+        tabbed_browser = objreg.get('tabbed-browser')
+        if count is None:
+            return tabbed_browser.currentWidget()
+        elif 1 <= count <= self._count():
+            cmdutils.check_overflow(count + 1, 'int')
+            return tabbed_browser.widget(count - 1)
+        else:
+            return None
 
     def _scroll_percent(self, perc=None, count=None, orientation=None):
         """Inner logic for scroll_percent_(x|y).
@@ -118,7 +151,7 @@ class CommandDispatcher:
         if idx is None:
             return 0
         elif idx == 0:
-            return self._tabs.count() - 1
+            return self._count() - 1
         else:
             return idx - 1
 
@@ -134,18 +167,20 @@ class CommandDispatcher:
             # gets called from tab_move which has delta set to None by default.
             delta = 1
         if direction == '-':
-            return self._tabs.currentIndex() - delta
+            return self._current_index() - delta
         elif direction == '+':
-            return self._tabs.currentIndex() + delta
+            return self._current_index() + delta
 
     def _tab_focus_last(self):
         """Select the tab which was last focused."""
-        if self._tabs.last_focused is None:
+        try:
+            tab = objreg.get('last-focused-tab')
+        except KeyError:
             raise cmdexc.CommandError("No last focused tab!")
-        idx = self._tabs.indexOf(self._tabs.last_focused)
+        idx = objreg.get('tabbed-browser').indexOf(tab)
         if idx == -1:
             raise cmdexc.CommandError("Last focused tab vanished!")
-        self._tabs.setCurrentIndex(idx)
+        self._set_current_index(idx)
 
     def _editor_cleanup(self, oshandle, filename):
         """Clean up temporary file when the editor was closed."""
@@ -155,7 +190,7 @@ class CommandDispatcher:
         except PermissionError:
             raise cmdexc.CommandError("Failed to delete tempfile...")
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def tab_close(self, count=None):
         """Close the current/[count]th tab.
 
@@ -166,12 +201,12 @@ class CommandDispatcher:
             quit: If last tab was closed and last-close in config is set to
                   quit.
         """
-        tab = self._tabs.cntwidget(count)
+        tab = self._cntwidget(count)
         if tab is None:
             return
-        self._tabs.close_tab(tab)
+        objreg.get('tabbed-browser').close_tab(tab)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd', name='open',
+    @cmdutils.register(instance='command-dispatcher', name='open',
                        split=False)
     def openurl(self, url, bg=False, tab=False, count=None):
         """Open a URL in the current/[count]th tab.
@@ -186,46 +221,44 @@ class CommandDispatcher:
             url = urlutils.fuzzy_url(url)
         except urlutils.FuzzyUrlError as e:
             raise cmdexc.CommandError(e)
-        if tab:
-            self._tabs.tabopen(url, background=False, explicit=True)
-        elif bg:
-            self._tabs.tabopen(url, background=True, explicit=True)
+        if tab or bg:
+            self._open(url, tab, bg)
         else:
-            curtab = self._tabs.cntwidget(count)
+            curtab = self._cntwidget(count)
             if curtab is None:
                 if count is None:
                     # We want to open a URL in the current tab, but none exists
                     # yet.
-                    self._tabs.tabopen(url)
+                    objreg.get('tabbed-browser').tabopen(url)
                 else:
                     # Explicit count with a tab that doesn't exist.
                     return
             else:
                 curtab.openurl(url)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd', name='reload')
+    @cmdutils.register(instance='command-dispatcher', name='reload')
     def reloadpage(self, count=None):
         """Reload the current/[count]th tab.
 
         Args:
             count: The tab index to reload, or None.
         """
-        tab = self._tabs.cntwidget(count)
+        tab = self._cntwidget(count)
         if tab is not None:
             tab.reload()
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def stop(self, count=None):
         """Stop loading in the current/[count]th tab.
 
         Args:
             count: The tab index to stop, or None.
         """
-        tab = self._tabs.cntwidget(count)
+        tab = self._cntwidget(count)
         if tab is not None:
             tab.stop()
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd', name='print')
+    @cmdutils.register(instance='command-dispatcher', name='print')
     def printpage(self, preview=False, count=None):
         """Print the current/[count]th tab.
 
@@ -237,7 +270,7 @@ class CommandDispatcher:
             # WORKAROUND (remove this when we bump the requirements to 5.3.0)
             raise cmdexc.CommandError(
                 "Printing on Qt < 5.3.0 on Windows is broken, please upgrade!")
-        tab = self._tabs.cntwidget(count)
+        tab = self._cntwidget(count)
         if tab is not None:
             if preview:
                 diag = QPrintPreviewDialog()
@@ -249,7 +282,7 @@ class CommandDispatcher:
                 diag.setAttribute(Qt.WA_DeleteOnClose)
                 diag.open(lambda: tab.print(diag.printer()))
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def back(self, count=1):
         """Go back in the history of the current tab.
 
@@ -259,7 +292,7 @@ class CommandDispatcher:
         for _ in range(count):
             self._current_widget().go_back()
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def forward(self, count=1):
         """Go forward in the history of the current tab.
 
@@ -268,55 +301,6 @@ class CommandDispatcher:
         """
         for _ in range(count):
             self._current_widget().go_forward()
-
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
-    def hint(self, group=webelem.Group.all, target=hints.Target.normal,
-             *args: {'nargs': '*'}):
-        """Start hinting.
-
-        Args:
-            group: The hinting mode to use.
-
-                - `all`: All clickable elements.
-                - `links`: Only links.
-                - `images`: Only images.
-
-            target: What to do with the selected element.
-
-                - `normal`: Open the link in the current tab.
-                - `tab`: Open the link in a new tab.
-                - `tab-bg`: Open the link in a new background tab.
-                - `yank`: Yank the link to the clipboard.
-                - `yank-primary`: Yank the link to the primary selection.
-                - `fill`: Fill the commandline with the command given as
-                          argument.
-                - `rapid`: Open the link in a new tab and stay in hinting mode.
-                - `download`: Download the link.
-                - `userscript`: Call an userscript with `$QUTE_URL` set to the
-                                link.
-                - `spawn`: Spawn a command.
-
-            *args: Arguments for spawn/userscript/fill.
-
-                - With `spawn`: The executable and arguments to spawn.
-                                `{hint-url}` will get replaced by the selected
-                                URL.
-                - With `userscript`: The userscript to execute.
-                - With `fill`: The command to fill the statusbar with.
-                                `{hint-url}` will get replaced by the selected
-                                URL.
-        """
-        widget = self._current_widget()
-        frame = widget.page().mainFrame()
-        if frame is None:
-            raise cmdexc.CommandError("No frame focused!")
-        widget.hintmanager.start(frame, self._tabs.current_url(), group,
-                                 target, *args)
-
-    @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
-    def follow_hint(self):
-        """Follow the currently selected hint."""
-        self._current_widget().hintmanager.follow_hint()
 
     def _navigate_incdec(self, url, tab, incdec):
         """Helper method for :navigate when `where' is increment/decrement.
@@ -365,7 +349,7 @@ class CommandDispatcher:
         url.setPath(new_path)
         self._open(url, tab, background=False)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def navigate(self, where: ('prev', 'next', 'up', 'increment', 'decrement'),
                  tab=False):
         """Open typical prev/next links or navigate using the URL path.
@@ -388,15 +372,14 @@ class CommandDispatcher:
         """
         widget = self._current_widget()
         frame = widget.page().currentFrame()
-        url = self._tabs.current_url()
+        url = self._current_url()
         if frame is None:
             raise cmdexc.CommandError("No frame focused!")
+        hintmanager = objreg.get('hintmanager', scope='tab')
         if where == 'prev':
-            widget.hintmanager.follow_prevnext(frame, url, prev=True,
-                                               newtab=tab)
+            hintmanager.follow_prevnext(frame, url, prev=True, newtab=tab)
         elif where == 'next':
-            widget.hintmanager.follow_prevnext(frame, url, prev=False,
-                                               newtab=tab)
+            hintmanager.follow_prevnext(frame, url, prev=False, newtab=tab)
         elif where == 'up':
             self._navigate_up(url, tab)
         elif where in ('decrement', 'increment'):
@@ -405,7 +388,7 @@ class CommandDispatcher:
             raise ValueError("Got called with invalid value {} for "
                              "`where'.".format(where))
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
+    @cmdutils.register(instance='command-dispatcher', hide=True)
     def scroll(self, dx: float, dy: float, count=1):
         """Scroll the current tab by 'count * dx/dy'.
 
@@ -420,7 +403,7 @@ class CommandDispatcher:
         cmdutils.check_overflow(dy, 'int')
         self._current_widget().page().currentFrame().scroll(dx, dy)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
+    @cmdutils.register(instance='command-dispatcher', hide=True)
     def scroll_perc(self, perc: float=None,
                     horizontal: {'flag': 'x'}=False, count=None):
         """Scroll to a specific percentage of the page.
@@ -436,7 +419,7 @@ class CommandDispatcher:
         self._scroll_percent(perc, count,
                              Qt.Horizontal if horizontal else Qt.Vertical)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd', hide=True)
+    @cmdutils.register(instance='command-dispatcher', hide=True)
     def scroll_page(self, x: float, y: float, count=1):
         """Scroll the frame page-wise.
 
@@ -453,7 +436,7 @@ class CommandDispatcher:
         cmdutils.check_overflow(dy, 'int')
         frame.scroll(dx, dy)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def yank(self, title=False, sel=False):
         """Yank the current URL/title to the clipboard or primary selection.
 
@@ -463,9 +446,9 @@ class CommandDispatcher:
         """
         clipboard = QApplication.clipboard()
         if title:
-            s = self._tabs.tabText(self._tabs.currentIndex())
+            s = objreg.get('tabbed-browser').tabText(self._current_index())
         else:
-            s = self._tabs.current_url().toString(
+            s = self._current_url().toString(
                 QUrl.FullyEncoded | QUrl.RemovePassword)
         if sel and clipboard.supportsSelection():
             mode = QClipboard.Selection
@@ -478,7 +461,7 @@ class CommandDispatcher:
         what = 'Title' if title else 'URL'
         message.info("{} yanked to {}".format(what, target))
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def zoom_in(self, count=1):
         """Increase the zoom level for the current tab.
 
@@ -488,7 +471,7 @@ class CommandDispatcher:
         tab = self._current_widget()
         tab.zoom(count)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def zoom_out(self, count=1):
         """Decrease the zoom level for the current tab.
 
@@ -498,7 +481,7 @@ class CommandDispatcher:
         tab = self._current_widget()
         tab.zoom(-count)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def zoom(self, zoom=None, count=None):
         """Set the zoom level for the current tab.
 
@@ -516,53 +499,55 @@ class CommandDispatcher:
         tab = self._current_widget()
         tab.zoom_perc(level)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def tab_only(self):
         """Close all tabs except for the current one."""
-        for tab in self._tabs.widgets():
+        tabbed_browser = objreg.get('tabbed-browser')
+        for tab in tabbed_browser.widgets():
             if tab is self._current_widget():
                 continue
-            self._tabs.close_tab(tab)
+            tabbed_browser.close_tab(tab)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def undo(self):
         """Re-open a closed tab (optionally skipping [count] closed tabs)."""
-        if self._tabs.url_stack:
-            self._tabs.tabopen(self._tabs.url_stack.pop())
+        url_stack = objreg.get('url-stack', None)
+        if url_stack:
+            objreg.get('tabbed-browser').tabopen(url_stack.pop())
         else:
             raise cmdexc.CommandError("Nothing to undo!")
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def tab_prev(self, count=1):
         """Switch to the previous tab, or switch [count] tabs back.
 
         Args:
             count: How many tabs to switch back.
         """
-        newidx = self._tabs.currentIndex() - count
+        newidx = self._current_index() - count
         if newidx >= 0:
-            self._tabs.setCurrentIndex(newidx)
+            self._set_current_index(newidx)
         elif config.get('tabs', 'wrap'):
-            self._tabs.setCurrentIndex(newidx % self._tabs.count())
+            self._set_current_index(newidx % self._count())
         else:
             raise cmdexc.CommandError("First tab")
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def tab_next(self, count=1):
         """Switch to the next tab, or switch [count] tabs forward.
 
         Args:
             count: How many tabs to switch forward.
         """
-        newidx = self._tabs.currentIndex() + count
-        if newidx < self._tabs.count():
-            self._tabs.setCurrentIndex(newidx)
+        newidx = self._current_index() + count
+        if newidx < self._count():
+            self._set_current_index(newidx)
         elif config.get('tabs', 'wrap'):
-            self._tabs.setCurrentIndex(newidx % self._tabs.count())
+            self._set_current_index(newidx % self._count())
         else:
             raise cmdexc.CommandError("Last tab")
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def paste(self, sel=False, tab=False, bg=False):
         """Open a page from the clipboard.
 
@@ -588,7 +573,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError(e)
         self._open(url, tab, bg)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def tab_focus(self, index: (int, 'last')=None, count=None):
         """Select the tab given as argument/[count].
 
@@ -602,17 +587,17 @@ class CommandDispatcher:
             return
         try:
             idx = cmdutils.arg_or_count(index, count, default=1,
-                                        countzero=self._tabs.count())
+                                        countzero=self._count())
         except ValueError as e:
             raise cmdexc.CommandError(e)
         cmdutils.check_overflow(idx + 1, 'int')
-        if 1 <= idx <= self._tabs.count():
-            self._tabs.setCurrentIndex(idx - 1)
+        if 1 <= idx <= self._count():
+            self._set_current_index(idx - 1)
         else:
             raise cmdexc.CommandError("There's no tab with index {}!".format(
                 idx))
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def tab_move(self, direction: ('+', '-')=None, count=None):
         """Move the current tab.
 
@@ -633,24 +618,25 @@ class CommandDispatcher:
         else:
             raise cmdexc.CommandError("Invalid direction '{}'!".format(
                 direction))
-        if not 0 <= new_idx < self._tabs.count():
+        if not 0 <= new_idx < self._count():
             raise cmdexc.CommandError("Can't move tab to position {}!".format(
                 new_idx))
+        tabbed_browser = objreg.get('tabbed-browser')
         tab = self._current_widget()
-        cur_idx = self._tabs.currentIndex()
-        icon = self._tabs.tabIcon(cur_idx)
-        label = self._tabs.tabText(cur_idx)
+        cur_idx = self._current_index()
+        icon = tabbed_browser.tabIcon(cur_idx)
+        label = tabbed_browser.tabText(cur_idx)
         cmdutils.check_overflow(cur_idx, 'int')
         cmdutils.check_overflow(new_idx, 'int')
-        self._tabs.setUpdatesEnabled(False)
+        tabbed_browser.setUpdatesEnabled(False)
         try:
-            self._tabs.removeTab(cur_idx)
-            self._tabs.insertTab(new_idx, tab, icon, label)
-            self._tabs.setCurrentIndex(new_idx)
+            tabbed_browser.removeTab(cur_idx)
+            tabbed_browser.insertTab(new_idx, tab, icon, label)
+            self._set_current_index(new_idx)
         finally:
-            self._tabs.setUpdatesEnabled(True)
+            tabbed_browser.setUpdatesEnabled(True)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd', split=False)
+    @cmdutils.register(instance='command-dispatcher', split=False)
     def spawn(self, *args):
         """Spawn a command in a shell.
 
@@ -668,12 +654,12 @@ class CommandDispatcher:
         log.procs.debug("Executing: {}".format(args))
         subprocess.Popen(args)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def home(self):
         """Open main startpage in current tab."""
         self.openurl(config.get('general', 'startpage')[0])
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def run_userscript(self, cmd, *args: {'nargs': '*'}):
         """Run an userscript given as argument.
 
@@ -681,15 +667,14 @@ class CommandDispatcher:
             cmd: The userscript to run.
             args: Arguments to pass to the userscript.
         """
-        url = self._tabs.current_url()
-        userscripts.run(cmd, *args, url=url)
+        userscripts.run(cmd, *args, url=self._current_url())
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def quickmark_save(self):
         """Save the current page as a quickmark."""
-        quickmarks.prompt_save(self._tabs.current_url())
+        quickmarks.prompt_save(self._current_url())
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def quickmark_load(self, name, tab=False, bg=False):
         """Load a quickmark.
 
@@ -705,7 +690,7 @@ class CommandDispatcher:
                 urlstr, url.errorString()))
         self._open(url, tab, bg)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd', name='inspector')
+    @cmdutils.register(instance='command-dispatcher', name='inspector')
     def toggle_inspector(self):
         """Toggle the web inspector."""
         cur = self._current_widget()
@@ -727,13 +712,13 @@ class CommandDispatcher:
             else:
                 cur.inspector.show()
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def download_page(self):
         """Download the current page."""
         page = self._current_widget().page()
-        self._tabs.download_get.emit(self._tabs.current_url(), page)
+        objreg.get('download-manager').get(self._current_url(), page)
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd')
+    @cmdutils.register(instance='command-dispatcher')
     def view_source(self):
         """Show the source of the current page."""
         # pylint doesn't seem to like pygments...
@@ -742,17 +727,16 @@ class CommandDispatcher:
         if widget.viewing_source:
             raise cmdexc.CommandError("Already viewing source!")
         frame = widget.page().currentFrame()
-        url = self._tabs.current_url()
         html = frame.toHtml()
         lexer = pygments.lexers.HtmlLexer()
         formatter = pygments.formatters.HtmlFormatter(
             full=True, linenos='table')
         highlighted = pygments.highlight(html, lexer, formatter)
-        tab = self._tabs.tabopen(explicit=True)
-        tab.setHtml(highlighted, url)
+        tab = objreg.get('tabbed-browser').tabopen(explicit=True)
+        tab.setHtml(highlighted, self._current_url())
         tab.viewing_source = True
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd', name='help',
+    @cmdutils.register(instance='command-dispatcher', name='help',
                        completion=[usertypes.Completion.helptopic])
     def show_help(self, topic=None):
         r"""Show help about a command or setting.
@@ -789,7 +773,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Invalid help topic {}!".format(topic))
         self.openurl('qute://help/{}'.format(path))
 
-    @cmdutils.register(instance='mainwindow.tabs.cmd',
+    @cmdutils.register(instance='command-dispatcher',
                        modes=[usertypes.KeyMode.insert],
                        hide=True)
     def open_editor(self):
@@ -815,7 +799,7 @@ class CommandDispatcher:
             text = str(elem)
         else:
             text = elem.evaluateJavaScript('this.value')
-        self._editor = editor.ExternalEditor(self._tabs)
+        self._editor = editor.ExternalEditor(objreg.get('tabbed-browser'))
         self._editor.editing_finished.connect(
             partial(self.on_editing_finished, elem))
         self._editor.edit(text)

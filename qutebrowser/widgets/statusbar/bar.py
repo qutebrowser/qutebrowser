@@ -25,9 +25,8 @@ import datetime
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
-from qutebrowser.keyinput import modeman
 from qutebrowser.config import config, style
-from qutebrowser.utils import usertypes, log
+from qutebrowser.utils import usertypes, log, objreg
 from qutebrowser.widgets.statusbar import (command, progress, keystring,
                                            percentage, url, prompt)
 from qutebrowser.widgets.statusbar import text as textwidget
@@ -41,12 +40,12 @@ class StatusBar(QWidget):
     """The statusbar at the bottom of the mainwindow.
 
     Attributes:
-        cmd: The Command widget in the statusbar.
         txt: The Text widget in the statusbar.
         keystring: The KeyString widget in the statusbar.
         percentage: The Percentage widget in the statusbar.
         url: The UrlText widget in the statusbar.
         prog: The Progress widget in the statusbar.
+        _cmd: The Command widget in the statusbar.
         _hbox: The main QHBoxLayout.
         _stack: The QStackedLayout with cmd/txt widgets.
         _text_queue: A deque of (error, text) tuples to be displayed.
@@ -132,8 +131,9 @@ class StatusBar(QWidget):
         self._hbox.addLayout(self._stack)
         self._stack.setContentsMargins(0, 0, 0, 0)
 
-        self.cmd = command.Command()
-        self._stack.addWidget(self.cmd)
+        self._cmd = command.Command()
+        objreg.register('status-command', self._cmd)
+        self._stack.addWidget(self._cmd)
 
         self.txt = textwidget.Text()
         self._stack.addWidget(self.txt)
@@ -147,8 +147,8 @@ class StatusBar(QWidget):
         self._stack.addWidget(self.prompt)
         self._previous_widget = PreviousWidget.none
 
-        self.cmd.show_cmd.connect(self._show_cmd_widget)
-        self.cmd.hide_cmd.connect(self._hide_cmd_widget)
+        self._cmd.show_cmd.connect(self._show_cmd_widget)
+        self._cmd.hide_cmd.connect(self._hide_cmd_widget)
         self._hide_cmd_widget()
         self.prompt.show_prompt.connect(self._show_prompt_widget)
         self.prompt.hide_prompt.connect(self._hide_prompt_widget)
@@ -260,7 +260,7 @@ class StatusBar(QWidget):
         if self._text_pop_timer.isActive():
             self._timer_was_active = True
         self._text_pop_timer.stop()
-        self._stack.setCurrentWidget(self.cmd)
+        self._stack.setCurrentWidget(self._cmd)
 
     def _hide_cmd_widget(self):
         """Show temporary text instead of command widget."""
@@ -376,7 +376,7 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
-        if mode in modeman.instance().passthrough:
+        if mode in objreg.get('mode-manager').passthrough:
             text = "-- {} MODE --".format(mode.name.upper())
             self.txt.set_text(self.txt.Text.normal, text)
         if mode == usertypes.KeyMode.insert:
@@ -385,7 +385,7 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Clear marked mode."""
-        if mode in modeman.instance().passthrough:
+        if mode in objreg.get('mode-manager').passthrough:
             self.txt.set_text(self.txt.Text.normal, '')
         if mode == usertypes.KeyMode.insert:
             self._set_insert_active(False)

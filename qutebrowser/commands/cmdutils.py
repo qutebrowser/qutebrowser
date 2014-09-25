@@ -91,21 +91,22 @@ class register:  # pylint: disable=invalid-name
     much cleaner to implement.
 
     Attributes:
-        instance: The instance to be used as "self", as a dotted string.
-        name: The name (as string) or names (as list) of the command.
-        split: Whether to split the arguments.
-        hide: Whether to hide the command or not.
-        completion: Which completion to use for arguments, as a list of
-                    strings.
-        modes/not_modes: List of modes to use/not use.
-        needs_js: If javascript is needed for this command.
-        debug: Whether this is a debugging command (only shown with --debug).
-        ignore_args: Whether to ignore the arguments of the function.
+        _instance: The object from the object registry to be used as "self".
+        _scope: The scope to get _instance for.
+        _name: The name (as string) or names (as list) of the command.
+        _split: Whether to split the arguments.
+        _hide: Whether to hide the command or not.
+        _completion: Which completion to use for arguments, as a list of
+                     strings.
+        _modes/_not_modes: List of modes to use/not use.
+        _needs_js: If javascript is needed for this command.
+        _debug: Whether this is a debugging command (only shown with --debug).
+        _ignore_args: Whether to ignore the arguments of the function.
     """
 
     def __init__(self, instance=None, name=None, split=True, hide=False,
                  completion=None, modes=None, not_modes=None, needs_js=False,
-                 debug=False, ignore_args=False):
+                 debug=False, ignore_args=False, scope='global'):
         """Save decorator arguments.
 
         Gets called on parse-time with the decorator arguments.
@@ -116,16 +117,17 @@ class register:  # pylint: disable=invalid-name
         # pylint: disable=too-many-arguments
         if modes is not None and not_modes is not None:
             raise ValueError("Only modes or not_modes can be given!")
-        self.name = name
-        self.split = split
-        self.hide = hide
-        self.instance = instance
-        self.completion = completion
-        self.modes = modes
-        self.not_modes = not_modes
-        self.needs_js = needs_js
-        self.debug = debug
-        self.ignore_args = ignore_args
+        self._name = name
+        self._split = split
+        self._hide = hide
+        self._instance = instance
+        self._scope = scope
+        self._completion = completion
+        self._modes = modes
+        self._not_modes = not_modes
+        self._needs_js = needs_js
+        self._debug = debug
+        self._ignore_args = ignore_args
         if modes is not None:
             for m in modes:
                 if not isinstance(m, usertypes.KeyMode):
@@ -150,12 +152,12 @@ class register:  # pylint: disable=invalid-name
         Return:
             A list of names, with the main name being the first item.
         """
-        if self.name is None:
+        if self._name is None:
             return [func.__name__.lower().replace('_', '-')]
-        elif isinstance(self.name, str):
-            return [self.name]
+        elif isinstance(self._name, str):
+            return [self._name]
         else:
-            return self.name
+            return self._name
 
     def __call__(self, func):
         """Register the command before running the function.
@@ -178,10 +180,11 @@ class register:  # pylint: disable=invalid-name
             if name in cmd_dict:
                 raise ValueError("{} is already registered!".format(name))
         cmd = command.Command(
-            name=names[0], split=self.split, hide=self.hide,
-            instance=self.instance, completion=self.completion,
-            modes=self.modes, not_modes=self.not_modes, needs_js=self.needs_js,
-            is_debug=self.debug, ignore_args=self.ignore_args, handler=func)
+            name=names[0], split=self._split, hide=self._hide,
+            instance=self._instance, scope=self._scope,
+            completion=self._completion, modes=self._modes,
+            not_modes=self._not_modes, needs_js=self._needs_js,
+            is_debug=self._debug, ignore_args=self._ignore_args, handler=func)
         for name in names:
             cmd_dict[name] = cmd
         aliases += names[1:]
