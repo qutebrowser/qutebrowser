@@ -98,6 +98,7 @@ Misc
   windows
 - Current font handling is rather broken (rejecting invalid values / setting
   multiple font families) - we should use PyPEG2 instead.
+- Typing in commandline is rather slow on OS X
 
 Upstream Bugs
 =============
