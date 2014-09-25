@@ -411,15 +411,16 @@ class TabbedBrowser(tabwidget.TabWidget):
             tab: The WebView where the title was changed.
             text: The text to set.
         """
-        log.webview.debug("title changed to '{}'".format(text))
         if not text:
-            log.webview.debug("ignoring title change")
+            log.webview.debug("Ignoring title change to '{}'.".format(text))
             return
         try:
             idx = self.indexOf(tab)
         except RuntimeError:
             # We can get signals for tabs we already deleted...
             return
+        log.webview.debug("Changing title for idx {} to '{}'".format(
+            idx, text))
         if idx == -1:
             # We can get signals for tabs we already deleted...
             log.webview.debug("Got invalid tab {}!".format(tab))
