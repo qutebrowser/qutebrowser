@@ -125,6 +125,13 @@ class TabbedBrowser(tabwidget.TabWidget):
             w.append(self.widget(i))
         return w
 
+    def _change_app_title(self, text):
+        """Change the window title based on the tab text."""
+        if not text:
+            self.title_changed.emit('qutebrowser')
+        else:
+            self.title_changed.emit('{} - qutebrowser'.format(text))
+
     def _connect_tab_signals(self, tab):
         """Set up the needed signals for tab."""
         page = tab.page()
@@ -427,7 +434,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             return
         self.setTabText(idx, text)
         if idx == self.currentIndex():
-            self.title_changed.emit('{} - qutebrowser'.format(text))
+            self._change_app_title(text)
 
     @pyqtSlot(webview.WebView, str)
     def on_url_text_changed(self, tab, url):
@@ -487,7 +494,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             objreg.register('last-focused-tab', self._now_focused, update=True)
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
-        self.title_changed.emit('{} - qutebrowser'.format(self.tabText(idx)))
+        self._change_app_title(self.tabText(idx))
         self._tab_insert_idx_left = self.currentIndex()
         self._tab_insert_idx_right = self.currentIndex() + 1
 
