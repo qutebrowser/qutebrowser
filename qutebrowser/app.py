@@ -470,7 +470,8 @@ class Application(QApplication):
         lines = []
         for name, registry in objreg.meta_registry.items():
             blocks.append((name, registry.dump_objects()))
-        for name, data in blocks:
+        for name, data in sorted(blocks, key=lambda e: e[0]):
+            lines.append("")
             lines.append("{} object registry - {} objects:".format(
                 name, len(data)))
             for line in data:
@@ -480,8 +481,11 @@ class Application(QApplication):
     def get_all_objects(self):
         """Get all children of an object recursively as a string."""
         output = ['']
-        output += self._get_registered_objects()
-        output += ['']
+        widget_lines = self._get_widgets()
+        widget_lines = ['    ' + e for e in widget_lines]
+        widget_lines.insert(0, "Qt widgets - {} objects".format(
+            len(widget_lines)))
+        output += widget_lines
         pyqt_lines = []
         self._get_pyqt_objects(pyqt_lines, self)
         pyqt_lines = ['    ' + e for e in pyqt_lines]
@@ -489,11 +493,7 @@ class Application(QApplication):
             len(pyqt_lines)))
         output += pyqt_lines
         output += ['']
-        widget_lines = self._get_widgets()
-        widget_lines = ['    ' + e for e in widget_lines]
-        widget_lines.insert(0, "Qt widgets - {} objects".format(
-            len(widget_lines)))
-        output += widget_lines
+        output += self._get_registered_objects()
         return '\n'.join(output)
 
     def _recover_pages(self):
