@@ -99,6 +99,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._tab_insert_idx_right = -1
         self.tabCloseRequested.connect(self.on_tab_close_requested)
         self.currentChanged.connect(self.on_current_changed)
+        self.cur_load_started.connect(self.on_cur_load_started)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._tabs = []
         self._url_stack = []
@@ -155,7 +156,6 @@ class TabbedBrowser(tabwidget.TabWidget):
             self._filter.create(self.cur_load_status_changed, tab))
         tab.url_text_changed.connect(
             functools.partial(self.on_url_text_changed, tab))
-        self.cur_load_started.connect(self.on_cur_load_started)
         # downloads
         page.start_download.connect(self.start_download)
         # misc
