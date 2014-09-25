@@ -102,7 +102,7 @@ def get(name, default=_UNSET, scope='global'):
             raise
 
 
-def register(name, obj, update=False, scope='global'):
+def register(name, obj, update=False, scope=None, registry=None):
     """Helper function to register an object.
 
     Args:
@@ -110,7 +110,15 @@ def register(name, obj, update=False, scope='global'):
         obj: The object to register.
         update: If True, allows to update an already registered object.
     """
-    reg = _get_registry(scope)
+    if scope is not None and registry is not None:
+        raise ValueError("scope ({}) and registry ({}) can't be given at the "
+                         "same time!".format(scope, registry))
+    if registry is not None:
+        reg = registry
+    else:
+        if scope is None:
+            scope = 'global'
+        reg = _get_registry(scope)
     if not update and name in reg:
         raise KeyError("Object '{}' is already registered ({})!".format(
                        name, repr(reg[name])))
