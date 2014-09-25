@@ -213,6 +213,11 @@ class TabBar(QTabBar):
             else:
                 width = int(confwidth)
             size = QSize(max(minimum_size.width(), width), height)
+        elif self.count() == 0:
+            # This happens on startup on OS X.
+            # We return it directly rather than setting `size' because we don't
+            # want to ensure it's valid in this special case.
+            return QSize()
         elif self.count() * minimum_size.width() > self.width():
             # If we don't have enough space, we return the minimum size so we
             # get scroll buttons as soon as needed.
