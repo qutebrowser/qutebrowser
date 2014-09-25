@@ -669,7 +669,6 @@ These commands are mainly intended for debugging. They are hidden if qutebrowser
 |==============
 |Command|Description
 |<<debug-all-objects,debug-all-objects>>|Print a list of  all objects to the debug log.
-|<<debug-all-widgets,debug-all-widgets>>|Print a list of all widgets to debug log.
 |<<debug-cache-stats,debug-cache-stats>>|Print LRU cache stats.
 |<<debug-console,debug-console>>|Show the debugging console.
 |<<debug-crash,debug-crash>>|Crash for debugging purposes.
@@ -678,10 +677,6 @@ These commands are mainly intended for debugging. They are hidden if qutebrowser
 [[debug-all-objects]]
 === debug-all-objects
 Print a list of  all objects to the debug log.
-
-[[debug-all-widgets]]
-=== debug-all-widgets
-Print a list of all widgets to debug log.
 
 [[debug-cache-stats]]
 === debug-cache-stats
