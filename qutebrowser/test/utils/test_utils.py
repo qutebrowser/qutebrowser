@@ -504,8 +504,12 @@ class KeyEventToStringTests(unittest.TestCase):
         evt = helpers.fake_keyevent(
             key=Qt.Key_A, modifiers=(Qt.ControlModifier | Qt.AltModifier |
                                      Qt.MetaModifier | Qt.ShiftModifier))
-        self.assertEqual(utils.keyevent_to_string(evt),
-                         'Ctrl+Alt+Meta+Shift+A')
+        if sys.platform == 'darwin':
+            self.assertEqual(utils.keyevent_to_string(evt),
+                            'Ctrl+Alt+Shift+A')
+        else:
+            self.assertEqual(utils.keyevent_to_string(evt),
+                            'Ctrl+Alt+Meta+Shift+A')
 
 
 class NormalizeTests(unittest.TestCase):
