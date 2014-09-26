@@ -78,7 +78,7 @@ class _CrashDialog(QDialog):
         self._init_buttons()
 
     def __repr__(self):
-        return '<{}>'.format(self.__class__.__name__)
+        return utils.get_repr(self)
 
     def _init_text(self):
         """Initialize the main text to be displayed on an exception.

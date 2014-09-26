@@ -62,7 +62,7 @@ class SearchRunner(QObject):
         self._flags = 0
 
     def __repr__(self):
-        return '<{} text={}>'.format(self.__class__.__name__, self._text)
+        return utils.get_repr(self, text=self._text, flags=self._flags)
 
     def _search(self, text, rev=False):
         """Search for a text on the current page.

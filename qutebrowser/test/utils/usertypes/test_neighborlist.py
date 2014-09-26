@@ -49,11 +49,6 @@ class InitTests(unittest.TestCase):
         nl = usertypes.NeighborList([1, 2, 3])
         self.assertEqual(len(nl), 3)
 
-    def test_repr(self):
-        """Test repr() on NeighborList."""
-        nl = usertypes.NeighborList([1, 2, 3])
-        self.assertEqual(repr(nl), 'NeighborList([1, 2, 3])')
-
     def test_contains(self):
         """Test 'in' on NeighborList."""
         nl = usertypes.NeighborList([1, 2, 3])

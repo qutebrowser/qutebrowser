@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu
 
 from qutebrowser.models import downloadmodel
 from qutebrowser.config import style
-from qutebrowser.utils import qtutils
+from qutebrowser.utils import qtutils, utils
 
 
 class DownloadView(QListView):
@@ -64,8 +64,7 @@ class DownloadView(QListView):
         self.customContextMenuRequested.connect(self.show_context_menu)
 
     def __repr__(self):
-        return '<{} with {} downloads>'.format(self.__class__.__name__,
-                                               self.model().rowCount())
+        return utils.get_repr(self, count=self.model().rowCount())
 
     @pyqtSlot('QPoint')
     def show_context_menu(self, point):

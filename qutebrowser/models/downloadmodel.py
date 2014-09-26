@@ -23,7 +23,7 @@ from PyQt5.QtCore import (pyqtSlot, Qt, QVariant, QAbstractListModel,
                           QModelIndex)
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, qtutils, objreg
+from qutebrowser.utils import usertypes, qtutils, objreg, utils
 
 
 Role = usertypes.enum('Role', 'item', start=Qt.UserRole, is_int=True)
@@ -49,7 +49,7 @@ class DownloadModel(QAbstractListModel):
         download_manager.data_changed.connect(self.on_data_changed)
 
     def __repr__(self):
-        return '<{}>'.format(self.__class__.__name__)
+        return utils.get_repr(self, count=self.rowCount())
 
     @pyqtSlot(int)
     def on_data_changed(self, idx):

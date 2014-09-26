@@ -29,7 +29,7 @@ from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import usertypes, log, objreg
+from qutebrowser.utils import usertypes, log, objreg, utils
 
 
 class ModeLockedError(Exception):
@@ -107,7 +107,8 @@ class ModeManager(QObject):
                                                 'forward-unbound-keys')
 
     def __repr__(self):
-        return '<{} mode={}>'.format(self.__class__.__name__, self.mode())
+        return utils.get_repr(self, mode=self.mode(), locked=self.locked,
+                              passthrough=self.passthrough)
 
     def mode(self):
         """Get the current mode.."""

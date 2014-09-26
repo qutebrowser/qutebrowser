@@ -24,7 +24,7 @@ import os.path
 
 from PyQt5.QtCore import pyqtSlot
 
-from qutebrowser.utils import log
+from qutebrowser.utils import log, utils
 
 
 class LineConfigParser:
@@ -60,9 +60,9 @@ class LineConfigParser:
             self.read(self._configfile)
 
     def __repr__(self):
-        return '{}("{}", "{}", limit={}, binary={})'.format(
-            self.__class__.__name__, self._configdir, self._fname, self._limit,
-            self._binary)
+        return utils.get_repr(self, constructor=True,
+                              configdir=self._configdir, fname=self._fname,
+                              limit=self._limit, binary=self._binary)
 
     def __iter__(self):
         """Iterate over the set data."""

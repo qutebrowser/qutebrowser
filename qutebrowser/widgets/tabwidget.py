@@ -31,7 +31,7 @@ from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab)
 from PyQt5.QtGui import QIcon, QPalette, QColor
 
-from qutebrowser.utils import qtutils, objreg
+from qutebrowser.utils import qtutils, objreg, utils
 from qutebrowser.config import config
 
 
@@ -110,8 +110,7 @@ class TabBar(QTabBar):
         QTimer.singleShot(0, self._autohide)
 
     def __repr__(self):
-        return '<{} with {} tabs>'.format(self.__class__.__name__,
-                                          self.count())
+        return utils.get_repr(self, count=self.count())
 
     def _autohide(self):
         """Auto-hide the tabbar if needed."""

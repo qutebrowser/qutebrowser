@@ -23,6 +23,7 @@ from PyQt5.QtWidgets import QApplication, QLineEdit
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.utils import usertypes as typ
+from qutebrowser.utils import utils
 
 
 class ReadlineBridge:
@@ -37,7 +38,7 @@ class ReadlineBridge:
         self._deleted = {}
 
     def __repr__(self):
-        return '<{}>'.format(self.__class__.__name__)
+        return utils.get_repr(self)
 
     def _widget(self):
         """Get the currently active QLineEdit."""

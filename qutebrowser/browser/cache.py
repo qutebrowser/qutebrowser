@@ -39,6 +39,6 @@ class DiskCache(QNetworkDiskCache):
         self.setMaximumCacheSize(config.get('storage', 'cache-size'))
 
     def __repr__(self):
-        return '<{} size={}, maxsize={}, path="{}">'.format(
-            self.__class__.__name__, self.cacheSize(), self.maximumCacheSize(),
-            self.cacheDirectory())
+        return utils.get_repr(self, size=self.cacheSize(),
+                              maxsize=self.maximumCacheSize(),
+                              path=self.cacheDirectory())

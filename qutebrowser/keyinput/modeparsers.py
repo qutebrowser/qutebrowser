@@ -28,7 +28,7 @@ from PyQt5.QtCore import pyqtSlot, Qt
 from qutebrowser.utils import message
 from qutebrowser.config import config
 from qutebrowser.keyinput import keyparser
-from qutebrowser.utils import usertypes, log, objreg
+from qutebrowser.utils import usertypes, log, objreg, utils
 
 
 STARTCHARS = ":/?"
@@ -44,7 +44,7 @@ class NormalKeyParser(keyparser.CommandKeyParser):
         self.read_config('normal')
 
     def __repr__(self):
-        return '<{}>'.format(self.__class__.__name__)
+        return utils.get_repr(self)
 
     def _handle_single_key(self, e):
         """Override _handle_single_key to abort if the key is a startchar.
@@ -73,7 +73,7 @@ class PromptKeyParser(keyparser.CommandKeyParser):
         self.read_config('prompt')
 
     def __repr__(self):
-        return '<{}>'.format(self.__class__.__name__)
+        return utils.get_repr(self)
 
 
 class HintKeyParser(keyparser.CommandKeyParser):

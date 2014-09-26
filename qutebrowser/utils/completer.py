@@ -23,7 +23,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
 from qutebrowser.config import config, configdata
 from qutebrowser.commands import cmdutils
-from qutebrowser.utils import usertypes, log, objreg
+from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.models import completion as models
 from qutebrowser.models.completionfilter import CompletionFilterModel as CFM
 
@@ -59,7 +59,7 @@ class Completer(QObject):
         self._init_setting_completions()
 
     def __repr__(self):
-        return '<{}>'.format(self.__class__.__name__)
+        return utils.get_repr(self)
 
     def _model(self):
         """Convienience method to get the current completion model."""

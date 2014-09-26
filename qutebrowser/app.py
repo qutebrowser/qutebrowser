@@ -150,7 +150,7 @@ class Application(QApplication):
             self._crashdlg.raise_()
 
     def __repr__(self):
-        return '<{}>'.format(self.__class__.__name__)
+        return utils.get_repr(self)
 
     def _init_config(self):
         """Inizialize and read the config."""

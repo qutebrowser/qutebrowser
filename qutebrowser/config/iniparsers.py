@@ -23,7 +23,7 @@ import os
 import os.path
 import configparser
 
-from qutebrowser.utils import log
+from qutebrowser.utils import log, utils
 
 
 class ReadConfigParser(configparser.ConfigParser):
@@ -54,8 +54,8 @@ class ReadConfigParser(configparser.ConfigParser):
         self.read(self._configfile, encoding='utf-8')
 
     def __repr__(self):
-        return '{}("{}", "{}")'.format(
-            self.__class__.__name__, self._configdir, self._fname)
+        return utils.get_repr(self, constructor=True,
+                              configdir=self._configdir, fname=self._fname)
 
 
 class ReadWriteConfigParser(ReadConfigParser):

@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.config import config, style
-from qutebrowser.utils import usertypes, log, objreg
+from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.widgets.statusbar import (command, progress, keystring,
                                            percentage, url, prompt)
 from qutebrowser.widgets.statusbar import text as textwidget
@@ -170,7 +170,7 @@ class StatusBar(QWidget):
         self._hbox.addWidget(self.prog)
 
     def __repr__(self):
-        return '<{}>'.format(self.__class__.__name__)
+        return utils.get_repr(self)
 
     @pyqtProperty(bool)
     def error(self):

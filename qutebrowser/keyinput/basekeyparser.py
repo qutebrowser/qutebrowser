@@ -88,9 +88,8 @@ class BaseKeyParser(QObject):
         self.special_bindings = {}
 
     def __repr__(self):
-        return '<{} supports_count={}, supports_chains={}>'.format(
-            self.__class__.__name__, self._supports_count,
-            self._supports_chains)
+        return utils.get_repr(self, supports_count=self._supports_count,
+                              supports_chains=self._supports_chains)
 
     def _debug_log(self, message):
         """Log a message to the debug log if logging is active.

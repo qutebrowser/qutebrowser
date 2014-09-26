@@ -35,7 +35,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 from qutebrowser.utils import log
 from qutebrowser.config import configdata, iniparsers, configtypes, textwrapper
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, objreg
+from qutebrowser.utils import message, objreg, utils
 from qutebrowser.utils.usertypes import Completion
 
 
@@ -129,7 +129,7 @@ class ConfigManager(QObject):
         return self._proxies[key]
 
     def __repr__(self):
-        return '<{} {}>'.format(self.__class__.__name__, self._fname)
+        return utils.get_repr(self, fname=self._fname)
 
     def __str__(self):
         """Get the whole config as a string."""
@@ -458,7 +458,7 @@ class SectionProxy(collections.abc.MutableMapping):
         self.name = name
 
     def __repr__(self):
-        return '<{} {}>'.format(self.__class__.__name__, self.name)
+        return utils.get_repr(self, name=self.name)
 
     def __getitem__(self, key):
         if not self.conf.has_option(self.name, key):

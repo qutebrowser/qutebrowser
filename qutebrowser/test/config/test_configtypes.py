@@ -27,7 +27,7 @@ from unittest import mock
 
 from qutebrowser.config import configtypes
 from qutebrowser.test import stubs
-from qutebrowser.utils import debug
+from qutebrowser.utils import debug, utils
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
@@ -41,9 +41,9 @@ class Font(QFont):
     def __repr__(self):
         weight = debug.qenum_key(QFont, self.weight(), add_base=True,
                                  klass=QFont.Weight)
-        return '<Font family={}, pt={}, px={}, weight={}, style={}>'.format(
-            self.family(), self.pointSize(), self.pixelSize(), weight,
-            self.style())
+        return utils.get_repr(self, family=self.family(), pt=self.pointSize(),
+                              px=self.pixelSize(), weight=weight,
+                              style=self.style())
 
     @classmethod
     def fromdesc(cls, desc):
@@ -65,9 +65,9 @@ class NetworkProxy(QNetworkProxy):
     """A QNetworkProxy with a nicer repr()."""
 
     def __repr__(self):
-        return 'QNetworkProxy({}, "{}", {}, "{}", "{}")'.format(
-            self.type(), self.hostName(), self.port(), self.user(),
-            self.password())
+        return utils.get_repr(self, type=self.type(), hostName=self.hostName(),
+                              port=self.port(), user=self.user(),
+                              password=self.password())
 
 
 class ValidValuesTest(unittest.TestCase):

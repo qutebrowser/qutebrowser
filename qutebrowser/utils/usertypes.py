@@ -30,7 +30,7 @@ import enum as pyenum
 
 from PyQt5.QtCore import pyqtSignal, QObject, QTimer
 
-from qutebrowser.utils import log, qtutils
+from qutebrowser.utils import log, qtutils, utils
 
 
 _UNSET = object()
@@ -103,7 +103,8 @@ class NeighborList(collections.abc.Sequence):
         return len(self._items)
 
     def __repr__(self):
-        return '{}({})'.format(self.__class__.__name__, self._items)
+        return utils.get_repr(self, items=self._items, mode=self._mode,
+                              idx=self._idx, fuzzyval=self.fuzzyval)
 
     def _snap_in(self, offset):
         """Set the current item to the closest item to self.fuzzyval.
@@ -296,7 +297,8 @@ class Question(QObject):
         self.is_aborted = False
 
     def __repr__(self):
-        return '<{} "{}">'.format(self.__class__.__name__, self.text)
+        return utils.get_repr(self, text=self.text, mode=self._mode,
+                              default=self.default)
 
     @property
     def mode(self):
@@ -359,7 +361,7 @@ class Timer(QTimer):
             self._name = name
 
     def __repr__(self):
-        return '<{} {}>'.format(self.__class__.__name__, self._name)
+        return utils.get_repr(self, name=self._name)
 
     def setInterval(self, msec):
         """Extend setInterval to check for overflows."""

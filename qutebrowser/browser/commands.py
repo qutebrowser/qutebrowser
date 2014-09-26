@@ -38,7 +38,7 @@ from qutebrowser.commands import userscripts, cmdexc, cmdutils
 from qutebrowser.config import config
 from qutebrowser.browser import quickmarks, webelem
 from qutebrowser.utils import (message, editor, usertypes, log, qtutils,
-                               urlutils, objreg)
+                               urlutils, objreg, utils)
 
 
 class CommandDispatcher:
@@ -59,7 +59,7 @@ class CommandDispatcher:
         self._editor = None
 
     def __repr__(self):
-        return '<{}>'.format(self.__class__.__name__)
+        return utils.get_repr(self)
 
     def _count(self):
         """Convenience method to get the widget count."""

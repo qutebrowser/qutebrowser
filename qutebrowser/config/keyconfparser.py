@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 
 from qutebrowser.config import configdata, textwrapper
 from qutebrowser.commands import cmdutils, cmdexc
-from qutebrowser.utils import log
+from qutebrowser.utils import log, utils
 
 
 class KeyConfigError(Exception):
@@ -99,8 +99,8 @@ class KeyConfigParser(QObject):
         return '\n'.join(lines) + '\n'
 
     def __repr__(self):
-        return '{}("{}", "{}")'.format(
-            self.__class__.__name__, self._configdir, self._fname)
+        return utils.get_repr(self, constructor=True,
+                              configdir=self._configdir, fname=self._fname)
 
     def _str_section_desc(self, sectname):
         """Get the section description string for sectname."""

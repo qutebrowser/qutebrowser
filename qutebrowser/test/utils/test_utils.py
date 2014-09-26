@@ -39,8 +39,9 @@ class Color(QColor):
     """A QColor with a nicer repr()."""
 
     def __repr__(self):
-        return 'Color({}, {}, {}, {})'.format(
-            self.red(), self.green(), self.blue(), self.alpha())
+        return utils.get_repr(self, constructor=True, red=self.red(),
+                              green=self.green(), blue=self.blue(),
+                              alpha=self.alpha())
 
 
 class ElidingTests(unittest.TestCase):

@@ -24,6 +24,7 @@ from PyQt5.QtWidgets import QProgressBar, QSizePolicy
 
 from qutebrowser.widgets import webview
 from qutebrowser.config import style
+from qutebrowser.utils import utils
 
 
 class Progress(QProgressBar):
@@ -52,7 +53,7 @@ class Progress(QProgressBar):
         self.hide()
 
     def __repr__(self):
-        return '<{} {}%>'.format(self.__class__.__name__, self.value())
+        return utils.get_repr(self, value=self.value())
 
     @pyqtSlot()
     def on_load_started(self):

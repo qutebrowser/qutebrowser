@@ -23,7 +23,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QLabel, QSizePolicy
 from PyQt5.QtGui import QPainter
 
-from qutebrowser.utils import qtutils
+from qutebrowser.utils import qtutils, utils
 
 
 class TextBase(QLabel):
@@ -47,7 +47,7 @@ class TextBase(QLabel):
         self._elided_text = ''
 
     def __repr__(self):
-        return '<{} "{}">'.format(self.__class__.__name__, self.text())
+        return utils.get_repr(self, text=self.text())
 
     def _update_elided_text(self, width):
         """Update the elided text when necessary.

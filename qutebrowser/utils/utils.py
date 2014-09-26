@@ -582,3 +582,25 @@ def is_enum(obj):
         return issubclass(obj, enum.Enum)
     except TypeError:
         return False
+
+
+def get_repr(obj, constructor=False, **attrs):
+    """Get a suitable __repr__ string for an object.
+
+    Args:
+        obj: The object to get a repr for.
+        constructor: If True, show the Foo(one=1, two=2) form instead of
+                     <Foo one=1 two=2>.
+        attrs: The attributes to add.
+    """
+    cls = getattr(obj.__class__, '__qualname__', obj.__class__.__name__)
+    parts = []
+    for name, val in attrs.items():
+        parts.append('{}={!r}'.format(name, val))
+    if constructor:
+        return '{}({})'.format(cls, ', '.join(parts))
+    else:
+        if parts:
+            return '<{} {}>'.format(cls, ' '.join(parts))
+        else:
+            return '<{}>'.format(cls)

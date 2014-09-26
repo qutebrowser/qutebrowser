@@ -21,7 +21,7 @@
 
 from PyQt5.QtCore import pyqtSignal, QObject, QTimer
 
-from qutebrowser.utils import usertypes, log, objreg
+from qutebrowser.utils import usertypes, log, objreg, utils
 
 
 def error(message, immediately=False):
@@ -152,7 +152,7 @@ class MessageBridge(QObject):
     s_question = pyqtSignal(usertypes.Question, bool)
 
     def __repr__(self):
-        return '<{}>'.format(self.__class__.__name__)
+        return utils.get_repr(self)
 
     def _emit_later(self, signal, *args):
         """Emit a message later when the mainloop is not busy anymore.

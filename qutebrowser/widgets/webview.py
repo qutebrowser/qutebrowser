@@ -112,8 +112,8 @@ class WebView(QWebView):
         self.viewing_source = False
 
     def __repr__(self):
-        url = self.url().toDisplayString()
-        return "WebView(url='{}')".format(utils.elide(url, 50))
+        url = utils.elide(self.url().toDisplayString(), 50)
+        return utils.get_repr(self, url=url)
 
     def _set_load_status(self, val):
         """Setter for load_status.

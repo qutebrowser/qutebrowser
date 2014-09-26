@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes, qtutils, objreg
+from qutebrowser.utils import message, log, usertypes, qtutils, objreg, utils
 from qutebrowser.widgets import tabbedbrowser, completion, downloads
 from qutebrowser.widgets.statusbar import bar
 
@@ -100,7 +100,7 @@ class MainWindow(QWidget):
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def __repr__(self):
-        return '<{}>'.format(self.__class__.__name__)
+        return utils.get_repr(self)
 
     def _connect_resize_completion(self):
         """Connect the resize_completion signal and resize it once."""

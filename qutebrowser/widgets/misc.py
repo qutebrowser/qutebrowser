@@ -24,6 +24,7 @@ from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtGui import QValidator
 
 from qutebrowser.models import cmdhistory
+from qutebrowser.utils import utils
 
 
 class MinimalLineEditMixin:
@@ -41,7 +42,7 @@ class MinimalLineEditMixin:
         self.setAttribute(Qt.WA_MacShowFocusRect, False)
 
     def __repr__(self):
-        return '<{} "{}">'.format(self.__class__.__name__, self.text())
+        return utils.get_repr(self, text=self.text())
 
 
 class CommandLineEdit(QLineEdit):
@@ -94,7 +95,7 @@ class CommandLineEdit(QLineEdit):
             self.setSelection(self._promptlen, oldpos - self._promptlen)
 
     def __repr__(self):
-        return '<{} "{}">'.format(self.__class__.__name__, self.text())
+        return utils.get_repr(self, text=self.text())
 
 
 class _CommandValidator(QValidator):

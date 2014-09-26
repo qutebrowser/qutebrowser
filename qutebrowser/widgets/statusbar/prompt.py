@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import QHBoxLayout, QWidget, QLineEdit
 
 from qutebrowser.widgets import misc
 from qutebrowser.widgets.statusbar import textbase, prompter
-from qutebrowser.utils import objreg
+from qutebrowser.utils import objreg, utils
 
 
 class PromptLineEdit(misc.MinimalLineEditMixin, QLineEdit):
@@ -70,4 +70,4 @@ class Prompt(QWidget):
         objreg.register('prompter', prompter_obj)
 
     def __repr__(self):
-        return '<{}>'.format(self.__class__.__name__)
+        return utils.get_repr(self)

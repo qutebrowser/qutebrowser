@@ -117,9 +117,10 @@ class WebElementWrapper(collections.abc.MutableMapping):
 
     def __repr__(self):
         try:
-            return "<WebElementWrapper '{}'>".format(self.debug_text())
+            html = self.debug_text()
         except IsNullError:
-            return "<WebElementWrapper null>"
+            html = None
+        return utils.get_repr(self, html=html)
 
     def __getitem__(self, key):
         self._check_vanished()

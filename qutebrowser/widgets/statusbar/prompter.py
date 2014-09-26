@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import QLineEdit
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.commands import cmdutils
-from qutebrowser.utils import usertypes, log, qtutils, objreg
+from qutebrowser.utils import usertypes, log, qtutils, objreg, utils
 
 
 PromptContext = collections.namedtuple('PromptContext',
@@ -69,7 +69,9 @@ class Prompter:
         self._busy = False
 
     def __repr__(self):
-        return '<{}>'.format(self.__class__.__name__)
+        return utils.get_repr(self, loops=len(self._loops),
+                              question=self._question, queue=len(self._queue),
+                              busy=self._busy)
 
     def _pop_later(self):
         """Helper to call self._pop as soon as everything else is done."""

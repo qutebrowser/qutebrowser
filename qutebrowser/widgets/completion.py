@@ -29,7 +29,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import config, style
 from qutebrowser.widgets import completiondelegate
-from qutebrowser.utils import completer, usertypes, qtutils, objreg
+from qutebrowser.utils import completer, usertypes, qtutils, objreg, utils
 
 
 class CompletionView(QTreeView):
@@ -116,7 +116,7 @@ class CompletionView(QTreeView):
         # FIXME set elidemode
 
     def __repr__(self):
-        return '<{}>'.format(self.__class__.__name__)
+        return utils.get_repr(self)
 
     def _resize_columns(self):
         """Resize the completion columns based on COLUMN_WIDTHS."""

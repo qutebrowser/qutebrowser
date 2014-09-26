@@ -26,7 +26,7 @@ import re
 
 import pypeg2 as peg
 
-from qutebrowser.utils import log
+from qutebrowser.utils import log, utils
 
 
 class UniqueNamespace(peg.Namespace):
@@ -279,8 +279,8 @@ class ContentDisposition:
         return self.disposition.lower() == 'inline'
 
     def __repr__(self):
-        return 'ContentDisposition(%r, %r)' % (
-            self.disposition, self.assocs)
+        return utils.get_repr(self, constructor=True,
+                              disposition=self.disposition, assocs=self.assocs)
 
 
 def normalize_ws(text):

@@ -108,7 +108,7 @@ class DownloadItem(QObject):
         self.timer.start()
 
     def __repr__(self):
-        return '<{} "{}">'.format(self.__class__.__name__, self.basename)
+        return utils.get_repr(self, basename=self.basename)
 
     def __str__(self):
         """Get the download as a string.
@@ -349,7 +349,7 @@ class DownloadManager(QObject):
         self.questions = []
 
     def __repr__(self):
-        return '<{}>'.format(self.__class__.__name__)
+        return utils.get_repr(self, downloads=len(self.downloads))
 
     @pyqtSlot('QUrl', 'QWebPage')
     def get(self, url, page):

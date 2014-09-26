@@ -20,7 +20,7 @@
 """Advanced keyparsers."""
 
 from qutebrowser.keyinput.basekeyparser import BaseKeyParser
-from qutebrowser.utils import message
+from qutebrowser.utils import message, utils
 from qutebrowser.commands import runners, cmdexc
 
 
@@ -70,5 +70,5 @@ class PassthroughKeyParser(CommandKeyParser):
         self._mode = mode
 
     def __repr__(self):
-        return '<{} mode={}, warn={})'.format(
-            self.__class__.__name__, self._mode, self._warn_on_keychains)
+        return utils.get_repr(self, mode=self._mode,
+                              warn=self._warn_on_keychains)
