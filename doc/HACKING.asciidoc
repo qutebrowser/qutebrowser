@@ -231,6 +231,10 @@ Reference]
 * http://spec.whatwg.org/[WHATWG specifications]
 * http://www.w3.org/html/wg/drafts/html/master/Overview.html[HTML 5.1 Nightly]
 * http://www.w3.org/TR/webstorage/[Web Storage]
+* http://www.brynosaurus.com/cachedir/spec.html[Cache directory tagging
+standard]
+* http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html[XDG
+basedir specification]
 
 Hints
 -----
