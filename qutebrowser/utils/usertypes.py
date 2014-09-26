@@ -23,7 +23,6 @@ Module attributes:
     _UNSET: Used as default argument in the constructor so default can be None.
 """
 
-import itertools
 import operator
 import collections.abc
 import enum as pyenum
@@ -34,9 +33,6 @@ from qutebrowser.utils import log, qtutils, utils
 
 
 _UNSET = object()
-
-
-tab_id_gen = itertools.count(0)
 
 
 def enum(name, *items, start=1, is_int=False):

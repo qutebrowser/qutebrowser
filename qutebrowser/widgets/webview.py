@@ -19,6 +19,8 @@
 
 """The main browser widgets."""
 
+import itertools
+
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebSettings
@@ -33,6 +35,9 @@ from qutebrowser.commands import cmdexc
 
 LoadStatus = usertypes.enum('LoadStatus', 'none', 'success', 'error', 'warn',
                             'loading')
+
+
+tab_id_gen = itertools.count(0)
 
 
 class WebView(QWebView):
@@ -91,6 +96,7 @@ class WebView(QWebView):
         self.cur_url = QUrl()
         self.progress = 0
         self.registry = objreg.ObjectRegistry()
+        self.tab_id = next(tab_id_gen)
         objreg.register('webview', self, registry=self.registry)
         page = webpage.BrowserPage(self)
         self.setPage(page)
@@ -98,8 +104,8 @@ class WebView(QWebView):
         hintmanager.mouse_event.connect(self.on_mouse_event)
         hintmanager.set_open_target.connect(self.set_force_open_target)
         objreg.register('hintmanager', hintmanager, registry=self.registry)
-        tab_id = next(usertypes.tab_id_gen)
-        objreg.register('tab-{}'.format(tab_id), self.registry, scope='meta')
+        objreg.register('tab-{}'.format(self.tab_id),
+                        self.registry, scope='meta')
         page.linkHovered.connect(self.linkHovered)
         page.mainFrame().loadStarted.connect(self.on_load_started)
         self.urlChanged.connect(self.on_url_changed)
@@ -113,7 +119,7 @@ class WebView(QWebView):
 
     def __repr__(self):
         url = utils.elide(self.url().toDisplayString(), 50)
-        return utils.get_repr(self, url=url)
+        return utils.get_repr(self, tab_id=self.tab_id, url=url)
 
     def _set_load_status(self, val):
         """Setter for load_status.
