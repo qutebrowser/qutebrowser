@@ -442,7 +442,7 @@ def keyevent_to_string(e):
     mod = e.modifiers()
     parts = []
     for (mask, s) in modmask2str.items():
-        if mod & mask:
+        if mod & mask and s not in parts:
             parts.append(s)
     parts.append(key_to_string(e.key()))
     return '+'.join(parts)
