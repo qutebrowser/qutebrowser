@@ -166,6 +166,8 @@ def _os_info():
     Return:
         A list of lines with version info.
     """
+    # pylint has issues with platform.mac_ver()
+    # pylint: disable=unpacking-non-sequence
     lines = []
     releaseinfo = None
     if sys.platform == 'linux':
