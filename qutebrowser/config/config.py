@@ -25,15 +25,18 @@ we borrow some methods and classes from there where it makes sense.
 """
 
 import os
+import sys
 import os.path
 import functools
 import configparser
 import collections.abc
 
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject, QStandardPaths
+from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.utils import log
-from qutebrowser.config import configdata, iniparsers, configtypes, textwrapper
+from qutebrowser.config import (configdata, iniparsers, configtypes,
+                                textwrapper, lineparser, keyconfparser)
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import message, objreg, utils
 from qutebrowser.utils.usertypes import Completion
@@ -47,6 +50,61 @@ def get(*args, **kwargs):
 def section(sect):
     """Get a config section from the global config."""
     return objreg.get('config')[sect]
+
+
+def init(args):
+    """Initialize the config.
+
+    Args:
+        args: The argparse namespace.
+    """
+    if args.confdir is None:
+        confdir = utils.get_standard_dir(QStandardPaths.ConfigLocation)
+    elif args.confdir == '':
+        confdir = None
+    else:
+        confdir = args.confdir
+    try:
+        app = objreg.get('app')
+        config_obj = ConfigManager(confdir, 'qutebrowser.conf', app)
+    except (configtypes.ValidationError, NoOptionError, NoSectionError,
+            UnknownSectionError, InterpolationSyntaxError,
+            configparser.InterpolationError,
+            configparser.DuplicateSectionError,
+            configparser.DuplicateOptionError,
+            configparser.ParsingError) as e:
+        log.init.exception(e)
+        errstr = "Error while reading config:"
+        if hasattr(e, 'section') and hasattr(e, 'option'):
+            errstr += "\n\n{} -> {}:".format(e.section, e.option)
+        errstr += "\n{}".format(e)
+        msgbox = QMessageBox(QMessageBox.Critical,
+                             "Error while reading config!", errstr)
+        msgbox.exec_()
+        # We didn't really initialize much so far, so we just quit hard.
+        sys.exit(1)
+    else:
+        objreg.register('config', config_obj)
+    try:
+        key_config = keyconfparser.KeyConfigParser(confdir, 'keys.conf')
+    except keyconfparser.KeyConfigError as e:
+        log.init.exception(e)
+        errstr = "Error while reading key config:\n"
+        if e.lineno is not None:
+            errstr += "In line {}: ".format(e.lineno)
+        errstr += str(e)
+        msgbox = QMessageBox(QMessageBox.Critical,
+                             "Error while reading key config!", errstr)
+        msgbox.exec_()
+        # We didn't really initialize much so far, so we just quit hard.
+        sys.exit(1)
+    else:
+        objreg.register('key-config', key_config)
+    state_config = iniparsers.ReadWriteConfigParser(confdir, 'state')
+    objreg.register('state-config', state_config)
+    command_history = lineparser.LineConfigParser(
+        confdir, 'cmd_history', ('completion', 'history-length'))
+    objreg.register('command-history', command_history)
 
 
 class NoSectionError(configparser.NoSectionError):

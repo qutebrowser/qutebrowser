@@ -31,14 +31,13 @@ import base64
 import functools
 import traceback
 
-from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
+from PyQt5.QtWidgets import QApplication, QDialog
 from PyQt5.QtCore import (pyqtSlot, QTimer, QEventLoop, Qt, QStandardPaths,
                           qInstallMessageHandler, QObject, QUrl)
 
 import qutebrowser
 from qutebrowser.commands import userscripts, runners, cmdutils
-from qutebrowser.config import (style, config, websettings, iniparsers,
-                                lineparser, configtypes, keyconfparser)
+from qutebrowser.config import style, config, websettings
 from qutebrowser.network import qutescheme, proxy
 from qutebrowser.browser import quickmarks, cookies, downloads, cache, hints
 from qutebrowser.widgets import mainwindow, console, crash
@@ -144,7 +143,7 @@ class Application(QApplication):
         objreg.register('readline-bridge', readline_bridge)
 
         log.init.debug("Initializing config...")
-        self._init_config()
+        config.init(self._args)
         log.init.debug("Initializing crashlog...")
         self._handle_segfault()
         log.init.debug("Initializing modes...")
@@ -179,59 +178,6 @@ class Application(QApplication):
         log.init.debug("Initializing debug console...")
         debug_console = console.ConsoleWidget()
         objreg.register('debug-console', debug_console)
-
-    def _init_config(self):
-        """Inizialize and read the config."""
-        if self._args.confdir is None:
-            confdir = utils.get_standard_dir(QStandardPaths.ConfigLocation)
-        elif self._args.confdir == '':
-            confdir = None
-        else:
-            confdir = self._args.confdir
-        try:
-            config_obj = config.ConfigManager(
-                confdir, 'qutebrowser.conf', self)
-        except (configtypes.ValidationError,
-                config.NoOptionError,
-                config.NoSectionError,
-                config.UnknownSectionError,
-                config.InterpolationSyntaxError,
-                configparser.InterpolationError,
-                configparser.DuplicateSectionError,
-                configparser.DuplicateOptionError,
-                configparser.ParsingError) as e:
-            log.init.exception(e)
-            errstr = "Error while reading config:"
-            if hasattr(e, 'section') and hasattr(e, 'option'):
-                errstr += "\n\n{} -> {}:".format(e.section, e.option)
-            errstr += "\n{}".format(e)
-            msgbox = QMessageBox(QMessageBox.Critical,
-                                 "Error while reading config!", errstr)
-            msgbox.exec_()
-            # We didn't really initialize much so far, so we just quit hard.
-            sys.exit(1)
-        else:
-            objreg.register('config', config_obj)
-        try:
-            key_config = keyconfparser.KeyConfigParser(confdir, 'keys.conf')
-        except keyconfparser.KeyConfigError as e:
-            log.init.exception(e)
-            errstr = "Error while reading key config:\n"
-            if e.lineno is not None:
-                errstr += "In line {}: ".format(e.lineno)
-            errstr += str(e)
-            msgbox = QMessageBox(QMessageBox.Critical,
-                                 "Error while reading key config!", errstr)
-            msgbox.exec_()
-            # We didn't really initialize much so far, so we just quit hard.
-            sys.exit(1)
-        else:
-            objreg.register('key-config', key_config)
-        state_config = iniparsers.ReadWriteConfigParser(confdir, 'state')
-        objreg.register('state-config', state_config)
-        command_history = lineparser.LineConfigParser(
-            confdir, 'cmd_history', ('completion', 'history-length'))
-        objreg.register('command-history', command_history)
 
     def _handle_segfault(self):
         """Handle a segfault from a previous run."""

@@ -130,7 +130,6 @@ style
 - Always use a list as argument for namedtuple?
 - Refactor enum() so it uses a list as second argument (like python
   enum/namedtuple).
-- Config init and some persistent objects should be moved out of QApplication.
 - Use separate logger for config
 - Use unittest.Mock and especially unittest.patch more.
 - Use decorators for on_config_changed
