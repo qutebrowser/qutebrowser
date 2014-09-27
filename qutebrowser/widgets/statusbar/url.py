@@ -28,8 +28,8 @@ from qutebrowser.utils import usertypes
 
 
 # Note this has entries for success/error/warn from widgets.webview:LoadStatus
-UrlType = usertypes.enum('UrlType', 'success', 'error', 'warn', 'hover',
-                         'normal')
+UrlType = usertypes.enum('UrlType', ['success', 'error', 'warn', 'hover',
+                                     'normal'])
 
 
 class UrlText(textbase.TextBase):

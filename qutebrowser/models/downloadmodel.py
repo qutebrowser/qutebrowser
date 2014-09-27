@@ -26,7 +26,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import usertypes, qtutils, objreg, utils
 
 
-Role = usertypes.enum('Role', 'item', start=Qt.UserRole, is_int=True)
+Role = usertypes.enum('Role', ['item'], start=Qt.UserRole, is_int=True)
 
 
 class DownloadModel(QAbstractListModel):

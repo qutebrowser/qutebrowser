@@ -128,8 +128,6 @@ style
 - Stuff under scripts/ (especially generate_doc and run_checks) could use a
   rewrite.
 - Always use a list as argument for namedtuple?
-- Refactor enum() so it uses a list as second argument (like python
-  enum/namedtuple).
 - Use separate logger for config
 - Use unittest.Mock and especially unittest.patch more.
 - Use decorators for on_config_changed

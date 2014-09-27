@@ -33,8 +33,8 @@ from qutebrowser.browser import webpage, hints, webelem
 from qutebrowser.commands import cmdexc
 
 
-LoadStatus = usertypes.enum('LoadStatus', 'none', 'success', 'error', 'warn',
-                            'loading')
+LoadStatus = usertypes.enum('LoadStatus', ['none', 'success', 'error', 'warn',
+                                           'loading'])
 
 
 tab_id_gen = itertools.count(0)

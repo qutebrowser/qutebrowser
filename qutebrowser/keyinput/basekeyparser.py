@@ -69,9 +69,9 @@ class BaseKeyParser(QObject):
     keystring_updated = pyqtSignal(str)
     do_log = True
 
-    Match = usertypes.enum('Match', 'partial', 'definitive', 'ambiguous',
-                           'none')
-    Type = usertypes.enum('Type', 'chain', 'special')
+    Match = usertypes.enum('Match', ['partial', 'definitive', 'ambiguous',
+                                     'none'])
+    Type = usertypes.enum('Type', ['chain', 'special'])
 
     def __init__(self, parent=None, supports_count=None,
                  supports_chains=False):

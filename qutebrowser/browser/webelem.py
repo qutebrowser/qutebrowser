@@ -37,8 +37,8 @@ from qutebrowser.config import config
 from qutebrowser.utils import log, usertypes, utils
 
 
-Group = usertypes.enum('Group', 'all', 'links', 'images', 'url', 'prevnext',
-                       'focus')
+Group = usertypes.enum('Group', ['all', 'links', 'images', 'url', 'prevnext',
+                                 'focus'])
 
 
 SELECTORS = {

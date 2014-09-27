@@ -37,9 +37,9 @@ from qutebrowser.utils import usertypes, log, qtutils, message, objreg
 ElemTuple = collections.namedtuple('ElemTuple', 'elem, label')
 
 
-Target = usertypes.enum('Target', 'normal', 'tab', 'tab_bg', 'yank',
-                        'yank_primary', 'fill', 'rapid', 'download',
-                        'userscript', 'spawn')
+Target = usertypes.enum('Target', ['normal', 'tab', 'tab_bg', 'yank',
+                                   'yank_primary', 'fill', 'rapid', 'download',
+                                   'userscript', 'spawn'])
 
 
 @pyqtSlot(usertypes.KeyMode)

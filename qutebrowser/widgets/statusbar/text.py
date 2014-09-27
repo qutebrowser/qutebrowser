@@ -39,7 +39,7 @@ class Text(textbase.TextBase):
         available. If not, the permanent text is shown.
     """
 
-    Text = usertypes.enum('Text', 'normal', 'temp', 'js')
+    Text = usertypes.enum('Text', ['normal', 'temp', 'js'])
 
     def __init__(self, parent=None):
         super().__init__(parent)

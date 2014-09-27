@@ -73,8 +73,8 @@ class DocstringParser:
         arg_descs: A dict of argument names to their descriptions
     """
 
-    State = usertypes.enum('State', 'short', 'desc', 'desc_hidden',
-                           'arg_start', 'arg_inside', 'misc')
+    State = usertypes.enum('State', ['short', 'desc', 'desc_hidden',
+                                     'arg_start', 'arg_inside', 'misc'])
 
     def __init__(self, func):
         """Constructor.

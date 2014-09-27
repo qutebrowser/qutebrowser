@@ -32,7 +32,8 @@ from qutebrowser.widgets.statusbar import (command, progress, keystring,
 from qutebrowser.widgets.statusbar import text as textwidget
 
 
-PreviousWidget = usertypes.enum('PreviousWidget', 'none', 'prompt', 'command')
+PreviousWidget = usertypes.enum('PreviousWidget', ['none', 'prompt',
+                                                   'command'])
 
 
 class StatusBar(QWidget):

@@ -35,7 +35,7 @@ class EnumTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.enum = usertypes.enum('Enum', 'one', 'two')
+        self.enum = usertypes.enum('Enum', ['one', 'two'])
 
     def test_values(self):
         """Test if enum members resolve to the right values."""
@@ -54,7 +54,7 @@ class EnumTests(unittest.TestCase):
 
     def test_start(self):
         """Test the start= argument."""
-        e = usertypes.enum('Enum', 'three', 'four', start=3)
+        e = usertypes.enum('Enum', ['three', 'four'], start=3)
         self.assertEqual(e.three.value, 3)
         self.assertEqual(e.four.value, 4)
 

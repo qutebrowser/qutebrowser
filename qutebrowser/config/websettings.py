@@ -35,7 +35,7 @@ from PyQt5.QtCore import QStandardPaths
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, utils
 
-MapType = usertypes.enum('MapType', 'attribute', 'setter', 'static_setter')
+MapType = usertypes.enum('MapType', ['attribute', 'setter', 'static_setter'])
 
 
 MAPPINGS = {

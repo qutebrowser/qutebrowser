@@ -29,7 +29,8 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from qutebrowser.utils import usertypes, qtutils
 
 
-Role = usertypes.enum('Role', 'marks', 'sort', start=Qt.UserRole, is_int=True)
+Role = usertypes.enum('Role', ['marks', 'sort'], start=Qt.UserRole,
+                      is_int=True)
 
 
 class BaseCompletionModel(QStandardItemModel):

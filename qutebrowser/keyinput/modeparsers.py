@@ -32,7 +32,7 @@ from qutebrowser.utils import usertypes, log, objreg, utils
 
 
 STARTCHARS = ":/?"
-LastPress = usertypes.enum('LastPress', 'none', 'filtertext', 'keystring')
+LastPress = usertypes.enum('LastPress', ['none', 'filtertext', 'keystring'])
 
 
 class NormalKeyParser(keyparser.CommandKeyParser):

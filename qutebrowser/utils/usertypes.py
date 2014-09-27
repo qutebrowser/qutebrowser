@@ -35,12 +35,12 @@ from qutebrowser.utils import log, qtutils, utils
 _UNSET = object()
 
 
-def enum(name, *items, start=1, is_int=False):
+def enum(name, items, start=1, is_int=False):
     """Factory for simple enumerations.
 
     Args:
         name: Name of the enum
-        *items: Items to be sequentally enumerated.
+        items: Iterable of ttems to be sequentally enumerated.
         start: The number to use for the first value.
                We use 1 as default so enum members are always True.
         is_init: True if the enum should be a Python IntEnum
@@ -65,7 +65,7 @@ class NeighborList(collections.abc.Sequence):
         _mode: The current mode.
     """
 
-    Modes = enum('Modes', 'block', 'wrap', 'exception')
+    Modes = enum('Modes', ['block', 'wrap', 'exception'])
 
     def __init__(self, items=None, default=_UNSET, mode=Modes.exception):
         """Constructor.
@@ -224,21 +224,21 @@ class NeighborList(collections.abc.Sequence):
 
 
 # The mode of a Question.
-PromptMode = enum('PromptMode', 'yesno', 'text', 'user_pwd', 'alert')
+PromptMode = enum('PromptMode', ['yesno', 'text', 'user_pwd', 'alert'])
 
 
 # Where to open a clicked link.
-ClickTarget = enum('ClickTarget', 'normal', 'tab', 'tab_bg')
+ClickTarget = enum('ClickTarget', ['normal', 'tab', 'tab_bg'])
 
 
 # Key input modes
-KeyMode = enum('KeyMode', 'normal', 'hint', 'command', 'yesno', 'prompt',
-               'insert', 'passthrough')
+KeyMode = enum('KeyMode', ['normal', 'hint', 'command', 'yesno', 'prompt',
+                           'insert', 'passthrough'])
 
 
 # Available command completions
-Completion = enum('Completion', 'command', 'section', 'option', 'value',
-                  'helptopic')
+Completion = enum('Completion', ['command', 'section', 'option', 'value',
+                                 'helptopic'])
 
 
 class Question(QObject):
