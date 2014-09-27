@@ -57,7 +57,7 @@ class Command:
     """
 
     AnnotationInfo = collections.namedtuple('AnnotationInfo',
-                                            'kwargs, typ, name, flag')
+                                            ['kwargs', 'typ', 'name', 'flag'])
     ParamType = usertypes.enum('ParamType', ['flag', 'positional'])
 
     def __init__(self, name, split, hide, instance, completion, modes,

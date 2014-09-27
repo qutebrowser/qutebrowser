@@ -209,7 +209,7 @@ class ContentDispositionValue:
                peg.optional(';'))
 
 
-LangTagged = collections.namedtuple('LangTagged', 'string langtag')
+LangTagged = collections.namedtuple('LangTagged', ['string', 'langtag'])
 
 
 class DuplicateParamError(Exception):

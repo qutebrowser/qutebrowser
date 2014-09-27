@@ -34,7 +34,7 @@ from qutebrowser.commands import userscripts, cmdexc, cmdutils
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg
 
 
-ElemTuple = collections.namedtuple('ElemTuple', 'elem, label')
+ElemTuple = collections.namedtuple('ElemTuple', ['elem', 'label'])
 
 
 Target = usertypes.enum('Target', ['normal', 'tab', 'tab_bg', 'yank',
