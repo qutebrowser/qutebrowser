@@ -27,6 +27,7 @@ from PyQt5.QtGui import QWindow
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
 from PyQt5.QtWidgets import QApplication
 
+from qutebrowser.keyinput import modeparsers, keyparser
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import usertypes, log, objreg, utils
@@ -40,6 +41,33 @@ class ModeLockedError(Exception):
 class NotInModeError(Exception):
 
     """Exception raised when we want to leave a mode we're not in."""
+
+
+def init():
+    """Inizialize the mode manager and the keyparsers."""
+    KM = usertypes.KeyMode  # pylint: disable=invalid-name
+    modeman = ModeManager(objreg.get('app'))
+    objreg.register('mode-manager', modeman)
+    keyparsers = {
+        KM.normal: modeparsers.NormalKeyParser(modeman),
+        KM.hint: modeparsers.HintKeyParser(modeman),
+        KM.insert: keyparser.PassthroughKeyParser('insert', modeman),
+        KM.passthrough: keyparser.PassthroughKeyParser('passthrough', modeman),
+        KM.command: keyparser.PassthroughKeyParser('command', modeman),
+        KM.prompt: keyparser.PassthroughKeyParser('prompt', modeman,
+                                                  warn=False),
+        KM.yesno: modeparsers.PromptKeyParser(modeman),
+    }
+    objreg.register('keyparsers', keyparsers)
+    modeman.register(KM.normal, keyparsers[KM.normal].handle)
+    modeman.register(KM.hint, keyparsers[KM.hint].handle)
+    modeman.register(KM.insert, keyparsers[KM.insert].handle, passthrough=True)
+    modeman.register(KM.passthrough, keyparsers[KM.passthrough].handle,
+                     passthrough=True)
+    modeman.register(KM.command, keyparsers[KM.command].handle,
+                     passthrough=True)
+    modeman.register(KM.prompt, keyparsers[KM.prompt].handle, passthrough=True)
+    modeman.register(KM.yesno, keyparsers[KM.yesno].handle)
 
 
 def enter(mode, reason=None):

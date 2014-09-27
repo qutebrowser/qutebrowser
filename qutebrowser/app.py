@@ -42,10 +42,10 @@ from qutebrowser.config import (style, config, websettings, iniparsers,
 from qutebrowser.network import qutescheme, proxy
 from qutebrowser.browser import quickmarks, cookies, downloads, cache, hints
 from qutebrowser.widgets import mainwindow, console, crash
-from qutebrowser.keyinput import modeparsers, keyparser, modeman
+from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (log, version, message, utilcmds, readline,
-                               utils, qtutils, urlutils, debug, objreg)
-from qutebrowser.utils import usertypes as utypes
+                               utils, qtutils, urlutils, debug, objreg,
+                               usertypes)
 
 
 class Application(QApplication):
@@ -67,38 +67,88 @@ class Application(QApplication):
         Args:
             Argument namespace from argparse.
         """
-        # pylint: disable=too-many-statements
-        if args.debug:
-            # We don't enable this earlier because some imports trigger
-            # warnings (which are not our fault).
-            warnings.simplefilter('default')
-        qt_args = qtutils.get_args(args)
-        log.init.debug("Qt arguments: {}, based on {}".format(qt_args, args))
-        super().__init__(qt_args)
         self._quit_status = {
             'crash': True,
             'tabs': False,
             'main': False,
         }
-        objreg.register('app', self)
         self._shutting_down = False
         self._crashdlg = None
         self._crashlogfile = None
+        self._commandrunner = None
 
+        if args.debug:
+            # We don't enable this earlier because some imports trigger
+            # warnings (which are not our fault).
+            warnings.simplefilter('default')
+
+        qt_args = qtutils.get_args(args)
+        log.init.debug("Qt arguments: {}, based on {}".format(qt_args, args))
+        super().__init__(qt_args)
         sys.excepthook = self._exception_hook
 
         self._args = args
         objreg.register('args', args)
+        QTimer.singleShot(0, self._process_init_args)
+
+        objreg.register('app', self)
+
+        if self._args.version:
+            print(version.version())
+            print()
+            print()
+            print(qutebrowser.__copyright__)
+            print()
+            print(version.GPL_BOILERPLATE.strip())
+            sys.exit(0)
+
         log.init.debug("Starting init...")
-        self._init_misc()
+        self.setQuitOnLastWindowClosed(False)
+        self.setOrganizationName("qutebrowser")
+        self.setApplicationName("qutebrowser")
+        self.setApplicationVersion(qutebrowser.__version__)
         utils.actute_warning()
+        self._init_modules()
+
+        log.init.debug("Initializing eventfilter...")
+        mode_manager = objreg.get('mode-manager')
+        self.installEventFilter(mode_manager)
+
+        log.init.debug("Connecting signals...")
+        self._connect_signals()
+        modeman.enter(usertypes.KeyMode.normal, 'init')
+
+        log.init.debug("Showing mainwindow...")
+        if not args.nowindow:
+            objreg.get('main-window').show()
+
+        log.init.debug("Applying python hacks...")
+        self._python_hacks()
+
+        log.init.debug("Init done!")
+
+        if self._crashdlg is not None:
+            self._crashdlg.raise_()
+
+    def __repr__(self):
+        return utils.get_repr(self)
+
+    def _init_modules(self):
+        """Initialize all 'modules' which need to be initialized."""
+        log.init.debug("Initializing message-bridge...")
+        message_bridge = message.MessageBridge(self)
+        objreg.register('message-bridge', message_bridge)
+
+        log.init.debug("Initializing readline-bridge...")
+        readline_bridge = readline.ReadlineBridge()
+        objreg.register('readline-bridge', readline_bridge)
+
         log.init.debug("Initializing config...")
         self._init_config()
         log.init.debug("Initializing crashlog...")
         self._handle_segfault()
         log.init.debug("Initializing modes...")
-        self._init_modes()
-        mode_manager = objreg.get('mode-manager')
+        modeman.init()
         log.init.debug("Initializing websettings...")
         websettings.init()
         log.init.debug("Initializing quickmarks...")
@@ -129,28 +179,6 @@ class Application(QApplication):
         log.init.debug("Initializing debug console...")
         debug_console = console.ConsoleWidget()
         objreg.register('debug-console', debug_console)
-        log.init.debug("Initializing eventfilter...")
-        self.installEventFilter(mode_manager)
-        self.setQuitOnLastWindowClosed(False)
-
-        log.init.debug("Connecting signals...")
-        self._connect_signals()
-        modeman.enter(utypes.KeyMode.normal, 'init')
-
-        log.init.debug("Showing mainwindow...")
-        if not args.nowindow:
-            main_window.show()
-        log.init.debug("Applying python hacks...")
-        self._python_hacks()
-        QTimer.singleShot(0, self._process_init_args)
-
-        log.init.debug("Init done!")
-
-        if self._crashdlg is not None:
-            self._crashdlg.raise_()
-
-    def __repr__(self):
-        return utils.get_repr(self)
 
     def _init_config(self):
         """Inizialize and read the config."""
@@ -204,65 +232,6 @@ class Application(QApplication):
         command_history = lineparser.LineConfigParser(
             confdir, 'cmd_history', ('completion', 'history-length'))
         objreg.register('command-history', command_history)
-
-    def _init_modes(self):
-        """Inizialize the mode manager and the keyparsers."""
-        keyparsers = {
-            utypes.KeyMode.normal:
-                modeparsers.NormalKeyParser(self),
-            utypes.KeyMode.hint:
-                modeparsers.HintKeyParser(self),
-            utypes.KeyMode.insert:
-                keyparser.PassthroughKeyParser('insert', self),
-            utypes.KeyMode.passthrough:
-                keyparser.PassthroughKeyParser('passthrough', self),
-            utypes.KeyMode.command:
-                keyparser.PassthroughKeyParser('command', self),
-            utypes.KeyMode.prompt:
-                keyparser.PassthroughKeyParser('prompt', self, warn=False),
-            utypes.KeyMode.yesno:
-                modeparsers.PromptKeyParser(self),
-        }
-        objreg.register('keyparsers', keyparsers)
-        mode_manager = modeman.ModeManager(self)
-        objreg.register('mode-manager', mode_manager)
-        mode_manager.register(utypes.KeyMode.normal,
-                              keyparsers[utypes.KeyMode.normal].handle)
-        mode_manager.register(utypes.KeyMode.hint,
-                              keyparsers[utypes.KeyMode.hint].handle)
-        mode_manager.register(utypes.KeyMode.insert,
-                              keyparsers[utypes.KeyMode.insert].handle,
-                              passthrough=True)
-        mode_manager.register(
-            utypes.KeyMode.passthrough,
-            keyparsers[utypes.KeyMode.passthrough].handle,
-            passthrough=True)
-        mode_manager.register(utypes.KeyMode.command,
-                              keyparsers[utypes.KeyMode.command].handle,
-                              passthrough=True)
-        mode_manager.register(utypes.KeyMode.prompt,
-                              keyparsers[utypes.KeyMode.prompt].handle,
-                              passthrough=True)
-        mode_manager.register(utypes.KeyMode.yesno,
-                              keyparsers[utypes.KeyMode.yesno].handle)
-
-    def _init_misc(self):
-        """Initialize misc things."""
-        if self._args.version:
-            print(version.version())
-            print()
-            print()
-            print(qutebrowser.__copyright__)
-            print()
-            print(version.GPL_BOILERPLATE.strip())
-            sys.exit(0)
-        self.setOrganizationName("qutebrowser")
-        self.setApplicationName("qutebrowser")
-        self.setApplicationVersion(qutebrowser.__version__)
-        message_bridge = message.MessageBridge(self)
-        objreg.register('message-bridge', message_bridge)
-        readline_bridge = readline.ReadlineBridge()
-        objreg.register('readline-bridge', readline_bridge)
 
     def _handle_segfault(self):
         """Handle a segfault from a previous run."""
@@ -359,7 +328,7 @@ class Application(QApplication):
         """
         signal.signal(signal.SIGINT, self.interrupt)
         signal.signal(signal.SIGTERM, self.interrupt)
-        timer = utypes.Timer(self, 'python_hacks')
+        timer = usertypes.Timer(self, 'python_hacks')
         timer.start(500)
         timer.timeout.connect(lambda: None)
         objreg.register('python-hack-timer', timer)
@@ -401,7 +370,7 @@ class Application(QApplication):
         cmd.got_search_rev.connect(search_runner.search_rev)
         cmd.returnPressed.connect(tabs.setFocus)
         search_runner.do_search.connect(tabs.search)
-        kp[utypes.KeyMode.normal].keystring_updated.connect(
+        kp[usertypes.KeyMode.normal].keystring_updated.connect(
             status.keystring.setText)
         tabs.got_cmd.connect(self._commandrunner.run_safely)
 
