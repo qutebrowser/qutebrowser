@@ -147,7 +147,7 @@ def serialize(obj):
     """Serialize an object into a QByteArray."""
     data = QByteArray()
     stream = QDataStream(data, QIODevice.WriteOnly)
-    stream << obj
+    stream << obj  # pylint: disable=pointless-statement
     _check_qdatastream(stream)
     return data
 
@@ -155,7 +155,7 @@ def serialize(obj):
 def deserialize(data, obj):
     """Deserialize an object from a QByteArray."""
     stream = QDataStream(data, QIODevice.ReadOnly)
-    stream >> obj
+    stream >> obj  # pylint: disable=pointless-statement
     _check_qdatastream(stream)
 
 
