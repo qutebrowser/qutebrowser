@@ -299,25 +299,39 @@ class CommandDispatcher:
         qtutils.deserialize(history, newtab.history())
         return newtab
 
+    def _back_forward(self, tab, bg, count, forward):
+        """Helper function for :back/:forward."""
+        if tab or bg:
+            widget = self.tab_clone(bg)
+        else:
+            widget = self._current_widget()
+        for _ in range(count):
+            if forward:
+                widget.go_forward()
+            else:
+                widget.go_back()
+
     @cmdutils.register(instance='command-dispatcher')
-    def back(self, count=1):
+    def back(self, tab=False, bg=False, count=1):
         """Go back in the history of the current tab.
 
         Args:
+            tab: Go back in a new tab.
+            bg: Go back in a background tab.
             count: How many pages to go back.
         """
-        for _ in range(count):
-            self._current_widget().go_back()
+        self._back_forward(tab, bg, count, forward=False)
 
     @cmdutils.register(instance='command-dispatcher')
-    def forward(self, count=1):
+    def forward(self, tab=False, bg=False, count=1):
         """Go forward in the history of the current tab.
 
         Args:
+            tab: Go forward in a new tab.
+            bg: Go back in a background tab.
             count: How many pages to go forward.
         """
-        for _ in range(count):
-            self._current_widget().go_forward()
+        self._back_forward(tab, bg, count, forward=True)
 
     def _navigate_incdec(self, url, tab, incdec):
         """Helper method for :navigate when `where' is increment/decrement.

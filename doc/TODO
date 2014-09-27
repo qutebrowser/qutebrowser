@@ -270,12 +270,6 @@ Other
 [n]gc
 Clear tab n or of current tab, clears the history of the tab and loads about:blank. (command clear_tab, aliases: clear).
 
-th
-Go back in a new tab (command tab_hist_back, aliases: tabback, tba).
-
-tl
-Go forward in a new tab (command tab_hist_forward, aliases: tabforward, tfo).
-
 c/
 Find forward, ignore case (command find_forward_ic, alias: iffind).
 
