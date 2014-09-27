@@ -32,7 +32,8 @@ import sys
 import operator
 from distutils.version import StrictVersion as Version
 
-from PyQt5.QtCore import QEventLoop, qVersion
+from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
+                          QIODevice)
 
 
 MAXVALS = {
@@ -126,6 +127,36 @@ def ensure_valid(obj):
     """
     if not obj.isValid():
         raise QtValueError(obj)
+
+
+def _check_qdatastream(stream):
+    """Check the status of a QDataStream and raise IOError if it's not ok."""
+    status_to_str = {
+        QDataStream.Ok: "The data stream is operating normally.",
+        QDataStream.ReadPastEnd: ("The data stream has read past the end of "
+                                  "the data in the underlying device."),
+        QDataStream.ReadCorruptData: "The data stream has read corrupt data.",
+        QDataStream.WriteFailed: ("The data stream cannot write to the "
+                                  "underlying device."),
+    }
+    if stream.status() != QDataStream.Ok:
+        raise IOError(status_to_str[stream.status()])
+
+
+def serialize(obj):
+    """Serialize an object into a QByteArray."""
+    data = QByteArray()
+    stream = QDataStream(data, QIODevice.WriteOnly)
+    stream << obj
+    _check_qdatastream(stream)
+    return data
+
+
+def deserialize(data, obj):
+    """Deserialize an object from a QByteArray."""
+    stream = QDataStream(data, QIODevice.ReadOnly)
+    stream >> obj
+    _check_qdatastream(stream)
 
 
 class QtValueError(ValueError):

@@ -20,6 +20,7 @@
 """The main tabbed browser widget."""
 
 import functools
+import collections
 
 from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QSize, QTimer, QUrl
@@ -32,6 +33,9 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.widgets import tabwidget, webview
 from qutebrowser.browser import signalfilter, commands
 from qutebrowser.utils import log, message, usertypes, utils, qtutils, objreg
+
+
+UndoEntry = collections.namedtuple('UndoEntry', ['url', 'history'])
 
 
 class TabbedBrowser(tabwidget.TabWidget):
@@ -53,7 +57,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         _tab_insert_idx_left: Where to insert a new tab with
                          tabbar -> new-tab-position set to 'left'.
         _tab_insert_idx_right: Same as above, for 'right'.
-        _url_stack: Stack of URLs of closed tabs.
+        _undo_stack: List of UndoEntry namedtuples of closed tabs.
 
     Signals:
         cur_progress: Progress of the current tab changed (loadProgress).
@@ -102,8 +106,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         self.cur_load_started.connect(self.on_cur_load_started)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._tabs = []
-        self._url_stack = []
-        objreg.register('url-stack', self._url_stack)
+        self._undo_stack = []
         self._filter = signalfilter.SignalFilter(self)
         dispatcher = commands.CommandDispatcher()
         objreg.register('command-dispatcher', dispatcher)
@@ -244,11 +247,19 @@ class TabbedBrowser(tabwidget.TabWidget):
             objreg.delete('last-focused-tab')
         if not tab.cur_url.isEmpty():
             qtutils.ensure_valid(tab.cur_url)
-            self._url_stack.append(tab.cur_url)
+            history_data = qtutils.serialize(tab.history())
+            entry = UndoEntry(tab.cur_url, history_data)
+            self._undo_stack.append(entry)
         tab.shutdown()
         self._tabs.remove(tab)
         self.removeTab(idx)
         tab.deleteLater()
+
+    def undo(self):
+        """Undo removing of a tab."""
+        url, history_data = self._undo_stack.pop()
+        newtab = self.tabopen(url)
+        qtutils.deserialize(history_data, newtab.history())
 
     @pyqtSlot('QUrl', bool)
     def openurl(self, url, newtab):

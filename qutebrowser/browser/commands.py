@@ -511,10 +511,9 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher')
     def undo(self):
         """Re-open a closed tab (optionally skipping [count] closed tabs)."""
-        url_stack = objreg.get('url-stack', None)
-        if url_stack:
-            objreg.get('tabbed-browser').tabopen(url_stack.pop())
-        else:
+        try:
+            objreg.get('tabbed-browser').undo()
+        except IndexError:
             raise cmdexc.CommandError("Nothing to undo!")
 
     @cmdutils.register(instance='command-dispatcher')
