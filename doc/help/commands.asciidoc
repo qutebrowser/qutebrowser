@@ -32,6 +32,7 @@
 |<<set-cmd-text,set-cmd-text>>|Preset the statusbar to some text.
 |<<spawn,spawn>>|Spawn a command in a shell.
 |<<stop,stop>>|Stop loading in the current/[count]th tab.
+|<<tab-clone,tab-clone>>|Duplicate the current tab.
 |<<tab-close,tab-close>>|Close the current/[count]th tab.
 |<<tab-focus,tab-focus>>|Select the tab given as argument/[count].
 |<<tab-move,tab-move>>|Move the current tab.
@@ -48,7 +49,13 @@
 |==============
 [[back]]
 === back
+Syntax: +:back [*--tab*] [*--bg*]+
+
 Go back in the history of the current tab.
+
+==== optional arguments
+* +*-t*+, +*--tab*+: Go back in a new tab.
+* +*-b*+, +*--bg*+: Go back in a background tab.
 
 ==== count
 How many pages to go back.
@@ -80,7 +87,13 @@ Download the current page.
 
 [[forward]]
 === forward
+Syntax: +:forward [*--tab*] [*--bg*]+
+
 Go forward in the history of the current tab.
+
+==== optional arguments
+* +*-t*+, +*--tab*+: Go forward in a new tab.
+* +*-b*+, +*--bg*+: Go back in a background tab.
 
 ==== count
 How many pages to go forward.
@@ -323,6 +336,15 @@ Stop loading in the current/[count]th tab.
 
 ==== count
 The tab index to stop.
+
+[[tab-clone]]
+=== tab-clone
+Syntax: +:tab-clone [*--bg*]+
+
+Duplicate the current tab.
+
+==== optional arguments
+* +*-b*+, +*--bg*+: Open in a background tab.
 
 [[tab-close]]
 === tab-close
