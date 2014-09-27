@@ -887,6 +887,7 @@ KEY_DATA = collections.OrderedDict([
         ('tab-move +', ['gr']),
         ('tab-next', ['J']),
         ('tab-prev', ['K']),
+        ('tab-clone', ['gC']),
         ('reload', ['r']),
         ('back', ['H', '<Backspace>']),
         ('forward', ['L']),

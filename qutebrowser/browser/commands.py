@@ -283,6 +283,23 @@ class CommandDispatcher:
                 diag.open(lambda: tab.print(diag.printer()))
 
     @cmdutils.register(instance='command-dispatcher')
+    def tab_clone(self, bg=False):
+        """Duplicate the current tab.
+
+        Args:
+            bg: Open in a background tab.
+
+        Return:
+            The new QWebView.
+        """
+        curtab = self._current_widget()
+        tabbed_browser = objreg.get('tabbed-browser')
+        newtab = tabbed_browser.tabopen(background=bg, explicit=True)
+        history = qtutils.serialize(curtab.history())
+        qtutils.deserialize(history, newtab.history())
+        return newtab
+
+    @cmdutils.register(instance='command-dispatcher')
     def back(self, count=1):
         """Go back in the history of the current tab.
 
