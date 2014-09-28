@@ -20,8 +20,6 @@
 """Misc. utility commands exposed to the user."""
 
 import types
-import functools
-
 
 from PyQt5.QtCore import QCoreApplication
 

@@ -40,8 +40,14 @@ win_id_gen = itertools.count(0)
 
 
 def create_window():
+    """Create a new main window.
+
+    Return:
+        The MainWindow object.
+    """
     win_id = next(win_id_gen)
     win = MainWindow(win_id)
+    return win
 
 
 class MainWindow(QWidget):
@@ -170,14 +176,14 @@ class MainWindow(QWidget):
 
     def _connect_signals(self):
         """Connect all mainwindow signals."""
+        # pylint: disable=too-many-locals,too-many-statements
         app = objreg.get('app')
         download_manager = objreg.get('download-manager')
         key_config = objreg.get('key-config')
-        config_obj = objreg.get('config')
 
         status = self._get_object('statusbar')
         keyparsers = self._get_object('keyparsers')
-        completion = self._get_object('completion')
+        completion_obj = self._get_object('completion')
         tabs = self._get_object('tabbed-browser')
         cmd = self._get_object('status-command')
         completer = self._get_object('completer')
@@ -242,15 +248,13 @@ class MainWindow(QWidget):
         # command input / completion
         mode_manager.left.connect(tabs.on_mode_left)
         cmd.clear_completion_selection.connect(
-            completion.on_clear_completion_selection)
-        cmd.hide_completion.connect(completion.hide)
+            completion_obj.on_clear_completion_selection)
+        cmd.hide_completion.connect(completion_obj.hide)
         cmd.update_completion.connect(completer.on_update_completion)
         completer.change_completed_part.connect(cmd.on_change_completed_part)
 
         # downloads
         tabs.start_download.connect(download_manager.fetch)
-
-
 
     @pyqtSlot()
     def resize_completion(self):

@@ -836,16 +836,16 @@ class CommandDispatcher:
         try:
             timer.setInterval(ms)
         except OverflowError:
-            raise cmdexc.CommandError("Numeric argument is too large for internal "
-                                    "int representation.")
+            raise cmdexc.CommandError("Numeric argument is too large for "
+                                      "internal int representation.")
         self._timers.append(timer)
         cmdline = ' '.join(command)
         commandrunner = objreg.get('command-runner', scope='window',
                                    window=self._win_id)
-        timer.timeout.connect(functools.partial(commandrunner.run_safely, cmdline))
+        timer.timeout.connect(
+            functools.partial(commandrunner.run_safely, cmdline))
         timer.timeout.connect(lambda: self._timers.remove(timer))
         timer.start()
-
 
     @cmdutils.register(instance='command-dispatcher',
                        modes=[usertypes.KeyMode.insert],
@@ -874,7 +874,7 @@ class CommandDispatcher:
         else:
             text = elem.evaluateJavaScript('this.value')
         self._editor = editor.ExternalEditor(
-            win_id, self._tabbed_browser())
+            self._win_id, self._tabbed_browser())
         self._editor.editing_finished.connect(
             functools.partial(self.on_editing_finished, elem))
         self._editor.edit(text)

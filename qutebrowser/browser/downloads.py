@@ -31,7 +31,6 @@ from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import (message, http, usertypes, log, utils, qtutils,
                                objreg)
-from qutebrowser.widgets import mainwindow
 
 
 class DownloadItem(QObject):

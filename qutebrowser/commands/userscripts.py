@@ -343,5 +343,5 @@ def run(cmd, *args, url, win_id):
     _runners.append(runner)
     _commandrunners.append(commandrunner)
     runner.finished.connect(functools.partial(_runners.remove, runner))
-    commandrunner.finished.connect(
+    runner.finished.connect(
         functools.partial(_commandrunners.remove, commandrunner))

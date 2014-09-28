@@ -34,7 +34,8 @@ class SchemeHandler(QObject):
         _win_id: The window ID this scheme handler is associated with.
     """
 
-    def __init__(self, win_id):
+    def __init__(self, win_id, parent=None):
+        super().__init__(parent)
         self._win_id = win_id
 
     def createRequest(self, op, request, outgoing_data):

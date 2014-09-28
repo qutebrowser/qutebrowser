@@ -113,6 +113,7 @@ class EventFilter(QObject):
         self._activated = True
 
     def eventFilter(self, obj, event):
+        """Forward events to the correct modeman."""
         if not self._activated:
             return False
         try:

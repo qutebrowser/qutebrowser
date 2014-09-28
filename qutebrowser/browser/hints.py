@@ -367,7 +367,7 @@ class HintManager(QObject):
         qtutils.ensure_valid(url)
         cmd = self._context.args[0]
         args = self._context.args[1:]
-        userscripts.run(cmd, *args, url=url)
+        userscripts.run(cmd, *args, url=url, win_id=self._win_id)
 
     def _spawn(self, url):
         """Spawn a simple command from a hint."""
