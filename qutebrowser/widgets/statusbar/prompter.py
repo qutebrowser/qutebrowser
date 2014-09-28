@@ -89,7 +89,7 @@ class Prompter:
         """Get a PromptContext based on the current state."""
         if not self._busy:
             return None
-        prompt = objreg.get('prompt')
+        prompt = objreg.get('prompt', scope='window', window=self._win_id)
         ctx = PromptContext(question=self._question,
                             text=prompt.txt.text(),
                             input_text=prompt.lineedit.text(),
@@ -106,7 +106,7 @@ class Prompter:
         Return: True if a context was restored, False otherwise.
         """
         log.statusbar.debug("Restoring context {}".format(ctx))
-        prompt = objreg.get('prompt')
+        prompt = objreg.get('prompt', scope='window', window=self._win_id)
         if ctx is None:
             prompt.hide_prompt.emit()
             self._busy = False
@@ -127,7 +127,7 @@ class Prompter:
         Raise:
             ValueError if the set PromptMode is invalid.
         """
-        prompt = objreg.get('prompt')
+        prompt = objreg.get('prompt', scope='window', window=self._win_id)
         if self._question.mode == usertypes.PromptMode.yesno:
             if self._question.default is None:
                 suffix = ""
@@ -181,7 +181,7 @@ class Prompter:
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Clear and reset input when the mode was left."""
-        prompt = objreg.get('prompt')
+        prompt = objreg.get('prompt', scope='window', window=self._win_id)
         if mode in (usertypes.KeyMode.prompt, usertypes.KeyMode.yesno):
             prompt.txt.setText('')
             prompt.lineedit.clear()
@@ -202,7 +202,7 @@ class Prompter:
         This executes the next action depending on the question mode, e.g. asks
         for the password or leaves the mode.
         """
-        prompt = objreg.get('prompt')
+        prompt = objreg.get('prompt', scope='window', window=self._win_id)
         if (self._question.mode == usertypes.PromptMode.user_pwd and
                 self._question.user is None):
             # User just entered an username

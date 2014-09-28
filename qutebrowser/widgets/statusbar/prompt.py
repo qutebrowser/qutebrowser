@@ -55,7 +55,7 @@ class Prompt(QWidget):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        objreg.register('prompt', self)
+        objreg.register('prompt', self, scope='window', window=win_id)
         self._hbox = QHBoxLayout(self)
         self._hbox.setContentsMargins(0, 0, 0, 0)
         self._hbox.setSpacing(5)
