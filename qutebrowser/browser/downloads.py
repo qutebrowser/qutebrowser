@@ -26,6 +26,8 @@ import collections
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer, QStandardPaths
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
+# We need this import so PyQt can use it inside pyqtSlot
+from PyQt5.QtWebKitWidgets import QWebPage  # pylint: disable=unused-import
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
