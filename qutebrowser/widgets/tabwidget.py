@@ -26,7 +26,7 @@ Module attributes:
 
 import functools
 
-from PyQt5.QtCore import pyqtSlot, Qt, QSize, QRect, QPoint, QTimer
+from PyQt5.QtCore import Qt, QSize, QRect, QPoint, QTimer
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab)
 from PyQt5.QtGui import QIcon, QPalette, QColor
@@ -52,9 +52,10 @@ class TabWidget(QTabWidget):
         self.setElideMode(Qt.ElideRight)
         self.setUsesScrollButtons(True)
         bar.setDrawBase(False)
-        self._init_config()
+        self.init_config()
+        config.on_change(self.init_config, 'tabs')
 
-    def _init_config(self):
+    def init_config(self):
         """Initialize attributes based on the config."""
         position_conv = {
             'north': QTabWidget.North,
@@ -78,13 +79,6 @@ class TabWidget(QTabWidget):
         tabbar.setSelectionBehaviorOnRemove(select_conv[selstr])
         tabbar.refresh()
 
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
-        """Update attributes when config changed."""
-        self.tabBar().on_config_changed(section, option)
-        if section == 'tabs':
-            self._init_config()
-
 
 class TabBar(QTabBar):
 
@@ -101,18 +95,19 @@ class TabBar(QTabBar):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setStyle(TabBarStyle(self.style()))
-        self.setFont(config.get('fonts', 'tabbar'))
+        self.set_font()
+        config.on_change(self.set_font, 'fonts', 'tabbar')
         self.vertical = False
         self.setAutoFillBackground(True)
-        p = self.palette()
-        p.setColor(QPalette.Window, config.get('colors', 'tab.bg.bar'))
-        self.setPalette(p)
-        QTimer.singleShot(0, self._autohide)
+        self.set_colors()
+        config.on_change(self.set_colors, 'colors', 'tab.bg.bar')
+        QTimer.singleShot(0, self.autohide)
+        config.on_change(self.autohide, 'tabs', 'auto-hide')
 
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
 
-    def _autohide(self):
+    def autohide(self):
         """Auto-hide the tabbar if needed."""
         auto_hide = config.get('tabs', 'auto-hide')
         if auto_hide and self.count() == 1:
@@ -136,17 +131,15 @@ class TabBar(QTabBar):
         self.setTabData(idx, color)
         self.update(self.tabRect(idx))
 
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
-        """Update attributes when config changed."""
-        if section == 'fonts' and option == 'tabbar':
-            self.setFont(config.get('fonts', 'tabbar'))
-        elif section == 'colors' and option == 'tab.bg.bar':
-            p = self.palette()
-            p.setColor(QPalette.Window, config.get('colors', 'tab.bg.bar'))
-            self.setPalette(p)
-        elif section == 'tabs' and option == 'auto-hide':
-            self._autohide()
+    def set_font(self):
+        """Set the tabbar font."""
+        self.setFont(config.get('fonts', 'tabbar'))
+
+    def set_colors(self):
+        """Set the tabbar colors."""
+        p = self.palette()
+        p.setColor(QPalette.Window, config.get('colors', 'tab.bg.bar'))
+        self.setPalette(p)
 
     def mousePressEvent(self, e):
         """Override mousePressEvent to close tabs if configured."""
@@ -256,12 +249,12 @@ class TabBar(QTabBar):
 
     def tabInserted(self, idx):
         """Show the tabbar if configured to hide and >1 tab is open."""
-        self._autohide()
+        self.autohide()
         super().tabInserted(idx)
 
     def tabRemoved(self, idx):
         """Hide the tabbar if configured when only one tab is open."""
-        self._autohide()
+        self.autohide()
         super().tabRemoved(idx)
 
 

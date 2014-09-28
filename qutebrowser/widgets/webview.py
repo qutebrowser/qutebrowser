@@ -91,7 +91,9 @@ class WebView(QWebView):
         self._force_open_target = None
         self._zoom = None
         self._has_ssl_errors = False
-        self._init_neighborlist()
+        self.init_neighborlist()
+        config.on_change(self.init_neighborlist, 'ui', 'zoom-levels')
+        config.on_change(self.init_neighborlist, 'ui', 'default-zoom')
         self._cur_url = None
         self.cur_url = QUrl()
         self.progress = 0
@@ -133,7 +135,7 @@ class WebView(QWebView):
         self.load_status = val
         self.load_status_changed.emit(val.name)
 
-    def _init_neighborlist(self):
+    def init_neighborlist(self):
         """Initialize the _zoom neighborlist."""
         levels = config.get('ui', 'zoom-levels')
         default = config.get('ui', 'default-zoom')
@@ -332,12 +334,6 @@ class WebView(QWebView):
         qtutils.ensure_valid(url)
         self.cur_url = url
         self.url_text_changed.emit(url.toDisplayString())
-
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
-        """Update tab config when config was changed."""
-        if section == 'ui' and option in ('zoom-levels', 'default-zoom'):
-            self._init_neighborlist()
 
     @pyqtSlot('QMouseEvent')
     def on_mouse_event(self, evt):

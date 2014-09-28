@@ -294,7 +294,6 @@ class Application(QApplication):
         message_bridge = objreg.get('message-bridge')
         mode_manager = objreg.get('mode-manager')
         prompter = objreg.get('prompter')
-        command_history = objreg.get('command-history')
         download_manager = objreg.get('download-manager')
         config_obj = objreg.get('config')
         key_config = objreg.get('key-config')
@@ -331,9 +330,6 @@ class Application(QApplication):
 
         # config
         config_obj.style_changed.connect(style.get_stylesheet.cache_clear)
-        for obj in (tabs, completion, main_window, command_history,
-                    websettings, mode_manager, status, status.txt):
-            config_obj.changed.connect(obj.on_config_changed)
         for obj in kp.values():
             key_config.changed.connect(obj.on_keyconfig_changed)
 

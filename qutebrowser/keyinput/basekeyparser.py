@@ -348,7 +348,7 @@ class BaseKeyParser(QObject):
     def on_keyconfig_changed(self, mode):
         """Re-read the config if a keybinding was changed."""
         if self._modename is None:
-            raise AttributeError("on_config_changed called but no section "
+            raise AttributeError("on_keyconfig_changed called but no section "
                                  "defined!")
         if mode == self._modename:
             self.read_config()

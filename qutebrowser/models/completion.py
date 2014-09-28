@@ -19,7 +19,7 @@
 
 """CompletionModels for different usages."""
 
-from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtCore import Qt
 
 from qutebrowser.config import config, configdata
 from qutebrowser.models import basecompletion
@@ -46,7 +46,6 @@ class SettingOptionCompletionModel(basecompletion.BaseCompletionModel):
     """A CompletionModel filled with settings and their descriptions.
 
     Attributes:
-        _section: The section of this model.
         _misc_items: A dict of the misc. column items which will be set later.
     """
 
@@ -57,7 +56,7 @@ class SettingOptionCompletionModel(basecompletion.BaseCompletionModel):
         cat = self.new_category(section)
         sectdata = configdata.DATA[section]
         self._misc_items = {}
-        self._section = section
+        config.on_change(self.update_misc_column, section)
         for name in sectdata.keys():
             try:
                 desc = sectdata.descriptions[name]
@@ -72,11 +71,8 @@ class SettingOptionCompletionModel(basecompletion.BaseCompletionModel):
                                                           value)
             self._misc_items[name] = miscitem
 
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
+    def update_misc_column(self, section, option):
         """Update misc column when config changed."""
-        if section != self._section:
-            return
         try:
             item = self._misc_items[option]
         except KeyError:
@@ -95,19 +91,13 @@ class SettingOptionCompletionModel(basecompletion.BaseCompletionModel):
 
 class SettingValueCompletionModel(basecompletion.BaseCompletionModel):
 
-    """A CompletionModel filled with setting values.
-
-    Attributes:
-        _section: The section of this model.
-        _option: The option of this model.
-    """
+    """A CompletionModel filled with setting values."""
 
     # pylint: disable=abstract-method
 
     def __init__(self, section, option=None, parent=None):
         super().__init__(parent)
-        self._section = section
-        self._option = option
+        config.on_change(self.update_current_value, section, option)
         cur_cat = self.new_category("Current", sort=0)
         value = config.get(section, option, raw=True)
         if not value:
@@ -128,11 +118,8 @@ class SettingValueCompletionModel(basecompletion.BaseCompletionModel):
             for (val, desc) in vals:
                 self.new_item(cat, val, desc)
 
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
+    def update_current_value(self, section, option):
         """Update current value when config changed."""
-        if (section, option) != (self._section, self._option):
-            return
         value = config.get(section, option, raw=True)
         if not value:
             value = '""'

@@ -95,6 +95,9 @@ class MainWindow(QWidget):
         # resizing will fail. Therefore, we use singleShot QTimers to make sure
         # we defer this until everything else is initialized.
         QTimer.singleShot(0, self._connect_resize_completion)
+        config.on_change(self.resize_completion, 'completion', 'height')
+        config.on_change(self.resize_completion, 'completion', 'shrink')
+
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -110,12 +113,6 @@ class MainWindow(QWidget):
     def _set_default_geometry(self):
         """Set some sensible default geometry."""
         self.setGeometry(QRect(50, 50, 800, 600))
-
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
-        """Resize completion if config changed."""
-        if section == 'completion' and option in ('height', 'shrink'):
-            self.resize_completion()
 
     @pyqtSlot()
     def resize_completion(self):

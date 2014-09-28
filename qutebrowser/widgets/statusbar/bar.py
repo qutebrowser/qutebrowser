@@ -141,8 +141,9 @@ class StatusBar(QWidget):
         self._timer_was_active = False
         self._text_queue = collections.deque()
         self._text_pop_timer = usertypes.Timer(self, 'statusbar_text_pop')
-        self._text_pop_timer.setInterval(config.get('ui', 'message-timeout'))
         self._text_pop_timer.timeout.connect(self._pop_text)
+        self.set_pop_timer_interval()
+        config.on_change(self.set_pop_timer_interval, 'ui', 'message-timeout')
 
         self.prompt = prompt.Prompt()
         self._stack.addWidget(self.prompt)
@@ -391,12 +392,9 @@ class StatusBar(QWidget):
         if mode == usertypes.KeyMode.insert:
             self._set_insert_active(False)
 
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
+    def set_pop_timer_interval(self):
         """Update message timeout when config changed."""
-        if section == 'ui' and option == 'message-timeout':
-            self._text_pop_timer.setInterval(config.get('ui',
-                                                        'message-timeout'))
+        self._text_pop_timer.setInterval(config.get('ui', 'message-timeout'))
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

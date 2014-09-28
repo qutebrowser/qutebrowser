@@ -49,8 +49,6 @@ def set_register_stylesheet(obj):
     """Set the stylesheet for an object based on it's STYLESHEET attribute.
 
     Also, register an update when the config is changed.
-    This isn't really good OOP, but it's the cleanest solution I could think
-    of.
 
     Args:
         obj: The object to set the stylesheet for and register.
@@ -60,11 +58,10 @@ def set_register_stylesheet(obj):
     log.style.vdebug("stylesheet for {}: {}".format(
         obj.__class__.__name__, qss))
     obj.setStyleSheet(qss)
-    objreg.get('config').changed.connect(functools.partial(
-        _update_stylesheet, obj))
+    config.on_change(functools.partial(update_stylesheet, obj))
 
 
-def _update_stylesheet(obj, _section, _option):
+def update_stylesheet(obj):
     """Update the stylesheet for obj."""
     obj.setStyleSheet(get_stylesheet(obj.STYLESHEET))
 

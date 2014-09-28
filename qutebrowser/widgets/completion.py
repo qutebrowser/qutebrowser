@@ -95,6 +95,9 @@ class CompletionView(QTreeView):
         completer_obj = completer.Completer()
         objreg.register('completer', completer_obj)
         self.enabled = config.get('completion', 'show')
+        config.on_change(self.set_enabled, 'completion', 'show')
+        # FIXME
+        #config.on_change(self.init_command_completion, 'aliases')
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
@@ -195,13 +198,9 @@ class CompletionView(QTreeView):
         if config.get('completion', 'shrink'):
             self.resize_completion.emit()
 
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
+    def set_enabled(self):
         """Update self.enabled when the config changed."""
-        if section == 'completion' and option == 'show':
-            self.enabled = config.get('completion', 'show')
-        elif section == 'aliases':
-            self._init_command_completion()
+        self.enabled = config.get('completion', 'show')
 
     @pyqtSlot()
     def on_clear_completion_selection(self):

@@ -28,7 +28,6 @@ Module attributes:
 
 import os.path
 
-from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtCore import QStandardPaths
 
@@ -193,10 +192,10 @@ def init():
         for optname, (typ, arg) in section.items():
             value = config.get(sectname, optname)
             _set_setting(typ, arg, value)
+    config.on_change(update_settings)
 
 
-@pyqtSlot(str, str)
-def on_config_changed(section, option):
+def update_settings(section, option):
     """Update global settings when qwebsettings changed."""
     try:
         typ, arg = MAPPINGS[section][option]

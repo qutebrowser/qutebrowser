@@ -27,8 +27,10 @@ we borrow some methods and classes from there where it makes sense.
 import os
 import sys
 import os.path
+import inspect
 import functools
 import configparser
+import collections
 import collections.abc
 
 from PyQt5.QtCore import pyqtSignal, QObject, QStandardPaths
@@ -36,10 +38,37 @@ from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.utils import log
 from qutebrowser.config import (configdata, iniparsers, configtypes,
-                                textwrapper, lineparser, keyconfparser)
+                                textwrapper, keyconfparser)
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import message, objreg, utils
 from qutebrowser.utils.usertypes import Completion
+
+
+ChangeHandler = collections.namedtuple('ChangeHandler', ['func', 'section',
+                                                         'option'])
+
+
+change_handlers = []
+
+
+def on_change(func, sectname=None, optname=None):
+    """Register a new change handler.
+
+    Args:
+        func: The function to be called on change.
+        sectname: Filter for the config section.
+                  If None, the handler gets called for all sections.
+        optname: Filter for the config option.
+                 If None, the handler gets called for all options.
+    """
+    if optname is not None and sectname is None:
+        raise TypeError("option is {} but section is None!".format(optname))
+    if sectname is not None and sectname not in configdata.DATA:
+        raise NoSectionError("Section '{}' does not exist!".format(sectname))
+    if optname is not None and optname not in configdata.DATA[sectname]:
+        raise NoOptionError("Option '{}' does not exist in section "
+                            "'{}'!".format(optname, sectname))
+    change_handlers.append(ChangeHandler(func, sectname, optname))
 
 
 def get(*args, **kwargs):
@@ -102,6 +131,8 @@ def init(args):
         objreg.register('key-config', key_config)
     state_config = iniparsers.ReadWriteConfigParser(confdir, 'state')
     objreg.register('state-config', state_config)
+    # We need to import this here because lineparser needs config.
+    from qutebrowser.config import lineparser
     command_history = lineparser.LineConfigParser(
         confdir, 'cmd_history', ('completion', 'history-length'))
     objreg.register('command-history', command_history)
@@ -155,8 +186,6 @@ class ConfigManager(QObject):
         _initialized: Whether the ConfigManager is fully initialized yet.
 
     Signals:
-        changed: Gets emitted when the config has changed.
-                 Args: the changed section, option and new value.
         style_changed: When style caches need to be invalidated.
                  Args: the changed section and option.
     """
@@ -164,7 +193,6 @@ class ConfigManager(QObject):
     KEY_ESCAPE = r'\#['
     ESCAPE_CHAR = '\\'
 
-    changed = pyqtSignal(str, str)
     style_changed = pyqtSignal(str, str)
 
     def __init__(self, configdir, fname, parent=None):
@@ -285,28 +313,42 @@ class ConfigManager(QObject):
                     e.option = k
                     raise
 
-    def _emit_changed(self, sectname, optname):
-        """Emit the appropriate signals for a changed config option."""
+    def _changed(self, sectname, optname):
+        """Notify other objects the config has changed."""
         log.misc.debug("Config option changed: {} -> {}".format(
             sectname, optname))
         if sectname in ('colors', 'fonts'):
             self.style_changed.emit(sectname, optname)
-        self.changed.emit(sectname, optname)
+        for handler in change_handlers:
+            if handler.section is not None and handler.section != sectname:
+                continue
+            if handler.option is not None and handler.option != optname:
+                continue
+            param_count = len(inspect.signature(handler.func).parameters)
+            if param_count == 2:
+                handler.func(sectname, optname)
+            elif param_count == 1:
+                handler.func(sectname)
+            elif param_count == 0:
+                handler.func()
+            else:
+                raise TypeError("Handler {} has invalid signature.".format(
+                    handler.func.__qualname__))
 
     def _after_set(self, changed_sect, changed_opt):
         """Clean up caches and emit signals after an option has been set."""
         self.get.cache_clear()
-        self._emit_changed(changed_sect, changed_opt)
+        self._changed(changed_sect, changed_opt)
         # Options in the same section and ${optname} interpolation.
         for optname, option in self.sections[changed_sect].items():
             if '${' + changed_opt + '}' in option.value():
-                self._emit_changed(changed_sect, optname)
+                self._changed(changed_sect, optname)
         # Options in any section and ${sectname:optname} interpolation.
         for sectname, sect in self.sections.items():
             for optname, option in sect.items():
                 if ('${' + changed_sect + ':' + changed_opt + '}' in
                         option.value()):
-                    self._emit_changed(sectname, optname)
+                    self._changed(sectname, optname)
 
     def items(self, sectname, raw=True):
         """Get a list of (optname, value) tuples for a section.

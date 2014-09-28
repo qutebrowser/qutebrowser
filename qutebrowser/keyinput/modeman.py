@@ -24,7 +24,7 @@ Module attributes:
 """
 
 from PyQt5.QtGui import QWindow
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent
+from PyQt5.QtCore import pyqtSignal, QObject, QEvent
 from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.keyinput import modeparsers, keyparser
@@ -131,8 +131,10 @@ class ModeManager(QObject):
         self.passthrough = []
         self._mode_stack = []
         self._releaseevents_to_pass = []
-        self._forward_unbound_keys = config.get('input',
-                                                'forward-unbound-keys')
+        self._forward_unbound_keys = config.get(
+            'input', 'forward-unbound-keys')
+        config.on_change(self.set_forward_unbound_keys, 'input',
+                         'forward-unbound-keys')
 
     def __repr__(self):
         return utils.get_repr(self, mode=self.mode(), locked=self.locked,
@@ -287,12 +289,10 @@ class ModeManager(QObject):
             raise ValueError("Can't leave normal mode!")
         self.leave(self.mode(), 'leave current')
 
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
+    def set_forward_unbound_keys(self):
         """Update local setting when config changed."""
-        if (section, option) == ('input', 'forward-unbound-keys'):
-            self._forward_unbound_keys = config.get('input',
-                                                    'forward-unbound-keys')
+        self._forward_unbound_keys = config.get(
+            'input', 'forward-unbound-keys')
 
     def eventFilter(self, obj, event):
         """Filter all events based on the currently set mode.

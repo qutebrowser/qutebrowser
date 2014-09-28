@@ -46,6 +46,7 @@ class Text(textbase.TextBase):
         self._normaltext = ''
         self._temptext = ''
         self._jstext = ''
+        config.on_change(self.update_text, 'ui', 'display-statusbar-messages')
 
     def set_text(self, which, text):
         """Set a text.
@@ -64,7 +65,7 @@ class Text(textbase.TextBase):
             self._jstext = text
         else:
             raise ValueError("Invalid value {} for which!".format(which))
-        self._update_text()
+        self.update_text()
 
     @pyqtSlot(str)
     def maybe_reset_text(self, text):
@@ -75,7 +76,7 @@ class Text(textbase.TextBase):
         else:
             log.misc.debug("Ignoring reset: '{}'".format(text))
 
-    def _update_text(self):
+    def update_text(self):
         """Update QLabel text when needed."""
         if self._temptext:
             self.setText(self._temptext)
@@ -100,9 +101,3 @@ class Text(textbase.TextBase):
     def on_tab_changed(self, tab):
         """Set the correct jstext when the current tab changed."""
         self._jstext = tab.statusbar_message
-
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
-        """Update text if display-statusbar-messages option changed."""
-        if (section, option) == ('ui', 'display-statusbar-messages'):
-            self._update_text()

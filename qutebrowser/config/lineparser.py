@@ -22,9 +22,8 @@
 import os
 import os.path
 
-from PyQt5.QtCore import pyqtSlot
-
 from qutebrowser.utils import log, utils
+from qutebrowser.config import config
 
 
 class LineConfigParser:
@@ -58,6 +57,8 @@ class LineConfigParser:
         else:
             log.init.debug("Reading config from {}".format(self._configfile))
             self.read(self._configfile)
+        if limit is not None:
+            config.on_change(self.cleanup_file, *limit)
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True,
@@ -98,8 +99,6 @@ class LineConfigParser:
         if not self.data:
             log.destroy.debug("No data to save.")
             return
-        # We need to import this here because config needs LineConfigParser.
-        from qutebrowser.config import config
         limit = -1 if self._limit is None else config.get(*self._limit)
         if limit == 0:
             return
@@ -113,14 +112,9 @@ class LineConfigParser:
             with open(self._configfile, 'w', encoding='utf-8') as f:
                 self.write(f, limit)
 
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
+    def cleanup_file(self, section, option):
         """Delete the file if the limit was changed to 0."""
-        if self._limit is None:
-            return
-        # We need to import this here because config needs LineConfigParser.
-        from qutebrowser.config import config
         value = config.get(section, option)
-        if (section, option) == self._limit and value == 0:
+        if value == 0:
             if os.path.exists(self._configfile):
                 os.remove(self._configfile)

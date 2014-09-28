@@ -129,9 +129,6 @@ style
   rewrite.
 - Use separate logger for config
 - Use unittest.Mock and especially unittest.patch more.
-- Use decorators for on_config_changed
-    - Will also make it easier to implement section-changed handlers for
-      :reload
 - Check where using signals would be better than objreg.get.
 
 dwb keybindings to possibly implement

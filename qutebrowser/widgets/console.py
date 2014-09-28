@@ -51,7 +51,8 @@ class ConsoleLineEdit(misc.CommandLineEdit):
             sys.ps2 = '... '
         super().__init__(parent)
         self.set_prompt(sys.ps1)
-        self.setFont(config.get('fonts', 'debug-console'))
+        self.update_font()
+        config.on_change(self.update_font, 'fonts', 'debug-console')
         self._more = False
         self._buffer = []
         interpreter_locals = {
@@ -144,10 +145,9 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         else:
             super().keyPressEvent(e)
 
-    def on_config_changed(self, section, option):
-        """Update font when config changed."""
-        if section == 'fonts' and option == 'debug-console':
-            self.setFont(config.get('fonts', 'debug-console'))
+    def update_font(self):
+        """Set the correct font."""
+        self.setFont(config.get('fonts', 'debug-console'))
 
 
 class ConsoleTextEdit(QTextEdit):
@@ -158,16 +158,16 @@ class ConsoleTextEdit(QTextEdit):
         super().__init__(parent)
         self.setAcceptRichText(False)
         self.setReadOnly(True)
-        self.setFont(config.get('fonts', 'debug-console'))
+        config.on_change(self.update_font, 'fonts', 'debug-console')
+        self.update_font()
         self.setFocusPolicy(Qt.NoFocus)
 
     def __repr__(self):
         return utils.get_repr(self)
 
-    def on_config_changed(self, section, option):
+    def update_font(self):
         """Update font when config changed."""
-        if section == 'fonts' and option == 'debug-console':
-            self.setFont(config.get('fonts', 'debug-console'))
+        self.setFont(config.get('fonts', 'debug-console'))
 
 
 class ConsoleWidget(QWidget):
@@ -194,9 +194,3 @@ class ConsoleWidget(QWidget):
 
     def __repr__(self):
         return utils.get_repr(self, visible=self.isVisible())
-
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
-        """Update font when config changed."""
-        self._lineedit.on_config_changed(section, option)
-        self._output.on_config_changed(section, option)

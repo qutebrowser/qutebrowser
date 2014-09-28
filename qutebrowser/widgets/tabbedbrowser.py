@@ -113,6 +113,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._now_focused = None
         # FIXME adjust this to font size
         self.setIconSize(QSize(12, 12))
+        config.on_change(self.update_favicons, 'tabs', 'show-favicons')
 
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
@@ -381,19 +382,14 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We first want QWebPage to refresh.
             QTimer.singleShot(0, check_scroll_pos)
 
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
-        """Update tab config when config was changed."""
-        super().on_config_changed(section, option)
-        for tab in self._tabs:
-            tab.on_config_changed(section, option)
-        if (section, option) == ('tabs', 'show-favicons'):
-            show = config.get('tabs', 'show-favicons')
-            for i, tab in enumerate(self.widgets()):
-                if show:
-                    self.setTabIcon(i, tab.icon())
-                else:
-                    self.setTabIcon(i, QIcon())
+    def update_favicons(self):
+        """Update favicons when config was changed."""
+        show = config.get('tabs', 'show-favicons')
+        for i, tab in enumerate(self.widgets()):
+            if show:
+                self.setTabIcon(i, tab.icon())
+            else:
+                self.setTabIcon(i, QIcon())
 
     @pyqtSlot()
     def on_load_started(self, tab):
