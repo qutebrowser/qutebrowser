@@ -114,7 +114,7 @@ class SearchRunner(QObject):
         """
         self._search(text, rev=True)
 
-    @cmdutils.register(instance='search-runner', hide=True)
+    @cmdutils.register(instance='search-runner', hide=True, scope='window')
     def search_next(self, count=1):
         """Continue the search to the ([count]th) next term.
 
@@ -128,7 +128,7 @@ class SearchRunner(QObject):
             for _ in range(count):
                 self.do_search.emit(self._text, self._flags)
 
-    @cmdutils.register(instance='search-runner', hide=True)
+    @cmdutils.register(instance='search-runner', hide=True, scope='window')
     def search_prev(self, count=1):
         """Continue the search to the ([count]th) previous term.
 
@@ -159,11 +159,13 @@ class CommandRunner:
     Attributes:
         _cmd: The command which was parsed.
         _args: The arguments which were parsed.
+        _win_id: The window this CommandRunner is associated with.
     """
 
-    def __init__(self):
+    def __init__(self, win_id):
         self._cmd = None
         self._args = []
+        self._win_id = win_id
 
     def _get_alias(self, text, alias_no_args):
         """Get an alias from the config.
@@ -280,9 +282,9 @@ class CommandRunner:
         self.parse(text)
         args = replace_variables(self._args)
         if count is not None:
-            self._cmd.run(args, count=count)
+            self._cmd.run(self._win_id, args, count=count)
         else:
-            self._cmd.run(args)
+            self._cmd.run(self._win_id, args)
 
     @pyqtSlot(str, int)
     def run_safely(self, text, count=None):
@@ -290,7 +292,7 @@ class CommandRunner:
         try:
             self.run(text, count)
         except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
-            message.error(e, immediately=True)
+            message.error(self._win_id, e, immediately=True)
 
     @pyqtSlot(str, int)
     def run_safely_init(self, text, count=None):
@@ -301,4 +303,4 @@ class CommandRunner:
         try:
             self.run(text, count)
         except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
-            message.error(e)
+            message.error(self._win_id, e)

@@ -37,7 +37,7 @@ from qutebrowser.commands import runners, cmdexc
 
 
 _runners = []
-_commandrunner = None
+_commandrunners = []
 
 
 class _BlockingFIFOReader(QObject):
@@ -98,6 +98,7 @@ class _BaseUserscriptRunner(QObject):
     Attributes:
         _filepath: The path of the file/FIFO which is being read.
         _proc: The QProcess which is being executed.
+        _win_id: The window ID this runner is associated with.
 
     Class attributes:
         PROCESS_MESSAGES: A mapping of QProcess::ProcessError members to
@@ -122,8 +123,9 @@ class _BaseUserscriptRunner(QObject):
         QProcess.UnknownError: "An unknown error occurred.",
     }
 
-    def __init__(self, parent=None):
+    def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        self._win_id = win_id
         self._filepath = None
         self._proc = None
 
@@ -153,7 +155,8 @@ class _BaseUserscriptRunner(QObject):
         except PermissionError as e:
             # NOTE: Do not replace this with "raise CommandError" as it's
             # executed async.
-            message.error("Failed to delete tempfile... ({})".format(e))
+            message.error(self._win_id,
+                          "Failed to delete tempfile... ({})".format(e))
         self._filepath = None
         self._proc = None
 
@@ -181,7 +184,8 @@ class _BaseUserscriptRunner(QObject):
         msg = self.PROCESS_MESSAGES[error]
         # NOTE: Do not replace this with "raise CommandError" as it's
         # executed async.
-        message.error("Error while calling userscript: {}".format(msg))
+        message.error(self._win_id,
+                      "Error while calling userscript: {}".format(msg))
 
 
 class _POSIXUserscriptRunner(_BaseUserscriptRunner):
@@ -196,8 +200,8 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         _thread: The QThread where reader runs.
     """
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, win_id, parent=None):
+        super().__init__(win_id, parent)
         self._reader = None
         self._thread = None
 
@@ -263,8 +267,8 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
         _oshandle: The oshandle of the temp file.
     """
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, win_id, parent=None):
+        super().__init__(win_id, parent)
         self._oshandle = None
 
     def _cleanup(self):
@@ -327,19 +331,17 @@ else:
     UserscriptRunner = _DummyUserscriptRunner
 
 
-def init():
-    """Initialize the global _commandrunner."""
-    global _commandrunner
-    _commandrunner = runners.CommandRunner()
-
-
-def run(cmd, *args, url):
+def run(cmd, *args, url, win_id):
     """Convenience method to run an userscript."""
     # We don't remove the password in the URL here, as it's probably safe to
     # pass via env variable..
     urlstr = url.toString(QUrl.FullyEncoded)
-    runner = UserscriptRunner()
-    runner.got_cmd.connect(_commandrunner.run_safely)
+    commandrunner = runners.CommandRunner(win_id)
+    runner = UserscriptRunner(win_id)
+    runner.got_cmd.connect(commandrunner.run_safely)
     runner.run(cmd, *args, env={'QUTE_URL': urlstr})
     _runners.append(runner)
+    _commandrunners.append(commandrunner)
     runner.finished.connect(functools.partial(_runners.remove, runner))
+    commandrunner.finished.connect(
+        functools.partial(_commandrunners.remove, commandrunner))

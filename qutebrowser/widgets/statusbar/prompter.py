@@ -60,13 +60,15 @@ class Prompter:
         _question: A Question object with the question to be asked to the user.
         _loops: A list of local EventLoops to spin in when blocking.
         _queue: A deque of waiting questions.
+        _win_id: The window ID this object is associated with.
     """
 
-    def __init__(self):
+    def __init__(self, win_id):
         self._question = None
         self._loops = []
         self._queue = collections.deque()
         self._busy = False
+        self._win_id = win_id
 
     def __repr__(self):
         return utils.get_repr(self, loops=len(self._loops),
@@ -189,7 +191,7 @@ class Prompter:
             if self._question.answer is None and not self._question.is_aborted:
                 self._question.cancel()
 
-    @cmdutils.register(instance='prompter', hide=True,
+    @cmdutils.register(instance='prompter', hide=True, scope='window',
                        modes=[usertypes.KeyMode.prompt,
                               usertypes.KeyMode.yesno])
     def prompt_accept(self):
@@ -212,27 +214,31 @@ class Prompter:
             # User just entered a password
             password = prompt.lineedit.text()
             self._question.answer = (self._question.user, password)
-            modeman.leave(usertypes.KeyMode.prompt, 'prompt accept')
+            modeman.leave(self._win_id, usertypes.KeyMode.prompt,
+                          'prompt accept')
             self._question.done()
         elif self._question.mode == usertypes.PromptMode.text:
             # User just entered text.
             self._question.answer = prompt.lineedit.text()
-            modeman.leave(usertypes.KeyMode.prompt, 'prompt accept')
+            modeman.leave(self._win_id, usertypes.KeyMode.prompt,
+                          'prompt accept')
             self._question.done()
         elif self._question.mode == usertypes.PromptMode.yesno:
             # User wants to accept the default of a yes/no question.
             self._question.answer = self._question.default
-            modeman.leave(usertypes.KeyMode.yesno, 'yesno accept')
+            modeman.leave(self._win_id, usertypes.KeyMode.yesno,
+                          'yesno accept')
             self._question.done()
         elif self._question.mode == usertypes.PromptMode.alert:
             # User acknowledged an alert
             self._question.answer = None
-            modeman.leave(usertypes.KeyMode.prompt, 'alert accept')
+            modeman.leave(self._win_id, usertypes.KeyMode.prompt,
+                          'alert accept')
             self._question.done()
         else:
             raise ValueError("Invalid question mode!")
 
-    @cmdutils.register(instance='prompter', hide=True,
+    @cmdutils.register(instance='prompter', hide=True, scope='window',
                        modes=[usertypes.KeyMode.yesno])
     def prompt_yes(self):
         """Answer yes to a yes/no prompt."""
@@ -240,10 +246,10 @@ class Prompter:
             # We just ignore this if we don't have a yes/no question.
             return
         self._question.answer = True
-        modeman.leave(usertypes.KeyMode.yesno, 'yesno accept')
+        modeman.leave(self._win_id, usertypes.KeyMode.yesno, 'yesno accept')
         self._question.done()
 
-    @cmdutils.register(instance='prompter', hide=True,
+    @cmdutils.register(instance='prompter', hide=True, scope='window',
                        modes=[usertypes.KeyMode.yesno])
     def prompt_no(self):
         """Answer no to a yes/no prompt."""
@@ -251,7 +257,7 @@ class Prompter:
             # We just ignore this if we don't have a yes/no question.
             return
         self._question.answer = False
-        modeman.leave(usertypes.KeyMode.yesno, 'prompt accept')
+        modeman.leave(self._win_id, usertypes.KeyMode.yesno, 'prompt accept')
         self._question.done()
 
     @pyqtSlot(usertypes.Question, bool)
@@ -284,10 +290,11 @@ class Prompter:
 
         self._question = question
         mode = self._display_question()
-        question.aborted.connect(lambda: modeman.maybe_leave(mode, 'aborted'))
+        question.aborted.connect(
+            lambda: modeman.maybe_leave(self._win_id, mode, 'aborted'))
         mode_manager = objreg.get('mode-manager')
         try:
-            modeman.enter(mode, 'question asked')
+            modeman.enter(self._win_id, mode, 'question asked')
         except modeman.ModeLockedError:
             if mode_manager.mode() != usertypes.KeyMode.prompt:
                 question.abort()

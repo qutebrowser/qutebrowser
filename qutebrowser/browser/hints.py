@@ -43,10 +43,10 @@ Target = usertypes.enum('Target', ['normal', 'tab', 'tab_bg', 'yank',
 
 
 @pyqtSlot(usertypes.KeyMode)
-def on_mode_entered(mode):
+def on_mode_entered(mode, win_id):
     """Stop hinting when insert mode was entered."""
     if mode == usertypes.KeyMode.insert:
-        modeman.maybe_leave(usertypes.KeyMode.hint, 'insert mode')
+        modeman.maybe_leave(win_id, usertypes.KeyMode.hint, 'insert mode')
 
 
 class HintContext:
@@ -100,6 +100,7 @@ class HintManager(QObject):
 
     Attributes:
         _context: The HintContext for the current invocation.
+        _win_id: The window ID this HintManager is associated with.
 
     Signals:
         mouse_event: Mouse event to be posted in the web view.
@@ -137,15 +138,14 @@ class HintManager(QObject):
     mouse_event = pyqtSignal('QMouseEvent')
     set_open_target = pyqtSignal(str)
 
-    def __init__(self, parent=None):
-        """Constructor.
-
-        Args:
-            frame: The QWebFrame to use for finding elements and drawing.
-        """
+    def __init__(self, win_id, parent=None):
+        """Constructor."""
         super().__init__(parent)
+        self._win_id = win_id
         self._context = None
-        objreg.get('mode-manager').left.connect(self.on_mode_left)
+        mode_manager = objreg.get('mode-manager', scope='window',
+                                  window=win_id)
+        mode_manager.left.connect(self.on_mode_left)
 
     def _cleanup(self):
         """Clean up after hinting."""
@@ -155,7 +155,9 @@ class HintManager(QObject):
             except webelem.IsNullError:
                 pass
         text = self.HINT_TEXTS[self._context.target]
-        objreg.get('message-bridge').maybe_reset_text(text)
+        message_bridge = objreg.get('message-bridge', scope='window',
+                                    window=self._win_id)
+        message_bridge.maybe_reset_text(text)
         self._context = None
 
     def _hint_strings(self, elems):
@@ -331,8 +333,8 @@ class HintManager(QObject):
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
         QApplication.clipboard().setText(urlstr, mode)
-        message.info("URL yanked to {}".format("primary selection" if sel
-                                               else "clipboard"))
+        message.info(self._win_id, "URL yanked to {}".format(
+            "primary selection" if sel else "clipboard"))
 
     def _preset_cmd_text(self, url):
         """Preset a commandline text based on a hint URL.
@@ -343,7 +345,7 @@ class HintManager(QObject):
         qtutils.ensure_valid(url)
         urlstr = url.toDisplayString(QUrl.FullyEncoded)
         args = self._context.get_args(urlstr)
-        message.set_cmd_text(' '.join(args))
+        message.set_cmd_text(self._win_id, ' '.join(args))
 
     def _download(self, elem):
         """Download a hint URL.
@@ -353,7 +355,8 @@ class HintManager(QObject):
         """
         url = self._resolve_url(elem)
         if url is None:
-            message.error("No suitable link found for this element.",
+            message.error(self._win_id,
+                          "No suitable link found for this element.",
                           immediately=True)
             return
         qtutils.ensure_valid(url)
@@ -570,7 +573,8 @@ class HintManager(QObject):
         objreg.get('message-bridge').set_text(self.HINT_TEXTS[target])
         self._connect_frame_signals()
         try:
-            modeman.enter(usertypes.KeyMode.hint, 'HintManager.start')
+            modeman.enter(self._win_id, usertypes.KeyMode.hint,
+                          'HintManager.start')
         except modeman.ModeLockedError:
             self._cleanup()
 
@@ -614,7 +618,7 @@ class HintManager(QObject):
                 visible[k] = e
         if not visible:
             # Whoops, filtered all hints
-            modeman.leave(usertypes.KeyMode.hint, 'all filtered')
+            modeman.leave(self._win_id, usertypes.KeyMode.hint, 'all filtered')
         elif len(visible) == 1 and config.get('hints', 'auto-follow'):
             # unpacking gets us the first (and only) key in the dict.
             self.fire(*visible)
@@ -653,14 +657,16 @@ class HintManager(QObject):
         elif self._context.target in url_handlers:
             url = self._resolve_url(elem)
             if url is None:
-                message.error("No suitable link found for this element.",
+                message.error(self._win_id,
+                              "No suitable link found for this element.",
                               immediately=True)
                 return
             url_handlers[self._context.target](url)
         else:
             raise ValueError("No suitable handler found!")
         if self._context.target != Target.rapid:
-            modeman.maybe_leave(usertypes.KeyMode.hint, 'followed')
+            modeman.maybe_leave(self._win_id, usertypes.KeyMode.hint,
+                                'followed')
 
     @cmdutils.register(instance='hintmanager', scope='tab', hide=True)
     def follow_hint(self):

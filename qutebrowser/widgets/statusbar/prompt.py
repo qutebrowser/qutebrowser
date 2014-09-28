@@ -53,7 +53,7 @@ class Prompt(QWidget):
     show_prompt = pyqtSignal()
     hide_prompt = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, win_id, parent=None):
         super().__init__(parent)
         objreg.register('prompt', self)
         self._hbox = QHBoxLayout(self)
@@ -66,8 +66,9 @@ class Prompt(QWidget):
         self.lineedit = PromptLineEdit()
         self._hbox.addWidget(self.lineedit)
 
-        prompter_obj = prompter.Prompter()
-        objreg.register('prompter', prompter_obj)
+        prompter_obj = prompter.Prompter(win_id)
+        objreg.register('prompter', prompter_obj, scope='window',
+                        window=win_id)
 
     def __repr__(self):
         return utils.get_repr(self)

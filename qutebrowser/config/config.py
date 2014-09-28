@@ -438,7 +438,7 @@ class ConfigManager(QObject):
     @cmdutils.register(name='set', instance='config',
                        completion=[Completion.section, Completion.option,
                                    Completion.value])
-    def set_command(self, sectname: {'name': 'section'},
+    def set_command(self, win_id, sectname: {'name': 'section'},
                     optname: {'name': 'option'}, value=None, temp=False):
         """Set an option.
 
@@ -458,8 +458,8 @@ class ConfigManager(QObject):
         try:
             if optname.endswith('?'):
                 val = self.get(sectname, optname[:-1], transformed=False)
-                message.info("{} {} = {}".format(sectname, optname[:-1], val),
-                             immediately=True)
+                message.info(win_id, "{} {} = {}".format(
+                    sectname, optname[:-1], val), immediately=True)
             else:
                 if value is None:
                     raise cmdexc.CommandError("set: The following arguments "

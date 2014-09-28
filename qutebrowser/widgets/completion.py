@@ -89,11 +89,12 @@ class CompletionView(QTreeView):
 
     resize_completion = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        objreg.register('completion', self)
-        completer_obj = completer.Completer()
-        objreg.register('completer', completer_obj)
+        objreg.register('completion', self, scope='window', window=win_id)
+        completer_obj = completer.Completer(win_id)
+        objreg.register('completer', completer_obj, scope='window',
+                        window=win_id)
         self.enabled = config.get('completion', 'show')
         config.on_change(self.set_enabled, 'completion', 'show')
         # FIXME
@@ -211,13 +212,13 @@ class CompletionView(QTreeView):
             selmod.clearCurrentIndex()
 
     @cmdutils.register(instance='completion', hide=True,
-                       modes=[usertypes.KeyMode.command])
+                       modes=[usertypes.KeyMode.command], scope='window')
     def completion_item_prev(self):
         """Select the previous completion item."""
         self._next_prev_item(prev=True)
 
     @cmdutils.register(instance='completion', hide=True,
-                       modes=[usertypes.KeyMode.command])
+                       modes=[usertypes.KeyMode.command], scope='window')
     def completion_item_next(self):
         """Select the next completion item."""
         self._next_prev_item(prev=False)

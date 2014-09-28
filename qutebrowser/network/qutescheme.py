@@ -78,14 +78,14 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
             request, data, 'text/html', self.parent())
 
 
-def qute_pyeval(_request):
+def qute_pyeval(_win_id, _request):
     """Handler for qute:pyeval. Return HTML content as bytes."""
     html = jinja.env.get_template('pre.html').render(
         title='pyeval', content=pyeval_output)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
-def qute_version(_request):
+def qute_version(_win_id, _request):
     """Handler for qute:version. Return HTML content as bytes."""
     html = jinja.env.get_template('version.html').render(
         title='Version info', version=version.version(),
@@ -93,7 +93,7 @@ def qute_version(_request):
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
-def qute_plainlog(_request):
+def qute_plainlog(_win_id, _request):
     """Handler for qute:plainlog. Return HTML content as bytes."""
     if log.ram_handler is None:
         text = "Log output was disabled."
@@ -103,7 +103,7 @@ def qute_plainlog(_request):
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
-def qute_log(_request):
+def qute_log(_win_id, _request):
     """Handler for qute:log. Return HTML content as bytes."""
     if log.ram_handler is None:
         html_log = None
@@ -114,12 +114,12 @@ def qute_log(_request):
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
-def qute_gpl(_request):
+def qute_gpl(_win_id, _request):
     """Handler for qute:gpl. Return HTML content as bytes."""
     return utils.read_file('html/COPYING.html').encode('ASCII')
 
 
-def qute_help(request):
+def qute_help(win_id, request):
     """Handler for qute:help. Return HTML content as bytes."""
     try:
         utils.read_file('html/doc/index.html')
@@ -140,8 +140,8 @@ def qute_help(request):
     else:
         urlpath = urlpath.lstrip('/')
     if not docutils.docs_up_to_date(urlpath):
-        message.error("Your documentation is outdated! Please re-run scripts/"
-                      "asciidoc2html.py.")
+        message.error(win_id, "Your documentation is outdated! Please re-run "
+                      "scripts/asciidoc2html.py.")
     path = 'html/doc/{}'.format(urlpath)
     return utils.read_file(path).encode('UTF-8', errors='xmlcharrefreplace')
 

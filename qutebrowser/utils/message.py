@@ -24,33 +24,41 @@ from PyQt5.QtCore import pyqtSignal, QObject, QTimer
 from qutebrowser.utils import usertypes, log, objreg, utils
 
 
-def error(message, immediately=False):
+def _get_bridge(win_id):
+    """Get the correct MessageBridge instance for a window."""
+    return objreg.get('message-bridge', scope='window', window=win_id)
+
+
+def error(win_id, message, immediately=False):
     """Convienience function to display an error message in the statusbar.
 
     Args:
-        See MessageBridge.error.
+        win_id: The ID of the window which is calling this function.
+        others: See MessageBridge.error.
     """
-    objreg.get('message-bridge').error(message, immediately)
+    _get_bridge(win_id).error(message, immediately)
 
 
-def info(message, immediately=True):
+def info(win_id, message, immediately=True):
     """Convienience function to display an info message in the statusbar.
 
     Args:
-        See MessageBridge.info.
+        win_id: The ID of the window which is calling this function.
+        others: See MessageBridge.info.
     """
-    objreg.get('message-bridge').info(message, immediately)
+    _get_bridge(win_id).info(message, immediately)
 
 
-def set_cmd_text(txt):
+def set_cmd_text(win_id, txt):
     """Convienience function to Set the statusbar command line to a text."""
-    objreg.get('message-bridge').set_cmd_text(txt)
+    _get_bridge(win_id).set_cmd_text(txt)
 
 
-def ask(message, mode, default=None):
+def ask(win_id, message, mode, default=None):
     """Ask a modular question in the statusbar (blocking).
 
     Args:
+        win_id: The ID of the window which is calling this function.
         message: The message to display to the user.
         mode: A PromptMode.
         default: The default value to display.
@@ -62,24 +70,30 @@ def ask(message, mode, default=None):
     q.text = message
     q.mode = mode
     q.default = default
-    objreg.get('message-bridge').ask(q, blocking=True)
+    _get_bridge(win_id).ask(q, blocking=True)
     q.deleteLater()
     return q.answer
 
 
-def alert(message):
-    """Display an alert which needs to be confirmed."""
+def alert(win_id, message):
+    """Display an alert which needs to be confirmed.
+
+    Args:
+        win_id: The ID of the window which is calling this function.
+        message: The message to show.
+    """
     q = usertypes.Question()
     q.text = message
     q.mode = usertypes.PromptMode.alert
-    objreg.get('message-bridge').ask(q, blocking=True)
+    _get_bridge(win_id).ask(q, blocking=True)
     q.deleteLater()
 
 
-def ask_async(message, mode, handler, default=None):
+def ask_async(win_id, message, mode, handler, default=None):
     """Ask an async question in the statusbar.
 
     Args:
+        win_id: The ID of the window which is calling this function.
         message: The message to display to the user.
         mode: A PromptMode.
         handler: The function to get called with the answer as argument.
@@ -87,7 +101,7 @@ def ask_async(message, mode, handler, default=None):
     """
     if not isinstance(mode, usertypes.PromptMode):
         raise TypeError("Mode {} is no PromptMode member!".format(mode))
-    bridge = objreg.get('message-bridge')
+    bridge = _get_bridge(win_id)
     q = usertypes.Question(bridge)
     q.text = message
     q.mode = mode
@@ -97,16 +111,17 @@ def ask_async(message, mode, handler, default=None):
     bridge.ask(q, blocking=False)
 
 
-def confirm_async(message, yes_action, no_action=None, default=None):
+def confirm_async(win_id, message, yes_action, no_action=None, default=None):
     """Ask a yes/no question to the user and execute the given actions.
 
     Args:
+        win_id: The ID of the window which is calling this function.
         message: The message to display to the user.
         yes_action: Callable to be called when the user answered yes.
         no_action: Callable to be called when the user answered no.
         default: True/False to set a default value, or None.
     """
-    bridge = objreg.get('message-bridge')
+    bridge = _get_bridge(win_id)
     q = usertypes.Question(bridge)
     q.text = message
     q.mode = usertypes.PromptMode.yesno

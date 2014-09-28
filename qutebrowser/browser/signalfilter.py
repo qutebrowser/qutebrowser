@@ -34,11 +34,18 @@ class SignalFilter(QObject):
     Signals are only passed to the parent TabbedBrowser if they originated in
     the currently shown widget.
 
+    Attributes:
+        _win_id: The window ID this SignalFilter is associated with.
+
     Class attributes:
         BLACKLIST: List of signal names which should not be logged.
     """
 
     BLACKLIST = ['cur_scroll_perc_changed', 'cur_progress']
+
+    def __init__(self, win_id, parent=None):
+        super().__init__(parent)
+        self._win_id = win_id
 
     def create(self, signal, tab):
         """Factory for partial _filter_signals functions.
@@ -73,7 +80,8 @@ class SignalFilter(QObject):
             The target signal if the sender was the current widget.
         """
         log_signal = debug.signal_name(signal) not in self.BLACKLIST
-        tabbed_browser = objreg.get('tabbed-browser')
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=self._win_id)
         try:
             tabidx = tabbed_browser.indexOf(tab)
         except RuntimeError:

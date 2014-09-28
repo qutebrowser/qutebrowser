@@ -43,22 +43,23 @@ class NotInModeError(Exception):
     """Exception raised when we want to leave a mode we're not in."""
 
 
-def init():
-    """Inizialize the mode manager and the keyparsers."""
+def init(win_id, parent):
+    """Inizialize the mode manager and the keyparsers for the given win_id."""
     KM = usertypes.KeyMode  # pylint: disable=invalid-name
-    modeman = ModeManager(objreg.get('app'))
-    objreg.register('mode-manager', modeman)
+    modeman = ModeManager(win_id, parent)
+    objreg.register('mode-manager', modeman, scope='window', window=win_id)
     keyparsers = {
-        KM.normal: modeparsers.NormalKeyParser(modeman),
-        KM.hint: modeparsers.HintKeyParser(modeman),
-        KM.insert: keyparser.PassthroughKeyParser('insert', modeman),
-        KM.passthrough: keyparser.PassthroughKeyParser('passthrough', modeman),
-        KM.command: keyparser.PassthroughKeyParser('command', modeman),
-        KM.prompt: keyparser.PassthroughKeyParser('prompt', modeman,
+        KM.normal: modeparsers.NormalKeyParser(win_id, modeman),
+        KM.hint: modeparsers.HintKeyParser(win_id, modeman),
+        KM.insert: keyparser.PassthroughKeyParser(win_id, 'insert', modeman),
+        KM.passthrough: keyparser.PassthroughKeyParser(win_id, 'passthrough',
+                                                       modeman),
+        KM.command: keyparser.PassthroughKeyParser(win_id, 'command', modeman),
+        KM.prompt: keyparser.PassthroughKeyParser(win_id, 'prompt', modeman,
                                                   warn=False),
-        KM.yesno: modeparsers.PromptKeyParser(modeman),
+        KM.yesno: modeparsers.PromptKeyParser(win_id, modeman),
     }
-    objreg.register('keyparsers', keyparsers)
+    objreg.register('keyparsers', keyparsers, scope='window', window=win_id)
     modeman.register(KM.normal, keyparsers[KM.normal].handle)
     modeman.register(KM.hint, keyparsers[KM.hint].handle)
     modeman.register(KM.insert, keyparsers[KM.insert].handle, passthrough=True)
@@ -68,33 +69,64 @@ def init():
                      passthrough=True)
     modeman.register(KM.prompt, keyparsers[KM.prompt].handle, passthrough=True)
     modeman.register(KM.yesno, keyparsers[KM.yesno].handle)
+    return modeman
 
 
-def enter(mode, reason=None):
+def _get_modeman(win_id):
+    """Get a modemanager object."""
+    return objreg.get('mode-manager', scope='window', window=win_id)
+
+
+def enter(win_id, mode, reason=None):
     """Enter the mode 'mode'."""
-    objreg.get('mode-manager').enter(mode, reason)
+    _get_modeman(win_id).enter(mode, reason)
 
 
-def leave(mode, reason=None):
+def leave(win_id, mode, reason=None):
     """Leave the mode 'mode'."""
-    objreg.get('mode-manager').leave(mode, reason)
+    _get_modeman(win_id).leave(mode, reason)
 
 
-def maybe_enter(mode, reason=None):
+def maybe_enter(win_id, mode, reason=None):
     """Convenience method to enter 'mode' without exceptions."""
     try:
-        objreg.get('mode-manager').enter(mode, reason)
+        _get_modeman(win_id).enter(mode, reason)
     except ModeLockedError:
         pass
 
 
-def maybe_leave(mode, reason=None):
+def maybe_leave(win_id, mode, reason=None):
     """Convenience method to leave 'mode' without exceptions."""
     try:
-        objreg.get('mode-manager').leave(mode, reason)
+        _get_modeman(win_id).leave(mode, reason)
     except NotInModeError as e:
         # This is rather likely to happen, so we only log to debug log.
         log.modes.debug("{} (leave reason: {})".format(e, reason))
+
+
+class EventFilter(QObject):
+
+    """Event filter which passes the event to the corrent ModeManager."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._activated = True
+
+    def eventFilter(self, obj, event):
+        if not self._activated:
+            return False
+        try:
+            modeman = objreg.get('mode-manager', scope='window',
+                                 window='current')
+            return modeman.eventFilter(obj, event)
+        except objreg.RegistryUnavailableError:
+            # No window available yet
+            return False
+        except:
+            # If there is an exception in here and we leave the eventfilter
+            # activated, we'll get an infinite loop and a stack overflow.
+            self._activated = False
+            raise
 
 
 class ModeManager(QObject):
@@ -106,6 +138,7 @@ class ModeManager(QObject):
         locked: Whether current mode is locked. This means the current mode can
                 still be left (then locked will be reset), but no new mode can
                 be entered while the current mode is active.
+        _win_id: The window ID of this ModeManager
         _handlers: A dictionary of modes and their handlers.
         _mode_stack: A list of the modes we're currently in, with the active
                      one on the right.
@@ -116,16 +149,19 @@ class ModeManager(QObject):
 
     Signals:
         entered: Emitted when a mode is entered.
-                 arg: The mode which has been entered.
+                 arg1: The mode which has been entered.
+                 arg2: The window ID of this mode manager.
         left:  Emitted when a mode is left.
-                 arg: The mode which has been left.
+                 arg1: The mode which has been left.
+                 arg2: The window ID of this mode manager.
     """
 
-    entered = pyqtSignal(usertypes.KeyMode)
-    left = pyqtSignal(usertypes.KeyMode)
+    entered = pyqtSignal(usertypes.KeyMode, int)
+    left = pyqtSignal(usertypes.KeyMode, int)
 
-    def __init__(self, parent=None):
+    def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        self._win_id = win_id
         self.locked = False
         self._handlers = {}
         self.passthrough = []
@@ -246,9 +282,9 @@ class ModeManager(QObject):
             return
         self._mode_stack.append(mode)
         log.modes.debug("New mode stack: {}".format(self._mode_stack))
-        self.entered.emit(mode)
+        self.entered.emit(mode, self._win_id)
 
-    @cmdutils.register(instance='mode-manager', hide=True)
+    @cmdutils.register(instance='mode-manager', hide=True, scope='window')
     def enter_mode(self, mode):
         """Enter a key mode.
 
@@ -279,10 +315,11 @@ class ModeManager(QObject):
         log.modes.debug("Leaving mode {}{}, new mode stack {}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason),
             self._mode_stack))
-        self.left.emit(mode)
+        self.left.emit(mode, self._win_id)
 
     @cmdutils.register(instance='mode-manager', name='leave-mode',
-                       not_modes=[usertypes.KeyMode.normal], hide=True)
+                       not_modes=[usertypes.KeyMode.normal], hide=True,
+                       scope='window')
     def leave_current_mode(self):
         """Leave the mode we're currently in."""
         if self.mode() == usertypes.KeyMode.normal:
@@ -316,8 +353,8 @@ class ModeManager(QObject):
             # We already handled this same event at some point earlier, so
             # we're not interested in it anymore.
             return False
-        if (QApplication.instance().activeWindow() is not
-                objreg.get('main-window')):
+        if (QApplication.instance().activeWindow() not in
+                objreg.window_registry.values()):
             # Some other window (print dialog, etc.) is focused so we pass
             # the event through.
             return False

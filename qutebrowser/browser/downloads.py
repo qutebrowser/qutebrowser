@@ -31,6 +31,7 @@ from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import (message, http, usertypes, log, utils, qtutils,
                                objreg)
+from qutebrowser.widgets import mainwindow
 
 
 class DownloadItem(QObject):
@@ -431,4 +432,4 @@ class DownloadManager(QObject):
     @pyqtSlot(str)
     def on_error(self, msg):
         """Display error message on download errors."""
-        message.error("Download error: {}".format(msg))
+        message.error('current', "Download error: {}".format(msg))

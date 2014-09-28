@@ -25,44 +25,9 @@ import functools
 
 from PyQt5.QtCore import QCoreApplication
 
-from qutebrowser.utils import usertypes, log, objreg
-from qutebrowser.commands import runners, cmdexc, cmdutils
+from qutebrowser.utils import log, objreg
+from qutebrowser.commands import cmdutils
 from qutebrowser.config import style
-
-
-_timers = []
-_commandrunner = None
-
-
-def init():
-    """Initialize the global _commandrunner."""
-    global _commandrunner
-    _commandrunner = runners.CommandRunner()
-
-
-@cmdutils.register()
-def later(ms: int, *command):
-    """Execute a command after some time.
-
-    Args:
-        ms: How many milliseconds to wait.
-        *command: The command to run, with optional args.
-    """
-    timer = usertypes.Timer(name='later')
-    timer.setSingleShot(True)
-    if ms < 0:
-        raise cmdexc.CommandError("I can't run something in the past!")
-    try:
-        timer.setInterval(ms)
-    except OverflowError:
-        raise cmdexc.CommandError("Numeric argument is too large for internal "
-                                  "int representation.")
-    _timers.append(timer)
-    cmdline = ' '.join(command)
-    timer.timeout.connect(functools.partial(
-        _commandrunner.run_safely, cmdline))
-    timer.timeout.connect(lambda: _timers.remove(timer))
-    timer.start()
 
 
 @cmdutils.register(debug=True)
