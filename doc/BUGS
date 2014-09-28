@@ -44,6 +44,8 @@ Input
 - Shift-Insert in commandline pastes clipboard instead of primary selection
 - Auto-insert-mode sometimes doesn't work correctly (e.g. login form of Gitlab)
 - Sidewise scrolling via mousewheel broken
+- Crash when getting js prompt and alert at the same time?
+  http://paste.the-compiler.org/view/8c39f5ea
 
 Rendering
 ---------
