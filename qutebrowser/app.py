@@ -114,10 +114,6 @@ class Application(QApplication):
         log.init.debug("Connecting signals...")
         self._connect_signals()
 
-        log.init.debug("Showing mainwindow...")
-        if not args.nowindow:
-            objreg.get('main-window', scope='window', window=0).show()
-
         log.init.debug("Applying python hacks...")
         self._python_hacks()
 
@@ -155,7 +151,7 @@ class Application(QApplication):
         download_manager = downloads.DownloadManager(self)
         objreg.register('download-manager', download_manager)
         log.init.debug("Initializing main window...")
-        mainwindow.create_window()
+        mainwindow.create_window(False if self._args.nowindow else True)
         log.init.debug("Initializing debug console...")
         debug_console = console.ConsoleWidget()
         objreg.register('debug-console', debug_console)

@@ -39,14 +39,19 @@ from qutebrowser.browser import hints
 win_id_gen = itertools.count(0)
 
 
-def create_window():
+def create_window(show):
     """Create a new main window.
+
+    Args:
+        show: Show the window after creating.
 
     Return:
         The new window id.
     """
     win_id = next(win_id_gen)
-    MainWindow(win_id)
+    win = MainWindow(win_id)
+    if show:
+        win.show()
     return win_id
 
 

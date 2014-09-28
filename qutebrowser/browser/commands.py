@@ -108,7 +108,7 @@ class CommandDispatcher:
         elif window:
             # We have to import this here to avoid a circular import.
             from qutebrowser.widgets import mainwindow
-            win_id = mainwindow.create_window()
+            win_id = mainwindow.create_window(True)
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             tabbed_browser.tabopen(url)
