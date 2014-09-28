@@ -93,17 +93,25 @@ class CommandDispatcher:
             raise cmdexc.CommandError("No WebView available yet!")
         return widget
 
-    def _open(self, url, tab, background):
+    def _open(self, url, tab, background, window):
         """Helper function to open a page.
 
         Args:
             url: The URL to open as QUrl.
             tab: Whether to open in a new tab.
             background: Whether to open in the background.
+            window: Whether to open in a new window
         """
         tabbed_browser = self._tabbed_browser()
-        if tab and background:
-            raise cmdexc.CommandError("Only one of -t/-b can be given!")
+        if sum(1 for e in (tab, background, window) if e) > 1:
+            raise cmdexc.CommandError("Only one of -t/-b/-w can be given!")
+        elif window:
+            # We have to import this here to avoid a circular import.
+            from qutebrowser.widgets import mainwindow
+            win_id = mainwindow.create_window()
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            tabbed_browser.tabopen(url)
         elif tab:
             tabbed_browser.tabopen(url, background=False, explicit=True)
         elif background:
@@ -217,21 +225,22 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', name='open',
                        split=False, scope='window')
-    def openurl(self, url, bg=False, tab=False, count=None):
+    def openurl(self, url, bg=False, tab=False, window=False, count=None):
         """Open a URL in the current/[count]th tab.
 
         Args:
             url: The URL to open.
             bg: Open in a new background tab.
             tab: Open in a new tab.
+            window: Open in a new window.
             count: The tab index to open the URL in, or None.
         """
         try:
             url = urlutils.fuzzy_url(url)
         except urlutils.FuzzyUrlError as e:
             raise cmdexc.CommandError(e)
-        if tab or bg:
-            self._open(url, tab, bg)
+        if tab or bg or window:
+            self._open(url, tab, bg, window)
         else:
             curtab = self._cntwidget(count)
             if curtab is None:
@@ -375,7 +384,7 @@ class CommandDispatcher:
             raise ValueError("Invalid value {} for indec!".format(incdec))
         urlstr = ''.join([pre, str(val), post]).encode('ascii')
         new_url = QUrl.fromEncoded(urlstr)
-        self._open(new_url, tab, background=False)
+        self._open(new_url, tab, background=False, window=False)
 
     def _navigate_up(self, url, tab):
         """Helper method for :navigate when `where' is up.
@@ -389,7 +398,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Can't go up!")
         new_path = posixpath.join(path, posixpath.pardir)
         url.setPath(new_path)
-        self._open(url, tab, background=False)
+        self._open(url, tab, background=False, window=False)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def navigate(self, where: ('prev', 'next', 'up', 'increment', 'decrement'),
@@ -592,13 +601,14 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Last tab")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def paste(self, sel=False, tab=False, bg=False):
+    def paste(self, sel=False, tab=False, bg=False, window=False):
         """Open a page from the clipboard.
 
         Args:
             sel: Use the primary selection instead of the clipboard.
             tab: Open in a new tab.
             bg: Open in a background tab.
+            window: Open in new window.
         """
         clipboard = QApplication.clipboard()
         if sel and clipboard.supportsSelection():
@@ -615,7 +625,7 @@ class CommandDispatcher:
             url = urlutils.fuzzy_url(text)
         except urlutils.FuzzyUrlError as e:
             raise cmdexc.CommandError(e)
-        self._open(url, tab, bg)
+        self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_focus(self, index: (int, 'last')=None, count=None):
@@ -721,20 +731,21 @@ class CommandDispatcher:
         quickmarks.prompt_save(self._win_id, self._current_url())
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def quickmark_load(self, name, tab=False, bg=False):
+    def quickmark_load(self, name, tab=False, bg=False, window=False):
         """Load a quickmark.
 
         Args:
             name: The name of the quickmark to load.
             tab: Load the quickmark in a new tab.
             bg: Load the quickmark in a new background tab.
+            window: Load the quickmark in a new window.
         """
         urlstr = quickmarks.get(name)
         url = QUrl(urlstr)
         if not url.isValid():
             raise cmdexc.CommandError("Invalid URL {} ({})".format(
                 urlstr, url.errorString()))
-        self._open(url, tab, bg)
+        self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
                        scope='window')

@@ -43,11 +43,11 @@ def create_window():
     """Create a new main window.
 
     Return:
-        The MainWindow object.
+        The new window id.
     """
     win_id = next(win_id_gen)
-    win = MainWindow(win_id)
-    return win
+    MainWindow(win_id)
+    return win_id
 
 
 class MainWindow(QWidget):
