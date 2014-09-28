@@ -99,7 +99,10 @@ def _get_registry(scope, window):
         widget = tabbed_browser.currentWidget()
         if widget is None:
             raise RegistryUnavailableError(scope)
-        return widget.registry
+        try:
+            return widget.registry
+        except AttributeError:
+            raise RegistryUnavailableError(scope)
     elif scope == 'window':
         if window is None:
             raise TypeError("window is None with scope window!")
@@ -113,7 +116,10 @@ def _get_registry(scope, window):
                 win = window_registry[window]
             except KeyError:
                 raise RegistryUnavailableError(scope)
-        return win.registry
+        try:
+            return win.registry
+        except AttributeError:
+            raise RegistryUnavailableError(scope)
     elif scope == 'meta':
         return meta_registry
     else:

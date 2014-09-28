@@ -121,7 +121,7 @@ class EventFilter(QObject):
                                  window='current')
             return modeman.eventFilter(obj, event)
         except objreg.RegistryUnavailableError:
-            # No window available yet
+            # No window available yet, or not a MainWindow
             return False
         except:
             # If there is an exception in here and we leave the eventfilter
