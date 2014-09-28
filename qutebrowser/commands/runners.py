@@ -27,13 +27,15 @@ from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import message, log, utils, objreg
 
 
-def replace_variables(arglist):
+def replace_variables(win_id, arglist):
     """Utility function to replace variables like {url} in a list of args."""
     args = []
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window=win_id)
+    url = tabbed_browser.current_url().toString(QUrl.FullyEncoded |
+                                                QUrl.RemovePassword)
     for arg in arglist:
         if arg == '{url}':
-            url = objreg.get('tabbed-browser').current_url().toString(
-                QUrl.FullyEncoded | QUrl.RemovePassword)
             args.append(url)
         else:
             args.append(arg)
@@ -280,7 +282,7 @@ class CommandRunner:
                 self.run(sub, count)
             return
         self.parse(text)
-        args = replace_variables(self._args)
+        args = replace_variables(self._win_id, self._args)
         if count is not None:
             self._cmd.run(self._win_id, args, count=count)
         else:

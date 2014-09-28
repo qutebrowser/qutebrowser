@@ -300,11 +300,13 @@ class BrowserPage(QWebPage):
                 urlstr))
             log.webview.debug(url.errorString())
             return False
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=self._win_id)
         if self.view().open_target == usertypes.ClickTarget.tab:
-            objreg.get('tabbed-browser').tabopen(url, False)
+            tabbed_browser.tabopen(url, False)
             return False
         elif self.view().open_target == usertypes.ClickTarget.tab_bg:
-            objreg.get('tabbed-browser').tabopen(url, True)
+            tabbed_browser.tabopen(url, True)
             return False
         else:
             return True

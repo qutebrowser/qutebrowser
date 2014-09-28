@@ -493,7 +493,9 @@ class HintManager(QObject):
         for e, string in zip(elems, strings):
             label = self._draw_label(e, string)
             self._context.elems[string] = ElemTuple(e, label)
-        keyparser = objreg.get('keyparsers')[usertypes.KeyMode.hint]
+        keyparsers = objreg.get('keyparsers', scope='window',
+                                window=self._win_id)
+        keyparser = keyparsers[usertypes.KeyMode.hint]
         keyparser.update_bindings(strings)
 
     def follow_prevnext(self, frame, baseurl, prev=False, newtab=False):
@@ -515,7 +517,9 @@ class HintManager(QObject):
                 "prev" if prev else "forward"))
         qtutils.ensure_valid(url)
         if newtab:
-            objreg.get('tabbed-browser').tabopen(url, background=False)
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=self._win_id)
+            tabbed_browser.tabopen(url, background=False)
         else:
             objreg.get('webview', scope='tab').openurl(url)
 
@@ -556,7 +560,8 @@ class HintManager(QObject):
                                 `{hint-url}` will get replaced by the selected
                                 URL.
         """
-        tabbed_browser = objreg.get('tabbed-browser')
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=self._win_id)
         widget = tabbed_browser.currentWidget()
         if widget is None:
             raise cmdexc.CommandError("No WebView available yet!")
@@ -570,7 +575,9 @@ class HintManager(QObject):
         self._context.frames = webelem.get_child_frames(mainframe)
         self._context.args = args
         self._init_elements(mainframe, group)
-        objreg.get('message-bridge').set_text(self.HINT_TEXTS[target])
+        message_bridge = objreg.get('message-bridge', scope='window',
+                                    window=self._win_id)
+        message_bridge.set_text(self.HINT_TEXTS[target])
         self._connect_frame_signals()
         try:
             modeman.enter(self._win_id, usertypes.KeyMode.hint,

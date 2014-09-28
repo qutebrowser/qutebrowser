@@ -366,7 +366,9 @@ class WebView(QWebView):
             self._set_load_status(LoadStatus.error)
         if not config.get('input', 'auto-insert-mode'):
             return
-        cur_mode = objreg.get('mode-manager').mode()
+        mode_manager = objreg.get('mode-manager', scope='window',
+                                  window=self._win_id)
+        cur_mode = mode_manager.mode()
         if cur_mode == usertypes.KeyMode.insert or not ok:
             return
         frame = self.page().currentFrame()
@@ -413,7 +415,9 @@ class WebView(QWebView):
         if wintype == QWebPage.WebModalDialog:
             log.webview.warning("WebModalDialog requested, but we don't "
                                 "support that!")
-        return objreg.get('tabbed-browser').tabopen()
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=self._win_id)
+        return tabbed_browser.tabopen()
 
     def paintEvent(self, e):
         """Extend paintEvent to emit a signal if the scroll position changed.

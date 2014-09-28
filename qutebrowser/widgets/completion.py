@@ -46,6 +46,7 @@ class CompletionView(QTreeView):
 
     Attributes:
         enabled: Whether showing the CompletionView is enabled.
+        _win_id: The ID of the window this CompletionView is associated with.
         _height: The height to use for the CompletionView.
         _height_perc: Either None or a percentage if height should be relative.
         _delegate: The item delegate used.
@@ -91,6 +92,7 @@ class CompletionView(QTreeView):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        self._win_id = win_id
         objreg.register('completion', self, scope='window', window=win_id)
         completer_obj = completer.Completer(win_id)
         objreg.register('completer', completer_obj, scope='window',
@@ -226,7 +228,9 @@ class CompletionView(QTreeView):
     def selectionChanged(self, selected, deselected):
         """Extend selectionChanged to call completers selection_changed."""
         super().selectionChanged(selected, deselected)
-        objreg.get('completer').selection_changed(selected, deselected)
+        completer = objreg.get('completer', scope='window',
+                               window=self._win_id)
+        completer.selection_changed(selected, deselected)
 
     def resizeEvent(self, e):
         """Extend resizeEvent to adjust column size."""

@@ -99,7 +99,7 @@ class TabbedBrowser(tabwidget.TabWidget):
     title_changed = pyqtSignal(str)
 
     def __init__(self, win_id, parent=None):
-        super().__init__(parent)
+        super().__init__(win_id, parent)
         self._win_id = win_id
         self._tab_insert_idx_left = 0
         self._tab_insert_idx_right = -1

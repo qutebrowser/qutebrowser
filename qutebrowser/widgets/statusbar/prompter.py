@@ -292,7 +292,8 @@ class Prompter:
         mode = self._display_question()
         question.aborted.connect(
             lambda: modeman.maybe_leave(self._win_id, mode, 'aborted'))
-        mode_manager = objreg.get('mode-manager')
+        mode_manager = objreg.get('mode-manager', scope='window',
+                                  window=self._win_id)
         try:
             modeman.enter(self._win_id, mode, 'question asked')
         except modeman.ModeLockedError:
