@@ -44,6 +44,8 @@ from qutebrowser.widgets import mainwindow, console, crash
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (log, version, message, readline, utils, qtutils,
                                urlutils, debug, objreg, usertypes)
+# We import utilcmds to run the cmdutils.register decorators.
+from qutebrowser.utils import utilcmds  # pylint: disable=unused-import
 
 
 class Application(QApplication):
