@@ -219,12 +219,17 @@ class Application(QApplication):
         # we make sure the GUI is refreshed here, so the start seems faster.
         self.processEvents(QEventLoop.ExcludeUserInputEvents |
                            QEventLoop.ExcludeSocketNotifiers)
-        tabbed_browser = objreg.get('tabbed-browser', scope='window', window=0)
+        win_id = 0
         for cmd in self._args.command:
             if cmd.startswith(':'):
                 log.init.debug("Startup cmd {}".format(cmd))
                 self._commandrunner.run_safely_init(0, cmd.lstrip(':'))
+            elif not cmd:
+                log.init.debug("Empty argument")
+                win_id = mainwindow.create_window(True)
             else:
+                tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                            window=win_id)
                 log.init.debug("Startup URL {}".format(cmd))
                 try:
                     url = urlutils.fuzzy_url(cmd)
@@ -234,16 +239,19 @@ class Application(QApplication):
                 else:
                     tabbed_browser.tabopen(url)
 
-        if tabbed_browser.count() == 0:
-            log.init.debug("Opening startpage")
-            for urlstr in config.get('general', 'startpage'):
-                try:
-                    url = urlutils.fuzzy_url(urlstr)
-                except urlutils.FuzzyUrlError as e:
-                    message.error(0, "Error when opening startpage: "
-                                     "{}".format(e))
-                else:
-                    tabbed_browser.tabopen(url)
+        for win_id in objreg.window_registry:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            if tabbed_browser.count() == 0:
+                log.init.debug("Opening startpage")
+                for urlstr in config.get('general', 'startpage'):
+                    try:
+                        url = urlutils.fuzzy_url(urlstr)
+                    except urlutils.FuzzyUrlError as e:
+                        message.error(0, "Error when opening startpage: "
+                                        "{}".format(e))
+                    else:
+                        tabbed_browser.tabopen(url)
 
     def _python_hacks(self):
         """Get around some PyQt-oddities by evil hacks.

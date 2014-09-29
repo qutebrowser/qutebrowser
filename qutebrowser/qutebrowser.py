@@ -91,7 +91,8 @@ def get_argparser():
     parser.add_argument('command', nargs='*', help="Commands to execute on "
                         "startup.", metavar=':command')
     # URLs will actually be in command
-    parser.add_argument('url', nargs='*', help="URLs to open on startup.")
+    parser.add_argument('url', nargs='*', help="URLs to open on startup "
+                        "(empty as a window separator).")
     return parser
 
 
