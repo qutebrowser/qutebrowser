@@ -156,7 +156,7 @@ class SearchRunner(QObject):
             self.do_search.emit(self._text, flags)
 
 
-class CommandRunner:
+class CommandRunner(QObject):
 
     """Parse and run qutebrowser commandline commands.
 
@@ -166,7 +166,8 @@ class CommandRunner:
         _win_id: The window this CommandRunner is associated with.
     """
 
-    def __init__(self, win_id):
+    def __init__(self, win_id, parent=None):
+        super().__init__(parent)
         self._cmd = None
         self._args = []
         self._win_id = win_id
