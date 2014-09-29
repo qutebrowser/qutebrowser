@@ -54,13 +54,11 @@ class CommandDispatcher:
     Attributes:
         _editor: The ExternalEditor object.
         _win_id: The window ID the CommandDispatcher is associated with.
-        _timers: A list of timers for :later
     """
 
     def __init__(self, win_id):
         self._editor = None
         self._win_id = win_id
-        self._timers = []
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -832,32 +830,6 @@ class CommandDispatcher:
         else:
             raise cmdexc.CommandError("Invalid help topic {}!".format(topic))
         self.openurl('qute://help/{}'.format(path))
-
-    @cmdutils.register(instance='command-dispatcher', scope='window')
-    def later(self, ms: int, *command):
-        """Execute a command after some time.
-
-        Args:
-            ms: How many milliseconds to wait.
-            *command: The command to run, with optional args.
-        """
-        timer = usertypes.Timer(name='later')
-        timer.setSingleShot(True)
-        if ms < 0:
-            raise cmdexc.CommandError("I can't run something in the past!")
-        try:
-            timer.setInterval(ms)
-        except OverflowError:
-            raise cmdexc.CommandError("Numeric argument is too large for "
-                                      "internal int representation.")
-        self._timers.append(timer)
-        cmdline = ' '.join(command)
-        commandrunner = objreg.get('command-runner', scope='window',
-                                   window=self._win_id)
-        timer.timeout.connect(
-            functools.partial(commandrunner.run_safely, cmdline))
-        timer.timeout.connect(lambda: self._timers.remove(timer))
-        timer.start()
 
     @cmdutils.register(instance='command-dispatcher',
                        modes=[usertypes.KeyMode.insert],

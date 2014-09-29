@@ -19,13 +19,40 @@
 
 """Misc. utility commands exposed to the user."""
 
+import functools
 import types
 
 from PyQt5.QtCore import QCoreApplication
 
-from qutebrowser.utils import log, objreg
-from qutebrowser.commands import cmdutils
+from qutebrowser.utils import log, objreg, usertypes
+from qutebrowser.commands import cmdutils, runners
 from qutebrowser.config import style
+
+
+@cmdutils.register(scope='window')
+def later(ms: int, *command, win_id):
+    """Execute a command after some time.
+
+    Args:
+        ms: How many milliseconds to wait.
+        *command: The command to run, with optional args.
+    """
+    app = objreg.get('app')
+    timer = usertypes.Timer(name='later', parent=app)
+    timer.setSingleShot(True)
+    if ms < 0:
+        raise cmdexc.CommandError("I can't run something in the past!")
+    try:
+        timer.setInterval(ms)
+    except OverflowError:
+        raise cmdexc.CommandError("Numeric argument is too large for "
+                                    "internal int representation.")
+    cmdline = ' '.join(command)
+    commandrunner = runners.CommandRunner(win_id)
+    timer.timeout.connect(
+        functools.partial(commandrunner.run_safely, cmdline))
+    timer.timeout.connect(timer.deleteLater)
+    timer.start()
 
 
 @cmdutils.register(debug=True)
