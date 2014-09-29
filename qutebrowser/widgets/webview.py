@@ -310,16 +310,6 @@ class WebView(QWebView):
         level = self._zoom.getitem(offset)
         self.zoom_perc(level, fuzzyval=False)
 
-    @pyqtSlot(str, int)
-    def search(self, text, flags):
-        """Search for text in the current page.
-
-        Args:
-            text: The text to search for.
-            flags: The QWebPage::FindFlags.
-        """
-        self._tabs.currentWidget().findText(text, flags)
-
     def go_back(self):
         """Go back a page in the history."""
         if self.page().history().canGoBack():
