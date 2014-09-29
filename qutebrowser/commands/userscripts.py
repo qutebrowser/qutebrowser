@@ -17,11 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Functions to execute an userscript.
-
-Module attributes:
-    _runners: Active userscript runners from run_userscript.
-"""
+"""Functions to execute an userscript."""
 
 import os
 import os.path
@@ -34,10 +30,6 @@ from PyQt5.QtCore import (pyqtSignal, QObject, QThread, QStandardPaths,
 
 from qutebrowser.utils import message, log, utils
 from qutebrowser.commands import runners, cmdexc
-
-
-_runners = []
-_commandrunners = []
 
 
 class _BlockingFIFOReader(QObject):
@@ -333,15 +325,14 @@ else:
 
 def run(cmd, *args, url, win_id):
     """Convenience method to run an userscript."""
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window=win_id)
     # We don't remove the password in the URL here, as it's probably safe to
     # pass via env variable..
     urlstr = url.toString(QUrl.FullyEncoded)
-    commandrunner = runners.CommandRunner(win_id)
-    runner = UserscriptRunner(win_id)
+    commandrunner = runners.CommandRunner(win_id, tabbed_browser)
+    runner = UserscriptRunner(win_id, tabbed_browser)
     runner.got_cmd.connect(commandrunner.run_safely)
     runner.run(cmd, *args, env={'QUTE_URL': urlstr})
-    _runners.append(runner)
-    _commandrunners.append(commandrunner)
-    runner.finished.connect(functools.partial(_runners.remove, runner))
-    runner.finished.connect(
-        functools.partial(_commandrunners.remove, commandrunner))
+    runner.finished.connect(commandrunner.deleteLater)
+    runner.finished.connect(runner.deleteLater)
