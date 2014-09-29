@@ -58,6 +58,11 @@ class ObjectRegistry(collections.UserDict):
 
         Sets a slot to remove QObjects when they are destroyed.
         """
+        if name is None:
+            raise TypeError("Registering '{}' with name 'None'!".format(obj))
+        if obj is None:
+            raise TypeError("Registering object None with name '{}'!".format(
+                name))
         if isinstance(obj, QObject):
             obj.destroyed.connect(functools.partial(self.on_destroyed, name))
         super().__setitem__(name, obj)
