@@ -184,7 +184,7 @@ class Command:
             desc = ""
         if not self.ignore_args:
             for param in signature.parameters.values():
-                if param.name in ('self', 'count'):
+                if param.name in ('self', 'count', 'win_id'):
                     continue
                 annotation_info = self._parse_annotation(param)
                 typ = self._get_type(param, annotation_info)
@@ -337,6 +337,23 @@ class Command:
             raise TypeError("{}: invalid parameter type {} for argument "
                             "'count'!".format(self.name, param.kind))
 
+    def _get_win_id_arg(self, win_id, param, args, kwargs):
+        """Add the win_id argument to a function call.
+
+        Arguments:
+            win_id: The window ID to add.
+            param: The count parameter.
+            args: The positional argument list. Gets modified directly.
+            kwargs: The keyword argument dict. Gets modified directly.
+        """
+        if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
+            args.append(win_id)
+        elif param.kind == inspect.Parameter.KEYWORD_ONLY:
+            kwargs['win_id'] = win_id
+        else:
+            raise TypeError("{}: invalid parameter type {} for argument "
+                            "'count'!".format(self.name, param.kind))
+
     def _get_param_name_and_value(self, param):
         """Get the converted name and value for an inspect.Parameter."""
         name = self._name_conv.get(param.name, param.name)
@@ -377,6 +394,10 @@ class Command:
             elif param.name == 'count':
                 # Special case for 'count'.
                 self._get_count_arg(param, args, kwargs)
+                continue
+            elif param.name == 'win_id':
+                # Special case for 'win_id'.
+                self._get_win_id_arg(win_id, param, args, kwargs)
                 continue
             name, value = self._get_param_name_and_value(param)
             if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
