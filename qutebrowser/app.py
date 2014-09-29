@@ -315,19 +315,18 @@ class Application(QApplication):
         Return:
             A list of open pages, or an empty list.
         """
-        try:
-            tabbed_browser = objreg.get('tabbed-browser')
-        except KeyError:
-            return []
         pages = []
-        for tab in tabbed_browser.widgets():
-            try:
-                url = tab.cur_url.toString(
-                    QUrl.RemovePassword | QUrl.FullyEncoded)
-                if url:
-                    pages.append(url)
-            except Exception:  # pylint: disable=broad-except
-                log.destroy.exception("Error while recovering tab")
+        for win_id in objreg.window_registry:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            for tab in tabbed_browser.widgets():
+                try:
+                    url = tab.cur_url.toString(
+                        QUrl.RemovePassword | QUrl.FullyEncoded)
+                    if url:
+                        pages.append(url)
+                except Exception:  # pylint: disable=broad-except
+                    log.destroy.exception("Error while recovering tab")
         return pages
 
     def _save_geometry(self):
@@ -391,7 +390,7 @@ class Application(QApplication):
             pages = []
 
         try:
-            history = objreg.get('status-command').history[-5:]
+            history = objreg.get('command-history')[-5:]
         except Exception:
             log.destroy.exception("Error while getting history: {}")
             history = []
@@ -429,13 +428,17 @@ class Application(QApplication):
         """Restart qutebrowser while keeping existing tabs open."""
         # We don't use _recover_pages here as it's too forgiving when
         # exceptions occur.
+        # FIXME handle multiple windows correctly here
         if pages is None:
             pages = []
-            for tab in objreg.get('tabbed-browser').widgets():
-                urlstr = tab.cur_url.toString(
-                    QUrl.RemovePassword | QUrl.FullyEncoded)
-                if urlstr:
-                    pages.append(urlstr)
+            for win_id in objreg.window_registry:
+                tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                            window=win_id)
+                for tab in tabbed_browser.widgets():
+                    urlstr = tab.cur_url.toString(
+                        QUrl.RemovePassword | QUrl.FullyEncoded)
+                    if urlstr:
+                        pages.append(urlstr)
         log.destroy.debug("sys.executable: {}".format(sys.executable))
         log.destroy.debug("sys.path: {}".format(sys.path))
         log.destroy.debug("sys.argv: {}".format(sys.argv))
@@ -485,13 +488,15 @@ class Application(QApplication):
         except Exception:  # pylint: disable=broad-except
             out = traceback.format_exc()
         qutescheme.pyeval_output = out
-        objreg.get('tabbed-browser').openurl(QUrl('qute:pyeval'), newtab=True)
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window='current')
+        tabbed_browser.openurl(QUrl('qute:pyeval'), newtab=True)
 
     @cmdutils.register(instance='app')
     def report(self):
         """Report a bug in qutebrowser."""
         pages = self._recover_pages()
-        history = objreg.get('status-command').history[-5:]
+        history = objreg.get('command-history')[-5:]
         objects = self.get_all_objects()
         self._crashdlg = crash.ReportDialog(pages, history, objects)
         self._crashdlg.show()
@@ -579,11 +584,11 @@ class Application(QApplication):
         except KeyError:
             pass
         # Close all tabs
-        try:
-            log.destroy.debug("Closing tabs...")
-            objreg.get('tabbed-browser').shutdown()
-        except KeyError:
-            pass
+        for win_id in objreg.window_registry:
+            log.destroy.debug("Closing tabs in window {}...".format(win_id))
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            tabbed_browser.shutdown()
         # Save everything
         try:
             config_obj = objreg.get('config')

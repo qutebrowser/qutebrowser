@@ -402,6 +402,7 @@ class DownloadManager(QObject):
         self.downloads.append(download)
         self.download_added.emit()
 
+        # FIXME display this in right window
         q = usertypes.Question(self)
         q.text = "Save file to:"
         q.mode = usertypes.PromptMode.text
@@ -412,7 +413,9 @@ class DownloadManager(QObject):
         q.destroyed.connect(functools.partial(self.questions.remove, q))
         self.questions.append(q)
         download.cancelled.connect(q.abort)
-        objreg.get('message-bridge').ask(q, blocking=False)
+        message_bridge = objreg.get('message-bridge', scope='window',
+                                    window='current')
+        message_bridge.ask(q, blocking=False)
 
     @pyqtSlot(DownloadItem)
     def on_finished(self, download):

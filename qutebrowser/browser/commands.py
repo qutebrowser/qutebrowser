@@ -191,7 +191,8 @@ class CommandDispatcher:
     def _tab_focus_last(self):
         """Select the tab which was last focused."""
         try:
-            tab = objreg.get('last-focused-tab')
+            tab = objreg.get('last-focused-tab', scope='window',
+                             window=self._win_id)
         except KeyError:
             raise cmdexc.CommandError("No last focused tab!")
         idx = self._tabbed_browser().indexOf(tab)

@@ -247,8 +247,10 @@ class TabbedBrowser(tabwidget.TabWidget):
                 tab))
         if tab is self._now_focused:
             self._now_focused = None
-        if tab is objreg.get('last-focused-tab', None):
-            objreg.delete('last-focused-tab')
+        if tab is objreg.get('last-focused-tab', None, scope='window',
+                             window=self._win_id):
+            objreg.delete('last-focused-tab', scope='window',
+                          window=self._win_id)
         if not tab.cur_url.isEmpty():
             qtutils.ensure_valid(tab.cur_url)
             history_data = qtutils.serialize(tab.history())
@@ -503,7 +505,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         modeman.maybe_leave(self._win_id, usertypes.KeyMode.hint,
                             'tab changed')
         if self._now_focused is not None:
-            objreg.register('last-focused-tab', self._now_focused, update=True)
+            objreg.register('last-focused-tab', self._now_focused, update=True,
+                            scope='window', window=self._win_id)
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
         self._change_app_title(self.tabText(idx))
