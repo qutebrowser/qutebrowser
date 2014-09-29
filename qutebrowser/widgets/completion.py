@@ -94,7 +94,7 @@ class CompletionView(QTreeView):
         super().__init__(parent)
         self._win_id = win_id
         objreg.register('completion', self, scope='window', window=win_id)
-        completer_obj = completer.Completer(win_id)
+        completer_obj = completer.Completer(win_id, self)
         objreg.register('completer', completer_obj, scope='window',
                         window=win_id)
         self.enabled = config.get('completion', 'show')

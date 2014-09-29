@@ -23,7 +23,9 @@
 import collections
 import functools
 
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject, QTimer
+
+from qutebrowser.utils import log
 
 
 class UnsetObject:
@@ -68,11 +70,23 @@ class ObjectRegistry(collections.UserDict):
         super().__setitem__(name, obj)
 
     def on_destroyed(self, name):
+        """Schedule removing of a destroyed QObject.
+
+        We don't remove the destroyed object immediately because it might still
+        be destroying its children, which might still use the object
+        registry.
+        """
+        log.misc.debug("schedule destroyed: {}".format(name))
+        QTimer.singleShot(0, functools.partial(self._on_destroyed, name))
+
+    def _on_destroyed(self, name):
         """Remove a destroyed QObject."""
+        log.misc.debug("destroyed: {}".format(name))
         try:
             del self[name]
         except KeyError:
             pass
+
 
     def dump_objects(self):
         """Dump all objects as a list of strings."""

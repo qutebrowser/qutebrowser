@@ -113,6 +113,9 @@ class TabbedBrowser(tabwidget.TabWidget):
         dispatcher = commands.CommandDispatcher(win_id)
         objreg.register('command-dispatcher', dispatcher, scope='window',
                         window=win_id)
+        self.destroyed.connect(
+            functools.partial(objreg.delete, 'command-dispatcher',
+                              scope='window', window=win_id))
         self._now_focused = None
         # FIXME adjust this to font size
         self.setIconSize(QSize(12, 12))

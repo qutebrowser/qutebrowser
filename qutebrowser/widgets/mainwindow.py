@@ -72,6 +72,7 @@ class MainWindow(QWidget):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self._commandrunner = None
         self.win_id = win_id
         self.registry = objreg.ObjectRegistry()

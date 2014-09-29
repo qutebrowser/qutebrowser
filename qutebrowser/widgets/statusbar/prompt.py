@@ -19,6 +19,8 @@
 
 """Prompt shown in the statusbar."""
 
+import functools
+
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QHBoxLayout, QWidget, QLineEdit
 
@@ -69,6 +71,9 @@ class Prompt(QWidget):
         prompter_obj = prompter.Prompter(win_id)
         objreg.register('prompter', prompter_obj, scope='window',
                         window=win_id)
+        self.destroyed.connect(
+            functools.partial(objreg.delete, 'prompter', scope='window',
+                              window=win_id))
 
     def __repr__(self):
         return utils.get_repr(self)

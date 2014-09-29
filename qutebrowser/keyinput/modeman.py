@@ -23,6 +23,8 @@ Module attributes:
     manager: The ModeManager instance.
 """
 
+import functools
+
 from PyQt5.QtGui import QWindow
 from PyQt5.QtCore import pyqtSignal, QObject, QEvent
 from PyQt5.QtWidgets import QApplication
@@ -60,6 +62,9 @@ def init(win_id, parent):
         KM.yesno: modeparsers.PromptKeyParser(win_id, modeman),
     }
     objreg.register('keyparsers', keyparsers, scope='window', window=win_id)
+    modeman.destroyed.connect(
+        functools.partial(objreg.delete, 'keyparsers', scope='window',
+                          window=win_id))
     modeman.register(KM.normal, keyparsers[KM.normal].handle)
     modeman.register(KM.hint, keyparsers[KM.hint].handle)
     modeman.register(KM.insert, keyparsers[KM.insert].handle, passthrough=True)
