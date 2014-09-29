@@ -328,10 +328,12 @@ class Application(QApplication):
             forgiving: Whether to ignore exceptions.
 
         Return:
-            A list of open pages, or an empty list.
+            A list containing a list for each window, which in turn contain the
+            opened URLs.
         """
         pages = []
         for win_id in objreg.window_registry:
+            win_pages = []
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             for tab in tabbed_browser.widgets():
@@ -339,12 +341,13 @@ class Application(QApplication):
                     urlstr = tab.cur_url.toString(
                         QUrl.RemovePassword | QUrl.FullyEncoded)
                     if urlstr:
-                        pages.append(urlstr)
+                        win_pages.append(urlstr)
                 except Exception:  # pylint: disable=broad-except
                     if forgiving:
                         log.destroy.exception("Error while recovering tab")
                     else:
                         raise
+            pages.append(win_pages)
         return pages
 
     def _save_geometry(self):
@@ -444,7 +447,6 @@ class Application(QApplication):
     @cmdutils.register(instance='app', ignore_args=True)
     def restart(self, shutdown=True, pages=None):
         """Restart qutebrowser while keeping existing tabs open."""
-        # FIXME handle multiple windows correctly here
         if pages is None:
             pages = self._recover_pages()
         log.destroy.debug("sys.executable: {}".format(sys.executable))
@@ -467,7 +469,12 @@ class Application(QApplication):
                 # We only want to preserve options on a restart.
                 args.append(arg)
         # Add all open pages so they get reopened.
-        args += pages
+        page_args = []
+        for win in pages:
+            page_args.extend(win)
+            page_args.append('')
+        if page_args:
+            args.extend(page_args[:-1])
         log.destroy.debug("args: {}".format(args))
         log.destroy.debug("cwd: {}".format(cwd))
         # Open a new process and immediately shutdown the existing one
