@@ -250,6 +250,7 @@ class Application(QApplication):
                     except urlutils.FuzzyUrlError as e:
                         message.error(0, "Error when opening startpage: "
                                         "{}".format(e))
+                        tabbed_browser.tabopen(QUrl('about:blank'))
                     else:
                         tabbed_browser.tabopen(url)
 
