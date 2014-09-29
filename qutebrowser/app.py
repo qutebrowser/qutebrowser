@@ -36,7 +36,7 @@ from PyQt5.QtCore import (pyqtSlot, QTimer, QEventLoop, QStandardPaths,
                           qInstallMessageHandler, QObject, QUrl)
 
 import qutebrowser
-from qutebrowser.commands import cmdutils
+from qutebrowser.commands import cmdutils, runners
 from qutebrowser.config import style, config, websettings
 from qutebrowser.network import qutescheme, proxy
 from qutebrowser.browser import quickmarks, cookies, downloads, cache
@@ -223,7 +223,8 @@ class Application(QApplication):
         for cmd in self._args.command:
             if cmd.startswith(':'):
                 log.init.debug("Startup cmd {}".format(cmd))
-                self._commandrunner.run_safely_init(0, cmd.lstrip(':'))
+                commandrunner = runners.CommandRunner(win_id)
+                commandrunner.run_safely_init(cmd.lstrip(':'))
             elif not cmd:
                 log.init.debug("Empty argument")
                 win_id = mainwindow.create_window(True)
