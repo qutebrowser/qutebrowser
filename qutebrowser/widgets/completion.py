@@ -228,9 +228,9 @@ class CompletionView(QTreeView):
     def selectionChanged(self, selected, deselected):
         """Extend selectionChanged to call completers selection_changed."""
         super().selectionChanged(selected, deselected)
-        completer = objreg.get('completer', scope='window',
-                               window=self._win_id)
-        completer.selection_changed(selected, deselected)
+        completer_obj = objreg.get('completer', scope='window',
+                                   window=self._win_id)
+        completer_obj.selection_changed(selected, deselected)
 
     def resizeEvent(self, e):
         """Extend resizeEvent to adjust column size."""

@@ -91,6 +91,40 @@ meta_registry['global'] = global_registry
 window_registry = ObjectRegistry()
 
 
+def _get_tab_registry():
+    """Get the registry of a tab."""
+    app = get('app')
+    win = app.activeWindow()
+    tabbed_browser = get('tabbed-browser', scope='window', window=win)
+    widget = tabbed_browser.currentWidget()
+    if widget is None:
+        raise RegistryUnavailableError('tab')
+    try:
+        return widget.registry
+    except AttributeError:
+        raise RegistryUnavailableError('tab')
+
+
+def _get_window_registry(window):
+    """Get the registry of a window."""
+    if window is None:
+        raise TypeError("window is None with scope window!")
+    if window is 'current':
+        app = get('app')
+        win = app.activeWindow()
+        if win is None:
+            raise RegistryUnavailableError('window')
+    else:
+        try:
+            win = window_registry[window]
+        except KeyError:
+            raise RegistryUnavailableError('window')
+    try:
+        return win.registry
+    except AttributeError:
+        raise RegistryUnavailableError('window')
+
+
 def _get_registry(scope, window):
     """Get the correct registry for a given scope."""
     if window is not None and scope is not 'window':
@@ -98,33 +132,9 @@ def _get_registry(scope, window):
     if scope == 'global':
         return global_registry
     elif scope == 'tab':
-        app = get('app')
-        win = app.activeWindow()
-        tabbed_browser = get('tabbed-browser', scope='window', window=win)
-        widget = tabbed_browser.currentWidget()
-        if widget is None:
-            raise RegistryUnavailableError(scope)
-        try:
-            return widget.registry
-        except AttributeError:
-            raise RegistryUnavailableError(scope)
+        return _get_tab_registry()
     elif scope == 'window':
-        if window is None:
-            raise TypeError("window is None with scope window!")
-        if window is 'current':
-            app = get('app')
-            win = app.activeWindow()
-            if win is None:
-                raise RegistryUnavailableError(scope)
-        else:
-            try:
-                win = window_registry[window]
-            except KeyError:
-                raise RegistryUnavailableError(scope)
-        try:
-            return win.registry
-        except AttributeError:
-            raise RegistryUnavailableError(scope)
+        return _get_window_registry(window)
     elif scope == 'meta':
         return meta_registry
     else:
