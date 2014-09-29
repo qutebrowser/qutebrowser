@@ -25,7 +25,7 @@ import types
 from PyQt5.QtCore import QCoreApplication
 
 from qutebrowser.utils import log, objreg, usertypes
-from qutebrowser.commands import cmdutils, runners
+from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style
 
 
@@ -45,8 +45,8 @@ def later(ms: int, *command, win_id):
     try:
         timer.setInterval(ms)
     except OverflowError:
-        raise cmdexc.CommandError("Numeric argument is too large for "
-                                    "internal int representation.")
+        raise cmdexc.CommandError("Numeric argument is too large for internal "
+                                  "int representation.")
     cmdline = ' '.join(command)
     commandrunner = runners.CommandRunner(win_id)
     timer.timeout.connect(

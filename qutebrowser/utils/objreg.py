@@ -87,7 +87,6 @@ class ObjectRegistry(collections.UserDict):
         except KeyError:
             pass
 
-
     def dump_objects(self):
         """Dump all objects as a list of strings."""
         lines = []

@@ -23,12 +23,11 @@ import os
 import os.path
 import tempfile
 import select
-import functools
 
 from PyQt5.QtCore import (pyqtSignal, QObject, QThread, QStandardPaths,
                           QProcessEnvironment, QProcess, QUrl)
 
-from qutebrowser.utils import message, log, utils
+from qutebrowser.utils import message, log, utils, objreg
 from qutebrowser.commands import runners, cmdexc
 
 

@@ -250,7 +250,7 @@ class Application(QApplication):
                         url = urlutils.fuzzy_url(urlstr)
                     except urlutils.FuzzyUrlError as e:
                         message.error(0, "Error when opening startpage: "
-                                        "{}".format(e))
+                                         "{}".format(e))
                         tabbed_browser.tabopen(QUrl('about:blank'))
                     else:
                         tabbed_browser.tabopen(url)
@@ -319,10 +319,13 @@ class Application(QApplication):
         output += self._get_registered_objects()
         return '\n'.join(output)
 
-    def _recover_pages(self):
+    def _recover_pages(self, forgiving=False):
         """Try to recover all open pages.
 
         Called from _exception_hook, so as forgiving as possible.
+
+        Args:
+            forgiving: Whether to ignore exceptions.
 
         Return:
             A list of open pages, or an empty list.
@@ -333,12 +336,15 @@ class Application(QApplication):
                                         window=win_id)
             for tab in tabbed_browser.widgets():
                 try:
-                    url = tab.cur_url.toString(
+                    urlstr = tab.cur_url.toString(
                         QUrl.RemovePassword | QUrl.FullyEncoded)
-                    if url:
-                        pages.append(url)
+                    if urlstr:
+                        pages.append(urlstr)
                 except Exception:  # pylint: disable=broad-except
-                    log.destroy.exception("Error while recovering tab")
+                    if forgiving:
+                        log.destroy.exception("Error while recovering tab")
+                    else:
+                        raise
         return pages
 
     def _save_geometry(self):
@@ -396,7 +402,7 @@ class Application(QApplication):
         self._quit_status['crash'] = False
 
         try:
-            pages = self._recover_pages()
+            pages = self._recover_pages(forgiving=True)
         except Exception:
             log.destroy.exception("Error while recovering pages")
             pages = []
@@ -438,19 +444,9 @@ class Application(QApplication):
     @cmdutils.register(instance='app', ignore_args=True)
     def restart(self, shutdown=True, pages=None):
         """Restart qutebrowser while keeping existing tabs open."""
-        # We don't use _recover_pages here as it's too forgiving when
-        # exceptions occur.
         # FIXME handle multiple windows correctly here
         if pages is None:
-            pages = []
-            for win_id in objreg.window_registry:
-                tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                            window=win_id)
-                for tab in tabbed_browser.widgets():
-                    urlstr = tab.cur_url.toString(
-                        QUrl.RemovePassword | QUrl.FullyEncoded)
-                    if urlstr:
-                        pages.append(urlstr)
+            pages = self._recover_pages()
         log.destroy.debug("sys.executable: {}".format(sys.executable))
         log.destroy.debug("sys.path: {}".format(sys.path))
         log.destroy.debug("sys.argv: {}".format(sys.argv))
