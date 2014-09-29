@@ -52,7 +52,6 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     Attributes:
         _win_id: The window ID this tabbedbrowser is associated with.
-        _tabs: A list of open tabs.
         _filter: A SignalFilter instance.
         _now_focused: The tab which is focused now.
         _tab_insert_idx_left: Where to insert a new tab with
@@ -107,7 +106,6 @@ class TabbedBrowser(tabwidget.TabWidget):
         self.currentChanged.connect(self.on_current_changed)
         self.cur_load_started.connect(self.on_cur_load_started)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self._tabs = []
         self._undo_stack = []
         self._filter = signalfilter.SignalFilter(win_id, self)
         dispatcher = commands.CommandDispatcher(win_id)
@@ -260,7 +258,6 @@ class TabbedBrowser(tabwidget.TabWidget):
             entry = UndoEntry(tab.cur_url, history_data)
             self._undo_stack.append(entry)
         tab.shutdown()
-        self._tabs.remove(tab)
         self.removeTab(idx)
         tab.deleteLater()
 
@@ -325,7 +322,6 @@ class TabbedBrowser(tabwidget.TabWidget):
         log.webview.debug("Creating new tab with URL {}".format(url))
         tab = webview.WebView(self._win_id, self)
         self._connect_tab_signals(tab)
-        self._tabs.append(tab)
         if explicit:
             pos = config.get('tabs', 'new-tab-position-explicit')
         else:
