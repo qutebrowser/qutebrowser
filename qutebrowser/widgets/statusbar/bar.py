@@ -278,6 +278,8 @@ class StatusBar(QWidget):
 
     def _show_prompt_widget(self):
         """Show prompt widget instead of temporary text."""
+        if self._stack.currentWidget() is self.prompt:
+            return
         self._set_error(False)
         self._set_prompt_active(True)
         self._previous_widget = PreviousWidget.prompt
