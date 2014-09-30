@@ -287,7 +287,7 @@ class Prompter:
         question.aborted.connect(lambda: modeman.maybe_leave(mode, 'aborted'))
         mode_manager = objreg.get('mode-manager')
         try:
-            modeman.enter(mode, 'question asked')
+            modeman.enter(mode, 'question asked', override=True)
         except modeman.ModeLockedError:
             if mode_manager.mode() != usertypes.KeyMode.prompt:
                 question.abort()
