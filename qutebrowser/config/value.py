@@ -49,7 +49,7 @@ class SettingValue:
 
     def __str__(self):
         """Get raw string value."""
-        return self.value
+        return self.value()
 
     def default(self):
         """Get the default value."""
