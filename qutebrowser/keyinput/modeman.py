@@ -70,9 +70,9 @@ def init():
     modeman.register(KM.yesno, keyparsers[KM.yesno].handle)
 
 
-def enter(mode, reason=None):
+def enter(mode, reason=None, override=False):
     """Enter the mode 'mode'."""
-    objreg.get('mode-manager').enter(mode, reason)
+    objreg.get('mode-manager').enter(mode, reason, override)
 
 
 def leave(mode, reason=None):
@@ -80,10 +80,10 @@ def leave(mode, reason=None):
     objreg.get('mode-manager').leave(mode, reason)
 
 
-def maybe_enter(mode, reason=None):
+def maybe_enter(mode, reason=None, override=False):
     """Convenience method to enter 'mode' without exceptions."""
     try:
-        objreg.get('mode-manager').enter(mode, reason)
+        objreg.get('mode-manager').enter(mode, reason, override=False)
     except ModeLockedError:
         pass
 
@@ -220,12 +220,13 @@ class ModeManager(QObject):
         if passthrough:
             self.passthrough.append(mode)
 
-    def enter(self, mode, reason=None):
+    def enter(self, mode, reason=None, override=False):
         """Enter a new mode.
 
         Args:
             mode: The mode to enter as a KeyMode member.
             reason: Why the mode was entered.
+            override: Override a locked mode.
 
         Emit:
             entered: With the new mode name.
@@ -233,10 +234,14 @@ class ModeManager(QObject):
         if not isinstance(mode, usertypes.KeyMode):
             raise TypeError("Mode {} is no KeyMode member!".format(mode))
         if self.locked:
-            log.modes.debug("Not entering mode {} because mode is locked to "
-                            "{}.".format(mode, self.mode()))
-            raise ModeLockedError("Mode is currently locked to {}".format(
-                self.mode()))
+            if override:
+                log.modes.debug("Locked to mode {}, but overriding to "
+                                "{}.".format(self.mode(), mode))
+            else:
+                log.modes.debug("Not entering mode {} because mode is locked "
+                                "to {}.".format(mode, self.mode()))
+                raise ModeLockedError("Mode is currently locked to {}".format(
+                    self.mode()))
         log.modes.debug("Entering mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
         if mode not in self._handlers:
