@@ -6,7 +6,7 @@ Before 0.1
     - Manpage
     - Website
     - FAQ
-- Single-instance and multi-window
+- Single-instance and multi-window (see notes)
 - Maybe test under other platforms
 - Autosave feature (against segfaults/...)
 - Save tabs feature with sessions
@@ -15,8 +15,6 @@ Before 0.1
 - More dwb keybindings
 - Use  :open engine searchterm   syntax for searching
 - ssl-strict=ask
-- Use argparse and do something like click for command arguments, then we can
-  have flags etc.
 - Icon
 - Bookmarks?
 - Completion for quickmarks/bookmarks?
@@ -33,8 +31,6 @@ New big features
     NoScript
     Certificate Patrol
     https://chrome.google.com/webstore/detail/remove-google-redirects/ccenmflbeofaceccfhhggbagkblihpoh
-- multi window (see notes)
-- IPC, like dwb -x (see notes)
 - Internationalization
 - more completions (URLs, ...)
 - proper webpage history
@@ -95,7 +91,6 @@ Improvements / minor features
 - Enable disk caching (see notes)
 - clear cookies command
 - keybind/aliases should have completion for commands/arguments
-- Hiding scrollbars
 - Add more element-selection-detection code (with options?) (see notes)
 - somehow unfocus elements (hide blinking cursor) when insert mode is left?
 - Copy link location on crash mail should not copy mailto:
@@ -125,9 +120,7 @@ style
 
 - Use list models for completion and a proxy model which converts them to a
   tree?
-- Stuff under scripts/ (especially generate_doc and run_checks) could use a
-  rewrite.
-- Use separate logger for config
+- Stuff under scripts/ (especially asciidoc2html) could use a rewrite.
 - Use unittest.Mock and especially unittest.patch more.
 - Check where using signals would be better than objreg.get.
 

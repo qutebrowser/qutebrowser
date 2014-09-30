@@ -27,7 +27,6 @@ Webview
 - ok is always True in WebPage:on_load_status_changed, even when an error page
   is loaded (probably *because* we're loading the error page and that
   succeeds).
-- Opening editor is broken on http://p.cmpl.cc/ (probably a CodeMirror issue?)
 - Middle-clicking anchors doesn't actually move to the anchor in the new tab
 - lots of "Element vanished" warnings on
   http://docs.saltstack.com/en/latest/topics/tutorials/pillar.html when
@@ -39,13 +38,9 @@ Input
 
 - going to passthrough mode (Ctrl-V) then clicking element to go to insert
   mode, then leaving insert mode clears statusbar text.
-- seir sometimes sees "-- COMMAND MODE --" even though that should never
-  happen.
 - Shift-Insert in commandline pastes clipboard instead of primary selection
 - Auto-insert-mode sometimes doesn't work correctly (e.g. login form of Gitlab)
 - Sidewise scrolling via mousewheel broken
-- Crash when getting js prompt and alert at the same time?
-  http://paste.the-compiler.org/view/8c39f5ea
 
 Rendering
 ---------
@@ -108,7 +103,5 @@ Upstream Bugs
 - Web inspector is blank unless .hide()/.show() is called.
     Asked on SO: http://stackoverflow.com/q/23499159/2085149
     TODO: Report to PyQt/Qt
-
-- Various segfaults on youtube videos
 
 - Report some other crashes
