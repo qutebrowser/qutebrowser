@@ -21,7 +21,7 @@
 
 import collections
 
-from PyQt5.QtCore import pyqtSlot, QTimer
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QObject
 from PyQt5.QtWidgets import QLineEdit
 
 from qutebrowser.keyinput import modeman
@@ -34,7 +34,7 @@ PromptContext = collections.namedtuple('PromptContext',
                                         'echo_mode', 'input_visible'])
 
 
-class Prompter:
+class Prompter(QObject):
 
     """Manager for questions to be shown in the statusbar.
 
@@ -60,9 +60,17 @@ class Prompter:
         _question: A Question object with the question to be asked to the user.
         _loops: A list of local EventLoops to spin in when blocking.
         _queue: A deque of waiting questions.
+
+    Signals:
+        show_prompt: Emitted when the prompt widget should be shown.
+        hide_prompt: Emitted when the prompt widget should be hidden.
     """
 
-    def __init__(self):
+    show_prompt = pyqtSignal()
+    hide_prompt = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self._question = None
         self._loops = []
         self._queue = collections.deque()
@@ -106,7 +114,7 @@ class Prompter:
         log.statusbar.debug("Restoring context {}".format(ctx))
         prompt = objreg.get('prompt')
         if ctx is None:
-            prompt.hide_prompt.emit()
+            self.hide_prompt.emit()
             self._busy = False
             return False
         self._question = ctx.question
@@ -114,7 +122,7 @@ class Prompter:
         prompt.lineedit.setText(ctx.input_text)
         prompt.lineedit.setEchoMode(ctx.echo_mode)
         prompt.lineedit.setVisible(ctx.input_visible)
-        prompt.show_prompt.emit()
+        self.show_prompt.emit()
         return True
 
     def _display_question(self):
@@ -156,7 +164,7 @@ class Prompter:
         else:
             raise ValueError("Invalid prompt mode!")
         prompt.lineedit.setFocus()
-        prompt.show_prompt.emit()
+        self.show_prompt.emit()
         self._busy = True
         return mode
 
@@ -185,7 +193,7 @@ class Prompter:
             prompt.txt.setText('')
             prompt.lineedit.clear()
             prompt.lineedit.setEchoMode(QLineEdit.Normal)
-            prompt.hide_prompt.emit()
+            self.hide_prompt.emit()
             self._busy = False
             if self._question.answer is None and not self._question.is_aborted:
                 self._question.cancel()

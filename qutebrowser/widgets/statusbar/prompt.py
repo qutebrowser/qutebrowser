@@ -44,14 +44,7 @@ class Prompt(QWidget):
         txt: The TextBase instance (QLabel) used to display the prompt text.
         lineedit: The MinimalLineEdit instance (QLineEdit) used for the input.
         _hbox: The QHBoxLayout used to display the text and prompt.
-
-    Signals:
-        show_prompt: Emitted when the prompt widget wants to be shown.
-        hide_prompt: Emitted when the prompt widget wants to be hidden.
     """
-
-    show_prompt = pyqtSignal()
-    hide_prompt = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -66,7 +59,7 @@ class Prompt(QWidget):
         self.lineedit = PromptLineEdit()
         self._hbox.addWidget(self.lineedit)
 
-        prompter_obj = prompter.Prompter()
+        prompter_obj = prompter.Prompter(self)
         objreg.register('prompter', prompter_obj)
 
     def __repr__(self):

@@ -152,8 +152,9 @@ class StatusBar(QWidget):
         self._cmd.show_cmd.connect(self._show_cmd_widget)
         self._cmd.hide_cmd.connect(self._hide_cmd_widget)
         self._hide_cmd_widget()
-        self.prompt.show_prompt.connect(self._show_prompt_widget)
-        self.prompt.hide_prompt.connect(self._hide_prompt_widget)
+        prompter = objreg.get('prompter')
+        prompter.show_prompt.connect(self._show_prompt_widget)
+        prompter.hide_prompt.connect(self._hide_prompt_widget)
         self._hide_prompt_widget()
 
         self.keystring = keystring.KeyString()
