@@ -21,7 +21,7 @@
 
 import itertools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl, QEventLoop
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
@@ -100,6 +100,11 @@ class WebView(QWebView):
         self.registry = objreg.ObjectRegistry()
         self.tab_id = next(tab_id_gen)
         objreg.register('webview', self, registry=self.registry)
+        # QNetworkAccessManager init will hang for over a second, so
+        # we make sure the GUI is refreshed here, so the start seems faster.
+        app = objreg.get('app')
+        app.processEvents(QEventLoop.ExcludeUserInputEvents |
+                          QEventLoop.ExcludeSocketNotifiers)
         page = webpage.BrowserPage(self)
         self.setPage(page)
         hintmanager = hints.HintManager(self)

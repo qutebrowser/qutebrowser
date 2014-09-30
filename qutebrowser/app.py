@@ -32,8 +32,8 @@ import functools
 import traceback
 
 from PyQt5.QtWidgets import QApplication, QDialog
-from PyQt5.QtCore import (pyqtSlot, QTimer, QEventLoop, Qt, QStandardPaths,
-                          qInstallMessageHandler, QObject, QUrl)
+from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, Qt, QUrl,
+                          QStandardPaths, QObject)
 
 import qutebrowser
 from qutebrowser.commands import userscripts, runners, cmdutils
@@ -236,10 +236,6 @@ class Application(QApplication):
 
         URLs to open have no prefix, commands to execute begin with a colon.
         """
-        # QNetworkAccessManager::createRequest will hang for over a second, so
-        # we make sure the GUI is refreshed here, so the start seems faster.
-        self.processEvents(QEventLoop.ExcludeUserInputEvents |
-                           QEventLoop.ExcludeSocketNotifiers)
         tabbed_browser = objreg.get('tabbed-browser')
         for cmd in self._args.command:
             if cmd.startswith(':'):
