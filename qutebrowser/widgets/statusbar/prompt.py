@@ -19,7 +19,6 @@
 
 """Prompt shown in the statusbar."""
 
-from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QHBoxLayout, QWidget, QLineEdit
 
 from qutebrowser.widgets import misc

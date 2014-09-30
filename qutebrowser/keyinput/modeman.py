@@ -83,7 +83,7 @@ def leave(mode, reason=None):
 def maybe_enter(mode, reason=None, override=False):
     """Convenience method to enter 'mode' without exceptions."""
     try:
-        objreg.get('mode-manager').enter(mode, reason, override=False)
+        objreg.get('mode-manager').enter(mode, reason, override)
     except ModeLockedError:
         pass
 
