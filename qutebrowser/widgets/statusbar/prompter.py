@@ -114,6 +114,7 @@ class Prompter:
         prompt.lineedit.setText(ctx.input_text)
         prompt.lineedit.setEchoMode(ctx.echo_mode)
         prompt.lineedit.setVisible(ctx.input_visible)
+        prompt.show_prompt.emit()
         return True
 
     def _display_question(self):
