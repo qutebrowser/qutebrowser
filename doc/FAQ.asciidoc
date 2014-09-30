@@ -86,4 +86,7 @@ However, there are some alternatives you could use to block ads:
   block ads, which currently isn't implemented either.
 +
 If you think you can add ad blocking or request policy, please
-link:HACKING.asciidoc[contribute]!
+https://github.com/The-Compiler/qutebrowser/blob/master/doc/HACKING.asciidoc[contribute]!
+
+// We link to github rather than to the file here so it also works with the
+// qutebrowser :help because that doesn't render HACKING.
