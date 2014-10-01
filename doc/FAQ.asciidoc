@@ -82,6 +82,8 @@ However, there are some alternatives you could use to block ads:
   http://www.hosts-file.net/[3]
 * Set up a http://www.privoxy.org/[Privoxy] proxy server and use it to
   filter ads before they even get to the browser.
+* Use https://opensource.conformal.com/wiki/Adsuck[adsuck] as a local DNS
+server for blocking ads.
 * Use the https://www.requestpolicy.com/[RequestPolicy] functionality to
   block ads, which currently isn't implemented either.
 +
