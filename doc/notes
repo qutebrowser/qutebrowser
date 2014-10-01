@@ -1,77 +1,42 @@
-Multiwindow
-===========
-
-cmdutils.register (and thus Command) gets argument scope which is global/window
-
-when scope=global, instance is searched starting with the application
-singleton.
-
-when scope=window, instance is searched starting with the window the command
-was executed in.
-
-Each window has its own CommandDispatcher, which adds the window as an
-attribute to every Command before calling the handler. The handler then uses
-this to get the starting point for instance=.
-
-
-IPC
-===
-
-We use QLocalSocket to communicate with another instance
-TODO: find out why many apps just use QLocalSocket as a control channel, and
-shared memory for data.
-Max data size might be 8k, but this is enough for commandline args.
-
-http://developer.nokia.com/community/wiki/Qt_IPC_using_QLocalSocket_%26_QLocalServer
-https://www.mail-archive.com/pyqt@riverbankcomputing.com/msg22736.html
-http://stackoverflow.com/a/8795563/2085149
-http://nullege.com/codes/show/src%40n%40i%40ninja-ide2-2.1.1%40ninja_ide%40core%40ipc.py/20/PyQt4.QtNetwork.QLocalSocket/python
-http://nullege.com/codes/show/src%40t%40a%40taurus-3.0.0%40lib%40taurus%40qt%40qtgui%40container%40taurusmainwindow.py/780/PyQt4.QtNetwork.QLocalSocket/python
-http://nullege.com/codes/show/src%40h%40e%40Heliotrope-HEAD%40purple_server.py/95/PyQt4.QtNetwork.QLocalSocket/python
-http://qt-project.org/doc/qt-4.8/qlocalserver.html
-https://gitorious.org/qsingleapplication/qsingleapplication/source/ca13324b0f5bdfcaf4e379a78108f0bd85fed98a:qSingleApplication.py#L49
-http://www.dallagnese.fr/en/computers-it/recette-python-qt4-qsingleapplication-pyside/
-http://stackoverflow.com/questions/8786136/pyqt-how-to-detect-and-close-ui-if-its-already-running
-http://stackoverflow.com/questions/12712360/qtsingleapplication-for-pyside-or-pyqt
-
-
-Netscape cookies
-================
-
-http://www.cookiecentral.com/faq/#3.5
-https://docs.python.org/3.4/library/http.cookies.html
-http://qt-project.org/doc/qt-4.8/qnetworkcookie.html
-- Second column (flag): TRUE if domain starts with ., else FALSE
-- if a cookie is a http-only cookie domain is prepended with a #HttpOnly_
-- Python's http.cookiejar.MozillaCookieJar might help
-
-
-Element selection detection
-===========================
-
-Possible options:
-- javascript: http://stackoverflow.com/a/2848120/2085149
-- microFocusChanged and check active element via:
-    frame = page.currentFrame()
-    elem = frame.findFirstElement('*:focus')
-
-
-Completion view (not QTreeView)
-===============================
-
-Perhaps using a QHBoxLayout of QTableViews and creating/destroying them based
-on the completion would be a better idea?
-
-HTML help pages
+henk's thoughts
 ===============
 
-- Only generate HTML when releasing (and ship it with the releases!)
-  (setuptools integration)
-X Update asciidoc along with source updates
-X Provide script to generate HTML from asciidoc
-- Show error page with some instructions when HTMLs are missing.
-- Show some kind of message when:
-    - .html files are found
-    - .asciidoc files are found (because qutebrowser is running locally from
-      gitrepo)
-    - .asciidoc files are newer than .html files
+1. Power to the user! Protect privacy!
+Things the browser should only do with explicit consent from the user, if
+applicable the user should be able to choose which protocol/host/port triplets
+to white/blacklist:
+
+- load/run executable code, like js, flash, java applets, ... (think NoScript)
+- requests to other domains, ports or using a different protocol than what the
+  user requested (think RequestPolicy)
+- accept cookies
+- storing/saving/caching things, e.g. open tabs ("session"), cookies, page
+  contents, browsing/download history, form data, ...
+- send referrer
+- disclose any (presence, type, version, settings, capabilities, etc.)
+  information about OS, browser, installed fonts, plugins, addons, etc.
+
+2. Be efficient!
+I tend to leave a lot of tabs open and nobody can deny that some websites
+simply suck, so the browser should, unless told otherwise by the user:
+
+- load tabs only when needed
+- run code in tabs only when needed, i.e. when the tab is currently being
+  used/viewed (background tabs doing some JS magic even when they are not being
+  used can create a lot of unnecessary load on the machine)
+- finish requests to the domain the user requested (e.g. www.example.org)
+  before doing any requests to other subdomains (e.g. images.example.org) and
+  finish those before doing requests to thirdparty domains (e.g. example.com)
+
+3. Be stable!
+- one site should not make the complete browser crash, only that site's tab
+
+
+Upstream Bugs
+=============
+
+- Web inspector is blank unless .hide()/.show() is called.
+    Asked on SO: http://stackoverflow.com/q/23499159/2085149
+    TODO: Report to PyQt/Qt
+
+- Report some other crashes
