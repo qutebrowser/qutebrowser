@@ -72,7 +72,6 @@ def check_overflow(arg, ctype, fatal=True):
     Raise:
         OverflowError if the argument is out of bounds and fatal=True.
     """
-    # FIXME we somehow should have nicer exceptions...
     maxval = MAXVALS[ctype]
     minval = MINVALS[ctype]
     if arg > maxval:

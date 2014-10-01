@@ -86,6 +86,8 @@ class CompletionView(QTreeView):
     COLUMN_WIDTHS = (20, 70, 10)
 
     # FIXME style scrollbar
+    # https://github.com/The-Compiler/qutebrowser/issues/117
+
 
     resize_completion = pyqtSignal()
 
@@ -117,6 +119,7 @@ class CompletionView(QTreeView):
         self.setUniformRowHeights(True)
         self.hide()
         # FIXME set elidemode
+        # https://github.com/The-Compiler/qutebrowser/issues/118
 
     def __repr__(self):
         return utils.get_repr(self)

@@ -949,6 +949,7 @@ class ZoomPerc(Perc):
     """A percentage which needs to be in the current zoom percentages."""
 
     # FIXME we should validate the percentage is in the list here.
+    # https://github.com/The-Compiler/qutebrowser/issues/115
 
 
 class HintMode(BaseType):
@@ -1084,6 +1085,7 @@ class UserStyleSheet(File):
             # probably a CSS, so we don't handle it as filename.
             # FIXME We just try if it is encodable, maybe we should validate
             # CSS?
+            # https://github.com/The-Compiler/qutebrowser/issues/115
             try:
                 value.encode('utf-8')
             except UnicodeEncodeError as e:

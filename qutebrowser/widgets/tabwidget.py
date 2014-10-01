@@ -88,6 +88,8 @@ class TabBar(QTabBar):
     fixing this would be a lot of effort, so we'll postpone it until we're
     reimplementing drag&drop for other reasons.
 
+    https://github.com/The-Compiler/qutebrowser/issues/126
+
     Attributes:
         vertical: When the tab bar is currently vertical.
     """

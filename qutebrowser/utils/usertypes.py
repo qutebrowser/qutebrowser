@@ -334,7 +334,7 @@ class Question(QObject):
             self.aborted.emit()
             self.completed.emit()
         except TypeError:
-            # FIXME
+            # WORKAROUND
             # We seem to get "pyqtSignal must be bound to a QObject, not
             # 'Question' here, which makes no sense at all..."
             log.misc.exception("Error while aborting question")

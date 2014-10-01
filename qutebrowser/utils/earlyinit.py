@@ -161,6 +161,7 @@ def fix_harfbuzz(args):
         # forced harfbuzz variant
         # FIXME looking at the Qt code, 'new' isn't a valid value, but leaving
         # it empty and using new yields different behaviour...
+        # (probably irrelevant when workaround gets removed)
         log.init.debug("Using {} harfbuzz engine (forced)".format(
             args.harfbuzz))
         os.environ['QT_HARFBUZZ'] = args.harfbuzz

@@ -231,6 +231,7 @@ def _get_args(checker):
             # FIXME find a better solution
             # pep257 uses cp1252 by default on Windows, which can't handle the
             # unicode chars in some files.
+            # https://github.com/The-Compiler/qutebrowser/issues/105
             excluded += ['configdata', 'misc']
         args.append(r'--match=(?!{})\.py'.format('|'.join(excluded)))
         args += _get_optional_args('pep257')

@@ -42,6 +42,7 @@ def call_asciidoc(src, dst):
         os.path.basename(src)), 'cyan')
     if os.name == 'nt':
         # FIXME this is highly specific to my machine
+        # https://github.com/The-Compiler/qutebrowser/issues/106
         args = [r'C:\Python27\python', r'J:\bin\asciidoc-8.6.9\asciidoc.py']
     else:
         args = ['asciidoc']

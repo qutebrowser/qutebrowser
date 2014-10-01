@@ -78,6 +78,8 @@ class QFlagsKeyTests(unittest.TestCase):
 
     """Tests for qflags_key()."""
 
+    # https://github.com/The-Compiler/qutebrowser/issues/42
+
     @unittest.skip('FIXME')
     def test_single(self):
         """Test with single value."""

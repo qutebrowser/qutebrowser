@@ -186,6 +186,8 @@ class Application(QApplication):
         # However this also means if the logfile is there for some weird
         # reason, we'll *always* log to stderr, but that's still better than no
         # dialogs at all.
+        # probably irrelevant with single instance support
+        # https://github.com/The-Compiler/qutebrowser/issues/10
         path = utils.get_standard_dir(QStandardPaths.DataLocation)
         logname = os.path.join(path, 'crash.log')
         # First check if an old logfile exists.
@@ -332,6 +334,7 @@ class Application(QApplication):
         # statusbar
         # FIXME some of these probably only should be triggered on mainframe
         # loadStarted.
+        # https://github.com/The-Compiler/qutebrowser/issues/112
         tabs.current_tab_changed.connect(status.prog.on_tab_changed)
         tabs.cur_progress.connect(status.prog.setValue)
         tabs.cur_load_finished.connect(status.prog.hide)
@@ -655,6 +658,7 @@ class Application(QApplication):
         """Second stage of shutdown."""
         # pylint: disable=too-many-branches, too-many-statements
         # FIXME refactor this
+        # https://github.com/The-Compiler/qutebrowser/issues/113
         log.destroy.debug("Stage 2 of shutting down...")
         # Remove eventfilter
         try:

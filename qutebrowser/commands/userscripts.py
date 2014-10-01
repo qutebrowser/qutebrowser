@@ -86,7 +86,6 @@ class _BlockingFIFOReader(QObject):
                 for line in self.fifo:
                     self.got_line.emit(line.rstrip())
             if QThread.currentThread().isInterruptionRequested():
-                # FIXME this only exists since Qt 5.2, is that an issue?
                 self.finished.emit()
                 return
 

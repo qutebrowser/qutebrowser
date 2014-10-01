@@ -64,10 +64,6 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     show_cmd = pyqtSignal()
     hide_cmd = pyqtSignal()
 
-    # FIXME won't the tab key switch to the next widget?
-    # See http://www.saltycrane.com/blog/2008/01/how-to-capture-tab-key-press-event-with/
-    # for a possible fix.
-
     def __init__(self, parent=None):
         misc.CommandLineEdit.__init__(self, parent)
         misc.MinimalLineEditMixin.__init__(self)
@@ -128,7 +124,9 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
                 else:
                     self._empty_item_idx = None
                 break
-            cursor_pos -= (len(part) + 1)  # FIXME are spaces always 1 char?
+            # FIXME are spaces always 1 char?
+            # https://github.com/The-Compiler/qutebrowser/issues/122
+            cursor_pos -= (len(part) + 1)
         log.completion.debug("cursor_part {}, spaces {}".format(
             self._cursor_part, spaces))
         return
@@ -176,6 +174,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         # rather than just replacing it if it is a dedicated argument. We could
         # split the args, but then trailing spaces would be lost, so I'm not
         # sure what's the best thing to do here
+        # https://github.com/The-Compiler/qutebrowser/issues/123
         text = text.replace('{url}', url)
         if not text[0] in modeparsers.STARTCHARS:
             raise cmdexc.CommandError(

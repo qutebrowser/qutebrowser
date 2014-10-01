@@ -41,7 +41,6 @@ def check_overflow(arg, ctype):
         CommandError if the argument is out of bounds.
         ValueError if the given ctype is unknown.
     """
-    # FIXME we somehow should have nicer exceptions...
     try:
         qtutils.check_overflow(arg, ctype)
     except OverflowError:

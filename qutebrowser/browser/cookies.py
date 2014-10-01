@@ -71,6 +71,7 @@ class CookieJar(QNetworkCookieJar):
         """Save cookies to disk."""
         if not config.get('permissions', 'cookies-store'):
             # FIXME if this changed to false we should delete the old cookies
+            # https://github.com/The-Compiler/qutebrowser/issues/116
             return
         self.purge_old_cookies()
         lines = []

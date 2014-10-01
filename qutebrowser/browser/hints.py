@@ -306,6 +306,7 @@ class HintManager(QObject):
         # FIXME Instead of clicking the center, we could have nicer heuristics.
         # e.g. parse (-webkit-)border-radius correctly and click text fields at
         # the bottom right, and everything else on the top left or so.
+        # https://github.com/The-Compiler/qutebrowser/issues/70
         pos = elem.rect_on_view().center()
         log.hints.debug("Clicking on '{}' at {}/{}".format(
             elem, pos.x(), pos.y()))

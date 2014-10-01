@@ -32,6 +32,8 @@ class Progress(QProgressBar):
     """The progress bar part of the status bar."""
 
     # FIXME for some reason, margin-left is not shown
+    # https://github.com/The-Compiler/qutebrowser/issues/125
+
     STYLESHEET = """
         QProgressBar {
             border-radius: 0px;

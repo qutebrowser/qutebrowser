@@ -198,6 +198,7 @@ class Completer(QObject):
             # This is a search or gibberish, so we don't need to complete
             # anything (yet)
             # FIXME complete searchs
+            # https://github.com/The-Compiler/qutebrowser/issues/32
             completion.hide()
             return
 

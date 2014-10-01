@@ -32,6 +32,7 @@ from qutebrowser.utils import log, qtutils
 
 
 # FIXME: we probably could raise some exceptions on invalid URLs
+# https://github.com/The-Compiler/qutebrowser/issues/108
 
 
 def _get_search_url(txt):
@@ -235,6 +236,7 @@ def qurl_from_user_input(urlstr):
     WORKAROUND - https://bugreports.qt-project.org/browse/QTBUG-41089
     FIXME - Maybe https://codereview.qt-project.org/#/c/93851/ has a better way
             to solve this?
+    https://github.com/The-Compiler/qutebrowser/issues/109
 
     Args:
         urlstr: The URL as string.

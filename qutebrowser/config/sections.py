@@ -145,8 +145,6 @@ class ValueList(Section):
         _ordered_value_cache: A ChainMap-like OrderedDict of all values.
     """
 
-    # FIXME how to handle value layers here?
-
     def __init__(self, keytype, valtype, *defaults):
         """Wrap types over default values. Take care when overriding this.
 

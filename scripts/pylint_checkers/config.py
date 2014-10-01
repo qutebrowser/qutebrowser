@@ -51,6 +51,7 @@ class ConfigChecker(checkers.BaseChecker):
         """Check that the arguments to config.get(...) are valid.
 
         FIXME: We should check all ConfigManager calls.
+        https://github.com/The-Compiler/qutebrowser/issues/107
         """
         try:
             sect_arg = utils.get_argument_from_call(node, position=0,

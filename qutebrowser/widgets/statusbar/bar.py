@@ -312,6 +312,7 @@ class StatusBar(QWidget):
                          queued.
         """
         # FIXME probably using a QTime here would be easier.
+        # https://github.com/The-Compiler/qutebrowser/issues/124
         log.statusbar.debug("Displaying text: {} (error={})".format(
             text, error))
         now = datetime.datetime.now()

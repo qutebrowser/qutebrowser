@@ -1127,6 +1127,7 @@ class FontTests(unittest.TestCase):
                     self.t2.validate(val)
 
     # FIXME
+    # https://github.com/The-Compiler/qutebrowser/issues/103
     @unittest.expectedFailure
     def test_validate_invalid(self):
         """Test validate with invalid values."""

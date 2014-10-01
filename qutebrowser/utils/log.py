@@ -347,6 +347,8 @@ class RAMHandler(logging.Handler):
         """Dump the complete formatted log data as as string.
 
         FIXME: We should do all the HTML formatter via jinja2.
+        (probably obsolete when moving to a widget for logging,
+        https://github.com/The-Compiler/qutebrowser/issues/34
         """
         lines = []
         fmt = self.html_formatter.format if html else self.format

@@ -112,6 +112,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         objreg.register('command-dispatcher', dispatcher)
         self._now_focused = None
         # FIXME adjust this to font size
+        # https://github.com/The-Compiler/qutebrowser/issues/119
         self.setIconSize(QSize(12, 12))
         config.on_change(self.update_favicons, 'tabs', 'show-favicons')
 
