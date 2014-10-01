@@ -178,14 +178,22 @@ Thanks / Similiar projects
 
 Many projects with a similiar goal as qutebrowser exist:
 
-* http://portix.bitbucket.org/dwb/[dwb]
-* https://github.com/fanglingsu/vimb[vimb]
-* http://sourceforge.net/projects/vimprobable/[vimprobable]
-* https://mason-larobina.github.io/luakit/[luakit]
-* http://pwmt.org/projects/jumanji/[jumanji]
-* http://conkeror.org/[conkeror]
-* http://surf.suckless.org/[surf]
-* http://www.uzbl.org/[uzbl]
+* http://portix.bitbucket.org/dwb/[dwb] (C, GTK+ with WebKit1, currently
+http://www.reddit.com/r/linux/comments/2huqbc/dwb_abandoned/[unmaintained] -
+main inspiration for qutebrowser)
+* https://github.com/fanglingsu/vimb[vimb] (C, GTK+ with WebKit1, active)
+* http://sourceforge.net/p/vimprobable/wiki/Home/[vimprobable] (C, GTK+ with
+WebKit1, active)
+* http://surf.suckless.org/[surf] (C, GTK+ with WebKit1, active)
+* https://mason-larobina.github.io/luakit/[luakit] (C/Lua, GTK+ with
+WebKit1, not very active)
+* http://pwmt.org/projects/jumanji/[jumanji] (C, GTK+ with WebKit1, not very
+active)
+* http://www.uzbl.org/[uzbl] (C, GTK+ with WebKit1/WebKit2, active)
+* http://conkeror.org/[conkeror] (Javascript, Emacs-like, XULRunner/Gecko,
+active)
+* https://github.com/AeroNotix/lispkit[lispkit] (quite new, lisp, GTK+ with
+WebKit, active)
 * http://www.vimperator.org/[Vimperator] (Firefox addon)
 * http://5digits.org/pentadactyl/[Pentadactyl] (Firefox addon)
 * https://github.com/akhodakivskiy/VimFx[VimFx] (Firefox addon)
