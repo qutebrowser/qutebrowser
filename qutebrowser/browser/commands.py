@@ -762,8 +762,9 @@ class CommandDispatcher:
         formatter = pygments.formatters.HtmlFormatter(
             full=True, linenos='table')
         highlighted = pygments.highlight(html, lexer, formatter)
+        current_url = self._current_url()
         tab = objreg.get('tabbed-browser').tabopen(explicit=True)
-        tab.setHtml(highlighted, self._current_url())
+        tab.setHtml(highlighted, current_url)
         tab.viewing_source = True
 
     @cmdutils.register(instance='command-dispatcher', name='help',
