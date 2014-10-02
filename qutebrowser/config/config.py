@@ -131,7 +131,7 @@ def init(args):
     # We need to import this here because lineparser needs config.
     from qutebrowser.config import lineparser
     command_history = lineparser.LineConfigParser(
-        datadir, 'cmd_history', ('completion', 'history-length'))
+        datadir, 'cmd-history', ('completion', 'history-length'))
     objreg.register('command-history', command_history)
 
 
