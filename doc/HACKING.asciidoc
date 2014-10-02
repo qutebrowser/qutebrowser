@@ -33,7 +33,16 @@ Chances are you already know something to improve or add when you're reading
 this. It might be a good idea to ask on the mailing list or IRC channel to make
 sure nobody else started working on the same thing already.
 
-If you want to find something useful to do, check the `BUGS` and `TODO` files.
+If you want to find something useful to do, check the
+https://github.com/The-Compiler/qutebrowser/issues[issue tracker]. Some
+pointers:
+
+* https://github.com/The-Compiler/qutebrowser/milestones/v0.1[Open issues for
+the v0.1 release]
+* https://github.com/The-Compiler/qutebrowser/labels/easy[Issues which should
+be easy to solve]
+* https://github.com/The-Compiler/qutebrowser/labels/not%20code[Issues which
+require little/no coding]
 
 There are also some things to do if you don't want to write code:
 

@@ -82,17 +82,15 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 // QUTE_OPTIONS_END
 
 == BUGS
-Bugs are tracked at two locations:
-
-* The link:BUGS[doc/BUGS] and link:TODO[doc/TODO] files shipped with
-qutebrowser.
-* The Github issue tracker at
+Bugs are tracked in the Github issue tracker at 
 https://github.com/The-Compiler/qutebrowser/issues.
 
-If you found a bug or have a suggestion, either open a ticket in the github
-issue tracker, or write a mail to the
+If you found a bug, use the built-in ':report' command to create a bug report
+with all information needed.
+
+If you prefer, you can also write to the
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
-mailto:qutebrowser@lists.qutebrowser.org[].
+mailto:qutebrowser@lists.qutebrowser.org[] instead.
 
 == COPYRIGHT
 This program is free software: you can redistribute it and/or modify it under
