@@ -47,7 +47,9 @@ class KeyConfigParser(QObject):
     """Parser for the keybind config.
 
     Attributes:
-        FIXME
+        _configfile: The filename of the config or None.
+        _cur_section: The section currently being processed by _read().
+        _cur_command: The command currently being processed by _read().
 
     Signals:
         changed: Emitted when the config has changed.
@@ -64,14 +66,15 @@ class KeyConfigParser(QObject):
             fname: The filename of the config.
         """
         super().__init__(parent)
-        self._configdir = configdir
-        self._fname = fname
-        self._configfile = os.path.join(self._configdir, fname)
         self._cur_section = None
         self._cur_command = None
         # Mapping of section name(s) to keybinding -> command dicts.
         self.keybindings = collections.OrderedDict()
-        if not os.path.exists(self._configfile):
+        if configdir is None:
+            self._configfile = None
+        else:
+            self._configfile = os.path.join(configdir, fname)
+        if self._configfile is None or not os.path.exists(self._configfile):
             self._load_default()
         else:
             self._read()
@@ -100,7 +103,7 @@ class KeyConfigParser(QObject):
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True,
-                              configdir=self._configdir, fname=self._fname)
+                              configfile=self._configfile)
 
     def _str_section_desc(self, sectname):
         """Get the section description string for sectname."""
@@ -120,6 +123,8 @@ class KeyConfigParser(QObject):
 
     def save(self):
         """Save the key config file."""
+        if self._configfile is None:
+            return
         log.destroy.debug("Saving key config to {}".format(self._configfile))
         with open(self._configfile, 'w', encoding='utf-8') as f:
             f.write(str(self))
