@@ -87,12 +87,7 @@ def init(args):
     Args:
         args: The argparse namespace.
     """
-    if args.confdir is None:
-        confdir = utils.get_standard_dir(QStandardPaths.ConfigLocation)
-    elif args.confdir == '':
-        confdir = None
-    else:
-        confdir = args.confdir
+    confdir = utils.get_standard_dir(QStandardPaths.ConfigLocation, args)
     try:
         app = objreg.get('app')
         config_obj = ConfigManager(confdir, 'qutebrowser.conf', app)

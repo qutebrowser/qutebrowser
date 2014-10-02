@@ -168,13 +168,23 @@ def pastebin(text):
     return url
 
 
-def get_standard_dir(typ):
+def get_standard_dir(typ, args=None):
     """Get the directory where files of the given type should be written to.
 
     Args:
         typ: A member of the QStandardPaths::StandardLocation enum,
              see http://qt-project.org/doc/qt-5/qstandardpaths.html#StandardLocation-enum
+        args: An argparse namespace which could be used to override the
+              locations.
     """
+    if args is not None:
+        if typ == QStandardPaths.ConfigLocation:
+            if args.confdir is None:
+                pass
+            elif args.confdir == '':
+                return None
+            else:
+                return args.confdir
     qapp = QCoreApplication.instance()
     orgname = qapp.organizationName()
     # We need to temporarily unset the organisationname here since the
