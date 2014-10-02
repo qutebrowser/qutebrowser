@@ -177,14 +177,24 @@ def get_standard_dir(typ, args=None):
         args: An argparse namespace which could be used to override the
               locations.
     """
+    # First check if it's been overridden
+    typ_to_argparse_arg = {
+        QStandardPaths.ConfigLocation: 'confdir'
+    }
     if args is not None:
-        if typ == QStandardPaths.ConfigLocation:
-            if args.confdir is None:
+        try:
+            argname = typ_to_argparse_arg[typ]
+        except KeyError:
+            pass
+        else:
+            arg_value = getattr(args, argname)
+            if arg_value is None:
                 pass
-            elif args.confdir == '':
+            elif arg_value == '':
                 return None
             else:
-                return args.confdir
+                return arg_value
+    # If not, get it from Qt
     qapp = QCoreApplication.instance()
     orgname = qapp.organizationName()
     # We need to temporarily unset the organisationname here since the
