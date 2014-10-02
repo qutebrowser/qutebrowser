@@ -175,9 +175,7 @@ class ConfigManager(QObject):
     Attributes:
         sections: The configuration data as an OrderedDict.
         _fname: The filename to be opened.
-        _configparser: A ReadConfigParser instance to load the config.
         _configdir: The dictionary to read the config from and save it in.
-        _configfile: The config file path.
         _interpolation: An configparser.Interpolation object
         _proxies: configparser.SectionProxy objects for sections.
         _initialized: Whether the ConfigManager is fully initialized yet.
@@ -196,15 +194,17 @@ class ConfigManager(QObject):
         super().__init__(parent)
         self._initialized = False
         self.sections = configdata.DATA
-        self._configparser = iniparsers.ReadConfigParser(configdir, fname)
-        self._configfile = os.path.join(configdir, fname)
-        self._configdir = configdir
-        self._fname = fname
         self._interpolation = configparser.ExtendedInterpolation()
         self._proxies = {}
         for sectname in self.sections.keys():
             self._proxies[sectname] = SectionProxy(self, sectname)
-        self._from_cp(self._configparser)
+        self._fname = fname
+        if configdir is None:
+            self._configdir = None
+        else:
+            self._configdir = configdir
+            parser = iniparsers.ReadConfigParser(configdir, fname)
+            self._from_cp(parser)
         self._initialized = True
 
     def __getitem__(self, key):
@@ -508,10 +508,13 @@ class ConfigManager(QObject):
     @cmdutils.register(instance='config')
     def save(self):
         """Save the config file."""
+        if self._configdir is None:
+            return
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
-        log.destroy.debug("Saving config to {}".format(self._configfile))
-        with open(self._configfile, 'w', encoding='utf-8') as f:
+        configfile = os.path.join(configdir, self._fname)
+        log.destroy.debug("Saving config to {}".format(configfile))
+        with open(configfile, 'w', encoding='utf-8') as f:
             f.write(str(self))
 
     def dump_userconfig(self):
