@@ -88,7 +88,6 @@ class CompletionView(QTreeView):
     # FIXME style scrollbar
     # https://github.com/The-Compiler/qutebrowser/issues/117
 
-
     resize_completion = pyqtSignal()
 
     def __init__(self, parent=None):
