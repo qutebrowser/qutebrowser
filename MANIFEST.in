@@ -11,7 +11,5 @@ exclude scripts/run_profile.py
 exclude scripts/generate_authors.sh
 exclude .flake8
 exclude .pylintrc
-exclude doc/TODO.asciidoc
-exclude doc/BUGS.asciidoc
 exclude doc/notes
 prune pkg
