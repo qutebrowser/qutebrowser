@@ -116,8 +116,10 @@ class BrowserPage(QWebPage):
             info.domain, info.error))
         title = "Error loading page: {}".format(urlstr)
         template = jinja.env.get_template('error.html')
-        errpage.content = template.render(  # pylint: disable=maybe-no-member
+        html = template.render(  # pylint: disable=maybe-no-member
             title=title, url=urlstr, error=info.errorString, icon='')
+        errpage.content = html.encode('utf-8')
+        errpage.encoding = 'utf-8'
         return True
 
     def _handle_multiple_files(self, opt, files):
