@@ -512,7 +512,7 @@ class ConfigManager(QObject):
             return
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
-        configfile = os.path.join(configdir, self._fname)
+        configfile = os.path.join(self._configdir, self._fname)
         log.destroy.debug("Saving config to {}".format(configfile))
         with open(configfile, 'w', encoding='utf-8') as f:
             f.write(str(self))
