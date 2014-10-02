@@ -213,6 +213,14 @@ def get_standard_dir(typ, args=None):
             # WORKAROUND - see
             # https://bugreports.qt-project.org/browse/QTBUG-38872
             path = os.path.join(path, appname)
+        if typ == QStandardPaths.DataLocation and os.name == 'nt':
+            # Under windows, config/data might end up in the same directory.
+            data_path = QStandardPaths.writableLocation(
+                QStandardPaths.DataLocation)
+            config_path = QStandardPaths.writableLocation(
+                QStandardPaths.ConfigLocation)
+            if data_path == config_path:
+                path = os.path.join(path, 'data')
         if not os.path.exists(path):
             os.makedirs(path)
         return path
