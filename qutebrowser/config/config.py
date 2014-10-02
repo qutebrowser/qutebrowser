@@ -124,12 +124,14 @@ def init(args):
         sys.exit(1)
     else:
         objreg.register('key-config', key_config)
-    state_config = iniparsers.ReadWriteConfigParser(confdir, 'state')
+
+    datadir = utils.get_standard_dir(QStandardPaths.DataLocation, args)
+    state_config = iniparsers.ReadWriteConfigParser(datadir, 'state')
     objreg.register('state-config', state_config)
     # We need to import this here because lineparser needs config.
     from qutebrowser.config import lineparser
     command_history = lineparser.LineConfigParser(
-        confdir, 'cmd_history', ('completion', 'history-length'))
+        datadir, 'cmd_history', ('completion', 'history-length'))
     objreg.register('command-history', command_history)
 
 
