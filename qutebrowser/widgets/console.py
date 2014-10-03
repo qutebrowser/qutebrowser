@@ -157,6 +157,7 @@ class ConsoleTextEdit(QTextEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAcceptRichText(False)
+        self.setLineWrapMode(QTextEdit.NoWrap)
         self.setReadOnly(True)
         config.on_change(self.update_font, 'fonts', 'debug-console')
         self.update_font()
