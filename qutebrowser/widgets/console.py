@@ -152,7 +152,7 @@ class ConsoleLineEdit(misc.CommandLineEdit):
 
 class ConsoleTextEdit(QTextEdit):
 
-    """Custom QTextEdit for console input."""
+    """Custom QTextEdit for console output."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -169,6 +169,16 @@ class ConsoleTextEdit(QTextEdit):
         """Update font when config changed."""
         self.setFont(config.get('fonts', 'debug-console'))
 
+    def append_plaintext(self, text):
+        """Append new text to the output.
+
+        Note we can't use QTextEdit::append as this parses HTML.
+
+        Args:
+            text: The text to append.
+        """
+        self.insertPlainText('\n' + text)
+
 
 class ConsoleWidget(QWidget):
 
@@ -184,7 +194,7 @@ class ConsoleWidget(QWidget):
         super().__init__(parent)
         self._lineedit = ConsoleLineEdit(self)
         self._output = ConsoleTextEdit()
-        self._lineedit.write.connect(self._output.append)
+        self._lineedit.write.connect(self._output.append_plaintext)
         self._vbox = QVBoxLayout()
         self._vbox.setSpacing(0)
         self._vbox.addWidget(self._output)
