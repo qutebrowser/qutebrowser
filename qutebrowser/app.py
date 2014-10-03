@@ -263,6 +263,21 @@ class Application(QApplication):
                 else:
                     tabbed_browser.tabopen(url)
 
+        # Open quickstart if it's the first start
+        state_config = objreg.get('state-config')
+        try:
+            quickstart_done = state_config['general']['quickstart-done'] == '1'
+        except KeyError:
+            quickstart_done = False
+        if not quickstart_done:
+            tabbed_browser.tabopen(
+                QUrl('http://www.qutebrowser.org/quickstart.html'))
+            try:
+                state_config.add_section('general')
+            except configparser.DuplicateSectionError:
+                pass
+            state_config['general']['quickstart-done'] = '1'
+
     def _python_hacks(self):
         """Get around some PyQt-oddities by evil hacks.
 
