@@ -1,0 +1,77 @@
+qutebrowser quickstart
+======================
+The Compiler <mail@qutebrowser.org>
+
+NOTE: This page will only appear on the first start. To view it at a later
+time, use the `:help` command.
+
+Known issues
+------------
+
+[WARNING]
+====
+`#include <std_disclaimer.h>`
+
+qutebrowser still hasn't seen its v0.1 release, and there's a good reason for
+it. There still are some issues (see below). I also might break it from time to
+time, sometimes on purpose, sometimes not. It's a good idea to sign up on the
+https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] if
+you use qutebrowser already.
+====
+
+* https://github.com/The-Compiler/qutebrowser/issues/99[Segfault when clicking
+close-button in javascript window]
+* https://github.com/The-Compiler/qutebrowser/issues?q=is%3Aopen+is%3Aissue+downloads+in%3Atitle+label%3Abug[multiple
+issues with downloads] (you probably shouldn't use them yet if you need to be
+sure the resulting file isn't corrupted).
+* There's a https://github.com/The-Compiler/qutebrowser/issues/132[race
+condition in Qt] which leads to segfaults on some websites (e.g. Dropbox). This
+will be fixed in Qt 5.4.0. Especially Debian users seem to be affected. It
+seems as a workaround, installing the `gstreamer0.10-plugins-base` package
+should help.
+* https://github.com/The-Compiler/qutebrowser/issues/7[Occasional segfaults
+when quitting] - if you can reliably reproduce this, I need your help!
+
+What to do now
+--------------
+
+* If you just cloned the repository, you'll need to run
+`scripts/asciidoc2html.py` to generate the documentation.
+* Press `:` to get the commandline. Press `o`/`O` to open a new page (with `O`
+in a new tab). Use `H` and `L` to go back/forward and `J`/`K` to focus the
+next/previous tab. See `~/.config/qutebrowser/keys.conf` for all mapped keys.
+* Subscribe to 
+https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[the mailinglist]
+where there are weekly "what's new in qutebrowser" posts.
+* Let me know what features you are missing or things that need (even small!)
+improvements.
+
+Getting help
+------------
+
+If you get stuck, you can get help in multiple ways:
+
+* The `:help` command inside qutebrowser shows the built-in documentation.
+Additionally, each command can be started with a `--help` flag to show its
+help.
+* IRC channel: irc://irc.freenode.org/#qutebrowser[`#qutebrowser`] on
+http://freenode.net/[Freenode]
+(https://webchat.freenode.net/?channels=#qutebrowser[webchat])
+* Mailinglist: mailto:qutebrowser@lists.qutebrowser.org[] (
+https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[subscribe])
+
+Donating
+--------
+
+Working on qutebrowser is a very rewarding hobby, but like (nearly) all hobbies
+it also costs some money. Namely I have to pay for the server and domain, and
+do occasional hardware upgrades footnote:[It turned out a 160 GB SSD is rather
+small - the VMs and custom Qt builds I use for testing/developing qutebrowser
+need about 100 GB of space].
+
+If you want to give me a beer or a pizza back, I'm trying to make it as easy as
+possible for you to do so. If some other way would be easier for you, please
+get in touch!
+
+* PayPal: me@the-compiler.org
+* Bitcoin: link:bitcoin:1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE[1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE]
