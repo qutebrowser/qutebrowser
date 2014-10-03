@@ -86,7 +86,7 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         """Push a line to the interpreter."""
         self._buffer.append(line)
         source = '\n'.join(self._buffer)
-        self.write.emit(self._curprompt() + line)
+        self.write.emit(self._curprompt() + line + '\n')
         # We do two special things with the contextmanagers here:
         #   - We replace stdout/stderr to capture output. Even if we could
         #     override InteractiveInterpreter's write method, most things are
@@ -170,16 +170,6 @@ class ConsoleTextEdit(QTextEdit):
         """Update font when config changed."""
         self.setFont(config.get('fonts', 'debug-console'))
 
-    def append_plaintext(self, text):
-        """Append new text to the output.
-
-        Note we can't use QTextEdit::append as this parses HTML.
-
-        Args:
-            text: The text to append.
-        """
-        self.insertPlainText('\n' + text)
-
 
 class ConsoleWidget(QWidget):
 
@@ -195,7 +185,7 @@ class ConsoleWidget(QWidget):
         super().__init__(parent)
         self._lineedit = ConsoleLineEdit(self)
         self._output = ConsoleTextEdit()
-        self._lineedit.write.connect(self._output.append_plaintext)
+        self._lineedit.write.connect(self._output.insertPlainText)
         self._vbox = QVBoxLayout()
         self._vbox.setSpacing(0)
         self._vbox.addWidget(self._output)
