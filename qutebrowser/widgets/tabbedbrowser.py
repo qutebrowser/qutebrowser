@@ -247,11 +247,13 @@ class TabbedBrowser(tabwidget.TabWidget):
             self._now_focused = None
         if tab is objreg.get('last-focused-tab', None):
             objreg.delete('last-focused-tab')
-        if not tab.cur_url.isEmpty():
-            qtutils.ensure_valid(tab.cur_url)
+        if tab.cur_url.isValid():
             history_data = qtutils.serialize(tab.history())
             entry = UndoEntry(tab.cur_url, history_data)
             self._undo_stack.append(entry)
+        else:
+            urlutils.invalid_url_error(url, "saving tab")
+            return
         tab.shutdown()
         self._tabs.remove(tab)
         self.removeTab(idx)

@@ -327,7 +327,6 @@ class HintManager(QObject):
         Args:
             url: The URL to open as a QURL.
         """
-        qtutils.ensure_valid(url)
         sel = self._context.target == Target.yank_primary
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
@@ -341,7 +340,6 @@ class HintManager(QObject):
         Args:
             url: The URL to open as a QUrl.
         """
-        qtutils.ensure_valid(url)
         urlstr = url.toDisplayString(QUrl.FullyEncoded)
         args = self._context.get_args(urlstr)
         message.set_cmd_text(' '.join(args))
@@ -357,19 +355,16 @@ class HintManager(QObject):
             message.error("No suitable link found for this element.",
                           immediately=True)
             return
-        qtutils.ensure_valid(url)
         objreg.get('download-manager').get(url, elem.webFrame().page())
 
     def _call_userscript(self, url):
         """Call an userscript from a hint."""
-        qtutils.ensure_valid(url)
         cmd = self._context.args[0]
         args = self._context.args[1:]
         userscripts.run(cmd, *args, url=url)
 
     def _spawn(self, url):
         """Spawn a simple command from a hint."""
-        qtutils.ensure_valid(url)
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
         args = self._context.get_args(urlstr)
         subprocess.Popen(args)
@@ -396,6 +391,7 @@ class HintManager(QObject):
             if baseurl is None:
                 baseurl = self._context.baseurl
             url = baseurl.resolved(url)
+        qtutils.ensure_valid(url)
         return url
 
     def _find_prevnext(self, frame, prev=False):
@@ -511,7 +507,6 @@ class HintManager(QObject):
         if url is None:
             raise cmdexc.CommandError("No {} links found!".format(
                 "prev" if prev else "forward"))
-        qtutils.ensure_valid(url)
         if newtab:
             objreg.get('tabbed-browser').tabopen(url, background=False)
         else:

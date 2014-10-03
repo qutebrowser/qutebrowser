@@ -421,7 +421,8 @@ displaying it to the user.
 * Mention in the docstring whether your function needs a URL string or a
 `QUrl`.
 * Call `ensure_valid` from `utils.qtutils` whenever getting or creating a
-`QUrl` and take appropriate action if not.
+`QUrl` and take appropriate action if not. Note the URL of the current page
+always could be an invalid QUrl (if nothing is loaded yet).
 
 
 Style conventions

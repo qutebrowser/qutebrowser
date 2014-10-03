@@ -335,10 +335,13 @@ class WebView(QWebView):
 
     @pyqtSlot('QUrl')
     def on_url_changed(self, url):
-        """Update cur_url when URL has changed."""
-        qtutils.ensure_valid(url)
-        self.cur_url = url
-        self.url_text_changed.emit(url.toDisplayString())
+        """Update cur_url when URL has changed.
+
+        If the URL is invalid, we just ignore it here.
+        """
+        if url.isValid():
+            self.cur_url = url
+            self.url_text_changed.emit(url.toDisplayString())
 
     @pyqtSlot('QMouseEvent')
     def on_mouse_event(self, evt):
