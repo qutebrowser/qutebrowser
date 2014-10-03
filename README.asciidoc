@@ -18,9 +18,10 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 Documentation
 -------------
 
-In addition to the topics mentioned in that README, the following documents are
+In addition to the topics mentioned in this README, the following documents are
 available:
 
+* link:doc/quickstart.asciidoc[Quick start guide]
 * link:doc/FAQ.asciidoc[Frequently asked questions]
 * link:doc/HACKING.asciidoc[HACKING]
 
@@ -163,6 +164,22 @@ http://www.lfd.uci.edu/~gohlke/pythonlibs/#pygments.
 As soon as v0.1 is out, a standalone .exe (built with
 http://cx-freeze.sourceforge.net/[cx_Freeze]) will be provided. In the
 meantime, you can simply ask in IRC if you need one.
+
+Donating
+--------
+
+Working on qutebrowser is a very rewarding hobby, but like (nearly) all hobbies
+it also costs some money. Namely I have to pay for the server and domain, and
+do occasional hardware upgrades footnote:[It turned out a 160 GB SSD is rather
+small - the VMs and custom Qt builds I use for testing/developing qutebrowser
+need about 100 GB of space].
+
+If you want to give me a beer or a pizza back, I'm trying to make it as easy as
+possible for you to do so. If some other way would be easier for you, please
+get in touch!
+
+* PayPal: me@the-compiler.org
+* Bitcoin: link:bitcoin:1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE[1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE]
 
 Authors
 -------

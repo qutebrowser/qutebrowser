@@ -65,6 +65,7 @@ def main(colors=False):
     utils.use_color = colors
     asciidoc_files = [
         ('doc/FAQ.asciidoc', 'qutebrowser/html/doc/FAQ.html'),
+        ('doc/quickstart.asciidoc', 'qutebrowser/html/doc/quickstart.html'),
     ]
     try:
         os.mkdir('qutebrowser/html/doc')
