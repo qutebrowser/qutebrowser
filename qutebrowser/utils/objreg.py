@@ -122,7 +122,7 @@ def _get_window_registry(win_id):
     if win_id == 'current':
         app = get('app')
         win = app.activeWindow()
-        if win is None:
+        if win is None or not hasattr(win, 'win_id'):
             raise RegistryUnavailableError('window')
         else:
             win_id = win.win_id
