@@ -1,0 +1,156 @@
+Getting stacktraces on crashes
+==============================
+The Compiler <mail@qutebrowser.org>
+
+When there is a fatal crash in qutebrowser - most of the times a
+https://en.wikipedia.org/wiki/Segmentation_fault[segfault] - the crash report
+usually doesn't contain much viable information, as these crashes usually
+happen inside of the Qt mainloop in C++.
+
+To know what the issue is, a
+https://en.wikipedia.org/wiki/Stack_trace[stack trace] with
+https://en.wikipedia.org/wiki/Debug_symbol[debugging symbols] is required.
+
+The rest of this guide is quite Linux specific, though there is a
+<<windows,section for Windows>> at the end.
+
+Getting debugging symbols
+-------------------------
+
+.Debian/Ubuntu/...
+
+For Debian based systems (Debian, Ubuntu, Linux Mint, ...), debug information
+is available in the repositories:
+
+----
+# apt-get install python3-pyqt5-dbg python3-pyqt5.qtwebkit-dbg python3-dbg libqt5webkit5-dbg
+----
+
+.Archlinux
+
+For Archlinux, no debug informations are provided. You can either compile Qt
+yourself (which will take a few hours even on a modern machine) or use
+debugging symbols compiled by me (x86_64 only).
+
+To compile by yourself:
+
+----
+$ mkdir qt-debug
+$ cd qt-debug
+$ rsync -rv rsync.archlinux.org::abs/$(uname -m)/extra/qt5/ .
+$ wget http://www.qutebrowser.org/qt-symbols.patch
+$ patch -p1 -i qt-symbols.patch
+$ makepkg -si
+----
+
+To install my pre-built packages:
+
+----
+$ mkdir qt-debug
+$ cd qt-debug
+$ wget -r -l1 -A '*.tar.xz' -L -np -nd http://www.qutebrowser.org/qt-symbols-pkg/
+# pacman -U qt5-*.pkg.tar.xz
+----
+
+After you are done debugging, make sure to install the system packages again so
+you get updates. This can be done with this command:
+
+----
+# pacman -S qt5
+----
+
+Getting a core dump
+-------------------
+
+The next step is finding the core dump so we can get a stacktrace from it.
+
+First of all, try to reproduce your problem. If you can, run qutebrowser
+directly inside gdb like this:
+
+.If you installed qutebrowser system-wide:
+----
+$ gdb $(which qutebrowser) -ex 'run --debug'
+----
+
+.If you are running qutebrowser from the repository
+----
+$ gdb $(which python3) -ex 'run -m qutebrowser --debug'
+----
+
+If you cannot reproduce the problem, you need to check if a coredump got
+written somewhere.
+
+Check the file `/proc/sys/kernel/core_pattern` on your system. If it does not
+start with a `|` character (pipe), check if there is a file named `core` or
+`core.NNNN` in the directory from that file, or in the current directory.
+
+If so, execute gdb like this:
+
+.If you installed qutebrowser system-wide:
+----
+$ gdb $(which qutebrowser) /path/to/core
+----
+
+.If you are running qutebrowser from the repository
+----
+$ gdb $(which python3) /path/to/core
+----
+
+If your `/proc/sys/kernel/core_pattern` contains something like
+`|/usr/lib/systemd/systemd-coredump`, use `coredumpctl` as root to run gdb:
+
+.If you installed qutebrowser system-wide:
+----
+# coredumpctl gdb $(which qutebrowser)
+----
+
+.If you are running qutebrowser from the repository
+----
+# coredumpctl gdb $(which python3)
+----
+
+Getting a stack trace
+---------------------
+
+Regardless of the way you used to open gdb, you should now see something like:
+
+----
+Program received signal SIGSEGV, Segmentation fault.
+...
+(gdb)
+----
+
+Now enter these commands at the gdb prompt:
+
+----
+(gdb) set logging on
+(gdb) set logging redirect on
+(gdb) bt
+# you might have to press enter a few times until you get the prompt back
+(gdb) set logging redirect off
+(gdb) quit
+----
+
+Now copy the last few lines of the debug log (before you got the gdb prompt)
+and the full content of `gdb.txt` into the bug report. Please also add some
+words about what you were doing (or what pages you visited) before the crash
+happened.
+
+[[windows]]
+For Windows
+-----------
+
+When you see the _qutebrowser.exe has stopped working_ window, do not click
+"Close the program". Instead, open your task manager, there right-click on
+`qutebrowser.exe` and select "Create dump file". Remember the path of the dump
+file displayed there.
+
+Now install
+http://www.microsoft.com/en-us/download/details.aspx?id=42933[DebugDiag] from
+Microsoft, then run the "DebugDiag 2 Analysis" tool. There, check
+"CrashHangAnalysis" and add your crash dump via "Add Data files". Then click
+"Start analysis".
+
+Close the Internet Explorer which opens when it's done and use the
+folder-button at the top left to get to the reports. There find the report file
+and send it to mail@qutebrowser.org.

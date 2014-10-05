@@ -23,6 +23,7 @@ available:
 
 * link:doc/FAQ.asciidoc[Frequently asked questions]
 * link:doc/HACKING.asciidoc[HACKING]
+* link:doc/readme.asciidoc[Reporting segfaults]
 
 Getting help
 ------------
