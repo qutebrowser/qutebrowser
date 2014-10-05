@@ -319,18 +319,18 @@ class MainWindow(QWidget):
         confirm_quit = config.get('ui', 'confirm-quit')
         count = self._tabbed_browser.count()
         if confirm_quit == 'never':
-            e.accept()
+            pass
         elif confirm_quit == 'multiple-tabs' and count <= 1:
-            e.accept()
+            pass
         else:
             text = "Close {} {}?".format(
                 count, "tab" if count == 1 else "tabs")
             confirmed = message.ask(self.win_id, text,
                                     usertypes.PromptMode.yesno, default=True)
-            if confirmed:
-                e.accept()
-            else:
+            if not confirmed:
                 e.ignore()
+                return
+        e.accept()
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=self.win_id)
         log.destroy.debug("Removing eventfilter...")
