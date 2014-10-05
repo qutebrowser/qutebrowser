@@ -76,8 +76,6 @@ class MainWindow(QWidget):
         self._commandrunner = None
         self.win_id = win_id
         self.registry = objreg.ObjectRegistry()
-        objreg.register('window-{}'.format(win_id), self.registry,
-                        scope='meta')
         objreg.window_registry[win_id] = self
         objreg.register('main-window', self, scope='window', window=win_id)
 

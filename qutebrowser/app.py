@@ -287,20 +287,6 @@ class Application(QApplication):
             lines.append('    ' * depth + repr(kid))
             self._get_pyqt_objects(lines, kid, depth + 1)
 
-    def _get_registered_objects(self):
-        """Get all registered objects in all registries as a string."""
-        blocks = []
-        lines = []
-        for name, registry in objreg.meta_registry.items():
-            blocks.append((name, registry.dump_objects()))
-        for name, data in sorted(blocks, key=lambda e: e[0]):
-            lines.append("")
-            lines.append("{} object registry - {} objects:".format(
-                name, len(data)))
-            for line in data:
-                lines.append("    {}".format(line))
-        return lines
-
     def get_all_objects(self):
         """Get all children of an object recursively as a string."""
         output = ['']
@@ -316,7 +302,7 @@ class Application(QApplication):
             len(pyqt_lines)))
         output += pyqt_lines
         output += ['']
-        output += self._get_registered_objects()
+        output += objreg.dump_objects()
         return '\n'.join(output)
 
     def _recover_pages(self, forgiving=False):

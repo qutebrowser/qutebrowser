@@ -97,9 +97,6 @@ class ObjectRegistry(collections.UserDict):
 
 # The registry for global objects
 global_registry = ObjectRegistry()
-# The object registry of object registries.
-meta_registry = ObjectRegistry()
-meta_registry['global'] = global_registry
 # The window registry.
 window_registry = ObjectRegistry()
 
@@ -148,8 +145,6 @@ def _get_registry(scope, window):
         return _get_tab_registry()
     elif scope == 'window':
         return _get_window_registry(window)
-    elif scope == 'meta':
-        return meta_registry
     else:
         raise ValueError("Invalid scope '{}'!".format(scope))
 
@@ -197,3 +192,22 @@ def delete(name, scope='global', window=None):
     """Helper function to unregister an object."""
     reg = _get_registry(scope, window)
     del reg[name]
+
+
+def dump_objects():
+    """Get all registered objects in all registries as a string."""
+    blocks = []
+    lines = []
+    blocks.append(('global', global_registry.dump_objects()))
+    for win_id in window_registry:
+        registry = _get_registry('window', window=win_id)
+        blocks.append(('window-{}'.format(win_id), registry.dump_objects()))
+    # FIXME: Add tab registries
+    for name, data in sorted(blocks, key=lambda e: e[0]):
+        lines.append("")
+        lines.append("{} object registry - {} objects:".format(
+            name, len(data)))
+        for line in data:
+            lines.append("    {}".format(line))
+    return lines
+

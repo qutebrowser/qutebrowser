@@ -294,8 +294,6 @@ There are currently these object registries, also called 'scopes':
 * The `tab` scope with objects which are per-tab (`hintmanager`, `webview`,
 etc.). Passing this scope to `objreg.get()` always selects the object in the
 currently focused tab.
-* The `meta` scope which is an object registry of all other object registries,
-mainly intended for debugging.
 
 A new object can be registered by using
 +objreg.register(_name_, _object_[, scope=_scope_])+. An object should not be
