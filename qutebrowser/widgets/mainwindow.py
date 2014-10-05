@@ -22,7 +22,7 @@
 import binascii
 import base64
 
-from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer
+from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer, QEventLoop
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 
 from qutebrowser.commands import cmdutils
