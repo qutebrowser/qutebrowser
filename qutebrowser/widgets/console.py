@@ -86,7 +86,7 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         """Push a line to the interpreter."""
         self._buffer.append(line)
         source = '\n'.join(self._buffer)
-        self.write.emit(self._curprompt() + line)
+        self.write.emit(self._curprompt() + line + '\n')
         # We do two special things with the contextmanagers here:
         #   - We replace stdout/stderr to capture output. Even if we could
         #     override InteractiveInterpreter's write method, most things are
@@ -152,11 +152,12 @@ class ConsoleLineEdit(misc.CommandLineEdit):
 
 class ConsoleTextEdit(QTextEdit):
 
-    """Custom QTextEdit for console input."""
+    """Custom QTextEdit for console output."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAcceptRichText(False)
+        self.setLineWrapMode(QTextEdit.NoWrap)
         self.setReadOnly(True)
         config.on_change(self.update_font, 'fonts', 'debug-console')
         self.update_font()
@@ -184,7 +185,7 @@ class ConsoleWidget(QWidget):
         super().__init__(parent)
         self._lineedit = ConsoleLineEdit(self)
         self._output = ConsoleTextEdit()
-        self._lineedit.write.connect(self._output.append)
+        self._lineedit.write.connect(self._output.insertPlainText)
         self._vbox = QVBoxLayout()
         self._vbox.setSpacing(0)
         self._vbox.addWidget(self._output)

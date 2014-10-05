@@ -64,7 +64,9 @@ def prompt_save(url):
     Args:
         url: The quickmark url as a QUrl.
     """
-    qtutils.ensure_valid(url)
+    if not url.isValid():
+        urlutils.invalid_url_error(url, "save quickmark")
+        return
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     message.ask_async("Add quickmark:", usertypes.PromptMode.text,
                       functools.partial(quickmark_add, urlstr))

@@ -40,7 +40,7 @@ What to do now
 * Press `:` to get the commandline. Press `o`/`O` to open a new page (with `O`
 in a new tab). Use `H` and `L` to go back/forward and `J`/`K` to focus the
 next/previous tab. See `~/.config/qutebrowser/keys.conf` for all mapped keys.
-* Subscribe to 
+* Subscribe to
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[the mailinglist]
 where there are weekly "what's new in qutebrowser" posts.
 * Let me know what features you are missing or things that need (even small!)

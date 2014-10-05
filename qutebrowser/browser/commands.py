@@ -92,6 +92,11 @@ class CommandDispatcher:
             tab: Whether to open in a new tab.
             background: Whether to open in the background.
         """
+        if not url.isValid():
+            errstr = "Invalid URL {}"
+            if url.errorString():
+                errstr += " - {}".format(url.errorString())
+            raise cmdexc.CommandError(errstr)
         tabbed_browser = objreg.get('tabbed-browser')
         if tab and background:
             raise cmdexc.CommandError("Only one of -t/-b can be given!")
@@ -715,9 +720,6 @@ class CommandDispatcher:
         """
         urlstr = quickmarks.get(name)
         url = QUrl(urlstr)
-        if not url.isValid():
-            raise cmdexc.CommandError("Invalid URL {} ({})".format(
-                urlstr, url.errorString()))
         self._open(url, tab, bg)
 
     @cmdutils.register(instance='command-dispatcher', name='inspector')
