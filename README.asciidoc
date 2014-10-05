@@ -16,13 +16,10 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 Screenshots
 -----------
 
-image:doc/img/main.png[height=250,link="doc/img/main.png"]
-{nbsp}
-image:doc/img/downloads.png[height=250,link="doc/img/downloads.png"]
-
-image:doc/img/completion.png[height=250,link="doc/img/completion.png"]
-{nbsp}
-image:doc/img/hints.png[height=250,link="doc/img/hints.png"]
+image:doc/img/main.png[width=300,link="doc/img/main.png"]
+image:doc/img/downloads.png[width=300,link="doc/img/downloads.png"]
+image:doc/img/completion.png[width=300,link="doc/img/completion.png"]
+image:doc/img/hints.png[width=300,link="doc/img/hints.png"]
 
 Documentation
 -------------
