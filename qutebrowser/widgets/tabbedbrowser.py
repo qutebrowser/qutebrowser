@@ -496,6 +496,9 @@ class TabbedBrowser(tabwidget.TabWidget):
     @pyqtSlot(int)
     def on_current_changed(self, idx):
         """Set last-focused-tab and leave hinting mode when focus changed."""
+        if idx == -1:
+            # closing the last tab (before quitting)
+            return
         tab = self.widget(idx)
         tab.setFocus()
         modeman.maybe_leave(usertypes.KeyMode.hint, 'tab changed')
