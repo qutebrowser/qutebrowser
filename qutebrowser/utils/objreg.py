@@ -115,19 +115,22 @@ def _get_tab_registry():
         raise RegistryUnavailableError('tab')
 
 
-def _get_window_registry(win_id):
+def _get_window_registry(window):
     """Get the registry of a window."""
-    if win_id is None:
-        raise TypeError("win_id is None with scope window!")
-    if win_id == 'current':
+    if window is None:
+        raise TypeError("window is None with scope window!")
+    if window is 'current':
         app = get('app')
         win = app.activeWindow()
         if win is None or not hasattr(win, 'win_id'):
             raise RegistryUnavailableError('window')
-        else:
-            win_id = win.win_id
+    else:
+        try:
+            win = window_registry[window]
+        except KeyError:
+            raise RegistryUnavailableError('window')
     try:
-        return window_registry[win_id]
+        return win.registry
     except AttributeError:
         raise RegistryUnavailableError('window')
 
@@ -196,7 +199,8 @@ def dump_objects():
     blocks = []
     lines = []
     blocks.append(('global', global_registry.dump_objects()))
-    for win_id, registry in window_registry.items():
+    for win_id in window_registry:
+        registry = _get_registry('window', window=win_id)
         blocks.append(('window-{}'.format(win_id), registry.dump_objects()))
     # FIXME: Add tab registries
     for name, data in sorted(blocks, key=lambda e: e[0]):

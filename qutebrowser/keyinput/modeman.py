@@ -359,10 +359,8 @@ class ModeManager(QObject):
             # We already handled this same event at some point earlier, so
             # we're not interested in it anymore.
             return False
-        win = QApplication.instance().activeWindow()
-        if win is None:
-            return False
-        if win.objectName() != 'MainWindow':
+        if (QApplication.instance().activeWindow() not in
+                objreg.window_registry.values()):
             # Some other window (print dialog, etc.) is focused so we pass
             # the event through.
             return False

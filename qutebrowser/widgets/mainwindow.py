@@ -72,15 +72,11 @@ class MainWindow(QWidget):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        # Note the objectname is used in the event filter to filter keypresses
-        # not intended for the mainwindow. If this is changed, the event filter
-        # needs to be changed as well!
-        self.setObjectName('MainWindow')
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._commandrunner = None
         self.win_id = win_id
-        registry = objreg.ObjectRegistry()
-        objreg.window_registry[win_id] = registry
+        self.registry = objreg.ObjectRegistry()
+        objreg.window_registry[win_id] = self
         objreg.register('main-window', self, scope='window', window=win_id)
 
         message_bridge = message.MessageBridge(self)
