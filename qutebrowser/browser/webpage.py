@@ -315,7 +315,7 @@ class BrowserPage(QWebPage):
             win_id = mainwindow.create_window(True)
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
-            tabbed_browser.openurl(url, False)
+            tabbed_browser.tabopen(url, False)
             return False
         else:
             return True

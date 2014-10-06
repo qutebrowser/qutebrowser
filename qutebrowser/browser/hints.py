@@ -526,17 +526,16 @@ class HintManager(QObject):
             # We have to import this here to avoid a circular import.
             from qutebrowser.widgets import mainwindow
             win_id = mainwindow.create_window(True)
-            tab_id = 0
-        else:
-            win_id = self._win_id
-            tab_id = self._tab_id
-        if tab:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
+            tabbed_browser.tabopen(url, background=False)
+        elif tab:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=self._win_id)
             tabbed_browser.tabopen(url, background=background)
         else:
-            webview = objreg.get('webview', scope='tab', window=win_id,
-                                 tab=tab_id)
+            webview = objreg.get('webview', scope='tab', window=self._win_id,
+                                 tab=self._tab_id)
             webview.openurl(url)
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint')
