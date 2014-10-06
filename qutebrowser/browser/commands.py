@@ -63,10 +63,19 @@ class CommandDispatcher:
     def __repr__(self):
         return utils.get_repr(self)
 
-    def _tabbed_browser(self):
-        """Convienence method to get the right tabbed-browser."""
-        return objreg.get('tabbed-browser', scope='window',
-                          window=self._win_id)
+    def _tabbed_browser(self, window=False):
+        """Convienence method to get the right tabbed-browser.
+
+        Args:
+            window: If True, open a new window.
+        """
+        if window:
+            # We have to import this here to avoid a circular import.
+            from qutebrowser.widgets import mainwindow
+            win_id = mainwindow.create_window(True)
+        else:
+            win_id = self._win_id
+        return objreg.get('tabbed-browser', scope='window', window=win_id)
 
     def _count(self):
         """Convenience method to get the widget count."""
@@ -104,11 +113,7 @@ class CommandDispatcher:
         if sum(1 for e in (tab, background, window) if e) > 1:
             raise cmdexc.CommandError("Only one of -t/-b/-w can be given!")
         elif window:
-            # We have to import this here to avoid a circular import.
-            from qutebrowser.widgets import mainwindow
-            win_id = mainwindow.create_window(True)
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=win_id)
+            tabbed_browser = self._tabbed_browser(window=True)
             tabbed_browser.tabopen(url)
         elif tab:
             tabbed_browser.tabopen(url, background=False, explicit=True)
@@ -302,26 +307,29 @@ class CommandDispatcher:
                 diag.open(lambda: tab.print(diag.printer()))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tab_clone(self, bg=False):
+    def tab_clone(self, bg=False, window=False):
         """Duplicate the current tab.
 
         Args:
             bg: Open in a background tab.
+            window: Open in a new window.
 
         Return:
             The new QWebView.
         """
+        if bg and window:
+            raise cmdexc.CommandError("Only one of -b/-w can be given!")
         curtab = self._current_widget()
-        tabbed_browser = self._tabbed_browser()
+        tabbed_browser = self._tabbed_browser(window)
         newtab = tabbed_browser.tabopen(background=bg, explicit=True)
         history = qtutils.serialize(curtab.history())
         qtutils.deserialize(history, newtab.history())
         return newtab
 
-    def _back_forward(self, tab, bg, count, forward):
+    def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
-        if tab or bg:
-            widget = self.tab_clone(bg)
+        if tab or bg or window:
+            widget = self.tab_clone(bg, window)
         else:
             widget = self._current_widget()
         for _ in range(count):
@@ -331,34 +339,38 @@ class CommandDispatcher:
                 widget.go_back()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def back(self, tab=False, bg=False, count=1):
+    def back(self, tab=False, bg=False, window=False, count=1):
         """Go back in the history of the current tab.
 
         Args:
             tab: Go back in a new tab.
             bg: Go back in a background tab.
+            window: Go back in a new window.
             count: How many pages to go back.
         """
-        self._back_forward(tab, bg, count, forward=False)
+        self._back_forward(tab, bg, window, count, forward=False)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def forward(self, tab=False, bg=False, count=1):
+    def forward(self, tab=False, bg=False, window=False, count=1):
         """Go forward in the history of the current tab.
 
         Args:
             tab: Go forward in a new tab.
-            bg: Go back in a background tab.
+            bg: Go forward in a background tab.
+            window: Go forward in a new window.
             count: How many pages to go forward.
         """
-        self._back_forward(tab, bg, count, forward=True)
+        self._back_forward(tab, bg, window, count, forward=True)
 
-    def _navigate_incdec(self, url, tab, incdec):
+    def _navigate_incdec(self, url, incdec, tab, background, window):
         """Helper method for :navigate when `where' is increment/decrement.
 
         Args:
             url: The current url.
-            tab: Whether to open the link in a new tab.
             incdec: Either 'increment' or 'decrement'.
+            tab: Whether to open the link in a new tab.
+            background: Open the link in a new background tab.
+            window: Open the link in a new window.
         """
         encoded = bytes(url.toEncoded()).decode('ascii')
         # Get the last number in a string
@@ -383,25 +395,27 @@ class CommandDispatcher:
             raise ValueError("Invalid value {} for indec!".format(incdec))
         urlstr = ''.join([pre, str(val), post]).encode('ascii')
         new_url = QUrl.fromEncoded(urlstr)
-        self._open(new_url, tab, background=False, window=False)
+        self._open(new_url, tab, background, window)
 
-    def _navigate_up(self, url, tab):
+    def _navigate_up(self, url, tab, background, window):
         """Helper method for :navigate when `where' is up.
 
         Args:
             url: The current url.
             tab: Whether to open the link in a new tab.
+            background: Open the link in a new background tab.
+            window: Open the link in a new window.
         """
         path = url.path()
         if not path or path == '/':
             raise cmdexc.CommandError("Can't go up!")
         new_path = posixpath.join(path, posixpath.pardir)
         url.setPath(new_path)
-        self._open(url, tab, background=False, window=False)
+        self._open(url, tab, background, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def navigate(self, where: ('prev', 'next', 'up', 'increment', 'decrement'),
-                 tab=False):
+                 tab=False, bg=False, window=False):
         """Open typical prev/next links or navigate using the URL path.
 
         This tries to automatically click on typical _Previous Page_ or
@@ -419,7 +433,11 @@ class CommandDispatcher:
                 - `decrement`: Decrement the last number in the URL.
 
             tab: Open in a new tab.
+            bg: Open in a background tab.
+            window: Open in a new window.
         """
+        if sum(1 for e in (tab, bg, window) if e) > 1:
+            raise cmdexc.CommandError("Only one of -t/-b/-w can be given!")
         widget = self._current_widget()
         frame = widget.page().currentFrame()
         url = self._current_url()
@@ -427,13 +445,15 @@ class CommandDispatcher:
             raise cmdexc.CommandError("No frame focused!")
         hintmanager = objreg.get('hintmanager', scope='tab')
         if where == 'prev':
-            hintmanager.follow_prevnext(frame, url, prev=True, newtab=tab)
+            hintmanager.follow_prevnext(frame, url, prev=True, tab=tab,
+                                        background=background, window=window)
         elif where == 'next':
-            hintmanager.follow_prevnext(frame, url, prev=False, newtab=tab)
+            hintmanager.follow_prevnext(frame, url, prev=False, tab=tab,
+                                        background=background, window=window)
         elif where == 'up':
-            self._navigate_up(url, tab)
+            self._navigate_up(url, tab, background, window)
         elif where in ('decrement', 'increment'):
-            self._navigate_incdec(url, tab, where)
+            self._navigate_incdec(url, where, tab, background, window)
         else:
             raise ValueError("Got called with invalid value {} for "
                              "`where'.".format(where))

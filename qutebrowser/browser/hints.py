@@ -37,7 +37,7 @@ from qutebrowser.utils import usertypes, log, qtutils, message, objreg
 ElemTuple = collections.namedtuple('ElemTuple', ['elem', 'label'])
 
 
-Target = usertypes.enum('Target', ['normal', 'tab', 'tab_bg', 'yank',
+Target = usertypes.enum('Target', ['normal', 'tab', 'tab_bg', 'window', 'yank',
                                    'yank_primary', 'fill', 'rapid', 'download',
                                    'userscript', 'spawn'])
 
@@ -58,7 +58,7 @@ class HintContext:
         elems: A mapping from keystrings to (elem, label) namedtuples.
         baseurl: The URL of the current page.
         target: What to do with the opened links.
-                normal/tab/tab_bg: Get passed to BrowserTab.
+                normal/tab/tab_bg/window: Get passed to BrowserTab.
                 yank/yank_primary: Yank to clipboard/primary selection
                 fill: Fill commandline with link.
                 rapid: Rapid mode with background tabs
@@ -127,6 +127,7 @@ class HintManager(QObject):
         Target.normal: "Follow hint...",
         Target.tab: "Follow hint in new tab...",
         Target.tab_bg: "Follow hint in background tab...",
+        Target.window: "Follow hint in new window...",
         Target.yank: "Yank hint to clipboard...",
         Target.yank_primary: "Yank hint to primary selection...",
         Target.fill: "Set hint in commandline...",
@@ -500,14 +501,17 @@ class HintManager(QObject):
         keyparser = keyparsers[usertypes.KeyMode.hint]
         keyparser.update_bindings(strings)
 
-    def follow_prevnext(self, frame, baseurl, prev=False, newtab=False):
+    def follow_prevnext(self, frame, baseurl, prev=False, tab=False,
+                        background=False, window=False):
         """Click a "previous"/"next" element on the page.
 
         Args:
             frame: The frame where the element is in.
             baseurl: The base URL of the current tab.
             prev: True to open a "previous" link, False to open a "next" link.
-            newtab: True to open in a new tab, False for the current tab.
+            tab: True to open in a new tab, False for the current tab.
+            background: True to open in a background tab.
+            window: True to open in a new window, False for the current one.
         """
         elem = self._find_prevnext(frame, prev)
         if elem is None:
@@ -518,13 +522,21 @@ class HintManager(QObject):
             raise cmdexc.CommandError("No {} links found!".format(
                 "prev" if prev else "forward"))
         qtutils.ensure_valid(url)
-        if newtab:
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=self._win_id)
-            tabbed_browser.tabopen(url, background=False)
+        if window:
+            # We have to import this here to avoid a circular import.
+            from qutebrowser.widgets import mainwindow
+            win_id = mainwindow.create_window(True)
+            tab_id = 0
         else:
-            webview = objreg.get('webview', scope='tab', window=self._win_id,
-                                 tab=self._tab_id)
+            win_id = self._win_id
+            tab_id = self._tab_id
+        if tab:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            tabbed_browser.tabopen(url, background=background)
+        else:
+            webview = objreg.get('webview', scope='tab', window=win_id,
+                                 tab=tab_id)
             webview.openurl(url)
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint')
@@ -544,6 +556,7 @@ class HintManager(QObject):
                 - `normal`: Open the link in the current tab.
                 - `tab`: Open the link in a new tab.
                 - `tab-bg`: Open the link in a new background tab.
+                - `window`: Open the link in a new window.
                 - `yank`: Yank the link to the clipboard.
                 - `yank-primary`: Yank the link to the primary selection.
                 - `fill`: Fill the commandline with the command given as
@@ -650,6 +663,7 @@ class HintManager(QObject):
             Target.normal: self._click,
             Target.tab: self._click,
             Target.tab_bg: self._click,
+            Target.window: self._click,
             Target.rapid: self._click,
             # _download needs a QWebElement to get the frame.
             Target.download: self._download,
