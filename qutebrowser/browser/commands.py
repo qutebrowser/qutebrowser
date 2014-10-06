@@ -818,7 +818,6 @@ class CommandDispatcher:
             full=True, linenos='table')
         highlighted = pygments.highlight(html, lexer, formatter)
         current_url = self._current_url()
-        tab = objreg.get('tabbed-browser').tabopen(explicit=True)
         tab = self._tabbed_browser().tabopen(explicit=True)
         tab.setHtml(highlighted, current_url)
         tab.viewing_source = True
