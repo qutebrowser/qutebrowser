@@ -270,7 +270,7 @@ class Application(QApplication):
             quickstart_done = False
         if not quickstart_done:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window='current')
+                                        window=0)
             tabbed_browser.tabopen(
                 QUrl('http://www.qutebrowser.org/quickstart.html'))
             try:
