@@ -131,7 +131,7 @@ def _get_window_registry(window):
     """Get the registry of a window."""
     if window is None:
         raise TypeError("window is None with scope window!")
-    if window is 'current':
+    if window == 'current':
         app = get('app')
         win = app.activeWindow()
         if win is None or not hasattr(win, 'win_id'):
