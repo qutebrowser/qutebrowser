@@ -366,7 +366,7 @@ class Command:
             value = self._type_conv[param.name](value)
         return name, value
 
-    def _get_call_args(self, win_id):
+    def _get_call_args(self, win_id):  # noqa
         """Get arguments for a function call.
 
         Args:

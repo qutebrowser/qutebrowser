@@ -168,7 +168,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
             raise TypeError("Type {} is no Type member!".format(keytype))
         if keytype == self.Type.chain:
             hintmanager = objreg.get('hintmanager', scope='tab',
-                                    window=self._win_id, tab='current')
+                                     window=self._win_id, tab='current')
             hintmanager.fire(cmdstr)
         else:
             # execute as command

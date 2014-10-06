@@ -452,14 +452,14 @@ class CommandDispatcher:
         hintmanager = objreg.get('hintmanager', scope='tab')
         if where == 'prev':
             hintmanager.follow_prevnext(frame, url, prev=True, tab=tab,
-                                        background=background, window=window)
+                                        background=bg, window=window)
         elif where == 'next':
             hintmanager.follow_prevnext(frame, url, prev=False, tab=tab,
-                                        background=background, window=window)
+                                        background=bg, window=window)
         elif where == 'up':
-            self._navigate_up(url, tab, background, window)
+            self._navigate_up(url, tab, bg, window)
         elif where in ('decrement', 'increment'):
-            self._navigate_incdec(url, where, tab, background, window)
+            self._navigate_incdec(url, where, tab, bg, window)
         else:
             raise ValueError("Got called with invalid value {} for "
                              "`where'.".format(where))
