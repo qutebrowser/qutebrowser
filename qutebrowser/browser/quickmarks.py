@@ -29,7 +29,7 @@ import collections
 
 from PyQt5.QtCore import QStandardPaths, QUrl
 
-from qutebrowser.utils import message, usertypes, utils, qtutils
+from qutebrowser.utils import message, usertypes, utils, urlutils
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config import lineparser
 

@@ -32,7 +32,8 @@ from qutebrowser.commands import cmdexc
 from qutebrowser.keyinput import modeman
 from qutebrowser.widgets import tabwidget, webview
 from qutebrowser.browser import signalfilter, commands
-from qutebrowser.utils import log, message, usertypes, utils, qtutils, objreg
+from qutebrowser.utils import (log, message, usertypes, utils, qtutils, objreg,
+                               urlutils)
 
 
 UndoEntry = collections.namedtuple('UndoEntry', ['url', 'history'])
