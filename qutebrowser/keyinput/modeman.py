@@ -81,6 +81,7 @@ def _get_modeman(win_id):
     """Get a modemanager object."""
     return objreg.get('mode-manager', scope='window', window=win_id)
 
+
 def enter(win_id, mode, reason=None, override=False):
     """Enter the mode 'mode'."""
     _get_modeman(win_id).enter(mode, reason, override)
