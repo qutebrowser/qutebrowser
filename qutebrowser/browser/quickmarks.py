@@ -66,7 +66,7 @@ def prompt_save(win_id, url):
         url: The quickmark url as a QUrl.
     """
     if not url.isValid():
-        urlutils.invalid_url_error(url, "save quickmark")
+        urlutils.invalid_url_error(win_id, url, "save quickmark")
         return
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     message.ask_async(win_id, "Add quickmark:", usertypes.PromptMode.text,

@@ -262,15 +262,20 @@ def qurl_from_user_input(urlstr):
         return QUrl('http://[{}]{}'.format(ipstr, rest))
 
 
-def invalid_url_error(url, action):
-    """Display an error message for an URL."""
+def invalid_url_error(win_id, url, action):
+    """Display an error message for an URL.
+
+    Args:
+        win_id: The window ID to show the error message in.
+        action: The action which was interrupted by the error.
+    """
     if url.isValid():
         raise ValueError("Calling invalid_url_error with valid URL {}".format(
             url.toDisplayString()))
     errstring = "Trying to {} with invalid URL".format(action)
     if url.errorString():
         errstring += " - {}".format(url.errorString())
-    message.error(errstring)
+    message.error(win_id, errstring)
 
 
 class FuzzyUrlError(Exception):

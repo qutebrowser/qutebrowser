@@ -259,7 +259,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             entry = UndoEntry(tab.cur_url, history_data)
             self._undo_stack.append(entry)
         else:
-            urlutils.invalid_url_error(tab.cur_url, "saving tab")
+            urlutils.invalid_url_error(self._win_id, tab.cur_url, "saving tab")
             return
         tab.shutdown()
         self.removeTab(idx)

@@ -362,7 +362,7 @@ class DownloadManager(QObject):
             page: The QWebPage to get the download from.
         """
         if not url.isValid():
-            urlutils.invalid_url_error(url, "start download")
+            urlutils.invalid_url_error('current', url, "start download")
             return
         req = QNetworkRequest(url)
         reply = page.networkAccessManager().get(req)
