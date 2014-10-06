@@ -39,22 +39,6 @@ from qutebrowser.browser import hints
 win_id_gen = itertools.count(0)
 
 
-def create_window(show):
-    """Create a new main window.
-
-    Args:
-        show: Show the window after creating.
-
-    Return:
-        The new window id.
-    """
-    win_id = next(win_id_gen)
-    win = MainWindow(win_id)
-    if show:
-        win.show()
-    return win_id
-
-
 class MainWindow(QWidget):
 
     """The main window of qutebrowser.
@@ -144,6 +128,22 @@ class MainWindow(QWidget):
 
     def __repr__(self):
         return utils.get_repr(self)
+
+    @classmethod
+    def spawn(cls, show=True):
+        """Create a new main window.
+
+        Args:
+            show: Show the window after creating.
+
+        Return:
+            The new window id.
+        """
+        win_id = next(win_id_gen)
+        win = MainWindow(win_id)
+        if show:
+            win.show()
+        return win_id
 
     def _load_geometry(self):
         """Load the geometry from the state file."""

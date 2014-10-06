@@ -153,7 +153,7 @@ class Application(QApplication):
         download_manager = downloads.DownloadManager(self)
         objreg.register('download-manager', download_manager)
         log.init.debug("Initializing main window...")
-        mainwindow.create_window(False if self._args.nowindow else True)
+        mainwindow.MainWindow.spawn(False if self._args.nowindow else True)
         log.init.debug("Initializing debug console...")
         debug_console = console.ConsoleWidget()
         objreg.register('debug-console', debug_console)
@@ -227,7 +227,7 @@ class Application(QApplication):
                 commandrunner.run_safely_init(cmd.lstrip(':'))
             elif not cmd:
                 log.init.debug("Empty argument")
-                win_id = mainwindow.create_window(True)
+                win_id = mainwindow.MainWindow.spawn()
             else:
                 tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                             window=win_id)

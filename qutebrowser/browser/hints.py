@@ -527,9 +527,9 @@ class HintManager(QObject):
                 "prev" if prev else "forward"))
         qtutils.ensure_valid(url)
         if window:
-            # We have to import this here to avoid a circular import.
-            from qutebrowser.widgets import mainwindow
-            win_id = mainwindow.create_window(True)
+            main_window = objreg.get('main-window', scope='window',
+                                     window=self._win_id)
+            win_id = main_window.spawn()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             tabbed_browser.tabopen(url, background=False)

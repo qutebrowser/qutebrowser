@@ -310,9 +310,9 @@ class BrowserPage(QWebPage):
             tabbed_browser.tabopen(url, True)
             return False
         elif open_target == usertypes.ClickTarget.window:
-            # We have to import this here to avoid a circular import.
-            from qutebrowser.widgets import mainwindow
-            win_id = mainwindow.create_window(True)
+            main_window = objreg.get('main-window', scope='window',
+                                     window=self._win_id)
+            win_id = main_window.spawn()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             tabbed_browser.tabopen(url, False)
