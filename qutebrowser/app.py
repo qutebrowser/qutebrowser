@@ -153,7 +153,10 @@ class Application(QApplication):
         download_manager = downloads.DownloadManager(self)
         objreg.register('download-manager', download_manager)
         log.init.debug("Initializing main window...")
-        mainwindow.MainWindow.spawn(False if self._args.nowindow else True)
+        win_id = mainwindow.MainWindow.spawn(
+            False if self._args.nowindow else True)
+        main_window = objreg.get('main-window', scope='window', window=win_id)
+        self.setActiveWindow(main_window)
         log.init.debug("Initializing debug console...")
         debug_console = console.ConsoleWidget()
         objreg.register('debug-console', debug_console)
