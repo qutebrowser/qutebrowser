@@ -111,7 +111,8 @@ class HintKeyParser(keyparser.CommandKeyParser):
         """
         log.keyboard.debug("Got special key 0x{:x} text {}".format(
             e.key(), e.text()))
-        hintmanager = objreg.get('hintmanager', scope='tab')
+        hintmanager = objreg.get('hintmanager', scope='tab',
+                                 window=self._win_id, tab='current')
         if e.key() == Qt.Key_Backspace:
             log.keyboard.debug("Got backspace, mode {}, filtertext '{}', "
                                "keystring '{}'".format(self._last_press,
@@ -166,7 +167,9 @@ class HintKeyParser(keyparser.CommandKeyParser):
         if not isinstance(keytype, self.Type):
             raise TypeError("Type {} is no Type member!".format(keytype))
         if keytype == self.Type.chain:
-            objreg.get('hintmanager', scope='tab').fire(cmdstr)
+            hintmanager = objreg.get('hintmanager', scope='tab',
+                                    window=self._win_id, tab='current')
+            hintmanager.fire(cmdstr)
         else:
             # execute as command
             super().execute(cmdstr, keytype, count)
@@ -183,4 +186,6 @@ class HintKeyParser(keyparser.CommandKeyParser):
     @pyqtSlot(str)
     def on_keystring_updated(self, keystr):
         """Update hintmanager when the keystring was updated."""
-        objreg.get('hintmanager', scope='tab').handle_partial_key(keystr)
+        hintmanager = objreg.get('hintmanager', scope='tab',
+                                 window=self._win_id, tab='current')
+        hintmanager.handle_partial_key(keystr)

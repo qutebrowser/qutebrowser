@@ -101,16 +101,28 @@ global_registry = ObjectRegistry()
 window_registry = ObjectRegistry()
 
 
-def _get_tab_registry():
+def _get_tab_registry(win_id, tab_id):
     """Get the registry of a tab."""
-    app = get('app')
-    win = app.activeWindow()
-    tabbed_browser = get('tabbed-browser', scope='window', window=win)
-    widget = tabbed_browser.currentWidget()
-    if widget is None:
-        raise RegistryUnavailableError('tab')
+    if tab_id is None:
+        tab_id = 'current'
+    if tab_id == 'current' and win_id is None:
+        app = get('app')
+        window = app.activeWindow()
+        if window is None or not hasattr(window, 'win_id'):
+            raise RegistryUnavailableError('tab')
+        win_id = window.win_id
+    elif win_id is not None:
+        window = window_registry[win_id]
+
+    if tab_id == 'current':
+        tabbed_browser = get('tabbed-browser', scope='window', window=win_id)
+        tab = tabbed_browser.currentWidget()
+        if tab is None:
+            raise RegistryUnavailableError('window')
+        tab_id = tab.tab_id
+    tab_registry = get('tab-registry', scope='window', window=win_id)
     try:
-        return widget.registry
+        return tab_registry[tab_id].registry
     except AttributeError:
         raise RegistryUnavailableError('tab')
 
@@ -135,27 +147,29 @@ def _get_window_registry(window):
         raise RegistryUnavailableError('window')
 
 
-def _get_registry(scope, window):
+def _get_registry(scope, window=None, tab=None):
     """Get the correct registry for a given scope."""
-    if window is not None and scope is not 'window':
+    if window is not None and scope not in ('window', 'tab'):
         raise TypeError("window is set with scope {}".format(scope))
+    if tab is not None and scope  != 'tab':
+        raise TypeError("tab is set with scope {}".format(scope))
     if scope == 'global':
         return global_registry
     elif scope == 'tab':
-        return _get_tab_registry()
+        return _get_tab_registry(window, tab)
     elif scope == 'window':
         return _get_window_registry(window)
     else:
         raise ValueError("Invalid scope '{}'!".format(scope))
 
 
-def get(name, default=_UNSET, scope='global', window=None):
+def get(name, default=_UNSET, scope='global', window=None, tab=None):
     """Helper function to get an object.
 
     Args:
         default: A default to return if the object does not exist.
     """
-    reg = _get_registry(scope, window)
+    reg = _get_registry(scope, window, tab)
     try:
         return reg[name]
     except KeyError:
@@ -165,7 +179,8 @@ def get(name, default=_UNSET, scope='global', window=None):
             raise
 
 
-def register(name, obj, update=False, scope=None, registry=None, window=None):
+def register(name, obj, update=False, scope=None, registry=None, window=None,
+             tab=None):
     """Helper function to register an object.
 
     Args:
@@ -181,16 +196,16 @@ def register(name, obj, update=False, scope=None, registry=None, window=None):
     else:
         if scope is None:
             scope = 'global'
-        reg = _get_registry(scope, window)
+        reg = _get_registry(scope, window, tab)
     if not update and name in reg:
         raise KeyError("Object '{}' is already registered ({})!".format(
                        name, repr(reg[name])))
     reg[name] = obj
 
 
-def delete(name, scope='global', window=None):
+def delete(name, scope='global', window=None, tab=None):
     """Helper function to unregister an object."""
-    reg = _get_registry(scope, window)
+    reg = _get_registry(scope, window, tab)
     del reg[name]
 
 

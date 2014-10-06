@@ -78,6 +78,9 @@ class MainWindow(QWidget):
         self.registry = objreg.ObjectRegistry()
         objreg.window_registry[win_id] = self
         objreg.register('main-window', self, scope='window', window=win_id)
+        tab_registry = objreg.ObjectRegistry()
+        objreg.register('tab-registry', tab_registry, scope='window',
+                        window=win_id)
 
         message_bridge = message.MessageBridge(self)
         objreg.register('message-bridge', message_bridge, scope='window',

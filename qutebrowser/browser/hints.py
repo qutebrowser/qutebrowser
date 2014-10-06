@@ -101,6 +101,7 @@ class HintManager(QObject):
     Attributes:
         _context: The HintContext for the current invocation.
         _win_id: The window ID this HintManager is associated with.
+        _tab_id: The tab ID this HintManager is associated with.
 
     Signals:
         mouse_event: Mouse event to be posted in the web view.
@@ -138,10 +139,11 @@ class HintManager(QObject):
     mouse_event = pyqtSignal('QMouseEvent')
     set_open_target = pyqtSignal(str)
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, win_id, tab_id, parent=None):
         """Constructor."""
         super().__init__(parent)
         self._win_id = win_id
+        self._tab_id = tab_id
         self._context = None
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)
@@ -521,7 +523,9 @@ class HintManager(QObject):
                                         window=self._win_id)
             tabbed_browser.tabopen(url, background=False)
         else:
-            objreg.get('webview', scope='tab').openurl(url)
+            webview = objreg.get('webview', scope='tab', window=self._win_id,
+                                 tab=self._tab_id)
+            webview.openurl(url)
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint')
     def start(self, group=webelem.Group.all, target=Target.normal,
