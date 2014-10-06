@@ -822,10 +822,13 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', name='help',
                        completion=[usertypes.Completion.helptopic],
                        scope='window')
-    def show_help(self, topic=None):
+    def show_help(self, tab=False, bg=False, window=False, topic=None):
         r"""Show help about a command or setting.
 
         Args:
+            tab: Open in a new tab.
+            bg: Open in a background tab.
+            window: Open in a new window.
             topic: The topic to show help for.
 
                    - :__command__ for commands.
@@ -855,7 +858,8 @@ class CommandDispatcher:
             path = 'settings.html#{}'.format(topic.replace('->', '-'))
         else:
             raise cmdexc.CommandError("Invalid help topic {}!".format(topic))
-        self.openurl('qute://help/{}'.format(path))
+        url = QUrl('qute://help/{}'.format(path))
+        self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher',
                        modes=[usertypes.KeyMode.insert],
