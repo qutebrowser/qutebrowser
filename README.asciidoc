@@ -172,6 +172,43 @@ As soon as v0.1 is out, a standalone .exe (built with
 http://cx-freeze.sourceforge.net/[cx_Freeze]) will be provided. In the
 meantime, you can simply ask in IRC if you need one.
 
+On OS X
+~~~~~~~
+
+Running qutebrowser on OS X requires compiling PyQt5 by hand. These steps have
+been tested on OS X Mavericks:
+
+* Install XCode from the Appstore
+* Open a Terminal
+* Run `xcode-select --install`
+* Install the XCode commandline tools
+* Run `sudo /usr/bin/xcodebuild` and accept the license.
+* http://www.qt.io/download-open-source/[Download] and run the Qt5 installer.
+If you want, you can deselect Android/iOS when selecting the components to be
+installed.
+* Run +sed -i -e 's/macosx10\.8/macosx10\.9/' ~/Qt/5.3/clang_64/mkspecs/qdevice.pri+
+* http://www.python.org/downloads/[Download] and install the Python 3
+installer. After opening the `.dmg`, right-click on 'Python.mpkg' and click
+'Open' to run it -- double-clicking won't work.
+* Download SIP and PyQt5 from Riverbank Coputing
+* Open a Terminal and use `cd ~/Downloads` to get to the download directory.
+* Use `tar xzvf sip-*.tar` to extract SIP and `cd sip-*` to change into the
+SIP directory
+* Run `python3 configure.py`, `make` and `sudo make install`.
+* Use `cd ~/Downloads` to get back to the download directory.
+* Use `tar xvf PyQt-*.tar` to extract PyQt and `cd PyQt-*` to change into the
+PyQt directory.
+* Run +sed -i -e "s/qmake_QT=\['webkit', 'network'\]/qmake_QT=['webkit',
+'network', 'printsupport']/" configure.py+
+* Run +sed -i -e "s/qmake_QT=\['webkitwidgets'\]/qmake_QT=['webkitwidgets',
+'printsupport']/" configure.py+
+* Run +python3 configure.py --qmake ~/Qt/5.3/clang_64/bin/qmake --sip
+/Library/Frameworks/Python.framework/Versions/3.4/bin/sip+ and accept
+the license.
+* Run `make` and `sudo make install`.
+* Run `python3 setup.py install` to install all other dependencies
+
+
 Donating
 --------
 
