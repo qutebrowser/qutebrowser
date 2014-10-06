@@ -69,7 +69,7 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
                     request, errorstr, QNetworkReply.ContentNotFoundError,
                     self.parent())
         try:
-            data = handler(request)
+            data = handler(self._win_id, request)
         except IOError as e:
             return schemehandler.ErrorNetworkReply(
                 request, str(e), QNetworkReply.ContentNotFoundError,
