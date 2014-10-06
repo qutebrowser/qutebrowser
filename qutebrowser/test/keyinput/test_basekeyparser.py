@@ -67,7 +67,7 @@ class SplitCountTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.kp = basekeyparser.BaseKeyParser(supports_count=True)
+        self.kp = basekeyparser.BaseKeyParser(0, supports_count=True)
 
     def test_onlycount(self):
         """Test split_count with only a count."""
@@ -114,13 +114,13 @@ class ReadConfigTests(unittest.TestCase):
 
     def test_read_config_invalid(self):
         """Test reading config without setting it before."""
-        kp = basekeyparser.BaseKeyParser()
+        kp = basekeyparser.BaseKeyParser(0)
         with self.assertRaises(ValueError):
             kp.read_config()
 
     def test_read_config_valid(self):
         """Test reading config."""
-        kp = basekeyparser.BaseKeyParser(supports_count=True,
+        kp = basekeyparser.BaseKeyParser(0, supports_count=True,
                                          supports_chains=True)
         kp.read_config('test')
         self.assertIn('ccc', kp.bindings)
@@ -147,7 +147,7 @@ class SpecialKeysTests(unittest.TestCase):
         patcher.start()
         objreg.register('key-config', fake_keyconfig)
         self.addCleanup(patcher.stop)
-        self.kp = basekeyparser.BaseKeyParser()
+        self.kp = basekeyparser.BaseKeyParser(0)
         self.kp.execute = mock.Mock()
         self.kp.read_config('test')
 
@@ -187,7 +187,7 @@ class KeyChainTests(unittest.TestCase):
         objreg.register('key-config', fake_keyconfig)
         self.timermock = mock.Mock()
         basekeyparser.usertypes.Timer = mock.Mock(return_value=self.timermock)
-        self.kp = basekeyparser.BaseKeyParser(supports_chains=True,
+        self.kp = basekeyparser.BaseKeyParser(0, supports_chains=True,
                                               supports_count=False)
         self.kp.execute = mock.Mock()
         self.kp.read_config('test')
@@ -254,7 +254,7 @@ class CountTests(unittest.TestCase):
     def setUp(self):
         objreg.register('key-config', fake_keyconfig)
         basekeyparser.usertypes.Timer = mock.Mock()
-        self.kp = basekeyparser.BaseKeyParser(supports_chains=True,
+        self.kp = basekeyparser.BaseKeyParser(0, supports_chains=True,
                                               supports_count=True)
         self.kp.execute = mock.Mock()
         self.kp.read_config('test')

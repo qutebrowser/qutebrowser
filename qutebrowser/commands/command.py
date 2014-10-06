@@ -95,13 +95,18 @@ class Command:
         self._type_conv = type_conv
         self._name_conv = name_conv
 
-    def _check_prerequisites(self):
+    def _check_prerequisites(self, win_id):
         """Check if the command is permitted to run currently.
+
+        Args:
+            win_id: The window ID the command is run in.
 
         Raise:
             PrerequisitesError if the command can't be called currently.
         """
-        curmode = objreg.get('mode-manager').mode()
+        mode_manager = objreg.get('mode-manager', scope='window',
+                                  window=win_id)
+        curmode = mode_manager.mode()
         if self._modes is not None and curmode not in self._modes:
             mode_names = '/'.join(mode.name for mode in self._modes)
             raise cmdexc.PrerequisitesError(
@@ -179,7 +184,7 @@ class Command:
             desc = ""
         if not self.ignore_args:
             for param in signature.parameters.values():
-                if param.name in ('self', 'count'):
+                if param.name in ('self', 'count', 'win_id'):
                     continue
                 annotation_info = self._parse_annotation(param)
                 typ = self._get_type(param, annotation_info)
@@ -294,15 +299,19 @@ class Command:
         else:
             return type(param.default)
 
-    def _get_self_arg(self, param, args):
+    def _get_self_arg(self, win_id, param, args):
         """Get the self argument for a function call.
 
         Arguments:
+            win_id: The window id this command should be executed in.
             param: The count parameter.
             args: The positional argument list. Gets modified directly.
         """
         assert param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
-        obj = objreg.get(self._instance, scope=self._scope)
+        if self._scope is not 'window':
+            win_id = None
+        obj = objreg.get(self._instance, scope=self._scope,
+                         window=win_id)
         args.append(obj)
 
     def _get_count_arg(self, param, args, kwargs):
@@ -328,6 +337,23 @@ class Command:
             raise TypeError("{}: invalid parameter type {} for argument "
                             "'count'!".format(self.name, param.kind))
 
+    def _get_win_id_arg(self, win_id, param, args, kwargs):
+        """Add the win_id argument to a function call.
+
+        Arguments:
+            win_id: The window ID to add.
+            param: The count parameter.
+            args: The positional argument list. Gets modified directly.
+            kwargs: The keyword argument dict. Gets modified directly.
+        """
+        if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
+            args.append(win_id)
+        elif param.kind == inspect.Parameter.KEYWORD_ONLY:
+            kwargs['win_id'] = win_id
+        else:
+            raise TypeError("{}: invalid parameter type {} for argument "
+                            "'count'!".format(self.name, param.kind))
+
     def _get_param_name_and_value(self, param):
         """Get the converted name and value for an inspect.Parameter."""
         name = self._name_conv.get(param.name, param.name)
@@ -340,8 +366,11 @@ class Command:
             value = self._type_conv[param.name](value)
         return name, value
 
-    def _get_call_args(self):
+    def _get_call_args(self, win_id):  # noqa
         """Get arguments for a function call.
+
+        Args:
+            win_id: The window id this command should be executed in.
 
         Return:
             An (args, kwargs) tuple.
@@ -354,17 +383,21 @@ class Command:
         if self.ignore_args:
             if self._instance is not None:
                 param = list(signature.parameters.values())[0]
-                self._get_self_arg(param, args)
+                self._get_self_arg(win_id, param, args)
             return args, kwargs
 
         for i, param in enumerate(signature.parameters.values()):
             if i == 0 and self._instance is not None:
                 # Special case for 'self'.
-                self._get_self_arg(param, args)
+                self._get_self_arg(win_id, param, args)
                 continue
             elif param.name == 'count':
                 # Special case for 'count'.
                 self._get_count_arg(param, args, kwargs)
+                continue
+            elif param.name == 'win_id':
+                # Special case for 'win_id'.
+                self._get_win_id_arg(win_id, param, args, kwargs)
                 continue
             name, value = self._get_param_name_and_value(param)
             if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
@@ -380,12 +413,13 @@ class Command:
                                     self.name, param.kind, param.name))
         return args, kwargs
 
-    def run(self, args=None, count=None):
+    def run(self, win_id, args=None, count=None):
         """Run the command.
 
         Note we don't catch CommandError here as it might happen async.
 
         Args:
+            win_id: The window ID the command is run in.
             args: Arguments to the command.
             count: Command repetition count.
         """
@@ -398,15 +432,15 @@ class Command:
         try:
             self.namespace = self.parser.parse_args(args)
         except argparser.ArgumentParserError as e:
-            message.error('{}: {}'.format(self.name, e))
+            message.error(win_id, '{}: {}'.format(self.name, e))
             return
         except argparser.ArgumentParserExit as e:
             log.commands.debug("argparser exited with status {}: {}".format(
                 e.status, e))
             return
         self._count = count
-        posargs, kwargs = self._get_call_args()
-        self._check_prerequisites()
+        posargs, kwargs = self._get_call_args(win_id)
+        self._check_prerequisites(win_id)
         log.commands.debug('Calling {}'.format(
             debug.format_call(self.handler, posargs, kwargs)))
         self.handler(*posargs, **kwargs)

@@ -35,6 +35,7 @@ class Completer(QObject):
     Attributes:
         _ignore_change: Whether to ignore the next completion update.
         _models: dict of available completion models.
+        _win_id: The window ID this completer is in.
 
     Signals:
         change_completed_part: Text which should be substituted for the word
@@ -47,8 +48,9 @@ class Completer(QObject):
 
     change_completed_part = pyqtSignal(str, bool)
 
-    def __init__(self, parent=None):
+    def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        self._win_id = win_id
         self._ignore_change = False
 
         self._models = {
@@ -63,7 +65,9 @@ class Completer(QObject):
 
     def _model(self):
         """Convienience method to get the current completion model."""
-        return objreg.get('completion').model()
+        completion = objreg.get('completion', scope='window',
+                                window=self._win_id)
+        return completion.model()
 
     def _init_static_completions(self):
         """Initialize the static completion models."""
@@ -192,7 +196,8 @@ class Completer(QObject):
             log.completion.debug("Ignoring completion update")
             return
 
-        completion = objreg.get('completion')
+        completion = objreg.get('completion', scope='window',
+                                window=self._win_id)
 
         if prefix != ':':
             # This is a search or gibberish, so we don't need to complete

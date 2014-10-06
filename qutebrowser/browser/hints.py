@@ -37,16 +37,17 @@ from qutebrowser.utils import usertypes, log, qtutils, message, objreg
 ElemTuple = collections.namedtuple('ElemTuple', ['elem', 'label'])
 
 
-Target = usertypes.enum('Target', ['normal', 'tab', 'tab_bg', 'yank',
-                                   'yank_primary', 'fill', 'rapid', 'download',
-                                   'userscript', 'spawn'])
+Target = usertypes.enum('Target', ['normal', 'tab', 'tab_bg', 'window', 'yank',
+                                   'yank_primary', 'fill', 'rapid',
+                                   'rapid_win', 'download', 'userscript',
+                                   'spawn'])
 
 
 @pyqtSlot(usertypes.KeyMode)
-def on_mode_entered(mode):
+def on_mode_entered(mode, win_id):
     """Stop hinting when insert mode was entered."""
     if mode == usertypes.KeyMode.insert:
-        modeman.maybe_leave(usertypes.KeyMode.hint, 'insert mode')
+        modeman.maybe_leave(win_id, usertypes.KeyMode.hint, 'insert mode')
 
 
 class HintContext:
@@ -58,7 +59,7 @@ class HintContext:
         elems: A mapping from keystrings to (elem, label) namedtuples.
         baseurl: The URL of the current page.
         target: What to do with the opened links.
-                normal/tab/tab_bg: Get passed to BrowserTab.
+                normal/tab/tab_bg/window: Get passed to BrowserTab.
                 yank/yank_primary: Yank to clipboard/primary selection
                 fill: Fill commandline with link.
                 rapid: Rapid mode with background tabs
@@ -100,6 +101,8 @@ class HintManager(QObject):
 
     Attributes:
         _context: The HintContext for the current invocation.
+        _win_id: The window ID this HintManager is associated with.
+        _tab_id: The tab ID this HintManager is associated with.
 
     Signals:
         mouse_event: Mouse event to be posted in the web view.
@@ -125,10 +128,12 @@ class HintManager(QObject):
         Target.normal: "Follow hint...",
         Target.tab: "Follow hint in new tab...",
         Target.tab_bg: "Follow hint in background tab...",
+        Target.window: "Follow hint in new window...",
         Target.yank: "Yank hint to clipboard...",
         Target.yank_primary: "Yank hint to primary selection...",
         Target.fill: "Set hint in commandline...",
         Target.rapid: "Follow hint (rapid mode)...",
+        Target.rapid_win: "Follow hint in new window (rapid mode)...",
         Target.download: "Download hint...",
         Target.userscript: "Call userscript via hint...",
         Target.spawn: "Spawn command via hint...",
@@ -137,15 +142,15 @@ class HintManager(QObject):
     mouse_event = pyqtSignal('QMouseEvent')
     set_open_target = pyqtSignal(str)
 
-    def __init__(self, parent=None):
-        """Constructor.
-
-        Args:
-            frame: The QWebFrame to use for finding elements and drawing.
-        """
+    def __init__(self, win_id, tab_id, parent=None):
+        """Constructor."""
         super().__init__(parent)
+        self._win_id = win_id
+        self._tab_id = tab_id
         self._context = None
-        objreg.get('mode-manager').left.connect(self.on_mode_left)
+        mode_manager = objreg.get('mode-manager', scope='window',
+                                  window=win_id)
+        mode_manager.left.connect(self.on_mode_left)
 
     def _cleanup(self):
         """Clean up after hinting."""
@@ -155,7 +160,9 @@ class HintManager(QObject):
             except webelem.IsNullError:
                 pass
         text = self.HINT_TEXTS[self._context.target]
-        objreg.get('message-bridge').maybe_reset_text(text)
+        message_bridge = objreg.get('message-bridge', scope='window',
+                                    window=self._win_id)
+        message_bridge.maybe_reset_text(text)
         self._context = None
 
     def _hint_strings(self, elems):
@@ -300,6 +307,8 @@ class HintManager(QObject):
         """
         if self._context.target == Target.rapid:
             target = Target.tab_bg
+        elif self._context.target == Target.rapid_win:
+            target = Target.window
         else:
             target = self._context.target
         self.set_open_target.emit(target.name)
@@ -331,8 +340,8 @@ class HintManager(QObject):
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
         QApplication.clipboard().setText(urlstr, mode)
-        message.info("URL yanked to {}".format("primary selection" if sel
-                                               else "clipboard"))
+        message.info(self._win_id, "URL yanked to {}".format(
+            "primary selection" if sel else "clipboard"))
 
     def _preset_cmd_text(self, url):
         """Preset a commandline text based on a hint URL.
@@ -342,7 +351,7 @@ class HintManager(QObject):
         """
         urlstr = url.toDisplayString(QUrl.FullyEncoded)
         args = self._context.get_args(urlstr)
-        message.set_cmd_text(' '.join(args))
+        message.set_cmd_text(self._win_id, ' '.join(args))
 
     def _download(self, elem):
         """Download a hint URL.
@@ -352,7 +361,8 @@ class HintManager(QObject):
         """
         url = self._resolve_url(elem)
         if url is None:
-            message.error("No suitable link found for this element.",
+            message.error(self._win_id,
+                          "No suitable link found for this element.",
                           immediately=True)
             return
         objreg.get('download-manager').get(url, elem.webFrame().page())
@@ -361,7 +371,7 @@ class HintManager(QObject):
         """Call an userscript from a hint."""
         cmd = self._context.args[0]
         args = self._context.args[1:]
-        userscripts.run(cmd, *args, url=url)
+        userscripts.run(cmd, *args, url=url, win_id=self._win_id)
 
     def _spawn(self, url):
         """Spawn a simple command from a hint."""
@@ -487,17 +497,22 @@ class HintManager(QObject):
         for e, string in zip(elems, strings):
             label = self._draw_label(e, string)
             self._context.elems[string] = ElemTuple(e, label)
-        keyparser = objreg.get('keyparsers')[usertypes.KeyMode.hint]
+        keyparsers = objreg.get('keyparsers', scope='window',
+                                window=self._win_id)
+        keyparser = keyparsers[usertypes.KeyMode.hint]
         keyparser.update_bindings(strings)
 
-    def follow_prevnext(self, frame, baseurl, prev=False, newtab=False):
+    def follow_prevnext(self, frame, baseurl, prev=False, tab=False,
+                        background=False, window=False):
         """Click a "previous"/"next" element on the page.
 
         Args:
             frame: The frame where the element is in.
             baseurl: The base URL of the current tab.
             prev: True to open a "previous" link, False to open a "next" link.
-            newtab: True to open in a new tab, False for the current tab.
+            tab: True to open in a new tab, False for the current tab.
+            background: True to open in a background tab.
+            window: True to open in a new window, False for the current one.
         """
         elem = self._find_prevnext(frame, prev)
         if elem is None:
@@ -507,10 +522,22 @@ class HintManager(QObject):
         if url is None:
             raise cmdexc.CommandError("No {} links found!".format(
                 "prev" if prev else "forward"))
-        if newtab:
-            objreg.get('tabbed-browser').tabopen(url, background=False)
+        qtutils.ensure_valid(url)
+        if window:
+            main_window = objreg.get('main-window', scope='window',
+                                     window=self._win_id)
+            win_id = main_window.spawn()
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            tabbed_browser.tabopen(url, background=False)
+        elif tab:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=self._win_id)
+            tabbed_browser.tabopen(url, background=background)
         else:
-            objreg.get('webview', scope='tab').openurl(url)
+            webview = objreg.get('webview', scope='tab', window=self._win_id,
+                                 tab=self._tab_id)
+            webview.openurl(url)
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint')
     def start(self, group=webelem.Group.all, target=Target.normal,
@@ -529,11 +556,14 @@ class HintManager(QObject):
                 - `normal`: Open the link in the current tab.
                 - `tab`: Open the link in a new tab.
                 - `tab-bg`: Open the link in a new background tab.
+                - `window`: Open the link in a new window.
                 - `yank`: Yank the link to the clipboard.
                 - `yank-primary`: Yank the link to the primary selection.
                 - `fill`: Fill the commandline with the command given as
                           argument.
                 - `rapid`: Open the link in a new tab and stay in hinting mode.
+                - `rapid-win`: Open the link in a new window and stay in
+                               hinting mode.
                 - `download`: Download the link.
                 - `userscript`: Call an userscript with `$QUTE_URL` set to the
                                 link.
@@ -549,7 +579,8 @@ class HintManager(QObject):
                                 `{hint-url}` will get replaced by the selected
                                 URL.
         """
-        tabbed_browser = objreg.get('tabbed-browser')
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=self._win_id)
         widget = tabbed_browser.currentWidget()
         if widget is None:
             raise cmdexc.CommandError("No WebView available yet!")
@@ -563,10 +594,13 @@ class HintManager(QObject):
         self._context.frames = webelem.get_child_frames(mainframe)
         self._context.args = args
         self._init_elements(mainframe, group)
-        objreg.get('message-bridge').set_text(self.HINT_TEXTS[target])
+        message_bridge = objreg.get('message-bridge', scope='window',
+                                    window=self._win_id)
+        message_bridge.set_text(self.HINT_TEXTS[target])
         self._connect_frame_signals()
         try:
-            modeman.enter(usertypes.KeyMode.hint, 'HintManager.start')
+            modeman.enter(self._win_id, usertypes.KeyMode.hint,
+                          'HintManager.start')
         except modeman.ModeLockedError:
             self._cleanup()
 
@@ -610,7 +644,7 @@ class HintManager(QObject):
                 visible[k] = e
         if not visible:
             # Whoops, filtered all hints
-            modeman.leave(usertypes.KeyMode.hint, 'all filtered')
+            modeman.leave(self._win_id, usertypes.KeyMode.hint, 'all filtered')
         elif len(visible) == 1 and config.get('hints', 'auto-follow'):
             # unpacking gets us the first (and only) key in the dict.
             self.fire(*visible)
@@ -631,7 +665,9 @@ class HintManager(QObject):
             Target.normal: self._click,
             Target.tab: self._click,
             Target.tab_bg: self._click,
+            Target.window: self._click,
             Target.rapid: self._click,
+            Target.rapid_win: self._click,
             # _download needs a QWebElement to get the frame.
             Target.download: self._download,
         }
@@ -649,14 +685,16 @@ class HintManager(QObject):
         elif self._context.target in url_handlers:
             url = self._resolve_url(elem)
             if url is None:
-                message.error("No suitable link found for this element.",
+                message.error(self._win_id,
+                              "No suitable link found for this element.",
                               immediately=True)
                 return
             url_handlers[self._context.target](url)
         else:
             raise ValueError("No suitable handler found!")
-        if self._context.target != Target.rapid:
-            modeman.maybe_leave(usertypes.KeyMode.hint, 'followed')
+        if self._context.target not in (Target.rapid, Target.rapid_win):
+            modeman.maybe_leave(self._win_id, usertypes.KeyMode.hint,
+                                'followed')
 
     @cmdutils.register(instance='hintmanager', scope='tab', hide=True)
     def follow_hint(self):

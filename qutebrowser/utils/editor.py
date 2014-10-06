@@ -37,16 +37,18 @@ class ExternalEditor(QObject):
         _oshandle: The OS level handle to the tmpfile.
         _filehandle: The file handle to the tmpfile.
         _proc: The QProcess of the editor.
+        _win_id: The window ID the ExternalEditor is associated with.
     """
 
     editing_finished = pyqtSignal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self._text = None
         self._oshandle = None
         self._filename = None
         self._proc = None
+        self._win_id = win_id
 
     def _cleanup(self):
         """Clean up temporary files after the editor closed."""
@@ -56,7 +58,8 @@ class ExternalEditor(QObject):
         except PermissionError as e:
             # NOTE: Do not replace this with "raise CommandError" as it's
             # executed async.
-            message.error("Failed to delete tempfile... ({})".format(e))
+            message.error(self._win_id,
+                          "Failed to delete tempfile... ({})".format(e))
 
     def on_proc_closed(self, exitcode, exitstatus):
         """Write the editor text into the form field and clean up tempfile.
@@ -75,8 +78,9 @@ class ExternalEditor(QObject):
             if exitcode != 0:
                 # NOTE: Do not replace this with "raise CommandError" as it's
                 # executed async.
-                message.error("Editor did quit abnormally (status {})!".format(
-                    exitcode))
+                message.error(
+                    self._win_id, "Editor did quit abnormally (status "
+                                  "{})!".format(exitcode))
                 return
             encoding = config.get('general', 'editor-encoding')
             with open(self._filename, 'r', encoding=encoding) as f:
@@ -100,7 +104,8 @@ class ExternalEditor(QObject):
         }
         # NOTE: Do not replace this with "raise CommandError" as it's
         # executed async.
-        message.error("Error while calling editor: {}".format(messages[error]))
+        message.error(self._win_id,
+                      "Error while calling editor: {}".format(messages[error]))
         self._cleanup()
 
     def edit(self, text):

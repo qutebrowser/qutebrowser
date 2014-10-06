@@ -23,7 +23,9 @@
 import collections
 import functools
 
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject, QTimer
+
+from qutebrowser.utils import log
 
 
 class UnsetObject:
@@ -58,12 +60,28 @@ class ObjectRegistry(collections.UserDict):
 
         Sets a slot to remove QObjects when they are destroyed.
         """
+        if name is None:
+            raise TypeError("Registering '{}' with name 'None'!".format(obj))
+        if obj is None:
+            raise TypeError("Registering object None with name '{}'!".format(
+                name))
         if isinstance(obj, QObject):
             obj.destroyed.connect(functools.partial(self.on_destroyed, name))
         super().__setitem__(name, obj)
 
     def on_destroyed(self, name):
+        """Schedule removing of a destroyed QObject.
+
+        We don't remove the destroyed object immediately because it might still
+        be destroying its children, which might still use the object
+        registry.
+        """
+        log.misc.debug("schedule destroyed: {}".format(name))
+        QTimer.singleShot(0, functools.partial(self._on_destroyed, name))
+
+    def _on_destroyed(self, name):
         """Remove a destroyed QObject."""
+        log.misc.debug("destroyed: {}".format(name))
         try:
             del self[name]
         except KeyError:
@@ -79,33 +97,79 @@ class ObjectRegistry(collections.UserDict):
 
 # The registry for global objects
 global_registry = ObjectRegistry()
-# The object registry of object registries.
-meta_registry = ObjectRegistry()
-meta_registry['global'] = global_registry
+# The window registry.
+window_registry = ObjectRegistry()
 
 
-def _get_registry(scope):
+def _get_tab_registry(win_id, tab_id):
+    """Get the registry of a tab."""
+    if tab_id is None:
+        tab_id = 'current'
+    if tab_id == 'current' and win_id is None:
+        app = get('app')
+        window = app.activeWindow()
+        if window is None or not hasattr(window, 'win_id'):
+            raise RegistryUnavailableError('tab')
+        win_id = window.win_id
+    elif win_id is not None:
+        window = window_registry[win_id]
+
+    if tab_id == 'current':
+        tabbed_browser = get('tabbed-browser', scope='window', window=win_id)
+        tab = tabbed_browser.currentWidget()
+        if tab is None:
+            raise RegistryUnavailableError('window')
+        tab_id = tab.tab_id
+    tab_registry = get('tab-registry', scope='window', window=win_id)
+    try:
+        return tab_registry[tab_id].registry
+    except AttributeError:
+        raise RegistryUnavailableError('tab')
+
+
+def _get_window_registry(window):
+    """Get the registry of a window."""
+    if window is None:
+        raise TypeError("window is None with scope window!")
+    if window == 'current':
+        app = get('app')
+        win = app.activeWindow()
+        if win is None or not hasattr(win, 'win_id'):
+            raise RegistryUnavailableError('window')
+    else:
+        try:
+            win = window_registry[window]
+        except KeyError:
+            raise RegistryUnavailableError('window')
+    try:
+        return win.registry
+    except AttributeError:
+        raise RegistryUnavailableError('window')
+
+
+def _get_registry(scope, window=None, tab=None):
     """Get the correct registry for a given scope."""
+    if window is not None and scope not in ('window', 'tab'):
+        raise TypeError("window is set with scope {}".format(scope))
+    if tab is not None and scope != 'tab':
+        raise TypeError("tab is set with scope {}".format(scope))
     if scope == 'global':
         return global_registry
     elif scope == 'tab':
-        widget = get('tabbed-browser').currentWidget()
-        if widget is None:
-            raise RegistryUnavailableError(scope)
-        return widget.registry
-    elif scope == 'meta':
-        return meta_registry
+        return _get_tab_registry(window, tab)
+    elif scope == 'window':
+        return _get_window_registry(window)
     else:
         raise ValueError("Invalid scope '{}'!".format(scope))
 
 
-def get(name, default=_UNSET, scope='global'):
+def get(name, default=_UNSET, scope='global', window=None, tab=None):
     """Helper function to get an object.
 
     Args:
         default: A default to return if the object does not exist.
     """
-    reg = _get_registry(scope)
+    reg = _get_registry(scope, window, tab)
     try:
         return reg[name]
     except KeyError:
@@ -115,7 +179,8 @@ def get(name, default=_UNSET, scope='global'):
             raise
 
 
-def register(name, obj, update=False, scope=None, registry=None):
+def register(name, obj, update=False, scope=None, registry=None, window=None,
+             tab=None):
     """Helper function to register an object.
 
     Args:
@@ -131,14 +196,36 @@ def register(name, obj, update=False, scope=None, registry=None):
     else:
         if scope is None:
             scope = 'global'
-        reg = _get_registry(scope)
+        reg = _get_registry(scope, window, tab)
     if not update and name in reg:
         raise KeyError("Object '{}' is already registered ({})!".format(
                        name, repr(reg[name])))
     reg[name] = obj
 
 
-def delete(name, scope='global'):
+def delete(name, scope='global', window=None, tab=None):
     """Helper function to unregister an object."""
-    reg = _get_registry(scope)
+    reg = _get_registry(scope, window, tab)
     del reg[name]
+
+
+def dump_objects():
+    """Get all registered objects in all registries as a string."""
+    blocks = []
+    lines = []
+    blocks.append(('global', global_registry.dump_objects()))
+    for win_id in window_registry:
+        registry = _get_registry('window', window=win_id)
+        blocks.append(('window-{}'.format(win_id), registry.dump_objects()))
+        tab_registry = get('tab-registry', scope='window', window=win_id)
+        for tab_id, tab in tab_registry.items():
+            dump = tab.registry.dump_objects()
+            data = ['    ' + line for line in dump]
+            blocks.append(('    tab-{}'.format(tab_id), data))
+    for name, data in blocks:
+        lines.append("")
+        lines.append("{} object registry - {} objects:".format(
+            name, len(data)))
+        for line in data:
+            lines.append("    {}".format(line))
+    return lines

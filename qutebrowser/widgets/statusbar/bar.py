@@ -46,7 +46,7 @@ class StatusBar(QWidget):
         percentage: The Percentage widget in the statusbar.
         url: The UrlText widget in the statusbar.
         prog: The Progress widget in the statusbar.
-        _cmd: The Command widget in the statusbar.
+        cmd: The Command widget in the statusbar.
         _hbox: The main QHBoxLayout.
         _stack: The QStackedLayout with cmd/txt widgets.
         _text_queue: A deque of (error, text) tuples to be displayed.
@@ -57,6 +57,7 @@ class StatusBar(QWidget):
                            the command widget.
         _previous_widget: A PreviousWidget member - the widget which was
                           displayed when an error interrupted it.
+        _win_id: The window ID the statusbar is associated with.
 
     Class attributes:
         _error: If there currently is an error, accessed through the error
@@ -113,14 +114,16 @@ class StatusBar(QWidget):
         }
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        objreg.register('statusbar', self, scope='window', window=win_id)
         self.setObjectName(self.__class__.__name__)
         self.setAttribute(Qt.WA_StyledBackground)
         style.set_register_stylesheet(self)
 
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
 
+        self._win_id = win_id
         self._option = None
         self._last_text_time = None
 
@@ -132,9 +135,8 @@ class StatusBar(QWidget):
         self._hbox.addLayout(self._stack)
         self._stack.setContentsMargins(0, 0, 0, 0)
 
-        self._cmd = command.Command()
-        objreg.register('status-command', self._cmd)
-        self._stack.addWidget(self._cmd)
+        self.cmd = command.Command(win_id)
+        self._stack.addWidget(self.cmd)
 
         self.txt = textwidget.Text()
         self._stack.addWidget(self.txt)
@@ -145,14 +147,14 @@ class StatusBar(QWidget):
         self.set_pop_timer_interval()
         config.on_change(self.set_pop_timer_interval, 'ui', 'message-timeout')
 
-        self.prompt = prompt.Prompt()
+        self.prompt = prompt.Prompt(win_id)
         self._stack.addWidget(self.prompt)
         self._previous_widget = PreviousWidget.none
 
-        self._cmd.show_cmd.connect(self._show_cmd_widget)
-        self._cmd.hide_cmd.connect(self._hide_cmd_widget)
+        self.cmd.show_cmd.connect(self._show_cmd_widget)
+        self.cmd.hide_cmd.connect(self._hide_cmd_widget)
         self._hide_cmd_widget()
-        prompter = objreg.get('prompter')
+        prompter = objreg.get('prompter', scope='window', window=self._win_id)
         prompter.show_prompt.connect(self._show_prompt_widget)
         prompter.hide_prompt.connect(self._hide_prompt_widget)
         self._hide_prompt_widget()
@@ -263,7 +265,7 @@ class StatusBar(QWidget):
         if self._text_pop_timer.isActive():
             self._timer_was_active = True
         self._text_pop_timer.stop()
-        self._stack.setCurrentWidget(self._cmd)
+        self._stack.setCurrentWidget(self.cmd)
 
     def _hide_cmd_widget(self):
         """Show temporary text instead of command widget."""
@@ -382,7 +384,9 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
-        if mode in objreg.get('mode-manager').passthrough:
+        mode_manager = objreg.get('mode-manager', scope='window',
+                                  window=self._win_id)
+        if mode in mode_manager.passthrough:
             text = "-- {} MODE --".format(mode.name.upper())
             self.txt.set_text(self.txt.Text.normal, text)
         if mode == usertypes.KeyMode.insert:
@@ -391,7 +395,9 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Clear marked mode."""
-        if mode in objreg.get('mode-manager').passthrough:
+        mode_manager = objreg.get('mode-manager', scope='window',
+                                  window=self._win_id)
+        if mode in mode_manager.passthrough:
             self.txt.set_text(self.txt.Text.normal, '')
         if mode == usertypes.KeyMode.insert:
             self._set_insert_active(False)

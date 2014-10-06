@@ -19,36 +19,26 @@
 
 """Misc. utility commands exposed to the user."""
 
-import types
 import functools
-
+import types
 
 from PyQt5.QtCore import QCoreApplication
 
-from qutebrowser.utils import usertypes, log, objreg
-from qutebrowser.commands import runners, cmdexc, cmdutils
+from qutebrowser.utils import log, objreg, usertypes
+from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style
 
 
-_timers = []
-_commandrunner = None
-
-
-def init():
-    """Initialize the global _commandrunner."""
-    global _commandrunner
-    _commandrunner = runners.CommandRunner()
-
-
-@cmdutils.register()
-def later(ms: int, *command):
+@cmdutils.register(scope='window')
+def later(ms: int, *command, win_id):
     """Execute a command after some time.
 
     Args:
         ms: How many milliseconds to wait.
         *command: The command to run, with optional args.
     """
-    timer = usertypes.Timer(name='later')
+    app = objreg.get('app')
+    timer = usertypes.Timer(name='later', parent=app)
     timer.setSingleShot(True)
     if ms < 0:
         raise cmdexc.CommandError("I can't run something in the past!")
@@ -57,11 +47,11 @@ def later(ms: int, *command):
     except OverflowError:
         raise cmdexc.CommandError("Numeric argument is too large for internal "
                                   "int representation.")
-    _timers.append(timer)
     cmdline = ' '.join(command)
-    timer.timeout.connect(functools.partial(
-        _commandrunner.run_safely, cmdline))
-    timer.timeout.connect(lambda: _timers.remove(timer))
+    commandrunner = runners.CommandRunner(win_id)
+    timer.timeout.connect(
+        functools.partial(commandrunner.run_safely, cmdline))
+    timer.timeout.connect(timer.deleteLater)
     timer.start()
 
 

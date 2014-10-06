@@ -54,7 +54,7 @@ class ArgTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.editor = editor.ExternalEditor()
+        self.editor = editor.ExternalEditor(0)
 
     def test_simple_start_args(self):
         """Test starting editor without arguments."""
@@ -102,7 +102,7 @@ class FileHandlingTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.editor = editor.ExternalEditor()
+        self.editor = editor.ExternalEditor(0)
         editor.config = stubs.ConfigStub(
             {'general': {'editor': [''], 'editor-encoding': 'utf-8'}})
 
@@ -141,7 +141,7 @@ class TextModifyTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.editor = editor.ExternalEditor()
+        self.editor = editor.ExternalEditor(0)
         self.editor.editing_finished = mock.Mock()
         editor.config = stubs.ConfigStub(
             {'general': {'editor': [''], 'editor-encoding': 'utf-8'}})
@@ -211,7 +211,7 @@ class ErrorMessageTests(unittest.TestCase):
     # pylint: disable=maybe-no-member
 
     def setUp(self):
-        self.editor = editor.ExternalEditor()
+        self.editor = editor.ExternalEditor(0)
         editor.config = stubs.ConfigStub(
             {'general': {'editor': [''], 'editor-encoding': 'utf-8'}})
 

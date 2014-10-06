@@ -8,6 +8,7 @@
 |<<back,back>>|Go back in the history of the current tab.
 |<<bind,bind>>|Bind a key to a command.
 |<<cancel-download,cancel-download>>|Cancel the first/[count]th download.
+|<<close,close>>|Close the current window.
 |<<download-page,download-page>>|Download the current page.
 |<<forward,forward>>|Go forward in the history of the current tab.
 |<<help,help>>|Show help about a command or setting.
@@ -49,13 +50,14 @@
 |==============
 [[back]]
 === back
-Syntax: +:back [*--tab*] [*--bg*]+
+Syntax: +:back [*--tab*] [*--bg*] [*--window*]+
 
 Go back in the history of the current tab.
 
 ==== optional arguments
 * +*-t*+, +*--tab*+: Go back in a new tab.
 * +*-b*+, +*--bg*+: Go back in a background tab.
+* +*-w*+, +*--window*+: Go back in a new window.
 
 ==== count
 How many pages to go back.
@@ -81,26 +83,31 @@ Cancel the first/[count]th download.
 ==== count
 The index of the download to cancel.
 
+[[close]]
+=== close
+Close the current window.
+
 [[download-page]]
 === download-page
 Download the current page.
 
 [[forward]]
 === forward
-Syntax: +:forward [*--tab*] [*--bg*]+
+Syntax: +:forward [*--tab*] [*--bg*] [*--window*]+
 
 Go forward in the history of the current tab.
 
 ==== optional arguments
 * +*-t*+, +*--tab*+: Go forward in a new tab.
-* +*-b*+, +*--bg*+: Go back in a background tab.
+* +*-b*+, +*--bg*+: Go forward in a background tab.
+* +*-w*+, +*--window*+: Go forward in a new window.
 
 ==== count
 How many pages to go forward.
 
 [[help]]
 === help
-Syntax: +:help ['topic']+
+Syntax: +:help [*--tab*] [*--bg*] [*--window*] ['topic']+
 
 Show help about a command or setting.
 
@@ -110,6 +117,11 @@ Show help about a command or setting.
  - :__command__ for commands.
  - __section__\->__option__ for settings.
 
+
+==== optional arguments
+* +*-t*+, +*--tab*+: Open in a new tab.
+* +*-b*+, +*--bg*+: Open in a background tab.
+* +*-w*+, +*--window*+: Open in a new window.
 
 [[hint]]
 === hint
@@ -131,11 +143,14 @@ Start hinting.
  - `normal`: Open the link in the current tab.
  - `tab`: Open the link in a new tab.
  - `tab-bg`: Open the link in a new background tab.
+ - `window`: Open the link in a new window.
  - `yank`: Yank the link to the clipboard.
  - `yank-primary`: Yank the link to the primary selection.
  - `fill`: Fill the commandline with the command given as
  argument.
  - `rapid`: Open the link in a new tab and stay in hinting mode.
+ - `rapid-win`: Open the link in a new window and stay in
+ hinting mode.
  - `download`: Download the link.
  - `userscript`: Call an userscript with `$QUTE_URL` set to the
  link.
@@ -174,7 +189,7 @@ Execute a command after some time.
 
 [[navigate]]
 === navigate
-Syntax: +:navigate [*--tab*] 'where'+
+Syntax: +:navigate [*--tab*] [*--bg*] [*--window*] 'where'+
 
 Open typical prev/next links or navigate using the URL path.
 
@@ -194,10 +209,12 @@ This tries to automatically click on typical _Previous Page_ or _Next Page_ link
 
 ==== optional arguments
 * +*-t*+, +*--tab*+: Open in a new tab.
+* +*-b*+, +*--bg*+: Open in a background tab.
+* +*-w*+, +*--window*+: Open in a new window.
 
 [[open]]
 === open
-Syntax: +:open [*--bg*] [*--tab*] 'url'+
+Syntax: +:open [*--bg*] [*--tab*] [*--window*] 'url'+
 
 Open a URL in the current/[count]th tab.
 
@@ -207,13 +224,14 @@ Open a URL in the current/[count]th tab.
 ==== optional arguments
 * +*-b*+, +*--bg*+: Open in a new background tab.
 * +*-t*+, +*--tab*+: Open in a new tab.
+* +*-w*+, +*--window*+: Open in a new window.
 
 ==== count
 The tab index to open the URL in.
 
 [[paste]]
 === paste
-Syntax: +:paste [*--sel*] [*--tab*] [*--bg*]+
+Syntax: +:paste [*--sel*] [*--tab*] [*--bg*] [*--window*]+
 
 Open a page from the clipboard.
 
@@ -221,6 +239,7 @@ Open a page from the clipboard.
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
 * +*-t*+, +*--tab*+: Open in a new tab.
 * +*-b*+, +*--bg*+: Open in a background tab.
+* +*-w*+, +*--window*+: Open in new window.
 
 [[print]]
 === print
@@ -246,7 +265,7 @@ Add a new quickmark.
 
 [[quickmark-load]]
 === quickmark-load
-Syntax: +:quickmark-load [*--tab*] [*--bg*] 'name'+
+Syntax: +:quickmark-load [*--tab*] [*--bg*] [*--window*] 'name'+
 
 Load a quickmark.
 
@@ -256,6 +275,7 @@ Load a quickmark.
 ==== optional arguments
 * +*-t*+, +*--tab*+: Load the quickmark in a new tab.
 * +*-b*+, +*--bg*+: Load the quickmark in a new background tab.
+* +*-w*+, +*--window*+: Load the quickmark in a new window.
 
 [[quickmark-save]]
 === quickmark-save
@@ -339,12 +359,13 @@ The tab index to stop.
 
 [[tab-clone]]
 === tab-clone
-Syntax: +:tab-clone [*--bg*]+
+Syntax: +:tab-clone [*--bg*] [*--window*]+
 
 Duplicate the current tab.
 
 ==== optional arguments
 * +*-b*+, +*--bg*+: Open in a background tab.
+* +*-w*+, +*--window*+: Open in a new window.
 
 [[tab-close]]
 === tab-close

@@ -41,6 +41,7 @@ class BrowserPage(QWebPage):
     Attributes:
         _extension_handlers: Mapping of QWebPage extensions to their handlers.
         _networkmnager: The NetworkManager used.
+        _win_id: The window ID this BrowserPage is associated with.
 
     Signals:
         start_download: Emitted when a file should be downloaded.
@@ -48,13 +49,14 @@ class BrowserPage(QWebPage):
 
     start_download = pyqtSignal('QNetworkReply*')
 
-    def __init__(self, parent=None):
+    def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        self._win_id = win_id
         self._extension_handlers = {
             QWebPage.ErrorPageExtension: self._handle_errorpage,
             QWebPage.ChooseMultipleFilesExtension: self._handle_multiple_files,
         }
-        self._networkmanager = networkmanager.NetworkManager(self)
+        self._networkmanager = networkmanager.NetworkManager(win_id, self)
         self.setNetworkAccessManager(self._networkmanager)
         self.setForwardUnsupportedContent(True)
         self.printRequested.connect(self.on_print_requested)
@@ -75,8 +77,8 @@ class BrowserPage(QWebPage):
 
         http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034385.html
         """
-        answer = message.ask("js: {}".format(msg), usertypes.PromptMode.text,
-                             default)
+        answer = message.ask(self._win_id, "js: {}".format(msg),
+                             usertypes.PromptMode.text, default)
         if answer is None:
             return (False, "")
         else:
@@ -155,8 +157,8 @@ class BrowserPage(QWebPage):
     def on_print_requested(self, frame):
         """Handle printing when requested via javascript."""
         if not qtutils.check_print_compat():
-            message.error("Printing on Qt < 5.3.0 on Windows is broken, "
-                          "please upgrade!", immediately=True)
+            message.error(self._win_id, "Printing on Qt < 5.3.0 on Windows is "
+                          "broken, please upgrade!", immediately=True)
             return
         printdiag = QPrintDialog()
         printdiag.setAttribute(Qt.WA_DeleteOnClose)
@@ -245,11 +247,12 @@ class BrowserPage(QWebPage):
 
     def javaScriptAlert(self, _frame, msg):
         """Override javaScriptAlert to use the statusbar."""
-        message.ask("[js alert] {}".format(msg), usertypes.PromptMode.alert)
+        message.ask(self._win_id, "[js alert] {}".format(msg),
+                    usertypes.PromptMode.alert)
 
     def javaScriptConfirm(self, _frame, msg):
         """Override javaScriptConfirm to use the statusbar."""
-        ans = message.ask("[js confirm] {}".format(msg),
+        ans = message.ask(self._win_id, "[js confirm] {}".format(msg),
                           usertypes.PromptMode.yesno)
         return bool(ans)
 
@@ -269,8 +272,8 @@ class BrowserPage(QWebPage):
 
     def shouldInterruptJavaScript(self):
         """Override shouldInterruptJavaScript to use the statusbar."""
-        answer = message.ask("Interrupt long-running javascript?",
-                             usertypes.PromptMode.yesno)
+        answer = message.ask(self._win_id, "Interrupt long-running "
+                             "javascript?", usertypes.PromptMode.yesno)
         if answer is None:
             answer = True
         return answer
@@ -295,14 +298,26 @@ class BrowserPage(QWebPage):
         url = request.url()
         urlstr = url.toDisplayString()
         if not url.isValid():
-            message.error("Invalid link {} clicked!".format(urlstr))
+            message.error(self._win_id, "Invalid link {} clicked!".format(
+                urlstr))
             log.webview.debug(url.errorString())
             return False
-        if self.view().open_target == usertypes.ClickTarget.tab:
-            objreg.get('tabbed-browser').tabopen(url, False)
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=self._win_id)
+        open_target = self.view().open_target
+        if open_target == usertypes.ClickTarget.tab:
+            tabbed_browser.tabopen(url, False)
             return False
-        elif self.view().open_target == usertypes.ClickTarget.tab_bg:
-            objreg.get('tabbed-browser').tabopen(url, True)
+        elif open_target == usertypes.ClickTarget.tab_bg:
+            tabbed_browser.tabopen(url, True)
+            return False
+        elif open_target == usertypes.ClickTarget.window:
+            main_window = objreg.get('main-window', scope='window',
+                                     window=self._win_id)
+            win_id = main_window.spawn()
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            tabbed_browser.tabopen(url, False)
             return False
         else:
             return True

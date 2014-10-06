@@ -36,15 +36,16 @@ from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, Qt, QUrl,
                           QStandardPaths, QObject)
 
 import qutebrowser
-from qutebrowser.commands import userscripts, runners, cmdutils
+from qutebrowser.commands import cmdutils, runners
 from qutebrowser.config import style, config, websettings
 from qutebrowser.network import qutescheme, proxy
-from qutebrowser.browser import quickmarks, cookies, downloads, cache, hints
+from qutebrowser.browser import quickmarks, cookies, downloads, cache
 from qutebrowser.widgets import mainwindow, console, crash
 from qutebrowser.keyinput import modeman
-from qutebrowser.utils import (log, version, message, utilcmds, readline,
-                               utils, qtutils, urlutils, debug, objreg,
-                               usertypes)
+from qutebrowser.utils import (log, version, message, readline, utils, qtutils,
+                               urlutils, debug, objreg, usertypes)
+# We import utilcmds to run the cmdutils.register decorators.
+from qutebrowser.utils import utilcmds  # pylint: disable=unused-import
 
 
 class Application(QApplication):
@@ -53,11 +54,11 @@ class Application(QApplication):
 
     Attributes:
         _args: ArgumentParser instance.
-        _commandrunner: The main CommandRunner instance.
         _shutting_down: True if we're currently shutting down.
         _quit_status: The current quitting status.
         _crashdlg: The crash dialog currently open.
         _crashlogfile: A file handler to the fatal crash logfile.
+        _event_filter: The EventFilter for the application.
     """
 
     def __init__(self, args):
@@ -74,7 +75,6 @@ class Application(QApplication):
         self._shutting_down = False
         self._crashdlg = None
         self._crashlogfile = None
-        self._commandrunner = None
 
         if args.debug:
             # We don't enable this earlier because some imports trigger
@@ -110,16 +110,11 @@ class Application(QApplication):
         self._init_modules()
 
         log.init.debug("Initializing eventfilter...")
-        mode_manager = objreg.get('mode-manager')
-        self.installEventFilter(mode_manager)
+        self._event_filter = modeman.EventFilter(self)
+        self.installEventFilter(self._event_filter)
 
         log.init.debug("Connecting signals...")
         self._connect_signals()
-        modeman.enter(usertypes.KeyMode.normal, 'init')
-
-        log.init.debug("Showing mainwindow...")
-        if not args.nowindow:
-            objreg.get('main-window').show()
 
         log.init.debug("Applying python hacks...")
         self._python_hacks()
@@ -134,10 +129,6 @@ class Application(QApplication):
 
     def _init_modules(self):
         """Initialize all 'modules' which need to be initialized."""
-        log.init.debug("Initializing message-bridge...")
-        message_bridge = message.MessageBridge(self)
-        objreg.register('message-bridge', message_bridge)
-
         log.init.debug("Initializing readline-bridge...")
         readline_bridge = readline.ReadlineBridge()
         objreg.register('readline-bridge', readline_bridge)
@@ -146,35 +137,23 @@ class Application(QApplication):
         config.init(self._args)
         log.init.debug("Initializing crashlog...")
         self._handle_segfault()
-        log.init.debug("Initializing modes...")
-        modeman.init()
         log.init.debug("Initializing websettings...")
         websettings.init()
         log.init.debug("Initializing quickmarks...")
         quickmarks.init()
         log.init.debug("Initializing proxy...")
         proxy.init()
-        log.init.debug("Initializing userscripts...")
-        userscripts.init()
-        log.init.debug("Initializing utility commands...")
-        utilcmds.init()
         log.init.debug("Initializing cookies...")
         cookie_jar = cookies.CookieJar(self)
         objreg.register('cookie-jar', cookie_jar)
         log.init.debug("Initializing cache...")
         diskcache = cache.DiskCache(self)
         objreg.register('cache', diskcache)
-        log.init.debug("Initializing commands...")
-        self._commandrunner = runners.CommandRunner()
-        log.init.debug("Initializing search...")
-        search_runner = runners.SearchRunner(self)
-        objreg.register('search-runner', search_runner)
         log.init.debug("Initializing downloads...")
         download_manager = downloads.DownloadManager(self)
         objreg.register('download-manager', download_manager)
         log.init.debug("Initializing main window...")
-        main_window = mainwindow.MainWindow()
-        objreg.register('main-window', main_window)
+        mainwindow.MainWindow.spawn(False if self._args.nowindow else True)
         log.init.debug("Initializing debug console...")
         debug_console = console.ConsoleWidget()
         objreg.register('debug-console', debug_console)
@@ -238,30 +217,41 @@ class Application(QApplication):
 
         URLs to open have no prefix, commands to execute begin with a colon.
         """
-        tabbed_browser = objreg.get('tabbed-browser')
+        win_id = 0
         for cmd in self._args.command:
             if cmd.startswith(':'):
                 log.init.debug("Startup cmd {}".format(cmd))
-                self._commandrunner.run_safely_init(cmd.lstrip(':'))
+                commandrunner = runners.CommandRunner(win_id)
+                commandrunner.run_safely_init(cmd.lstrip(':'))
+            elif not cmd:
+                log.init.debug("Empty argument")
+                win_id = mainwindow.MainWindow.spawn()
             else:
+                tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                            window=win_id)
                 log.init.debug("Startup URL {}".format(cmd))
                 try:
                     url = urlutils.fuzzy_url(cmd)
                 except urlutils.FuzzyUrlError as e:
-                    message.error("Error in startup argument '{}': {}".format(
-                        cmd, e))
+                    message.error(0, "Error in startup argument '{}': "
+                                     "{}".format(cmd, e))
                 else:
                     tabbed_browser.tabopen(url)
 
-        if tabbed_browser.count() == 0:
-            log.init.debug("Opening startpage")
-            for urlstr in config.get('general', 'startpage'):
-                try:
-                    url = urlutils.fuzzy_url(urlstr)
-                except urlutils.FuzzyUrlError as e:
-                    message.error("Error when opening startpage: {}".format(e))
-                else:
-                    tabbed_browser.tabopen(url)
+        for win_id in objreg.window_registry:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            if tabbed_browser.count() == 0:
+                log.init.debug("Opening startpage")
+                for urlstr in config.get('general', 'startpage'):
+                    try:
+                        url = urlutils.fuzzy_url(urlstr)
+                    except urlutils.FuzzyUrlError as e:
+                        message.error(0, "Error when opening startpage: "
+                                         "{}".format(e))
+                        tabbed_browser.tabopen(QUrl('about:blank'))
+                    else:
+                        tabbed_browser.tabopen(url)
 
         # Open quickstart if it's the first start
         state_config = objreg.get('state-config')
@@ -294,89 +284,9 @@ class Application(QApplication):
 
     def _connect_signals(self):
         """Connect all signals to their slots."""
-        # pylint: disable=too-many-statements, too-many-locals
-        # syntactic sugar
-        kp = objreg.get('keyparsers')
-        main_window = objreg.get('main-window')
-        status = main_window.status
-        completion = objreg.get('completion')
-        tabs = objreg.get('tabbed-browser')
-        cmd = objreg.get('status-command')
-        completer = objreg.get('completer')
-        search_runner = objreg.get('search-runner')
-        message_bridge = objreg.get('message-bridge')
-        mode_manager = objreg.get('mode-manager')
-        prompter = objreg.get('prompter')
-        download_manager = objreg.get('download-manager')
         config_obj = objreg.get('config')
-        key_config = objreg.get('key-config')
-
-        # misc
         self.lastWindowClosed.connect(self.shutdown)
-        tabs.quit.connect(self.shutdown)
-        mode_manager.entered.connect(hints.on_mode_entered)
-
-        # status bar
-        mode_manager.entered.connect(status.on_mode_entered)
-        mode_manager.left.connect(status.on_mode_left)
-        mode_manager.left.connect(cmd.on_mode_left)
-        mode_manager.left.connect(prompter.on_mode_left)
-
-        # commands
-        cmd.got_cmd.connect(self._commandrunner.run_safely)
-        cmd.got_search.connect(search_runner.search)
-        cmd.got_search_rev.connect(search_runner.search_rev)
-        cmd.returnPressed.connect(tabs.setFocus)
-        search_runner.do_search.connect(tabs.search)
-        kp[usertypes.KeyMode.normal].keystring_updated.connect(
-            status.keystring.setText)
-        tabs.got_cmd.connect(self._commandrunner.run_safely)
-
-        # messages
-        message_bridge.s_error.connect(status.disp_error)
-        message_bridge.s_info.connect(status.disp_temp_text)
-        message_bridge.s_set_text.connect(status.set_text)
-        message_bridge.s_maybe_reset_text.connect(status.txt.maybe_reset_text)
-        message_bridge.s_set_cmd_text.connect(cmd.set_cmd_text)
-        message_bridge.s_question.connect(prompter.ask_question,
-                                          Qt.DirectConnection)
-
-        # config
         config_obj.style_changed.connect(style.get_stylesheet.cache_clear)
-        for obj in kp.values():
-            key_config.changed.connect(obj.on_keyconfig_changed)
-
-        # statusbar
-        # FIXME some of these probably only should be triggered on mainframe
-        # loadStarted.
-        # https://github.com/The-Compiler/qutebrowser/issues/112
-        tabs.current_tab_changed.connect(status.prog.on_tab_changed)
-        tabs.cur_progress.connect(status.prog.setValue)
-        tabs.cur_load_finished.connect(status.prog.hide)
-        tabs.cur_load_started.connect(status.prog.on_load_started)
-
-        tabs.current_tab_changed.connect(status.percentage.on_tab_changed)
-        tabs.cur_scroll_perc_changed.connect(status.percentage.set_perc)
-
-        tabs.current_tab_changed.connect(status.txt.on_tab_changed)
-        tabs.cur_statusbar_message.connect(status.txt.on_statusbar_message)
-        tabs.cur_load_started.connect(status.txt.on_load_started)
-
-        tabs.current_tab_changed.connect(status.url.on_tab_changed)
-        tabs.cur_url_text_changed.connect(status.url.set_url)
-        tabs.cur_link_hovered.connect(status.url.set_hover_url)
-        tabs.cur_load_status_changed.connect(status.url.on_load_status_changed)
-
-        # command input / completion
-        mode_manager.left.connect(tabs.on_mode_left)
-        cmd.clear_completion_selection.connect(
-            completion.on_clear_completion_selection)
-        cmd.hide_completion.connect(completion.hide)
-        cmd.update_completion.connect(completer.on_update_completion)
-        completer.change_completed_part.connect(cmd.on_change_completed_part)
-
-        # downloads
-        tabs.start_download.connect(download_manager.fetch)
 
     def _get_widgets(self):
         """Get a string list of all widgets."""
@@ -389,20 +299,6 @@ class Application(QApplication):
         for kid in obj.findChildren(QObject):
             lines.append('    ' * depth + repr(kid))
             self._get_pyqt_objects(lines, kid, depth + 1)
-
-    def _get_registered_objects(self):
-        """Get all registered objects in all registries as a string."""
-        blocks = []
-        lines = []
-        for name, registry in objreg.meta_registry.items():
-            blocks.append((name, registry.dump_objects()))
-        for name, data in sorted(blocks, key=lambda e: e[0]):
-            lines.append("")
-            lines.append("{} object registry - {} objects:".format(
-                name, len(data)))
-            for line in data:
-                lines.append("    {}".format(line))
-        return lines
 
     def get_all_objects(self):
         """Get all children of an object recursively as a string."""
@@ -419,36 +315,47 @@ class Application(QApplication):
             len(pyqt_lines)))
         output += pyqt_lines
         output += ['']
-        output += self._get_registered_objects()
+        output += objreg.dump_objects()
         return '\n'.join(output)
 
-    def _recover_pages(self):
+    def _recover_pages(self, forgiving=False):
         """Try to recover all open pages.
 
         Called from _exception_hook, so as forgiving as possible.
 
+        Args:
+            forgiving: Whether to ignore exceptions.
+
         Return:
-            A list of open pages, or an empty list.
+            A list containing a list for each window, which in turn contain the
+            opened URLs.
         """
-        try:
-            tabbed_browser = objreg.get('tabbed-browser')
-        except KeyError:
-            return []
         pages = []
-        for tab in tabbed_browser.widgets():
-            try:
-                url = tab.cur_url.toString(
-                    QUrl.RemovePassword | QUrl.FullyEncoded)
-                if url:
-                    pages.append(url)
-            except Exception:  # pylint: disable=broad-except
-                log.destroy.exception("Error while recovering tab")
+        for win_id in objreg.window_registry:
+            win_pages = []
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            for tab in tabbed_browser.widgets():
+                try:
+                    urlstr = tab.cur_url.toString(
+                        QUrl.RemovePassword | QUrl.FullyEncoded)
+                    if urlstr:
+                        win_pages.append(urlstr)
+                except Exception:  # pylint: disable=broad-except
+                    if forgiving:
+                        log.destroy.exception("Error while recovering tab")
+                    else:
+                        raise
+            pages.append(win_pages)
         return pages
 
     def _save_geometry(self):
         """Save the window geometry to the state config."""
+        last_win_id = sorted(objreg.window_registry)[-1]
+        main_window = objreg.get('main-window', scope='window',
+                                 window=last_win_id)
         state_config = objreg.get('state-config')
-        data = bytes(objreg.get('main-window').saveGeometry())
+        data = bytes(main_window.saveGeometry())
         geom = base64.b64encode(data).decode('ASCII')
         try:
             state_config.add_section('geometry')
@@ -497,13 +404,13 @@ class Application(QApplication):
         self._quit_status['crash'] = False
 
         try:
-            pages = self._recover_pages()
+            pages = self._recover_pages(forgiving=True)
         except Exception:
             log.destroy.exception("Error while recovering pages")
             pages = []
 
         try:
-            history = objreg.get('status-command').history[-5:]
+            history = objreg.get('command-history')[-5:]
         except Exception:
             log.destroy.exception("Error while getting history: {}")
             history = []
@@ -531,18 +438,16 @@ class Application(QApplication):
         self._destroy_crashlogfile()
         sys.exit(1)
 
+    @cmdutils.register(instance='app', name=['quit', 'q'])
+    def quit(self):
+        """Quit qutebrowser."""
+        QApplication.closeAllWindows()
+
     @cmdutils.register(instance='app', ignore_args=True)
     def restart(self, shutdown=True, pages=None):
         """Restart qutebrowser while keeping existing tabs open."""
-        # We don't use _recover_pages here as it's too forgiving when
-        # exceptions occur.
         if pages is None:
-            pages = []
-            for tab in objreg.get('tabbed-browser').widgets():
-                urlstr = tab.cur_url.toString(
-                    QUrl.RemovePassword | QUrl.FullyEncoded)
-                if urlstr:
-                    pages.append(urlstr)
+            pages = self._recover_pages()
         log.destroy.debug("sys.executable: {}".format(sys.executable))
         log.destroy.debug("sys.path: {}".format(sys.path))
         log.destroy.debug("sys.argv: {}".format(sys.argv))
@@ -563,7 +468,12 @@ class Application(QApplication):
                 # We only want to preserve options on a restart.
                 args.append(arg)
         # Add all open pages so they get reopened.
-        args += pages
+        page_args = []
+        for win in pages:
+            page_args.extend(win)
+            page_args.append('')
+        if page_args:
+            args.extend(page_args[:-1])
         log.destroy.debug("args: {}".format(args))
         log.destroy.debug("cwd: {}".format(cwd))
         # Open a new process and immediately shutdown the existing one
@@ -592,13 +502,15 @@ class Application(QApplication):
         except Exception:  # pylint: disable=broad-except
             out = traceback.format_exc()
         qutescheme.pyeval_output = out
-        objreg.get('tabbed-browser').openurl(QUrl('qute:pyeval'), newtab=True)
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window='current')
+        tabbed_browser.openurl(QUrl('qute:pyeval'), newtab=True)
 
     @cmdutils.register(instance='app')
     def report(self):
         """Report a bug in qutebrowser."""
         pages = self._recover_pages()
-        history = objreg.get('status-command').history[-5:]
+        history = objreg.get('command-history')[-5:]
         objects = self.get_all_objects()
         self._crashdlg = crash.ReportDialog(pages, history, objects)
         self._crashdlg.show()
@@ -654,8 +566,13 @@ class Application(QApplication):
             return
         self._shutting_down = True
         log.destroy.debug("Shutting down with status {}...".format(status))
-        prompter = objreg.get('prompter', None)
-        if prompter is not None and prompter.shutdown():
+        deferrer = False
+        for win_id in objreg.window_registry:
+            prompter = objreg.get('prompter', None, scope='window',
+                                  window=win_id)
+            if prompter is not None and prompter.shutdown():
+                deferrer = True
+        if deferrer:
             # If shutdown was called while we were asking a question, we're in
             # a still sub-eventloop (which gets quitted now) and not in the
             # main one.
@@ -678,15 +595,15 @@ class Application(QApplication):
         # Remove eventfilter
         try:
             log.destroy.debug("Removing eventfilter...")
-            self.removeEventFilter(objreg.get('mode-manager'))
+            self.removeEventFilter(self._event_filter)
         except KeyError:
             pass
         # Close all tabs
-        try:
-            log.destroy.debug("Closing tabs...")
-            objreg.get('tabbed-browser').shutdown()
-        except KeyError:
-            pass
+        for win_id in objreg.window_registry:
+            log.destroy.debug("Closing tabs in window {}...".format(win_id))
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            tabbed_browser.shutdown()
         # Save everything
         try:
             config_obj = objreg.get('config')

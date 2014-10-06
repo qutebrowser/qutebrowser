@@ -53,6 +53,7 @@ class BaseKeyParser(QObject):
     Attributes:
         bindings: Bound keybindings
         special_bindings: Bound special bindings (<Foo>).
+        _win_id: The window ID this keyparser is associated with.
         _warn_on_keychains: Whether a warning should be logged when binding
                             keychains in a section which does not support them.
         _keystring: The currently entered key sequence
@@ -73,9 +74,10 @@ class BaseKeyParser(QObject):
                                      'none'])
     Type = usertypes.enum('Type', ['chain', 'special'])
 
-    def __init__(self, parent=None, supports_count=None,
+    def __init__(self, win_id, parent=None, supports_count=None,
                  supports_chains=False):
         super().__init__(parent)
+        self._win_id = win_id
         self._timer = None
         self._modename = None
         self._keystring = ''

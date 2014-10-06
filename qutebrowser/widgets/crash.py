@@ -113,7 +113,7 @@ class _CrashDialog(QDialog):
         """Gather crash information to display.
 
         Args:
-            pages: A list of the open pages (URLs as strings)
+            pages: A list of lists of the open pages (URLs as strings)
             cmdhist: A list with the command history (as strings)
             exc: An exception tuple (type, value, traceback)
         """
@@ -172,7 +172,7 @@ class ExceptionCrashDialog(_CrashDialog):
         _btn_quit: The quit button
         _btn_restore: the restore button
         _btn_pastebin: the pastebin button
-        _pages: A list of the open pages (URLs as strings)
+        _pages: A list of lists of the open pages (URLs as strings)
         _cmdhist: A list with the command history (as strings)
         _exc: An exception tuple (type, value, traceback)
         _objects: A list of all QObjects as string.
@@ -220,7 +220,7 @@ class ExceptionCrashDialog(_CrashDialog):
         self._crash_info += [
             ("Exception", ''.join(traceback.format_exception(*self._exc))),
             ("Commandline args", ' '.join(sys.argv[1:])),
-            ("Open Pages", '\n'.join(self._pages)),
+            ("Open Pages", '\n\n'.join('\n'.join(e) for e in self._pages)),
             ("Command history", '\n'.join(self._cmdhist)),
             ("Objects", self._objects),
         ]
@@ -316,7 +316,7 @@ class ReportDialog(_CrashDialog):
         super()._gather_crash_info()
         self._crash_info += [
             ("Commandline args", ' '.join(sys.argv[1:])),
-            ("Open Pages", '\n'.join(self._pages)),
+            ("Open Pages", '\n\n'.join('\n'.join(e) for e in self._pages)),
             ("Command history", '\n'.join(self._cmdhist)),
             ("Objects", self._objects),
         ]

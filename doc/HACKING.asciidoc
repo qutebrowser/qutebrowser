@@ -301,17 +301,17 @@ There are currently these object registries, also called 'scopes':
 * The `global` scope, with objects which are used globally (`config`,
 `cookie-jar`, etc.)
 * The `tab` scope with objects which are per-tab (`hintmanager`, `webview`,
-etc.). Passing this scope to `objreg.get()` always selects the object in the
-currently focused tab.
-* The `meta` scope which is an object registry of all other object registries,
-mainly intended for debugging.
+etc.). Passing this scope to `objreg.get()` selects the object in the currently
+focused tab by default. A tab can be explicitely selected by passing
++tab=_tab-id_, window=_win-id_+ to it.
 
 A new object can be registered by using
-+objreg.register(_name_, _object_[, scope=_scope_])+. An object should not be
-registered twice. To update it, `update=True` has to be given.
++objreg.register(_name_, _object_[, scope=_scope_, window=_win-id_,
+tab=_tab-id_])+. An object should not be registered twice. To update it,
+`update=True` has to be given.
 
-An object can be retrieved by using +objreg.get(_name_[, scope=_scope_])+. The
-default scope is `global`.
+An object can be retrieved by using +objreg.get(_name_[, scope=_scope_,
+window=_win-id_, tab=_tab-id_])+. The default scope is `global`.
 
 All objects can be printed by starting with the `--debug` flag and using the
 `:debug-all-objects` command.

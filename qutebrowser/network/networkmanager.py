@@ -42,14 +42,16 @@ class NetworkManager(QNetworkAccessManager):
         _requests: Pending requests.
         _scheme_handlers: A dictionary (scheme -> handler) of supported custom
                           schemes.
+        _win_id: The window ID this NetworkManager is associated with.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, win_id, parent=None):
         log.init.debug("Initializing NetworkManager")
         super().__init__(parent)
+        self._win_id = win_id
         self._requests = []
         self._scheme_handlers = {
-            'qute': qutescheme.QuteSchemeHandler(),
+            'qute': qutescheme.QuteSchemeHandler(win_id),
         }
 
         # We have a shared cookie jar and cache - we restore their parents so
@@ -101,20 +103,22 @@ class NetworkManager(QNetworkAccessManager):
         for err in errors:
             # FIXME we might want to use warn here (non-fatal error)
             # https://github.com/The-Compiler/qutebrowser/issues/114
-            message.error('SSL error: {}'.format(err.errorString()))
+            message.error(self._win_id,
+                          'SSL error: {}'.format(err.errorString()))
         reply.ignoreSslErrors()
 
     @pyqtSlot('QNetworkReply', 'QAuthenticator')
     def on_authentication_required(self, _reply, authenticator):
         """Called when a website needs authentication."""
-        answer = message.ask("Username ({}):".format(authenticator.realm()),
+        answer = message.ask(self._win_id,
+                             "Username ({}):".format(authenticator.realm()),
                              mode=usertypes.PromptMode.user_pwd)
         self._fill_authenticator(authenticator, answer)
 
     @pyqtSlot('QNetworkProxy', 'QAuthenticator')
     def on_proxy_authentication_required(self, _proxy, authenticator):
         """Called when a proxy needs authentication."""
-        answer = message.ask("Proxy username ({}):".format(
+        answer = message.ask(self._win_id, "Proxy username ({}):".format(
             authenticator.realm()), mode=usertypes.PromptMode.user_pwd)
         self._fill_authenticator(authenticator, answer)
 

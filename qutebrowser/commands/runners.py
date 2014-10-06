@@ -27,13 +27,17 @@ from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import message, log, utils, objreg
 
 
-def replace_variables(arglist):
+def replace_variables(win_id, arglist):
     """Utility function to replace variables like {url} in a list of args."""
     args = []
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window=win_id)
     for arg in arglist:
         if arg == '{url}':
-            url = objreg.get('tabbed-browser').current_url().toString(
-                QUrl.FullyEncoded | QUrl.RemovePassword)
+            # Note we have to do this in here as the user gets an error message
+            # by current_url if no URL is open yet.
+            url = tabbed_browser.current_url().toString(QUrl.FullyEncoded |
+                                                        QUrl.RemovePassword)
             args.append(url)
         else:
             args.append(arg)
@@ -114,7 +118,7 @@ class SearchRunner(QObject):
         """
         self._search(text, rev=True)
 
-    @cmdutils.register(instance='search-runner', hide=True)
+    @cmdutils.register(instance='search-runner', hide=True, scope='window')
     def search_next(self, count=1):
         """Continue the search to the ([count]th) next term.
 
@@ -128,7 +132,7 @@ class SearchRunner(QObject):
             for _ in range(count):
                 self.do_search.emit(self._text, self._flags)
 
-    @cmdutils.register(instance='search-runner', hide=True)
+    @cmdutils.register(instance='search-runner', hide=True, scope='window')
     def search_prev(self, count=1):
         """Continue the search to the ([count]th) previous term.
 
@@ -152,18 +156,21 @@ class SearchRunner(QObject):
             self.do_search.emit(self._text, flags)
 
 
-class CommandRunner:
+class CommandRunner(QObject):
 
     """Parse and run qutebrowser commandline commands.
 
     Attributes:
         _cmd: The command which was parsed.
         _args: The arguments which were parsed.
+        _win_id: The window this CommandRunner is associated with.
     """
 
-    def __init__(self):
+    def __init__(self, win_id, parent=None):
+        super().__init__(parent)
         self._cmd = None
         self._args = []
+        self._win_id = win_id
 
     def _get_alias(self, text, alias_no_args):
         """Get an alias from the config.
@@ -278,11 +285,11 @@ class CommandRunner:
                 self.run(sub, count)
             return
         self.parse(text)
-        args = replace_variables(self._args)
+        args = replace_variables(self._win_id, self._args)
         if count is not None:
-            self._cmd.run(args, count=count)
+            self._cmd.run(self._win_id, args, count=count)
         else:
-            self._cmd.run(args)
+            self._cmd.run(self._win_id, args)
 
     @pyqtSlot(str, int)
     def run_safely(self, text, count=None):
@@ -290,7 +297,7 @@ class CommandRunner:
         try:
             self.run(text, count)
         except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
-            message.error(e, immediately=True)
+            message.error(self._win_id, e, immediately=True)
 
     @pyqtSlot(str, int)
     def run_safely_init(self, text, count=None):
@@ -301,4 +308,4 @@ class CommandRunner:
         try:
             self.run(text, count)
         except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
-            message.error(e)
+            message.error(self._win_id, e)

@@ -19,6 +19,8 @@
 
 """Prompt shown in the statusbar."""
 
+import functools
+
 from PyQt5.QtWidgets import QHBoxLayout, QWidget, QLineEdit
 
 from qutebrowser.widgets import misc
@@ -45,9 +47,9 @@ class Prompt(QWidget):
         _hbox: The QHBoxLayout used to display the text and prompt.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        objreg.register('prompt', self)
+        objreg.register('prompt', self, scope='window', window=win_id)
         self._hbox = QHBoxLayout(self)
         self._hbox.setContentsMargins(0, 0, 0, 0)
         self._hbox.setSpacing(5)
@@ -58,8 +60,12 @@ class Prompt(QWidget):
         self.lineedit = PromptLineEdit()
         self._hbox.addWidget(self.lineedit)
 
-        prompter_obj = prompter.Prompter(self)
-        objreg.register('prompter', prompter_obj)
+        prompter_obj = prompter.Prompter(win_id)
+        objreg.register('prompter', prompter_obj, scope='window',
+                        window=win_id)
+        self.destroyed.connect(
+            functools.partial(objreg.delete, 'prompter', scope='window',
+                              window=win_id))
 
     def __repr__(self):
         return utils.get_repr(self)

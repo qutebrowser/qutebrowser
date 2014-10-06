@@ -26,6 +26,8 @@ import collections
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer, QStandardPaths
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
+# We need this import so PyQt can use it inside pyqtSlot
+from PyQt5.QtWebKitWidgets import QWebPage  # pylint: disable=unused-import
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
@@ -412,7 +414,9 @@ class DownloadManager(QObject):
         q.destroyed.connect(functools.partial(self.questions.remove, q))
         self.questions.append(q)
         download.cancelled.connect(q.abort)
-        objreg.get('message-bridge').ask(q, blocking=False)
+        message_bridge = objreg.get('message-bridge', scope='window',
+                                    window='current')
+        message_bridge.ask(q, blocking=False)
 
     @pyqtSlot(DownloadItem)
     def on_finished(self, download):
@@ -433,4 +437,4 @@ class DownloadManager(QObject):
     @pyqtSlot(str)
     def on_error(self, msg):
         """Display error message on download errors."""
-        message.error("Download error: {}".format(msg))
+        message.error('current', "Download error: {}".format(msg))

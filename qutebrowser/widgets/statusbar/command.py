@@ -35,6 +35,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     Attributes:
         _cursor_part: The part the cursor is currently over.
+        _win_id: The window ID this widget is associated with.
 
     Signals:
         got_cmd: Emitted when a command is triggered by the user.
@@ -64,9 +65,10 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     show_cmd = pyqtSignal()
     hide_cmd = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, win_id, parent=None):
         misc.CommandLineEdit.__init__(self, parent)
         misc.MinimalLineEditMixin.__init__(self)
+        self._win_id = win_id
         self._cursor_part = 0
         self.history.history = objreg.get('command-history').data
         self._empty_item_idx = None
@@ -96,7 +98,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             # Text is only whitespace so we treat this as a single element with
             # the whitespace.
             return [text]
-        runner = runners.CommandRunner()
+        runner = runners.CommandRunner(self._win_id)
         parts = runner.parse(text, fallback=True, alias_no_args=False)
         if self._empty_item_idx is not None:
             log.completion.debug("Empty element queued at {}, "
@@ -156,7 +158,8 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.setFocus()
         self.show_cmd.emit()
 
-    @cmdutils.register(instance='status-command', name='set-cmd-text')
+    @cmdutils.register(instance='status-command', name='set-cmd-text',
+                       scope='window')
     def set_cmd_text_command(self, text):
         """Preset the statusbar to some text.
 
@@ -168,7 +171,9 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         Args:
             text: The commandline to set.
         """
-        url = objreg.get('tabbed-browser').current_url().toString(
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=self._win_id)
+        url = tabbed_browser.current_url().toString(
             QUrl.FullyEncoded | QUrl.RemovePassword)
         # FIXME we currently replace the URL in any place in the arguments,
         # rather than just replacing it if it is a dedicated argument. We could
@@ -213,7 +218,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.show_cmd.emit()
 
     @cmdutils.register(instance='status-command', hide=True,
-                       modes=[usertypes.KeyMode.command])
+                       modes=[usertypes.KeyMode.command], scope='window')
     def command_history_prev(self):
         """Go back in the commandline history."""
         try:
@@ -228,7 +233,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             self.set_cmd_text(item)
 
     @cmdutils.register(instance='status-command', hide=True,
-                       modes=[usertypes.KeyMode.command])
+                       modes=[usertypes.KeyMode.command], scope='window')
     def command_history_next(self):
         """Go forward in the commandline history."""
         if not self.history.is_browsing():
@@ -241,7 +246,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             self.set_cmd_text(item)
 
     @cmdutils.register(instance='status-command', hide=True,
-                       modes=[usertypes.KeyMode.command])
+                       modes=[usertypes.KeyMode.command], scope='window')
     def command_accept(self):
         """Execute the command currently in the commandline.
 
@@ -257,7 +262,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         }
         text = self.text()
         self.history.append(text)
-        modeman.leave(usertypes.KeyMode.command, 'cmd accept')
+        modeman.leave(self._win_id, usertypes.KeyMode.command, 'cmd accept')
         if text[0] in signals:
             signals[text[0]].emit(text.lstrip(text[0]))
 
@@ -294,7 +299,8 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     def focusInEvent(self, e):
         """Extend focusInEvent to enter command mode."""
-        modeman.maybe_enter(usertypes.KeyMode.command, 'cmd focus')
+        modeman.maybe_enter(self._win_id, usertypes.KeyMode.command,
+                            'cmd focus')
         super().focusInEvent(e)
 
     def setText(self, text):

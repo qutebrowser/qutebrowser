@@ -21,12 +21,13 @@
 
 import os
 import os.path
+import collections
 
 from qutebrowser.utils import log, utils
 from qutebrowser.config import config
 
 
-class LineConfigParser:
+class LineConfigParser(collections.UserList):
 
     """Parser for configuration files which are simply line-based.
 
@@ -47,6 +48,7 @@ class LineConfigParser:
             limit: Config tuple (section, option) which contains a limit.
             binary: Whether to open the file in binary mode.
         """
+        super().__init__()
         self._configdir = configdir
         self._configfile = os.path.join(self._configdir, fname)
         self._fname = fname
@@ -64,10 +66,6 @@ class LineConfigParser:
         return utils.get_repr(self, constructor=True,
                               configdir=self._configdir, fname=self._fname,
                               limit=self._limit, binary=self._binary)
-
-    def __iter__(self):
-        """Iterate over the set data."""
-        return self.data.__iter__()
 
     def read(self, filename):
         """Read the data from a file."""

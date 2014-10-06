@@ -47,7 +47,7 @@ def init():
         try:
             key, url = line.split(maxsplit=1)
         except ValueError:
-            message.error("Invalid quickmark '{}'".format(line))
+            message.error(0, "Invalid quickmark '{}'".format(line))
         else:
             marks[key] = url
 
@@ -58,22 +58,23 @@ def save():
     linecp.save()
 
 
-def prompt_save(url):
+def prompt_save(win_id, url):
     """Prompt for a new quickmark name to be added and add it.
 
     Args:
+        win_id: The current window ID.
         url: The quickmark url as a QUrl.
     """
     if not url.isValid():
         urlutils.invalid_url_error(url, "save quickmark")
         return
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
-    message.ask_async("Add quickmark:", usertypes.PromptMode.text,
+    message.ask_async(win_id, "Add quickmark:", usertypes.PromptMode.text,
                       functools.partial(quickmark_add, urlstr))
 
 
 @cmdutils.register()
-def quickmark_add(url, name):
+def quickmark_add(url, name, win_id):
     """Add a new quickmark.
 
     Args:
@@ -83,10 +84,10 @@ def quickmark_add(url, name):
     # We don't raise cmdexc.CommandError here as this can be called async via
     # prompt_save.
     if not name:
-        message.error("Can't set mark with empty name!")
+        message.error(win_id, "Can't set mark with empty name!")
         return
     if not url:
-        message.error("Can't set mark with empty URL!")
+        message.error(win_id, "Can't set mark with empty URL!")
         return
 
     def set_mark():
@@ -94,7 +95,7 @@ def quickmark_add(url, name):
         marks[name] = url
 
     if name in marks:
-        message.confirm_async("Override existing quickmark?", set_mark,
+        message.confirm_async(win_id, "Override existing quickmark?", set_mark,
                               default=True)
     else:
         set_mark()

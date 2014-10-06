@@ -42,9 +42,9 @@ class TabWidget(QTabWidget):
 
     """The tabwidget used for TabbedBrowser."""
 
-    def __init__(self, parent=None):
+    def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        bar = TabBar()
+        bar = TabBar(win_id)
         self.setTabBar(bar)
         bar.tabCloseRequested.connect(self.tabCloseRequested)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -92,10 +92,12 @@ class TabBar(QTabBar):
 
     Attributes:
         vertical: When the tab bar is currently vertical.
+        win_id: The window ID this TabBar belongs to.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        self._win_id = win_id
         self.setStyle(TabBarStyle(self.style()))
         self.set_font()
         config.on_change(self.set_font, 'fonts', 'tabbar')
@@ -202,8 +204,10 @@ class TabBar(QTabBar):
         if self.vertical:
             confwidth = str(config.get('tabs', 'width'))
             if confwidth.endswith('%'):
+                main_window = objreg.get('main-window', scope='window',
+                                         window=self._win_id)
                 perc = int(confwidth.rstrip('%'))
-                width = objreg.get('main-window').width() * perc / 100
+                width = main_window.width() * perc / 100
             else:
                 width = int(confwidth)
             size = QSize(max(minimum_size.width(), width), height)

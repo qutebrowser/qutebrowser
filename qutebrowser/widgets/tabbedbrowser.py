@@ -51,7 +51,7 @@ class TabbedBrowser(tabwidget.TabWidget):
          emitted if the signal occured in the current tab.
 
     Attributes:
-        _tabs: A list of open tabs.
+        _win_id: The window ID this tabbedbrowser is associated with.
         _filter: A SignalFilter instance.
         _now_focused: The tab which is focused now.
         _tab_insert_idx_left: Where to insert a new tab with
@@ -97,19 +97,23 @@ class TabbedBrowser(tabwidget.TabWidget):
     current_tab_changed = pyqtSignal(webview.WebView)
     title_changed = pyqtSignal(str)
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, win_id, parent=None):
+        super().__init__(win_id, parent)
+        self._win_id = win_id
         self._tab_insert_idx_left = 0
         self._tab_insert_idx_right = -1
         self.tabCloseRequested.connect(self.on_tab_close_requested)
         self.currentChanged.connect(self.on_current_changed)
         self.cur_load_started.connect(self.on_cur_load_started)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self._tabs = []
         self._undo_stack = []
-        self._filter = signalfilter.SignalFilter(self)
-        dispatcher = commands.CommandDispatcher()
-        objreg.register('command-dispatcher', dispatcher)
+        self._filter = signalfilter.SignalFilter(win_id, self)
+        dispatcher = commands.CommandDispatcher(win_id)
+        objreg.register('command-dispatcher', dispatcher, scope='window',
+                        window=win_id)
+        self.destroyed.connect(
+            functools.partial(objreg.delete, 'command-dispatcher',
+                              scope='window', window=win_id))
         self._now_focused = None
         # FIXME adjust this to font size
         # https://github.com/The-Compiler/qutebrowser/issues/119
@@ -245,8 +249,10 @@ class TabbedBrowser(tabwidget.TabWidget):
                 tab))
         if tab is self._now_focused:
             self._now_focused = None
-        if tab is objreg.get('last-focused-tab', None):
-            objreg.delete('last-focused-tab')
+        if tab is objreg.get('last-focused-tab', None, scope='window',
+                             window=self._win_id):
+            objreg.delete('last-focused-tab', scope='window',
+                          window=self._win_id)
         if tab.cur_url.isValid():
             history_data = qtutils.serialize(tab.history())
             entry = UndoEntry(tab.cur_url, history_data)
@@ -255,7 +261,6 @@ class TabbedBrowser(tabwidget.TabWidget):
             urlutils.invalid_url_error(url, "saving tab")
             return
         tab.shutdown()
-        self._tabs.remove(tab)
         self.removeTab(idx)
         tab.deleteLater()
 
@@ -318,9 +323,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         if url is not None:
             qtutils.ensure_valid(url)
         log.webview.debug("Creating new tab with URL {}".format(url))
-        tab = webview.WebView(self)
+        tab = webview.WebView(self._win_id, self)
         self._connect_tab_signals(tab)
-        self._tabs.append(tab)
         if explicit:
             pos = config.get('tabs', 'new-tab-position-explicit')
         else:
@@ -369,19 +373,19 @@ class TabbedBrowser(tabwidget.TabWidget):
         old_scroll_pos = widget.scroll_pos
         found = widget.findText(text, flags)
         if not found and not flags & QWebPage.HighlightAllOccurrences and text:
-            message.error("Text '{}' not found on page!".format(text),
-                          immediately=True)
+            message.error(self._win_id, "Text '{}' not found on "
+                          "page!".format(text), immediately=True)
         else:
             backward = int(flags) & QWebPage.FindBackward
 
             def check_scroll_pos():
                 """Check if the scroll position got smaller and show info."""
                 if not backward and widget.scroll_pos < old_scroll_pos:
-                    message.info("Search hit BOTTOM, continuing at TOP",
-                                 immediately=True)
+                    message.info(self._win_id, "Search hit BOTTOM, continuing "
+                                 "at TOP", immediately=True)
                 elif backward and widget.scroll_pos > old_scroll_pos:
-                    message.info("Search hit TOP, continuing at BOTTOM",
-                                 immediately=True)
+                    message.info(self._win_id, "Search hit TOP, continuing at "
+                                 "BOTTOM", immediately=True)
             # We first want QWebPage to refresh.
             QTimer.singleShot(0, check_scroll_pos)
 
@@ -414,8 +418,10 @@ class TabbedBrowser(tabwidget.TabWidget):
     @pyqtSlot()
     def on_cur_load_started(self):
         """Leave insert/hint mode when loading started."""
-        modeman.maybe_leave(usertypes.KeyMode.insert, 'load started')
-        modeman.maybe_leave(usertypes.KeyMode.hint, 'load started')
+        modeman.maybe_leave(self._win_id, usertypes.KeyMode.insert,
+                            'load started')
+        modeman.maybe_leave(self._win_id, usertypes.KeyMode.hint,
+                            'load started')
 
     @pyqtSlot(webview.WebView, str)
     def on_title_changed(self, tab, text):
@@ -501,9 +507,11 @@ class TabbedBrowser(tabwidget.TabWidget):
             return
         tab = self.widget(idx)
         tab.setFocus()
-        modeman.maybe_leave(usertypes.KeyMode.hint, 'tab changed')
+        modeman.maybe_leave(self._win_id, usertypes.KeyMode.hint,
+                            'tab changed')
         if self._now_focused is not None:
-            objreg.register('last-focused-tab', self._now_focused, update=True)
+            objreg.register('last-focused-tab', self._now_focused, update=True,
+                            scope='window', window=self._win_id)
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
         self._change_app_title(self.tabText(idx))
