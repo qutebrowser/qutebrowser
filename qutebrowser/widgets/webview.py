@@ -154,16 +154,18 @@ class WebView(QWebView):
         """
         if e.button() == Qt.XButton1:
             # Back button on mice which have it.
-            try:
-                self.go_back()
-            except cmdexc.CommandError as ex:
-                message.error(self._win_id, ex, immediately=True)
+            if self.page().history().canGoBack():
+                self.back()
+            else:
+                message.error(self._win_id, "At beginning of history.",
+                              immediately=True)
         elif e.button() == Qt.XButton2:
             # Forward button on mice which have it.
-            try:
-                self.go_forward()
-            except cmdexc.CommandError as ex:
-                message.error(self._win_id, ex, immediately=True)
+            if self.page().history().canGoForward():
+                self.forward()
+            else:
+                message.error(self._win_id, "At end of history.",
+                              immediately=True)
 
     def _mousepress_insertmode(self, e):
         """Switch to insert mode when an editable element was clicked.
@@ -311,20 +313,6 @@ class WebView(QWebView):
         """
         level = self._zoom.getitem(offset)
         self.zoom_perc(level, fuzzyval=False)
-
-    def go_back(self):
-        """Go back a page in the history."""
-        if self.page().history().canGoBack():
-            self.back()
-        else:
-            raise cmdexc.CommandError("At beginning of history.")
-
-    def go_forward(self):
-        """Go forward a page in the history."""
-        if self.page().history().canGoForward():
-            self.forward()
-        else:
-            raise cmdexc.CommandError("At end of history.")
 
     @pyqtSlot('QUrl')
     def on_url_changed(self, url):
