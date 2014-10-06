@@ -88,7 +88,7 @@ class Application(QApplication):
 
         self._args = args
         objreg.register('args', args)
-        QTimer.singleShot(0, self._process_init_args)
+        QTimer.singleShot(0, self._open_pages)
 
         objreg.register('app', self)
 
@@ -212,8 +212,14 @@ class Application(QApplication):
             # pylint: disable=no-member
             faulthandler.register(signal.SIGUSR1)
 
+    def _open_pages(self):
+        """Open startpage etc. and process commandline args."""
+        self._process_init_args()
+        self._open_startpage()
+        self._open_quickstart()
+
     def _process_init_args(self):
-        """Process initial positional args.
+        """Process commandline args.
 
         URLs to open have no prefix, commands to execute begin with a colon.
         """
@@ -238,6 +244,8 @@ class Application(QApplication):
                 else:
                     tabbed_browser.tabopen(url)
 
+    def _open_startpage(self):
+        """Open startpage in windows which are still empty."""
         for win_id in objreg.window_registry:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
@@ -253,13 +261,16 @@ class Application(QApplication):
                     else:
                         tabbed_browser.tabopen(url)
 
-        # Open quickstart if it's the first start
+    def _open_quickstart(self):
+        """Open quickstart if it's the first start."""
         state_config = objreg.get('state-config')
         try:
             quickstart_done = state_config['general']['quickstart-done'] == '1'
         except KeyError:
             quickstart_done = False
         if not quickstart_done:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window='current')
             tabbed_browser.tabopen(
                 QUrl('http://www.qutebrowser.org/quickstart.html'))
             try:
