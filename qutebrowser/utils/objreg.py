@@ -217,8 +217,12 @@ def dump_objects():
     for win_id in window_registry:
         registry = _get_registry('window', window=win_id)
         blocks.append(('window-{}'.format(win_id), registry.dump_objects()))
-    # FIXME: Add tab registries
-    for name, data in sorted(blocks, key=lambda e: e[0]):
+        tab_registry = get('tab-registry', scope='window', window=win_id)
+        for tab_id, tab in tab_registry.items():
+            dump = tab.registry.dump_objects()
+            data = ['    ' + line for line in dump]
+            blocks.append(('    tab-{}'.format(tab_id), data))
+    for name, data in blocks:
         lines.append("")
         lines.append("{} object registry - {} objects:".format(
             name, len(data)))
