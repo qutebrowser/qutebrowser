@@ -32,7 +32,7 @@ import functools
 import traceback
 
 from PyQt5.QtWidgets import QApplication, QDialog
-from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, Qt, QUrl,
+from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
                           QStandardPaths, QObject)
 
 import qutebrowser
