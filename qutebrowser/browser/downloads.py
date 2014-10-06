@@ -402,7 +402,6 @@ class DownloadManager(QObject):
         self.downloads.append(download)
         self.download_added.emit()
 
-        # FIXME display this in right window
         q = usertypes.Question(self)
         q.text = "Save file to:"
         q.mode = usertypes.PromptMode.text
