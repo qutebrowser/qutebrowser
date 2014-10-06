@@ -38,8 +38,9 @@ ElemTuple = collections.namedtuple('ElemTuple', ['elem', 'label'])
 
 
 Target = usertypes.enum('Target', ['normal', 'tab', 'tab_bg', 'window', 'yank',
-                                   'yank_primary', 'fill', 'rapid', 'download',
-                                   'userscript', 'spawn'])
+                                   'yank_primary', 'fill', 'rapid',
+                                   'rapid_win', 'download', 'userscript',
+                                   'spawn'])
 
 
 @pyqtSlot(usertypes.KeyMode)
@@ -132,6 +133,7 @@ class HintManager(QObject):
         Target.yank_primary: "Yank hint to primary selection...",
         Target.fill: "Set hint in commandline...",
         Target.rapid: "Follow hint (rapid mode)...",
+        Target.rapid_win: "Follow hint in new window (rapid mode)...",
         Target.download: "Download hint...",
         Target.userscript: "Call userscript via hint...",
         Target.spawn: "Spawn command via hint...",
@@ -305,6 +307,8 @@ class HintManager(QObject):
         """
         if self._context.target == Target.rapid:
             target = Target.tab_bg
+        elif self._context.target == Target.rapid_win:
+            target = Target.window
         else:
             target = self._context.target
         self.set_open_target.emit(target.name)
@@ -561,6 +565,8 @@ class HintManager(QObject):
                 - `fill`: Fill the commandline with the command given as
                           argument.
                 - `rapid`: Open the link in a new tab and stay in hinting mode.
+                - `rapid-win`: Open the link in a new window and stay in
+                               hinting mode.
                 - `download`: Download the link.
                 - `userscript`: Call an userscript with `$QUTE_URL` set to the
                                 link.
@@ -664,6 +670,7 @@ class HintManager(QObject):
             Target.tab_bg: self._click,
             Target.window: self._click,
             Target.rapid: self._click,
+            Target.rapid_win: self._click,
             # _download needs a QWebElement to get the frame.
             Target.download: self._download,
         }
@@ -688,7 +695,7 @@ class HintManager(QObject):
             url_handlers[self._context.target](url)
         else:
             raise ValueError("No suitable handler found!")
-        if self._context.target != Target.rapid:
+        if self._context.target not in (Target.rapid, Target.rapid_win):
             modeman.maybe_leave(self._win_id, usertypes.KeyMode.hint,
                                 'followed')
 
