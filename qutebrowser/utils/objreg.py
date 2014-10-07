@@ -76,12 +76,12 @@ class ObjectRegistry(collections.UserDict):
         be destroying its children, which might still use the object
         registry.
         """
-        log.misc.debug("schedule destroyed: {}".format(name))
+        log.misc.debug("schedule removal: {}".format(name))
         QTimer.singleShot(0, functools.partial(self._on_destroyed, name))
 
     def _on_destroyed(self, name):
         """Remove a destroyed QObject."""
-        log.misc.debug("destroyed: {}".format(name))
+        log.misc.debug("removed: {}".format(name))
         try:
             del self[name]
         except KeyError:
