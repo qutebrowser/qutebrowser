@@ -160,7 +160,7 @@ class ConsoleTextEdit(QTextEdit):
         self.setReadOnly(True)
         config.on_change(self.update_font, 'fonts', 'debug-console')
         self.update_font()
-        self.setFocusPolicy(Qt.NoFocus)
+        self.setFocusPolicy(Qt.ClickFocus)
 
     def __repr__(self):
         return utils.get_repr(self)
