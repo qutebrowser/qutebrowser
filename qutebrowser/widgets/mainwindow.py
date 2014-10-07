@@ -326,6 +326,9 @@ class MainWindow(QWidget):
             confirmed = message.ask(self.win_id, text,
                                     usertypes.PromptMode.yesno, default=True)
             if not confirmed:
+                log.destroy.debug("Cancelling losing of window {}".format(
+                    self.win_id))
                 e.ignore()
                 return
         e.accept()
+        log.destroy.debug("Closing window {}".format(self.win_id))
