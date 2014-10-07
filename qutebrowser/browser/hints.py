@@ -67,7 +67,6 @@ class HintContext:
                 userscript: Call a custom userscript.
                 spawn: Spawn a simple command.
         to_follow: The link to follow when enter is pressed.
-        connected_frames: The QWebFrames which are connected to a signal.
         args: Custom arguments for userscript/spawn
     """
 
@@ -77,7 +76,6 @@ class HintContext:
         self.baseurl = None
         self.to_follow = None
         self.frames = []
-        self.connected_frames = []
         self.args = []
 
     def get_args(self, urlstr):
@@ -159,6 +157,10 @@ class HintManager(QObject):
                 elem.label.removeFromDocument()
             except webelem.IsNullError:
                 pass
+        for f in self._context.frames:
+            log.hints.debug("Disconnecting frame {}".format(f))
+            f.contentsSizeChanged.disconnect(self.on_contents_size_changed)
+            log.hints.debug("Disconnected.".format(f))
         text = self.HINT_TEXTS[self._context.target]
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
@@ -444,18 +446,8 @@ class HintManager(QObject):
     def _connect_frame_signals(self):
         """Connect the contentsSizeChanged signals to all frames."""
         for f in self._context.frames:
-            # For some reason we get segfaults sometimes when calling
-            # frame.contentsSizeChanged.disconnect() later, maybe because Qt
-            # already deleted the frame?
-            # We work around this by never disconnecting this signal, and here
-            # making sure we don't connect a frame which already was connected
-            # at some point earlier.
-            if f in self._context.connected_frames:
-                log.hints.debug("Frame {} already connected!".format(f))
-            else:
-                log.hints.debug("Connecting frame {}".format(f))
-                f.contentsSizeChanged.connect(self.on_contents_size_changed)
-                self._context.connected_frames.append(f)
+            log.hints.debug("Connecting frame {}".format(f))
+            f.contentsSizeChanged.connect(self.on_contents_size_changed)
 
     def _check_args(self, target, *args):
         """Check the arguments passed to start() and raise if they're wrong.
@@ -706,11 +698,6 @@ class HintManager(QObject):
     @pyqtSlot('QSize')
     def on_contents_size_changed(self, _size):
         """Reposition hints if contents size changed."""
-        if self._context is None:
-            # We got here because of some earlier hinting, but we can't simply
-            # disconnect frames as this leads to occasional segfaults :-/
-            log.hints.debug("Not hinting!")
-            return
         log.hints.debug("Contents size changed...!")
         for elems in self._context.elems.values():
             css = self._get_hint_css(elems.elem, elems.label)
