@@ -553,7 +553,7 @@ Valid values:
 
  * +ignore+: Don't do anything.
  * +blank+: Load a blank page.
- * +quit+: Quit qutebrowser.
+ * +close+: Close the window.
 
 Default: +pass:[ignore]+
 
