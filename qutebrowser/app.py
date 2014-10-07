@@ -88,7 +88,6 @@ class Application(QApplication):
 
         self._args = args
         objreg.register('args', args)
-        QTimer.singleShot(0, self._open_pages)
 
         objreg.register('app', self)
 
@@ -108,6 +107,7 @@ class Application(QApplication):
         self.setApplicationVersion(qutebrowser.__version__)
         utils.actute_warning()
         self._init_modules()
+        QTimer.singleShot(0, self._open_pages)
 
         log.init.debug("Initializing eventfilter...")
         self._event_filter = modeman.EventFilter(self)
