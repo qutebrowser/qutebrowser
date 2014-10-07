@@ -617,9 +617,14 @@ class HintManager(QObject):
                 elems.label['style'] = css
 
     def filter_hints(self, filterstr):
-        """Filter displayed hints according to a text."""
+        """Filter displayed hints according to a text.
+
+        Args:
+            filterstr: The string to filer with, or None to show all.
+        """
         for elems in self._context.elems.values():
-            if str(elems.elem).lower().startswith(filterstr):
+            if (filterstr is None or
+                    str(elems.elem).lower().startswith(filterstr)):
                 if elems.label['hidden'] == 'true':
                     # hidden element which matches again -> unhide it
                     elems.label['hidden'] = 'false'
@@ -687,6 +692,12 @@ class HintManager(QObject):
         if self._context.target not in (Target.rapid, Target.rapid_win):
             modeman.maybe_leave(self._win_id, usertypes.KeyMode.hint,
                                 'followed')
+        else:
+            # Show all hints again
+            self.filter_hints(None)
+            # Undo keystring highlighting
+            for (string, elems) in self._context.elems.items():
+                elems.label.setInnerXml(string)
 
     @cmdutils.register(instance='hintmanager', scope='tab', hide=True)
     def follow_hint(self):
