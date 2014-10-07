@@ -222,10 +222,6 @@ class CommandDispatcher:
 
         Args:
             count: The tab index to close, or None
-
-        Emit:
-            quit: If last tab was closed and last-close in config is set to
-                  quit.
         """
         tab = self._cntwidget(count)
         if tab is None:

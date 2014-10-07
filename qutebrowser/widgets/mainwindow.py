@@ -200,7 +200,7 @@ class MainWindow(QWidget):
         prompter = self._get_object('prompter')
 
         # misc
-        self._tabbed_browser.quit.connect(app.shutdown)
+        self._tabbed_browser.close_window.connect(self.close)
         mode_manager.entered.connect(hints.on_mode_entered)
 
         # status bar
@@ -294,6 +294,7 @@ class MainWindow(QWidget):
             self._completion.setGeometry(rect)
 
     @cmdutils.register(instance='main-window', scope='window')
+    @pyqtSlot()
     def close(self):
         """Close the current window.
 

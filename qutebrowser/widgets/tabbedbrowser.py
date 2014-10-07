@@ -72,7 +72,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                                  arg 1: x-position in %.
                                  arg 2: y-position in %.
         cur_load_status_changed: Loading status of current tab changed.
-        quit: The last tab was closed, quit application.
+        close_window: The last tab was closed, close this window.
         resized: Emitted when the browser window has resized, so the completion
                  widget can adjust its size to it.
                  arg: The new size.
@@ -92,7 +92,7 @@ class TabbedBrowser(tabwidget.TabWidget):
     cur_scroll_perc_changed = pyqtSignal(int, int)
     cur_load_status_changed = pyqtSignal(str)
     start_download = pyqtSignal('QNetworkReply*')
-    quit = pyqtSignal()
+    close_window = pyqtSignal()
     resized = pyqtSignal('QRect')
     got_cmd = pyqtSignal(str)
     current_tab_changed = pyqtSignal(webview.WebView)
@@ -229,9 +229,9 @@ class TabbedBrowser(tabwidget.TabWidget):
         last_close = config.get('tabs', 'last-close')
         if self.count() > 1:
             self._remove_tab(tab)
-        elif last_close == 'quit':
+        elif last_close == 'close':
             self._remove_tab(tab)
-            self.quit.emit()
+            self.close_window.emit()
         elif last_close == 'blank':
             tab.openurl('about:blank')
 

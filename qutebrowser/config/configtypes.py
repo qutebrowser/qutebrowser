@@ -1163,7 +1163,7 @@ class LastClose(BaseType):
 
     valid_values = ValidValues(('ignore', "Don't do anything."),
                                ('blank', "Load a blank page."),
-                               ('quit', "Quit qutebrowser."))
+                               ('close', "Close the window."))
 
 
 class AcceptCookies(BaseType):
