@@ -221,7 +221,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             self._remove_tab(tab)
 
     def close_tab(self, tab):
-        """Close a tab with either index or tab given.
+        """Close a tab.
 
         Args:
             tab: The QWebView to be closed.
