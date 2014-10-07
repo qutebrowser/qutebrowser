@@ -108,8 +108,9 @@ def get(name):
         raise cmdexc.CommandError(
             "Quickmark '{}' does not exist!".format(name))
     urlstr = marks[name]
-    url = QUrl(urlstr)
-    if not url.isValid():
+    try:
+        url = urlutils.fuzzy_url(urlstr)
+    except urlutils.FuzzyUrlError:
         raise cmdexc.CommandError(
             "Invalid URL for quickmark {}: {} ({})".format(name, urlstr,
                                                            url.errorString()))

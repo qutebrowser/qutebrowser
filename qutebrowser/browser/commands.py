@@ -770,8 +770,7 @@ class CommandDispatcher:
             bg: Load the quickmark in a new background tab.
             window: Load the quickmark in a new window.
         """
-        urlstr = quickmarks.get(name)
-        url = QUrl(urlstr)
+        url = quickmarks.get(name)
         self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
