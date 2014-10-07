@@ -29,6 +29,7 @@ import sre_constants
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
+from PyQt5.QtWidgets import QTabWidget, QTabBar
 
 from qutebrowser.commands import cmdutils
 
@@ -1146,6 +1147,18 @@ class Position(BaseType):
 
     valid_values = ValidValues('north', 'south', 'east', 'west')
 
+    MAPPING = {
+        'north': QTabWidget.North,
+        'south': QTabWidget.South,
+        'west': QTabWidget.West,
+        'east': QTabWidget.East,
+    }
+
+    def transform(self, value):
+        if not value:
+            return None
+        return self.MAPPING[value]
+
 
 class SelectOnRemove(BaseType):
 
@@ -1155,6 +1168,17 @@ class SelectOnRemove(BaseType):
         ('left', "Select the tab on the left."),
         ('right', "Select the tab on the right."),
         ('previous', "Select the previously selected tab."))
+
+    MAPPING = {
+        'left': QTabBar.SelectLeftTab,
+        'right': QTabBar.SelectRightTab,
+        'previous': QTabBar.SelectPreviousTab,
+    }
+
+    def transform(self, value):
+        if not value:
+            return None
+        return self.MAPPING[value]
 
 
 class LastClose(BaseType):

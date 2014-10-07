@@ -57,26 +57,14 @@ class TabWidget(QTabWidget):
 
     def init_config(self):
         """Initialize attributes based on the config."""
-        position_conv = {
-            'north': QTabWidget.North,
-            'south': QTabWidget.South,
-            'west': QTabWidget.West,
-            'east': QTabWidget.East,
-        }
-        select_conv = {
-            'left': QTabBar.SelectLeftTab,
-            'right': QTabBar.SelectRightTab,
-            'previous': QTabBar.SelectPreviousTab,
-        }
         tabbar = self.tabBar()
         self.setMovable(config.get('tabs', 'movable'))
         self.setTabsClosable(False)
-        posstr = config.get('tabs', 'position')
-        selstr = config.get('tabs', 'select-on-remove')
-        position = position_conv[posstr]
+        position = config.get('tabs', 'position')
+        selection_behaviour = config.get('tabs', 'select-on-remove')
         self.setTabPosition(position)
         tabbar.vertical = position in (QTabWidget.West, QTabWidget.East)
-        tabbar.setSelectionBehaviorOnRemove(select_conv[selstr])
+        tabbar.setSelectionBehaviorOnRemove(selection_behaviour)
         tabbar.refresh()
 
 
