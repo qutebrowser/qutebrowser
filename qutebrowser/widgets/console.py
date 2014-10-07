@@ -79,8 +79,8 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         text = self.text()
         if text:
             self._history.append(text)
-            self.push(text)
-            self.setText('')
+        self.push(text)
+        self.setText('')
 
     def push(self, line):
         """Push a line to the interpreter."""
