@@ -82,6 +82,21 @@ def arg_or_count(arg, count, default=None, countzero=None):
         raise ValueError("Either count or argument have to be set!")
 
 
+def check_exclusive(flags, names):
+    """Check if only one flag is set with exclusive flags.
+
+    Raise a CommandError if not.
+
+    Args:
+        flags: An iterable of booleans to check.
+        names: An iterable of flag names for the error message.
+    """
+    if sum(1 for e in flags if e) > 1:
+        argstr = '/'.join('-' + e for e in names)
+        raise cmdexc.CommandError("Only one of {} can be given!".format(
+            argstr))
+
+
 class register:  # pylint: disable=invalid-name
 
     """Decorator to register a new command handler.

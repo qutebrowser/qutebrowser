@@ -115,9 +115,8 @@ class CommandDispatcher:
                 errstr += " - {}".format(url.errorString())
             raise cmdexc.CommandError(errstr)
         tabbed_browser = self._tabbed_browser()
-        if sum(1 for e in (tab, background, window) if e) > 1:
-            raise cmdexc.CommandError("Only one of -t/-b/-w can be given!")
-        elif window:
+        cmdutils.check_exclusive((tab, background, window), 'tbw')
+        if window:
             tabbed_browser = self._tabbed_browser(window=True)
             tabbed_browser.tabopen(url)
         elif tab:
@@ -229,8 +228,7 @@ class CommandDispatcher:
             QTabBar.SelectLeftTab, QTabBar.SelectRightTab, or None if no change
             should be made.
         """
-        if sum(1 for e in (left, right, opposite) if e) > 1:
-            raise cmdexc.CommandError("Only one of -l/-r/-o can be given!")
+        cmdutils.check_exclusive((left, right, opposite), 'lro')
         if left:
             return QTabBar.SelectLeftTab
         elif right:
@@ -488,8 +486,7 @@ class CommandDispatcher:
             bg: Open in a background tab.
             window: Open in a new window.
         """
-        if sum(1 for e in (tab, bg, window) if e) > 1:
-            raise cmdexc.CommandError("Only one of -t/-b/-w can be given!")
+        cmdutils.check_exclusive((tab, bg, window), 'tbw')
         widget = self._current_widget()
         frame = widget.page().currentFrame()
         url = self._current_url()
