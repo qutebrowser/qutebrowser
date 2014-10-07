@@ -70,14 +70,15 @@ def prompt_save(win_id, url):
         return
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     message.ask_async(win_id, "Add quickmark:", usertypes.PromptMode.text,
-                      functools.partial(quickmark_add, urlstr))
+                      functools.partial(quickmark_add, win_id, urlstr))
 
 
 @cmdutils.register()
-def quickmark_add(url, name, win_id):
+def quickmark_add(win_id, url, name):
     """Add a new quickmark.
 
     Args:
+        win_id: The window ID to display the errors in.
         url: The url to add as quickmark.
         name: The name for the new quickmark.
     """
