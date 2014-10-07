@@ -50,9 +50,6 @@ class ConfigStub:
         Args:
             name: The section name to get.
 
-        Raise:
-            ValueError if section isn't test1/test2.
-
         Return:
             The section as dict.
         """

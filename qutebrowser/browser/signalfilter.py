@@ -75,9 +75,6 @@ class SignalFilter(QObject):
             signal: The signal to emit if the sender was the current widget.
             tab: The WebView which the filter belongs to.
             *args: The args to pass to the signal.
-
-        Emit:
-            The target signal if the sender was the current widget.
         """
         log_signal = debug.signal_name(signal) not in self.BLACKLIST
         tabbed_browser = objreg.get('tabbed-browser', scope='window',

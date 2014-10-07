@@ -128,10 +128,6 @@ class NeighborList(collections.abc.Sequence):
 
         Return:
             The new item.
-
-        Raise:
-            IndexError if the border of the list is reached and mode is
-                       exception.
         """
         try:
             if self._idx + offset >= 0:
@@ -164,10 +160,6 @@ class NeighborList(collections.abc.Sequence):
 
         Return:
             The new item.
-
-        Raise:
-            IndexError if the border of the list is reached and mode is
-                       exception.
         """
         log.misc.debug("{} items, idx {}, offset {}".format(
             len(self._items), self._idx, offset))
@@ -324,11 +316,7 @@ class Question(QObject):
         self.completed.emit()
 
     def abort(self):
-        """Abort the question.
-
-        Emit:
-            aborted: Always emitted.
-        """
+        """Abort the question."""
         self.is_aborted = True
         try:
             self.aborted.emit()

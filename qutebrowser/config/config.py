@@ -476,14 +476,6 @@ class ConfigManager(QObject):
             sectname: The name of the section to change.
             optname: The name of the option to change.
             value: The new value.
-
-        Raise:
-            NoSectionError: If the specified section doesn't exist.
-            NoOptionError: If the specified option doesn't exist.
-
-        Emit:
-            changed: If the config was changed.
-            style_changed: When style caches need to be invalidated.
         """
         try:
             value = self._interpolation.before_set(self, sectname, optname,

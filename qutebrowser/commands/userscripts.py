@@ -268,11 +268,7 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
         self._oshandle = None
 
     def on_proc_finished(self):
-        """Read back the commands when the process finished.
-
-        Emit:
-            got_cmd: Emitted for every command in the file.
-        """
+        """Read back the commands when the process finished."""
         log.procs.debug("proc finished")
         with open(self._filepath, 'r', encoding='utf-8') as f:
             for line in f:

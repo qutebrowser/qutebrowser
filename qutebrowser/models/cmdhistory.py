@@ -94,10 +94,6 @@ class History:
         """Get the previous item in the temp history.
 
         start() needs to be called before calling this.
-
-        Raise:
-            ValueError if start() wasn't called.
-            HistoryEndReachedError if the first item was reached.
         """
         if not self.is_browsing():
             raise ValueError("Currently not browsing history")
@@ -110,10 +106,6 @@ class History:
         """Get the next item in the temp history.
 
         start() needs to be called before calling this.
-
-        Raise:
-            ValueError if start() wasn't called.
-            HistoryEndReachedError if the last item was reached.
         """
         if not self.is_browsing():
             raise ValueError("Currently not browsing history")

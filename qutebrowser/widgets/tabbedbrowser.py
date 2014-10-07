@@ -188,9 +188,6 @@ class TabbedBrowser(tabwidget.TabWidget):
 
         Return:
             The current URL as QUrl.
-
-        Raise:
-            CommandError if the current URL is invalid.
         """
         widget = self.currentWidget()
         if widget is None:
@@ -208,11 +205,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         return url
 
     def shutdown(self):
-        """Try to shut down all tabs cleanly.
-
-        Emit:
-            shutdown_complete if the shutdown completed successfully.
-        """
+        """Try to shut down all tabs cleanly."""
         try:
             self.currentChanged.disconnect()
         except TypeError:
@@ -240,9 +233,6 @@ class TabbedBrowser(tabwidget.TabWidget):
 
         Args:
             tab: The QWebView to be closed.
-
-        Raise:
-            ValueError if the tab is not in the QTabWidget.
         """
         idx = self.indexOf(tab)
         if idx == -1:
@@ -553,9 +543,6 @@ class TabbedBrowser(tabwidget.TabWidget):
 
         Args:
             e: The QResizeEvent
-
-        Emit:
-            resize: Always emitted.
         """
         super().resizeEvent(e)
         self.resized.emit(self.geometry())

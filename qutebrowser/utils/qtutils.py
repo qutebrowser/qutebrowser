@@ -68,9 +68,6 @@ def check_overflow(arg, ctype, fatal=True):
     Return
         The truncated argument if fatal=False
         The original argument if it's in bounds.
-
-    Raise:
-        OverflowError if the argument is out of bounds and fatal=True.
     """
     maxval = MAXVALS[ctype]
     minval = MINVALS[ctype]
@@ -119,11 +116,7 @@ def check_print_compat():
 
 
 def ensure_valid(obj):
-    """Ensure a Qt object with an .isValid() method is valid.
-
-    Raise:
-        QtValueError if the object is invalid.
-    """
+    """Ensure a Qt object with an .isValid() method is valid."""
     if not obj.isValid():
         raise QtValueError(obj)
 

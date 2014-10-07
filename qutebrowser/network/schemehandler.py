@@ -48,10 +48,6 @@ class SchemeHandler(QObject):
 
         Return:
             A QNetworkReply.
-
-        Raise:
-            NotImplementedError because this needs to be overwritten by
-            subclasses.
         """
         raise NotImplementedError
 
@@ -68,9 +64,6 @@ class SpecialNetworkReply(QNetworkReply):
             fileData: reference to the data buffer (QByteArray)
             mimeType: for the reply (string)
             parent: reference to the parent object (QObject)
-
-        Emit:
-            metaDataChanged and readyRead and finished after initializing.
         """
         super().__init__(parent)
 

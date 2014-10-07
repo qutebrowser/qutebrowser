@@ -289,9 +289,6 @@ def _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3, percent):
 
     Return:
         A (c1, c2, c3) tuple with the interpolated color components.
-
-    Raise:
-        ValueError if the percentage was invalid.
     """
     if not 0 <= percent <= 100:
         raise ValueError("percent needs to be between 0 and 100!")
@@ -313,9 +310,6 @@ def interpolate_color(start, end, percent, colorspace=QColor.Rgb):
 
     Return:
         The interpolated QColor, with the same spec as the given start color.
-
-    Raise:
-        ValueError if invalid parameters are passed.
     """
     qtutils.ensure_valid(start)
     qtutils.ensure_valid(end)

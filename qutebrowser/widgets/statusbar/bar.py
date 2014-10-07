@@ -411,9 +411,6 @@ class StatusBar(QWidget):
 
         Args:
             e: The QResizeEvent.
-
-        Emit:
-            resized: Always emitted.
         """
         super().resizeEvent(e)
         self.resized.emit(self.geometry())
@@ -423,9 +420,6 @@ class StatusBar(QWidget):
 
         Args:
             e: The QMoveEvent.
-
-        Emit:
-            moved: Always emitted.
         """
         super().moveEvent(e)
         self.moved.emit(e.pos())

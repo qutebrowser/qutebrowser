@@ -100,9 +100,6 @@ class Command:
 
         Args:
             win_id: The window ID the command is run in.
-
-        Raise:
-            PrerequisitesError if the command can't be called currently.
         """
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)

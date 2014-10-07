@@ -65,9 +65,6 @@ class ExternalEditor(QObject):
         """Write the editor text into the form field and clean up tempfile.
 
         Callback for QProcess when the editor was closed.
-
-        Emit:
-            editing_finished: If process exited normally.
         """
         log.procs.debug("Editor closed")
         if exitstatus != QProcess.NormalExit:
@@ -113,9 +110,6 @@ class ExternalEditor(QObject):
 
         Args:
             text: The initial text to edit.
-
-        Emit:
-            editing_finished with the new text if editing finshed successfully.
         """
         if self._text is not None:
             raise ValueError("Already editing a file!")

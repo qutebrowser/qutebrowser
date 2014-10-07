@@ -144,8 +144,5 @@ class BaseCompletionModel(QStandardItemModel):
         """Sort the data in column according to order.
 
         Override QAbstractItemModel::sort.
-
-        Raise:
-            NotImplementedError, should be overwritten in a superclass.
         """
         raise NotImplementedError

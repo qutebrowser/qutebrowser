@@ -166,12 +166,7 @@ class BrowserPage(QWebPage):
 
     @pyqtSlot('QNetworkRequest')
     def on_download_requested(self, request):
-        """Called when the user wants to download a link.
-
-        Emit:
-            start_download: Emitted with the QNetworkReply associated with the
-                            passed request.
-        """
+        """Called when the user wants to download a link."""
         reply = self.networkAccessManager().get(request)
         self.start_download.emit(reply)
 

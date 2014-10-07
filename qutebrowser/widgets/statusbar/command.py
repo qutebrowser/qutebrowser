@@ -145,9 +145,6 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
         Args:
             text: The text to set as string.
-
-        Emit:
-            update_completion: Emitted if the text changed.
         """
         old_text = self.text()
         self.setText(text)
@@ -248,13 +245,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     @cmdutils.register(instance='status-command', hide=True,
                        modes=[usertypes.KeyMode.command], scope='window')
     def command_accept(self):
-        """Execute the command currently in the commandline.
-
-        Emit:
-            got_cmd: If a new cmd was entered.
-            got_search: If a new search was entered.
-            got_search_rev: If a new reverse search was entered.
-        """
+        """Execute the command currently in the commandline."""
         signals = {
             ':': self.got_cmd,
             '/': self.got_search,
@@ -285,10 +276,6 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
         Args:
             mode: The mode which was left.
-
-        Emit:
-            clear_completion_selection: Always emitted.
-            hide_completion: Always emitted so the completion is hidden.
         """
         if mode == usertypes.KeyMode.command:
             self.setText('')

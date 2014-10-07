@@ -431,12 +431,13 @@ Style conventions
 qutebrowser's coding conventions are based on
 http://legacy.python.org/dev/peps/pep-0008/[PEP8] and the https://google-styleguide.googlecode.com/svn/trunk/pyguide.html[Google Python style guidelines] with some additions:
 
+* The _Raise:_ section is not added to the docstring.
 * Methods overriding Qt methods (obviously!) don't follow the naming schemes.
 * Everything else does though, even slots.
 * Docstrings should look like described in
 http://legacy.python.org/dev/peps/pep-0257/[PEP257] and the google guidelines.
 * Class docstrings have additional _Attributes:_, _Class attributes:_ and
-  _Signals:_ sections, method/function docstrings have an _Emit:_ section.
+  _Signals:_ sections.
 * In docstrings of command handlers (registered via `@cmdutils.register`), the
 description should be split into two parts by using `//` - the first part is
 the description of the command like it will appear in the documentation, the
@@ -475,12 +476,6 @@ Args:
 
 Return:
     True if something, False if something else.
-
-Raise:
-    ValueError if foo is None
-
-Emit:
-    value_changed
 """
 ----
 +

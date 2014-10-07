@@ -161,9 +161,6 @@ class Completer(QObject):
         Args:
             selected: New selection.
             _delected: Previous selection.
-
-        Emit:
-            change_completed_part: Emitted when there's data for the new item.
         """
         indexes = selected.indexes()
         if not indexes:

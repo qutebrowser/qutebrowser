@@ -269,9 +269,6 @@ class ModeManager(QObject):
             mode: The mode to enter as a KeyMode member.
             reason: Why the mode was entered.
             override: Override a locked mode.
-
-        Emit:
-            entered: With the new mode name.
         """
         if not isinstance(mode, usertypes.KeyMode):
             raise TypeError("Mode {} is no KeyMode member!".format(mode))
@@ -314,9 +311,6 @@ class ModeManager(QObject):
         Args:
             mode: The name of the mode to leave.
             reason: Why the mode was left.
-
-        Emit:
-            left: With the old mode name.
         """
         try:
             self._mode_stack.remove(mode)

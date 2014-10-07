@@ -36,10 +36,6 @@ def check_overflow(arg, ctype):
     Args:
         arg: The argument to check
         ctype: The C/Qt type to check as a string.
-
-    Raise:
-        CommandError if the argument is out of bounds.
-        ValueError if the given ctype is unknown.
     """
     try:
         qtutils.check_overflow(arg, ctype)
@@ -63,9 +59,6 @@ def arg_or_count(arg, count, default=None, countzero=None):
 
     Return:
         The value to use.
-
-    Raise:
-        ValueError: If nothing was set.
     """
     if count is not None and arg is not None:
         raise ValueError("Both count and argument given!")

@@ -278,9 +278,6 @@ class BaseKeyParser(QObject):
 
         Args:
             command/count: As if passed to self.execute()
-
-        Emit:
-            keystring_updated to do a delayed update.
         """
         self._debug_log("Executing delayed command now!")
         self._timer = None
@@ -293,9 +290,6 @@ class BaseKeyParser(QObject):
 
         Args:
             e: the KeyPressEvent from Qt
-
-        Emit:
-            keystring_updated: If a new keystring should be set.
         """
         handled = self._handle_special_key(e)
         if handled or not self._supports_chains:

@@ -74,9 +74,6 @@ class SearchRunner(QObject):
         Args:
             text: The text to search for.
             rev: Search direction, True if reverse, else False.
-
-        Emit:
-            do_search: If a search should be started.
         """
         if self._text is not None and self._text != text:
             # We first clear the marked text, then the highlights
@@ -124,9 +121,6 @@ class SearchRunner(QObject):
 
         Args:
             count: How many elements to ignore.
-
-        Emit:
-            do_search: If a search should be started.
         """
         if self._text is not None:
             for _ in range(count):
@@ -138,9 +132,6 @@ class SearchRunner(QObject):
 
         Args:
             count: How many elements to ignore.
-
-        Emit:
-            do_search: If a search should be started.
         """
         if self._text is None:
             return
@@ -208,9 +199,6 @@ class CommandRunner(QObject):
             fallback: Whether to do a fallback splitting when the command was
                       unknown.
             alias_no_args: Whether to apply an alias if there are no arguments.
-
-        Raise:
-            NoSuchCommandError if a command wasn't found.
 
         Return:
             A split string commandline, e.g ['open', 'www.google.com']

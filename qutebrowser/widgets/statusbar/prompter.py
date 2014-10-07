@@ -132,9 +132,6 @@ class Prompter(QObject):
 
         Return:
             The mode which should be entered.
-
-        Raise:
-            ValueError if the set PromptMode is invalid.
         """
         prompt = objreg.get('prompt', scope='window', window=self._win_id)
         if self._question.mode == usertypes.PromptMode.yesno:

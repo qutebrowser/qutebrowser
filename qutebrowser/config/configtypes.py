@@ -127,10 +127,6 @@ class BaseType:
 
         Args:
             value: The value to validate.
-
-        Raise:
-            ValidationError if the value was invalid.
-            NotImplementedError if self.valid_values is not defined and this
                                 method should be overridden.
         """
         if not value and self._none_ok:

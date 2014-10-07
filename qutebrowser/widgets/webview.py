@@ -128,11 +128,7 @@ class WebView(QWebView):
         return utils.get_repr(self, tab_id=self.tab_id, url=url)
 
     def _set_load_status(self, val):
-        """Setter for load_status.
-
-        Emit:
-            load_status_changed
-        """
+        """Setter for load_status."""
         if not isinstance(val, LoadStatus):
             raise TypeError("Type {} is no LoadStatus member!".format(val))
         log.webview.debug("load status for {}: {}".format(repr(self), val))
@@ -279,9 +275,6 @@ class WebView(QWebView):
 
         Return:
             Return status of self.load
-
-        Emit:
-            titleChanged
         """
         qtutils.ensure_valid(url)
         urlstr = url.toDisplayString()
@@ -411,9 +404,6 @@ class WebView(QWebView):
 
         Args:
             e: The QPaintEvent.
-
-        Emit:
-            scroll_pos_changed; If the scroll position changed.
 
         Return:
             The superclass event return value.

@@ -61,10 +61,6 @@ def debug_crash(typ: ('exception', 'segfault')='exception'):
 
     Args:
         typ: either 'exception' or 'segfault'.
-
-    Raises:
-        raises Exception when typ is not segfault.
-        segfaults when typ is (you don't say...)
     """
     if typ == 'segfault':
         # From python's Lib/test/crashers/bogus_code_obj.py

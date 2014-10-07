@@ -43,9 +43,6 @@ def _get_search_url(txt):
 
     Return:
         The search URL as a QUrl.
-
-    Raise:
-        FuzzyUrlError if there is no template or no search term was found.
     """
     log.url.debug("Finding search engine for '{}'".format(txt))
     r = re.compile(r'(^|\s+)!(\w+)($|\s+)')
@@ -186,9 +183,6 @@ def is_url(urlstr):
 
     Return:
         True if it is a valid URL, False otherwise.
-
-    Raise:
-        ValueError if the autosearch config value is invalid.
     """
     autosearch = config.get('general', 'auto-search')
 

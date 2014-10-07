@@ -105,9 +105,6 @@ class HintKeyParser(keyparser.CommandKeyParser):
 
         Return:
             True if event has been handled, False otherwise.
-
-        Emit:
-            keystring_updated: Emitted when keystring has been changed.
         """
         log.keyboard.debug("Got special key 0x{:x} text {}".format(
             e.key(), e.text()))
@@ -143,9 +140,6 @@ class HintKeyParser(keyparser.CommandKeyParser):
 
         Args:
             e: the KeyPressEvent from Qt
-
-        Emit:
-            keystring_updated: If a new keystring should be set.
         """
         handled = self._handle_single_key(e)
         if handled and self._keystring:
