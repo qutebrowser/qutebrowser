@@ -108,9 +108,6 @@ class MainWindow(QWidget):
         log.init.debug("Initializing modes...")
         mode_manager = modeman.init(self.win_id, self)
 
-        log.init.debug("Initializing eventfilter...")
-        self.installEventFilter(mode_manager)
-
         self._connect_signals()
         QTimer.singleShot(0, functools.partial(
             modeman.enter, win_id, usertypes.KeyMode.normal, 'init'))
@@ -332,7 +329,3 @@ class MainWindow(QWidget):
                 e.ignore()
                 return
         e.accept()
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=self.win_id)
-        log.destroy.debug("Removing eventfilter...")
-        self.removeEventFilter(mode_manager)
