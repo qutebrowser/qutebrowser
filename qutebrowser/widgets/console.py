@@ -184,7 +184,7 @@ class ConsoleWidget(QWidget):
         super().__init__(parent)
         self._lineedit = ConsoleLineEdit(self)
         self._output = ConsoleTextEdit()
-        self._lineedit.write.connect(self._output.insertPlainText)
+        self._lineedit.write.connect(self.insert_text)
         self._vbox = QVBoxLayout()
         self._vbox.setSpacing(0)
         self._vbox.addWidget(self._output)
@@ -194,3 +194,9 @@ class ConsoleWidget(QWidget):
 
     def __repr__(self):
         return utils.get_repr(self, visible=self.isVisible())
+
+    def insert_text(self, text):
+        """Insert new text and scroll output to bottom."""
+        self._output.insertPlainText(text)
+        scrollbar = self._output.verticalScrollBar()
+        scrollbar.setValue(scrollbar.maximum())
