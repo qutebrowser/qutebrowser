@@ -882,6 +882,7 @@ KEY_DATA = collections.OrderedDict([
         ('set-cmd-text ":open -w {url}"', ['wO']),
         ('open -t about:blank', ['ga']),
         ('tab-close', ['d', '<Ctrl-W>']),
+        ('tab-close -o', ['D']),
         ('tab-only', ['co']),
         ('tab-focus', ['T']),
         ('tab-move', ['gm']),

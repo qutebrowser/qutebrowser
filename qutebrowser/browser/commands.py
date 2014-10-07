@@ -25,7 +25,7 @@ import subprocess
 import posixpath
 import functools
 
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
@@ -216,17 +216,62 @@ class CommandDispatcher:
         except PermissionError:
             raise cmdexc.CommandError("Failed to delete tempfile...")
 
+    def _get_selection_override(self, left, right, opposite):
+        """Helper function for tab_close to get the tab to select.
+
+        Args:
+            left: Force selecting the tab to the left of the current tab.
+            right: Force selecting the tab to the right of the current tab.
+            opposite: Force selecting the tab in the oppsite direction of
+                      what's configured in 'tabs->select-on-remove'.
+
+        Return:
+            QTabBar.SelectLeftTab, QTabBar.SelectRightTab, or None if no change
+            should be made.
+        """
+        if sum(1 for e in (left, right, opposite) if e) > 1:
+            raise cmdexc.CommandError("Only one of -l/-r/-o can be given!")
+        if left:
+            return QTabBar.SelectLeftTab
+        elif right:
+            return QTabBar.SelectRightTab
+        elif opposite:
+            conf_selection = config.get('tabs', 'select-on-remove')
+            if conf_selection == QTabBar.SelectLeftTab:
+                return QTabBar.SelectRightTab
+            elif conf_selection == QTabBar.SelectRightTab:
+                return QTabBar.SelectLeftTab
+            elif conf_selection == QTabBar.SelectPreviousTab:
+                raise cmdexc.CommandError(
+                    "-o is not supported with 'tabs->select-on-remove' set to "
+                    "'previous'!")
+        return None
+
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tab_close(self, count=None):
+    def tab_close(self, left=False, right=False, opposite=False, count=None):
         """Close the current/[count]th tab.
 
         Args:
+            left: Force selecting the tab to the left of the current tab.
+            right: Force selecting the tab to the right of the current tab.
+            opposite: Force selecting the tab in the oppsite direction of
+                      what's configured in 'tabs->select-on-remove'.
             count: The tab index to close, or None
         """
         tab = self._cntwidget(count)
         if tab is None:
             return
-        self._tabbed_browser().close_tab(tab)
+        tabbed_browser = self._tabbed_browser()
+        tabbar = tabbed_browser.tabBar()
+        selection_override = self._get_selection_override(left, right,
+                                                          opposite)
+        if selection_override is None:
+            tabbed_browser.close_tab(tab)
+        else:
+            old_selection_behavior = tabbar.selectionBehaviorOnRemove()
+            tabbar.setSelectionBehaviorOnRemove(selection_override)
+            tabbed_browser.close_tab(tab)
+            tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
     @cmdutils.register(instance='command-dispatcher', name='open',
                        split=False, scope='window')
