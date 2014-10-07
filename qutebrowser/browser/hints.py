@@ -160,7 +160,7 @@ class HintManager(QObject):
         for f in self._context.frames:
             log.hints.debug("Disconnecting frame {}".format(f))
             f.contentsSizeChanged.disconnect(self.on_contents_size_changed)
-            log.hints.debug("Disconnected.".format(f))
+            log.hints.debug("Disconnected.")
         text = self.HINT_TEXTS[self._context.target]
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)

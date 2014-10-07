@@ -106,7 +106,7 @@ class MainWindow(QWidget):
                         window=win_id)
 
         log.init.debug("Initializing modes...")
-        mode_manager = modeman.init(self.win_id, self)
+        modeman.init(self.win_id, self)
 
         self._connect_signals()
         QTimer.singleShot(0, functools.partial(
@@ -181,7 +181,6 @@ class MainWindow(QWidget):
     def _connect_signals(self):
         """Connect all mainwindow signals."""
         # pylint: disable=too-many-locals,too-many-statements
-        app = objreg.get('app')
         download_manager = objreg.get('download-manager')
         key_config = objreg.get('key-config')
 
