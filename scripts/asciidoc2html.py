@@ -38,8 +38,7 @@ def call_asciidoc(src, dst):
         src: The source .asciidoc file.
         dst: The destination .html file, or None to auto-guess.
     """
-    utils.print_col("Calling asciidoc for {}...".format(
-        os.path.basename(src)), 'cyan')
+    print("Calling asciidoc for {}...".format(os.path.basename(src)))
     if os.name == 'nt':
         # FIXME this is highly specific to my machine
         # https://github.com/The-Compiler/qutebrowser/issues/106
