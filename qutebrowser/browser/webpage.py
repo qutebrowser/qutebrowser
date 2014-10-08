@@ -63,26 +63,20 @@ class BrowserPage(QWebPage):
         self.downloadRequested.connect(self.on_download_requested)
         self.unsupportedContent.connect(self.on_unsupported_content)
 
-        if PYQT_VERSION > 0x050300:
-            # WORKAROUND (remove this when we bump the requirements to 5.3.1)
-            # See http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034385.html
-            # pylint: disable=invalid-name
-            self.javaScriptPrompt = self._javascript_prompt
+    if PYQT_VERSION > 0x050300:
+        # WORKAROUND (remove this when we bump the requirements to 5.3.1)
+        # We can't override javaScriptPrompt with older PyQt-versions because
+        # of a bug in PyQt.
+        # See http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034385.html
 
-    def _javascript_prompt(self, _frame, msg, default):
-        """Override javaScriptPrompt to use the statusbar.
-
-        We use this approach and override the method conditionally in __init__
-        because overriding javaScriptPrompt was broken in 5.3.0.
-
-        http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034385.html
-        """
-        answer = message.ask(self._win_id, "js: {}".format(msg),
-                             usertypes.PromptMode.text, default)
-        if answer is None:
-            return (False, "")
-        else:
-            return (True, answer)
+        def javaScriptPrompt(self, _frame, msg, default):
+            """Override javaScriptPrompt to use the statusbar."""
+            answer = message.ask(self._win_id, "js: {}".format(msg),
+                                usertypes.PromptMode.text, default)
+            if answer is None:
+                return (False, "")
+            else:
+                return (True, answer)
 
     def _handle_errorpage(self, opt, out):
         """Display an error page if needed.
