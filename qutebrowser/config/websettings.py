@@ -32,7 +32,7 @@ from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtCore import QStandardPaths
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, utils
+from qutebrowser.utils import usertypes, standarddir
 
 MapType = usertypes.enum('MapType', ['attribute', 'setter', 'static_setter'])
 
@@ -176,11 +176,11 @@ def _set_setting(typ, arg, value):
 
 def init():
     """Initialize the global QWebSettings."""
-    cachedir = utils.get_standard_dir(QStandardPaths.CacheLocation)
+    cachedir = standarddir.get(QStandardPaths.CacheLocation)
     QWebSettings.setIconDatabasePath(cachedir)
     QWebSettings.setOfflineWebApplicationCachePath(
         os.path.join(cachedir, 'application-cache'))
-    datadir = utils.get_standard_dir(QStandardPaths.DataLocation)
+    datadir = standarddir.get(QStandardPaths.DataLocation)
     QWebSettings.globalSettings().setLocalStoragePath(
         os.path.join(datadir, 'local-storage'))
     QWebSettings.setOfflineStoragePath(

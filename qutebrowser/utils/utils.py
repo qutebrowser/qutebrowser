@@ -19,7 +19,6 @@
 
 """Other utilities which don't fit anywhere else. """
 
-import os
 import io
 import sys
 import enum
@@ -31,7 +30,7 @@ import collections
 import functools
 import contextlib
 
-from PyQt5.QtCore import QCoreApplication, QStandardPaths, Qt
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence, QColor
 import pkg_resources
 
@@ -166,87 +165,6 @@ def pastebin(text):
     if not url.startswith('http'):
         raise ValueError("Got unexpected response: {}".format(url))
     return url
-
-
-def _writable_location(typ):
-    """Wrapper around QStandardPaths.writableLocation."""
-    qapp = QCoreApplication.instance()
-    orgname = qapp.organizationName()
-    # We need to temporarily unset the organisationname here since the
-    # webinspector wants it to be set to store its persistent data correctly,
-    # but we don't want that to happen.
-    qapp.setOrganizationName(None)
-    try:
-        path = QStandardPaths.writableLocation(typ)
-    finally:
-        qapp.setOrganizationName(orgname)
-    if not path:
-        raise ValueError("QStandardPaths returned an empty value!")
-    # Qt seems to use '/' as path separator even on Windows...
-    path = path.replace('/', os.sep)
-    return path
-
-
-def _standard_dir_from_args(typ, args):
-    """Get the standard directory from an argparse namespace.
-
-    Args:
-        typ: A member of the QStandardPaths::StandardLocation enum
-        args: An argparse namespace or None.
-
-    Return:
-        A (override, path) tuple.
-            override: boolean, if the user did override the path
-            path: The overriden path, or None to turn off storage.
-    """
-    typ_to_argparse_arg = {
-        QStandardPaths.ConfigLocation: 'confdir'
-    }
-    if args is None:
-        return (False, None)
-    try:
-        argname = typ_to_argparse_arg[typ]
-    except KeyError:
-        return (False, None)
-    arg_value = getattr(args, argname)
-    if arg_value is None:
-        return (False, None)
-    elif arg_value == '':
-        return (True, None)
-    else:
-        return (True, arg_value)
-
-
-def get_standard_dir(typ, args=None):
-    """Get the directory where files of the given type should be written to.
-
-    Args:
-        typ: A member of the QStandardPaths::StandardLocation enum,
-             see http://qt-project.org/doc/qt-5/qstandardpaths.html#StandardLocation-enum
-        args: An argparse namespace which could be used to override the
-              locations.
-    """
-    overridden, path = _standard_dir_from_args(typ, args)
-    if overridden:
-        return path
-    path = _writable_location(typ)
-    appname = QCoreApplication.instance().applicationName()
-    if (typ == QStandardPaths.ConfigLocation and
-            path.split(os.sep)[-1] != appname):
-        # WORKAROUND - see
-        # https://bugreports.qt-project.org/browse/QTBUG-38872
-        path = os.path.join(path, appname)
-    if typ == QStandardPaths.DataLocation and os.name == 'nt':
-        # Under windows, config/data might end up in the same directory.
-        data_path = QStandardPaths.writableLocation(
-            QStandardPaths.DataLocation)
-        config_path = QStandardPaths.writableLocation(
-            QStandardPaths.ConfigLocation)
-        if data_path == config_path:
-            path = os.path.join(path, 'data')
-    if not os.path.exists(path):
-        os.makedirs(path)
-    return path
 
 
 def actute_warning():

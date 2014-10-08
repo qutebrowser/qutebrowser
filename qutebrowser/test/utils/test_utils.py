@@ -19,15 +19,12 @@
 
 """Tests for qutebrowser.utils.utils."""
 
-import os
 import sys
 import enum
-import shutil
 import unittest
 import os.path
-import tempfile
 
-from PyQt5.QtCore import QStandardPaths, QCoreApplication, Qt
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 
 from qutebrowser.utils import utils, qtutils
@@ -161,130 +158,6 @@ class SafeShlexSplitTests(unittest.TestCase):
         """Test safe_shlex_split with an unfinished escape and quotes.."""
         items = utils.safe_shlex_split('one "two\\')
         self.assertEqual(items, ['one', 'two\\'])
-
-
-class GetStandardDirLinuxTests(unittest.TestCase):
-
-    """Tests for get_standard_dir under Linux.
-
-    Attributes:
-        temp_dir: A temporary directory.
-        app: The QCoreApplication used.
-    """
-
-    def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
-        self.app = QCoreApplication([])
-        self.app.setApplicationName('qutebrowser')
-
-    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
-    def test_data_explicit(self):
-        """Test data dir with XDG_DATA_HOME explicitely set."""
-        with helpers.environ_set_temp('XDG_DATA_HOME', self.temp_dir):
-            cur_dir = utils.get_standard_dir(QStandardPaths.DataLocation)
-            self.assertEqual(cur_dir, os.path.join(self.temp_dir,
-                                                   'qutebrowser'))
-            self.assertTrue(os.path.exists(cur_dir))
-
-    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
-    def test_config_explicit(self):
-        """Test config dir with XDG_CONFIG_HOME explicitely set."""
-        with helpers.environ_set_temp('XDG_CONFIG_HOME', self.temp_dir):
-            cur_dir = utils.get_standard_dir(QStandardPaths.ConfigLocation)
-            self.assertEqual(cur_dir, os.path.join(self.temp_dir,
-                                                   'qutebrowser'))
-            self.assertTrue(os.path.exists(cur_dir))
-
-    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
-    def test_cache_explicit(self):
-        """Test cache dir with XDG_CACHE_HOME explicitely set."""
-        with helpers.environ_set_temp('XDG_CACHE_HOME', self.temp_dir):
-            cur_dir = utils.get_standard_dir(QStandardPaths.CacheLocation)
-            self.assertEqual(cur_dir, os.path.join(self.temp_dir,
-                                                   'qutebrowser'))
-            self.assertTrue(os.path.exists(cur_dir))
-
-    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
-    def test_data(self):
-        """Test data dir with XDG_DATA_HOME not set."""
-        with helpers.environ_set_temp('HOME', self.temp_dir):
-            cur_dir = utils.get_standard_dir(QStandardPaths.DataLocation)
-            self.assertEqual(cur_dir, os.path.join(self.temp_dir, '.local',
-                                                   'share', 'qutebrowser'))
-            self.assertTrue(os.path.exists(cur_dir))
-
-    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
-    def test_config(self):
-        """Test config dir with XDG_CONFIG_HOME not set."""
-        with helpers.environ_set_temp('HOME', self.temp_dir):
-            cur_dir = utils.get_standard_dir(
-                QStandardPaths.ConfigLocation)
-            self.assertEqual(cur_dir, os.path.join(self.temp_dir, '.config',
-                                                   'qutebrowser'))
-            self.assertTrue(os.path.exists(cur_dir))
-
-    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
-    def test_cache(self):
-        """Test cache dir with XDG_CACHE_HOME not set."""
-        with helpers.environ_set_temp('HOME', self.temp_dir):
-            cur_dir = utils.get_standard_dir(QStandardPaths.CacheLocation)
-            self.assertEqual(cur_dir, os.path.join(self.temp_dir, '.cache',
-                                                   'qutebrowser'))
-            self.assertTrue(os.path.exists(cur_dir))
-
-    def tearDown(self):
-        self.app.quit()
-        shutil.rmtree(self.temp_dir)
-
-
-class GetStandardDirWindowsTests(unittest.TestCase):
-
-    """Tests for get_standard_dir under Windows.
-
-    Attributes:
-        app: The QCoreApplication used.
-    """
-
-    def setUp(self):
-        self.app = QCoreApplication([])
-        # We can't store the files in a temp dir, so we don't chose qutebrowser
-        self.app.setApplicationName('qutebrowser_test')
-
-    @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
-    def test_data(self):
-        """Test data dir."""
-        cur_dir = utils.get_standard_dir(QStandardPaths.DataLocation)
-        self.assertEqual(cur_dir.split(os.sep)[-1], 'qutebrowser_test',
-                         cur_dir)
-        self.assertTrue(os.path.exists(cur_dir))
-        # We clean up here as we don't dare to clean up if the path doesn't end
-        # with qutebrowser_test - it could be *anywhere* after all.
-        shutil.rmtree(cur_dir)
-
-    @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
-    def test_config(self):
-        """Test config dir."""
-        cur_dir = utils.get_standard_dir(QStandardPaths.ConfigLocation)
-        self.assertEqual(cur_dir.split(os.sep)[-1], 'qutebrowser_test',
-                         cur_dir)
-        self.assertTrue(os.path.exists(cur_dir))
-        # We clean up here as we don't dare to clean up if the path doesn't end
-        # with qutebrowser_test - it could be *anywhere* after all.
-        shutil.rmtree(cur_dir)
-
-    @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
-    def test_cache(self):
-        """Test cache dir."""
-        cur_dir = utils.get_standard_dir(QStandardPaths.CacheLocation)
-        self.assertEqual(cur_dir.split(os.sep)[-2:],
-                         ['qutebrowser_test', 'cache'], cur_dir)
-        self.assertTrue(os.path.exists(cur_dir))
-        # We clean up here as we don't dare to clean up if the path doesn't end
-        # with qutebrowser_test - it could be *anywhere* after all.
-        shutil.rmtree(cur_dir)
-
-    def tearDown(self):
-        self.app.quit()
 
 
 class InterpolateColorTests(unittest.TestCase):

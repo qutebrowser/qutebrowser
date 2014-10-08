@@ -43,7 +43,7 @@ from qutebrowser.browser import quickmarks, cookies, downloads, cache
 from qutebrowser.widgets import mainwindow, console, crash
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (log, version, message, readline, utils, qtutils,
-                               urlutils, debug, objreg, usertypes)
+                               urlutils, debug, objreg, usertypes, standarddir)
 # We import utilcmds to run the cmdutils.register decorators.
 from qutebrowser.utils import utilcmds  # pylint: disable=unused-import
 
@@ -170,7 +170,7 @@ class Application(QApplication):
         # dialogs at all.
         # probably irrelevant with single instance support
         # https://github.com/The-Compiler/qutebrowser/issues/10
-        path = utils.get_standard_dir(QStandardPaths.DataLocation)
+        path = standarddir.get(QStandardPaths.DataLocation)
         logname = os.path.join(path, 'crash.log')
         # First check if an old logfile exists.
         if os.path.exists(logname):
@@ -205,7 +205,7 @@ class Application(QApplication):
 
     def _init_crashlogfile(self):
         """Start a new logfile and redirect faulthandler to it."""
-        path = utils.get_standard_dir(QStandardPaths.DataLocation)
+        path = standarddir.get(QStandardPaths.DataLocation)
         logname = os.path.join(path, 'crash.log')
         self._crashlogfile = open(logname, 'w', encoding='ascii')
         faulthandler.enable(self._crashlogfile)

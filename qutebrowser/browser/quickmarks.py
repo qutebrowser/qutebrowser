@@ -29,7 +29,7 @@ import collections
 
 from PyQt5.QtCore import QStandardPaths, QUrl
 
-from qutebrowser.utils import message, usertypes, utils, urlutils
+from qutebrowser.utils import message, usertypes, urlutils, standarddir
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config import lineparser
 
@@ -41,7 +41,7 @@ linecp = None
 def init():
     """Read quickmarks from the config file."""
     global linecp
-    confdir = utils.get_standard_dir(QStandardPaths.ConfigLocation)
+    confdir = standarddir.get(QStandardPaths.ConfigLocation)
     linecp = lineparser.LineConfigParser(confdir, 'quickmarks')
     for line in linecp:
         try:

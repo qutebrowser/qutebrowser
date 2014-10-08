@@ -32,7 +32,7 @@ from PyQt5.QtWebKitWidgets import QWebPage  # pylint: disable=unused-import
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import (message, http, usertypes, log, utils, urlutils,
-                               objreg)
+                               objreg, standarddir)
 
 
 class DownloadItem(QObject):
@@ -225,7 +225,7 @@ class DownloadItem(QObject):
             # save it under that filename in the default directory.
             download_dir = config.get('storage', 'download-directory')
             if download_dir is None:
-                download_dir = utils.get_standard_dir(
+                download_dir = standarddir.get(
                     QStandardPaths.DownloadLocation)
             self._filename = os.path.join(download_dir, filename)
             self.basename = filename

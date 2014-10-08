@@ -36,11 +36,10 @@ import collections.abc
 from PyQt5.QtCore import pyqtSignal, QObject, QStandardPaths
 from PyQt5.QtWidgets import QMessageBox
 
-from qutebrowser.utils import log
 from qutebrowser.config import (configdata, iniparsers, configtypes,
                                 textwrapper, keyconfparser)
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, objreg, utils
+from qutebrowser.utils import message, objreg, utils, standarddir, log
 from qutebrowser.utils.usertypes import Completion
 
 
@@ -87,7 +86,7 @@ def init(args):
     Args:
         args: The argparse namespace.
     """
-    confdir = utils.get_standard_dir(QStandardPaths.ConfigLocation, args)
+    confdir = standarddir.get(QStandardPaths.ConfigLocation, args)
     try:
         app = objreg.get('app')
         config_obj = ConfigManager(confdir, 'qutebrowser.conf', app)
@@ -125,7 +124,7 @@ def init(args):
     else:
         objreg.register('key-config', key_config)
 
-    datadir = utils.get_standard_dir(QStandardPaths.DataLocation, args)
+    datadir = standarddir.get(QStandardPaths.DataLocation, args)
     state_config = iniparsers.ReadWriteConfigParser(datadir, 'state')
     objreg.register('state-config', state_config)
     # We need to import this here because lineparser needs config.

@@ -27,7 +27,7 @@ import select
 from PyQt5.QtCore import (pyqtSignal, QObject, QThread, QStandardPaths,
                           QProcessEnvironment, QProcess, QUrl)
 
-from qutebrowser.utils import message, log, utils, objreg
+from qutebrowser.utils import message, log, objreg, standarddir
 from qutebrowser.commands import runners, cmdexc
 
 
@@ -196,7 +196,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         self._thread = None
 
     def run(self, cmd, *args, env=None):
-        rundir = utils.get_standard_dir(QStandardPaths.RuntimeLocation)
+        rundir = standarddir.get(QStandardPaths.RuntimeLocation)
         # tempfile.mktemp is deprecated and discouraged, but we use it here to
         # create a FIFO since the only other alternative would be to create a
         # directory and place the FIFO there, which sucks. Since os.kfifo will
