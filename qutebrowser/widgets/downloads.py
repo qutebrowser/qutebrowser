@@ -19,12 +19,31 @@
 
 """The ListView to display downloads in."""
 
+import functools
+
+import sip
 from PyQt5.QtCore import pyqtSlot, QSize, Qt
 from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import style
-from qutebrowser.utils import qtutils, utils, objreg
+from qutebrowser.utils import qtutils, utils, objreg, log
+
+
+def update_geometry(obj):
+    """WORKAROUND
+
+    This is a horrible workaround for some weird PyQt bug (probably).
+
+    This actually should be a method of DownloadView, but for some reason the
+    rowsInserted/rowsRemoved signals don't get disconnected from this method
+    when the DownloadView is deleted from Qt (e.g. by closing a window).
+
+    Here we check if obj ("self") was deleted and just ignore the even if so.
+    """
+    if sip.isdeleted(obj):
+        return
+    obj.updateGeometry()
 
 
 class DownloadView(QListView):
@@ -56,8 +75,8 @@ class DownloadView(QListView):
         self.setFlow(QListView.LeftToRight)
         self._menu = None
         model = objreg.get('download-manager')
-        model.rowsInserted.connect(self.updateGeometry)
-        model.rowsRemoved.connect(self.updateGeometry)
+        model.rowsInserted.connect(functools.partial(update_geometry, self))
+        model.rowsRemoved.connect(functools.partial(update_geometry, self))
         self.setModel(model)
         self.setWrapping(True)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
