@@ -55,6 +55,22 @@ def later(ms: int, *command, win_id):
     timer.start()
 
 
+@cmdutils.register(scope='window')
+def repeat(times: int, *command, win_id):
+    """Repeat a given command.
+
+    Args:
+        times: How many times to repeat.
+        *command: The command to run, with optional args.
+    """
+    if times < 0:
+        raise cmdexc.CommandError("A negative count doesn't make sense.")
+    cmdline = ' '.join(command)
+    commandrunner = runners.CommandRunner(win_id)
+    for _ in range(times):
+        commandrunner.run_safely(cmdline)
+
+
 @cmdutils.register(debug=True)
 def debug_crash(typ: ('exception', 'segfault')='exception'):
     """Crash for debugging purposes.
