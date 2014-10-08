@@ -323,9 +323,6 @@ class Command:
             args: The positional argument list. Gets modified directly.
             kwargs: The keyword argument dict. Gets modified directly.
         """
-        if not self.has_count:
-            raise TypeError("{}: count argument given with a command which "
-                            "does not support count!".format(self.name))
         if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
             if self._count is not None:
                 args.append(self._count)
