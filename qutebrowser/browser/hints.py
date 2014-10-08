@@ -579,6 +579,10 @@ class HintManager(QObject):
         mainframe = widget.page().mainFrame()
         if mainframe is None:
             raise cmdexc.CommandError("No frame focused!")
+        mode_manager = objreg.get('mode-manager', scope='window',
+                                  window=self._win_id)
+        if usertypes.KeyMode.hint in mode_manager.mode_stack:
+            raise cmdexc.CommandError("Already hinting!")
         self._check_args(target, *args)
         self._context = HintContext()
         self._context.target = target
