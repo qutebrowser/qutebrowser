@@ -24,6 +24,7 @@ import code
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from PyQt5.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
+from PyQt5.QtGui import QTextCursor
 
 from qutebrowser.config import config
 from qutebrowser.models import cmdhistory
@@ -197,6 +198,7 @@ class ConsoleWidget(QWidget):
 
     def insert_text(self, text):
         """Insert new text and scroll output to bottom."""
+        self._output.moveCursor(QTextCursor.End)
         self._output.insertPlainText(text)
         scrollbar = self._output.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
