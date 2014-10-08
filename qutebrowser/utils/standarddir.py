@@ -105,7 +105,7 @@ def get(typ, args=None):
 
 
 def init():
-    """Initialize all config dirs."""
+    """Initialize all standard dirs."""
     config_dir = get(QStandardPaths.ConfigLocation)
     data_dir = get(QStandardPaths.DataLocation)
     cache_dir = get(QStandardPaths.CacheLocation)
