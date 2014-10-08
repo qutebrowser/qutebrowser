@@ -190,7 +190,10 @@ class CompletionView(QTreeView):
         Args:
             model: The model to use.
         """
+        sel_model = self.selectionModel()
         self.setModel(model)
+        if sel_model is not None:
+            sel_model.deleteLater()
         self.expandAll()
         self._resize_columns()
         model.rowsRemoved.connect(self.maybe_resize_completion)
