@@ -133,6 +133,8 @@ class Application(QApplication):
         readline_bridge = readline.ReadlineBridge()
         objreg.register('readline-bridge', readline_bridge)
 
+        log.init.debug("Initializing directories...")
+        standarddir.init()
         log.init.debug("Initializing config...")
         config.init(self._args)
         log.init.debug("Initializing crashlog...")

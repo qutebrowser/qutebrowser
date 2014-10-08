@@ -104,3 +104,11 @@ def get(typ, args=None):
     if not os.path.exists(path):
         os.makedirs(path)
     return path
+
+
+def init():
+    """Initialize all config dirs."""
+    configdir = get(QStandardPaths.ConfigLocation)
+    if configdir is not None and not os.path.exists(configdir):
+        # FIXME
+        os.makedirs(configdir, 0o755)
