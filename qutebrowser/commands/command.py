@@ -174,6 +174,10 @@ class Command:
         name_conv = {}
         signature = inspect.signature(self.handler)
         has_count = 'count' in signature.parameters
+        if has_count and (signature.parameters['count'].default is
+                    inspect.Parameter.empty):
+            raise TypeError("{}: handler has count parameter without "
+                            "default!".format(self.name))
         doc = inspect.getdoc(self.handler)
         if doc is not None:
             desc = doc.splitlines()[0].strip()
