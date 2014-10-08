@@ -59,6 +59,7 @@ class Application(QApplication):
         _crashdlg: The crash dialog currently open.
         _crashlogfile: A file handler to the fatal crash logfile.
         _event_filter: The EventFilter for the application.
+        geometry: The geometry of the last closed main window.
     """
 
     def __init__(self, args):
@@ -72,6 +73,7 @@ class Application(QApplication):
             'tabs': False,
             'main': False,
         }
+        self.geometry = None
         self._shutting_down = False
         self._crashdlg = None
         self._crashlogfile = None
@@ -367,17 +369,14 @@ class Application(QApplication):
 
     def _save_geometry(self):
         """Save the window geometry to the state config."""
-        last_win_id = sorted(objreg.window_registry)[-1]
-        main_window = objreg.get('main-window', scope='window',
-                                 window=last_win_id)
-        state_config = objreg.get('state-config')
-        data = bytes(main_window.saveGeometry())
-        geom = base64.b64encode(data).decode('ASCII')
-        try:
-            state_config.add_section('geometry')
-        except configparser.DuplicateSectionError:
-            pass
-        state_config['geometry']['mainwindow'] = geom
+        if self.geometry is not None:
+            state_config = objreg.get('state-config')
+            geom = base64.b64encode(self.geometry).decode('ASCII')
+            try:
+                state_config.add_section('geometry')
+            except configparser.DuplicateSectionError:
+                pass
+            state_config['geometry']['mainwindow'] = geom
 
     def _destroy_crashlogfile(self):
         """Clean up the crash log file and delete it."""

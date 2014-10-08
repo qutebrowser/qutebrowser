@@ -330,4 +330,5 @@ class MainWindow(QWidget):
                 e.ignore()
                 return
         e.accept()
+        objreg.get('app').geometry = bytes(self.saveGeometry())
         log.destroy.debug("Closing window {}".format(self.win_id))
