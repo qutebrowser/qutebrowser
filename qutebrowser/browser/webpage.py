@@ -72,7 +72,7 @@ class BrowserPage(QWebPage):
         def javaScriptPrompt(self, _frame, msg, default):
             """Override javaScriptPrompt to use the statusbar."""
             answer = message.ask(self._win_id, "js: {}".format(msg),
-                                usertypes.PromptMode.text, default)
+                                 usertypes.PromptMode.text, default)
             if answer is None:
                 return (False, "")
             else:
