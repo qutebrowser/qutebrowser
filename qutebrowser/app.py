@@ -610,7 +610,7 @@ class Application(QApplication):
         try:
             log.destroy.debug("Removing eventfilter...")
             self.removeEventFilter(self._event_filter)
-        except KeyError:
+        except AttributeError:
             pass
         # Close all tabs
         for win_id in objreg.window_registry:
