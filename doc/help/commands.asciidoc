@@ -25,6 +25,7 @@
 |<<quickmark-save,quickmark-save>>|Save the current page as a quickmark.
 |<<quit,quit>>|Quit qutebrowser.
 |<<reload,reload>>|Reload the current/[count]th tab.
+|<<repeat,repeat>>|Repeat a given command.
 |<<report,report>>|Report a bug in qutebrowser.
 |<<restart,restart>>|Restart qutebrowser while keeping existing tabs open.
 |<<run-userscript,run-userscript>>|Run an userscript given as argument.
@@ -292,6 +293,16 @@ Reload the current/[count]th tab.
 ==== count
 The tab index to reload.
 
+[[repeat]]
+=== repeat
+Syntax: +:repeat 'times' 'command' ['command' ...]+
+
+Repeat a given command.
+
+==== positional arguments
+* +'times'+: How many times to repeat.
+* +'command'+: The command to run, with optional args.
+
 [[report]]
 === report
 Report a bug in qutebrowser.
@@ -418,7 +429,13 @@ How many tabs to switch forward.
 
 [[tab-only]]
 === tab-only
+Syntax: +:tab-only [*--left*] [*--right*]+
+
 Close all tabs except for the current one.
+
+==== optional arguments
+* +*-l*+, +*--left*+: Keep tabs to the left of the current.
+* +*-r*+, +*--right*+: Keep tabs to the right of the current.
 
 [[tab-prev]]
 === tab-prev
