@@ -35,7 +35,7 @@ def log_events(klass):
     @functools.wraps(old_event)
     def new_event(self, e, *args, **kwargs):
         """Wrapper for event() which logs events."""
-        log.misc.debug("Event in {}: {}".format(klass.__name__,
+        log.misc.debug("Event in {}: {}".format(utils.qualname(klass),
                                                 qenum_key(QEvent, e.type())))
         return old_event(self, e, *args, **kwargs)
 
@@ -201,10 +201,7 @@ def format_call(func, args=None, kwargs=None, full=True):
         A string with the function call.
     """
     if full:
-        if func.__module__ is not None:
-            name = '.'.join([func.__module__, func.__qualname__])
-        else:
-            name = func.__qualname__
+        name = utils.qualname(func)
     else:
         name = func.__name__
     return '{}({})'.format(name, _format_args(args, kwargs))

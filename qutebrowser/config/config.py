@@ -335,7 +335,7 @@ class ConfigManager(QObject):
                 func()
             else:
                 raise TypeError("Handler {} has invalid signature.".format(
-                    func.__qualname__))
+                    utils.qualname(func)))
         for handler in to_delete:
             change_handlers.remove(handler)
 

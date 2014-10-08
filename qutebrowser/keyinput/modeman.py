@@ -201,7 +201,7 @@ class ModeManager(QObject):
         handler = self._handlers[curmode]
         if curmode != usertypes.KeyMode.insert:
             log.modes.debug("got keypress in mode {} - calling handler "
-                            "{}".format(curmode, handler.__qualname__))
+                            "{}".format(curmode, utils.qualname(handler)))
         handled = handler(event) if handler is not None else False
 
         is_non_alnum = bool(event.modifiers()) or not event.text().strip()

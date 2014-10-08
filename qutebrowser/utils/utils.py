@@ -23,6 +23,7 @@ import io
 import sys
 import enum
 import shlex
+import inspect
 import os.path
 import urllib.request
 import urllib.parse
@@ -532,7 +533,7 @@ class prevent_exceptions:  # pylint: disable=invalid-name
             try:
                 return func(*args, **kwargs)
             except BaseException:
-                log.misc.exception("Error in {}".format(func.__qualname__))
+                log.misc.exception("Error in {}".format(qualname(func)))
                 return retval
 
         return wrapper
@@ -555,7 +556,7 @@ def get_repr(obj, constructor=False, **attrs):
                      <Foo one=1 two=2>.
         attrs: The attributes to add.
     """
-    cls = getattr(obj.__class__, '__qualname__', obj.__class__.__name__)
+    cls = qualname(obj.__class__)
     parts = []
     for name, val in attrs.items():
         parts.append('{}={!r}'.format(name, val))
@@ -566,3 +567,32 @@ def get_repr(obj, constructor=False, **attrs):
             return '<{} {}>'.format(cls, ' '.join(parts))
         else:
             return '<{}>'.format(cls)
+
+def qualname(obj):
+    """Get the fully qualified name of an object.
+
+    Based on twisted.python.reflect.fullyQualifiedName.
+
+    Should work with:
+        - functools.partial objects
+        - functions
+        - classes
+        - methods
+        - modules
+    """
+    if isinstance(obj, functools.partial):
+        obj = obj.func
+    if hasattr(obj, '__qualname__'):
+        name = obj.__qualname__
+    elif hasattr(obj, '__name__'):
+        name = obj.__name__
+    else:
+        name = '<unknown>'
+
+    if inspect.isclass(obj) or inspect.isfunction(obj):
+        module = obj.__module__
+        return "{}.{}".format(module, name)
+    elif inspect.ismethod(obj):
+        return "{}.{}".format(obj.__module__, name)
+    else:
+        return name

@@ -658,7 +658,7 @@ class Application(QApplication):
                 to_save.append(("cookies", cookie_jar.save))
             for what, handler in to_save:
                 log.destroy.debug("Saving {} (handler: {})".format(
-                    what, handler.__qualname__))
+                    what, utils.qualname(handler)))
                 try:
                     handler()
                 except AttributeError as e:
