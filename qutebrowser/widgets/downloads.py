@@ -22,9 +22,9 @@
 from PyQt5.QtCore import pyqtSlot, QSize, Qt
 from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu
 
-from qutebrowser.models import downloadmodel
+from qutebrowser.browser import downloads
 from qutebrowser.config import style
-from qutebrowser.utils import qtutils, utils
+from qutebrowser.utils import qtutils, utils, objreg
 
 
 class DownloadView(QListView):
@@ -55,10 +55,10 @@ class DownloadView(QListView):
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         self.setFlow(QListView.LeftToRight)
         self._menu = None
-        self._model = downloadmodel.DownloadModel(self)
-        self._model.rowsInserted.connect(self.updateGeometry)
-        self._model.rowsRemoved.connect(self.updateGeometry)
-        self.setModel(self._model)
+        model = objreg.get('download-manager')
+        model.rowsInserted.connect(self.updateGeometry)
+        model.rowsRemoved.connect(self.updateGeometry)
+        self.setModel(model)
         self.setWrapping(True)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_context_menu)
@@ -77,7 +77,7 @@ class DownloadView(QListView):
         index = self.indexAt(point)
         if not index.isValid():
             return
-        item = self.model().data(index, downloadmodel.Role.item)
+        item = self.model().data(index, downloads.ModelRole.item)
         self._menu = QMenu(self)
         cancel = self._menu.addAction("Cancel")
         cancel.triggered.connect(item.cancel)
@@ -89,7 +89,10 @@ class DownloadView(QListView):
 
     def sizeHint(self):
         """Return sizeHint based on the view contents."""
-        idx = self.model().last_index()
+        try:
+            idx = self.model().last_index()
+        except RuntimeError:
+            pass
         height = self.visualRect(idx).bottom()
         if height != -1:
             size = QSize(0, height + 2)

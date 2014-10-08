@@ -24,7 +24,9 @@ import os.path
 import functools
 import collections
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer, QStandardPaths
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QTimer,
+                          QStandardPaths, Qt, QVariant, QAbstractListModel,
+                          QModelIndex)
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 # We need this import so PyQt can use it inside pyqtSlot
 from PyQt5.QtWebKitWidgets import QWebPage  # pylint: disable=unused-import
@@ -32,7 +34,11 @@ from PyQt5.QtWebKitWidgets import QWebPage  # pylint: disable=unused-import
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import (message, http, usertypes, log, utils, urlutils,
-                               objreg, standarddir)
+                               objreg, standarddir, qtutils)
+
+
+ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
+                           is_int=True)
 
 
 class DownloadItem(QObject):
@@ -320,30 +326,14 @@ class DownloadItem(QObject):
         self.data_changed.emit()
 
 
-class DownloadManager(QObject):
+class DownloadManager(QAbstractListModel):
 
-    """Manager for running downloads.
+    """Manager and model for currently running downloads.
 
     Attributes:
         downloads: A list of active DownloadItems.
         questions: A list of Question objects to not GC them.
-
-    Signals:
-        download_about_to_be_added: A new download will be added.
-                                    arg: The index of the new download.
-        download_added: A new download was added.
-        download_about_to_be_finished: A download will be finished and removed.
-                                       arg: The index of the new download.
-        download_finished: A download was finished and removed.
-        data_changed: The data to be displayed in a model changed.
-                      arg: The index of the download which changed.
     """
-
-    download_about_to_be_added = pyqtSignal(int)
-    download_added = pyqtSignal()
-    download_about_to_be_finished = pyqtSignal(int)
-    download_finished = pyqtSignal()
-    data_changed = pyqtSignal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -393,6 +383,7 @@ class DownloadManager(QObject):
         _inline, suggested_filename = http.parse_content_disposition(reply)
         log.downloads.debug("fetch: {} -> {}".format(reply.url(),
                                                      suggested_filename))
+
         download = DownloadItem(reply, self)
         download.finished.connect(
             functools.partial(self.on_finished, download))
@@ -400,9 +391,10 @@ class DownloadManager(QObject):
             functools.partial(self.on_data_changed, download))
         download.error.connect(self.on_error)
         download.basename = suggested_filename
-        self.download_about_to_be_added.emit(len(self.downloads) + 1)
+        idx = len(self.downloads) + 1
+        self.beginInsertRows(QModelIndex(), idx, idx)
         self.downloads.append(download)
-        self.download_added.emit()
+        self.endInsertRows()
 
         q = usertypes.Question(self)
         q.text = "Save file to:"
@@ -423,18 +415,69 @@ class DownloadManager(QObject):
         """Remove finished download."""
         log.downloads.debug("on_finished: {}".format(download))
         idx = self.downloads.index(download)
-        self.download_about_to_be_finished.emit(idx)
+        self.beginRemoveRows(QModelIndex(), idx, idx)
         del self.downloads[idx]
-        self.download_finished.emit()
+        self.endRemoveRows()
         download.deleteLater()
 
     @pyqtSlot(DownloadItem)
     def on_data_changed(self, download):
         """Emit data_changed signal when download data changed."""
         idx = self.downloads.index(download)
-        self.data_changed.emit(idx)
+        model_idx = self.index(idx, 0)
+        qtutils.ensure_valid(model_idx)
+        self.dataChanged.emit(model_idx, model_idx)
 
     @pyqtSlot(str)
     def on_error(self, msg):
         """Display error message on download errors."""
         message.error('current', "Download error: {}".format(msg))
+
+    def last_index(self):
+        """Get the last index in the model.
+
+        Return:
+            A (possibly invalid) QModelIndex.
+        """
+        idx = self.index(self.rowCount() - 1)
+        return idx
+
+    def headerData(self, section, orientation, role):
+        """Simple constant header."""
+        if (section == 0 and orientation == Qt.Horizontal and
+                role == Qt.DisplayRole):
+            return "Downloads"
+        else:
+            return ""
+
+    def data(self, index, role):
+        """Download data from DownloadManager."""
+        qtutils.ensure_valid(index)
+        if index.parent().isValid() or index.column() != 0:
+            return QVariant()
+
+        item = objreg.get('download-manager').downloads[index.row()]
+        if role == Qt.DisplayRole:
+            data = str(item)
+        elif role == Qt.ForegroundRole:
+            data = config.get('colors', 'downloads.fg')
+        elif role == Qt.BackgroundRole:
+            data = item.bg_color()
+        elif role == ModelRole.item:
+            data = item
+        else:
+            data = QVariant()
+        return data
+
+    def flags(self, _index):
+        """Override flags so items aren't selectable.
+
+        The default would be Qt.ItemIsEnabled | Qt.ItemIsSelectable."""
+        return Qt.ItemIsEnabled
+
+    def rowCount(self, parent=QModelIndex()):
+        """Get count of active downloads."""
+        if parent.isValid():
+            # We don't have children
+            return 0
+        return len(objreg.get('download-manager').downloads)
