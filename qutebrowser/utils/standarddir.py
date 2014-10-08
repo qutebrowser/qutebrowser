@@ -101,14 +101,23 @@ def get(typ, args=None):
             QStandardPaths.ConfigLocation)
         if data_path == config_path:
             path = os.path.join(path, 'data')
-    if not os.path.exists(path):
-        os.makedirs(path)
     return path
 
 
 def init():
     """Initialize all config dirs."""
-    configdir = get(QStandardPaths.ConfigLocation)
-    if configdir is not None and not os.path.exists(configdir):
-        # FIXME
-        os.makedirs(configdir, 0o755)
+    config_dir = get(QStandardPaths.ConfigLocation)
+    data_dir = get(QStandardPaths.DataLocation)
+    cache_dir = get(QStandardPaths.CacheLocation)
+    # From the XDG basedir spec:
+    #     If, when attempting to write a file, the destination directory is
+    #     non-existant an attempt should be made to create it with permission
+    #     0700. If the destination directory exists already the permissions
+    #     should not be changed.
+    #
+    # This is slightly wrong according to the standard as we ensure these paths
+    # exists while initializing, not when writing the file - but practicality
+    # beats purity.
+    for path in (config_dir, data_dir, cache_dir):
+        if path is not None and not os.path.exists(path):
+            os.makedirs(path, 0o700)
