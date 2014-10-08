@@ -170,6 +170,17 @@ class ConsoleTextEdit(QTextEdit):
         """Update font when config changed."""
         self.setFont(config.get('fonts', 'debug-console'))
 
+    def append_text(self, text):
+        """Append new text and scroll output to bottom.
+
+        We can't use Qt's way to append stuff because that inserts weird
+        newlines.
+        """
+        self.moveCursor(QTextCursor.End)
+        self.insertPlainText(text)
+        scrollbar = self.verticalScrollBar()
+        scrollbar.setValue(scrollbar.maximum())
+
 
 class ConsoleWidget(QWidget):
 
@@ -185,7 +196,7 @@ class ConsoleWidget(QWidget):
         super().__init__(parent)
         self._lineedit = ConsoleLineEdit(self)
         self._output = ConsoleTextEdit()
-        self._lineedit.write.connect(self.insert_text)
+        self._lineedit.write.connect(self._output.append_text)
         self._vbox = QVBoxLayout()
         self._vbox.setSpacing(0)
         self._vbox.addWidget(self._output)
@@ -195,10 +206,3 @@ class ConsoleWidget(QWidget):
 
     def __repr__(self):
         return utils.get_repr(self, visible=self.isVisible())
-
-    def insert_text(self, text):
-        """Insert new text and scroll output to bottom."""
-        self._output.moveCursor(QTextCursor.End)
-        self._output.insertPlainText(text)
-        scrollbar = self._output.verticalScrollBar()
-        scrollbar.setValue(scrollbar.maximum())
