@@ -248,9 +248,17 @@ class TabbedBrowser(tabwidget.TabWidget):
             history_data = qtutils.serialize(tab.history())
             entry = UndoEntry(tab.cur_url, history_data)
             self._undo_stack.append(entry)
+        elif tab.cur_url.isEmpty():
+            # There are some good reasons why an URL could be empty
+            # (target="_blank" with a download, see [1]), so we silently ignore
+            # this.
+            # [1] https://github.com/The-Compiler/qutebrowser/issues/163
+            pass
         else:
+            # We display a warnings for URLs which are not empty but invalid -
+            # but we don't return here because we want the tab to close either
+            # way.
             urlutils.invalid_url_error(self._win_id, tab.cur_url, "saving tab")
-            return
         tab.shutdown()
         self.removeTab(idx)
         tab.deleteLater()
