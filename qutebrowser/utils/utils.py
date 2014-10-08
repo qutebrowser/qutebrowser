@@ -568,6 +568,7 @@ def get_repr(obj, constructor=False, **attrs):
         else:
             return '<{}>'.format(cls)
 
+
 def qualname(obj):
     """Get the fully qualified name of an object.
 
