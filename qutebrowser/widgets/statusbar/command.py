@@ -170,14 +170,15 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         """
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
-        url = tabbed_browser.current_url().toString(
-            QUrl.FullyEncoded | QUrl.RemovePassword)
-        # FIXME we currently replace the URL in any place in the arguments,
-        # rather than just replacing it if it is a dedicated argument. We could
-        # split the args, but then trailing spaces would be lost, so I'm not
-        # sure what's the best thing to do here
-        # https://github.com/The-Compiler/qutebrowser/issues/123
-        text = text.replace('{url}', url)
+        if '{url}' in text:
+            url = tabbed_browser.current_url().toString(
+                QUrl.FullyEncoded | QUrl.RemovePassword)
+            # FIXME we currently replace the URL in any place in the arguments,
+            # rather than just replacing it if it is a dedicated argument. We
+            # could split the args, but then trailing spaces would be lost, so
+            # I'm not sure what's the best thing to do here
+            # https://github.com/The-Compiler/qutebrowser/issues/123
+            text = text.replace('{url}', url)
         if not text[0] in modeparsers.STARTCHARS:
             raise cmdexc.CommandError(
                 "Invalid command text '{}'.".format(text))
