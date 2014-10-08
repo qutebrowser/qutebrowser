@@ -53,7 +53,6 @@ class GetStandardDirLinuxTests(unittest.TestCase):
             cur_dir = standarddir.get(QStandardPaths.DataLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir,
                                                    'qutebrowser'))
-            self.assertTrue(os.path.exists(cur_dir))
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_config_explicit(self):
@@ -62,7 +61,6 @@ class GetStandardDirLinuxTests(unittest.TestCase):
             cur_dir = standarddir.get(QStandardPaths.ConfigLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir,
                                                    'qutebrowser'))
-            self.assertTrue(os.path.exists(cur_dir))
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_cache_explicit(self):
@@ -71,7 +69,6 @@ class GetStandardDirLinuxTests(unittest.TestCase):
             cur_dir = standarddir.get(QStandardPaths.CacheLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir,
                                                    'qutebrowser'))
-            self.assertTrue(os.path.exists(cur_dir))
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_data(self):
@@ -80,7 +77,6 @@ class GetStandardDirLinuxTests(unittest.TestCase):
             cur_dir = standarddir.get(QStandardPaths.DataLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir, '.local',
                                                    'share', 'qutebrowser'))
-            self.assertTrue(os.path.exists(cur_dir))
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_config(self):
@@ -90,7 +86,6 @@ class GetStandardDirLinuxTests(unittest.TestCase):
                 QStandardPaths.ConfigLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir, '.config',
                                                    'qutebrowser'))
-            self.assertTrue(os.path.exists(cur_dir))
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_cache(self):
@@ -99,7 +94,6 @@ class GetStandardDirLinuxTests(unittest.TestCase):
             cur_dir = standarddir.get(QStandardPaths.CacheLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir, '.cache',
                                                    'qutebrowser'))
-            self.assertTrue(os.path.exists(cur_dir))
 
     def tearDown(self):
         self.app.quit()
@@ -125,7 +119,6 @@ class GetStandardDirWindowsTests(unittest.TestCase):
         cur_dir = standarddir.get(QStandardPaths.DataLocation)
         self.assertEqual(cur_dir.split(os.sep)[-1], 'qutebrowser_test',
                          cur_dir)
-        self.assertTrue(os.path.exists(cur_dir))
         # We clean up here as we don't dare to clean up if the path doesn't end
         # with qutebrowser_test - it could be *anywhere* after all.
         shutil.rmtree(cur_dir)
@@ -136,7 +129,6 @@ class GetStandardDirWindowsTests(unittest.TestCase):
         cur_dir = standarddir.get(QStandardPaths.ConfigLocation)
         self.assertEqual(cur_dir.split(os.sep)[-1], 'qutebrowser_test',
                          cur_dir)
-        self.assertTrue(os.path.exists(cur_dir))
         # We clean up here as we don't dare to clean up if the path doesn't end
         # with qutebrowser_test - it could be *anywhere* after all.
         shutil.rmtree(cur_dir)
@@ -147,7 +139,6 @@ class GetStandardDirWindowsTests(unittest.TestCase):
         cur_dir = standarddir.get(QStandardPaths.CacheLocation)
         self.assertEqual(cur_dir.split(os.sep)[-2:],
                          ['qutebrowser_test', 'cache'], cur_dir)
-        self.assertTrue(os.path.exists(cur_dir))
         # We clean up here as we don't dare to clean up if the path doesn't end
         # with qutebrowser_test - it could be *anywhere* after all.
         shutil.rmtree(cur_dir)
