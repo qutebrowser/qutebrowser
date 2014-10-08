@@ -64,7 +64,12 @@ class DownloadView(QListView):
         self.customContextMenuRequested.connect(self.show_context_menu)
 
     def __repr__(self):
-        return utils.get_repr(self, count=self.model().rowCount())
+        model = self.model()
+        if model is None:
+            count = 'None'
+        else:
+            count = model.rowCount()
+        return utils.get_repr(self, count=count)
 
     @pyqtSlot('QPoint')
     def show_context_menu(self, point):
