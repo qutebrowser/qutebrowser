@@ -121,3 +121,12 @@ def init():
     for path in (config_dir, data_dir, cache_dir):
         if path is not None and not os.path.exists(path):
             os.makedirs(path, 0o700)
+    # http://www.brynosaurus.com/cachedir/spec.html
+    cachedir_tag = os.path.join(cache_dir, 'CACHEDIR.TAG')
+    if not os.path.exists(cachedir_tag):
+        with open(cachedir_tag, 'w', encoding='utf-8') as f:
+            f.write("Signature: 8a477f597d28d172789f06886806bc55\n")
+            f.write("# This file is a cache directory tag created by "
+                    "qutebrowser.\n")
+            f.write("# For information about cache directory tags, see:\n")
+            f.write("#  http://www.brynosaurus.com/cachedir/\n")
