@@ -29,6 +29,7 @@ import sys
 import os.path
 import inspect
 import functools
+import weakref
 import configparser
 import collections
 import collections.abc
@@ -43,8 +44,8 @@ from qutebrowser.utils import message, objreg, utils, standarddir, log
 from qutebrowser.utils.usertypes import Completion
 
 
-ChangeHandler = collections.namedtuple('ChangeHandler', ['func', 'section',
-                                                         'option'])
+ChangeHandler = collections.namedtuple(
+    'ChangeHandler', ['func_ref', 'section', 'option'])
 
 
 change_handlers = []
@@ -67,7 +68,7 @@ def on_change(func, sectname=None, optname=None):
     if optname is not None and optname not in configdata.DATA[sectname]:
         raise NoOptionError("Option '{}' does not exist in section "
                             "'{}'!".format(optname, sectname))
-    change_handlers.append(ChangeHandler(func, sectname, optname))
+    change_handlers.append(ChangeHandler(weakref.ref(func), sectname, optname))
 
 
 def get(*args, **kwargs):
@@ -315,21 +316,28 @@ class ConfigManager(QObject):
             sectname, optname))
         if sectname in ('colors', 'fonts'):
             self.style_changed.emit(sectname, optname)
+        to_delete = []
         for handler in change_handlers:
-            if handler.section is not None and handler.section != sectname:
+            func = handler.func_ref()
+            if func is None:
+                to_delete.append(handler)
                 continue
-            if handler.option is not None and handler.option != optname:
+            elif handler.section is not None and handler.section != sectname:
                 continue
-            param_count = len(inspect.signature(handler.func).parameters)
+            elif handler.option is not None and handler.option != optname:
+                continue
+            param_count = len(inspect.signature(func).parameters)
             if param_count == 2:
-                handler.func(sectname, optname)
+                func(sectname, optname)
             elif param_count == 1:
-                handler.func(sectname)
+                func(sectname)
             elif param_count == 0:
-                handler.func()
+                func()
             else:
                 raise TypeError("Handler {} has invalid signature.".format(
-                    handler.func.__qualname__))
+                    func.__qualname__))
+        for handler in to_delete:
+            change_handlers.remove(handler)
 
     def _after_set(self, changed_sect, changed_opt):
         """Clean up caches and emit signals after an option has been set."""
