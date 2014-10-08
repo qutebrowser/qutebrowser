@@ -39,7 +39,10 @@ def update_geometry(obj):
     rowsInserted/rowsRemoved signals don't get disconnected from this method
     when the DownloadView is deleted from Qt (e.g. by closing a window).
 
-    Here we check if obj ("self") was deleted and just ignore the even if so.
+    Here we check if obj ("self") was deleted and just ignore the event if so.
+
+    Original bug:   https://github.com/The-Compiler/qutebrowser/issues/167
+    Workaround bug: https://github.com/The-Compiler/qutebrowser/issues/171
     """
     if sip.isdeleted(obj):
         return
