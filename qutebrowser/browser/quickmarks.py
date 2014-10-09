@@ -74,7 +74,7 @@ def prompt_save(win_id, url):
 
 
 @cmdutils.register()
-def quickmark_add(win_id, url, name):
+def quickmark_add(win_id: {'special': 'win_id'}, url, name):
     """Add a new quickmark.
 
     Args:

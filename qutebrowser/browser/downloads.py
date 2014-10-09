@@ -359,7 +359,7 @@ class DownloadManager(QAbstractListModel):
         self.fetch(reply)
 
     @cmdutils.register(instance='download-manager')
-    def cancel_download(self, count=1):
+    def cancel_download(self, count: {'special': 'count'}=1):
         """Cancel the first/[count]th download.
 
         Args:

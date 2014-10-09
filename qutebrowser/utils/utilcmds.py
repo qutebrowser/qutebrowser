@@ -30,7 +30,7 @@ from qutebrowser.config import style
 
 
 @cmdutils.register(scope='window')
-def later(ms: int, *command, win_id):
+def later(ms: int, *command, win_id: {'special': 'win_id'}):
     """Execute a command after some time.
 
     Args:
@@ -60,7 +60,7 @@ def later(ms: int, *command, win_id):
 
 
 @cmdutils.register(scope='window')
-def repeat(times: int, *command, win_id):
+def repeat(times: int, *command, win_id: {'special': 'win_id'}):
     """Repeat a given command.
 
     Args:

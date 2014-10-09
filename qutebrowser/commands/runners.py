@@ -116,7 +116,7 @@ class SearchRunner(QObject):
         self._search(text, rev=True)
 
     @cmdutils.register(instance='search-runner', hide=True, scope='window')
-    def search_next(self, count=1):
+    def search_next(self, count: {'special': 'count'}=1):
         """Continue the search to the ([count]th) next term.
 
         Args:
@@ -127,7 +127,7 @@ class SearchRunner(QObject):
                 self.do_search.emit(self._text, self._flags)
 
     @cmdutils.register(instance='search-runner', hide=True, scope='window')
-    def search_prev(self, count=1):
+    def search_prev(self, count: {'special': 'count'}=1):
         """Continue the search to the ([count]th) previous term.
 
         Args:

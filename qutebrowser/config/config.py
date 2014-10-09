@@ -442,8 +442,9 @@ class ConfigManager(QObject):
     @cmdutils.register(name='set', instance='config',
                        completion=[Completion.section, Completion.option,
                                    Completion.value])
-    def set_command(self, win_id, sectname: {'name': 'section'},
-                    optname: {'name': 'option'}, value=None, temp=False):
+    def set_command(self, win_id: {'special': 'win_id'},
+                    sectname: {'name': 'section'}, optname: {'name': 'option'},
+                    value=None, temp=False):
         """Set an option.
 
         If the option name ends with '?', the value of the option is shown

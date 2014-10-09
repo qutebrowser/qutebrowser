@@ -380,9 +380,6 @@ def foo():
 
 The commands arguments are automatically deduced by inspecting your function.
 
-If your function has a `count` argument with a default, the command will
-support a count which will be passed in the argument.
-
 If the function is a method of a class, the `@cmdutils.register` decorator
 needs to have an `instance=...` parameter which points to the (single/main)
 instance of the class.
