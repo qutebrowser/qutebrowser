@@ -21,9 +21,11 @@
 
 import sys
 import code
+import rlcompleter
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
-from PyQt5.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QStringListModel
+from PyQt5.QtWidgets import (QTextEdit, QWidget, QVBoxLayout, QApplication,
+                             QCompleter)
 from PyQt5.QtGui import QTextCursor
 
 from qutebrowser.config import config
@@ -41,6 +43,8 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         _more: A flag which is set when more input is expected.
         _buffer: The buffer for multiline commands.
         _interpreter: The InteractiveInterpreter to execute code with.
+        _rlcompleter: The rlcompleter.Completer instance.
+        _qcompleter: The QCompleter instance.
     """
 
     write = pyqtSignal(str)
@@ -56,7 +60,7 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         config.on_change(self.update_font, 'fonts', 'debug-console')
         self._more = False
         self._buffer = []
-        interpreter_locals = {
+        namespace = {
             '__name__': '__console__',
             '__doc__': None,
             'qApp': QApplication.instance(),
@@ -64,7 +68,17 @@ class ConsoleLineEdit(misc.CommandLineEdit):
             # console, not just the line edit.
             'self': parent,
         }
-        self._interpreter = code.InteractiveInterpreter(interpreter_locals)
+        self.textChanged.connect(self.on_text_changed)
+
+        self._rlcompleter = rlcompleter.Completer(namespace)
+        qcompleter = QCompleter(self)
+        self._model = QStringListModel(qcompleter)
+        qcompleter.setModel(self._model)
+        qcompleter.setCompletionMode(
+            QCompleter.UnfilteredPopupCompletion)
+        self.setCompleter(qcompleter)
+
+        self._interpreter = code.InteractiveInterpreter(namespace)
         self._history = cmdhistory.History()
         self.returnPressed.connect(self.execute)
         self.setText('')
@@ -72,6 +86,19 @@ class ConsoleLineEdit(misc.CommandLineEdit):
     def _curprompt(self):
         """Get the prompt which is visible currently."""
         return sys.ps2 if self._more else sys.ps1
+
+    @pyqtSlot(str)
+    def on_text_changed(self, text):
+        strings = []
+        i = 0
+        while True:
+            s = self._rlcompleter.complete(self.text(), i)
+            if s is None:
+                break
+            else:
+                strings.append(s)
+            i += 1
+        self._model.setStringList(strings)
 
     @pyqtSlot(str)
     def execute(self):
