@@ -27,6 +27,7 @@ from PyQt5.QtCore import QCoreApplication
 from qutebrowser.utils import log, objreg, usertypes
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style
+from qutebrowser.widgets import console
 
 
 @cmdutils.register(scope='window')
@@ -111,4 +112,9 @@ def debug_cache_stats():
 @cmdutils.register(debug=True)
 def debug_console():
     """Show the debugging console."""
-    objreg.get('debug-console').show()
+    try:
+        debug_console = objreg.get('debug-console')
+    except KeyError:
+        debug_console = console.ConsoleWidget()
+        objreg.register('debug-console', debug_console)
+    debug_console.show()

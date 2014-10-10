@@ -40,7 +40,7 @@ from qutebrowser.commands import cmdutils, runners
 from qutebrowser.config import style, config, websettings
 from qutebrowser.network import qutescheme, proxy
 from qutebrowser.browser import quickmarks, cookies, downloads, cache
-from qutebrowser.widgets import mainwindow, console, crash
+from qutebrowser.widgets import mainwindow, crash
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (log, version, message, readline, utils, qtutils,
                                urlutils, debug, objreg, usertypes, standarddir)
@@ -161,9 +161,6 @@ class Application(QApplication):
             False if self._args.nowindow else True)
         main_window = objreg.get('main-window', scope='window', window=win_id)
         self.setActiveWindow(main_window)
-        log.init.debug("Initializing debug console...")
-        debug_console = console.ConsoleWidget()
-        objreg.register('debug-console', debug_console)
 
     def _handle_segfault(self):
         """Handle a segfault from a previous run."""
