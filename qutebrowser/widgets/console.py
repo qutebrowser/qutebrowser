@@ -55,7 +55,6 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         if not hasattr(sys, 'ps2'):
             sys.ps2 = '... '
         super().__init__(parent)
-        self.set_prompt(sys.ps1)
         self.update_font()
         config.on_change(self.update_font, 'fonts', 'debug-console')
         self._more = False
@@ -81,7 +80,10 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         self._interpreter = code.InteractiveInterpreter(namespace)
         self._history = cmdhistory.History()
         self.returnPressed.connect(self.execute)
-        self.setText('')
+
+    def write_prompt(self):
+        """Emit the write signal with the current prompt."""
+        self.write.emit(self._curprompt())
 
     def _curprompt(self):
         """Get the prompt which is visible currently."""
@@ -114,7 +116,7 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         """Push a line to the interpreter."""
         self._buffer.append(line)
         source = '\n'.join(self._buffer)
-        self.write.emit(self._curprompt() + line + '\n')
+        self.write.emit(line + '\n')
         # We do two special things with the contextmanagers here:
         #   - We replace stdout/stderr to capture output. Even if we could
         #     override InteractiveInterpreter's write method, most things are
@@ -124,7 +126,7 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         #     printed and don't ooen a crashdialog.
         with utils.fake_io(self.write.emit), utils.disabled_excepthook():
             self._more = self._interpreter.runsource(source, '<console>')
-        self.set_prompt(self._curprompt())
+        self.write_prompt()
         if not self._more:
             self._buffer = []
 
@@ -149,15 +151,6 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         except cmdhistory.HistoryEndReachedError:
             return
         self.setText(item)
-
-    def setText(self, text):
-        """Override setText to always prepend the prompt."""
-        super().setText(self._curprompt() + text)
-
-    def text(self):
-        """Override text to strip the prompt."""
-        text = super().text()
-        return text[len(self._curprompt()):]
 
     def keyPressEvent(self, e):
         """Override keyPressEvent to handle special keypresses."""
@@ -224,6 +217,7 @@ class ConsoleWidget(QWidget):
         self._lineedit = ConsoleLineEdit(self)
         self._output = ConsoleTextEdit()
         self._lineedit.write.connect(self._output.append_text)
+        self._lineedit.write_prompt()
         self._vbox = QVBoxLayout()
         self._vbox.setSpacing(0)
         self._vbox.addWidget(self._output)
