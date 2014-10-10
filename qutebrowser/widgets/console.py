@@ -66,6 +66,8 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         qcompleter.setModel(self._model)
         qcompleter.setCompletionMode(
             QCompleter.UnfilteredPopupCompletion)
+        qcompleter.setModelSorting(
+            QCompleter.CaseSensitivelySortedModel)
         self.setCompleter(qcompleter)
 
         self._history = cmdhistory.History()
@@ -73,15 +75,16 @@ class ConsoleLineEdit(misc.CommandLineEdit):
 
     @pyqtSlot(str)
     def on_text_changed(self, text):
-        strings = []
+        strings = set()
         i = 0
         while True:
             s = self._rlcompleter.complete(self.text(), i)
             if s is None:
                 break
             else:
-                strings.append(s)
+                strings.add(s)
             i += 1
+        strings = sorted(list(strings))
         self._model.setStringList(strings)
 
     @pyqtSlot(str)
