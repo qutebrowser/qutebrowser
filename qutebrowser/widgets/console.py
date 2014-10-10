@@ -30,7 +30,7 @@ from PyQt5.QtGui import QTextCursor
 
 from qutebrowser.config import config
 from qutebrowser.models import cmdhistory
-from qutebrowser.utils import utils
+from qutebrowser.utils import utils, log
 from qutebrowser.widgets import misc
 
 
@@ -86,6 +86,7 @@ class ConsoleLineEdit(misc.CommandLineEdit):
             i += 1
         strings = sorted(list(strings))
         self._model.setStringList(strings)
+        log.misc.vdebug('completions: {!r}'.format(strings))
 
     @pyqtSlot(str)
     def on_return_pressed(self):
