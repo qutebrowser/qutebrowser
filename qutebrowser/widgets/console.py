@@ -40,33 +40,24 @@ class ConsoleLineEdit(misc.CommandLineEdit):
 
     Attributes:
         _history: The command history of executed commands.
-        _more: A flag which is set when more input is expected.
-        _buffer: The buffer for multiline commands.
-        _interpreter: The InteractiveInterpreter to execute code with.
         _rlcompleter: The rlcompleter.Completer instance.
         _qcompleter: The QCompleter instance.
+
+    Signals:
+        execute: Emitted when a commandline should be executed.
     """
 
-    write = pyqtSignal(str)
+    execute = pyqtSignal(str)
 
-    def __init__(self, parent):
-        if not hasattr(sys, 'ps1'):
-            sys.ps1 = '>>> '
-        if not hasattr(sys, 'ps2'):
-            sys.ps2 = '... '
+    def __init__(self, namespace, parent):
+        """Constructor.
+
+        Args:
+            namespace: The local namespace of the interpreter.
+        """
         super().__init__(parent)
         self.update_font()
         config.on_change(self.update_font, 'fonts', 'debug-console')
-        self._more = False
-        self._buffer = []
-        namespace = {
-            '__name__': '__console__',
-            '__doc__': None,
-            'qApp': QApplication.instance(),
-            # We use parent as self here because the user "feels" the whole
-            # console, not just the line edit.
-            'self': parent,
-        }
         self.textChanged.connect(self.on_text_changed)
 
         self._rlcompleter = rlcompleter.Completer(namespace)
@@ -77,17 +68,8 @@ class ConsoleLineEdit(misc.CommandLineEdit):
             QCompleter.UnfilteredPopupCompletion)
         self.setCompleter(qcompleter)
 
-        self._interpreter = code.InteractiveInterpreter(namespace)
         self._history = cmdhistory.History()
-        self.returnPressed.connect(self.execute)
-
-    def write_prompt(self):
-        """Emit the write signal with the current prompt."""
-        self.write.emit(self._curprompt())
-
-    def _curprompt(self):
-        """Get the prompt which is visible currently."""
-        return sys.ps2 if self._more else sys.ps1
+        self.returnPressed.connect(self.on_return_pressed)
 
     @pyqtSlot(str)
     def on_text_changed(self, text):
@@ -103,32 +85,14 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         self._model.setStringList(strings)
 
     @pyqtSlot(str)
-    def execute(self):
+    def on_return_pressed(self):
         """Execute the line of code which was entered."""
         self._history.stop()
         text = self.text()
         if text:
             self._history.append(text)
-        self.push(text)
+        self.execute.emit(text)
         self.setText('')
-
-    def push(self, line):
-        """Push a line to the interpreter."""
-        self._buffer.append(line)
-        source = '\n'.join(self._buffer)
-        self.write.emit(line + '\n')
-        # We do two special things with the contextmanagers here:
-        #   - We replace stdout/stderr to capture output. Even if we could
-        #     override InteractiveInterpreter's write method, most things are
-        #     printed elsewhere (e.g. by exec). Other Python GUI shells do the
-        #     same.
-        #   - We disable our exception hook, so exceptions from the console get
-        #     printed and don't ooen a crashdialog.
-        with utils.fake_io(self.write.emit), utils.disabled_excepthook():
-            self._more = self._interpreter.runsource(source, '<console>')
-        self.write_prompt()
-        if not self._more:
-            self._buffer = []
 
     def history_prev(self):
         """Go back in the history."""
@@ -210,20 +174,65 @@ class ConsoleWidget(QWidget):
         _lineedit: The line edit in the console.
         _output: The output widget in the console.
         _vbox: The layout which contains everything.
+        _more: A flag which is set when more input is expected.
+        _buffer: The buffer for multiline commands.
+        _interpreter: The InteractiveInterpreter to execute code with.
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._lineedit = ConsoleLineEdit(self)
+        if not hasattr(sys, 'ps1'):
+            sys.ps1 = '>>> '
+        if not hasattr(sys, 'ps2'):
+            sys.ps2 = '... '
+        namespace = {
+            '__name__': '__console__',
+            '__doc__': None,
+            'qApp': QApplication.instance(),
+            # We use parent as self here because the user "feels" the whole
+            # console, not just the line edit.
+            'self': parent,
+        }
+        self._more = False
+        self._buffer = []
+        self._lineedit = ConsoleLineEdit(namespace, self)
+        self._lineedit.execute.connect(self.push)
         self._output = ConsoleTextEdit()
-        self._lineedit.write.connect(self._output.append_text)
-        self._lineedit.write_prompt()
+        self.write(self._curprompt())
         self._vbox = QVBoxLayout()
         self._vbox.setSpacing(0)
         self._vbox.addWidget(self._output)
         self._vbox.addWidget(self._lineedit)
         self.setLayout(self._vbox)
         self._lineedit.setFocus()
+        self._interpreter = code.InteractiveInterpreter(namespace)
+
 
     def __repr__(self):
         return utils.get_repr(self, visible=self.isVisible())
+
+    def write(self, line):
+        self._output.append_text(line)
+
+    @pyqtSlot(str)
+    def push(self, line):
+        """Push a line to the interpreter."""
+        self._buffer.append(line)
+        source = '\n'.join(self._buffer)
+        self.write(line + '\n')
+        # We do two special things with the contextmanagers here:
+        #   - We replace stdout/stderr to capture output. Even if we could
+        #     override InteractiveInterpreter's write method, most things are
+        #     printed elsewhere (e.g. by exec). Other Python GUI shells do the
+        #     same.
+        #   - We disable our exception hook, so exceptions from the console get
+        #     printed and don't ooen a crashdialog.
+        with utils.fake_io(self.write), utils.disabled_excepthook():
+            self._more = self._interpreter.runsource(source, '<console>')
+        self.write(self._curprompt())
+        if not self._more:
+            self._buffer = []
+
+    def _curprompt(self):
+        """Get the prompt which is visible currently."""
+        return sys.ps2 if self._more else sys.ps1
