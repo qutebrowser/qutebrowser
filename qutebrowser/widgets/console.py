@@ -30,7 +30,7 @@ from PyQt5.QtGui import QTextCursor
 
 from qutebrowser.config import config
 from qutebrowser.models import cmdhistory
-from qutebrowser.utils import utils, log
+from qutebrowser.utils import utils, log, objreg
 from qutebrowser.widgets import misc
 
 
@@ -196,6 +196,7 @@ class ConsoleWidget(QWidget):
             # We use parent as self here because the user "feels" the whole
             # console, not just the line edit.
             'self': parent,
+            'objreg': objreg,
         }
         self._more = False
         self._buffer = []
