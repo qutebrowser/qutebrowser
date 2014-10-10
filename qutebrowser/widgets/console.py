@@ -211,7 +211,6 @@ class ConsoleWidget(QWidget):
         self._lineedit.setFocus()
         self._interpreter = code.InteractiveInterpreter(namespace)
 
-
     def __repr__(self):
         return utils.get_repr(self, visible=self.isVisible())
 
