@@ -113,8 +113,8 @@ def debug_cache_stats():
 def debug_console():
     """Show the debugging console."""
     try:
-        debug_console = objreg.get('debug-console')
+        con_widget = objreg.get('debug-console')
     except KeyError:
-        debug_console = console.ConsoleWidget()
-        objreg.register('debug-console', debug_console)
-    debug_console.show()
+        con_widget = console.ConsoleWidget()
+        objreg.register('debug-console', con_widget)
+    con_widget.show()

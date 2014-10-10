@@ -65,7 +65,6 @@ class Command:
     SpecialParams = collections.namedtuple('SpecialParams',
                                            ['count', 'win_id'])
 
-
     def __init__(self, name, split, hide, instance, completion, modes,
                  not_modes, needs_js, is_debug, ignore_args,
                  handler, scope):

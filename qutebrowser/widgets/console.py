@@ -75,10 +75,11 @@ class ConsoleLineEdit(misc.CommandLineEdit):
 
     @pyqtSlot(str)
     def on_text_changed(self, text):
+        """Update completion when text changed."""
         strings = set()
         i = 0
         while True:
-            s = self._rlcompleter.complete(self.text(), i)
+            s = self._rlcompleter.complete(text, i)
             if s is None:
                 break
             else:
@@ -216,6 +217,7 @@ class ConsoleWidget(QWidget):
         return utils.get_repr(self, visible=self.isVisible())
 
     def write(self, line):
+        """Write a line of text (without added newline) to the output."""
         self._output.append_text(line)
 
     @pyqtSlot(str)
