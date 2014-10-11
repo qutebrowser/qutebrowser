@@ -117,6 +117,10 @@ class Application(QApplication):
             sys.exit(0)
 
         self.server = QLocalServer()
+        ok = QLocalServer.removeServer(socketname)
+        if not ok:
+            # FIXME
+            raise Exception
         ok = self.server.listen(socketname)
         if not ok:
             # FIXME
