@@ -105,8 +105,10 @@ class Application(QApplication):
             print(version.GPL_BOILERPLATE.strip())
             sys.exit(0)
 
+        socketname = 'qutebrowser-{}'.format(getpass.getuser())
+
         self.socket = QLocalSocket(self)
-        self.socket.connectToServer('qutebrowser-{}'.format(getpass.getuser()))
+        self.socket.connectToServer(socketname)
         is_running = self.socket.waitForConnected(100)
         if is_running:
             log.init.info("Opening in existing instance")
@@ -115,7 +117,7 @@ class Application(QApplication):
             sys.exit(0)
 
         self.server = QLocalServer()
-        ok = self.server.listen('qutebrowser-{}'.format(getpass.getuser()))
+        ok = self.server.listen(socketname)
         if not ok:
             # FIXME
             raise Exception("Error while listening to local socket: {}".format(
