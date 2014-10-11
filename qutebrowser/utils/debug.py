@@ -21,11 +21,12 @@
 
 import re
 import sys
+import inspect
 import functools
 
-from PyQt5.QtCore import QEvent
+from PyQt5.QtCore import QEvent, QMetaMethod
 
-from qutebrowser.utils import log, utils
+from qutebrowser.utils import log, utils, qtutils
 
 
 def log_events(klass):
@@ -41,6 +42,42 @@ def log_events(klass):
 
     klass.event = new_event
     return klass
+
+
+def log_signals(obj):
+    """Log all signals of an object or class.
+
+    Can be used as class decorator.
+    """
+
+    def log_slot(obj, signal, *args):
+        dbg = dbg_signal(signal, args)
+        log.misc.debug("Signal in {}: {}".format(repr(obj), dbg))
+
+    def connect_log_slot(obj):
+        metaobj = obj.metaObject()
+        for i in range(metaobj.methodCount()):
+            meta_method = metaobj.method(i)
+            qtutils.ensure_valid(meta_method)
+            if meta_method.methodType() == QMetaMethod.Signal:
+                name = bytes(meta_method.name()).decode('ascii')
+                signal = getattr(obj, name)
+                signal.connect(functools.partial(log_slot, obj, signal))
+
+    if inspect.isclass(obj):
+        old_init = obj.__init__
+
+        @functools.wraps(old_init)
+        def new_init(self, *args, **kwargs):
+            """Wrapper for __init__() which logs signals."""
+            ret = old_init(self, *args, **kwargs)
+            connect_log_slot(self)
+            return ret
+
+        obj.__init__ = new_init
+        return obj
+    else:
+        connect_log_slot(obj)
 
 
 def trace_lines(do_trace):
