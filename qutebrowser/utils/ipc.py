@@ -66,10 +66,10 @@ def send_to_running_instance(cmdlist):
 
 def init_server():
     global server
-    server = QLocalServer()
     ok = QLocalServer.removeServer(SOCKETNAME)
     if not ok:
         raise IPCError("Error while removing server {}!".format(SOCKETNAME))
+    server = QLocalServer()
     ok = server.listen(SOCKETNAME)
     if not ok:
         raise IPCError("Error while listening to local socket: {}".format(
