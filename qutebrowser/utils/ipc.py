@@ -82,11 +82,13 @@ class IPCServer(QObject):
             socket.error.connect(self.on_error)
             self._socket = socket
 
+    @pyqtSlot()
     def on_disconnected(self):
         """Clean up socket when the client disconnected."""
         self._socket.deleteLater()
         self._socket = None
 
+    @pyqtSlot()
     def on_ready_read(self):
         """Read json data from the client."""
         while self._socket.canReadLine():
