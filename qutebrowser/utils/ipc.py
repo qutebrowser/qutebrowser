@@ -58,7 +58,7 @@ def send_to_running_instance(cmdlist):
         line = json.dumps(cmdlist) + '\n'
         socket.writeData(line.encode('utf-8'))
         socket.waitForBytesWritten(WRITE_TIMEOUT)
-        if socket.error():
+        if socket.error() != QLocalSocket.UnknownError:
             raise IPCError("Error while writing to running instance: "
                            "{}".format(socket.errorString()))
         return True
