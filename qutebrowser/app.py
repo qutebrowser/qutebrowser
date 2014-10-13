@@ -127,7 +127,7 @@ class Application(QApplication):
         self._python_hacks()
 
         log.init.debug("Starting IPC server...")
-        ipc.init_server()
+        ipc.init()
 
         log.init.debug("Init done!")
 

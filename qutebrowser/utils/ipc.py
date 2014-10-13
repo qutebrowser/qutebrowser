@@ -22,6 +22,7 @@
 import json
 import getpass
 
+from PyQt5.QtCore import pyqtSlot, QObject
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer
 
 from qutebrowser.utils import log, objreg
@@ -31,12 +32,69 @@ SOCKETNAME = 'qutebrowser-{}'.format(getpass.getuser())
 CONNECT_TIMEOUT = 100
 WRITE_TIMEOUT = 1000
 
-server = None
-
 
 class IPCError(Exception):
 
     """Exception raised when there was a problem with IPC."""
+
+
+class IPCServer(QObject):
+
+    """IPC server to which clients connect to."""
+
+    def __init__(self, parent=None):
+        """Start the IPC server and listen to commands."""
+        super().__init__(parent)
+        ok = QLocalServer.removeServer(SOCKETNAME)
+        if not ok:
+            raise IPCError("Error while removing server {}!".format(
+                SOCKETNAME))
+        self._server = QLocalServer(self)
+        ok = self._server.listen(SOCKETNAME)
+        if not ok:
+            _socket_error("listening to local server", self._server)
+        self._server.newConnection.connect(self.on_connection)
+        self._socket = None
+
+    @pyqtSlot(int)
+    def on_error(self, error):
+        """Convenience method which calls _socket_error on an error."""
+        if error != QLocalSocket.PeerClosedError:
+            _socket_error("handling IPC connection", self._socket)
+
+    @pyqtSlot()
+    def on_connection(self):
+        """Slot for a new connection for the local socket."""
+        socket = self._server.nextPendingConnection()
+        if self._socket is not None:
+            # We already have a connection running, so we refuse this one.
+            socket.close()
+            socket.deleteLater()
+        else:
+            socket.readyRead.connect(self.on_ready_read)
+            socket.disconnected.connect(self.on_disconnected)
+            socket.error.connect(self.on_error)
+            self._socket = socket
+
+    def on_disconnected(self):
+        """Clean up socket when the client disconnected."""
+        self._socket.deleteLater()
+        self._socket = None
+
+    def on_ready_read(self):
+        """Read json data from the client."""
+        while self._socket.canReadLine():
+            data = bytes(self._socket.readLine())
+            args = json.loads(data.decode('utf-8'))
+            app = objreg.get('app')
+            app.process_args(args)
+
+
+def init():
+    """Initialize the global IPC server."""
+    app = objreg.get('app')
+    server = IPCServer(app)
+    objreg.register('ipc-server', server)
 
 
 def _socket_error(action, socket):
@@ -79,30 +137,3 @@ def send_to_running_instance(cmdlist):
             _socket_error("connecting to running instance", socket)
         else:
             return False
-
-
-def init_server():
-    """Start the IPC server and listen to commands."""
-    ok = QLocalServer.removeServer(SOCKETNAME)
-    if not ok:
-        raise IPCError("Error while removing server {}!".format(SOCKETNAME))
-    server = QLocalServer()
-    ok = server.listen(SOCKETNAME)
-    if not ok:
-        _socket_error("listening to local server", server)
-    server.newConnection.connect(on_localsocket_connection)
-
-
-def on_localsocket_connection():
-    """Slot for a new connection for the local socket.
-
-    FIXME this should be async.
-    """
-    socket = server.nextPendingConnection()
-    while not socket.canReadLine():
-        socket.waitForReadyRead()
-    data = bytes(socket.readLine())
-    args = json.loads(data.decode('utf-8'))
-    app = objreg.get('app')
-    app.process_args(args)
-    socket.deleteLater()
