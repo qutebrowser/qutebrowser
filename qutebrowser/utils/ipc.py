@@ -33,6 +33,11 @@ CONNECT_TIMEOUT = 100
 server = None
 
 
+class IPCError(Exception):
+
+    """Exception raised when there was a problem with IPC."""
+
+
 def send_to_running_instance(cmdlist):
     """Try to send a commandline to a running instance.
 
@@ -61,12 +66,10 @@ def init_server():
     server = QLocalServer()
     ok = QLocalServer.removeServer(SOCKETNAME)
     if not ok:
-        # FIXME
-        raise Exception
+        raise IPCError("Error while removing server {}!".format(SOCKETNAME))
     ok = server.listen(SOCKETNAME)
     if not ok:
-        # FIXME
-        raise Exception("Error while listening to local socket: {}".format(
+        raise IPCError("Error while listening to local socket: {}".format(
             server.errorString()))
     server.newConnection.connect(on_localsocket_connection)
 
