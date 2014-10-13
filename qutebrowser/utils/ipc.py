@@ -80,10 +80,19 @@ class IPCServer(QObject):
             log.ipc.debug("No new connection to handle.")
             return
         log.ipc.debug("Client connected.")
-        socket.readyRead.connect(self.on_ready_read)
-        socket.disconnected.connect(self.on_disconnected)
-        socket.error.connect(self.on_error)
         self._socket = socket
+        socket.readyRead.connect(self.on_ready_read)
+        if socket.canReadLine():
+            log.ipc.debug("We can read a line immediately.")
+            self.on_ready_read()
+        socket.error.connect(self.on_error)
+        if socket.error() != QLocalSocket.UnknownSocketError:
+            log.ipc.debug("We got an error immediately.")
+            self.on_error(socket.error())
+        socket.disconnected.connect(self.on_disconnected)
+        if socket.state() == QLocalSocket.UnconnectedState:
+            log.ipc.debug("Socket was disconnected immediately.")
+            self.on_disconnected()
 
     @pyqtSlot()
     def on_disconnected(self):
@@ -97,6 +106,10 @@ class IPCServer(QObject):
     @pyqtSlot()
     def on_ready_read(self):
         """Read json data from the client."""
+        if self._socket is None:
+            # this happened once and I don't know why
+            log.ipc.warn("In on_ready_read with None socket!")
+            return
         while self._socket.canReadLine():
             data = bytes(self._socket.readLine())
             log.ipc.debug("Read from socket: {}".format(data))
