@@ -21,11 +21,9 @@
 
 import os
 import sys
-import json
 import subprocess
 import faulthandler
 import configparser
-import getpass
 import signal
 import warnings
 import bdb
@@ -36,7 +34,6 @@ import traceback
 from PyQt5.QtWidgets import QApplication, QDialog
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
                           QStandardPaths, QObject)
-from PyQt5.QtNetwork import QLocalSocket, QLocalServer
 
 import qutebrowser
 from qutebrowser.commands import cmdutils, runners
@@ -46,7 +43,8 @@ from qutebrowser.browser import quickmarks, cookies, downloads, cache
 from qutebrowser.widgets import mainwindow, crash
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (log, version, message, readline, utils, qtutils,
-                               urlutils, debug, objreg, usertypes, standarddir)
+                               urlutils, debug, objreg, usertypes, standarddir,
+                               ipc)
 # We import utilcmds to run the cmdutils.register decorators.
 from qutebrowser.utils import utilcmds  # pylint: disable=unused-import
 
@@ -105,28 +103,9 @@ class Application(QApplication):
             print(version.GPL_BOILERPLATE.strip())
             sys.exit(0)
 
-        socketname = 'qutebrowser-{}'.format(getpass.getuser())
-
-        self.socket = QLocalSocket(self)
-        self.socket.connectToServer(socketname)
-        is_running = self.socket.waitForConnected(100)
-        if is_running:
-            log.init.info("Opening in existing instance")
-            line = json.dumps(self._args.command) + '\n'
-            self.socket.writeData(line.encode('utf-8'))
+        sent = ipc.send_to_running_instance(self._args.command)
+        if sent:
             sys.exit(0)
-
-        self.server = QLocalServer()
-        ok = QLocalServer.removeServer(socketname)
-        if not ok:
-            # FIXME
-            raise Exception
-        ok = self.server.listen(socketname)
-        if not ok:
-            # FIXME
-            raise Exception("Error while listening to local socket: {}".format(
-                self.server.errorString()))
-        self.server.newConnection.connect(self.on_localsocket_connection)
 
         log.init.debug("Starting init...")
         self.setQuitOnLastWindowClosed(False)
@@ -154,16 +133,6 @@ class Application(QApplication):
 
     def __repr__(self):
         return utils.get_repr(self)
-
-    def on_localsocket_connection(self):
-        socket = self.server.nextPendingConnection()
-        # FIXME timeout:
-        while not socket.canReadLine():
-            socket.waitForReadyRead()
-        data = bytes(socket.readLine())
-        args = json.loads(data.decode('utf-8'))
-        self._process_args(args)
-        socket.deleteLater()
 
     def _init_modules(self):
         """Initialize all 'modules' which need to be initialized."""
@@ -254,11 +223,11 @@ class Application(QApplication):
 
     def _open_pages(self):
         """Open startpage etc. and process commandline args."""
-        self._process_args(self._args.command)
+        self.process_args(self._args.command)
         self._open_startpage()
         self._open_quickstart()
 
-    def _process_args(self, args):
+    def process_args(self, args):
         """Process commandline args.
 
         URLs to open have no prefix, commands to execute begin with a colon.
