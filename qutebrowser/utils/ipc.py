@@ -25,12 +25,13 @@ import getpass
 from PyQt5.QtCore import pyqtSlot, QObject
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer
 
-from qutebrowser.utils import log, objreg
+from qutebrowser.utils import log, objreg, usertypes
 
 
 SOCKETNAME = 'qutebrowser-{}'.format(getpass.getuser())
 CONNECT_TIMEOUT = 100
 WRITE_TIMEOUT = 1000
+READ_TIMEOUT = 5000
 
 
 class IPCError(Exception):
@@ -46,6 +47,9 @@ class IPCServer(QObject):
         """Start the IPC server and listen to commands."""
         super().__init__(parent)
         self._remove_server()
+        self._timer = usertypes.Timer(self, 'ipc-timeout')
+        self._timer.setInterval(READ_TIMEOUT)
+        self._timer.timeout.connect(self.on_timeout)
         self._server = QLocalServer(self)
         ok = self._server.listen(SOCKETNAME)
         if not ok:
@@ -65,6 +69,7 @@ class IPCServer(QObject):
     @pyqtSlot(int)
     def on_error(self, error):
         """Convenience method which calls _socket_error on an error."""
+        self._timer.stop()
         log.ipc.debug("Socket error {}: {}".format(
             self._socket.error(), self._socket.errorString()))
         if error != QLocalSocket.PeerClosedError:
@@ -82,6 +87,7 @@ class IPCServer(QObject):
             log.ipc.debug("No new connection to handle.")
             return
         log.ipc.debug("Client connected.")
+        self._timer.start()
         self._socket = socket
         socket.readyRead.connect(self.on_ready_read)
         if socket.canReadLine():
@@ -101,6 +107,7 @@ class IPCServer(QObject):
     def on_disconnected(self):
         """Clean up socket when the client disconnected."""
         log.ipc.debug("Client disconnected.")
+        self._timer.stop()
         self._socket.deleteLater()
         self._socket = None
         # Maybe another connection is waiting.
@@ -113,6 +120,7 @@ class IPCServer(QObject):
             # this happened once and I don't know why
             log.ipc.warn("In on_ready_read with None socket!")
             return
+        self._timer.start()
         while self._socket.canReadLine():
             data = bytes(self._socket.readLine())
             log.ipc.debug("Read from socket: {}".format(data))
@@ -131,11 +139,18 @@ class IPCServer(QObject):
             app = objreg.get('app')
             app.process_args(args)
 
+    @pyqtSlot()
+    def on_timeout(self):
+        """Cancel the current connection if it was idle for too long."""
+        log.ipc.error("IPC connection timed out.")
+        self._socket.close()
+
     def shutdown(self):
         """Shut down the IPC server cleanly."""
         if self._socket is not None:
             self._socket.deleteLater()
             self._socket = None
+        self._timer.stop()
         self._server.close()
         self._server.deleteLater()
         self._remove_server()
