@@ -97,9 +97,14 @@ class IPCServer(QObject):
         """Read json data from the client."""
         while self._socket.canReadLine():
             data = bytes(self._socket.readLine())
-            args = json.loads(data.decode('utf-8'))
-            app = objreg.get('app')
-            app.process_args(args)
+            decoded = data.decode('utf-8')
+            try:
+                args = json.loads(decoded)
+            except ValueError:
+                return
+            else:
+                app = objreg.get('app')
+                app.process_args(args)
 
     def shutdown(self):
         """Shut down the IPC server cleanly."""
