@@ -74,7 +74,8 @@ def send_to_running_instance(cmdlist):
         else:
             return True
     else:
-        if socket.error() != QLocalSocket.ConnectionRefusedError:
+        if socket.error() not in (QLocalSocket.ConnectionRefusedError,
+                                  QLocalSocket.ServerNotFoundError):
             _socket_error("connecting to running instance", socket)
         else:
             return False
