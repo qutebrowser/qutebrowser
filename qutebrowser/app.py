@@ -126,6 +126,9 @@ class Application(QApplication):
         log.init.debug("Applying python hacks...")
         self._python_hacks()
 
+        log.init.debug("Starting IPC server...")
+        ipc.init_server()
+
         log.init.debug("Init done!")
 
         if self._crashdlg is not None:
