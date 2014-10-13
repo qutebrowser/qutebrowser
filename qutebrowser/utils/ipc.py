@@ -72,13 +72,14 @@ class IPCServer(QObject):
     def handle_connection(self):
         """Handle a new connection to the server."""
         if self._socket is not None:
-            # We already have a connection running, so we don't handle this one
-            # yet.
+            log.ipc.debug("Got new connection but ignoring it because we're "
+                          "still handling another one.")
             return
         socket = self._server.nextPendingConnection()
         if socket is None:
-            # No new pending connections.
+            log.ipc.debug("No new connection to handle.")
             return
+        log.ipc.debug("Client connected.")
         socket.readyRead.connect(self.on_ready_read)
         socket.disconnected.connect(self.on_disconnected)
         socket.error.connect(self.on_error)
@@ -87,6 +88,7 @@ class IPCServer(QObject):
     @pyqtSlot()
     def on_disconnected(self):
         """Clean up socket when the client disconnected."""
+        log.ipc.debug("Client disconnected.")
         self._socket.deleteLater()
         self._socket = None
         # Maybe another connection is waiting.
@@ -97,14 +99,19 @@ class IPCServer(QObject):
         """Read json data from the client."""
         while self._socket.canReadLine():
             data = bytes(self._socket.readLine())
+            log.ipc.debug("Read from socket: {}".format(data))
             try:
                 decoded = data.decode('utf-8')
             except UnicodeDecodeError:
+                log.ipc.error("Ignoring invalid UTF-8 IPC data.")
                 return
             try:
                 args = json.loads(decoded)
             except ValueError:
+                log.ipc.error("Ignoring invalid json IPC data '{}'.".format(
+                    decoded))
                 return
+            log.ipc.debug("Processing: {}".format(decoded))
             app = objreg.get('app')
             app.process_args(args)
 
@@ -151,9 +158,11 @@ def send_to_running_instance(cmdlist):
     socket.connectToServer(SOCKETNAME)
     connected = socket.waitForConnected(100)
     if connected:
-        log.init.info("Opening in existing instance")
+        log.ipc.info("Opening in existing instance")
         line = json.dumps(cmdlist) + '\n'
-        socket.writeData(line.encode('utf-8'))
+        data = line.encode('utf-8')
+        log.ipc.debug("Writing: {}".format(data))
+        socket.writeData(data)
         socket.waitForBytesWritten(WRITE_TIMEOUT)
         if socket.error() != QLocalSocket.UnknownSocketError:
             _socket_error("writing to running instance", socket)
@@ -164,4 +173,6 @@ def send_to_running_instance(cmdlist):
                                   QLocalSocket.ServerNotFoundError):
             _socket_error("connecting to running instance", socket)
         else:
+            log.ipc.debug("No existing instance present (error {})".format(
+                socket.error()))
             return False
