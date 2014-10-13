@@ -82,8 +82,8 @@ def init_server():
     server.newConnection.connect(on_localsocket_connection)
 
 
-def on_localsocket_connection(self):
-    socket = self.server.nextPendingConnection()
+def on_localsocket_connection():
+    socket = server.nextPendingConnection()
     # FIXME timeout:
     while not socket.canReadLine():
         socket.waitForReadyRead()
