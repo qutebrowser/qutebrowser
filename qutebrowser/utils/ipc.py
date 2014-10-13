@@ -82,7 +82,7 @@ def send_to_running_instance(cmdlist):
 
 
 def init_server():
-    global server
+    """Start the IPC server and listen to commands."""
     ok = QLocalServer.removeServer(SOCKETNAME)
     if not ok:
         raise IPCError("Error while removing server {}!".format(SOCKETNAME))
@@ -94,8 +94,11 @@ def init_server():
 
 
 def on_localsocket_connection():
+    """Slot for a new connection for the local socket.
+
+    FIXME this should be async.
+    """
     socket = server.nextPendingConnection()
-    # FIXME timeout:
     while not socket.canReadLine():
         socket.waitForReadyRead()
     data = bytes(socket.readLine())
