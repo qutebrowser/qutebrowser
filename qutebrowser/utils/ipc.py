@@ -41,7 +41,13 @@ class IPCError(Exception):
 
 class IPCServer(QObject):
 
-    """IPC server to which clients connect to."""
+    """IPC server to which clients connect to.
+
+    Attributes:
+        _timer: A timer to handle timeouts.
+        _server: A QLocalServer to accept new connections.
+        _socket: The QLocalSocket we're currently connected to.
+    """
 
     def __init__(self, parent=None):
         """Start the IPC server and listen to commands."""
