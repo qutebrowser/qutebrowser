@@ -49,7 +49,9 @@ class IPCServer(QObject):
         self._server = QLocalServer(self)
         ok = self._server.listen(SOCKETNAME)
         if not ok:
-            _socket_error("listening to local server", self._server)
+            raise IPCError("Error while listening to IPC server: {} "
+                           "(error {})".format(self._server.errorString(),
+                                               self._server.serverError()))
         self._server.newConnection.connect(self.on_connection)
         self._socket = None
 
@@ -110,11 +112,11 @@ def init():
 
 
 def _socket_error(action, socket):
-    """Raise an IPCError based on an action and a QLocal{Socket,Server}.
+    """Raise an IPCError based on an action and a QLocalSocket.
 
     Args:
         action: A string like "writing to running instance".
-        socket: A QLocalSocket or QLocalServer.
+        socket: A QLocalSocket.
     """
     raise IPCError("Error while {}: {} (error {})".format(
         action, socket.errorString(), socket.error()))
