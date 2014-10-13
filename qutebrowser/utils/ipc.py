@@ -39,6 +39,17 @@ class IPCError(Exception):
     """Exception raised when there was a problem with IPC."""
 
 
+def _socket_error(action, socket):
+    """Raise an IPCError based on an action and a QLocal{Socket,Server}.
+
+    Args:
+        action: A string like "writing to running instance".
+        socket: A QLocalSocket or QLocalServer.
+    """
+    raise IPCError("Error while {}: {} (error {})".format(
+        action, socket.errorString(), socket.error()))
+
+
 def send_to_running_instance(cmdlist):
     """Try to send a commandline to a running instance.
 
@@ -59,14 +70,14 @@ def send_to_running_instance(cmdlist):
         socket.writeData(line.encode('utf-8'))
         socket.waitForBytesWritten(WRITE_TIMEOUT)
         if socket.error() != QLocalSocket.UnknownError:
-            raise IPCError("Error while writing to running instance: "
-                           "{}".format(socket.errorString()))
-        return True
+            _socket_error("writing to running instance", socket)
+        else:
+            return True
     else:
         if socket.error() != QLocalSocket.ConnectionRefusedError:
-            raise IPCError("Error while connecting to running instance: "
-                           "{}".format(socket.errorString()))
-        return False
+            _socket_error("connecting to running instance", socket)
+        else:
+            return False
 
 
 def init_server():
@@ -77,8 +88,7 @@ def init_server():
     server = QLocalServer()
     ok = server.listen(SOCKETNAME)
     if not ok:
-        raise IPCError("Error while listening to local socket: {}".format(
-            server.errorString()))
+        _socket_error("listening to local server", server)
     server.newConnection.connect(on_localsocket_connection)
 
 
