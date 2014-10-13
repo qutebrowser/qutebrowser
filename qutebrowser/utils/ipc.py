@@ -106,6 +106,7 @@ class IPCServer(QObject):
         self._server.deleteLater()
         self._remove_server()
 
+
 def init():
     """Initialize the global IPC server."""
     app = objreg.get('app')
