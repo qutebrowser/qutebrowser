@@ -51,6 +51,7 @@ def send_to_running_instance(cmdlist):
         log.init.info("Opening in existing instance")
         line = json.dumps(cmdlist) + '\n'
         socket.writeData(line.encode('utf-8'))
+        socket.waitForBytesWritten()
     else:
         return False
 
