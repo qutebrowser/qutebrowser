@@ -230,16 +230,19 @@ class Application(QApplication):
         self._open_startpage()
         self._open_quickstart()
 
-    def process_args(self, args):
+    def process_args(self, args, ipc=False):
         """Process commandline args.
 
         URLs to open have no prefix, commands to execute begin with a colon.
 
         Args:
             args: A list of arguments to process.
+            ipc: Whether the arguments were transmitted over IPC.
         """
-        # FIXME handle win_id with IPC
-        win_id = 0
+        if ipc:
+            win_id = mainwindow.MainWindow.spawn()
+        else:
+            win_id = 0
         for cmd in args:
             if cmd.startswith(':'):
                 log.init.debug("Startup cmd {}".format(cmd))

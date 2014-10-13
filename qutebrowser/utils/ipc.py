@@ -145,7 +145,7 @@ class IPCServer(QObject):
                 return
             log.ipc.debug("Processing: {}".format(decoded))
             app = objreg.get('app')
-            app.process_args(args)
+            app.process_args(args, ipc=True)
 
     @pyqtSlot()
     def on_timeout(self):
