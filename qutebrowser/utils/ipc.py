@@ -52,7 +52,7 @@ class IPCServer(QObject):
             raise IPCError("Error while listening to IPC server: {} "
                            "(error {})".format(self._server.errorString(),
                                                self._server.serverError()))
-        self._server.newConnection.connect(self.on_connection)
+        self._server.newConnection.connect(self.handle_connection)
         self._socket = None
 
     def _remove_server(self):
@@ -69,24 +69,28 @@ class IPCServer(QObject):
             _socket_error("handling IPC connection", self._socket)
 
     @pyqtSlot()
-    def on_connection(self):
-        """Slot for a new connection for the local socket."""
-        socket = self._server.nextPendingConnection()
+    def handle_connection(self):
+        """Handle a new connection to the server."""
         if self._socket is not None:
-            # We already have a connection running, so we refuse this one.
-            socket.close()
-            socket.deleteLater()
-        else:
-            socket.readyRead.connect(self.on_ready_read)
-            socket.disconnected.connect(self.on_disconnected)
-            socket.error.connect(self.on_error)
-            self._socket = socket
+            # We already have a connection running, so we don't handle this one
+            # yet.
+            return
+        socket = self._server.nextPendingConnection()
+        if socket is None:
+            # No new pending connections.
+            return
+        socket.readyRead.connect(self.on_ready_read)
+        socket.disconnected.connect(self.on_disconnected)
+        socket.error.connect(self.on_error)
+        self._socket = socket
 
     @pyqtSlot()
     def on_disconnected(self):
         """Clean up socket when the client disconnected."""
         self._socket.deleteLater()
         self._socket = None
+        # Maybe another connection is waiting.
+        self.handle_connection()
 
     @pyqtSlot()
     def on_ready_read(self):
