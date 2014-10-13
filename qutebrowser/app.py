@@ -633,6 +633,11 @@ class Application(QApplication):
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             tabbed_browser.shutdown()
+        # Shut down IPC
+        try:
+            objreg.get('ipc-server').shutdown()
+        except KeyError:
+            pass
         # Save everything
         try:
             config_obj = objreg.get('config')

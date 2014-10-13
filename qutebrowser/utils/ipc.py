@@ -45,16 +45,20 @@ class IPCServer(QObject):
     def __init__(self, parent=None):
         """Start the IPC server and listen to commands."""
         super().__init__(parent)
-        ok = QLocalServer.removeServer(SOCKETNAME)
-        if not ok:
-            raise IPCError("Error while removing server {}!".format(
-                SOCKETNAME))
+        self._remove_server()
         self._server = QLocalServer(self)
         ok = self._server.listen(SOCKETNAME)
         if not ok:
             _socket_error("listening to local server", self._server)
         self._server.newConnection.connect(self.on_connection)
         self._socket = None
+
+    def _remove_server(self):
+        """Remove an existing server."""
+        ok = QLocalServer.removeServer(SOCKETNAME)
+        if not ok:
+            raise IPCError("Error while removing server {}!".format(
+                SOCKETNAME))
 
     @pyqtSlot(int)
     def on_error(self, error):
@@ -89,6 +93,14 @@ class IPCServer(QObject):
             app = objreg.get('app')
             app.process_args(args)
 
+    def shutdown(self):
+        """Shut down the IPC server cleanly."""
+        if self._socket is not None:
+            self._socket.deleteLater()
+            self._socket = None
+        self._server.close()
+        self._server.deleteLater()
+        self._remove_server()
 
 def init():
     """Initialize the global IPC server."""
