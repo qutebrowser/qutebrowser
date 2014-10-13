@@ -56,7 +56,6 @@ def send_to_running_instance(cmdlist):
         return False
 
 
-
 def init_server():
     global server
     server = QLocalServer()
