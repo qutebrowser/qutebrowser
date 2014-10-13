@@ -43,7 +43,8 @@ from qutebrowser.browser import quickmarks, cookies, downloads, cache
 from qutebrowser.widgets import mainwindow, crash
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (log, version, message, readline, utils, qtutils,
-                               urlutils, debug, objreg, usertypes, standarddir)
+                               urlutils, debug, objreg, usertypes, standarddir,
+                               ipc)
 # We import utilcmds to run the cmdutils.register decorators.
 from qutebrowser.utils import utilcmds  # pylint: disable=unused-import
 
@@ -102,6 +103,10 @@ class Application(QApplication):
             print(version.GPL_BOILERPLATE.strip())
             sys.exit(0)
 
+        sent = ipc.send_to_running_instance(self._args.command)
+        if sent:
+            sys.exit(0)
+
         log.init.debug("Starting init...")
         self.setQuitOnLastWindowClosed(False)
         self.setOrganizationName("qutebrowser")
@@ -120,6 +125,9 @@ class Application(QApplication):
 
         log.init.debug("Applying python hacks...")
         self._python_hacks()
+
+        log.init.debug("Starting IPC server...")
+        ipc.init()
 
         log.init.debug("Init done!")
 
@@ -218,17 +226,24 @@ class Application(QApplication):
 
     def _open_pages(self):
         """Open startpage etc. and process commandline args."""
-        self._process_init_args()
+        self.process_args(self._args.command)
         self._open_startpage()
         self._open_quickstart()
 
-    def _process_init_args(self):
+    def process_args(self, args, ipc=False):
         """Process commandline args.
 
         URLs to open have no prefix, commands to execute begin with a colon.
+
+        Args:
+            args: A list of arguments to process.
+            ipc: Whether the arguments were transmitted over IPC.
         """
-        win_id = 0
-        for cmd in self._args.command:
+        if ipc:
+            win_id = mainwindow.MainWindow.spawn()
+        else:
+            win_id = 0
+        for cmd in args:
             if cmd.startswith(':'):
                 log.init.debug("Startup cmd {}".format(cmd))
                 commandrunner = runners.CommandRunner(win_id)
@@ -621,6 +636,11 @@ class Application(QApplication):
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             tabbed_browser.shutdown()
+        # Shut down IPC
+        try:
+            objreg.get('ipc-server').shutdown()
+        except KeyError:
+            pass
         # Save everything
         try:
             config_obj = objreg.get('config')

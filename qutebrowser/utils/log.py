@@ -124,6 +124,7 @@ js = logging.getLogger('js')  # Javascript console messages
 qt = logging.getLogger('qt')  # Warnings produced by Qt
 style = logging.getLogger('style')
 rfc6266 = logging.getLogger('rfc6266')
+ipc = logging.getLogger('ipc')
 
 
 ram_handler = None
