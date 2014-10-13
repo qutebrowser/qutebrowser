@@ -29,6 +29,7 @@ from qutebrowser.utils import log, objreg
 
 SOCKETNAME = 'qutebrowser-{}'.format(getpass.getuser())
 CONNECT_TIMEOUT = 100
+WRITE_TIMEOUT = 1000
 
 server = None
 
@@ -56,7 +57,10 @@ def send_to_running_instance(cmdlist):
         log.init.info("Opening in existing instance")
         line = json.dumps(cmdlist) + '\n'
         socket.writeData(line.encode('utf-8'))
-        socket.waitForBytesWritten()
+        socket.waitForBytesWritten(WRITE_TIMEOUT)
+        if socket.error():
+            raise IPCError("Error while writing to running instance: "
+                           "{}".format(socket.errorString()))
     else:
         if socket.error() != QLocalSocket.ConnectionRefusedError:
             raise IPCError("Error while connecting to running instance: "
