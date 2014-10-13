@@ -21,6 +21,7 @@
 
 import json
 import getpass
+import binascii
 
 from PyQt5.QtCore import pyqtSlot, QObject
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer
@@ -133,13 +134,14 @@ class IPCServer(QObject):
             try:
                 decoded = data.decode('utf-8')
             except UnicodeDecodeError:
-                log.ipc.error("Ignoring invalid UTF-8 IPC data.")
+                log.ipc.error("Ignoring invalid IPC data.")
+                log.ipc.debug("invalid data: {}".format(binascii.hexlify(data)))
                 return
             try:
                 args = json.loads(decoded)
             except ValueError:
-                log.ipc.error("Ignoring invalid json IPC data '{}'.".format(
-                    decoded))
+                log.ipc.error("Ignoring invalid IPC data.")
+                log.ipc.debug("invalid json: {}".format(decoded.strip()))
                 return
             log.ipc.debug("Processing: {}".format(decoded))
             app = objreg.get('app')
