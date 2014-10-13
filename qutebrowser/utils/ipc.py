@@ -65,6 +65,8 @@ class IPCServer(QObject):
     @pyqtSlot(int)
     def on_error(self, error):
         """Convenience method which calls _socket_error on an error."""
+        log.ipc.debug("Socket error {}: {}".format(
+            self._socket.error(), self._socket.errorString()))
         if error != QLocalSocket.PeerClosedError:
             _socket_error("handling IPC connection", self._socket)
 
