@@ -61,6 +61,7 @@ def send_to_running_instance(cmdlist):
         if socket.error():
             raise IPCError("Error while writing to running instance: "
                            "{}".format(socket.errorString()))
+        return True
     else:
         if socket.error() != QLocalSocket.ConnectionRefusedError:
             raise IPCError("Error while connecting to running instance: "
