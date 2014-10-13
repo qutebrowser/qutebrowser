@@ -58,6 +58,9 @@ def send_to_running_instance(cmdlist):
         socket.writeData(line.encode('utf-8'))
         socket.waitForBytesWritten()
     else:
+        if socket.error() != QLocalSocket.ConnectionRefusedError:
+            raise IPCError("Error while connecting to running instance: "
+                           "{}".format(socket.errorString()))
         return False
 
 
