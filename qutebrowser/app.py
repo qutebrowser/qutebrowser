@@ -234,7 +234,7 @@ class Application(QApplication):
         """Helper function for process_args to get a window id."""
         if not via_ipc:
             return 0
-        open_target = config.get('general', 'ipc-open-target')
+        open_target = config.get('general', 'new-instance-open-target')
         if open_target in ('tab', 'tab-silent'):
             try:
                 window = objreg.get('last-main-window')

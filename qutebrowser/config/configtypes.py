@@ -1256,7 +1256,7 @@ class IgnoreCase(Bool):
                  'chars')]
 
 
-class IPCOpenTarget(BaseType):
+class NewInstanceOpenTarget(BaseType):
 
     """How to open links in an existing instance if a new one is launched."""
 
