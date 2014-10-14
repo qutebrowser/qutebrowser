@@ -94,9 +94,6 @@ class LineConfigParser(collections.UserList):
 
     def save(self):
         """Save the config file."""
-        if not self.data:
-            log.destroy.debug("No data to save.")
-            return
         limit = -1 if self._limit is None else config.get(*self._limit)
         if limit == 0:
             return
