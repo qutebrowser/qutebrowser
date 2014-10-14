@@ -42,8 +42,8 @@ class Command:
         completion: Completions to use for arguments, as a list of strings.
         debug: Whether this is a debugging command (only shown with --debug).
         parser: The ArgumentParser to use to parse this command.
-        special_params: A SpecialParams namedtuple with the names of the
-                        special parameters, or None.
+        special_params: A dict with the names of the special parameters as
+                        values.
         _type_conv: A mapping of conversion functions for arguments.
         _name_conv: A mapping of argument names to parameter names.
         _needs_js: Whether the command needs javascript enabled
@@ -62,8 +62,6 @@ class Command:
                                             ['kwargs', 'typ', 'name', 'flag',
                                              'special'])
     ParamType = usertypes.enum('ParamType', ['flag', 'positional'])
-    SpecialParams = collections.namedtuple('SpecialParams',
-                                           ['count', 'win_id'])
 
     def __init__(self, name, split, hide, instance, completion, modes,
                  not_modes, needs_js, is_debug, ignore_args,
@@ -94,11 +92,11 @@ class Command:
         self.namespace = None
         self._count = None
         self.pos_args = []
-        special_params, desc, type_conv, name_conv = self._inspect_func()
-        self.special_params = special_params
-        self.desc = desc
-        self._type_conv = type_conv
-        self._name_conv = name_conv
+        self.special_params = {'count': None, 'win_id': None}
+        self.desc = None
+        self._type_conv = {}
+        self._name_conv = {}
+        self._inspect_func()
 
     def _check_prerequisites(self, win_id):
         """Check if the command is permitted to run currently.
@@ -165,68 +163,72 @@ class Command:
             d[param.name] = annotation_info.name
         return d
 
+    def _inspect_special_param(self, param, annotation_info):
+        """Check if the given parameter is a special one.
+
+        Args:
+            param: The inspect.Parameter to handle.
+            annotation_info: The AnnotationInfo tuple for the parameter.
+
+        Return:
+            True if the parameter is special, False otherwise.
+        """
+        special = annotation_info.special
+        if special == 'count':
+            if self.special_params['count'] is not None:
+                raise ValueError("Registered multiple parameters ({}/{}) as "
+                                 "count!".format(self.special_params['count'],
+                                                 param.name))
+            if param.default is inspect.Parameter.empty:
+                raise TypeError("{}: handler has count parameter "
+                                "without default!".format(self.name))
+            self.special_params['count'] = param.name
+            return True
+        elif special == 'win_id':
+            if self.special_params['win_id'] is not None:
+                raise ValueError("Registered multiple parameters ({}/{}) as "
+                                 "win_id!".format(
+                                     self.special_params['win_id'],
+                                     param.name))
+            self.special_params['win_id'] = param.name
+            return True
+        elif special is None:
+            return False
+        else:
+            raise ValueError("{}: Invalid value '{}' for 'special' "
+                             "annotation!".format(self.name, special))
+
     def _inspect_func(self):
         """Inspect the function to get useful informations from it.
 
-        Return:
-            A (special_params, desc, parser, type_conv) tuple.
-                special_params: A SpecialParams namedtuple.
-                desc: The description of the command.
-                type_conv: A mapping of args to type converter callables.
-                name_conv: A mapping of names to convert.
+        Sets instance attributes (desc, type_conv, name_conv) based on the
+        informations.
         """
-        type_conv = {}
-        name_conv = {}
-        special_params = {'count': None, 'win_id': None}
         signature = inspect.signature(self.handler)
         doc = inspect.getdoc(self.handler)
         if doc is not None:
-            desc = doc.splitlines()[0].strip()
+            self.desc = doc.splitlines()[0].strip()
         else:
-            desc = ""
+            self.desc = ""
         if not self.ignore_args:
             for param in signature.parameters.values():
                 annotation_info = self._parse_annotation(param)
                 if param.name == 'self':
                     continue
-                special = annotation_info.special
-                if special == 'count':
-                    if special_params['count'] is not None:
-                        raise ValueError("Registered multiple parameters "
-                                         "({}/{}) as count!".format(
-                                             special_params['count'],
-                                             param.name))
-                    if param.default is inspect.Parameter.empty:
-                        raise TypeError("{}: handler has count parameter "
-                                        "without default!".format(self.name))
-                    special_params['count'] = param.name
+                if self._inspect_special_param(param, annotation_info):
                     continue
-                elif special == 'win_id':
-                    if special_params['win_id'] is not None:
-                        raise ValueError("Registered multiple parameters "
-                                         "({}/{}) as win_id!".format(
-                                             special_params['win_id'],
-                                             param.name))
-                    special_params['win_id'] = param.name
-                    continue
-                elif special is None:
-                    pass
-                else:
-                    raise ValueError("{}: Invalid value '{}' for 'special' "
-                                     "annotation!".format(self.name, special))
                 typ = self._get_type(param, annotation_info)
                 args, kwargs = self._param_to_argparse_args(
                     param, annotation_info)
-                type_conv.update(self._get_typeconv(param, typ))
-                name_conv.update(self._get_nameconv(param, annotation_info))
+                self._type_conv.update(self._get_typeconv(param, typ))
+                self._name_conv.update(
+                    self._get_nameconv(param, annotation_info))
                 callsig = debug.format_call(
                     self.parser.add_argument, args, kwargs,
                     full=False)
                 log.commands.vdebug('Adding arg {} of type {} -> {}'.format(
                     param.name, typ, callsig))
                 self.parser.add_argument(*args, **kwargs)
-        special_params = self.SpecialParams(**special_params)
-        return special_params, desc, type_conv, name_conv
 
     def _param_to_argparse_args(self, param, annotation_info):
         """Get argparse arguments for a parameter.
@@ -417,11 +419,11 @@ class Command:
                 # Special case for 'self'.
                 self._get_self_arg(win_id, param, args)
                 continue
-            elif param.name == self.special_params.count:
+            elif param.name == self.special_params['count']:
                 # Special case for count parameter.
                 self._get_count_arg(param, args, kwargs)
                 continue
-            elif param.name == self.special_params.win_id:
+            elif param.name == self.special_params['win_id']:
                 # Special case for win_id parameter.
                 self._get_win_id_arg(win_id, param, args, kwargs)
                 continue

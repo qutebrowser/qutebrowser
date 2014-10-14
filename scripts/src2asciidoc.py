@@ -182,7 +182,7 @@ def _get_command_doc(name, cmd):
     if cmd.special_parameters.count is not None:
         output.append("")
         output.append("==== count")
-        output.append(parser.arg_descs[cmd.special_params.count])
+        output.append(parser.arg_descs[cmd.special_params['count']])
 
     output.append("")
     output.append("")
