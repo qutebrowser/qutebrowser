@@ -51,10 +51,12 @@ def log_signals(obj):
     """
 
     def log_slot(obj, signal, *args):
+        """Slot connected to a signal to log it."""
         dbg = dbg_signal(signal, args)
         log.misc.debug("Signal in {}: {}".format(repr(obj), dbg))
 
     def connect_log_slot(obj):
+        """Helper function to connect all signals to a logging slot."""
         metaobj = obj.metaObject()
         for i in range(metaobj.methodCount()):
             meta_method = metaobj.method(i)
