@@ -263,6 +263,7 @@ class Application(QApplication):
                                            Qt.WindowActive)
             window_to_raise.raise_()
             window_to_raise.activateWindow()
+            self.alert(window_to_raise)
         return win_id
 
     def process_args(self, args, via_ipc=False):
