@@ -45,7 +45,7 @@ def init():
     linecp = lineparser.LineConfigParser(confdir, 'quickmarks')
     for line in linecp:
         try:
-            key, url = line.split(maxsplit=1)
+            key, url = line.rsplit(maxsplit=1)
         except ValueError:
             message.error(0, "Invalid quickmark '{}'".format(line))
         else:
