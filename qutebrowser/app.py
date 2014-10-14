@@ -22,7 +22,6 @@
 import os
 import sys
 import subprocess
-import faulthandler
 import configparser
 import signal
 import warnings
