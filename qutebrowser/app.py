@@ -230,12 +230,23 @@ class Application(QApplication):
         self._open_startpage()
         self._open_quickstart()
 
-    def _get_window(self, via_ipc):
-        """Helper function for process_args to get a window id."""
+    def _get_window(self, via_ipc, args):
+        """Helper function for process_args to get a window id.
+
+        Args:
+            via_ipc: Whether the request was made via IPC.
+            args: The argument list.
+        """
         if not via_ipc:
+            # Initial main window
             return 0
+        window_to_raise = None
         open_target = config.get('general', 'new-instance-open-target')
-        if open_target in ('tab', 'tab-silent'):
+        if open_target == 'window' or not args:
+            win_id = mainwindow.MainWindow.spawn()
+            window = objreg.get('main-window', scope='window', window=win_id)
+            window_to_raise = window
+        else:
             try:
                 window = objreg.get('last-main-window')
             except KeyError:
@@ -243,16 +254,16 @@ class Application(QApplication):
                 # window.
                 log.ipc.error("No main window found!")
                 return None
-            else:
-                if open_target != 'tab-silent':
-                    window.setWindowState(window.windowState() &
-                                          ~Qt.WindowMinimized |
-                                          Qt.WindowActive)
-                    window.raise_()
-                    window.activateWindow()
-                return window.win_id
-        else:
-            return mainwindow.MainWindow.spawn()
+            win_id = window.win_id
+            if open_target != 'tab-silent':
+                window_to_raise = window
+        if window_to_raise is not None:
+            window_to_raise.setWindowState(window.windowState() &
+                                           ~Qt.WindowMinimized |
+                                           Qt.WindowActive)
+            window_to_raise.raise_()
+            window_to_raise.activateWindow()
+        return win_id
 
     def process_args(self, args, via_ipc=False):
         """Process commandline args.
@@ -263,9 +274,11 @@ class Application(QApplication):
             args: A list of arguments to process.
             via_ipc: Whether the arguments were transmitted over IPC.
         """
-        win_id = self._get_window(via_ipc)
+        win_id = self._get_window(via_ipc, args)
         if win_id is None:
             return
+        if ipc and not args:
+            self._open_startpage(win_id)
         for cmd in args:
             if cmd.startswith(':'):
                 log.init.debug("Startup cmd {}".format(cmd))
@@ -286,11 +299,22 @@ class Application(QApplication):
                 else:
                     tabbed_browser.tabopen(url)
 
-    def _open_startpage(self):
-        """Open startpage in windows which are still empty."""
-        for win_id in objreg.window_registry:
+    def _open_startpage(self, win_id=None):
+        """Open startpage.
+
+        The startpage is never opened if the given windows are not empty.
+
+        Args:
+            win_id: If None, open startpage in all empty windows.
+                    If set, open the startpage in the given window.
+        """
+        if win_id is not None:
+            window_ids = [win_id]
+        else:
+            window_ids = objreg.window_registry
+        for cur_win_id in window_ids:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=win_id)
+                                        window=cur_win_id)
             if tabbed_browser.count() == 0:
                 log.init.debug("Opening startpage")
                 for urlstr in config.get('general', 'startpage'):
