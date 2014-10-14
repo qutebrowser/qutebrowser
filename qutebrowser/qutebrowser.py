@@ -106,6 +106,11 @@ def main():
     from qutebrowser import app
     import PyQt5.QtWidgets as QtWidgets
     app = app.Application(args)
+
+    def qt_mainloop():
+        """Simple wrapper to get a nicer stack trace for segfaults."""
+        return app.exec_()  # pylint: disable=maybe-no-member
+
     # We set qApp explicitely here to reduce the risk of segfaults while
     # quitting.
     # See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/561303/comments/7
@@ -113,6 +118,6 @@ def main():
     # seems this still reduces segfaults.
     # FIXME: We should do another attempt at contacting upstream about this.
     QtWidgets.qApp = app
-    ret = app.exec_()
+    ret = qt_mainloop()
     QtWidgets.qApp = None
     return ret
