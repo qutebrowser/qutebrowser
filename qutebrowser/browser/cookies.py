@@ -39,6 +39,8 @@ class CookieJar(QNetworkCookieJar):
         for line in self._linecp:
             cookies += QNetworkCookie.parseCookies(line)
         self.setAllCookies(cookies)
+        config.on_change(self.cookies_store_changed,
+                         'permissions', 'cookies-store')
 
     def __repr__(self):
         return utils.get_repr(self, count=len(self.allCookies()))
@@ -70,8 +72,6 @@ class CookieJar(QNetworkCookieJar):
     def save(self):
         """Save cookies to disk."""
         if not config.get('permissions', 'cookies-store'):
-            # FIXME if this changed to false we should delete the old cookies
-            # https://github.com/The-Compiler/qutebrowser/issues/116
             return
         self.purge_old_cookies()
         lines = []
@@ -80,3 +80,9 @@ class CookieJar(QNetworkCookieJar):
                 lines.append(cookie.toRawForm())
         self._linecp.data = lines
         self._linecp.save()
+
+    def cookies_store_changed(self):
+        """Delete stored cookies if cookies-store changed."""
+        if not config.get('permissions', 'cookies-store'):
+            self._linecp.data = []
+            self._linecp.save()
