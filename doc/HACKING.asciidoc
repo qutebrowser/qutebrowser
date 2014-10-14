@@ -495,3 +495,53 @@ Return:
   - public methods
   - `on_*` methods
   - overrides of Qt methods
+
+Checklists
+----------
+
+These are mainly intended for myself, but they also fit in here well.
+
+New Qt release
+~~~~~~~~~~~~~~
+
+* Run all tests and check nothing is broken.
+* Check the
+https://bugreports.qt-project.org/issues/?jql=reporter%20%3D%20%22The%20Compiler%22%20ORDER%20BY%20fixVersion%20ASC[Qt bugtracker]
+and make sure all bugs marked as resolved are actually fixed.
+* Update own PKGBUILDs based on upstream Archlinux updates.
+* Build developer packages.
+* Build non-developer symbol packages.
+* Upload symbols patch to http://www.qutebrowser.org/qt-symbols.patch
+* Upload symbols packages to http://www.qutebrowser.org/qt-symbols-pkg/
+* Update recommended Qt version in `README`
+* Update OS X instructions in `README`
+* Make sure Gentoo instructions are up to date.
+* Grep for `WORKAROUND` in the code and test if fixed stuff works without the
+workaround.
+
+qutebrowser release
+~~~~~~~~~~~~~~~~~~~
+
+* Make sure there are no unstaged changes.
+* Run `src2asciidoc.py` and commit changes if necessary.
+* Run `asciidoc2html.py`.
+* Adjust `__version_info__` in `qutebrowser/__init__.py`.
+
+* Run all tests on all supported systems.
+* Test an upgrade from the previous version (no manual intervention).
+* Test an upgrade from the first version (no manual intervention).
+
+* Create annotated git tag (`git tag -s "v0.1" -m "Release v0.1"`)
+* Create git branch `v0.1.x`
+* Push including `--tags`
+* Create release on github
+* Mark the milestone at https://github.com/The-Compiler/qutebrowser/milestones
+as closed.
+
+* Create standalone Windows package (32/64bit) in Windows VM
+* Upload to PyPI: `python setup.py register sdist upload --sign`
+* Maybe upload to http://qt-apps.org/
+* Upload to webpage with checksum/GPG (when/if it exists)
+
+* Announce to qutebrowser mailinglist
+* Maybe annouce at other places?
