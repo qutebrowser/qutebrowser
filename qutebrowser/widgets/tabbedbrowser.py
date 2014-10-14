@@ -496,7 +496,10 @@ class TabbedBrowser(tabwidget.TabWidget):
     def on_mode_left(self, mode):
         """Give focus to current tab if command mode was left."""
         if mode == usertypes.KeyMode.command:
-            self.currentWidget().setFocus()
+            widget = self.currentWidget()
+            if widget is None:
+                return
+            widget.setFocus()
 
     @pyqtSlot(int)
     def on_current_changed(self, idx):
