@@ -44,7 +44,7 @@ from qutebrowser.widgets import mainwindow, crash
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (log, version, message, readline, utils, qtutils,
                                urlutils, debug, objreg, usertypes, standarddir,
-                               ipc)
+                               ipc, earlyinit)
 # We import utilcmds to run the cmdutils.register decorators.
 from qutebrowser.utils import utilcmds  # pylint: disable=unused-import
 
@@ -172,41 +172,27 @@ class Application(QApplication):
 
     def _handle_segfault(self):
         """Handle a segfault from a previous run."""
-        # FIXME If an empty logfile exists, we log to stdout instead, which is
-        # the only way to not break multiple instances.
-        # However this also means if the logfile is there for some weird
-        # reason, we'll *always* log to stderr, but that's still better than no
-        # dialogs at all.
-        # probably irrelevant with single instance support
-        # https://github.com/The-Compiler/qutebrowser/issues/10
         path = standarddir.get(QStandardPaths.DataLocation)
         logname = os.path.join(path, 'crash.log')
         # First check if an old logfile exists.
         if os.path.exists(logname):
             with open(logname, 'r', encoding='ascii') as f:
                 data = f.read()
+            try:
+                os.remove(logname)
+            except PermissionError:
+                log.init.warning("Could not remove crash log!")
+            else:
+                self._init_crashlogfile()
             if data:
                 # Crashlog exists and has data in it, so something crashed
                 # previously.
-                try:
-                    os.remove(logname)
-                except PermissionError:
-                    log.init.warning("Could not remove crash log!")
-                else:
-                    self._init_crashlogfile()
                 self._crashdlg = crash.FatalCrashDialog(data)
                 self._crashdlg.show()
             else:
                 # Crashlog exists but without data.
-                # This means another instance is probably still running and
-                # didn't remove the file. As we can't write to the same file,
-                # we just leave faulthandler as it is and log to stderr.
-                log.init.warning("Empty crash log detected. This means either "
-                                 "another instance is running (then ignore "
-                                 "this warning) or the file is lying here "
-                                 "because of some earlier crash (then delete "
-                                 "{}).".format(logname))
-                self._crashlogfile = None
+                # This probably means another instance crashed.
+                log.init.warning("Deleted empty crash log.")
         else:
             # There's no log file, so we can use this to display crashes to the
             # user on the next start.
@@ -217,12 +203,7 @@ class Application(QApplication):
         path = standarddir.get(QStandardPaths.DataLocation)
         logname = os.path.join(path, 'crash.log')
         self._crashlogfile = open(logname, 'w', encoding='ascii')
-        faulthandler.enable(self._crashlogfile)
-        if (hasattr(faulthandler, 'register') and
-                hasattr(signal, 'SIGUSR1')):
-            # If available, we also want a traceback on SIGUSR1.
-            # pylint: disable=no-member
-            faulthandler.register(signal.SIGUSR1)
+        earlyinit.init_faulthandler(self._crashlogfile)
 
     def _open_pages(self):
         """Open startpage etc. and process commandline args."""
