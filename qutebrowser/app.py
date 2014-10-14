@@ -419,23 +419,6 @@ class Application(QApplication):
                 pass
             state_config['geometry']['mainwindow'] = geom
 
-    def _destroy_crashlogfile(self):
-        """Clean up the crash log file and delete it."""
-        if self._crashlogfile is None:
-            return
-        # We use sys.__stderr__ instead of sys.stderr here so this will still
-        # work when sys.stderr got replaced, e.g. by "Python Tools for Visual
-        # Studio".
-        if sys.__stderr__ is not None:
-            faulthandler.enable(sys.__stderr__)
-        else:
-            faulthandler.disable()
-        self._crashlogfile.close()
-        try:
-            os.remove(self._crashlogfile.name)
-        except (PermissionError, FileNotFoundError):
-            log.destroy.exception("Could not remove crash log!")
-
     def _exception_hook(self, exctype, excvalue, tb):
         """Handle uncaught python exceptions.
 
@@ -496,7 +479,6 @@ class Application(QApplication):
         # run in some undefined state, so we only do the most needed shutdown
         # here.
         qInstallMessageHandler(None)
-        self._destroy_crashlogfile()
         sys.exit(1)
 
     @cmdutils.register(instance='app', name=['quit', 'q'])
@@ -714,9 +696,6 @@ class Application(QApplication):
                 except AttributeError as e:
                     log.destroy.warning("Could not save {}.".format(what))
                     log.destroy.debug(e)
-        # Re-enable faulthandler to stdout, then remove crash log
-        log.destroy.debug("Deactiving crash log...")
-        self._destroy_crashlogfile()
         # If we don't kill our custom handler here we might get segfaults
         log.destroy.debug("Deactiving message handler...")
         qInstallMessageHandler(None)
