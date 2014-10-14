@@ -230,9 +230,9 @@ class Application(QApplication):
         self._open_startpage()
         self._open_quickstart()
 
-    def _get_window(self, ipc):
+    def _get_window(self, via_ipc):
         """Helper function for process_args to get a window id."""
-        if not ipc:
+        if not via_ipc:
             return 0
         open_target = config.get('general', 'ipc-open-target')
         if open_target in ('tab', 'tab-silent'):
@@ -252,16 +252,16 @@ class Application(QApplication):
         else:
             return mainwindow.MainWindow.spawn()
 
-    def process_args(self, args, ipc=False):
+    def process_args(self, args, via_ipc=False):
         """Process commandline args.
 
         URLs to open have no prefix, commands to execute begin with a colon.
 
         Args:
             args: A list of arguments to process.
-            ipc: Whether the arguments were transmitted over IPC.
+            via_ipc: Whether the arguments were transmitted over IPC.
         """
-        win_id = self._get_window(ipc)
+        win_id = self._get_window(via_ipc)
         if win_id is None:
             return
         for cmd in args:
