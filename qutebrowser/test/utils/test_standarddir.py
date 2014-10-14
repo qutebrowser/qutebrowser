@@ -117,11 +117,8 @@ class GetStandardDirWindowsTests(unittest.TestCase):
     def test_data(self):
         """Test data dir."""
         cur_dir = standarddir.get(QStandardPaths.DataLocation)
-        self.assertEqual(cur_dir.split(os.sep)[-1], 'qutebrowser_test',
-                         cur_dir)
-        # We clean up here as we don't dare to clean up if the path doesn't end
-        # with qutebrowser_test - it could be *anywhere* after all.
-        shutil.rmtree(cur_dir)
+        self.assertEqual(cur_dir.split(os.sep)[-2:],
+                         ['qutebrowser_test', 'data'], cur_dir)
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
     def test_config(self):
@@ -129,9 +126,6 @@ class GetStandardDirWindowsTests(unittest.TestCase):
         cur_dir = standarddir.get(QStandardPaths.ConfigLocation)
         self.assertEqual(cur_dir.split(os.sep)[-1], 'qutebrowser_test',
                          cur_dir)
-        # We clean up here as we don't dare to clean up if the path doesn't end
-        # with qutebrowser_test - it could be *anywhere* after all.
-        shutil.rmtree(cur_dir)
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
     def test_cache(self):
@@ -139,9 +133,6 @@ class GetStandardDirWindowsTests(unittest.TestCase):
         cur_dir = standarddir.get(QStandardPaths.CacheLocation)
         self.assertEqual(cur_dir.split(os.sep)[-2:],
                          ['qutebrowser_test', 'cache'], cur_dir)
-        # We clean up here as we don't dare to clean up if the path doesn't end
-        # with qutebrowser_test - it could be *anywhere* after all.
-        shutil.rmtree(cur_dir)
 
     def tearDown(self):
         self.app.quit()

@@ -19,6 +19,7 @@
 
 """Tests for qutebrowser.utils.jinja."""
 
+import os.path
 import unittest
 import unittest.mock
 
@@ -27,7 +28,7 @@ from qutebrowser.utils import jinja
 
 def _read_file(path):
     """Mocked utils.read_file."""
-    if path == 'html/test.html':
+    if path == os.path.join('html', 'test.html'):
         return """Hello {{var}}"""
     else:
         raise ValueError("Invalid path {}!".format(path))
