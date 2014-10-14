@@ -413,6 +413,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We can get signals for tabs we already deleted...
             log.webview.debug("Got invalid tab {}!".format(tab))
             return
+        self.setTabIcon(idx, QIcon())
 
     @pyqtSlot()
     def on_cur_load_started(self):
