@@ -239,7 +239,9 @@ class Application(QApplication):
             try:
                 window = objreg.get('last-main-window')
             except KeyError:
-                message.error("No main window found!")
+                # We can't display an error here because... duh, there is no
+                # window.
+                log.ipc.error("No main window found!")
                 return None
             else:
                 if open_target != 'tab-silent':
