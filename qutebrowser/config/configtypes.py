@@ -1254,3 +1254,15 @@ class IgnoreCase(Bool):
                 ('false', 'Search case-sensitively'),
                 ('smart', 'Search case-sensitively if there are capital '
                  'chars')]
+
+
+class IPCOpenTarget(BaseType):
+
+    """How to open links in an existing instance if a new one is launched."""
+
+    valid_values = ValidValues(('tab', "Open a new tab in the existing "
+                                       "window and activate it."),
+                               ('tab-silent', "Open a new tab in the existing "
+                                              "window without activating "
+                                              "it."),
+                               ('window', "Open in a new window."))

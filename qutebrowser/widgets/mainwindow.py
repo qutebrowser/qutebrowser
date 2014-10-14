@@ -62,6 +62,7 @@ class MainWindow(QWidget):
         self.registry = objreg.ObjectRegistry()
         objreg.window_registry[win_id] = self
         objreg.register('main-window', self, scope='window', window=win_id)
+        objreg.register('last-main-window', self, update=True)
         tab_registry = objreg.ObjectRegistry()
         objreg.register('tab-registry', tab_registry, scope='window',
                         window=win_id)

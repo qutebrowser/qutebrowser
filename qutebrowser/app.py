@@ -33,7 +33,7 @@ import traceback
 
 from PyQt5.QtWidgets import QApplication, QDialog
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
-                          QStandardPaths, QObject)
+                          QStandardPaths, QObject, Qt)
 
 import qutebrowser
 from qutebrowser.commands import cmdutils, runners
@@ -230,6 +230,28 @@ class Application(QApplication):
         self._open_startpage()
         self._open_quickstart()
 
+    def _get_window(self, ipc):
+        """Helper function for process_args to get a window id."""
+        if not ipc:
+            return 0
+        open_target = config.get('general', 'ipc-open-target')
+        if open_target in ('tab', 'tab-silent'):
+            try:
+                window = objreg.get('last-main-window')
+            except KeyError:
+                message.error("No main window found!")
+                return None
+            else:
+                if open_target != 'tab-silent':
+                    window.setWindowState(window.windowState() &
+                                          ~Qt.WindowMinimized |
+                                           Qt.WindowActive)
+                    window.raise_()
+                    window.activateWindow()
+                return window.win_id
+        else:
+            return mainwindow.MainWindow.spawn()
+
     def process_args(self, args, ipc=False):
         """Process commandline args.
 
@@ -239,10 +261,9 @@ class Application(QApplication):
             args: A list of arguments to process.
             ipc: Whether the arguments were transmitted over IPC.
         """
-        if ipc:
-            win_id = mainwindow.MainWindow.spawn()
-        else:
-            win_id = 0
+        win_id = self._get_window(ipc)
+        if win_id is None:
+            return
         for cmd in args:
             if cmd.startswith(':'):
                 log.init.debug("Startup cmd {}".format(cmd))

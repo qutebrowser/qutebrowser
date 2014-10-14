@@ -181,6 +181,11 @@ DATA = collections.OrderedDict([
          "The encoding must be a string describing an encoding such as "
          '_utf-8_, _iso-8859-1_, etc. If left empty a default value will be '
          "used."),
+
+        ('ipc-open-target',
+         SettingValue(typ.IPCOpenTarget(), 'window'),
+         "How to open links in an existing instance if a new one is "
+         "launched."),
     )),
 
     ('ui', sect.KeyValue(
