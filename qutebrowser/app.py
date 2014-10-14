@@ -247,7 +247,7 @@ class Application(QApplication):
                 if open_target != 'tab-silent':
                     window.setWindowState(window.windowState() &
                                           ~Qt.WindowMinimized |
-                                           Qt.WindowActive)
+                                          Qt.WindowActive)
                     window.raise_()
                     window.activateWindow()
                 return window.win_id

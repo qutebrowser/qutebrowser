@@ -135,7 +135,8 @@ class IPCServer(QObject):
                 decoded = data.decode('utf-8')
             except UnicodeDecodeError:
                 log.ipc.error("Ignoring invalid IPC data.")
-                log.ipc.debug("invalid data: {}".format(binascii.hexlify(data)))
+                log.ipc.debug("invalid data: {}".format(
+                    binascii.hexlify(data)))
                 return
             try:
                 args = json.loads(decoded)
