@@ -817,7 +817,8 @@ class CommandDispatcher:
         """Save the current page as a quickmark."""
         quickmarks.prompt_save(self._win_id, self._current_url())
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                        completion=[usertypes.Completion.quickmark])
     def quickmark_load(self, name, tab=False, bg=False, window=False):
         """Load a quickmark.
 

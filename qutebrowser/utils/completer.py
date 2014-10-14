@@ -61,6 +61,7 @@ class Completer(QObject):
         }
         self._init_static_completions()
         self._init_setting_completions()
+        self._init_quickmark_completions()
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -93,6 +94,13 @@ class Completer(QObject):
                 model = models.SettingValueCompletionModel(sectname, opt, self)
                 self._models[usertypes.Completion.value][sectname][opt] = CFM(
                     model, self)
+
+    def _init_quickmark_completions(self):
+        """Initialize the quickmark completion models."""
+        self._models[usertypes.Completion.quickmark] = CFM(
+            models.QuickmarkCompletionModel(self), self)
+        self._models[usertypes.Completion.helptopic] = CFM(
+            models.HelpCompletionModel(self), self)
 
     def _get_new_completion(self, parts, cursor_part):
         """Get a new completion model.

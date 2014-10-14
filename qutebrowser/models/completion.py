@@ -25,6 +25,7 @@ from qutebrowser.config import config, configdata
 from qutebrowser.models import basecompletion
 from qutebrowser.utils import log, qtutils, objreg
 from qutebrowser.commands import cmdutils
+from qutebrowser.browser import quickmarks
 
 
 class SettingSectionCompletionModel(basecompletion.BaseCompletionModel):
@@ -192,3 +193,30 @@ class HelpCompletionModel(basecompletion.BaseCompletionModel):
                     desc = desc.splitlines()[0]
                 name = '{}->{}'.format(sectname, optname)
                 self.new_item(cat, name, desc)
+
+
+class QuickmarkCompletionModel(basecompletion.BaseCompletionModel):
+
+    """A CompletionModel filled with all quickmarks."""
+
+    # pylint: disable=abstract-method
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        assert cmdutils.cmd_dict
+
+        qmlist = []
+        for qm in quickmarks.marks.items():
+            # strange. in qm[0] is the first word of the quickmark,
+            # in qm[1] the rest. I have to split the url manually.
+            # omg help wtf bbq! FIXME
+
+            qm_splitter = str(qm[0] + ' ' + qm[1]).split(' ')
+            qm_name = ' '.join(qm_splitter[:-1])
+            qm_url = qm_splitter[-1]
+            qmlist.append((qm_url, qm_name))
+
+        cat = self.new_category("Quickmarks")
+        for (name, desc) in sorted(qmlist):
+            self.new_item(cat, name, desc)
+
