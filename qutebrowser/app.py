@@ -188,10 +188,6 @@ class Application(QApplication):
                 # previously.
                 self._crashdlg = crash.FatalCrashDialog(data)
                 self._crashdlg.show()
-            else:
-                # Crashlog exists but without data.
-                # This probably means another instance crashed.
-                log.init.warning("Deleted empty crash log.")
         else:
             # There's no log file, so we can use this to display crashes to the
             # user on the next start.
