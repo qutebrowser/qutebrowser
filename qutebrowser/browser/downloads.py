@@ -352,7 +352,7 @@ class DownloadManager(QAbstractListModel):
             page: The QWebPage to get the download from.
         """
         if not url.isValid():
-            urlutils.invalid_url_error('current', url, "start download")
+            urlutils.invalid_url_error('last-focused', url, "start download")
             return
         req = QNetworkRequest(url)
         reply = page.networkAccessManager().get(req)
@@ -407,7 +407,7 @@ class DownloadManager(QAbstractListModel):
         self.questions.append(q)
         download.cancelled.connect(q.abort)
         message_bridge = objreg.get('message-bridge', scope='window',
-                                    window='current')
+                                    window='last-focused')
         message_bridge.ask(q, blocking=False)
 
     @pyqtSlot(DownloadItem)
@@ -431,7 +431,7 @@ class DownloadManager(QAbstractListModel):
     @pyqtSlot(str)
     def on_error(self, msg):
         """Display error message on download errors."""
-        message.error('current', "Download error: {}".format(msg))
+        message.error('last-focused', "Download error: {}".format(msg))
 
     def last_index(self):
         """Get the last index in the model.

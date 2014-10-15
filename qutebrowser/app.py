@@ -314,7 +314,7 @@ class Application(QApplication):
             quickstart_done = False
         if not quickstart_done:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window='current')
+                                        window='last-focused')
             tabbed_browser.tabopen(
                 QUrl('http://www.qutebrowser.org/quickstart.html'))
             try:
@@ -342,6 +342,7 @@ class Application(QApplication):
         config_obj = objreg.get('config')
         self.lastWindowClosed.connect(self.shutdown)
         config_obj.style_changed.connect(style.get_stylesheet.cache_clear)
+        self.focusChanged.connect(self.on_focus_changed)
 
     def _get_widgets(self):
         """Get a string list of all widgets."""
@@ -542,7 +543,7 @@ class Application(QApplication):
             out = traceback.format_exc()
         qutescheme.pyeval_output = out
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window='current')
+                                    window='last-focused')
         tabbed_browser.openurl(QUrl('qute:pyeval'), newtab=True)
 
     @cmdutils.register(instance='app')
@@ -705,6 +706,20 @@ class Application(QApplication):
         # We use a singleshot timer to exit here to minimize the likelyhood of
         # segfaults.
         QTimer.singleShot(0, functools.partial(self.exit, status))
+
+    def on_focus_changed(self, _old, new):
+        """Register currently focused main window in the object registry."""
+        if new is None:
+            window = None
+        else:
+            window = new.window()
+        if window is None or not isinstance(window, mainwindow.MainWindow):
+            try:
+                objreg.delete('last-focused-main-window')
+            except KeyError:
+                pass
+        else:
+            objreg.register('last-focused-main-window', window, update=True)
 
     def exit(self, status):
         """Extend QApplication::exit to log the event."""

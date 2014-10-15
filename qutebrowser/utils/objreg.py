@@ -136,6 +136,15 @@ def _get_window_registry(window):
         win = app.activeWindow()
         if win is None or not hasattr(win, 'win_id'):
             raise RegistryUnavailableError('window')
+    elif window == 'last-focused':
+        try:
+            win = get('last-focused-main-window')
+        except KeyError:
+            try:
+                win = get('last-main-window')
+            except KeyError:
+                raise RegistryUnavailableError('window')
+        assert hasattr(win, 'registry')
     else:
         try:
             win = window_registry[window]
