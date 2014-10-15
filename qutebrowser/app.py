@@ -638,12 +638,8 @@ class Application(QApplication):
             self.removeEventFilter(self._event_filter)
         except AttributeError:
             pass
-        # Close all tabs
-        for win_id in objreg.window_registry:
-            log.destroy.debug("Closing tabs in window {}...".format(win_id))
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=win_id)
-            tabbed_browser.shutdown()
+        # Close all windows
+        QApplication.closeAllWindows()
         # Shut down IPC
         try:
             objreg.get('ipc-server').shutdown()

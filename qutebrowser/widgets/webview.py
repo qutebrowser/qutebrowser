@@ -264,6 +264,7 @@ class WebView(QWebView):
         """Shut down the webview."""
         # We disable javascript because that prevents some segfaults when
         # quitting it seems.
+        log.destroy.debug("Shutting down {!r}.".format(self))
         settings = self.settings()
         settings.setAttribute(QWebSettings.JavascriptEnabled, False)
         self.stop()
