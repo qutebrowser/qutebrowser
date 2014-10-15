@@ -205,14 +205,7 @@ class QuickmarkCompletionModel(basecompletion.BaseCompletionModel):
         super().__init__(parent)
 
         qmlist = []
-        for qm in quickmarks.marks.items():
-            # strange. in qm[0] is the first word of the quickmark,
-            # in qm[1] the rest. I have to split the url manually.
-            # omg help wtf bbq! FIXME
-
-            qm_splitter = str(qm[0] + ' ' + qm[1]).split(' ')
-            qm_name = ' '.join(qm_splitter[:-1])
-            qm_url = qm_splitter[-1]
+        for qm_name, qm_url in quickmarks.marks.items():
             qmlist.append((qm_url, qm_name))
 
         cat = self.new_category("Quickmarks")
