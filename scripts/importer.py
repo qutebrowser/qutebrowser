@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2014 Claude (longneck) <longneck@scratchbook.ch>
 
