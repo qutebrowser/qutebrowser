@@ -52,10 +52,16 @@ class OpenEncodingChecker(checkers.BaseChecker):
                                                     keyword='mode')
         except utils.NoSuchArgumentError:
             mode_arg = None
+        _encoding = None
         try:
-            _encoding = utils.get_argument_from_call(node, position=2,
-                                                     keyword='encoding')
+            _encoding = utils.get_argument_from_call(node, position=2)
         except utils.NoSuchArgumentError:
+            try:
+                _encoding = utils.get_argument_from_call(node,
+                                                         keyword='encoding')
+            except utils.NoSuchArgumentError:
+                pass
+        if _encoding is None:
             if mode_arg is not None:
                 mode = utils.safe_infer(mode_arg)
             if (mode_arg is not None and isinstance(mode, astroid.Const) and
