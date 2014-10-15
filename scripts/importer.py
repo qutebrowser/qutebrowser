@@ -29,7 +29,8 @@ def main():
 def get_args():
     """Get the argparse parser."""
     parser = argparse.ArgumentParser("usage: importer.py")
-    parser.add_argument('browser', help="Which browser?")
+    parser.add_argument('browser', help="Which browser?", choices=['chromium'],
+                        metavar='browser')
     parser.add_argument('bookmarks', help="Bookmarks file")
     args = parser.parse_args()
     return args
