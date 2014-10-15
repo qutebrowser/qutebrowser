@@ -87,7 +87,6 @@ class MainWindow(QWidget):
         self._downloadview.show()
 
         self._tabbed_browser = tabbedbrowser.TabbedBrowser(win_id)
-        self._tabbed_browser.title_changed.connect(self.setWindowTitle)
         objreg.register('tabbed-browser', self._tabbed_browser, scope='window',
                         window=win_id)
         self._vbox.addWidget(self._tabbed_browser)
