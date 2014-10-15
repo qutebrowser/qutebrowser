@@ -203,7 +203,6 @@ class QuickmarkCompletionModel(basecompletion.BaseCompletionModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        assert cmdutils.cmd_dict
 
         qmlist = []
         for qm in quickmarks.marks.items():
@@ -217,6 +216,6 @@ class QuickmarkCompletionModel(basecompletion.BaseCompletionModel):
             qmlist.append((qm_url, qm_name))
 
         cat = self.new_category("Quickmarks")
-        for (name, desc) in sorted(qmlist):
+        for (name, desc) in qmlist:
             self.new_item(cat, name, desc)
 
