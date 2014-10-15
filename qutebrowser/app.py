@@ -151,7 +151,8 @@ class Application(QApplication):
         log.init.debug("Initializing websettings...")
         websettings.init()
         log.init.debug("Initializing quickmarks...")
-        quickmarks.init()
+        quickmark_manager = quickmarks.QuickmarkManager()
+        objreg.register('quickmark-manager', quickmark_manager)
         log.init.debug("Initializing proxy...")
         proxy.init()
         log.init.debug("Initializing cookies...")
@@ -663,14 +664,19 @@ class Application(QApplication):
                     pass
                 else:
                     to_save.append(("keyconfig", key_config.save))
-            to_save += [("window geometry", self._save_geometry),
-                        ("quickmarks", quickmarks.save)]
+            to_save += [("window geometry", self._save_geometry)]
             try:
                 command_history = objreg.get('command-history')
             except KeyError:
                 pass
             else:
                 to_save.append(("command history", command_history.save))
+            try:
+                quickmark_manager = objreg.get('quickmark-manager')
+            except KeyError:
+                pass
+            else:
+                to_save.append(("command history", quickmark_manager.save))
             try:
                 state_config = objreg.get('state-config')
             except KeyError:
