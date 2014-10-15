@@ -18,6 +18,12 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
+"""Tool to import data from other browsers.
+
+Currently only importing bookmarks from Chromium is supported.
+"""
+
+
 import argparse
 
 
