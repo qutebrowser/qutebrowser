@@ -47,7 +47,7 @@ def import_chromium(bookmarks_file):
     bookmarks = []
     for tag in html_tags:
         if tag['href'] not in bookmarks:
-            bookmarks.append(str(tag.string) + ' ' + str(tag['href']))
+            bookmarks.append('{tag.string} {tag[href]}'.format(tag=tag))
 
     for bookmark in bookmarks:
         print(bookmark)
