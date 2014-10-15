@@ -35,11 +35,15 @@ class CompletionFilterModel(QSortFilterProxyModel):
 
     Attributes:
         _pattern: The pattern to filter with.
+        _srcmodel: The current source model.
+                   Kept as attribute because calling `sourceModel` takes quite
+                   a long time for some reason.
     """
 
     def __init__(self, source, parent=None):
         super().__init__(parent)
         super().setSourceModel(source)
+        self._srcmodel = source
         self._pattern = ''
 
     def set_pattern(self, val):
@@ -57,7 +61,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
         self.invalidateFilter()
         sortcol = 0
         try:
-            self.sourceModel().sort(sortcol)
+            self._srcmodel.sort(sortcol)
         except NotImplementedError:
             self.sort(sortcol)
         self.invalidate()
@@ -107,13 +111,14 @@ class CompletionFilterModel(QSortFilterProxyModel):
                 qtutils.ensure_valid(index)
                 index = self.mapToSource(index)
                 qtutils.ensure_valid(index)
-                self.sourceModel().mark_item(index, text)
+                self._srcmodel.mark_item(index, text)
 
     def setSourceModel(self, model):
         """Override QSortFilterProxyModel's setSourceModel to clear pattern."""
         log.completion.debug("Setting source model: {}".format(model))
         self.set_pattern('')
         super().setSourceModel(model)
+        self._srcmodel = model
 
     def filterAcceptsRow(self, row, parent):
         """Custom filter implementation.
@@ -130,9 +135,9 @@ class CompletionFilterModel(QSortFilterProxyModel):
         """
         if parent == QModelIndex():
             return True
-        idx = self.sourceModel().index(row, 0, parent)
+        idx = self._srcmodel.index(row, 0, parent)
         qtutils.ensure_valid(idx)
-        data = self.sourceModel().data(idx)
+        data = self._srcmodel.data(idx)
         # TODO more sophisticated filtering
         if not self._pattern:
             return True
@@ -154,16 +159,14 @@ class CompletionFilterModel(QSortFilterProxyModel):
         qtutils.ensure_valid(lindex)
         qtutils.ensure_valid(rindex)
 
-        srcmodel = self.sourceModel()
-
-        left_sort = srcmodel.data(lindex, role=completion.Role.sort)
-        right_sort = srcmodel.data(rindex, role=completion.Role.sort)
+        left_sort = self._srcmodel.data(lindex, role=completion.Role.sort)
+        right_sort = self._srcmodel.data(rindex, role=completion.Role.sort)
 
         if left_sort is not None and right_sort is not None:
             return left_sort < right_sort
 
-        left = srcmodel.data(lindex)
-        right = srcmodel.data(rindex)
+        left = self._srcmodel.data(lindex)
+        right = self._srcmodel.data(rindex)
 
         leftstart = left.startswith(self._pattern)
         rightstart = right.startswith(self._pattern)

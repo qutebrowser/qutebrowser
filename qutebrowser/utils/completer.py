@@ -221,7 +221,7 @@ class Completer(QObject):
 
         log.completion.debug(
             "New completion for {}: {}, with pattern '{}'".format(
-                parts, model.sourceModel().__class__.__name__, pattern))
+                parts, model._srcmodel.__class__.__name__, pattern))
 
         if self._model().count() == 0:
             completion.hide()
