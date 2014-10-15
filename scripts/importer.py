@@ -38,9 +38,9 @@ def get_args():
 
 
 def import_chromium(bookmarks_file):
-    from bs4 import BeautifulSoup
+    import bs4
 
-    soup = BeautifulSoup(open(bookmarks_file, encoding='utf-8'))
+    soup = bs4.BeautifulSoup(open(bookmarks_file, encoding='utf-8'))
 
     html_tags = soup.findAll('a')
 
