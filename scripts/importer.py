@@ -36,7 +36,9 @@ def main():
 
 def get_args():
     """Get the argparse parser."""
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        epilog="To import bookmarks from Chromium, export them to HTML in "
+               "Chromium's bookmark manager.")
     parser.add_argument('browser', help="Which browser?", choices=['chromium'],
                         metavar='browser')
     parser.add_argument('bookmarks', help="Bookmarks file")
