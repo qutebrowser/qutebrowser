@@ -19,7 +19,9 @@
 
 """Completer attached to a CompletionView."""
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
+import functools
+
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer
 
 from qutebrowser.config import config, configdata
 from qutebrowser.commands import cmdutils
@@ -181,9 +183,19 @@ class Completer(QObject):
 
     @pyqtSlot(str, list, int)
     def on_update_completion(self, prefix, parts, cursor_part):
-        """Check if completions are available and activate them.
+        """Schedule updating/enabling completion.
 
         Slot for the textChanged signal of the statusbar command widget.
+
+        For performance reasons we don't want to block here, instead we do this
+        in the background.
+        """
+        QTimer.singleShot(0, functools.partial(
+            self._on_update_completion, prefix, parts, cursor_part))
+
+    @pyqtSlot(str, list, int)
+    def _on_update_completion(self, prefix, parts, cursor_part):
+        """Check if completions are available and activate them.
 
         Args:
             text: The new text
