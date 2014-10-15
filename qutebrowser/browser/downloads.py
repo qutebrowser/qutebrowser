@@ -62,6 +62,7 @@ class DownloadItem(QObject):
         _reply: The QNetworkReply associated with this download.
         _last_done: The count of bytes which where downloaded when calculating
                     the speed the last time.
+        _error: The current error message, or None
 
     Signals:
         data_changed: The downloads metadata changed.
@@ -88,6 +89,7 @@ class DownloadItem(QObject):
         self._reply = reply
         self._bytes_total = None
         self._speed = 0
+        self._error = None
         self.basename = '???'
         samples = int(self.SPEED_AVG_WINDOW *
                       (1000 / self.SPEED_REFRESH_INTERVAL))
@@ -127,9 +129,13 @@ class DownloadItem(QObject):
         down = utils.format_size(self._bytes_done, suffix='B')
         perc = self._percentage()
         remaining = self._remaining_time()
+        if self._error is None:
+            errmsg = ""
+        else:
+            errmsg = " - {}".format(self._error)
         if all(e is None for e in (perc, remaining, self._bytes_total)):
-            return ('{name} [{speed:>10}|{down}]'.format(
-                name=self.basename, speed=speed, down=down))
+            return ('{name} [{speed:>10}|{down}]{errmsg}'.format(
+                name=self.basename, speed=speed, down=down, errmsg=errmsg))
         if perc is None:
             perc = '??'
         else:
@@ -140,9 +146,9 @@ class DownloadItem(QObject):
             remaining = utils.format_seconds(remaining)
         total = utils.format_size(self._bytes_total, suffix='B')
         return ('{name} [{speed:>10}|{remaining:>5}|{perc:>2}%|'
-                '{down}/{total}]'.format(name=self.basename, speed=speed,
-                                         remaining=remaining, perc=perc,
-                                         down=down, total=total))
+                '{down}/{total}]{errmsg}'.format(
+                    name=self.basename, speed=speed, remaining=remaining,
+                    perc=perc, down=down, total=total, errmsg=errmsg))
 
     def _die(self, msg):
         """Abort the download and emit an error."""
@@ -150,17 +156,19 @@ class DownloadItem(QObject):
         self._reply.finished.disconnect()
         self._reply.error.disconnect()
         self._reply.readyRead.disconnect()
+        self._error = msg
         self._bytes_done = self._bytes_total
         self.timer.stop()
         self.error.emit(msg)
         self._reply.abort()
         self._reply.deleteLater()
+        self._reply = None
         if self._fileobj is not None:
             try:
                 self._fileobj.close()
             except OSError as e:
                 self.error.emit(e.strerror)
-        self.finished.emit()
+        self.data_changed.emit()
 
     def _percentage(self):
         """The current download percentage, or None if unknown."""
@@ -187,7 +195,10 @@ class DownloadItem(QObject):
         start = config.get('colors', 'downloads.bg.start')
         stop = config.get('colors', 'downloads.bg.stop')
         system = config.get('colors', 'downloads.bg.system')
-        if self._percentage() is None:
+        error = config.get('colors', 'downloads.bg.error')
+        if self._error is not None:
+            return error
+        elif self._percentage() is None:
             return start
         else:
             return utils.interpolate_color(start, stop, self._percentage(),
@@ -198,8 +209,9 @@ class DownloadItem(QObject):
         log.downloads.debug("cancelled")
         self.cancelled.emit()
         self._is_cancelled = True
-        self._reply.abort()
-        self._reply.deleteLater()
+        if self._reply is not None:
+            self._reply.abort()
+            self._reply.deleteLater()
         if self._fileobj is not None:
             self._fileobj.close()
         if self._filename is not None and os.path.exists(self._filename):
@@ -389,7 +401,8 @@ class DownloadManager(QAbstractListModel):
             functools.partial(self.on_finished, download))
         download.data_changed.connect(
             functools.partial(self.on_data_changed, download))
-        download.error.connect(self.on_error)
+        download.error.connect(
+            functools.partial(self.on_error, download))
         download.basename = suggested_filename
         idx = len(self.downloads) + 1
         self.beginInsertRows(QModelIndex(), idx, idx)
@@ -428,8 +441,8 @@ class DownloadManager(QAbstractListModel):
         qtutils.ensure_valid(model_idx)
         self.dataChanged.emit(model_idx, model_idx)
 
-    @pyqtSlot(str)
-    def on_error(self, msg):
+    @pyqtSlot(DownloadItem, str)
+    def on_error(self, download, msg):
         """Display error message on download errors."""
         message.error('last-focused', "Download error: {}".format(msg))
 
@@ -465,6 +478,11 @@ class DownloadManager(QAbstractListModel):
             data = item.bg_color()
         elif role == ModelRole.item:
             data = item
+        elif role == Qt.ToolTipRole:
+            if item._error is None:
+                data = QVariant()
+            else:
+                return item._error
         else:
             data = QVariant()
         return data

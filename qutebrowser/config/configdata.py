@@ -714,6 +714,10 @@ DATA = collections.OrderedDict([
         ('downloads.bg.system',
          SettingValue(typ.ColorSystem(), 'rgb'),
          "Color gradient interpolation system for downloads."),
+
+        ('downloads.bg.error',
+         SettingValue(typ.QtColor(), 'red'),
+         "Background color for downloads with errors."),
     )),
 
     ('fonts', sect.KeyValue(
