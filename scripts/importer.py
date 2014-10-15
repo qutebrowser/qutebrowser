@@ -17,14 +17,15 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import argparse
 
+import argparse
 
 
 def main():
     args = get_args()
     if args.browser == 'chromium':
         import_chromium(args.bookmarks)
+
 
 def get_args():
     """Get the argparse parser."""
@@ -34,6 +35,7 @@ def get_args():
     parser.add_argument('bookmarks', help="Bookmarks file")
     args = parser.parse_args()
     return args
+
 
 def import_chromium(bookmarks_file):
     import codecs
@@ -51,6 +53,6 @@ def import_chromium(bookmarks_file):
     for bookmark in bookmarks:
         print(bookmark)
 
+
 if __name__ == '__main__':
     main()
-
