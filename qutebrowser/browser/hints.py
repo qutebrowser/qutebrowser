@@ -82,10 +82,8 @@ class HintContext:
         """Get the arguments, with {hint-url} replaced by the given URL."""
         args = []
         for arg in self.args:
-            if arg == '{hint-url}':
-                args.append(urlstr)
-            else:
-                args.append(arg)
+            arg = arg.replace('{hint-url}', urlstr)
+            args.append(arg)
         return args
 
 
