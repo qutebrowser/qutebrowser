@@ -151,7 +151,8 @@ class Application(QApplication):
         log.init.debug("Initializing websettings...")
         websettings.init()
         log.init.debug("Initializing quickmarks...")
-        quickmarks.init()
+        quickmark_manager = quickmarks.QuickmarkManager()
+        objreg.register('quickmark-manager', quickmark_manager)
         log.init.debug("Initializing proxy...")
         proxy.init()
         log.init.debug("Initializing cookies...")
@@ -313,7 +314,7 @@ class Application(QApplication):
             quickstart_done = False
         if not quickstart_done:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window='current')
+                                        window='last-focused')
             tabbed_browser.tabopen(
                 QUrl('http://www.qutebrowser.org/quickstart.html'))
             try:
@@ -341,6 +342,7 @@ class Application(QApplication):
         config_obj = objreg.get('config')
         self.lastWindowClosed.connect(self.shutdown)
         config_obj.style_changed.connect(style.get_stylesheet.cache_clear)
+        self.focusChanged.connect(self.on_focus_changed)
 
     def _get_widgets(self):
         """Get a string list of all widgets."""
@@ -541,7 +543,7 @@ class Application(QApplication):
             out = traceback.format_exc()
         qutescheme.pyeval_output = out
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window='current')
+                                    window='last-focused')
         tabbed_browser.openurl(QUrl('qute:pyeval'), newtab=True)
 
     @cmdutils.register(instance='app')
@@ -636,12 +638,8 @@ class Application(QApplication):
             self.removeEventFilter(self._event_filter)
         except AttributeError:
             pass
-        # Close all tabs
-        for win_id in objreg.window_registry:
-            log.destroy.debug("Closing tabs in window {}...".format(win_id))
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=win_id)
-            tabbed_browser.shutdown()
+        # Close all windows
+        QApplication.closeAllWindows()
         # Shut down IPC
         try:
             objreg.get('ipc-server').shutdown()
@@ -663,14 +661,19 @@ class Application(QApplication):
                     pass
                 else:
                     to_save.append(("keyconfig", key_config.save))
-            to_save += [("window geometry", self._save_geometry),
-                        ("quickmarks", quickmarks.save)]
+            to_save += [("window geometry", self._save_geometry)]
             try:
                 command_history = objreg.get('command-history')
             except KeyError:
                 pass
             else:
                 to_save.append(("command history", command_history.save))
+            try:
+                quickmark_manager = objreg.get('quickmark-manager')
+            except KeyError:
+                pass
+            else:
+                to_save.append(("command history", quickmark_manager.save))
             try:
                 state_config = objreg.get('state-config')
             except KeyError:
@@ -699,6 +702,20 @@ class Application(QApplication):
         # We use a singleshot timer to exit here to minimize the likelyhood of
         # segfaults.
         QTimer.singleShot(0, functools.partial(self.exit, status))
+
+    def on_focus_changed(self, _old, new):
+        """Register currently focused main window in the object registry."""
+        if new is None:
+            window = None
+        else:
+            window = new.window()
+        if window is None or not isinstance(window, mainwindow.MainWindow):
+            try:
+                objreg.delete('last-focused-main-window')
+            except KeyError:
+                pass
+        else:
+            objreg.register('last-focused-main-window', window, update=True)
 
     def exit(self, status):
         """Extend QApplication::exit to log the event."""

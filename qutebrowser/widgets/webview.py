@@ -127,6 +127,13 @@ class WebView(QWebView):
         url = utils.elide(self.url().toDisplayString(), 50)
         return utils.get_repr(self, tab_id=self.tab_id, url=url)
 
+    def __del__(self):
+        # Explicitely releasing the page here seems to prevent some segfaults
+        # when quitting.
+        # Copied from:
+        # https://code.google.com/p/webscraping/source/browse/webkit.py#325
+        self.setPage(None)
+
     def _set_load_status(self, val):
         """Setter for load_status."""
         if not isinstance(val, LoadStatus):
@@ -257,15 +264,11 @@ class WebView(QWebView):
         """Shut down the webview."""
         # We disable javascript because that prevents some segfaults when
         # quitting it seems.
+        log.destroy.debug("Shutting down {!r}.".format(self))
         settings = self.settings()
         settings.setAttribute(QWebSettings.JavascriptEnabled, False)
         self.stop()
         self.page().networkAccessManager().shutdown()
-        # Explicitely releasing the page here seems to prevent some segfaults
-        # when quitting.
-        # Copied from:
-        # https://code.google.com/p/webscraping/source/browse/webkit.py#325
-        self.setPage(None)
 
     def openurl(self, url):
         """Open a URL in the browser.

@@ -22,7 +22,7 @@
 import functools
 
 import sip
-from PyQt5.QtCore import pyqtSlot, QSize, Qt
+from PyQt5.QtCore import pyqtSlot, QSize, Qt, QTimer
 from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu
 
 from qutebrowser.browser import downloads
@@ -44,9 +44,16 @@ def update_geometry(obj):
     Original bug:   https://github.com/The-Compiler/qutebrowser/issues/167
     Workaround bug: https://github.com/The-Compiler/qutebrowser/issues/171
     """
-    if sip.isdeleted(obj):
-        return
-    obj.updateGeometry()
+
+    def _update_geometry():
+        """Actually update the geometry if the object still exists."""
+        if sip.isdeleted(obj):
+            return
+        obj.updateGeometry()
+
+    # If we don't use a singleShot QTimer, the geometry isn't updated correctly
+    # and won't include the new item.
+    QTimer.singleShot(0, _update_geometry)
 
 
 class DownloadView(QListView):

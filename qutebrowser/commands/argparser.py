@@ -59,7 +59,7 @@ class HelpAction(argparse.Action):
 
     def __call__(self, parser, _namespace, _values, _option_string=None):
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window='current')
+                                    window='last-focused')
         tabbed_browser.tabopen(
             QUrl('qute://help/commands.html#{}'.format(parser.name)))
         parser.exit()

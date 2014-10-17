@@ -82,10 +82,8 @@ class HintContext:
         """Get the arguments, with {hint-url} replaced by the given URL."""
         args = []
         for arg in self.args:
-            if arg == '{hint-url}':
-                args.append(urlstr)
-            else:
-                args.append(arg)
+            arg = arg.replace('{hint-url}', urlstr)
+            args.append(arg)
         return args
 
 
@@ -274,9 +272,14 @@ class HintManager(QObject):
         else:
             display = 'none'
         rect = elem.geometry()
+        left = rect.x()
+        top = rect.y()
+        if not config.get('ui', 'zoom-text-only'):
+            zoom = elem.webFrame().zoomFactor()
+            left /= zoom
+            top /= zoom
         return self.HINT_CSS.format(
-            left=rect.x(), top=rect.y(), config=objreg.get('config'),
-            display=display)
+            left=left, top=top, config=objreg.get('config'), display=display)
 
     def _draw_label(self, elem, string):
         """Draw a hint label over an element.

@@ -181,7 +181,6 @@ class Completer(QObject):
         else:
             self._ignore_change = True
             self.change_completed_part.emit(data, False)
-            self._ignore_change = False
 
     @pyqtSlot(str, list, int)
     def on_update_completion(self, prefix, parts, cursor_part):
@@ -204,6 +203,7 @@ class Completer(QObject):
             cursor_part: The part the cursor is currently over.
         """
         if self._ignore_change:
+            self._ignore_change = False
             log.completion.debug("Ignoring completion update")
             return
 
@@ -235,7 +235,7 @@ class Completer(QObject):
 
         log.completion.debug(
             "New completion for {}: {}, with pattern '{}'".format(
-                parts, model._srcmodel.__class__.__name__, pattern))
+                parts, model.srcmodel.__class__.__name__, pattern))
 
         if self._model().count() == 0:
             completion.hide()

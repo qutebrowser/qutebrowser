@@ -36,7 +36,7 @@ import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils
 from qutebrowser.config import config
-from qutebrowser.browser import quickmarks, webelem
+from qutebrowser.browser import webelem
 from qutebrowser.utils import (message, editor, usertypes, log, qtutils,
                                urlutils, objreg, utils)
 
@@ -815,7 +815,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def quickmark_save(self):
         """Save the current page as a quickmark."""
-        quickmarks.prompt_save(self._win_id, self._current_url())
+        quickmark_manager = objreg.get('quickmark-manager')
+        quickmark_manager.prompt_save(self._win_id, self._current_url())
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                         completion=[usertypes.Completion.quickmark])
@@ -828,7 +829,7 @@ class CommandDispatcher:
             bg: Load the quickmark in a new background tab.
             window: Load the quickmark in a new window.
         """
-        url = quickmarks.get(name)
+        url = objreg.get('quickmark-manager').get(name)
         self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',

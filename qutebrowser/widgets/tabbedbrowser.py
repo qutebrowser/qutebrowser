@@ -79,8 +79,6 @@ class TabbedBrowser(tabwidget.TabWidget):
         start_download: Emitted when any tab wants to start downloading
                         something.
         current_tab_changed: The current tab changed to the emitted WebView.
-        title_changed: Emitted when the application title should be changed.
-                       arg: The new title as string.
     """
 
     cur_progress = pyqtSignal(int)
@@ -96,7 +94,6 @@ class TabbedBrowser(tabwidget.TabWidget):
     resized = pyqtSignal('QRect')
     got_cmd = pyqtSignal(str)
     current_tab_changed = pyqtSignal(webview.WebView)
-    title_changed = pyqtSignal(str)
 
     def __init__(self, win_id, parent=None):
         super().__init__(win_id, parent)
@@ -138,9 +135,10 @@ class TabbedBrowser(tabwidget.TabWidget):
     def _change_app_title(self, text):
         """Change the window title based on the tab text."""
         if not text:
-            self.title_changed.emit('qutebrowser')
+            title = 'qutebrowser'
         else:
-            self.title_changed.emit('{} - qutebrowser'.format(text))
+            title = '{} - qutebrowser'.format(text)
+        self.window().setWindowTitle(title)
 
     def _connect_tab_signals(self, tab):
         """Set up the needed signals for tab."""

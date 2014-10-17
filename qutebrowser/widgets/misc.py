@@ -20,8 +20,8 @@
 """Misc. widgets used at different places."""
 
 from PyQt5.QtCore import pyqtSlot, Qt
-from PyQt5.QtWidgets import QLineEdit
-from PyQt5.QtGui import QValidator
+from PyQt5.QtWidgets import QLineEdit, QApplication
+from PyQt5.QtGui import QValidator, QClipboard
 
 from qutebrowser.models import cmdhistory
 from qutebrowser.utils import utils
@@ -64,6 +64,9 @@ class CommandLineEdit(QLineEdit):
         self.cursorPositionChanged.connect(self.__on_cursor_position_changed)
         self._promptlen = 0
 
+    def __repr__(self):
+        return utils.get_repr(self, text=self.text())
+
     @pyqtSlot(str)
     def on_text_edited(self, _text):
         """Slot for textEdited. Stop history browsing."""
@@ -94,8 +97,16 @@ class CommandLineEdit(QLineEdit):
         if mark:
             self.setSelection(self._promptlen, oldpos - self._promptlen)
 
-    def __repr__(self):
-        return utils.get_repr(self, text=self.text())
+    def keyPressEvent(self, e):
+        """Override keyPressEvent to paste primary selection on Shift + Ins."""
+        if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
+            clipboard = QApplication.clipboard()
+            if clipboard.supportsSelection():
+                e.accept()
+                text = clipboard.text(QClipboard.Selection)
+                self.insert(text)
+                return
+        super().keyPressEvent(e)
 
 
 class _CommandValidator(QValidator):

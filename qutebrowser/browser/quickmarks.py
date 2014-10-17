@@ -27,91 +27,99 @@ to a file on shutdown, so it makes sense to keep them as strings here.
 import functools
 import collections
 
-from PyQt5.QtCore import QStandardPaths, QUrl
+from PyQt5.QtCore import pyqtSignal, QStandardPaths, QUrl, QObject
 
 from qutebrowser.utils import message, usertypes, urlutils, standarddir
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config import lineparser
 
 
-marks = collections.OrderedDict()
-linecp = None
+class QuickmarkManager(QObject):
 
+    """Manager for quickmarks.
 
-def init():
-    """Read quickmarks from the config file."""
-    global linecp
-    confdir = standarddir.get(QStandardPaths.ConfigLocation)
-    linecp = lineparser.LineConfigParser(confdir, 'quickmarks')
-    for line in linecp:
-        try:
-            key, url = line.rsplit(maxsplit=1)
-        except ValueError:
-            message.error(0, "Invalid quickmark '{}'".format(line))
+    Attributes:
+        marks: An OrderedDict of all quickmarks.
+        _linecp: The LineConfigParser used for the quickmarks.
+    """
+
+    changed = pyqtSignal()
+
+    def __init__(self, parent=None):
+        """Initialize and read quickmarks."""
+        super().__init__(parent)
+
+        self.marks = collections.OrderedDict()
+
+        confdir = standarddir.get(QStandardPaths.ConfigLocation)
+        self._linecp = lineparser.LineConfigParser(confdir, 'quickmarks')
+        for line in self._linecp:
+            try:
+                key, url = line.rsplit(maxsplit=1)
+            except ValueError:
+                message.error(0, "Invalid quickmark '{}'".format(line))
+            else:
+                self.marks[key] = url
+
+    def save(self):
+        """Save the quickmarks to disk."""
+        self._linecp.data = [' '.join(tpl) for tpl in self.marks.items()]
+        self._linecp.save()
+
+    def prompt_save(self, win_id, url):
+        """Prompt for a new quickmark name to be added and add it.
+
+        Args:
+            win_id: The current window ID.
+            url: The quickmark url as a QUrl.
+        """
+        if not url.isValid():
+            urlutils.invalid_url_error(win_id, url, "save quickmark")
+            return
+        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        message.ask_async(
+            win_id, "Add quickmark:", usertypes.PromptMode.text,
+            functools.partial(self.quickmark_add, win_id, urlstr))
+
+    @cmdutils.register(instance='quickmark-manager')
+    def quickmark_add(self, win_id: {'special': 'win_id'}, url, name):
+        """Add a new quickmark.
+
+        Args:
+            win_id: The window ID to display the errors in.
+            url: The url to add as quickmark.
+            name: The name for the new quickmark.
+        """
+        # We don't raise cmdexc.CommandError here as this can be called async
+        # via prompt_save.
+        if not name:
+            message.error(win_id, "Can't set mark with empty name!")
+            return
+        if not url:
+            message.error(win_id, "Can't set mark with empty URL!")
+            return
+
+        def set_mark():
+            """Really set the quickmark."""
+            self.marks[name] = url
+            self.changed.emit()
+
+        if name in self.marks:
+            message.confirm_async(
+                win_id, "Override existing quickmark?", set_mark, default=True)
         else:
-            marks[key] = url
+            set_mark()
 
-
-def save():
-    """Save the quickmarks to disk."""
-    linecp.data = [' '.join(tpl) for tpl in marks.items()]
-    linecp.save()
-
-
-def prompt_save(win_id, url):
-    """Prompt for a new quickmark name to be added and add it.
-
-    Args:
-        win_id: The current window ID.
-        url: The quickmark url as a QUrl.
-    """
-    if not url.isValid():
-        urlutils.invalid_url_error(win_id, url, "save quickmark")
-        return
-    urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
-    message.ask_async(win_id, "Add quickmark:", usertypes.PromptMode.text,
-                      functools.partial(quickmark_add, win_id, urlstr))
-
-
-@cmdutils.register()
-def quickmark_add(win_id: {'special': 'win_id'}, url, name):
-    """Add a new quickmark.
-
-    Args:
-        win_id: The window ID to display the errors in.
-        url: The url to add as quickmark.
-        name: The name for the new quickmark.
-    """
-    # We don't raise cmdexc.CommandError here as this can be called async via
-    # prompt_save.
-    if not name:
-        message.error(win_id, "Can't set mark with empty name!")
-        return
-    if not url:
-        message.error(win_id, "Can't set mark with empty URL!")
-        return
-
-    def set_mark():
-        """Really set the quickmark."""
-        marks[name] = url
-
-    if name in marks:
-        message.confirm_async(win_id, "Override existing quickmark?", set_mark,
-                              default=True)
-    else:
-        set_mark()
-
-
-def get(name):
-    """Get the URL of the quickmark named name as a QUrl."""
-    if name not in marks:
-        raise cmdexc.CommandError(
-            "Quickmark '{}' does not exist!".format(name))
-    urlstr = marks[name]
-    try:
-        url = urlutils.fuzzy_url(urlstr)
-    except urlutils.FuzzyUrlError:
-        raise cmdexc.CommandError(
-            "Invalid URL for quickmark {}: {} ({})".format(name, urlstr,
-                                                           url.errorString()))
-    return url
+    def get(self, name):
+        """Get the URL of the quickmark named name as a QUrl."""
+        if name not in self.marks:
+            raise cmdexc.CommandError(
+                "Quickmark '{}' does not exist!".format(name))
+        urlstr = self.marks[name]
+        try:
+            url = urlutils.fuzzy_url(urlstr)
+        except urlutils.FuzzyUrlError:
+            raise cmdexc.CommandError(
+                "Invalid URL for quickmark {}: {} ({})".format(
+                    name, urlstr, url.errorString()))
+        return url
