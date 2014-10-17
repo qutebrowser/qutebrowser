@@ -36,7 +36,7 @@ class Completer(QObject):
 
     Attributes:
         _ignore_change: Whether to ignore the next completion update.
-        _models: dict of available completion models.
+        models: dict of available completion models.
         _win_id: The window ID this completer is in.
 
     Signals:
@@ -55,12 +55,13 @@ class Completer(QObject):
         self._win_id = win_id
         self._ignore_change = False
 
-        self._models = {
+        self.models = {
             usertypes.Completion.option: {},
             usertypes.Completion.value: {},
         }
         self._init_static_completions()
         self._init_setting_completions()
+        self._init_quickmark_completions()
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -73,28 +74,31 @@ class Completer(QObject):
 
     def _init_static_completions(self):
         """Initialize the static completion models."""
-        self._models[usertypes.Completion.command] = CFM(
+        self.models[usertypes.Completion.command] = CFM(
             models.CommandCompletionModel(self), self)
-        self._models[usertypes.Completion.helptopic] = CFM(
+        self.models[usertypes.Completion.helptopic] = CFM(
             models.HelpCompletionModel(self), self)
-        self._models[usertypes.Completion.quickmark] = CFM(
-            models.QuickmarkCompletionModel(self), self)
 
     def _init_setting_completions(self):
         """Initialize setting completion models."""
-        self._models[usertypes.Completion.section] = CFM(
+        self.models[usertypes.Completion.section] = CFM(
             models.SettingSectionCompletionModel(self), self)
-        self._models[usertypes.Completion.option] = {}
-        self._models[usertypes.Completion.value] = {}
+        self.models[usertypes.Completion.option] = {}
+        self.models[usertypes.Completion.value] = {}
         for sectname in configdata.DATA:
             model = models.SettingOptionCompletionModel(sectname, self)
-            self._models[usertypes.Completion.option][sectname] = CFM(
+            self.models[usertypes.Completion.option][sectname] = CFM(
                 model, self)
-            self._models[usertypes.Completion.value][sectname] = {}
+            self.models[usertypes.Completion.value][sectname] = {}
             for opt in configdata.DATA[sectname].keys():
                 model = models.SettingValueCompletionModel(sectname, opt, self)
-                self._models[usertypes.Completion.value][sectname][opt] = CFM(
+                self.models[usertypes.Completion.value][sectname][opt] = CFM(
                     model, self)
+
+    def _init_quickmark_completions(self):
+        """Initialize quickmark completion models."""
+        self.models[usertypes.Completion.quickmark] = CFM(
+            models.QuickmarkCompletionModel(self), self)
 
     def _get_new_completion(self, parts, cursor_part):
         """Get a new completion model.
@@ -105,7 +109,7 @@ class Completer(QObject):
         """
         if cursor_part == 0:
             # '|' or 'set|'
-            return self._models[usertypes.Completion.command]
+            return self.models[usertypes.Completion.command]
         # delegate completion to command
         try:
             completions = cmdutils.cmd_dict[parts[0]].completion
@@ -129,17 +133,17 @@ class Completer(QObject):
             ', '.join(dbg_completions)))
         if completion == usertypes.Completion.option:
             section = parts[cursor_part - 1]
-            model = self._models[completion].get(section)
+            model = self.models[completion].get(section)
         elif completion == usertypes.Completion.value:
             section = parts[cursor_part - 2]
             option = parts[cursor_part - 1]
             try:
-                model = self._models[completion][section][option]
+                model = self.models[completion][section][option]
             except KeyError:
                 # No completion model for this section/option.
                 model = None
         else:
-            model = self._models.get(completion)
+            model = self.models.get(completion)
         return model
 
     def _quote(self, s):
@@ -181,6 +185,11 @@ class Completer(QObject):
         else:
             self._ignore_change = True
             self.change_completed_part.emit(data, False)
+
+    @pyqtSlot(str, list, int)
+    def on_quickmarks_changed(self):
+        self.clear()
+        self._init_quickmark_completions()
 
     @pyqtSlot(str, list, int)
     def on_update_completion(self, prefix, parts, cursor_part):

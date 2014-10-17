@@ -205,7 +205,7 @@ class QuickmarkCompletionModel(basecompletion.BaseCompletionModel):
         super().__init__(parent)
 
         qmlist = []
-        for qm_name, qm_url in quickmarks.marks.items():
+        for qm_name, qm_url in objreg.get('quickmark-manager').marks.items():
             qmlist.append((qm_url, qm_name))
 
         cat = self.new_category("Quickmarks")
