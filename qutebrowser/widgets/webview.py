@@ -95,8 +95,7 @@ class WebView(QWebView):
         self._zoom = None
         self._has_ssl_errors = False
         self.init_neighborlist()
-        config.on_change(self.init_neighborlist, 'ui', 'zoom-levels')
-        config.on_change(self.init_neighborlist, 'ui', 'default-zoom')
+        objreg.get('config').changed.connect(self.init_neighborlist)
         self._cur_url = None
         self.cur_url = QUrl()
         self.progress = 0
@@ -141,6 +140,12 @@ class WebView(QWebView):
         log.webview.debug("load status for {}: {}".format(repr(self), val))
         self.load_status = val
         self.load_status_changed.emit(val.name)
+
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
+        """Reinitialize the zoom neighborlist if related config changed."""
+        if section == 'ui' and option in ('zoom-levels', 'default-zoom'):
+            self.init_neighborlist()
 
     def init_neighborlist(self):
         """Initialize the _zoom neighborlist."""

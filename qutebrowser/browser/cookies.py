@@ -23,7 +23,7 @@ from PyQt5.QtNetwork import QNetworkCookie, QNetworkCookieJar
 from PyQt5.QtCore import QStandardPaths, QDateTime
 
 from qutebrowser.config import config, lineparser
-from qutebrowser.utils import utils, standarddir
+from qutebrowser.utils import utils, standarddir, objreg
 
 
 class CookieJar(QNetworkCookieJar):
@@ -39,8 +39,7 @@ class CookieJar(QNetworkCookieJar):
         for line in self._linecp:
             cookies += QNetworkCookie.parseCookies(line)
         self.setAllCookies(cookies)
-        config.on_change(self.cookies_store_changed,
-                         'permissions', 'cookies-store')
+        objreg.get('config').changed.connect(self.cookies_store_changed)
 
     def __repr__(self):
         return utils.get_repr(self, count=len(self.allCookies()))
@@ -81,6 +80,7 @@ class CookieJar(QNetworkCookieJar):
         self._linecp.data = lines
         self._linecp.save()
 
+    @config.change_filter('permissions', 'cookies-store')
     def cookies_store_changed(self):
         """Delete stored cookies if cookies-store changed."""
         if not config.get('permissions', 'cookies-store'):

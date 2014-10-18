@@ -145,7 +145,7 @@ class StatusBar(QWidget):
         self._text_pop_timer = usertypes.Timer(self, 'statusbar_text_pop')
         self._text_pop_timer.timeout.connect(self._pop_text)
         self.set_pop_timer_interval()
-        config.on_change(self.set_pop_timer_interval, 'ui', 'message-timeout')
+        objreg.get('config').changed.connect(self.set_pop_timer_interval)
 
         self.prompt = prompt.Prompt(win_id)
         self._stack.addWidget(self.prompt)
@@ -402,6 +402,7 @@ class StatusBar(QWidget):
         if mode == usertypes.KeyMode.insert:
             self._set_insert_active(False)
 
+    @config.change_filter('ui', 'message-timeout')
     def set_pop_timer_interval(self):
         """Update message timeout when config changed."""
         self._text_pop_timer.setInterval(config.get('ui', 'message-timeout'))

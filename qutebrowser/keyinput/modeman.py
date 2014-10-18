@@ -175,8 +175,7 @@ class ModeManager(QObject):
         self._releaseevents_to_pass = []
         self._forward_unbound_keys = config.get(
             'input', 'forward-unbound-keys')
-        config.on_change(self.set_forward_unbound_keys, 'input',
-                         'forward-unbound-keys')
+        objreg.get('config').changed.connect(self.set_forward_unbound_keys)
 
     def __repr__(self):
         return utils.get_repr(self, mode=self.mode(), locked=self.locked,
@@ -331,6 +330,7 @@ class ModeManager(QObject):
             raise ValueError("Can't leave normal mode!")
         self.leave(self.mode(), 'leave current')
 
+    @config.change_filter('input', 'forward-unbound-keys')
     def set_forward_unbound_keys(self):
         """Update local setting when config changed."""
         self._forward_unbound_keys = config.get(

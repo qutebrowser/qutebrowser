@@ -27,14 +27,12 @@ we borrow some methods and classes from there where it makes sense.
 import os
 import sys
 import os.path
-import inspect
 import functools
-import weakref
 import configparser
 import collections
 import collections.abc
 
-from PyQt5.QtCore import pyqtSignal, QObject, QStandardPaths
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QStandardPaths
 from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import (configdata, iniparsers, configtypes,
@@ -44,31 +42,67 @@ from qutebrowser.utils import message, objreg, utils, standarddir, log
 from qutebrowser.utils.usertypes import Completion
 
 
-ChangeHandler = collections.namedtuple(
-    'ChangeHandler', ['func_ref', 'section', 'option'])
+class change_filter:  # pylint: disable=invalid-name
 
+    """Decorator to register a new command handler.
 
-change_handlers = []
+    This could also be a function, but as a class (with a "wrong" name) it's
+    much cleaner to implement.
 
-
-def on_change(func, sectname=None, optname=None):
-    """Register a new change handler.
-
-    Args:
-        func: The function to be called on change.
-        sectname: Filter for the config section.
-                  If None, the handler gets called for all sections.
-        optname: Filter for the config option.
-                 If None, the handler gets called for all options.
+    Attributes:
+        _sectname: The section to be filtered.
+        _optname: The option to be filtered.
     """
-    if optname is not None and sectname is None:
-        raise TypeError("option is {} but section is None!".format(optname))
-    if sectname is not None and sectname not in configdata.DATA:
-        raise NoSectionError("Section '{}' does not exist!".format(sectname))
-    if optname is not None and optname not in configdata.DATA[sectname]:
-        raise NoOptionError("Option '{}' does not exist in section "
-                            "'{}'!".format(optname, sectname))
-    change_handlers.append(ChangeHandler(weakref.ref(func), sectname, optname))
+
+    def __init__(self, sectname, optname=None):
+        """Save decorator arguments.
+
+        Gets called on parse-time with the decorator arguments.
+
+        Args:
+            See class attributes.
+        """
+        if sectname not in configdata.DATA:
+            raise NoSectionError("Section '{}' does not exist!".format(
+                sectname))
+        if optname is not None and optname not in configdata.DATA[sectname]:
+            raise NoOptionError("Option '{}' does not exist in section "
+                                "'{}'!".format(optname, sectname))
+        self._sectname = sectname
+        self._optname = optname
+
+    def __call__(self, func):
+        """Register the command before running the function.
+
+        Gets called when a function should be decorated.
+
+        Adds a filter which returns if we're not interested in the change-event
+        and calls the wrapped function if we are.
+
+        We assume the function passed doesn't take any parameters.
+
+        Args:
+            func: The function to be decorated.
+
+        Return:
+            The decorated function.
+        """
+
+        @pyqtSlot(str, str)
+        @functools.wraps(func)
+        def wrapper(wrapper_self, sectname=None, optname=None):
+            # pylint: disable=missing-docstring
+            if sectname is None and optname is None:
+                # Called directly, not from a config change event.
+                return func(wrapper_self)
+            elif sectname != self._sectname:
+                return
+            elif self._optname is not None and optname != self._optname:
+                return
+            else:
+                return func(wrapper_self)
+
+        return wrapper
 
 
 def get(*args, **kwargs):
@@ -181,6 +215,7 @@ class ConfigManager(QObject):
         _initialized: Whether the ConfigManager is fully initialized yet.
 
     Signals:
+        changed: Emitted when a config option changed.
         style_changed: When style caches need to be invalidated.
                  Args: the changed section and option.
     """
@@ -188,6 +223,7 @@ class ConfigManager(QObject):
     KEY_ESCAPE = r'\#['
     ESCAPE_CHAR = '\\'
 
+    changed = pyqtSignal(str, str)
     style_changed = pyqtSignal(str, str)
 
     def __init__(self, configdir, fname, parent=None):
@@ -316,28 +352,7 @@ class ConfigManager(QObject):
             sectname, optname))
         if sectname in ('colors', 'fonts'):
             self.style_changed.emit(sectname, optname)
-        to_delete = []
-        for handler in change_handlers:
-            func = handler.func_ref()
-            if func is None:
-                to_delete.append(handler)
-                continue
-            elif handler.section is not None and handler.section != sectname:
-                continue
-            elif handler.option is not None and handler.option != optname:
-                continue
-            param_count = len(inspect.signature(func).parameters)
-            if param_count == 2:
-                func(sectname, optname)
-            elif param_count == 1:
-                func(sectname)
-            elif param_count == 0:
-                func()
-            else:
-                raise TypeError("Handler {} has invalid signature.".format(
-                    utils.qualname(func)))
-        for handler in to_delete:
-            change_handlers.remove(handler)
+        self.changed.emit(sectname, optname)
 
     def _after_set(self, changed_sect, changed_opt):
         """Clean up caches and emit signals after an option has been set."""

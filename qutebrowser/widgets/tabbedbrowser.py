@@ -116,7 +116,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         # FIXME adjust this to font size
         # https://github.com/The-Compiler/qutebrowser/issues/119
         self.setIconSize(QSize(12, 12))
-        config.on_change(self.update_favicons, 'tabs', 'show-favicons')
+        objreg.get('config').changed.connect(self.update_favicons)
 
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
@@ -386,6 +386,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We first want QWebPage to refresh.
             QTimer.singleShot(0, check_scroll_pos)
 
+    @config.change_filter('tabs', 'show-favicons')
     def update_favicons(self):
         """Update favicons when config was changed."""
         show = config.get('tabs', 'show-favicons')

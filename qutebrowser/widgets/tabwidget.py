@@ -53,8 +53,9 @@ class TabWidget(QTabWidget):
         self.setUsesScrollButtons(True)
         bar.setDrawBase(False)
         self.init_config()
-        config.on_change(self.init_config, 'tabs')
+        objreg.get('config').changed.connect(self.init_config)
 
+    @config.change_filter('tabs')
     def init_config(self):
         """Initialize attributes based on the config."""
         tabbar = self.tabBar()
@@ -88,17 +89,19 @@ class TabBar(QTabBar):
         self._win_id = win_id
         self.setStyle(TabBarStyle(self.style()))
         self.set_font()
-        config.on_change(self.set_font, 'fonts', 'tabbar')
+        config_obj = objreg.get('config')
+        config_obj.changed.connect(self.set_font)
         self.vertical = False
         self.setAutoFillBackground(True)
         self.set_colors()
-        config.on_change(self.set_colors, 'colors', 'tab.bg.bar')
+        config_obj.changed.connect(self.set_colors)
         QTimer.singleShot(0, self.autohide)
-        config.on_change(self.autohide, 'tabs', 'auto-hide')
+        config_obj.changed.connect(self.autohide)
 
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
 
+    @config.change_filter('tabs', 'auto-hide')
     def autohide(self):
         """Auto-hide the tabbar if needed."""
         auto_hide = config.get('tabs', 'auto-hide')
@@ -123,10 +126,12 @@ class TabBar(QTabBar):
         self.setTabData(idx, color)
         self.update(self.tabRect(idx))
 
+    @config.change_filter('fonts', 'tabbar')
     def set_font(self):
         """Set the tabbar font."""
         self.setFont(config.get('fonts', 'tabbar'))
 
+    @config.change_filter('colors', 'tab.bg.bar')
     def set_colors(self):
         """Set the tabbar colors."""
         p = self.palette()

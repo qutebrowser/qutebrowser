@@ -116,15 +116,19 @@ class MainWindow(QWidget):
         # resizing will fail. Therefore, we use singleShot QTimers to make sure
         # we defer this until everything else is initialized.
         QTimer.singleShot(0, self._connect_resize_completion)
-        config.on_change(self.resize_completion, 'completion', 'height')
-        config.on_change(self.resize_completion, 'completion', 'shrink')
-
+        objreg.get('config').changed.connect(self.on_config_changed)
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def __repr__(self):
         return utils.get_repr(self)
+
+    @pyqtSlot(str, str)
+    def on_config_changed(self, section, option):
+        """Resize the completion if related config options changed."""
+        if section == 'completion' and option in ('height', 'shrink'):
+            self.resize_completion()
 
     @classmethod
     def spawn(cls, show=True):

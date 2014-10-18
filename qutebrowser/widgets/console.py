@@ -57,7 +57,7 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         """
         super().__init__(parent)
         self.update_font()
-        config.on_change(self.update_font, 'fonts', 'debug-console')
+        objreg.get('config').changed.connect(self.update_font)
         self.textChanged.connect(self.on_text_changed)
 
         self._rlcompleter = rlcompleter.Completer(namespace)
@@ -135,6 +135,7 @@ class ConsoleLineEdit(misc.CommandLineEdit):
         else:
             super().keyPressEvent(e)
 
+    @config.change_filter('fonts', 'debug-console')
     def update_font(self):
         """Set the correct font."""
         self.setFont(config.get('fonts', 'debug-console'))
@@ -148,13 +149,14 @@ class ConsoleTextEdit(QTextEdit):
         super().__init__(parent)
         self.setAcceptRichText(False)
         self.setReadOnly(True)
-        config.on_change(self.update_font, 'fonts', 'debug-console')
+        objreg.get('config').changed.connect(self.update_font)
         self.update_font()
         self.setFocusPolicy(Qt.ClickFocus)
 
     def __repr__(self):
         return utils.get_repr(self)
 
+    @config.change_filter('fonts', 'debug-console')
     def update_font(self):
         """Update font when config changed."""
         self.setFont(config.get('fonts', 'debug-console'))

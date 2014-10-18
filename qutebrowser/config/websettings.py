@@ -32,7 +32,7 @@ from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtCore import QStandardPaths
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, standarddir
+from qutebrowser.utils import usertypes, standarddir, objreg
 
 MapType = usertypes.enum('MapType', ['attribute', 'setter', 'static_setter'])
 
@@ -192,7 +192,7 @@ def init():
         for optname, (typ, arg) in section.items():
             value = config.get(sectname, optname)
             _set_setting(typ, arg, value)
-    config.on_change(update_settings)
+    objreg.get('config').changed.connect(update_settings)
 
 
 def update_settings(section, option):

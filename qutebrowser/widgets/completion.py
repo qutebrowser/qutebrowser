@@ -99,9 +99,9 @@ class CompletionView(QTreeView):
         objreg.register('completer', completer_obj, scope='window',
                         window=win_id)
         self.enabled = config.get('completion', 'show')
-        config.on_change(self.set_enabled, 'completion', 'show')
-        # FIXME
-        #config.on_change(self.init_command_completion, 'aliases')
+        objreg.get('config').changed.connect(self.set_enabled)
+        # FIXME handle new aliases.
+        #objreg.get('config').changed.connect(self.init_command_completion)
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
@@ -206,6 +206,7 @@ class CompletionView(QTreeView):
         if config.get('completion', 'shrink'):
             self.resize_completion.emit()
 
+    @config.change_filter('completion', 'show')
     def set_enabled(self):
         """Update self.enabled when the config changed."""
         self.enabled = config.get('completion', 'show')

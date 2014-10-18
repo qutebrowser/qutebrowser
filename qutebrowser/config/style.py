@@ -58,7 +58,8 @@ def set_register_stylesheet(obj):
     log.style.vdebug("stylesheet for {}: {}".format(
         obj.__class__.__name__, qss))
     obj.setStyleSheet(qss)
-    config.on_change(functools.partial(update_stylesheet, obj))
+    objreg.get('config').changed.connect(
+        functools.partial(update_stylesheet, obj))
 
 
 def update_stylesheet(obj):

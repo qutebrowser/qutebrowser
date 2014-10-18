@@ -23,7 +23,9 @@ import os
 import os.path
 import collections
 
-from qutebrowser.utils import log, utils
+from PyQt5.QtCore import pyqtSlot
+
+from qutebrowser.utils import log, utils, objreg
 from qutebrowser.config import config
 
 
@@ -37,6 +39,8 @@ class LineConfigParser(collections.UserList):
         _configfile: The config file path.
         _fname: Filename of the config.
         _binary: Whether to open the file in binary mode.
+        _limit: The config section/option used to limit the maximum number of
+                lines.
     """
 
     def __init__(self, configdir, fname, limit=None, binary=False):
@@ -60,7 +64,7 @@ class LineConfigParser(collections.UserList):
             log.init.debug("Reading config from {}".format(self._configfile))
             self.read(self._configfile)
         if limit is not None:
-            config.on_change(self.cleanup_file, *limit)
+            objreg.get('config').changed.connect(self.cleanup_file)
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True,
@@ -107,8 +111,11 @@ class LineConfigParser(collections.UserList):
             with open(self._configfile, 'w', encoding='utf-8') as f:
                 self.write(f, limit)
 
+    @pyqtSlot(str, str)
     def cleanup_file(self, section, option):
         """Delete the file if the limit was changed to 0."""
+        if (section, option) != self._limit:
+            return
         value = config.get(section, option)
         if value == 0:
             if os.path.exists(self._configfile):

@@ -23,7 +23,7 @@ from PyQt5.QtCore import pyqtSlot
 
 from qutebrowser.config import config
 from qutebrowser.widgets.statusbar import textbase
-from qutebrowser.utils import usertypes, log
+from qutebrowser.utils import usertypes, log, objreg
 
 
 class Text(textbase.TextBase):
@@ -46,7 +46,7 @@ class Text(textbase.TextBase):
         self._normaltext = ''
         self._temptext = ''
         self._jstext = ''
-        config.on_change(self.update_text, 'ui', 'display-statusbar-messages')
+        objreg.get('config').changed.connect(self.update_text)
 
     def set_text(self, which, text):
         """Set a text.
@@ -76,6 +76,7 @@ class Text(textbase.TextBase):
         else:
             log.misc.debug("Ignoring reset: '{}'".format(text))
 
+    @config.change_filter('ui', 'display-statusbar-messages')
     def update_text(self):
         """Update QLabel text when needed."""
         if self._temptext:
