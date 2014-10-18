@@ -119,6 +119,10 @@ class MainWindow(QWidget):
         config.on_change(self.resize_completion, 'completion', 'height')
         config.on_change(self.resize_completion, 'completion', 'shrink')
 
+        quickmark_model = self._get_object('completer').models[usertypes.Completion.quickmark]
+        quickmark_manager = objreg.get('quickmark-manager')
+        quickmark_manager.changed.connect(quickmark_model.srcmodel.on_quickmarks_changed)
+
         #self.retranslateUi(MainWindow)
         #self.tabWidget.setCurrentIndex(0)
         #QtCore.QMetaObject.connectSlotsByName(MainWindow)

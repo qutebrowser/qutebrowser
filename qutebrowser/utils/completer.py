@@ -186,7 +186,7 @@ class Completer(QObject):
             self._ignore_change = True
             self.change_completed_part.emit(data, False)
 
-    @pyqtSlot(str, list, int)
+    @pyqtSlot()
     def on_quickmarks_changed(self):
         self.clear()
         self._init_quickmark_completions()

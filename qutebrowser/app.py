@@ -343,9 +343,6 @@ class Application(QApplication):
         self.lastWindowClosed.connect(self.shutdown)
         config_obj.style_changed.connect(style.get_stylesheet.cache_clear)
         self.focusChanged.connect(self.on_focus_changed)
-        quickmark_model = objreg.get('completer').models[usertypes.Completion.quickmark]
-        quickmark_manager = objreg.get('quickmark-manager')
-        quickmark_manager.changed.connect(quickmark_model.on_quickmarks.changed)
 
     def _get_widgets(self):
         """Get a string list of all widgets."""

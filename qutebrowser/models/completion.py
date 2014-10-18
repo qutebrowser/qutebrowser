@@ -203,6 +203,9 @@ class QuickmarkCompletionModel(basecompletion.BaseCompletionModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._on_quickmarks_changed(self)
+
+    def _on_quickmarks_changed(self, parent=None):
 
         qmlist = []
         for qm_name, qm_url in objreg.get('quickmark-manager').marks.items():
