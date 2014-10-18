@@ -22,6 +22,7 @@
 import functools
 
 import jinja2
+import sip
 from PyQt5.QtGui import QColor
 
 from qutebrowser.config import config
@@ -64,7 +65,8 @@ def set_register_stylesheet(obj):
 
 def update_stylesheet(obj):
     """Update the stylesheet for obj."""
-    obj.setStyleSheet(get_stylesheet(obj.STYLESHEET))
+    if not sip.isdeleted(obj):
+        obj.setStyleSheet(get_stylesheet(obj.STYLESHEET))
 
 
 class ColorDict(dict):
