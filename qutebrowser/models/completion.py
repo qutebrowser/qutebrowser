@@ -25,7 +25,6 @@ from qutebrowser.config import config, configdata
 from qutebrowser.models import basecompletion
 from qutebrowser.utils import log, qtutils, objreg
 from qutebrowser.commands import cmdutils
-from qutebrowser.browser import quickmarks
 
 
 class SettingSectionCompletionModel(basecompletion.BaseCompletionModel):
