@@ -59,6 +59,8 @@ class BaseCompletionModel(QStandardItemModel):
         marks = []
         if not needle:
             return marks
+        needle = needle.casefold()
+        haystack = haystack.casefold()
         while True:
             pos1 = haystack.find(needle, pos2)
             if pos1 == -1:

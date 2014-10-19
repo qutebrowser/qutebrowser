@@ -141,7 +141,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
         # TODO more sophisticated filtering
         if not self._pattern:
             return True
-        return self._pattern in data
+        return self._pattern.casefold() in data.casefold()
 
     def lessThan(self, lindex, rindex):
         """Custom sorting implementation.
