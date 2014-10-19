@@ -274,7 +274,8 @@ class CommandDispatcher:
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
     @cmdutils.register(instance='command-dispatcher', name='open',
-                       split=False, scope='window')
+                       split=False, scope='window',
+                       completion=[usertypes.Completion.quickmark_by_url])
     def openurl(self, url, bg=False, tab=False, window=False,
                 count: {'special': 'count'}=None):
         """Open a URL in the current/[count]th tab.
@@ -819,7 +820,7 @@ class CommandDispatcher:
         quickmark_manager.prompt_save(self._win_id, self._current_url())
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
-                        completion=[usertypes.Completion.quickmark])
+                        completion=[usertypes.Completion.quickmark_by_name])
     def quickmark_load(self, name, tab=False, bg=False, window=False):
         """Load a quickmark.
 

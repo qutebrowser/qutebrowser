@@ -99,11 +99,14 @@ class Completer(QObject):
     def init_quickmark_completions(self):
         """Initialize quickmark completion models."""
         try:
-            self._models[usertypes.Completion.quickmark].deleteLater()
+            self._models[usertypes.Completion.quickmark_by_url].deleteLater()
+            self._models[usertypes.Completion.quickmark_by_name].deleteLater()
         except KeyError:
             pass
-        self._models[usertypes.Completion.quickmark] = CFM(
-            models.QuickmarkCompletionModel(self), self)
+        self._models[usertypes.Completion.quickmark_by_url] = CFM(
+            models.QuickmarkCompletionModel(self, 'url'), self)
+        self._models[usertypes.Completion.quickmark_by_name] = CFM(
+            models.QuickmarkCompletionModel(self, 'name'), self)
 
     def _get_new_completion(self, parts, cursor_part):
         """Get a new completion model.
