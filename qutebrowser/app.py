@@ -29,6 +29,7 @@ import bdb
 import base64
 import functools
 import traceback
+import faulthandler
 
 from PyQt5.QtWidgets import QApplication, QDialog
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
