@@ -104,9 +104,9 @@ class Completer(QObject):
         except KeyError:
             pass
         self._models[usertypes.Completion.quickmark_by_url] = CFM(
-            models.QuickmarkCompletionModel(self, 'url'), self)
+            models.QuickmarkCompletionModel('url', self), self)
         self._models[usertypes.Completion.quickmark_by_name] = CFM(
-            models.QuickmarkCompletionModel(self, 'name'), self)
+            models.QuickmarkCompletionModel('name', self), self)
 
     def _get_new_completion(self, parts, cursor_part):
         """Get a new completion model.

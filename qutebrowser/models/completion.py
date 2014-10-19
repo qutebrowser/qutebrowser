@@ -201,11 +201,8 @@ class QuickmarkCompletionModel(basecompletion.BaseCompletionModel):
 
     # pylint: disable=abstract-method
 
-    def __init__(self, parent=None, match_field='url'):
+    def __init__(self, match_field='url', parent=None):
         super().__init__(parent)
-        self._on_quickmarks_changed(self, match_field)
-
-    def _on_quickmarks_changed(self, parent=None, match_field='url'):
 
         qmlist = []
 
