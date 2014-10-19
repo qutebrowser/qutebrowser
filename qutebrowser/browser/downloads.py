@@ -51,6 +51,7 @@ class DownloadItem(QObject):
                           estimate the remaining time.
 
     Attributes:
+        error_msg: The current error message, or None
         _bytes_done: How many bytes there are already downloaded.
         _bytes_total: The total count of bytes.
                       None if the total is unknown.
@@ -62,7 +63,6 @@ class DownloadItem(QObject):
         _reply: The QNetworkReply associated with this download.
         _last_done: The count of bytes which where downloaded when calculating
                     the speed the last time.
-        _error: The current error message, or None
 
     Signals:
         data_changed: The downloads metadata changed.
@@ -89,7 +89,7 @@ class DownloadItem(QObject):
         self._reply = reply
         self._bytes_total = None
         self._speed = 0
-        self._error = None
+        self.error_msg = None
         self.basename = '???'
         samples = int(self.SPEED_AVG_WINDOW *
                       (1000 / self.SPEED_REFRESH_INTERVAL))
@@ -129,10 +129,10 @@ class DownloadItem(QObject):
         down = utils.format_size(self._bytes_done, suffix='B')
         perc = self._percentage()
         remaining = self._remaining_time()
-        if self._error is None:
+        if self.error_msg is None:
             errmsg = ""
         else:
-            errmsg = " - {}".format(self._error)
+            errmsg = " - {}".format(self.error_msg)
         if all(e is None for e in (perc, remaining, self._bytes_total)):
             return ('{name} [{speed:>10}|{down}]{errmsg}'.format(
                 name=self.basename, speed=speed, down=down, errmsg=errmsg))
@@ -156,7 +156,7 @@ class DownloadItem(QObject):
         self._reply.finished.disconnect()
         self._reply.error.disconnect()
         self._reply.readyRead.disconnect()
-        self._error = msg
+        self.error_msg = msg
         self._bytes_done = self._bytes_total
         self.timer.stop()
         self.error.emit(msg)
@@ -196,7 +196,7 @@ class DownloadItem(QObject):
         stop = config.get('colors', 'downloads.bg.stop')
         system = config.get('colors', 'downloads.bg.system')
         error = config.get('colors', 'downloads.bg.error')
-        if self._error is not None:
+        if self.error_msg is not None:
             return error
         elif self._percentage() is None:
             return start
@@ -401,8 +401,7 @@ class DownloadManager(QAbstractListModel):
             functools.partial(self.on_finished, download))
         download.data_changed.connect(
             functools.partial(self.on_data_changed, download))
-        download.error.connect(
-            functools.partial(self.on_error, download))
+        download.error.connect(self.on_error)
         download.basename = suggested_filename
         idx = len(self.downloads) + 1
         self.beginInsertRows(QModelIndex(), idx, idx)
@@ -441,8 +440,8 @@ class DownloadManager(QAbstractListModel):
         qtutils.ensure_valid(model_idx)
         self.dataChanged.emit(model_idx, model_idx)
 
-    @pyqtSlot(DownloadItem, str)
-    def on_error(self, download, msg):
+    @pyqtSlot(str)
+    def on_error(self, msg):
         """Display error message on download errors."""
         message.error('last-focused', "Download error: {}".format(msg))
 
@@ -479,10 +478,10 @@ class DownloadManager(QAbstractListModel):
         elif role == ModelRole.item:
             data = item
         elif role == Qt.ToolTipRole:
-            if item._error is None:
+            if item.error_msg is None:
                 data = QVariant()
             else:
-                return item._error
+                return item.error_msg
         else:
             data = QVariant()
         return data
