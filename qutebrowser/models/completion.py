@@ -203,17 +203,14 @@ class QuickmarkCompletionModel(basecompletion.BaseCompletionModel):
     def __init__(self, match_field='url', parent=None):
         super().__init__(parent)
 
-        qmlist = []
+        cat = self.new_category("Quickmarks")
+        quickmarks = objreg.get('quickmark-manager').marks.items()
 
         if match_field == 'url':
-            for qm_name, qm_url in objreg.get('quickmark-manager').marks.items():
-                qmlist.append((qm_url, qm_name))
+            for qm_name, qm_url in quickmarks:
+                self.new_item(cat, qm_url, qm_name)
         elif match_field == 'name':
-            for qm_name, qm_url in objreg.get('quickmark-manager').marks.items():
-                qmlist.append((qm_name, qm_url))
+            for qm_name, qm_url in quickmarks:
+                self.new_item(cat, qm_name, qm_url)
         else:
             raise ValueError("Invalid value '{}' for match_field!".format(match_field))
-
-        cat = self.new_category("Quickmarks")
-        for (name, desc) in qmlist:
-            self.new_item(cat, name, desc)
