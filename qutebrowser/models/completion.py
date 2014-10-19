@@ -213,4 +213,5 @@ class QuickmarkCompletionModel(basecompletion.BaseCompletionModel):
             for qm_name, qm_url in quickmarks:
                 self.new_item(cat, qm_name, qm_url)
         else:
-            raise ValueError("Invalid value '{}' for match_field!".format(match_field))
+            raise ValueError("Invalid value '{}' for match_field!".format(
+                match_field))
