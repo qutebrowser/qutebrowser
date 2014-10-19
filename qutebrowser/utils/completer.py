@@ -36,7 +36,7 @@ class Completer(QObject):
 
     Attributes:
         _ignore_change: Whether to ignore the next completion update.
-        _models: dict of available completion models.
+        models: dict of available completion models.
         _win_id: The window ID this completer is in.
 
     Signals:
@@ -61,6 +61,7 @@ class Completer(QObject):
         }
         self._init_static_completions()
         self._init_setting_completions()
+        self.init_quickmark_completions()
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -93,6 +94,19 @@ class Completer(QObject):
                 model = models.SettingValueCompletionModel(sectname, opt, self)
                 self._models[usertypes.Completion.value][sectname][opt] = CFM(
                     model, self)
+
+    @pyqtSlot()
+    def init_quickmark_completions(self):
+        """Initialize quickmark completion models."""
+        try:
+            self._models[usertypes.Completion.quickmark_by_url].deleteLater()
+            self._models[usertypes.Completion.quickmark_by_name].deleteLater()
+        except KeyError:
+            pass
+        self._models[usertypes.Completion.quickmark_by_url] = CFM(
+            models.QuickmarkCompletionModel('url', self), self)
+        self._models[usertypes.Completion.quickmark_by_name] = CFM(
+            models.QuickmarkCompletionModel('name', self), self)
 
     def _get_new_completion(self, parts, cursor_part):
         """Get a new completion model.

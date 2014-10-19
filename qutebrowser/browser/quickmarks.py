@@ -21,7 +21,7 @@
 
 Note we violate our general QUrl rule by storing url strings in the marks
 OrderedDict. This is because we read them from a file at start and write them
-to a file on shutdown, so it makes semse to keep them as strings here.
+to a file on shutdown, so it makes sense to keep them as strings here.
 """
 
 import functools
