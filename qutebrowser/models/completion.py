@@ -210,9 +210,12 @@ class QuickmarkCompletionModel(basecompletion.BaseCompletionModel):
             for qm_name, qm_url in objreg.get('quickmark-manager').marks.items():
                 qmlist.append((qm_url, qm_name))
 
-        if match_field == 'name':
+        elif match_field == 'name':
             for qm_name, qm_url in objreg.get('quickmark-manager').marks.items():
                 qmlist.append((qm_name, qm_url))
+
+        else:
+            raise ValueError("Invalid value '{}' for match_field!".format(match_field))
 
         cat = self.new_category("Quickmarks")
         for (name, desc) in qmlist:
