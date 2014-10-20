@@ -253,6 +253,5 @@ class Completer(QObject):
             completion.hide()
             return
 
-        self._model().mark_all_items(pattern)
         if completion.enabled:
             completion.show()

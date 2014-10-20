@@ -184,10 +184,6 @@ class CompletionItemDelegate(QStyledItemDelegate):
             self._opt.direction, self._opt.displayAlignment))
 
         self._doc = QTextDocument(self)
-        if index.parent().isValid():
-            self._doc.setPlainText(self._opt.text)
-        else:
-            self._doc.setHtml('<b>{}</b>'.format(html.escape(self._opt.text)))
         self._doc.setDefaultFont(self._opt.font)
         self._doc.setDefaultTextOption(text_option)
         self._doc.setDefaultStyleSheet(style.get_stylesheet("""
@@ -197,21 +193,17 @@ class CompletionItemDelegate(QStyledItemDelegate):
         """))
         self._doc.setDocumentMargin(2)
 
-        if index.column() == 0 and index.model().pattern:
-            # We take a shortcut here by not checking anything if the models
-            # pattern is empty. This is required because the marks data is
-            # invalid in that case (for performance reasons).
-            marks = index.data(basecompletion.Role.marks)
-            if marks is None:
-                return
-            for mark in marks:
-                cur = QTextCursor(self._doc)
-                cur.setPosition(mark[0])
-                cur.setPosition(mark[1], QTextCursor.KeepAnchor)
-                txt = cur.selectedText()
-                cur.removeSelectedText()
-                cur.insertHtml('<span class="highlight">{}</span>'.format(
-                    html.escape(txt)))
+        if index.parent().isValid():
+            pattern = index.model().pattern
+            if index.column() == 0 and pattern:
+                text = self._opt.text.replace(
+                    pattern,
+                    '<span class="highlight">{}</span>'.format(pattern))
+                self._doc.setHtml(text)
+            else:
+                self._doc.setPlainText(self._opt.text)
+        else:
+            self._doc.setHtml('<b>{}</b>'.format(html.escape(self._opt.text)))
 
     def _draw_focus_rect(self):
         """Draw the focus rectangle of an ItemViewItem."""

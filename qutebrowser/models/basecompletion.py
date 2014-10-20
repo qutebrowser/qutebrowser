@@ -29,8 +29,7 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from qutebrowser.utils import usertypes, qtutils
 
 
-Role = usertypes.enum('Role', ['marks', 'sort'], start=Qt.UserRole,
-                      is_int=True)
+Role = usertypes.enum('Role', ['sort'], start=Qt.UserRole, is_int=True)
 
 
 class BaseCompletionModel(QStandardItemModel):
@@ -44,44 +43,6 @@ class BaseCompletionModel(QStandardItemModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setColumnCount(3)
-
-    def _get_marks(self, needle, haystack):
-        """Return the marks for needle in haystack.
-
-        Args:
-            needle: The substring which should match.
-            haystack: The string where the matches should be in.
-
-        Return:
-            A list of (startidx, endidx) tuples.
-        """
-        pos1 = pos2 = 0
-        marks = []
-        if not needle:
-            return marks
-        needle = needle.casefold()
-        haystack = haystack.casefold()
-        while True:
-            pos1 = haystack.find(needle, pos2)
-            if pos1 == -1:
-                break
-            pos2 = pos1 + len(needle)
-            marks.append((pos1, pos2))
-        return marks
-
-    def mark_item(self, index, needle):
-        """Mark a string in the givem item.
-
-        Args:
-            index: A QModelIndex of the item to mark.
-            needle: The string to mark.
-        """
-        qtutils.ensure_valid(index)
-        haystack = self.data(index)
-        marks = self._get_marks(needle, haystack)
-        ok = self.setData(index, marks, Role.marks)
-        if not ok:
-            raise ValueError("Error while setting data!")
 
     def new_category(self, name, sort=None):
         """Add a new category to the model.

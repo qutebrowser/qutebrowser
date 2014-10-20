@@ -100,20 +100,6 @@ class CompletionFilterModel(QSortFilterProxyModel):
                 return index
         return QModelIndex()
 
-    def mark_all_items(self, text):
-        """Mark the given text in all visible items."""
-        if not text:
-            return
-        for i in range(self.rowCount()):
-            cat = self.index(i, 0)
-            qtutils.ensure_valid(cat)
-            for k in range(self.rowCount(cat)):
-                index = self.index(k, 0, cat)
-                qtutils.ensure_valid(index)
-                index = self.mapToSource(index)
-                qtutils.ensure_valid(index)
-                self.srcmodel.mark_item(index, text)
-
     def setSourceModel(self, model):
         """Override QSortFilterProxyModel's setSourceModel to clear pattern."""
         log.completion.debug("Setting source model: {}".format(model))
