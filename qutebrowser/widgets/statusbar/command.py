@@ -148,8 +148,9 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         """
         old_text = self.text()
         self.setText(text)
-        if old_text != text:
-            # We want the completion to pop out here.
+        if old_text != text and len(old_text) == len(text):
+            # We want the completion to pop out here, but the cursor position
+            # won't change, so we make sure we emit update_completion.
             self.update_completion.emit(self.prefix(), self.split(),
                                         self._cursor_part)
         self.setFocus()
