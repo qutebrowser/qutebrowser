@@ -313,8 +313,8 @@ class Command:
             for field in ('type', 'flag', 'name', 'special'):
                 if field in param.annotation:
                     info[field] = param.annotation[field]
-                    del param.annotation[field]
-            info['kwargs'] = param.annotation
+            if 'nargs' in param.annotation:
+                info['kwargs'] = {'nargs': param.annotation['nargs']}
         return self.AnnotationInfo(**info)
 
     def _get_type(self, param, annotation_info):
