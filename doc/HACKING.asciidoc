@@ -68,21 +68,20 @@ contributing, feel free to send normal patches instead, e.g. generated via
 Finding the correct branch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Currently, qutebrowser is developed in the `master` branch. Feature branches
-are used by me occasionally and pushed as a backup, but frequently
-force-pushed. Do *not* base your work on any of the feature branches, use
-`master` instead.
+qutebrowser is developed in the `master` branch. Feature branches are used by
+me occasionally and pushed as a backup, but frequently force-pushed. Do *not*
+base your work on any of the feature branches, use `master` instead.
 
-After v0.1 is released, an additional `development` branch will be added. Then,
-base new features on the `development` branch, and bugfixes on the `master`
+For every release, a `vX.Y-stable` branch will be created. Base new features on
+the `master` branch, and bugfixes for existing stuff on the `...-stable`
 branch.
 
-You can then checkout the correct branch via:
+You can checkout the correct branch via:
 
 ----
-git checkout base-branch <1>
+git checkout branch <1>
 ----
-<1> Of course replace `base-branch` by `development` or `master`.
+<1> Of course replace `branch` by `master` or `vX.Y-stable`.
 
 
 Getting patches
