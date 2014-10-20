@@ -273,6 +273,10 @@ class Command:
         args = []
         name = annotation_info.name or param.name
         shortname = annotation_info.flag or param.name[0]
+        if len(shortname) != 1:
+            raise ValueError("Flag '{}' of parameter {} (command {}) must be "
+                             "exactly 1 char!".format(shortname, name,
+                                                      self.name))
         if param_type == self.ParamType.flag:
             long_flag = '--{}'.format(name)
             short_flag = '-{}'.format(shortname)
