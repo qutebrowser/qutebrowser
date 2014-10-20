@@ -34,7 +34,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
     """Subclass of QSortFilterProxyModel with custom sorting/filtering.
 
     Attributes:
-        _pattern: The pattern to filter with.
+        pattern: The pattern to filter with.
         srcmodel: The current source model.
                    Kept as attribute because calling `sourceModel` takes quite
                    a long time for some reason.
@@ -44,7 +44,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
         super().__init__(parent)
         super().setSourceModel(source)
         self.srcmodel = source
-        self._pattern = ''
+        self.pattern = ''
 
     def set_pattern(self, val):
         """Setter for pattern.
@@ -57,7 +57,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
         Args:
             val: The value to set.
         """
-        self._pattern = val
+        self.pattern = val
         self.invalidate()
         sortcol = 0
         try:
@@ -102,6 +102,8 @@ class CompletionFilterModel(QSortFilterProxyModel):
 
     def mark_all_items(self, text):
         """Mark the given text in all visible items."""
+        if not text:
+            return
         for i in range(self.rowCount()):
             cat = self.index(i, 0)
             qtutils.ensure_valid(cat)
@@ -129,7 +131,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
             parent: The parent item QModelIndex.
 
         Return:
-            True if self._pattern is contained in item, or if it's a root item
+            True if self.pattern is contained in item, or if it's a root item
             (category). False in all other cases
         """
         if parent == QModelIndex():
@@ -138,14 +140,14 @@ class CompletionFilterModel(QSortFilterProxyModel):
         qtutils.ensure_valid(idx)
         data = self.srcmodel.data(idx)
         # TODO more sophisticated filtering
-        if not self._pattern:
+        if not self.pattern:
             return True
-        return self._pattern.casefold() in data.casefold()
+        return self.pattern.casefold() in data.casefold()
 
     def lessThan(self, lindex, rindex):
         """Custom sorting implementation.
 
-        Prefers all items which start with self._pattern. Other than that, uses
+        Prefers all items which start with self.pattern. Other than that, uses
         normal Python string sorting.
 
         Args:
@@ -167,8 +169,8 @@ class CompletionFilterModel(QSortFilterProxyModel):
         left = self.srcmodel.data(lindex)
         right = self.srcmodel.data(rindex)
 
-        leftstart = left.startswith(self._pattern)
-        rightstart = right.startswith(self._pattern)
+        leftstart = left.startswith(self.pattern)
+        rightstart = right.startswith(self.pattern)
 
         if leftstart and rightstart:
             return left < right

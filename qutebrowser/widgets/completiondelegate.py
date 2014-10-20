@@ -197,7 +197,10 @@ class CompletionItemDelegate(QStyledItemDelegate):
         """))
         self._doc.setDocumentMargin(2)
 
-        if index.column() == 0:
+        if index.column() == 0 and index.model().pattern:
+            # We take a shortcut here by not checking anything if the models
+            # pattern is empty. This is required because the marks data is
+            # invalid in that case (for performance reasons).
             marks = index.data(basecompletion.Role.marks)
             if marks is None:
                 return
