@@ -392,6 +392,41 @@ There are also other arguments to customize the way the command is registered,
 see the class documentation for `register` in `qutebrowser.commands.utils` for
 details.
 
+The types of the function arguments are inferred based on their default values,
+e.g. an argument `foo=True` will be converted to a flag `-f`/`--foo` in
+qutebrowser's commandline.
+
+This behaviour can be overridden using Python's
+http://legacy.python.org/dev/peps/pep-3107/[function annotations]. The
+annotation should always be a `dict`, like this:
+
+[source,python]
+----
+@cmdutils.register(...)
+def foo(bar: {'type': int}, baz=True):
+    ...
+----
+
+The following keys are supported in the dict:
+
+* `type`: The type this value should have. The value entered by the user is
+then automatically checked. Possible values:
+    - A callable (`int`, `float`, etc.): Gets called to validate/convert the
+      value.
+    - A string: The value must match exactly (mainly useful with tuples to get
+      a choice of values, see below).
+    - A python enum type: All members of the enum are possible values.
+    - A tuple of multiple types above: Any of these types are valid values,
+      e.g. `('foo', 'bar')` or `(int, 'foo')`.
+* `flag`: The flag to be used, as 1-char string (default: First char of the
+long name).
+* `name`: The long name to be used, as string (default: Name of the parameter).
+* `special`: The string `count` or `win_id` if the parameter should be
+auto-filled (with the count given by the user and the window ID the command was
+executed in, respectively).
+* `nargs`: Gets passed to argparse, see
+https://docs.python.org/dev/library/argparse.html#nargs[its documentation].
+
 [[handling-urls]]
 Handling URLs
 ~~~~~~~~~~~~~
