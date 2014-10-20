@@ -31,7 +31,7 @@ from qutebrowser.widgets import console
 
 
 @cmdutils.register(scope='window')
-def later(ms: int, *command, win_id: {'special': 'win_id'}):
+def later(ms: {'type': int}, *command, win_id: {'special': 'win_id'}):
     """Execute a command after some time.
 
     Args:
@@ -61,7 +61,7 @@ def later(ms: int, *command, win_id: {'special': 'win_id'}):
 
 
 @cmdutils.register(scope='window')
-def repeat(times: int, *command, win_id: {'special': 'win_id'}):
+def repeat(times: {'type': int}, *command, win_id: {'special': 'win_id'}):
     """Repeat a given command.
 
     Args:
@@ -77,7 +77,7 @@ def repeat(times: int, *command, win_id: {'special': 'win_id'}):
 
 
 @cmdutils.register(debug=True)
-def debug_crash(typ: ('exception', 'segfault')='exception'):
+def debug_crash(typ: {'type': ('exception', 'segfault')}='exception'):
     """Crash for debugging purposes.
 
     Args:

@@ -59,7 +59,7 @@ class Command:
     """
 
     AnnotationInfo = collections.namedtuple('AnnotationInfo',
-                                            ['kwargs', 'typ', 'name', 'flag',
+                                            ['kwargs', 'type', 'name', 'flag',
                                              'special'])
     ParamType = usertypes.enum('ParamType', ['flag', 'positional'])
 
@@ -301,19 +301,16 @@ class Command:
                 flag: The short name/flag if overridden.
                 name: The long name if overridden.
         """
-        info = {'kwargs': {}, 'typ': None, 'flag': None, 'name': None,
+        info = {'kwargs': {}, 'type': None, 'flag': None, 'name': None,
                 'special': None}
         if param.annotation is not inspect.Parameter.empty:
             log.commands.vdebug("Parsing annotation {}".format(
                 param.annotation))
-            if isinstance(param.annotation, dict):
-                for field in ('type', 'flag', 'name', 'special'):
-                    if field in param.annotation:
-                        info[field] = param.annotation[field]
-                        del param.annotation[field]
-                info['kwargs'] = param.annotation
-            else:
-                info['typ'] = param.annotation
+            for field in ('type', 'flag', 'name', 'special'):
+                if field in param.annotation:
+                    info[field] = param.annotation[field]
+                    del param.annotation[field]
+            info['kwargs'] = param.annotation
         return self.AnnotationInfo(**info)
 
     def _get_type(self, param, annotation_info):
@@ -323,8 +320,8 @@ class Command:
             param: The inspect.Parameter to look at.
             annotation_info: An AnnotationInfo tuple which overrides the type.
         """
-        if annotation_info.typ is not None:
-            return annotation_info.typ
+        if annotation_info.type is not None:
+            return annotation_info.type
         elif param.default is None or param.default is inspect.Parameter.empty:
             return None
         else:

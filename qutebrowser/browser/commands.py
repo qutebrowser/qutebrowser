@@ -470,7 +470,8 @@ class CommandDispatcher:
         self._open(url, tab, background, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def navigate(self, where: ('prev', 'next', 'up', 'increment', 'decrement'),
+    def navigate(self, where: {'type': ('prev', 'next', 'up', 'increment',
+                                        'decrement')},
                  tab=False, bg=False, window=False):
         """Open typical prev/next links or navigate using the URL path.
 
@@ -515,7 +516,8 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
-    def scroll(self, dx: float, dy: float, count: {'special': 'count'}=1):
+    def scroll(self, dx: {'type': float}, dy: {'type': float},
+               count: {'special': 'count'}=1):
         """Scroll the current tab by 'count * dx/dy'.
 
         Args:
@@ -531,7 +533,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
-    def scroll_perc(self, perc: float=None,
+    def scroll_perc(self, perc: {'type': float}=None,
                     horizontal: {'flag': 'x'}=False,
                     count: {'special': 'count'}=None):
         """Scroll to a specific percentage of the page.
@@ -549,7 +551,8 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
-    def scroll_page(self, x: float, y: float, count: {'special': 'count'}=1):
+    def scroll_page(self, x: {'type': float}, y: {'type': float},
+                    count: {'special': 'count'}=1):
         """Scroll the frame page-wise.
 
         Args:
@@ -714,7 +717,7 @@ class CommandDispatcher:
         self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tab_focus(self, index: (int, 'last')=None,
+    def tab_focus(self, index: {'type': (int, 'last')}=None,
                   count: {'special': 'count'}=None):
         """Select the tab given as argument/[count].
 
@@ -739,7 +742,7 @@ class CommandDispatcher:
                 idx))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tab_move(self, direction: ('+', '-')=None,
+    def tab_move(self, direction: {'type': ('+', '-')}=None,
                  count: {'special': 'count'}=None):
         """Move the current tab.
 
