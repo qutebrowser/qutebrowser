@@ -115,12 +115,24 @@ class Completer(QObject):
             parts: The command chunks to get a completion for.
             cursor_part: The part the cursor is over currently.
         """
+        if parts[cursor_part].startswith('-'):
+            # cursor on a flag
+            return
+        filtered_parts = []
+        for i, part in enumerate(parts):
+            if part == '--':
+                break
+            elif part.startswith('-'):
+                if cursor_part >= i:
+                    cursor_part -= 1
+            else:
+                filtered_parts.append(part)
         if cursor_part == 0:
             # '|' or 'set|'
             return self._models[usertypes.Completion.command]
         # delegate completion to command
         try:
-            completions = cmdutils.cmd_dict[parts[0]].completion
+            completions = cmdutils.cmd_dict[filtered_parts[0]].completion
         except KeyError:
             # entering an unknown command
             return None
@@ -140,11 +152,11 @@ class Completer(QObject):
         log.completion.debug("completions: {}".format(
             ', '.join(dbg_completions)))
         if completion == usertypes.Completion.option:
-            section = parts[cursor_part - 1]
+            section = filtered_parts[cursor_part - 1]
             model = self._models[completion].get(section)
         elif completion == usertypes.Completion.value:
-            section = parts[cursor_part - 2]
-            option = parts[cursor_part - 1]
+            section = filtered_parts[cursor_part - 2]
+            option = filtered_parts[cursor_part - 1]
             try:
                 model = self._models[completion][section][option]
             except KeyError:
