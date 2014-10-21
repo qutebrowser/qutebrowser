@@ -38,6 +38,10 @@ class Completer(QObject):
         _ignore_change: Whether to ignore the next completion update.
         models: dict of available completion models.
         _win_id: The window ID this completer is in.
+        _timer: The timer used to trigger the completion update.
+        _prefix: The prefix to be used for the next completion update.
+        _parts: The parts to be used for the next completion update.
+        _cursor_part: The cursor part index for the next completion update.
 
     Signals:
         change_completed_part: Text which should be substituted for the word
@@ -62,6 +66,13 @@ class Completer(QObject):
         self._init_static_completions()
         self._init_setting_completions()
         self.init_quickmark_completions()
+        self._timer = QTimer()
+        self._timer.setSingleShot(True)
+        self._timer.setInterval(0)
+        self._timer.timeout.connect(self.update_completion)
+        self._prefix = None
+        self._parts = None
+        self._cursor_part = None
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -215,17 +226,19 @@ class Completer(QObject):
         For performance reasons we don't want to block here, instead we do this
         in the background.
         """
-        QTimer.singleShot(0, functools.partial(
-            self._on_update_completion, prefix, parts, cursor_part))
+        self._timer.start()
+        self._prefix = prefix
+        self._parts = parts
+        self._cursor_part = cursor_part
 
-    @pyqtSlot(str, list, int)
-    def _on_update_completion(self, prefix, parts, cursor_part):
-        """Check if completions are available and activate them.
+    @pyqtSlot()
+    def update_completion(self):
+        """Check if completions are available and activate them."""
 
-        Args:
-            text: The new text
-            cursor_part: The part the cursor is currently over.
-        """
+        assert self._prefix is not None
+        assert self._parts is not None
+        assert self._cursor_part is not None
+
         if self._ignore_change:
             self._ignore_change = False
             log.completion.debug("Ignoring completion update")
@@ -234,7 +247,7 @@ class Completer(QObject):
         completion = objreg.get('completion', scope='window',
                                 window=self._win_id)
 
-        if prefix != ':':
+        if self._prefix != ':':
             # This is a search or gibberish, so we don't need to complete
             # anything (yet)
             # FIXME complete searchs
@@ -242,7 +255,7 @@ class Completer(QObject):
             completion.hide()
             return
 
-        model = self._get_new_completion(parts, cursor_part)
+        model = self._get_new_completion(self._parts, self._cursor_part)
 
         if model != self._model():
             if model is None:
@@ -251,15 +264,16 @@ class Completer(QObject):
                 completion.set_model(model)
 
         if model is None:
-            log.completion.debug("No completion model for {}.".format(parts))
+            log.completion.debug("No completion model for {}.".format(
+                self._parts))
             return
 
-        pattern = parts[cursor_part] if parts else ''
+        pattern = self._parts[self._cursor_part] if self._parts else ''
         self._model().set_pattern(pattern)
 
         log.completion.debug(
             "New completion for {}: {}, with pattern '{}'".format(
-                parts, model.srcmodel.__class__.__name__, pattern))
+                self._parts, model.srcmodel.__class__.__name__, pattern))
 
         if self._model().count() == 0:
             completion.hide()
