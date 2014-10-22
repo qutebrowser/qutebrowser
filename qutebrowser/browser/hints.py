@@ -718,6 +718,10 @@ class HintManager(QObject):
         """Reposition hints if contents size changed."""
         log.hints.debug("Contents size changed...!")
         for elems in self._context.elems.values():
+            if elems.elem.webFrame() is None:
+                # This sometimes happens for some reason...
+                elems.label.removeFromDocument()
+                continue
             css = self._get_hint_css(elems.elem, elems.label)
             elems.label['style'] = css
 
