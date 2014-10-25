@@ -21,7 +21,6 @@
 
 import functools
 
-import sip
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, PYQT_VERSION, Qt, QUrl
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkReply
@@ -79,16 +78,16 @@ class BrowserPage(QWebPage):
             else:
                 return (True, answer)
 
-    def _handle_errorpage(self, opt, out):
+    def _handle_errorpage(self, info, errpage):
         """Display an error page if needed.
 
         Loosly based on Helpviewer/HelpBrowserWV.py from eric5
         (line 260 @ 5d937eb378dd)
 
         Args:
-            opt: The QWebPage.ErrorPageExtensionOption instance.
-            out: The QWebPage.ErrorPageExtensionReturn instance to write return
-                 values to.
+            info: The QWebPage.ErrorPageExtensionOption instance.
+            errpage: The QWebPage.ErrorPageExtensionReturn instance, where the
+                     error page will get written to.
 
         Return:
             False if no error page should be displayed, True otherwise.
@@ -97,8 +96,6 @@ class BrowserPage(QWebPage):
             (QWebPage.QtNetwork, QNetworkReply.OperationCanceledError),
             (QWebPage.WebKit, 203),  # "Loading is handled by the media engine"
         ]
-        info = sip.cast(opt, QWebPage.ErrorPageExtensionOption)
-        errpage = sip.cast(out, QWebPage.ErrorPageExtensionReturn)
         errpage.baseUrl = info.url
         urlstr = info.url.toDisplayString()
         if (info.domain, info.error) == (QWebPage.QtNetwork,
@@ -119,36 +116,32 @@ class BrowserPage(QWebPage):
                                   urlstr, info.errorString, info.domain,
                                   info.error))
             return False
-        log.webview.error("Error while loading {}: {}".format(
-            urlstr, info.errorString))
-        log.webview.debug("Error domain: {}, error code: {}".format(
-            info.domain, info.error))
-        title = "Error loading page: {}".format(urlstr)
-        template = jinja.env.get_template('error.html')
-        html = template.render(  # pylint: disable=maybe-no-member
-            title=title, url=urlstr, error=info.errorString, icon='')
-        errpage.content = html.encode('utf-8')
-        errpage.encoding = 'utf-8'
-        return True
+        else:
+            log.webview.error("Error while loading {}: {}".format(
+                urlstr, info.errorString))
+            log.webview.debug("Error domain: {}, error code: {}".format(
+                info.domain, info.error))
+            title = "Error loading page: {}".format(urlstr)
+            template = jinja.env.get_template('error.html')
+            html = template.render(  # pylint: disable=maybe-no-member
+                title=title, url=urlstr, error=info.errorString, icon='')
+            errpage.content = html.encode('utf-8')
+            errpage.encoding = 'utf-8'
+            return True
 
-    def _handle_multiple_files(self, opt, files):
+    def _handle_multiple_files(self, info, files):
         """Handle uploading of multiple files.
 
         Loosly based on Helpviewer/HelpBrowserWV.py from eric5.
 
         Args:
-            opt: The ChooseMultipleFilesExtensionOption instance.
+            info: The ChooseMultipleFilesExtensionOption instance.
             files: The ChooseMultipleFilesExtensionReturn instance to write
                    return values to.
 
         Return:
             True on success, the superclass return value on failure.
         """
-        info = sip.cast(opt, QWebPage.ChooseMultipleFilesExtensionOption)
-        files = sip.cast(files, QWebPage.ChooseMultipleFilesExtensionReturn)
-        if info is None or files is None:
-            return super().extension(QWebPage.ChooseMultipleFilesExtension,
-                                     opt, files)
         suggested_file = ""
         if opt.suggestedFileNames:
             suggested_file = opt.suggestedFileNames[0]
