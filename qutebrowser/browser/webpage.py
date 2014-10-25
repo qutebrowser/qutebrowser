@@ -22,7 +22,8 @@
 import functools
 
 import sip
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, PYQT_VERSION, Qt
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, PYQT_VERSION, Qt, QUrl
+from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkReply
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtPrintSupport import QPrintDialog
@@ -100,7 +101,19 @@ class BrowserPage(QWebPage):
         errpage = sip.cast(out, QWebPage.ErrorPageExtensionReturn)
         errpage.baseUrl = info.url
         urlstr = info.url.toDisplayString()
-        if (info.domain, info.error) in ignored_errors:
+        if (info.domain, info.error) == (QWebPage.QtNetwork,
+                                         QNetworkReply.ProtocolUnknownError):
+            # For some reason, we get a segfault when we use
+            # QDesktopServices::openUrl with info.url directly - however it
+            # works when we construct a copy of it.
+            url = QUrl(info.url)
+            msg = "Open external application for {}-link?\nURL: {}".format(
+                url.scheme(), url.toDisplayString())
+            message.confirm_async(
+                self._win_id, msg,
+                functools.partial(QDesktopServices.openUrl, url))
+            return True
+        elif (info.domain, info.error) in ignored_errors:
             log.webview.debug("Ignored error on {}: {} (error domain: {}, "
                               "error code: {})".format(
                                   urlstr, info.errorString, info.domain,
