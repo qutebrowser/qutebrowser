@@ -17,6 +17,7 @@
 |<<general-xss-auditing,xss-auditing>>|Whether load requests should be monitored for cross-site scripting attempts.
 |<<general-site-specific-quirks,site-specific-quirks>>|Enable workarounds for broken sites.
 |<<general-default-encoding,default-encoding>>|Default encoding to use for websites.
+|<<general-new-instance-open-target,new-instance-open-target>>|How to open links in an existing instance if a new one is launched.
 |==============
 
 .Quick reference for section ``ui''
@@ -179,6 +180,7 @@
 |<<colors-downloads.bg.start,downloads.bg.start>>|Color gradient start for downloads.
 |<<colors-downloads.bg.stop,downloads.bg.stop>>|Color gradient end for downloads.
 |<<colors-downloads.bg.system,downloads.bg.system>>|Color gradient interpolation system for downloads.
+|<<colors-downloads.bg.error,downloads.bg.error>>|Background color for downloads with errors.
 |==============
 
 .Quick reference for section ``fonts''
@@ -298,6 +300,18 @@ Default encoding to use for websites.
 The encoding must be a string describing an encoding such as _utf-8_, _iso-8859-1_, etc. If left empty a default value will be used.
 
 Default: empty
+
+[[general-new-instance-open-target]]
+=== new-instance-open-target
+How to open links in an existing instance if a new one is launched.
+
+Valid values:
+
+ * +tab+: Open a new tab in the existing window and activate it.
+ * +tab-silent+: Open a new tab in the existing window without activating it.
+ * +window+: Open in a new window.
+
+Default: +pass:[window]+
 
 == ui
 General options related to the user interface.
@@ -1095,6 +1109,12 @@ Valid values:
  * +hsl+: Interpolate in the HSL color system.
 
 Default: +pass:[rgb]+
+
+[[colors-downloads.bg.error]]
+=== downloads.bg.error
+Background color for downloads with errors.
+
+Default: +pass:[red]+
 
 == fonts
 Fonts used for the UI, with optional style/weight/size.
