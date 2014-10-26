@@ -110,6 +110,7 @@ class HintManager(QObject):
         display: {display};
         color: {config[colors][hints.fg]};
         background: {config[colors][hints.bg]};
+        text-transform: {texttransform};
         font: {config[fonts][hints]};
         border: {config[hints][border]};
         opacity: {config[hints][opacity]};
@@ -271,6 +272,12 @@ class HintManager(QObject):
             display = 'inline'
         else:
             display = 'none'
+
+        # Make text uppercase if set in config
+        if config.get("hints","uppercase") and config.get("hints","mode") == "letter":
+            texttransform = 'uppercase'
+        else:
+            texttransform = 'none'
         rect = elem.geometry()
         left = rect.x()
         top = rect.y()
@@ -279,7 +286,8 @@ class HintManager(QObject):
             left /= zoom
             top /= zoom
         return self.HINT_CSS.format(
-            left=left, top=top, config=objreg.get('config'), display=display)
+            left=left, top=top, config=objreg.get('config'), display=display,
+                        texttransform=texttransform)
 
     def _draw_label(self, elem, string):
         """Draw a hint label over an element.

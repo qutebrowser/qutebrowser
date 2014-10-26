@@ -512,6 +512,10 @@ DATA = collections.OrderedDict([
          SettingValue(typ.String(minlen=2), 'asdfghjkl'),
          "Chars used for hint strings."),
 
+        ('uppercase',
+         SettingValue(typ.Bool(), 'false'),
+         "Make chars in hint strings uppercase."),
+
         ('auto-follow',
          SettingValue(typ.Bool(), 'true'),
          "Whether to auto-follow a hint if there's only one left."),
