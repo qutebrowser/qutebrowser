@@ -143,8 +143,8 @@ class BrowserPage(QWebPage):
             True on success, the superclass return value on failure.
         """
         suggested_file = ""
-        if opt.suggestedFileNames:
-            suggested_file = opt.suggestedFileNames[0]
+        if info.suggestedFileNames:
+            suggested_file = info.suggestedFileNames[0]
         files.fileNames, _ = QFileDialog.getOpenFileNames(None, None,
                                                           suggested_file)
         return True
