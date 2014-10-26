@@ -20,8 +20,16 @@
 
 """Update 3rd-party files (currently only ez_setup.py)."""
 
+import sys
+import os
+import os.path
 import urllib.request
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
+
+from scripts import utils
+
+utils.change_cwd()
 urllib.request.urlretrieve(
     'https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py',
     'scripts/ez_setup.py')

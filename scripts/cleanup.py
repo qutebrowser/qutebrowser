@@ -27,6 +27,10 @@ import glob
 import shutil
 import fnmatch
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
+
+from scripts import utils
+
 
 recursive_lint = ('__pycache__', '*.pyc')
 lint = ('build', 'dist', 'pkg/pkg', 'pkg/qutebrowser-*.pkg.tar.xz', 'pkg/src',
@@ -49,6 +53,7 @@ def remove(path):
 
 def main():
     """Clean up lint in the current dir."""
+    utils.change_cwd()
     for elem in lint:
         for f in glob.glob(elem):
             remove(f)

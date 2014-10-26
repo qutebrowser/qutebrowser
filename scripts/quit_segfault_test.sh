@@ -1,4 +1,9 @@
 #!/bin/bash
+
+if [[ $PWD == */scripts ]]; then
+    cd ..
+fi
+
 echo > crash.log
 while :; do
     exit=0

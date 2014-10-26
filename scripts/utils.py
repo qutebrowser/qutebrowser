@@ -20,6 +20,7 @@
 """Utility functions for scripts."""
 
 import os
+import os.path
 
 use_color = True
 
@@ -82,3 +83,10 @@ def print_bold(text):
         print(''.join([bold, text, reset]))
     else:
         print(text)
+
+
+def change_cwd():
+    """Change the scripts cwd if it was started inside the script folder."""
+    cwd = os.getcwd()
+    if os.path.split(cwd)[1] == 'scripts':
+        os.chdir(os.path.join(cwd, os.pardir))

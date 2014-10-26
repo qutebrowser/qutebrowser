@@ -61,6 +61,7 @@ def call_asciidoc(src, dst):
 
 def main(colors=False):
     """Generate html files for the online documentation."""
+    utils.change_cwd()
     utils.use_color = colors
     asciidoc_files = [
         ('doc/FAQ.asciidoc', 'qutebrowser/html/doc/FAQ.html'),

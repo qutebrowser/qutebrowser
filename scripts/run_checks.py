@@ -279,6 +279,7 @@ def _checker_enabled(args, group, name):
 def main():
     """Main entry point."""
     global config
+    utils.change_cwd()
     read_files = config.read('.run_checks')
     if not read_files:
         raise IOError("Could not read config!")

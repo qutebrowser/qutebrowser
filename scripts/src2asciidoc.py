@@ -35,7 +35,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
 # We import qutebrowser.app so all @cmdutils-register decorators are run.
 import qutebrowser.app
-from scripts import asciidoc2html
+from scripts import asciidoc2html, utils
 from qutebrowser import qutebrowser
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configdata
@@ -395,6 +395,7 @@ def regenerate_manpage(filename):
 
 def main():
     """Regenerate all documentation."""
+    utils.change_cwd()
     print("Generating manpage...")
     regenerate_manpage('doc/qutebrowser.1.asciidoc')
     print("Generating settings help...")

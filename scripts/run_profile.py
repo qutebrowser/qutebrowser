@@ -31,6 +31,7 @@ import shutil
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
 import qutebrowser.qutebrowser  # pylint: disable=unused-import
+from scripts import utils
 
 tempdir = tempfile.mkdtemp()
 
