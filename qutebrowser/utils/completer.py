@@ -119,16 +119,42 @@ class Completer(QObject):
         self._models[usertypes.Completion.quickmark_by_name] = CFM(
             models.QuickmarkCompletionModel('name', self), self)
 
-    def _get_new_completion(self, parts, cursor_part):
-        """Get a new completion model.
+    def _get_completion_model(self, completion, parts, cursor_part):
+        """Get a completion model based on an enum member.
 
         Args:
-            parts: The command chunks to get a completion for.
-            cursor_part: The part the cursor is over currently.
+            completion: An usertypes.Completion member.
+            parts: The parts currently in the commandline.
+            cursor_part: The part the cursor is in.
+
+        Return:
+            A completion model.
         """
-        if parts[cursor_part].startswith('-'):
-            # cursor on a flag
-            return
+        if completion == usertypes.Completion.option:
+            section = parts[cursor_part - 1]
+            model = self._models[completion].get(section)
+        elif completion == usertypes.Completion.value:
+            section = parts[cursor_part - 2]
+            option = parts[cursor_part - 1]
+            try:
+                model = self._models[completion][section][option]
+            except KeyError:
+                # No completion model for this section/option.
+                model = None
+        else:
+            model = self._models.get(completion)
+        return model
+
+    def _filter_cmdline_parts(self, parts, cursor_part):
+        """Filter a list of commandline parts to exclude flags.
+
+        Args:
+            parts: A list of parts.
+            cursor_part: The index of the part the cursor is over.
+
+        Return:
+            A (parts, cursor_part) tuple with the modified values.
+        """
         filtered_parts = []
         for i, part in enumerate(parts):
             if part == '--':
@@ -138,12 +164,28 @@ class Completer(QObject):
                     cursor_part -= 1
             else:
                 filtered_parts.append(part)
+        return filtered_parts, cursor_part
+
+    def _get_new_completion(self, parts, cursor_part):
+        """Get a new completion.
+
+        Args:
+            parts: The command chunks to get a completion for.
+            cursor_part: The part the cursor is over currently.
+
+        Return:
+            A completion model.
+        """
+        if parts[cursor_part].startswith('-'):
+            # cursor on a flag
+            return
+        parts, cursor_part = self._filter_cmdline_parts(parts, cursor_part)
         if cursor_part == 0:
             # '|' or 'set|'
             return self._models[usertypes.Completion.command]
         # delegate completion to command
         try:
-            completions = cmdutils.cmd_dict[filtered_parts[0]].completion
+            completions = cmdutils.cmd_dict[parts[0]].completion
         except KeyError:
             # entering an unknown command
             return None
@@ -162,19 +204,7 @@ class Completer(QObject):
         dbg_completions[idx] = '*' + dbg_completions[idx] + '*'
         log.completion.debug("completions: {}".format(
             ', '.join(dbg_completions)))
-        if completion == usertypes.Completion.option:
-            section = filtered_parts[cursor_part - 1]
-            model = self._models[completion].get(section)
-        elif completion == usertypes.Completion.value:
-            section = filtered_parts[cursor_part - 2]
-            option = filtered_parts[cursor_part - 1]
-            try:
-                model = self._models[completion][section][option]
-            except KeyError:
-                # No completion model for this section/option.
-                model = None
-        else:
-            model = self._models.get(completion)
+        model = self._get_completion_model(completion, parts, cursor_part)
         return model
 
     def _quote(self, s):
