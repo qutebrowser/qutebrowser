@@ -274,7 +274,8 @@ class HintManager(QObject):
             display = 'none'
 
         # Make text uppercase if set in config
-        if config.get("hints","uppercase") and config.get("hints","mode") == "letter":
+        if (config.get('hints', 'uppercase') and
+                config.get('hints', 'mode') == 'letter'):
             texttransform = 'uppercase'
         else:
             texttransform = 'none'
@@ -287,7 +288,7 @@ class HintManager(QObject):
             top /= zoom
         return self.HINT_CSS.format(
             left=left, top=top, config=objreg.get('config'), display=display,
-                        texttransform=texttransform)
+            texttransform=texttransform)
 
     def _draw_label(self, elem, string):
         """Draw a hint label over an element.
