@@ -179,7 +179,7 @@ def _get_command_doc(name, cmd):
                 raise KeyError("No description for arg {} of command "
                                "'{}'!".format(e, cmd.name))
 
-    if cmd.special_parameters.count is not None:
+    if cmd.special_params['count'] is not None:
         output.append("")
         output.append("==== count")
         output.append(parser.arg_descs[cmd.special_params['count']])
