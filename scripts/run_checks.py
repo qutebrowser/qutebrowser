@@ -58,7 +58,6 @@ logging.basicConfig(level=logging.INFO, format='%(msg)s')
 
 
 config = configparser.ConfigParser()
-config.read('.run_checks')
 
 
 @contextlib.contextmanager
@@ -279,6 +278,10 @@ def _checker_enabled(args, group, name):
 
 def main():
     """Main entry point."""
+    global config
+    read_files = config.read('.run_checks')
+    if not read_files:
+        raise IOError("Could not read config!")
     exit_status = collections.OrderedDict()
     exit_status_bool = {}
     parser = argparse.ArgumentParser(description='Run various checkers.')
