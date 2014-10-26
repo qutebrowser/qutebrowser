@@ -25,8 +25,7 @@ import collections
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.commands import cmdexc, argparser
-from qutebrowser.utils import (log, utils, message, debug, usertypes, docutils,
-                               objreg)
+from qutebrowser.utils import log, utils, message, debug, docutils, objreg
 
 
 class Command:
@@ -55,13 +54,11 @@ class Command:
 
     Class attributes:
         AnnotationInfo: Named tuple for info from an annotation.
-        ParamType: Enum for an argparse parameter type.
     """
 
     AnnotationInfo = collections.namedtuple('AnnotationInfo',
                                             ['kwargs', 'type', 'name', 'flag',
                                              'special'])
-    ParamType = usertypes.enum('ParamType', ['flag', 'positional'])
 
     def __init__(self, name, split, hide, instance, completion, modes,
                  not_modes, needs_js, is_debug, ignore_args,
@@ -218,8 +215,8 @@ class Command:
                 if self._inspect_special_param(param, annotation_info):
                     continue
                 typ = self._get_type(param, annotation_info)
-                args, kwargs = self._param_to_argparse_args(
-                    param, annotation_info)
+                kwargs = self._param_to_argparse_kwargs(param, annotation_info)
+                args = self._param_to_argparse_args(param, annotation_info)
                 self._type_conv.update(self._get_typeconv(param, typ))
                 self._name_conv.update(
                     self._get_nameconv(param, annotation_info))
@@ -230,20 +227,18 @@ class Command:
                     param.name, typ, callsig))
                 self.parser.add_argument(*args, **kwargs)
 
-    def _param_to_argparse_args(self, param, annotation_info):
-        """Get argparse arguments for a parameter.
-
-        Return:
-            An (args, kwargs) tuple.
+    def _param_to_argparse_kwargs(self, param, annotation_info):
+        """Get argparse keyword arguments for a parameter.
 
         Args:
             param: The inspect.Parameter object to get the args for.
             annotation_info: An AnnotationInfo tuple for the parameter.
-        """
 
+        Return:
+            A kwargs dict.
+        """
         kwargs = {}
         typ = self._get_type(param, annotation_info)
-        param_type = self.ParamType.positional
 
         try:
             kwargs['help'] = self.docparser.arg_descs[param.name]
@@ -256,7 +251,6 @@ class Command:
             kwargs['choices'] = [e.name.replace('_', '-') for e in typ]
             kwargs['metavar'] = param.name
         elif typ is bool:
-            param_type = self.ParamType.flag
             kwargs['action'] = 'store_true'
         elif typ is not None:
             kwargs['type'] = typ
@@ -264,12 +258,23 @@ class Command:
         if param.kind == inspect.Parameter.VAR_POSITIONAL:
             kwargs['nargs'] = '+'
         elif param.kind == inspect.Parameter.KEYWORD_ONLY:
-            param_type = self.ParamType.flag
             kwargs['default'] = param.default
         elif typ is not bool and param.default is not inspect.Parameter.empty:
             kwargs['default'] = param.default
             kwargs['nargs'] = '?'
+        kwargs.update(annotation_info.kwargs)
+        return kwargs
 
+    def _param_to_argparse_args(self, param, annotation_info):
+        """Get argparse positional arguments for a parameter.
+
+        Args:
+            param: The inspect.Parameter object to get the args for.
+            annotation_info: An AnnotationInfo tuple for the parameter.
+
+        Return:
+            A list of args.
+        """
         args = []
         name = annotation_info.name or param.name
         shortname = annotation_info.flag or param.name[0]
@@ -277,19 +282,17 @@ class Command:
             raise ValueError("Flag '{}' of parameter {} (command {}) must be "
                              "exactly 1 char!".format(shortname, name,
                                                       self.name))
-        if param_type == self.ParamType.flag:
+        typ = self._get_type(param, annotation_info)
+        if typ is bool or param.kind == inspect.Parameter.KEYWORD_ONLY:
             long_flag = '--{}'.format(name)
             short_flag = '-{}'.format(shortname)
             args.append(long_flag)
             args.append(short_flag)
             self.opt_args[param.name] = long_flag, short_flag
-        elif param_type == self.ParamType.positional:
+        else:
             args.append(name)
             self.pos_args.append((param.name, name))
-        else:
-            raise ValueError("Invalid ParamType {}!".format(param_type))
-        kwargs.update(annotation_info.kwargs)
-        return args, kwargs
+        return args
 
     def _parse_annotation(self, param):
         """Get argparse arguments and type from a parameter annotation.
