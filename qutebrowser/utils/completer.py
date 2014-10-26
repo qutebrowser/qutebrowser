@@ -19,8 +19,6 @@
 
 """Completer attached to a CompletionView."""
 
-import functools
-
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer
 
 from qutebrowser.config import config, configdata

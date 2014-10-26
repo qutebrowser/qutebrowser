@@ -26,10 +26,9 @@ import html
 from PyQt5.QtWidgets import QStyle, QStyleOptionViewItem, QStyledItemDelegate
 from PyQt5.QtCore import QRectF, QSize, Qt
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
-                         QTextCursor, QAbstractTextDocumentLayout)
+                         QAbstractTextDocumentLayout)
 
 from qutebrowser.config import config, style
-from qutebrowser.models import basecompletion
 from qutebrowser.utils import qtutils
 
 
