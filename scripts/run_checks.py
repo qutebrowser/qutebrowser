@@ -276,22 +276,26 @@ def _checker_enabled(args, group, name):
         return name in args.checkers.split(',')
 
 
+def _parse_args():
+    """Parse commandline args via argparse."""
+    parser = argparse.ArgumentParser(description='Run various checkers.')
+    parser.add_argument('-s', '--setup', help="Run additional setup checks",
+                        action='store_true')
+    parser.add_argument('checkers', help="Checkers to run (or 'all')",
+                        default='all', nargs='?')
+    return parser.parse_args()
+
+
 def main():
     """Main entry point."""
-    global config
     utils.change_cwd()
     read_files = config.read('.run_checks')
     if not read_files:
         raise IOError("Could not read config!")
     exit_status = collections.OrderedDict()
     exit_status_bool = {}
-    parser = argparse.ArgumentParser(description='Run various checkers.')
-    parser.add_argument('-s', '--setup', help="Run additional setup checks",
-                        action='store_true')
-    parser.add_argument('checkers', help="Checkers to run (or 'all')",
-                        default='all', nargs='?')
-    args = parser.parse_args()
 
+    args = _parse_args()
     checkers = _get_checkers()
 
     groups = ['global']
