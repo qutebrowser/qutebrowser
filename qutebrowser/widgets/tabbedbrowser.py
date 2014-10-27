@@ -224,7 +224,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             self._remove_tab(tab)
             self.close_window.emit()
         elif last_close == 'blank':
-            tab.openurl('about:blank')
+            tab.openurl(QUrl('about:blank'))
 
     def _remove_tab(self, tab):
         """Remove a tab from the tab list and delete it properly.
