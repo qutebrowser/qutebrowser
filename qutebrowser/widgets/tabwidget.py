@@ -26,7 +26,7 @@ Module attributes:
 
 import functools
 
-from PyQt5.QtCore import Qt, QSize, QRect, QPoint, QTimer
+from PyQt5.QtCore import pyqtSlot, Qt, QSize, QRect, QPoint, QTimer
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab)
 from PyQt5.QtGui import QIcon, QPalette, QColor
@@ -97,6 +97,7 @@ class TabBar(QTabBar):
         config_obj.changed.connect(self.set_colors)
         QTimer.singleShot(0, self.autohide)
         config_obj.changed.connect(self.autohide)
+        config_obj.changed.connect(self.on_tab_colors_changed)
 
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
@@ -137,6 +138,12 @@ class TabBar(QTabBar):
         p = self.palette()
         p.setColor(QPalette.Window, config.get('colors', 'tab.bg.bar'))
         self.setPalette(p)
+
+    @pyqtSlot(str, str)
+    def on_tab_colors_changed(self, section, option):
+        """Set the tab colors."""
+        if section == 'colors' and option.startswith('tab.fg.'):
+            self.update()
 
     def mousePressEvent(self, e):
         """Override mousePressEvent to close tabs if configured."""
