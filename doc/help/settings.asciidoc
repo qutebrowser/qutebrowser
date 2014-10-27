@@ -162,7 +162,9 @@
 |<<colors-statusbar.url.fg.error,statusbar.url.fg.error>>|Foreground color of the URL in the statusbar on error.
 |<<colors-statusbar.url.fg.warn,statusbar.url.fg.warn>>|Foreground color of the URL in the statusbar when there's a warning.
 |<<colors-statusbar.url.fg.hover,statusbar.url.fg.hover>>|Foreground color of the URL in the statusbar for hovered links.
-|<<colors-tab.fg,tab.fg>>|Foreground color of tabs.
+|<<colors-tab.fg.odd,tab.fg.odd>>|Foreground color of unselected odd tabs.
+|<<colors-tab.fg.even,tab.fg.even>>|Foreground color of unselected even tabs.
+|<<colors-tab.fg.selected,tab.fg.selected>>|Foreground color of selected tabs.
 |<<colors-tab.bg.odd,tab.bg.odd>>|Background color of unselected odd tabs.
 |<<colors-tab.bg.even,tab.bg.even>>|Background color of unselected even tabs.
 |<<colors-tab.bg.selected,tab.bg.selected>>|Background color of selected tabs.
@@ -990,9 +992,21 @@ Foreground color of the URL in the statusbar for hovered links.
 
 Default: +pass:[aqua]+
 
-[[colors-tab.fg]]
-=== tab.fg
-Foreground color of tabs.
+[[colors-tab.fg.odd]]
+=== tab.fg.odd
+Foreground color of unselected odd tabs.
+
+Default: +pass:[white]+
+
+[[colors-tab.fg.even]]
+=== tab.fg.even
+Foreground color of unselected even tabs.
+
+Default: +pass:[white]+
+
+[[colors-tab.fg.selected]]
+=== tab.fg.selected
+Foreground color of selected tabs.
 
 Default: +pass:[white]+
 

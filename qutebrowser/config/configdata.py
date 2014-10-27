@@ -645,9 +645,17 @@ DATA = collections.OrderedDict([
          SettingValue(typ.QssColor(), 'aqua'),
          "Foreground color of the URL in the statusbar for hovered links."),
 
-        ('tab.fg',
+        ('tab.fg.odd',
          SettingValue(typ.QtColor(), 'white'),
-         "Foreground color of tabs."),
+         "Foreground color of unselected odd tabs."),
+
+        ('tab.fg.even',
+         SettingValue(typ.QtColor(), 'white'),
+         "Foreground color of unselected even tabs."),
+
+        ('tab.fg.selected',
+         SettingValue(typ.QtColor(), 'white'),
+         "Foreground color of selected tabs."),
 
         ('tab.bg.odd',
          SettingValue(typ.QtColor(), 'grey'),

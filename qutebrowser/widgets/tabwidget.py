@@ -228,14 +228,16 @@ class TabBar(QTabBar):
         for idx in range(self.count()):
             self.initStyleOption(tab, idx)
             if idx == selected:
-                color = config.get('colors', 'tab.bg.selected')
+                bg_color = config.get('colors', 'tab.bg.selected')
+                fg_color = config.get('colors', 'tab.fg.selected')
             elif idx % 2:
-                color = config.get('colors', 'tab.bg.odd')
+                bg_color = config.get('colors', 'tab.bg.odd')
+                fg_color = config.get('colors', 'tab.fg.odd')
             else:
-                color = config.get('colors', 'tab.bg.even')
-            tab.palette.setColor(QPalette.Window, color)
-            tab.palette.setColor(QPalette.WindowText,
-                                 config.get('colors', 'tab.fg'))
+                bg_color = config.get('colors', 'tab.bg.even')
+                fg_color = config.get('colors', 'tab.fg.even')
+            tab.palette.setColor(QPalette.Window, bg_color)
+            tab.palette.setColor(QPalette.WindowText, fg_color)
             indicator_color = self.tabData(idx)
             if indicator_color is None:
                 indicator_color = QColor()
