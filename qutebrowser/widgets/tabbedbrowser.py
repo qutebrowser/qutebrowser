@@ -497,6 +497,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         """Give focus to current tab if command mode was left."""
         if mode == usertypes.KeyMode.command:
             widget = self.currentWidget()
+            log.modes.debug("Left command mode, focusing {!r}".format(widget))
             if widget is None:
                 return
             widget.setFocus()
@@ -508,6 +509,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             # closing the last tab (before quitting)
             return
         tab = self.widget(idx)
+        log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
         modeman.maybe_leave(self._win_id, usertypes.KeyMode.hint,
                             'tab changed')
@@ -519,6 +521,11 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._change_app_title(self.tabText(idx))
         self._tab_insert_idx_left = self.currentIndex()
         self._tab_insert_idx_right = self.currentIndex() + 1
+
+    @pyqtSlot()
+    def on_cmd_return_pressed(self):
+        """Set focus when the commandline closes."""
+        log.modes.debug("Commandline closed, focusing {!r}".format(self))
 
     def on_load_progress(self, tab, perc):
         """Adjust tab indicator on load progress."""

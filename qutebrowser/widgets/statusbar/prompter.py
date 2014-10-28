@@ -162,6 +162,8 @@ class Prompter(QObject):
             mode = usertypes.KeyMode.prompt
         else:
             raise ValueError("Invalid prompt mode!")
+        log.modes.debug("Question asked, focusing {!r}".format(
+            prompt.lineedit))
         prompt.lineedit.setFocus()
         self.show_prompt.emit()
         self._busy = True

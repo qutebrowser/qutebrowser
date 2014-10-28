@@ -215,7 +215,7 @@ class MainWindow(QWidget):
         cmd.got_cmd.connect(self._commandrunner.run_safely)
         cmd.got_search.connect(search_runner.search)
         cmd.got_search_rev.connect(search_runner.search_rev)
-        cmd.returnPressed.connect(tabs.setFocus)
+        cmd.returnPressed.connect(tabs.on_cmd_return_pressed)
         search_runner.do_search.connect(tabs.search)
         tabs.got_cmd.connect(self._commandrunner.run_safely)
 

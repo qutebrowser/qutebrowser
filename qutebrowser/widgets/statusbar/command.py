@@ -153,6 +153,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             # won't change, so we make sure we emit update_completion.
             self.update_completion.emit(self.prefix(), self.split(),
                                         self._cursor_part)
+        log.modes.debug("Setting command text, focusing {!r}".format(self))
         self.setFocus()
         self.show_cmd.emit()
 
@@ -212,6 +213,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             text += ' '
         self.setText(text)
         log.completion.debug("Placing cursor after '{}'".format(cursor_str))
+        log.modes.debug("Completion triggered, focusing {!r}".format(self))
         self.setCursorPosition(len(cursor_str))
         self.setFocus()
         self.show_cmd.emit()

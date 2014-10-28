@@ -220,9 +220,11 @@ class ModeManager(QObject):
         if curmode != usertypes.KeyMode.insert:
             log.modes.debug("handled: {}, forward-unbound-keys: {}, "
                             "passthrough: {}, is_non_alnum: {} --> filter: "
-                            "{}".format(handled, self._forward_unbound_keys,
-                                        curmode in self.passthrough,
-                                        is_non_alnum, filter_this))
+                            "{} (focused: {!r})".format(
+                                handled, self._forward_unbound_keys,
+                                curmode in self.passthrough,
+                                is_non_alnum, filter_this,
+                                QApplication.instance().focusWidget()))
         return filter_this
 
     def _eventFilter_keyrelease(self, event):
