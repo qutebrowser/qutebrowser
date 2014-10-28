@@ -282,10 +282,12 @@ class HintManager(QObject):
         rect = elem.geometry()
         left = rect.x()
         top = rect.y()
+        zoom = elem.webFrame().zoomFactor()
         if not config.get('ui', 'zoom-text-only'):
-            zoom = elem.webFrame().zoomFactor()
             left /= zoom
             top /= zoom
+        log.hints.vdebug("Drawing label '{}' at {}/{} for element '{!r}', "
+                         "zoom level {}".format(label, left, top, elem, zoom))
         return self.HINT_CSS.format(
             left=left, top=top, config=objreg.get('config'), display=display,
             texttransform=texttransform)
