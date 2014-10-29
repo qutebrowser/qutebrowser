@@ -20,7 +20,6 @@
 """A HintManager to draw hints over links."""
 
 import math
-import functools
 import subprocess
 import collections
 
@@ -28,6 +27,7 @@ import sip
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl
 from PyQt5.QtGui import QMouseEvent, QClipboard
 from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWebKit import QWebElement
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
@@ -94,7 +94,6 @@ class HintManager(QObject):
     """Manage drawing hints over links or other elements.
 
     Class attributes:
-        HINT_CSS: The CSS template to use for hints.
         HINT_TEXTS: Text displayed for different hinting modes.
 
     Attributes:
@@ -106,21 +105,6 @@ class HintManager(QObject):
         mouse_event: Mouse event to be posted in the web view.
                      arg: A QMouseEvent
         set_open_target: Set a new target to open the links in.
-    """
-
-    HINT_CSS = """
-        display: {display};
-        color: {config[colors][hints.fg]};
-        background: {config[colors][hints.bg]};
-        text-transform: {texttransform};
-        font: {config[fonts][hints]};
-        border: {config[hints][border]};
-        opacity: {config[hints][opacity]};
-        z-index: 100000;
-        pointer-events: none;
-        position: absolute;
-        left: {left}px;
-        top: {top}px;
     """
 
     HINT_TEXTS = {
@@ -262,27 +246,48 @@ class HintManager(QObject):
             hintstr.insert(0, chars[0])
         return ''.join(hintstr)
 
-    def _get_hint_css(self, elem, label=None):
-        """Get the hint CSS for the element given.
+    def _is_hidden(self, elem):
+        """Check if the element is hidden via display=none."""
+        display = elem.styleProperty('display', QWebElement.InlineStyle)
+        return display == 'none'
+
+    def _set_style_properties(self, elem, label):
+        """Set the hint CSS on the element given.
 
         Args:
-            elem: The QWebElement to get the CSS for.
-            label: The label QWebElement if display: none should be preserved.
-
-        Return:
-            The CSS to set as a string.
+            elem: The QWebElement to set the style attributes for.
+            label: The label QWebElement.
         """
-        if label is None or label['hidden'] != 'true':
-            display = 'inline'
-        else:
-            display = 'none'
+        attrs = [
+            ('display', 'inline'),
+            ('z-index', '100000'),
+            ('pointer-events', 'none'),
+            ('position', 'absolute'),
+            ('color', config.get('colors', 'hints.fg')),
+            ('background', config.get('colors', 'hints.bg')),
+            ('font', config.get('fonts', 'hints')),
+            ('border', config.get('hints', 'border')),
+            ('opacity', str(config.get('hints', 'opacity'))),
+        ]
 
         # Make text uppercase if set in config
         if (config.get('hints', 'uppercase') and
                 config.get('hints', 'mode') == 'letter'):
-            texttransform = 'uppercase'
+            attrs.append(('texttransform', 'uppercase'))
         else:
-            texttransform = 'none'
+            attrs.append(('texttransform', 'none'))
+
+        for k, v in attrs:
+            label.setStyleProperty(k, v)
+        self._set_style_position(elem, label)
+
+    def _set_style_position(self, elem, label):
+        """Set the CSS position of the label element.
+
+        Args:
+            elem: The QWebElement to set the style attributes for.
+            label: The label QWebElement.
+        """
         rect = elem.geometry()
         left = rect.x()
         top = rect.y()
@@ -290,11 +295,10 @@ class HintManager(QObject):
         if not config.get('ui', 'zoom-text-only'):
             left /= zoom
             top /= zoom
-        log.hints.vdebug("Drawing label '{}' at {}/{} for element '{!r}', "
+        log.hints.vdebug("Drawing label '{!r}' at {}/{} for element '{!r}', "
                          "zoom level {}".format(label, left, top, elem, zoom))
-        return self.HINT_CSS.format(
-            left=left, top=top, config=objreg.get('config'), display=display,
-            texttransform=texttransform)
+        label.setStyleProperty('left', '{}px'.format(left))
+        label.setStyleProperty('top', '{}px'.format(top))
 
     def _draw_label(self, elem, string):
         """Draw a hint label over an element.
@@ -304,9 +308,8 @@ class HintManager(QObject):
             string: The hint string to print.
 
         Return:
-            The newly created label elment
+            The newly created label element
         """
-        css = self._get_hint_css(elem)
         doc = elem.webFrame().documentElement()
         # It seems impossible to create an empty QWebElement for which isNull()
         # is false so we can work with it.
@@ -314,12 +317,11 @@ class HintManager(QObject):
         # then use lastChild() to get a reference to it.
         # See: http://stackoverflow.com/q/7364852/2085149
         doc.appendInside('<span></span>')
-        elem = webelem.WebElementWrapper(doc.lastChild())
-        elem['class'] = 'qutehint'
-        elem['hidden'] = 'false'
-        elem['style'] = css
-        elem.setPlainText(string)
-        return elem
+        label = webelem.WebElementWrapper(doc.lastChild())
+        label['class'] = 'qutehint'
+        self._set_style_properties(elem, label)
+        label.setPlainText(string)
+        return label
 
     def _click(self, elem):
         """Click an element.
@@ -631,16 +633,12 @@ class HintManager(QObject):
                 rest = string[len(keystr):]
                 elems.label.setInnerXml('<font color="{}">{}</font>{}'.format(
                     config.get('colors', 'hints.fg.match'), matched, rest))
-                if elems.label['hidden'] == 'true':
+                if self._is_hidden(elems.label):
                     # hidden element which matches again -> unhide it
-                    elems.label['hidden'] = 'false'
-                    css = self._get_hint_css(elems.elem, elems.label)
-                    elems.label['style'] = css
+                    elems.label.setStyleProperty('display', 'inline')
             else:
                 # element doesn't match anymore -> hide it
-                elems.label['hidden'] = 'true'
-                css = self._get_hint_css(elems.elem, elems.label)
-                elems.label['style'] = css
+                elems.label.setStyleProperty('display', 'none')
 
     def filter_hints(self, filterstr):
         """Filter displayed hints according to a text.
@@ -651,19 +649,15 @@ class HintManager(QObject):
         for elems in self._context.elems.values():
             if (filterstr is None or
                     str(elems.elem).lower().startswith(filterstr)):
-                if elems.label['hidden'] == 'true':
+                if self._is_hidden(elems.label):
                     # hidden element which matches again -> unhide it
-                    elems.label['hidden'] = 'false'
-                    css = self._get_hint_css(elems.elem, elems.label)
-                    elems.label['style'] = css
+                    elems.label.setStyleProperty('display', 'none')
             else:
                 # element doesn't match anymore -> hide it
-                elems.label['hidden'] = 'true'
-                css = self._get_hint_css(elems.elem, elems.label)
-                elems.label['style'] = css
+                elems.label.setStyleProperty('display', 'none')
         visible = {}
         for k, e in self._context.elems.items():
-            if e.label['hidden'] != 'true':
+            if not self._is_hidden(e.label):
                 visible[k] = e
         if not visible:
             # Whoops, filtered all hints
@@ -741,8 +735,7 @@ class HintManager(QObject):
                 # This sometimes happens for some reason...
                 elems.label.removeFromDocument()
                 continue
-            css = self._get_hint_css(elems.elem, elems.label)
-            elems.label['style'] = css
+            self._set_style_position(elems.elem, elems.label)
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
