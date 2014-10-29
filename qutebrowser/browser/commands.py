@@ -823,6 +823,7 @@ class CommandDispatcher:
         quickmark_manager.prompt_save(self._win_id, self._current_url())
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
+                       split=False,
                        completion=[usertypes.Completion.quickmark_by_name])
     def quickmark_load(self, name, tab=False, bg=False, window=False):
         """Load a quickmark.
