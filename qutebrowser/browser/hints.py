@@ -313,10 +313,12 @@ class HintManager(QObject):
         # As a workaround, we use appendInside() with markup as argument, and
         # then use lastChild() to get a reference to it.
         # See: http://stackoverflow.com/q/7364852/2085149
-        doc.appendInside('<span class="qutehint" style="{}">{}</span>'.format(
-                         css, string))
+        doc.appendInside('<span></span>')
         elem = webelem.WebElementWrapper(doc.lastChild())
+        elem['class'] = 'qutehint'
         elem['hidden'] = 'false'
+        elem['style'] = css
+        elem.setPlainText(string)
         return elem
 
     def _click(self, elem):
