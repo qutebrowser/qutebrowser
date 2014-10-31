@@ -23,6 +23,7 @@
 
 import sys
 import html
+import getpass
 import traceback
 import functools
 
@@ -38,6 +39,9 @@ class _CrashDialog(QDialog):
 
     """Dialog which gets shown after there was a crash.
 
+    Class attributes:
+        NAME: The kind of condition we report.
+
     Attributes:
         These are just here to have a static reference to avoid GCing.
         _vbox: The main QVBoxLayout
@@ -47,6 +51,8 @@ class _CrashDialog(QDialog):
         _url: Pastebin URL QLabel.
         _crash_info: A list of tuples with title and crash information.
     """
+
+    NAME = None
 
     def __init__(self, debug, parent=None):
         """Constructor for CrashDialog.
@@ -175,7 +181,13 @@ class _CrashDialog(QDialog):
         lines.append(self._debug_log.toPlainText())
         text = '\n\n'.join(lines)
         try:
-            utils.pastebin(text)
+            user = getpass.getuser()
+        except Exception as e:
+            log.misc.exception("Error while getting user")
+            user = 'unknown'
+        try:
+            utils.pastebin(user, "qutebrowser {}".format(self.NAME), text,
+                           parent='90286958')  # http://p.cmpl.cc/90286958
         except Exception as e:
             log.misc.exception("Error while paste-binning")
             exc_text = '{}: {}'.format(e.__class__.__name__, e)
@@ -213,6 +225,8 @@ class ExceptionCrashDialog(_CrashDialog):
         _exc: An exception tuple (type, value, traceback)
         _objects: A list of all QObjects as string.
     """
+
+    NAME = 'exception'
 
     def __init__(self, debug, pages, cmdhist, exc, objects, parent=None):
         super().__init__(debug, parent)
@@ -294,6 +308,8 @@ class FatalCrashDialog(_CrashDialog):
         _log: The log text to display.
     """
 
+    NAME = 'segfault'
+
     def __init__(self, debug, text, parent=None):
         super().__init__(debug, parent)
         self._log = text
@@ -329,6 +345,8 @@ class ReportDialog(_CrashDialog):
         _cmdhist: A list with the command history (as strings)
         _objects: A list of all QObjects as string.
     """
+
+    NAME = 'report'
 
     def __init__(self, pages, cmdhist, objects, parent=None):
         super().__init__(False, parent)
