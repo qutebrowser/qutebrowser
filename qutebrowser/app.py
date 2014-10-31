@@ -188,7 +188,7 @@ class Application(QApplication):
             if data:
                 # Crashlog exists and has data in it, so something crashed
                 # previously.
-                self._crashdlg = crash.FatalCrashDialog(data)
+                self._crashdlg = crash.FatalCrashDialog(self._args.debug, data)
                 self._crashdlg.show()
         else:
             # There's no log file, so we can use this to display crashes to the
@@ -485,8 +485,8 @@ class Application(QApplication):
         except TypeError:
             log.destroy.exception("Error while preventing shutdown")
         QApplication.closeAllWindows()
-        self._crashdlg = crash.ExceptionCrashDialog(pages, history, exc,
-                                                    objects)
+        self._crashdlg = crash.ExceptionCrashDialog(
+            self._args.debug, pages, history, exc, objects)
         ret = self._crashdlg.exec_()
         if ret == QDialog.Accepted:  # restore
             self.restart(shutdown=False, pages=pages)

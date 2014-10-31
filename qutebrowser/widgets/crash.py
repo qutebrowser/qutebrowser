@@ -48,8 +48,12 @@ class _CrashDialog(QDialog):
         _crash_info: A list of tuples with title and crash information.
     """
 
-    def __init__(self, parent=None):
-        """Constructor for CrashDialog."""
+    def __init__(self, debug, parent=None):
+        """Constructor for CrashDialog.
+
+        Args:
+            debug: Whether --debug was given.
+        """
         super().__init__(parent)
         # We don't set WA_DeleteOnClose here as on an exception, we'll get
         # closed anyways, and it only could have unintended side-effects.
@@ -78,19 +82,21 @@ class _CrashDialog(QDialog):
 
         self._vbox.addSpacing(15)
         self._debug_log = QTextEdit(tabChangesFocus=True)
+        self._debug_log.hide()
         info = QLabel("<i>You can edit the log below to remove sensitive "
                       "information.</i>", wordWrap=True)
         info.hide()
         self._fold = DetailFold("Show log", self)
         self._fold.toggled.connect(self._debug_log.setVisible)
         self._fold.toggled.connect(info.setVisible)
+        if debug:
+            self._fold.toggle()
         self._vbox.addWidget(self._fold)
         self._vbox.addWidget(info)
         self._vbox.addWidget(self._debug_log, 10)
-        self._debug_log.hide()
         self._vbox.addSpacing(15)
 
-        self._init_checkboxes()
+        self._init_checkboxes(debug)
         self._init_buttons()
 
     def __repr__(self):
@@ -104,13 +110,15 @@ class _CrashDialog(QDialog):
         self._lbl.setWordWrap(True)
         self._vbox.addWidget(self._lbl)
 
-    def _init_checkboxes(self):
+    def _init_checkboxes(self, debug):
         """Initialize the checkboxes.
 
-        Should be overwritten by subclasses.
+        Args:
+            debug: Whether a --debug arg was given.
         """
         self._chk_report = QCheckBox("Send a report")
-        self._chk_report.setChecked(True)
+        if not debug:
+            self._chk_report.setChecked(True)
         self._vbox.addWidget(self._chk_report)
         info_label = QLabel("<i>Note that without your help, I can't fix the "
                             "bug you encountered.</i>", wordWrap=True)
@@ -204,8 +212,8 @@ class ExceptionCrashDialog(_CrashDialog):
         _objects: A list of all QObjects as string.
     """
 
-    def __init__(self, pages, cmdhist, exc, objects, parent=None):
-        super().__init__(parent)
+    def __init__(self, debug, pages, cmdhist, exc, objects, parent=None):
+        super().__init__(debug, parent)
         self._pages = pages
         self._cmdhist = cmdhist
         self._exc = exc
@@ -232,11 +240,14 @@ class ExceptionCrashDialog(_CrashDialog):
 
         self._buttons = [btn_quit, btn_restart]
 
-    def _init_checkboxes(self):
+    def _init_checkboxes(self, debug):
         """Add checkboxes to send crash report."""
-        super()._init_checkboxes()
+        super()._init_checkboxes(debug)
         self._chk_log = QCheckBox("Include a debug log and a list of open "
                                   "pages", checked=True)
+        if debug:
+            self._chk_log.setChecked(False)
+            self._chk_log.setEnabled(False)
         self._chk_log.toggled.connect(self._set_crash_info)
         self._vbox.addWidget(self._chk_log)
         info_label = QLabel("<i>This makes it a lot easier to diagnose the "
@@ -281,8 +292,8 @@ class FatalCrashDialog(_CrashDialog):
         _log: The log text to display.
     """
 
-    def __init__(self, text, parent=None):
-        super().__init__(parent)
+    def __init__(self, debug, text, parent=None):
+        super().__init__(debug, parent)
         self._log = text
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._set_crash_info()
@@ -318,7 +329,7 @@ class ReportDialog(_CrashDialog):
     """
 
     def __init__(self, pages, cmdhist, objects, parent=None):
-        super().__init__(parent)
+        super().__init__(False, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._btn_report = None
         self._pages = pages
@@ -338,7 +349,7 @@ class ReportDialog(_CrashDialog):
         self._btn_report.clicked.connect(self.close)
         self._hbox.addWidget(self._btn_report)
 
-    def _init_checkboxes(self):
+    def _init_checkboxes(self, _debug):
         """We don't want any checkboxes as the user wanted to report."""
         pass
 
