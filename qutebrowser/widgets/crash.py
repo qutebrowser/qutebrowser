@@ -69,19 +69,20 @@ class _CrashDialog(QDialog):
 
         info = QLabel("What were you doing when this crash/bug happened?")
         self._vbox.addWidget(info)
-        self._info = QTextEdit(tabChangesFocus=True)
+        self._info = QTextEdit(tabChangesFocus=True, acceptRichText=False)
         self._info.setPlaceholderText("- Opened http://www.example.com/\n"
                                       "- Switched tabs\n"
                                       "- etc...")
         self._vbox.addWidget(self._info, 5)
         contact = QLabel("How can I contact you if I need more info?")
         self._vbox.addWidget(contact)
-        self._contact = QTextEdit(tabChangesFocus=True)
+        self._contact = QTextEdit(tabChangesFocus=True, acceptRichText=False)
         self._contact.setPlaceholderText("Github username, mail or IRC")
         self._vbox.addWidget(self._contact, 2)
 
         self._vbox.addSpacing(15)
-        self._debug_log = QTextEdit(tabChangesFocus=True)
+        self._debug_log = QTextEdit(tabChangesFocus=True, acceptRichText=False,
+                                    lineWrapMode=QTextEdit.NoWrap)
         self._debug_log.hide()
         info = QLabel("<i>You can edit the log below to remove sensitive "
                       "information.</i>", wordWrap=True)
@@ -390,7 +391,8 @@ class ReportErrorDialog(QDialog):
                        "crash@qutebrowser.org</a> - Thanks!".format(
                            html.escape(exc_text)))
         vbox.addWidget(label)
-        txt = QTextEdit(readOnly=True, tabChangesFocus=True)
+        txt = QTextEdit(readOnly=True, tabChangesFocus=True,
+                        acceptRichText=False)
         txt.setText(text)
         txt.selectAll()
         vbox.addWidget(txt)
