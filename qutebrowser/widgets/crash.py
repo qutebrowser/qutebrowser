@@ -188,6 +188,7 @@ class _CrashDialog(QDialog):
         button.setText("Reporting...")
         for btn in self._buttons:
             btn.setEnabled(False)
+        self.hide()
         self.maybe_report()
         if accept:
             self.accept()
