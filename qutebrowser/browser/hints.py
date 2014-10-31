@@ -40,7 +40,7 @@ ElemTuple = collections.namedtuple('ElemTuple', ['elem', 'label'])
 
 
 Target = usertypes.enum('Target', ['normal', 'tab', 'tab_bg', 'window', 'yank',
-                                   'yank_primary', 'fill', 'rapid',
+                                   'yank_primary', 'fill', 'hover', 'rapid',
                                    'rapid_win', 'download', 'userscript',
                                    'spawn'])
 
@@ -115,6 +115,7 @@ class HintManager(QObject):
         Target.yank: "Yank hint to clipboard...",
         Target.yank_primary: "Yank hint to primary selection...",
         Target.fill: "Set hint in commandline...",
+        Target.hover: "Hover over a hint",
         Target.rapid: "Follow hint (rapid mode)...",
         Target.rapid_win: "Follow hint in new window (rapid mode)...",
         Target.download: "Download hint...",
@@ -353,6 +354,25 @@ class HintManager(QObject):
         )
         for evt in events:
             self.mouse_event.emit(evt)
+
+    def _hover(self, elem):
+        """Hover over an element.
+
+        Args:
+            elem: The QWebElement to hover.
+        """
+        target = self._context.target
+        self.set_open_target.emit(target.name)
+        # FIXME Instead of clicking the center, we could have nicer heuristics.
+        # e.g. parse (-webkit-)border-radius correctly and click text fields at
+        # the bottom right, and everything else on the top left or so.
+        # https://github.com/The-Compiler/qutebrowser/issues/70
+        pos = elem.rect_on_view().center()
+        log.hints.debug("Hovering on '{}' at {}/{}".format(
+            elem, pos.x(), pos.y()))
+        event = QMouseEvent(
+            QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton, Qt.NoModifier)
+        self.mouse_event.emit(event)
 
     def _yank(self, url):
         """Yank an element to the clipboard or primary selection.
@@ -685,6 +705,7 @@ class HintManager(QObject):
             Target.window: self._click,
             Target.rapid: self._click,
             Target.rapid_win: self._click,
+            Target.hover: self._hover,
             # _download needs a QWebElement to get the frame.
             Target.download: self._download,
         }

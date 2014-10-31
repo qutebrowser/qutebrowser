@@ -923,6 +923,7 @@ KEY_DATA = collections.OrderedDict([
         ('hint all tab', ['F']),
         ('hint all window', ['wf']),
         ('hint all tab-bg', [';b']),
+        ('hint all hover', ['e']),
         ('hint images', [';i']),
         ('hint images tab', [';I']),
         ('hint images tab-bg', ['.i']),
