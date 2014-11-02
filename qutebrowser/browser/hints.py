@@ -576,6 +576,7 @@ class HintManager(QObject):
                 - `tab`: Open the link in a new tab.
                 - `tab-bg`: Open the link in a new background tab.
                 - `window`: Open the link in a new window.
+                - `hover` : Hover over the link.
                 - `yank`: Yank the link to the clipboard.
                 - `yank-primary`: Yank the link to the primary selection.
                 - `fill`: Fill the commandline with the command given as
