@@ -113,8 +113,8 @@ class _CrashDialog(QDialog):
         """Initialize the main text to be displayed on an exception.
 
         Should be extended by superclass to set the actual text."""
-        self._lbl = QLabel()
-        self._lbl.setWordWrap(True)
+        self._lbl = QLabel(wordWrap=True, openExternalLinks=True,
+                           textInteractionFlags=Qt.LinksAccessibleByMouse)
         self._vbox.addWidget(self._lbl)
 
     def _init_checkboxes(self, debug):
@@ -318,7 +318,12 @@ class FatalCrashDialog(_CrashDialog):
 
     def _init_text(self):
         super()._init_text()
-        text = "<b>qutebrowser was restarted after a fatal crash.</b>"
+        text = ("<b>qutebrowser was restarted after a fatal crash.</b><br/>"
+                "<br/>Note: Crash reports for fatal crashes sometimes don't "
+                "contain the information necessary to fix an issue. Please "
+                "follow the steps in <a href='https://github.com/The-Compiler/"
+                "qutebrowser/blob/master/doc/stacktrace.asciidoc'>"
+                "stacktrace.asciidoc</a> to submit a stacktrace.<br/>")
         self._lbl.setText(text)
 
     def _init_buttons(self):
