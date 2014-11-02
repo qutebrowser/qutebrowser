@@ -128,7 +128,7 @@ class IPCServer(QObject):
             log.ipc.warn("In on_ready_read with None socket!")
             return
         self._timer.start()
-        while self._socket.canReadLine():
+        while self._socket is not None and self._socket.canReadLine():
             data = bytes(self._socket.readLine())
             log.ipc.debug("Read from socket: {}".format(data))
             try:
