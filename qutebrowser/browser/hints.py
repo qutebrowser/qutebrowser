@@ -115,7 +115,7 @@ class HintManager(QObject):
         Target.yank: "Yank hint to clipboard...",
         Target.yank_primary: "Yank hint to primary selection...",
         Target.fill: "Set hint in commandline...",
-        Target.hover: "Hover over a hint",
+        Target.hover: "Hover over a hint...",
         Target.rapid: "Follow hint (rapid mode)...",
         Target.rapid_win: "Follow hint in new window (rapid mode)...",
         Target.download: "Download hint...",
@@ -336,43 +336,28 @@ class HintManager(QObject):
             target = Target.window
         else:
             target = self._context.target
-        self.set_open_target.emit(target.name)
         # FIXME Instead of clicking the center, we could have nicer heuristics.
         # e.g. parse (-webkit-)border-radius correctly and click text fields at
         # the bottom right, and everything else on the top left or so.
         # https://github.com/The-Compiler/qutebrowser/issues/70
         pos = elem.rect_on_view().center()
-        log.hints.debug("Clicking on '{}' at {}/{}".format(
-            elem, pos.x(), pos.y()))
-        events = (
+        action = "Hovering" if target == Target.hover else "Clicking"
+        log.hints.debug("{} on '{}' at {}/{}".format(
+            action, elem, pos.x(), pos.y()))
+        events = [
             QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
                         Qt.NoModifier),
-            QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton,
-                        Qt.NoButton, Qt.NoModifier),
-            QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
-                        Qt.NoButton, Qt.NoModifier),
-        )
+        ]
+        if target != Target.hover:
+            self.set_open_target.emit(target.name)
+            events += [
+                    QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton,
+                                Qt.NoButton, Qt.NoModifier),
+                    QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
+                                Qt.NoButton, Qt.NoModifier),
+            ]
         for evt in events:
             self.mouse_event.emit(evt)
-
-    def _hover(self, elem):
-        """Hover over an element.
-
-        Args:
-            elem: The QWebElement to hover.
-        """
-        target = self._context.target
-        self.set_open_target.emit(target.name)
-        # FIXME Instead of clicking the center, we could have nicer heuristics.
-        # e.g. parse (-webkit-)border-radius correctly and click text fields at
-        # the bottom right, and everything else on the top left or so.
-        # https://github.com/The-Compiler/qutebrowser/issues/70
-        pos = elem.rect_on_view().center()
-        log.hints.debug("Hovering on '{}' at {}/{}".format(
-            elem, pos.x(), pos.y()))
-        event = QMouseEvent(
-            QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton, Qt.NoModifier)
-        self.mouse_event.emit(event)
 
     def _yank(self, url):
         """Yank an element to the clipboard or primary selection.
@@ -705,7 +690,7 @@ class HintManager(QObject):
             Target.window: self._click,
             Target.rapid: self._click,
             Target.rapid_win: self._click,
-            Target.hover: self._hover,
+            Target.hover: self._click,
             # _download needs a QWebElement to get the frame.
             Target.download: self._download,
         }
