@@ -255,6 +255,9 @@ class Completer(QObject):
         in the background.
         """
         self._timer.start()
+        log.completion.debug("Scheduling completion update. prefix {}, parts "
+                             "{}, cursor_part {}".format(prefix, parts,
+                                                         cursor_part))
         self._prefix = prefix
         self._parts = parts
         self._cursor_part = cursor_part
@@ -267,6 +270,9 @@ class Completer(QObject):
         assert self._parts is not None
         assert self._cursor_part is not None
 
+        log.completion.debug("Updating completion - prefix {}, parts {}, "
+                             "cursor_part {}".format(self._prefix, self._parts,
+                                                     self._cursor_part))
         if self._ignore_change:
             self._ignore_change = False
             log.completion.debug("Ignoring completion update")
