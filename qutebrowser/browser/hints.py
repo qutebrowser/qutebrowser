@@ -351,10 +351,10 @@ class HintManager(QObject):
         if target != Target.hover:
             self.set_open_target.emit(target.name)
             events += [
-                    QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton,
-                                Qt.NoButton, Qt.NoModifier),
-                    QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
-                                Qt.NoButton, Qt.NoModifier),
+                QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton,
+                            Qt.NoButton, Qt.NoModifier),
+                QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
+                            Qt.NoButton, Qt.NoModifier),
             ]
         for evt in events:
             self.mouse_event.emit(evt)
