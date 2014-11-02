@@ -229,6 +229,7 @@ class ExceptionCrashDialog(_CrashDialog):
     NAME = 'exception'
 
     def __init__(self, debug, pages, cmdhist, exc, objects, parent=None):
+        self._chk_log = None
         super().__init__(debug, parent)
         self._pages = pages
         self._cmdhist = cmdhist
