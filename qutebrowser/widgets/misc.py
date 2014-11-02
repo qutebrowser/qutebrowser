@@ -19,9 +19,10 @@
 
 """Misc. widgets used at different places."""
 
-from PyQt5.QtCore import pyqtSlot, Qt
-from PyQt5.QtWidgets import QLineEdit, QApplication
-from PyQt5.QtGui import QValidator, QClipboard
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize
+from PyQt5.QtWidgets import (QLineEdit, QApplication, QWidget, QHBoxLayout,
+                             QLabel, QStyleOption, QStyle)
+from PyQt5.QtGui import QValidator, QClipboard, QPainter
 
 from qutebrowser.models import cmdhistory
 from qutebrowser.utils import utils
@@ -135,3 +136,90 @@ class _CommandValidator(QValidator):
             return (QValidator.Acceptable, string, pos)
         else:
             return (QValidator.Invalid, string, pos)
+
+
+class DetailFold(QWidget):
+
+    """A "fold" widget with an arrow to show/hide details.
+
+    Attributes:
+        _folded: Whether the widget is currently folded or not.
+        _hbox: The HBoxLayout the arrow/label are in.
+        _arrow: The FoldArrow widget.
+
+    Signals:
+        toggled: Emitted when the widget was folded/unfolded.
+                 arg 0: bool, if the contents are currently visible.
+    """
+
+    toggled = pyqtSignal(bool)
+
+    def __init__(self, text, parent=None):
+        super().__init__(parent)
+        self._folded = True
+        self._hbox = QHBoxLayout(self)
+        self._hbox.setContentsMargins(0, 0, 0, 0)
+        self._arrow = _FoldArrow()
+        self._hbox.addWidget(self._arrow)
+        label = QLabel(text)
+        self._hbox.addWidget(label)
+        self._hbox.addStretch()
+
+    def toggle(self):
+        """Toggle the fold of the widget."""
+        self._folded = not self._folded
+        self._arrow.fold(self._folded)
+        self.toggled.emit(not self._folded)
+
+    def mousePressEvent(self, e):
+        """Toggle the fold if the widget was pressed.
+
+        Args:
+            e: The QMouseEvent.
+        """
+        if e.button() == Qt.LeftButton:
+            e.accept()
+            self.toggle()
+        else:
+            super().mousePressEvent(e)
+
+
+class _FoldArrow(QWidget):
+
+    """The arrow shown for the DetailFold widget.
+
+    Attributes:
+        _folded: Whether the widget is currently folded or not.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._folded = True
+
+    def fold(self, folded):
+        """Fold/unfold the widget.
+
+        Args:
+            folded: The new desired state.
+        """
+        self._folded = folded
+        self.update()
+
+    def paintEvent(self, _event):
+        """Paint the arrow.
+
+        Args:
+            _paint: The QPaintEvent (unused).
+        """
+        opt = QStyleOption()
+        opt.initFrom(self)
+        painter = QPainter(self)
+        if self._folded:
+            elem = QStyle.PE_IndicatorArrowRight
+        else:
+            elem = QStyle.PE_IndicatorArrowDown
+        self.style().drawPrimitive(elem, opt, painter, self)
+
+    def minimumSizeHint(self):
+        """Return a sensible size."""
+        return QSize(8, 8)

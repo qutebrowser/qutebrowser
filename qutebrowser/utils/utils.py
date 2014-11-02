@@ -147,14 +147,23 @@ def safe_shlex_split(s):
             orig_s, i, s))  # pylint: disable=undefined-loop-variable
 
 
-def pastebin(text):
-    """Paste the text into a pastebin and return the URL."""
+def pastebin(name, title, text, parent=None):
+    """Paste the text into a pastebin and return the URL.
+
+    Args:
+        name: The username to post as.
+        title: The post title.
+        text: The text to post.
+        parent: The parent paste to reply to.
+    """
     api_url = 'http://paste.the-compiler.org/api/'
     data = {
         'text': text,
-        'title': "qutebrowser crash",
-        'name': "qutebrowser",
+        'title': title,
+        'name': name,
     }
+    if parent is not None:
+        data['reply'] = parent
     encoded_data = urllib.parse.urlencode(data).encode('utf-8')
     create_url = urllib.parse.urljoin(api_url, 'create')
     headers = {
