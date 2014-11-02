@@ -32,6 +32,7 @@ import traceback
 import faulthandler
 
 from PyQt5.QtWidgets import QApplication, QDialog
+from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
                           QStandardPaths, QObject, Qt)
 
@@ -129,6 +130,10 @@ class Application(QApplication):
         log.init.debug("Starting IPC server...")
         ipc.init()
 
+        QDesktopServices.setUrlHandler('http', self.open_desktopservices_url)
+        QDesktopServices.setUrlHandler('https', self.open_desktopservices_url)
+        QDesktopServices.setUrlHandler('qute', self.open_desktopservices_url)
+
         log.init.debug("Init done!")
 
         if self._crashdlg is not None:
@@ -208,19 +213,19 @@ class Application(QApplication):
         self._open_startpage()
         self._open_quickstart()
 
-    def _get_window(self, via_ipc, args):
+    def _get_window(self, via_ipc, args_empty):
         """Helper function for process_args to get a window id.
 
         Args:
             via_ipc: Whether the request was made via IPC.
-            args: The argument list.
+            args_empty: Whether there are no arguments.
         """
         if not via_ipc:
             # Initial main window
             return 0
         window_to_raise = None
         open_target = config.get('general', 'new-instance-open-target')
-        if open_target == 'window' or not args:
+        if open_target == 'window' or args_empty:
             win_id = mainwindow.MainWindow.spawn()
             window = objreg.get('main-window', scope='window', window=win_id)
             window_to_raise = window
@@ -253,7 +258,7 @@ class Application(QApplication):
             args: A list of arguments to process.
             via_ipc: Whether the arguments were transmitted over IPC.
         """
-        win_id = self._get_window(via_ipc, args)
+        win_id = self._get_window(via_ipc, not args)
         if win_id is None:
             return
         if ipc and not args:
@@ -738,6 +743,16 @@ class Application(QApplication):
                 pass
         else:
             objreg.register('last-focused-main-window', window, update=True)
+
+    @pyqtSlot(QUrl)
+    def open_desktopservices_url(self, url):
+        """Handler to open an URL via QDesktopServices."""
+        win_id = self._get_window(True, False)
+        if win_id is None:
+            return
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=win_id)
+        tabbed_browser.tabopen(url)
 
     def exit(self, status):
         """Extend QApplication::exit to log the event."""
