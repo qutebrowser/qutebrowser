@@ -46,8 +46,17 @@ class NetworkManager(QNetworkAccessManager):
     """
 
     def __init__(self, win_id, parent=None):
+        # It seems QNetworkAccessManager somehow calls processEvents which
+        # causes some trouble, so we try to process outstanding events here
+        # first.
+        app = objreg.get('app')
+        app.processEvents()
         log.init.debug("Initializing NetworkManager")
-        super().__init__(parent)
+        with log.disable_qt_msghandler():
+            # WORKAROUND for a hang when a message is printed - See:
+            # http://www.riverbankcomputing.com/pipermail/pyqt/2014-November/035045.html
+            super().__init__(parent)
+        log.init.debug("NetworkManager init done")
         self._win_id = win_id
         self._requests = []
         self._scheme_handlers = {
@@ -69,7 +78,6 @@ class NetworkManager(QNetworkAccessManager):
         self.authenticationRequired.connect(self.on_authentication_required)
         self.proxyAuthenticationRequired.connect(
             self.on_proxy_authentication_required)
-        log.init.debug("NetworkManager init done")
 
     def _fill_authenticator(self, authenticator, answer):
         """Fill a given QAuthenticator object with an answer."""
