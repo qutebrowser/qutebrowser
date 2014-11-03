@@ -27,7 +27,7 @@ from io import StringIO
 
 class ShellLexer:
     "A lexical analyzer class for simple shell-like syntaxes."
-    def __init__(self, instream=None, infile=None, posix=False):
+    def __init__(self, instream=None, infile=None):
         if isinstance(instream, str):
             instream = StringIO(instream)
         if instream is not None:
@@ -36,17 +36,12 @@ class ShellLexer:
         else:
             self.instream = sys.stdin
             self.infile = None
-        self.posix = posix
-        if posix:
-            self.eof = None
-        else:
-            self.eof = ''
+        self.eof = None
         self.commenters = '#'
         self.wordchars = ('abcdfeghijklmnopqrstuvwxyz'
                           'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_')
-        if self.posix:
-            self.wordchars += ('ßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ'
-                               'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ')
+        self.wordchars += ('ßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ'
+                           'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ')
         self.whitespace = ' \t\r\n'
         self.whitespace_split = False
         self.quotes = '\'"'
@@ -101,29 +96,27 @@ class ShellLexer:
                 elif nextchar in self.whitespace:
                     if self.debug >= 2:
                         print("shlex: I see whitespace in whitespace state")
-                    if self.token or (self.posix and quoted):
+                    if self.token or quoted:
                         break   # emit current token
                     else:
                         continue
                 elif nextchar in self.commenters:
                     self.instream.readline()
                     self.lineno = self.lineno + 1
-                elif self.posix and nextchar in self.escape:
+                elif nextchar in self.escape:
                     escapedstate = 'a'
                     self.state = nextchar
                 elif nextchar in self.wordchars:
                     self.token = nextchar
                     self.state = 'a'
                 elif nextchar in self.quotes:
-                    if not self.posix:
-                        self.token = nextchar
                     self.state = nextchar
                 elif self.whitespace_split:
                     self.token = nextchar
                     self.state = 'a'
                 else:
                     self.token = nextchar
-                    if self.token or (self.posix and quoted):
+                    if self.token or quoted:
                         break   # emit current token
                     else:
                         continue
@@ -135,14 +128,9 @@ class ShellLexer:
                     # XXX what error should be raised here?
                     raise ValueError("No closing quotation")
                 if nextchar == self.state:
-                    if not self.posix:
-                        self.token = self.token + nextchar
-                        self.state = ' '
-                        break
-                    else:
-                        self.state = 'a'
-                elif self.posix and nextchar in self.escape and \
-                     self.state in self.escapedquotes:
+                    self.state = 'a'
+                elif (nextchar in self.escape and
+                        self.state in self.escapedquotes):
                     escapedstate = self.state
                     self.state = nextchar
                 else:
@@ -168,22 +156,21 @@ class ShellLexer:
                     if self.debug >= 2:
                         print("shlex: I see whitespace in word state")
                     self.state = ' '
-                    if self.token or (self.posix and quoted):
+                    if self.token or quoted:
                         break   # emit current token
                     else:
                         continue
                 elif nextchar in self.commenters:
                     self.instream.readline()
                     self.lineno = self.lineno + 1
-                    if self.posix:
-                        self.state = ' '
-                        if self.token or (self.posix and quoted):
-                            break   # emit current token
-                        else:
-                            continue
-                elif self.posix and nextchar in self.quotes:
+                    self.state = ' '
+                    if self.token or quoted:
+                        break   # emit current token
+                    else:
+                        continue
+                elif nextchar in self.quotes:
                     self.state = nextchar
-                elif self.posix and nextchar in self.escape:
+                elif nextchar in self.escape:
                     escapedstate = 'a'
                     self.state = nextchar
                 elif nextchar in self.wordchars or nextchar in self.quotes \
@@ -200,7 +187,7 @@ class ShellLexer:
                         continue
         result = self.token
         self.token = ''
-        if self.posix and not quoted and result == '':
+        if not quoted and result == '':
             result = None
         if self.debug > 1:
             if result:
@@ -223,7 +210,7 @@ def _get_lexer(s):
     """Get an shlex lexer for split."""
     if s is None:
         raise TypeError("Refusing to create a lexer with s=None!")
-    lexer = ShellLexer(s, posix=True)
+    lexer = ShellLexer(s)
     lexer.whitespace_split = True
     lexer.commenters = ''
     return lexer
