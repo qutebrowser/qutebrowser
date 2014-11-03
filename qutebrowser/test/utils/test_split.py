@@ -72,5 +72,3 @@ class SplitTests(unittest.TestCase):
         """Test split with an unfinished escape and quotes.."""
         items = split.split('one "two\\')
         self.assertEqual(items, ['one', 'two\\'])
-
-

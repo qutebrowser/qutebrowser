@@ -19,23 +19,24 @@
 
 """Our own fork of shlex.split with some added and removed features."""
 
-import sys
 from collections import deque
 
 from io import StringIO
 
 
 class ShellLexer:
-    "A lexical analyzer class for simple shell-like syntaxes."
-    def __init__(self, instream=None, infile=None):
-        if isinstance(instream, str):
-            instream = StringIO(instream)
-        if instream is not None:
-            self.instream = instream
-            self.infile = infile
-        else:
-            self.instream = sys.stdin
-            self.infile = None
+
+    """A lexical analyzer class for simple shell-like syntaxes.
+
+    Based on Python's shlex, but cleaned up, removed some features, and added
+    some features useful for qutebrowser.
+
+    Attributes:
+        FIXME
+    """
+
+    def __init__(self, s):
+        self.instream = StringIO(s)
         self.eof = None
         self.wordchars = ('abcdfeghijklmnopqrstuvwxyz'
                           'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_')
@@ -74,13 +75,14 @@ class ShellLexer:
         return raw
 
     def read_token(self):
+        """Read a raw token from the input stream."""
         quoted = False
         escapedstate = ' '
         while True:
             nextchar = self.instream.read(1)
             if self.debug >= 3:
-                print("shlex: in state", repr(self.state), \
-                      "I see character:", repr(nextchar))
+                print("shlex: in state", repr(self.state), "I see character:",
+                      repr(nextchar))
             if self.state is None:
                 self.token = ''        # past end of file
                 break
@@ -157,8 +159,8 @@ class ShellLexer:
                 elif nextchar in self.escape:
                     escapedstate = 'a'
                     self.state = nextchar
-                elif nextchar in self.wordchars or nextchar in self.quotes \
-                    or self.whitespace_split:
+                elif (nextchar in self.wordchars or nextchar in self.quotes or
+                        self.whitespace_split):
                     self.token = self.token + nextchar
                 else:
                     self.pushback.appendleft(nextchar)
