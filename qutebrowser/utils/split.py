@@ -19,8 +19,6 @@
 
 """Our own fork of shlex.split with some added and removed features."""
 
-from collections import deque
-
 from io import StringIO
 
 
@@ -38,17 +36,11 @@ class ShellLexer:
     def __init__(self, s):
         self.instream = StringIO(s)
         self.eof = None
-        self.wordchars = ('abcdfeghijklmnopqrstuvwxyz'
-                          'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_')
-        self.wordchars += ('ßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ'
-                           'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ')
         self.whitespace = ' \t\r\n'
-        self.whitespace_split = False
         self.quotes = '\'"'
         self.escape = '\\'
         self.escapedquotes = '"'
         self.state = ' '
-        self.pushback = deque()
         self.debug = 0
         self.token = ''
         if self.debug:
@@ -56,12 +48,6 @@ class ShellLexer:
 
     def get_token(self):
         "Get a token from the input stream (or from stack if it's nonempty)"
-        if self.pushback:
-            tok = self.pushback.popleft()
-            if self.debug >= 1:
-                print("shlex: popping token " + repr(tok))
-            return tok
-        # No pushback.  Get a token.
         raw = self.read_token()
         # Maybe we got EOF instead?
         if raw == self.eof:
@@ -100,20 +86,11 @@ class ShellLexer:
                 elif nextchar in self.escape:
                     escapedstate = 'a'
                     self.state = nextchar
-                elif nextchar in self.wordchars:
-                    self.token = nextchar
-                    self.state = 'a'
                 elif nextchar in self.quotes:
                     self.state = nextchar
-                elif self.whitespace_split:
-                    self.token = nextchar
-                    self.state = 'a'
                 else:
                     self.token = nextchar
-                    if self.token or quoted:
-                        break   # emit current token
-                    else:
-                        continue
+                    self.state = 'a'
             elif self.state in self.quotes:
                 quoted = True
                 if not nextchar:      # end of file
@@ -159,18 +136,8 @@ class ShellLexer:
                 elif nextchar in self.escape:
                     escapedstate = 'a'
                     self.state = nextchar
-                elif (nextchar in self.wordchars or nextchar in self.quotes or
-                        self.whitespace_split):
-                    self.token = self.token + nextchar
                 else:
-                    self.pushback.appendleft(nextchar)
-                    if self.debug >= 2:
-                        print("shlex: I see punctuation in word state")
-                    self.state = ' '
-                    if self.token:
-                        break   # emit current token
-                    else:
-                        continue
+                    self.token = self.token + nextchar
         result = self.token
         self.token = ''
         if not quoted and result == '':
@@ -197,7 +164,6 @@ def _get_lexer(s):
     if s is None:
         raise TypeError("Refusing to create a lexer with s=None!")
     lexer = ShellLexer(s)
-    lexer.whitespace_split = True
     return lexer
 
 
