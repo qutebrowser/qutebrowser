@@ -37,7 +37,6 @@ class ShellLexer:
             self.instream = sys.stdin
             self.infile = None
         self.eof = None
-        self.commenters = '#'
         self.wordchars = ('abcdfeghijklmnopqrstuvwxyz'
                           'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_')
         self.wordchars += ('ßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ'
@@ -49,12 +48,10 @@ class ShellLexer:
         self.escapedquotes = '"'
         self.state = ' '
         self.pushback = deque()
-        self.lineno = 1
         self.debug = 0
         self.token = ''
         if self.debug:
-            print('shlex: reading from %s, line %d' \
-                  % (self.instream, self.lineno))
+            print('shlex: reading from %s' % (self.instream))
 
     def get_token(self):
         "Get a token from the input stream (or from stack if it's nonempty)"
@@ -81,8 +78,6 @@ class ShellLexer:
         escapedstate = ' '
         while True:
             nextchar = self.instream.read(1)
-            if nextchar == '\n':
-                self.lineno = self.lineno + 1
             if self.debug >= 3:
                 print("shlex: in state", repr(self.state), \
                       "I see character:", repr(nextchar))
@@ -100,9 +95,6 @@ class ShellLexer:
                         break   # emit current token
                     else:
                         continue
-                elif nextchar in self.commenters:
-                    self.instream.readline()
-                    self.lineno = self.lineno + 1
                 elif nextchar in self.escape:
                     escapedstate = 'a'
                     self.state = nextchar
@@ -160,14 +152,6 @@ class ShellLexer:
                         break   # emit current token
                     else:
                         continue
-                elif nextchar in self.commenters:
-                    self.instream.readline()
-                    self.lineno = self.lineno + 1
-                    self.state = ' '
-                    if self.token or quoted:
-                        break   # emit current token
-                    else:
-                        continue
                 elif nextchar in self.quotes:
                     self.state = nextchar
                 elif nextchar in self.escape:
@@ -212,7 +196,6 @@ def _get_lexer(s):
         raise TypeError("Refusing to create a lexer with s=None!")
     lexer = ShellLexer(s)
     lexer.whitespace_split = True
-    lexer.commenters = ''
     return lexer
 
 
