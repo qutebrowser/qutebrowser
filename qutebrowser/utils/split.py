@@ -19,8 +19,6 @@
 
 """Our own fork of shlex.split with some added and removed features."""
 
-import os
-import re
 import sys
 from collections import deque
 
@@ -59,40 +57,9 @@ class ShellLexer:
         self.lineno = 1
         self.debug = 0
         self.token = ''
-        self.filestack = deque()
-        self.source = None
         if self.debug:
             print('shlex: reading from %s, line %d' \
                   % (self.instream, self.lineno))
-
-    def push_token(self, tok):
-        "Push a token onto the stack popped by the get_token method"
-        if self.debug >= 1:
-            print("shlex: pushing token " + repr(tok))
-        self.pushback.appendleft(tok)
-
-    def push_source(self, newstream, newfile=None):
-        "Push an input source onto the lexer's input source stack."
-        if isinstance(newstream, str):
-            newstream = StringIO(newstream)
-        self.filestack.appendleft((self.infile, self.instream, self.lineno))
-        self.infile = newfile
-        self.instream = newstream
-        self.lineno = 1
-        if self.debug:
-            if newfile is not None:
-                print('shlex: pushing to file %s' % (self.infile,))
-            else:
-                print('shlex: pushing to stream %s' % (self.instream,))
-
-    def pop_source(self):
-        "Pop the input source stack."
-        self.instream.close()
-        (self.infile, self.instream, self.lineno) = self.filestack.popleft()
-        if self.debug:
-            print('shlex: popping to %s, line %d' \
-                  % (self.instream, self.lineno))
-        self.state = ' '
 
     def get_token(self):
         "Get a token from the input stream (or from stack if it's nonempty)"
@@ -103,21 +70,9 @@ class ShellLexer:
             return tok
         # No pushback.  Get a token.
         raw = self.read_token()
-        # Handle inclusions
-        if self.source is not None:
-            while raw == self.source:
-                spec = self.sourcehook(self.read_token())
-                if spec:
-                    (newfile, newstream) = spec
-                    self.push_source(newstream, newfile)
-                raw = self.get_token()
         # Maybe we got EOF instead?
-        while raw == self.eof:
-            if not self.filestack:
-                return self.eof
-            else:
-                self.pop_source()
-                raw = self.get_token()
+        if raw == self.eof:
+            return self.eof
         # Neither inclusion nor EOF
         if self.debug >= 1:
             if raw != self.eof:
@@ -254,23 +209,6 @@ class ShellLexer:
                 print("shlex: raw token=EOF")
         return result
 
-    def sourcehook(self, newfile):
-        "Hook called on a filename to be sourced."
-        if newfile[0] == '"':
-            newfile = newfile[1:-1]
-        # This implements cpp-like semantics for relative-path inclusion.
-        if isinstance(self.infile, str) and not os.path.isabs(newfile):
-            newfile = os.path.join(os.path.dirname(self.infile), newfile)
-        return (newfile, open(newfile, "r"))
-
-    def error_leader(self, infile=None, lineno=None):
-        "Emit a C-compiler-like, Emacs-friendly error-message leader."
-        if infile is None:
-            infile = self.infile
-        if lineno is None:
-            lineno = self.lineno
-        return "\"%s\", line %d: " % (infile, lineno)
-
     def __iter__(self):
         return self
 
@@ -327,5 +265,3 @@ def split(s):
     raise AssertionError(
         "Gave up splitting >{}< after {} tries. Attempted fixup: >{}<.".format(
             orig_s, i, s))  # pylint: disable=undefined-loop-variable
-
-
