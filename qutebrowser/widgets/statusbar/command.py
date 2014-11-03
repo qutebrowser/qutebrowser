@@ -117,7 +117,12 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         else:
             spaces = False
         cursor_pos -= len(self.prefix())
-        for i, part in enumerate(self.split()):
+        parts = self.split()
+        log.completion.vdebug(
+            "text: {}, parts: {}, cursor_pos after removing prefix '{}': "
+            "{}".format(self.text(), parts, self.prefix(), cursor_pos))
+        for i, part in enumerate(parts):
+            log.completion.vdebug("Checking part {}: {}".format(i, parts[i]))
             if cursor_pos <= len(part):
                 # foo| bar
                 self._cursor_part = i
@@ -125,10 +130,17 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
                     self._empty_item_idx = i
                 else:
                     self._empty_item_idx = None
+                log.completion.vdebug("cursor_pos {} <= len(part) {}, "
+                                      "setting cursor_part {}, empty_item_idx "
+                                      "{}".format(cursor_pos, len(part), i,
+                                                  self._empty_item_idx))
                 break
             # FIXME are spaces always 1 char?
             # https://github.com/The-Compiler/qutebrowser/issues/122
             cursor_pos -= (len(part) + 1)
+            log.completion.vdebug(
+                "Removing len({!r}) + 1 -> {} from cursor_pos -> {}".format(
+                    part, len(part) + 1, cursor_pos))
         log.completion.debug("cursor_part {}, spaces {}".format(
             self._cursor_part, spaces))
         return
