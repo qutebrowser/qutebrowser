@@ -24,7 +24,7 @@ from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, log, utils, objreg
+from qutebrowser.utils import message, log, utils, objreg, split
 
 
 def replace_variables(win_id, arglist):
@@ -238,7 +238,7 @@ class CommandRunner(QObject):
         if argstr is None:
             self._args = []
         elif self._cmd.split:
-            self._args = utils.safe_shlex_split(argstr)
+            self._args = split.split(argstr)
         else:
             # If split=False, we still want to split the flags, but not
             # everything after that.

@@ -22,7 +22,6 @@
 import io
 import sys
 import enum
-import shlex
 import inspect
 import os.path
 import urllib.request
@@ -97,54 +96,6 @@ def dotted_getattr(obj, path):
         The object at path.
     """
     return functools.reduce(getattr, path.split('.'), obj)
-
-
-def _get_lexer(s):
-    """Get an shlex lexer for safe_shlex_split."""
-    if s is None:
-        raise TypeError("Refusing to create a lexer with s=None!")
-    lexer = shlex.shlex(s, posix=True)
-    lexer.whitespace_split = True
-    lexer.commenters = ''
-    return lexer
-
-
-def safe_shlex_split(s):
-    r"""Split a string via shlex safely (don't bail out on unbalanced quotes).
-
-    We split while the user is typing (for completion), and as
-    soon as ", ' or \ is typed, the string is invalid for shlex,
-    because it encounters EOF while in quote/escape state.
-
-    Here we fix this error temporarily so shlex doesn't blow up,
-    and then retry splitting again.
-
-    Since shlex raises ValueError in both cases we unfortunately
-    have to parse the exception string...
-
-    We try 3 times so multiple errors can be fixed.
-    """
-    orig_s = s
-    for i in range(3):
-        lexer = _get_lexer(s)
-        try:
-            tokens = list(lexer)
-        except ValueError as e:
-            if str(e) not in ("No closing quotation", "No escaped character"):
-                raise
-            # eggs "bacon ham -> eggs "bacon ham"
-            # eggs\ -> eggs\\
-            if lexer.state not in lexer.escape + lexer.quotes:
-                raise AssertionError(
-                    "Lexer state is >{}< while parsing >{}< (attempted fixup: "
-                    ">{}<)".format(lexer.state, orig_s, s))
-            s += lexer.state
-        else:
-            return tokens
-    # We should never arrive here.
-    raise AssertionError(
-        "Gave up splitting >{}< after {} tries. Attempted fixup: >{}<.".format(
-            orig_s, i, s))  # pylint: disable=undefined-loop-variable
 
 
 def pastebin(name, title, text, parent=None):
