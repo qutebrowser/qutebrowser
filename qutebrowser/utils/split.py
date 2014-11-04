@@ -94,8 +94,8 @@ class ShellLexer:
                     raise ValueError("No escaped character")
                 # In posix shells, only the quote itself or the escape
                 # character may be escaped within quotes.
-                if escapedstate in self.quotes and \
-                   nextchar != self.state and nextchar != escapedstate:
+                if (escapedstate in self.quotes and nextchar != self.state and
+                        nextchar != escapedstate):
                     self.token = self.token + self.state
                 self.token = self.token + nextchar
                 self.state = escapedstate
