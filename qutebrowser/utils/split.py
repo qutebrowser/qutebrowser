@@ -37,7 +37,6 @@ class ShellLexer:
 
     def __init__(self, s):
         self.instream = StringIO(s)
-        self.eof = None
         self.whitespace = ' \t\r\n'
         self.quotes = '\'"'
         self.escape = '\\'
@@ -54,7 +53,7 @@ class ShellLexer:
             log.shlexer.vdebug("in state {!r} I see character: {!r}".format(
                 self.state, nextchar))
             if self.state is None:
-                self.token = ''        # past end of file
+                self.token = None        # past end of file
                 break
             elif self.state == ' ':
                 if not nextchar:
@@ -122,10 +121,7 @@ class ShellLexer:
         self.token = ''
         if not quoted and result == '':
             result = None
-        if result:
-            log.shlexer.debug("token={!r}".format(result))
-        else:
-            log.shlexer.debug("token=EOF")
+        log.shlexer.debug("token={!r}".format(result))
         return result
 
     def __iter__(self):
@@ -133,7 +129,7 @@ class ShellLexer:
 
     def __next__(self):
         token = self.read_token()
-        if token == self.eof:
+        if token is None:
             raise StopIteration
         return token
 
