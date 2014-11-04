@@ -54,16 +54,18 @@ class ShellLexer:
             log.shlexer.vdebug("in state {!r} I see character: {!r}".format(
                 self.state, nextchar))
             if self.state is None:
-                self.token = None        # past end of file
+                # past end of file
+                self.token = None
                 break
             elif self.state == ' ':
                 if nextchar is None:
-                    self.state = None  # end of file
+                    self.state = None
                     break
                 elif nextchar in self.whitespace:
                     log.shlexer.vdebug("I see whitespace in whitespace state")
                     if self.token or quoted:
-                        break   # emit current token
+                        # emit current token
+                        break
                     else:
                         continue
                 elif nextchar in self.escape:
@@ -76,7 +78,7 @@ class ShellLexer:
                     self.state = 'a'
             elif self.state in self.quotes:
                 quoted = True
-                if nextchar is None:      # end of file
+                if nextchar is None:
                     log.shlexer.vdebug("I see EOF in quotes state")
                     self.state = None
                     break
@@ -87,9 +89,9 @@ class ShellLexer:
                     escapedstate = self.state
                     self.state = nextchar
                 else:
-                    self.token = self.token + nextchar
+                    self.token += nextchar
             elif self.state in self.escape:
-                if nextchar is None:      # end of file
+                if nextchar is None:
                     log.shlexer.vdebug("I see EOF in escape state")
                     self.token += self.state
                     self.state = None
@@ -98,12 +100,12 @@ class ShellLexer:
                 # character may be escaped within quotes.
                 if (escapedstate in self.quotes and nextchar != self.state and
                         nextchar != escapedstate):
-                    self.token = self.token + self.state
-                self.token = self.token + nextchar
+                    self.token += self.state
+                self.token += nextchar
                 self.state = escapedstate
             elif self.state == 'a':
                 if nextchar is None:
-                    self.state = None   # end of file
+                    self.state = None
                     break
                 elif nextchar in self.whitespace:
                     log.shlexer.vdebug("shlex: I see whitespace in word state")
@@ -118,7 +120,7 @@ class ShellLexer:
                     escapedstate = 'a'
                     self.state = nextchar
                 else:
-                    self.token = self.token + nextchar
+                    self.token += nextchar
         result = self.token
         self.token = ''
         if not quoted and result == '':
