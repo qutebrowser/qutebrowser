@@ -45,19 +45,6 @@ class ShellLexer:
         self.state = ' '
         self.token = ''
 
-    def get_token(self):
-        "Get a token from the input stream (or from stack if it's nonempty)"
-        raw = self.read_token()
-        # Maybe we got EOF instead?
-        if raw == self.eof:
-            return self.eof
-        # Neither inclusion nor EOF
-        if raw != self.eof:
-            log.shlexer.vdebug("token={!r}".format(raw))
-        else:
-            log.shlexer.vdebug("token=EOF")
-        return raw
-
     def read_token(self):
         """Read a raw token from the input stream."""
         quoted = False
@@ -136,16 +123,16 @@ class ShellLexer:
         if not quoted and result == '':
             result = None
         if result:
-            log.shlexer.debug("raw token={!r}".format(result))
+            log.shlexer.debug("token={!r}".format(result))
         else:
-            log.shlexer.debug("raw token=EOF")
+            log.shlexer.debug("token=EOF")
         return result
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        token = self.get_token()
+        token = self.read_token()
         if token == self.eof:
             raise StopIteration
         return token
