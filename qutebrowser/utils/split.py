@@ -19,8 +19,6 @@
 
 """Our own fork of shlex.split with some added and removed features."""
 
-from io import StringIO
-
 from qutebrowser.utils import log
 
 
@@ -36,7 +34,7 @@ class ShellLexer:
     """
 
     def __init__(self, s):
-        self.instream = StringIO(s)
+        self.iterator = iter(s)
         self.whitespace = ' \t\r\n'
         self.quotes = '\'"'
         self.escape = '\\'
@@ -49,14 +47,17 @@ class ShellLexer:
         quoted = False
         escapedstate = ' '
         while True:
-            nextchar = self.instream.read(1)
+            try:
+                nextchar = next(self.iterator)
+            except StopIteration:
+                nextchar = None
             log.shlexer.vdebug("in state {!r} I see character: {!r}".format(
                 self.state, nextchar))
             if self.state is None:
                 self.token = None        # past end of file
                 break
             elif self.state == ' ':
-                if not nextchar:
+                if nextchar is None:
                     self.state = None  # end of file
                     break
                 elif nextchar in self.whitespace:
@@ -75,7 +76,7 @@ class ShellLexer:
                     self.state = 'a'
             elif self.state in self.quotes:
                 quoted = True
-                if not nextchar:      # end of file
+                if nextchar is None:      # end of file
                     log.shlexer.vdebug("I see EOF in quotes state")
                     self.state = None
                     break
@@ -88,7 +89,7 @@ class ShellLexer:
                 else:
                     self.token = self.token + nextchar
             elif self.state in self.escape:
-                if not nextchar:      # end of file
+                if nextchar is None:      # end of file
                     log.shlexer.vdebug("I see EOF in escape state")
                     self.token += self.state
                     self.state = None
@@ -101,7 +102,7 @@ class ShellLexer:
                 self.token = self.token + nextchar
                 self.state = escapedstate
             elif self.state == 'a':
-                if not nextchar:
+                if nextchar is None:
                     self.state = None   # end of file
                     break
                 elif nextchar in self.whitespace:
