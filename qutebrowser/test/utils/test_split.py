@@ -24,51 +24,27 @@ import unittest
 from qutebrowser.utils import split
 
 
+test_data = r"""
+one two|one|two|
+one "two three" four|one|two three|four|
+one 'two three' four|one|two three|four|
+one "two\" three" four|one|two" three|four|
+one 'two'\'' three' four|one|two' three|four|
+one "two three|one|two three|
+one 'two three|one|two three|
+one\|one\|
+one "two\|one|two\|
+"""
+
 class SplitTests(unittest.TestCase):
 
     """Test split."""
 
-    def test_normal(self):
-        """Test split with a simple string."""
-        items = split.split('one two')
-        self.assertEqual(items, ['one', 'two'])
-
-    def test_quoted(self):
-        """Test split with a normally quoted string."""
-        items = split.split('one "two three" four')
-        self.assertEqual(items, ['one', 'two three', 'four'])
-
-    def test_single_quoted(self):
-        """Test split with a single quoted string."""
-        items = split.split("one 'two three' four")
-        self.assertEqual(items, ['one', 'two three', 'four'])
-
-    def test_escaped(self):
-        """Test split with a normal escaped string."""
-        items = split.split(r'one "two\" three" four')
-        self.assertEqual(items, ['one', 'two" three', 'four'])
-
-    def test_escaped_single(self):
-        """Test split with a single escaped string."""
-        items = split.split(r"one 'two'\'' three' four")
-        self.assertEqual(items, ['one', "two' three", 'four'])
-
-    def test_unbalanced_quotes(self):
-        """Test split with unbalanded quotes."""
-        items = split.split(r'one "two three')
-        self.assertEqual(items, ['one', 'two three'])
-
-    def test_unbalanced_single_quotes(self):
-        """Test split with unbalanded single quotes."""
-        items = split.split(r"one 'two three")
-        self.assertEqual(items, ['one', "two three"])
-
-    def test_unfinished_escape(self):
-        """Test split with an unfinished escape."""
-        items = split.split('one\\')
-        self.assertEqual(items, ['one\\'])
-
-    def test_both(self):
-        """Test split with an unfinished escape and quotes.."""
-        items = split.split('one "two\\')
-        self.assertEqual(items, ['one', 'two\\'])
+    def test_split(self):
+        """Test splitting."""
+        for case in test_data.strip().splitlines():
+            cmd, *out = case.split('|')[:-1]
+            cmd = cmd.replace(r'\n', '\n')
+            with self.subTest(cmd=cmd):
+                items = split.split(cmd)
+                self.assertEqual(items, out)
