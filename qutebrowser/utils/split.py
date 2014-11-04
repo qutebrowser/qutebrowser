@@ -134,14 +134,6 @@ class ShellLexer:
         return token
 
 
-def _get_lexer(s):
-    """Get an shlex lexer for split."""
-    if s is None:
-        raise TypeError("Refusing to create a lexer with s=None!")
-    lexer = ShellLexer(s)
-    return lexer
-
-
 def split(s):
     r"""Split a string via shlex safely (don't bail out on unbalanced quotes).
 
@@ -159,7 +151,7 @@ def split(s):
     """
     orig_s = s
     for i in range(3):
-        lexer = _get_lexer(s)
+        lexer = ShellLexer(s)
         try:
             tokens = list(lexer)
         except ValueError as e:
