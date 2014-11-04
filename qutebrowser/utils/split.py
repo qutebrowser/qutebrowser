@@ -77,8 +77,8 @@ class ShellLexer:
                 quoted = True
                 if not nextchar:      # end of file
                     log.shlexer.vdebug("I see EOF in quotes state")
-                    # XXX what error should be raised here?
-                    raise ValueError("No closing quotation")
+                    self.state = None
+                    break
                 if nextchar == self.state:
                     self.state = 'a'
                 elif (nextchar in self.escape and
@@ -90,8 +90,9 @@ class ShellLexer:
             elif self.state in self.escape:
                 if not nextchar:      # end of file
                     log.shlexer.vdebug("I see EOF in escape state")
-                    # XXX what error should be raised here?
-                    raise ValueError("No escaped character")
+                    self.token += self.state
+                    self.state = None
+                    break
                 # In posix shells, only the quote itself or the escape
                 # character may be escaped within quotes.
                 if (escapedstate in self.quotes and nextchar != self.state and
@@ -135,38 +136,6 @@ class ShellLexer:
 
 
 def split(s):
-    r"""Split a string via shlex safely (don't bail out on unbalanced quotes).
-
-    We split while the user is typing (for completion), and as
-    soon as ", ' or \ is typed, the string is invalid for shlex,
-    because it encounters EOF while in quote/escape state.
-
-    Here we fix this error temporarily so shlex doesn't blow up,
-    and then retry splitting again.
-
-    Since shlex raises ValueError in both cases we unfortunately
-    have to parse the exception string...
-
-    We try 3 times so multiple errors can be fixed.
-    """
-    orig_s = s
-    for i in range(3):
-        lexer = ShellLexer(s)
-        try:
-            tokens = list(lexer)
-        except ValueError as e:
-            if str(e) not in ("No closing quotation", "No escaped character"):
-                raise
-            # eggs "bacon ham -> eggs "bacon ham"
-            # eggs\ -> eggs\\
-            if lexer.state not in lexer.escape + lexer.quotes:
-                raise AssertionError(
-                    "Lexer state is >{}< while parsing >{}< (attempted fixup: "
-                    ">{}<)".format(lexer.state, orig_s, s))
-            s += lexer.state
-        else:
-            return tokens
-    # We should never arrive here.
-    raise AssertionError(
-        "Gave up splitting >{}< after {} tries. Attempted fixup: >{}<.".format(
-            orig_s, i, s))  # pylint: disable=undefined-loop-variable
+    """Split a string via ShellLexer."""
+    lexer = ShellLexer(s)
+    return list(lexer)
