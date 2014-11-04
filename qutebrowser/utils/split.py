@@ -21,6 +21,8 @@
 
 from io import StringIO
 
+from qutebrowser.utils import log
+
 
 class ShellLexer:
 
@@ -41,10 +43,7 @@ class ShellLexer:
         self.escape = '\\'
         self.escapedquotes = '"'
         self.state = ' '
-        self.debug = 0
         self.token = ''
-        if self.debug:
-            print('shlex: reading from %s' % (self.instream))
 
     def get_token(self):
         "Get a token from the input stream (or from stack if it's nonempty)"
@@ -53,11 +52,10 @@ class ShellLexer:
         if raw == self.eof:
             return self.eof
         # Neither inclusion nor EOF
-        if self.debug >= 1:
-            if raw != self.eof:
-                print("shlex: token=" + repr(raw))
-            else:
-                print("shlex: token=EOF")
+        if raw != self.eof:
+            log.shlexer.vdebug("token={!r}".format(raw))
+        else:
+            log.shlexer.vdebug("token=EOF")
         return raw
 
     def read_token(self):
@@ -66,9 +64,8 @@ class ShellLexer:
         escapedstate = ' '
         while True:
             nextchar = self.instream.read(1)
-            if self.debug >= 3:
-                print("shlex: in state", repr(self.state), "I see character:",
-                      repr(nextchar))
+            log.shlexer.vdebug("in state {!r} I see character: {!r}".format(
+                self.state, nextchar))
             if self.state is None:
                 self.token = ''        # past end of file
                 break
@@ -77,8 +74,7 @@ class ShellLexer:
                     self.state = None  # end of file
                     break
                 elif nextchar in self.whitespace:
-                    if self.debug >= 2:
-                        print("shlex: I see whitespace in whitespace state")
+                    log.shlexer.vdebug("I see whitespace in whitespace state")
                     if self.token or quoted:
                         break   # emit current token
                     else:
@@ -94,8 +90,7 @@ class ShellLexer:
             elif self.state in self.quotes:
                 quoted = True
                 if not nextchar:      # end of file
-                    if self.debug >= 2:
-                        print("shlex: I see EOF in quotes state")
+                    log.shlexer.vdebug("I see EOF in quotes state")
                     # XXX what error should be raised here?
                     raise ValueError("No closing quotation")
                 if nextchar == self.state:
@@ -108,8 +103,7 @@ class ShellLexer:
                     self.token = self.token + nextchar
             elif self.state in self.escape:
                 if not nextchar:      # end of file
-                    if self.debug >= 2:
-                        print("shlex: I see EOF in escape state")
+                    log.shlexer.vdebug("I see EOF in escape state")
                     # XXX what error should be raised here?
                     raise ValueError("No escaped character")
                 # In posix shells, only the quote itself or the escape
@@ -124,8 +118,7 @@ class ShellLexer:
                     self.state = None   # end of file
                     break
                 elif nextchar in self.whitespace:
-                    if self.debug >= 2:
-                        print("shlex: I see whitespace in word state")
+                    log.shlexer.vdebug("shlex: I see whitespace in word state")
                     self.state = ' '
                     if self.token or quoted:
                         break   # emit current token
@@ -142,11 +135,10 @@ class ShellLexer:
         self.token = ''
         if not quoted and result == '':
             result = None
-        if self.debug > 1:
-            if result:
-                print("shlex: raw token=" + repr(result))
-            else:
-                print("shlex: raw token=EOF")
+        if result:
+            log.shlexer.debug("raw token={!r}".format(result))
+        else:
+            log.shlexer.debug("raw token=EOF")
         return result
 
     def __iter__(self):
