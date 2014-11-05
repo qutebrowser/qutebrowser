@@ -39,121 +39,118 @@ class ShellLexer:
         self.quotes = '\'"'
         self.escape = '\\'
         self.escapedquotes = '"'
-        self.state = ' '
-        self.token = ''
         self.keep = False
 
     def read_token(self):
         """Read a raw token from the input stream."""
         quoted = False
         escapedstate = ' '
+        token = ''
+        state = ' '
         while True:
             try:
                 nextchar = next(self.iterator)
             except StopIteration:
                 nextchar = None
             log.shlexer.vdebug("in state {!r} I see character: {!r}".format(
-                self.state, nextchar))
-            if self.state is None:
+                state, nextchar))
+            if state is None:
                 # past end of file
-                self.token = None
+                token = None
                 break
-            elif self.state == ' ':
+            elif state == ' ':
                 if nextchar is None:
-                    self.state = None
+                    state = None
                     break
                 elif nextchar in self.whitespace:
                     log.shlexer.vdebug("I see whitespace in whitespace state")
                     if self.keep:
-                        self.token += nextchar
-                    if self.token or quoted:
+                        token += nextchar
+                    if token or quoted:
                         # emit current token
                         break
                     else:
                         continue
                 elif nextchar in self.escape:
                     if self.keep:
-                        self.token += nextchar
+                        token += nextchar
                     escapedstate = 'a'
-                    self.state = nextchar
+                    state = nextchar
                 elif nextchar in self.quotes:
                     if self.keep:
-                        self.token += nextchar
-                    self.state = nextchar
+                        token += nextchar
+                    state = nextchar
                 else:
-                    self.token = nextchar
-                    self.state = 'a'
-            elif self.state in self.quotes:
+                    token = nextchar
+                    state = 'a'
+            elif state in self.quotes:
                 quoted = True
                 if nextchar is None:
                     log.shlexer.vdebug("I see EOF in quotes state")
-                    self.state = None
+                    state = None
                     break
-                if nextchar == self.state:
+                if nextchar == state:
                     if self.keep:
-                        self.token += nextchar
-                    self.state = 'a'
+                        token += nextchar
+                    state = 'a'
                 elif (nextchar in self.escape and
-                        self.state in self.escapedquotes):
+                        state in self.escapedquotes):
                     if self.keep:
-                        self.token += nextchar
-                    escapedstate = self.state
-                    self.state = nextchar
+                        token += nextchar
+                    escapedstate = state
+                    state = nextchar
                 else:
-                    self.token += nextchar
-            elif self.state in self.escape:
+                    token += nextchar
+            elif state in self.escape:
                 if nextchar is None:
                     log.shlexer.vdebug("I see EOF in escape state")
                     if not self.keep:
-                        self.token += self.state
-                    self.state = None
+                        token += state
+                    state = None
                     break
                 # In posix shells, only the quote itself or the escape
                 # character may be escaped within quotes.
-                if (escapedstate in self.quotes and nextchar != self.state and
+                if (escapedstate in self.quotes and nextchar != state and
                         nextchar != escapedstate and not self.keep):
-                    self.token += self.state
-                self.token += nextchar
-                self.state = escapedstate
-            elif self.state == 'a':
+                    token += state
+                token += nextchar
+                state = escapedstate
+            elif state == 'a':
                 if nextchar is None:
-                    self.state = None
+                    state = None
                     break
                 elif nextchar in self.whitespace:
                     log.shlexer.vdebug("shlex: I see whitespace in word state")
-                    self.state = ' '
+                    state = ' '
                     if self.keep:
-                        self.token += nextchar
-                    if self.token or quoted:
+                        token += nextchar
+                    if token or quoted:
                         break   # emit current token
                     else:
                         continue
                 elif nextchar in self.quotes:
                     if self.keep:
-                        self.token += nextchar
-                    self.state = nextchar
+                        token += nextchar
+                    state = nextchar
                 elif nextchar in self.escape:
                     if self.keep:
-                        self.token += nextchar
+                        token += nextchar
                     escapedstate = 'a'
-                    self.state = nextchar
+                    state = nextchar
                 else:
-                    self.token += nextchar
-        result = self.token
-        self.token = ''
-        if not quoted and result == '':
-            result = None
-        log.shlexer.vdebug("token={!r}".format(result))
-        return result
+                    token += nextchar
+        if not quoted and token == '':
+            token = None
+        log.shlexer.vdebug("token={!r}".format(token))
+        return token
 
     def __iter__(self):
-        return self
-
-    def __next__(self):
-        token = self.read_token()
-        if token is None:
-            raise StopIteration
-        return token
+        while True:
+            token = self.read_token()
+            if token is None:
+                return
+            else:
+                yield token
 
 
 def split(s, keep=False):
