@@ -35,7 +35,7 @@ class ShellLexer:
 
     def __init__(self, s):
         self.iterator = iter(s)
-        self.whitespace = ' \t\r\n'
+        self.whitespace = ' \t\r'
         self.quotes = '\'"'
         self.escape = '\\'
         self.escapedquotes = '"'

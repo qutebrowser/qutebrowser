@@ -97,7 +97,6 @@ foo\ x\x\"/foo xx"/foo\ x\x\"/
 'foo\ bar'/foo\ bar/'foo\ bar'/
 'foo\\ bar'/foo\\ bar/'foo\\ bar'/
 foo\ bar/foo bar/foo\ bar/
-foo#bar\nbaz/foo#bar|baz/foo#bar\n|baz/
 :-) ;-)/:-)|;-)/:-) |;-)/
 áéíóú/áéíóú/áéíóú/
 """
@@ -110,7 +109,6 @@ class SplitTests(unittest.TestCase):
         """Test splitting."""
         for case in test_data.strip().splitlines():
             cmd, *out = case.split('/')[:-1]
-            cmd = cmd.replace(r'\n', '\n')
             with self.subTest(cmd=cmd):
                 items = split.split(cmd)
                 self.assertEqual(items, out[0].split('|'))
@@ -119,7 +117,6 @@ class SplitTests(unittest.TestCase):
         """Test if splitting with keep=True yields the original string."""
         for case in test_data.strip().splitlines():
             cmd, *_out = case.split('/')[:-1]
-            cmd = cmd.replace(r'\n', '\n')
             with self.subTest(cmd=cmd):
                 items = split.split(cmd, keep=True)
                 self.assertEqual(''.join(items), cmd)
@@ -128,7 +125,6 @@ class SplitTests(unittest.TestCase):
         """Test splitting with keep=True."""
         for case in test_data.strip().splitlines():
             cmd, *out = case.split('/')[:-1]
-            cmd = cmd.replace(r'\n', '\n')
             with self.subTest(cmd=cmd):
                 items = split.split(cmd, keep=True)
                 self.assertEqual(items, out[1].split('|'))
