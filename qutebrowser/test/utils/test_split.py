@@ -28,76 +28,76 @@ from qutebrowser.utils import split
 # The original test data set was from shellwords, by Hartmut Goebel.
 
 test_data = r"""
-one two|one|two|
-one "two three" four|one|two three|four|
-one 'two three' four|one|two three|four|
-one "two\" three" four|one|two" three|four|
-one 'two'\'' three' four|one|two' three|four|
-one "two three|one|two three|
-one 'two three|one|two three|
-one\|one\|
-one "two\|one|two\|
-foo bar|foo|bar|
- foo bar|foo|bar|
- foo bar |foo|bar|
-foo   bar    bla     fasel|foo|bar|bla|fasel|
-x y  z              xxxx|x|y|z|xxxx|
-\x bar|x|bar|
-\ x bar| x|bar|
-\ bar| bar|
-foo \x bar|foo|x|bar|
-foo \ x bar|foo| x|bar|
-foo \ bar|foo| bar|
-foo "bar" bla|foo|bar|bla|
-"foo" "bar" "bla"|foo|bar|bla|
-"foo" bar "bla"|foo|bar|bla|
-"foo" bar bla|foo|bar|bla|
-foo 'bar' bla|foo|bar|bla|
-'foo' 'bar' 'bla'|foo|bar|bla|
-'foo' bar 'bla'|foo|bar|bla|
-'foo' bar bla|foo|bar|bla|
-blurb foo"bar"bar"fasel" baz|blurb|foobarbarfasel|baz|
-blurb foo'bar'bar'fasel' baz|blurb|foobarbarfasel|baz|
-""||
-''||
-foo "" bar|foo||bar|
-foo '' bar|foo||bar|
-foo "" "" "" bar|foo||||bar|
-foo '' '' '' bar|foo||||bar|
-\"|"|
-"\""|"|
-"foo\ bar"|foo\ bar|
-"foo\\ bar"|foo\ bar|
-"foo\\ bar\""|foo\ bar"|
-"foo\\" bar\"|foo\|bar"|
-"foo\\ bar\" dfadf"|foo\ bar" dfadf|
-"foo\\\ bar\" dfadf"|foo\\ bar" dfadf|
-"foo\\\x bar\" dfadf"|foo\\x bar" dfadf|
-"foo\x bar\" dfadf"|foo\x bar" dfadf|
-\'|'|
-'foo\ bar'|foo\ bar|
-'foo\\ bar'|foo\\ bar|
-"foo\\\x bar\" df'a\ 'df"|foo\\x bar" df'a\ 'df|
-\"foo|"foo|
-\"foo\x|"foox|
-"foo\x"|foo\x|
-"foo\ "|foo\ |
-foo\ xx|foo xx|
-foo\ x\x|foo xx|
-foo\ x\x\"|foo xx"|
-"foo\ x\x"|foo\ x\x|
-"foo\ x\x\\"|foo\ x\x\|
-"foo\ x\x\\""foobar"|foo\ x\x\foobar|
-"foo\ x\x\\"\'"foobar"|foo\ x\x\'foobar|
-"foo\ x\x\\"\'"fo'obar"|foo\ x\x\'fo'obar|
-"foo\ x\x\\"\'"fo'obar" 'don'\''t'|foo\ x\x\'fo'obar|don't|
-"foo\ x\x\\"\'"fo'obar" 'don'\''t' \\|foo\ x\x\'fo'obar|don't|\|
-'foo\ bar'|foo\ bar|
-'foo\\ bar'|foo\\ bar|
-foo\ bar|foo bar|
-foo#bar\nbaz|foo#bar|baz|
-:-) ;-)|:-)|;-)|
-áéíóú|áéíóú|
+one two/one|two/
+one "two three" four/one|two three|four/
+one 'two three' four/one|two three|four/
+one "two\" three" four/one|two" three|four/
+one 'two'\'' three' four/one|two' three|four/
+one "two three/one|two three/
+one 'two three/one|two three/
+one\/one\/
+one "two\/one|two\/
+foo bar/foo|bar/
+ foo bar/foo|bar/
+ foo bar /foo|bar/
+foo   bar    bla     fasel/foo|bar|bla|fasel/
+x y  z              xxxx/x|y|z|xxxx/
+\x bar/x|bar/
+\ x bar/ x|bar/
+\ bar/ bar/
+foo \x bar/foo|x|bar/
+foo \ x bar/foo| x|bar/
+foo \ bar/foo| bar/
+foo "bar" bla/foo|bar|bla/
+"foo" "bar" "bla"/foo|bar|bla/
+"foo" bar "bla"/foo|bar|bla/
+"foo" bar bla/foo|bar|bla/
+foo 'bar' bla/foo|bar|bla/
+'foo' 'bar' 'bla'/foo|bar|bla/
+'foo' bar 'bla'/foo|bar|bla/
+'foo' bar bla/foo|bar|bla/
+blurb foo"bar"bar"fasel" baz/blurb|foobarbarfasel|baz/
+blurb foo'bar'bar'fasel' baz/blurb|foobarbarfasel|baz/
+""//
+''//
+foo "" bar/foo||bar/
+foo '' bar/foo||bar/
+foo "" "" "" bar/foo||||bar/
+foo '' '' '' bar/foo||||bar/
+\"/"/
+"\""/"/
+"foo\ bar"/foo\ bar/
+"foo\\ bar"/foo\ bar/
+"foo\\ bar\""/foo\ bar"/
+"foo\\" bar\"/foo\|bar"/
+"foo\\ bar\" dfadf"/foo\ bar" dfadf/
+"foo\\\ bar\" dfadf"/foo\\ bar" dfadf/
+"foo\\\x bar\" dfadf"/foo\\x bar" dfadf/
+"foo\x bar\" dfadf"/foo\x bar" dfadf/
+\'/'/
+'foo\ bar'/foo\ bar/
+'foo\\ bar'/foo\\ bar/
+"foo\\\x bar\" df'a\ 'df"/foo\\x bar" df'a\ 'df/
+\"foo/"foo/
+\"foo\x/"foox/
+"foo\x"/foo\x/
+"foo\ "/foo\ /
+foo\ xx/foo xx/
+foo\ x\x/foo xx/
+foo\ x\x\"/foo xx"/
+"foo\ x\x"/foo\ x\x/
+"foo\ x\x\\"/foo\ x\x\/
+"foo\ x\x\\""foobar"/foo\ x\x\foobar/
+"foo\ x\x\\"\'"foobar"/foo\ x\x\'foobar/
+"foo\ x\x\\"\'"fo'obar"/foo\ x\x\'fo'obar/
+"foo\ x\x\\"\'"fo'obar" 'don'\''t'/foo\ x\x\'fo'obar|don't/
+"foo\ x\x\\"\'"fo'obar" 'don'\''t' \\/foo\ x\x\'fo'obar|don't|\/
+'foo\ bar'/foo\ bar/
+'foo\\ bar'/foo\\ bar/
+foo\ bar/foo bar/
+foo#bar\nbaz/foo#bar|baz/
+:-) ;-)/:-)|;-)/
+áéíóú/áéíóú/
 """
 
 class SplitTests(unittest.TestCase):
@@ -107,16 +107,16 @@ class SplitTests(unittest.TestCase):
     def test_split(self):
         """Test splitting."""
         for case in test_data.strip().splitlines():
-            cmd, *out = case.split('|')[:-1]
+            cmd, out = case.split('/')[:-1]
             cmd = cmd.replace(r'\n', '\n')
             with self.subTest(cmd=cmd):
                 items = split.split(cmd)
-                self.assertEqual(items, out)
+                self.assertEqual(items, out.split('|'))
 
     def test_split_keep(self):
         """Test splitting with keep=True."""
         for case in test_data.strip().splitlines():
-            cmd, *_out = case.split('|')[:-1]
+            cmd, _out = case.split('/')[:-1]
             cmd = cmd.replace(r'\n', '\n')
             with self.subTest(cmd=cmd):
                 items = split.split(cmd, keep=True)
