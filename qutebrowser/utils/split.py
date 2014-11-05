@@ -164,4 +164,14 @@ def split(s, keep=False):
     """
     lexer = ShellLexer(s)
     lexer.keep = keep
-    return list(lexer)
+    tokens = list(lexer)
+    out = []
+    if tokens[0].isspace():
+        out.append(tokens[0] + tokens[1])
+        tokens = tokens[2:]
+    for t in tokens:
+        if t.isspace():
+            out[-1] += t
+        else:
+            out.append(t)
+    return out
