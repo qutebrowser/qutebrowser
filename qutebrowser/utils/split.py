@@ -41,6 +41,7 @@ class ShellLexer:
         self.escapedquotes = '"'
         self.state = ' '
         self.token = ''
+        self.keep = False
 
     def read_token(self):
         """Read a raw token from the input stream."""
@@ -63,15 +64,21 @@ class ShellLexer:
                     break
                 elif nextchar in self.whitespace:
                     log.shlexer.vdebug("I see whitespace in whitespace state")
+                    if self.keep:
+                        self.token += nextchar
                     if self.token or quoted:
                         # emit current token
                         break
                     else:
                         continue
                 elif nextchar in self.escape:
+                    if self.keep:
+                        self.token += nextchar
                     escapedstate = 'a'
                     self.state = nextchar
                 elif nextchar in self.quotes:
+                    if self.keep:
+                        self.token += nextchar
                     self.state = nextchar
                 else:
                     self.token = nextchar
@@ -83,9 +90,13 @@ class ShellLexer:
                     self.state = None
                     break
                 if nextchar == self.state:
+                    if self.keep:
+                        self.token += nextchar
                     self.state = 'a'
                 elif (nextchar in self.escape and
                         self.state in self.escapedquotes):
+                    if self.keep:
+                        self.token += nextchar
                     escapedstate = self.state
                     self.state = nextchar
                 else:
@@ -93,13 +104,14 @@ class ShellLexer:
             elif self.state in self.escape:
                 if nextchar is None:
                     log.shlexer.vdebug("I see EOF in escape state")
-                    self.token += self.state
+                    if not self.keep:
+                        self.token += self.state
                     self.state = None
                     break
                 # In posix shells, only the quote itself or the escape
                 # character may be escaped within quotes.
                 if (escapedstate in self.quotes and nextchar != self.state and
-                        nextchar != escapedstate):
+                        nextchar != escapedstate and not self.keep):
                     self.token += self.state
                 self.token += nextchar
                 self.state = escapedstate
@@ -110,13 +122,19 @@ class ShellLexer:
                 elif nextchar in self.whitespace:
                     log.shlexer.vdebug("shlex: I see whitespace in word state")
                     self.state = ' '
+                    if self.keep:
+                        self.token += nextchar
                     if self.token or quoted:
                         break   # emit current token
                     else:
                         continue
                 elif nextchar in self.quotes:
+                    if self.keep:
+                        self.token += nextchar
                     self.state = nextchar
                 elif nextchar in self.escape:
+                    if self.keep:
+                        self.token += nextchar
                     escapedstate = 'a'
                     self.state = nextchar
                 else:
@@ -138,7 +156,12 @@ class ShellLexer:
         return token
 
 
-def split(s):
-    """Split a string via ShellLexer."""
+def split(s, keep=False):
+    """Split a string via ShellLexer.
+
+    Args:
+        keep: Whether to keep are special chars in the split output.
+    """
     lexer = ShellLexer(s)
+    lexer.keep = keep
     return list(lexer)
