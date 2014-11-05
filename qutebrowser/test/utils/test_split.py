@@ -92,7 +92,7 @@ foo\ x\x\"/foo xx"/foo\ x\x\"/
 "foo\ x\x\\""foobar"/foo\ x\x\foobar/"foo\ x\x\\""foobar"/
 "foo\ x\x\\"\'"foobar"/foo\ x\x\'foobar/"foo\ x\x\\"\'"foobar"/
 "foo\ x\x\\"\'"fo'obar"/foo\ x\x\'fo'obar/"foo\ x\x\\"\'"fo'obar"/
-"foo\ x\x\\"\'"fo'obar" 'don'\''t'/foo\ x\x\'fo'obar|don't/"foo\ x\x\\"\'"fo'obar" 'don'\''t'/
+"foo\ x\x\\"\'"fo'obar" 'don'\''t'/foo\ x\x\'fo'obar|don't/"foo\ x\x\\"\'"fo'obar" |'don'\''t'/
 "foo\ x\x\\"\'"fo'obar" 'don'\''t' \\/foo\ x\x\'fo'obar|don't|\/"foo\ x\x\\"\'"fo'obar" |'don'\''t' |\\/
 'foo\ bar'/foo\ bar/'foo\ bar'/
 'foo\\ bar'/foo\\ bar/'foo\\ bar'/
