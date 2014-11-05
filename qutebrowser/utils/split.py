@@ -143,7 +143,7 @@ class ShellLexer:
         self.token = ''
         if not quoted and result == '':
             result = None
-        log.shlexer.debug("token={!r}".format(result))
+        log.shlexer.vdebug("token={!r}".format(result))
         return result
 
     def __iter__(self):
