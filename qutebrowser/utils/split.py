@@ -54,13 +54,8 @@ class ShellLexer:
                 nextchar = None
             log.shlexer.vdebug("in state {!r} I see character: {!r}".format(
                 state, nextchar))
-            if state is None:
-                # past end of file
-                token = None
-                break
-            elif state == ' ':
+            if state == ' ':
                 if nextchar is None:
-                    state = None
                     break
                 elif nextchar in self.whitespace:
                     log.shlexer.vdebug("I see whitespace in whitespace state")
@@ -87,7 +82,6 @@ class ShellLexer:
                 quoted = True
                 if nextchar is None:
                     log.shlexer.vdebug("I see EOF in quotes state")
-                    state = None
                     break
                 if nextchar == state:
                     if self.keep:
@@ -106,7 +100,6 @@ class ShellLexer:
                     log.shlexer.vdebug("I see EOF in escape state")
                     if not self.keep:
                         token += state
-                    state = None
                     break
                 # In posix shells, only the quote itself or the escape
                 # character may be escaped within quotes.
@@ -117,7 +110,6 @@ class ShellLexer:
                 state = escapedstate
             elif state == 'a':
                 if nextchar is None:
-                    state = None
                     break
                 elif nextchar in self.whitespace:
                     log.shlexer.vdebug("shlex: I see whitespace in word state")
