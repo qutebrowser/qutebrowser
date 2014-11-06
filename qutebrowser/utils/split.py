@@ -49,24 +49,19 @@ class ShellLexer:
 
     def __iter__(self):
         """Read a raw token from the input stream."""
-        self.quoted = False
-        self.escapedstate = ' '
-        self.token = ''
-        self.state = ' '
+        self.reset()
         while True:
             try:
                 nextchar = next(self.iterator)
             except StopIteration:
-                nextchar = None
-            log.shlexer.vdebug("in state {!r} I see character: {!r}".format(
-                self.state, nextchar))
-            if nextchar is None:
                 if self.state in self.escape and not self.keep:
                     self.token += self.state
                 if self.token or self.quoted:
                     yield self.token
                 return
-            elif self.state == ' ':
+            log.shlexer.vdebug("in state {!r} I see character: {!r}".format(
+                self.state, nextchar))
+            if self.state == ' ':
                 if nextchar in self.whitespace:
                     log.shlexer.vdebug("I see whitespace in whitespace state")
                     if self.keep:
