@@ -87,8 +87,12 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         else:
             return ''
 
-    def split(self):
-        """Get the text split up in parts."""
+    def split(self, keep=False):
+        """Get the text split up in parts.
+
+        Args:
+            keep: Whether to keep special chars and whitespace.
+        """
         text = self.text()[len(self.prefix()):]
         if not text:
             # When only ":" is entered, we already have one imaginary part,
@@ -99,7 +103,8 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             # the whitespace.
             return [text]
         runner = runners.CommandRunner(self._win_id)
-        parts = runner.parse(text, fallback=True, alias_no_args=False)
+        parts = runner.parse(text, fallback=True, alias_no_args=False,
+                             keep=keep)
         if self._empty_item_idx is not None:
             log.completion.debug("Empty element queued at {}, "
                                  "inserting.".format(self._empty_item_idx))
@@ -117,7 +122,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         else:
             spaces = False
         cursor_pos -= len(self.prefix())
-        parts = self.split()
+        parts = self.split(keep=True)
         log.completion.vdebug(
             "text: {}, parts: {}, cursor_pos after removing prefix '{}': "
             "{}".format(self.text(), parts, self.prefix(), cursor_pos))
@@ -135,12 +140,10 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
                                       "{}".format(cursor_pos, len(part), i,
                                                   self._empty_item_idx))
                 break
-            # FIXME are spaces always 1 char?
-            # https://github.com/The-Compiler/qutebrowser/issues/122
-            cursor_pos -= (len(part) + 1)
+            cursor_pos -= len(part)
             log.completion.vdebug(
-                "Removing len({!r}) + 1 -> {} from cursor_pos -> {}".format(
-                    part, len(part) + 1, cursor_pos))
+                "Removing len({!r}) -> {} from cursor_pos -> {}".format(
+                    part, len(part), cursor_pos))
         log.completion.debug("cursor_part {}, spaces {}".format(
             self._cursor_part, spaces))
         return

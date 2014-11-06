@@ -190,7 +190,8 @@ class CommandRunner(QObject):
             new_cmd += ' '
         return new_cmd
 
-    def parse(self, text, aliases=True, fallback=False, alias_no_args=True):
+    def parse(self, text, aliases=True, fallback=False, alias_no_args=True,
+              keep=False):
         """Split the commandline text into command and arguments.
 
         Args:
@@ -199,18 +200,14 @@ class CommandRunner(QObject):
             fallback: Whether to do a fallback splitting when the command was
                       unknown.
             alias_no_args: Whether to apply an alias if there are no arguments.
+            keep: Whether to keep special chars and whitespace
 
         Return:
             A split string commandline, e.g ['open', 'www.google.com']
         """
-        parts = text.strip().split(maxsplit=1)
-        if not parts:
+        cmdstr, sep, argstr = text.partition(' ')
+        if not cmdstr:
             raise cmdexc.NoSuchCommandError("No command given")
-        elif len(parts) > 1:
-            cmdstr, argstr = parts
-        else:
-            cmdstr = parts[0]
-            argstr = None
         if aliases:
             new_cmd = self._get_alias(text, alias_no_args)
             if new_cmd is not None:
@@ -220,25 +217,33 @@ class CommandRunner(QObject):
             self._cmd = cmdutils.cmd_dict[cmdstr]
         except KeyError:
             if fallback:
-                parts = text.split(' ')
-                if text.endswith(' '):
-                    parts.append('')
-                return parts
+                cmdstr, sep, argstr = text.partition(' ')
+                return [cmdstr + sep] + argstr.split(' ')
             else:
                 raise cmdexc.NoSuchCommandError(
                     '{}: no such command'.format(cmdstr))
-        self._split_args(argstr)
+        self._split_args(argstr, keep)
         retargs = self._args[:]
-        if text.endswith(' '):
-            retargs.append('')
-        return [cmdstr] + retargs
+        if keep:
+            cmd = [cmdstr + sep]
+        else:
+            cmd = [cmdstr]
+        return cmd + retargs
 
-    def _split_args(self, argstr):
-        """Split the arguments from an arg string."""
-        if argstr is None:
+    def _split_args(self, argstr, keep):
+        """Split the arguments from an arg string.
+
+        Args:
+            argstr: An argument string.
+            keep: Whether to keep special chars and whitespace
+
+        Return:
+            A list containing the splitted strings.
+        """
+        if not argstr:
             self._args = []
         elif self._cmd.split:
-            self._args = split.split(argstr)
+            self._args = split.split(argstr, keep=keep)
         else:
             # If split=False, we still want to split the flags, but not
             # everything after that.
