@@ -72,12 +72,8 @@ class ShellLexer:
                     if self.keep:
                         self.token += nextchar
                     if self.token or self.quoted:
-                        # emit current token
                         yield self.token
                         self.reset()
-                        continue
-                    else:
-                        continue
                 elif nextchar in self.escape:
                     if self.keep:
                         self.token += nextchar
@@ -122,9 +118,6 @@ class ShellLexer:
                     if self.token or self.quoted:
                         yield self.token
                         self.reset()
-                        continue
-                    else:
-                        continue
                 elif nextchar in self.quotes:
                     if self.keep:
                         self.token += nextchar
