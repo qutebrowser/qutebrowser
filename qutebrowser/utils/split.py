@@ -56,8 +56,6 @@ class ShellLexer:
             except StopIteration:
                 if self.state in self.escape and not self.keep:
                     self.token += self.state
-                if self.state in self.whitespace:
-                    yield self.state
                 if self.token or self.quoted:
                     yield self.token
                 return
@@ -146,4 +144,7 @@ def split(s, keep=False):
         else:
             out.append(spaces + t)
             spaces = ""
+    if spaces:
+        out.append(spaces)
+
     return out
