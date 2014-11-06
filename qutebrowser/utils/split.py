@@ -34,7 +34,7 @@ class ShellLexer:
     """
 
     def __init__(self, s):
-        self.iterator = iter(s)
+        self.string = s
         self.whitespace = ' \t\r'
         self.quotes = '\'"'
         self.escape = '\\'
@@ -50,15 +50,7 @@ class ShellLexer:
     def __iter__(self):
         """Read a raw token from the input stream."""
         self.reset()
-        while True:
-            try:
-                nextchar = next(self.iterator)
-            except StopIteration:
-                if self.state in self.escape and not self.keep:
-                    self.token += self.state
-                if self.token or self.quoted:
-                    yield self.token
-                return
+        for nextchar in self.string:
             log.shlexer.vdebug("in state {!r} I see character: {!r}".format(
                 self.state, nextchar))
             if self.state == ' ':
@@ -120,6 +112,10 @@ class ShellLexer:
                     self.state = nextchar
                 else:
                     self.token += nextchar
+        if self.state in self.escape and not self.keep:
+            self.token += self.state
+        if self.token or self.quoted:
+            yield self.token
 
 
 def split(s, keep=False):
