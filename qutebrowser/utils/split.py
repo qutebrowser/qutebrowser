@@ -56,27 +56,25 @@ class ShellLexer:
             except StopIteration:
                 if self.state in self.escape and not self.keep:
                     self.token += self.state
+                if self.state in self.whitespace:
+                    yield self.state
                 if self.token or self.quoted:
                     yield self.token
                 return
             log.shlexer.vdebug("in state {!r} I see character: {!r}".format(
                 self.state, nextchar))
             if self.state == ' ':
+                if self.keep:
+                    self.token += nextchar
                 if nextchar in self.whitespace:
                     log.shlexer.vdebug("I see whitespace in whitespace state")
-                    if self.keep:
-                        self.token += nextchar
                     if self.token or self.quoted:
                         yield self.token
                         self.reset()
                 elif nextchar in self.escape:
-                    if self.keep:
-                        self.token += nextchar
                     self.escapedstate = 'a'
                     self.state = nextchar
                 elif nextchar in self.quotes:
-                    if self.keep:
-                        self.token += nextchar
                     self.state = nextchar
                 else:
                     self.token = nextchar
@@ -108,11 +106,11 @@ class ShellLexer:
                 if nextchar in self.whitespace:
                     log.shlexer.vdebug("shlex: I see whitespace in word state")
                     self.state = ' '
-                    if self.keep:
-                        self.token += nextchar
                     if self.token or self.quoted:
                         yield self.token
                         self.reset()
+                    if self.keep:
+                        yield nextchar
                 elif nextchar in self.quotes:
                     if self.keep:
                         self.token += nextchar
@@ -138,12 +136,14 @@ def split(s, keep=False):
     if not tokens:
         return []
     out = []
-    if tokens[0].isspace():
-        out.append(tokens[0] + tokens[1])
-        tokens = tokens[2:]
+    spaces = ""
+
+    log.shlexer.vdebug("{!r} -> {!r}".format(s, tokens))
+
     for t in tokens:
         if t.isspace():
-            out[-1] += t
+            spaces += t
         else:
-            out.append(t)
+            out.append(spaces + t)
+            spaces = ""
     return out

@@ -30,48 +30,48 @@ from qutebrowser.utils import split
 # Format: input/split|output|without|keep/split|output|with|keep/
 
 test_data = r"""
-one two/one|two/one |two/
-one "two three" four/one|two three|four/one |"two three" |four/
-one 'two three' four/one|two three|four/one |'two three' |four/
-one "two\" three" four/one|two" three|four/one |"two\" three" |four/
-one 'two'\'' three' four/one|two' three|four/one |'two'\'' three' |four/
-one "two three/one|two three/one |"two three/
-one 'two three/one|two three/one |'two three/
+one two/one|two/one| two/
+one "two three" four/one|two three|four/one| "two three"| four/
+one 'two three' four/one|two three|four/one| 'two three'| four/
+one "two\" three" four/one|two" three|four/one| "two\" three"| four/
+one 'two'\'' three' four/one|two' three|four/one| 'two'\'' three'| four/
+one "two three/one|two three/one| "two three/
+one 'two three/one|two three/one| 'two three/
 one\/one\/one\/
-one "two\/one|two\/one |"two\/
-foo bar/foo|bar/foo |bar/
- foo bar/foo|bar/ foo |bar/
- foo bar /foo|bar/ foo |bar /
-foo   bar    bla     fasel/foo|bar|bla|fasel/foo   |bar    |bla     |fasel/
-x y  z              xxxx/x|y|z|xxxx/x |y  |z              |xxxx/
-\x bar/x|bar/\x |bar/
-\ x bar/ x|bar/\ x |bar/
+one "two\/one|two\/one| "two\/
+foo bar/foo|bar/foo| bar/
+ foo bar/foo|bar/ foo| bar/
+ foo bar /foo|bar/ foo| bar| /
+foo   bar    bla     fasel/foo|bar|bla|fasel/foo|   bar|    bla|     fasel/
+x y  z              xxxx/x|y|z|xxxx/x| y|  z|              xxxx/
+\x bar/x|bar/\x| bar/
+\ x bar/ x|bar/\ x| bar/
 \ bar/ bar/\ bar/
-foo \x bar/foo|x|bar/foo |\x |bar/
-foo \ x bar/foo| x|bar/foo |\ x |bar/
-foo \ bar/foo| bar/foo |\ bar/
-foo "bar" bla/foo|bar|bla/foo |"bar" |bla/
-"foo" "bar" "bla"/foo|bar|bla/"foo" |"bar" |"bla"/
-"foo" bar "bla"/foo|bar|bla/"foo" |bar |"bla"/
-"foo" bar bla/foo|bar|bla/"foo" |bar |bla/
-foo 'bar' bla/foo|bar|bla/foo |'bar' |bla/
-'foo' 'bar' 'bla'/foo|bar|bla/'foo' |'bar' |'bla'/
-'foo' bar 'bla'/foo|bar|bla/'foo' |bar |'bla'/
-'foo' bar bla/foo|bar|bla/'foo' |bar |bla/
-blurb foo"bar"bar"fasel" baz/blurb|foobarbarfasel|baz/blurb |foo"bar"bar"fasel" |baz/
-blurb foo'bar'bar'fasel' baz/blurb|foobarbarfasel|baz/blurb |foo'bar'bar'fasel' |baz/
+foo \x bar/foo|x|bar/foo| \x| bar/
+foo \ x bar/foo| x|bar/foo| \ x| bar/
+foo \ bar/foo| bar/foo| \ bar/
+foo "bar" bla/foo|bar|bla/foo| "bar"| bla/
+"foo" "bar" "bla"/foo|bar|bla/"foo"| "bar"| "bla"/
+"foo" bar "bla"/foo|bar|bla/"foo"| bar| "bla"/
+"foo" bar bla/foo|bar|bla/"foo"| bar| bla/
+foo 'bar' bla/foo|bar|bla/foo| 'bar'| bla/
+'foo' 'bar' 'bla'/foo|bar|bla/'foo'| 'bar'| 'bla'/
+'foo' bar 'bla'/foo|bar|bla/'foo'| bar| 'bla'/
+'foo' bar bla/foo|bar|bla/'foo'| bar| bla/
+blurb foo"bar"bar"fasel" baz/blurb|foobarbarfasel|baz/blurb| foo"bar"bar"fasel"| baz/
+blurb foo'bar'bar'fasel' baz/blurb|foobarbarfasel|baz/blurb| foo'bar'bar'fasel'| baz/
 ""//""/
 ''//''/
-foo "" bar/foo||bar/foo |"" |bar/
-foo '' bar/foo||bar/foo |'' |bar/
-foo "" "" "" bar/foo||||bar/foo |"" |"" |"" |bar/
-foo '' '' '' bar/foo||||bar/foo |'' |'' |'' |bar/
+foo "" bar/foo||bar/foo| ""| bar/
+foo '' bar/foo||bar/foo| ''| bar/
+foo "" "" "" bar/foo||||bar/foo| ""| ""| ""| bar/
+foo '' '' '' bar/foo||||bar/foo| ''| ''| ''| bar/
 \"/"/\"/
 "\""/"/"\""/
 "foo\ bar"/foo\ bar/"foo\ bar"/
 "foo\\ bar"/foo\ bar/"foo\\ bar"/
 "foo\\ bar\""/foo\ bar"/"foo\\ bar\""/
-"foo\\" bar\"/foo\|bar"/"foo\\" |bar\"/
+"foo\\" bar\"/foo\|bar"/"foo\\"| bar\"/
 "foo\\ bar\" dfadf"/foo\ bar" dfadf/"foo\\ bar\" dfadf"/
 "foo\\\ bar\" dfadf"/foo\\ bar" dfadf/"foo\\\ bar\" dfadf"/
 "foo\\\x bar\" dfadf"/foo\\x bar" dfadf/"foo\\\x bar\" dfadf"/
@@ -92,12 +92,12 @@ foo\ x\x\"/foo xx"/foo\ x\x\"/
 "foo\ x\x\\""foobar"/foo\ x\x\foobar/"foo\ x\x\\""foobar"/
 "foo\ x\x\\"\'"foobar"/foo\ x\x\'foobar/"foo\ x\x\\"\'"foobar"/
 "foo\ x\x\\"\'"fo'obar"/foo\ x\x\'fo'obar/"foo\ x\x\\"\'"fo'obar"/
-"foo\ x\x\\"\'"fo'obar" 'don'\''t'/foo\ x\x\'fo'obar|don't/"foo\ x\x\\"\'"fo'obar" |'don'\''t'/
-"foo\ x\x\\"\'"fo'obar" 'don'\''t' \\/foo\ x\x\'fo'obar|don't|\/"foo\ x\x\\"\'"fo'obar" |'don'\''t' |\\/
+"foo\ x\x\\"\'"fo'obar" 'don'\''t'/foo\ x\x\'fo'obar|don't/"foo\ x\x\\"\'"fo'obar"| 'don'\''t'/
+"foo\ x\x\\"\'"fo'obar" 'don'\''t' \\/foo\ x\x\'fo'obar|don't|\/"foo\ x\x\\"\'"fo'obar"| 'don'\''t'| \\/
 'foo\ bar'/foo\ bar/'foo\ bar'/
 'foo\\ bar'/foo\\ bar/'foo\\ bar'/
 foo\ bar/foo bar/foo\ bar/
-:-) ;-)/:-)|;-)/:-) |;-)/
+:-) ;-)/:-)|;-)/:-)| ;-)/
 áéíóú/áéíóú/áéíóú/
 """
 
