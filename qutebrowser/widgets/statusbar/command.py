@@ -211,7 +211,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
                        including a trailing space and we shouldn't continue
                        completing the current item.
         """
-        parts = self.split()
+        parts = self.split(keep=True)
         log.completion.debug("changing part {} to '{}'".format(
             self._cursor_part, newtext))
         parts[self._cursor_part] = newtext
@@ -221,7 +221,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             # If we should complete immediately, we want to move the cursor by
             # one more char, to get to the next field.
             cursor_str += ' '
-        text = self.prefix() + ' '.join(parts)
+        text = self.prefix() + ''.join(parts)
         if immediate and self._cursor_part == len(parts) - 1:
             # If we should complete immediately and we're completing the last
             # part in the commandline, we automatically add a space.

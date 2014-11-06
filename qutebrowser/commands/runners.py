@@ -217,18 +217,20 @@ class CommandRunner(QObject):
             self._cmd = cmdutils.cmd_dict[cmdstr]
         except KeyError:
             if fallback:
+                # FIXME test this
                 cmdstr, sep, argstr = text.partition(' ')
-                return [cmdstr + sep] + argstr.split(' ')
+                return [cmdstr, sep] + argstr.split(' ')
             else:
                 raise cmdexc.NoSuchCommandError(
                     '{}: no such command'.format(cmdstr))
         self._split_args(argstr, keep)
         retargs = self._args[:]
-        if keep:
-            cmd = [cmdstr + sep]
+        if keep and retargs:
+            return [cmdstr, sep + retargs[0]] + retargs[1:]
+        elif keep:
+            return [cmdstr, sep]
         else:
-            cmd = [cmdstr]
-        return cmd + retargs
+            return [cmdstr] + retargs
 
     def _split_args(self, argstr, keep):
         """Split the arguments from an arg string.

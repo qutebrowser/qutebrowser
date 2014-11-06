@@ -174,9 +174,12 @@ class Completer(QObject):
         Return:
             A completion model.
         """
-        if parts[cursor_part].startswith('-'):
-            # cursor on a flag
-            return
+        try:
+            if parts[cursor_part].startswith('-'):
+                # cursor on a flag
+                return
+        except IndexError:
+            pass
         parts, cursor_part = self._filter_cmdline_parts(parts, cursor_part)
         if cursor_part == 0:
             # '|' or 'set|'
@@ -302,7 +305,10 @@ class Completer(QObject):
                 self._parts))
             return
 
-        pattern = self._parts[self._cursor_part] if self._parts else ''
+        try:
+            pattern = self._parts[self._cursor_part] if self._parts else ''
+        except IndexError:
+            pattern = ''
         self._model().set_pattern(pattern)
 
         log.completion.debug(
