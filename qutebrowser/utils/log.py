@@ -258,7 +258,9 @@ def qt_message_handler(msg_type, context, msg):
         # bug on some pages.
         # https://bugreports.qt-project.org/browse/QTBUG-30298
         "QNetworkReplyImplPrivate::error: Internal problem, this method must "
-        "only be called once.")
+        "only be called once."
+        # Not much information about this, but it seems harmless
+        'QXcbWindow: Unhandled client message: "_GTK_LOAD_ICONTHEMES"')
     if any(re.match(pattern, msg.strip()) for pattern in suppressed_msgs):
         level = logging.DEBUG
     else:
