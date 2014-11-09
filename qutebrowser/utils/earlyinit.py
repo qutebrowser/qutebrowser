@@ -230,8 +230,7 @@ def check_libraries():
                                 "python3-pip' and then install via pip3.",
                          arch="Install python-pypeg2 from the AUR",
                          windows="Install via pip.",
-                         pip="pypeg2 --allow-external pypeg2 "
-                             "--allow-unverified pypeg2"),
+                         pip="pypeg2"),
         'jinja2':
             _missing_str("jinja2",
                          debian="apt-get install python3-jinja2",

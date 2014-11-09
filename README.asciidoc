@@ -105,7 +105,7 @@ On Debian
 ----
 # apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python3-pkg-resources
 python3-pip python3-jinja2 python3-pygments
-# pip3 install pypeg2 --allow-external pypeg2 --allow-unverified pypeg2
+# pip3 install pypeg2
 ----
 
 To generate the documentation for the `:help` command, when using the git
@@ -161,8 +161,7 @@ http://www.riverbankcomputing.com/software/pyqt/download5[Riverbank computing]
 to get Qt and PyQt5.
 * Run `scripts/ez_setup.py` to get setuptools.
 * Get pip as described http://stackoverflow.com/a/12476379[on Stack Overflow].
-* Run +pip install --allow-external pypeg2 --allow-unverified pypeg2 pypeg2+ to
-install pypeg2.
+* Run +pip install pypeg2+ to install pypeg2.
 * Run +pip install jinja2+ to install jinja2, or install it from
 http://www.lfd.uci.edu/~gohlke/pythonlibs/#jinja2.
 * Run +pip install pygments+ to install pygments, or install it from
