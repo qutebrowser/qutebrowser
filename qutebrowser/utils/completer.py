@@ -306,7 +306,7 @@ class Completer(QObject):
             return
 
         try:
-            pattern = self._parts[self._cursor_part] if self._parts else ''
+            pattern = self._parts[self._cursor_part].strip()
         except IndexError:
             pattern = ''
         self._model().set_pattern(pattern)
