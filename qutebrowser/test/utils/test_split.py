@@ -103,6 +103,7 @@ foo\ bar/foo bar/foo\ bar/
 áéíóú/áéíóú/áéíóú/
 """
 
+
 class SplitTests(unittest.TestCase):
 
     """Test split."""

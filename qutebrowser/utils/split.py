@@ -42,15 +42,22 @@ class ShellLexer:
         self.escape = '\\'
         self.escapedquotes = '"'
         self.keep = False
+        self.quoted = None
+        self.escapedstate = None
+        self.token = None
+        self.state = None
+        self.reset()
 
     def reset(self):
+        """Reset the statemachine state to the defaults."""
         self.quoted = False
         self.escapedstate = ' '
         self.token = ''
         self.state = ' '
 
-    def __iter__(self):
+    def __iter__(self):  # noqa
         """Read a raw token from the input stream."""
+        # pylint: disable=too-many-branches,too-many-statements
         self.reset()
         for nextchar in self.string:
             log.shlexer.vdebug("in state {!r} I see character: {!r}".format(
