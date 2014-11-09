@@ -144,6 +144,12 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             log.completion.vdebug(
                 "Removing len({!r}) -> {} from cursor_pos -> {}".format(
                     part, len(part), cursor_pos))
+        else:
+            self._cursor_part = i
+            if spaces:
+                self._empty_item_idx = i
+            else:
+                self._empty_item_idx = None
         log.completion.debug("cursor_part {}, spaces {}".format(
             self._cursor_part, spaces))
         return
