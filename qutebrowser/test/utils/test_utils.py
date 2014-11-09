@@ -110,56 +110,6 @@ class DottedGetattrTests(unittest.TestCase):
             _ = utils.dotted_getattr(self, 'test.foo.baz')
 
 
-class SafeShlexSplitTests(unittest.TestCase):
-
-    """Test safe_shlex_split."""
-
-    def test_normal(self):
-        """Test safe_shlex_split with a simple string."""
-        items = utils.safe_shlex_split('one two')
-        self.assertEqual(items, ['one', 'two'])
-
-    def test_quoted(self):
-        """Test safe_shlex_split with a normally quoted string."""
-        items = utils.safe_shlex_split('one "two three" four')
-        self.assertEqual(items, ['one', 'two three', 'four'])
-
-    def test_single_quoted(self):
-        """Test safe_shlex_split with a single quoted string."""
-        items = utils.safe_shlex_split("one 'two three' four")
-        self.assertEqual(items, ['one', 'two three', 'four'])
-
-    def test_escaped(self):
-        """Test safe_shlex_split with a normal escaped string."""
-        items = utils.safe_shlex_split(r'one "two\" three" four')
-        self.assertEqual(items, ['one', 'two" three', 'four'])
-
-    def test_escaped_single(self):
-        """Test safe_shlex_split with a single escaped string."""
-        items = utils.safe_shlex_split(r"one 'two'\'' three' four")
-        self.assertEqual(items, ['one', "two' three", 'four'])
-
-    def test_unbalanced_quotes(self):
-        """Test safe_shlex_split with unbalanded quotes."""
-        items = utils.safe_shlex_split(r'one "two three')
-        self.assertEqual(items, ['one', 'two three'])
-
-    def test_unbalanced_single_quotes(self):
-        """Test safe_shlex_split with unbalanded single quotes."""
-        items = utils.safe_shlex_split(r"one 'two three")
-        self.assertEqual(items, ['one', "two three"])
-
-    def test_unfinished_escape(self):
-        """Test safe_shlex_split with an unfinished escape."""
-        items = utils.safe_shlex_split('one\\')
-        self.assertEqual(items, ['one\\'])
-
-    def test_both(self):
-        """Test safe_shlex_split with an unfinished escape and quotes.."""
-        items = utils.safe_shlex_split('one "two\\')
-        self.assertEqual(items, ['one', 'two\\'])
-
-
 class InterpolateColorTests(unittest.TestCase):
 
     """Tests for interpolate_color.

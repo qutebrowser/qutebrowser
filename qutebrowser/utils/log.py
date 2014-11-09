@@ -125,6 +125,7 @@ qt = logging.getLogger('qt')  # Warnings produced by Qt
 style = logging.getLogger('style')
 rfc6266 = logging.getLogger('rfc6266')
 ipc = logging.getLogger('ipc')
+shlexer = logging.getLogger('shlexer')
 
 
 ram_handler = None
