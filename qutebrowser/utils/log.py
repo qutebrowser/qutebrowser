@@ -26,6 +26,7 @@ import html as pyhtml
 import logging
 import contextlib
 import collections
+import faulthandler
 
 from PyQt5.QtCore import (QtDebugMsg, QtWarningMsg, QtCriticalMsg, QtFatalMsg,
                           qInstallMessageHandler)
@@ -284,12 +285,7 @@ def qt_message_handler(msg_type, context, msg):
         # Handle this message specially.
         msg += ("\n\nOn Archlinux, this should fix the problem:\n"
                 "    pacman -S libxkbcommon-x11")
-        try:
-            import faulthandler
-        except ImportError:
-            pass
-        else:
-            faulthandler.disable()
+        faulthandler.disable()
     record = qt.makeRecord(name, level, context.file, context.line, msg, None,
                            None, func)
     qt.handle(record)
