@@ -160,7 +160,7 @@ def _has_explicit_scheme(url):
     Args:
         url: The URL as QUrl.
     """
-    return url.isValid() and url.scheme()
+    return url.isValid() and url.scheme() and not url.path().startswith(' ')
 
 
 def is_special_url(url):
