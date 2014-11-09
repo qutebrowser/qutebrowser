@@ -266,13 +266,17 @@ def qt_message_handler(msg_type, context, msg):
         level = logging.DEBUG
     else:
         level = qt_to_logging[msg_type]
-    # We get something like "void qt_png_warning(png_structp, png_const_charp)"
-    # from Qt, but only want "qt_png_warning".
-    match = re.match(r'.*( |::)(\w*)\(.*\)', context.function)
-    if match is not None:
-        func = match.group(2)
+    if context.function is None:
+        func = 'none'
     else:
-        func = context.function
+        # We get something like
+        # "void qt_png_warning(png_structp, png_const_charp)" from Qt, but only
+        # want "qt_png_warning".
+        match = re.match(r'.*( |::)(\w*)\(.*\)', context.function)
+        if match is not None:
+            func = match.group(2)
+        else:
+            func = context.function
     name = 'qt' if context.category == 'default' else 'qt-' + context.category
     if msg.splitlines()[0] == ('This application failed to start because it '
                                'could not find or load the Qt platform plugin '
