@@ -40,6 +40,7 @@ one 'two three/one|two three/one| 'two three/
 one\/one\/one\/
 one "two\/one|two\/one| "two\/
 one /one/one| /
+open -t i/open|-t|i/open| -t| i/
 foo bar/foo|bar/foo| bar/
  foo bar/foo|bar/ foo| bar/
  foo bar /foo|bar/ foo| bar| /
