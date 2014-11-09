@@ -19,6 +19,8 @@
 
 """Our own fork of shlex.split with some added and removed features."""
 
+import re
+
 from qutebrowser.utils import log
 
 
@@ -143,4 +145,39 @@ def split(s, keep=False):
     if spaces:
         out.append(spaces)
 
+    return out
+
+
+def simple_split(s, keep=False, maxsplit=0):
+    """Split a string on whitespace, optionally keeping the whitespace.
+
+    Args:
+        s: The string to split.
+        keep: Whether to keep whitespace.
+        maxsplit: The maximum count of splits.
+
+    Return:
+        A list of split strings.
+    """
+    whitespace = '\n\t '
+    if keep:
+        pattern = '([' + whitespace + '])'
+    else:
+        pattern = '[' + whitespace + ']'
+    parts = re.split(pattern, s, maxsplit)
+    if keep:
+        out = []
+        ws = ''
+        for part in parts:
+            if not part:
+                continue
+            elif part in whitespace:
+                ws += part
+            else:
+                out.append(ws + part)
+                ws = ''
+        if ws:
+            out.append(ws)
+    else:
+        out = [p for p in parts if p]
     return out

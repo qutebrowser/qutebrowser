@@ -129,3 +129,34 @@ class SplitTests(unittest.TestCase):
             with self.subTest(cmd=cmd):
                 items = split.split(cmd, keep=True)
                 self.assertEqual(items, out[1].split('|'))
+
+
+class SimpleSplitTests(unittest.TestCase):
+
+    """Test simple_split."""
+
+    TESTS = {
+        ' foo bar': [' foo', ' bar'],
+        'foobar': ['foobar'],
+        '   foo  bar baz  ': ['   foo', '  bar', ' baz', '  '],
+        'f\ti\ts\th': ['f', '\ti', '\ts', '\th'],
+        'foo\nbar': ['foo', '\nbar'],
+    }
+
+    def test_str_split(self):
+        """Test if the behaviour matches str.split."""
+        for test in self.TESTS:
+            with self.subTest(string=test):
+                self.assertEqual(split.simple_split(test), test.split())
+
+    def test_str_split_maxsplit_1(self):
+        """Test if the behaviour matches str.split with maxsplit=1."""
+        string = "foo bar baz"
+        self.assertEqual(split.simple_split(string, maxsplit=1),
+                         string.split(maxsplit=1))
+
+    def test_split_keep(self):
+        """Test splitting with keep=True."""
+        for test, expected in self.TESTS.items():
+            with self.subTest(string=test):
+                self.assertEqual(split.simple_split(test, keep=True), expected)

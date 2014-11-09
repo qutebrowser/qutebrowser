@@ -258,10 +258,12 @@ class CommandRunner(QObject):
             #                0        1     2      3
             # second split: ['--foo', '-v', 'bar baz']
             # (maxsplit=2)
-            split_args = argstr.split()
+            split_args = split.simple_split(argstr, keep=True)
             for i, arg in enumerate(split_args):
+                arg = arg.strip()
                 if not arg.startswith('-'):
-                    self._args = argstr.split(maxsplit=i)
+                    self._args = split.simple_split(argstr, keep=True,
+                                                    maxsplit=i)
                     break
             else:
                 # If there are only flags, we got it right on the first try
