@@ -317,8 +317,13 @@ class HintManager(QObject):
         # As a workaround, we use appendInside() with markup as argument, and
         # then use lastChild() to get a reference to it.
         # See: http://stackoverflow.com/q/7364852/2085149
-        doc.appendInside('<span></span>')
-        label = webelem.WebElementWrapper(doc.lastChild())
+        body = doc.findFirst('body')
+        if not body.isNull():
+            parent = body
+        else:
+            parent = doc
+        parent.appendInside('<span></span>')
+        label = webelem.WebElementWrapper(parent.lastChild())
         label['class'] = 'qutehint'
         self._set_style_properties(elem, label)
         label.setPlainText(string)
