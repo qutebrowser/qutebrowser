@@ -155,6 +155,31 @@ def split(s, keep=False):
     return out
 
 
+def _combine_ws(parts, whitespace):
+    """Combine whitespace in a list with the element following it.
+
+    Args:
+        parts: A list of strings.
+        whitespace: A string containing what's considered whitespace.
+
+    Return:
+        The modified list.
+    """
+    out = []
+    ws = ''
+    for part in parts:
+        if not part:
+            continue
+        elif part in whitespace:
+            ws += part
+        else:
+            out.append(ws + part)
+            ws = ''
+    if ws:
+        out.append(ws)
+    return out
+
+
 def simple_split(s, keep=False, maxsplit=None):
     """Split a string on whitespace, optionally keeping the whitespace.
 
@@ -179,22 +204,9 @@ def simple_split(s, keep=False, maxsplit=None):
 
     if keep:
         pattern = '([' + whitespace + '])'
+        parts = re.split(pattern, s, maxsplit)
+        return _combine_ws(parts, whitespace)
     else:
         pattern = '[' + whitespace + ']'
-    parts = re.split(pattern, s, maxsplit)
-    if keep:
-        out = []
-        ws = ''
-        for part in parts:
-            if not part:
-                continue
-            elif part in whitespace:
-                ws += part
-            else:
-                out.append(ws + part)
-                ws = ''
-        if ws:
-            out.append(ws)
-    else:
-        out = [p for p in parts if p]
-    return out
+        parts = re.split(pattern, s, maxsplit)
+        return [p for p in parts if p]
