@@ -216,10 +216,11 @@ class CommandRunner(QObject):
         try:
             self._cmd = cmdutils.cmd_dict[cmdstr]
         except KeyError:
-            if fallback:
-                # FIXME test this
+            if fallback and keep:
                 cmdstr, sep, argstr = text.partition(' ')
-                return [cmdstr, sep] + argstr.split(' ')
+                return [cmdstr, sep] + argstr.split()
+            elif fallback:
+                return text.split()
             else:
                 raise cmdexc.NoSuchCommandError(
                     '{}: no such command'.format(cmdstr))
@@ -258,11 +259,11 @@ class CommandRunner(QObject):
             #                0        1     2      3
             # second split: ['--foo', '-v', 'bar baz']
             # (maxsplit=2)
-            split_args = split.simple_split(argstr, keep=True)
+            split_args = split.simple_split(argstr, keep=keep)
             for i, arg in enumerate(split_args):
                 arg = arg.strip()
                 if not arg.startswith('-'):
-                    self._args = split.simple_split(argstr, keep=True,
+                    self._args = split.simple_split(argstr, keep=keep,
                                                     maxsplit=i)
                     break
             else:
