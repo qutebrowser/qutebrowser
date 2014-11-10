@@ -19,10 +19,10 @@
 
 """Completer attached to a CompletionView."""
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QTimer
+from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config, configdata
-from qutebrowser.commands import cmdutils
+from qutebrowser.commands import cmdutils, runners
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.models import completion as models
 from qutebrowser.models.completionfilter import CompletionFilterModel as CFM
@@ -33,29 +33,22 @@ class Completer(QObject):
     """Completer which manages completions in a CompletionView.
 
     Attributes:
-        _ignore_change: Whether to ignore the next completion update.
         models: dict of available completion models.
+        _cmd: The statusbar Command object this completer belongs to.
+        _ignore_change: Whether to ignore the next completion update.
         _win_id: The window ID this completer is in.
         _timer: The timer used to trigger the completion update.
-        _prefix: The prefix to be used for the next completion update.
-        _parts: The parts to be used for the next completion update.
         _cursor_part: The cursor part index for the next completion update.
-
-    Signals:
-        change_completed_part: Text which should be substituted for the word
-                               we're currently completing.
-                               arg 0: The text to change to.
-                               arg 1: True if the text should be set
-                                      immediately, without continuing
-                                      completing the current field.
     """
 
-    change_completed_part = pyqtSignal(str, bool)
-
-    def __init__(self, win_id, parent=None):
+    def __init__(self, cmd, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
+        self._cmd = cmd
+        self._cmd.update_completion.connect(self.schedule_completion_update)
+        self._cmd.textEdited.connect(self.on_text_edited)
         self._ignore_change = False
+        self._empty_item_idx = None
 
         self._models = {
             usertypes.Completion.option: {},
@@ -68,8 +61,6 @@ class Completer(QObject):
         self._timer.setSingleShot(True)
         self._timer.setInterval(0)
         self._timer.timeout.connect(self.update_completion)
-        self._prefix = None
-        self._parts = None
         self._cursor_part = None
 
     def __repr__(self):
@@ -224,7 +215,7 @@ class Completer(QObject):
             return s
 
     def selection_changed(self, selected, _deselected):
-        """Emit change_completed_part if a new item was selected.
+        """Change the completed part if a new item was selected.
 
         Called from the views selectionChanged method.
 
@@ -243,39 +234,30 @@ class Completer(QObject):
         if model.count() == 1 and config.get('completion', 'quick-complete'):
             # If we only have one item, we want to apply it immediately
             # and go on to the next part.
-            self.change_completed_part.emit(data, True)
+            self.change_completed_part(data, immediate=True)
         else:
             self._ignore_change = True
-            self.change_completed_part.emit(data, False)
+            self.change_completed_part(data)
 
-    @pyqtSlot(str, list, int)
-    def on_update_completion(self, prefix, parts, cursor_part):
+    @pyqtSlot()
+    def schedule_completion_update(self):
         """Schedule updating/enabling completion.
-
-        Slot for the textChanged signal of the statusbar command widget.
 
         For performance reasons we don't want to block here, instead we do this
         in the background.
         """
+        log.completion.debug("Scheduling completion update.")
         self._timer.start()
-        log.completion.debug("Scheduling completion update. prefix {}, parts "
-                             "{}, cursor_part {}".format(prefix, parts,
-                                                         cursor_part))
-        self._prefix = prefix
-        self._parts = parts
-        self._cursor_part = cursor_part
 
     @pyqtSlot()
     def update_completion(self):
         """Check if completions are available and activate them."""
+        self.update_cursor_part()
+        parts = self.split()
 
-        assert self._prefix is not None
-        assert self._parts is not None
-        assert self._cursor_part is not None
-
-        log.completion.debug("Updating completion - prefix {}, parts {}, "
-                             "cursor_part {}".format(self._prefix, self._parts,
-                                                     self._cursor_part))
+        log.completion.debug(
+            "Updating completion - prefix {}, parts {}, cursor_part {}".format(
+                self._cmd.prefix(), parts, self._cursor_part))
         if self._ignore_change:
             self._ignore_change = False
             log.completion.debug("Ignoring completion update")
@@ -284,7 +266,7 @@ class Completer(QObject):
         completion = objreg.get('completion', scope='window',
                                 window=self._win_id)
 
-        if self._prefix != ':':
+        if self._cmd.prefix() != ':':
             # This is a search or gibberish, so we don't need to complete
             # anything (yet)
             # FIXME complete searchs
@@ -292,7 +274,7 @@ class Completer(QObject):
             completion.hide()
             return
 
-        model = self._get_new_completion(self._parts, self._cursor_part)
+        model = self._get_new_completion(parts, self._cursor_part)
 
         if model != self._model():
             if model is None:
@@ -301,19 +283,18 @@ class Completer(QObject):
                 completion.set_model(model)
 
         if model is None:
-            log.completion.debug("No completion model for {}.".format(
-                self._parts))
+            log.completion.debug("No completion model for {}.".format(parts))
             return
 
         try:
-            pattern = self._parts[self._cursor_part].strip()
+            pattern = parts[self._cursor_part].strip()
         except IndexError:
             pattern = ''
         self._model().set_pattern(pattern)
 
         log.completion.debug(
             "New completion for {}: {}, with pattern '{}'".format(
-                self._parts, model.srcmodel.__class__.__name__, pattern))
+                parts, model.srcmodel.__class__.__name__, pattern))
 
         if self._model().count() == 0:
             completion.hide()
@@ -321,3 +302,114 @@ class Completer(QObject):
 
         if completion.enabled:
             completion.show()
+
+    def split(self, keep=False):
+        """Get the text split up in parts.
+
+        Args:
+            keep: Whether to keep special chars and whitespace.
+        """
+        text = self._cmd.text()[len(self._cmd.prefix()):]
+        if not text:
+            # When only ":" is entered, we already have one imaginary part,
+            # which just is empty at the moment.
+            return ['']
+        if not text.strip():
+            # Text is only whitespace so we treat this as a single element with
+            # the whitespace.
+            return [text]
+        runner = runners.CommandRunner(self._win_id)
+        parts = runner.parse(text, fallback=True, alias_no_args=False,
+                             keep=keep)
+        if self._empty_item_idx is not None:
+            log.completion.debug("Empty element queued at {}, "
+                                 "inserting.".format(self._empty_item_idx))
+            parts.insert(self._empty_item_idx, '')
+        #log.completion.debug("Splitting '{}' -> {}".format(text, parts))
+        return parts
+
+    @pyqtSlot()
+    def update_cursor_part(self):
+        """Get the part index of the commandline where the cursor is over."""
+        cursor_pos = self._cmd.cursorPosition()
+        snippet = slice(cursor_pos - 1, cursor_pos + 1)
+        if self._cmd.text()[snippet] == '  ':
+            spaces = True
+        else:
+            spaces = False
+        cursor_pos -= len(self._cmd.prefix())
+        parts = self.split(keep=True)
+        log.completion.vdebug(
+            "text: {}, parts: {}, cursor_pos after removing prefix '{}': "
+            "{}".format(self._cmd.text(), parts, self._cmd.prefix(),
+                        cursor_pos))
+        for i, part in enumerate(parts):
+            log.completion.vdebug("Checking part {}: {}".format(i, parts[i]))
+            if cursor_pos <= len(part):
+                # foo| bar
+                self._cursor_part = i
+                if spaces:
+                    self._empty_item_idx = i
+                else:
+                    self._empty_item_idx = None
+                log.completion.vdebug("cursor_pos {} <= len(part) {}, "
+                                      "setting cursor_part {}, empty_item_idx "
+                                      "{}".format(cursor_pos, len(part), i,
+                                                  self._empty_item_idx))
+                break
+            cursor_pos -= len(part)
+            log.completion.vdebug(
+                "Removing len({!r}) -> {} from cursor_pos -> {}".format(
+                    part, len(part), cursor_pos))
+        else:
+            self._cursor_part = i
+            if spaces:
+                self._empty_item_idx = i
+            else:
+                self._empty_item_idx = None
+        log.completion.debug("cursor_part {}, spaces {}".format(
+            self._cursor_part, spaces))
+        return
+
+    def change_completed_part(self, newtext, immediate=False):
+        """Change the part we're currently completing in the commandline.
+
+        Args:
+            text: The text to set (string).
+            immediate: True if the text should be completed immediately
+                       including a trailing space and we shouldn't continue
+                       completing the current item.
+        """
+        parts = self.split()
+        log.completion.debug("changing part {} to '{}'".format(
+            self._cursor_part, newtext))
+        try:
+            parts[self._cursor_part] = newtext
+        except IndexError:
+            parts.append(newtext)
+        # We want to place the cursor directly after the part we just changed.
+        cursor_str = self._cmd.prefix() + ' '.join(
+            parts[:self._cursor_part + 1])
+        if immediate:
+            # If we should complete immediately, we want to move the cursor by
+            # one more char, to get to the next field.
+            cursor_str += ' '
+        text = self._cmd.prefix() + ' '.join(parts)
+        if immediate and self._cursor_part == len(parts) - 1:
+            # If we should complete immediately and we're completing the last
+            # part in the commandline, we automatically add a space.
+            text += ' '
+        self._cmd.setText(text)
+        log.completion.debug("Placing cursor after '{}'".format(cursor_str))
+        log.modes.debug("Completion triggered, focusing {!r}".format(self))
+        self._cmd.setCursorPosition(len(cursor_str))
+        self._cmd.setFocus()
+        self._cmd.show_cmd.emit()
+
+    @pyqtSlot()
+    def on_text_edited(self):
+        """Reset _empty_item_idx if text was edited."""
+        self._empty_item_idx = None
+        # We also want to update the cursor part and emit update_completion
+        # here, but that's already done for us by cursorPositionChanged
+        # anyways, so we don't need to do it twice.

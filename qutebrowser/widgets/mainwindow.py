@@ -91,10 +91,10 @@ class MainWindow(QWidget):
                         window=win_id)
         self._vbox.addWidget(self._tabbed_browser)
 
-        self._completion = completion.CompletionView(win_id, self)
-
         self.status = bar.StatusBar(win_id)
         self._vbox.addWidget(self.status)
+
+        self._completion = completion.CompletionView(win_id, self)
 
         self._commandrunner = runners.CommandRunner(win_id)
 
@@ -256,8 +256,6 @@ class MainWindow(QWidget):
         cmd.clear_completion_selection.connect(
             completion_obj.on_clear_completion_selection)
         cmd.hide_completion.connect(completion_obj.hide)
-        cmd.update_completion.connect(completer.on_update_completion)
-        completer.change_completed_part.connect(cmd.on_change_completed_part)
 
         # downloads
         tabs.start_download.connect(download_manager.fetch)
