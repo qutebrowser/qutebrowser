@@ -137,6 +137,8 @@ class StatusBar(QWidget):
 
         self.cmd = command.Command(win_id)
         self._stack.addWidget(self.cmd)
+        objreg.register('status-command', self.cmd, scope='window',
+                        window=win_id)
 
         self.txt = textwidget.Text()
         self._stack.addWidget(self.txt)

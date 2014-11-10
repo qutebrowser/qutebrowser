@@ -95,8 +95,6 @@ class MainWindow(QWidget):
 
         self.status = bar.StatusBar(win_id)
         self._vbox.addWidget(self.status)
-        objreg.register('status-command', self.status.cmd, scope='window',
-                        window=win_id)
 
         self._commandrunner = runners.CommandRunner(win_id)
 
