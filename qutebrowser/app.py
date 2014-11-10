@@ -231,8 +231,8 @@ class Application(QApplication):
             window_to_raise = window
         else:
             try:
-                window = objreg.get('last-main-window')
-            except KeyError:
+                window = objreg.last_window()
+            except objreg.NoWindow:
                 # We can't display an error here because... duh, there is no
                 # window.
                 log.ipc.error("No main window found!")

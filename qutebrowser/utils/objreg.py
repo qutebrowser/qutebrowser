@@ -45,6 +45,11 @@ class RegistryUnavailableError(Exception):
     pass
 
 
+class NoWindow(Exception):
+
+    """Exception raised by last_window if no window is available."""
+
+
 _UNSET = UnsetObject()
 
 
@@ -141,8 +146,8 @@ def _get_window_registry(window):
             win = get('last-focused-main-window')
         except KeyError:
             try:
-                win = get('last-main-window')
-            except KeyError:
+                win = last_window()
+            except NoWindow:
                 raise RegistryUnavailableError('window')
         assert hasattr(win, 'registry')
     else:
@@ -238,3 +243,12 @@ def dump_objects():
         for line in data:
             lines.append("    {}".format(line))
     return lines
+
+
+def last_window():
+    """Get the last opened window object."""
+    if not window_registry:
+        raise NoWindow()
+    else:
+        key = sorted(window_registry)[-1]
+        return window_registry[key]
