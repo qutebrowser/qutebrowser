@@ -85,19 +85,6 @@ def read_file(filename):
         return data.decode('UTF-8')
 
 
-def dotted_getattr(obj, path):
-    """getattr supporting the dot notation.
-
-    Args:
-        obj: The object where to start.
-        path: A dotted object path as a string.
-
-    Return:
-        The object at path.
-    """
-    return functools.reduce(getattr, path.split('.'), obj)
-
-
 def pastebin(name, title, text, parent=None):
     """Paste the text into a pastebin and return the URL.
 

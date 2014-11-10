@@ -75,41 +75,6 @@ class ReadFileTests(unittest.TestCase):
         self.assertEqual(content.splitlines()[0], "Hello World!")
 
 
-class DottedGetattrTests(unittest.TestCase):
-
-    """Test dotted_getattr.
-
-    Attributes:
-        test: Test class instance for getattr.
-    """
-
-    class Test:
-
-        """Sample class used to test dotted_getattr."""
-
-        foo = None
-
-    class Test2:
-
-        """Sample class used to test dotted_getattr."""
-
-        bar = 1
-
-    def setUp(self):
-        self.test = self.Test()
-        self.test.foo = self.Test2()
-
-    def test_dotted_getattr(self):
-        """Test dotted_getattr with a valid path."""
-        attr = utils.dotted_getattr(self, 'test.foo.bar')
-        self.assertEqual(attr, 1)
-
-    def test_invalid_path(self):
-        """Test dotted_getattr with an invalid path."""
-        with self.assertRaises(AttributeError):
-            _ = utils.dotted_getattr(self, 'test.foo.baz')
-
-
 class InterpolateColorTests(unittest.TestCase):
 
     """Tests for interpolate_color.
