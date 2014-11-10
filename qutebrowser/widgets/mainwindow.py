@@ -265,7 +265,6 @@ class MainWindow(QWidget):
         tabs.start_download.connect(download_manager.fetch)
 
         # quickmark completion
-        completer = self._get_object('completer')
         quickmark_manager = objreg.get('quickmark-manager')
         quickmark_manager.changed.connect(completer.init_quickmark_completions)
 
