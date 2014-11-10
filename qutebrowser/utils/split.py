@@ -155,7 +155,7 @@ def split(s, keep=False):
     return out
 
 
-def simple_split(s, keep=False, maxsplit=0):
+def simple_split(s, keep=False, maxsplit=None):
     """Split a string on whitespace, optionally keeping the whitespace.
 
     Args:
@@ -167,6 +167,16 @@ def simple_split(s, keep=False, maxsplit=0):
         A list of split strings.
     """
     whitespace = '\n\t '
+    if maxsplit == 0:
+        # re.split with maxsplit=0 splits everything, while str.split splits
+        # nothing (which is the behaviour we want).
+        if keep:
+            return [s]
+        else:
+            return [s.lstrip(whitespace)]
+    elif maxsplit is None:
+        maxsplit = 0
+
     if keep:
         pattern = '([' + whitespace + '])'
     else:

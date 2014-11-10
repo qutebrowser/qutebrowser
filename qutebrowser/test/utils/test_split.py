@@ -157,6 +157,12 @@ class SimpleSplitTests(unittest.TestCase):
         self.assertEqual(split.simple_split(string, maxsplit=1),
                          string.split(maxsplit=1))
 
+    def test_str_split_maxsplit_0(self):
+        """Test if the behaviour matches str.split with maxsplit=0."""
+        string = "  foo bar baz  "
+        self.assertEqual(split.simple_split(string, maxsplit=0),
+                         string.split(maxsplit=0))
+
     def test_split_keep(self):
         """Test splitting with keep=True."""
         for test, expected in self.TESTS.items():
