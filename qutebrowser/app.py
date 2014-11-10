@@ -458,7 +458,7 @@ class Application(QApplication):
                 return
 
         exc = (exctype, excvalue, tb)
-        sys.__excepthook__(*exc)
+        log.misc.error("Uncaught exception", exc_info=exc)
 
         if not self._quit_status['crash']:
             log.misc.error("ARGH, there was an exception while the crash "
