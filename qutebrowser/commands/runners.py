@@ -206,7 +206,7 @@ class CommandRunner(QObject):
             A split string commandline, e.g ['open', 'www.google.com']
         """
         cmdstr, sep, argstr = text.partition(' ')
-        if not cmdstr:
+        if not cmdstr and not fallback:
             raise cmdexc.NoSuchCommandError("No command given")
         if aliases:
             new_cmd = self._get_alias(text, alias_no_args)
