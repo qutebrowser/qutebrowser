@@ -131,7 +131,13 @@ class WebView(QWebView):
         # when quitting.
         # Copied from:
         # https://code.google.com/p/webscraping/source/browse/webkit.py#325
-        self.setPage(None)
+        try:
+            self.setPage(None)
+        except RuntimeError:
+            # It seems sometimes Qt has already deleted the QWebView and we
+            # get: RuntimeError: wrapped C/C++ object of type WebView has been
+            # deleted
+            pass
 
     def _set_load_status(self, val):
         """Setter for load_status."""
