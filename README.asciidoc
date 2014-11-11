@@ -118,31 +118,19 @@ repository (rather than a release):
 On Archlinux
 ~~~~~~~~~~~~
 
-There's an Archlinux package available in `pkg/`. You can install it (and the
-python-pypeg2 dependency) like this:
+There's an Archlinux package available in the
+https://aur.archlinux.org/packages/qutebrowser-git/[Archlinux AUR].
+
+You can install it like this:
 
 ----
-$ wget https://aur.archlinux.org/packages/py/python-pypeg2/python-pypeg2.tar.gz <1>
-$ tar xzvf python-pypeg2.tar.gz
-$ cd python-pypeg2
-$ makepkg -si
-$ cd ..
-
 $ mkdir qutebrowser
 $ cd qutebrowser
-$ wget http://git.the-compiler.org/qutebrowser/plain/pkg/PKGBUILD.qutebrowser-git -O PKGBUILD
+$ wget https://aur.archlinux.org/packages/qu/qutebrowser-git/PKGBUILD
 $ makepkg -si
-$ cd ..
-$ rm -rf python-pypeg2.tar.gz python-pypeg2 qutebrowser
 ----
-<1> Instead of the first block of commands you could also use an AUR helper,
-e.g. +yaourt -S python-pypeg2+.
 
-As soon as v0.1 is out, there will be a package in the AUR, so this will get
-easier.
-
-// Install https://aur.archlinux.org/packages/qutebrowser-git/[qutebrowser-git]
-// from the AUR.
+or you could use an AUR helper, e.g. `yaourt -S qutebrowser-git`.
 
 On Gentoo
 ~~~~~~~~~
