@@ -511,8 +511,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         tab = self.widget(idx)
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
-        modeman.maybe_leave(self._win_id, usertypes.KeyMode.hint,
-                            'tab changed')
+        for mode in (usertypes.KeyMode.hint, usertypes.KeyMode.insert):
+            modeman.maybe_leave(self._win_id, mode, 'tab changed')
         if self._now_focused is not None:
             objreg.register('last-focused-tab', self._now_focused, update=True,
                             scope='window', window=self._win_id)
