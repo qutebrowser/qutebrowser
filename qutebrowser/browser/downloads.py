@@ -347,8 +347,9 @@ class DownloadManager(QAbstractListModel):
         questions: A list of Question objects to not GC them.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        self._win_id = win_id
         self.downloads = []
         self.questions = []
 
@@ -364,13 +365,13 @@ class DownloadManager(QAbstractListModel):
             page: The QWebPage to get the download from.
         """
         if not url.isValid():
-            urlutils.invalid_url_error('last-focused', url, "start download")
+            urlutils.invalid_url_error(self._win_id, url, "start download")
             return
         req = QNetworkRequest(url)
         reply = page.networkAccessManager().get(req)
         self.fetch(reply)
 
-    @cmdutils.register(instance='download-manager')
+    @cmdutils.register(instance='download-manager', scope='window')
     def cancel_download(self, count: {'special': 'count'}=1):
         """Cancel the first/[count]th download.
 
@@ -419,7 +420,7 @@ class DownloadManager(QAbstractListModel):
         self.questions.append(q)
         download.cancelled.connect(q.abort)
         message_bridge = objreg.get('message-bridge', scope='window',
-                                    window='last-focused')
+                                    window=self._win_id)
         message_bridge.ask(q, blocking=False)
 
     @pyqtSlot(DownloadItem)
@@ -443,7 +444,7 @@ class DownloadManager(QAbstractListModel):
     @pyqtSlot(str)
     def on_error(self, msg):
         """Display error message on download errors."""
-        message.error('last-focused', "Download error: {}".format(msg))
+        message.error(self._win_id, "Download error: {}".format(msg))
 
     def last_index(self):
         """Get the last index in the model.
@@ -468,7 +469,7 @@ class DownloadManager(QAbstractListModel):
         if index.parent().isValid() or index.column() != 0:
             return QVariant()
 
-        item = objreg.get('download-manager').downloads[index.row()]
+        item = self.downloads[index.row()]
         if role == Qt.DisplayRole:
             data = str(item)
         elif role == Qt.ForegroundRole:
@@ -497,4 +498,4 @@ class DownloadManager(QAbstractListModel):
         if parent.isValid():
             # We don't have children
             return 0
-        return len(objreg.get('download-manager').downloads)
+        return len(self.downloads)

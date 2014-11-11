@@ -76,7 +76,7 @@ class DownloadView(QListView):
         }
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, win_id, parent=None):
         super().__init__(parent)
         style.set_register_stylesheet(self)
         self.setResizeMode(QListView.Adjust)
@@ -84,7 +84,7 @@ class DownloadView(QListView):
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         self.setFlow(QListView.LeftToRight)
         self._menu = None
-        model = objreg.get('download-manager')
+        model = objreg.get('download-manager', scope='window', window=win_id)
         model.rowsInserted.connect(functools.partial(update_geometry, self))
         model.rowsRemoved.connect(functools.partial(update_geometry, self))
         self.setModel(model)

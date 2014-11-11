@@ -864,7 +864,9 @@ class CommandDispatcher:
     def download_page(self):
         """Download the current page."""
         page = self._current_widget().page()
-        objreg.get('download-manager').get(self._current_url(), page)
+        download_manager = objreg.get('download-manager', scope='window',
+                                      window=self._win_id)
+        download_manager.get(self._current_url(), page)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def view_source(self):

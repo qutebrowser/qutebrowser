@@ -30,10 +30,11 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout
 from qutebrowser.commands import runners, cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import message, log, usertypes, qtutils, objreg, utils
-from qutebrowser.widgets import tabbedbrowser, completion, downloads
+from qutebrowser.widgets import tabbedbrowser, completion
+from qutebrowser.widgets import downloads as downloadswidget
 from qutebrowser.widgets.statusbar import bar
 from qutebrowser.keyinput import modeman
-from qutebrowser.browser import hints
+from qutebrowser.browser import hints, downloads
 
 
 win_id_gen = itertools.count(0)
@@ -81,7 +82,12 @@ class MainWindow(QWidget):
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
 
-        self._downloadview = downloads.DownloadView()
+        log.init.debug("Initializing downloads...")
+        download_manager = downloads.DownloadManager(win_id, self)
+        objreg.register('download-manager', download_manager, scope='window',
+                        window=win_id)
+
+        self._downloadview = downloadswidget.DownloadView(win_id)
         self._vbox.addWidget(self._downloadview)
         self._downloadview.show()
 
@@ -182,7 +188,6 @@ class MainWindow(QWidget):
     def _connect_signals(self):
         """Connect all mainwindow signals."""
         # pylint: disable=too-many-locals,too-many-statements
-        download_manager = objreg.get('download-manager')
         key_config = objreg.get('key-config')
 
         status = self._get_object('statusbar')
@@ -195,6 +200,7 @@ class MainWindow(QWidget):
         message_bridge = self._get_object('message-bridge')
         mode_manager = self._get_object('mode-manager')
         prompter = self._get_object('prompter')
+        download_manager = self._get_object('download-manager')
 
         # misc
         self._tabbed_browser.close_window.connect(self.close)

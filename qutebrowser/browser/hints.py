@@ -399,7 +399,9 @@ class HintManager(QObject):
                           "No suitable link found for this element.",
                           immediately=True)
             return
-        objreg.get('download-manager').get(url, elem.webFrame().page())
+        download_manager = objreg.get('download-manager', scope='window',
+                                      window=self._win_id)
+        download_manager.get(url, elem.webFrame().page())
 
     def _call_userscript(self, url):
         """Call an userscript from a hint."""

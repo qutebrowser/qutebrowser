@@ -40,7 +40,7 @@ import qutebrowser
 from qutebrowser.commands import cmdutils, runners
 from qutebrowser.config import style, config, websettings
 from qutebrowser.network import qutescheme, proxy
-from qutebrowser.browser import quickmarks, cookies, downloads, cache
+from qutebrowser.browser import quickmarks, cookies, cache
 from qutebrowser.widgets import mainwindow, crash
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (log, version, message, readline, utils, qtutils,
@@ -167,9 +167,6 @@ class Application(QApplication):
         log.init.debug("Initializing cache...")
         diskcache = cache.DiskCache(self)
         objreg.register('cache', diskcache)
-        log.init.debug("Initializing downloads...")
-        download_manager = downloads.DownloadManager(self)
-        objreg.register('download-manager', download_manager)
         log.init.debug("Initializing main window...")
         win_id = mainwindow.MainWindow.spawn(
             False if self._args.nowindow else True)
