@@ -266,7 +266,8 @@ class DownloadItem(QObject):
         """Write buffered data to disk and finish the QNetworkReply."""
         log.downloads.debug("Doing delayed write...")
         self._do_delayed_write = False
-        self._fileobj.write(self._reply.readAll())
+        if self._reply.isOpen():
+            self._fileobj.write(self._reply.readAll())
         self._fileobj.close()
         self._reply.close()
         self._reply.deleteLater()
