@@ -230,10 +230,11 @@ class Application(QApplication):
             try:
                 window = objreg.last_window()
             except objreg.NoWindow:
-                # We can't display an error here because... duh, there is no
-                # window.
-                log.ipc.error("No main window found!")
-                return None
+                # There is no window left, so we open a new one
+                win_id = mainwindow.MainWindow.spawn()
+                window = objreg.get('main-window', scope='window',
+                                    window=win_id)
+                window_to_raise = window
             win_id = window.win_id
             if open_target != 'tab-silent':
                 window_to_raise = window
@@ -256,8 +257,6 @@ class Application(QApplication):
             via_ipc: Whether the arguments were transmitted over IPC.
         """
         win_id = self._get_window(via_ipc, not args)
-        if win_id is None:
-            return
         if ipc and not args:
             self._open_startpage(win_id)
         for cmd in args:
@@ -745,8 +744,6 @@ class Application(QApplication):
     def open_desktopservices_url(self, url):
         """Handler to open an URL via QDesktopServices."""
         win_id = self._get_window(True, False)
-        if win_id is None:
-            return
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=win_id)
         tabbed_browser.tabopen(url)
