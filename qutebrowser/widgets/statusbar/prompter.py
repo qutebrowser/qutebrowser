@@ -114,12 +114,12 @@ class Prompter(QObject):
         Return: True if a context was restored, False otherwise.
         """
         log.statusbar.debug("Restoring context {}".format(ctx))
-        prompt = objreg.get('prompt', scope='window', window=self._win_id)
         if ctx is None:
             self.hide_prompt.emit()
             self._busy = False
             return False
         self._question = ctx.question
+        prompt = objreg.get('prompt', scope='window', window=self._win_id)
         prompt.txt.setText(ctx.text)
         prompt.lineedit.setText(ctx.input_text)
         prompt.lineedit.setEchoMode(ctx.echo_mode)
