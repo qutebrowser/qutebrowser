@@ -60,6 +60,7 @@ class Prompter(QObject):
         _question: A Question object with the question to be asked to the user.
         _loops: A list of local EventLoops to spin in when blocking.
         _queue: A deque of waiting questions.
+        _busy: If we're currently busy with asking a question.
         _win_id: The window ID this object is associated with.
 
     Signals:
