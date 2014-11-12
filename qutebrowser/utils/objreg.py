@@ -58,7 +58,14 @@ class ObjectRegistry(collections.UserDict):
     """A registry of long-living objects in qutebrowser.
 
     Inspired by the eric IDE code (E5Gui/E5Application.py).
+
+    Attributes:
+        _partial_objs: A dictionary of the connected partial objects.
     """
+
+    def __init__(self):
+        super().__init__()
+        self._partial_objs = {}
 
     def __setitem__(self, name, obj):
         """Register an object in the object registry.
@@ -70,9 +77,27 @@ class ObjectRegistry(collections.UserDict):
         if obj is None:
             raise TypeError("Registering object None with name '{}'!".format(
                 name))
+
+        self._disconnect_destroyed(name)
+
         if isinstance(obj, QObject):
-            obj.destroyed.connect(functools.partial(self.on_destroyed, name))
+            func = functools.partial(self.on_destroyed, name)
+            obj.destroyed.connect(func)
+            self._partial_objs[name] = func
+
         super().__setitem__(name, obj)
+
+    def __delitem__(self, name):
+        """Extend __delitem__ to disconnect the destroyed signal."""
+        self._disconnect_destroyed(name)
+        super().__delitem__(name)
+
+    def _disconnect_destroyed(self, name):
+        """Disconnect the destroyed slot if it was connected."""
+        if name in self._partial_objs:
+            func = self._partial_objs[name]
+            self[name].destroyed.disconnect(func)
+            del self._partial_objs[name]
 
     def on_destroyed(self, name):
         """Schedule removing of a destroyed QObject.
@@ -89,6 +114,7 @@ class ObjectRegistry(collections.UserDict):
         log.misc.debug("removed: {}".format(name))
         try:
             del self[name]
+            del self._partial_objs[name]
         except KeyError:
             pass
 
