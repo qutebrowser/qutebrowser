@@ -57,6 +57,8 @@ class Prompter(QObject):
     up the *new* question.
 
     Attributes:
+        _shutting_down: Whether we're currently shutting down the prompter and
+                        should ignore future questions to avoid segfaults.
         _question: A Question object with the question to be asked to the user.
         _loops: A list of local EventLoops to spin in when blocking.
         _queue: A deque of waiting questions.
@@ -73,6 +75,7 @@ class Prompter(QObject):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        self._shutting_down = False
         self._question = None
         self._loops = []
         self._queue = collections.deque()
@@ -179,6 +182,7 @@ class Prompter(QObject):
             True if loops needed to be aborted,
             False otherwise.
         """
+        self._shutting_down = True
         if self._loops:
             for loop in self._loops:
                 loop.quit()
@@ -284,6 +288,15 @@ class Prompter(QObject):
         log.statusbar.debug("Asking question {}, blocking {}, loops {}, queue "
                             "{}".format(question, blocking, self._loops,
                                         self._queue))
+
+        if self._shutting_down:
+            # If we're currently shutting down we have to ignore this question
+            # to avoid segfaults - see
+            # https://github.com/The-Compiler/qutebrowser/issues/95
+            log.statusbar.debug("Ignoring question because we're shutting "
+                                "down.")
+            question.abort()
+            return None
 
         if self._busy and not blocking:
             # We got an async question, but we're already busy with one, so we
