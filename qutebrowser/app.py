@@ -463,13 +463,13 @@ class Application(QApplication):
                 return
 
         exc = (exctype, excvalue, tb)
-        log.misc.error("Uncaught exception", exc_info=exc)
 
         if not self._quit_status['crash']:
             log.misc.error("ARGH, there was an exception while the crash "
                            "dialog is already shown:", exc_info=exc)
             return
 
+        log.misc.error("Uncaught exception", exc_info=exc)
         self._quit_status['crash'] = False
 
         try:
