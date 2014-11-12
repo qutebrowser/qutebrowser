@@ -96,7 +96,12 @@ class ObjectRegistry(collections.UserDict):
         """Disconnect the destroyed slot if it was connected."""
         if name in self._partial_objs:
             func = self._partial_objs[name]
-            self[name].destroyed.disconnect(func)
+            try:
+                self[name].destroyed.disconnect(func)
+            except RuntimeError:
+                # if C++ has deleted the object, the slot is already
+                # disconnected.
+                pass
             del self._partial_objs[name]
 
     def on_destroyed(self, name):
