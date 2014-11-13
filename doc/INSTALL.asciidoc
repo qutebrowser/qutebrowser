@@ -1,0 +1,182 @@
+On Debian / Ubuntu
+~~~~~~~~~~~~~~~~~~
+
+qutebrowser should run on these systems:
+
+* Debian jessie or newer
+* Ubuntu Trusty (14.04 LTS) or newer
+
+Install the dependencies via apt-get:
+
+----
+# apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python3-pkg-resources
+python3-pip python3-jinja2 python3-pygments
+----
+
+To generate the documentation for the `:help` command, when using the git
+repository (rather than a release):
+
+----
+# apt-get install asciidoc
+# python3 scripts/asciidoc2html.py
+----
+
+Then install qutebrowser:
+
+----
+# python3 setup.py install
+----
+
+On Archlinux
+~~~~~~~~~~~~
+
+There's an Archlinux package available in the
+https://aur.archlinux.org/packages/qutebrowser-git/[Archlinux AUR].
+
+You can install it like this:
+
+----
+$ mkdir qutebrowser
+$ cd qutebrowser
+$ wget https://aur.archlinux.org/packages/qu/qutebrowser-git/PKGBUILD
+$ makepkg -si
+----
+
+or you could use an AUR helper, e.g. `yaourt -S qutebrowser-git`.
+
+On Gentoo
+~~~~~~~~~
+
+Running qutebrowser on Gentoo is unfortunately rather hard because Qt5 and
+PyQt5 are not packaged officially. https://github.com/posativ[@posativ] has
+written a howto with steps to get it running.
+
+* Add qt-overlay (`git://git.overlays.gentoo.org/proj/qt.git`) and emerge:
+
+  * `dev-qt/qtwebkit:5`
+  * `dev-qt/qtwidgets:5`
+
+  * `dev-lang/python:3.4`
+
+  * `dev-python/virtualenv` (`~1.11.6`)
+  * `dev-python/sip` (`**4.9999`)
+
+My USEs for `qtcore/qtwebkit 5`:
+
+----
+dev-qt/qtcore:5 icu
+dev-qt/qtwebkit:5 widgets printsupport multimedia gstreamer
+----
+
+Also make sure you have `python3_4` in your `PYTHON_TARGETS`
+(`/etc/portage/make.conf`) and rebuild your system (`emerge -uDNav @world`).
+
+I prefer the installation in a dedicated virtual environment:
+
+----
+$ virtualenv --python=python3.4 --system-site-packages ~/.pyenv/qutebrowser
+$ cd ~/.pyenv/qutebrowser
+$ source bin/activate
+----
+
+There's still no PyQt5 packaged for Gentoo so we manually install it into the
+virtual environment:
+
+----
+$ wget http://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.3.2/PyQt-gpl-5.3.2.tar.gz
+$ tar xfz PyQt-gpl-5.3.2.tar.gz
+$ cd PyQt-gpl-5.3.2/
+$ python configure.py --qmake=/usr/lib64/qt5/bin/qmake --confirm-license
+$ make
+$ make install
+----
+
+Lastly we install qutebrowser:
+
+----
+$ git clone git://the-compiler.org/qutebrowser/
+$ cd qutebrowser/
+$ python setup.py develop
+----
+
+To run qutebrowser, you can run `qutebrowser` inside the virtualenv. Or symlink
+it to a directory in your `$PATH`, e.g.:
+
+----
+$ ln -s ~/.pyenv/qutebrowser/bin/qutebrowser /usr/local/bin/
+----
+
+Your mileage may vary.
+
+On Windows
+~~~~~~~~~~
+
+// FIXME: use setup.py to install all dependencies
+
+* Use the installer from http://www.python.org/downloads[python.org] to get Python 3
+* Use the installer from
+http://www.riverbankcomputing.com/software/pyqt/download5[Riverbank computing]
+to get Qt and PyQt5.
+* Run `scripts/ez_setup.py` to get setuptools.
+* Get pip as described http://stackoverflow.com/a/12476379[on Stack Overflow].
+* Run +pip install pypeg2+ to install pypeg2.
+* Run +pip install jinja2+ to install jinja2, or install it from
+http://www.lfd.uci.edu/~gohlke/pythonlibs/#jinja2.
+* Run +pip install pygments+ to install pygments, or install it from
+http://www.lfd.uci.edu/~gohlke/pythonlibs/#pygments.
+
+As soon as v0.1 is out, a standalone .exe (built with
+http://cx-freeze.sourceforge.net/[cx_Freeze]) will be provided. In the
+meantime, you can simply ask in IRC if you need one.
+
+On OS X
+~~~~~~~
+
+Running qutebrowser on OS X requires compiling PyQt5 by hand. These steps have
+been tested on OS X Mavericks:
+
+* Install XCode from the Appstore
+* Open a Terminal
+* Run `xcode-select --install`
+* Install the XCode commandline tools
+* Run `sudo /usr/bin/xcodebuild` and accept the license.
+* http://www.qt.io/download-open-source/[Download] and run the Qt5 installer.
+If you want, you can deselect Android/iOS when selecting the components to be
+installed.
+* Run +sed -i -e 's/macosx10\.8/macosx10\.9/' ~/Qt/5.3/clang_64/mkspecs/qdevice.pri+
+* http://www.python.org/downloads/[Download] and install the Python 3
+installer. After opening the `.dmg`, right-click on 'Python.mpkg' and click
+'Open' to run it -- double-clicking won't work.
+* Download SIP and PyQt5 from Riverbank Coputing
+* Open a Terminal and use `cd ~/Downloads` to get to the download directory.
+* Use `tar xzvf sip-*.tar` to extract SIP and `cd sip-*` to change into the
+SIP directory
+* Run `python3 configure.py`, `make` and `sudo make install`.
+* Use `cd ~/Downloads` to get back to the download directory.
+* Use `tar xvf PyQt-*.tar` to extract PyQt and `cd PyQt-*` to change into the
+PyQt directory.
+* Run +sed -i -e "s/qmake_QT=\['webkit', 'network'\]/qmake_QT=['webkit',
+'network', 'printsupport']/" configure.py+
+* Run +sed -i -e "s/qmake_QT=\['webkitwidgets'\]/qmake_QT=['webkitwidgets',
+'printsupport']/" configure.py+
+* Run +python3 configure.py --qmake ~/Qt/5.3/clang_64/bin/qmake --sip
+/Library/Frameworks/Python.framework/Versions/3.4/bin/sip+ and accept
+the license.
+* Run `make` and `sudo make install`.
+* Run `python3 setup.py install` to install all other dependencies
+
+Running qutebrowser
+-------------------
+
+// FIXME setup.py / venv
+
+After installing the requirements, you have these options:
+
+* Run qutebrowser directly via `./qutebrowser.py` in the toplevel directory.
+* Run `python3 setup.py install` to install qutebrowser, then call
+`qutebrowser`.
+
+NOTE: If you're running qutebrowser from the git repository rather than a
+released version, you should run `scripts/asciidoc2html.py` to generate the
+documentation.
+
