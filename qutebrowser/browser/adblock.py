@@ -26,7 +26,7 @@ import functools
 from PyQt5.QtCore import QStandardPaths
 
 from qutebrowser.config import config
-from qutebrowser.utils import objreg, standarddir, log
+from qutebrowser.utils import objreg, standarddir, log, message
 from qutebrowser.commands import cmdutils
 
 
@@ -64,7 +64,8 @@ class HostBlocker:
                     self.blocked_hosts.add(line.strip())
         else:
             if config.get('permissions', 'host-block-lists') is not None:
-                log.misc.info("Run :adblock-update to get adblock lists.")
+                message.info('last-focused',
+                             "Run :adblock-update to get adblock lists.")
 
     @cmdutils.register(instance='host-blocker')
     def adblock_update(self):
@@ -124,14 +125,22 @@ class HostBlocker:
         with open(self._hosts_file, 'w', encoding='utf-8') as f:
             for host in sorted(self.blocked_hosts):
                 f.write(host + '\n')
-        log.misc.debug("Read {} hosts from {} sources.".format(
-            len(self.blocked_hosts), len(self._done)))
+            message.info('last-focused', "adblock: Read {} hosts from {} "
+                         "sources.".format(len(self.blocked_hosts),
+                                           len(self._done)))
         self._done = []
 
     @config.change_filter('permissions', 'host-block-lists')
     def on_config_changed(self):
         """Update files when the config changed."""
-        self.adblock_update()
+        urls = config.get('permissions', 'host-block-lists')
+        if urls is None:
+            try:
+                os.remove(self._hosts_file)
+            except IOError:
+                log.misc.exception("Failed to delete hosts file.")
+        else:
+            self.adblock_update()
 
     def on_download_finished(self, download):
         """Check if all downloads are finished and if so, trigger reading.
