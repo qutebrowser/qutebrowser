@@ -216,15 +216,20 @@ class List(BaseType):
     typestr = 'string-list'
 
     def transform(self, value):
-        return [v if v else None for v in value.split(',')]
+        if not value:
+            return None
+        else:
+            return [v if v else None for v in value.split(',')]
 
     def validate(self, value):
+        if not value:
+            if self._none_ok:
+                return
+            else:
+                raise ValidationError(value, "list may not be empty!")
         vals = self.transform(value)
         if None in vals:
-            if self._none_ok:
-                pass
-            else:
-                raise ValidationError(value, "items may not be empty!")
+            raise ValidationError(value, "items may not be empty!")
 
 
 class Bool(BaseType):
