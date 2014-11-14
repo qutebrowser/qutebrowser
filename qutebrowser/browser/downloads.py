@@ -393,6 +393,9 @@ class DownloadManager(QAbstractListModel):
             url: The URL to get, as QUrl
             page: The QWebPage to get the download from.
             fileobj: The file object to write the answer to.
+
+        Return:
+            The created DownloadItem.
         """
         if not url.isValid():
             urlutils.invalid_url_error(self._win_id, url, "start download")
@@ -403,7 +406,7 @@ class DownloadManager(QAbstractListModel):
         else:
             nam = page.networkAccessManager()
         reply = nam.get(req)
-        self.fetch(reply, fileobj)
+        return self.fetch(reply, fileobj)
 
     @cmdutils.register(instance='download-manager', scope='window')
     def cancel_download(self, count: {'special': 'count'}=1):
@@ -427,6 +430,9 @@ class DownloadManager(QAbstractListModel):
         Args:
             reply: The QNetworkReply to download.
             fileobj: The file object to write the answer to.
+
+        Return:
+            The created DownloadItem.
         """
         if fileobj is not None and getattr(fileobj, 'name', None):
             suggested_filename = fileobj.name
