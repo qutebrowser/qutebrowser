@@ -83,6 +83,7 @@ class DownloadView(QListView):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         self.setFlow(QListView.LeftToRight)
+        self.setSpacing(1)
         self._menu = None
         model = objreg.get('download-manager', scope='window', window=win_id)
         model.rowsInserted.connect(functools.partial(update_geometry, self))
