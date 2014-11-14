@@ -276,6 +276,35 @@ class ListTests(unittest.TestCase):
     def setUp(self):
         self.t = configtypes.List()
 
+    def test_validate_single(self):
+        """Test validate with a single value."""
+        self.t.validate('foo')
+
+    def test_validate_multiple(self):
+        """Test validate with multiple values."""
+        self.t.validate('foo,bar')
+
+    def test_validate_empty(self):
+        """Test validate with empty string and none_ok = False."""
+        with self.assertRaises(configtypes.ValidationError):
+            self.t.validate('')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with empty string and none_ok = True."""
+        t = configtypes.List(none_ok=True)
+        t.validate('')
+
+    def test_validate_empty_item(self):
+        """Test validate with empty item and none_ok = False."""
+        with self.assertRaises(configtypes.ValidationError):
+            self.t.validate('foo,,bar')
+
+    def test_validate_empty_item_none_ok(self):
+        """Test validate with empty item and none_ok = True."""
+        t = configtypes.List(none_ok=True)
+        with self.assertRaises(configtypes.ValidationError):
+            t.validate('foo,,bar')
+
     def test_transform_single(self):
         """Test transform with a single value."""
         self.assertEqual(self.t.transform('foo'), ['foo'])
@@ -287,8 +316,7 @@ class ListTests(unittest.TestCase):
 
     def test_transform_empty(self):
         """Test transform with an empty value."""
-        self.assertEqual(self.t.transform('foo,,baz'),
-                         ['foo', None, 'baz'])
+        self.assertEqual(self.t.transform(''), None)
 
 
 class BoolTests(unittest.TestCase):
@@ -1903,6 +1931,35 @@ class UrlListTests(unittest.TestCase):
     def setUp(self):
         self.t = configtypes.UrlList()
 
+    def test_validate_single(self):
+        """Test validate with a single value."""
+        self.t.validate('http://www.qutebrowser.org/')
+
+    def test_validate_multiple(self):
+        """Test validate with multiple values."""
+        self.t.validate('http://www.qutebrowser.org/,htpt://www.heise.de/')
+
+    def test_validate_empty(self):
+        """Test validate with empty string and none_ok = False."""
+        with self.assertRaises(configtypes.ValidationError):
+            self.t.validate('')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with empty string and none_ok = True."""
+        t = configtypes.UrlList(none_ok=True)
+        t.validate('')
+
+    def test_validate_empty_item(self):
+        """Test validate with empty item and none_ok = False."""
+        with self.assertRaises(configtypes.ValidationError):
+            self.t.validate('foo,,bar')
+
+    def test_validate_empty_item_none_ok(self):
+        """Test validate with empty item and none_ok = True."""
+        t = configtypes.UrlList(none_ok=True)
+        with self.assertRaises(configtypes.ValidationError):
+            t.validate('foo,,bar')
+
     def test_transform_single(self):
         """Test transform with a single value."""
         self.assertEqual(self.t.transform('http://qutebrowser.org/'),
@@ -1913,6 +1970,10 @@ class UrlListTests(unittest.TestCase):
         self.assertEqual(
             self.t.transform('http://qutebrowser.org/,http://heise.de/'),
             [QUrl('http://qutebrowser.org/'), QUrl('http://heise.de/')])
+
+    def test_transform_empty(self):
+        """Test transform with an empty value."""
+        self.assertEqual(self.t.transform(''), None)
 
 
 if __name__ == '__main__':
