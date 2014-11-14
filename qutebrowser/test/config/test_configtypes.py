@@ -1896,5 +1896,24 @@ class EncodingTests(unittest.TestCase):
         self.assertIsNone(self.t.transform(''))
 
 
+class UrlListTests(unittest.TestCase):
+
+    """Test UrlList."""
+
+    def setUp(self):
+        self.t = configtypes.UrlList()
+
+    def test_transform_single(self):
+        """Test transform with a single value."""
+        self.assertEqual(self.t.transform('http://qutebrowser.org/'),
+                         [QUrl('http://qutebrowser.org/')])
+
+    def test_transform_more(self):
+        """Test transform with multiple values."""
+        self.assertEqual(
+            self.t.transform('http://qutebrowser.org/,http://heise.de/'),
+            [QUrl('http://qutebrowser.org/'), QUrl('http://heise.de/')])
+
+
 if __name__ == '__main__':
     unittest.main()

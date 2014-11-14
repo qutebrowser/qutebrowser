@@ -1161,6 +1161,34 @@ class Position(BaseType):
         return self.MAPPING[value]
 
 
+class UrlList(List):
+
+    """A list of URLs."""
+
+    typestr = 'url-list'
+
+    def transform(self, value):
+        if not value:
+            return None
+        else:
+            return [QUrl.fromUserInput(v) if v else None
+                    for v in value.split(',')]
+
+    def validate(self, value):
+        if not value:
+            if self._none_ok:
+                return
+            else:
+                raise ValidationError(value, "list may not be empty!")
+        vals = self.transform(value)
+        for val in vals:
+            if val is None:
+                raise ValidationError(value, "values may not be empty!")
+            elif not val.isValid():
+                raise ValidationError(value, "invalid URL - {}".format(
+                    val.errorString()))
+
+
 class SelectOnRemove(BaseType):
 
     """Which tab to select when the focused tab is removed."""
