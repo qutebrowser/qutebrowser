@@ -30,7 +30,7 @@ Module attributes:
 from PyQt5.QtNetwork import QNetworkReply
 
 import qutebrowser
-from qutebrowser.network import schemehandler
+from qutebrowser.network import schemehandler, networkreply
 from qutebrowser.utils import version, utils, jinja, log, message, docutils
 
 
@@ -65,16 +65,16 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
             except KeyError:
                 errorstr = "No handler found for {}!".format(
                     request.url().toDisplayString())
-                return schemehandler.ErrorNetworkReply(
+                return networkreply.ErrorNetworkReply(
                     request, errorstr, QNetworkReply.ContentNotFoundError,
                     self.parent())
         try:
             data = handler(self._win_id, request)
         except IOError as e:
-            return schemehandler.ErrorNetworkReply(
+            return networkreply.ErrorNetworkReply(
                 request, str(e), QNetworkReply.ContentNotFoundError,
                 self.parent())
-        return schemehandler.SpecialNetworkReply(
+        return networkreply.FixedDataNetworkReply(
             request, data, 'text/html', self.parent())
 
 

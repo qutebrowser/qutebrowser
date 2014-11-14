@@ -31,7 +31,7 @@ else:
 
 from qutebrowser.config import config
 from qutebrowser.utils import message, log, usertypes, utils, objreg
-from qutebrowser.network import qutescheme, schemehandler
+from qutebrowser.network import qutescheme, networkreply
 
 
 class NetworkManager(QNetworkAccessManager):
@@ -148,7 +148,7 @@ class NetworkManager(QNetworkAccessManager):
         """
         scheme = req.url().scheme()
         if scheme == 'https' and not SSL_AVAILABLE:
-            return schemehandler.ErrorNetworkReply(
+            return networkreply.ErrorNetworkReply(
                 req, "SSL is not supported by the installed Qt library!",
                 QNetworkReply.ProtocolUnknownError)
         elif scheme in self._scheme_handlers:
