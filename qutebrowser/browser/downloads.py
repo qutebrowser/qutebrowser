@@ -51,6 +51,7 @@ class DownloadItem(QObject):
                           estimate the remaining time.
 
     Attributes:
+        successful: Whether the download has completed sucessfully.
         error_msg: The current error message, or None
         _bytes_done: How many bytes there are already downloaded.
         _bytes_total: The total count of bytes.
@@ -91,6 +92,7 @@ class DownloadItem(QObject):
         self._speed = 0
         self.error_msg = None
         self.basename = '???'
+        self.successful = False
         samples = int(self.SPEED_AVG_WINDOW *
                       (1000 / self.SPEED_REFRESH_INTERVAL))
         self._speed_avg = collections.deque(maxlen=samples)
@@ -111,6 +113,7 @@ class DownloadItem(QObject):
         if reply.error() != QNetworkReply.NoError:
             QTimer.singleShot(0, lambda: self.error.emit(reply.errorString()))
         if reply.isFinished():
+            self.successful = reply.error() != QNetworkReply.NoError
             QTimer.singleShot(0, self.finished.emit)
         self.timer = usertypes.Timer(self, 'speed_refresh')
         self.timer.timeout.connect(self.update_speed)
@@ -271,6 +274,7 @@ class DownloadItem(QObject):
         self._fileobj.close()
         self._reply.close()
         self._reply.deleteLater()
+        self.successful = True
         self.finished.emit()
         log.downloads.debug("Download finished")
 
