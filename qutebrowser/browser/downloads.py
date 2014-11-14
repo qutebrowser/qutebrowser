@@ -53,6 +53,8 @@ class DownloadItem(QObject):
     Attributes:
         successful: Whether the download has completed sucessfully.
         error_msg: The current error message, or None
+        autoclose: Whether to close the associated file if the download is
+                   done.
         _bytes_done: How many bytes there are already downloaded.
         _bytes_total: The total count of bytes.
                       None if the total is unknown.
@@ -87,6 +89,7 @@ class DownloadItem(QObject):
             reply: The QNetworkReply to download.
         """
         super().__init__(parent)
+        self.autoclose = False
         self._reply = reply
         self._bytes_total = None
         self._speed = 0
@@ -271,7 +274,8 @@ class DownloadItem(QObject):
         self._do_delayed_write = False
         if self._reply.isOpen():
             self._fileobj.write(self._reply.readAll())
-        self._fileobj.close()
+        if self.autoclose:
+            self._fileobj.close()
         self._reply.close()
         self._reply.deleteLater()
         self.successful = True
