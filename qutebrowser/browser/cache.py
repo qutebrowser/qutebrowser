@@ -25,7 +25,7 @@ from PyQt5.QtCore import QStandardPaths
 from PyQt5.QtNetwork import QNetworkDiskCache
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, standarddir
+from qutebrowser.utils import utils, standarddir, objreg
 
 
 class DiskCache(QNetworkDiskCache):
@@ -37,8 +37,14 @@ class DiskCache(QNetworkDiskCache):
         cache_dir = standarddir.get(QStandardPaths.CacheLocation)
         self.setCacheDirectory(os.path.join(cache_dir, 'http'))
         self.setMaximumCacheSize(config.get('storage', 'cache-size'))
+        objreg.get('config').changed.connect(self.cache_size_changed)
 
     def __repr__(self):
         return utils.get_repr(self, size=self.cacheSize(),
                               maxsize=self.maximumCacheSize(),
                               path=self.cacheDirectory())
+
+    @config.change_filter('storage', 'cache-size')
+    def cache_size_changed(self):
+        """Update cache size if the config was changed."""
+        self.setMaximumCacheSize(config.get('storage', 'cache-size'))
