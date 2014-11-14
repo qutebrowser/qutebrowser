@@ -427,7 +427,6 @@ class DownloadManager(QAbstractListModel):
             _inline, suggested_filename = http.parse_content_disposition(reply)
         log.downloads.debug("fetch: {} -> {}".format(reply.url(),
                                                      suggested_filename))
-
         download = DownloadItem(reply, self)
         download.finished.connect(
             functools.partial(self.on_finished, download))
