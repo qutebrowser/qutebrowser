@@ -35,6 +35,7 @@ from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import (message, http, usertypes, log, utils, urlutils,
                                objreg, standarddir, qtutils)
+from qutebrowser.network import networkmanager
 
 
 ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
@@ -370,6 +371,7 @@ class DownloadManager(QAbstractListModel):
     Attributes:
         downloads: A list of active DownloadItems.
         questions: A list of Question objects to not GC them.
+        _networkmanager: A NetworkManager for generic downloads.
         _win_id: The window ID the DownloadManager runs in.
     """
 
@@ -378,12 +380,13 @@ class DownloadManager(QAbstractListModel):
         self._win_id = win_id
         self.downloads = []
         self.questions = []
+        self._networkmanager = networkmanager.NetworkManager(win_id, self)
 
     def __repr__(self):
         return utils.get_repr(self, downloads=len(self.downloads))
 
     @pyqtSlot('QUrl', 'QWebPage')
-    def get(self, url, page, fileobj=None):
+    def get(self, url, page=None, fileobj=None):
         """Start a download with a link URL.
 
         Args:
@@ -395,7 +398,11 @@ class DownloadManager(QAbstractListModel):
             urlutils.invalid_url_error(self._win_id, url, "start download")
             return
         req = QNetworkRequest(url)
-        reply = page.networkAccessManager().get(req)
+        if page is None:
+            nam = self._networkmanager
+        else:
+            nam = page.networkAccessManager()
+        reply = nam.get(req)
         self.fetch(reply, fileobj)
 
     @cmdutils.register(instance='download-manager', scope='window')
