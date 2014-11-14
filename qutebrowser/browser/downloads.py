@@ -231,9 +231,10 @@ class DownloadItem(QObject):
             filename: The full filename to save the download to.
                       None: special value to stop the download.
         """
-        if self._filename is not None:
-            raise ValueError("Filename was already set! filename: {}, "
-                             "existing: {}".format(filename, self._filename))
+        if self.fileobj is not None:
+            raise ValueError("fileobj was already set! filename: {}, "
+                             "existing: {}, fileobj {}".format(
+                                 filename, self._filename, self.fileobj))
         filename = os.path.expanduser(filename)
         if os.path.isabs(filename) and os.path.isdir(filename):
             # We got an absolute directory from the user, so we save it under
@@ -255,7 +256,22 @@ class DownloadItem(QObject):
             self.basename = filename
         log.downloads.debug("Setting filename to {}".format(filename))
         try:
-            self.fileobj = open(self._filename, 'wb')
+            fileobj = open(self._filename, 'wb')
+        except OSError as e:
+            self._die(e.strerror)
+        self.set_fileobj(fileobj)
+
+    def set_fileobj(self, fileobj):
+        """"Set the file object to write the download to.
+
+        Args:
+            fileobj: A file-like object.
+        """
+        if self.fileobj is not None:
+            raise ValueError("fileobj was already set! Old: {}, new: "
+                             "{}".format(self.fileobj, fileobj))
+        self.fileobj = fileobj
+        try:
             if self._do_delayed_write:
                 # Downloading to the buffer in RAM has already finished so we
                 # write out the data and clean up now.
@@ -366,19 +382,20 @@ class DownloadManager(QAbstractListModel):
         return utils.get_repr(self, downloads=len(self.downloads))
 
     @pyqtSlot('QUrl', 'QWebPage')
-    def get(self, url, page):
+    def get(self, url, page, fileobj=None):
         """Start a download with a link URL.
 
         Args:
             url: The URL to get, as QUrl
             page: The QWebPage to get the download from.
+            fileobj: The file object to write the answer to.
         """
         if not url.isValid():
             urlutils.invalid_url_error(self._win_id, url, "start download")
             return
         req = QNetworkRequest(url)
         reply = page.networkAccessManager().get(req)
-        self.fetch(reply)
+        self.fetch(reply, fileobj)
 
     @cmdutils.register(instance='download-manager', scope='window')
     def cancel_download(self, count: {'special': 'count'}=1):
@@ -396,13 +413,17 @@ class DownloadManager(QAbstractListModel):
         download.cancel()
 
     @pyqtSlot('QNetworkReply')
-    def fetch(self, reply):
+    def fetch(self, reply, fileobj=None):
         """Download a QNetworkReply to disk.
 
         Args:
             reply: The QNetworkReply to download.
+            fileobj: The file object to write the answer to.
         """
-        _inline, suggested_filename = http.parse_content_disposition(reply)
+        if fileobj is not None and getattr(fileobj, 'name', None):
+            suggested_filename = fileobj.name
+        else:
+            _inline, suggested_filename = http.parse_content_disposition(reply)
         log.downloads.debug("fetch: {} -> {}".format(reply.url(),
                                                      suggested_filename))
 
@@ -418,19 +439,25 @@ class DownloadManager(QAbstractListModel):
         self.downloads.append(download)
         self.endInsertRows()
 
-        q = usertypes.Question(self)
-        q.text = "Save file to:"
-        q.mode = usertypes.PromptMode.text
-        q.default = suggested_filename
-        q.answered.connect(download.set_filename)
-        q.cancelled.connect(download.cancel)
-        q.completed.connect(q.deleteLater)
-        q.destroyed.connect(functools.partial(self.questions.remove, q))
-        self.questions.append(q)
-        download.cancelled.connect(q.abort)
-        message_bridge = objreg.get('message-bridge', scope='window',
-                                    window=self._win_id)
-        message_bridge.ask(q, blocking=False)
+        if fileobj is not None:
+            download.set_fileobj(fileobj)
+            download.autoclose = False
+        else:
+            q = usertypes.Question(self)
+            q.text = "Save file to:"
+            q.mode = usertypes.PromptMode.text
+            q.default = suggested_filename
+            q.answered.connect(download.set_filename)
+            q.cancelled.connect(download.cancel)
+            q.completed.connect(q.deleteLater)
+            q.destroyed.connect(functools.partial(self.questions.remove, q))
+            self.questions.append(q)
+            download.cancelled.connect(q.abort)
+            message_bridge = objreg.get('message-bridge', scope='window',
+                                        window=self._win_id)
+            message_bridge.ask(q, blocking=False)
+
+        return download
 
     @pyqtSlot(DownloadItem)
     def on_finished(self, download):
