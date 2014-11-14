@@ -154,6 +154,11 @@ class NetworkManager(QNetworkAccessManager):
         elif scheme in self._scheme_handlers:
             return self._scheme_handlers[scheme].createRequest(
                 op, req, outgoing_data)
+        if (op == QNetworkAccessManager.GetOperation and
+                req.url().host() in objreg.get('host-blocker').blocked_hosts):
+            return networkreply.ErrorNetworkReply(
+                req, "Request was blocked by host blocker.",
+                QNetworkReply.ContentAccessDenied)
         if config.get('network', 'do-not-track'):
             dnt = '1'.encode('ascii')
         else:
