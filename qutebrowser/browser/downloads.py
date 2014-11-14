@@ -59,7 +59,7 @@ class DownloadItem(QObject):
         _bytes_total: The total count of bytes.
                       None if the total is unknown.
         _speed: The current download speed, in bytes per second.
-        _fileobj: The file object to download the file to.
+        fileobj: The file object to download the file to.
         _filename: The filename of the download.
         _is_cancelled: Whether the download was cancelled.
         _speed_avg: A rolling average of speeds.
@@ -99,7 +99,7 @@ class DownloadItem(QObject):
         samples = int(self.SPEED_AVG_WINDOW *
                       (1000 / self.SPEED_REFRESH_INTERVAL))
         self._speed_avg = collections.deque(maxlen=samples)
-        self._fileobj = None
+        self.fileobj = None
         self._filename = None
         self._is_cancelled = False
         self._do_delayed_write = False
@@ -169,9 +169,9 @@ class DownloadItem(QObject):
         self._reply.abort()
         self._reply.deleteLater()
         self._reply = None
-        if self._fileobj is not None:
+        if self.fileobj is not None:
             try:
-                self._fileobj.close()
+                self.fileobj.close()
             except OSError as e:
                 self.error.emit(e.strerror)
         self.data_changed.emit()
@@ -218,8 +218,8 @@ class DownloadItem(QObject):
         if self._reply is not None:
             self._reply.abort()
             self._reply.deleteLater()
-        if self._fileobj is not None:
-            self._fileobj.close()
+        if self.fileobj is not None:
+            self.fileobj.close()
         if self._filename is not None and os.path.exists(self._filename):
             os.remove(self._filename)
         self.finished.emit()
@@ -255,7 +255,7 @@ class DownloadItem(QObject):
             self.basename = filename
         log.downloads.debug("Setting filename to {}".format(filename))
         try:
-            self._fileobj = open(self._filename, 'wb')
+            self.fileobj = open(self._filename, 'wb')
             if self._do_delayed_write:
                 # Downloading to the buffer in RAM has already finished so we
                 # write out the data and clean up now.
@@ -273,9 +273,9 @@ class DownloadItem(QObject):
         log.downloads.debug("Doing delayed write...")
         self._do_delayed_write = False
         if self._reply.isOpen():
-            self._fileobj.write(self._reply.readAll())
+            self.fileobj.write(self._reply.readAll())
         if self.autoclose:
-            self._fileobj.close()
+            self.fileobj.close()
         self._reply.close()
         self._reply.deleteLater()
         self.successful = True
@@ -308,8 +308,8 @@ class DownloadItem(QObject):
         self.timer.stop()
         if self._is_cancelled:
             return
-        log.downloads.debug("Reply finished, fileobj {}".format(self._fileobj))
-        if self._fileobj is None:
+        log.downloads.debug("Reply finished, fileobj {}".format(self.fileobj))
+        if self.fileobj is None:
             # We'll handle emptying the buffer and cleaning up as soon as the
             # filename is set.
             self._do_delayed_write = True
@@ -321,11 +321,11 @@ class DownloadItem(QObject):
     @pyqtSlot()
     def on_ready_read(self):
         """Read available data and save file when ready to read."""
-        if self._fileobj is None:
+        if self.fileobj is None:
             # No filename has been set yet, so we don't empty the buffer.
             return
         try:
-            self._fileobj.write(self._reply.readAll())
+            self.fileobj.write(self._reply.readAll())
         except OSError as e:
             self._die(e.strerror)
 
