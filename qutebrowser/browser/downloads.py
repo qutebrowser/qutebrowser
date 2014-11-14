@@ -370,6 +370,7 @@ class DownloadManager(QAbstractListModel):
     Attributes:
         downloads: A list of active DownloadItems.
         questions: A list of Question objects to not GC them.
+        _win_id: The window ID the DownloadManager runs in.
     """
 
     def __init__(self, win_id, parent=None):
