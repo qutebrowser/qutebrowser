@@ -353,7 +353,7 @@ class DownloadItem(QObject):
         if code == QNetworkReply.OperationCanceledError:
             return
         else:
-            self.error.emit(self._reply.errorString())
+            self._die(self._reply.errorString())
 
     @pyqtSlot()
     def update_speed(self):
