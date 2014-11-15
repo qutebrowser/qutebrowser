@@ -260,7 +260,8 @@ class DownloadItem(QObject):
             fileobj = open(self._filename, 'wb')
         except OSError as e:
             self._die(e.strerror)
-        self.set_fileobj(fileobj)
+        else:
+            self.set_fileobj(fileobj)
 
     def set_fileobj(self, fileobj):
         """"Set the file object to write the download to.
