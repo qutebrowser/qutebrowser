@@ -88,6 +88,7 @@ class DownloadView(QListView):
         model = objreg.get('download-manager', scope='window', window=win_id)
         model.rowsInserted.connect(functools.partial(update_geometry, self))
         model.rowsRemoved.connect(functools.partial(update_geometry, self))
+        model.dataChanged.connect(functools.partial(update_geometry, self))
         self.setModel(model)
         self.setWrapping(True)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
