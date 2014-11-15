@@ -117,7 +117,7 @@ class DownloadItem(QObject):
         if reply.error() != QNetworkReply.NoError:
             QTimer.singleShot(0, lambda: self.error.emit(reply.errorString()))
         if reply.isFinished():
-            self.successful = reply.error() != QNetworkReply.NoError
+            self.successful = reply.error() == QNetworkReply.NoError
             QTimer.singleShot(0, self.finished.emit)
         self.timer = usertypes.Timer(self, 'speed_refresh')
         self.timer.timeout.connect(self.update_speed)
@@ -293,9 +293,9 @@ class DownloadItem(QObject):
             self.fileobj.write(self._reply.readAll())
         if self.autoclose:
             self.fileobj.close()
+        self.successful = self._reply.error() == QNetworkReply.NoError
         self._reply.close()
         self._reply.deleteLater()
-        self.successful = True
         self.finished.emit()
         log.downloads.debug("Download finished")
 
