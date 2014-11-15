@@ -147,7 +147,14 @@ class HintManager(QObject):
             log.hints.debug("Disconnecting frame {}".format(f))
             if objreg.get('args').debug:
                 sip.dump(f)
-            f.contentsSizeChanged.disconnect(self.on_contents_size_changed)
+            try:
+                f.contentsSizeChanged.disconnect(self.on_contents_size_changed)
+            except TypeError:
+                # It seems we can get this here:
+                #   TypeError: disconnect() failed between
+                #   'contentsSizeChanged' and 'on_contents_size_changed'
+                # See # https://github.com/The-Compiler/qutebrowser/issues/263
+                pass
             log.hints.debug("Disconnected.")
         text = self.HINT_TEXTS[self._context.target]
         message_bridge = objreg.get('message-bridge', scope='window',
