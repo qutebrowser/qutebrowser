@@ -90,10 +90,13 @@ class HostBlocker:
             A set of the merged hosts.
         """
         self.blocked_hosts = set()
+        line_counts = {}
         for byte_io in self._done:
+            line_counts[byte_io.name] = 0
             byte_io.seek(0)
             f = io.TextIOWrapper(byte_io, encoding='utf-8')
             for line in f:
+                line_counts[byte_io.name] += 1
                 # Remove comments
                 try:
                     hash_idx = line.index('#')
@@ -116,6 +119,8 @@ class HostBlocker:
                     raise ValueError("Invalid line '{}'".format(line))
                 if host not in self.WHITELISTED:
                     self.blocked_hosts.add(host)
+        for name, lines in line_counts.items():
+            log.misc.debug("{}: read {} lines".format(name, lines))
 
     def on_lists_downloaded(self):
         """Install block lists after files have been downloaded."""
