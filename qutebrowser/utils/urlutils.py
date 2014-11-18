@@ -29,6 +29,7 @@ from PyQt5.QtNetwork import QHostInfo
 
 from qutebrowser.config import config
 from qutebrowser.utils import log, qtutils, message
+from qutebrowser.commands import cmdexc
 
 
 # FIXME: we probably could raise some exceptions on invalid URLs
@@ -270,6 +271,16 @@ def invalid_url_error(win_id, url, action):
     if url.errorString():
         errstring += " - {}".format(url.errorString())
     message.error(win_id, errstring)
+
+
+def raise_cmdexc_if_invalid(url):
+    """Check if the given QUrl is invalid, and if so, raise a CommandError."""
+    if not url.isValid():
+        errstr = "Invalid URL {}".format(url.toDisplayString())
+        url_error = url.errorString()
+        if url_error:
+            errstr += " - {}".format(url_error)
+        raise cmdexc.CommandError(errstr)
 
 
 class FuzzyUrlError(Exception):

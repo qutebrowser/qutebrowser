@@ -109,11 +109,7 @@ class CommandDispatcher:
             background: Whether to open in the background.
             window: Whether to open in a new window
         """
-        if not url.isValid():
-            errstr = "Invalid URL {}"
-            if url.errorString():
-                errstr += " - {}".format(url.errorString())
-            raise cmdexc.CommandError(errstr)
+        urlutils.raise_cmdexc_if_invalid(url)
         tabbed_browser = self._tabbed_browser()
         cmdutils.check_exclusive((tab, background, window), 'tbw')
         if window:
