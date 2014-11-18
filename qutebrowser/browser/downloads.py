@@ -159,6 +159,7 @@ class DownloadItem(QObject):
 
     def _die(self, msg):
         """Abort the download and emit an error."""
+        assert not self.successful
         self._reply.downloadProgress.disconnect()
         self._reply.finished.disconnect()
         self._reply.error.disconnect()
@@ -204,6 +205,7 @@ class DownloadItem(QObject):
         system = config.get('colors', 'downloads.bg.system')
         error = config.get('colors', 'downloads.bg.error')
         if self.error_msg is not None:
+            assert not self.successful
             return error
         elif self._percentage() is None:
             return start
@@ -537,8 +539,10 @@ class DownloadManager(QAbstractListModel):
             data = item
         elif role == Qt.ToolTipRole:
             if item.error_msg is None:
+                assert item.successful
                 data = QVariant()
             else:
+                assert not item.successful
                 return item.error_msg
         else:
             data = QVariant()
