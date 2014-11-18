@@ -389,8 +389,9 @@ class DownloadManager(QAbstractListModel):
     @cmdutils.register(instance='download-manager', scope='window')
     def download(self, url):
         """Download a given URL, given as string."""
-        qurl = urlutils.qurl_from_user_input(url)
-        self.get(qurl)
+        url = urlutils.qurl_from_user_input(url)
+        urlutils.raise_cmdexc_if_invalid(url)
+        self.get(url)
 
     @pyqtSlot('QUrl', 'QWebPage')
     def get(self, url, page=None, fileobj=None):
