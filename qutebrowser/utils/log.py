@@ -264,7 +264,7 @@ def qt_message_handler(msg_type, context, msg):
         # Not much information about this, but it seems harmless
         'QXcbWindow: Unhandled client message: "_GTK_LOAD_ICONTHEMES"',
         # Sometimes indicates missing text, but most of the time harmless
-        'load glyph failed err=\S+ face=\S+, glyph=\S+')
+        r'load glyph failed err=\S+ face=\S+, glyph=\S+')
     if any(re.match(pattern, msg.strip()) for pattern in suppressed_msgs):
         level = logging.DEBUG
     else:
