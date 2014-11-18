@@ -46,11 +46,6 @@ class NetworkManager(QNetworkAccessManager):
     """
 
     def __init__(self, win_id, parent=None):
-        # It seems QNetworkAccessManager somehow calls processEvents which
-        # causes some trouble, so we try to process outstanding events here
-        # first.
-        app = objreg.get('app')
-        app.processEvents()
         log.init.debug("Initializing NetworkManager")
         with log.disable_qt_msghandler():
             # WORKAROUND for a hang when a message is printed - See:
