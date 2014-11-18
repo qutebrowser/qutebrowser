@@ -90,7 +90,7 @@ class DownloadItem(QObject):
             reply: The QNetworkReply to download.
         """
         super().__init__(parent)
-        self.autoclose = False
+        self.autoclose = True
         self._reply = reply
         self._bytes_total = None
         self._speed = 0
