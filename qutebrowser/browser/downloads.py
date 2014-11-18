@@ -386,6 +386,12 @@ class DownloadManager(QAbstractListModel):
     def __repr__(self):
         return utils.get_repr(self, downloads=len(self.downloads))
 
+    @cmdutils.register(instance='download-manager', scope='window')
+    def download(self, url):
+        """Download a given URL, given as string."""
+        qurl = urlutils.qurl_from_user_input(url)
+        self.get(qurl)
+
     @pyqtSlot('QUrl', 'QWebPage')
     def get(self, url, page=None, fileobj=None):
         """Start a download with a link URL.
