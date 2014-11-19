@@ -19,8 +19,6 @@ https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] if
 you use qutebrowser already.
 ====
 
-* https://github.com/The-Compiler/qutebrowser/issues/99[Segfault when clicking
-close-button in javascript window]
 * https://github.com/The-Compiler/qutebrowser/issues?q=is%3Aopen+is%3Aissue+downloads+in%3Atitle+label%3Abug[multiple
 issues with downloads] (you probably shouldn't use them yet if you need to be
 sure the resulting file isn't corrupted).
