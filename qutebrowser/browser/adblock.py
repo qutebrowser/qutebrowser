@@ -39,7 +39,7 @@ class HostBlocker:
     Attributes:
         blocked_hosts: A set of blocked hosts.
         _in_progress: The DownloadItems which are currently downloading.
-        _done: The ByteIOs of successfully downloaded downloads.
+        _done_count: How many files have been read successfully.
         _hosts_file: The path to the blocked-hosts file.
 
     Class attributes:
@@ -52,7 +52,7 @@ class HostBlocker:
     def __init__(self):
         self.blocked_hosts = set()
         self._in_progress = []
-        self._done = []
+        self._done_count = 0
         data_dir = standarddir.get(QStandardPaths.DataLocation)
         self._hosts_file = os.path.join(data_dir, 'blocked-hosts')
         objreg.get('config').changed.connect(self.on_config_changed)
@@ -60,6 +60,7 @@ class HostBlocker:
     def read_hosts(self):
         """Read hosts from the existing blocked-hosts file."""
         self.blocked_hosts = set()
+        self._done_count = 0
         if os.path.exists(self._hosts_file):
             with open(self._hosts_file, 'r', encoding='utf-8') as f:
                 for line in f:
@@ -110,56 +111,52 @@ class HostBlocker:
             byte_io = zf.open(filename, mode='r')
         return io.TextIOWrapper(byte_io, encoding='utf-8')
 
-    def _merge_files(self):
+    def _merge_file(self, byte_io):
         """Read and merge host files.
+
+        Args:
+            byte_io: The BytesIO object of the completed download.
 
         Return:
             A set of the merged hosts.
         """
         self.blocked_hosts = set()
-        line_counts = {}
-        for byte_io in self._done:
-            line_counts[byte_io.name] = 0
-            f = self._get_fileobj(byte_io)
-            for line in f:
-                line_counts[byte_io.name] += 1
-                # Remove comments
-                try:
-                    hash_idx = line.index('#')
-                    line = line[:hash_idx]
-                except ValueError:
-                    pass
-                line = line.strip()
-                # Skip empty lines
-                if not line:
-                    continue
-                parts = line.split()
-                if len(parts) == 1:
-                    # "one host per line" format
-                    host = parts[0]
-                elif len(parts) == 2:
-                    # /etc/hosts format
-                    host = parts[1]
-                else:
-                    # FIXME what to do here?
-                    raise ValueError("Invalid line '{}'".format(line))
-                if host not in self.WHITELISTED:
-                    self.blocked_hosts.add(host)
-        for name, lines in line_counts.items():
-            log.misc.debug("{}: read {} lines".format(name, lines))
+        line_count = 0
+        f = self._get_fileobj(byte_io)
+        for line in f:
+            line_count += 1
+            # Remove comments
+            try:
+                hash_idx = line.index('#')
+                line = line[:hash_idx]
+            except ValueError:
+                pass
+            line = line.strip()
+            # Skip empty lines
+            if not line:
+                continue
+            parts = line.split()
+            if len(parts) == 1:
+                # "one host per line" format
+                host = parts[0]
+            elif len(parts) == 2:
+                # /etc/hosts format
+                host = parts[1]
+            else:
+                # FIXME what to do here?
+                raise ValueError("Invalid line '{}'".format(line))
+            if host not in self.WHITELISTED:
+                self.blocked_hosts.add(host)
+        log.misc.debug("{}: read {} lines".format(byte_io.name, line_count))
 
     def on_lists_downloaded(self):
         """Install block lists after files have been downloaded."""
-        self._merge_files()
-        for f in self._done:
-            f.close()
         with open(self._hosts_file, 'w', encoding='utf-8') as f:
             for host in sorted(self.blocked_hosts):
                 f.write(host + '\n')
             message.info('last-focused', "adblock: Read {} hosts from {} "
                          "sources.".format(len(self.blocked_hosts),
-                                           len(self._done)))
-        self._done = []
+                                           self._done_count))
 
     @config.change_filter('permissions', 'host-block-lists')
     def on_config_changed(self):
@@ -181,6 +178,10 @@ class HostBlocker:
         """
         self._in_progress.remove(download)
         if download.successful:
-            self._done.append(download.fileobj)
+            self._done_count += 1
+        try:
+            self._merge_file(download.fileobj)
+        finally:
+            download.fileobj.close()
         if not self._in_progress:
             self.on_lists_downloaded()
