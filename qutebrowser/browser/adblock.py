@@ -22,6 +22,8 @@
 import io
 import os.path
 import functools
+import posixpath
+import zipfile
 
 from PyQt5.QtCore import QStandardPaths
 
@@ -83,6 +85,31 @@ class HostBlocker:
             download.finished.connect(
                 functools.partial(self.on_download_finished, download))
 
+    def _guess_zip_filename(self, zf):
+        """Guess which file to use inside a zip file.
+
+        Args:
+            zf: A ZipFile instance.
+        """
+        files = zf.namelist()
+        if len(files) == 1:
+            return files[0]
+        else:
+            for e in files:
+                if posixpath.splitext(e)[0].lower() == 'hosts':
+                    return e
+        raise FileNotFoundError("No hosts file found in zip")
+
+    def _get_fileobj(self, byte_io):
+        """Get an usable file object to read the hosts file from."""
+        byte_io.seek(0)
+        if zipfile.is_zipfile(byte_io):
+            byte_io.seek(0)
+            zf = zipfile.ZipFile(byte_io)
+            filename = self._guess_zip_filename(zf)
+            byte_io = zf.open(filename, mode='r')
+        return io.TextIOWrapper(byte_io, encoding='utf-8')
+
     def _merge_files(self):
         """Read and merge host files.
 
@@ -93,8 +120,7 @@ class HostBlocker:
         line_counts = {}
         for byte_io in self._done:
             line_counts[byte_io.name] = 0
-            byte_io.seek(0)
-            f = io.TextIOWrapper(byte_io, encoding='utf-8')
+            f = self._get_fileobj(byte_io)
             for line in f:
                 line_counts[byte_io.name] += 1
                 # Remove comments

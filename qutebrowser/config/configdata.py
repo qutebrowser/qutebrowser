@@ -502,8 +502,8 @@ DATA = collections.OrderedDict([
          SettingValue(typ.UrlList(none_ok=True),
                       'http://www.malwaredomainlist.com/hostslist/hosts.txt,'
                       'http://someonewhocares.org/hosts/hosts,'
-                      'http://winhelp2002.mvps.org/hosts.txt,'
-                      'http://malwaredomains.lehigh.edu/files/justdomains,'
+                      'http://winhelp2002.mvps.org/hosts.zip,'
+                      'http://malwaredomains.lehigh.edu/files/justdomains.zip,'
                       'http://pgl.yoyo.org/adservers/serverlist.php?'
                       'hostformat=hosts&mimetype=plaintext'),
          "List of URLs of lists which contain hosts to block."),
