@@ -411,6 +411,10 @@ class DownloadManager(QAbstractListModel):
             urlutils.invalid_url_error(self._win_id, url, "start download")
             return
         req = QNetworkRequest(url)
+        # WORKAROUND for Qt corrupting data loaded from cache:
+        # https://bugreports.qt-project.org/browse/QTBUG-42757
+        req.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
+                         QNetworkRequest.AlwaysNetwork)
         if page is None:
             nam = self._networkmanager
         else:
