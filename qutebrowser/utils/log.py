@@ -19,7 +19,6 @@
 
 """Loggers and utilities related to logging."""
 
-import re
 import os
 import sys
 import html as pyhtml
@@ -255,7 +254,7 @@ def qt_message_handler(msg_type, context, msg):
         "libpng warning: iCCP: Not recognizing known sRGB profile that has "
         "been edited",
         # Hopefully harmless warning
-        "OpenType support missing for script [0-9]*",
+        "OpenType support missing for script ",
         # Error if a QNetworkReply gets two different errors set. Harmless Qt
         # bug on some pages.
         # https://bugreports.qt-project.org/browse/QTBUG-30298
@@ -264,27 +263,20 @@ def qt_message_handler(msg_type, context, msg):
         # Not much information about this, but it seems harmless
         'QXcbWindow: Unhandled client message: "_GTK_LOAD_ICONTHEMES"',
         # Sometimes indicates missing text, but most of the time harmless
-        r'load glyph failed err=\S+ face=\S+, glyph=\S+',
+        "load glyph failed ",
         # Harmless, see https://bugreports.qt-project.org/browse/QTBUG-42479
-        'content-type missing in HTTP POST, defaulting to '
-        'application/x-www-form-urlencoded. Use QNetworkRequest::setHeader() '
-        'to fix this problem.'
+        "content-type missing in HTTP POST, defaulting to "
+        "application/x-www-form-urlencoded. Use QNetworkRequest::setHeader() "
+        "to fix this problem."
     )
-    if any(re.match(pattern, msg.strip()) for pattern in suppressed_msgs):
+    if any(msg.strip().startswith(pattern) for pattern in suppressed_msgs):
         level = logging.DEBUG
     else:
         level = qt_to_logging[msg_type]
     if context.function is None:
         func = 'none'
     else:
-        # We get something like
-        # "void qt_png_warning(png_structp, png_const_charp)" from Qt, but only
-        # want "qt_png_warning".
-        match = re.match(r'.*( |::)(\w*)\(.*\)', context.function)
-        if match is not None:
-            func = match.group(2)
-        else:
-            func = context.function
+        func = context.function
     name = 'qt' if context.category == 'default' else 'qt-' + context.category
     if msg.splitlines()[0] == ('This application failed to start because it '
                                'could not find or load the Qt platform plugin '
