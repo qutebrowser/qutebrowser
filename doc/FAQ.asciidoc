@@ -9,7 +9,7 @@ What is qutebrowser based on?::
 +
 The concept of it is largely inspired by http://portix.bitbucket.org/dwb/[dwb]
 and http://www.vimperator.org/vimperator[Vimperator]. Many actions and
-keybindings are similiar to dwb.
+keybindings are similar to dwb.
 
 Why another browser?::
     It might be hard to believe, but I didn't find any browser which I was

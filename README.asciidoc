@@ -120,7 +120,7 @@ Contributors, sorted by the number of commits in descending order:
 Thanks / Similiar projects
 --------------------------
 
-Many projects with a similiar goal as qutebrowser exist:
+Many projects with a similar goal as qutebrowser exist:
 
 * http://portix.bitbucket.org/dwb/[dwb] (C, GTK+ with WebKit1, currently
 http://www.reddit.com/r/linux/comments/2huqbc/dwb_abandoned/[unmaintained] -

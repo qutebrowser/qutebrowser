@@ -60,7 +60,7 @@ def _missing_str(name, debian=None, arch=None, windows=None, pip=None):
         lines += windows.splitlines()
         blocks.append('<br />'.join(lines))
     lines = ["<b>For other distributions:</b>",
-             "Check your package manager for similiarly named packages or "
+             "Check your package manager for similarly named packages or "
              "install via pip."]
     blocks.append('<br />'.join(lines))
     if pip is not None:

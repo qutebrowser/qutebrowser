@@ -367,7 +367,7 @@ class RAMHandler(logging.Handler):
 
 class HTMLFormatter(logging.Formatter):
 
-    """Formatter for HTML-colored log messages, similiar to colorlog.
+    """Formatter for HTML-colored log messages, similar to colorlog.
 
     Attributes:
         _log_colors: The colors to use for logging levels.

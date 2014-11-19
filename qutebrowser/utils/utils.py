@@ -437,7 +437,7 @@ class prevent_exceptions:  # pylint: disable=invalid-name
     This needs to be used for some places where PyQt segfaults on exceptions or
     silently ignores them.
 
-    We used to re-raise the exception with a single-shot QTimer in a similiar
+    We used to re-raise the exception with a single-shot QTimer in a similar
     case, but that lead to a strange proble with a KeyError with some random
     jinja template stuff as content. For now, we only log it, so it doesn't
     pass 100% silently.
