@@ -264,7 +264,12 @@ def qt_message_handler(msg_type, context, msg):
         # Not much information about this, but it seems harmless
         'QXcbWindow: Unhandled client message: "_GTK_LOAD_ICONTHEMES"',
         # Sometimes indicates missing text, but most of the time harmless
-        r'load glyph failed err=\S+ face=\S+, glyph=\S+')
+        r'load glyph failed err=\S+ face=\S+, glyph=\S+',
+        # Harmless, see https://bugreports.qt-project.org/browse/QTBUG-42479
+        'content-type missing in HTTP POST, defaulting to '
+        'application/x-www-form-urlencoded. Use QNetworkRequest::setHeader() '
+        'to fix this problem.'
+    )
     if any(re.match(pattern, msg.strip()) for pattern in suppressed_msgs):
         level = logging.DEBUG
     else:
