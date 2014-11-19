@@ -191,9 +191,9 @@ class HostBlocker:
         self._in_progress.remove(download)
         if download.successful:
             self._done_count += 1
-        try:
-            self._merge_file(download.fileobj)
-        finally:
-            download.fileobj.close()
+            try:
+                self._merge_file(download.fileobj)
+            finally:
+                download.fileobj.close()
         if not self._in_progress:
             self.on_lists_downloaded()
