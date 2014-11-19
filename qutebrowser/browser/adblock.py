@@ -60,7 +60,6 @@ class HostBlocker:
     def read_hosts(self):
         """Read hosts from the existing blocked-hosts file."""
         self.blocked_hosts = set()
-        self._done_count = 0
         if os.path.exists(self._hosts_file):
             with open(self._hosts_file, 'r', encoding='utf-8') as f:
                 for line in f:
@@ -73,6 +72,8 @@ class HostBlocker:
     @cmdutils.register(instance='host-blocker')
     def adblock_update(self):
         """Update the adblock block lists."""
+        self.blocked_hosts = set()
+        self._done_count = 0
         urls = config.get('permissions', 'host-block-lists')
         download_manager = objreg.get('download-manager', scope='window',
                                       window='last-focused')
