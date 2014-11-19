@@ -121,9 +121,17 @@ class HostBlocker:
         Return:
             A set of the merged hosts.
         """
+        error_count = 0
         self.blocked_hosts = set()
         line_count = 0
-        f = self._get_fileobj(byte_io)
+        try:
+            f = self._get_fileobj(byte_io)
+        except (FileNotFoundError, UnicodeDecodeError, zipfile.BadZipFile,
+                zipfile.LargeZipFile) as e:
+            message.error('last-focused', "adblock: Error while reading {}: "
+                          "{} - {}".format(
+                              byte_io.name, e.__class__.__name__, e))
+            return
         for line in f:
             line_count += 1
             # Remove comments
@@ -144,11 +152,14 @@ class HostBlocker:
                 # /etc/hosts format
                 host = parts[1]
             else:
-                # FIXME what to do here?
-                raise ValueError("Invalid line '{}'".format(line))
+                error_count += 1
+                continue
             if host not in self.WHITELISTED:
                 self.blocked_hosts.add(host)
         log.misc.debug("{}: read {} lines".format(byte_io.name, line_count))
+        if error_count > 0:
+            message.error('last-focused', "adblock: {} read errors for "
+                          "{}".format(bytes_io.name))
 
     def on_lists_downloaded(self):
         """Install block lists after files have been downloaded."""
