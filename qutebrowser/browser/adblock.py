@@ -132,6 +132,8 @@ class HostBlocker:
             zf = zipfile.ZipFile(byte_io)
             filename = self._guess_zip_filename(zf)
             byte_io = zf.open(filename, mode='r')
+        else:
+            byte_io.seek(0)
         return io.TextIOWrapper(byte_io, encoding='utf-8')
 
     def _merge_file(self, byte_io):
