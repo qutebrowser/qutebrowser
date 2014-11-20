@@ -390,7 +390,12 @@ class DownloadManager(QAbstractListModel):
 
     @cmdutils.register(instance='download-manager', scope='window')
     def download(self, url, dest=None):
-        """Download a given URL, given as string."""
+        """Download a given URL, given as string.
+
+        Args:
+            url: The URL to download
+            dest: The file path to write the download to, or None to ask.
+        """
         url = urlutils.qurl_from_user_input(url)
         urlutils.raise_cmdexc_if_invalid(url)
         self.get(url, filename=dest)

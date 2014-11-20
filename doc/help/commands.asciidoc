@@ -9,6 +9,7 @@
 |<<bind,bind>>|Bind a key to a command.
 |<<cancel-download,cancel-download>>|Cancel the first/[count]th download.
 |<<close,close>>|Close the current window.
+|<<download,download>>|Download a given URL, given as string.
 |<<download-page,download-page>>|Download the current page.
 |<<forward,forward>>|Go forward in the history of the current tab.
 |<<help,help>>|Show help about a command or setting.
@@ -87,6 +88,16 @@ The index of the download to cancel.
 [[close]]
 === close
 Close the current window.
+
+[[download]]
+=== download
+Syntax: +:download 'url' ['dest']+
+
+Download a given URL, given as string.
+
+==== positional arguments
+* +'url'+: The URL to download
+* +'dest'+: The file path to write the download to to ask.
 
 [[download-page]]
 === download-page
