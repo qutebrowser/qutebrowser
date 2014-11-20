@@ -20,16 +20,28 @@
 """Functions related to adblocking."""
 
 import io
+import sys
 import os.path
 import functools
+import itertools
 import posixpath
 import zipfile
 
 from PyQt5.QtCore import QStandardPaths
 
 from qutebrowser.config import config
-from qutebrowser.utils import objreg, standarddir, log, message
+from qutebrowser.utils import objreg, standarddir, log, message, utils
 from qutebrowser.commands import cmdutils
+
+
+class FakeDownload:
+
+    """A download stub to use on_download_finished with local files."""
+
+    def __init__(self, fileobj):
+        self.basename = os.path.basename(fileobj.name)
+        self.fileobj = fileobj
+        self.successful = True
 
 
 class HostBlocker:
@@ -64,6 +76,10 @@ class HostBlocker:
             with open(self._hosts_file, 'r', encoding='utf-8') as f:
                 for line in f:
                     self.blocked_hosts.add(line.strip())
+            space = sum(itertools.chain([sys.getsizeof(self.blocked_hosts)],
+                        (sys.getsizeof(e) for e in self.blocked_hosts)))
+            log.misc.debug("RAM used for adblock host list: {}".format(
+                utils.format_size(space, suffix='B')))
         else:
             if config.get('permissions', 'host-block-lists') is not None:
                 message.info('last-focused',
@@ -80,12 +96,18 @@ class HostBlocker:
         if urls is None:
             return
         for url in urls:
-            fobj = io.BytesIO()
-            fobj.name = 'adblock: ' + url.host()
-            download = download_manager.get(url, fileobj=fobj)
-            self._in_progress.append(download)
-            download.finished.connect(
-                functools.partial(self.on_download_finished, download))
+            if url.scheme() == 'file':
+                fileobj = open(url.path(), 'rb')
+                download = FakeDownload(fileobj)
+                self._in_progress.append(download)
+                self.on_download_finished(download)
+            else:
+                fobj = io.BytesIO()
+                fobj.name = 'adblock: ' + url.host()
+                download = download_manager.get(url, fileobj=fobj)
+                self._in_progress.append(download)
+                download.finished.connect(
+                    functools.partial(self.on_download_finished, download))
 
     def _guess_zip_filename(self, zf):
         """Guess which file to use inside a zip file.
