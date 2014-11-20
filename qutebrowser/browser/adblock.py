@@ -126,14 +126,14 @@ class HostBlocker:
 
     def _get_fileobj(self, byte_io):
         """Get an usable file object to read the hosts file from."""
-        byte_io.seek(0)
+        byte_io.seek(0)  # rewind downloaded file
         if zipfile.is_zipfile(byte_io):
-            byte_io.seek(0)
+            byte_io.seek(0)  # rewind what zipfile.is_zipfile did
             zf = zipfile.ZipFile(byte_io)
             filename = self._guess_zip_filename(zf)
             byte_io = zf.open(filename, mode='r')
         else:
-            byte_io.seek(0)
+            byte_io.seek(0)  # rewind what zipfile.is_zipfile did
         return io.TextIOWrapper(byte_io, encoding='utf-8')
 
     def _merge_file(self, byte_io):
