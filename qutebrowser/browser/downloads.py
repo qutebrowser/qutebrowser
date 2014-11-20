@@ -389,24 +389,27 @@ class DownloadManager(QAbstractListModel):
         return utils.get_repr(self, downloads=len(self.downloads))
 
     @cmdutils.register(instance='download-manager', scope='window')
-    def download(self, url):
+    def download(self, url, dest=None):
         """Download a given URL, given as string."""
         url = urlutils.qurl_from_user_input(url)
         urlutils.raise_cmdexc_if_invalid(url)
-        self.get(url)
+        self.get(url, filename=dest)
 
     @pyqtSlot('QUrl', 'QWebPage')
-    def get(self, url, page=None, fileobj=None):
+    def get(self, url, page=None, fileobj=None, filename=None):
         """Start a download with a link URL.
 
         Args:
             url: The URL to get, as QUrl
             page: The QWebPage to get the download from.
             fileobj: The file object to write the answer to.
+            filename: A path to write the data to.
 
         Return:
             The created DownloadItem.
         """
+        if fileobj is not None and filename is not None:
+            raise TypeError("Only one of fileobj/filename may be given!")
         if not url.isValid():
             urlutils.invalid_url_error(self._win_id, url, "start download")
             return
@@ -420,7 +423,7 @@ class DownloadManager(QAbstractListModel):
         else:
             nam = page.networkAccessManager()
         reply = nam.get(req)
-        return self.fetch(reply, fileobj)
+        return self.fetch(reply, fileobj, filename)
 
     @cmdutils.register(instance='download-manager', scope='window')
     def cancel_download(self, count: {'special': 'count'}=1):
@@ -438,17 +441,22 @@ class DownloadManager(QAbstractListModel):
         download.cancel()
 
     @pyqtSlot('QNetworkReply')
-    def fetch(self, reply, fileobj=None):
+    def fetch(self, reply, fileobj=None, filename=None):
         """Download a QNetworkReply to disk.
 
         Args:
             reply: The QNetworkReply to download.
             fileobj: The file object to write the answer to.
+            filename: A path to write the data to.
 
         Return:
             The created DownloadItem.
         """
-        if fileobj is not None and getattr(fileobj, 'name', None):
+        if fileobj is not None and filename is not None:
+            raise TypeError("Only one of fileobj/filename may be given!")
+        if filename is not None:
+            suggested_filename = os.path.basename(filename)
+        elif fileobj is not None and getattr(fileobj, 'name', None):
             suggested_filename = fileobj.name
         else:
             _inline, suggested_filename = http.parse_content_disposition(reply)
@@ -466,7 +474,9 @@ class DownloadManager(QAbstractListModel):
         self.downloads.append(download)
         self.endInsertRows()
 
-        if fileobj is not None:
+        if filename is not None:
+            download.set_filename(filename)
+        elif fileobj is not None:
             download.set_fileobj(fileobj)
             download.autoclose = False
         else:
