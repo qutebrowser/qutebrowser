@@ -146,7 +146,6 @@ class HostBlocker:
             A set of the merged hosts.
         """
         error_count = 0
-        self.blocked_hosts = set()
         line_count = 0
         try:
             f = self._get_fileobj(byte_io)
