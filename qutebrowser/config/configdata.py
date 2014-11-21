@@ -380,6 +380,10 @@ DATA = collections.OrderedDict([
         ('indicator-space',
          SettingValue(typ.Int(minval=0), '3'),
          "Spacing between tab edge and indicator."),
+
+        ('tabs-are-windows',
+         SettingValue(typ.Bool(), 'false'),
+         "Whether to open windows instead of tabs."),
     )),
 
     ('storage', sect.KeyValue(

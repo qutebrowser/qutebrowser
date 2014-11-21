@@ -320,6 +320,12 @@ class TabbedBrowser(tabwidget.TabWidget):
         if url is not None:
             qtutils.ensure_valid(url)
         log.webview.debug("Creating new tab with URL {}".format(url))
+        if config.get('tabs', 'tabs-are-windows') and self.count() > 0:
+            from qutebrowser.widgets import mainwindow
+            window = mainwindow.MainWindow.spawn()
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=window)
+            return tabbed_browser.tabopen(url, background, explicit)
         tab = webview.WebView(self._win_id, self)
         self._connect_tab_signals(tab)
         if explicit:
