@@ -512,15 +512,17 @@ class Application(QApplication):
         """Quit qutebrowser."""
         QApplication.closeAllWindows()
 
-    @cmdutils.register(instance='app', ignore_args=True)
-    def restart(self, shutdown=True, pages=None):
-        """Restart qutebrowser while keeping existing tabs open."""
-        if pages is None:
-            pages = self._recover_pages()
-        log.destroy.debug("sys.executable: {}".format(sys.executable))
-        log.destroy.debug("sys.path: {}".format(sys.path))
-        log.destroy.debug("sys.argv: {}".format(sys.argv))
-        log.destroy.debug("frozen: {}".format(hasattr(sys, 'frozen')))
+    def _get_restart_args(self, pages):
+        """Get the current working directory and args to relaunch qutebrowser.
+
+        Args:
+            pages: The pages to re-open.
+
+        Return:
+            An (args, cwd) tuple.
+                args: The commandline as a list of strings.
+                cwd: The current working directory as a string.
+        """
         if os.path.basename(sys.argv[0]) == 'qutebrowser':
             # Launched via launcher script
             args = [sys.argv[0]]
@@ -545,6 +547,18 @@ class Application(QApplication):
             args.extend(page_args[:-1])
         log.destroy.debug("args: {}".format(args))
         log.destroy.debug("cwd: {}".format(cwd))
+        return args, cwd
+
+    @cmdutils.register(instance='app', ignore_args=True)
+    def restart(self, shutdown=True, pages=None):
+        """Restart qutebrowser while keeping existing tabs open."""
+        if pages is None:
+            pages = self._recover_pages()
+        log.destroy.debug("sys.executable: {}".format(sys.executable))
+        log.destroy.debug("sys.path: {}".format(sys.path))
+        log.destroy.debug("sys.argv: {}".format(sys.argv))
+        log.destroy.debug("frozen: {}".format(hasattr(sys, 'frozen')))
+        args, cwd = self._get_restart_args(pages)
         # Open a new process and immediately shutdown the existing one
         try:
             if cwd is None:

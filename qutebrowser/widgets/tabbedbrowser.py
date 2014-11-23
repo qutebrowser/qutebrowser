@@ -328,6 +328,26 @@ class TabbedBrowser(tabwidget.TabWidget):
             return tabbed_browser.tabopen(url, background, explicit)
         tab = webview.WebView(self._win_id, self)
         self._connect_tab_signals(tab)
+        idx = self._get_new_tab_idx(explicit)
+        self.insertTab(idx, tab, "")
+        if url is not None:
+            tab.openurl(url)
+        if background is None:
+            background = config.get('tabs', 'background-tabs')
+        if not background:
+            self.setCurrentWidget(tab)
+        tab.show()
+        return tab
+
+    def _get_new_tab_idx(self, explicit):
+        """Get the index of a tab to insert.
+
+        Args:
+            explicit: Whether the tab was opened explicitely.
+
+        Return:
+            The index of the new tab.
+        """
         if explicit:
             pos = config.get('tabs', 'new-tab-position-explicit')
         else:
@@ -352,15 +372,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                           "next left: {} / right: {}".format(
                               pos, idx, self._tab_insert_idx_left,
                               self._tab_insert_idx_right))
-        self.insertTab(idx, tab, "")
-        if url is not None:
-            tab.openurl(url)
-        if background is None:
-            background = config.get('tabs', 'background-tabs')
-        if not background:
-            self.setCurrentWidget(tab)
-        tab.show()
-        return tab
+        return idx
 
     @pyqtSlot(str, int)
     def search(self, text, flags):
