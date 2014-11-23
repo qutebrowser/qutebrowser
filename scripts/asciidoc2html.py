@@ -50,12 +50,12 @@ def call_asciidoc(src, dst):
     args.append(src)
     try:
         subprocess.check_call(args)
-    except (subprocess.CalledProcessError, OSError) as e:
-        utils.print_col(str(e), 'red')
-        sys.exit(1)
     except FileNotFoundError:
         utils.print_col("asciidoc needs to be installed to use this script!",
                         'red')
+        sys.exit(1)
+    except (subprocess.CalledProcessError, OSError) as e:
+        utils.print_col(str(e), 'red')
         sys.exit(1)
 
 
