@@ -50,6 +50,7 @@ class DownloadItem(QObject):
         SPEED_REFRESH_INTERVAL: How often to refresh the speed, in msec.
         SPEED_AVG_WINDOW: How many seconds of speed data to average to
                           estimate the remaining time.
+        MAX_REDIRECTS: The maximum redirection count.
 
     Attributes:
         successful: Whether the download has completed sucessfully.
@@ -67,6 +68,7 @@ class DownloadItem(QObject):
         _reply: The QNetworkReply associated with this download.
         _last_done: The count of bytes which where downloaded when calculating
                     the speed the last time.
+        _redirects: How many time we were redirected already.
 
     Signals:
         data_changed: The downloads metadata changed.
@@ -74,14 +76,19 @@ class DownloadItem(QObject):
         cancelled: The download was cancelled.
         error: An error with the download occured.
                arg: The error message as string.
+        redirected: Signal emitted when a download was redirected.
+            arg 0: The new QNetworkRequest.
+            arg 1: The old QNetworkReply.
     """
 
+    MAX_REDIRECTS = 10
     SPEED_REFRESH_INTERVAL = 500
     SPEED_AVG_WINDOW = 30
     data_changed = pyqtSignal()
     finished = pyqtSignal()
     error = pyqtSignal(str)
     cancelled = pyqtSignal()
+    redirected = pyqtSignal(QNetworkRequest, QNetworkReply)
 
     def __init__(self, reply, parent=None):
         """Constructor.
@@ -91,7 +98,8 @@ class DownloadItem(QObject):
         """
         super().__init__(parent)
         self.autoclose = True
-        self._reply = reply
+        self._reply = None
+        self._redirects = 0
         self._bytes_total = None
         self._speed = 0
         self.error_msg = None
@@ -106,19 +114,7 @@ class DownloadItem(QObject):
         self._do_delayed_write = False
         self._bytes_done = 0
         self._last_done = 0
-        reply.setReadBufferSize(16 * 1024 * 1024)
-        reply.downloadProgress.connect(self.on_download_progress)
-        reply.finished.connect(self.on_reply_finished)
-        reply.error.connect(self.on_reply_error)
-        reply.readyRead.connect(self.on_ready_read)
-        # We could have got signals before we connected slots to them.
-        # Here no signals are connected to the DownloadItem yet, so we use a
-        # singleShot QTimer to emit them after they are connected.
-        if reply.error() != QNetworkReply.NoError:
-            QTimer.singleShot(0, lambda: self.error.emit(reply.errorString()))
-        if reply.isFinished():
-            self.successful = reply.error() == QNetworkReply.NoError
-            QTimer.singleShot(0, self.finished.emit)
+        self.init_reply(reply)
         self.timer = usertypes.Timer(self, 'speed_refresh')
         self.timer.timeout.connect(self.update_speed)
         self.timer.setInterval(self.SPEED_REFRESH_INTERVAL)
@@ -197,6 +193,27 @@ class DownloadItem(QObject):
             return None
         else:
             return remaining_bytes / avg
+
+    def init_reply(self, reply):
+        """Set a new reply and connect its signals.
+
+        Args:
+            reply: The QNetworkReply to handle.
+        """
+        self._reply = reply
+        reply.setReadBufferSize(16 * 1024 * 1024)
+        reply.downloadProgress.connect(self.on_download_progress)
+        reply.finished.connect(self.on_reply_finished)
+        reply.error.connect(self.on_reply_error)
+        reply.readyRead.connect(self.on_ready_read)
+        # We could have got signals before we connected slots to them.
+        # Here no signals are connected to the DownloadItem yet, so we use a
+        # singleShot QTimer to emit them after they are connected.
+        if reply.error() != QNetworkReply.NoError:
+            QTimer.singleShot(0, lambda: self.error.emit(reply.errorString()))
+        if reply.isFinished():
+            self.successful = reply.error() == QNetworkReply.NoError
+            QTimer.singleShot(0, self.finished.emit)
 
     def bg_color(self):
         """Background color to be shown."""
@@ -326,6 +343,9 @@ class DownloadItem(QObject):
         """
         self._bytes_done = self._bytes_total
         self.timer.stop()
+        is_redirected = self._handle_redirect()
+        if is_redirected:
+            return
         if self._is_cancelled:
             return
         log.downloads.debug("Reply finished, fileobj {}".format(self.fileobj))
@@ -356,6 +376,35 @@ class DownloadItem(QObject):
             return
         else:
             self._die(self._reply.errorString())
+
+    def _handle_redirect(self):
+        """Handle a HTTP redirect.
+
+        Return:
+            True if the download was redirected, False otherwise.
+        """
+        redirect = self._reply.attribute(
+            QNetworkRequest.RedirectionTargetAttribute)
+        if redirect is None or redirect.isEmpty():
+            return False
+        new_url = self._reply.url().resolved(redirect)
+        request = self._reply.request()
+        if new_url == request.url():
+            return False
+
+        if self._redirects > self.MAX_REDIRECTS:
+            self._die("Maximum redirection count reached!")
+            return True  # so on_reply_finished aborts
+
+        log.downloads.debug("{}: Handling redirect".format(self))
+        self._redirects += 1
+        request.setUrl(new_url)
+        reply = self._reply
+        reply.finished.disconnect(self.on_reply_finished)
+        self._reply = None
+        self.redirected.emit(request, reply)  # this will change self._reply!
+        reply.deleteLater()  # the old one
+        return True
 
     @pyqtSlot()
     def update_speed(self):
@@ -473,6 +522,8 @@ class DownloadManager(QAbstractListModel):
         download.data_changed.connect(
             functools.partial(self.on_data_changed, download))
         download.error.connect(self.on_error)
+        download.redirected.connect(
+            functools.partial(self.on_redirect, download))
         download.basename = suggested_filename
         idx = len(self.downloads) + 1
         self.beginInsertRows(QModelIndex(), idx, idx)
@@ -500,6 +551,20 @@ class DownloadManager(QAbstractListModel):
             message_bridge.ask(q, blocking=False)
 
         return download
+
+    @pyqtSlot(QNetworkRequest, QNetworkReply)
+    def on_redirect(self, download, request, reply):
+        """Handle a HTTP redirect of a download.
+
+        Args:
+            download: The old DownloadItem.
+            request: The new QNetworkRequest.
+            reply: The old QNetworkReply.
+        """
+        log.downloads.debug("redirected: {} -> {}".format(
+            reply.url(), request.url()))
+        new_reply = reply.manager().get(request)
+        download.init_reply(new_reply)
 
     @pyqtSlot(DownloadItem)
     def on_finished(self, download):
