@@ -96,7 +96,7 @@ def _run_subprocess(name, args):
     """Run a checker via subprocess."""
     try:
         return subprocess.call([name] + args)
-    except FileNotFoundError:
+    except OSError:
         traceback.print_exc()
         return None
 

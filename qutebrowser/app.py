@@ -546,12 +546,16 @@ class Application(QApplication):
         log.destroy.debug("args: {}".format(args))
         log.destroy.debug("cwd: {}".format(cwd))
         # Open a new process and immediately shutdown the existing one
-        if cwd is None:
-            subprocess.Popen(args)
+        try:
+            if cwd is None:
+                subprocess.Popen(args)
+            else:
+                subprocess.Popen(args, cwd=cwd)
+        except OSError as e:
+            log.destroy.error("Failed to restart: {}".format(e))
         else:
-            subprocess.Popen(args, cwd=cwd)
-        if shutdown:
-            self.shutdown()
+            if shutdown:
+                self.shutdown()
 
     @cmdutils.register(instance='app', split=False, debug=True)
     def debug_pyeval(self, s):

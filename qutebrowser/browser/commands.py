@@ -794,7 +794,11 @@ class CommandDispatcher:
             *args: The commandline to execute.
         """
         log.procs.debug("Executing: {}".format(args))
-        subprocess.Popen(args)
+        try:
+            subprocess.Popen(args)
+        except OSError as e:
+            raise cmdexc.CommandError("Error while spawning command: "
+                                      "{}".format(e))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def home(self):

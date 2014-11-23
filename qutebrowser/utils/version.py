@@ -96,7 +96,7 @@ def _git_str_subprocess(gitpath):
             ['git', 'show', '-s', '--format=%ci', 'HEAD'],
             cwd=gitpath).decode('UTF-8').strip()
         return '{} ({})'.format(cid, date)
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    except (subprocess.CalledProcessError, OSError):
         return None
 
 

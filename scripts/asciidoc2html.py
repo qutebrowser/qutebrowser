@@ -50,7 +50,7 @@ def call_asciidoc(src, dst):
     args.append(src)
     try:
         subprocess.check_call(args)
-    except subprocess.CalledProcessError as e:
+    except (subprocess.CalledProcessError, OSError) as e:
         utils.print_col(str(e), 'red')
         sys.exit(1)
     except FileNotFoundError:

@@ -78,7 +78,7 @@ def _git_str():
             ['git', 'show', '-s', '--format=%ci', 'HEAD'],
             cwd=BASEDIR).decode('UTF-8').strip()
         return '{} ({})'.format(cid, date)
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    except (subprocess.CalledProcessError, OSError):
         return None
 
 

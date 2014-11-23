@@ -420,7 +420,11 @@ class HintManager(QObject):
         """Spawn a simple command from a hint."""
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
         args = self._context.get_args(urlstr)
-        subprocess.Popen(args)
+        try:
+            subprocess.Popen(args)
+        except OSError as e:
+            msg = "Error while spawning command: {}".format(e)
+            message.error(self._win_id, msg, immediately=True)
 
     def _resolve_url(self, elem, baseurl=None):
         """Resolve a URL and check if we want to keep it.
