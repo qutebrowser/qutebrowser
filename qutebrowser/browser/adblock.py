@@ -202,8 +202,6 @@ class HostBlocker:
                 os.remove(self._hosts_file)
             except IOError:
                 log.misc.exception("Failed to delete hosts file.")
-        else:
-            self.adblock_update()
 
     def on_download_finished(self, download):
         """Check if all downloads are finished and if so, trigger reading.
