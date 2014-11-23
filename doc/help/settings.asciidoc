@@ -89,6 +89,7 @@
 |<<tabs-width,width>>|The width of the tab bar if it's vertical, in px or as percentage of the window.
 |<<tabs-indicator-width,indicator-width>>|Width of the progress indicator (0 to disable).
 |<<tabs-indicator-space,indicator-space>>|Spacing between tab edge and indicator.
+|<<tabs-tabs-are-windows,tabs-are-windows>>|Whether to open windows instead of tabs.
 |==============
 
 .Quick reference for section ``storage''
@@ -640,6 +641,12 @@ Default: +pass:[3]+
 Spacing between tab edge and indicator.
 
 Default: +pass:[3]+
+
+[[tabs-tabs-are-windows]]
+=== tabs-are-windows
+Whether to open windows instead of tabs.
+
+Default: +pass:[false]+
 
 == storage
 Settings related to cache and storage.
