@@ -623,10 +623,8 @@ class DownloadManager(QAbstractListModel):
             data = item
         elif role == Qt.ToolTipRole:
             if item.error_msg is None:
-                assert item.successful
                 data = QVariant()
             else:
-                assert not item.successful
                 return item.error_msg
         else:
             data = QVariant()
