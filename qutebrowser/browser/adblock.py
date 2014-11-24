@@ -20,10 +20,8 @@
 """Functions related to adblocking."""
 
 import io
-import sys
 import os.path
 import functools
-import itertools
 import posixpath
 import zipfile
 
@@ -76,10 +74,6 @@ class HostBlocker:
             with open(self._hosts_file, 'r', encoding='utf-8') as f:
                 for line in f:
                     self.blocked_hosts.add(line.strip())
-            space = sum(itertools.chain([sys.getsizeof(self.blocked_hosts)],
-                        (sys.getsizeof(e) for e in self.blocked_hosts)))
-            log.misc.debug("RAM used for adblock host list: {}".format(
-                utils.format_size(space, suffix='B')))
         else:
             if config.get('permissions', 'host-block-lists') is not None:
                 message.info('last-focused',
