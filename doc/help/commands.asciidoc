@@ -5,6 +5,7 @@
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Command|Description
+|<<adblock-update,adblock-update>>|Update the adblock block lists.
 |<<back,back>>|Go back in the history of the current tab.
 |<<bind,bind>>|Bind a key to a command.
 |<<cancel-download,cancel-download>>|Cancel the first/[count]th download.
@@ -50,6 +51,10 @@
 |<<zoom-in,zoom-in>>|Increase the zoom level for the current tab.
 |<<zoom-out,zoom-out>>|Decrease the zoom level for the current tab.
 |==============
+[[adblock-update]]
+=== adblock-update
+Update the adblock block lists.
+
 [[back]]
 === back
 Syntax: +:back [*--tab*] [*--bg*] [*--window*]+
