@@ -156,6 +156,8 @@ class NetworkManager(QNetworkAccessManager):
                 op, req, outgoing_data)
         if (op == QNetworkAccessManager.GetOperation and
                 req.url().host() in objreg.get('host-blocker').blocked_hosts):
+            log.webview.info("Request to {} blocked by host blocker.".format(
+                req.url().host()))
             return networkreply.ErrorNetworkReply(
                 req, "Request was blocked by host blocker.",
                 QNetworkReply.ContentAccessDenied)
