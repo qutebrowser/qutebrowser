@@ -28,7 +28,7 @@ import zipfile
 from PyQt5.QtCore import QStandardPaths
 
 from qutebrowser.config import config
-from qutebrowser.utils import objreg, standarddir, log, message, utils
+from qutebrowser.utils import objreg, standarddir, log, message
 from qutebrowser.commands import cmdutils
 
 
