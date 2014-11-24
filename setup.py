@@ -26,8 +26,6 @@ import os.path
 
 from scripts import setupcommon as common
 
-from scripts import ez_setup
-ez_setup.use_setuptools()
 import setuptools
 
 
