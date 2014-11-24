@@ -402,6 +402,8 @@ class DownloadItem(QObject):
         reply = self._reply
         reply.finished.disconnect(self.on_reply_finished)
         self._reply = None
+        if self.fileobj is not None:
+            self.fileobj.seek(0)
         self.redirected.emit(request, reply)  # this will change self._reply!
         reply.deleteLater()  # the old one
         return True
