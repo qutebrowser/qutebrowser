@@ -507,7 +507,12 @@ DATA = collections.OrderedDict([
                       'http://pgl.yoyo.org/adservers/serverlist.php?'
                       'hostformat=hosts&mimetype=plaintext,'
                       'http://hosts-file.net/download/hosts.zip'),
-         "List of URLs of lists which contain hosts to block."),
+         "List of URLs of lists which contain hosts to block.\n\n"
+         "The file can be in one of the following formats:\n\n"
+         "- An '/etc/hosts'-like file\n"
+         "- One host per line\n"
+         "- A zip-file of any of the above, with either only one file, or a "
+         "file named 'hosts' (with any extension)."),
     )),
 
     ('hints', sect.KeyValue(
