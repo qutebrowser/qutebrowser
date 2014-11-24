@@ -497,6 +497,22 @@ DATA = collections.OrderedDict([
         ('cookies-store',
          SettingValue(typ.Bool(), 'true'),
          "Whether to store cookies."),
+
+        ('host-block-lists',
+         SettingValue(typ.UrlList(none_ok=True),
+                      'http://www.malwaredomainlist.com/hostslist/hosts.txt,'
+                      'http://someonewhocares.org/hosts/hosts,'
+                      'http://winhelp2002.mvps.org/hosts.zip,'
+                      'http://malwaredomains.lehigh.edu/files/justdomains.zip,'
+                      'http://pgl.yoyo.org/adservers/serverlist.php?'
+                      'hostformat=hosts&mimetype=plaintext,'
+                      'http://hosts-file.net/ad_servers.asp'),
+         "List of URLs of lists which contain hosts to block.\n\n"
+         "The file can be in one of the following formats:\n\n"
+         "- An '/etc/hosts'-like file\n"
+         "- One host per line\n"
+         "- A zip-file of any of the above, with either only one file, or a "
+         "file named 'hosts' (with any extension)."),
     )),
 
     ('hints', sect.KeyValue(

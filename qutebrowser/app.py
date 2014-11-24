@@ -40,7 +40,7 @@ import qutebrowser
 from qutebrowser.commands import cmdutils, runners
 from qutebrowser.config import style, config, websettings
 from qutebrowser.network import qutescheme, proxy
-from qutebrowser.browser import quickmarks, cookies, cache
+from qutebrowser.browser import quickmarks, cookies, cache, adblock
 from qutebrowser.widgets import mainwindow, crash
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (log, version, message, readline, utils, qtutils,
@@ -156,6 +156,10 @@ class Application(QApplication):
         self._handle_segfault()
         log.init.debug("Initializing websettings...")
         websettings.init()
+        log.init.debug("Initializing adblock...")
+        host_blocker = adblock.HostBlocker()
+        host_blocker.read_hosts()
+        objreg.register('host-blocker', host_blocker)
         log.init.debug("Initializing quickmarks...")
         quickmark_manager = quickmarks.QuickmarkManager()
         objreg.register('quickmark-manager', quickmark_manager)

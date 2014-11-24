@@ -36,7 +36,8 @@ def error(win_id, message, immediately=False):
         win_id: The ID of the window which is calling this function.
         others: See MessageBridge.error.
     """
-    _get_bridge(win_id).error(message, immediately)
+    QTimer.singleShot(
+        0, lambda: _get_bridge(win_id).error(message, immediately))
 
 
 def info(win_id, message, immediately=True):
@@ -46,7 +47,8 @@ def info(win_id, message, immediately=True):
         win_id: The ID of the window which is calling this function.
         others: See MessageBridge.info.
     """
-    _get_bridge(win_id).info(message, immediately)
+    QTimer.singleShot(
+        0, lambda: _get_bridge(win_id).info(message, immediately))
 
 
 def set_cmd_text(win_id, txt):

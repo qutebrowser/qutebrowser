@@ -121,6 +121,7 @@
 |<<permissions-local-content-can-access-file-urls,local-content-can-access-file-urls>>|Whether locally loaded documents are allowed to access other local urls.
 |<<permissions-cookies-accept,cookies-accept>>|Whether to accept cookies.
 |<<permissions-cookies-store,cookies-store>>|Whether to store cookies.
+|<<permissions-host-block-lists,host-block-lists>>|List of URLs of lists which contain hosts to block.
 |==============
 
 .Quick reference for section ``hints''
@@ -788,6 +789,18 @@ Default: +pass:[default]+
 Whether to store cookies.
 
 Default: +pass:[true]+
+
+[[permissions-host-block-lists]]
+=== host-block-lists
+List of URLs of lists which contain hosts to block.
+
+The file can be in one of the following formats:
+
+- An '/etc/hosts'-like file
+- One host per line
+- A zip-file of any of the above, with either only one file, or a file named 'hosts' (with any extension).
+
+Default: +pass:[http://www.malwaredomainlist.com/hostslist/hosts.txt,http://someonewhocares.org/hosts/hosts,http://winhelp2002.mvps.org/hosts.zip,http://malwaredomains.lehigh.edu/files/justdomains.zip,http://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&amp;mimetype=plaintext,http://hosts-file.net/download/hosts.zip]+
 
 == hints
 Hinting settings.
