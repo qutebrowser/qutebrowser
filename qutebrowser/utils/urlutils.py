@@ -85,12 +85,18 @@ def _is_url_naive(urlstr):
     else:
         # Valid IPv4/IPv6 address
         return True
-    if re.search(r'^([0-9.]+|0x[a-fA-F0-9]+)$', urlstr):
-        # Qt treats things like "23.42" or "1337" or "0xDEAD" as valid URLs
-        # which we don't want to. Note we already filtered *real* valid IPs
-        # above.
+
+    # Qt treats things like "23.42" or "1337" or "0xDEAD" as valid URLs
+    # which we don't want to. Note we already filtered *real* valid IPs
+    # above.
+    try:
+        int(urlstr, 0)
+    except ValueError:
+        pass
+    else:
         return False
-    elif not url.isValid():
+
+    if not url.isValid():
         return False
     elif '.' in url.host():
         return True
