@@ -520,6 +520,13 @@ class ConfigManager(QObject):
             if self._initialized:
                 self._after_set(sectname, optname)
 
+    @pyqtSlot(str, str, str)
+    def set_javascript(self, sectname, optname, value):
+        try:
+            self.set('conf', sectname, optname, value)
+        except configtypes.ValidationError as e:
+            message.error(e)
+
     @cmdutils.register(instance='config')
     def save(self):
         """Save the config file."""

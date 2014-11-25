@@ -31,7 +31,8 @@ from PyQt5.QtNetwork import QNetworkReply
 
 import qutebrowser
 from qutebrowser.network import schemehandler, networkreply
-from qutebrowser.utils import version, utils, jinja, log, message, docutils
+from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
+                               objreg)
 
 
 pyeval_output = ":pyeval was never called"
@@ -146,6 +147,19 @@ def qute_help(win_id, request):
     return utils.read_file(path).encode('UTF-8', errors='xmlcharrefreplace')
 
 
+def qute_settings(win_id, request):
+    """Handler for qute:settings. View/change qute configuration"""
+    from qutebrowser.config import configdata
+
+    cfg = objreg.get('config')
+    frame = objreg.get('webview', scope='tab').page().mainFrame()
+    frame.addToJavaScriptWindowObject("qutesettings", cfg)
+
+    html = jinja.env.get_template('settings.html').render(
+        title='settings', config=configdata, cfg=cfg)
+    return html.encode('UTF-8', errors='xmlcharrefreplace')
+
+
 HANDLERS = {
     'pyeval': qute_pyeval,
     'version': qute_version,
@@ -153,4 +167,5 @@ HANDLERS = {
     'log': qute_log,
     'gpl': qute_gpl,
     'help': qute_help,
+    'settings': qute_settings,
 }
