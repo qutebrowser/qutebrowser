@@ -520,12 +520,12 @@ class ConfigManager(QObject):
             if self._initialized:
                 self._after_set(sectname, optname)
 
-    @pyqtSlot(str, str, str)
-    def set_javascript(self, sectname, optname, value):
+    @pyqtSlot(int, str, str, str)
+    def set_javascript(self, win_id, sectname, optname, value):
         try:
             self.set('conf', sectname, optname, value)
         except configtypes.ValidationError as e:
-            message.error(e)
+            message.error(win_id, e)
 
     @cmdutils.register(instance='config')
     def save(self):

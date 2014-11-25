@@ -156,7 +156,7 @@ def qute_settings(win_id, request):
     frame.addToJavaScriptWindowObject("qutesettings", cfg)
 
     html = jinja.env.get_template('settings.html').render(
-        title='settings', config=configdata, cfg=cfg)
+        win_id=win_id, title='settings', config=configdata, cfg=cfg)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 

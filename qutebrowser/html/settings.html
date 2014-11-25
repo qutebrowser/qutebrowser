@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 
 {% block script %}
+var win_id = {{ win_id }};
 var cset = function(section, option, el) {
   value = el.value;
-  window.qutesettings.set_javascript(section, option, value);
+  window.qutesettings.set_javascript(win_id, section, option, value);
 }
 {% endblock %}
 
