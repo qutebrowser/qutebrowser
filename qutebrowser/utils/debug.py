@@ -53,7 +53,11 @@ def log_signals(obj):
     def log_slot(obj, signal, *args):
         """Slot connected to a signal to log it."""
         dbg = dbg_signal(signal, args)
-        log.misc.debug("Signal in {}: {}".format(repr(obj), dbg))
+        try:
+            r = repr(obj)
+        except RuntimeError:
+            r = '<deleted>'
+        log.misc.debug("Signal in {}: {}".format(r, dbg))
 
     def connect_log_slot(obj):
         """Helper function to connect all signals to a logging slot."""
