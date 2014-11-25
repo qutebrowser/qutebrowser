@@ -27,12 +27,14 @@ Module attributes:
     pyeval_output: The output of the last :pyeval command.
 """
 
+from PyQt5.QtCore import pyqtSlot, QObject
 from PyQt5.QtNetwork import QNetworkReply
 
 import qutebrowser
 from qutebrowser.network import schemehandler, networkreply
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg)
+from qutebrowser.config import configtypes
 
 
 pyeval_output = ":pyeval was never called"
@@ -77,6 +79,22 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
                 self.parent())
         return networkreply.FixedDataNetworkReply(
             request, data, 'text/html', self.parent())
+
+
+class JSBridge(QObject):
+
+    """Javascript-bridge for special qute:... pages."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    @pyqtSlot(int, str, str, str)
+    def set(self, win_id, sectname, optname, value):
+        """Slot to set a setting from qute:settings."""
+        try:
+            objreg.get('config').set('conf', sectname, optname, value)
+        except configtypes.ValidationError as e:
+            message.error(win_id, e)
 
 
 def qute_pyeval(_win_id, _request):
@@ -151,12 +169,8 @@ def qute_settings(win_id, request):
     """Handler for qute:settings. View/change qute configuration"""
     from qutebrowser.config import configdata
 
-    cfg = objreg.get('config')
-    frame = objreg.get('webview', scope='tab').page().mainFrame()
-    frame.addToJavaScriptWindowObject("qutesettings", cfg)
-
     html = jinja.env.get_template('settings.html').render(
-        win_id=win_id, title='settings', config=configdata, cfg=cfg)
+        win_id=win_id, title='settings', config=configdata)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 

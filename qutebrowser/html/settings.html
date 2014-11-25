@@ -4,7 +4,7 @@
 var win_id = {{ win_id }};
 var cset = function(section, option, el) {
   value = el.value;
-  window.qutesettings.set_javascript(win_id, section, option, value);
+  window.qute.set(win_id, section, option, value);
 }
 {% endblock %}
 
@@ -17,6 +17,7 @@ th pre { color: grey; text-align: left; }
 {% endblock %}
 
 {% block content %}
+<noscript><h1>View Only</h1><p>Changing settings requires javascript to be enabled</p></noscript>
 <header><h1>{{ title }}</h1></header>
 <table>
 {% for section in config.DATA %}
