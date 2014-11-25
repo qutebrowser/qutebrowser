@@ -304,12 +304,9 @@ class WebView(QWebView):
     def add_js_bridge(self):
         """Add the javascript bridge for qute:... pages."""
         frame = self.sender()
-        assert frame.url().scheme() == 'qute'
-        bridge = objreg.get('js-bridge')
-        frame.addToJavaScriptWindowObject('qute', bridge)
-        # We need to make sure the bridge doesn't get added on non-qute:...
-        # pages.
-        frame.javaScriptWindowObjectCleared.disconnect(self.add_js_bridge)
+        if frame.url().scheme() == 'qute':
+            bridge = objreg.get('js-bridge')
+            frame.addToJavaScriptWindowObject('qute', bridge)
 
     def zoom_perc(self, perc, fuzzyval=True):
         """Zoom to a given zoom percentage.
