@@ -68,6 +68,18 @@ def _get_search_url(txt):
     return url
 
 
+def _is_numeric(s):
+    """Check if the given string is some valid number."""
+    try:
+        int(s, 0)
+    except ValueError:
+        try:
+            float(s)
+        except ValueError:
+            return False
+    return True
+
+
 def _is_url_naive(urlstr):
     """Naive check if given URL is really a URL.
 
@@ -89,11 +101,7 @@ def _is_url_naive(urlstr):
     # Qt treats things like "23.42" or "1337" or "0xDEAD" as valid URLs
     # which we don't want to. Note we already filtered *real* valid IPs
     # above.
-    try:
-        int(urlstr, 0)
-    except ValueError:
-        pass
-    else:
+    if _is_numeric(urlstr):
         return False
 
     if not url.isValid():
