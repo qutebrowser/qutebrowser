@@ -34,7 +34,7 @@ import qutebrowser
 from qutebrowser.network import schemehandler, networkreply
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg)
-from qutebrowser.config import configtypes
+from qutebrowser.config import configtypes, configdata
 
 
 pyeval_output = ":pyeval was never called"
@@ -165,10 +165,8 @@ def qute_help(win_id, request):
     return utils.read_file(path).encode('UTF-8', errors='xmlcharrefreplace')
 
 
-def qute_settings(win_id, request):
+def qute_settings(win_id, _request):
     """Handler for qute:settings. View/change qute configuration"""
-    from qutebrowser.config import configdata
-
     html = jinja.env.get_template('settings.html').render(
         win_id=win_id, title='settings', config=configdata)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
