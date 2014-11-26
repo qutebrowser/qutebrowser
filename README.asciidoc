@@ -31,7 +31,7 @@ available:
 * link:doc/FAQ.asciidoc[Frequently asked questions]
 * link:doc/HACKING.asciidoc[HACKING]
 * link:doc/INSTALL.asciidoc[INSTALL]
-* link:doc/readme.asciidoc[Reporting segfaults]
+* link:doc/stacktrace.asciidoc[Reporting segfaults]
 
 Getting help
 ------------
