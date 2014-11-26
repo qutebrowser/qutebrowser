@@ -67,28 +67,13 @@ But isn't Python too slow for a browser?::
     https://wiki.python.org/moin/GlobalInterpreterLock[GIL] released.
 
 Is there an adblocker?::
-    Not yet. Adblocking has a
+    There is a host-based adblocker which takes /etc/hosts-like lists. A "real"
+    adblocker has a
     http://www.reddit.com/r/programming/comments/25j41u/adblock_pluss_effect_on_firefoxs_memory_usage/chhpomw[big
     impact] on browsing speed and
     https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/[RAM
     usage], so implementing it properly might take some time and won't be done
-    for v0.1.
-+
-However, there are some alternatives you could use to block ads:
-+
-* You can use a hosts file to block ads. Examples:
-  http://someonewhocares.org/hosts/[1],
-  http://winhelp2002.mvps.org/hosts.htm[2],
-  http://www.hosts-file.net/[3]
-* Set up a http://www.privoxy.org/[Privoxy] proxy server and use it to
-  filter ads before they even get to the browser.
-* Use https://opensource.conformal.com/wiki/Adsuck[adsuck] as a local DNS
-server for blocking ads.
-* Use the https://www.requestpolicy.com/[RequestPolicy] functionality to
-  block ads, which currently isn't implemented either.
-+
-If you think you can add ad blocking or request policy, please
-https://github.com/The-Compiler/qutebrowser/blob/master/doc/HACKING.asciidoc[contribute]!
+    for v0.1 if at all.
 
 // We link to github rather than to the file here so it also works with the
 // qutebrowser :help because that doesn't render HACKING.
