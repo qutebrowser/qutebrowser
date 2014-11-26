@@ -60,13 +60,10 @@ class ShellLexer:
         # pylint: disable=too-many-branches,too-many-statements
         self.reset()
         for nextchar in self.string:
-            log.shlexer.vdebug("in state {!r} I see character: {!r}".format(
-                self.state, nextchar))
             if self.state == ' ':
                 if self.keep:
                     self.token += nextchar
                 if nextchar in self.whitespace:
-                    log.shlexer.vdebug("I see whitespace in whitespace state")
                     if self.token or self.quoted:
                         yield self.token
                         self.reset()
@@ -103,7 +100,6 @@ class ShellLexer:
                 self.state = self.escapedstate
             elif self.state == 'a':
                 if nextchar in self.whitespace:
-                    log.shlexer.vdebug("shlex: I see whitespace in word state")
                     self.state = ' '
                     if self.token or self.quoted:
                         yield self.token
