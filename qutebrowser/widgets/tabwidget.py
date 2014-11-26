@@ -142,7 +142,7 @@ class TabBar(QTabBar):
     @pyqtSlot(str, str)
     def on_tab_colors_changed(self, section, option):
         """Set the tab colors."""
-        if section == 'colors' and option.startswith('tabs.fg.'):
+        if section == 'colors' and option.startswith('tabs.'):
             self.update()
 
     def mousePressEvent(self, e):
