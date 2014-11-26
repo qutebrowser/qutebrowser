@@ -38,7 +38,7 @@ MapType = usertypes.enum('MapType', ['attribute', 'setter', 'static_setter'])
 
 
 MAPPINGS = {
-    'permissions': {
+    'content': {
         'allow-images':
             (MapType.attribute, QWebSettings.AutoLoadImages),
         'allow-javascript':

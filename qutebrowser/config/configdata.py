@@ -70,7 +70,7 @@ SECTION_DESC = {
     'completion': "Options related to completion and command history.",
     'tabs': "Configuration of the tab bar.",
     'storage': "Settings related to cache and storage.",
-    'permissions': "Loaded plugins/scripts and allowed actions.",
+    'content': "Loaded plugins/scripts and allowed actions.",
     'hints': "Hinting settings.",
     'searchengines': (
         "Definitions of search engines which can be used via the address "
@@ -448,7 +448,7 @@ DATA = collections.OrderedDict([
          "Size of the HTTP network cache."),
     )),
 
-    ('permissions', sect.KeyValue(
+    ('content', sect.KeyValue(
         ('allow-images',
          SettingValue(typ.Bool(), 'true'),
          "Whether images are automatically loaded in web pages."),
@@ -665,51 +665,51 @@ DATA = collections.OrderedDict([
          SettingValue(typ.QssColor(), 'aqua'),
          "Foreground color of the URL in the statusbar for hovered links."),
 
-        ('tab.fg.odd',
+        ('tabs.fg.odd',
          SettingValue(typ.QtColor(), 'white'),
          "Foreground color of unselected odd tabs."),
 
-        ('tab.fg.even',
+        ('tabs.fg.even',
          SettingValue(typ.QtColor(), 'white'),
          "Foreground color of unselected even tabs."),
 
-        ('tab.fg.selected',
+        ('tabs.fg.selected',
          SettingValue(typ.QtColor(), 'white'),
          "Foreground color of selected tabs."),
 
-        ('tab.bg.odd',
+        ('tabs.bg.odd',
          SettingValue(typ.QtColor(), 'grey'),
          "Background color of unselected odd tabs."),
 
-        ('tab.bg.even',
+        ('tabs.bg.even',
          SettingValue(typ.QtColor(), 'darkgrey'),
          "Background color of unselected even tabs."),
 
-        ('tab.bg.selected',
+        ('tabs.bg.selected',
          SettingValue(typ.QtColor(), 'black'),
          "Background color of selected tabs."),
 
-        ('tab.bg.bar',
+        ('tabs.bg.bar',
          SettingValue(typ.QtColor(), '#555555'),
          "Background color of the tabbar."),
 
-        ('tab.indicator.start',
+        ('tabs.indicator.start',
          SettingValue(typ.QtColor(), '#0000aa'),
          "Color gradient start for the tab indicator."),
 
-        ('tab.indicator.stop',
+        ('tabs.indicator.stop',
          SettingValue(typ.QtColor(), '#00aa00'),
          "Color gradient end for the tab indicator."),
 
-        ('tab.indicator.error',
+        ('tabs.indicator.error',
          SettingValue(typ.QtColor(), '#ff0000'),
          "Color for the tab indicator on errors.."),
 
-        ('tab.indicator.system',
+        ('tabs.indicator.system',
          SettingValue(typ.ColorSystem(), 'rgb'),
          "Color gradient interpolation system for the tab indicator."),
 
-        ('tab.seperator',
+        ('tabs.seperator',
          SettingValue(typ.QssColor(), '#555555'),
          "Color for the tab seperator."),
 

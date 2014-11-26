@@ -63,14 +63,14 @@ class CookieJar(QNetworkCookieJar):
         Return:
             True if one or more cookies are set for 'url', otherwise False.
         """
-        if config.get('permissions', 'cookies-accept') == 'never':
+        if config.get('content', 'cookies-accept') == 'never':
             return False
         else:
             return super().setCookiesFromUrl(cookies, url)
 
     def save(self):
         """Save cookies to disk."""
-        if not config.get('permissions', 'cookies-store'):
+        if not config.get('content', 'cookies-store'):
             return
         self.purge_old_cookies()
         lines = []
@@ -80,9 +80,9 @@ class CookieJar(QNetworkCookieJar):
         self._linecp.data = lines
         self._linecp.save()
 
-    @config.change_filter('permissions', 'cookies-store')
+    @config.change_filter('content', 'cookies-store')
     def cookies_store_changed(self):
         """Delete stored cookies if cookies-store changed."""
-        if not config.get('permissions', 'cookies-store'):
+        if not config.get('content', 'cookies-store'):
             self._linecp.data = []
             self._linecp.save()

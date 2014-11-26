@@ -75,7 +75,7 @@ class HostBlocker:
                 for line in f:
                     self.blocked_hosts.add(line.strip())
         else:
-            if config.get('permissions', 'host-block-lists') is not None:
+            if config.get('content', 'host-block-lists') is not None:
                 message.info('last-focused',
                              "Run :adblock-update to get adblock lists.")
 
@@ -84,7 +84,7 @@ class HostBlocker:
         """Update the adblock block lists."""
         self.blocked_hosts = set()
         self._done_count = 0
-        urls = config.get('permissions', 'host-block-lists')
+        urls = config.get('content', 'host-block-lists')
         download_manager = objreg.get('download-manager', scope='window',
                                       window='last-focused')
         if urls is None:
@@ -187,10 +187,10 @@ class HostBlocker:
                          "sources.".format(len(self.blocked_hosts),
                                            self._done_count))
 
-    @config.change_filter('permissions', 'host-block-lists')
+    @config.change_filter('content', 'host-block-lists')
     def on_config_changed(self):
         """Update files when the config changed."""
-        urls = config.get('permissions', 'host-block-lists')
+        urls = config.get('content', 'host-block-lists')
         if urls is None:
             try:
                 os.remove(self._hosts_file)

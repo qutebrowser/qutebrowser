@@ -132,17 +132,17 @@ class TabBar(QTabBar):
         """Set the tabbar font."""
         self.setFont(config.get('fonts', 'tabbar'))
 
-    @config.change_filter('colors', 'tab.bg.bar')
+    @config.change_filter('colors', 'tabs.bg.bar')
     def set_colors(self):
         """Set the tabbar colors."""
         p = self.palette()
-        p.setColor(QPalette.Window, config.get('colors', 'tab.bg.bar'))
+        p.setColor(QPalette.Window, config.get('colors', 'tabs.bg.bar'))
         self.setPalette(p)
 
     @pyqtSlot(str, str)
     def on_tab_colors_changed(self, section, option):
         """Set the tab colors."""
-        if section == 'colors' and option.startswith('tab.fg.'):
+        if section == 'colors' and option.startswith('tabs.fg.'):
             self.update()
 
     def mousePressEvent(self, e):
@@ -235,14 +235,14 @@ class TabBar(QTabBar):
         for idx in range(self.count()):
             self.initStyleOption(tab, idx)
             if idx == selected:
-                bg_color = config.get('colors', 'tab.bg.selected')
-                fg_color = config.get('colors', 'tab.fg.selected')
+                bg_color = config.get('colors', 'tabs.bg.selected')
+                fg_color = config.get('colors', 'tabs.fg.selected')
             elif idx % 2:
-                bg_color = config.get('colors', 'tab.bg.odd')
-                fg_color = config.get('colors', 'tab.fg.odd')
+                bg_color = config.get('colors', 'tabs.bg.odd')
+                fg_color = config.get('colors', 'tabs.fg.odd')
             else:
-                bg_color = config.get('colors', 'tab.bg.even')
-                fg_color = config.get('colors', 'tab.fg.even')
+                bg_color = config.get('colors', 'tabs.bg.even')
+                fg_color = config.get('colors', 'tabs.fg.even')
             tab.palette.setColor(QPalette.Window, bg_color)
             tab.palette.setColor(QPalette.WindowText, fg_color)
             indicator_color = self.tabData(idx)

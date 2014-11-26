@@ -552,9 +552,9 @@ class TabbedBrowser(tabwidget.TabWidget):
         except RuntimeError:
             # We can get signals for tabs we already deleted...
             return
-        start = config.get('colors', 'tab.indicator.start')
-        stop = config.get('colors', 'tab.indicator.stop')
-        system = config.get('colors', 'tab.indicator.system')
+        start = config.get('colors', 'tabs.indicator.start')
+        stop = config.get('colors', 'tabs.indicator.stop')
+        system = config.get('colors', 'tabs.indicator.system')
         color = utils.interpolate_color(start, stop, perc, system)
         self.tabBar().set_tab_indicator_color(idx, color)
 
@@ -566,12 +566,12 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We can get signals for tabs we already deleted...
             return
         if ok:
-            start = config.get('colors', 'tab.indicator.start')
-            stop = config.get('colors', 'tab.indicator.stop')
-            system = config.get('colors', 'tab.indicator.system')
+            start = config.get('colors', 'tabs.indicator.start')
+            stop = config.get('colors', 'tabs.indicator.stop')
+            system = config.get('colors', 'tabs.indicator.system')
             color = utils.interpolate_color(start, stop, 100, system)
         else:
-            color = config.get('colors', 'tab.indicator.error')
+            color = config.get('colors', 'tabs.indicator.error')
         self.tabBar().set_tab_indicator_color(idx, color)
 
     def resizeEvent(self, e):
