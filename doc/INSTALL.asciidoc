@@ -9,8 +9,7 @@ qutebrowser should run on these systems:
 Install the dependencies via apt-get:
 
 ----
-# apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python3-pkg-resources
-python3-pip python3-jinja2 python3-pygments
+# apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python3-pkg-resources python3-pip python3-jinja2 python3-pygments
 ----
 
 To generate the documentation for the `:help` command, when using the git
