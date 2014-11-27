@@ -42,32 +42,109 @@ ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
                            is_int=True)
 
 
-class DownloadItem(QObject):
+class DownloadItemStats(QObject):
 
-    """A single download currently running.
+    """Statistics (bytes done, total bytes, time, etc.) about a download.
 
     Class attributes:
         SPEED_REFRESH_INTERVAL: How often to refresh the speed, in msec.
         SPEED_AVG_WINDOW: How many seconds of speed data to average to
                           estimate the remaining time.
+
+    Attributes:
+        done: How many bytes there are already downloaded.
+        total: The total count of bytes.  None if the total is unknown.
+        speed: The current download speed, in bytes per second.
+        _speed_avg: A rolling average of speeds.
+        _last_done: The count of bytes which where downloaded when calculating
+                    the speed the last time.
+    """
+
+    MAX_REDIRECTS = 10
+    SPEED_REFRESH_INTERVAL = 500
+    SPEED_AVG_WINDOW = 30
+
+    updated = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.total = None
+        self.done = 0
+        self.speed = 0
+        self._last_done = 0
+        samples = int(self.SPEED_AVG_WINDOW *
+                      (1000 / self.SPEED_REFRESH_INTERVAL))
+        self._speed_avg = collections.deque(maxlen=samples)
+        self.timer = usertypes.Timer(self, 'speed_refresh')
+        self.timer.timeout.connect(self._update_speed)
+        self.timer.setInterval(self.SPEED_REFRESH_INTERVAL)
+        self.timer.start()
+
+    @pyqtSlot()
+    def _update_speed(self):
+        """Recalculate the current download speed."""
+        delta = self.done - self._last_done
+        self.speed = delta * 1000 / self.SPEED_REFRESH_INTERVAL
+        self._speed_avg.append(self.speed)
+        self._last_done = self.done
+        self.updated.emit()
+
+    def finish(self):
+        """Set the download stats as finished."""
+        self.timer.stop()
+        self.done = self.total
+
+    def percentage(self):
+        """The current download percentage, or None if unknown."""
+        if self.total == 0 or self.total is None:
+            return None
+        else:
+            return 100 * self.done / self.total
+
+    def remaining_time(self):
+        """The remaining download time in seconds, or None."""
+        if self.total is None or not self._speed_avg:
+            # No average yet or we don't know the total size.
+            return None
+        remaining_bytes = self.total - self.done
+        avg = sum(self._speed_avg) / len(self._speed_avg)
+        if avg == 0:
+            # Download stalled
+            return None
+        else:
+            return remaining_bytes / avg
+
+    @pyqtSlot(int, int)
+    def on_download_progress(self, bytes_done, bytes_total):
+        """Upload local variables when the download progress changed.
+
+        Args:
+            bytes_done: How many bytes are downloaded.
+            bytes_total: How many bytes there are to download in total.
+        """
+        if bytes_total == -1:
+            bytes_total = None
+        self.done = bytes_done
+        self.total = bytes_total
+        self.updated.emit()
+
+
+class DownloadItem(QObject):
+
+    """A single download currently running.
+
+    Class attributes:
         MAX_REDIRECTS: The maximum redirection count.
 
     Attributes:
+        stats: A DownloadItemStats object.
         successful: Whether the download has completed sucessfully.
         error_msg: The current error message, or None
         autoclose: Whether to close the associated file if the download is
                    done.
-        _bytes_done: How many bytes there are already downloaded.
-        _bytes_total: The total count of bytes.
-                      None if the total is unknown.
-        _speed: The current download speed, in bytes per second.
         fileobj: The file object to download the file to.
         _filename: The filename of the download.
-        _is_cancelled: Whether the download was cancelled.
-        _speed_avg: A rolling average of speeds.
         _reply: The QNetworkReply associated with this download.
-        _last_done: The count of bytes which where downloaded when calculating
-                    the speed the last time.
         _redirects: How many time we were redirected already.
 
     Signals:
@@ -81,9 +158,6 @@ class DownloadItem(QObject):
             arg 1: The old QNetworkReply.
     """
 
-    MAX_REDIRECTS = 10
-    SPEED_REFRESH_INTERVAL = 500
-    SPEED_AVG_WINDOW = 30
     data_changed = pyqtSignal()
     finished = pyqtSignal()
     error = pyqtSignal(str)
@@ -97,28 +171,17 @@ class DownloadItem(QObject):
             reply: The QNetworkReply to download.
         """
         super().__init__(parent)
+        self.stats = DownloadItemStats(self)
+        self.stats.updated.connect(self.data_changed)
         self.autoclose = True
         self._reply = None
         self._redirects = 0
-        self._bytes_total = None
-        self._speed = 0
         self.error_msg = None
         self.basename = '???'
         self.successful = False
-        samples = int(self.SPEED_AVG_WINDOW *
-                      (1000 / self.SPEED_REFRESH_INTERVAL))
-        self._speed_avg = collections.deque(maxlen=samples)
         self.fileobj = None
         self._filename = None
-        self._is_cancelled = False
-        self._do_delayed_write = False
-        self._bytes_done = 0
-        self._last_done = 0
         self.init_reply(reply)
-        self.timer = usertypes.Timer(self, 'speed_refresh')
-        self.timer.timeout.connect(self.update_speed)
-        self.timer.setInterval(self.SPEED_REFRESH_INTERVAL)
-        self.timer.start()
 
     def __repr__(self):
         return utils.get_repr(self, basename=self.basename)
@@ -128,15 +191,15 @@ class DownloadItem(QObject):
 
         Example: foo.pdf [699.2kB/s|0.34|16%|4.253/25.124]
         """
-        speed = utils.format_size(self._speed, suffix='B/s')
-        down = utils.format_size(self._bytes_done, suffix='B')
-        perc = self._percentage()
-        remaining = self._remaining_time()
+        speed = utils.format_size(self.stats.speed, suffix='B/s')
+        down = utils.format_size(self.stats.done, suffix='B')
+        perc = self.stats.percentage()
+        remaining = self.stats.remaining_time()
         if self.error_msg is None:
             errmsg = ""
         else:
             errmsg = " - {}".format(self.error_msg)
-        if all(e is None for e in (perc, remaining, self._bytes_total)):
+        if all(e is None for e in (perc, remaining, self.stats.total)):
             return ('{name} [{speed:>10}|{down}]{errmsg}'.format(
                 name=self.basename, speed=speed, down=down, errmsg=errmsg))
         if perc is None:
@@ -147,7 +210,7 @@ class DownloadItem(QObject):
             remaining = '?'
         else:
             remaining = utils.format_seconds(remaining)
-        total = utils.format_size(self._bytes_total, suffix='B')
+        total = utils.format_size(self.stats.total, suffix='B')
         return ('{name} [{speed:>10}|{remaining:>5}|{perc:>2}%|'
                 '{down}/{total}]{errmsg}'.format(
                     name=self.basename, speed=speed, remaining=remaining,
@@ -161,7 +224,7 @@ class DownloadItem(QObject):
         self._reply.error.disconnect()
         self._reply.readyRead.disconnect()
         self.error_msg = msg
-        self._bytes_done = self._bytes_total
+        self.stats.finish()
         self.timer.stop()
         self.error.emit(msg)
         self._reply.abort()
@@ -174,26 +237,6 @@ class DownloadItem(QObject):
                 self.error.emit(e.strerror)
         self.data_changed.emit()
 
-    def _percentage(self):
-        """The current download percentage, or None if unknown."""
-        if self._bytes_total == 0 or self._bytes_total is None:
-            return None
-        else:
-            return 100 * self._bytes_done / self._bytes_total
-
-    def _remaining_time(self):
-        """The remaining download time in seconds, or None."""
-        if self._bytes_total is None or not self._speed_avg:
-            # No average yet or we don't know the total size.
-            return None
-        remaining_bytes = self._bytes_total - self._bytes_done
-        avg = sum(self._speed_avg) / len(self._speed_avg)
-        if avg == 0:
-            # Download stalled
-            return None
-        else:
-            return remaining_bytes / avg
-
     def init_reply(self, reply):
         """Set a new reply and connect its signals.
 
@@ -202,7 +245,7 @@ class DownloadItem(QObject):
         """
         self._reply = reply
         reply.setReadBufferSize(16 * 1024 * 1024)
-        reply.downloadProgress.connect(self.on_download_progress)
+        reply.downloadProgress.connect(self.stats.on_download_progress)
         reply.finished.connect(self.on_reply_finished)
         reply.error.connect(self.on_reply_error)
         reply.readyRead.connect(self.on_ready_read)
@@ -224,20 +267,21 @@ class DownloadItem(QObject):
         if self.error_msg is not None:
             assert not self.successful
             return error
-        elif self._percentage() is None:
+        elif self.stats.percentage() is None:
             return start
         else:
-            return utils.interpolate_color(start, stop, self._percentage(),
-                                           system)
+            return utils.interpolate_color(
+                start, stop, self.stats.percentage(), system)
 
     def cancel(self):
         """Cancel the download."""
         log.downloads.debug("cancelled")
         self.cancelled.emit()
-        self._is_cancelled = True
         if self._reply is not None:
+            self._reply.finished.disconnect(self.on_reply_finished)
             self._reply.abort()
             self._reply.deleteLater()
+            self._reply = None
         if self.fileobj is not None:
             self.fileobj.close()
         if self._filename is not None and os.path.exists(self._filename):
@@ -293,10 +337,10 @@ class DownloadItem(QObject):
                              "{}".format(self.fileobj, fileobj))
         self.fileobj = fileobj
         try:
-            if self._do_delayed_write:
+            if self._reply.isFinished():
                 # Downloading to the buffer in RAM has already finished so we
                 # write out the data and clean up now.
-                self.delayed_write()
+                self.finish_download()
             else:
                 # Since the buffer already might be full, on_ready_read might
                 # not be called at all anymore, so we force it here to flush
@@ -305,10 +349,9 @@ class DownloadItem(QObject):
         except OSError as e:
             self._die(e.strerror)
 
-    def delayed_write(self):
+    def finish_download(self):
         """Write buffered data to disk and finish the QNetworkReply."""
-        log.downloads.debug("Doing delayed write...")
-        self._do_delayed_write = False
+        log.downloads.debug("Finishing download...")
         if self._reply.isOpen():
             self.fileobj.write(self._reply.readAll())
         if self.autoclose:
@@ -319,20 +362,6 @@ class DownloadItem(QObject):
         self.finished.emit()
         log.downloads.debug("Download finished")
 
-    @pyqtSlot(int, int)
-    def on_download_progress(self, bytes_done, bytes_total):
-        """Upload local variables when the download progress changed.
-
-        Args:
-            bytes_done: How many bytes are downloaded.
-            bytes_total: How many bytes there are to download in total.
-        """
-        if bytes_total == -1:
-            bytes_total = None
-        self._bytes_done = bytes_done
-        self._bytes_total = bytes_total
-        self.data_changed.emit()
-
     @pyqtSlot()
     def on_reply_finished(self):
         """Clean up when the download was finished.
@@ -341,22 +370,17 @@ class DownloadItem(QObject):
         doesn't mean the download (i.e. writing data to the disk) is finished
         as well. Therefore, we can't close() the QNetworkReply in here yet.
         """
-        self._bytes_done = self._bytes_total
-        self.timer.stop()
+        self.stats.finish()
         is_redirected = self._handle_redirect()
         if is_redirected:
             return
-        if self._is_cancelled:
+        if self._reply is None:
             return
         log.downloads.debug("Reply finished, fileobj {}".format(self.fileobj))
-        if self.fileobj is None:
-            # We'll handle emptying the buffer and cleaning up as soon as the
-            # filename is set.
-            self._do_delayed_write = True
-        else:
+        if self.fileobj is not None:
             # We can do a "delayed" write immediately to empty the buffer and
             # clean up.
-            self.delayed_write()
+            self.finish_download()
 
     @pyqtSlot()
     def on_ready_read(self):
@@ -407,15 +431,6 @@ class DownloadItem(QObject):
         self.redirected.emit(request, reply)  # this will change self._reply!
         reply.deleteLater()  # the old one
         return True
-
-    @pyqtSlot()
-    def update_speed(self):
-        """Recalculate the current download speed."""
-        delta = self._bytes_done - self._last_done
-        self._speed = delta * 1000 / self.SPEED_REFRESH_INTERVAL
-        self._speed_avg.append(self._speed)
-        self._last_done = self._bytes_done
-        self.data_changed.emit()
 
 
 class DownloadManager(QAbstractListModel):
