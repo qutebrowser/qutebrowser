@@ -345,9 +345,11 @@ class RaisesTests(unittest.TestCase):
     """Test raises."""
 
     def do_raise(self):
+        """Helper function which raises an exception."""
         raise Exception
 
     def do_nothing(self):
+        """Helper function which does nothing."""
         pass
 
     def test_raises_single_exc_true(self):
@@ -367,11 +369,11 @@ class RaisesTests(unittest.TestCase):
         """Test raises with multiple exceptions which do not get raised."""
         self.assertFalse(utils.raises((ValueError, TypeError), int, '1'))
 
-    def test_no_args(self):
+    def test_no_args_true(self):
         """Test with no args and an exception which gets raised."""
         self.assertTrue(utils.raises(Exception, self.do_raise))
 
-    def test_no_args(self):
+    def test_no_args_false(self):
         """Test with no args and an exception which does not get raised."""
         self.assertFalse(utils.raises(Exception, self.do_nothing))
 

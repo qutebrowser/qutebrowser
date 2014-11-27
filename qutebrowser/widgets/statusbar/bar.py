@@ -20,7 +20,6 @@
 """The main statusbar widget."""
 
 import collections
-import datetime
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QTime
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
@@ -317,7 +316,6 @@ class StatusBar(QWidget):
         """
         log.statusbar.debug("Displaying text: {} (error={})".format(
             text, error))
-        now = datetime.datetime.now()
         mindelta = config.get('ui', 'message-timeout')
         if self._stopwatch.isNull():
             delta = None
