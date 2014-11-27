@@ -22,7 +22,7 @@
 import collections
 import datetime
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QTime
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.config import config, style
@@ -52,7 +52,7 @@ class StatusBar(QWidget):
         _text_queue: A deque of (error, text) tuples to be displayed.
                      error: True if message is an error, False otherwise
         _text_pop_timer: A Timer displaying the error messages.
-        _last_text_time: The timestamp where a message was last displayed.
+        _stopwatch: A QTime for the last displayed message.
         _timer_was_active: Whether the _text_pop_timer was active before hiding
                            the command widget.
         _previous_widget: A PreviousWidget member - the widget which was
@@ -125,7 +125,7 @@ class StatusBar(QWidget):
 
         self._win_id = win_id
         self._option = None
-        self._last_text_time = None
+        self._stopwatch = QTime()
 
         self._hbox = QHBoxLayout(self)
         self._hbox.setContentsMargins(0, 0, 0, 0)
@@ -315,19 +315,18 @@ class StatusBar(QWidget):
             immediately: If set, message gets displayed immediately instead of
                          queued.
         """
-        # FIXME probably using a QTime here would be easier.
-        # https://github.com/The-Compiler/qutebrowser/issues/124
         log.statusbar.debug("Displaying text: {} (error={})".format(
             text, error))
         now = datetime.datetime.now()
         mindelta = config.get('ui', 'message-timeout')
-        delta = (None if self._last_text_time is None
-                 else now - self._last_text_time)
-        self._last_text_time = now
+        if self._stopwatch.isNull():
+            delta = None
+            self._stopwatch.start()
+        else:
+            delta = self._stopwatch.restart()
         log.statusbar.debug("queue: {} / delta: {}".format(
             self._text_queue, delta))
-        if not self._text_queue and (delta is None or delta.total_seconds() *
-                                     1000.0 > mindelta):
+        if not self._text_queue and (delta is None or delta > mindelta):
             # If the queue is empty and we didn't print messages for long
             # enough, we can take the short route and display the message
             # immediately. We then start the pop_timer only to restore the
