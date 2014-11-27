@@ -46,17 +46,18 @@ def _get_search_url(txt):
         The search URL as a QUrl.
     """
     log.url.debug("Finding search engine for '{}'".format(txt))
-    r = re.compile(r'(^|\s+)!(\w+)($|\s+)')
+    r = re.compile(r'(^\w+)\s+(\w+)($|\s+)')
     m = r.search(txt)
     if m:
-        engine = m.group(2)
+        engine = m.group(1)
         try:
             template = config.get('searchengines', engine)
         except config.NoOptionError:
-            raise FuzzyUrlError("Search engine {} not found!".format(
-                engine))
-        term = r.sub('', txt)
-        log.url.debug("engine {}, term '{}'".format(engine, term))
+            template = config.get('searchengines', 'DEFAULT')
+            term = txt
+        else:
+            term = m.group(2)
+            log.url.debug("engine {}, term '{}'".format(engine, term))
     else:
         template = config.get('searchengines', 'DEFAULT')
         term = txt
