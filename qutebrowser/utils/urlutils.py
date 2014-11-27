@@ -46,7 +46,7 @@ def _get_search_url(txt):
         The search URL as a QUrl.
     """
     log.url.debug("Finding search engine for '{}'".format(txt))
-    r = re.compile(r'(^\w+)\s+(\w+)($|\s+)')
+    r = re.compile(r'(^\w+)\s+(.+)($|\s+)')
     m = r.search(txt)
     if m:
         engine = m.group(1)
@@ -56,7 +56,7 @@ def _get_search_url(txt):
             template = config.get('searchengines', 'DEFAULT')
             term = txt
         else:
-            term = m.group(2)
+            term = m.group(2).rstrip()
             log.url.debug("engine {}, term '{}'".format(engine, term))
     else:
         template = config.get('searchengines', 'DEFAULT')

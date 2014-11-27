@@ -97,6 +97,12 @@ class SearchUrlTests(unittest.TestCase):
         self.assertEqual(url.host(), 'www.qutebrowser.org')
         self.assertEqual(url.query(), 'q=testfoo')
 
+    def test_engine_pre_multiple_words(self):
+        """Test first word is search engine name"""
+        url = urlutils._get_search_url('test testfoo bar foo')
+        self.assertEqual(url.host(), 'www.qutebrowser.org')
+        self.assertEqual(url.query(), 'q=testfoo bar foo')
+
     def test_engine_pre_whitespace_at_end(self):
         """Test first word is search engine name"""
         url = urlutils._get_search_url('test testfoo ')
