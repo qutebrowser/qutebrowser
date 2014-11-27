@@ -91,22 +91,29 @@ class SearchUrlTests(unittest.TestCase):
         self.assertEqual(url.host(), 'www.example.com')
         self.assertEqual(url.query(), 'q=testfoo')
 
-    def test_engine_post(self):
-        """Test search engine with an appended !hasbang."""
-        url = urlutils._get_search_url('testfoo !test')
+    def test_engine_pre(self):
+        """Test first word is search engine name"""
+        url = urlutils._get_search_url('test testfoo')
         self.assertEqual(url.host(), 'www.qutebrowser.org')
         self.assertEqual(url.query(), 'q=testfoo')
 
-    def test_engine_pre(self):
-        """Test search engine with a prepended !hasbang."""
-        url = urlutils._get_search_url('!test testfoo')
+    def test_engine_pre_whitespace_at_end(self):
+        """Test first word is search engine name"""
+        url = urlutils._get_search_url('test testfoo ')
         self.assertEqual(url.host(), 'www.qutebrowser.org')
         self.assertEqual(url.query(), 'q=testfoo')
+
+    def test_engine_with_bang_pre(self):
+        """Test search engine with a prepended !hasbang."""
+        url = urlutils._get_search_url('!python testfoo')
+        self.assertEqual(url.host(), 'www.example.com')
+        self.assertEqual(url.query(), 'q=%21python testfoo')
 
     def test_engine_wrong(self):
         """Test with wrong search engine."""
-        with self.assertRaises(urlutils.FuzzyUrlError):
-            _ = urlutils._get_search_url('!blub testfoo')
+        url = urlutils._get_search_url('blub testfoo')
+        self.assertEqual(url.host(), 'www.example.com')
+        self.assertEqual(url.query(), 'q=blub testfoo')
 
     def tearDown(self):
         urlutils.config = self.config
