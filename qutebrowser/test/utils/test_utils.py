@@ -340,5 +340,46 @@ class IsEnumTests(unittest.TestCase):
         self.assertFalse(utils.is_enum(23))
 
 
+class RaisesTests(unittest.TestCase):
+
+    """Test raises."""
+
+    def do_raise(self):
+        raise Exception
+
+    def do_nothing(self):
+        pass
+
+    def test_raises_single_exc_true(self):
+        """Test raises with a single exception which gets raised."""
+        self.assertTrue(utils.raises(ValueError, int, 'a'))
+
+    def test_raises_single_exc_false(self):
+        """Test raises with a single exception which does not get raised."""
+        self.assertFalse(utils.raises(ValueError, int, '1'))
+
+    def test_raises_multiple_exc_true(self):
+        """Test raises with multiple exceptions which get raised."""
+        self.assertTrue(utils.raises((ValueError, TypeError), int, 'a'))
+        self.assertTrue(utils.raises((ValueError, TypeError), int, None))
+
+    def test_raises_multiple_exc_false(self):
+        """Test raises with multiple exceptions which do not get raised."""
+        self.assertFalse(utils.raises((ValueError, TypeError), int, '1'))
+
+    def test_no_args(self):
+        """Test with no args and an exception which gets raised."""
+        self.assertTrue(utils.raises(Exception, self.do_raise))
+
+    def test_no_args(self):
+        """Test with no args and an exception which does not get raised."""
+        self.assertFalse(utils.raises(Exception, self.do_nothing))
+
+    def test_unrelated_exception(self):
+        """Test with an unrelated exception."""
+        with self.assertRaises(Exception):
+            utils.raises(ValueError, self.do_raise)
+
+
 if __name__ == '__main__':
     unittest.main()

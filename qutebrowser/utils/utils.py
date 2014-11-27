@@ -544,3 +544,22 @@ def qualname(obj):
         return "{}.{}".format(obj.__module__, name)
     else:
         return name
+
+
+def raises(exc, func, *args):
+    """Check if a function raises a given exception.
+
+    Args:
+        exc: A single exception or an iterable of exceptions.
+        func: A function to call.
+        *args: The arguments to pass to the function.
+
+    Returns:
+        True if the exception was raised, False otherwise.
+    """
+    try:
+        func(*args)
+    except exc:
+        return True
+    else:
+        return False

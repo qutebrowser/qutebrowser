@@ -28,7 +28,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QHostInfo
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, qtutils, message
+from qutebrowser.utils import log, qtutils, message, utils
 from qutebrowser.commands import cmdexc
 
 
@@ -68,18 +68,6 @@ def _get_search_url(txt):
     return url
 
 
-def _is_numeric(s):
-    """Check if the given string is some valid number."""
-    try:
-        int(s, 0)
-    except ValueError:
-        try:
-            float(s)
-        except ValueError:
-            return False
-    return True
-
-
 def _is_url_naive(urlstr):
     """Naive check if given URL is really a URL.
 
@@ -101,7 +89,8 @@ def _is_url_naive(urlstr):
     # Qt treats things like "23.42" or "1337" or "0xDEAD" as valid URLs
     # which we don't want to. Note we already filtered *real* valid IPs
     # above.
-    if _is_numeric(urlstr):
+    if ((not utils.raises(ValueError, int, urlstr, 0)) or
+            (not utils.raises(ValueError, float, urlstr))):
         return False
 
     if not url.isValid():
