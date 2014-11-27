@@ -205,6 +205,9 @@ class ConfigManager(QObject):
         KEY_ESCAPE: Chars which need escaping when they occur as first char
                     in a line.
         ESCAPE_CHAR: The char to be used for escaping
+        RENAMED_SECTIONS: A mapping of renamed sections, {'oldname': 'newname'}
+        RENAMED_OPTIONS: A mapping of renamed options,
+                         {('section', 'oldname'): 'newname'}
 
     Attributes:
         sections: The configuration data as an OrderedDict.
@@ -222,6 +225,23 @@ class ConfigManager(QObject):
 
     KEY_ESCAPE = r'\#['
     ESCAPE_CHAR = '\\'
+    RENAMED_SECTIONS = {
+        'permissions': 'content'
+    }
+    RENAMED_OPTIONS = {
+        ('colors', 'tab.fg.odd'): 'tabs.fg.odd',
+        ('colors', 'tab.fg.even'): 'tabs.fg.even',
+        ('colors', 'tab.fg.selected'): 'tabs.fg.selected',
+        ('colors', 'tab.bg.odd'): 'tabs.bg.odd',
+        ('colors', 'tab.bg.even'): 'tabs.bg.even',
+        ('colors', 'tab.bg.selected'): 'tabs.bg.selected',
+        ('colors', 'tab.bg.bar'): 'tabs.bg.bar',
+        ('colors', 'tab.indicator.start'): 'tabs.indicator.start',
+        ('colors', 'tab.indicator.stop'): 'tabs.indicator.stop',
+        ('colors', 'tab.indicator.error'): 'tabs.indicator.error',
+        ('colors', 'tab.indicator.system'): 'tabs.indicator.system',
+        ('colors', 'tab.seperator'): 'tabs.seperator',
+    }
 
     changed = pyqtSignal(str, str)
     style_changed = pyqtSignal(str, str)
@@ -328,17 +348,27 @@ class ConfigManager(QObject):
             cp: The configparser instance to read the values from.
         """
         for sectname in cp:
+            if sectname in self.RENAMED_SECTIONS:
+                sectname = self.RENAMED_SECTIONS[sectname]
             if sectname is not 'DEFAULT' and sectname not in self.sections:
                 raise UnknownSectionError("Unknown section '{}'!".format(
                     sectname))
         for sectname in self.sections:
-            if sectname not in cp:
+            reverse_renamed_sections = {v: k for k, v in
+                                        self.RENAMED_SECTIONS.items()}
+            if sectname in reverse_renamed_sections:
+                old_sectname = reverse_renamed_sections[sectname]
+            else:
+                old_sectname = sectname
+            if old_sectname not in cp:
                 continue
-            for k, v in cp[sectname].items():
+            for k, v in cp[old_sectname].items():
                 if k.startswith(self.ESCAPE_CHAR):
                     k = k[1:]
                 # configparser can't handle = in keys :(
                 k = k.replace('<eq>', '=')
+                if (sectname, k) in self.RENAMED_OPTIONS:
+                    k = self.RENAMED_OPTIONS[sectname, k]
                 try:
                     self.set('conf', sectname, k, v)
                 except configtypes.ValidationError as e:
