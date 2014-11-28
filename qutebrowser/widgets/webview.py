@@ -121,6 +121,7 @@ class WebView(QWebView):
         self.page().networkAccessManager().sslErrors.connect(
             lambda *args: setattr(self, '_has_ssl_errors', True))
         self.viewing_source = False
+        self.setZoomFactor(float(config.get('ui', 'default-zoom')) / 100)
 
     def __repr__(self):
         url = utils.elide(self.url().toDisplayString(), 50)
