@@ -246,6 +246,8 @@ class Bool(BaseType):
     _BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
                        '0': False, 'no': False, 'false': False, 'off': False}
 
+    valid_values = ValidValues('true', 'false')
+
     def transform(self, value):
         if not value:
             return None
@@ -261,13 +263,12 @@ class Bool(BaseType):
         if value.lower() not in Bool._BOOLEAN_STATES:
             raise ValidationError(value, "must be a boolean!")
 
-    def complete(self):
-        return [('true', ''), ('false', '')]
-
 
 class BoolAsk(Bool):
 
     """A yes/no/ask question."""
+
+    valid_values = ValidValues('true', 'false', 'ask')
 
     def transform(self, value):
         if value.lower() == 'ask':
@@ -280,9 +281,6 @@ class BoolAsk(Bool):
             return
         else:
             super().validate(value)
-
-    def complete(self):
-        return [('true', ''), ('false', ''), ('ask', '')]
 
 
 class Int(BaseType):
@@ -562,11 +560,6 @@ class ColorSystem(BaseType):
                                ('hsl', "Interpolate in the HSL color system."))
 
     def validate(self, value):
-        if not value:
-            if self._none_ok:
-                return
-            else:
-                raise ValidationError(value, "may not be empty!")
         super().validate(value.lower())
 
     def transform(self, value):
@@ -1137,14 +1130,9 @@ class AutoSearch(BaseType):
 
     def __init__(self, none_ok=False):
         super().__init__(none_ok)
-        self.booltype = Bool()
+        self.booltype = Bool(none_ok=none_ok)
 
     def validate(self, value):
-        if not value:
-            if self._none_ok:
-                return
-            else:
-                raise ValidationError(value, "may not be empty!")
         if value.lower() in ('naive', 'dns'):
             pass
         else:
@@ -1290,6 +1278,11 @@ class IgnoreCase(Bool):
 
     """Whether to ignore case when searching."""
 
+    valid_values = ValidValues(('true', "Search case-insensitively"),
+                               ('false', "Search case-sensitively"),
+                               ('smart', "Search case-sensitively if there "
+                                         "are capital chars"))
+
     def transform(self, value):
         if value.lower() == 'smart':
             return 'smart'
@@ -1301,12 +1294,6 @@ class IgnoreCase(Bool):
             return
         else:
             super().validate(value)
-
-    def complete(self):
-        return [('true', 'Search case-insensitively'),
-                ('false', 'Search case-sensitively'),
-                ('smart', 'Search case-sensitively if there are capital '
-                 'chars')]
 
 
 class NewInstanceOpenTarget(BaseType):

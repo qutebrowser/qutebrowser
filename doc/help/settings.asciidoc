@@ -218,11 +218,22 @@ General/miscellaneous options.
 === ignore-case
 Whether to find text on a page case-insensitively.
 
+Valid values:
+
+ * +true+: Search case-insensitively
+ * +false+: Search case-sensitively
+ * +smart+: Search case-sensitively if there are capital chars
+
 Default: +pass:[smart]+
 
 [[general-wrap-search]]
 === wrap-search
 Whether to wrap finding text to the top when arriving at the end.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[true]+
 
@@ -248,6 +259,11 @@ Default: +pass:[naive]+
 === auto-save-config
 Whether to save the config automatically on quit.
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[true]+
 
 [[general-editor]]
@@ -268,6 +284,11 @@ Default: +pass:[utf-8]+
 === private-browsing
 Do not record visited pages in the history or store web page icons.
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[false]+
 
 [[general-developer-extras]]
@@ -276,11 +297,21 @@ Enable extra tools for Web developers.
 
 This needs to be enabled for `:inspector` to work and also adds an _Inspect_ entry to the context menu.
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[false]+
 
 [[general-print-element-backgrounds]]
 === print-element-backgrounds
 Whether the background color and images are also drawn when the page is printed.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[true]+
 
@@ -290,11 +321,21 @@ Whether load requests should be monitored for cross-site scripting attempts.
 
 Suspicious scripts will be blocked and reported in the inspector's JavaScript console. Enabling this feature might have an impact on performance.
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[false]+
 
 [[general-site-specific-quirks]]
 === site-specific-quirks
 Enable workarounds for broken sites.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[true]+
 
@@ -355,11 +396,21 @@ Default: +pass:[never]+
 === display-statusbar-messages
 Whether to display javascript statusbar messages.
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[false]+
 
 [[ui-zoom-text-only]]
 === zoom-text-only
 Whether the zoom factor on a frame applies only to the text or to all content.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[false]+
 
@@ -368,6 +419,11 @@ Default: +pass:[false]+
 Whether to  expand each subframe to its contents.
 
 This will flatten all the frames to become one scrollable page.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[false]+
 
@@ -389,6 +445,11 @@ Settings related to the network.
 [[network-do-not-track]]
 === do-not-track
 Value to send in the `DNT` header.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[true]+
 
@@ -421,11 +482,22 @@ Default: +pass:[system]+
 === ssl-strict
 Whether to validate SSL handshakes.
 
+Valid values:
+
+ * +true+
+ * +false+
+ * +ask+
+
 Default: +pass:[ask]+
 
 [[network-dns-prefetch]]
 === dns-prefetch
 Whether to try to pre-fetch DNS entries to speed up browsing.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[true]+
 
@@ -435,6 +507,11 @@ Options related to completion and command history.
 [[completion-show]]
 === show
 Whether to show the autocompletion window.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[true]+
 
@@ -456,11 +533,21 @@ Default: +pass:[100]+
 === quick-complete
 Whether to move on to the next part when there's only one possible completion left.
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[true]+
 
 [[completion-shrink]]
 === shrink
 Whether to shrink the completion to be smaller than the configured size if there are no scrollbars.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[false]+
 
@@ -477,17 +564,32 @@ Default: +pass:[500]+
 === insert-mode-on-plugins
 Whether to switch to insert mode when clicking flash and other plugins.
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[false]+
 
 [[input-auto-leave-insert-mode]]
 === auto-leave-insert-mode
 Whether to leave insert mode if a non-editable element is clicked.
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[true]+
 
 [[input-auto-insert-mode]]
 === auto-insert-mode
 Whether to automatically enter insert mode if an editable element is focused after page load.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[false]+
 
@@ -509,11 +611,21 @@ Enables or disables the Spatial Navigation feature
 
 Spatial navigation consists in the ability to navigate between focusable elements in a Web page, such as hyperlinks and form controls, by using Left, Right, Up and Down arrow keys. For example, if a user presses the Right key, heuristics determine whether there is an element he might be trying to reach towards the right and which element he probably wants.
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[false]+
 
 [[input-links-included-in-focus-chain]]
 === links-included-in-focus-chain
 Whether hyperlinks should be included in the keyboard focus chain.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[true]+
 
@@ -523,6 +635,11 @@ Configuration of the tab bar.
 [[tabs-background-tabs]]
 === background-tabs
 Whether to open new tabs (middleclick/ctrl+click) in background.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[false]+
 
@@ -580,17 +697,32 @@ Default: +pass:[ignore]+
 === auto-hide
 Hide the tabbar if only one tab is open.
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[false]+
 
 [[tabs-wrap]]
 === wrap
 Whether to wrap when changing tabs.
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[true]+
 
 [[tabs-movable]]
 === movable
 Whether tabs should be movable.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[true]+
 
@@ -623,6 +755,11 @@ Default: +pass:[north]+
 === show-favicons
 Whether to show favicons in the tab bar.
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[true]+
 
 [[tabs-width]]
@@ -646,6 +783,11 @@ Default: +pass:[3]+
 [[tabs-tabs-are-windows]]
 === tabs-are-windows
 Whether to open windows instead of tabs.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[false]+
 
@@ -696,6 +838,11 @@ Default: empty
 === offline-storage-database
 Whether support for the HTML 5 offline storage feature is enabled.
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[true]+
 
 [[storage-offline-web-application-storage]]
@@ -706,11 +853,21 @@ An application cache acts like an HTTP cache in some sense. For documents that u
 
 The feature is described in details at: http://dev.w3.org/html5/spec/Overview.html#appcache
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[true]+
 
 [[storage-local-storage]]
 === local-storage
 Whether support for the HTML 5 local storage feature is enabled.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[true]+
 
@@ -727,11 +884,21 @@ Loaded plugins/scripts and allowed actions.
 === allow-images
 Whether images are automatically loaded in web pages.
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[true]+
 
 [[content-allow-javascript]]
 === allow-javascript
 Enables or disables the running of JavaScript programs.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[true]+
 
@@ -741,11 +908,21 @@ Enables or disables plugins in Web pages.
 
 Qt plugins with a mimetype such as "application/x-qt-plugin" are not affected by this setting.
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[false]+
 
 [[content-javascript-can-open-windows]]
 === javascript-can-open-windows
 Whether JavaScript programs can open new windows.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[false]+
 
@@ -753,11 +930,21 @@ Default: +pass:[false]+
 === javascript-can-close-windows
 Whether JavaScript programs can close windows.
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[false]+
 
 [[content-javascript-can-access-clipboard]]
 === javascript-can-access-clipboard
 Whether JavaScript programs can read or write to the clipboard.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[false]+
 
@@ -765,11 +952,21 @@ Default: +pass:[false]+
 === local-content-can-access-remote-urls
 Whether locally loaded documents are allowed to access remote urls.
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[false]+
 
 [[content-local-content-can-access-file-urls]]
 === local-content-can-access-file-urls
 Whether locally loaded documents are allowed to access other local urls.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[true]+
 
@@ -787,6 +984,11 @@ Default: +pass:[default]+
 [[content-cookies-store]]
 === cookies-store
 Whether to store cookies.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[true]+
 
@@ -838,11 +1040,21 @@ Default: +pass:[asdfghjkl]+
 === uppercase
 Make chars in hint strings uppercase.
 
+Valid values:
+
+ * +true+
+ * +false+
+
 Default: +pass:[false]+
 
 [[hints-auto-follow]]
 === auto-follow
 Whether to auto-follow a hint if there's only one left.
+
+Valid values:
+
+ * +true+
+ * +false+
 
 Default: +pass:[true]+
 
