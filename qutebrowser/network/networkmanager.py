@@ -160,7 +160,7 @@ class NetworkManager(QNetworkAccessManager):
         if scheme == 'https' and not SSL_AVAILABLE:
             return networkreply.ErrorNetworkReply(
                 req, "SSL is not supported by the installed Qt library!",
-                QNetworkReply.ProtocolUnknownError)
+                QNetworkReply.ProtocolUnknownError, self)
         elif scheme in self._scheme_handlers:
             return self._scheme_handlers[scheme].createRequest(
                 op, req, outgoing_data)
@@ -170,7 +170,7 @@ class NetworkManager(QNetworkAccessManager):
                 req.url().host()))
             return networkreply.ErrorNetworkReply(
                 req, "Request was blocked by host blocker.",
-                QNetworkReply.ContentAccessDenied)
+                QNetworkReply.ContentAccessDenied, self)
         if config.get('network', 'do-not-track'):
             dnt = '1'.encode('ascii')
         else:
