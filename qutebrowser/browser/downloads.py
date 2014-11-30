@@ -278,9 +278,6 @@ class DownloadItem(QObject):
         # singleShot QTimer to emit them after they are connected.
         if reply.error() != QNetworkReply.NoError:
             QTimer.singleShot(0, lambda: self.error.emit(reply.errorString()))
-        if reply.isFinished():
-            self.successful = reply.error() == QNetworkReply.NoError
-            QTimer.singleShot(0, self.finished.emit)
 
     def bg_color(self):
         """Background color to be shown."""
@@ -389,6 +386,7 @@ class DownloadItem(QObject):
         self.successful = self.reply.error() == QNetworkReply.NoError
         self.reply.close()
         self.reply.deleteLater()
+        self.reply = None
         self._read_timer.stop()
         self.finished.emit()
         log.downloads.debug("Download finished")
@@ -401,11 +399,11 @@ class DownloadItem(QObject):
         doesn't mean the download (i.e. writing data to the disk) is finished
         as well. Therefore, we can't close() the QNetworkReply in here yet.
         """
+        if self.reply is None:
+            return
         self.stats.finish()
         is_redirected = self._handle_redirect()
         if is_redirected:
-            return
-        if self.reply is None:
             return
         log.downloads.debug("Reply finished, fileobj {}".format(self.fileobj))
         if self.fileobj is not None:
@@ -416,8 +414,10 @@ class DownloadItem(QObject):
     @pyqtSlot()
     def on_ready_read(self):
         """Read available data and save file when ready to read."""
-        if self.fileobj is None:
-            # No filename has been set yet, so we don't empty the buffer.
+        if self.fileobj is None or self.reply is None:
+            # No filename has been set yet (so we don't empty the buffer) or we
+            # got a readyRead after the reply was finished (which happens on
+            # qute:log for example).
             return
         try:
             self.fileobj.write(self.reply.readAll())
