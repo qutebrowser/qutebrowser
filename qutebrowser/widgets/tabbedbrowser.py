@@ -76,8 +76,6 @@ class TabbedBrowser(tabwidget.TabWidget):
         resized: Emitted when the browser window has resized, so the completion
                  widget can adjust its size to it.
                  arg: The new size.
-        start_download: Emitted when any tab wants to start downloading
-                        something.
         current_tab_changed: The current tab changed to the emitted WebView.
     """
 
@@ -89,7 +87,6 @@ class TabbedBrowser(tabwidget.TabWidget):
     cur_link_hovered = pyqtSignal(str, str, str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
     cur_load_status_changed = pyqtSignal(str)
-    start_download = pyqtSignal('QNetworkReply*')
     close_window = pyqtSignal()
     resized = pyqtSignal('QRect')
     got_cmd = pyqtSignal(str)
@@ -163,8 +160,6 @@ class TabbedBrowser(tabwidget.TabWidget):
             self._filter.create(self.cur_load_status_changed, tab))
         tab.url_text_changed.connect(
             functools.partial(self.on_url_text_changed, tab))
-        # downloads
-        page.start_download.connect(self.start_download)
         # misc
         tab.titleChanged.connect(
             functools.partial(self.on_title_changed, tab))

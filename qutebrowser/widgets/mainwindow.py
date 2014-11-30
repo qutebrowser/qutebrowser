@@ -200,7 +200,6 @@ class MainWindow(QWidget):
         message_bridge = self._get_object('message-bridge')
         mode_manager = self._get_object('mode-manager')
         prompter = self._get_object('prompter')
-        download_manager = self._get_object('download-manager')
 
         # misc
         self._tabbed_browser.close_window.connect(self.close)
@@ -261,9 +260,6 @@ class MainWindow(QWidget):
         cmd.clear_completion_selection.connect(
             completion_obj.on_clear_completion_selection)
         cmd.hide_completion.connect(completion_obj.hide)
-
-        # downloads
-        tabs.start_download.connect(download_manager.fetch)
 
         # quickmark completion
         quickmark_manager = objreg.get('quickmark-manager')

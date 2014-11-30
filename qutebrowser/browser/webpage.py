@@ -21,9 +21,9 @@
 
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, PYQT_VERSION, Qt, QUrl
+from PyQt5.QtCore import pyqtSlot, PYQT_VERSION, Qt, QUrl
 from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtNetwork import QNetworkReply
+from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage
@@ -42,12 +42,7 @@ class BrowserPage(QWebPage):
         _extension_handlers: Mapping of QWebPage extensions to their handlers.
         _networkmnager: The NetworkManager used.
         _win_id: The window ID this BrowserPage is associated with.
-
-    Signals:
-        start_download: Emitted when a file should be downloaded.
     """
-
-    start_download = pyqtSignal('QNetworkReply*')
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
@@ -166,9 +161,17 @@ class BrowserPage(QWebPage):
 
     @pyqtSlot('QNetworkRequest')
     def on_download_requested(self, request):
-        """Called when the user wants to download a link."""
-        reply = self.networkAccessManager().get(request)
-        self.start_download.emit(reply)
+        """Called when the user wants to download a link.
+
+        We need to construct a copy of the QNetworkRequest here as the
+        download_manager needs it async and we'd get a segfault otherwise as
+        soon as the user has entered the filename, as Qt seems to delete it
+        after this slot returns.
+        """
+        req = QNetworkRequest(request)
+        download_manager = objreg.get('download-manager', scope='window',
+                                      window=self._win_id)
+        download_manager.get_request(req, page=self)
 
     @pyqtSlot('QNetworkReply')
     def on_unsupported_content(self, reply):
@@ -181,9 +184,11 @@ class BrowserPage(QWebPage):
         here: http://mimesniff.spec.whatwg.org/
         """
         inline, _suggested_filename = http.parse_content_disposition(reply)
+        download_manager = objreg.get('download-manager', scope='window',
+                                      window=self._win_id)
         if not inline:
             # Content-Disposition: attachment -> force download
-            self.start_download.emit(reply)
+            download_manager.fetch(reply)
             return
         mimetype, _rest = http.parse_content_type(reply)
         if mimetype == 'image/jpg':
@@ -198,7 +203,7 @@ class BrowserPage(QWebPage):
                     self.display_content, reply, 'image/jpeg'))
         else:
             # Unknown mimetype, so download anyways.
-            self.start_download.emit(reply)
+            download_manager.fetch(reply)
 
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""

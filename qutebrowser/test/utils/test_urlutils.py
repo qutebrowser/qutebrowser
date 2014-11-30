@@ -206,5 +206,25 @@ class QurlFromUserInputTests(unittest.TestCase):
             'http://[::1]')
 
 
+class FilenameFromUrlTests(unittest.TestCase):
+
+    """Tests for filename_from_url."""
+
+    def test_invalid_url(self):
+        """Test with an invalid QUrl."""
+        self.assertEqual(urlutils.filename_from_url(QUrl()), None)
+
+    def test_url_path(self):
+        """Test with an URL with path."""
+        url = QUrl('http://qutebrowser.org/test.html')
+        self.assertEqual(urlutils.filename_from_url(url), 'test.html')
+
+    def test_url_host(self):
+        """Test with an URL with no path."""
+        url = QUrl('http://qutebrowser.org/')
+        self.assertEqual(urlutils.filename_from_url(url),
+                         'qutebrowser.org.html')
+
+
 if __name__ == '__main__':
     unittest.main()

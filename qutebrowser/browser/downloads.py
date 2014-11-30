@@ -490,6 +490,16 @@ class DownloadManager(QAbstractListModel):
     def __repr__(self):
         return utils.get_repr(self, downloads=len(self.downloads))
 
+    def _prepare_question(self):
+        """Prepare a Question object to be asked."""
+        q = usertypes.Question(self)
+        q.text = "Save file to:"
+        q.mode = usertypes.PromptMode.text
+        q.completed.connect(q.deleteLater)
+        q.destroyed.connect(functools.partial(self.questions.remove, q))
+        self.questions.append(q)
+        return q
+
     @cmdutils.register(instance='download-manager', scope='window')
     def download(self, url, dest=None):
         """Download a given URL, given as string.
@@ -513,7 +523,10 @@ class DownloadManager(QAbstractListModel):
             filename: A path to write the data to.
 
         Return:
-            The created DownloadItem.
+            If the download could start immediately, (fileobj/filename given),
+            the created DownloadItem.
+
+            If not, None.
         """
         if fileobj is not None and filename is not None:
             raise TypeError("Only one of fileobj/filename may be given!")
@@ -521,31 +534,58 @@ class DownloadManager(QAbstractListModel):
             urlutils.invalid_url_error(self._win_id, url, "start download")
             return
         req = QNetworkRequest(url)
+        return self.get_request(req, page, fileobj, filename)
+
+    def get_request(self, request, page=None, fileobj=None, filename=None):
+        """Start a download with a QNetworkRequest.
+
+        Args:
+            request: The QNetworkRequest to download.
+            page: The QWebPage to use.
+            fileobj: The file object to write the answer to.
+            filename: A path to write the data to.
+
+        Return:
+            If the download could start immediately, (fileobj/filename given),
+            the created DownloadItem.
+
+            If not, None.
+        """
+        if fileobj is not None and filename is not None:
+            raise TypeError("Only one of fileobj/filename may be given!")
         # WORKAROUND for Qt corrupting data loaded from cache:
         # https://bugreports.qt-project.org/browse/QTBUG-42757
-        req.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
-                         QNetworkRequest.AlwaysNetwork)
+        request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
+                             QNetworkRequest.AlwaysNetwork)
+        if fileobj is not None or filename is not None:
+            return self.fetch_request(request, filename, fileobj, page)
+        q = self._prepare_question()
+        q.default = urlutils.filename_from_url(request.url())
+        message_bridge = objreg.get('message-bridge', scope='window',
+                                    window=self._win_id)
+        q.answered.connect(
+            lambda fn: self.fetch_request(request, filename=fn, page=page))
+        message_bridge.ask(q, blocking=False)
+        return None
+
+    def fetch_request(self, request, page=None, fileobj=None, filename=None):
+        """Download a QNetworkRequest to disk.
+
+        Args:
+            request: The QNetworkRequest to download.
+            page: The QWebPage to use.
+            fileobj: The file object to write the answer to.
+            filename: A path to write the data to.
+
+        Return:
+            The created DownloadItem.
+        """
         if page is None:
             nam = self._networkmanager
         else:
             nam = page.networkAccessManager()
-        reply = nam.get(req)
+        reply = nam.get(request)
         return self.fetch(reply, fileobj, filename)
-
-    @cmdutils.register(instance='download-manager', scope='window')
-    def cancel_download(self, count: {'special': 'count'}=1):
-        """Cancel the first/[count]th download.
-
-        Args:
-            count: The index of the download to cancel.
-        """
-        if count == 0:
-            return
-        try:
-            download = self.downloads[count - 1]
-        except IndexError:
-            raise cmdexc.CommandError("There's no download {}!".format(count))
-        download.cancel()
 
     @pyqtSlot('QNetworkReply')
     def fetch(self, reply, fileobj=None, filename=None):
@@ -589,15 +629,10 @@ class DownloadManager(QAbstractListModel):
             download.set_fileobj(fileobj)
             download.autoclose = False
         else:
-            q = usertypes.Question(self)
-            q.text = "Save file to:"
-            q.mode = usertypes.PromptMode.text
+            q = self._prepare_question()
             q.default = suggested_filename
             q.answered.connect(download.set_filename)
             q.cancelled.connect(download.cancel)
-            q.completed.connect(q.deleteLater)
-            q.destroyed.connect(functools.partial(self.questions.remove, q))
-            self.questions.append(q)
             download.cancelled.connect(q.abort)
             download.error.connect(q.abort)
             message_bridge = objreg.get('message-bridge', scope='window',
@@ -605,6 +640,21 @@ class DownloadManager(QAbstractListModel):
             message_bridge.ask(q, blocking=False)
 
         return download
+
+    @cmdutils.register(instance='download-manager', scope='window')
+    def cancel_download(self, count: {'special': 'count'}=1):
+        """Cancel the first/[count]th download.
+
+        Args:
+            count: The index of the download to cancel.
+        """
+        if count == 0:
+            return
+        try:
+            download = self.downloads[count - 1]
+        except IndexError:
+            raise cmdexc.CommandError("There's no download {}!".format(count))
+        download.cancel()
 
     @pyqtSlot(QNetworkRequest, QNetworkReply)
     def on_redirect(self, download, request, reply):

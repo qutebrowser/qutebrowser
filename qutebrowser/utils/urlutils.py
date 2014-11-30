@@ -22,6 +22,7 @@
 import re
 import os.path
 import ipaddress
+import posixpath
 import urllib.parse
 
 from PyQt5.QtCore import QUrl
@@ -286,6 +287,26 @@ def raise_cmdexc_if_invalid(url):
         if url_error:
             errstr += " - {}".format(url_error)
         raise cmdexc.CommandError(errstr)
+
+
+def filename_from_url(url):
+    """Get a suitable filename from an URL.
+
+    Args:
+        url: The URL to parse, as a QUrl.
+
+    Return:
+        The suggested filename as a string, or None.
+    """
+    if not url.isValid():
+        return None
+    pathname = posixpath.basename(url.path())
+    if pathname:
+        return pathname
+    elif url.host():
+        return url.host() + '.html'
+    else:
+        return None
 
 
 class FuzzyUrlError(Exception):
