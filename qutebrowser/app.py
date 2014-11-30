@@ -258,7 +258,7 @@ class Application(QApplication):
             self.alert(window_to_raise)
         return win_id
 
-    def process_args(self, args, via_ipc=False):
+    def process_args(self, args, via_ipc=False, cwd=None):
         """Process commandline args.
 
         URLs to open have no prefix, commands to execute begin with a colon.
@@ -266,6 +266,7 @@ class Application(QApplication):
         Args:
             args: A list of arguments to process.
             via_ipc: Whether the arguments were transmitted over IPC.
+            cwd: The cwd to use for fuzzy_url.
         """
         if ipc and not args:
             win_id = self._get_window(via_ipc, force_window=True)
@@ -288,7 +289,7 @@ class Application(QApplication):
                                             window=win_id)
                 log.init.debug("Startup URL {}".format(cmd))
                 try:
-                    url = urlutils.fuzzy_url(cmd)
+                    url = urlutils.fuzzy_url(cmd, cwd)
                 except urlutils.FuzzyUrlError as e:
                     message.error(0, "Error in startup argument '{}': "
                                      "{}".format(cmd, e))
