@@ -599,6 +599,7 @@ class DownloadManager(QAbstractListModel):
             q.destroyed.connect(functools.partial(self.questions.remove, q))
             self.questions.append(q)
             download.cancelled.connect(q.abort)
+            download.error.connect(q.abort)
             message_bridge = objreg.get('message-bridge', scope='window',
                                         window=self._win_id)
             message_bridge.ask(q, blocking=False)
