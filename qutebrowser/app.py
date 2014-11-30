@@ -499,6 +499,11 @@ class Application(QApplication):
             objects = ""
 
         try:
+            objreg.get('ipc-server').ignored = True
+        except Exception:
+            log.destroy.exception("Error while ignoring ipc")
+
+        try:
             self.lastWindowClosed.disconnect(self.shutdown)
         except TypeError:
             log.destroy.exception("Error while preventing shutdown")

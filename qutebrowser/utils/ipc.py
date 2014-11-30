@@ -46,6 +46,7 @@ class IPCServer(QObject):
     """IPC server to which clients connect to.
 
     Attributes:
+        ignored: Whether requests are ignored (in exception hook).
         _timer: A timer to handle timeouts.
         _server: A QLocalServer to accept new connections.
         _socket: The QLocalSocket we're currently connected to.
@@ -54,6 +55,7 @@ class IPCServer(QObject):
     def __init__(self, parent=None):
         """Start the IPC server and listen to commands."""
         super().__init__(parent)
+        self.ignored = False
         self._remove_server()
         self._timer = usertypes.Timer(self, 'ipc-timeout')
         self._timer.setInterval(READ_TIMEOUT)
@@ -86,6 +88,8 @@ class IPCServer(QObject):
     @pyqtSlot()
     def handle_connection(self):
         """Handle a new connection to the server."""
+        if self.ignored:
+            return
         if self._socket is not None:
             log.ipc.debug("Got new connection but ignoring it because we're "
                           "still handling another one.")
