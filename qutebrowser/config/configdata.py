@@ -251,7 +251,7 @@ DATA = collections.OrderedDict([
          "`http://...` URL."),
 
         ('ssl-strict',
-         SettingValue(typ.Bool(), 'true'),
+         SettingValue(typ.BoolAsk(), 'ask'),
          "Whether to validate SSL handshakes."),
 
         ('dns-prefetch',

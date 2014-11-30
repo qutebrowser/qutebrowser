@@ -101,14 +101,24 @@ class NetworkManager(QNetworkAccessManager):
             reply: The QNetworkReply that is encountering the errors.
             errors: A list of errors.
         """
-        if config.get('network', 'ssl-strict'):
-            return
-        for err in errors:
-            # FIXME we might want to use warn here (non-fatal error)
-            # https://github.com/The-Compiler/qutebrowser/issues/114
-            message.error(self._win_id,
-                          'SSL error: {}'.format(err.errorString()))
-        reply.ignoreSslErrors()
+        ssl_strict = config.get('network', 'ssl-strict')
+        if ssl_strict == 'ask':
+            err_string = '\n'.join('- ' + err.errorString() for err in errors)
+            answer = message.ask(
+                self._win_id,
+                'SSL errors - continue?\n{}'.format(err_string),
+                mode=usertypes.PromptMode.yesno)
+            if answer:
+                reply.ignoreSslErrors()
+        elif ssl_strict:
+            pass
+        else:
+            for err in errors:
+                # FIXME we might want to use warn here (non-fatal error)
+                # https://github.com/The-Compiler/qutebrowser/issues/114
+                message.error(self._win_id,
+                              'SSL error: {}'.format(err.errorString()))
+            reply.ignoreSslErrors()
 
     @pyqtSlot('QNetworkReply', 'QAuthenticator')
     def on_authentication_required(self, _reply, authenticator):

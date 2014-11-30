@@ -265,6 +265,26 @@ class Bool(BaseType):
         return [('true', ''), ('false', '')]
 
 
+class BoolAsk(Bool):
+
+    """A yes/no/ask question."""
+
+    def transform(self, value):
+        if value.lower() == 'ask':
+            return 'ask'
+        else:
+            return super().transform(value)
+
+    def validate(self, value):
+        if value.lower() == 'ask':
+            return
+        else:
+            super().validate(value)
+
+    def complete(self):
+        return [('true', ''), ('false', ''), ('ask', '')]
+
+
 class Int(BaseType):
 
     """Base class for an integer setting.
