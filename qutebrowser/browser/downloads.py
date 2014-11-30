@@ -225,7 +225,6 @@ class DownloadItem(QObject):
         self._reply.readyRead.disconnect()
         self.error_msg = msg
         self.stats.finish()
-        self.timer.stop()
         self.error.emit(msg)
         self._reply.abort()
         self._reply.deleteLater()
