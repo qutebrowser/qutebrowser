@@ -421,7 +421,7 @@ Default: +pass:[system]+
 === ssl-strict
 Whether to validate SSL handshakes.
 
-Default: +pass:[true]+
+Default: +pass:[ask]+
 
 [[network-dns-prefetch]]
 === dns-prefetch
