@@ -90,6 +90,9 @@ class QuickmarkManager(QObject):
             url: The url to add as quickmark.
             name: The name for the new quickmark.
         """
+
+        name = name.strip(' ')
+
         # We don't raise cmdexc.CommandError here as this can be called async
         # via prompt_save.
         if not name:
@@ -112,6 +115,9 @@ class QuickmarkManager(QObject):
 
     def get(self, name):
         """Get the URL of the quickmark named name as a QUrl."""
+
+        name = name.strip(' ')
+
         if name not in self.marks:
             raise cmdexc.CommandError(
                 "Quickmark '{}' does not exist!".format(name))
