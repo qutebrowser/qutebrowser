@@ -205,4 +205,5 @@ def simple_split(s, keep=False, maxsplit=None):
     else:
         pattern = '[' + whitespace + ']'
         parts = re.split(pattern, s, maxsplit)
+        parts[-1] = parts[-1].rstrip()
         return [p for p in parts if p]
