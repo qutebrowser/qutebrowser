@@ -283,7 +283,13 @@ class WebView(QWebView):
         settings = self.settings()
         settings.setAttribute(QWebSettings.JavascriptEnabled, False)
         self.stop()
-        self.page().networkAccessManager().shutdown()
+        download_manager = objreg.get('download-manager', scope='window',
+                                      window=self._win_id)
+        nam = self.page().networkAccessManager()
+        if download_manager.has_downloads_with_nam(nam):
+            nam.setParent(download_manager)
+        else:
+            nam.shutdown()
 
     def openurl(self, url):
         """Open a URL in the browser.

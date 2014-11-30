@@ -158,8 +158,8 @@ class DownloadItem(QObject):
         autoclose: Whether to close the associated file if the download is
                    done.
         fileobj: The file object to download the file to.
+        reply: The QNetworkReply associated with this download.
         _filename: The filename of the download.
-        _reply: The QNetworkReply associated with this download.
         _redirects: How many time we were redirected already.
         _buffer: A BytesIO object to buffer incoming data until we know the
                  target file.
@@ -193,7 +193,7 @@ class DownloadItem(QObject):
         self.stats = DownloadItemStats(self)
         self.stats.updated.connect(self.data_changed)
         self.autoclose = True
-        self._reply = None
+        self.reply = None
         self._buffer = io.BytesIO()
         self._read_timer = QTimer()
         self._read_timer.setInterval(500)
@@ -243,16 +243,16 @@ class DownloadItem(QObject):
         """Abort the download and emit an error."""
         assert not self.successful
         self._read_timer.stop()
-        self._reply.downloadProgress.disconnect()
-        self._reply.finished.disconnect()
-        self._reply.error.disconnect()
-        self._reply.readyRead.disconnect()
+        self.reply.downloadProgress.disconnect()
+        self.reply.finished.disconnect()
+        self.reply.error.disconnect()
+        self.reply.readyRead.disconnect()
         self.error_msg = msg
         self.stats.finish()
         self.error.emit(msg)
-        self._reply.abort()
-        self._reply.deleteLater()
-        self._reply = None
+        self.reply.abort()
+        self.reply.deleteLater()
+        self.reply = None
         if self.fileobj is not None:
             try:
                 self.fileobj.close()
@@ -266,7 +266,7 @@ class DownloadItem(QObject):
         Args:
             reply: The QNetworkReply to handle.
         """
-        self._reply = reply
+        self.reply = reply
         reply.setReadBufferSize(16 * 1024 * 1024)  # 16 MB
         reply.downloadProgress.connect(self.stats.on_download_progress)
         reply.finished.connect(self.on_reply_finished)
@@ -301,11 +301,11 @@ class DownloadItem(QObject):
         """Cancel the download."""
         log.downloads.debug("cancelled")
         self.cancelled.emit()
-        if self._reply is not None:
-            self._reply.finished.disconnect(self.on_reply_finished)
-            self._reply.abort()
-            self._reply.deleteLater()
-            self._reply = None
+        if self.reply is not None:
+            self.reply.finished.disconnect(self.on_reply_finished)
+            self.reply.abort()
+            self.reply.deleteLater()
+            self.reply = None
         self._read_timer.stop()
         if self.fileobj is not None:
             self.fileobj.close()
@@ -367,7 +367,7 @@ class DownloadItem(QObject):
             self._buffer.seek(0)
             shutil.copyfileobj(self._buffer, fileobj)
             self._buffer.close()
-            if self._reply.isFinished():
+            if self.reply.isFinished():
                 # Downloading to the buffer in RAM has already finished so we
                 # write out the data and clean up now.
                 self.finish_download()
@@ -382,13 +382,13 @@ class DownloadItem(QObject):
     def finish_download(self):
         """Write buffered data to disk and finish the QNetworkReply."""
         log.downloads.debug("Finishing download...")
-        if self._reply.isOpen():
-            self.fileobj.write(self._reply.readAll())
+        if self.reply.isOpen():
+            self.fileobj.write(self.reply.readAll())
         if self.autoclose:
             self.fileobj.close()
-        self.successful = self._reply.error() == QNetworkReply.NoError
-        self._reply.close()
-        self._reply.deleteLater()
+        self.successful = self.reply.error() == QNetworkReply.NoError
+        self.reply.close()
+        self.reply.deleteLater()
         self._read_timer.stop()
         self.finished.emit()
         log.downloads.debug("Download finished")
@@ -405,7 +405,7 @@ class DownloadItem(QObject):
         is_redirected = self._handle_redirect()
         if is_redirected:
             return
-        if self._reply is None:
+        if self.reply is None:
             return
         log.downloads.debug("Reply finished, fileobj {}".format(self.fileobj))
         if self.fileobj is not None:
@@ -420,7 +420,7 @@ class DownloadItem(QObject):
             # No filename has been set yet, so we don't empty the buffer.
             return
         try:
-            self.fileobj.write(self._reply.readAll())
+            self.fileobj.write(self.reply.readAll())
         except OSError as e:
             self._die(e.strerror)
 
@@ -430,12 +430,12 @@ class DownloadItem(QObject):
         if code == QNetworkReply.OperationCanceledError:
             return
         else:
-            self._die(self._reply.errorString())
+            self._die(self.reply.errorString())
 
     @pyqtSlot()
     def on_read_timer_timeout(self):
         """Read some bytes from the QNetworkReply periodically."""
-        self._buffer.write(self._reply.read(1024))
+        self._buffer.write(self.reply.read(1024))
 
     def _handle_redirect(self):
         """Handle a HTTP redirect.
@@ -443,12 +443,12 @@ class DownloadItem(QObject):
         Return:
             True if the download was redirected, False otherwise.
         """
-        redirect = self._reply.attribute(
+        redirect = self.reply.attribute(
             QNetworkRequest.RedirectionTargetAttribute)
         if redirect is None or redirect.isEmpty():
             return False
-        new_url = self._reply.url().resolved(redirect)
-        request = self._reply.request()
+        new_url = self.reply.url().resolved(redirect)
+        request = self.reply.request()
         if new_url == request.url():
             return False
 
@@ -459,12 +459,12 @@ class DownloadItem(QObject):
         log.downloads.debug("{}: Handling redirect".format(self))
         self._redirects += 1
         request.setUrl(new_url)
-        reply = self._reply
+        reply = self.reply
         reply.finished.disconnect(self.on_reply_finished)
-        self._reply = None
+        self.reply = None
         if self.fileobj is not None:
             self.fileobj.seek(0)
-        self.redirected.emit(request, reply)  # this will change self._reply!
+        self.redirected.emit(request, reply)  # this will change self.reply!
         reply.deleteLater()  # the old one
         return True
 
@@ -692,6 +692,20 @@ class DownloadManager(QAbstractListModel):
     def on_error(self, msg):
         """Display error message on download errors."""
         message.error(self._win_id, "Download error: {}".format(msg))
+
+    def has_downloads_with_nam(self, nam):
+        """Check if the DownloadManager has any downloads with the given QNAM.
+
+        Args:
+            nam: The QNetworkAccessManager to check.
+
+        Return:
+            A boolean.
+        """
+        for download in self.downloads:
+            if download.reply.manager() is nam:
+                return True
+        return False
 
     def last_index(self):
         """Get the last index in the model.
