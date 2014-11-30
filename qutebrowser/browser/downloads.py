@@ -19,8 +19,10 @@
 
 """Download manager."""
 
+import io
 import os
 import os.path
+import shutil
 import functools
 import collections
 
@@ -133,6 +135,19 @@ class DownloadItem(QObject):
 
     """A single download currently running.
 
+    There are multiple ways the data can flow from the QNetworkReply to the
+    disk.
+
+    If the filename/file object is known immediately when starting the
+    download, QNetworkReply's readyRead writes to the target file directly.
+
+    If not, readyRead is ignored and with self._read_timer we periodically read
+    into the self._buffer BytesIO slowly, so some broken servers don't close
+    our connection.
+
+    As soon as we know the file object, we copy self._buffer over and the next
+    readyRead will write to the real file object.
+
     Class attributes:
         MAX_REDIRECTS: The maximum redirection count.
 
@@ -146,6 +161,10 @@ class DownloadItem(QObject):
         _filename: The filename of the download.
         _reply: The QNetworkReply associated with this download.
         _redirects: How many time we were redirected already.
+        _buffer: A BytesIO object to buffer incoming data until we know the
+                 target file.
+        _read_timer: A QTimer which reads the QNetworkReply into self._buffer
+                     periodically.
 
     Signals:
         data_changed: The downloads metadata changed.
@@ -175,6 +194,10 @@ class DownloadItem(QObject):
         self.stats.updated.connect(self.data_changed)
         self.autoclose = True
         self._reply = None
+        self._buffer = io.BytesIO()
+        self._read_timer = QTimer()
+        self._read_timer.setInterval(500)
+        self._read_timer.timeout.connect(self.on_read_timer_timeout)
         self._redirects = 0
         self.error_msg = None
         self.basename = '???'
@@ -219,6 +242,7 @@ class DownloadItem(QObject):
     def _die(self, msg):
         """Abort the download and emit an error."""
         assert not self.successful
+        self._read_timer.stop()
         self._reply.downloadProgress.disconnect()
         self._reply.finished.disconnect()
         self._reply.error.disconnect()
@@ -243,11 +267,12 @@ class DownloadItem(QObject):
             reply: The QNetworkReply to handle.
         """
         self._reply = reply
-        reply.setReadBufferSize(16 * 1024 * 1024)
+        reply.setReadBufferSize(16 * 1024 * 1024)  # 16 MB
         reply.downloadProgress.connect(self.stats.on_download_progress)
         reply.finished.connect(self.on_reply_finished)
         reply.error.connect(self.on_reply_error)
         reply.readyRead.connect(self.on_ready_read)
+        self._read_timer.start()
         # We could have got signals before we connected slots to them.
         # Here no signals are connected to the DownloadItem yet, so we use a
         # singleShot QTimer to emit them after they are connected.
@@ -281,6 +306,7 @@ class DownloadItem(QObject):
             self._reply.abort()
             self._reply.deleteLater()
             self._reply = None
+        self._read_timer.stop()
         if self.fileobj is not None:
             self.fileobj.close()
         if self._filename is not None and os.path.exists(self._filename):
@@ -336,6 +362,11 @@ class DownloadItem(QObject):
                              "{}".format(self.fileobj, fileobj))
         self.fileobj = fileobj
         try:
+            self._read_timer.stop()
+            log.downloads.debug("buffer: {} bytes".format(self._buffer.tell()))
+            self._buffer.seek(0)
+            shutil.copyfileobj(self._buffer, fileobj)
+            self._buffer.close()
             if self._reply.isFinished():
                 # Downloading to the buffer in RAM has already finished so we
                 # write out the data and clean up now.
@@ -358,6 +389,7 @@ class DownloadItem(QObject):
         self.successful = self._reply.error() == QNetworkReply.NoError
         self._reply.close()
         self._reply.deleteLater()
+        self._read_timer.stop()
         self.finished.emit()
         log.downloads.debug("Download finished")
 
@@ -399,6 +431,11 @@ class DownloadItem(QObject):
             return
         else:
             self._die(self._reply.errorString())
+
+    @pyqtSlot()
+    def on_read_timer_timeout(self):
+        """Read some bytes from the QNetworkReply periodically."""
+        self._buffer.write(self._reply.read(1024))
 
     def _handle_redirect(self):
         """Handle a HTTP redirect.
