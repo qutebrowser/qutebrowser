@@ -24,7 +24,6 @@ import functools
 import subprocess
 import collections
 
-import sip
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl
 from PyQt5.QtGui import QMouseEvent, QClipboard
 from PyQt5.QtWidgets import QApplication
@@ -146,8 +145,6 @@ class HintManager(QObject):
                 pass
         for f in self._context.frames:
             log.hints.debug("Disconnecting frame {}".format(f))
-            if objreg.get('args').debug:
-                sip.dump(f)
             try:
                 f.contentsSizeChanged.disconnect(self.on_contents_size_changed)
             except TypeError:
@@ -646,8 +643,6 @@ class HintManager(QObject):
         self._context.target = target
         self._context.baseurl = tabbed_browser.current_url()
         self._context.frames = webelem.get_child_frames(mainframe)
-        for frame in self._context.frames:
-            frame.destroyed.connect(self.on_frame_destroyed)
         self._context.args = args
         self._init_elements(mainframe, group)
         message_bridge = objreg.get('message-bridge', scope='window',
@@ -786,8 +781,3 @@ class HintManager(QObject):
             # hinting.
             return
         self._cleanup()
-
-    @pyqtSlot('QObject')
-    def on_frame_destroyed(self, obj):
-        """Log when a frame got destroyed by Qt."""
-        log.hints.debug("frame destroyed: {}".format(obj))
