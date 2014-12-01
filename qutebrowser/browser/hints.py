@@ -20,6 +20,7 @@
 """A HintManager to draw hints over links."""
 
 import math
+import functools
 import subprocess
 import collections
 
@@ -336,18 +337,19 @@ class HintManager(QObject):
         label.setPlainText(string)
         return label
 
-    def _click(self, elem):
+    def _click(self, elem, context):
         """Click an element.
 
         Args:
             elem: The QWebElement to click.
+            context: The HintContext to use.
         """
-        if self._context.target == Target.rapid:
+        if context.target == Target.rapid:
             target = Target.tab_bg
-        elif self._context.target == Target.rapid_win:
+        elif context.target == Target.rapid_win:
             target = Target.window
         else:
-            target = self._context.target
+            target = context.target
         # FIXME Instead of clicking the center, we could have nicer heuristics.
         # e.g. parse (-webkit-)border-radius correctly and click text fields at
         # the bottom right, and everything else on the top left or so.
@@ -371,36 +373,39 @@ class HintManager(QObject):
         for evt in events:
             self.mouse_event.emit(evt)
 
-    def _yank(self, url):
+    def _yank(self, url, context):
         """Yank an element to the clipboard or primary selection.
 
         Args:
             url: The URL to open as a QURL.
+            context: The HintContext to use.
         """
-        sel = self._context.target == Target.yank_primary
+        sel = context.target == Target.yank_primary
         mode = QClipboard.Selection if sel else QClipboard.Clipboard
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
         QApplication.clipboard().setText(urlstr, mode)
         message.info(self._win_id, "URL yanked to {}".format(
             "primary selection" if sel else "clipboard"))
 
-    def _preset_cmd_text(self, url):
+    def _preset_cmd_text(self, url, context):
         """Preset a commandline text based on a hint URL.
 
         Args:
             url: The URL to open as a QUrl.
+            context: The HintContext to use.
         """
         urlstr = url.toDisplayString(QUrl.FullyEncoded)
-        args = self._context.get_args(urlstr)
+        args = context.get_args(urlstr)
         message.set_cmd_text(self._win_id, ' '.join(args))
 
-    def _download(self, elem):
+    def _download(self, elem, context):
         """Download a hint URL.
 
         Args:
             elem: The QWebElement to download.
+            _context: The HintContext to use.
         """
-        url = self._resolve_url(elem)
+        url = self._resolve_url(elem, context.baseurl)
         if url is None:
             message.error(self._win_id,
                           "No suitable link found for this element.",
@@ -410,29 +415,38 @@ class HintManager(QObject):
                                       window=self._win_id)
         download_manager.get(url, elem.webFrame().page())
 
-    def _call_userscript(self, url):
-        """Call an userscript from a hint."""
-        cmd = self._context.args[0]
-        args = self._context.args[1:]
+    def _call_userscript(self, url, context):
+        """Call an userscript from a hint.
+
+        Args:
+            url: The URL to open as a QUrl.
+            context: The HintContext to use.
+        """
+        cmd = context.args[0]
+        args = context.args[1:]
         userscripts.run(cmd, *args, url=url, win_id=self._win_id)
 
-    def _spawn(self, url):
-        """Spawn a simple command from a hint."""
+    def _spawn(self, url, context):
+        """Spawn a simple command from a hint.
+
+        Args:
+            url: The URL to open as a QUrl.
+            context: The HintContext to use.
+        """
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
-        args = self._context.get_args(urlstr)
+        args = context.get_args(urlstr)
         try:
             subprocess.Popen(args)
         except OSError as e:
             msg = "Error while spawning command: {}".format(e)
             message.error(self._win_id, msg, immediately=True)
 
-    def _resolve_url(self, elem, baseurl=None):
+    def _resolve_url(self, elem, baseurl):
         """Resolve a URL and check if we want to keep it.
 
         Args:
             elem: The QWebElement to get the URL of.
-            baseurl: The baseurl of the current tab (overrides baseurl from
-                     self._context).
+            baseurl: The baseurl of the current tab.
 
         Return:
             A QUrl with the absolute URL, or None.
@@ -445,8 +459,6 @@ class HintManager(QObject):
         if not url.isValid():
             return None
         if url.isRelative():
-            if baseurl is None:
-                baseurl = self._context.baseurl
             url = baseurl.resolved(url)
         qtutils.ensure_valid(url)
         return url
@@ -723,15 +735,17 @@ class HintManager(QObject):
         }
         elem = self._context.elems[keystr].elem
         if self._context.target in elem_handlers:
-            elem_handlers[self._context.target](elem)
+            handler = functools.partial(
+                elem_handlers[self._context.target], elem, self._context)
         elif self._context.target in url_handlers:
-            url = self._resolve_url(elem)
+            url = self._resolve_url(elem, self._context.baseurl)
             if url is None:
                 message.error(self._win_id,
                               "No suitable link found for this element.",
                               immediately=True)
                 return
-            url_handlers[self._context.target](url)
+            handler = functools.partial(
+                url_handlers[self._context.target], url, self._context)
         else:
             raise ValueError("No suitable handler found!")
         if self._context.target not in (Target.rapid, Target.rapid_win):
@@ -743,6 +757,7 @@ class HintManager(QObject):
             # Undo keystring highlighting
             for (string, elems) in self._context.elems.items():
                 elems.label.setInnerXml(string)
+        handler()
 
     @cmdutils.register(instance='hintmanager', scope='tab', hide=True)
     def follow_hint(self):
