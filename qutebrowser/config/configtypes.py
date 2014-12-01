@@ -959,14 +959,6 @@ class ShellCommand(BaseType):
             return shlex.split(value)
 
 
-class ZoomPerc(Perc):
-
-    """A percentage which needs to be in the current zoom percentages."""
-
-    # FIXME we should validate the percentage is in the list here.
-    # https://github.com/The-Compiler/qutebrowser/issues/115
-
-
 class HintMode(BaseType):
 
     """Base class for the hints -> mode setting."""

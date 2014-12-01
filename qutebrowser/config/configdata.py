@@ -196,7 +196,7 @@ DATA = collections.OrderedDict([
          "The available zoom levels, separated by commas."),
 
         ('default-zoom',
-         SettingValue(typ.ZoomPerc(), '100%'),
+         SettingValue(typ.Perc(), '100%'),
          "The default zoom level."),
 
         ('message-timeout',

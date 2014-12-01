@@ -157,9 +157,9 @@ class WebView(QWebView):
     def init_neighborlist(self):
         """Initialize the _zoom neighborlist."""
         levels = config.get('ui', 'zoom-levels')
-        default = config.get('ui', 'default-zoom')
         self._zoom = usertypes.NeighborList(
-            levels, default, mode=usertypes.NeighborList.Modes.block)
+            levels, mode=usertypes.NeighborList.Modes.block)
+        self._zoom.fuzzyval = config.get('ui', 'default-zoom')
 
     def _mousepress_backforward(self, e):
         """Handle back/forward mouse button presses.
