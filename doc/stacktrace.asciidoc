@@ -67,12 +67,6 @@ The next step is finding the core dump so we can get a stacktrace from it.
 First of all, try to reproduce your problem. If you can, run qutebrowser
 directly inside gdb like this:
 
-.If you installed qutebrowser system-wide:
-----
-$ gdb $(which qutebrowser) -ex 'run --debug'
-----
-
-.If you are running qutebrowser from the repository
 ----
 $ gdb $(which python3) -ex 'run -m qutebrowser --debug'
 ----
@@ -86,12 +80,6 @@ start with a `|` character (pipe), check if there is a file named `core` or
 
 If so, execute gdb like this:
 
-.If you installed qutebrowser system-wide:
-----
-$ gdb $(which qutebrowser) /path/to/core
-----
-
-.If you are running qutebrowser from the repository
 ----
 $ gdb $(which python3) /path/to/core
 ----
@@ -99,12 +87,6 @@ $ gdb $(which python3) /path/to/core
 If your `/proc/sys/kernel/core_pattern` contains something like
 `|/usr/lib/systemd/systemd-coredump`, use `coredumpctl` as root to run gdb:
 
-.If you installed qutebrowser system-wide:
-----
-# coredumpctl gdb $(which qutebrowser)
-----
-
-.If you are running qutebrowser from the repository
 ----
 # coredumpctl gdb $(which python3)
 ----
