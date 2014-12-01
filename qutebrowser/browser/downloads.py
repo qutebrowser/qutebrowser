@@ -272,7 +272,8 @@ class DownloadItem(QObject):
         reply.finished.connect(self.on_reply_finished)
         reply.error.connect(self.on_reply_error)
         reply.readyRead.connect(self.on_ready_read)
-        self._read_timer.start()
+        if not self.fileobj:
+            self._read_timer.start()
         # We could have got signals before we connected slots to them.
         # Here no signals are connected to the DownloadItem yet, so we use a
         # singleShot QTimer to emit them after they are connected.
@@ -367,7 +368,7 @@ class DownloadItem(QObject):
             if self.reply.isFinished():
                 # Downloading to the buffer in RAM has already finished so we
                 # write out the data and clean up now.
-                self.finish_download()
+                self.on_reply_finished()
             else:
                 # Since the buffer already might be full, on_ready_read might
                 # not be called at all anymore, so we force it here to flush
