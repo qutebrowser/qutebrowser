@@ -32,7 +32,7 @@ import configparser
 import collections
 import collections.abc
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QStandardPaths
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QStandardPaths, QUrl
 from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import (configdata, iniparsers, configtypes,
@@ -488,8 +488,8 @@ class ConfigManager(QObject):
                        completion=[Completion.section, Completion.option,
                                    Completion.value])
     def set_command(self, win_id: {'special': 'win_id'},
-                    sectname: {'name': 'section'}, optname: {'name': 'option'},
-                    value=None, temp=False):
+                    sectname: {'name': 'section'}=None,
+                    optname: {'name': 'option'}=None, value=None, temp=False):
         """Set an option.
 
         If the option name ends with '?', the value of the option is shown
@@ -505,6 +505,15 @@ class ConfigManager(QObject):
             value: The value to set.
             temp: Set value temporarily.
         """
+        if sectname is not None and optname is None:
+            raise cmdexc.CommandError(
+                "set: Either both section and option have to be given, or "
+                "neither!")
+        if sectname is None and optname is None:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            tabbed_browser.openurl(QUrl('qute:settings'), newtab=False)
+            return
         try:
             if optname.endswith('?'):
                 val = self.get(sectname, optname[:-1], transformed=False)
