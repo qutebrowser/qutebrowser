@@ -62,7 +62,6 @@ class DownloadItemStats(QObject):
                     the speed the last time.
     """
 
-    MAX_REDIRECTS = 10
     SPEED_REFRESH_INTERVAL = 500
     SPEED_AVG_WINDOW = 30
 
@@ -177,6 +176,7 @@ class DownloadItem(QObject):
             arg 1: The old QNetworkReply.
     """
 
+    MAX_REDIRECTS = 10
     data_changed = pyqtSignal()
     finished = pyqtSignal()
     error = pyqtSignal(str)
