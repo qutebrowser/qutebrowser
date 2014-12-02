@@ -125,7 +125,7 @@ DATA = collections.OrderedDict([
          "Whether to wrap finding text to the top when arriving at the end."),
 
         ('startpage',
-         SettingValue(typ.List(), 'http://www.duckduckgo.com'),
+         SettingValue(typ.List(), 'https://www.duckduckgo.com'),
          "The default page(s) to open at the start, separated by commas."),
 
         ('auto-search',
