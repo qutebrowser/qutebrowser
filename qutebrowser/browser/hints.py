@@ -672,17 +672,22 @@ class HintManager(QObject):
         """Handle a new partial keypress."""
         log.hints.debug("Handling new keystring: '{}'".format(keystr))
         for (string, elems) in self._context.elems.items():
-            if string.startswith(keystr):
-                matched = string[:len(keystr)]
-                rest = string[len(keystr):]
-                elems.label.setInnerXml('<font color="{}">{}</font>{}'.format(
-                    config.get('colors', 'hints.fg.match'), matched, rest))
-                if self._is_hidden(elems.label):
-                    # hidden element which matches again -> unhide it
-                    elems.label.setStyleProperty('display', 'inline')
-            else:
-                # element doesn't match anymore -> hide it
-                elems.label.setStyleProperty('display', 'none')
+            try:
+                if string.startswith(keystr):
+                    matched = string[:len(keystr)]
+                    rest = string[len(keystr):]
+                    match_color = config.get('colors', 'hints.fg.match')
+                    elems.label.setInnerXml(
+                        '<font color="{}">{}</font>{}'.format(
+                            match_color, matched, rest))
+                    if self._is_hidden(elems.label):
+                        # hidden element which matches again -> unhide it
+                        elems.label.setStyleProperty('display', 'inline')
+                else:
+                    # element doesn't match anymore -> hide it
+                    elems.label.setStyleProperty('display', 'none')
+            except webelem.IsNullError:
+                pass
 
     def filter_hints(self, filterstr):
         """Filter displayed hints according to a text.
@@ -691,14 +696,17 @@ class HintManager(QObject):
             filterstr: The string to filer with, or None to show all.
         """
         for elems in self._context.elems.values():
-            if (filterstr is None or
-                    str(elems.elem).lower().startswith(filterstr)):
-                if self._is_hidden(elems.label):
-                    # hidden element which matches again -> unhide it
+            try:
+                if (filterstr is None or
+                        str(elems.elem).lower().startswith(filterstr)):
+                    if self._is_hidden(elems.label):
+                        # hidden element which matches again -> unhide it
+                        elems.label.setStyleProperty('display', 'none')
+                else:
+                    # element doesn't match anymore -> hide it
                     elems.label.setStyleProperty('display', 'none')
-            else:
-                # element doesn't match anymore -> hide it
-                elems.label.setStyleProperty('display', 'none')
+            except webelem.IsNullError:
+                pass
         visible = {}
         for k, e in self._context.elems.items():
             if not self._is_hidden(e.label):
@@ -779,11 +787,14 @@ class HintManager(QObject):
         """Reposition hints if contents size changed."""
         log.hints.debug("Contents size changed...!")
         for elems in self._context.elems.values():
-            if elems.elem.webFrame() is None:
-                # This sometimes happens for some reason...
-                elems.label.removeFromDocument()
-                continue
-            self._set_style_position(elems.elem, elems.label)
+            try:
+                if elems.elem.webFrame() is None:
+                    # This sometimes happens for some reason...
+                    elems.label.removeFromDocument()
+                    continue
+                self._set_style_position(elems.elem, elems.label)
+            except webelem.IsNullError:
+                pass
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
