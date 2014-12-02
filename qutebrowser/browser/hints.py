@@ -58,6 +58,8 @@ class HintContext:
 
     Attributes:
         frames: The QWebFrames to use.
+        destroyed_frames: QWebFrames which have been destroyed.
+                          (Workaround for https://github.com/The-Compiler/qutebrowser/issues/152)
         elems: A mapping from keystrings to (elem, label) namedtuples.
         baseurl: The URL of the current page.
         target: What to do with the opened links.
@@ -78,6 +80,7 @@ class HintContext:
         self.baseurl = None
         self.to_follow = None
         self.frames = []
+        self.destroyed_frames = []
         self.args = []
 
     def get_args(self, urlstr):
@@ -145,6 +148,11 @@ class HintManager(QObject):
                 pass
         for f in self._context.frames:
             log.hints.debug("Disconnecting frame {}".format(f))
+            if any(e is f for e in self._context.destroyed_frames):
+                # WORKAROUND for
+                # https://github.com/The-Compiler/qutebrowser/issues/152
+                log.hints.debug("Frame has been destroyed, ignoring.")
+                continue
             try:
                 f.contentsSizeChanged.disconnect(self.on_contents_size_changed)
             except TypeError:
@@ -643,6 +651,11 @@ class HintManager(QObject):
         self._context.target = target
         self._context.baseurl = tabbed_browser.current_url()
         self._context.frames = webelem.get_child_frames(mainframe)
+        for frame in self._context.frames:
+            # WORKAROUND for
+            # https://github.com/The-Compiler/qutebrowser/issues/152
+            frame.destroyed.connect(functools.partial(
+                self._context.destroyed_frames.append, frame))
         self._context.args = args
         self._init_elements(mainframe, group)
         message_bridge = objreg.get('message-bridge', scope='window',
