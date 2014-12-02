@@ -32,6 +32,34 @@ from qutebrowser.utils import objreg, standarddir, log, message
 from qutebrowser.commands import cmdutils
 
 
+def guess_zip_filename(zf):
+    """Guess which file to use inside a zip file.
+
+    Args:
+        zf: A ZipFile instance.
+    """
+    files = zf.namelist()
+    if len(files) == 1:
+        return files[0]
+    else:
+        for e in files:
+            if posixpath.splitext(e)[0].lower() == 'hosts':
+                return e
+    raise FileNotFoundError("No hosts file found in zip")
+
+def get_fileobj(byte_io):
+    """Get an usable file object to read the hosts file from."""
+    byte_io.seek(0)  # rewind downloaded file
+    if zipfile.is_zipfile(byte_io):
+        byte_io.seek(0)  # rewind what zipfile.is_zipfile did
+        zf = zipfile.ZipFile(byte_io)
+        filename = guess_zip_filename(zf)
+        byte_io = zf.open(filename, mode='r')
+    else:
+        byte_io.seek(0)  # rewind what zipfile.is_zipfile did
+    return io.TextIOWrapper(byte_io, encoding='utf-8')
+
+
 class FakeDownload:
 
     """A download stub to use on_download_finished with local files."""
@@ -103,33 +131,6 @@ class HostBlocker:
                 download.finished.connect(
                     functools.partial(self.on_download_finished, download))
 
-    def _guess_zip_filename(self, zf):
-        """Guess which file to use inside a zip file.
-
-        Args:
-            zf: A ZipFile instance.
-        """
-        files = zf.namelist()
-        if len(files) == 1:
-            return files[0]
-        else:
-            for e in files:
-                if posixpath.splitext(e)[0].lower() == 'hosts':
-                    return e
-        raise FileNotFoundError("No hosts file found in zip")
-
-    def _get_fileobj(self, byte_io):
-        """Get an usable file object to read the hosts file from."""
-        byte_io.seek(0)  # rewind downloaded file
-        if zipfile.is_zipfile(byte_io):
-            byte_io.seek(0)  # rewind what zipfile.is_zipfile did
-            zf = zipfile.ZipFile(byte_io)
-            filename = self._guess_zip_filename(zf)
-            byte_io = zf.open(filename, mode='r')
-        else:
-            byte_io.seek(0)  # rewind what zipfile.is_zipfile did
-        return io.TextIOWrapper(byte_io, encoding='utf-8')
-
     def _merge_file(self, byte_io):
         """Read and merge host files.
 
@@ -142,7 +143,7 @@ class HostBlocker:
         error_count = 0
         line_count = 0
         try:
-            f = self._get_fileobj(byte_io)
+            f = get_fileobj(byte_io)
         except (FileNotFoundError, UnicodeDecodeError, zipfile.BadZipFile,
                 zipfile.LargeZipFile) as e:
             message.error('last-focused', "adblock: Error while reading {}: "
