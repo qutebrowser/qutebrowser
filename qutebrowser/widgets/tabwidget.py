@@ -343,9 +343,8 @@ class TabBarStyle(QCommonStyle):
                               else QIcon.Off)
                 icon = opt.icon.pixmap(opt.iconSize, icon_mode, icon_state)
                 p.drawPixmap(icon_rect.x(), icon_rect.y(), icon)
-            self._style.drawItemText(p, text_rect,
-                                     Qt.AlignLeft | Qt.AlignVCenter,
-                                     opt.palette,
+            alignment = Qt.AlignLeft | Qt.AlignVCenter | Qt.TextHideMnemonic
+            self._style.drawItemText(p, text_rect, alignment, opt.palette,
                                      opt.state & QStyle.State_Enabled,
                                      opt.text, QPalette.WindowText)
         else:
