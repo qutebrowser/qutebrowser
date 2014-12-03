@@ -281,6 +281,9 @@ def _parse_args():
     parser = argparse.ArgumentParser(description='Run various checkers.')
     parser.add_argument('-s', '--setup', help="Run additional setup checks",
                         action='store_true')
+    parser.add_argument('-q', '--quiet',
+                        help="Don't print unnecessary headers.",
+                        action='store_true')
     parser.add_argument('checkers', help="Checkers to run (or 'all')",
                         default='all', nargs='?')
     return parser.parse_args()
@@ -307,8 +310,8 @@ def main():
         utils.print_col("==================== {} ====================".format(
             group), 'yellow')
         for name, func in checkers[group].items():
-            utils.print_col("------ {} ------".format(name), 'cyan')
             if _checker_enabled(args, group, name):
+                utils.print_col("------ {} ------".format(name), 'cyan')
                 status = func()
                 key = '{}_{}'.format(group, name)
                 exit_status[key] = status
@@ -321,7 +324,8 @@ def main():
                     # sys.exit(0) means no problems -> True, anything != 0
                     # means problems.
                     exit_status_bool[key] = (status == 0)
-            else:
+            elif not args.quiet:
+                utils.print_col("------ {} ------".format(name), 'cyan')
                 utils.print_col("Checker disabled.", 'blue')
     print()
     utils.print_col("Exit status values:", 'yellow')
