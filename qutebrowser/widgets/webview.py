@@ -447,7 +447,7 @@ class WebView(QWebView):
                                 "support that!")
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
-        return tabbed_browser.tabopen()
+        return tabbed_browser.tabopen(background=False)
 
     def mousePressEvent(self, e):
         """Extend QWidget::mousePressEvent().
