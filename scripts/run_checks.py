@@ -334,8 +334,7 @@ def main():
         color = 'green' if ok else 'red'
         utils.print_col(
             '    {} - {} ({})'.format(k, 'ok' if ok else 'FAIL', v), color)
-
-    if all(exit_status_bool):
+    if all(exit_status_bool.values()):
         return 0
     else:
         return 1
