@@ -75,6 +75,17 @@ def print_col(text, color):
         print(text)
 
 
+def print_title(text):
+    """Print a title."""
+    print_col("==================== {} ====================".format(text),
+              'yellow')
+
+
+def print_subtitle(text):
+    """Print a subtitle."""
+    print_col("------ {} ------".format(text), 'cyan')
+
+
 def print_bold(text):
     """Print a bold text."""
     if use_color:

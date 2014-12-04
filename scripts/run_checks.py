@@ -307,11 +307,10 @@ def main():
 
     for group in groups:
         print()
-        utils.print_col("==================== {} ====================".format(
-            group), 'yellow')
+        utils.print_title(group)
         for name, func in checkers[group].items():
             if _checker_enabled(args, group, name):
-                utils.print_col("------ {} ------".format(name), 'cyan')
+                utils.print_subtitle(name)
                 status = func()
                 key = '{}_{}'.format(group, name)
                 exit_status[key] = status
@@ -325,7 +324,7 @@ def main():
                     # means problems.
                     exit_status_bool[key] = (status == 0)
             elif not args.quiet:
-                utils.print_col("------ {} ------".format(name), 'cyan')
+                utils.print_subtitle(name)
                 utils.print_col("Checker disabled.", 'blue')
     print()
     utils.print_col("Exit status values:", 'yellow')
