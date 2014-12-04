@@ -47,6 +47,7 @@ def guess_zip_filename(zf):
                 return e
     raise FileNotFoundError("No hosts file found in zip")
 
+
 def get_fileobj(byte_io):
     """Get an usable file object to read the hosts file from."""
     byte_io.seek(0)  # rewind downloaded file
