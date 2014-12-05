@@ -98,7 +98,10 @@ def link_pyqt():
     venv_path = venv_python(
         '-c', 'from distutils.sysconfig import get_python_lib\n'
               'print(get_python_lib())', output=True).rstrip()
-    files = ('PyQt5', 'sip.so')
+    files = (
+        'PyQt5',
+        os.path.basename(glob.glob(os.path.join(sys_path, 'sip*.so'))),
+    )
     for fn in files:
         source = os.path.join(sys_path, fn)
         link_name = os.path.join(venv_path, fn)
