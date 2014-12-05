@@ -63,7 +63,7 @@ def check_exists():
             sys.exit(1)
 
 
-def get_packages(short=False):
+def get_dev_packages(short=False):
     """Get a list of packages to install.
 
     Args:
@@ -80,7 +80,7 @@ def get_packages(short=False):
 
 def install_dev_packages():
     """Install the packages needed for development."""
-    for pkg in get_packages():
+    for pkg in get_dev_packages():
         utils.print_subtitle("Installing {}".format(pkg))
         venv_python('-m', 'pip', 'install', pkg)
 
@@ -100,7 +100,8 @@ def test_toolchain():
     """Test if imports work properly."""
     utils.print_title("Checking toolchain")
     packages = ['sip', 'PyQt5.QtCore', 'PyQt5.QtWebKit', 'qutebrowser.app']
-    packages += get_packages(short=True)
+    if g_args.dev:
+        packages += get_dev_packages(short=True)
     for pkg in packages:
         print("Importing {}".format(pkg))
         venv_python('-c', 'import {}'.format(pkg))
