@@ -55,6 +55,8 @@ def version_check(version, op=operator.ge):
         version: The version to check against.
         op: The operator to use for the check.
     """
+    # pylint: disable=no-member
+    # https://bitbucket.org/logilab/pylint/issue/73/
     return op(distutils.version.StrictVersion(qVersion()),
               distutils.version.StrictVersion(version))
 
