@@ -32,6 +32,7 @@ sys.path.insert(
 
 from qutebrowser.config import configdata
 
+
 class ConfigChecker(checkers.BaseChecker):
 
     """Custom astroid checker for config calls."""
