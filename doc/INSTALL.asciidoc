@@ -138,3 +138,14 @@ After installing the requirements, you have these options:
 NOTE: If you're running qutebrowser from the git repository rather than a
 released version, you should run `scripts/asciidoc2html.py` to generate the
 documentation.
+
+
+Packagers
+---------
+
+There are example .desktop and icon files provided. They would go in the
+standard location for your distro (/usr/share/applications and
+/usr/share/pixmaps for example).
+
+The normal `setup.py install` doesn't install these files, so you'll have to do
+it as part of the packaging process.
