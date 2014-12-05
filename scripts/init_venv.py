@@ -105,6 +105,8 @@ def link_pyqt():
     for fn in files:
         source = os.path.join(sys_path, fn)
         link_name = os.path.join(venv_path, fn)
+        if not os.path.exists(source):
+            raise FileNotFoundError(source)
         print('{} -> {}'.format(source, link_name))
         os.symlink(source, link_name)
 
