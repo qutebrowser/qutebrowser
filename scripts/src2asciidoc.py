@@ -317,7 +317,7 @@ def _get_authors():
     """Get a list of authors based on git commit logs."""
     commits = subprocess.check_output(['git', 'log', '--format=%aN'])
     cnt = collections.Counter(commits.decode('utf-8').splitlines())
-    return reversed(sorted(cnt, key=lambda k: cnt[k]))
+    return sorted(cnt, key=lambda k: (cnt[k], k), reverse=True)
 
 
 def _format_block(filename, what, data):

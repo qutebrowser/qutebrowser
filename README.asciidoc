@@ -116,8 +116,8 @@ Contributors, sorted by the number of commits in descending order:
 * rikn00
 * Brian Jackson
 * Mathias Fussenegger
-* Martin Zimmermann
 * Peter Vilim
+* Martin Zimmermann
 // QUTE_AUTHORS_END
 
 Thanks / Similiar projects
