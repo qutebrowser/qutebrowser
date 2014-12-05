@@ -344,7 +344,7 @@ Save the config file.
 
 [[set]]
 === set
-Syntax: +:set [*--temp*] 'section' 'option' ['value']+
+Syntax: +:set [*--temp*] ['section'] ['option'] ['value']+
 
 Set an option.
 

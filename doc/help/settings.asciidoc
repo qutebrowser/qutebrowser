@@ -241,7 +241,7 @@ Default: +pass:[true]+
 === startpage
 The default page(s) to open at the start, separated by commas.
 
-Default: +pass:[http://www.duckduckgo.com]+
+Default: +pass:[https://www.duckduckgo.com]+
 
 [[general-auto-search]]
 === auto-search
