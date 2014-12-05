@@ -134,7 +134,7 @@ def check_git():
     gitst = gitst.decode('UTF-8').strip()
     for line in gitst.splitlines():
         s, name = line.split(maxsplit=1)
-        if s == '??':
+        if s == '??' and name != '.venv':
             untracked.append(name)
         elif s == 'M':
             changed.append(name)
