@@ -25,6 +25,7 @@ import os.path
 import sys
 import subprocess
 import glob
+import argparse
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
@@ -63,6 +64,10 @@ def main(colors=False):
     """Generate html files for the online documentation."""
     utils.change_cwd()
     utils.use_color = colors
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--all', help="Build all documentation into a given "
+                        "directory.", nargs=1)
+    args = parser.parse_args()
     asciidoc_files = [
         ('doc/FAQ.asciidoc', 'qutebrowser/html/doc/FAQ.html'),
         ('doc/quickstart.asciidoc', 'qutebrowser/html/doc/quickstart.html'),
@@ -71,12 +76,18 @@ def main(colors=False):
         os.mkdir('qutebrowser/html/doc')
     except FileExistsError:
         pass
-    for src in glob.glob('doc/help/*.asciidoc'):
-        name, _ext = os.path.splitext(os.path.basename(src))
-        dst = 'qutebrowser/html/doc/{}.html'.format(name)
-        asciidoc_files.append((src, dst))
-    for src, dst in asciidoc_files:
-        call_asciidoc(src, dst)
+    if args.all:
+        for src in glob.glob('**/*.asciidoc') + glob.glob('*.asciidoc'):
+            dst = os.path.join(args.all[0], os.path.relpath(src))
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            call_asciidoc(src, dst)
+    else:
+        for src in glob.glob('doc/help/*.asciidoc'):
+            name, _ext = os.path.splitext(os.path.basename(src))
+            dst = 'qutebrowser/html/doc/{}.html'.format(name)
+            asciidoc_files.append((src, dst))
+        for src, dst in asciidoc_files:
+            call_asciidoc(src, dst)
 
 
 if __name__ == '__main__':
