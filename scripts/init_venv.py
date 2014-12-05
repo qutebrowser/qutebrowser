@@ -99,9 +99,17 @@ def link_pyqt():
     venv_path = venv_python(
         '-c', 'from distutils.sysconfig import get_python_lib\n'
               'print(get_python_lib())', output=True).rstrip()
+    globbed_sip = glob.glob(os.path.join(sys_path, 'sip*.so'))
+    if not globbed_sip:
+        print("Did not find sip in {}!".format(sys_path), file=sys.stderr)
+        sys.exit(1)
+    elif len(globbed_sip) != 1:
+        print("Found multiple sip installations: {}!".format(globbed_sip),
+              file=sys.stderr)
+        sys.exit(1)
     files = (
         'PyQt5',
-        os.path.basename(glob.glob(os.path.join(sys_path, 'sip*.so'))),
+        os.path.basename(globbed_sip[0]),
     )
     for fn in files:
         source = os.path.join(sys_path, fn)
