@@ -129,18 +129,24 @@ def check_git():
         print()
         return False
     untracked = []
+    changed = []
     gitst = subprocess.check_output(['git', 'status', '--porcelain'])
     gitst = gitst.decode('UTF-8').strip()
     for line in gitst.splitlines():
         s, name = line.split(maxsplit=1)
         if s == '??':
             untracked.append(name)
+        elif s == 'M':
+            changed.append(name)
+    status = True
     if untracked:
         status = False
         utils.print_col("Untracked files:", 'red')
         print('\n'.join(untracked))
-    else:
-        status = True
+    if changed:
+        status = False
+        utils.print_col("Uncommited changes:", 'red')
+        print('\n'.join(changed))
     print()
     return status
 
