@@ -28,7 +28,8 @@ import os.path
 import shutil
 import argparse
 import subprocess
-import distutils.sysconfig
+import distutils.sysconfig  # pylint: disable=import-error
+# see https://bitbucket.org/logilab/pylint/issue/73/
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from scripts import utils

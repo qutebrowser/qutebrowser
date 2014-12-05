@@ -30,7 +30,8 @@ Module attributes:
 import os
 import sys
 import operator
-from distutils.version import StrictVersion as Version
+import distutils.version  # pylint: disable=no-name-in-module,import-error
+# https://bitbucket.org/logilab/pylint/issue/73/
 
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice)
@@ -54,7 +55,8 @@ def version_check(version, op=operator.ge):
         version: The version to check against.
         op: The operator to use for the check.
     """
-    return op(Version(qVersion()), Version(version))
+    return op(distutils.version.StrictVersion(qVersion()),
+              distutils.version.StrictVersion(version))
 
 
 def check_overflow(arg, ctype, fatal=True):
