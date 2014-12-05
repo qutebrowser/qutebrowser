@@ -69,7 +69,8 @@ def get_packages(short=False):
     Args:
         short: Remove the version specification.
     """
-    packages = ['colorlog', 'flake8', 'pylint==1.3.1', 'pep257']
+    packages = ['colorlog', 'flake8', 'astroid==1.2.1', 'pylint==1.3.1',
+                'pep257']
     if os.name == 'nt':
         packages += ['colorama']
     if short:
