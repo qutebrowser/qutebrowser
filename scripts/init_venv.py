@@ -74,7 +74,7 @@ def install_dev_packages():
 
 def venv_python(*args, output=False):
     """Call the virtualenv's python with the given arguments."""
-    executable = os.path.join(g_path, 'bin', 'python3')
+    executable = os.path.join(g_path, 'bin', os.path.basename(sys.executable))
     if output:
         return subprocess.check_output([executable] + list(args),
                                        universal_newlines=True)
