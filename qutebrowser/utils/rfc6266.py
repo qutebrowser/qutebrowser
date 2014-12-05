@@ -24,7 +24,7 @@ import urllib.parse
 import string
 import re
 
-import pypeg2 as peg  # pylint: ignore=import-error  (fails on win7 in venv...)
+import pypeg2 as peg  # pylint: disable=import-error (fails on win7 in venv...)
 
 from qutebrowser.utils import log, utils
 
