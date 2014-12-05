@@ -21,6 +21,7 @@
 """Initialize a virtualenv suitable to be used for qutebrowser."""
 
 import os
+import re
 import sys
 import glob
 import os.path
@@ -62,19 +63,31 @@ def check_exists():
             sys.exit(1)
 
 
-def install_dev_packages():
-    """Install the packages needed for development."""
+def get_packages(short=False):
+    """Get a list of packages to install.
+
+    Args:
+        short: Remove the version specification.
+    """
     packages = ['colorlog', 'flake8', 'pylint==1.3.1', 'pep257']
     if os.name == 'nt':
         packages += ['colorama']
-    for pkg in packages:
+    if short:
+        packages = [re.split(r'[<>=]', p)[0] for p in packages]
+    return packages
+
+
+def install_dev_packages():
+    """Install the packages needed for development."""
+    for pkg in get_packages():
         utils.print_subtitle("Installing {}".format(pkg))
         venv_python('-m', 'pip', 'install', pkg)
 
 
 def venv_python(*args, output=False):
     """Call the virtualenv's python with the given arguments."""
-    executable = os.path.join(g_path, 'bin', os.path.basename(sys.executable))
+    subdir = 'Scripts' if os.name == 'nt' else 'bin'
+    executable = os.path.join(g_path, subdir, os.path.basename(sys.executable))
     if output:
         return subprocess.check_output([executable] + list(args),
                                        universal_newlines=True)
@@ -86,8 +99,7 @@ def test_toolchain():
     """Test if imports work properly."""
     utils.print_title("Checking toolchain")
     packages = ['sip', 'PyQt5.QtCore', 'PyQt5.QtWebKit', 'qutebrowser.app']
-    if g_args.dev:
-        packages.append('pylint')
+    packages += get_packages(short=True)
     for pkg in packages:
         print("Importing {}".format(pkg))
         venv_python('-c', 'import {}'.format(pkg))
