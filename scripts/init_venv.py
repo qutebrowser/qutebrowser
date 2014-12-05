@@ -108,6 +108,8 @@ def test_toolchain():
 
 def link_pyqt():
     """Symlink the systemwide PyQt/sip into the virtualenv."""
+    if os.name == 'nt':
+        return
     utils.print_title("Softlinking PyQt5")
     sys_path = distutils.sysconfig.get_python_lib()
     venv_path = venv_python(
@@ -135,6 +137,17 @@ def link_pyqt():
         os.symlink(source, link_name)
 
 
+def create_venv():
+    """Create a new virtualenv."""
+    utils.print_title("Creating virtualenv")
+    if os.name == 'nt':
+        sys_site = ['--system-site-packages']
+    else:
+        sys_site = []
+    subprocess.check_call(['virtualenv'] + sys_site +
+                          ['-p', sys.executable, g_path])
+
+
 def main():
     """Main entry point."""
     global g_path, g_args
@@ -144,8 +157,7 @@ def main():
         sys.exit(1)
     g_path = os.path.abspath(g_args.path)
     check_exists()
-    utils.print_title("Creating virtualenv")
-    subprocess.check_call(['virtualenv', '-p', sys.executable, g_path])
+    create_venv()
     utils.print_title("Calling setup.py")
     venv_python('setup.py', 'develop')
     if g_args.dev:
