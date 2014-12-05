@@ -70,6 +70,8 @@ def get_argparser():
                        "the main window.")
     debug.add_argument('--debug-exit', help="Turn on debugging of late exit.",
                        action='store_true')
+    debug.add_argument('--no-crash-dialog', action='store_true', help="Don't "
+                       "show a crash dialog.")
     # For the Qt args, we use store_const with const=True rather than
     # store_true because we want the default to be None, to make
     # utils.qt:get_args easier.

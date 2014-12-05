@@ -460,16 +460,6 @@ class Application(QApplication):
         """
         # pylint: disable=broad-except
 
-        if exctype is bdb.BdbQuit or not issubclass(exctype, Exception):
-            # pdb exit, KeyboardInterrupt, ...
-            try:
-                self.shutdown()
-                return
-            except Exception:
-                log.init.exception("Error while shutting down")
-                self.quit()
-                return
-
         exc = (exctype, excvalue, tb)
 
         if not self._quit_status['crash']:
@@ -478,6 +468,21 @@ class Application(QApplication):
             return
 
         log.misc.error("Uncaught exception", exc_info=exc)
+
+        is_ignored_exception = (exctype is bdb.BdbQuit or
+                                not issubclass(exctype, Exception))
+
+        if is_ignored_exception or self._args.no_crash_dialog:
+            # pdb exit, KeyboardInterrupt, ...
+            status = 0 if is_ignored_exception else 2
+            try:
+                self.shutdown(status)
+                return
+            except Exception:
+                log.init.exception("Error while shutting down")
+                self.quit()
+                return
+
         self._quit_status['crash'] = False
 
         try:
