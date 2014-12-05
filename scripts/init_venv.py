@@ -85,8 +85,9 @@ def venv_python(*args, output=False):
 def test_toolchain():
     """Test if imports work properly."""
     utils.print_title("Checking toolchain")
-    packages = ('sip', 'PyQt5.QtCore', 'PyQt5.QtWebKit', 'pylint',
-                'qutebrowser.app')
+    packages = ['sip', 'PyQt5.QtCore', 'PyQt5.QtWebKit', 'qutebrowser.app']
+    if g_args.dev:
+        packages.append('pylint')
     for pkg in packages:
         print("Importing {}".format(pkg))
         venv_python('-c', 'import {}'.format(pkg))
