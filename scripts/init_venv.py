@@ -112,7 +112,8 @@ def link_pyqt():
     venv_path = venv_python(
         '-c', 'from distutils.sysconfig import get_python_lib\n'
               'print(get_python_lib())', output=True).rstrip()
-    globbed_sip = glob.glob(os.path.join(sys_path, 'sip*.so'))
+    globbed_sip = (glob.glob(os.path.join(sys_path, 'sip*.so')) +
+                   glob.glob(os.path.join(sys_path, 'sip*.pyd')))
     if not globbed_sip:
         print("Did not find sip in {}!".format(sys_path), file=sys.stderr)
         sys.exit(1)
