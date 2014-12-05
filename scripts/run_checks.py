@@ -44,7 +44,6 @@ import contextlib
 import traceback
 
 import pep257
-import pkg_resources as pkg
 
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
@@ -79,28 +78,6 @@ def _adjusted_pythonpath(name):
             del os.environ['PYTHONPATH']
 
 
-def _run_distutils(name, args):
-    """Run a checker via its distutils entry point."""
-    sys.argv = [name] + args
-    try:
-        ep = pkg.load_entry_point(name, 'console_scripts', name)
-        ep()
-    except SystemExit as e:
-        return e.code
-    except Exception:
-        traceback.print_exc()
-        return None
-
-
-def _run_subprocess(name, args):
-    """Run a checker via subprocess."""
-    try:
-        return subprocess.call([name] + args)
-    except OSError:
-        traceback.print_exc()
-        return None
-
-
 def run(name, target=None):
     """Run a checker via distutils with optional args.
 
@@ -114,9 +91,10 @@ def run(name, target=None):
         args.append(target)
     with _adjusted_pythonpath(name):
         try:
-            status = _run_distutils(name, args)
-        except pkg.DistributionNotFound:
-            status = _run_subprocess(name, args)
+            status = subprocess.call([name] + args)
+        except OSError:
+            traceback.print_exc()
+            status = None
     print()
     return status
 
