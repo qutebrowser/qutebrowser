@@ -77,17 +77,21 @@ def main(colors=False):
     except FileExistsError:
         pass
     if args.all:
-        for src in glob.glob('**/*.asciidoc') + glob.glob('*.asciidoc'):
-            parts = [args.all[0]]
-            dirname = os.path.dirname(src)
-            if dirname:
-                parts.append(os.path.relpath(os.path.dirname(src)))
-            parts.append(
-                os.extsep.join((os.path.splitext(os.path.basename(src))[0],
-                                'html')))
-            dst = os.path.join(*parts)
-            os.makedirs(os.path.dirname(dst), exist_ok=True)
-            call_asciidoc(src, dst)
+        for root, _dirs, files in os.walk(os.getcwd()):
+            for filename in files:
+                if os.path.splitext(filename)[1] != '.asciidoc':
+                    continue
+                src = os.path.join(root, filename)
+                parts = [args.all[0]]
+                dirname = os.path.dirname(src)
+                if dirname:
+                    parts.append(os.path.relpath(os.path.dirname(src)))
+                parts.append(
+                    os.extsep.join((os.path.splitext(os.path.basename(src))[0],
+                                    'html')))
+                dst = os.path.join(*parts)
+                os.makedirs(os.path.dirname(dst), exist_ok=True)
+                call_asciidoc(src, dst)
     else:
         for src in glob.glob('doc/help/*.asciidoc'):
             name, _ext = os.path.splitext(os.path.basename(src))
