@@ -78,7 +78,14 @@ def main(colors=False):
         pass
     if args.all:
         for src in glob.glob('**/*.asciidoc') + glob.glob('*.asciidoc'):
-            dst = os.path.join(args.all[0], os.path.relpath(src))
+            parts = [args.all[0]]
+            dirname = os.path.dirname(src)
+            if dirname:
+                parts.append(os.path.relpath(os.path.dirname(src)))
+            parts.append(
+                os.extsep.join((os.path.splitext(os.path.basename(src))[0],
+                                'html')))
+            dst = os.path.join(*parts)
             os.makedirs(os.path.dirname(dst), exist_ok=True)
             call_asciidoc(src, dst)
     else:
