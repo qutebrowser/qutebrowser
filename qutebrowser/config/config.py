@@ -38,7 +38,7 @@ from PyQt5.QtWidgets import QMessageBox
 from qutebrowser.config import (configdata, iniparsers, configtypes,
                                 textwrapper, keyconfparser)
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, objreg, utils, standarddir, log
+from qutebrowser.utils import message, objreg, utils, standarddir, log, qtutils
 from qutebrowser.utils.usertypes import Completion
 
 
@@ -579,7 +579,7 @@ class ConfigManager(QObject):
             return
         configfile = os.path.join(self._configdir, self._fname)
         log.destroy.debug("Saving config to {}".format(configfile))
-        with open(configfile, 'w', encoding='utf-8') as f:
+        with qtutils.savefile_open(configfile) as f:
             f.write(str(self))
 
     def dump_userconfig(self):

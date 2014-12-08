@@ -25,7 +25,7 @@ import collections
 
 from PyQt5.QtCore import pyqtSlot
 
-from qutebrowser.utils import log, utils, objreg
+from qutebrowser.utils import log, utils, objreg, qtutils
 from qutebrowser.config import config
 
 
@@ -104,12 +104,8 @@ class LineConfigParser(collections.UserList):
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
         log.destroy.debug("Saving config to {}".format(self._configfile))
-        if self._binary:
-            with open(self._configfile, 'wb') as f:
-                self.write(f, limit)
-        else:
-            with open(self._configfile, 'w', encoding='utf-8') as f:
-                self.write(f, limit)
+        with qtutils.savefile_open(self._configfile, self._binary) as f:
+            self.write(f, limit)
 
     @pyqtSlot(str, str)
     def cleanup_file(self, section, option):

@@ -23,7 +23,7 @@ import os
 import os.path
 import configparser
 
-from qutebrowser.utils import log, utils
+from qutebrowser.utils import log, utils, qtutils
 
 
 class ReadConfigParser(configparser.ConfigParser):
@@ -67,5 +67,5 @@ class ReadWriteConfigParser(ReadConfigParser):
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
         log.destroy.debug("Saving config to {}".format(self._configfile))
-        with open(self._configfile, 'w', encoding='utf-8') as f:
+        with qtutils.savefile_open(self._configfile) as f:
             self.write(f)

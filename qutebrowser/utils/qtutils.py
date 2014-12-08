@@ -27,14 +27,16 @@ Module attributes:
 """
 
 
+import io
 import os
 import sys
 import operator
 import distutils.version  # pylint: disable=no-name-in-module,import-error
 # https://bitbucket.org/logilab/pylint/issue/73/
+import contextlib
 
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
-                          QIODevice)
+                          QIODevice, QSaveFile)
 
 
 MAXVALS = {
@@ -153,6 +155,132 @@ def deserialize(data, obj):
     stream = QDataStream(data, QIODevice.ReadOnly)
     stream >> obj  # pylint: disable=pointless-statement
     _check_qdatastream(stream)
+
+
+@contextlib.contextmanager
+def savefile_open(filename, binary=False, encoding='utf-8'):
+    """Context manager to easily use a QSaveFile."""
+    f = QSaveFile(filename)
+    try:
+        if binary:
+            ok = f.open(QIODevice.WriteOnly)
+            new_f = PyQIODevice(f)
+        else:
+            ok = f.open(QIODevice.WriteOnly | QIODevice.Text)
+            new_f = io.TextIOWrapper(PyQIODevice(f), encoding=encoding)
+        if not ok:  # pylint: disable=used-before-assignment
+            raise IOError(f.errorString())
+        yield new_f
+    except:
+        f.cancelWriting()
+        raise
+    finally:
+        new_f.flush()
+        ok = f.commit()
+        if not ok:
+            raise IOError(f.errorString())
+
+
+class PyQIODevice(io.BufferedIOBase):
+
+    """Wrapper for a QIODevice which provides a python interface.
+
+    Attributes:
+        _dev: The underlying QIODevice.
+    """
+
+    # pylint: disable=missing-docstring
+
+    def __init__(self, dev):
+        self._dev = dev
+
+    def __len__(self):
+        return self._dev.size()
+
+    def _check_open(self):
+        """Check if the device is open, raise IOError if not."""
+        if not self._dev.isOpen():
+            raise IOError("IO operation on closed device!")
+
+    def _check_random(self):
+        """Check if the device supports random access, raise IOError if not."""
+        if not self.seekable():
+            raise IOError("Random access not allowed!")
+
+    def fileno(self):
+        raise io.UnsupportedOperation
+
+    def seek(self, offset, whence=io.SEEK_SET):
+        self._check_open()
+        self._check_random()
+        if whence == io.SEEK_SET:
+            ok = self._dev.seek(offset)
+        elif whence == io.SEEK_CUR:
+            ok = self._dev.seek(self.tell() + offset)
+        elif whence == io.SEEK_END:
+            ok = self._dev.seek(len(self) + offset)
+        else:
+            raise io.UnsupportedOperation("whence = {} is not "
+                                          "supported!".format(whence))
+        if not ok:
+            raise IOError(self._dev.errorString())
+
+    def truncate(self, size=None):  # pylint: disable=unused-argument
+        raise io.UnsupportedOperation
+
+    def close(self):
+        self._dev.close()
+
+    @property
+    def closed(self):
+        return not self._dev.isOpen()
+
+    def flush(self):
+        self._check_open()
+        self._dev.waitForBytesWritten(-1)
+
+    def isatty(self):
+        self._check_open()
+        return False
+
+    def readable(self):
+        return self._dev.isReadable()
+
+    def readline(self, size=-1):
+        self._check_open()
+        if size == -1:
+            size = 0
+        return self._dev.readLine(size)
+
+    def seekable(self):
+        return not self._dev.isSequential()
+
+    def tell(self):
+        self._check_open()
+        self._check_random()
+        return self._dev.pos()
+
+    def writable(self):
+        return self._dev.isWritable()
+
+    def readinto(self, b):
+        self._check_open()
+        return self._dev.read(b, len(b))
+
+    def write(self, b):
+        self._check_open()
+        num = self._dev.write(b)
+        if num == -1 or num < len(b):
+            raise IOError(self._dev.errorString())
+        return num
+
+    def read(self, size):
+        self._check_open()
+        buf = bytes()
+        num = self._dev.read(buf, size)
+        if num == -1:
+            raise IOError(self._dev.errorString())
+        return num
 
 
 class QtValueError(ValueError):

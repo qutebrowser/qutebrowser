@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 
 from qutebrowser.config import configdata, textwrapper
 from qutebrowser.commands import cmdutils, cmdexc
-from qutebrowser.utils import log, utils
+from qutebrowser.utils import log, utils, qtutils
 
 
 class KeyConfigError(Exception):
@@ -126,8 +126,9 @@ class KeyConfigParser(QObject):
         if self._configfile is None:
             return
         log.destroy.debug("Saving key config to {}".format(self._configfile))
-        with open(self._configfile, 'w', encoding='utf-8') as f:
-            f.write(str(self))
+        with qtutils.savefile_open(self._configfile, encoding='utf-8') as f:
+            data = str(self)
+            f.write(data)
 
     @cmdutils.register(instance='key-config')
     def bind(self, key, *command, mode=None):
