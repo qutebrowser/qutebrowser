@@ -298,13 +298,13 @@ class DownloadItem(QObject):
     def cancel(self):
         """Cancel the download."""
         log.downloads.debug("cancelled")
+        self._read_timer.stop()
         self.cancelled.emit()
         if self.reply is not None:
             self.reply.finished.disconnect(self.on_reply_finished)
             self.reply.abort()
             self.reply.deleteLater()
             self.reply = None
-        self._read_timer.stop()
         if self.fileobj is not None:
             self.fileobj.close()
         if self._filename is not None and os.path.exists(self._filename):
@@ -380,6 +380,7 @@ class DownloadItem(QObject):
     def finish_download(self):
         """Write buffered data to disk and finish the QNetworkReply."""
         log.downloads.debug("Finishing download...")
+        self._read_timer.stop()
         if self.reply.isOpen():
             self.fileobj.write(self.reply.readAll())
         if self.autoclose:
@@ -388,7 +389,6 @@ class DownloadItem(QObject):
         self.reply.close()
         self.reply.deleteLater()
         self.reply = None
-        self._read_timer.stop()
         self.finished.emit()
         log.downloads.debug("Download finished")
 
@@ -467,6 +467,7 @@ class DownloadItem(QObject):
         request.setUrl(new_url)
         reply = self.reply
         reply.finished.disconnect(self.on_reply_finished)
+        self._read_timer.stop()
         self.reply = None
         if self.fileobj is not None:
             self.fileobj.seek(0)
