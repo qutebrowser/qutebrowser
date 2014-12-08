@@ -366,7 +366,6 @@ class ConfigManager(QObject):
                 if k.startswith(self.ESCAPE_CHAR):
                     k = k[1:]
                 # configparser can't handle = in keys :(
-                k = k.replace('<eq>', '=')
                 if (sectname, k) in self.RENAMED_OPTIONS:
                     k = self.RENAMED_OPTIONS[sectname, k]
                 try:
