@@ -92,7 +92,8 @@ class SettingValue:
             layer: The layer to set the value on, an element name of the
                    ValueLayers dict.
             value: The value to set.
-            interpolated: The interpolated value, for typechecking.
+            interpolated: The interpolated value, for typechecking (or None).
         """
-        self.typ.validate(interpolated)
+        if interpolated is not None:
+            self.typ.validate(interpolated)
         self.values[layer] = value

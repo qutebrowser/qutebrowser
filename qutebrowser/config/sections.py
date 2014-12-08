@@ -78,7 +78,7 @@ class Section:
                    ValueLayers dict.
             key: The key of the element to set.
             value: The value to set.
-            interpolated: The interpolated value, for checking.
+            interpolated: The interpolated value, for checking, or None.
         """
         raise NotImplementedError
 

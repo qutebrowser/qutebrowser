@@ -369,11 +369,21 @@ class ConfigManager(QObject):
                 if (sectname, k) in self.RENAMED_OPTIONS:
                     k = self.RENAMED_OPTIONS[sectname, k]
                 try:
-                    self.set('conf', sectname, k, v)
+                    self.set('conf', sectname, k, v, validate=False)
                 except configtypes.ValidationError as e:
                     e.section = sectname
                     e.option = k
                     raise
+        self._validate_all()
+
+    def _validate_all(self):
+        """Validate all values set in self._from_cp."""
+        for sectname, sect in self.sections.items():
+            mapping = {key: val.value() for key, val in sect.values.items()}
+            for optname, opt in sect.items():
+                interpolated = self._interpolation.before_get(
+                    self, sectname, optname, opt.value(), mapping)
+                opt.typ.validate(interpolated)
 
     def _changed(self, sectname, optname):
         """Notify other objects the config has changed."""
@@ -529,7 +539,7 @@ class ConfigManager(QObject):
             raise cmdexc.CommandError("set: {} - {}".format(
                 e.__class__.__name__, e))
 
-    def set(self, layer, sectname, optname, value):
+    def set(self, layer, sectname, optname, value, validate=True):
         """Set an option.
 
         Args:
@@ -537,6 +547,7 @@ class ConfigManager(QObject):
             sectname: The name of the section to change.
             optname: The name of the option to change.
             value: The new value.
+            validate: Whether to validate the value immediately.
         """
         try:
             value = self._interpolation.before_set(self, sectname, optname,
@@ -548,8 +559,11 @@ class ConfigManager(QObject):
         except KeyError:
             raise NoSectionError(sectname)
         mapping = {key: val.value() for key, val in sect.values.items()}
-        interpolated = self._interpolation.before_get(self, sectname, optname,
-                                                      value, mapping)
+        if validate:
+            interpolated = self._interpolation.before_get(
+                self, sectname, optname, value, mapping)
+        else:
+            interpolated = None
         try:
             sect.setv(layer, optname, value, interpolated)
         except KeyError:
