@@ -79,19 +79,19 @@ class NetworkManager(QNetworkAccessManager):
         self.proxyAuthenticationRequired.connect(
             self.on_proxy_authentication_required)
 
-    def _ask(self, win_id, message, mode):
+    def _ask(self, win_id, text, mode):
         """Ask a blocking question in the statusbar.
 
         Args:
             win_id: The ID of the window which is calling this function.
-            message: The message to display to the user.
+            text: The text to display to the user.
             mode: A PromptMode.
 
         Return:
             The answer the user gave or None if the prompt was cancelled.
         """
         q = usertypes.Question()
-        q.text = message
+        q.text = text
         q.mode = mode
         self.shutting_down.connect(q.abort)
         bridge = objreg.get('message-bridge', scope='window', window=win_id)
