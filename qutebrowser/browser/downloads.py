@@ -440,7 +440,8 @@ class DownloadItem(QObject):
         """Read some bytes from the QNetworkReply periodically."""
         if not self.reply.isOpen():
             raise IOError("Reply is closed!")
-        self._buffer.write(self.reply.read(1024))
+        data = self.reply.read(1024)
+        self._buffer.write(data)
 
     def _handle_redirect(self):
         """Handle a HTTP redirect.
