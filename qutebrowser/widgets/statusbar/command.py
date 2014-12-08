@@ -169,7 +169,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
-        """Clear up when ommand mode was left.
+        """Clear up when command mode was left.
 
         - Clear the statusbar text if it's explicitely unfocused.
         - Clear completion selection
