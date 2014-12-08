@@ -159,11 +159,12 @@ class ModeManager(QObject):
                  arg2: The window ID of this mode manager.
         left:  Emitted when a mode is left.
                  arg1: The mode which has been left.
-                 arg2: The window ID of this mode manager.
+                 arg2: The new current mode.
+                 arg3: The window ID of this mode manager.
     """
 
     entered = pyqtSignal(usertypes.KeyMode, int)
-    left = pyqtSignal(usertypes.KeyMode, int)
+    left = pyqtSignal(usertypes.KeyMode, usertypes.KeyMode, int)
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
@@ -321,7 +322,7 @@ class ModeManager(QObject):
         log.modes.debug("Leaving mode {}{}, new mode stack {}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason),
             self.mode_stack))
-        self.left.emit(mode, self._win_id)
+        self.left.emit(mode, self.mode(), self._win_id)
 
     @cmdutils.register(instance='mode-manager', name='leave-mode',
                        not_modes=[usertypes.KeyMode.normal], hide=True,

@@ -235,6 +235,11 @@ class StatusBar(QWidget):
         self._insert_active = val
         self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
 
+    def _set_mode_text(self, mode):
+        """Set the mode text."""
+        text = "-- {} MODE --".format(mode.upper())
+        self.txt.set_text(self.txt.Text.normal, text)
+
     def _pop_text(self):
         """Display a text in the statusbar and pop it from _text_queue."""
         try:
@@ -386,19 +391,21 @@ class StatusBar(QWidget):
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=self._win_id)
         if mode in mode_manager.passthrough:
-            text = "-- {} MODE --".format(mode.name.upper())
-            self.txt.set_text(self.txt.Text.normal, text)
+            self._set_mode_text(mode.name)
         if mode == usertypes.KeyMode.insert:
             self._set_insert_active(True)
 
-    @pyqtSlot(usertypes.KeyMode)
-    def on_mode_left(self, mode):
+    @pyqtSlot(usertypes.KeyMode, usertypes.KeyMode)
+    def on_mode_left(self, old_mode, new_mode):
         """Clear marked mode."""
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=self._win_id)
-        if mode in mode_manager.passthrough:
-            self.txt.set_text(self.txt.Text.normal, '')
-        if mode == usertypes.KeyMode.insert:
+        if old_mode in mode_manager.passthrough:
+            if new_mode in mode_manager.passthrough:
+                self._set_mode_text(new_mode.name)
+            else:
+                self.txt.set_text(self.txt.Text.normal, '')
+        if old_mode == usertypes.KeyMode.insert:
             self._set_insert_active(False)
 
     @config.change_filter('ui', 'message-timeout')
