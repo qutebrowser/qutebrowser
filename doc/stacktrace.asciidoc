@@ -35,11 +35,12 @@ debugging symbols compiled by me (x86_64 only).
 To compile by yourself:
 
 ----
-$ mkdir qt-debug
-$ cd qt-debug
-$ rsync -rv rsync.archlinux.org::abs/$(uname -m)/extra/qt5/ .
-$ wget http://www.qutebrowser.org/qt-symbols.patch
-$ patch -p1 -i qt-symbols.patch
+$ git clone https://github.com/The-Compiler/qt-debug-pkgbuild.git
+$ cd qt-debug-pkgbuild
+$ git checkout symbols
+$ cd qt5
+$ makepkg -si
+$ cd ../pyqt5
 $ makepkg -si
 ----
 
@@ -49,7 +50,7 @@ To install my pre-built packages:
 $ mkdir qt-debug
 $ cd qt-debug
 $ wget -r -l1 -A '*.tar.xz' -L -np -nd http://www.qutebrowser.org/qt-symbols-pkg/
-# pacman -U qt5-*.pkg.tar.xz
+# pacman -U *.pkg.tar.xz
 ----
 
 After you are done debugging, make sure to install the system packages again so
