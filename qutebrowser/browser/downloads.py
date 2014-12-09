@@ -710,7 +710,7 @@ class DownloadManager(QAbstractListModel):
             A boolean.
         """
         for download in self.downloads:
-            if download.reply.manager() is nam:
+            if download.reply is not None and download.reply.manager() is nam:
                 return True
         return False
 
