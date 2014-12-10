@@ -21,7 +21,7 @@
 
 import collections
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QTime
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QTime, QSize
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.config import config, style
@@ -430,3 +430,9 @@ class StatusBar(QWidget):
         """
         super().moveEvent(e)
         self.moved.emit(e.pos())
+
+    def minimumSizeHint(self):
+        """Set the minimum height to the text height plus some padding."""
+        width = super().minimumSizeHint().width()
+        height = self.fontMetrics().height() + 3
+        return QSize(width, height)
