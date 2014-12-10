@@ -19,7 +19,7 @@
 
 """The commandline in the statusbar."""
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QUrl, QSize
 from PyQt5.QtWidgets import QSizePolicy
 
 from qutebrowser.keyinput import modeman, modeparsers
@@ -68,6 +68,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.history.history = objreg.get('command-history').data
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
         self.cursorPositionChanged.connect(self.update_completion)
+        self.textChanged.connect(self.updateGeometry)
 
     def prefix(self):
         """Get the currently entered command prefix."""
@@ -215,3 +216,12 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             return
         else:
             super().keyPressEvent(e)
+
+    def sizeHint(self):
+        """Dynamically calculate the needed size."""
+        height = super().sizeHint().height()
+        text = self.text()
+        if not text:
+            text = 'x'
+        width = self.fontMetrics().width(text)
+        return QSize(width, height)
