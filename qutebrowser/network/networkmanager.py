@@ -32,6 +32,7 @@ else:
 from qutebrowser.config import config
 from qutebrowser.utils import message, log, usertypes, utils, objreg
 from qutebrowser.network import qutescheme, networkreply
+from qutebrowser.browser import cookies
 
 
 class NetworkManager(QNetworkAccessManager):
@@ -62,22 +63,44 @@ class NetworkManager(QNetworkAccessManager):
         self._scheme_handlers = {
             'qute': qutescheme.QuteSchemeHandler(win_id),
         }
-
-        # We have a shared cookie jar and cache - we restore their parents so
-        # we don't take ownership of them.
-        app = QCoreApplication.instance()
-        cookie_jar = objreg.get('cookie-jar')
-        self.setCookieJar(cookie_jar)
-        cookie_jar.setParent(app)
-        cache = objreg.get('cache')
-        self.setCache(cache)
-        cache.setParent(app)
-
+        self._set_cookiejar()
+        self._set_cache()
         if SSL_AVAILABLE:
             self.sslErrors.connect(self.on_ssl_errors)
         self.authenticationRequired.connect(self.on_authentication_required)
         self.proxyAuthenticationRequired.connect(
             self.on_proxy_authentication_required)
+        objreg.get('config').changed.connect(self.on_config_changed)
+
+    def _set_cookiejar(self, private=False):
+        """Set the cookie jar of the NetworkManager correctly.
+
+        Args:
+            private: Whether we're currently in private browsing mode.
+        """
+        if private:
+            cookie_jar = cookies.RAMCookieJar(self)
+            self.setCookieJar(cookie_jar)
+        else:
+            # We have a shared cookie jar - we restore its parent so we don't
+            # take ownership of it.
+            app = QCoreApplication.instance()
+            cookie_jar = objreg.get('cookie-jar')
+            self.setCookieJar(cookie_jar)
+            cookie_jar.setParent(app)
+
+    def _set_cache(self):
+        """Set the cache of the NetworkManager correctly.
+
+        We can't switch the whole cache in private mode because QNAM would
+        delete the old cache.
+        """
+        # We have a shared cache - we restore its parent so we don't take
+        # ownership of it.
+        app = QCoreApplication.instance()
+        cache = objreg.get('cache')
+        self.setCache(cache)
+        cache.setParent(app)
 
     def _ask(self, win_id, text, mode):
         """Ask a blocking question in the statusbar.
@@ -159,6 +182,17 @@ class NetworkManager(QNetworkAccessManager):
         answer = self._ask(self._win_id, "Proxy username ({}):".format(
             authenticator.realm()), mode=usertypes.PromptMode.user_pwd)
         self._fill_authenticator(authenticator, answer)
+
+    @config.change_filter('general', 'private-browsing')
+    def on_config_changed(self):
+        """Set cookie jar when entering/leaving private browsing mode."""
+        private_browsing = config.get('general', 'private-browsing')
+        if private_browsing:
+            # switched from normal mode to private mode
+            self._set_cookiejar(private=True)
+        else:
+            # switched from private mode to normal mode
+            self._set_cookiejar()
 
     # WORKAROUND for:
     # http://www.riverbankcomputing.com/pipermail/pyqt/2014-September/034806.html

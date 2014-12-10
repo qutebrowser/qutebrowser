@@ -26,32 +26,12 @@ from qutebrowser.config import config, lineparser
 from qutebrowser.utils import utils, standarddir, objreg
 
 
-class CookieJar(QNetworkCookieJar):
+class RAMCookieJar(QNetworkCookieJar):
 
-    """Our own cookie jar to save cookies to disk if desired."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        datadir = standarddir.get(QStandardPaths.DataLocation)
-        self._linecp = lineparser.LineConfigParser(datadir, 'cookies',
-                                                   binary=True)
-        cookies = []
-        for line in self._linecp:
-            cookies += QNetworkCookie.parseCookies(line)
-        self.setAllCookies(cookies)
-        objreg.get('config').changed.connect(self.cookies_store_changed)
+    """An in-RAM cookie jar."""
 
     def __repr__(self):
         return utils.get_repr(self, count=len(self.allCookies()))
-
-    def purge_old_cookies(self):
-        """Purge expired cookies from the cookie jar."""
-        # Based on:
-        # http://qt-project.org/doc/qt-5/qtwebkitexamples-webkitwidgets-browser-cookiejar-cpp.html
-        now = QDateTime.currentDateTime()
-        cookies = [c for c in self.allCookies()
-                   if c.isSessionCookie() or c.expirationDate() >= now]
-        self.setAllCookies(cookies)
 
     def setCookiesFromUrl(self, cookies, url):
         """Add the cookies in the cookies list to this cookie jar.
@@ -67,6 +47,35 @@ class CookieJar(QNetworkCookieJar):
             return False
         else:
             return super().setCookiesFromUrl(cookies, url)
+
+
+class CookieJar(RAMCookieJar):
+
+    """A cookie jar saving cookies to disk.
+
+    Attributes:
+        _linecp: The LineConfigParser managing the cookies file.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        datadir = standarddir.get(QStandardPaths.DataLocation)
+        self._linecp = lineparser.LineConfigParser(datadir, 'cookies',
+                                                   binary=True)
+        cookies = []
+        for line in self._linecp:
+            cookies += QNetworkCookie.parseCookies(line)
+        self.setAllCookies(cookies)
+        objreg.get('config').changed.connect(self.cookies_store_changed)
+
+    def purge_old_cookies(self):
+        """Purge expired cookies from the cookie jar."""
+        # Based on:
+        # http://qt-project.org/doc/qt-5/qtwebkitexamples-webkitwidgets-browser-cookiejar-cpp.html
+        now = QDateTime.currentDateTime()
+        cookies = [c for c in self.allCookies()
+                   if c.isSessionCookie() or c.expirationDate() >= now]
+        self.setAllCookies(cookies)
 
     def save(self):
         """Save cookies to disk."""
