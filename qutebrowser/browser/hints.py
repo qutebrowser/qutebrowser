@@ -701,7 +701,7 @@ class HintManager(QObject):
                         str(elems.elem).lower().startswith(filterstr)):
                     if self._is_hidden(elems.label):
                         # hidden element which matches again -> unhide it
-                        elems.label.setStyleProperty('display', 'none')
+                        elems.label.setStyleProperty('display', 'inline')
                 else:
                     # element doesn't match anymore -> hide it
                     elems.label.setStyleProperty('display', 'none')
