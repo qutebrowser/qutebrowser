@@ -167,7 +167,7 @@ class TabBar(QTabBar):
             A QSize.
         """
         icon = self.tabIcon(index)
-        padding_count = 0
+        padding_count = 2
         if icon.isNull():
             icon_size = QSize(0, 0)
         else:
