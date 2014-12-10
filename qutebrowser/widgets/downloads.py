@@ -114,6 +114,9 @@ class DownloadView(QListView):
             if item.successful:
                 open_action = self._menu.addAction("Open")
                 open_action.triggered.connect(item.open_file)
+            else:
+                retry_action = self._menu.addAction("Retry")
+                retry_action.triggered.connect(item.retry)
             remove = self._menu.addAction("Remove")
             remove.triggered.connect(functools.partial(
                 self.model().remove_item, item))

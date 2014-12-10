@@ -45,6 +45,9 @@ ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
                            is_int=True)
 
 
+RetryInfo = collections.namedtuple('RetryInfo', ['request', 'manager'])
+
+
 class DownloadItemStats(QObject):
 
     """Statistics (bytes done, total bytes, time, etc.) about a download.
@@ -166,6 +169,7 @@ class DownloadItem(QObject):
                  target file.
         _read_timer: A QTimer which reads the QNetworkReply into self._buffer
                      periodically.
+        _retry_info: A RetryInfo instance.
 
     Signals:
         data_changed: The downloads metadata changed.
@@ -176,6 +180,8 @@ class DownloadItem(QObject):
         redirected: Signal emitted when a download was redirected.
             arg 0: The new QNetworkRequest.
             arg 1: The old QNetworkReply.
+        do_retry: Emitted when a request should be re-tried.
+            arg: The QNetworkRequest to download.
     """
 
     MAX_REDIRECTS = 10
@@ -184,6 +190,7 @@ class DownloadItem(QObject):
     error = pyqtSignal(str)
     cancelled = pyqtSignal()
     redirected = pyqtSignal(QNetworkRequest, QNetworkReply)
+    do_retry = pyqtSignal('QNetworkReply')
 
     def __init__(self, reply, parent=None):
         """Constructor.
@@ -192,6 +199,7 @@ class DownloadItem(QObject):
             reply: The QNetworkReply to download.
         """
         super().__init__(parent)
+        self._retry_info = None
         self.done = False
         self.stats = DownloadItemStats(self)
         self.stats.updated.connect(self.data_changed)
@@ -262,11 +270,6 @@ class DownloadItem(QObject):
         self.reply.deleteLater()
         self.reply = None
         self.done = True
-        if self.fileobj is not None:
-            try:
-                self.fileobj.close()
-            except OSError as e:
-                self.error.emit(e.strerror)
         self.data_changed.emit()
 
     def init_reply(self, reply):
@@ -275,12 +278,16 @@ class DownloadItem(QObject):
         Args:
             reply: The QNetworkReply to handle.
         """
+        self.done = False
+        self.successful = False
         self.reply = reply
         reply.setReadBufferSize(16 * 1024 * 1024)  # 16 MB
         reply.downloadProgress.connect(self.stats.on_download_progress)
         reply.finished.connect(self.on_reply_finished)
         reply.error.connect(self.on_reply_error)
         reply.readyRead.connect(self.on_ready_read)
+        self._retry_info = RetryInfo(request=reply.request(),
+                                     manager=reply.manager())
         if not self.fileobj:
             self._read_timer.start()
         # We could have got signals before we connected slots to them.
@@ -324,6 +331,12 @@ class DownloadItem(QObject):
         self.done = True
         self.finished.emit()
         self.data_changed.emit()
+
+    def retry(self):
+        """Retry a failed download."""
+        self.cancel()
+        new_reply = self._retry_info.manager.get(self._retry_info.request)
+        self.do_retry.emit(new_reply)
 
     def open_file(self):
         """Open the downloaded file."""
@@ -649,6 +662,7 @@ class DownloadManager(QAbstractListModel):
         download.error.connect(self.on_error)
         download.redirected.connect(
             functools.partial(self.on_redirect, download))
+        download.do_retry.connect(self.fetch)
         download.basename = suggested_filename
         idx = len(self.downloads) + 1
         self.beginInsertRows(QModelIndex(), idx, idx)
@@ -744,7 +758,11 @@ class DownloadManager(QAbstractListModel):
 
     def remove_item(self, download):
         """Remove a given download."""
-        idx = self.downloads.index(download)
+        try:
+            idx = self.downloads.index(download)
+        except ValueError:
+            # already removed
+            return
         self.beginRemoveRows(QModelIndex(), idx, idx)
         del self.downloads[idx]
         self.endRemoveRows()
