@@ -23,6 +23,7 @@
 |<<paste,paste>>|Open a page from the clipboard.
 |<<print,print>>|Print the current/[count]th tab.
 |<<quickmark-add,quickmark-add>>|Add a new quickmark.
+|<<quickmark-del,quickmark-del>>|Delete a quickmark.
 |<<quickmark-load,quickmark-load>>|Load a quickmark.
 |<<quickmark-save,quickmark-save>>|Save the current page as a quickmark.
 |<<quit,quit>>|Quit qutebrowser.
@@ -280,6 +281,15 @@ Add a new quickmark.
 ==== positional arguments
 * +'url'+: The url to add as quickmark.
 * +'name'+: The name for the new quickmark.
+
+[[quickmark-del]]
+=== quickmark-del
+Syntax: +:quickmark-del 'name'+
+
+Delete a quickmark.
+
+==== positional arguments
+* +'name'+: The name of the quickmark to delete.
 
 [[quickmark-load]]
 === quickmark-load

@@ -110,6 +110,21 @@ class QuickmarkManager(QObject):
         else:
             set_mark()
 
+    @cmdutils.register(instance='quickmark-manager', split=False,
+                       completion=[usertypes.Completion.quickmark_by_name])
+    def quickmark_del(self, name):
+        """Delete a quickmark.
+
+        Args:
+            name: The name of the quickmark to delete.
+        """
+        try:
+            del self.marks[name]
+        except KeyError:
+            raise cmdexc.CommandError("Quickmark '{}' not found!".format(name))
+        else:
+            self.changed.emit()
+
     def get(self, name):
         """Get the URL of the quickmark named name as a QUrl."""
         if name not in self.marks:
