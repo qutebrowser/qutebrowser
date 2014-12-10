@@ -158,14 +158,7 @@ class TabBar(QTabBar):
         super().mousePressEvent(e)
 
     def minimumTabSizeHint(self, index):
-        """Override minimumTabSizeHint because we want no hard minimum.
-
-        There are two problems with having a hard minimum tab size:
-        - When expanding is True, the window will expand without stopping
-          on some window managers.
-        - We don't want the main window to get bigger with many tabs. If
-          nothing else helps, we *do* want the tabs to get smaller instead
-          of enforcing a minimum window size.
+        """Set the minimum tab size to indicator/icon/... text.
 
         Args:
             index: The index of the tab to get a sizehint for.
@@ -175,17 +168,21 @@ class TabBar(QTabBar):
         """
         icon = self.tabIcon(index)
         padding_count = 0
-        if not icon.isNull():
+        if icon.isNull():
+            icon_size = QSize(0, 0)
+        else:
             extent = self.style().pixelMetric(QStyle.PM_TabBarIconSize, None,
                                               self)
             icon_size = icon.actualSize(QSize(extent, extent))
             padding_count += 1
-        else:
-            icon_size = QSize(0, 0)
+        indicator_width = config.get('tabs', 'indicator-width')
+        if indicator_width != 0:
+            indicator_width += config.get('tabs', 'indicator-space')
         padding_width = self.style().pixelMetric(PM_TabBarPadding, None, self)
         height = self.fontMetrics().height()
         width = (self.fontMetrics().size(0, '\u2026').width() +
-                 icon_size.width() + padding_count * padding_width)
+                 icon_size.width() + padding_count * padding_width +
+                 indicator_width)
         return QSize(width, height)
 
     def tabSizeHint(self, index):
