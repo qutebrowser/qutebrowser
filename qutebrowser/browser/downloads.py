@@ -421,7 +421,7 @@ class DownloadItem(QObject):
             # qute:log for example).
             return
         if not self.reply.isOpen():
-            raise IOError("Reply is closed!")
+            raise OSError("Reply is closed!")
         try:
             self.fileobj.write(self.reply.readAll())
         except OSError as e:
@@ -439,7 +439,7 @@ class DownloadItem(QObject):
     def on_read_timer_timeout(self):
         """Read some bytes from the QNetworkReply periodically."""
         if not self.reply.isOpen():
-            raise IOError("Reply is closed!")
+            raise OSError("Reply is closed!")
         data = self.reply.read(1024)
         self._buffer.write(data)
 

@@ -49,7 +49,7 @@ def main():
     print("config path: {}".format(confpath))
     successful = parser.read(confpath, encoding='utf-8')
     if not successful:
-        raise IOError("configparser did not read files successfully!")
+        raise OSError("configparser did not read files successfully!")
     lists = parser['content']['host-block-lists']
     for url in lists.split(','):
         print("checking {}...".format(url))

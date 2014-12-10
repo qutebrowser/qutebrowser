@@ -278,7 +278,7 @@ def main():
     utils.change_cwd()
     read_files = config.read('.run_checks')
     if not read_files:
-        raise IOError("Could not read config!")
+        raise OSError("Could not read config!")
     exit_status = collections.OrderedDict()
     exit_status_bool = {}
 

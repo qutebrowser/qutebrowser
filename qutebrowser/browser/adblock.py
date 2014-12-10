@@ -196,7 +196,7 @@ class HostBlocker:
         if urls is None:
             try:
                 os.remove(self._hosts_file)
-            except IOError:
+            except OSError:
                 log.misc.exception("Failed to delete hosts file.")
 
     def on_download_finished(self, download):

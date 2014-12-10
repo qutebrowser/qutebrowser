@@ -128,7 +128,7 @@ def ensure_valid(obj):
 
 
 def _check_qdatastream(stream):
-    """Check the status of a QDataStream and raise IOError if it's not ok."""
+    """Check the status of a QDataStream and raise OSError if it's not ok."""
     status_to_str = {
         QDataStream.Ok: "The data stream is operating normally.",
         QDataStream.ReadPastEnd: ("The data stream has read past the end of "
@@ -138,7 +138,7 @@ def _check_qdatastream(stream):
                                   "underlying device."),
     }
     if stream.status() != QDataStream.Ok:
-        raise IOError(status_to_str[stream.status()])
+        raise OSError(status_to_str[stream.status()])
 
 
 def serialize(obj):
@@ -164,7 +164,7 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
     try:
         ok = f.open(QIODevice.WriteOnly)
         if not ok:  # pylint: disable=used-before-assignment
-            raise IOError(f.errorString())
+            raise OSError(f.errorString())
         if binary:
             new_f = PyQIODevice(f)
         else:
@@ -177,7 +177,7 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
         new_f.flush()
         ok = f.commit()
         if not ok:
-            raise IOError(f.errorString())
+            raise OSError(f.errorString())
 
 
 class PyQIODevice(io.BufferedIOBase):
@@ -197,14 +197,14 @@ class PyQIODevice(io.BufferedIOBase):
         return self._dev.size()
 
     def _check_open(self):
-        """Check if the device is open, raise IOError if not."""
+        """Check if the device is open, raise OSError if not."""
         if not self._dev.isOpen():
-            raise IOError("IO operation on closed device!")
+            raise OSError("IO operation on closed device!")
 
     def _check_random(self):
-        """Check if the device supports random access, raise IOError if not."""
+        """Check if the device supports random access, raise OSError if not."""
         if not self.seekable():
-            raise IOError("Random access not allowed!")
+            raise OSError("Random access not allowed!")
 
     def fileno(self):
         raise io.UnsupportedOperation
@@ -222,7 +222,7 @@ class PyQIODevice(io.BufferedIOBase):
             raise io.UnsupportedOperation("whence = {} is not "
                                           "supported!".format(whence))
         if not ok:
-            raise IOError(self._dev.errorString())
+            raise OSError(self._dev.errorString())
 
     def truncate(self, size=None):  # pylint: disable=unused-argument
         raise io.UnsupportedOperation
@@ -270,7 +270,7 @@ class PyQIODevice(io.BufferedIOBase):
         self._check_open()
         num = self._dev.write(b)
         if num == -1 or num < len(b):
-            raise IOError(self._dev.errorString())
+            raise OSError(self._dev.errorString())
         return num
 
     def read(self, size):
@@ -278,7 +278,7 @@ class PyQIODevice(io.BufferedIOBase):
         buf = bytes()
         num = self._dev.read(buf, size)
         if num == -1:
-            raise IOError(self._dev.errorString())
+            raise OSError(self._dev.errorString())
         return num
 
 

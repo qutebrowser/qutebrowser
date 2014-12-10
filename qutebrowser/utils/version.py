@@ -111,7 +111,7 @@ def _release_info():
         try:
             with open(fn, 'r', encoding='utf-8') as f:
                 data.append((fn, ''.join(f.readlines())))
-        except IOError:
+        except OSError:
             log.misc.exception("Error while reading {}.".format(fn))
     return data
 
