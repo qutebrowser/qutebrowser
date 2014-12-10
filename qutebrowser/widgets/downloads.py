@@ -110,8 +110,16 @@ class DownloadView(QListView):
             return
         item = self.model().data(index, downloads.ModelRole.item)
         self._menu = QMenu(self)
-        cancel = self._menu.addAction("Cancel")
-        cancel.triggered.connect(item.cancel)
+        if item.done:
+            if item.successful:
+                open_action = self._menu.addAction("Open")
+                open_action.triggered.connect(item.open_file)
+            remove = self._menu.addAction("Remove")
+            remove.triggered.connect(functools.partial(
+                self.model().remove_item, item))
+        else:
+            cancel = self._menu.addAction("Cancel")
+            cancel.triggered.connect(item.cancel)
         self._menu.popup(self.viewport().mapToGlobal(point))
 
     def minimumSizeHint(self):

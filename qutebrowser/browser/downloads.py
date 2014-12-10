@@ -28,7 +28,8 @@ import collections
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QTimer,
                           QStandardPaths, Qt, QVariant, QAbstractListModel,
-                          QModelIndex)
+                          QModelIndex, QUrl)
+from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 # We need this import so PyQt can use it inside pyqtSlot
 from PyQt5.QtWebKitWidgets import QWebPage  # pylint: disable=unused-import
@@ -151,6 +152,7 @@ class DownloadItem(QObject):
         MAX_REDIRECTS: The maximum redirection count.
 
     Attributes:
+        done: Whether the download is finished.
         stats: A DownloadItemStats object.
         successful: Whether the download has completed sucessfully.
         error_msg: The current error message, or None
@@ -190,6 +192,7 @@ class DownloadItem(QObject):
             reply: The QNetworkReply to download.
         """
         super().__init__(parent)
+        self.done = False
         self.stats = DownloadItemStats(self)
         self.stats.updated.connect(self.data_changed)
         self.autoclose = True
@@ -234,10 +237,15 @@ class DownloadItem(QObject):
         else:
             remaining = utils.format_seconds(remaining)
         total = utils.format_size(self.stats.total, suffix='B')
-        return ('{name} [{speed:>10}|{remaining:>5}|{perc:>2}%|'
-                '{down}/{total}]{errmsg}'.format(
-                    name=self.basename, speed=speed, remaining=remaining,
-                    perc=perc, down=down, total=total, errmsg=errmsg))
+        if self.done:
+            return ('{name} [{perc:>2}%|{total}]{errmsg}'.format(
+                name=self.basename, perc=perc, total=total,
+                errmsg=errmsg))
+        else:
+            return ('{name} [{speed:>10}|{remaining:>5}|{perc:>2}%|'
+                    '{down}/{total}]{errmsg}'.format(
+                        name=self.basename, speed=speed, remaining=remaining,
+                        perc=perc, down=down, total=total, errmsg=errmsg))
 
     def _die(self, msg):
         """Abort the download and emit an error."""
@@ -253,6 +261,7 @@ class DownloadItem(QObject):
         self.reply.abort()
         self.reply.deleteLater()
         self.reply = None
+        self.done = True
         if self.fileobj is not None:
             try:
                 self.fileobj.close()
@@ -312,7 +321,15 @@ class DownloadItem(QObject):
                 os.remove(self._filename)
         except OSError:
             log.downloads.exception("Failed to remove partial file")
+        self.done = True
         self.finished.emit()
+        self.data_changed.emit()
+
+    def open_file(self):
+        """Open the downloaded file."""
+        assert self.successful
+        url = QUrl.fromLocalFile(self._filename)
+        QDesktopServices.openUrl(url)
 
     def set_filename(self, filename):
         """Set the filename to save the download to.
@@ -393,7 +410,9 @@ class DownloadItem(QObject):
         self.reply.deleteLater()
         self.reply = None
         self.finished.emit()
+        self.done = True
         log.downloads.debug("Download finished")
+        self.data_changed.emit()
 
     @pyqtSlot()
     def on_reply_finished(self):
@@ -620,8 +639,11 @@ class DownloadManager(QAbstractListModel):
         log.downloads.debug("fetch: {} -> {}".format(reply.url(),
                                                      suggested_filename))
         download = DownloadItem(reply, self)
-        download.finished.connect(
-            functools.partial(self.on_finished, download))
+        download.cancelled.connect(
+            functools.partial(self.remove_item, download))
+        if config.get('ui', 'remove-finished-downloads'):
+            download.finished.connect(
+                functools.partial(self.remove_item, download))
         download.data_changed.connect(
             functools.partial(self.on_data_changed, download))
         download.error.connect(self.on_error)
@@ -681,19 +703,13 @@ class DownloadManager(QAbstractListModel):
         download.init_reply(new_reply)
 
     @pyqtSlot(DownloadItem)
-    def on_finished(self, download):
-        """Remove finished download."""
-        log.downloads.debug("on_finished: {}".format(download))
-        idx = self.downloads.index(download)
-        self.beginRemoveRows(QModelIndex(), idx, idx)
-        del self.downloads[idx]
-        self.endRemoveRows()
-        download.deleteLater()
-
-    @pyqtSlot(DownloadItem)
     def on_data_changed(self, download):
         """Emit data_changed signal when download data changed."""
-        idx = self.downloads.index(download)
+        try:
+            idx = self.downloads.index(download)
+        except ValueError:
+            # download has been deleted in the meantime
+            return
         model_idx = self.index(idx, 0)
         qtutils.ensure_valid(model_idx)
         self.dataChanged.emit(model_idx, model_idx)
@@ -725,6 +741,14 @@ class DownloadManager(QAbstractListModel):
         """
         idx = self.index(self.rowCount() - 1)
         return idx
+
+    def remove_item(self, download):
+        """Remove a given download."""
+        idx = self.downloads.index(download)
+        self.beginRemoveRows(QModelIndex(), idx, idx)
+        del self.downloads[idx]
+        self.endRemoveRows()
+        download.deleteLater()
 
     def headerData(self, section, orientation, role):
         """Simple constant header."""

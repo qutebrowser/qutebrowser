@@ -228,6 +228,10 @@ DATA = collections.OrderedDict([
         ('css-media-type',
          SettingValue(typ.String(none_ok=True), ''),
          "Set the CSS media type."),
+
+        ('remove-finished-downloads',
+         SettingValue(typ.Bool(), 'false'),
+         "Whether to remove finished downloads automatically."),
     )),
 
     ('network', sect.KeyValue(
