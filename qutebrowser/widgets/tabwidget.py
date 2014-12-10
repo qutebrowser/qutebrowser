@@ -180,7 +180,7 @@ class TabBar(QTabBar):
             indicator_width += config.get('tabs', 'indicator-space')
         padding_width = self.style().pixelMetric(PM_TabBarPadding, None, self)
         height = self.fontMetrics().height()
-        width = (self.fontMetrics().size(0, '\u2026').width() +
+        width = (self.fontMetrics().width('\u2026') +
                  icon_size.width() + padding_count * padding_width +
                  indicator_width)
         return QSize(width, height)
