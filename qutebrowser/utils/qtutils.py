@@ -162,14 +162,13 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
     """Context manager to easily use a QSaveFile."""
     f = QSaveFile(filename)
     try:
-        if binary:
-            ok = f.open(QIODevice.WriteOnly)
-            new_f = PyQIODevice(f)
-        else:
-            ok = f.open(QIODevice.WriteOnly | QIODevice.Text)
-            new_f = io.TextIOWrapper(PyQIODevice(f), encoding=encoding)
+        ok = f.open(QIODevice.WriteOnly)
         if not ok:  # pylint: disable=used-before-assignment
             raise IOError(f.errorString())
+        if binary:
+            new_f = PyQIODevice(f)
+        else:
+            new_f = io.TextIOWrapper(PyQIODevice(f), encoding=encoding)
         yield new_f
     except:
         f.cancelWriting()
