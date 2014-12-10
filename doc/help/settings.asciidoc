@@ -33,6 +33,7 @@
 |<<ui-frame-flattening,frame-flattening>>|Whether to  expand each subframe to its contents.
 |<<ui-user-stylesheet,user-stylesheet>>|User stylesheet to use (absolute filename or CSS string).
 |<<ui-css-media-type,css-media-type>>|Set the CSS media type.
+|<<ui-remove-finished-downloads,remove-finished-downloads>>|Whether to remove finished downloads automatically.
 |==============
 
 .Quick reference for section ``network''
@@ -438,6 +439,17 @@ Default: +pass:[::-webkit-scrollbar { width: 0px; height: 0px; }]+
 Set the CSS media type.
 
 Default: empty
+
+[[ui-remove-finished-downloads]]
+=== remove-finished-downloads
+Whether to remove finished downloads automatically.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[false]+
 
 == network
 Settings related to the network.
