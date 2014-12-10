@@ -41,7 +41,7 @@ class Loader(jinja2.BaseLoader):
         path = os.path.join(self._subdir, template)
         try:
             source = utils.read_file(path)
-        except FileNotFoundError:
+        except OSError:
             raise jinja2.TemplateNotFound(template)
         # Currently we don't implement auto-reloading, so we always return True
         # for up-to-date.

@@ -210,24 +210,28 @@ class KeyConfigParser(QObject):
 
     def _read(self):
         """Read the config file from disk and parse it."""
-        with open(self._configfile, 'r', encoding='utf-8') as f:
-            for i, line in enumerate(f):
-                line = line.rstrip()
-                try:
-                    if not line.strip() or line.startswith('#'):
-                        continue
-                    elif line.startswith('[') and line.endswith(']'):
-                        sectname = line[1:-1]
-                        self._cur_section = self._normalize_sectname(sectname)
-                    elif line.startswith((' ', '\t')):
-                        line = line.strip()
-                        self._read_keybinding(line)
-                    else:
-                        line = line.strip()
-                        self._read_command(line)
-                except KeyConfigError as e:
-                    e.lineno = i
-                    raise
+        try:
+            with open(self._configfile, 'r', encoding='utf-8') as f:
+                for i, line in enumerate(f):
+                    line = line.rstrip()
+                    try:
+                        if not line.strip() or line.startswith('#'):
+                            continue
+                        elif line.startswith('[') and line.endswith(']'):
+                            sectname = line[1:-1]
+                            self._cur_section = self._normalize_sectname(
+                                sectname)
+                        elif line.startswith((' ', '\t')):
+                            line = line.strip()
+                            self._read_keybinding(line)
+                        else:
+                            line = line.strip()
+                            self._read_command(line)
+                    except KeyConfigError as e:
+                        e.lineno = i
+                        raise
+        except OSError:
+            log.keyboard.exception("Failed to read keybindings!")
         for sectname in self.keybindings:
             self.changed.emit(sectname)
 

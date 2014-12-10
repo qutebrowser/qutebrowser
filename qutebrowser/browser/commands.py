@@ -206,10 +206,10 @@ class CommandDispatcher:
 
     def _editor_cleanup(self, oshandle, filename):
         """Clean up temporary file when the editor was closed."""
-        os.close(oshandle)
         try:
+            os.close(oshandle)
             os.remove(filename)
-        except PermissionError:
+        except OSError:
             raise cmdexc.CommandError("Failed to delete tempfile...")
 
     def _get_selection_override(self, left, right, opposite):

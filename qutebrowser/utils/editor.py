@@ -52,10 +52,10 @@ class ExternalEditor(QObject):
 
     def _cleanup(self):
         """Clean up temporary files after the editor closed."""
-        os.close(self._oshandle)
         try:
+            os.close(self._oshandle)
             os.remove(self._filename)
-        except PermissionError as e:
+        except OSError as e:
             # NOTE: Do not replace this with "raise CommandError" as it's
             # executed async.
             message.error(self._win_id,
@@ -80,8 +80,15 @@ class ExternalEditor(QObject):
                                   "{})!".format(exitcode))
                 return
             encoding = config.get('general', 'editor-encoding')
-            with open(self._filename, 'r', encoding=encoding) as f:
-                text = ''.join(f.readlines())
+            try:
+                with open(self._filename, 'r', encoding=encoding) as f:
+                    text = ''.join(f.readlines())
+            except OSError as e:
+                # NOTE: Do not replace this with "raise CommandError" as it's
+                # executed async.
+                message.error(self._win_id, "Failed to read back edited file: "
+                                            "{}".format(e))
+                return
             log.procs.debug("Read back: {}".format(text))
             self.editing_finished.emit(text)
         finally:
@@ -114,11 +121,16 @@ class ExternalEditor(QObject):
         if self._text is not None:
             raise ValueError("Already editing a file!")
         self._text = text
-        self._oshandle, self._filename = tempfile.mkstemp(text=True)
-        if text:
-            encoding = config.get('general', 'editor-encoding')
-            with open(self._filename, 'w', encoding=encoding) as f:
-                f.write(text)
+        try:
+            self._oshandle, self._filename = tempfile.mkstemp(text=True)
+            if text:
+                encoding = config.get('general', 'editor-encoding')
+                with open(self._filename, 'w', encoding=encoding) as f:
+                    f.write(text)
+        except OSError as e:
+            message.error(self._win_id, "Failed to create initial file: "
+                                        "{}".format(e))
+            return
         self._proc = QProcess(self)
         self._proc.finished.connect(self.on_proc_closed)
         self._proc.error.connect(self.on_proc_error)

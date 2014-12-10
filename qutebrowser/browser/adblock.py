@@ -100,9 +100,12 @@ class HostBlocker:
         """Read hosts from the existing blocked-hosts file."""
         self.blocked_hosts = set()
         if os.path.exists(self._hosts_file):
-            with open(self._hosts_file, 'r', encoding='utf-8') as f:
-                for line in f:
-                    self.blocked_hosts.add(line.strip())
+            try:
+                with open(self._hosts_file, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        self.blocked_hosts.add(line.strip())
+            except OSError:
+                log.misc.exception("Failed to read host blocklist!")
         else:
             if config.get('content', 'host-block-lists') is not None:
                 message.info('last-focused',
@@ -120,7 +123,10 @@ class HostBlocker:
             return
         for url in urls:
             if url.scheme() == 'file':
-                fileobj = open(url.path(), 'rb')
+                try:
+                    fileobj = open(url.path(), 'rb')
+                except OSError:
+                    log.misc.exception("Failed to open block list!")
                 download = FakeDownload(fileobj)
                 self._in_progress.append(download)
                 self.on_download_finished(download)
@@ -145,7 +151,7 @@ class HostBlocker:
         line_count = 0
         try:
             f = get_fileobj(byte_io)
-        except (FileNotFoundError, UnicodeDecodeError, zipfile.BadZipFile,
+        except (OSError, UnicodeDecodeError, zipfile.BadZipFile,
                 zipfile.LargeZipFile) as e:
             message.error('last-focused', "adblock: Error while reading {}: "
                           "{} - {}".format(
@@ -213,4 +219,7 @@ class HostBlocker:
             finally:
                 download.fileobj.close()
         if not self._in_progress:
-            self.on_lists_downloaded()
+            try:
+                self.on_lists_downloaded()
+            except OSError:
+                log.misc.exception("Failed to write host block list!")

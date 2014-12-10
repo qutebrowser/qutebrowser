@@ -31,7 +31,7 @@ import functools
 import traceback
 import faulthandler
 
-from PyQt5.QtWidgets import QApplication, QDialog
+from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
                           QStandardPaths, QObject, Qt)
@@ -70,6 +70,7 @@ class Application(QApplication):
         Args:
             Argument namespace from argparse.
         """
+        # pylint: disable=too-many-statements
         self._quit_status = {
             'crash': True,
             'tabs': False,
@@ -114,7 +115,14 @@ class Application(QApplication):
         self.setApplicationName("qutebrowser")
         self.setApplicationVersion(qutebrowser.__version__)
         utils.actute_warning()
-        self._init_modules()
+        try:
+            self._init_modules()
+        except OSError as e:
+            msgbox = QMessageBox(
+                QMessageBox.Critical, "Error while initializing!",
+                "Error while initializing: {}".format(e))
+            msgbox.exec_()
+            sys.exit(1)
         QTimer.singleShot(0, self._open_pages)
 
         log.init.debug("Initializing eventfilter...")
@@ -184,32 +192,37 @@ class Application(QApplication):
         """Handle a segfault from a previous run."""
         path = standarddir.get(QStandardPaths.DataLocation)
         logname = os.path.join(path, 'crash.log')
-        # First check if an old logfile exists.
-        if os.path.exists(logname):
-            with open(logname, 'r', encoding='ascii') as f:
-                data = f.read()
-            try:
+        try:
+            # First check if an old logfile exists.
+            if os.path.exists(logname):
+                with open(logname, 'r', encoding='ascii') as f:
+                    data = f.read()
                 os.remove(logname)
-            except PermissionError:
-                log.init.warning("Could not remove crash log!")
-            else:
                 self._init_crashlogfile()
-            if data:
-                # Crashlog exists and has data in it, so something crashed
-                # previously.
-                self._crashdlg = crash.FatalCrashDialog(self._args.debug, data)
-                self._crashdlg.show()
-        else:
-            # There's no log file, so we can use this to display crashes to the
-            # user on the next start.
+                if data:
+                    # Crashlog exists and has data in it, so something crashed
+                    # previously.
+                    self._crashdlg = crash.FatalCrashDialog(self._args.debug,
+                                                            data)
+                    self._crashdlg.show()
+            else:
+                # There's no log file, so we can use this to display crashes to
+                # the user on the next start.
+                self._init_crashlogfile()
+        except OSError:
+            log.init.exception("Error while handling crash log file!")
             self._init_crashlogfile()
 
     def _init_crashlogfile(self):
         """Start a new logfile and redirect faulthandler to it."""
         path = standarddir.get(QStandardPaths.DataLocation)
         logname = os.path.join(path, 'crash.log')
-        self._crashlogfile = open(logname, 'w', encoding='ascii')
-        earlyinit.init_faulthandler(self._crashlogfile)
+        try:
+            self._crashlogfile = open(logname, 'w', encoding='ascii')
+        except OSError:
+            log.init.exception("Error while opening crash log file!")
+        else:
+            earlyinit.init_faulthandler(self._crashlogfile)
 
     def _open_pages(self):
         """Open startpage etc. and process commandline args."""
@@ -446,10 +459,10 @@ class Application(QApplication):
             faulthandler.enable(sys.__stderr__)
         else:
             faulthandler.disable()
-        self._crashlogfile.close()
         try:
+            self._crashlogfile.close()
             os.remove(self._crashlogfile.name)
-        except (PermissionError, FileNotFoundError):
+        except OSError:
             log.destroy.exception("Could not remove crash log!")
 
     def _exception_hook(self, exctype, excvalue, tb):
@@ -756,6 +769,11 @@ class Application(QApplication):
                     what, utils.qualname(handler)))
                 try:
                     handler()
+                except OSError as e:
+                    msgbox = QMessageBox(
+                        QMessageBox.Critical, "Error while saving!",
+                        "Error while saving {}: {}".format(what, e))
+                    msgbox.exec_()
                 except AttributeError as e:
                     log.destroy.warning("Could not save {}.".format(what))
                     log.destroy.debug(e)

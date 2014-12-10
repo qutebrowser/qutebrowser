@@ -73,7 +73,7 @@ def _git_str():
     # If that fails, check the git-commit-id file.
     try:
         return utils.read_file('git-commit-id')
-    except (FileNotFoundError, ImportError):
+    except (OSError, ImportError):
         return None
 
 

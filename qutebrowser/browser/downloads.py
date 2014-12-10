@@ -307,8 +307,11 @@ class DownloadItem(QObject):
             self.reply = None
         if self.fileobj is not None:
             self.fileobj.close()
-        if self._filename is not None and os.path.exists(self._filename):
-            os.remove(self._filename)
+        try:
+            if self._filename is not None and os.path.exists(self._filename):
+                os.remove(self._filename)
+        except OSError:
+            log.downloads.exception("Failed to remove partial file")
         self.finished.emit()
 
     def set_filename(self, filename):

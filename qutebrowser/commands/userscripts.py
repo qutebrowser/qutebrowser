@@ -61,13 +61,18 @@ class _BlockingFIFOReader(QObject):
 
     def read(self):
         """Blocking read loop which emits got_line when a new line arrived."""
-        # We open as R/W so we never get EOF and have to reopen the pipe.
-        # See http://www.outflux.net/blog/archives/2008/03/09/using-select-on-a-fifo/
-        # We also use os.open and os.fdopen rather than built-in open so we can
-        # add O_NONBLOCK.
-        fd = os.open(self._filepath, os.O_RDWR |
-                     os.O_NONBLOCK)  # pylint: disable=no-member
-        self.fifo = os.fdopen(fd, 'r')
+        try:
+            # We open as R/W so we never get EOF and have to reopen the pipe.
+            # See http://www.outflux.net/blog/archives/2008/03/09/using-select-on-a-fifo/
+            # We also use os.open and os.fdopen rather than built-in open so we
+            # can add O_NONBLOCK.
+            fd = os.open(self._filepath, os.O_RDWR |
+                         os.O_NONBLOCK)  # pylint: disable=no-member
+            self.fifo = os.fdopen(fd, 'r')
+        except OSError:
+            log.procs.exception("Failed to read FIFO")
+            self.finished.emit()
+            return
         while True:
             log.procs.debug("thread loop")
             ready_r, _ready_w, _ready_e = select.select([self.fifo], [], [], 1)
@@ -141,7 +146,7 @@ class _BaseUserscriptRunner(QObject):
         """Clean up the temporary file."""
         try:
             os.remove(self._filepath)
-        except PermissionError as e:
+        except OSError as e:
             # NOTE: Do not replace this with "raise CommandError" as it's
             # executed async.
             message.error(self._win_id,
@@ -196,13 +201,18 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
 
     def run(self, cmd, *args, env=None):
         rundir = standarddir.get(QStandardPaths.RuntimeLocation)
-        # tempfile.mktemp is deprecated and discouraged, but we use it here to
-        # create a FIFO since the only other alternative would be to create a
-        # directory and place the FIFO there, which sucks. Since os.kfifo will
-        # raise an exception anyways when the path doesn't exist, it shouldn't
-        # be a big issue.
-        self._filepath = tempfile.mktemp(prefix='userscript-', dir=rundir)
-        os.mkfifo(self._filepath)  # pylint: disable=no-member
+        try:
+            # tempfile.mktemp is deprecated and discouraged, but we use it here
+            # to create a FIFO since the only other alternative would be to
+            # create a directory and place the FIFO there, which sucks. Since
+            # os.kfifo will raise an exception anyways when the path doesn't
+            # exist, it shouldn't be a big issue.
+            self._filepath = tempfile.mktemp(prefix='userscript-', dir=rundir)
+            os.mkfifo(self._filepath)  # pylint: disable=no-member
+        except OSError as e:
+            message.error(self._win_id, "Error while creating FIFO: {}".format(
+                e))
+            return
 
         self._reader = _BlockingFIFOReader(self._filepath)
         self._thread = QThread(self)
@@ -262,16 +272,22 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
 
     def _cleanup(self):
         """Clean up temporary files after the userscript finished."""
-        os.close(self._oshandle)
+        try:
+            os.close(self._oshandle)
+        except OSError:
+            log.procs.exception("Failed to close file handle!")
         super()._cleanup()
         self._oshandle = None
 
     def on_proc_finished(self):
         """Read back the commands when the process finished."""
         log.procs.debug("proc finished")
-        with open(self._filepath, 'r', encoding='utf-8') as f:
-            for line in f:
-                self.got_cmd.emit(line.rstrip())
+        try:
+            with open(self._filepath, 'r', encoding='utf-8') as f:
+                for line in f:
+                    self.got_cmd.emit(line.rstrip())
+        except OSError:
+            log.procs.exception("Failed to read command file!")
         self._cleanup()
         self.finished.emit()
 
@@ -282,7 +298,12 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
         self.finished.emit()
 
     def run(self, cmd, *args, env=None):
-        self._oshandle, self._filepath = tempfile.mkstemp(text=True)
+        try:
+            self._oshandle, self._filepath = tempfile.mkstemp(text=True)
+        except OSError as e:
+            message.error(self._win_id, "Error while creating tempfile: "
+                                        "{}".format(e))
+            return
         self._run_process(cmd, *args, env=env)
 
 

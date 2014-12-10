@@ -24,6 +24,8 @@ import os.path
 
 from PyQt5.QtCore import QCoreApplication, QStandardPaths
 
+from qutebrowser.utils import log
+
 
 def _writable_location(typ):
     """Wrapper around QStandardPaths.writableLocation."""
@@ -124,9 +126,12 @@ def init():
     # http://www.brynosaurus.com/cachedir/spec.html
     cachedir_tag = os.path.join(cache_dir, 'CACHEDIR.TAG')
     if not os.path.exists(cachedir_tag):
-        with open(cachedir_tag, 'w', encoding='utf-8') as f:
-            f.write("Signature: 8a477f597d28d172789f06886806bc55\n")
-            f.write("# This file is a cache directory tag created by "
-                    "qutebrowser.\n")
-            f.write("# For information about cache directory tags, see:\n")
-            f.write("#  http://www.brynosaurus.com/cachedir/\n")
+        try:
+            with open(cachedir_tag, 'w', encoding='utf-8') as f:
+                f.write("Signature: 8a477f597d28d172789f06886806bc55\n")
+                f.write("# This file is a cache directory tag created by "
+                        "qutebrowser.\n")
+                f.write("# For information about cache directory tags, see:\n")
+                f.write("#  http://www.brynosaurus.com/cachedir/\n")
+        except OSError:
+            log.misc.exception("Failed to create CACHEDIR.TAG")

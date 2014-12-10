@@ -161,6 +161,7 @@ def deserialize(data, obj):
 def savefile_open(filename, binary=False, encoding='utf-8'):
     """Context manager to easily use a QSaveFile."""
     f = QSaveFile(filename)
+    new_f = None
     try:
         ok = f.open(QIODevice.WriteOnly)
         if not ok:  # pylint: disable=used-before-assignment
@@ -174,7 +175,8 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
         f.cancelWriting()
         raise
     finally:
-        new_f.flush()
+        if new_f is not None:
+            new_f.flush()
         ok = f.commit()
         if not ok:
             raise OSError(f.errorString())

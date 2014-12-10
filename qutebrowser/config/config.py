@@ -572,7 +572,14 @@ class ConfigManager(QObject):
             if self._initialized:
                 self._after_set(sectname, optname)
 
-    @cmdutils.register(instance='config')
+    @cmdutils.register(instance='config', name='save')
+    def save_command(self):
+        """Save the config file."""
+        try:
+            self.save()
+        except OSError as e:
+            raise cmdexc.CommandError("Could not save config: {}".format(e))
+
     def save(self):
         """Save the config file."""
         if self._configdir is None:
