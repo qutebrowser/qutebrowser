@@ -39,9 +39,11 @@ class BrowserPage(QWebPage):
     """Our own QWebPage with advanced features.
 
     Attributes:
+        error_occured: Whether an error occured while loading.
         _extension_handlers: Mapping of QWebPage extensions to their handlers.
         _networkmnager: The NetworkManager used.
         _win_id: The window ID this BrowserPage is associated with.
+        _ignore_load_started: Whether to ignore the next loadStarted signal.
     """
 
     def __init__(self, win_id, parent=None):
@@ -51,12 +53,15 @@ class BrowserPage(QWebPage):
             QWebPage.ErrorPageExtension: self._handle_errorpage,
             QWebPage.ChooseMultipleFilesExtension: self._handle_multiple_files,
         }
+        self._ignore_load_started = False
+        self.error_occured = False
         self._networkmanager = networkmanager.NetworkManager(win_id, self)
         self.setNetworkAccessManager(self._networkmanager)
         self.setForwardUnsupportedContent(True)
         self.printRequested.connect(self.on_print_requested)
         self.downloadRequested.connect(self.on_download_requested)
         self.unsupportedContent.connect(self.on_unsupported_content)
+        self.loadStarted.connect(self.on_load_started)
 
     if PYQT_VERSION > 0x050300:
         # WORKAROUND (remove this when we bump the requirements to 5.3.1)
@@ -112,6 +117,8 @@ class BrowserPage(QWebPage):
                                   info.error))
             return False
         else:
+            self._ignore_load_started = True
+            self.error_occured = True
             log.webview.error("Error while loading {}: {}".format(
                 urlstr, info.errorString))
             log.webview.debug("Error domain: {}, error code: {}".format(
@@ -204,6 +211,14 @@ class BrowserPage(QWebPage):
         else:
             # Unknown mimetype, so download anyways.
             download_manager.fetch(reply)
+
+    @pyqtSlot()
+    def on_load_started(self):
+        """Reset error_occured when loading of a new page started."""
+        if self._ignore_load_started:
+            self._ignore_load_started = False
+        else:
+            self.error_occured = False
 
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""

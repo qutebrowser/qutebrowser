@@ -366,9 +366,15 @@ class WebView(QWebView):
         self._has_ssl_errors = False
         self._set_load_status(LoadStatus.loading)
 
-    @pyqtSlot(bool)
-    def on_load_finished(self, ok):
-        """Handle auto-insert-mode after loading finished."""
+    @pyqtSlot()
+    def on_load_finished(self):
+        """Handle auto-insert-mode after loading finished.
+
+        We don't take loadFinished's ok argument here as it always seems to be
+        true when the QWebPage has an ErrorPageExtension implemented.
+        See https://github.com/The-Compiler/qutebrowser/issues/84
+        """
+        ok = not self.page().error_occured
         if ok and not self._has_ssl_errors:
             self._set_load_status(LoadStatus.success)
         elif ok:

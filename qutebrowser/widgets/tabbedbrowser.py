@@ -553,20 +553,25 @@ class TabbedBrowser(tabwidget.TabWidget):
         color = utils.interpolate_color(start, stop, perc, system)
         self.tabBar().set_tab_indicator_color(idx, color)
 
-    def on_load_finished(self, tab, ok):
-        """Adjust tab indicator when loading finished."""
+    def on_load_finished(self, tab):
+        """Adjust tab indicator when loading finished.
+
+        We don't take loadFinished's ok argument here as it always seems to be
+        true when the QWebPage has an ErrorPageExtension implemented.
+        See https://github.com/The-Compiler/qutebrowser/issues/84
+        """
         try:
             idx = self.indexOf(tab)
         except RuntimeError:
             # We can get signals for tabs we already deleted...
             return
-        if ok:
+        if tab.page().error_occured:
+            color = config.get('colors', 'tabs.indicator.error')
+        else:
             start = config.get('colors', 'tabs.indicator.start')
             stop = config.get('colors', 'tabs.indicator.stop')
             system = config.get('colors', 'tabs.indicator.system')
             color = utils.interpolate_color(start, stop, 100, system)
-        else:
-            color = config.get('colors', 'tabs.indicator.error')
         self.tabBar().set_tab_indicator_color(idx, color)
 
     def resizeEvent(self, e):
