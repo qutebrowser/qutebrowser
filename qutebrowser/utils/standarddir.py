@@ -86,23 +86,24 @@ def get(typ, args=None):
               locations.
     """
     overridden, path = _from_args(typ, args)
-    if overridden:
-        return path
-    path = _writable_location(typ)
-    appname = QCoreApplication.instance().applicationName()
-    if (typ == QStandardPaths.ConfigLocation and
-            path.split(os.sep)[-1] != appname):
-        # WORKAROUND - see
-        # https://bugreports.qt-project.org/browse/QTBUG-38872
-        path = os.path.join(path, appname)
-    if typ == QStandardPaths.DataLocation and os.name == 'nt':
-        # Under windows, config/data might end up in the same directory.
-        data_path = QStandardPaths.writableLocation(
-            QStandardPaths.DataLocation)
-        config_path = QStandardPaths.writableLocation(
-            QStandardPaths.ConfigLocation)
-        if data_path == config_path:
-            path = os.path.join(path, 'data')
+    if not overridden:
+        path = _writable_location(typ)
+        appname = QCoreApplication.instance().applicationName()
+        if (typ == QStandardPaths.ConfigLocation and
+                path.split(os.sep)[-1] != appname):
+            # WORKAROUND - see
+            # https://bugreports.qt-project.org/browse/QTBUG-38872
+            path = os.path.join(path, appname)
+        if typ == QStandardPaths.DataLocation and os.name == 'nt':
+            # Under windows, config/data might end up in the same directory.
+            data_path = QStandardPaths.writableLocation(
+                QStandardPaths.DataLocation)
+            config_path = QStandardPaths.writableLocation(
+                QStandardPaths.ConfigLocation)
+            if data_path == config_path:
+                path = os.path.join(path, 'data')
+    if not os.path.exists(path):
+        os.makedirs(path, 0o700)
     return path
 
 
