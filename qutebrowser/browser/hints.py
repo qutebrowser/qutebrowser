@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebElement
 
 from qutebrowser.config import config
-from qutebrowser.keyinput import modeman
+from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, cmdexc, cmdutils
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg
@@ -401,7 +401,13 @@ class HintManager(QObject):
         """
         urlstr = url.toDisplayString(QUrl.FullyEncoded)
         args = context.get_args(urlstr)
-        message.set_cmd_text(self._win_id, ' '.join(args))
+        text = ' '.join(args)
+        if text[0] not in modeparsers.STARTCHARS:
+            message.error(self._win_id,
+                          "Invalid command text '{}'.".format(text),
+                          immediately=True)
+        else:
+            message.set_cmd_text(self._win_id, text)
 
     def _download(self, elem, context):
         """Download a hint URL.
