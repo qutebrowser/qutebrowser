@@ -19,6 +19,8 @@
 
 """Module containing command managers (SearchRunner and CommandRunner)."""
 
+import re
+
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject, QUrl
 from PyQt5.QtWebKitWidgets import QWebPage
 
@@ -263,8 +265,13 @@ class CommandRunner(QObject):
             for i, arg in enumerate(split_args):
                 arg = arg.strip()
                 if not arg.startswith('-'):
-                    self._args = split.simple_split(argstr, keep=keep,
-                                                    maxsplit=i)
+                    self._args = []
+                    args = split.simple_split(argstr, keep=keep, maxsplit=i)
+                    for s in args:
+                        # remove quotes and replace \" by "
+                        s = re.sub(r"""(^|[^\\])["']""", r'\1', s)
+                        s = re.sub(r"""\\(["'])""", r'\1', s)
+                        self._args.append(s)
                     break
             else:
                 # If there are only flags, we got it right on the first try
