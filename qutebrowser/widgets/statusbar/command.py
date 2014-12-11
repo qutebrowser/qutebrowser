@@ -94,7 +94,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.show_cmd.emit()
 
     @cmdutils.register(instance='status-command', name='set-cmd-text',
-                       scope='window')
+                       scope='window', maxsplit=0)
     def set_cmd_text_command(self, text):
         """Preset the statusbar to some text.
 
