@@ -68,6 +68,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.history.history = objreg.get('command-history').data
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
         self.cursorPositionChanged.connect(self.update_completion)
+        self.textChanged.connect(self.update_completion)
         self.textChanged.connect(self.updateGeometry)
 
     def prefix(self):
@@ -87,12 +88,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         Args:
             text: The text to set as string.
         """
-        old_text = self.text()
         self.setText(text)
-        if old_text != text and len(old_text) == len(text):
-            # We want the completion to pop out here, but the cursor position
-            # won't change, so we make sure we emit update_completion.
-            self.update_completion.emit()
         log.modes.debug("Setting command text, focusing {!r}".format(self))
         self.setFocus()
         self.show_cmd.emit()

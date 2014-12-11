@@ -39,6 +39,9 @@ class Completer(QObject):
         _win_id: The window ID this completer is in.
         _timer: The timer used to trigger the completion update.
         _cursor_part: The cursor part index for the next completion update.
+        _last_cursor_pos: The old cursor position so we avoid double completion
+                          updates.
+        _last_text: The old command text so we avoid double completion updates.
     """
 
     def __init__(self, cmd, win_id, parent=None):
@@ -62,6 +65,8 @@ class Completer(QObject):
         self._timer.setInterval(0)
         self._timer.timeout.connect(self.update_completion)
         self._cursor_part = None
+        self._last_cursor_pos = None
+        self._last_text = None
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -236,6 +241,7 @@ class Completer(QObject):
             # and go on to the next part.
             self.change_completed_part(data, immediate=True)
         else:
+            log.completion.debug("Will ignore next completion update.")
             self._ignore_change = True
             self.change_completed_part(data)
 
@@ -246,8 +252,15 @@ class Completer(QObject):
         For performance reasons we don't want to block here, instead we do this
         in the background.
         """
-        log.completion.debug("Scheduling completion update.")
-        self._timer.start()
+        if (self._cmd.cursorPosition() == self._last_cursor_pos and
+                self._cmd.text() == self._last_text):
+            log.completion.debug("Ignoring update because there were no "
+                                 "changes.")
+        else:
+            log.completion.debug("Scheduling completion update.")
+            self._timer.start()
+        self._last_cursor_pos = self._cmd.cursorPosition()
+        self._last_text = self._cmd.text()
 
     @pyqtSlot()
     def update_completion(self):
@@ -258,9 +271,11 @@ class Completer(QObject):
         log.completion.debug(
             "Updating completion - prefix {}, parts {}, cursor_part {}".format(
                 self._cmd.prefix(), parts, self._cursor_part))
+
         if self._ignore_change:
+            log.completion.debug("Ignoring completion update because "
+                                 "ignore_change is True.")
             self._ignore_change = False
-            log.completion.debug("Ignoring completion update")
             return
 
         completion = objreg.get('completion', scope='window',
