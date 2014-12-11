@@ -262,12 +262,17 @@ class CommandRunner(QObject):
             # second split: ['--foo', '-v', 'bar baz']
             # (maxsplit=2)
             split_args = split.simple_split(argstr, keep=keep)
+            flag_arg_count = 0
             for i, arg in enumerate(split_args):
                 arg = arg.strip()
-                if not arg.startswith('-'):
+                if arg.startswith('-'):
+                    if arg.lstrip('-') in self._cmd.flags_with_args:
+                        flag_arg_count += 1
+                else:
                     self._args = []
+                    maxsplit = i + self._cmd.maxsplit + flag_arg_count
                     args = split.simple_split(argstr, keep=keep,
-                                              maxsplit=i + self._cmd.maxsplit)
+                                              maxsplit=maxsplit)
                     for s in args:
                         # remove quotes and replace \" by "
                         s = re.sub(r"""(^|[^\\])["']""", r'\1', s)

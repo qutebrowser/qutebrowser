@@ -44,6 +44,7 @@ class Command:
         parser: The ArgumentParser to use to parse this command.
         special_params: A dict with the names of the special parameters as
                         values.
+        flags_with_args: A list of flags which take an argument.
         _type_conv: A mapping of conversion functions for arguments.
         _name_conv: A mapping of argument names to parameter names.
         _needs_js: Whether the command needs javascript enabled
@@ -92,6 +93,7 @@ class Command:
         self.pos_args = []
         self.special_params = {'count': None, 'win_id': None}
         self.desc = None
+        self.flags_with_args = []
         self._type_conv = {}
         self._name_conv = {}
         self._inspect_func()
@@ -290,6 +292,8 @@ class Command:
             args.append(long_flag)
             args.append(short_flag)
             self.opt_args[param.name] = long_flag, short_flag
+            if param.kind == inspect.Parameter.KEYWORD_ONLY:
+                self.flags_with_args.append(param.name)
         else:
             args.append(name)
             self.pos_args.append((param.name, name))
