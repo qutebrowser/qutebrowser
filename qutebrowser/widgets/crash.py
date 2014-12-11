@@ -33,6 +33,7 @@ from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
 
 from qutebrowser.utils import version, log, utils, objreg
 from qutebrowser.widgets.misc import DetailFold
+from qutebrowser.network import pastebin
 
 
 class _CrashDialog(QDialog):
@@ -50,6 +51,9 @@ class _CrashDialog(QDialog):
         _hbox: The QHboxLayout containing the buttons
         _url: Pastebin URL QLabel.
         _crash_info: A list of tuples with title and crash information.
+        _paste_client: A PastebinClient instance to use.
+        _paste_text: The text to pastebin.
+        _resolution: Whether the dialog should be accepted on close.
     """
 
     NAME = None
@@ -68,9 +72,12 @@ class _CrashDialog(QDialog):
         self._hbox = None
         self._lbl = None
         self._chk_report = None
+        self._resolution = None
+        self._paste_text = None
         self.setWindowTitle("Whoops!")
         self.resize(QSize(640, 600))
         self._vbox = QVBoxLayout(self)
+        self._paste_client = pastebin.PastebinClient(self)
         self._init_text()
 
         info = QLabel("What were you doing when this crash/bug happened?")
@@ -179,20 +186,20 @@ class _CrashDialog(QDialog):
         lines.append(self._contact.toPlainText())
         lines.append("========== Debug log ==========")
         lines.append(self._debug_log.toPlainText())
-        text = '\n\n'.join(lines)
+        self._paste_text = '\n\n'.join(lines)
         try:
             user = getpass.getuser()
         except Exception as e:
             log.misc.exception("Error while getting user")
             user = 'unknown'
         try:
-            utils.pastebin(user, "qutebrowser {}".format(self.NAME), text,
-                           parent='90286958')  # http://p.cmpl.cc/90286958
+            # parent: http://p.cmpl.cc/90286958
+            self._paste_client.paste(user, "qutebrowser {}".format(self.NAME),
+                                     self._paste_text, parent='90286958')
         except Exception as e:
             log.misc.exception("Error while paste-binning")
             exc_text = '{}: {}'.format(e.__class__.__name__, e)
-            error_dlg = ReportErrorDialog(exc_text, text, self)
-            error_dlg.exec_()
+            self.show_error(exc_text)
 
     @pyqtSlot()
     def on_button_clicked(self, button, accept):
@@ -200,18 +207,44 @@ class _CrashDialog(QDialog):
         button.setText("Reporting...")
         for btn in self._buttons:
             btn.setEnabled(False)
-        self.hide()
-        self.maybe_report()
-        if accept:
+        self._resolution = accept
+        self._paste_client.success.connect(self.finish)
+        self._paste_client.error.connect(self.show_error)
+        reported = self.maybe_report()
+        if not reported:
+            self.finish()
+
+    @pyqtSlot(str)
+    def show_error(self, text):
+        """Show a paste error dialog.
+
+        Args:
+            text: The paste text to show.
+        """
+        error_dlg = ReportErrorDialog(text, self._paste_text, self)
+        error_dlg.finished.connect(self.finish)
+        error_dlg.show()
+
+    @pyqtSlot()
+    def finish(self):
+        """Accept/reject the dialog when reporting is done."""
+        if self._resolution:
             self.accept()
         else:
             self.reject()
 
     @pyqtSlot()
     def maybe_report(self):
-        """Report the bug if the user allowed us to."""
+        """Report the bug if the user allowed us to.
+
+        Return:
+            True if a report was done, False otherwise.
+        """
         if self._chk_report.isChecked():
             self.report()
+            return True
+        else:
+            return False
 
 
 class ExceptionCrashDialog(_CrashDialog):
@@ -371,8 +404,8 @@ class ReportDialog(_CrashDialog):
     def _init_buttons(self):
         super()._init_buttons()
         self._btn_report = QPushButton("Report", default=True)
-        self._btn_report.clicked.connect(self.report)
-        self._btn_report.clicked.connect(self.close)
+        self._btn_report.clicked.connect(
+            functools.partial(self.on_button_clicked, self._btn_report, True))
         self._hbox.addWidget(self._btn_report)
 
     def _init_checkboxes(self, _debug):
@@ -400,6 +433,7 @@ class ReportDialog(_CrashDialog):
         report, which would be pretty useless without this info.
         """
         self.report()
+        return True
 
 
 class ReportErrorDialog(QDialog):

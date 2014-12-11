@@ -24,8 +24,6 @@ import sys
 import enum
 import inspect
 import os.path
-import urllib.request
-import urllib.parse
 import collections
 import functools
 import contextlib
@@ -83,36 +81,6 @@ def read_file(filename):
     else:
         data = pkg_resources.resource_string(qutebrowser.__name__, filename)
         return data.decode('UTF-8')
-
-
-def pastebin(name, title, text, parent=None):
-    """Paste the text into a pastebin and return the URL.
-
-    Args:
-        name: The username to post as.
-        title: The post title.
-        text: The text to post.
-        parent: The parent paste to reply to.
-    """
-    api_url = 'http://paste.the-compiler.org/api/'
-    data = {
-        'text': text,
-        'title': title,
-        'name': name,
-    }
-    if parent is not None:
-        data['reply'] = parent
-    encoded_data = urllib.parse.urlencode(data).encode('utf-8')
-    create_url = urllib.parse.urljoin(api_url, 'create')
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
-    }
-    request = urllib.request.Request(create_url, encoded_data, headers)
-    response = urllib.request.urlopen(request)
-    url = response.read().decode('utf-8').rstrip()
-    if not url.startswith('http'):
-        raise ValueError("Got unexpected response: {}".format(url))
-    return url
 
 
 def actute_warning():
