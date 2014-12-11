@@ -30,17 +30,16 @@ from qutebrowser.config import style
 from qutebrowser.widgets import console
 
 
-@cmdutils.register(scope='window')
-def later(ms: {'type': int}, *command, win_id: {'special': 'win_id'}):
+@cmdutils.register(scope='window', maxsplit=1)
+def later(ms: {'type': int}, command, win_id: {'special': 'win_id'}):
     """Execute a command after some time.
 
     Args:
         ms: How many milliseconds to wait.
-        *command: The command to run, with optional args.
+        command: The command to run, with optional args.
     """
     if ms < 0:
         raise cmdexc.CommandError("I can't run something in the past!")
-    cmdline = ' '.join(command)
     commandrunner = runners.CommandRunner(win_id)
     app = objreg.get('app')
     timer = usertypes.Timer(name='later', parent=app)
@@ -52,7 +51,7 @@ def later(ms: {'type': int}, *command, win_id: {'special': 'win_id'}):
             raise cmdexc.CommandError("Numeric argument is too large for "
                                       "internal int representation.")
         timer.timeout.connect(
-            functools.partial(commandrunner.run_safely, cmdline))
+            functools.partial(commandrunner.run_safely, command))
         timer.timeout.connect(timer.deleteLater)
         timer.start()
     except:  # pylint: disable=bare-except
@@ -60,20 +59,19 @@ def later(ms: {'type': int}, *command, win_id: {'special': 'win_id'}):
         raise
 
 
-@cmdutils.register(scope='window')
-def repeat(times: {'type': int}, *command, win_id: {'special': 'win_id'}):
+@cmdutils.register(scope='window', maxsplit=1)
+def repeat(times: {'type': int}, command, win_id: {'special': 'win_id'}):
     """Repeat a given command.
 
     Args:
         times: How many times to repeat.
-        *command: The command to run, with optional args.
+        command: The command to run, with optional args.
     """
     if times < 0:
         raise cmdexc.CommandError("A negative count doesn't make sense.")
-    cmdline = ' '.join(command)
     commandrunner = runners.CommandRunner(win_id)
     for _ in range(times):
-        commandrunner.run_safely(cmdline)
+        commandrunner.run_safely(command)
 
 
 @cmdutils.register(debug=True)
