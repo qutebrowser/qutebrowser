@@ -102,7 +102,7 @@ def get(typ, args=None):
                 QStandardPaths.ConfigLocation)
             if data_path == config_path:
                 path = os.path.join(path, 'data')
-    if not os.path.exists(path):
+    if path is not None and not os.path.exists(path):
         os.makedirs(path, 0o700)
     return path
 
