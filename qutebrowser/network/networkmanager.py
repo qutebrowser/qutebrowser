@@ -35,6 +35,9 @@ from qutebrowser.network import qutescheme, networkreply
 from qutebrowser.browser import cookies
 
 
+HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'
+
+
 class NetworkManager(QNetworkAccessManager):
 
     """Our own QNetworkAccessManager.
@@ -228,8 +231,8 @@ class NetworkManager(QNetworkAccessManager):
             log.webview.info("Request to {} blocked by host blocker.".format(
                 req.url().host()))
             return networkreply.ErrorNetworkReply(
-                req, "Request was blocked by host blocker.",
-                QNetworkReply.ContentAccessDenied, self)
+                req, HOSTBLOCK_ERROR_STRING, QNetworkReply.ContentAccessDenied,
+                self)
         if config.get('network', 'do-not-track'):
             dnt = '1'.encode('ascii')
         else:

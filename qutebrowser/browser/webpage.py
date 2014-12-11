@@ -117,16 +117,21 @@ class BrowserPage(QWebPage):
                                   info.error))
             return False
         else:
-            self._ignore_load_started = True
-            self.error_occured = True
+            error_str = info.errorString
+            if error_str == networkmanager.HOSTBLOCK_ERROR_STRING:
+                error_str = "Request blocked by host blocker."
+                # we don't set error_occured in this case.
+            else:
+                self._ignore_load_started = True
+                self.error_occured = True
             log.webview.error("Error while loading {}: {}".format(
-                urlstr, info.errorString))
+                urlstr, error_str))
             log.webview.debug("Error domain: {}, error code: {}".format(
                 info.domain, info.error))
             title = "Error loading page: {}".format(urlstr)
             template = jinja.env.get_template('error.html')
             html = template.render(  # pylint: disable=maybe-no-member
-                title=title, url=urlstr, error=info.errorString, icon='')
+                title=title, url=urlstr, error=error_str, icon='')
             errpage.content = html.encode('utf-8')
             errpage.encoding = 'utf-8'
             return True
