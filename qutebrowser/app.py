@@ -602,7 +602,7 @@ class Application(QApplication):
             if shutdown:
                 self.shutdown()
 
-    @cmdutils.register(instance='app', split=False, debug=True)
+    @cmdutils.register(instance='app', maxsplit=0, debug=True)
     def debug_pyeval(self, s):
         """Evaluate a python string and display the results as a webpage.
 

@@ -247,7 +247,7 @@ class CommandRunner(QObject):
         """
         if not argstr:
             self._args = []
-        elif self._cmd.split:
+        elif self._cmd.maxsplit is None:
             self._args = split.split(argstr, keep=keep)
         else:
             # If split=False, we still want to split the flags, but not
@@ -266,7 +266,8 @@ class CommandRunner(QObject):
                 arg = arg.strip()
                 if not arg.startswith('-'):
                     self._args = []
-                    args = split.simple_split(argstr, keep=keep, maxsplit=i)
+                    args = split.simple_split(argstr, keep=keep,
+                                              maxsplit=i + self._cmd.maxsplit)
                     for s in args:
                         # remove quotes and replace \" by "
                         s = re.sub(r"""(^|[^\\])["']""", r'\1', s)

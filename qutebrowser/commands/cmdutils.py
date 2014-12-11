@@ -101,7 +101,8 @@ class register:  # pylint: disable=invalid-name
         _instance: The object from the object registry to be used as "self".
         _scope: The scope to get _instance for.
         _name: The name (as string) or names (as list) of the command.
-        _split: Whether to split the arguments.
+        _maxsplit: The maxium amounts of splits to do for the commandline, or
+                   None.
         _hide: Whether to hide the command or not.
         _completion: Which completion to use for arguments, as a list of
                      strings.
@@ -111,7 +112,7 @@ class register:  # pylint: disable=invalid-name
         _ignore_args: Whether to ignore the arguments of the function.
     """
 
-    def __init__(self, instance=None, name=None, split=True, hide=False,
+    def __init__(self, instance=None, name=None, maxsplit=None, hide=False,
                  completion=None, modes=None, not_modes=None, needs_js=False,
                  debug=False, ignore_args=False, scope='global'):
         """Save decorator arguments.
@@ -125,7 +126,7 @@ class register:  # pylint: disable=invalid-name
         if modes is not None and not_modes is not None:
             raise ValueError("Only modes or not_modes can be given!")
         self._name = name
-        self._split = split
+        self._maxsplit = maxsplit
         self._hide = hide
         self._instance = instance
         self._scope = scope
@@ -187,7 +188,7 @@ class register:  # pylint: disable=invalid-name
             if name in cmd_dict:
                 raise ValueError("{} is already registered!".format(name))
         cmd = command.Command(
-            name=names[0], split=self._split, hide=self._hide,
+            name=names[0], maxsplit=self._maxsplit, hide=self._hide,
             instance=self._instance, scope=self._scope,
             completion=self._completion, modes=self._modes,
             not_modes=self._not_modes, needs_js=self._needs_js,

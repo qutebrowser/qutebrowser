@@ -34,7 +34,8 @@ class Command:
 
     Attributes:
         name: The main name of the command.
-        split: Whether to split the arguments.
+        maxsplit: The maximum amount of splits to do for the commandline, or
+                  None.
         hide: Whether to hide the arguments or not.
         desc: The description of the command.
         handler: The handler function to call.
@@ -60,13 +61,13 @@ class Command:
                                             ['kwargs', 'type', 'name', 'flag',
                                              'special'])
 
-    def __init__(self, name, split, hide, instance, completion, modes,
+    def __init__(self, name, maxsplit, hide, instance, completion, modes,
                  not_modes, needs_js, is_debug, ignore_args,
                  handler, scope):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-arguments,too-many-locals
         self.name = name
-        self.split = split
+        self.maxsplit = maxsplit
         self.hide = hide
         self._instance = instance
         self.completion = completion

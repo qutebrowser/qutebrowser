@@ -110,7 +110,7 @@ class QuickmarkManager(QObject):
         else:
             set_mark()
 
-    @cmdutils.register(instance='quickmark-manager', split=False,
+    @cmdutils.register(instance='quickmark-manager', maxsplit=0,
                        completion=[usertypes.Completion.quickmark_by_name])
     def quickmark_del(self, name):
         """Delete a quickmark.
