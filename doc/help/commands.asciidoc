@@ -198,7 +198,7 @@ Toggle the web inspector.
 
 [[later]]
 === later
-Syntax: +:later 'ms' 'command' ['command' ...]+
+Syntax: +:later 'ms' 'command'+
 
 Execute a command after some time.
 
@@ -322,7 +322,7 @@ The tab index to reload.
 
 [[repeat]]
 === repeat
-Syntax: +:repeat 'times' 'command' ['command' ...]+
+Syntax: +:repeat 'times' 'command'+
 
 Repeat a given command.
 
