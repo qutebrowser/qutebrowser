@@ -72,7 +72,7 @@ How many pages to go back.
 
 [[bind]]
 === bind
-Syntax: +:bind [*--mode* 'MODE'] 'key' 'command' ['command' ...]+
+Syntax: +:bind [*--mode* 'MODE'] 'key' 'command'+
 
 Bind a key to a command.
 
