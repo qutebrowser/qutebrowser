@@ -32,7 +32,7 @@ from PyQt5.QtWebKit import QWebElement
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.browser import webelem
-from qutebrowser.commands import userscripts, cmdexc, cmdutils
+from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg
 
 
@@ -40,7 +40,7 @@ ElemTuple = collections.namedtuple('ElemTuple', ['elem', 'label'])
 
 
 Target = usertypes.enum('Target', ['normal', 'tab', 'tab_bg', 'window', 'yank',
-                                   'yank_primary', 'fill', 'hover', 'rapid',
+                                   'yank_primary', 'run', 'fill', 'hover', 'rapid',
                                    'rapid_win', 'download', 'userscript',
                                    'spawn'])
 
@@ -65,6 +65,7 @@ class HintContext:
         target: What to do with the opened links.
                 normal/tab/tab_bg/window: Get passed to BrowserTab.
                 yank/yank_primary: Yank to clipboard/primary selection
+                run: Run a command.
                 fill: Fill commandline with link.
                 rapid: Rapid mode with background tabs
                 download: Download the link.
@@ -117,6 +118,7 @@ class HintManager(QObject):
         Target.window: "Follow hint in new window...",
         Target.yank: "Yank hint to clipboard...",
         Target.yank_primary: "Yank hint to primary selection...",
+        Target.run: "Run a command on a hint",
         Target.fill: "Set hint in commandline...",
         Target.hover: "Hover over a hint...",
         Target.rapid: "Follow hint (rapid mode)...",
@@ -392,6 +394,18 @@ class HintManager(QObject):
         message.info(self._win_id, "URL yanked to {}".format(
             "primary selection" if sel else "clipboard"))
 
+    def _run_cmd(self, url, context):
+        """Run the command based on a hint URL.
+
+        Args:
+            url: The URL to open as a QUrl.
+            context: The HintContext to use.
+        """
+        urlstr = url.toDisplayString(QUrl.FullyEncoded)
+        args = context.get_args(urlstr)
+        commandrunner = runners.CommandRunner(self._win_id)
+        commandrunner.run_safely(' '.join(args))
+
     def _preset_cmd_text(self, url, context):
         """Preset a commandline text based on a hint URL.
 
@@ -466,6 +480,7 @@ class HintManager(QObject):
             text = elem['href']
         except KeyError:
             return None
+
         url = QUrl(text)
         if not url.isValid():
             return None
@@ -526,10 +541,10 @@ class HintManager(QObject):
         """
         if not isinstance(target, Target):
             raise TypeError("Target {} is no Target member!".format(target))
-        if target in (Target.userscript, Target.spawn, Target.fill):
+        if target in (Target.userscript, Target.spawn, Target.run, Target.fill):
             if not args:
                 raise cmdexc.CommandError(
-                    "'args' is required with target userscript/spawn/fill.")
+                    "'args' is required with target userscript/spawn/run/fill.")
         else:
             if args:
                 raise cmdexc.CommandError(
@@ -620,6 +635,7 @@ class HintManager(QObject):
                 - `hover` : Hover over the link.
                 - `yank`: Yank the link to the clipboard.
                 - `yank-primary`: Yank the link to the primary selection.
+                - `run`: Run the argument as command.
                 - `fill`: Fill the commandline with the command given as
                           argument.
                 - `rapid`: Open the link in a new tab and stay in hinting mode.
@@ -630,7 +646,7 @@ class HintManager(QObject):
                                 link.
                 - `spawn`: Spawn a command.
 
-            *args: Arguments for spawn/userscript/fill.
+            *args: Arguments for spawn/userscript/run/fill.
 
                 - With `spawn`: The executable and arguments to spawn.
                                 `{hint-url}` will get replaced by the selected
@@ -639,6 +655,7 @@ class HintManager(QObject):
                 - With `fill`: The command to fill the statusbar with.
                                 `{hint-url}` will get replaced by the selected
                                 URL.
+                - With `run`: Same as `fill`.
         """
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
@@ -751,6 +768,7 @@ class HintManager(QObject):
         url_handlers = {
             Target.yank: self._yank,
             Target.yank_primary: self._yank,
+            Target.run: self._run_cmd,
             Target.fill: self._preset_cmd_text,
             Target.userscript: self._call_userscript,
             Target.spawn: self._spawn,
