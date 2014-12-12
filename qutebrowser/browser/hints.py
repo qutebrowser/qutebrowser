@@ -476,9 +476,13 @@ class HintManager(QObject):
         Return:
             A QUrl with the absolute URL, or None.
         """
-        try:
-            text = elem['href']
-        except KeyError:
+        text = None
+        for attr in ('href', 'src'):
+            if attr in elem:
+                text = elem[attr]
+                break
+
+        if text is None:
             return None
 
         url = QUrl(text)
