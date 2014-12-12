@@ -165,6 +165,7 @@ Start hinting.
  - `hover` : Hover over the link.
  - `yank`: Yank the link to the clipboard.
  - `yank-primary`: Yank the link to the primary selection.
+ - `run`: Run the argument as command.
  - `fill`: Fill the commandline with the command given as
  argument.
  - `rapid`: Open the link in a new tab and stay in hinting mode.
@@ -177,7 +178,7 @@ Start hinting.
  
 
 
-* +'args'+: Arguments for spawn/userscript/fill. 
+* +'args'+: Arguments for spawn/userscript/run/fill. 
 
  - With `spawn`: The executable and arguments to spawn.
  `{hint-url}` will get replaced by the selected
@@ -186,6 +187,7 @@ Start hinting.
  - With `fill`: The command to fill the statusbar with.
  `{hint-url}` will get replaced by the selected
  URL.
+ - With `run`: Same as `fill`.
 
 
 [[home]]
