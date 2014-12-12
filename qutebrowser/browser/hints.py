@@ -40,9 +40,9 @@ ElemTuple = collections.namedtuple('ElemTuple', ['elem', 'label'])
 
 
 Target = usertypes.enum('Target', ['normal', 'tab', 'tab_bg', 'window', 'yank',
-                                   'yank_primary', 'run', 'fill', 'hover', 'rapid',
-                                   'rapid_win', 'download', 'userscript',
-                                   'spawn'])
+                                   'yank_primary', 'run', 'fill', 'hover',
+                                   'rapid', 'rapid_win', 'download',
+                                   'userscript', 'spawn'])
 
 
 @pyqtSlot(usertypes.KeyMode)
@@ -64,7 +64,7 @@ class HintContext:
         baseurl: The URL of the current page.
         target: What to do with the opened links.
                 normal/tab/tab_bg/window: Get passed to BrowserTab.
-                yank/yank_primary: Yank to clipboard/primary selection
+                yank/yank_primary: Yank to clipboard/primary selection.
                 run: Run a command.
                 fill: Fill commandline with link.
                 rapid: Rapid mode with background tabs
@@ -118,7 +118,7 @@ class HintManager(QObject):
         Target.window: "Follow hint in new window...",
         Target.yank: "Yank hint to clipboard...",
         Target.yank_primary: "Yank hint to primary selection...",
-        Target.run: "Run a command on a hint",
+        Target.run: "Run a command on a hint...",
         Target.fill: "Set hint in commandline...",
         Target.hover: "Hover over a hint...",
         Target.rapid: "Follow hint (rapid mode)...",
@@ -401,7 +401,7 @@ class HintManager(QObject):
             url: The URL to open as a QUrl.
             context: The HintContext to use.
         """
-        urlstr = url.toDisplayString(QUrl.FullyEncoded)
+        urlstr = url.toString(QUrl.FullyEncoded)
         args = context.get_args(urlstr)
         commandrunner = runners.CommandRunner(self._win_id)
         commandrunner.run_safely(' '.join(args))
@@ -476,13 +476,11 @@ class HintManager(QObject):
         Return:
             A QUrl with the absolute URL, or None.
         """
-        text = None
         for attr in ('href', 'src'):
             if attr in elem:
                 text = elem[attr]
                 break
-
-        if text is None:
+        else:
             return None
 
         url = QUrl(text)
@@ -545,10 +543,12 @@ class HintManager(QObject):
         """
         if not isinstance(target, Target):
             raise TypeError("Target {} is no Target member!".format(target))
-        if target in (Target.userscript, Target.spawn, Target.run, Target.fill):
+        if target in (Target.userscript, Target.spawn, Target.run,
+                      Target.fill):
             if not args:
                 raise cmdexc.CommandError(
-                    "'args' is required with target userscript/spawn/run/fill.")
+                    "'args' is required with target userscript/spawn/run/"
+                    "fill.")
         else:
             if args:
                 raise cmdexc.CommandError(
