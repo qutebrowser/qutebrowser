@@ -194,7 +194,7 @@ def simple_split(s, keep=False, maxsplit=None):
         if keep:
             return [s]
         else:
-            return [s.lstrip(whitespace)]
+            return [s.strip(whitespace)]
     elif maxsplit is None:
         maxsplit = 0
 
