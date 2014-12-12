@@ -149,19 +149,20 @@ class SimpleSplitTests(unittest.TestCase):
         """Test if the behaviour matches str.split."""
         for test in self.TESTS:
             with self.subTest(string=test):
-                self.assertEqual(split.simple_split(test), test.split())
+                self.assertEqual(split.simple_split(test),
+                                 test.rstrip().split())
 
     def test_str_split_maxsplit_1(self):
         """Test if the behaviour matches str.split with maxsplit=1."""
         string = "foo bar baz"
         self.assertEqual(split.simple_split(string, maxsplit=1),
-                         string.split(maxsplit=1))
+                         string.rstrip().split(maxsplit=1))
 
     def test_str_split_maxsplit_0(self):
         """Test if the behaviour matches str.split with maxsplit=0."""
         string = "  foo bar baz  "
         self.assertEqual(split.simple_split(string, maxsplit=0),
-                         string.split(maxsplit=0))
+                         string.rstrip().split(maxsplit=0))
 
     def test_split_keep(self):
         """Test splitting with keep=True."""
