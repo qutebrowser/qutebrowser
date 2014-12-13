@@ -17,13 +17,4 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Keychain string displayed in the statusbar."""
-
-from qutebrowser.widgets.statusbar import textbase
-
-
-class KeyString(textbase.TextBase):
-
-    """Keychain string displayed in the statusbar."""
-
-    pass
+"""Models for the command completion."""

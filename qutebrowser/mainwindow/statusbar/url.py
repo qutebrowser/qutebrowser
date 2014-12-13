@@ -21,8 +21,8 @@
 
 from PyQt5.QtCore import pyqtSlot, pyqtProperty, Qt
 
-from qutebrowser.widgets import webview
-from qutebrowser.widgets.statusbar import textbase
+from qutebrowser.browser import webview
+from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.config import style
 from qutebrowser.utils import usertypes
 

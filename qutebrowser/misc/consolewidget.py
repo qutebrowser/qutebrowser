@@ -29,12 +29,11 @@ from PyQt5.QtWidgets import (QTextEdit, QWidget, QVBoxLayout, QApplication,
 from PyQt5.QtGui import QTextCursor
 
 from qutebrowser.config import config
-from qutebrowser.models import cmdhistory
+from qutebrowser.misc import cmdhistory, miscwidgets
 from qutebrowser.utils import utils, log, objreg
-from qutebrowser.widgets import misc
 
 
-class ConsoleLineEdit(misc.CommandLineEdit):
+class ConsoleLineEdit(miscwidgets.CommandLineEdit):
 
     """A QLineEdit which executes entered code and provides a history.
 

@@ -24,8 +24,8 @@ from PyQt5.QtWidgets import QSizePolicy
 
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.widgets import misc
-from qutebrowser.models import cmdhistory
+from qutebrowser.misc import cmdhistory
+from qutebrowser.misc import miscwidgets as misc
 from qutebrowser.utils import usertypes, log, objreg
 
 

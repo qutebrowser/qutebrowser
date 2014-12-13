@@ -28,8 +28,8 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import config, style
-from qutebrowser.widgets import completiondelegate
-from qutebrowser.utils import completer, usertypes, qtutils, objreg, utils
+from qutebrowser.completion import completiondelegate, completer
+from qutebrowser.utils import usertypes, qtutils, objreg, utils
 
 
 class CompletionView(QTreeView):

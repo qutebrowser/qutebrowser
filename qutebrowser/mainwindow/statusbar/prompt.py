@@ -23,9 +23,9 @@ import functools
 
 from PyQt5.QtWidgets import QHBoxLayout, QWidget, QLineEdit
 
-from qutebrowser.widgets import misc
-from qutebrowser.widgets.statusbar import textbase, prompter
+from qutebrowser.mainwindow.statusbar import textbase, prompter
 from qutebrowser.utils import objreg, utils
+from qutebrowser.misc import miscwidgets as misc
 
 
 class PromptLineEdit(misc.MinimalLineEditMixin, QLineEdit):

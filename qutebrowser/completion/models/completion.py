@@ -22,12 +22,12 @@
 from PyQt5.QtCore import pyqtSlot, Qt
 
 from qutebrowser.config import config, configdata
-from qutebrowser.models import basecompletion
 from qutebrowser.utils import log, qtutils, objreg
 from qutebrowser.commands import cmdutils
+from qutebrowser.completion.models import base
 
 
-class SettingSectionCompletionModel(basecompletion.BaseCompletionModel):
+class SettingSectionCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with settings sections."""
 
@@ -41,7 +41,7 @@ class SettingSectionCompletionModel(basecompletion.BaseCompletionModel):
             self.new_item(cat, name, desc)
 
 
-class SettingOptionCompletionModel(basecompletion.BaseCompletionModel):
+class SettingOptionCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with settings and their descriptions.
 
@@ -94,7 +94,7 @@ class SettingOptionCompletionModel(basecompletion.BaseCompletionModel):
                              "value: {})".format(section, option, val))
 
 
-class SettingValueCompletionModel(basecompletion.BaseCompletionModel):
+class SettingValueCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with setting values.
 
@@ -146,7 +146,7 @@ class SettingValueCompletionModel(basecompletion.BaseCompletionModel):
                              "value: {})".format(section, option, value))
 
 
-class CommandCompletionModel(basecompletion.BaseCompletionModel):
+class CommandCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with all commands and descriptions."""
 
@@ -168,7 +168,7 @@ class CommandCompletionModel(basecompletion.BaseCompletionModel):
             self.new_item(cat, name, desc)
 
 
-class HelpCompletionModel(basecompletion.BaseCompletionModel):
+class HelpCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with help topics."""
 
@@ -209,7 +209,7 @@ class HelpCompletionModel(basecompletion.BaseCompletionModel):
                 self.new_item(cat, name, desc)
 
 
-class QuickmarkCompletionModel(basecompletion.BaseCompletionModel):
+class QuickmarkCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with all quickmarks."""
 

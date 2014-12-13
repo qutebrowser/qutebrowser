@@ -32,8 +32,8 @@ from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QCheckBox)
 
 from qutebrowser.utils import version, log, utils, objreg
-from qutebrowser.widgets.misc import DetailFold
-from qutebrowser.network import pastebin
+from qutebrowser.misc import miscwidgets
+from qutebrowser.browser.network import pastebin
 
 
 class _CrashDialog(QDialog):
@@ -100,7 +100,7 @@ class _CrashDialog(QDialog):
         info = QLabel("<i>You can edit the log below to remove sensitive "
                       "information.</i>", wordWrap=True)
         info.hide()
-        self._fold = DetailFold("Show log", self)
+        self._fold = miscwidgets.DetailFold("Show log", self)
         self._fold.toggled.connect(self._debug_log.setVisible)
         self._fold.toggled.connect(info.setVisible)
         if debug:

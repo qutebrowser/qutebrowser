@@ -39,15 +39,15 @@ from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
 import qutebrowser
 from qutebrowser.commands import cmdutils, runners
 from qutebrowser.config import style, config, websettings
-from qutebrowser.network import qutescheme, proxy
 from qutebrowser.browser import quickmarks, cookies, cache, adblock
-from qutebrowser.widgets import mainwindow, crash
+from qutebrowser.browser.network import qutescheme, proxy
+from qutebrowser.mainwindow import mainwindow
+from qutebrowser.misc import crashdialog, readline, ipc, earlyinit
+from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
 from qutebrowser.keyinput import modeman
-from qutebrowser.utils import (log, version, message, readline, utils, qtutils,
-                               urlutils, debug, objreg, usertypes, standarddir,
-                               ipc, earlyinit)
+from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
+                               debug, objreg, usertypes, standarddir)
 # We import utilcmds to run the cmdutils.register decorators.
-from qutebrowser.utils import utilcmds  # pylint: disable=unused-import
 
 
 class Application(QApplication):
@@ -202,8 +202,8 @@ class Application(QApplication):
                 if data:
                     # Crashlog exists and has data in it, so something crashed
                     # previously.
-                    self._crashdlg = crash.FatalCrashDialog(self._args.debug,
-                                                            data)
+                    self._crashdlg = crashdialog.FatalCrashDialog(
+                        self._args.debug, data)
                     self._crashdlg.show()
             else:
                 # There's no log file, so we can use this to display crashes to
@@ -526,7 +526,7 @@ class Application(QApplication):
         except TypeError:
             log.destroy.exception("Error while preventing shutdown")
         QApplication.closeAllWindows()
-        self._crashdlg = crash.ExceptionCrashDialog(
+        self._crashdlg = crashdialog.ExceptionCrashDialog(
             self._args.debug, pages, history, exc, objects)
         ret = self._crashdlg.exec_()
         if ret == QDialog.Accepted:  # restore
@@ -630,7 +630,7 @@ class Application(QApplication):
         pages = self._recover_pages()
         history = objreg.get('command-history')[-5:]
         objects = self.get_all_objects()
-        self._crashdlg = crash.ReportDialog(pages, history, objects)
+        self._crashdlg = crashdialog.ReportDialog(pages, history, objects)
         self._crashdlg.show()
 
     def interrupt(self, signum, _frame):

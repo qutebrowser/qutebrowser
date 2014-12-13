@@ -31,8 +31,8 @@ else:
 
 from qutebrowser.config import config
 from qutebrowser.utils import message, log, usertypes, utils, objreg
-from qutebrowser.network import qutescheme, networkreply
 from qutebrowser.browser import cookies
+from qutebrowser.browser.network import qutescheme, networkreply
 
 
 HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'

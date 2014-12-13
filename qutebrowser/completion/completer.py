@@ -24,8 +24,9 @@ from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 from qutebrowser.config import config, configdata
 from qutebrowser.commands import cmdutils, runners
 from qutebrowser.utils import usertypes, log, objreg, utils
-from qutebrowser.models import completion as models
-from qutebrowser.models.completionfilter import CompletionFilterModel as CFM
+from qutebrowser.completion.models import completion as models
+from qutebrowser.completion.models.sortfilter import (
+    CompletionFilterModel as CFM)
 
 
 class Completer(QObject):

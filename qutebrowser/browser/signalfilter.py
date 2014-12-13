@@ -24,7 +24,7 @@ import functools
 from PyQt5.QtCore import QObject
 
 from qutebrowser.utils import debug, log, objreg
-from qutebrowser.widgets import webview
+from qutebrowser.browser import webview
 
 
 class SignalFilter(QObject):

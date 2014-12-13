@@ -22,7 +22,7 @@
 from PyQt5.QtCore import pyqtSlot
 
 from qutebrowser.config import config
-from qutebrowser.widgets.statusbar import textbase
+from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import usertypes, log, objreg
 
 

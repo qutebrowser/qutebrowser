@@ -22,8 +22,8 @@
 
 import os.path
 
-from qutebrowser.utils import rfc6266
 from qutebrowser.utils import log
+from qutebrowser.browser import rfc6266
 
 from PyQt5.QtNetwork import QNetworkRequest
 

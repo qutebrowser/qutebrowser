@@ -27,7 +27,7 @@ from PyQt5.QtCore import QCoreApplication
 from qutebrowser.utils import log, objreg, usertypes
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style
-from qutebrowser.widgets import console
+from qutebrowser.misc import consolewidget
 
 
 @cmdutils.register(scope='window', maxsplit=1)
@@ -113,6 +113,6 @@ def debug_console():
     try:
         con_widget = objreg.get('debug-console')
     except KeyError:
-        con_widget = console.ConsoleWidget()
+        con_widget = consolewidget.ConsoleWidget()
         objreg.register('debug-console', con_widget)
     con_widget.show()

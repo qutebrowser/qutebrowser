@@ -23,11 +23,11 @@ import sys
 
 import qutebrowser
 try:
-    from qutebrowser.utils.checkpyver import check_python_version
+    from qutebrowser.misc.checkpyver import check_python_version
 except ImportError:
     try:
         # python2
-        from .utils.checkpyver import check_python_version
+        from .misc.checkpyver import check_python_version
     except (SystemError, ValueError):
         # Import without module - SystemError on Python3, ValueError (?!?) on
         # Python2
@@ -38,7 +38,7 @@ except ImportError:
 check_python_version()
 
 import argparse
-from qutebrowser.utils import earlyinit
+from qutebrowser.misc import earlyinit
 
 
 def get_argparser():

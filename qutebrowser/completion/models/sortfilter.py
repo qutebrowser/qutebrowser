@@ -25,8 +25,8 @@ Contains:
 
 from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex
 
-from qutebrowser.models import basecompletion as completion
 from qutebrowser.utils import log, qtutils
+from qutebrowser.completion.models import base as completion
 
 
 class CompletionFilterModel(QSortFilterProxyModel):

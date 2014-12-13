@@ -35,8 +35,8 @@ import collections.abc
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QStandardPaths, QUrl
 from PyQt5.QtWidgets import QMessageBox
 
-from qutebrowser.config import (configdata, iniparsers, configtypes,
-                                textwrapper, keyconfparser)
+from qutebrowser.config import configdata, configtypes, textwrapper
+from qutebrowser.config.parsers import ini, keyconf
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import message, objreg, utils, standarddir, log, qtutils
 from qutebrowser.utils.usertypes import Completion
@@ -144,8 +144,8 @@ def init(args):
     else:
         objreg.register('config', config_obj)
     try:
-        key_config = keyconfparser.KeyConfigParser(confdir, 'keys.conf')
-    except keyconfparser.KeyConfigError as e:
+        key_config = keyconf.KeyConfigParser(confdir, 'keys.conf')
+    except keyconf.KeyConfigError as e:
         log.init.exception(e)
         errstr = "Error while reading key config:\n"
         if e.lineno is not None:
@@ -160,12 +160,12 @@ def init(args):
         objreg.register('key-config', key_config)
 
     datadir = standarddir.get(QStandardPaths.DataLocation, args)
-    state_config = iniparsers.ReadWriteConfigParser(datadir, 'state')
+    state_config = ini.ReadWriteConfigParser(datadir, 'state')
     objreg.register('state-config', state_config)
     # We need to import this here because lineparser needs config.
-    from qutebrowser.config import lineparser
-    command_history = lineparser.LineConfigParser(
-        datadir, 'cmd-history', ('completion', 'history-length'))
+    from qutebrowser.config.parsers import line
+    command_history = line.LineConfigParser(datadir, 'cmd-history',
+                                            ('completion', 'history-length'))
     objreg.register('command-history', command_history)
 
 
@@ -259,7 +259,7 @@ class ConfigManager(QObject):
             self._configdir = None
         else:
             self._configdir = configdir
-            parser = iniparsers.ReadConfigParser(configdir, fname)
+            parser = ini.ReadConfigParser(configdir, fname)
             self._from_cp(parser)
         self._initialized = True
 

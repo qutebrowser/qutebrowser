@@ -29,9 +29,10 @@ from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
-from qutebrowser.network import networkmanager
-from qutebrowser.utils import (message, usertypes, log, http, jinja, qtutils,
-                               utils, objreg)
+from qutebrowser.browser import http
+from qutebrowser.browser.network import networkmanager
+from qutebrowser.utils import (message, usertypes, log, jinja, qtutils, utils,
+                               objreg)
 
 
 class BrowserPage(QWebPage):

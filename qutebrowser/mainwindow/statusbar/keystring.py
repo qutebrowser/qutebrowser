@@ -17,4 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""The Qt widgets needed by qutebrowser."""
+"""Keychain string displayed in the statusbar."""
+
+from qutebrowser.mainwindow.statusbar import textbase
+
+
+class KeyString(textbase.TextBase):
+
+    """Keychain string displayed in the statusbar."""
+
+    pass

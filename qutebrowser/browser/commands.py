@@ -37,8 +37,9 @@ import pygments.formatters
 from qutebrowser.commands import userscripts, cmdexc, cmdutils
 from qutebrowser.config import config
 from qutebrowser.browser import webelem
-from qutebrowser.utils import (message, editor, usertypes, log, qtutils,
-                               urlutils, objreg, utils)
+from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
+                               objreg, utils)
+from qutebrowser.misc import editor
 
 
 class CommandDispatcher:

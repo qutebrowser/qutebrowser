@@ -22,7 +22,7 @@
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QProgressBar, QSizePolicy
 
-from qutebrowser.widgets import webview
+from qutebrowser.browser import webview
 from qutebrowser.config import style
 from qutebrowser.utils import utils
 

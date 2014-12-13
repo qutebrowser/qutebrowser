@@ -21,7 +21,7 @@
 
 from PyQt5.QtCore import pyqtSlot
 
-from qutebrowser.widgets.statusbar import textbase
+from qutebrowser.mainwindow.statusbar import textbase
 
 
 class Percentage(textbase.TextBase):

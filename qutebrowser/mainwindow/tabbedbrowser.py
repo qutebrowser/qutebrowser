@@ -30,8 +30,8 @@ from PyQt5.QtWebKitWidgets import QWebPage
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc
 from qutebrowser.keyinput import modeman
-from qutebrowser.widgets import tabwidget, webview
-from qutebrowser.browser import signalfilter, commands
+from qutebrowser.mainwindow import tabwidget
+from qutebrowser.browser import signalfilter, commands, webview
 from qutebrowser.utils import (log, message, usertypes, utils, qtutils, objreg,
                                urlutils)
 
@@ -316,7 +316,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             qtutils.ensure_valid(url)
         log.webview.debug("Creating new tab with URL {}".format(url))
         if config.get('tabs', 'tabs-are-windows') and self.count() > 0:
-            from qutebrowser.widgets import mainwindow
+            from qutebrowser.mainwindow import mainwindow
             window = mainwindow.MainWindow.spawn()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=window)

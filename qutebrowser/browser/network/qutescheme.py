@@ -31,7 +31,7 @@ from PyQt5.QtCore import pyqtSlot, QObject
 from PyQt5.QtNetwork import QNetworkReply
 
 import qutebrowser
-from qutebrowser.network import schemehandler, networkreply
+from qutebrowser.browser.network import schemehandler, networkreply
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg)
 from qutebrowser.config import configtypes, configdata

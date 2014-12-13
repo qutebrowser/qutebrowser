@@ -31,7 +31,7 @@ from PyQt5.QtCore import pyqtSignal, QStandardPaths, QUrl, QObject
 
 from qutebrowser.utils import message, usertypes, urlutils, standarddir
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.config import lineparser
+from qutebrowser.config.parsers import line as lineparser
 
 
 class QuickmarkManager(QObject):

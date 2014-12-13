@@ -26,9 +26,9 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.config import config, style
 from qutebrowser.utils import usertypes, log, objreg, utils
-from qutebrowser.widgets.statusbar import (command, progress, keystring,
-                                           percentage, url, prompt)
-from qutebrowser.widgets.statusbar import text as textwidget
+from qutebrowser.mainwindow.statusbar import (command, progress, keystring,
+                                              percentage, url, prompt)
+from qutebrowser.mainwindow.statusbar import text as textwidget
 
 
 PreviousWidget = usertypes.enum('PreviousWidget', ['none', 'prompt',

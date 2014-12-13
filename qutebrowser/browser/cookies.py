@@ -22,7 +22,8 @@
 from PyQt5.QtNetwork import QNetworkCookie, QNetworkCookieJar
 from PyQt5.QtCore import QStandardPaths, QDateTime
 
-from qutebrowser.config import config, lineparser
+from qutebrowser.config import config
+from qutebrowser.config.parsers import line as lineparser
 from qutebrowser.utils import utils, standarddir, objreg
 
 

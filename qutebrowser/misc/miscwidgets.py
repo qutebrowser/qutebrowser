@@ -24,8 +24,8 @@ from PyQt5.QtWidgets import (QLineEdit, QApplication, QWidget, QHBoxLayout,
                              QLabel, QStyleOption, QStyle)
 from PyQt5.QtGui import QValidator, QClipboard, QPainter
 
-from qutebrowser.models import cmdhistory
 from qutebrowser.utils import utils
+from qutebrowser.misc import cmdhistory
 
 
 class MinimalLineEditMixin:

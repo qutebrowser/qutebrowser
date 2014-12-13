@@ -30,11 +30,11 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout
 from qutebrowser.commands import runners, cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import message, log, usertypes, qtutils, objreg, utils
-from qutebrowser.widgets import tabbedbrowser, completion
-from qutebrowser.widgets import downloads as downloadswidget
-from qutebrowser.widgets.statusbar import bar
+from qutebrowser.mainwindow import tabbedbrowser
+from qutebrowser.mainwindow.statusbar import bar
+from qutebrowser.completion import completionwidget
 from qutebrowser.keyinput import modeman
-from qutebrowser.browser import hints, downloads
+from qutebrowser.browser import hints, downloads, downloadview
 
 
 win_id_gen = itertools.count(0)
@@ -87,7 +87,7 @@ class MainWindow(QWidget):
         objreg.register('download-manager', download_manager, scope='window',
                         window=win_id)
 
-        self._downloadview = downloadswidget.DownloadView(win_id)
+        self._downloadview = downloadview.DownloadView(win_id)
         self._vbox.addWidget(self._downloadview)
         self._downloadview.show()
 
@@ -99,7 +99,7 @@ class MainWindow(QWidget):
         self.status = bar.StatusBar(win_id)
         self._vbox.addWidget(self.status)
 
-        self._completion = completion.CompletionView(win_id, self)
+        self._completion = completionwidget.CompletionView(win_id, self)
 
         self._commandrunner = runners.CommandRunner(win_id)
 
