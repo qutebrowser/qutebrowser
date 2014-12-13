@@ -20,8 +20,8 @@
 """Base class for vim-like keysequence parser."""
 
 import re
-import string
 import functools
+import unicodedata
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject
 
@@ -164,8 +164,7 @@ class BaseKeyParser(QObject):
             self._keystring = ''
             return
 
-        if (not txt) or txt not in (string.ascii_letters + string.digits +
-                                    string.punctuation):
+        if (not txt) or unicodedata.category(txt) == 'Cc':  # control chars
             self._debug_log("Ignoring, no text char")
             return False
 
