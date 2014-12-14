@@ -406,6 +406,11 @@ class WebView(QWebView):
         If necessary, we emit scroll_pos_changed so the statusbar percentage
         updates.
         """
+        QTimer.singleShot(0, self.update_scroll_perc)
+
+    @pyqtSlot()
+    def update_scroll_perc(self):
+        """Update the scroll position after on_scroll_requested."""
         frame = self.page().mainFrame()
         new_pos = (frame.scrollBarValue(Qt.Horizontal),
                    frame.scrollBarValue(Qt.Vertical))
