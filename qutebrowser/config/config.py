@@ -360,9 +360,13 @@ class ConfigManager(QObject):
                 old_sectname = reverse_renamed_sections[sectname]
             else:
                 old_sectname = sectname
-            if old_sectname not in cp:
+            if old_sectname in cp:
+                real_sectname = old_sectname
+            elif sectname in cp:
+                real_sectname = sectname
+            else:
                 continue
-            for k, v in cp[old_sectname].items():
+            for k, v in cp[real_sectname].items():
                 if k.startswith(self.ESCAPE_CHAR):
                     k = k[1:]
                 # configparser can't handle = in keys :(
