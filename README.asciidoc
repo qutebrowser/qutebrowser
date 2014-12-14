@@ -27,6 +27,8 @@ Documentation
 In addition to the topics mentioned in this README, the following documents are
 available:
 
+* A http://qutebrowser.org/img/cheatsheet-big.png[keybinding cheatsheet]: +
+image:http://qutebrowser.org/img/cheatsheet-small.png["qutebrowser keybinding cheatsheet",link="http://qutebrowser.org/img/cheatsheet-big.png"]
 * link:doc/quickstart.asciidoc[Quick start guide]
 * link:doc/FAQ.asciidoc[Frequently asked questions]
 * link:doc/HACKING.asciidoc[HACKING]
@@ -68,7 +70,7 @@ Requirements
 The following software and libraries are required to run qutebrowser:
 
 * http://www.python.org/[Python] 3.4
-* http://qt-project.org/[Qt] 5.2.0 or newer (5.3.2 recommended)
+* http://qt-project.org/[Qt] 5.2.0 or newer (5.4 recommended)
 * QtWebKit
 * http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.2.0 or newer
 (5.3.2 recommended) for Python 3
@@ -120,6 +122,11 @@ Contributors, sorted by the number of commits in descending order:
 * Peter Vilim
 * Martin Zimmermann
 // QUTE_AUTHORS_END
+
+The following people have contributed graphics:
+
+* WOFall (icon)
+* regines (keybinding cheatsheet)
 
 Thanks / Similiar projects
 --------------------------

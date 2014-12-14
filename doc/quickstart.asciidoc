@@ -5,39 +5,14 @@ The Compiler <mail@qutebrowser.org>
 NOTE: This page will only appear on the first start. To view it at a later
 time, use the `:help` command.
 
-Known issues
-------------
-
-[WARNING]
-====
-`#include <std_disclaimer.h>`
-
-qutebrowser still hasn't seen its v0.1 release, and there's a good reason for
-it. There still are some issues (see below). I also might break it from time to
-time, sometimes on purpose, sometimes not. It's a good idea to sign up on the
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] if
-you use qutebrowser already.
-====
-
-* https://github.com/The-Compiler/qutebrowser/issues?q=is%3Aopen+is%3Aissue+downloads+in%3Atitle+label%3Abug[multiple
-issues with downloads] (you probably shouldn't use them yet if you need to be
-sure the resulting file isn't corrupted).
-* There's a https://github.com/The-Compiler/qutebrowser/issues/132[race
-condition in Qt] which leads to segfaults on some websites (e.g. Dropbox). This
-will be fixed in Qt 5.4.0. Especially Debian users seem to be affected. It
-seems as a workaround, installing the `gstreamer0.10-plugins-base` package
-should help.
-* https://github.com/The-Compiler/qutebrowser/issues/7[Occasional segfaults
-when quitting] - if you can reliably reproduce this, I need your help!
-
 What to do now
 --------------
 
+* View the http://qutebrowser.org/img/cheatsheet-big.png[keybinding cheatsheet]
+to make yourself familiar with the keybindings: +
+image:http://qutebrowser.org/img/cheatsheet-small.png["qutebrowser keybinding cheatsheet",link="http://qutebrowser.org/img/cheatsheet-big.png"]
 * If you just cloned the repository, you'll need to run
 `scripts/asciidoc2html.py` to generate the documentation.
-* Press `:` to get the commandline. Press `o`/`O` to open a new page (with `O`
-in a new tab). Use `H` and `L` to go back/forward and `J`/`K` to focus the
-next/previous tab. See `~/.config/qutebrowser/keys.conf` for all mapped keys.
 * Subscribe to
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[the mailinglist]
 where there are weekly "what's new in qutebrowser" posts.
