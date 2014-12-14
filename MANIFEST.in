@@ -2,7 +2,7 @@ recursive-include qutebrowser/html *.html
 recursive-include qutebrowser/test *.py
 include qutebrowser/test/testfile
 include qutebrowser/git-commit-id
-include COPYING doc/*
+include COPYING doc/* README.asciidoc
 
 exclude scripts/run_checks.py
 exclude scripts/cleanup.py
