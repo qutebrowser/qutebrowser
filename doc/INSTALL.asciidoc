@@ -135,7 +135,7 @@ PyQt directory.
 'printsupport']/" configure.py`
 * Run `python3 configure.py --qmake ~/Qt/5.4/clang_64/bin/qmake --sip
 /Library/Frameworks/Python.framework/Versions/3.4/bin/sip` and accept
-the license. If you manage your Python installation with [Homebrew](http://brew.sh)
+the license. If you manage your Python installation with http://brew.sh[Homebrew]
 this step will be something like `python3 configure.py --qmake ~/Qt/5.4/clang_64/bin/qmake
 --sip /usr/local/Cellar/python3/3.4.2_1/Frameworks/Python.framework/Versions/3.4/bin/sip`...
 watch where the sip install (above) puts its components.
