@@ -71,7 +71,9 @@ base = 'Win32GUI' if sys.platform.startswith('win') else None
 executable = cx.Executable('qutebrowser/__main__.py', base=base,
                            targetName='qutebrowser.exe',
                            shortcutName='qutebrowser',
-                           shortcutDir='ProgramMenuFolder')
+                           shortcutDir='ProgramMenuFolder',
+                           icon=os.path.join(BASEDIR, 'icons',
+                                             'qutebrowser.ico'))
 
 try:
     setupcommon.write_git_file()
