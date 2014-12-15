@@ -36,11 +36,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from scripts import setupcommon
 
 
-try:
-    BASEDIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                           os.path.pardir)
-except NameError:
-    BASEDIR = None
+BASEDIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                       os.path.pardir)
 
 
 def get_egl_path():
@@ -87,7 +84,6 @@ try:
         **setupcommon.setupdata
     )
 finally:
-    if BASEDIR is not None:
-        path = os.path.join(BASEDIR, 'qutebrowser', 'git-commit-id')
-        if os.path.exists(path):
-            os.remove(path)
+    path = os.path.join(BASEDIR, 'qutebrowser', 'git-commit-id')
+    if os.path.exists(path):
+        os.remove(path)
