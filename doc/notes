@@ -40,3 +40,43 @@ Upstream Bugs
     TODO: Report to PyQt/Qt
 
 - Report some other crashes
+
+
+/u/angelic_sedition's thoughts
+==============================
+
+Well support for greasemonkey scripts and bookmarklets/js (which was mentioned
+in the arch forum post) would be a big addition. What I've usually missed when
+using other vim-like browsers is things that allow for different settings and
+key bindings for different contexts. With that implemented I think I could
+switch to a lightweight browser (and believe me, I'd like to) for the most part
+and only use firefox when I needed downthemall or something.
+
+For example, I have different bindings based on tab position that are reloaded
+with a pentadactyl autocmd so that <space><homerow keys> will take me to tab
+1-10 if I'm in that range or 2-20 if I'm in that range. I have an autocmd that
+will run on completed downloads that passes the file path to a script that will
+open ranger in a floating window with that file cut (this is basically like
+using ranger to save files instead of the crappy gui popup).
+
+I also have a few bindings based on tabgroups. Tabgroups are a firefox feature,
+but I find them very useful for sorting things by topic so that only the tabs
+I'm interested at the moment are visible.
+
+Pentadactyl has a feature it calls groups. You can create a group that will
+activate for sites/urls that match a pattern with some regex support. This
+allows me, for example, to set up different (more convenient) bindings for
+zooming only on images. I'll never need use the equivalent of vim n (next text
+search match), so I can bind that to zoom. This allows setting up custom
+quickmarks/gotos using the same keys for different websites. For example, on
+reddit I have different g(some key) bindings to go to different subreddits.
+This can also be used to pass certain keys directly to the site (e.g. for use
+with RES). For sites that don't have modifiable bindings, I can use this with
+pentadactyl's feedkeys or xdotool to create my own custom bindings. I even have
+a binding that will call out to bash script with different arguments depending
+on the site to download an image or an image gallery depending on the site (in
+some cases passing the url to some cli program).
+
+I've also noticed the lack of completion. For example, on "o" pentadactyl will
+show sites (e.g. from history) that can be completed. I think I've been spoiled
+by pentadactyl having completion for just about everything.
