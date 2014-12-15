@@ -371,12 +371,7 @@ class ConfigManager(QObject):
                     k = k[1:]
                 if (sectname, k) in self.RENAMED_OPTIONS:
                     k = self.RENAMED_OPTIONS[sectname, k]
-                try:
-                    self.set('conf', sectname, k, v, validate=False)
-                except configtypes.ValidationError as e:
-                    e.section = sectname
-                    e.option = k
-                    raise
+                self.set('conf', sectname, k, v, validate=False)
         self._validate_all()
 
     def _validate_all(self):
@@ -386,7 +381,12 @@ class ConfigManager(QObject):
             for optname, opt in sect.items():
                 interpolated = self._interpolation.before_get(
                     self, sectname, optname, opt.value(), mapping)
-                opt.typ.validate(interpolated)
+                try:
+                    opt.typ.validate(interpolated)
+                except configtypes.ValidationError as e:
+                    e.section = sectname
+                    e.option = optname
+                    raise
 
     def _changed(self, sectname, optname):
         """Notify other objects the config has changed."""
