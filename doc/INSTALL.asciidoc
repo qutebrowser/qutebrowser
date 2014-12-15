@@ -121,7 +121,7 @@ installed.
 * http://www.python.org/downloads/[Download] and run the Python 3
 installer.
 * Download http://www.riverbankcomputing.com/software/sip/download[SIP] and
-http://www.riverbankcomputing.com/software/pyqt/download5[PyQt5] from Riverbank Coputing
+http://www.riverbankcomputing.com/software/pyqt/download5[PyQt5] from Riverbank Computing
 * Open a Terminal and use `cd ~/Downloads` to get to the download directory.
 * Use `tar xzvf sip-*.tar` to extract SIP and `cd sip-*` to change into the
 SIP directory
@@ -135,7 +135,10 @@ PyQt directory.
 'printsupport']/" configure.py`
 * Run `python3 configure.py --qmake ~/Qt/5.4/clang_64/bin/qmake --sip
 /Library/Frameworks/Python.framework/Versions/3.4/bin/sip` and accept
-the license.
+the license. If you manage your Python installation with [Homebrew](http://brew.sh)
+this step will be something like `python3 configure.py --qmake ~/Qt/5.4/clang_64/bin/qmake
+--sip /usr/local/Cellar/python3/3.4.2_1/Frameworks/Python.framework/Versions/3.4/bin/sip`...
+watch where the sip install (above) puts its components.
 * Run `make` and `sudo make install`.
 * Run `python3 setup.py install` to install all other dependencies
 
