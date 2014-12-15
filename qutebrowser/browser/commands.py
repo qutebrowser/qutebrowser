@@ -611,7 +611,8 @@ class CommandDispatcher:
         tab.zoom(-count)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def zoom(self, zoom=None, count: {'special': 'count'}=None):
+    def zoom(self, zoom: {'type': int}=None,
+             count: {'special': 'count'}=None):
         """Set the zoom level for the current tab.
 
         The zoom can be given as argument or as [count]. If neither of both is
