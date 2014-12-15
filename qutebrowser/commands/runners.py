@@ -215,7 +215,8 @@ class CommandRunner(QObject):
             new_cmd = self._get_alias(text, alias_no_args)
             if new_cmd is not None:
                 log.commands.debug("Re-parsing with '{}'.".format(new_cmd))
-                return self.parse(new_cmd, aliases=False)
+                return self.parse(new_cmd, aliases=False, fallback=fallback,
+                                  keep=keep)
         try:
             self._cmd = cmdutils.cmd_dict[cmdstr]
         except KeyError:
