@@ -65,25 +65,6 @@ handy. Of course, if using git is the issue which prevents you from
 contributing, feel free to send normal patches instead, e.g. generated via
 `diff -Nur`.
 
-Finding the correct branch
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-qutebrowser is developed in the `master` branch. Feature branches are used by
-me occasionally and pushed as a backup, but frequently force-pushed. Do *not*
-base your work on any of the feature branches, use `master` instead.
-
-For every release, a `vX.Y-stable` branch will be created. Base new features on
-the `master` branch, and bugfixes for existing stuff on the `...-stable`
-branch.
-
-You can checkout the correct branch via:
-
-----
-git checkout branch <1>
-----
-<1> Of course replace `branch` by `master` or `vX.Y-stable`.
-
-
 Getting patches
 ~~~~~~~~~~~~~~~
 
