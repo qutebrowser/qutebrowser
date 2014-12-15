@@ -341,6 +341,33 @@ class ConfigManager(QObject):
             lines.append(keyval)
         return lines
 
+    def _get_real_sectname(self, cp, sectname):
+        """Get an old or new section name based on a configparser.
+
+        This checks if sectname is in cp, and if not, migrates it if needed and
+        tries again.
+
+        Args:
+            cp: The configparser to check.
+            sectname: The new section name.
+
+        Returns:
+            The section name in the configparser as a string, or None if the
+            configparser doesn't contain the section.
+        """
+        reverse_renamed_sections = {v: k for k, v in
+                                    self.RENAMED_SECTIONS.items()}
+        if sectname in reverse_renamed_sections:
+            old_sectname = reverse_renamed_sections[sectname]
+        else:
+            old_sectname = sectname
+        if old_sectname in cp:
+            return old_sectname
+        elif sectname in cp:
+            return sectname
+        else:
+            return None
+
     def _from_cp(self, cp):
         """Read the config from a configparser instance.
 
@@ -354,17 +381,8 @@ class ConfigManager(QObject):
                 raise UnknownSectionError("Unknown section '{}'!".format(
                     sectname))
         for sectname in self.sections:
-            reverse_renamed_sections = {v: k for k, v in
-                                        self.RENAMED_SECTIONS.items()}
-            if sectname in reverse_renamed_sections:
-                old_sectname = reverse_renamed_sections[sectname]
-            else:
-                old_sectname = sectname
-            if old_sectname in cp:
-                real_sectname = old_sectname
-            elif sectname in cp:
-                real_sectname = sectname
-            else:
+            real_sectname = self._get_real_sectname(cp, sectname)
+            if real_sectname is None:
                 continue
             for k, v in cp[real_sectname].items():
                 if k.startswith(self.ESCAPE_CHAR):
