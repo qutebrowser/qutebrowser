@@ -761,6 +761,17 @@ class DownloadManager(QAbstractListModel):
                 return True
         return False
 
+    def can_clear(self):
+        """Check if there are finished downloads to clear."""
+        if self.downloads:
+            return any(download.done for download in self.downloads)
+        else:
+            return False
+
+    def clear(self):
+        """Remove all finished downloads."""
+        self.remove_items(d for d in self.downloads if d.done)
+
     def last_index(self):
         """Get the last index in the model.
 
@@ -781,6 +792,34 @@ class DownloadManager(QAbstractListModel):
         del self.downloads[idx]
         self.endRemoveRows()
         download.deleteLater()
+
+    def remove_items(self, downloads):
+        """Remove an iterable of downloads."""
+        # On the first pass, we only generate the indices so we get the
+        # first/last one for beginRemoveRows.
+        indices = []
+        # We need to iterate over downloads twice, which won't work if it's a
+        # generator.
+        downloads = list(downloads)
+        for download in downloads:
+            try:
+                indices.append(self.downloads.index(download))
+            except ValueError:
+                # already removed
+                pass
+        if not indices:
+            return
+        indices.sort()
+        self.beginRemoveRows(QModelIndex(), indices[0], indices[-1])
+        for download in downloads:
+            try:
+                self.downloads.remove(download)
+            except ValueError:
+                # already removed
+                pass
+            else:
+                download.deleteLater()
+        self.endRemoveRows()
 
     def headerData(self, section, orientation, role):
         """Simple constant header."""

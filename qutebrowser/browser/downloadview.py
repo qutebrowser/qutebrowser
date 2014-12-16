@@ -140,6 +140,9 @@ class DownloadView(QListView):
                             functools.partial(self.model().remove_item, item)))
         else:
             actions.append(("Cancel", item.cancel))
+        if self.model().can_clear():
+            actions.append((None, None))
+            actions.append(("Remove all finished", self.model().clear))
         return actions
 
     @pyqtSlot('QPoint')
