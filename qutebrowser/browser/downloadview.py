@@ -93,6 +93,7 @@ class DownloadView(QListView):
         self.setWrapping(True)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_context_menu)
+        self.clicked.connect(self.on_clicked)
 
     def __repr__(self):
         model = self.model()
@@ -101,6 +102,20 @@ class DownloadView(QListView):
         else:
             count = model.rowCount()
         return utils.get_repr(self, count=count)
+
+    @pyqtSlot('QModelIndex')
+    def on_clicked(self, index):
+        """Handle clicking of an item.
+
+        Args:
+            index: The QModelIndex of the clicked item.
+        """
+        if not index.isValid():
+            return
+        item = self.model().data(index, downloads.ModelRole.item)
+        if item.done:
+            item.open_file()
+            self.model().remove_item(item)
 
     @pyqtSlot('QPoint')
     def show_context_menu(self, point):
