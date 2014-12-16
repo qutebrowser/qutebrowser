@@ -149,7 +149,7 @@ def create_venv():
         sys_site = ['--system-site-packages']
     else:
         sys_site = []
-    subprocess.check_call(['virtualenv'] + sys_site +
+    subprocess.check_call([sys.executable, '-m', 'virtualenv'] + sys_site +
                           ['-p', sys.executable, g_path])
 
 
