@@ -175,7 +175,7 @@ class DownloadView(QListView):
         if bottom != -1:
             margins = self.contentsMargins()
             height = (bottom + margins.top() + margins.bottom() +
-                    2 * self.spacing())
+                      2 * self.spacing())
             size = QSize(0, height)
         else:
             size = QSize(0, 0)
