@@ -50,6 +50,7 @@ def get_egl_path():
 build_exe_options = {
     'include_files': [
         ('qutebrowser/html', 'html'),
+        ('qutebrowser/html/doc', 'html/doc'),
         ('qutebrowser/git-commit-id', 'git-commit-id'),
     ],
     'include_msvcr': True,
