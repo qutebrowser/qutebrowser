@@ -84,15 +84,18 @@ in your `PYTHON_TARGETS` (`/etc/portage/make.conf`) and rebuild your system
 On Windows
 ----------
 
-You can either use one of the prebuilt standalone packages or MSI installers,
-or install manually:
+You can either use one of the
+https://github.com/The-Compiler/qutebrowser/releases[prebuilt standalone
+packages or MSI installers], or install manually:
 
 * Use the installer from http://www.python.org/downloads[python.org] to get
 Python 3 (be sure to install pip).
 * Use the installer from
 http://www.riverbankcomputing.com/software/pyqt/download5[Riverbank computing]
 to get Qt and PyQt5.
-* Run `pip install virtualenv` to install virtualenv.
+* Run `pip install virtualenv` or
+http://www.lfd.uci.edu/~gohlke/pythonlibs/#virtualenv[the installer from here]
+to install virtualenv.
 
 Then run the supplied script to run qutebrowser inside a
 https://virtualenv.pypa.io/en/latest/virtualenv.html[virtualenv]:

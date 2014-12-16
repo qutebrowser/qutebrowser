@@ -22,6 +22,16 @@ image:doc/img/downloads.png[width=300,link="doc/img/downloads.png"]
 image:doc/img/completion.png[width=300,link="doc/img/completion.png"]
 image:doc/img/hints.png[width=300,link="doc/img/hints.png"]
 
+Downloads
+---------
+
+See the https://github.com/The-Compiler/qutebrowser/releases[github releases
+page] for available downloads (currently a source archive, and standalone
+packages as well as MSI installers for Windows).
+
+See link:doc/INSTALL.asciidoc[INSTALL] for detailed instructions on how to get
+qutebrowser running for various platforms.
+
 Documentation
 -------------
 
