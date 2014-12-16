@@ -253,6 +253,10 @@ DATA = collections.OrderedDict([
          "In addition to the listed values, you can use a `socks://...` or "
          "`http://...` URL."),
 
+        ('proxy-dns-requests',
+         SettingValue(typ.Bool(), 'true'),
+         "Whether to send DNS requests over the configured proxy."),
+
         ('ssl-strict',
          SettingValue(typ.BoolAsk(), 'ask'),
          "Whether to validate SSL handshakes."),

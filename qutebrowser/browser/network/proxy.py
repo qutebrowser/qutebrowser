@@ -20,7 +20,7 @@
 """Handling of proxies."""
 
 
-from PyQt5.QtNetwork import QNetworkProxyFactory
+from PyQt5.QtNetwork import QNetworkProxy, QNetworkProxyFactory
 
 from qutebrowser.config import config, configtypes
 
@@ -45,6 +45,15 @@ class ProxyFactory(QNetworkProxyFactory):
         """
         proxy = config.get('network', 'proxy')
         if proxy is configtypes.SYSTEM_PROXY:
-            return QNetworkProxyFactory.systemProxyForQuery(query)
+            proxies = QNetworkProxyFactory.systemProxyForQuery(query)
         else:
-            return [proxy]
+            proxies = [proxy]
+        for p in proxies:
+            if p.type() != QNetworkProxy.NoProxy:
+                capabilities = p.capabilities()
+                if config.get('network', 'proxy-dns-requests'):
+                    capabilities |= QNetworkProxy.HostNameLookupCapability
+                else:
+                    capabilities &= ~QNetworkProxy.HostNameLookupCapability
+                p.setCapabilities(capabilities)
+        return proxies
