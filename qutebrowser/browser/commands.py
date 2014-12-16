@@ -344,6 +344,9 @@ class CommandDispatcher:
             if preview:
                 diag = QPrintPreviewDialog()
                 diag.setAttribute(Qt.WA_DeleteOnClose)
+                diag.setWindowFlags(diag.windowFlags() |
+                                    Qt.WindowMaximizeButtonHint |
+                                    Qt.WindowMinimizeButtonHint)
                 diag.paintRequested.connect(tab.print)
                 diag.exec_()
             else:
