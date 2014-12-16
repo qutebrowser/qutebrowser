@@ -44,6 +44,7 @@
 |<<network-accept-language,accept-language>>|Value to send in the `accept-language` header.
 |<<network-user-agent,user-agent>>|User agent to send. Empty to send the default.
 |<<network-proxy,proxy>>|The proxy to use.
+|<<network-proxy-dns-requests,proxy-dns-requests>>|Whether to send DNS requests over the configured proxy.
 |<<network-ssl-strict,ssl-strict>>|Whether to validate SSL handshakes.
 |<<network-dns-prefetch,dns-prefetch>>|Whether to try to pre-fetch DNS entries to speed up browsing.
 |==============
@@ -489,6 +490,17 @@ Valid values:
  * +none+: Don't use any proxy
 
 Default: +pass:[system]+
+
+[[network-proxy-dns-requests]]
+=== proxy-dns-requests
+Whether to send DNS requests over the configured proxy.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
 
 [[network-ssl-strict]]
 === ssl-strict
