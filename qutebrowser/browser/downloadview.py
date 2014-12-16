@@ -117,28 +117,49 @@ class DownloadView(QListView):
             item.open_file()
             self.model().remove_item(item)
 
+    def _get_menu_actions(self, item):
+        """Get the available context menu actions for a given DownloadItem.
+
+        Args:
+            item: The DownloadItem to get the actions for, or None.
+
+        Return:
+            A list of either:
+                - (QAction, callable) tuples.
+                - (None, None) for a seperator
+        """
+        actions = []
+        if item is None:
+            pass
+        elif item.done:
+            if item.successful:
+                actions.append(("Open", item.open_file))
+            else:
+                actions.append(("Retry", item.retry))
+            actions.append(("Remove",
+                            functools.partial(self.model().remove_item, item)))
+        else:
+            actions.append(("Cancel", item.cancel))
+        return actions
+
     @pyqtSlot('QPoint')
     def show_context_menu(self, point):
         """Show the context menu."""
         index = self.indexAt(point)
-        if not index.isValid():
-            return
-        item = self.model().data(index, downloads.ModelRole.item)
-        self._menu = QMenu(self)
-        if item.done:
-            if item.successful:
-                open_action = self._menu.addAction("Open")
-                open_action.triggered.connect(item.open_file)
-            else:
-                retry_action = self._menu.addAction("Retry")
-                retry_action.triggered.connect(item.retry)
-            remove = self._menu.addAction("Remove")
-            remove.triggered.connect(functools.partial(
-                self.model().remove_item, item))
+        if index.isValid():
+            item = self.model().data(index, downloads.ModelRole.item)
         else:
-            cancel = self._menu.addAction("Cancel")
-            cancel.triggered.connect(item.cancel)
-        self._menu.popup(self.viewport().mapToGlobal(point))
+            item = None
+        self._menu = QMenu(self)
+        actions = self._get_menu_actions(item)
+        for (name, handler) in actions:
+            if name is None and handler is None:
+                self._menu.addSeparator()
+            else:
+                action = self._menu.addAction(name)
+                action.triggered.connect(handler)
+        if actions:
+            self._menu.popup(self.viewport().mapToGlobal(point))
 
     def minimumSizeHint(self):
         """Override minimumSizeHint so the size is correct in a layout."""
