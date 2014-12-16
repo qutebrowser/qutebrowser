@@ -556,7 +556,8 @@ class DownloadManager(QAbstractListModel):
         self.get(url, filename=dest)
 
     @pyqtSlot('QUrl', 'QWebPage')
-    def get(self, url, page=None, fileobj=None, filename=None):
+    def get(self, url, page=None, fileobj=None, filename=None,
+            auto_remove=False):
         """Start a download with a link URL.
 
         Args:
@@ -564,6 +565,8 @@ class DownloadManager(QAbstractListModel):
             page: The QWebPage to get the download from.
             fileobj: The file object to write the answer to.
             filename: A path to write the data to.
+            auto_remove: Whether to remove the download even if
+                         ui -> remove-finished-downloads is set to false.
 
         Return:
             If the download could start immediately, (fileobj/filename given),
@@ -577,9 +580,10 @@ class DownloadManager(QAbstractListModel):
             urlutils.invalid_url_error(self._win_id, url, "start download")
             return
         req = QNetworkRequest(url)
-        return self.get_request(req, page, fileobj, filename)
+        return self.get_request(req, page, fileobj, filename, auto_remove)
 
-    def get_request(self, request, page=None, fileobj=None, filename=None):
+    def get_request(self, request, page=None, fileobj=None, filename=None,
+                    auto_remove=False):
         """Start a download with a QNetworkRequest.
 
         Args:
@@ -587,6 +591,8 @@ class DownloadManager(QAbstractListModel):
             page: The QWebPage to use.
             fileobj: The file object to write the answer to.
             filename: A path to write the data to.
+            auto_remove: Whether to remove the download even if
+                         ui -> remove-finished-downloads is set to false.
 
         Return:
             If the download could start immediately, (fileobj/filename given),
@@ -601,17 +607,20 @@ class DownloadManager(QAbstractListModel):
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
                              QNetworkRequest.AlwaysNetwork)
         if fileobj is not None or filename is not None:
-            return self.fetch_request(request, filename, fileobj, page)
+            return self.fetch_request(request, filename, fileobj, page,
+                                      auto_remove)
         q = self._prepare_question()
         q.default = urlutils.filename_from_url(request.url())
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
         q.answered.connect(
-            lambda fn: self.fetch_request(request, filename=fn, page=page))
+            lambda fn: self.fetch_request(request, filename=fn, page=page,
+                                          auto_remove=auto_remove))
         message_bridge.ask(q, blocking=False)
         return None
 
-    def fetch_request(self, request, page=None, fileobj=None, filename=None):
+    def fetch_request(self, request, page=None, fileobj=None, filename=None,
+                      auto_remove=False):
         """Download a QNetworkRequest to disk.
 
         Args:
@@ -619,6 +628,8 @@ class DownloadManager(QAbstractListModel):
             page: The QWebPage to use.
             fileobj: The file object to write the answer to.
             filename: A path to write the data to.
+            auto_remove: Whether to remove the download even if
+                         ui -> remove-finished-downloads is set to false.
 
         Return:
             The created DownloadItem.
@@ -628,16 +639,18 @@ class DownloadManager(QAbstractListModel):
         else:
             nam = page.networkAccessManager()
         reply = nam.get(request)
-        return self.fetch(reply, fileobj, filename)
+        return self.fetch(reply, fileobj, filename, auto_remove)
 
     @pyqtSlot('QNetworkReply')
-    def fetch(self, reply, fileobj=None, filename=None):
+    def fetch(self, reply, fileobj=None, filename=None, auto_remove=False):
         """Download a QNetworkReply to disk.
 
         Args:
             reply: The QNetworkReply to download.
             fileobj: The file object to write the answer to.
             filename: A path to write the data to.
+            auto_remove: Whether to remove the download even if
+                         ui -> remove-finished-downloads is set to false.
 
         Return:
             The created DownloadItem.
@@ -655,7 +668,7 @@ class DownloadManager(QAbstractListModel):
         download = DownloadItem(reply, self)
         download.cancelled.connect(
             functools.partial(self.remove_item, download))
-        if config.get('ui', 'remove-finished-downloads'):
+        if config.get('ui', 'remove-finished-downloads') or auto_remove:
             download.finished.connect(
                 functools.partial(self.remove_item, download))
         download.data_changed.connect(

@@ -133,7 +133,8 @@ class HostBlocker:
             else:
                 fobj = io.BytesIO()
                 fobj.name = 'adblock: ' + url.host()
-                download = download_manager.get(url, fileobj=fobj)
+                download = download_manager.get(url, fileobj=fobj,
+                                                auto_remove=True)
                 self._in_progress.append(download)
                 download.finished.connect(
                     functools.partial(self.on_download_finished, download))
