@@ -105,15 +105,15 @@ class NetworkManager(QNetworkAccessManager):
         self.setCache(cache)
         cache.setParent(app)
 
-    def _ask(self, win_id, text, mode, owners=()):
+    def _ask(self, win_id, text, mode, owner=None):
         """Ask a blocking question in the statusbar.
 
         Args:
             win_id: The ID of the window which is calling this function.
             text: The text to display to the user.
             mode: A PromptMode.
-            owners: An iterable of objects which will abort the question if
-                    destroyed.
+            owner: An object which will abort the question if destroyed, or
+                   None.
 
         Return:
             The answer the user gave or None if the prompt was cancelled.
@@ -122,7 +122,7 @@ class NetworkManager(QNetworkAccessManager):
         q.text = text
         q.mode = mode
         self.shutting_down.connect(q.abort)
-        for owner in owners:
+        if owner is not None:
             owner.destroyed.connect(q.abort)
         bridge = objreg.get('message-bridge', scope='window', window=win_id)
         bridge.ask(q, blocking=True)
@@ -163,7 +163,7 @@ class NetworkManager(QNetworkAccessManager):
             answer = self._ask(self._win_id,
                                'SSL errors - continue?\n{}'.format(err_string),
                                mode=usertypes.PromptMode.yesno,
-                               owners=(reply,))
+                               owner=reply)
             if answer:
                 reply.ignoreSslErrors()
         elif ssl_strict:
@@ -182,15 +182,14 @@ class NetworkManager(QNetworkAccessManager):
         answer = self._ask(self._win_id,
                            "Username ({}):".format(authenticator.realm()),
                            mode=usertypes.PromptMode.user_pwd,
-                           owners=(reply, authenticator))
+                           owner=reply)
         self._fill_authenticator(authenticator, answer)
 
     @pyqtSlot('QNetworkProxy', 'QAuthenticator')
-    def on_proxy_authentication_required(self, proxy, authenticator):
+    def on_proxy_authentication_required(self, _proxy, authenticator):
         """Called when a proxy needs authentication."""
         answer = self._ask(self._win_id, "Proxy username ({}):".format(
-            authenticator.realm()), mode=usertypes.PromptMode.user_pwd,
-            owners=(proxy, authenticator))
+            authenticator.realm()), mode=usertypes.PromptMode.user_pwd)
         self._fill_authenticator(authenticator, answer)
 
     @config.change_filter('general', 'private-browsing')
