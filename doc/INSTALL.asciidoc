@@ -110,40 +110,18 @@ system-wide Qt5/PyQt5 installations are used in the virtualenv.
 On OS X
 -------
 
-Running qutebrowser on OS X requires compiling PyQt5 by hand. These steps have
-been tested on OS X Mavericks:
+There are multiple package managers for OS X, this manual focuses just on
+http://brew.sh/[Homebrew] to install qutebrowser. To compile PyQt5 in a later
+step, you have to install XCode from the App Store. From Terminal.app, run:
 
-* Install XCode from the Appstore
-* Open a Terminal
-* Run `xcode-select --install`
-* Install the XCode commandline tools
-* Run `sudo /usr/bin/xcodebuild` and accept the license.
-* http://www.qt.io/download-open-source/[Download] and run the Qt5 installer.
-If you want, you can deselect Android/iOS when selecting the components to be
-installed.
-* http://www.python.org/downloads/[Download] and run the Python 3
-installer.
-* Download http://www.riverbankcomputing.com/software/sip/download[SIP] and
-http://www.riverbankcomputing.com/software/pyqt/download5[PyQt5] from Riverbank Computing
-* Open a Terminal and use `cd ~/Downloads` to get to the download directory.
-* Use `tar xzvf sip-*.tar` to extract SIP and `cd sip-*` to change into the
-SIP directory
-* Run `python3 configure.py`, `make` and `sudo make install`.
-* Use `cd ~/Downloads` to get back to the download directory.
-* Use `tar xvf PyQt-*.tar` to extract PyQt and `cd PyQt-*` to change into the
-PyQt directory.
-* Run `sed -i -e "s/qmake_QT=\['webkit', 'network'\]/qmake_QT=['webkit',
-'network', 'printsupport']/" configure.py`
-* Run `sed -i -e "s/qmake_QT=\['webkitwidgets'\]/qmake_QT=['webkitwidgets',
-'printsupport']/" configure.py`
-* Run `python3 configure.py --qmake ~/Qt/5.4/clang_64/bin/qmake --sip
-/Library/Frameworks/Python.framework/Versions/3.4/bin/sip` and accept
-the license. If you manage your Python installation with http://brew.sh[Homebrew]
-this step will be something like `python3 configure.py --qmake ~/Qt/5.4/clang_64/bin/qmake
---sip /usr/local/Cellar/python3/3.4.2_1/Frameworks/Python.framework/Versions/3.4/bin/sip`...
-watch where the sip install (above) puts its components.
-* Run `make` and `sudo make install`.
-* Run `python3 setup.py install` to install all other dependencies
+----
+$ brew install python3 pyqt5
+$ pip3.4 install qutebrowser
+----
+
+The preferences for qutebrowser are stored in
+`~/Library/Preferences/qutebrowser`, the application data is stored in
+`~/Library/Application Support/qutebrowser`.
 
 Packagers
 ---------
