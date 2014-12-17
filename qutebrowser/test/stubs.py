@@ -26,6 +26,8 @@ from unittest import mock
 from PyQt5.QtCore import QPoint, QProcess
 from PyQt5.QtNetwork import QNetworkRequest
 
+from qutebrowser.config import configexc
+
 
 class ConfigStub:
 
@@ -34,12 +36,6 @@ class ConfigStub:
     Attributes:
         data: The config data to return.
     """
-
-    class NoOptionError(Exception):
-
-        """NoOptionError exception."""
-
-        pass
 
     def __init__(self, data):
         self.data = data
@@ -61,7 +57,7 @@ class ConfigStub:
         try:
             return data[opt]
         except KeyError:
-            raise self.NoOptionError('{} -> {}'.format(sect, opt))
+            raise configexc.NoOptionError(opt, sect)
 
 
 class FakeKeyEvent:

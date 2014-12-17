@@ -35,7 +35,7 @@ import pygments.lexers
 import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils
-from qutebrowser.config import config
+from qutebrowser.config import config, configexc
 from qutebrowser.browser import webelem
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils)
@@ -921,10 +921,10 @@ class CommandDispatcher:
                     topic))
             try:
                 config.get(*parts)
-            except config.NoSectionError:
+            except configexc.NoSectionError:
                 raise cmdexc.CommandError("Invalid section {}!".format(
                     parts[0]))
-            except config.NoOptionError:
+            except configexc.NoOptionError:
                 raise cmdexc.CommandError("Invalid option {}!".format(
                     parts[1]))
             path = 'settings.html#{}'.format(topic.replace('->', '-'))

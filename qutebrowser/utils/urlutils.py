@@ -28,7 +28,7 @@ import urllib.parse
 from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QHostInfo
 
-from qutebrowser.config import config
+from qutebrowser.config import config, configexc
 from qutebrowser.utils import log, qtutils, message, utils
 from qutebrowser.commands import cmdexc
 
@@ -53,7 +53,7 @@ def _get_search_url(txt):
         engine = m.group(1)
         try:
             template = config.get('searchengines', engine)
-        except config.NoOptionError:
+        except configexc.NoOptionError:
             template = config.get('searchengines', 'DEFAULT')
             term = txt
         else:

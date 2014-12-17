@@ -28,7 +28,7 @@ from PyQt5.QtCore import QRectF, QSize, Qt
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QAbstractTextDocumentLayout)
 
-from qutebrowser.config import config, style
+from qutebrowser.config import config, configexc, style
 from qutebrowser.utils import qtutils
 
 
@@ -154,7 +154,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
             option = 'completion.fg'
         try:
             self._painter.setPen(config.get('colors', option))
-        except config.NoOptionError:
+        except configexc.NoOptionError:
             self._painter.setPen(config.get('colors', 'completion.fg'))
         ctx = QAbstractTextDocumentLayout.PaintContext()
         ctx.palette.setColor(QPalette.Text, self._painter.pen().color())

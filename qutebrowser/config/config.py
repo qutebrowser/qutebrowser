@@ -35,7 +35,7 @@ import collections.abc
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QStandardPaths, QUrl
 from PyQt5.QtWidgets import QMessageBox
 
-from qutebrowser.config import configdata, configtypes, textwrapper
+from qutebrowser.config import configdata, configexc, textwrapper
 from qutebrowser.config.parsers import ini, keyconf
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import message, objreg, utils, standarddir, log, qtutils
@@ -63,11 +63,9 @@ class change_filter:  # pylint: disable=invalid-name
             See class attributes.
         """
         if sectname not in configdata.DATA:
-            raise NoSectionError("Section '{}' does not exist!".format(
-                sectname))
+            raise configexc.NoSectionError(sectname)
         if optname is not None and optname not in configdata.DATA[sectname]:
-            raise NoOptionError("Option '{}' does not exist in section "
-                                "'{}'!".format(optname, sectname))
+            raise configexc.NoOptionError(optname, sectname)
         self._sectname = sectname
         self._optname = optname
 
@@ -125,16 +123,14 @@ def init(args):
     try:
         app = objreg.get('app')
         config_obj = ConfigManager(confdir, 'qutebrowser.conf', app)
-    except (configtypes.ValidationError, NoOptionError, NoSectionError,
-            UnknownSectionError, InterpolationSyntaxError,
-            configparser.InterpolationError,
-            configparser.DuplicateSectionError,
-            configparser.DuplicateOptionError,
-            configparser.ParsingError) as e:
+    except (configexc.Error, configparser.Error) as e:
         log.init.exception(e)
         errstr = "Error while reading config:"
-        if hasattr(e, 'section') and hasattr(e, 'option'):
-            errstr += "\n\n{} -> {}:".format(e.section, e.option)
+        try:
+            errstr += "\n\n{} -> {}:".format(
+                e.section, e.option)  # pylint: disable=no-member
+        except AttributeError:
+            pass
         errstr += "\n{}".format(e)
         msgbox = QMessageBox(QMessageBox.Critical,
                              "Error while reading config!", errstr)
@@ -167,34 +163,6 @@ def init(args):
     command_history = line.LineConfigParser(datadir, 'cmd-history',
                                             ('completion', 'history-length'))
     objreg.register('command-history', command_history)
-
-
-class NoSectionError(configparser.NoSectionError):
-
-    """Exception raised when a section was not found."""
-
-    pass
-
-
-class NoOptionError(configparser.NoOptionError):
-
-    """Exception raised when an option was not found."""
-
-    pass
-
-
-class InterpolationSyntaxError(ValueError):
-
-    """Exception raised when configparser interpolation raised an error."""
-
-    pass
-
-
-class UnknownSectionError(Exception):
-
-    """Exception raised when there was an unknwon section in the config."""
-
-    pass
 
 
 class ConfigManager(QObject):
@@ -378,8 +346,7 @@ class ConfigManager(QObject):
             if sectname in self.RENAMED_SECTIONS:
                 sectname = self.RENAMED_SECTIONS[sectname]
             if sectname is not 'DEFAULT' and sectname not in self.sections:
-                raise UnknownSectionError("Unknown section '{}'!".format(
-                    sectname))
+                raise configexc.NoSectionError(sectname)
         for sectname in self.sections:
             real_sectname = self._get_real_sectname(cp, sectname)
             if real_sectname is None:
@@ -401,7 +368,7 @@ class ConfigManager(QObject):
                     self, sectname, optname, opt.value(), mapping)
                 try:
                     opt.typ.validate(interpolated)
-                except configtypes.ValidationError as e:
+                except configexc.ValidationError as e:
                     e.section = sectname
                     e.option = optname
                     raise
@@ -473,7 +440,7 @@ class ConfigManager(QObject):
         try:
             sectdict = self.sections[sectname]
         except KeyError:
-            raise NoSectionError(sectname)
+            raise configexc.NoSectionError(sectname)
         optname = self.optionxform(optname)
         existed = optname in sectdict
         if existed:
@@ -500,11 +467,11 @@ class ConfigManager(QObject):
         try:
             sect = self.sections[sectname]
         except KeyError:
-            raise NoSectionError(sectname)
+            raise configexc.NoSectionError(sectname)
         try:
             val = sect[optname]
         except KeyError:
-            raise NoOptionError(optname, sectname)
+            raise configexc.NoOptionError(optname, sectname)
         if raw:
             return val.value()
         mapping = {key: val.value() for key, val in sect.values.items()}
@@ -555,8 +522,7 @@ class ConfigManager(QObject):
                                               "are required: value")
                 layer = 'temp' if temp else 'conf'
                 self.set(layer, sectname, optname, value)
-        except (NoOptionError, NoSectionError, configtypes.ValidationError,
-                ValueError) as e:
+        except (configexc.Error, configparser.Error) as e:
             raise cmdexc.CommandError("set: {} - {}".format(
                 e.__class__.__name__, e))
 
@@ -574,11 +540,11 @@ class ConfigManager(QObject):
             value = self._interpolation.before_set(self, sectname, optname,
                                                    value)
         except ValueError as e:
-            raise InterpolationSyntaxError(e)
+            raise configexc.InterpolationSyntaxError(optname, sectname, str(e))
         try:
             sect = self.sections[sectname]
         except KeyError:
-            raise NoSectionError(sectname)
+            raise configexc.NoSectionError(sectname)
         mapping = {key: val.value() for key, val in sect.values.items()}
         if validate:
             interpolated = self._interpolation.before_get(
@@ -588,7 +554,7 @@ class ConfigManager(QObject):
         try:
             sect.setv(layer, optname, value, interpolated)
         except KeyError:
-            raise NoOptionError(optname, sectname)
+            raise configexc.NoOptionError(optname, sectname)
         else:
             if self._initialized:
                 self._after_set(sectname, optname)

@@ -32,26 +32,10 @@ from PyQt5.QtNetwork import QNetworkProxy
 from PyQt5.QtWidgets import QTabWidget, QTabBar
 
 from qutebrowser.commands import cmdutils
+from qutebrowser.config import configexc
 
 
 SYSTEM_PROXY = object()  # Return value for Proxy type
-
-
-class ValidationError(ValueError):
-
-    """Exception raised when a value for a config type was invalid.
-
-    Class attributes:
-        section: Section in which the error occured (added when catching and
-                 re-raising the exception).
-        option: Option in which the error occured.
-    """
-
-    section = None
-    option = None
-
-    def __init__(self, value, msg):
-        super().__init__("Invalid value '{}' - {}".format(value, msg))
 
 
 class ValidValues:
@@ -133,8 +117,9 @@ class BaseType:
             return
         if self.valid_values is not None:
             if value not in self.valid_values:
-                raise ValidationError(value, "valid values: {}".format(
-                    ', '.join(self.valid_values)))
+                raise configexc.ValidationError(
+                    value, "valid values: {}".format(', '.join(
+                        self.valid_values)))
             else:
                 return
         else:
@@ -196,17 +181,17 @@ class String(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
         if self.forbidden is not None and any(c in value
                                               for c in self.forbidden):
-            raise ValidationError(value, "may not contain the chars "
-                                  "'{}'".format(self.forbidden))
+            raise configexc.ValidationError(value, "may not contain the chars "
+                                            "'{}'".format(self.forbidden))
         if self.minlen is not None and len(value) < self.minlen:
-            raise ValidationError(value, "must be at least {} chars "
-                                  "long!".format(self.minlen))
+            raise configexc.ValidationError(value, "must be at least {} chars "
+                                            "long!".format(self.minlen))
         if self.maxlen is not None and len(value) > self.maxlen:
-            raise ValidationError(value, "must be at most {} long!".format(
-                                  self.maxlen))
+            raise configexc.ValidationError(value, "must be at most {} chars "
+                                            "long!".format(self.maxlen))
 
 
 class List(BaseType):
@@ -226,10 +211,11 @@ class List(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "list may not be empty!")
+                raise configexc.ValidationError(value, "list may not be "
+                                                "empty!")
         vals = self.transform(value)
         if None in vals:
-            raise ValidationError(value, "items may not be empty!")
+            raise configexc.ValidationError(value, "items may not be empty!")
 
 
 class Bool(BaseType):
@@ -259,9 +245,9 @@ class Bool(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
         if value.lower() not in Bool._BOOLEAN_STATES:
-            raise ValidationError(value, "must be a boolean!")
+            raise configexc.ValidationError(value, "must be a boolean!")
 
 
 class BoolAsk(Bool):
@@ -313,17 +299,17 @@ class Int(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
         try:
             intval = int(value)
         except ValueError:
-            raise ValidationError(value, "must be an integer!")
+            raise configexc.ValidationError(value, "must be an integer!")
         if self.minval is not None and intval < self.minval:
-            raise ValidationError(value, "must be {} or bigger!".format(
-                                  self.minval))
+            raise configexc.ValidationError(value, "must be {} or "
+                                            "bigger!".format(self.minval))
         if self.maxval is not None and intval > self.maxval:
-            raise ValidationError(value, "must be {} or smaller!".format(
-                                  self.maxval))
+            raise configexc.ValidationError(value, "must be {} or "
+                                            "smaller!".format(self.maxval))
 
 
 class IntList(List):
@@ -340,9 +326,10 @@ class IntList(List):
         try:
             vals = self.transform(value)
         except ValueError:
-            raise ValidationError(value, "must be a list of integers!")
+            raise configexc.ValidationError(value, "must be a list of "
+                                            "integers!")
         if None in vals and not self._none_ok:
-            raise ValidationError(value, "items may not be empty!")
+            raise configexc.ValidationError(value, "items may not be empty!")
 
 
 class Float(BaseType):
@@ -375,17 +362,17 @@ class Float(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
         try:
             floatval = float(value)
         except ValueError:
-            raise ValidationError(value, "must be a float!")
+            raise configexc.ValidationError(value, "must be a float!")
         if self.minval is not None and floatval < self.minval:
-            raise ValidationError(value, "must be {} or bigger!".format(
-                                  self.minval))
+            raise configexc.ValidationError(value, "must be {} or "
+                                            "bigger!".format(self.minval))
         if self.maxval is not None and floatval > self.maxval:
-            raise ValidationError(value, "must be {} or smaller!".format(
-                                  self.maxval))
+            raise configexc.ValidationError(value, "must be {} or "
+                                            "smaller!".format(self.maxval))
 
 
 class Perc(BaseType):
@@ -418,19 +405,19 @@ class Perc(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty")
+                raise configexc.ValidationError(value, "may not be empty")
         if not value.endswith('%'):
-            raise ValidationError(value, "does not end with %")
+            raise configexc.ValidationError(value, "does not end with %")
         try:
             intval = int(value[:-1])
         except ValueError:
-            raise ValidationError(value, "invalid percentage!")
+            raise configexc.ValidationError(value, "invalid percentage!")
         if self.minval is not None and intval < self.minval:
-            raise ValidationError(value, "must be {}% or more!".format(
-                                  self.minval))
+            raise configexc.ValidationError(value, "must be {}% or "
+                                            "more!".format(self.minval))
         if self.maxval is not None and intval > self.maxval:
-            raise ValidationError(value, "must be {}% or less!".format(
-                                  self.maxval))
+            raise configexc.ValidationError(value, "must be {}% or "
+                                            "less!".format(self.maxval))
 
 
 class PercList(List):
@@ -465,11 +452,13 @@ class PercList(List):
                     if self._none_ok:
                         continue
                     else:
-                        raise ValidationError(value, "items may not be empty!")
+                        raise configexc.ValidationError(value, "items may not "
+                                                        "be empty!")
                 else:
                     perctype.validate(val)
-        except ValidationError:
-            raise ValidationError(value, "must be a list of percentages!")
+        except configexc.ValidationError:
+            raise configexc.ValidationError(value, "must be a list of "
+                                            "percentages!")
 
 
 class PercOrInt(BaseType):
@@ -504,29 +493,30 @@ class PercOrInt(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
         if value.endswith('%'):
             try:
                 intval = int(value[:-1])
             except ValueError:
-                raise ValidationError(value, "invalid percentage!")
+                raise configexc.ValidationError(value, "invalid percentage!")
             if self.minperc is not None and intval < self.minperc:
-                raise ValidationError(value, "must be {}% or more!".format(
-                                      self.minperc))
+                raise configexc.ValidationError(value, "must be {}% or "
+                                                "more!".format(self.minperc))
             if self.maxperc is not None and intval > self.maxperc:
-                raise ValidationError(value, "must be {}% or less!".format(
-                                      self.maxperc))
+                raise configexc.ValidationError(value, "must be {}% or "
+                                                "less!".format(self.maxperc))
         else:
             try:
                 intval = int(value)
             except ValueError:
-                raise ValidationError(value, "must be integer or percentage!")
+                raise configexc.ValidationError(value, "must be integer or "
+                                                "percentage!")
             if self.minint is not None and intval < self.minint:
-                raise ValidationError(value, "must be {} or bigger!".format(
-                                      self.minint))
+                raise configexc.ValidationError(value, "must be {} or "
+                                                "bigger!".format(self.minint))
             if self.maxint is not None and intval > self.maxint:
-                raise ValidationError(value, "must be {} or smaller!".format(
-                                      self.maxint))
+                raise configexc.ValidationError(value, "must be {} or "
+                                                "smaller!".format(self.maxint))
 
 
 class Command(BaseType):
@@ -540,9 +530,9 @@ class Command(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
         if value.split()[0] not in cmdutils.cmd_dict:
-            raise ValidationError(value, "must be a valid command!")
+            raise configexc.ValidationError(value, "must be a valid command!")
 
     def complete(self):
         out = []
@@ -585,11 +575,11 @@ class QtColor(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
         elif QColor.isValidColor(value):
             pass
         else:
-            raise ValidationError(value, "must be a valid color")
+            raise configexc.ValidationError(value, "must be a valid color")
 
     def transform(self, value):
         if not value:
@@ -609,14 +599,14 @@ class CssColor(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
         if value.startswith('-'):
             # custom function name, won't validate.
             pass
         elif QColor.isValidColor(value):
             pass
         else:
-            raise ValidationError(value, "must be a valid color")
+            raise configexc.ValidationError(value, "must be a valid color")
 
 
 class QssColor(CssColor):
@@ -644,14 +634,14 @@ class QssColor(CssColor):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
         elif any(re.match(r, value) for r in self.color_func_regexes):
             # QColor doesn't handle these, so we do the best we can easily
             pass
         elif QColor.isValidColor(value):
             pass
         else:
-            raise ValidationError(value, "must be a valid color")
+            raise configexc.ValidationError(value, "must be a valid color")
 
 
 class Font(BaseType):
@@ -680,9 +670,9 @@ class Font(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
         if not self.font_regex.match(value):
-            raise ValidationError(value, "must be a valid font")
+            raise configexc.ValidationError(value, "must be a valid font")
 
 
 class QtFont(Font):
@@ -747,11 +737,12 @@ class Regex(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
         try:
             re.compile(value, self.flags)
         except sre_constants.error as e:
-            raise ValidationError(value, "must be a valid regex - " + str(e))
+            raise configexc.ValidationError(value, "must be a valid regex - " +
+                                            str(e))
 
     def transform(self, value):
         if not value:
@@ -779,10 +770,10 @@ class RegexList(List):
         try:
             vals = self.transform(value)
         except sre_constants.error as e:
-            raise ValidationError(value, "must be a list valid regexes - " +
-                                  str(e))
+            raise configexc.ValidationError(value, "must be a list valid "
+                                            "regexes - " + str(e))
         if not self._none_ok and None in vals:
-            raise ValidationError(value, "items may not be empty!")
+            raise configexc.ValidationError(value, "items may not be empty!")
 
 
 class File(BaseType):
@@ -796,12 +787,12 @@ class File(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
         value = os.path.expanduser(value)
         if not os.path.isfile(value):
-            raise ValidationError(value, "must be a valid file!")
+            raise configexc.ValidationError(value, "must be a valid file!")
         if not os.path.isabs(value):
-            raise ValidationError(value, "must be an absolute path!")
+            raise configexc.ValidationError(value, "must be an absolute path!")
 
     def transform(self, value):
         if not value:
@@ -820,12 +811,13 @@ class Directory(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
         value = os.path.expanduser(value)
         if not os.path.isdir(value):
-            raise ValidationError(value, "must be a valid directory!")
+            raise configexc.ValidationError(value, "must be a valid "
+                                            "directory!")
         if not os.path.isabs(value):
-            raise ValidationError(value, "must be an absolute path!")
+            raise configexc.ValidationError(value, "must be an absolute path!")
 
     def transform(self, value):
         if not value:
@@ -868,13 +860,13 @@ class WebKitBytes(BaseType):
         try:
             val = self.transform(value)
         except ValueError:
-            raise ValidationError(value, "must be a valid integer with "
-                                         "optional suffix!")
+            raise configexc.ValidationError(value, "must be a valid integer "
+                                            "with optional suffix!")
         if self.maxsize is not None and val > self.maxsize:
-            raise ValidationError(value, "must be {} "
-                                         "maximum!".format(self.maxsize))
+            raise configexc.ValidationError(value, "must be {} "
+                                            "maximum!".format(self.maxsize))
         if val < 0:
-            raise ValidationError(value, "must be 0 minimum!")
+            raise configexc.ValidationError(value, "must be 0 minimum!")
 
     def transform(self, value):
         if not value:
@@ -919,10 +911,10 @@ class WebKitBytesList(List):
         for val in vals:
             self.bytestype.validate(val)
         if None in vals and not self._none_ok:
-            raise ValidationError(value, "items may not be empty!")
+            raise configexc.ValidationError(value, "items may not be empty!")
         if self.length is not None and len(vals) != self.length:
-            raise ValidationError(value, "exactly {} values need to be "
-                                         "set!".format(self.length))
+            raise configexc.ValidationError(value, "exactly {} values need to "
+                                            "be set!".format(self.length))
 
 
 class ShellCommand(BaseType):
@@ -944,13 +936,14 @@ class ShellCommand(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
         if self.placeholder and '{}' not in self.transform(value):
-            raise ValidationError(value, "needs to contain a {}-placeholder.")
+            raise configexc.ValidationError(value, "needs to contain a "
+                                            "{}-placeholder.")
         try:
             shlex.split(value)
         except ValueError as e:
-            raise ValidationError(value, str(e))
+            raise configexc.ValidationError(value, str(e))
 
     def transform(self, value):
         if not value:
@@ -986,16 +979,17 @@ class Proxy(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
         if value in self.valid_values:
             return
         url = QUrl(value)
         if not url.isValid():
-            raise ValidationError(value, "invalid url, {}".format(
+            raise configexc.ValidationError(value, "invalid url, {}".format(
                 url.errorString()))
         elif url.scheme() not in self.PROXY_TYPES:
-            raise ValidationError(value, "must be a proxy URL (http://... or "
-                                         "socks://...) or system/none!")
+            raise configexc.ValidationError(value, "must be a proxy URL "
+                                            "(http://... or socks://...) or "
+                                            "system/none!")
 
     def complete(self):
         out = []
@@ -1033,7 +1027,7 @@ class SearchEngineName(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
 
 
 class SearchEngineUrl(BaseType):
@@ -1045,12 +1039,12 @@ class SearchEngineUrl(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
         if '{}' not in value:
-            raise ValidationError(value, "must contain \"{}\"")
+            raise configexc.ValidationError(value, "must contain \"{}\"")
         url = QUrl(value.replace('{}', 'foobar'))
         if not url.isValid():
-            raise ValidationError(value, "invalid url, {}".format(
+            raise configexc.ValidationError(value, "invalid url, {}".format(
                 url.errorString()))
 
 
@@ -1065,11 +1059,11 @@ class Encoding(BaseType):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
         try:
             codecs.lookup(value)
         except LookupError:
-            raise ValidationError(value, "is not a valid encoding!")
+            raise configexc.ValidationError(value, "is not a valid encoding!")
 
 
 class UserStyleSheet(File):
@@ -1086,7 +1080,7 @@ class UserStyleSheet(File):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "may not be empty!")
+                raise configexc.ValidationError(value, "may not be empty!")
         value = os.path.expanduser(value)
         if not os.path.isabs(value):
             # probably a CSS, so we don't handle it as filename.
@@ -1096,10 +1090,10 @@ class UserStyleSheet(File):
             try:
                 value.encode('utf-8')
             except UnicodeEncodeError as e:
-                raise ValidationError(value, str(e))
+                raise configexc.ValidationError(value, str(e))
             return
         elif not os.path.isfile(value):
-            raise ValidationError(value, "must be a valid file!")
+            raise configexc.ValidationError(value, "must be a valid file!")
 
     def transform(self, value):
         path = os.path.expanduser(value)
@@ -1179,14 +1173,16 @@ class UrlList(List):
             if self._none_ok:
                 return
             else:
-                raise ValidationError(value, "list may not be empty!")
+                raise configexc.ValidationError(value, "list may not be "
+                                                "empty!")
         vals = self.transform(value)
         for val in vals:
             if val is None:
-                raise ValidationError(value, "values may not be empty!")
+                raise configexc.ValidationError(value, "values may not be "
+                                                "empty!")
             elif not val.isValid():
-                raise ValidationError(value, "invalid URL - {}".format(
-                    val.errorString()))
+                raise configexc.ValidationError(value, "invalid URL - "
+                                                "{}".format(val.errorString()))
 
 
 class SelectOnRemove(BaseType):

@@ -27,6 +27,8 @@ Module attributes:
     pyeval_output: The output of the last :pyeval command.
 """
 
+import configparser
+
 from PyQt5.QtCore import pyqtSlot, QObject
 from PyQt5.QtNetwork import QNetworkReply
 
@@ -34,7 +36,7 @@ import qutebrowser
 from qutebrowser.browser.network import schemehandler, networkreply
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg)
-from qutebrowser.config import configtypes, configdata
+from qutebrowser.config import configexc, configdata
 
 
 pyeval_output = ":pyeval was never called"
@@ -93,7 +95,7 @@ class JSBridge(QObject):
         """Slot to set a setting from qute:settings."""
         try:
             objreg.get('config').set('conf', sectname, optname, value)
-        except configtypes.ValidationError as e:
+        except (configexc.Error, configparser.Error) as e:
             message.error(win_id, e)
 
 

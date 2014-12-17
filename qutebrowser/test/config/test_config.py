@@ -25,7 +25,7 @@ import configparser
 
 from PyQt5.QtGui import QColor
 
-from qutebrowser.config import config, configtypes
+from qutebrowser.config import config, configexc
 
 
 class ConfigParserTests(unittest.TestCase):
@@ -73,14 +73,14 @@ class ConfigParserTests(unittest.TestCase):
     def test_invalid_value(self):
         """Test setting an invalid value."""
         self.cp.read_dict({'general': {'ignore-case': 'invalid'}})
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.cfg._from_cp(self.cp)
 
     def test_invalid_value_interpolated(self):
         """Test setting an invalid interpolated value."""
         self.cp.read_dict({'general': {'ignore-case': 'smart',
                                        'wrap-search': '${ignore-case}'}})
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.cfg._from_cp(self.cp)
 
     def test_interpolation(self):
@@ -112,19 +112,19 @@ class ConfigParserTests(unittest.TestCase):
     def test_invalid_interpolation_syntax(self):
         """Test an invalid interpolation syntax."""
         self.cp.read_dict({'general': {'ignore-case': '${'}})
-        with self.assertRaises(config.InterpolationSyntaxError):
+        with self.assertRaises(configexc.InterpolationSyntaxError):
             self.cfg._from_cp(self.cp)
 
     def test_invalid_section(self):
         """Test an invalid section."""
         self.cp.read_dict({'foo': {'bar': 'baz'}})
-        with self.assertRaises(config.UnknownSectionError):
+        with self.assertRaises(configexc.NoSectionError):
             self.cfg._from_cp(self.cp)
 
     def test_invalid_option(self):
         """Test an invalid option."""
         self.cp.read_dict({'general': {'bar': 'baz'}})
-        with self.assertRaises(config.NoOptionError):
+        with self.assertRaises(configexc.NoOptionError):
             self.cfg._from_cp(self.cp)
 
 

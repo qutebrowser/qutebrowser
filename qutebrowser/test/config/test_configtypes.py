@@ -25,7 +25,7 @@ import os.path
 import base64
 from unittest import mock
 
-from qutebrowser.config import configtypes
+from qutebrowser.config import configtypes, configexc
 from qutebrowser.test import stubs
 from qutebrowser.utils import debug, utils
 
@@ -147,7 +147,7 @@ class BaseTypeTests(unittest.TestCase):
         """Test validate with valid_values set."""
         self.t.valid_values = configtypes.ValidValues('foo', 'bar')
         self.t.validate('bar')
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('baz')
 
     def test_complete_none(self):
@@ -204,7 +204,7 @@ class StringTests(unittest.TestCase):
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
         t = configtypes.String()
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate("")
 
     def test_validate_empty_none_ok(self):
@@ -222,15 +222,15 @@ class StringTests(unittest.TestCase):
         t = configtypes.String(forbidden='xyz')
         t.validate("foobar")
         t.validate("foXbar")
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate("foybar")
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate("foxbar")
 
     def test_validate_minlen_toosmall(self):
         """Test validate with a minlen and a too short string."""
         t = configtypes.String(minlen=2)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('f')
 
     def test_validate_minlen_ok(self):
@@ -241,7 +241,7 @@ class StringTests(unittest.TestCase):
     def test_validate_maxlen_toolarge(self):
         """Test validate with a maxlen and a too long string."""
         t = configtypes.String(maxlen=2)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('fob')
 
     def test_validate_maxlen_ok(self):
@@ -258,9 +258,9 @@ class StringTests(unittest.TestCase):
     def test_validate_range_bad(self):
         """Test validate with both min/maxlen and a bad string."""
         t = configtypes.String(minlen=2, maxlen=3)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('f')
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('fooo')
 
     def test_transform(self):
@@ -286,7 +286,7 @@ class ListTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('')
 
     def test_validate_empty_none_ok(self):
@@ -296,13 +296,13 @@ class ListTests(unittest.TestCase):
 
     def test_validate_empty_item(self):
         """Test validate with empty item and none_ok = False."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('foo,,bar')
 
     def test_validate_empty_item_none_ok(self):
         """Test validate with empty item and none_ok = True."""
         t = configtypes.List(none_ok=True)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('foo,,bar')
 
     def test_transform_single(self):
@@ -353,13 +353,13 @@ class BoolTests(unittest.TestCase):
         """Test validate with invalid values."""
         for val in self.INVALID:
             with self.subTest(val=val):
-                with self.assertRaises(configtypes.ValidationError):
+                with self.assertRaises(configexc.ValidationError):
                     self.t.validate(val)
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
         t = configtypes.Bool()
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('')
 
     def test_validate_empty_none_ok(self):
@@ -385,13 +385,13 @@ class IntTests(unittest.TestCase):
     def test_validate_string(self):
         """Test validate with something which isn't an int."""
         t = configtypes.Int()
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('foobar')
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
         t = configtypes.Int()
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('')
 
     def test_validate_empty_none_ok(self):
@@ -402,7 +402,7 @@ class IntTests(unittest.TestCase):
     def test_validate_minval_toosmall(self):
         """Test validate with a minval and a too small int."""
         t = configtypes.Int(minval=2)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('1')
 
     def test_validate_minval_ok(self):
@@ -413,7 +413,7 @@ class IntTests(unittest.TestCase):
     def test_validate_maxval_toolarge(self):
         """Test validate with a maxval and a too big int."""
         t = configtypes.Int(maxval=2)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('3')
 
     def test_validate_maxval_ok(self):
@@ -430,9 +430,9 @@ class IntTests(unittest.TestCase):
     def test_validate_range_bad(self):
         """Test validate with both min/maxval and a bad int."""
         t = configtypes.Int(minval=2, maxval=3)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('1')
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('4')
 
     def test_transform_none(self):
@@ -459,7 +459,7 @@ class IntListTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with an empty value."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('23,,42')
 
     def test_validate_empty_none_ok(self):
@@ -469,7 +469,7 @@ class IntListTests(unittest.TestCase):
 
     def test_validate_bad(self):
         """Test validate with bad values."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('23,foo,1337')
 
     def test_transform_single(self):
@@ -508,13 +508,13 @@ class FloatTests(unittest.TestCase):
     def test_validate_string(self):
         """Test validate with something which isn't an float."""
         t = configtypes.Float()
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('foobar')
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
         t = configtypes.Float()
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('')
 
     def test_validate_empty_none_ok(self):
@@ -525,7 +525,7 @@ class FloatTests(unittest.TestCase):
     def test_validate_minval_toosmall(self):
         """Test validate with a minval and a too small float."""
         t = configtypes.Float(minval=2)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('1.99')
 
     def test_validate_minval_ok(self):
@@ -536,7 +536,7 @@ class FloatTests(unittest.TestCase):
     def test_validate_maxval_toolarge(self):
         """Test validate with a maxval and a too big float."""
         t = configtypes.Float(maxval=2)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('2.01')
 
     def test_validate_maxval_ok(self):
@@ -553,9 +553,9 @@ class FloatTests(unittest.TestCase):
     def test_validate_range_bad(self):
         """Test validate with both min/maxval and a bad float."""
         t = configtypes.Float(minval=2, maxval=3)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('1.99')
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('3.01')
 
     def test_transform_empty(self):
@@ -588,12 +588,12 @@ class PercTests(unittest.TestCase):
 
     def test_validate_int(self):
         """Test validate with a normal int (not a percentage)."""
-        with self.assertRaises(ValueError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('1337')
 
     def test_validate_string(self):
         """Test validate with something which isn't a percentage."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('1337%%')
 
     def test_validate_perc(self):
@@ -602,7 +602,7 @@ class PercTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('')
 
     def test_validate_empty_none_ok(self):
@@ -613,7 +613,7 @@ class PercTests(unittest.TestCase):
     def test_validate_minval_toosmall(self):
         """Test validate with a minval and a too small percentage."""
         t = configtypes.Perc(minval=2)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('1%')
 
     def test_validate_minval_ok(self):
@@ -624,7 +624,7 @@ class PercTests(unittest.TestCase):
     def test_validate_maxval_toolarge(self):
         """Test validate with a maxval and a too big percentage."""
         t = configtypes.Perc(maxval=2)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('3%')
 
     def test_validate_maxval_ok(self):
@@ -641,9 +641,9 @@ class PercTests(unittest.TestCase):
     def test_validate_range_bad(self):
         """Test validate with both min/maxval and a bad percentage."""
         t = configtypes.Perc(minval=2, maxval=3)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('1%')
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('4%')
 
     def test_transform_empty(self):
@@ -673,13 +673,13 @@ class PercListTests(unittest.TestCase):
 
     def test_validate_bad(self):
         """Test validate with bad values."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('23%,42%%,1337%')
 
     def test_validate_minval_toosmall(self):
         """Test validate with a minval and a too small percentage."""
         t = configtypes.PercList(minval=2)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('1%')
 
     def test_validate_minval_ok(self):
@@ -690,7 +690,7 @@ class PercListTests(unittest.TestCase):
     def test_validate_maxval_toolarge(self):
         """Test validate with a maxval and a too big percentage."""
         t = configtypes.PercList(maxval=2)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('3%')
 
     def test_validate_maxval_ok(self):
@@ -707,14 +707,14 @@ class PercListTests(unittest.TestCase):
     def test_validate_range_bad(self):
         """Test validate with both min/maxval and a bad percentage."""
         t = configtypes.PercList(minval=2, maxval=3)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('1%')
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('4%')
 
     def test_validate_empty(self):
         """Test validate with an empty value."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('23%,,42%')
 
     def test_validate_empty_none_ok(self):
@@ -754,7 +754,7 @@ class PercOrIntTests(unittest.TestCase):
 
     def test_validate_string(self):
         """Test validate with something which isn't a percentage."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('1337%%')
 
     def test_validate_perc(self):
@@ -767,7 +767,7 @@ class PercOrIntTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('')
 
     def test_validate_empty_none_ok(self):
@@ -778,7 +778,7 @@ class PercOrIntTests(unittest.TestCase):
     def test_validate_minint_toosmall(self):
         """Test validate with a minint and a too small int."""
         t = configtypes.PercOrInt(minint=2)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('1')
 
     def test_validate_minint_ok(self):
@@ -789,7 +789,7 @@ class PercOrIntTests(unittest.TestCase):
     def test_validate_maxint_toolarge(self):
         """Test validate with a maxint and a too big int."""
         t = configtypes.PercOrInt(maxint=2)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('3')
 
     def test_validate_maxint_ok(self):
@@ -806,15 +806,15 @@ class PercOrIntTests(unittest.TestCase):
     def test_validate_int_range_bad(self):
         """Test validate with both min/maxint and a bad int."""
         t = configtypes.PercOrInt(minint=2, maxint=3)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('1')
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('4')
 
     def test_validate_minperc_toosmall(self):
         """Test validate with a minperc and a too small perc."""
         t = configtypes.PercOrInt(minperc=2)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('1%')
 
     def test_validate_minperc_ok(self):
@@ -825,7 +825,7 @@ class PercOrIntTests(unittest.TestCase):
     def test_validate_maxperc_toolarge(self):
         """Test validate with a maxperc and a too big perc."""
         t = configtypes.PercOrInt(maxperc=2)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('3%')
 
     def test_validate_maxperc_ok(self):
@@ -842,9 +842,9 @@ class PercOrIntTests(unittest.TestCase):
     def test_validate_perc_range_bad(self):
         """Test validate with both min/maxperc and a bad perc."""
         t = configtypes.PercOrInt(minperc=2, maxperc=3)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('1%')
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('4%')
 
     def test_validate_both_range_int(self):
@@ -890,7 +890,7 @@ class CommandTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with an empty string."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('')
 
     def test_validate_empty_none_ok(self):
@@ -910,12 +910,12 @@ class CommandTests(unittest.TestCase):
 
     def test_validate_invalid_command(self):
         """Test validate with an invalid command."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('cmd3')
 
     def test_validate_invalid_command_args(self):
         """Test validate with an invalid command and arguments."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('cmd3  foo bar')
 
     def test_transform(self):
@@ -953,7 +953,7 @@ class ColorSystemTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with an empty string."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('')
 
     def test_validate_empty_none_ok(self):
@@ -971,7 +971,7 @@ class ColorSystemTests(unittest.TestCase):
         """Test validate with invalid values."""
         for val in self.INVALID:
             with self.subTest(val=val):
-                with self.assertRaises(configtypes.ValidationError, msg=val):
+                with self.assertRaises(configexc.ValidationError, msg=val):
                     self.t.validate(val)
 
     def test_transform(self):
@@ -998,7 +998,7 @@ class QtColorTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with an empty string."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('')
 
     def test_validate_empty_none_ok(self):
@@ -1016,7 +1016,7 @@ class QtColorTests(unittest.TestCase):
         """Test validate with invalid values."""
         for val in self.INVALID + self.INVALID_QT:
             with self.subTest(val=val):
-                with self.assertRaises(configtypes.ValidationError, msg=val):
+                with self.assertRaises(configexc.ValidationError, msg=val):
                     self.t.validate(val)
 
     def test_transform(self):
@@ -1135,7 +1135,7 @@ class FontTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with an empty string."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('')
 
     def test_validate_empty_none_ok(self):
@@ -1162,11 +1162,11 @@ class FontTests(unittest.TestCase):
         for val in self.INVALID:
             with self.subTest(val=val):
                 with self.subTest(t="t1"):
-                    with self.assertRaises(configtypes.ValidationError,
+                    with self.assertRaises(configexc.ValidationError,
                                            msg=val):
                         self.t.validate(val)
                 with self.subTest(t="t2"):
-                    with self.assertRaises(configtypes.ValidationError,
+                    with self.assertRaises(configexc.ValidationError,
                                            msg=val):
                         self.t2.validate(val)
 
@@ -1208,7 +1208,7 @@ class RegexTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with an empty string."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('')
 
     def test_validate_empty_none_ok(self):
@@ -1222,7 +1222,7 @@ class RegexTests(unittest.TestCase):
 
     def test_validate_invalid(self):
         """Test validate with an invalid regex."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate(r'(foo|bar))?baz[fis]h')
 
     def test_transform_empty(self):
@@ -1247,7 +1247,7 @@ class RegexListTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with an empty value."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate(r'(foo|bar),,1337{42}')
 
     def test_validate_empty_none_ok(self):
@@ -1257,7 +1257,7 @@ class RegexListTests(unittest.TestCase):
 
     def test_validate_bad(self):
         """Test validate with bad values."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate(r'(foo|bar),((),1337{42}')
 
     def test_transform_single(self):
@@ -1286,7 +1286,7 @@ class FileTests(unittest.TestCase):
 
     def test_validate_empty(self, _os_path):
         """Test validate with empty string and none_ok = False."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate("")
 
     def test_validate_empty_none_ok(self, _os_path):
@@ -1298,7 +1298,7 @@ class FileTests(unittest.TestCase):
         """Test validate with a file which does not exist."""
         os_path.expanduser.side_effect = lambda x: x
         os_path.isfile.return_value = False
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('foobar')
 
     def test_validate_exists_abs(self, os_path):
@@ -1313,7 +1313,7 @@ class FileTests(unittest.TestCase):
         os_path.expanduser.side_effect = lambda x: x
         os_path.isfile.return_value = True
         os_path.isabs.return_value = False
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('foobar')
 
     def test_validate_expanduser(self, os_path):
@@ -1345,7 +1345,7 @@ class DirectoryTests(unittest.TestCase):
 
     def test_validate_empty(self, _os_path):
         """Test validate with empty string and none_ok = False."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate("")
 
     def test_validate_empty_none_ok(self, _os_path):
@@ -1357,7 +1357,7 @@ class DirectoryTests(unittest.TestCase):
         """Test validate with a directory which does not exist."""
         os_path.expanduser.side_effect = lambda x: x
         os_path.isdir.return_value = False
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('foobar')
 
     def test_validate_exists_abs(self, os_path):
@@ -1372,7 +1372,7 @@ class DirectoryTests(unittest.TestCase):
         os_path.expanduser.side_effect = lambda x: x
         os_path.isdir.return_value = True
         os_path.isabs.return_value = False
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('foobar')
 
     def test_validate_expanduser(self, os_path):
@@ -1420,18 +1420,18 @@ class WebKitByteTests(unittest.TestCase):
 
     def test_validate_int_negative(self):
         """Test validate with a negative int."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('-1')
 
     def test_validate_int_negative_suffix(self):
         """Test validate with a negative int with suffix."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('-1k')
 
     def test_validate_int_toobig(self):
         """Test validate with an int which is too big."""
         t = configtypes.WebKitBytes(maxsize=10)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('11')
 
     def test_validate_int_not_toobig(self):
@@ -1442,17 +1442,17 @@ class WebKitByteTests(unittest.TestCase):
     def test_validate_int_toobig_suffix(self):
         """Test validate with an int which is too big with suffix."""
         t = configtypes.WebKitBytes(maxsize=10)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('1k')
 
     def test_validate_int_invalid_suffix(self):
         """Test validate with an int with an invalid suffix."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('56x')
 
     def test_validate_int_double_suffix(self):
         """Test validate with an int with a double suffix."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('56kk')
 
     def test_transform_empty(self):
@@ -1483,15 +1483,15 @@ class WebKitBytesListTests(unittest.TestCase):
     def test_validate_bad(self):
         """Test validate with bad values."""
         t = configtypes.WebKitBytesList()
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('23,56kk,1337')
 
     def test_validate_maxsize_toolarge(self):
         """Test validate with a maxsize and a too big size."""
         t = configtypes.WebKitBytesList(maxsize=2)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('3')
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('3k')
 
     def test_validate_maxsize_ok(self):
@@ -1501,7 +1501,7 @@ class WebKitBytesListTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with an empty value."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('23,,42')
 
     def test_validate_empty_none_ok(self):
@@ -1512,7 +1512,7 @@ class WebKitBytesListTests(unittest.TestCase):
     def test_validate_len_tooshort(self):
         """Test validate with a too short length."""
         t = configtypes.WebKitBytesList(length=3)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('1,2')
 
     def test_validate_len_ok(self):
@@ -1523,7 +1523,7 @@ class WebKitBytesListTests(unittest.TestCase):
     def test_validate_len_toolong(self):
         """Test validate with a too long length."""
         t = configtypes.WebKitBytesList(length=3)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('1,2,3,4')
 
     def test_transform_single(self):
@@ -1548,7 +1548,7 @@ class ShellCommandTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate("")
 
     def test_validate_empty_none_ok(self):
@@ -1568,7 +1568,7 @@ class ShellCommandTests(unittest.TestCase):
     def test_validate_placeholder_invalid(self):
         """Test validate with an invalid placeholder."""
         t = configtypes.ShellCommand(placeholder='{}')
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('foo{} bar')
 
     def test_transform_single(self):
@@ -1598,7 +1598,7 @@ class ProxyTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('')
 
     def test_validate_empty_none_ok(self):
@@ -1616,12 +1616,12 @@ class ProxyTests(unittest.TestCase):
 
     def test_validate_invalid(self):
         """Test validate with an invalid URL."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate(':')
 
     def test_validate_scheme(self):
         """Test validate with a URL with wrong scheme."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('ftp://example.com/')
 
     def test_validate_http(self):
@@ -1707,7 +1707,7 @@ class SearchEngineNameTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('')
 
     def test_validate_empty_none_ok(self):
@@ -1733,7 +1733,7 @@ class SearchEngineUrlTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('')
 
     def test_validate_empty_none_ok(self):
@@ -1743,7 +1743,7 @@ class SearchEngineUrlTests(unittest.TestCase):
 
     def test_validate_no_placeholder(self):
         """Test validate with no placeholder."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('foo')
 
     def test_validate(self):
@@ -1752,7 +1752,7 @@ class SearchEngineUrlTests(unittest.TestCase):
 
     def test_validate_invalid_url(self):
         """Test validate with an invalud URL."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate(':{}')
 
     def test_transform_empty(self):
@@ -1803,7 +1803,7 @@ class AutoSearchTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('')
 
     def test_validate_empty_none_ok(self):
@@ -1822,7 +1822,7 @@ class AutoSearchTests(unittest.TestCase):
         """Test validate with invalid values."""
         for val in self.INVALID:
             with self.subTest(val=val):
-                with self.assertRaises(configtypes.ValidationError):
+                with self.assertRaises(configexc.ValidationError):
                     self.t.validate(val)
 
     def test_transform(self):
@@ -1853,7 +1853,7 @@ class IgnoreCaseTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('')
 
     def test_validate_empty_none_ok(self):
@@ -1872,7 +1872,7 @@ class IgnoreCaseTests(unittest.TestCase):
         """Test validate with invalid values."""
         for val in self.INVALID:
             with self.subTest(val=val):
-                with self.assertRaises(configtypes.ValidationError):
+                with self.assertRaises(configexc.ValidationError):
                     self.t.validate(val)
 
     def test_transform(self):
@@ -1896,7 +1896,7 @@ class EncodingTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('')
 
     def test_validate_empty_none_ok(self):
@@ -1912,7 +1912,7 @@ class EncodingTests(unittest.TestCase):
 
     def test_validate_invalid(self):
         """Test validate with an invalid value."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('blubber')
 
     def test_transform(self):
@@ -1941,7 +1941,7 @@ class UrlListTests(unittest.TestCase):
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('')
 
     def test_validate_empty_none_ok(self):
@@ -1951,13 +1951,13 @@ class UrlListTests(unittest.TestCase):
 
     def test_validate_empty_item(self):
         """Test validate with empty item and none_ok = False."""
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             self.t.validate('foo,,bar')
 
     def test_validate_empty_item_none_ok(self):
         """Test validate with empty item and none_ok = True."""
         t = configtypes.UrlList(none_ok=True)
-        with self.assertRaises(configtypes.ValidationError):
+        with self.assertRaises(configexc.ValidationError):
             t.validate('foo,,bar')
 
     def test_transform_single(self):
