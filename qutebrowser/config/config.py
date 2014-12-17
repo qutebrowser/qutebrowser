@@ -225,11 +225,13 @@ class ConfigManager(QObject):
         self._fname = fname
         if configdir is None:
             self._configdir = None
+            self._initialized = True
         else:
             self._configdir = configdir
             parser = ini.ReadConfigParser(configdir, fname)
             self._from_cp(parser)
-        self._initialized = True
+            self._initialized = True
+            self._validate_all()
 
     def __getitem__(self, key):
         """Get a section from the config."""
@@ -357,7 +359,6 @@ class ConfigManager(QObject):
                 if (sectname, k) in self.RENAMED_OPTIONS:
                     k = self.RENAMED_OPTIONS[sectname, k]
                 self.set('conf', sectname, k, v, validate=False)
-        self._validate_all()
 
     def _validate_all(self):
         """Validate all values set in self._from_cp."""

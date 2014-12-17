@@ -73,15 +73,17 @@ class ConfigParserTests(unittest.TestCase):
     def test_invalid_value(self):
         """Test setting an invalid value."""
         self.cp.read_dict({'general': {'ignore-case': 'invalid'}})
+        self.cfg._from_cp(self.cp)
         with self.assertRaises(configexc.ValidationError):
-            self.cfg._from_cp(self.cp)
+            self.cfg._validate_all()
 
     def test_invalid_value_interpolated(self):
         """Test setting an invalid interpolated value."""
         self.cp.read_dict({'general': {'ignore-case': 'smart',
                                        'wrap-search': '${ignore-case}'}})
+        self.cfg._from_cp(self.cp)
         with self.assertRaises(configexc.ValidationError):
-            self.cfg._from_cp(self.cp)
+            self.cfg._validate_all()
 
     def test_interpolation(self):
         """Test setting an interpolated value."""
@@ -106,8 +108,9 @@ class ConfigParserTests(unittest.TestCase):
     def test_invalid_interpolation(self):
         """Test an invalid interpolation."""
         self.cp.read_dict({'general': {'ignore-case': '${foo}'}})
+        self.cfg._from_cp(self.cp)
         with self.assertRaises(configparser.InterpolationError):
-            self.cfg._from_cp(self.cp)
+            self.cfg._validate_all()
 
     def test_invalid_interpolation_syntax(self):
         """Test an invalid interpolation syntax."""
