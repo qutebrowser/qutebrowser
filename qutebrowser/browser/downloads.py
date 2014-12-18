@@ -477,7 +477,8 @@ class DownloadItem(QObject):
         if not self.reply.isOpen():
             raise OSError("Reply is closed!")
         data = self.reply.read(1024)
-        self._buffer.write(data)
+        if data is not None:
+            self._buffer.write(data)
 
     def _handle_redirect(self):
         """Handle a HTTP redirect.
