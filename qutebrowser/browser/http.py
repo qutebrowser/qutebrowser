@@ -39,14 +39,15 @@ def parse_content_disposition(reply):
     """
     is_inline = True
     filename = None
+    content_disposition_header = 'Content-Disposition'.encode('iso-8859-1')
     # First check if the Content-Disposition header has a filename
     # attribute.
-    if reply.hasRawHeader('Content-Disposition'):
+    if reply.hasRawHeader(content_disposition_header):
         # We use the unsafe variant of the filename as we sanitize it via
         # os.path.basename later.
         try:
             content_disposition = rfc6266.parse_headers(
-                bytes(reply.rawHeader('Content-Disposition')))
+                bytes(reply.rawHeader(content_disposition_header)))
             filename = content_disposition.filename()
         except UnicodeDecodeError:
             log.misc.exception("Error while decoding filename")
