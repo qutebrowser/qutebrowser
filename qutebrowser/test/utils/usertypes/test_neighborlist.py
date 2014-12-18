@@ -355,6 +355,30 @@ class SnapInTests(unittest.TestCase):
         self.assertEqual(self.nl.previtem(), 1)
         self.assertEqual(self.nl._idx, 2)
 
+    def test_too_big_next(self):
+        """Test fuzzyval/next with a value bigger than any in the list."""
+        self.nl.fuzzyval = 30
+        self.assertEqual(self.nl.nextitem(), 20)
+        self.assertEqual(self.nl._idx, 0)
+
+    def test_too_big_prev(self):
+        """Test fuzzyval/prev with a value bigger than any in the list."""
+        self.nl.fuzzyval = 30
+        self.assertEqual(self.nl.previtem(), 20)
+        self.assertEqual(self.nl._idx, 0)
+
+    def test_too_small_next(self):
+        """Test fuzzyval/next with a value smaller than any in the list."""
+        self.nl.fuzzyval = 0
+        self.assertEqual(self.nl.nextitem(), 1)
+        self.assertEqual(self.nl._idx, 2)
+
+    def test_too_small_prev(self):
+        """Test fuzzyval/prev with a value smaller than any in the list."""
+        self.nl.fuzzyval = 0
+        self.assertEqual(self.nl.previtem(), 1)
+        self.assertEqual(self.nl._idx, 2)
+
 
 if __name__ == '__main__':
     unittest.main()

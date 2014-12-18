@@ -116,8 +116,14 @@ class NeighborList(collections.abc.Sequence):
         op = operator.le if offset < 0 else operator.ge
         items = [(idx, e) for (idx, e) in enumerate(self._items)
                  if op(e, self.fuzzyval)]
-        close_item = min(items, key=lambda tpl: abs(self.fuzzyval - tpl[1]))
-        self._idx = close_item[0]
+        if items:
+            item = min(items, key=lambda tpl: abs(self.fuzzyval - tpl[1]))
+        else:
+            sorted_items = sorted([(idx, e) for (idx, e) in
+                                   enumerate(self.items)])
+            idx = 0 if offset < 0 else -1
+            item = sorted_items[idx]
+        self._idx = item[0]
         return self.fuzzyval not in self._items
 
     def _get_new_item(self, offset):
