@@ -414,7 +414,6 @@ class DownloadItem(QObject):
     def finish_download(self):
         """Write buffered data to disk and finish the QNetworkReply."""
         log.downloads.debug("Finishing download...")
-        self._read_timer.stop()
         if self.reply.isOpen():
             self.fileobj.write(self.reply.readAll())
         if self.autoclose:
@@ -438,6 +437,7 @@ class DownloadItem(QObject):
         """
         if self.reply is None:
             return
+        self._read_timer.stop()
         self.stats.finish()
         is_redirected = self._handle_redirect()
         if is_redirected:
