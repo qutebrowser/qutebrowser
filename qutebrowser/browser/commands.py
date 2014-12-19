@@ -305,15 +305,19 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', name='reload',
                        scope='window')
-    def reloadpage(self, count: {'special': 'count'}=None):
+    def reloadpage(self, force=False, count: {'special': 'count'}=None):
         """Reload the current/[count]th tab.
 
         Args:
             count: The tab index to reload, or None.
+            force: Bypass the page cache.
         """
         tab = self._cntwidget(count)
         if tab is not None:
-            tab.reload()
+            if force:
+                tab.triggerAction(QWebPage.ReloadAndBypassCache)
+            else:
+                tab.reload()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def stop(self, count: {'special': 'count'}=None):

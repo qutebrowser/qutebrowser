@@ -945,6 +945,7 @@ KEY_DATA = collections.OrderedDict([
         ('tab-prev', ['K']),
         ('tab-clone', ['gC']),
         ('reload', ['r']),
+        ('reload -f', ['R']),
         ('back', ['H', '<Backspace>']),
         ('back -t', ['th']),
         ('back -w', ['wh']),
