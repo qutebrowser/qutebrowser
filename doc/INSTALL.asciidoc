@@ -110,13 +110,21 @@ system-wide Qt5/PyQt5 installations are used in the virtualenv.
 On OS X
 -------
 
-There are multiple package managers for OS X, this manual focuses just on
-http://brew.sh/[Homebrew] to install qutebrowser. To compile PyQt5 in a later
-step, you have to install XCode from the App Store. From Terminal.app, run:
+To install qutebrowser on OS X, you'll want a package manager, e.g.
+http://brew.sh/[Homebrew] or https://www.macports.org/[MacPorts]. Also make
+sure, you have https://itunes.apple.com/en/app/xcode/id497799835[XCode]
+installed to compile PyQt5 in a later step.
 
 ----
 $ brew install python3 pyqt5
 $ pip3.4 install qutebrowser
+----
+
+if you are using Homebrew. For MacPorts, run:
+
+----
+$ sudo port install python34 py34-jinja2 asciidoc py34-pygments py34-pyqt5
+$ sudo pip3.4 install qutebrowser
 ----
 
 The preferences for qutebrowser are stored in
