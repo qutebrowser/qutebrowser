@@ -128,11 +128,11 @@ Contributors, sorted by the number of commits in descending order:
 * Claude
 * rikn00
 * Brian Jackson
+* Martin Zimmermann
 * Mathias Fussenegger
 * Larry Hynes
 * Johannes Altmanninger
 * Peter Vilim
-* Martin Zimmermann
 // QUTE_AUTHORS_END
 
 The following people have contributed graphics:
