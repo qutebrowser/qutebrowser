@@ -170,27 +170,28 @@ def check_vcs_conflict(target):
         return None
 
 
+def _get_optional_args(checker):
+    """Get a list of arguments based on a comma-separated args config."""
+    try:
+        return config.get(checker, 'args').split(',')
+    except configparser.NoOptionError:
+        return []
+
+
+def _get_flag(arg, checker, option):
+    """Get a list of arguments based on a config option."""
+    try:
+        return ['--{}={}'.format(arg, config.get(checker, option))]
+    except configparser.NoOptionError:
+        return []
+
+
 def _get_args(checker):
     """Construct the arguments for a given checker.
 
     Return:
         A list of commandline arguments.
     """
-
-    def _get_optional_args(checker):
-        """Get a list of arguments based on a comma-separated args config."""
-        try:
-            return config.get(checker, 'args').split(',')
-        except configparser.NoOptionError:
-            return []
-
-    def _get_flag(arg, checker, option):
-        """Get a list of arguments based on a config option."""
-        try:
-            return ['--{}={}'.format(arg, config.get(checker, option))]
-        except configparser.NoOptionError:
-            return []
-
     args = []
     if checker == 'pylint':
         args += _get_flag('disable', 'pylint', 'disable')
