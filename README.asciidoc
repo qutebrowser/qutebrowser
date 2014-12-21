@@ -150,7 +150,7 @@ http://www.reddit.com/r/linux/comments/2huqbc/dwb_abandoned/[unmaintained] -
 main inspiration for qutebrowser)
 * https://github.com/fanglingsu/vimb[vimb] (C, GTK+ with WebKit1, active)
 * http://sourceforge.net/p/vimprobable/wiki/Home/[vimprobable] (C, GTK+ with
-WebKit1, active)
+WebKit1, dead)
 * http://surf.suckless.org/[surf] (C, GTK+ with WebKit1, active)
 * https://mason-larobina.github.io/luakit/[luakit] (C/Lua, GTK+ with
 WebKit1, not very active)
