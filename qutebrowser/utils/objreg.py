@@ -171,25 +171,19 @@ def _get_window_registry(window):
     """Get the registry of a window."""
     if window is None:
         raise TypeError("window is None with scope window!")
-    if window == 'current':
-        app = get('app')
-        win = app.activeWindow()
-        if win is None or not hasattr(win, 'win_id'):
-            raise RegistryUnavailableError('window')
-    elif window == 'last-focused':
-        try:
-            win = get('last-focused-main-window')
-        except KeyError:
+    try:
+        if window == 'current':
+            app = get('app')
+            win = app.activeWindow()
+        elif window == 'last-focused':
             try:
+                win = get('last-focused-main-window')
+            except KeyError:
                 win = last_window()
-            except NoWindow:
-                raise RegistryUnavailableError('window')
-        assert hasattr(win, 'registry')
-    else:
-        try:
+        else:
             win = window_registry[window]
-        except KeyError:
-            raise RegistryUnavailableError('window')
+    except (KeyError, NoWindow):
+        win = None
     try:
         return win.registry
     except AttributeError:
