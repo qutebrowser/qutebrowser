@@ -259,7 +259,7 @@ class TabbedBrowser(tabwidget.TabWidget):
     def undo(self):
         """Undo removing of a tab."""
         url, history_data = self._undo_stack.pop()
-        newtab = self.tabopen(url)
+        newtab = self.tabopen(url, background=False)
         qtutils.deserialize(history_data, newtab.history())
 
     @pyqtSlot('QUrl', bool)
