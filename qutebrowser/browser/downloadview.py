@@ -113,7 +113,7 @@ class DownloadView(QListView):
         if not index.isValid():
             return
         item = self.model().data(index, downloads.ModelRole.item)
-        if item.done:
+        if item.done and item.successful:
             item.open_file()
             self.model().remove_item(item)
 
