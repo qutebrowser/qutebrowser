@@ -55,6 +55,7 @@ build_exe_options = {
     ],
     'include_msvcr': True,
     'excludes': ['tkinter'],
+    'packages': ['pygments'],
 }
 
 egl_path = get_egl_path()
