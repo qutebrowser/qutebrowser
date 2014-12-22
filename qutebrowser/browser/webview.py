@@ -65,6 +65,7 @@ class WebView(QWebView):
         _force_open_target: Override for open_target.
         _check_insertmode: If True, in mouseReleaseEvent we should check if we
                            need to enter/leave insert mode.
+        _default_zoom_changed: Whether the zoom was changed from the default.
         _win_id: The window ID of the view.
 
     Signals:
@@ -122,6 +123,7 @@ class WebView(QWebView):
             lambda *args: setattr(self, '_has_ssl_errors', True))
         self.viewing_source = False
         self.setZoomFactor(float(config.get('ui', 'default-zoom')) / 100)
+        self._default_zoom_changed = False
         objreg.get('config').changed.connect(self.on_config_changed)
 
     def __repr__(self):
@@ -153,6 +155,10 @@ class WebView(QWebView):
     def on_config_changed(self, section, option):
         """Reinitialize the zoom neighborlist if related config changed."""
         if section == 'ui' and option in ('zoom-levels', 'default-zoom'):
+            if not self._default_zoom_changed:
+                self.setZoomFactor(float(config.get('ui', 'default-zoom')) /
+                                   100)
+            self._default_zoom_changed = False
             self.init_neighborlist()
 
     def init_neighborlist(self):
@@ -329,6 +335,7 @@ class WebView(QWebView):
             raise cmdexc.CommandError("Can't zoom {}%!".format(perc))
         self.setZoomFactor(float(perc) / 100)
         message.info(self._win_id, "Zoom level: {}%".format(perc))
+        self._default_zoom_changed = True
 
     def zoom(self, offset):
         """Increase/Decrease the zoom level.
