@@ -64,11 +64,13 @@ def compact_text(text, elidelength=None):
     return out
 
 
-def read_file(filename):
+def read_file(filename, binary=False):
     """Get the contents of a file contained with qutebrowser.
 
     Args:
         filename: The filename to open as string.
+        binary: Whether to return a binary string.
+                If False, the data is UTF-8-decoded.
 
     Return:
         The file contents as string.
@@ -76,11 +78,17 @@ def read_file(filename):
     if hasattr(sys, 'frozen'):
         # cx_Freeze doesn't support pkg_resources :(
         fn = os.path.join(os.path.dirname(sys.executable), filename)
-        with open(fn, 'r', encoding='utf-8') as f:
-            return f.read()
+        if binary:
+            with open(fn, 'rb') as f:
+                return f.read()
+        else:
+            with open(fn, 'r', encoding='utf-8') as f:
+                return f.read()
     else:
         data = pkg_resources.resource_string(qutebrowser.__name__, filename)
-        return data.decode('UTF-8')
+        if not binary:
+            data = data.decode('UTF-8')
+        return data
 
 
 def actute_warning():
