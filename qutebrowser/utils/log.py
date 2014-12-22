@@ -277,7 +277,10 @@ def qt_message_handler(msg_type, context, msg):
         func = 'none'
     else:
         func = context.function
-    name = 'qt' if context.category == 'default' else 'qt-' + context.category
+    if context.category is None or context.category == 'default':
+        name = 'qt'
+    else:
+        name = 'qt-' + context.category
     if msg.splitlines()[0] == ('This application failed to start because it '
                                'could not find or load the Qt platform plugin '
                                '"xcb".'):
