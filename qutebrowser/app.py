@@ -448,6 +448,15 @@ class Application(QApplication):
                 pass
             state_config['geometry']['mainwindow'] = geom
 
+    def _save_version(self):
+        """Save the current version to the state config."""
+        state_config = objreg.get('state-config')
+        try:
+            state_config.add_section('general')
+        except configparser.DuplicateSectionError:
+            pass
+        state_config['general']['version'] = qutebrowser.__version__
+
     def _destroy_crashlogfile(self):
         """Clean up the crash log file and delete it."""
         if self._crashlogfile is None:
@@ -740,6 +749,7 @@ class Application(QApplication):
                 else:
                     to_save.append(("keyconfig", key_config.save))
             to_save += [("window geometry", self._save_geometry)]
+            to_save += [("version", self._save_version)]
             try:
                 command_history = objreg.get('command-history')
             except KeyError:
