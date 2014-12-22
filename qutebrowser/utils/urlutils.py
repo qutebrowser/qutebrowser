@@ -26,10 +26,10 @@ import posixpath
 import urllib.parse
 
 from PyQt5.QtCore import QUrl
-from PyQt5.QtNetwork import QHostInfo
+from PyQt5.QtNetwork import QHostInfo, QHostAddress
 
 from qutebrowser.config import config, configexc
-from qutebrowser.utils import log, qtutils, message, utils
+from qutebrowser.utils import log, qtutils, message
 from qutebrowser.commands import cmdexc
 
 
@@ -91,8 +91,7 @@ def _is_url_naive(urlstr):
     # Qt treats things like "23.42" or "1337" or "0xDEAD" as valid URLs
     # which we don't want to. Note we already filtered *real* valid IPs
     # above.
-    if ((not utils.raises(ValueError, int, urlstr, 0)) or
-            (not utils.raises(ValueError, float, urlstr))):
+    if not QHostAddress(urlstr).isNull():
         return False
 
     if not url.isValid():

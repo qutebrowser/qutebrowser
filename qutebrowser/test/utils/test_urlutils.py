@@ -156,6 +156,7 @@ class IsUrlTests(unittest.TestCase):
         '23.42',
         '1337',
         'deadbeef',
+        '31c3',
     )
 
     def test_urls(self, configmock):
