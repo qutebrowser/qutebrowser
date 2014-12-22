@@ -619,14 +619,15 @@ class CommandDispatcher:
         """Set the zoom level for the current tab.
 
         The zoom can be given as argument or as [count]. If neither of both is
-        given, the zoom is set to 100%.
+        given, the zoom is set to the default zoom.
 
         Args:
             zoom: The zoom percentage to set.
             count: The zoom percentage to set.
         """
         try:
-            level = cmdutils.arg_or_count(zoom, count, default=100)
+            default = config.get('ui', 'default-zoom')
+            level = cmdutils.arg_or_count(zoom, count, default=default)
         except ValueError as e:
             raise cmdexc.CommandError(e)
         tab = self._current_widget()

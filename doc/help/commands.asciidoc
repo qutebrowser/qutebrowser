@@ -508,7 +508,7 @@ Syntax: +:zoom ['zoom']+
 
 Set the zoom level for the current tab.
 
-The zoom can be given as argument or as [count]. If neither of both is given, the zoom is set to 100%.
+The zoom can be given as argument or as [count]. If neither of both is given, the zoom is set to the default zoom.
 
 ==== positional arguments
 * +'zoom'+: The zoom percentage to set.
