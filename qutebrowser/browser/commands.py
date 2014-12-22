@@ -243,6 +243,17 @@ class CommandDispatcher:
                     "'previous'!")
         return None
 
+    @cmdutils.register(instance='command-dispatcher', name='fullscreen',
+                       scope='window')
+    def full_screen(self):
+        """Toggle fullscreen mode."""
+        main_window = objreg.get('main-window', scope='window',
+                                    window=self._win_id)
+        if main_window.isFullScreen():
+            main_window.showNormal()
+        else:
+            main_window.showFullScreen()
+
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_close(self, left=False, right=False, opposite=False,
                   count: {'special': 'count'}=None):
