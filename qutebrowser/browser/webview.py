@@ -115,9 +115,6 @@ class WebView(QWebView):
         page.mainFrame().loadStarted.connect(self.on_load_started)
         self.urlChanged.connect(self.on_url_changed)
         page.mainFrame().loadFinished.connect(self.on_load_finished)
-        page.scrollRequested.connect(self.on_scroll_requested)
-        # Calculate scroll position once
-        self.on_scroll_requested()
         self.loadProgress.connect(lambda p: setattr(self, 'progress', p))
         self.page().statusBarMessage.connect(
             lambda msg: setattr(self, 'statusbar_message', msg))
@@ -399,30 +396,6 @@ class WebView(QWebView):
             modeman.maybe_enter(self._win_id, usertypes.KeyMode.insert,
                                 'load finished')
 
-    @pyqtSlot()
-    def on_scroll_requested(self):
-        """Recalculate scroll percentage when the page got scrolled.
-
-        If necessary, we emit scroll_pos_changed so the statusbar percentage
-        updates.
-        """
-        QTimer.singleShot(0, self.update_scroll_perc)
-
-    @pyqtSlot()
-    def update_scroll_perc(self):
-        """Update the scroll position after on_scroll_requested."""
-        frame = self.page().mainFrame()
-        new_pos = (frame.scrollBarValue(Qt.Horizontal),
-                   frame.scrollBarValue(Qt.Vertical))
-        if self._old_scroll_pos != new_pos:
-            self._old_scroll_pos = new_pos
-            m = (frame.scrollBarMaximum(Qt.Horizontal),
-                 frame.scrollBarMaximum(Qt.Vertical))
-            perc = (round(100 * new_pos[0] / m[0]) if m[0] != 0 else 0,
-                    round(100 * new_pos[1] / m[1]) if m[1] != 0 else 0)
-            self.scroll_pos = perc
-            self.scroll_pos_changed.emit(*perc)
-
     @pyqtSlot(str)
     def set_force_open_target(self, target):
         """Change the forced link target. Setter for _force_open_target.
@@ -459,6 +432,33 @@ class WebView(QWebView):
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
         return tabbed_browser.tabopen(background=False)
+
+    def paintEvent(self, e):
+        """Extend paintEvent to emit a signal if the scroll position changed.
+
+        This is a bit of a hack: We listen to repaint requests here, in the
+        hope a repaint will always be requested when scrolling, and if the
+        scroll position actually changed, we emit a signal.
+
+        Args:
+            e: The QPaintEvent.
+
+        Return:
+            The superclass event return value.
+        """
+        frame = self.page().mainFrame()
+        new_pos = (frame.scrollBarValue(Qt.Horizontal),
+                   frame.scrollBarValue(Qt.Vertical))
+        if self._old_scroll_pos != new_pos:
+            self._old_scroll_pos = new_pos
+            m = (frame.scrollBarMaximum(Qt.Horizontal),
+                 frame.scrollBarMaximum(Qt.Vertical))
+            perc = (round(100 * new_pos[0] / m[0]) if m[0] != 0 else 0,
+                    round(100 * new_pos[1] / m[1]) if m[1] != 0 else 0)
+            self.scroll_pos = perc
+            self.scroll_pos_changed.emit(*perc)
+        # Let superclass handle the event
+        super().paintEvent(e)
 
     def mousePressEvent(self, e):
         """Extend QWidget::mousePressEvent().
