@@ -132,6 +132,7 @@ Contributors, sorted by the number of commits in descending order:
 * Mathias Fussenegger
 * Larry Hynes
 * Johannes Altmanninger
+* Regina Hug
 * Peter Vilim
 // QUTE_AUTHORS_END
 
