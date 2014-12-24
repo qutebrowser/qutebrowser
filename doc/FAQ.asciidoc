@@ -77,19 +77,19 @@ Is there an adblocker?::
 
 == Troubleshooting
 
-Configuration not saved after modifiying config.::
-    When editing your config file mannually, Qutebrowser must be exited completely.
+Configuration not saved after modifying config.::
+    When editing your config file manually, Qutebrowser must be exited completely.
     Either by issuing the command `:quit` or by pressing `ctrl+q` (`alt+F4` on windows).
 
 Unable to view flash content.::
-    If you have flash installed for on your system, it's nesscary to enable plugins
+    If you have flash installed for on your system, it's necessary to enable plugins
     to use the flash plugin. Using the command `:set content allow-plugins true`
     in qutebrowser will enable plugins. It may be helpful to close and re-open
     the browser to allow plugins to load properly. Packages for flash should
     be provided for your platform. Read any help documentation with regards to
     installing flash from your operating systems.  Flash can also be
     obtained from http://get.adobe.com/flashplayer/[Adobe].
-    This can also be set manaully in your config file located in
+    This can also be set manually in your config file located in
     `~/.config/qutebrowser/qutebrowser.conf` on *nix systems. Before editing be
     sure to exit completely. Locate the line `allow-plugins = false` and change
     to `allow-plugins = true` save the file and load your browser and enjoy flash!
@@ -105,7 +105,7 @@ Experiencing freezing on sites like duckduckgo and youtube.::
     for more details.
 
 Experiencing segfaults (crashes) on Debian systems.::
-    For Debian it's nessacary to install the `gstreamer0.10-plugins-base` package.
+    For Debian it's necessary to install the `gstreamer0.10-plugins-base` package.
     Either with apt-get or a tool like synaptic. With apt-get simply run 
     `sudo apt-get install gstreamer0.10-plugins-base` in a terminal or search 
     for the package name in synaptic and install like any other package.
