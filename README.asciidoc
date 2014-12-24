@@ -134,6 +134,7 @@ Contributors, sorted by the number of commits in descending order:
 * Johannes Altmanninger
 * Regina Hug
 * Peter Vilim
+* Helen Sherwood-Taylor
 // QUTE_AUTHORS_END
 
 The following people have contributed graphics:
