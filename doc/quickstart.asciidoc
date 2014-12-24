@@ -13,6 +13,7 @@ to make yourself familiar with the keybindings: +
 image:http://qutebrowser.org/img/cheatsheet-small.png["qutebrowser keybinding cheatsheet",link="http://qutebrowser.org/img/cheatsheet-big.png"]
 * If you just cloned the repository, you'll need to run
 `scripts/asciidoc2html.py` to generate the documentation.
+* Go to the link:qute://settings[settings page] to set up qutebrowser the way you want it.
 * Subscribe to
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[the mailinglist]
 where there are weekly "what's new in qutebrowser" posts.
