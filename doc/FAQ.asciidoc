@@ -79,7 +79,7 @@ Is there an adblocker?::
 
 Configuration not saved after modifying config.::
     When editing your config file manually, qutebrowser must be exited completely.
-    Either by issuing the command `:quit` or by pressing `ctrl+q` (`alt+F4` on windows).
+    Either by issuing the command `:quit` or by pressing `ctrl+q`.
 
 Unable to view flash content.::
     If you have flash installed for on your system, it's necessary to enable plugins
