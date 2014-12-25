@@ -132,7 +132,9 @@ Contributors, sorted by the number of commits in descending order:
 * Mathias Fussenegger
 * Larry Hynes
 * Johannes Altmanninger
+* Regina Hug
 * Peter Vilim
+* Helen Sherwood-Taylor
 // QUTE_AUTHORS_END
 
 The following people have contributed graphics:
@@ -164,7 +166,10 @@ WebKit, active)
 * http://www.vimperator.org/[Vimperator] (Firefox addon)
 * http://5digits.org/pentadactyl/[Pentadactyl] (Firefox addon)
 * https://github.com/akhodakivskiy/VimFx[VimFx] (Firefox addon)
+* https://github.com/1995eaton/chromium-vim[cVim] (Chrome/Chromium addon)
 * http://vimium.github.io/[vimium] (Chrome/Chromium addon)
+* https://chrome.google.com/webstore/detail/vichrome/gghkfhpblkcmlkmpcpgaajbbiikbhpdi?hl=en[ViChrome] (Chrome/Chromium addon)
+* https://github.com/jinzhu/vrome[Vrome] (Chrome/Chromium addon)
 
 Most of them were inspirations for qutebrowser in some way, thanks for that!
 
