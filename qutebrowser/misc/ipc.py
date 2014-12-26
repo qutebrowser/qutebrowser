@@ -152,11 +152,11 @@ class IPCServer(QObject):
                 return
             try:
                 args = json_data['args']
-                cwd = json_data['cwd']
             except KeyError:
                 log.ipc.error("Ignoring invalid IPC data.")
-                log.ipc.debug("no args/cwd: {}".format(decoded.strip()))
+                log.ipc.debug("no args: {}".format(decoded.strip()))
                 return
+            cwd = json_data.get('cwd', None)
             app = objreg.get('app')
             app.process_args(args, via_ipc=True, cwd=cwd)
 
@@ -211,7 +211,13 @@ def send_to_running_instance(cmdlist):
     connected = socket.waitForConnected(100)
     if connected:
         log.ipc.info("Opening in existing instance")
-        json_data = {'args': cmdlist, 'cwd': os.getcwd()}
+        json_data = {'args': cmdlist}
+        try:
+            cwd = os.getcwd()
+        except OSError:
+            pass
+        else:
+            json_data['cwd'] = cwd
         line = json.dumps(json_data) + '\n'
         data = line.encode('utf-8')
         log.ipc.debug("Writing: {}".format(data))

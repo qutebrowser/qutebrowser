@@ -318,13 +318,14 @@ class ExceptionCrashDialog(_CrashDialog):
                 ("Command history", '\n'.join(self._cmdhist)),
                 ("Objects", self._objects),
             ]
+        super()._gather_crash_info()
+        if self._chk_log.isChecked():
             try:
                 self._crash_info.append(
                     ("Debug log", log.ram_handler.dump_log()))
             except Exception:
                 self._crash_info.append(
                     ("Debug log", traceback.format_exc()))
-        super()._gather_crash_info()
 
     @pyqtSlot()
     def on_chk_report_toggled(self):
@@ -407,6 +408,7 @@ class ReportDialog(_CrashDialog):
         self._btn_report.clicked.connect(
             functools.partial(self.on_button_clicked, self._btn_report, True))
         self._hbox.addWidget(self._btn_report)
+        self._buttons = [self._btn_report]
 
     def _init_checkboxes(self, _debug):
         """We don't want any checkboxes as the user wanted to report."""

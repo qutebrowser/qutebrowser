@@ -574,6 +574,11 @@ class Application(QApplication):
             args = [sys.executable, '-m', 'qutebrowser']
             cwd = os.path.join(os.path.abspath(os.path.dirname(
                                qutebrowser.__file__)), '..')
+            if not os.path.isdir(cwd):
+                # Probably running from an python egg. Let's fallback to
+                # cwd=None and see if that works out.
+                # See https://github.com/The-Compiler/qutebrowser/issues/323
+                cwd = None
         for arg in sys.argv[1:]:
             if arg.startswith('-'):
                 # We only want to preserve options on a restart.
@@ -598,15 +603,15 @@ class Application(QApplication):
         log.destroy.debug("sys.path: {}".format(sys.path))
         log.destroy.debug("sys.argv: {}".format(sys.argv))
         log.destroy.debug("frozen: {}".format(hasattr(sys, 'frozen')))
-        args, cwd = self._get_restart_args(pages)
         # Open a new process and immediately shutdown the existing one
         try:
+            args, cwd = self._get_restart_args(pages)
             if cwd is None:
                 subprocess.Popen(args)
             else:
                 subprocess.Popen(args, cwd=cwd)
-        except OSError as e:
-            log.destroy.error("Failed to restart: {}".format(e))
+        except OSError:
+            log.destroy.exception("Failed to restart")
         else:
             if shutdown:
                 self.shutdown()
