@@ -605,8 +605,8 @@ class Application(QApplication):
                 subprocess.Popen(args)
             else:
                 subprocess.Popen(args, cwd=cwd)
-        except OSError as e:
-            log.destroy.error("Failed to restart: {}".format(e))
+        except OSError:
+            log.destroy.exception("Failed to restart")
         else:
             if shutdown:
                 self.shutdown()
