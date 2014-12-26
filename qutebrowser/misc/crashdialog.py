@@ -408,6 +408,7 @@ class ReportDialog(_CrashDialog):
         self._btn_report.clicked.connect(
             functools.partial(self.on_button_clicked, self._btn_report, True))
         self._hbox.addWidget(self._btn_report)
+        self._buttons = [self._btn_report]
 
     def _init_checkboxes(self, _debug):
         """We don't want any checkboxes as the user wanted to report."""
