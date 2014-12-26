@@ -136,9 +136,12 @@ def fuzzy_url(urlstr, cwd=None):
     if cwd:
         path = os.path.join(cwd, os.path.expanduser(urlstr))
     else:
-        path = os.path.abspath(os.path.expanduser(urlstr))
+        try:
+            path = os.path.abspath(os.path.expanduser(urlstr))
+        except OSError:
+            path = None
     stripped = urlstr.strip()
-    if os.path.exists(path):
+    if path is not None and os.path.exists(path):
         log.url.debug("URL is a local file")
         url = QUrl.fromLocalFile(path)
     elif is_url(stripped):

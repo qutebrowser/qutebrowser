@@ -598,9 +598,9 @@ class Application(QApplication):
         log.destroy.debug("sys.path: {}".format(sys.path))
         log.destroy.debug("sys.argv: {}".format(sys.argv))
         log.destroy.debug("frozen: {}".format(hasattr(sys, 'frozen')))
-        args, cwd = self._get_restart_args(pages)
         # Open a new process and immediately shutdown the existing one
         try:
+            args, cwd = self._get_restart_args(pages)
             if cwd is None:
                 subprocess.Popen(args)
             else:

@@ -64,7 +64,7 @@ def _git_str():
         try:
             gitpath = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    os.path.pardir, os.path.pardir)
-        except NameError:
+        except (NameError, OSError):
             log.misc.exception("Error while getting git path")
         else:
             commit = _git_str_subprocess(gitpath)
