@@ -267,15 +267,17 @@ class DownloadItem(QObject):
         else:
             self.set_fileobj(fileobj)
 
-    def _create_overwrite_question(self):
+    def _ask_overwrite_question(self):
         """Create a Question object to be asked."""
         q = usertypes.Question(self)
-        q.text = " already exists. Overwrite? (y/n)"
+        q.text = self._filename + " already exists. Overwrite? (y/n)"
         q.mode = usertypes.PromptMode.yesno
         q.answered_yes.connect(self._create_fileobj)
         q.answered_no.connect(functools.partial(self.cancel, False))
         q.cancelled.connect(functools.partial(self.cancel, False))
-        return q
+        message_bridge = objreg.get('message-bridge', scope='window',
+                                    window=self._win_id)
+        message_bridge.ask(q, blocking=False)
 
     def _die(self, msg):
         """Abort the download and emit an error."""
@@ -405,11 +407,7 @@ class DownloadItem(QObject):
         if os.path.isfile(self._filename):
             # The file already exists, so ask the user if it should be
             # overwritten.
-            q = self._create_overwrite_question()
-            q.text = self._filename + q.text
-            message_bridge = objreg.get('message-bridge', scope='window',
-                                        window=self._win_id)
-            message_bridge.ask(q, blocking=False)
+            self._ask_overwrite_question()
         else:
             self._create_fileobj()
 
