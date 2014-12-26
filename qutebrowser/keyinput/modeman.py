@@ -287,9 +287,6 @@ class ModeManager(QObject):
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
         if mode not in self._handlers:
             raise ValueError("No handler for mode {}".format(mode))
-        if self.mode_stack and self.mode_stack[-1] == mode:
-            log.modes.debug("Already at end of stack, doing nothing")
-            return
         self.mode_stack.append(mode)
         log.modes.debug("New mode stack: {}".format(self.mode_stack))
         self.entered.emit(mode, self._win_id)
