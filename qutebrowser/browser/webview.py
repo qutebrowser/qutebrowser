@@ -97,13 +97,13 @@ class WebView(QWebView):
         self._zoom = None
         self._has_ssl_errors = False
         self.init_neighborlist()
-        config = objreg.get('config')
-        config.changed.connect(self.init_neighborlist)
+        cfg = objreg.get('config')
+        cfg.changed.connect(self.init_neighborlist)
         # For some reason, this signal doesn't get disconnected automatically
         # when the WebView is destroyed on older PyQt versions.
         # See https://github.com/The-Compiler/qutebrowser/issues/390
         self.destroyed.connect(functools.partial(
-            config.changed.disconnect, self.init_neighborlist))
+            cfg.changed.disconnect, self.init_neighborlist))
         self._cur_url = None
         self.cur_url = QUrl()
         self.progress = 0
