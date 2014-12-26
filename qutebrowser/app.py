@@ -574,6 +574,11 @@ class Application(QApplication):
             args = [sys.executable, '-m', 'qutebrowser']
             cwd = os.path.join(os.path.abspath(os.path.dirname(
                                qutebrowser.__file__)), '..')
+            if not os.path.isdir(cwd):
+                # Probably running from an python egg. Let's fallback to
+                # cwd=None and see if that works out.
+                # See https://github.com/The-Compiler/qutebrowser/issues/323
+                cwd = None
         for arg in sys.argv[1:]:
             if arg.startswith('-'):
                 # We only want to preserve options on a restart.
