@@ -41,6 +41,11 @@ FIRST_COMMENT = r"""
 
 # Configfile for qutebrowser.
 #
+# WARNING:
+#
+# This config file will be OVERWRITTEN when closing qutebrowser.
+# Close qutebrowser before changing this file, or YOUR CHANGES WILL BE LOST.
+#
 # This configfile is parsed by python's configparser in extended
 # interpolation mode. The format is very INI-like, so there are
 # categories like [general] with "key = value"-pairs.
