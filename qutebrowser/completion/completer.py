@@ -177,7 +177,11 @@ class Completer(QObject):
                 return
         except IndexError:
             pass
+        log.completion.debug("Before filtering flags: parts {}, cursor_part "
+                             "{}".format(parts, cursor_part))
         parts, cursor_part = self._filter_cmdline_parts(parts, cursor_part)
+        log.completion.debug("After filtering flags: parts {}, cursor_part "
+                             "{}".format(parts, cursor_part))
         if cursor_part == 0:
             # '|' or 'set|'
             return self._models[usertypes.Completion.command]
@@ -359,28 +363,33 @@ class Completer(QObject):
             "text: {}, parts: {}, cursor_pos after removing prefix '{}': "
             "{}".format(self._cmd.text(), parts, self._cmd.prefix(),
                         cursor_pos))
+        skip = 0
         for i, part in enumerate(parts):
             log.completion.vdebug("Checking part {}: {}".format(i, parts[i]))
+            if not part:
+                skip += 1
+                continue
             if cursor_pos <= len(part):
                 # foo| bar
-                self._cursor_part = i
+                self._cursor_part = i - skip
                 if spaces:
-                    self._empty_item_idx = i
+                    self._empty_item_idx = i - skip
                 else:
                     self._empty_item_idx = None
                 log.completion.vdebug("cursor_pos {} <= len(part) {}, "
-                                      "setting cursor_part {}, empty_item_idx "
-                                      "{}".format(cursor_pos, len(part), i,
-                                                  self._empty_item_idx))
+                                      "setting cursor_part {} - {} (skip), "
+                                      "empty_item_idx {}".format(
+                                          cursor_pos, len(part), i, skip,
+                                          self._empty_item_idx))
                 break
             cursor_pos -= len(part)
             log.completion.vdebug(
                 "Removing len({!r}) -> {} from cursor_pos -> {}".format(
                     part, len(part), cursor_pos))
         else:
-            self._cursor_part = i
+            self._cursor_part = i - skip
             if spaces:
-                self._empty_item_idx = i
+                self._empty_item_idx = i - skip
             else:
                 self._empty_item_idx = None
         log.completion.debug("cursor_part {}, spaces {}".format(
