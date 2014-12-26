@@ -19,6 +19,7 @@
 
 """Manager for questions to be shown in the statusbar."""
 
+import sip
 import collections
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QObject
@@ -95,7 +96,12 @@ class Prompter(QObject):
         """Pop a question from the queue and ask it, if there are any."""
         log.statusbar.debug("Popping from queue {}".format(self._queue))
         if self._queue:
-            self.ask_question(self._queue.popleft(), blocking=False)
+            question = self._queue.popleft()
+            if not sip.isdeleted(question):
+                # the question could already be deleted, e.g. by a cancelled
+                # download. See
+                # https://github.com/The-Compiler/qutebrowser/issues/415
+                self.ask_question(question, blocking=False)
 
     def _get_ctx(self):
         """Get a PromptContext based on the current state."""
