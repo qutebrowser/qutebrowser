@@ -150,6 +150,9 @@ class Completer(QObject):
         Return:
             A (parts, cursor_part) tuple with the modified values.
         """
+        if parts == ['']:
+            # Empty commandline, i.e. only :.
+            return [''], 0
         filtered_parts = []
         for i, part in enumerate(parts):
             if part == '--':
