@@ -109,6 +109,18 @@ class Application(QApplication):
         if sent:
             sys.exit(0)
 
+        log.init.debug("Starting IPC server...")
+        try:
+            ipc.init()
+        except ipc.IPCError as e:
+            text = ('{}\n\nMaybe another instance is running but '
+                    'frozen?'.format(e))
+            msgbox = QMessageBox(QMessageBox.Critical, "Error while "
+                                 "connecting to running instance!", text)
+            msgbox.exec_()
+            # We didn't really initialize much so far, so we just quit hard.
+            sys.exit(1)
+
         log.init.debug("Starting init...")
         self.setQuitOnLastWindowClosed(False)
         self.setOrganizationName("qutebrowser")
@@ -134,9 +146,6 @@ class Application(QApplication):
 
         log.init.debug("Applying python hacks...")
         self._python_hacks()
-
-        log.init.debug("Starting IPC server...")
-        ipc.init()
 
         QDesktopServices.setUrlHandler('http', self.open_desktopservices_url)
         QDesktopServices.setUrlHandler('https', self.open_desktopservices_url)
