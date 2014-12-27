@@ -671,7 +671,7 @@ class HintManager(QObject):
             raise cmdexc.CommandError("No frame focused!")
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=self._win_id)
-        if usertypes.KeyMode.hint in mode_manager.mode_stack:
+        if mode_manager.mode == usertypes.KeyMode.hint:
             raise cmdexc.CommandError("Already hinting!")
         self._check_args(target, *args)
         self._context = HintContext()
@@ -689,11 +689,8 @@ class HintManager(QObject):
                                     window=self._win_id)
         message_bridge.set_text(self.HINT_TEXTS[target])
         self._connect_frame_signals()
-        try:
-            modeman.enter(self._win_id, usertypes.KeyMode.hint,
-                          'HintManager.start')
-        except modeman.ModeLockedError:
-            self._cleanup()
+        modeman.enter(self._win_id, usertypes.KeyMode.hint,
+                      'HintManager.start')
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""

@@ -119,6 +119,10 @@ class WebView(QWebView):
         hintmanager.mouse_event.connect(self.on_mouse_event)
         hintmanager.set_open_target.connect(self.set_force_open_target)
         objreg.register('hintmanager', hintmanager, registry=self.registry)
+        mode_manager = objreg.get('mode-manager', scope='window',
+                                  window=win_id)
+        mode_manager.entered.connect(self.on_mode_entered)
+        mode_manager.left.connect(self.on_mode_left)
         page.linkHovered.connect(self.linkHovered)
         page.mainFrame().loadStarted.connect(self.on_load_started)
         self.urlChanged.connect(self.on_url_changed)
@@ -235,8 +239,8 @@ class WebView(QWebView):
         if ((hitresult.isContentEditable() and elem.is_writable()) or
                 elem.is_editable()):
             log.mouse.debug("Clicked editable element!")
-            modeman.maybe_enter(self._win_id, usertypes.KeyMode.insert,
-                                'click')
+            modeman.enter(self._win_id, usertypes.KeyMode.insert, 'click',
+                          only_if_normal=True)
         else:
             log.mouse.debug("Clicked non-editable element!")
             if config.get('input', 'auto-leave-insert-mode'):
@@ -255,8 +259,8 @@ class WebView(QWebView):
             return
         if elem.is_editable():
             log.mouse.debug("Clicked editable element (delayed)!")
-            modeman.maybe_enter(self._win_id, usertypes.KeyMode.insert,
-                                'click-delayed')
+            modeman.enter(self._win_id, usertypes.KeyMode.insert,
+                          'click-delayed', only_if_normal=True)
         else:
             log.mouse.debug("Clicked non-editable element (delayed)!")
             if config.get('input', 'auto-leave-insert-mode'):
@@ -397,7 +401,7 @@ class WebView(QWebView):
             return
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=self._win_id)
-        cur_mode = mode_manager.mode()
+        cur_mode = mode_manager.mode
         if cur_mode == usertypes.KeyMode.insert or not ok:
             return
         frame = self.page().currentFrame()
@@ -408,8 +412,26 @@ class WebView(QWebView):
             return
         log.modes.debug("focus element: {}".format(repr(elem)))
         if elem.is_editable():
-            modeman.maybe_enter(self._win_id, usertypes.KeyMode.insert,
-                                'load finished')
+            modeman.enter(self._win_id, usertypes.KeyMode.insert,
+                          'load finished', only_if_normal=True)
+
+    @pyqtSlot(usertypes.KeyMode)
+    def on_mode_entered(self, mode):
+        """Ignore attempts to focus the widget if in any status-input mode."""
+        if mode in (usertypes.KeyMode.command, usertypes.KeyMode.prompt,
+                    usertypes.KeyMode.yesno):
+            log.webview.debug("Ignoring focus because mode {} was "
+                              "entered.".format(mode))
+            self.setFocusPolicy(Qt.NoFocus)
+
+    @pyqtSlot(usertypes.KeyMode)
+    def on_mode_left(self, mode):
+        """Restore focus policy if status-input modes were left."""
+        if mode in (usertypes.KeyMode.command, usertypes.KeyMode.prompt,
+                    usertypes.KeyMode.yesno):
+            log.webview.debug("Restoring focus policy because mode {} was "
+                              "left.".format(mode))
+        self.setFocusPolicy(Qt.WheelFocus)
 
     @pyqtSlot(str)
     def set_force_open_target(self, target):

@@ -90,6 +90,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         """
         self.setText(text)
         log.modes.debug("Setting command text, focusing {!r}".format(self))
+        modeman.enter(self._win_id, usertypes.KeyMode.command, 'cmd focus')
         self.setFocus()
         self.show_cmd.emit()
 
@@ -182,12 +183,6 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             self.hide_cmd.emit()
             self.clear_completion_selection.emit()
             self.hide_completion.emit()
-
-    def focusInEvent(self, e):
-        """Extend focusInEvent to enter command mode."""
-        modeman.maybe_enter(self._win_id, usertypes.KeyMode.command,
-                            'cmd focus')
-        super().focusInEvent(e)
 
     def setText(self, text):
         """Extend setText to set prefix and make sure the prompt is ok."""

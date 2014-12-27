@@ -320,15 +320,7 @@ class Prompter(QObject):
         mode = self._display_question()
         question.aborted.connect(
             lambda: modeman.maybe_leave(self._win_id, mode, 'aborted'))
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=self._win_id)
-        try:
-            modeman.enter(self._win_id, mode, 'question asked', override=True)
-        except modeman.ModeLockedError:
-            if mode_manager.mode() != usertypes.KeyMode.prompt:
-                question.abort()
-                return None
-        mode_manager.locked = True
+        modeman.enter(self._win_id, mode, 'question asked')
         if blocking:
             loop = qtutils.EventLoop()
             self._loops.append(loop)

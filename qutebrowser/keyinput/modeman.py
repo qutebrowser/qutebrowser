@@ -35,11 +35,6 @@ from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import usertypes, log, objreg, utils
 
 
-class ModeLockedError(Exception):
-
-    """Exception raised when the mode is currently locked."""
-
-
 class NotInModeError(Exception):
 
     """Exception raised when we want to leave a mode we're not in."""
@@ -82,22 +77,14 @@ def _get_modeman(win_id):
     return objreg.get('mode-manager', scope='window', window=win_id)
 
 
-def enter(win_id, mode, reason=None, override=False):
+def enter(win_id, mode, reason=None, only_if_normal=False):
     """Enter the mode 'mode'."""
-    _get_modeman(win_id).enter(mode, reason, override)
+    _get_modeman(win_id).enter(mode, reason, only_if_normal)
 
 
 def leave(win_id, mode, reason=None):
     """Leave the mode 'mode'."""
     _get_modeman(win_id).leave(mode, reason)
-
-
-def maybe_enter(win_id, mode, reason=None, override=False):
-    """Convenience method to enter 'mode' without exceptions."""
-    try:
-        _get_modeman(win_id).enter(mode, reason, override)
-    except ModeLockedError:
-        pass
 
 
 def maybe_leave(win_id, mode, reason=None):
@@ -141,11 +128,7 @@ class ModeManager(QObject):
 
     Attributes:
         passthrough: A list of modes in which to pass through events.
-        locked: Whether current mode is locked. This means the current mode can
-                still be left (then locked will be reset), but no new mode can
-                be entered while the current mode is active.
-        mode_stack: A list of the modes we're currently in, with the active
-                    one on the right.
+        mode: The mode we're currently in.
         _win_id: The window ID of this ModeManager
         _handlers: A dictionary of modes and their handlers.
         _forward_unbound_keys: If we should forward unbound keys.
@@ -169,24 +152,17 @@ class ModeManager(QObject):
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
-        self.locked = False
         self._handlers = {}
         self.passthrough = []
-        self.mode_stack = []
+        self.mode = usertypes.KeyMode.none
         self._releaseevents_to_pass = []
         self._forward_unbound_keys = config.get(
             'input', 'forward-unbound-keys')
         objreg.get('config').changed.connect(self.set_forward_unbound_keys)
 
     def __repr__(self):
-        return utils.get_repr(self, mode=self.mode(), locked=self.locked,
+        return utils.get_repr(self, mode=self.mode,
                               passthrough=self.passthrough)
-
-    def mode(self):
-        """Get the current mode.."""
-        if not self.mode_stack:
-            return None
-        return self.mode_stack[-1]
 
     def _eventFilter_keypress(self, event):
         """Handle filtering of KeyPress events.
@@ -197,7 +173,7 @@ class ModeManager(QObject):
         Return:
             True if event should be filtered, False otherwise.
         """
-        curmode = self.mode()
+        curmode = self.mode
         handler = self._handlers[curmode]
         if curmode != usertypes.KeyMode.insert:
             log.modes.debug("got keypress in mode {} - calling handler "
@@ -245,7 +221,7 @@ class ModeManager(QObject):
             filter_this = False
         else:
             filter_this = True
-        if self.mode() != usertypes.KeyMode.insert:
+        if self.mode != usertypes.KeyMode.insert:
             log.modes.debug("filter: {}".format(filter_this))
         return filter_this
 
@@ -264,31 +240,33 @@ class ModeManager(QObject):
         if passthrough:
             self.passthrough.append(mode)
 
-    def enter(self, mode, reason=None, override=False):
+    def enter(self, mode, reason=None, only_if_normal=False):
         """Enter a new mode.
 
         Args:
             mode: The mode to enter as a KeyMode member.
             reason: Why the mode was entered.
-            override: Override a locked mode.
+            only_if_normal: Only enter the new mode if we're in normal mode.
         """
         if not isinstance(mode, usertypes.KeyMode):
             raise TypeError("Mode {} is no KeyMode member!".format(mode))
-        if self.locked:
-            if override:
-                log.modes.debug("Locked to mode {}, but overriding to "
-                                "{}.".format(self.mode(), mode))
-            else:
-                log.modes.debug("Not entering mode {} because mode is locked "
-                                "to {}.".format(mode, self.mode()))
-                raise ModeLockedError("Mode is currently locked to {}".format(
-                    self.mode()))
         log.modes.debug("Entering mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
         if mode not in self._handlers:
             raise ValueError("No handler for mode {}".format(mode))
-        self.mode_stack.append(mode)
-        log.modes.debug("New mode stack: {}".format(self.mode_stack))
+        if self.mode == mode:
+            log.modes.debug("Ignoring request as we're in mode {} "
+                            "already.".format(self.mode))
+            return
+        if self.mode != usertypes.KeyMode.normal:
+            if only_if_normal:
+                log.modes.debug("Ignoring request as we're in mode {} "
+                                "and only_if_normal is set..".format(
+                                    self.mode))
+                return
+            log.modes.debug("Overriding mode {}.".format(self.mode))
+            self.left.emit(self.mode, mode, self._win_id)
+        self.mode = mode
         self.entered.emit(mode, self._win_id)
 
     @cmdutils.register(instance='mode-manager', hide=True, scope='window')
@@ -311,24 +289,21 @@ class ModeManager(QObject):
             mode: The name of the mode to leave.
             reason: Why the mode was left.
         """
-        try:
-            self.mode_stack.remove(mode)
-        except ValueError:
-            raise NotInModeError("Mode {} not on mode stack!".format(mode))
-        self.locked = False
-        log.modes.debug("Leaving mode {}{}, new mode stack {}".format(
-            mode, '' if reason is None else ' (reason: {})'.format(reason),
-            self.mode_stack))
-        self.left.emit(mode, self.mode(), self._win_id)
+        if self.mode != mode:
+            raise NotInModeError("Not in mode {}!".format(mode))
+        log.modes.debug("Leaving mode {}{}".format(
+            mode, '' if reason is None else ' (reason: {})'.format(reason)))
+        self.mode = usertypes.KeyMode.normal
+        self.left.emit(mode, self.mode, self._win_id)
 
     @cmdutils.register(instance='mode-manager', name='leave-mode',
                        not_modes=[usertypes.KeyMode.normal], hide=True,
                        scope='window')
     def leave_current_mode(self):
         """Leave the mode we're currently in."""
-        if self.mode() == usertypes.KeyMode.normal:
+        if self.mode == usertypes.KeyMode.normal:
             raise ValueError("Can't leave normal mode!")
-        self.leave(self.mode(), 'leave current')
+        self.leave(self.mode, 'leave current')
 
     @config.change_filter('input', 'forward-unbound-keys')
     def set_forward_unbound_keys(self):
@@ -347,7 +322,7 @@ class ModeManager(QObject):
         Return:
             True if event should be filtered, False otherwise.
         """
-        if self.mode() is None:
+        if self.mode is None:
             # We got events before mode is set, so just pass them through.
             return False
         typ = event.type()

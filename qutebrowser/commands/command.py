@@ -106,7 +106,7 @@ class Command:
         """
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)
-        curmode = mode_manager.mode()
+        curmode = mode_manager.mode
         if self._modes is not None and curmode not in self._modes:
             mode_names = '/'.join(mode.name for mode in self._modes)
             raise cmdexc.PrerequisitesError(
