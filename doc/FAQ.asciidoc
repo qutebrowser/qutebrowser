@@ -79,47 +79,39 @@ Is there an adblocker?::
 
 Configuration not saved after modifying config.::
     When editing your config file manually, qutebrowser must be exited completely.
-    Either by issuing the command `:quit` or by pressing `ctrl+q`.
+    This can be done by issuing the command `:quit` or by pressing `Ctrl+q`.
 
 Unable to view flash content.::
     If you have flash installed for on your system, it's necessary to enable plugins
     to use the flash plugin. Using the command `:set content allow-plugins true`
     in qutebrowser will enable plugins. Packages for flash should
-    be provided for your platform. Read any help documentation with regards to
-    installing flash from your operating systems.  Flash can also be
-    obtained from http://get.adobe.com/flashplayer/[Adobe].
-    This can also be set manually in your config file located in
-    `~/.config/qutebrowser/qutebrowser.conf` on *nix systems. Before editing be
-    sure to exit completely. Locate the line `allow-plugins = false` and change
-    to `allow-plugins = true` save the file and load your browser and enjoy flash!
+    be provided for your platform or it can be obtained from
+    http://get.adobe.com/flashplayer/[Adobe].
 
 Experiencing freezing on sites like duckduckgo and youtube.::
-    When visiting some pages and you experience freezing and you are unable to close or
-    exit the browser. In some cases this can be solved by disabling plugins, or checking if you have
-    a package installed called mozplugger on your system. On Archlinux
-    and Debian/Ubuntu systems the package is called mozplugger. After removing the
-    package, you may need to also delete a few files in your home plugin dir. They are
-    named `~/.mozilla/plugins/mozplugger*.so`. Be sure to exit the browser completely before
-    removing any plugins manually. See https://github.com/The-Compiler/qutebrowser/issues/357[Issue #357]
+    This issue could be caused by stale plugin files installed by `mozplugger`
+    if mozplugger was subsequently removed.
+    Try exiting qutebroser and removing `~/.mozilla/plugins/mozplugger*.so`.
+    See https://github.com/The-Compiler/qutebrowser/issues/357[Issue #357]
     for more details.
 
 Experiencing segfaults (crashes) on Debian systems.::
-    For Debian it's necessary to install the `gstreamer0.10-plugins-base` package.
+    For Debian it's highly recommended to install the `gstreamer0.10-plugins-base` package.
     This is a workaround for a bug in Qt, it has been fixed upstream in Qt 5.4
     More details can be found
     https://bugs.webkit.org/show_bug.cgi?id=119951[here].
 
-Segfaults on Facebook, Medium, Amazon.::
+Segfaults on Facebook, Medium, Amazon, ...::
     If you are on a Debian or Ubuntu based system, you might experience some crashes
-    visting these sites. It's caused by a known bug in Qt. But resolved in Qt 5.4. However
-    Debian and Ubuntu are slow to adopt or upgrade some packages. There is currently no
-    way at this time to manually upgrade to Qt 5.4 without issue.
+    visting these sites. This is caused by a known bug in Qt which has been
+    fixed in Qt 5.4. However Debian and Ubuntu are slow to adopt or upgrade
+    some packages. There is currently no easy way to manually upgrade to Qt
+    5.4 on those systems.
 
 My issue is not listed.::
-    If you experience any segfaults or crashes, you can report the issue on
-    https://github.com/The-Compiler/qutebrowser/issues[qutebrowser issues].
-    Be sure to read over how to create a stacktrace to report crashes of unknown cause
-    by visiting https://github.com/The-Compiler/qutebrowser/blob/master/doc/stacktrace.asciidoc[reporting segfaults].
-
-// We link to github rather than to the file here so it also works with the
-// qutebrowser :help because that doesn't render HACKING.
+    If you experience any segfaults or crashes, you can report the issue in
+    https://github.com/The-Compiler/qutebrowser/issues[the issue tracker] or
+    using the `:report` command.
+    If you are reporting a segfault, make sure you read the
+    https://github.com/The-Compiler/qutebrowser/blob/master/doc/stacktrace.asciidoc[guide]
+    on how to report them with all needed information.
