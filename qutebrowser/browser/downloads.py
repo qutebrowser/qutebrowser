@@ -194,7 +194,7 @@ class DownloadItem(QObject):
     redirected = pyqtSignal(QNetworkRequest, QNetworkReply)
     do_retry = pyqtSignal('QNetworkReply')
 
-    def __init__(self, reply, parent=None):
+    def __init__(self, reply, win_id, parent=None):
         """Constructor.
 
         Args:
@@ -218,7 +218,7 @@ class DownloadItem(QObject):
         self.fileobj = None
         self._filename = None
         self.init_reply(reply)
-        self._win_id = parent._win_id
+        self._win_id = win_id
 
     def __repr__(self):
         return utils.get_repr(self, basename=self.basename)
@@ -694,7 +694,7 @@ class DownloadManager(QAbstractListModel):
             _inline, suggested_filename = http.parse_content_disposition(reply)
         log.downloads.debug("fetch: {} -> {}".format(reply.url(),
                                                      suggested_filename))
-        download = DownloadItem(reply, self)
+        download = DownloadItem(reply, self._win_id, self)
         download.cancelled.connect(
             functools.partial(self.remove_item, download))
         if config.get('ui', 'remove-finished-downloads') or auto_remove:
