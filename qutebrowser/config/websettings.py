@@ -34,7 +34,8 @@ from PyQt5.QtCore import QStandardPaths
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, standarddir, objreg
 
-MapType = usertypes.enum('MapType', ['attribute', 'setter', 'static_setter'])
+MapType = usertypes.enum('MapType', ['attribute', 'setter', 'setter_none',
+                                     'static_setter'])
 
 
 MAPPINGS = {
@@ -70,22 +71,22 @@ MAPPINGS = {
     },
     'fonts': {
         'web-family-standard':
-            (MapType.setter, lambda qws, v:
+            (MapType.setter_none, lambda qws, v:
                 qws.setFontFamily(QWebSettings.StandardFont, v)),
         'web-family-fixed':
-            (MapType.setter, lambda qws, v:
+            (MapType.setter_none, lambda qws, v:
                 qws.setFontFamily(QWebSettings.FixedFont, v)),
         'web-family-serif':
-            (MapType.setter, lambda qws, v:
+            (MapType.setter_none, lambda qws, v:
                 qws.setFontFamily(QWebSettings.SerifFont, v)),
         'web-family-sans-serif':
-            (MapType.setter, lambda qws, v:
+            (MapType.setter_none, lambda qws, v:
                 qws.setFontFamily(QWebSettings.SansSerifFont, v)),
         'web-family-cursive':
-            (MapType.setter, lambda qws, v:
+            (MapType.setter_none, lambda qws, v:
                 qws.setFontFamily(QWebSettings.CursiveFont, v)),
         'web-family-fantasy':
-            (MapType.setter, lambda qws, v:
+            (MapType.setter_none, lambda qws, v:
                 qws.setFontFamily(QWebSettings.FantasyFont, v)),
         'web-size-minimum':
             (MapType.setter, lambda qws, v:
@@ -106,7 +107,7 @@ MAPPINGS = {
         'frame-flattening':
             (MapType.attribute, QWebSettings.FrameFlatteningEnabled),
         'user-stylesheet':
-            (MapType.setter, lambda qws, v: qws.setUserStyleSheetUrl(v)),
+            (MapType.setter_none, lambda qws, v: qws.setUserStyleSheetUrl(v)),
         'css-media-type':
             (MapType.setter, lambda qws, v: qws.setCSSMediaType(v)),
         #'accelerated-compositing':
@@ -147,7 +148,8 @@ MAPPINGS = {
         'site-specific-quirks':
             (MapType.attribute, QWebSettings.SiteSpecificQuirksEnabled),
         'default-encoding':
-            (MapType.setter, lambda qws, v: qws.setDefaultTextEncoding(v)),
+            (MapType.setter_none, lambda qws, v:
+                qws.setDefaultTextEncoding(v)),
     }
 }
 
@@ -159,8 +161,7 @@ def _set_setting(typ, arg, value):
     """Set a QWebSettings setting.
 
     Args:
-        typ: The type of the item
-             (MapType.attribute/MapType.setter/MapType.static_setter)
+        typ: The type of the item.
         arg: The argument (attribute/handler)
         value: The value to set.
     """
@@ -168,6 +169,10 @@ def _set_setting(typ, arg, value):
         raise TypeError("Type {} is no MapType member!".format(typ))
     if typ == MapType.attribute:
         settings.setAttribute(arg, value)
+    elif typ == MapType.setter_none:
+        if value is None:
+            value = ""
+        arg(settings, value)
     elif typ == MapType.setter and value is not None:
         arg(settings, value)
     elif typ == MapType.static_setter and value is not None:
