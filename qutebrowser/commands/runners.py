@@ -166,12 +166,11 @@ class CommandRunner(QObject):
         self._args = []
         self._win_id = win_id
 
-    def _get_alias(self, text, alias_no_args):
+    def _get_alias(self, text):
         """Get an alias from the config.
 
         Args:
             text: The text to parse.
-            alias_no_args: Whether to apply an alias if there are no arguments.
 
         Return:
             None if no alias was found.
@@ -185,16 +184,12 @@ class CommandRunner(QObject):
         try:
             new_cmd = '{} {}'.format(alias, parts[1])
         except IndexError:
-            if alias_no_args:
-                new_cmd = alias
-            else:
-                new_cmd = parts[0]
+            new_cmd = alias
         if text.endswith(' '):
             new_cmd += ' '
         return new_cmd
 
-    def parse(self, text, aliases=True, fallback=False, alias_no_args=True,
-              keep=False):
+    def parse(self, text, aliases=True, fallback=False, keep=False):
         """Split the commandline text into command and arguments.
 
         Args:
@@ -202,7 +197,6 @@ class CommandRunner(QObject):
             aliases: Whether to handle aliases.
             fallback: Whether to do a fallback splitting when the command was
                       unknown.
-            alias_no_args: Whether to apply an alias if there are no arguments.
             keep: Whether to keep special chars and whitespace
 
         Return:
@@ -212,7 +206,7 @@ class CommandRunner(QObject):
         if not cmdstr and not fallback:
             raise cmdexc.NoSuchCommandError("No command given")
         if aliases:
-            new_cmd = self._get_alias(text, alias_no_args)
+            new_cmd = self._get_alias(text)
             if new_cmd is not None:
                 log.commands.debug("Re-parsing with '{}'.".format(new_cmd))
                 return self.parse(new_cmd, aliases=False, fallback=fallback,

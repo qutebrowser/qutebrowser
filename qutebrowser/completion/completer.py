@@ -326,11 +326,12 @@ class Completer(QObject):
         if completion.enabled:
             completion.show()
 
-    def split(self, keep=False):
+    def split(self, keep=False, aliases=False):
         """Get the text split up in parts.
 
         Args:
             keep: Whether to keep special chars and whitespace.
+            aliases: Whether to resolve aliases.
         """
         text = self._cmd.text()[len(self._cmd.prefix()):]
         if not text:
@@ -342,8 +343,7 @@ class Completer(QObject):
             # the whitespace.
             return [text]
         runner = runners.CommandRunner(self._win_id)
-        parts = runner.parse(text, fallback=True, alias_no_args=False,
-                             keep=keep)
+        parts = runner.parse(text, fallback=True, aliases=aliases, keep=keep)
         if self._empty_item_idx is not None:
             log.completion.debug("Empty element queued at {}, "
                                  "inserting.".format(self._empty_item_idx))
