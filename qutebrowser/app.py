@@ -32,7 +32,7 @@ import traceback
 import faulthandler
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
-from PyQt5.QtGui import QDesktopServices
+from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
                           QStandardPaths, QObject, Qt)
 
@@ -126,6 +126,7 @@ class Application(QApplication):
         self.setOrganizationName("qutebrowser")
         self.setApplicationName("qutebrowser")
         self.setApplicationVersion(qutebrowser.__version__)
+        self._init_icon()
         utils.actute_warning()
         try:
             self._init_modules()
@@ -196,6 +197,21 @@ class Application(QApplication):
             False if self._args.nowindow else True)
         main_window = objreg.get('main-window', scope='window', window=win_id)
         self.setActiveWindow(main_window)
+
+    def _init_icon(self):
+        """Initialize the icon of qutebrowser."""
+        icon = QIcon()
+        for size in (16, 24, 32, 48, 64, 96, 128, 256, 512):
+            filename = 'icons/qutebrowser-{}x{}.png'.format(size, size)
+            data = utils.read_file(filename, binary=True, use_requirement=True)
+            pixmap = QPixmap()
+            ok = pixmap.loadFromData(data, 'PNG')
+            if not ok:
+                raise ValueError("Could not load icon!")
+            qtutils.ensure_not_null(pixmap)
+            icon.addPixmap(pixmap)
+        qtutils.ensure_not_null(icon)
+        self.setWindowIcon(icon)
 
     def _handle_segfault(self):
         """Handle a segfault from a previous run."""

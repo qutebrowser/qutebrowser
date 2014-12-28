@@ -23,6 +23,7 @@
 
 import os
 import os.path
+import glob
 
 from scripts import setupcommon as common
 
@@ -45,6 +46,7 @@ try:
         test_suite='qutebrowser.test',
         zip_safe=True,
         install_requires=['pypeg2', 'jinja2', 'pygments'],
+        data_files=[('icons', glob.glob('icons/*'))],
         **common.setupdata
     )
 finally:

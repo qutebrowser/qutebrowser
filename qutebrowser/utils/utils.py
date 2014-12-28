@@ -64,13 +64,15 @@ def compact_text(text, elidelength=None):
     return out
 
 
-def read_file(filename, binary=False):
+def read_file(filename, binary=False, use_requirement=False):
     """Get the contents of a file contained with qutebrowser.
 
     Args:
         filename: The filename to open as string.
         binary: Whether to return a binary string.
                 If False, the data is UTF-8-decoded.
+        use_requirement: Use a pkg_resources.Requirement object to get
+                         non-package data.
 
     Return:
         The file contents as string.
@@ -85,7 +87,11 @@ def read_file(filename, binary=False):
             with open(fn, 'r', encoding='utf-8') as f:
                 return f.read()
     else:
-        data = pkg_resources.resource_string(qutebrowser.__name__, filename)
+        if use_requirement:
+            target = pkg_resources.Requirement('qutebrowser', '', '')
+        else:
+            target = qutebrowser.__name__
+        data = pkg_resources.resource_string(target, filename)
         if not binary:
             data = data.decode('UTF-8')
         return data
