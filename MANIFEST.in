@@ -1,5 +1,6 @@
 recursive-include qutebrowser/html *.html
 recursive-include qutebrowser/test *.py
+recursive-include qutebrowser/icons *
 recursive-include icons *
 include qutebrowser/test/testfile
 include qutebrowser/git-commit-id

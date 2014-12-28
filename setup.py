@@ -24,16 +24,21 @@
 import os
 import os.path
 import glob
+import shutil
 
 from scripts import setupcommon as common
 
 import setuptools
 
 
-try:
-    BASEDIR = os.path.dirname(os.path.realpath(__file__))
-except NameError:
-    BASEDIR = None
+BASEDIR = os.path.dirname(os.path.realpath(__file__))
+
+
+icon_path = os.path.join('qutebrowser', 'icons')
+shutil.rmtree(icon_path)
+os.mkdir(icon_path)
+for fn in glob.glob('icons/*.png'):
+    shutil.copy(fn, icon_path)
 
 
 try:
@@ -50,7 +55,6 @@ try:
         **common.setupdata
     )
 finally:
-    if BASEDIR is not None:
-        path = os.path.join(BASEDIR, 'qutebrowser', 'git-commit-id')
-        if os.path.exists(path):
-            os.remove(path)
+    path = os.path.join(BASEDIR, 'qutebrowser', 'git-commit-id')
+    if os.path.exists(path):
+        os.remove(path)

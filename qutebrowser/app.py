@@ -203,7 +203,7 @@ class Application(QApplication):
         icon = QIcon()
         for size in (16, 24, 32, 48, 64, 96, 128, 256, 512):
             filename = 'icons/qutebrowser-{}x{}.png'.format(size, size)
-            data = utils.read_file(filename, binary=True, use_requirement=True)
+            data = utils.read_file(filename, binary=True)
             pixmap = QPixmap()
             ok = pixmap.loadFromData(data, 'PNG')
             if not ok:
