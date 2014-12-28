@@ -75,5 +75,43 @@ Is there an adblocker?::
     usage], so implementing it properly might take some time and won't be done
     for v0.1 if at all.
 
-// We link to github rather than to the file here so it also works with the
-// qutebrowser :help because that doesn't render HACKING.
+== Troubleshooting
+
+Configuration not saved after modifying config.::
+    When editing your config file manually, qutebrowser must be exited completely.
+    This can be done by issuing the command `:quit` or by pressing `Ctrl+q`.
+
+Unable to view flash content.::
+    If you have flash installed for on your system, it's necessary to enable plugins
+    to use the flash plugin. Using the command `:set content allow-plugins true`
+    in qutebrowser will enable plugins. Packages for flash should
+    be provided for your platform or it can be obtained from
+    http://get.adobe.com/flashplayer/[Adobe].
+
+Experiencing freezing on sites like duckduckgo and youtube.::
+    This issue could be caused by stale plugin files installed by `mozplugger`
+    if mozplugger was subsequently removed.
+    Try exiting qutebroser and removing `~/.mozilla/plugins/mozplugger*.so`.
+    See https://github.com/The-Compiler/qutebrowser/issues/357[Issue #357]
+    for more details.
+
+Experiencing segfaults (crashes) on Debian systems.::
+    For Debian it's highly recommended to install the `gstreamer0.10-plugins-base` package.
+    This is a workaround for a bug in Qt, it has been fixed upstream in Qt 5.4
+    More details can be found
+    https://bugs.webkit.org/show_bug.cgi?id=119951[here].
+
+Segfaults on Facebook, Medium, Amazon, ...::
+    If you are on a Debian or Ubuntu based system, you might experience some crashes
+    visting these sites. This is caused by a known bug in Qt which has been
+    fixed in Qt 5.4. However Debian and Ubuntu are slow to adopt or upgrade
+    some packages. There is currently no easy way to manually upgrade to Qt
+    5.4 on those systems.
+
+My issue is not listed.::
+    If you experience any segfaults or crashes, you can report the issue in
+    https://github.com/The-Compiler/qutebrowser/issues[the issue tracker] or
+    using the `:report` command.
+    If you are reporting a segfault, make sure you read the
+    https://github.com/The-Compiler/qutebrowser/blob/master/doc/stacktrace.asciidoc[guide]
+    on how to report them with all needed information.
