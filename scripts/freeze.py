@@ -52,7 +52,6 @@ build_exe_options = {
         ('qutebrowser/html', 'html'),
         ('qutebrowser/html/doc', 'html/doc'),
         ('qutebrowser/git-commit-id', 'git-commit-id'),
-        ('icons', 'icons'),
     ],
     'include_msvcr': True,
     'excludes': ['tkinter'],

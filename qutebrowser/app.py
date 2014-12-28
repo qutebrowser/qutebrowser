@@ -37,6 +37,7 @@ from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
                           QStandardPaths, QObject, Qt)
 
 import qutebrowser
+import qutebrowser.resources  # pylint: disable=unused-import
 from qutebrowser.commands import cmdutils, runners
 from qutebrowser.config import style, config, websettings
 from qutebrowser.browser import quickmarks, cookies, cache, adblock
@@ -202,12 +203,8 @@ class Application(QApplication):
         """Initialize the icon of qutebrowser."""
         icon = QIcon()
         for size in (16, 24, 32, 48, 64, 96, 128, 256, 512):
-            filename = 'icons/qutebrowser-{}x{}.png'.format(size, size)
-            data = utils.read_file(filename, binary=True)
-            pixmap = QPixmap()
-            ok = pixmap.loadFromData(data, 'PNG')
-            if not ok:
-                raise ValueError("Could not load icon!")
+            filename = ':/icons/qutebrowser-{}x{}.png'.format(size, size)
+            pixmap = QPixmap(filename)
             qtutils.ensure_not_null(pixmap)
             icon.addPixmap(pixmap)
         qtutils.ensure_not_null(icon)

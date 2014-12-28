@@ -10,7 +10,6 @@ __pycache__
 /setuptools-*.egg
 /setuptools-*.zip
 /qutebrowser/git-commit-id
-/qutebrowser/icons
 /doc/*.html
 /README.html
 /qutebrowser/html/doc/
