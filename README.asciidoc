@@ -133,6 +133,7 @@ Contributors, sorted by the number of commits in descending order:
 * Mathias Fussenegger
 * Larry Hynes
 * Johannes Altmanninger
+* Joel Torstensson
 * Regina Hug
 * Peter Vilim
 * Helen Sherwood-Taylor

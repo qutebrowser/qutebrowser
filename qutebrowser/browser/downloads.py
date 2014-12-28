@@ -171,6 +171,7 @@ class DownloadItem(QObject):
         _read_timer: A QTimer which reads the QNetworkReply into self._buffer
                      periodically.
         _retry_info: A RetryInfo instance.
+        _win_id: The window ID the DownloadItem runs in.
 
     Signals:
         data_changed: The downloads metadata changed.
@@ -193,7 +194,7 @@ class DownloadItem(QObject):
     redirected = pyqtSignal(QNetworkRequest, QNetworkReply)
     do_retry = pyqtSignal('QNetworkReply')
 
-    def __init__(self, reply, parent=None):
+    def __init__(self, reply, win_id, parent=None):
         """Constructor.
 
         Args:
@@ -217,6 +218,7 @@ class DownloadItem(QObject):
         self.fileobj = None
         self._filename = None
         self.init_reply(reply)
+        self._win_id = win_id
 
     def __repr__(self):
         return utils.get_repr(self, basename=self.basename)
@@ -255,6 +257,27 @@ class DownloadItem(QObject):
                     '{down}/{total}]{errmsg}'.format(
                         name=self.basename, speed=speed, remaining=remaining,
                         perc=perc, down=down, total=total, errmsg=errmsg))
+
+    def _create_fileobj(self):
+        """Creates a file object using the internal filename."""
+        try:
+            fileobj = open(self._filename, 'wb')
+        except OSError as e:
+            self._die(e.strerror)
+        else:
+            self.set_fileobj(fileobj)
+
+    def _ask_overwrite_question(self):
+        """Create a Question object to be asked."""
+        q = usertypes.Question(self)
+        q.text = self._filename + " already exists. Overwrite? (y/n)"
+        q.mode = usertypes.PromptMode.yesno
+        q.answered_yes.connect(self._create_fileobj)
+        q.answered_no.connect(functools.partial(self.cancel, False))
+        q.cancelled.connect(functools.partial(self.cancel, False))
+        message_bridge = objreg.get('message-bridge', scope='window',
+                                    window=self._win_id)
+        message_bridge.ask(q, blocking=False)
 
     def _die(self, msg):
         """Abort the download and emit an error."""
@@ -312,8 +335,12 @@ class DownloadItem(QObject):
             return utils.interpolate_color(
                 start, stop, self.stats.percentage(), system)
 
-    def cancel(self):
-        """Cancel the download."""
+    def cancel(self, remove_data=True):
+        """Cancel the download.
+
+        Args:
+            remove_data: Whether to remove the downloaded data.
+        """
         log.downloads.debug("cancelled")
         self._read_timer.stop()
         self.cancelled.emit()
@@ -325,7 +352,8 @@ class DownloadItem(QObject):
         if self.fileobj is not None:
             self.fileobj.close()
         try:
-            if self._filename is not None and os.path.exists(self._filename):
+            if (self._filename is not None and os.path.exists(self._filename)
+                    and remove_data):
                 os.remove(self._filename)
         except OSError:
             log.downloads.exception("Failed to remove partial file")
@@ -376,12 +404,12 @@ class DownloadItem(QObject):
             self._filename = os.path.join(download_dir, filename)
             self.basename = filename
         log.downloads.debug("Setting filename to {}".format(filename))
-        try:
-            fileobj = open(self._filename, 'wb')
-        except OSError as e:
-            self._die(e.strerror)
+        if os.path.isfile(self._filename):
+            # The file already exists, so ask the user if it should be
+            # overwritten.
+            self._ask_overwrite_question()
         else:
-            self.set_fileobj(fileobj)
+            self._create_fileobj()
 
     def set_fileobj(self, fileobj):
         """"Set the file object to write the download to.
@@ -666,7 +694,7 @@ class DownloadManager(QAbstractListModel):
             _inline, suggested_filename = http.parse_content_disposition(reply)
         log.downloads.debug("fetch: {} -> {}".format(reply.url(),
                                                      suggested_filename))
-        download = DownloadItem(reply, self)
+        download = DownloadItem(reply, self._win_id, self)
         download.cancelled.connect(
             functools.partial(self.remove_item, download))
         if config.get('ui', 'remove-finished-downloads') or auto_remove:
