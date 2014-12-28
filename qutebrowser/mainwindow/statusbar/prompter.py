@@ -57,6 +57,9 @@ class Prompter(QObject):
     things happen is clear, e.g. on_mode_left can't happen after we already set
     up the *new* question.
 
+    Class Attributes:
+        KEY_MODES: A mapping of PromptModes to KeyModes.
+
     Attributes:
         _shutting_down: Whether we're currently shutting down the prompter and
                         should ignore future questions to avoid segfaults.
@@ -70,6 +73,13 @@ class Prompter(QObject):
         show_prompt: Emitted when the prompt widget should be shown.
         hide_prompt: Emitted when the prompt widget should be hidden.
     """
+
+    KEY_MODES = {
+        usertypes.PromptMode.yesno: usertypes.KeyMode.yesno,
+        usertypes.PromptMode.text: usertypes.KeyMode.prompt,
+        usertypes.PromptMode.user_pwd: usertypes.KeyMode.prompt,
+        usertypes.PromptMode.alert: usertypes.KeyMode.prompt,
+    }
 
     show_prompt = pyqtSignal()
     hide_prompt = pyqtSignal()
@@ -135,14 +145,14 @@ class Prompter(QObject):
         prompt.lineedit.setEchoMode(ctx.echo_mode)
         prompt.lineedit.setVisible(ctx.input_visible)
         self.show_prompt.emit()
+        mode = self.KEY_MODES[ctx.question.mode]
+        ctx.question.aborted.connect(
+            lambda: modeman.maybe_leave(self._win_id, mode, 'aborted'))
+        modeman.enter(self._win_id, mode, 'question asked')
         return True
 
     def _display_question(self):
-        """Display the question saved in self._question.
-
-        Return:
-            The mode which should be entered.
-        """
+        """Display the question saved in self._question."""
         prompt = objreg.get('prompt', scope='window', window=self._win_id)
         if self._question.mode == usertypes.PromptMode.yesno:
             if self._question.default is None:
@@ -153,23 +163,19 @@ class Prompter(QObject):
                 suffix = " (no)"
             prompt.txt.setText(self._question.text + suffix)
             prompt.lineedit.hide()
-            mode = usertypes.KeyMode.yesno
         elif self._question.mode == usertypes.PromptMode.text:
             prompt.txt.setText(self._question.text)
             if self._question.default:
                 prompt.lineedit.setText(self._question.default)
             prompt.lineedit.show()
-            mode = usertypes.KeyMode.prompt
         elif self._question.mode == usertypes.PromptMode.user_pwd:
             prompt.txt.setText(self._question.text)
             if self._question.default:
                 prompt.lineedit.setText(self._question.default)
             prompt.lineedit.show()
-            mode = usertypes.KeyMode.prompt
         elif self._question.mode == usertypes.PromptMode.alert:
             prompt.txt.setText(self._question.text + ' (ok)')
             prompt.lineedit.hide()
-            mode = usertypes.KeyMode.prompt
         else:
             raise ValueError("Invalid prompt mode!")
         log.modes.debug("Question asked, focusing {!r}".format(
@@ -177,7 +183,6 @@ class Prompter(QObject):
         prompt.lineedit.setFocus()
         self.show_prompt.emit()
         self._busy = True
-        return mode
 
     def shutdown(self):
         """Cancel all blocking questions.
@@ -233,26 +238,26 @@ class Prompter(QObject):
             # User just entered a password
             password = prompt.lineedit.text()
             self._question.answer = (self._question.user, password)
-            modeman.leave(self._win_id, usertypes.KeyMode.prompt,
-                          'prompt accept')
+            modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,
+                                'prompt accept')
             self._question.done()
         elif self._question.mode == usertypes.PromptMode.text:
             # User just entered text.
             self._question.answer = prompt.lineedit.text()
-            modeman.leave(self._win_id, usertypes.KeyMode.prompt,
-                          'prompt accept')
+            modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,
+                                'prompt accept')
             self._question.done()
         elif self._question.mode == usertypes.PromptMode.yesno:
             # User wants to accept the default of a yes/no question.
             self._question.answer = self._question.default
-            modeman.leave(self._win_id, usertypes.KeyMode.yesno,
-                          'yesno accept')
+            modeman.maybe_leave(self._win_id, usertypes.KeyMode.yesno,
+                                'yesno accept')
             self._question.done()
         elif self._question.mode == usertypes.PromptMode.alert:
             # User acknowledged an alert
             self._question.answer = None
-            modeman.leave(self._win_id, usertypes.KeyMode.prompt,
-                          'alert accept')
+            modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,
+                                'alert accept')
             self._question.done()
         else:
             raise ValueError("Invalid question mode!")
@@ -265,7 +270,8 @@ class Prompter(QObject):
             # We just ignore this if we don't have a yes/no question.
             return
         self._question.answer = True
-        modeman.leave(self._win_id, usertypes.KeyMode.yesno, 'yesno accept')
+        modeman.maybe_leave(self._win_id, usertypes.KeyMode.yesno,
+                            'yesno accept')
         self._question.done()
 
     @cmdutils.register(instance='prompter', hide=True, scope='window',
@@ -276,7 +282,8 @@ class Prompter(QObject):
             # We just ignore this if we don't have a yes/no question.
             return
         self._question.answer = False
-        modeman.leave(self._win_id, usertypes.KeyMode.yesno, 'prompt accept')
+        modeman.maybe_leave(self._win_id, usertypes.KeyMode.yesno,
+                            'prompt accept')
         self._question.done()
 
     @pyqtSlot(usertypes.Question, bool)
@@ -317,7 +324,8 @@ class Prompter(QObject):
             context = self._get_ctx()
 
         self._question = question
-        mode = self._display_question()
+        self._display_question()
+        mode = self.KEY_MODES[self._question.mode]
         question.aborted.connect(
             lambda: modeman.maybe_leave(self._win_id, mode, 'aborted'))
         modeman.enter(self._win_id, mode, 'question asked')

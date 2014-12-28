@@ -254,7 +254,9 @@ class ModeManager(QObject):
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
         if mode not in self._handlers:
             raise ValueError("No handler for mode {}".format(mode))
-        if self.mode == mode:
+        prompt_modes = (usertypes.KeyMode.prompt, usertypes.KeyMode.yesno)
+        if self.mode == mode or (self.mode in prompt_modes and
+                                 mode in prompt_modes):
             log.modes.debug("Ignoring request as we're in mode {} "
                             "already.".format(self.mode))
             return
