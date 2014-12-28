@@ -35,7 +35,10 @@ BASEDIR = os.path.dirname(os.path.realpath(__file__))
 
 
 icon_path = os.path.join('qutebrowser', 'icons')
-shutil.rmtree(icon_path)
+try:
+    shutil.rmtree(icon_path)
+except OSError:
+    pass
 os.mkdir(icon_path)
 for fn in glob.glob('icons/*.png'):
     shutil.copy(fn, icon_path)
