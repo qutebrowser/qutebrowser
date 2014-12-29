@@ -305,6 +305,14 @@ class MainWindow(QWidget):
         """
         super().close()
 
+    @cmdutils.register(instance='main-window', scope='window')
+    def fullscreen(self):
+        """Toggle fullscreen mode."""
+        if self.isFullScreen():
+            self.showNormal()
+        else:
+            self.showFullScreen()
+
     def resizeEvent(self, e):
         """Extend resizewindow's resizeEvent to adjust completion.
 
