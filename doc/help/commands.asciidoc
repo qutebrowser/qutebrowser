@@ -322,7 +322,12 @@ Quit qutebrowser.
 
 [[reload]]
 === reload
+Syntax: +:reload [*--force*]+
+
 Reload the current/[count]th tab.
+
+==== optional arguments
+* +*-f*+, +*--force*+: Bypass the page cache.
 
 ==== count
 The tab index to reload.
