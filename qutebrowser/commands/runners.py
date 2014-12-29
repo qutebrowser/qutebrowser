@@ -71,12 +71,14 @@ class SearchRunner(QObject):
     def __repr__(self):
         return utils.get_repr(self, text=self._text, flags=self._flags)
 
-    def _search(self, text, rev=False):
+    @pyqtSlot(str)
+    @cmdutils.register(instance='search-runner', scope='window', maxsplit=0)
+    def search(self, text, reverse=False):
         """Search for a text on the current page.
 
         Args:
             text: The text to search for.
-            rev: Search direction, True if reverse, else False.
+            reverse: Reverse search direction.
         """
         if self._text is not None and self._text != text:
             # We first clear the marked text, then the highlights
@@ -92,7 +94,7 @@ class SearchRunner(QObject):
             self._flags |= QWebPage.FindCaseSensitively
         if config.get('general', 'wrap-search'):
             self._flags |= QWebPage.FindWrapsAroundDocument
-        if rev:
+        if reverse:
             self._flags |= QWebPage.FindBackward
         # We actually search *twice* - once to highlight everything, then again
         # to get a mark so we can navigate.
@@ -101,22 +103,13 @@ class SearchRunner(QObject):
                             QWebPage.HighlightAllOccurrences)
 
     @pyqtSlot(str)
-    def search(self, text):
-        """Search for a text on a website.
-
-        Args:
-            text: The text to search for.
-        """
-        self._search(text)
-
-    @pyqtSlot(str)
     def search_rev(self, text):
         """Search for a text on a website in reverse direction.
 
         Args:
             text: The text to search for.
         """
-        self._search(text, rev=True)
+        self.search(text, reverse=True)
 
     @cmdutils.register(instance='search-runner', hide=True, scope='window')
     def search_next(self, count: {'special': 'count'}=1):
