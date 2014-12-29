@@ -128,12 +128,12 @@ Contributors, sorted by the number of commits in descending order:
 * Claude
 * John ShaggyTwoDope Jenkins
 * rikn00
+* Joel Torstensson
 * Brian Jackson
 * Martin Zimmermann
 * Mathias Fussenegger
 * Larry Hynes
 * Johannes Altmanninger
-* Joel Torstensson
 * Regina Hug
 * Peter Vilim
 * Helen Sherwood-Taylor

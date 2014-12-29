@@ -951,6 +951,7 @@ KEY_DATA = collections.OrderedDict([
         ('forward', ['L']),
         ('forward -t', ['tl']),
         ('forward -w', ['wl']),
+        ('fullscreen', ['<F11>']),
         ('hint', ['f']),
         ('hint all tab', ['F']),
         ('hint all window', ['wf']),
