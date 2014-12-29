@@ -822,6 +822,7 @@ class CommandDispatcher:
             cmd: The userscript to run.
             args: Arguments to pass to the userscript.
         """
+        cmd = os.path.expanduser(cmd)
         userscripts.run(cmd, *args, url=self._current_url(),
                         win_id=self._win_id)
 
