@@ -29,13 +29,12 @@ Module attributes:
 import os.path
 
 from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtCore import QStandardPaths
+from PyQt5.QtCore import QStandardPaths, QUrl
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, standarddir, objreg
 
-MapType = usertypes.enum('MapType', ['attribute', 'setter', 'setter_none',
-                                     'static_setter'])
+MapType = usertypes.enum('MapType', ['attribute', 'setter', 'static_setter'])
 
 
 MAPPINGS = {
@@ -71,35 +70,41 @@ MAPPINGS = {
     },
     'fonts': {
         'web-family-standard':
-            (MapType.setter_none, lambda qws, v:
-                qws.setFontFamily(QWebSettings.StandardFont, v)),
+            (MapType.setter, lambda qws, v:
+             qws.setFontFamily(QWebSettings.StandardFont, v),
+             ""),
         'web-family-fixed':
-            (MapType.setter_none, lambda qws, v:
-                qws.setFontFamily(QWebSettings.FixedFont, v)),
+            (MapType.setter, lambda qws, v:
+             qws.setFontFamily(QWebSettings.FixedFont, v),
+             ""),
         'web-family-serif':
-            (MapType.setter_none, lambda qws, v:
-                qws.setFontFamily(QWebSettings.SerifFont, v)),
+            (MapType.setter, lambda qws, v:
+             qws.setFontFamily(QWebSettings.SerifFont, v),
+             ""),
         'web-family-sans-serif':
-            (MapType.setter_none, lambda qws, v:
-                qws.setFontFamily(QWebSettings.SansSerifFont, v)),
+            (MapType.setter, lambda qws, v:
+             qws.setFontFamily(QWebSettings.SansSerifFont, v),
+             ""),
         'web-family-cursive':
-            (MapType.setter_none, lambda qws, v:
-                qws.setFontFamily(QWebSettings.CursiveFont, v)),
+            (MapType.setter, lambda qws, v:
+             qws.setFontFamily(QWebSettings.CursiveFont, v),
+             ""),
         'web-family-fantasy':
-            (MapType.setter_none, lambda qws, v:
-                qws.setFontFamily(QWebSettings.FantasyFont, v)),
+            (MapType.setter, lambda qws, v:
+             qws.setFontFamily(QWebSettings.FantasyFont, v),
+             ""),
         'web-size-minimum':
             (MapType.setter, lambda qws, v:
-                qws.setFontSize(QWebSettings.MinimumFontSize, v)),
+             qws.setFontSize(QWebSettings.MinimumFontSize, v)),
         'web-size-minimum-logical':
             (MapType.setter, lambda qws, v:
-                qws.setFontSize(QWebSettings.MinimumLogicalFontSize, v)),
+             qws.setFontSize(QWebSettings.MinimumLogicalFontSize, v)),
         'web-size-default':
             (MapType.setter, lambda qws, v:
-                qws.setFontSize(QWebSettings.DefaultFontSize, v)),
+             qws.setFontSize(QWebSettings.DefaultFontSize, v)),
         'web-size-default-fixed':
             (MapType.setter, lambda qws, v:
-                qws.setFontSize(QWebSettings.DefaultFixedFontSize, v)),
+             qws.setFontSize(QWebSettings.DefaultFixedFontSize, v)),
     },
     'ui': {
         'zoom-text-only':
@@ -107,9 +112,12 @@ MAPPINGS = {
         'frame-flattening':
             (MapType.attribute, QWebSettings.FrameFlatteningEnabled),
         'user-stylesheet':
-            (MapType.setter_none, lambda qws, v: qws.setUserStyleSheetUrl(v)),
+            (MapType.setter, lambda qws, v:
+             qws.setUserStyleSheetUrl(v),
+             QUrl()),
         'css-media-type':
-            (MapType.setter, lambda qws, v: qws.setCSSMediaType(v)),
+            (MapType.setter, lambda qws, v:
+             qws.setCSSMediaType(v)),
         #'accelerated-compositing':
         #   (MapType.attribute, QWebSettings.AcceleratedCompositingEnabled),
         #'tiled-backing-store':
@@ -125,16 +133,16 @@ MAPPINGS = {
             (MapType.attribute, QWebSettings.LocalStorageEnabled),
         'maximum-pages-in-cache':
             (MapType.static_setter, lambda v:
-                QWebSettings.setMaximumPagesInCache(v)),
+             QWebSettings.setMaximumPagesInCache(v)),
         'object-cache-capacities':
             (MapType.static_setter, lambda v:
-                QWebSettings.setObjectCacheCapacities(*v)),
+             QWebSettings.setObjectCacheCapacities(*v)),
         'offline-storage-default-quota':
             (MapType.static_setter, lambda v:
-                QWebSettings.setOfflineStorageDefaultQuota(v)),
+             QWebSettings.setOfflineStorageDefaultQuota(v)),
         'offline-web-application-cache-quota':
             (MapType.static_setter, lambda v:
-                QWebSettings.setOfflineWebApplicationCacheQuota(v)),
+             QWebSettings.setOfflineWebApplicationCacheQuota(v)),
     },
     'general': {
         'private-browsing':
@@ -148,34 +156,39 @@ MAPPINGS = {
         'site-specific-quirks':
             (MapType.attribute, QWebSettings.SiteSpecificQuirksEnabled),
         'default-encoding':
-            (MapType.setter_none, lambda qws, v:
-                qws.setDefaultTextEncoding(v)),
+            (MapType.setter, lambda qws, v: qws.setDefaultTextEncoding(v), ""),
     }
 }
 
 
 settings = None
+UNSET = object()
 
 
-def _set_setting(typ, arg, value):
+def _set_setting(typ, arg, default=UNSET, value=UNSET):
     """Set a QWebSettings setting.
 
     Args:
         typ: The type of the item.
         arg: The argument (attribute/handler)
+        default: The value to use if the user set an empty string.
         value: The value to set.
     """
     if not isinstance(typ, MapType):
         raise TypeError("Type {} is no MapType member!".format(typ))
+    if value is UNSET:
+        raise TypeError("No value given!")
+    if value is None:
+        if default is UNSET:
+            return
+        else:
+            value = default
+
     if typ == MapType.attribute:
         settings.setAttribute(arg, value)
-    elif typ == MapType.setter_none:
-        if value is None:
-            value = ""
+    elif typ == MapType.setter:
         arg(settings, value)
-    elif typ == MapType.setter and value is not None:
-        arg(settings, value)
-    elif typ == MapType.static_setter and value is not None:
+    elif typ == MapType.static_setter:
         arg(value)
 
 
@@ -194,17 +207,17 @@ def init():
     global settings
     settings = QWebSettings.globalSettings()
     for sectname, section in MAPPINGS.items():
-        for optname, (typ, arg) in section.items():
+        for optname, mapping in section.items():
             value = config.get(sectname, optname)
-            _set_setting(typ, arg, value)
+            _set_setting(*mapping, value=value)
     objreg.get('config').changed.connect(update_settings)
 
 
 def update_settings(section, option):
     """Update global settings when qwebsettings changed."""
     try:
-        typ, arg = MAPPINGS[section][option]
+        mapping = MAPPINGS[section][option]
     except KeyError:
         return
     value = config.get(section, option)
-    _set_setting(typ, arg, value)
+    _set_setting(*mapping, value=value)
