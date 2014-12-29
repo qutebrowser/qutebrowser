@@ -315,7 +315,7 @@ class CommandDispatcher:
         tab = self._cntwidget(count)
         if tab is not None:
             if force:
-                tab.triggerAction(QWebPage.ReloadAndBypassCache)
+                tab.page().triggerAction(QWebPage.ReloadAndBypassCache)
             else:
                 tab.reload()
 
