@@ -13,6 +13,7 @@
 |<<download,download>>|Download a given URL, given as string.
 |<<download-page,download-page>>|Download the current page.
 |<<forward,forward>>|Go forward in the history of the current tab.
+|<<fullscreen,fullscreen>>|Toggle fullscreen mode.
 |<<help,help>>|Show help about a command or setting.
 |<<hint,hint>>|Start hinting.
 |<<home,home>>|Open main startpage in current tab.
@@ -122,6 +123,10 @@ Go forward in the history of the current tab.
 
 ==== count
 How many pages to go forward.
+
+[[fullscreen]]
+=== fullscreen
+Toggle fullscreen mode.
 
 [[help]]
 === help
