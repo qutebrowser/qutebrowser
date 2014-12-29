@@ -29,7 +29,7 @@ from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
-from PyQt5.QtWebKitWidgets import QWebInspector
+from PyQt5.QtWebKitWidgets import QWebPage, QWebInspector
 import pygments
 import pygments.lexers
 import pygments.formatters
