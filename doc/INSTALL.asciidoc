@@ -68,7 +68,6 @@ https://github.com/posativ/qutebrowser-overlay[GitHub]. To install it, add the
 overlay with http://wiki.gentoo.org/wiki/Layman[layman]:
 
 ----
-# wget https://raw.githubusercontent.com/posativ/qutebrowser-overlay/master/overlays.xml -O /etc/layman/overlays/qutebrowser.xml
 # layman -a qutebrowser
 ----
 
