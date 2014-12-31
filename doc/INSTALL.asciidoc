@@ -25,7 +25,7 @@ repository (rather than a release):
 ----
 
 Then run the supplied script to run qutebrowser inside a
-https://virtualenv.pypa.io/en/latest/virtualenv.html[virtualenv]:
+http://virtualenv.readthedocs.org/en/latest/[virtualenv]:
 
 ----
 # python3 scripts/init_venv.py
@@ -98,7 +98,7 @@ http://www.lfd.uci.edu/~gohlke/pythonlibs/#virtualenv[the installer from here]
 to install virtualenv.
 
 Then run the supplied script to run qutebrowser inside a
-https://virtualenv.pypa.io/en/latest/virtualenv.html[virtualenv]:
+http://virtualenv.readthedocs.org/en/latest/[virtualenv]:
 
 ----
 # python3 scripts/init_venv.py
