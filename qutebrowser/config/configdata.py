@@ -517,8 +517,7 @@ DATA = collections.OrderedDict([
                       'http://winhelp2002.mvps.org/hosts.zip,'
                       'http://malwaredomains.lehigh.edu/files/justdomains.zip,'
                       'http://pgl.yoyo.org/adservers/serverlist.php?'
-                      'hostformat=hosts&mimetype=plaintext,'
-                      'http://hosts-file.net/ad_servers.asp'),
+                      'hostformat=hosts&mimetype=plaintext,'),
          "List of URLs of lists which contain hosts to block.\n\n"
          "The file can be in one of the following formats:\n\n"
          "- An '/etc/hosts'-like file\n"
