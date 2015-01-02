@@ -327,21 +327,37 @@ class MainWindow(QWidget):
     def closeEvent(self, e):
         """Override closeEvent to display a confirmation if needed."""
         confirm_quit = config.get('ui', 'confirm-quit')
-        count = self._tabbed_browser.count()
-        if confirm_quit == 'never':
+        tab_count = self._tabbed_browser.count()
+        download_manager = objreg.get('download-manager', scope='window',
+                                      window=self.win_id)
+        download_count = download_manager.rowCount()
+        quit_text = []
+        # Close if set to never ask for confirmation (backward compatible)
+        if confirm_quit == 'never' or 'never' in confirm_quit:
             pass
-        elif confirm_quit == 'multiple-tabs' and count <= 1:
-            pass
-        else:
-            text = "Close {} {}?".format(
-                count, "tab" if count == 1 else "tabs")
-            confirmed = message.ask(self.win_id, text,
-                                    usertypes.PromptMode.yesno, default=True)
-            if not confirmed:
-                log.destroy.debug("Cancelling losing of window {}".format(
-                    self.win_id))
-                e.ignore()
-                return
+        # Ask if set to always ask before closing
+        if 'always' in confirm_quit:
+            quit_text.append("Close?")
+        # Ask if multiple-tabs are open
+        if 'multiple-tabs' in confirm_quit and tab_count > 1:
+            quit_text.append("Close {} {}?".format(
+                tab_count, "tab" if tab_count == 1 else "tabs"))
+        # Ask if multiple downloads running
+        if 'downloads' in confirm_quit and download_count > 0:
+            quit_text.append("Close {} {}?".format(
+                tab_count, "download" if tab_count == 1 else "downloads"))
+        # Process all quit messages that user must confirm
+        if len(quit_text) > 0:
+            for text in quit_text:
+                confirmed = message.ask(self.win_id, text,
+                                        usertypes.PromptMode.yesno,
+                                        default=True)
+                # Stop asking if the user cancels
+                if not confirmed:
+                    log.destroy.debug("Cancelling losing of window {}".format(
+                        self.win_id))
+                    e.ignore()
+                    return
         e.accept()
         objreg.get('app').geometry = bytes(self.saveGeometry())
         log.destroy.debug("Closing window {}".format(self.win_id))
