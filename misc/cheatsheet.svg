@@ -34,7 +34,7 @@
      inkscape:pageshadow="2"
      inkscape:zoom="1.2432572"
      inkscape:cx="510.06077"
-     inkscape:cy="315.85317"
+     inkscape:cy="514.90115"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      width="1024px"
@@ -1865,16 +1865,16 @@
     <text
        xml:space="preserve"
        style="font-size:9px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:89.99999762%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:TlwgTypewriter"
-       x="320.22501"
+       x="317.63174"
        y="195.40761"
        id="text7245"
        sodipodi:linespacing="89.999998%"><tspan
          sodipodi:role="line"
-         x="320.22501"
+         x="317.63174"
          y="195.40761"
          id="tspan7366" /><tspan
          sodipodi:role="line"
-         x="320.22501"
+         x="317.63174"
          y="202.78995"
          id="tspan7249"
          style="font-size:8px">reload</tspan></text>
@@ -2089,7 +2089,7 @@
          id="tspan4998"
          style="font-size:8px">new tab<tspan
    style="fill:#ff0000"
-   id="tspan3699"></tspan></tspan><tspan
+   id="tspan3699" /></tspan><tspan
          y="177.83009"
          x="670.26074"
          sodipodi:role="line"
@@ -3416,5 +3416,31 @@
            style="fill:#0000ff"
            id="flowSpan5528">can be</flowSpan></flowPara><flowPara
          style="font-size:10px;fill:#0000ff"
-         id="flowPara3725-9">prefixed by a count</flowPara></flowRoot>  </g>
+         id="flowPara3725-9">prefixed by a count</flowPara></flowRoot>    <text
+       xml:space="preserve"
+       style="font-size:9px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:89.99999762%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:TlwgTypewriter"
+       x="317.95987"
+       y="155.85321"
+       id="text7245-1-7"
+       sodipodi:linespacing="89.999998%"><tspan
+         sodipodi:role="line"
+         x="317.95987"
+         y="155.85321"
+         id="tspan7366-3-3" /><tspan
+         sodipodi:role="line"
+         x="317.95987"
+         y="163.23555"
+         id="tspan5293-5"
+         style="font-size:8px">reload </tspan><tspan
+         sodipodi:role="line"
+         x="317.95987"
+         y="170.43555"
+         style="font-size:8px"
+         id="tspan3716">(bypass </tspan><tspan
+         sodipodi:role="line"
+         x="317.95987"
+         y="177.63554"
+         style="font-size:8px"
+         id="tspan3719">cache)</tspan></text>
+  </g>
 </svg>
