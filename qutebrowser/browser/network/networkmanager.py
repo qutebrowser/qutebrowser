@@ -105,11 +105,10 @@ class NetworkManager(QNetworkAccessManager):
         self.setCache(cache)
         cache.setParent(app)
 
-    def _ask(self, win_id, text, mode, owner=None):
+    def _ask(self, text, mode, owner=None):
         """Ask a blocking question in the statusbar.
 
         Args:
-            win_id: The ID of the window which is calling this function.
             text: The text to display to the user.
             mode: A PromptMode.
             owner: An object which will abort the question if destroyed, or
@@ -124,7 +123,8 @@ class NetworkManager(QNetworkAccessManager):
         self.shutting_down.connect(q.abort)
         if owner is not None:
             owner.destroyed.connect(q.abort)
-        bridge = objreg.get('message-bridge', scope='window', window=win_id)
+        bridge = objreg.get('message-bridge', scope='window',
+                            window=self._win_id)
         bridge.ask(q, blocking=True)
         q.deleteLater()
         return q.answer
@@ -160,8 +160,7 @@ class NetworkManager(QNetworkAccessManager):
         ssl_strict = config.get('network', 'ssl-strict')
         if ssl_strict == 'ask':
             err_string = '\n'.join('- ' + err.errorString() for err in errors)
-            answer = self._ask(self._win_id,
-                               'SSL errors - continue?\n{}'.format(err_string),
+            answer = self._ask('SSL errors - continue?\n{}'.format(err_string),
                                mode=usertypes.PromptMode.yesno,
                                owner=reply)
             if answer:
@@ -179,8 +178,7 @@ class NetworkManager(QNetworkAccessManager):
     @pyqtSlot('QNetworkReply', 'QAuthenticator')
     def on_authentication_required(self, reply, authenticator):
         """Called when a website needs authentication."""
-        answer = self._ask(self._win_id,
-                           "Username ({}):".format(authenticator.realm()),
+        answer = self._ask("Username ({}):".format(authenticator.realm()),
                            mode=usertypes.PromptMode.user_pwd,
                            owner=reply)
         self._fill_authenticator(authenticator, answer)
@@ -188,7 +186,7 @@ class NetworkManager(QNetworkAccessManager):
     @pyqtSlot('QNetworkProxy', 'QAuthenticator')
     def on_proxy_authentication_required(self, _proxy, authenticator):
         """Called when a proxy needs authentication."""
-        answer = self._ask(self._win_id, "Proxy username ({}):".format(
+        answer = self._ask("Proxy username ({}):".format(
             authenticator.realm()), mode=usertypes.PromptMode.user_pwd)
         self._fill_authenticator(authenticator, answer)
 
