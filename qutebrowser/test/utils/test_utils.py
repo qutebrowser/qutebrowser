@@ -383,5 +383,25 @@ class RaisesTests(unittest.TestCase):
             utils.raises(ValueError, self.do_raise)
 
 
+class ForceEncodingTests(unittest.TestCase):
+
+    """Test force_encoding."""
+
+    def test_fitting_ascii(self):
+        """Test with a text fitting into ascii."""
+        text = 'hello world'
+        self.assertEqual(utils.force_encoding(text, 'ascii'), text)
+
+    def test_fitting_utf8(self):
+        """Test with a text fitting into utf-8."""
+        text = 'hellö wörld'
+        self.assertEqual(utils.force_encoding(text, 'utf-8'), text)
+
+    def test_not_fitting_ascii(self):
+        """Test with a text not fitting into ascii."""
+        text = 'hellö wörld'
+        self.assertEqual(utils.force_encoding(text, 'ascii'), 'hell? w?rld')
+
+
 if __name__ == '__main__':
     unittest.main()

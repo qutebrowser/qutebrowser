@@ -21,6 +21,7 @@
 
 import io
 import os
+import sys
 import os.path
 import shutil
 import functools
@@ -385,6 +386,10 @@ class DownloadItem(QObject):
                              "existing: {}, fileobj {}".format(
                                  filename, self._filename, self.fileobj))
         filename = os.path.expanduser(filename)
+        # Remove chars which can't be encoded in the filename encoding.
+        # See https://github.com/The-Compiler/qutebrowser/issues/427
+        encoding = sys.getfilesystemencoding()
+        filename = utils.force_encoding(filename, encoding)
         if os.path.isabs(filename) and os.path.isdir(filename):
             # We got an absolute directory from the user, so we save it under
             # the default filename in that directory.
@@ -639,7 +644,10 @@ class DownloadManager(QAbstractListModel):
             return self.fetch_request(request, filename, fileobj, page,
                                       auto_remove)
         q = self._prepare_question()
-        q.default = urlutils.filename_from_url(request.url())
+        filename = urlutils.filename_from_url(request.url())
+        encoding = sys.getfilesystemencoding()
+        filename = utils.force_encoding(filename, encoding)
+        q.default = filename
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
         q.answered.connect(
@@ -719,6 +727,9 @@ class DownloadManager(QAbstractListModel):
             download.autoclose = False
         else:
             q = self._prepare_question()
+            encoding = sys.getfilesystemencoding()
+            suggested_filename = utils.force_encoding(suggested_filename,
+                                                      encoding)
             q.default = suggested_filename
             q.answered.connect(download.set_filename)
             q.cancelled.connect(download.cancel)
