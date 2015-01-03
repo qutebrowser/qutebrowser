@@ -113,7 +113,7 @@ class WebView(QWebView):
                                   window=win_id)
         tab_registry[self.tab_id] = self
         objreg.register('webview', self, registry=self.registry)
-        page = webpage.BrowserPage(win_id, self)
+        page = webpage.BrowserPage(win_id, self.tab_id, self)
         self.setPage(page)
         hintmanager = hints.HintManager(win_id, self.tab_id, self)
         hintmanager.mouse_event.connect(self.on_mouse_event)

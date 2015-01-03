@@ -47,7 +47,7 @@ class BrowserPage(QWebPage):
         _ignore_load_started: Whether to ignore the next loadStarted signal.
     """
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, win_id, tab_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
         self._extension_handlers = {
@@ -56,7 +56,8 @@ class BrowserPage(QWebPage):
         }
         self._ignore_load_started = False
         self.error_occured = False
-        self._networkmanager = networkmanager.NetworkManager(win_id, self)
+        self._networkmanager = networkmanager.NetworkManager(
+            win_id, tab_id, self)
         self.setNetworkAccessManager(self._networkmanager)
         self.setForwardUnsupportedContent(True)
         self.printRequested.connect(self.on_print_requested)
@@ -72,8 +73,8 @@ class BrowserPage(QWebPage):
 
         def javaScriptPrompt(self, _frame, msg, default):
             """Override javaScriptPrompt to use the statusbar."""
-            answer = message.ask(self._win_id, "js: {}".format(msg),
-                                 usertypes.PromptMode.text, default)
+            answer = self._ask("js: {}".format(msg), usertypes.PromptMode.text,
+                               default)
             if answer is None:
                 return (False, "")
             else:
@@ -156,6 +157,28 @@ class BrowserPage(QWebPage):
         files.fileNames, _ = QFileDialog.getOpenFileNames(None, None,
                                                           suggested_file)
         return True
+
+    def _ask(self, text, mode, default=None):
+        """Ask a blocking question in the statusbar.
+
+        Args:
+            text: The text to display to the user.
+            mode: A PromptMode.
+            default: The default value to display.
+
+        Return:
+            The answer the user gave or None if the prompt was cancelled.
+        """
+        q = usertypes.Question()
+        q.text = text
+        q.mode = mode
+        q.default = default
+        self.loadStarted.connect(q.abort)
+        bridge = objreg.get('message-bridge', scope='window',
+                            window=self._win_id)
+        bridge.ask(q, blocking=True)
+        q.deleteLater()
+        return q.answer
 
     def display_content(self, reply, mimetype):
         """Display a QNetworkReply with an explicitely set mimetype."""
@@ -268,13 +291,12 @@ class BrowserPage(QWebPage):
 
     def javaScriptAlert(self, _frame, msg):
         """Override javaScriptAlert to use the statusbar."""
-        message.ask(self._win_id, "[js alert] {}".format(msg),
-                    usertypes.PromptMode.alert)
+        self._ask("[js alert] {}".format(msg), usertypes.PromptMode.alert)
 
     def javaScriptConfirm(self, _frame, msg):
         """Override javaScriptConfirm to use the statusbar."""
-        ans = message.ask(self._win_id, "[js confirm] {}".format(msg),
-                          usertypes.PromptMode.yesno)
+        ans = self._ask("[js confirm] {}".format(msg),
+                        usertypes.PromptMode.yesno)
         return bool(ans)
 
     def javaScriptConsoleMessage(self, msg, line, source):
@@ -293,8 +315,8 @@ class BrowserPage(QWebPage):
 
     def shouldInterruptJavaScript(self):
         """Override shouldInterruptJavaScript to use the statusbar."""
-        answer = message.ask(self._win_id, "Interrupt long-running "
-                             "javascript?", usertypes.PromptMode.yesno)
+        answer = self._ask("Interrupt long-running javascript?",
+                           usertypes.PromptMode.yesno)
         if answer is None:
             answer = True
         return answer
