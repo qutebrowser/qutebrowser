@@ -47,6 +47,7 @@ class NetworkManager(QNetworkAccessManager):
         _scheme_handlers: A dictionary (scheme -> handler) of supported custom
                           schemes.
         _win_id: The window ID this NetworkManager is associated with.
+        _tab_id: The tab ID this NetworkManager is associated with.
 
     Signals:
         shutting_down: Emitted when the QNAM is shutting down.
@@ -54,7 +55,7 @@ class NetworkManager(QNetworkAccessManager):
 
     shutting_down = pyqtSignal()
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, win_id, tab_id, parent=None):
         log.init.debug("Initializing NetworkManager")
         with log.disable_qt_msghandler():
             # WORKAROUND for a hang when a message is printed - See:
@@ -62,6 +63,7 @@ class NetworkManager(QNetworkAccessManager):
             super().__init__(parent)
         log.init.debug("NetworkManager init done")
         self._win_id = win_id
+        self._tab_id = tab_id
         self._requests = []
         self._scheme_handlers = {
             'qute': qutescheme.QuteSchemeHandler(win_id),
@@ -123,6 +125,9 @@ class NetworkManager(QNetworkAccessManager):
         self.shutting_down.connect(q.abort)
         if owner is not None:
             owner.destroyed.connect(q.abort)
+        webview = objreg.get('webview', scope='tab', window=self._win_id,
+                             tab=self._tab_id)
+        webview.loadStarted.connect(q.abort)
         bridge = objreg.get('message-bridge', scope='window',
                             window=self._win_id)
         bridge.ask(q, blocking=True)

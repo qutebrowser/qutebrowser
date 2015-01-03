@@ -562,7 +562,8 @@ class DownloadManager(QAbstractListModel):
         self._win_id = win_id
         self.downloads = []
         self.questions = []
-        self._networkmanager = networkmanager.NetworkManager(win_id, self)
+        self._networkmanager = networkmanager.NetworkManager(
+            win_id, None, self)
 
     def __repr__(self):
         return utils.get_repr(self, downloads=len(self.downloads))
