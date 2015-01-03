@@ -542,3 +542,11 @@ def raises(exc, func, *args):
         return True
     else:
         return False
+
+
+def force_encoding(text, encoding):
+    """Make sure a given text is encodable with the given encoding.
+
+    This replaces all chars not encodable with question marks.
+    """
+    return text.encode(encoding, errors='replace').decode(encoding)
