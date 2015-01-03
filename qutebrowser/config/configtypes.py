@@ -937,13 +937,13 @@ class ShellCommand(BaseType):
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
-        if self.placeholder and '{}' not in self.transform(value):
-            raise configexc.ValidationError(value, "needs to contain a "
-                                            "{}-placeholder.")
         try:
             shlex.split(value)
         except ValueError as e:
             raise configexc.ValidationError(value, str(e))
+        if self.placeholder and '{}' not in self.transform(value):
+            raise configexc.ValidationError(value, "needs to contain a "
+                                            "{}-placeholder.")
 
     def transform(self, value):
         if not value:
