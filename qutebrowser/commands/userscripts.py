@@ -52,6 +52,7 @@ class _QtFIFOReader(QObject):
     @pyqtSlot()
     def read_line(self):
         """(Try to) read a line from the fifo."""
+        log.procs.debug("QSocketNotifier triggered!")
         self._notifier.setEnabled(False)
         for line in self.fifo:
             self.got_line.emit(line.rstrip('\r\n'))
@@ -121,6 +122,7 @@ class _BaseUserscriptRunner(QObject):
 
     def _cleanup(self):
         """Clean up the temporary file."""
+        log.procs.debug("Deleting temporary file {}.".format(self._filepath))
         try:
             os.remove(self._filepath)
         except OSError as e:
@@ -157,6 +159,7 @@ class _BaseUserscriptRunner(QObject):
         # executed async.
         message.error(self._win_id,
                       "Error while calling userscript: {}".format(msg))
+        log.procs.debug("Userscript process error: {} - {}".format(error, msg))
 
 
 class _POSIXUserscriptRunner(_BaseUserscriptRunner):
@@ -195,7 +198,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
 
     def on_proc_finished(self):
         """Interrupt the reader when the process finished."""
-        log.procs.debug("proc finished")
+        log.procs.debug("Userscript process finished.")
         self.finish()
 
     def on_proc_error(self, error):
@@ -245,7 +248,7 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
 
     def on_proc_finished(self):
         """Read back the commands when the process finished."""
-        log.procs.debug("proc finished")
+        log.procs.debug("Userscript process finished.")
         try:
             with open(self._filepath, 'r', encoding='utf-8') as f:
                 for line in f:
@@ -310,6 +313,9 @@ def run(cmd, *args, url, win_id):
     urlstr = url.toString(QUrl.FullyEncoded)
     commandrunner = runners.CommandRunner(win_id, tabbed_browser)
     runner = UserscriptRunner(win_id, tabbed_browser)
+    runner.got_cmd.connect(
+        lambda cmd: log.commands.debug("Got userscript command: {}".format(
+            cmd)))
     runner.got_cmd.connect(commandrunner.run_safely)
     runner.run(cmd, *args, env={'QUTE_URL': urlstr})
     runner.finished.connect(commandrunner.deleteLater)
