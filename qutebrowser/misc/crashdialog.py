@@ -34,6 +34,7 @@ from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
 from qutebrowser.utils import version, log, utils, objreg
 from qutebrowser.misc import miscwidgets
 from qutebrowser.browser.network import pastebin
+from qutebrowser.config import config
 
 
 class _CrashDialog(QDialog):
@@ -298,6 +299,11 @@ class ExceptionCrashDialog(_CrashDialog):
         if debug:
             self._chk_log.setChecked(False)
             self._chk_log.setEnabled(False)
+        try:
+            if config.get('general', 'private-browsing'):
+                self._chk_log.setChecked(False)
+        except Exception:
+            log.misc.exception("Error while checking private browsing mode")
         self._chk_log.toggled.connect(self._set_crash_info)
         self._vbox.addWidget(self._chk_log)
         info_label = QLabel("<i>This makes it a lot easier to diagnose the "
