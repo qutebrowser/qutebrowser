@@ -28,7 +28,6 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
-from qutebrowser.commands import cmdexc
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget
 from qutebrowser.browser import signalfilter, commands, webview
@@ -187,14 +186,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             url = QUrl()
         else:
             url = widget.cur_url
-        try:
-            qtutils.ensure_valid(url)
-        except qtutils.QtValueError as e:
-            msg = "Current URL is invalid"
-            if e.reason:
-                msg += " ({})".format(e.reason)
-            msg += "!"
-            raise cmdexc.CommandError(msg)
+        # It's possible for url to be invalid, but the caller will handle that.
+        qtutils.ensure_valid(url)
         return url
 
     def shutdown(self):

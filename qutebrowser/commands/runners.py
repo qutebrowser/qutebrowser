@@ -26,7 +26,7 @@ from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config, configexc
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, log, utils, objreg
+from qutebrowser.utils import message, log, utils, objreg, qtutils
 from qutebrowser.misc import split
 
 
@@ -35,12 +35,18 @@ def replace_variables(win_id, arglist):
     args = []
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    for arg in arglist:
-        if arg == '{url}':
-            # Note we have to do this in here as the user gets an error message
-            # by current_url if no URL is open yet.
+    if '{url}' in arglist:
+        try:
             url = tabbed_browser.current_url().toString(QUrl.FullyEncoded |
                                                         QUrl.RemovePassword)
+        except qtutils.QtValueError as e:
+            msg = "Current URL is invalid"
+            if e.reason:
+                msg += " ({})".format(e.reason)
+            msg += "!"
+            raise cmdexc.CommandError(msg)
+    for arg in arglist:
+        if arg == '{url}':
             args.append(url)
         else:
             args.append(arg)

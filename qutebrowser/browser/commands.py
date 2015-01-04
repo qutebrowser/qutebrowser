@@ -92,7 +92,14 @@ class CommandDispatcher:
 
     def _current_url(self):
         """Convenience method to get the current url."""
-        return self._tabbed_browser().current_url()
+        try:
+            return self._tabbed_browser().current_url()
+        except qtutils.QtValueError as e:
+            msg = "Current URL is invalid"
+            if e.reason:
+                msg += " ({})".format(e.reason)
+            msg += "!"
+            raise cmdexc.CommandError(msg)
 
     def _current_widget(self):
         """Get the currently active widget from a command."""

@@ -26,7 +26,7 @@ from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.misc import cmdhistory
 from qutebrowser.misc import miscwidgets as misc
-from qutebrowser.utils import usertypes, log, objreg
+from qutebrowser.utils import usertypes, log, objreg, qtutils
 
 
 class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
@@ -110,8 +110,15 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
         if '{url}' in text:
-            url = tabbed_browser.current_url().toString(
-                QUrl.FullyEncoded | QUrl.RemovePassword)
+            try:
+                url = tabbed_browser.current_url().toString(
+                    QUrl.FullyEncoded | QUrl.RemovePassword)
+            except qtutils.QtValueError as e:
+                msg = "Current URL is invalid"
+                if e.reason:
+                    msg += " ({})".format(e.reason)
+                msg += "!"
+                raise cmdexc.CommandError(msg)
             # FIXME we currently replace the URL in any place in the arguments,
             # rather than just replacing it if it is a dedicated argument. We
             # could split the args, but then trailing spaces would be lost, so
