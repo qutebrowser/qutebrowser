@@ -131,5 +131,15 @@ class ConfigParserTests(unittest.TestCase):
             self.cfg._from_cp(self.cp)
 
 
+class DefaultConfigTests(unittest.TestCase):
+
+    """Test validating of the default config."""
+
+    def test_default_config(self):
+        """Test validating of the default config."""
+        conf = config.ConfigManager(None, None)
+        conf._validate_all()
+
+
 if __name__ == '__main__':
     unittest.main()
