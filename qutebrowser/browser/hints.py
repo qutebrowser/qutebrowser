@@ -344,6 +344,11 @@ class HintManager(QObject):
         label.setPlainText(string)
         return label
 
+    def _show_url_error(self):
+        """Show an error because no link was found."""
+        message.error(self._win_id, "No suitable link found for this element.",
+                      immediately=True)
+
     def _click(self, elem, context):
         """Click an element.
 
@@ -432,9 +437,7 @@ class HintManager(QObject):
         """
         url = self._resolve_url(elem, context.baseurl)
         if url is None:
-            message.error(self._win_id,
-                          "No suitable link found for this element.",
-                          immediately=True)
+            self._show_url_error()
             return
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
@@ -781,9 +784,7 @@ class HintManager(QObject):
         elif self._context.target in url_handlers:
             url = self._resolve_url(elem, self._context.baseurl)
             if url is None:
-                message.error(self._win_id,
-                              "No suitable link found for this element.",
-                              immediately=True)
+                self._show_url_error()
                 return
             handler = functools.partial(
                 url_handlers[self._context.target], url, self._context)
