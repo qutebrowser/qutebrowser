@@ -24,10 +24,11 @@ import os.path
 import tempfile
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QStandardPaths,
-                          QSocketNotifier, QProcessEnvironment, QProcess, QUrl)
+                          QSocketNotifier, QProcessEnvironment, QProcess)
 
 from qutebrowser.utils import message, log, objreg, standarddir
 from qutebrowser.commands import runners, cmdexc
+from qutebrowser.config import config
 
 
 class _QtFIFOReader(QObject):
@@ -305,19 +306,26 @@ else:
     UserscriptRunner = _DummyUserscriptRunner
 
 
-def run(cmd, *args, url, win_id):
-    """Convenience method to run an userscript."""
+def run(cmd, *args, win_id, env):
+    """Convenience method to run an userscript.
+
+    Args:
+        cmd: The userscript binary to run.
+        *args: The arguments to pass to the userscript.
+        win_id: The window id the userscript is executed in.
+        env: A dictionary of variables to add to the process environment.
+    """
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    # We don't remove the password in the URL here, as it's probably safe to
-    # pass via env variable..
-    urlstr = url.toString(QUrl.FullyEncoded)
     commandrunner = runners.CommandRunner(win_id, tabbed_browser)
     runner = UserscriptRunner(win_id, tabbed_browser)
     runner.got_cmd.connect(
         lambda cmd: log.commands.debug("Got userscript command: {}".format(
             cmd)))
     runner.got_cmd.connect(commandrunner.run_safely)
-    runner.run(cmd, *args, env={'QUTE_URL': urlstr})
+    user_agent = config.get('network', 'user-agent')
+    if user_agent is not None:
+        env['QUTE_USER_AGENT'] = user_agent
+    runner.run(cmd, *args, env=env)
     runner.finished.connect(commandrunner.deleteLater)
     runner.finished.connect(runner.deleteLater)

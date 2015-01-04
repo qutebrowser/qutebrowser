@@ -443,16 +443,24 @@ class HintManager(QObject):
                                       window=self._win_id)
         download_manager.get(url, elem.webFrame().page())
 
-    def _call_userscript(self, url, context):
+    def _call_userscript(self, elem, context):
         """Call an userscript from a hint.
 
         Args:
-            url: The URL to open as a QUrl.
+            elem: The QWebElement to use in the userscript.
             context: The HintContext to use.
         """
         cmd = context.args[0]
         args = context.args[1:]
-        userscripts.run(cmd, *args, url=url, win_id=self._win_id)
+        env = {
+            'QUTE_MODE': 'hints',
+            'QUTE_SELECTED_TEXT': str(elem),
+            'QUTE_SELECTED_HTML': elem.toOuterXml(),
+        }
+        url = self._resolve_url(elem, context.baseurl)
+        if url is not None:
+            env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
+        userscripts.run(cmd, *args, win_id=self._win_id, env=env)
 
     def _spawn(self, url, context):
         """Spawn a simple command from a hint.
@@ -767,6 +775,7 @@ class HintManager(QObject):
             Target.hover: self._click,
             # _download needs a QWebElement to get the frame.
             Target.download: self._download,
+            Target.userscript: self._call_userscript,
         }
         # Handlers which take a QUrl
         url_handlers = {
@@ -774,7 +783,6 @@ class HintManager(QObject):
             Target.yank_primary: self._yank,
             Target.run: self._run_cmd,
             Target.fill: self._preset_cmd_text,
-            Target.userscript: self._call_userscript,
             Target.spawn: self._spawn,
         }
         elem = self._context.elems[keystr].elem

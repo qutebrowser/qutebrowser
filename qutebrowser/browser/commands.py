@@ -830,8 +830,28 @@ class CommandDispatcher:
             args: Arguments to pass to the userscript.
         """
         cmd = os.path.expanduser(cmd)
-        userscripts.run(cmd, *args, url=self._current_url(),
-                        win_id=self._win_id)
+        env = {
+            'QUTE_MODE': 'command',
+        }
+
+        idx = self._current_index()
+        tabbed_browser = self._tabbed_browser()
+        if idx != -1:
+            env['QUTE_TITLE'] = tabbed_browser.tabText(idx)
+
+        webview = tabbed_browser.currentWidget()
+        if webview is not None and webview.hasSelection():
+            env['QUTE_SELECTED_TEXT'] = webview.selectedText()
+            env['QUTE_SELECTED_HTML'] = webview.selectedHtml()
+
+        try:
+            url = tabbed_browser.current_url()
+        except qtutils.QtValueError:
+            pass
+        else:
+            env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
+
+        userscripts.run(cmd, *args, win_id=self._win_id, env=env)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def quickmark_save(self):
