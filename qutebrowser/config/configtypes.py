@@ -1253,10 +1253,12 @@ class ConfirmQuit(List):
         if values == 'never':
             return
         # Never can't be set with other options
-        elif 'never' in values and isinstance(values, list):
+        elif 'never' in values and isinstance(values,
+                                              list) and len(values) > 1:
             raise configexc.ValidationError(value, "List cannot contain never!")
         # Always can't be set with other options
-        elif 'always' in values and isinstance(values, list):
+        elif 'always' in values and isinstance(values,
+                                               list) and len(values) > 1:
             raise configexc.ValidationError(value,
                                             "List cannot contain always!")
         # Values have to be valid
@@ -1269,17 +1271,17 @@ class ConfirmQuit(List):
                                                    " values!")
 
     def complete(self):
-        combinations = []
+        permutations = []
         # Generate combinations of the options that can be combined
         for size in range(2, len(self.combinable_values) + 1):
-            combinations = combinations + list(
-                itertools.combinations(self.combinable_values, size))
+            permutations = permutations + list(
+                itertools.permutations(self.combinable_values, size))
         out = []
         # Add valid single values
         for val in self.valid_values:
             out.append((val, self.valid_values.descriptions[val]))
         # Add combinations to list of options
-        for val in combinations:
+        for val in permutations:
             desc = ''
             val = ','.join(val)
             out.append((val, desc))
