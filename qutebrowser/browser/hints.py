@@ -289,9 +289,9 @@ class HintManager(QObject):
         # Make text uppercase if set in config
         if (config.get('hints', 'uppercase') and
                 config.get('hints', 'mode') == 'letter'):
-            attrs.append(('texttransform', 'uppercase'))
+            attrs.append(('text-transform', 'uppercase'))
         else:
-            attrs.append(('texttransform', 'none'))
+            attrs.append(('text-transform', 'none'))
 
         for k, v in attrs:
             label.setStyleProperty(k, v)
