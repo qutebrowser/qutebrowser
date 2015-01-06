@@ -270,8 +270,11 @@ class CommandRunner(QObject):
                                               maxsplit=maxsplit)
                     for s in args:
                         # remove quotes and replace \" by "
-                        s = re.sub(r"""(^|[^\\])["']""", r'\1', s)
-                        s = re.sub(r"""\\(["'])""", r'\1', s)
+                        if s == '""' or s == "''":
+                            s = ''
+                        else:
+                            s = re.sub(r"""(^|[^\\])["']""", r'\1', s)
+                            s = re.sub(r"""\\(["'])""", r'\1', s)
                         self._args.append(s)
                     break
             else:
