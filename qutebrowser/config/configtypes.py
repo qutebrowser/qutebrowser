@@ -1233,8 +1233,8 @@ class ConfirmQuit(List):
     valid_values = ValidValues(('always', "Always show a confirmation."),
                                ('multiple-tabs', "Show a confirmation if "
                                                  "multiple tabs are opened."),
-                               ('downloads', "show a confirmation if downloads "
-                                             "are running"),
+                               ('downloads', "Show a confirmation if "
+                                             "downloads are running"),
                                ('never', "Never show a confirmation."))
     # Values that can be combined with commas
     combinable_values = ('multiple-tabs', 'downloads')
@@ -1243,7 +1243,8 @@ class ConfirmQuit(List):
         values = self.transform(value)
         # Never can't be set with other options
         if 'never' in values and len(values) > 1:
-            raise configexc.ValidationError(value, "List cannot contain never!")
+            raise configexc.ValidationError(
+                value, "List cannot contain never!")
         # Always can't be set with other options
         elif 'always' in values and len(values) > 1:
             raise configexc.ValidationError(
