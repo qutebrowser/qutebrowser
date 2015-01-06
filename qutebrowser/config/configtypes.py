@@ -1233,32 +1233,19 @@ class ConfirmQuit(List):
     valid_values = ValidValues(('always', "Always show a confirmation."),
                                ('multiple-tabs', "Show a confirmation if "
                                                  "multiple tabs are opened."),
-                               ('downloads', "show a confirmation if downloads"
+                               ('downloads', "show a confirmation if downloads "
                                              "are running"),
                                ('never', "Never show a confirmation."))
     # Values that can be combined with commas
     combinable_values = ('multiple-tabs', 'downloads')
 
-    def transform(self, value):
-        # Backward compatible
-        if value == 'never':
-            return value
-        # Split configuration string into list
-        else:
-            return super().transform(value)
-
     def validate(self, value):
         values = self.transform(value)
-        # Backward compatibility
-        if values == 'never':
-            return
         # Never can't be set with other options
-        elif 'never' in values and isinstance(values,
-                                              list) and len(values) > 1:
+        if 'never' in values and len(values) > 1:
             raise configexc.ValidationError(value, "List cannot contain never!")
         # Always can't be set with other options
-        elif 'always' in values and isinstance(values,
-                                               list) and len(values) > 1:
+        elif 'always' in values and len(values) > 1:
             raise configexc.ValidationError(value,
                                             "List cannot contain always!")
         # Values have to be valid
@@ -1271,17 +1258,17 @@ class ConfirmQuit(List):
                                                    " values!")
 
     def complete(self):
-        permutations = []
+        combinations = []
         # Generate combinations of the options that can be combined
         for size in range(2, len(self.combinable_values) + 1):
-            permutations = permutations + list(
-                itertools.permutations(self.combinable_values, size))
+            combinations = combinations + list(
+                itertools.combinations(self.combinable_values, size))
         out = []
         # Add valid single values
         for val in self.valid_values:
             out.append((val, self.valid_values.descriptions[val]))
         # Add combinations to list of options
-        for val in permutations:
+        for val in combinations:
             desc = ''
             val = ','.join(val)
             out.append((val, desc))
