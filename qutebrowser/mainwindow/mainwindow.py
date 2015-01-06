@@ -327,18 +327,32 @@ class MainWindow(QWidget):
     def closeEvent(self, e):
         """Override closeEvent to display a confirmation if needed."""
         confirm_quit = config.get('ui', 'confirm-quit')
-        count = self._tabbed_browser.count()
-        if confirm_quit == 'never':
+        tab_count = self._tabbed_browser.count()
+        download_manager = objreg.get('download-manager', scope='window',
+                                      window=self.win_id)
+        download_count = download_manager.rowCount()
+        quit_texts = []
+        # Close if set to never ask for confirmation
+        if 'never' in confirm_quit:
             pass
-        elif confirm_quit == 'multiple-tabs' and count <= 1:
-            pass
-        else:
-            text = "Close {} {}?".format(
-                count, "tab" if count == 1 else "tabs")
+        # Ask if multiple-tabs are open
+        if 'multiple-tabs' in confirm_quit and tab_count > 1:
+            quit_texts.append("{} {} open.".format(
+                tab_count, "tab is" if tab_count == 1 else "tabs are"))
+        # Ask if multiple downloads running
+        if 'downloads' in confirm_quit and download_count > 0:
+            quit_texts.append("{} {} running.".format(
+                tab_count,
+                "download is" if tab_count == 1 else "downloads are"))
+        # Process all quit messages that user must confirm
+        if quit_texts or 'always' in confirm_quit:
+            text = '\n'.join(['Really quit?'] + quit_texts)
             confirmed = message.ask(self.win_id, text,
-                                    usertypes.PromptMode.yesno, default=True)
+                                    usertypes.PromptMode.yesno,
+                                    default=True)
+            # Stop asking if the user cancels
             if not confirmed:
-                log.destroy.debug("Cancelling losing of window {}".format(
+                log.destroy.debug("Cancelling closing of window {}".format(
                     self.win_id))
                 e.ignore()
                 return
