@@ -125,14 +125,10 @@ def link_pyqt():
     if not globbed_sip:
         print("Did not find sip in {}!".format(sys_path), file=sys.stderr)
         sys.exit(1)
-    elif len(globbed_sip) != 1:
-        print("Found multiple sip installations: {}!".format(globbed_sip),
-              file=sys.stderr)
-        sys.exit(1)
-    files = (
+    files = [
         'PyQt5',
-        os.path.basename(globbed_sip[0]),
-    )
+    ]
+    files += [os.path.basename(e) for e in globbed_sip]
     for fn in files:
         source = os.path.join(sys_path, fn)
         link_name = os.path.join(venv_path, fn)
