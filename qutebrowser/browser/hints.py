@@ -267,6 +267,14 @@ class HintManager(QObject):
         display = elem.styleProperty('display', QWebElement.InlineStyle)
         return display == 'none'
 
+    def _show_elem(self, elem):
+        """Show a given element."""
+        elem.setStyleProperty('display', 'inline !important')
+
+    def _hide_elem(self, elem):
+        """Hide a given element."""
+        elem.setStyleProperty('display', 'none !important')
+
     def _set_style_properties(self, elem, label):
         """Set the hint CSS on the element given.
 
@@ -289,9 +297,9 @@ class HintManager(QObject):
         # Make text uppercase if set in config
         if (config.get('hints', 'uppercase') and
                 config.get('hints', 'mode') == 'letter'):
-            attrs.append(('text-transform', 'uppercase'))
+            attrs.append(('text-transform', 'uppercase !important'))
         else:
-            attrs.append(('text-transform', 'none'))
+            attrs.append(('text-transform', 'none !important'))
 
         for k, v in attrs:
             label.setStyleProperty(k, v)
@@ -313,8 +321,8 @@ class HintManager(QObject):
             top /= zoom
         log.hints.vdebug("Drawing label '{!r}' at {}/{} for element '{!r}', "
                          "zoom level {}".format(label, left, top, elem, zoom))
-        label.setStyleProperty('left', '{}px'.format(left))
-        label.setStyleProperty('top', '{}px'.format(top))
+        label.setStyleProperty('left', '{}px !important'.format(left))
+        label.setStyleProperty('top', '{}px !important'.format(top))
 
     def _draw_label(self, elem, string):
         """Draw a hint label over an element.
@@ -717,10 +725,10 @@ class HintManager(QObject):
                             match_color, matched, rest))
                     if self._is_hidden(elems.label):
                         # hidden element which matches again -> unhide it
-                        elems.label.setStyleProperty('display', 'inline')
+                        self._show_elem(elems.label)
                 else:
                     # element doesn't match anymore -> hide it
-                    elems.label.setStyleProperty('display', 'none')
+                    self._hide_elem(elems.label)
             except webelem.IsNullError:
                 pass
 
@@ -736,10 +744,10 @@ class HintManager(QObject):
                         str(elems.elem).lower().startswith(filterstr)):
                     if self._is_hidden(elems.label):
                         # hidden element which matches again -> unhide it
-                        elems.label.setStyleProperty('display', 'inline')
+                        self._show_elem(elems.label)
                 else:
                     # element doesn't match anymore -> hide it
-                    elems.label.setStyleProperty('display', 'none')
+                    self._hide_elem(elems.label)
             except webelem.IsNullError:
                 pass
         visible = {}
