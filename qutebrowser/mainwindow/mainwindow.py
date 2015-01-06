@@ -332,8 +332,8 @@ class MainWindow(QWidget):
                                       window=self.win_id)
         download_count = download_manager.rowCount()
         quit_texts = []
-        # Close if set to never ask for confirmation (backward compatible)
-        if confirm_quit == 'never' or 'never' in confirm_quit:
+        # Close if set to never ask for confirmation
+        if 'never' in confirm_quit:
             pass
         # Ask if multiple-tabs are open
         if 'multiple-tabs' in confirm_quit and tab_count > 1:
@@ -352,7 +352,7 @@ class MainWindow(QWidget):
                                     default=True)
             # Stop asking if the user cancels
             if not confirmed:
-                log.destroy.debug("Cancelling losing of window {}".format(
+                log.destroy.debug("Cancelling closing of window {}".format(
                     self.win_id))
                 e.ignore()
                 return

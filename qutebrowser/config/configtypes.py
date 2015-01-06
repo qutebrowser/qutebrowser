@@ -1246,22 +1246,22 @@ class ConfirmQuit(List):
             raise configexc.ValidationError(value, "List cannot contain never!")
         # Always can't be set with other options
         elif 'always' in values and len(values) > 1:
-            raise configexc.ValidationError(value,
-                                            "List cannot contain always!")
+            raise configexc.ValidationError(
+                value, "List cannot contain always!")
         # Values have to be valid
         elif not set(values).issubset(set(self.valid_values.values)):
-            raise configexc.ValidationError(value, "List contains invalid"
-                                                   " values!")
+            raise configexc.ValidationError(
+                value, "List contains invalid values!")
         # List can't have duplicates
         elif len(set(values)) != len(values):
-            raise configexc.ValidationError(value, "List contains duplicate"
-                                                   " values!")
+            raise configexc.ValidationError(
+                value, "List contains duplicate values!")
 
     def complete(self):
         combinations = []
         # Generate combinations of the options that can be combined
         for size in range(2, len(self.combinable_values) + 1):
-            combinations = combinations + list(
+            combinations += list(
                 itertools.combinations(self.combinable_values, size))
         out = []
         # Add valid single values
@@ -1270,8 +1270,7 @@ class ConfirmQuit(List):
         # Add combinations to list of options
         for val in combinations:
             desc = ''
-            val = ','.join(val)
-            out.append((val, desc))
+            out.append((','.join(val), desc))
         return out
 
 
