@@ -127,6 +127,7 @@ Contributors, sorted by the number of commits in descending order:
 * Florian Bruhin
 * Claude
 * John ShaggyTwoDope Jenkins
+* Peter Vilim
 * rikn00
 * Martin Zimmermann
 * Joel Torstensson
@@ -135,10 +136,11 @@ Contributors, sorted by the number of commits in descending order:
 * Regina Hug
 * Mathias Fussenegger
 * Larry Hynes
-* Peter Vilim
+* Thiago Barroso Perrotta
 * Matthias Lisin
 * Helen Sherwood-Taylor
 * HalosGhost
+* Error 800
 // QUTE_AUTHORS_END
 
 The following people have contributed graphics:

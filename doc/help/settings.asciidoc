@@ -390,6 +390,7 @@ Valid values:
 
  * +always+: Always show a confirmation.
  * +multiple-tabs+: Show a confirmation if multiple tabs are opened.
+ * +downloads+: Show a confirmation if downloads are running
  * +never+: Never show a confirmation.
 
 Default: +pass:[never]+

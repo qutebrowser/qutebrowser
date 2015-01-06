@@ -39,7 +39,7 @@ your `$PATH` (e.g. `/usr/local/bin/qutebrowser` or `~/bin/qutebrowser`):
 
 ----
 #!/bin/bash
-~/path/to/qutebrowser/.venv/bin/python3 -m qutebrowser
+~/path/to/qutebrowser/.venv/bin/python3 -m qutebrowser "$@"
 ----
 
 On Archlinux
