@@ -127,6 +127,7 @@ Contributors, sorted by the number of commits in descending order:
 * Florian Bruhin
 * Claude
 * John ShaggyTwoDope Jenkins
+* Peter Vilim
 * rikn00
 * Martin Zimmermann
 * Joel Torstensson
@@ -136,7 +137,6 @@ Contributors, sorted by the number of commits in descending order:
 * Mathias Fussenegger
 * Larry Hynes
 * Thiago Barroso Perrotta
-* Peter Vilim
 * Matthias Lisin
 * Helen Sherwood-Taylor
 * HalosGhost
