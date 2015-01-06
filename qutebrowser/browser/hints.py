@@ -281,8 +281,8 @@ class HintManager(QObject):
             ('position', 'absolute !important'),
             ('color', config.get('colors', 'hints.fg') + ' !important'),
             ('background', config.get('colors', 'hints.bg') + ' !important'),
-            ('font', config.get('fonts', 'hints')) + ' !important',
-            ('border', config.get('hints', 'border')) + ' !important',
+            ('font', config.get('fonts', 'hints') + ' !important'),
+            ('border', config.get('hints', 'border') + ' !important'),
             ('opacity', str(config.get('hints', 'opacity')) + ' !important'),
         ]
 
