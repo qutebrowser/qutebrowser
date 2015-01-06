@@ -131,6 +131,7 @@ Contributors, sorted by the number of commits in descending order:
 * rikn00
 * Martin Zimmermann
 * Joel Torstensson
+* Error 800
 * Brian Jackson
 * Johannes Altmanninger
 * Regina Hug
@@ -140,7 +141,6 @@ Contributors, sorted by the number of commits in descending order:
 * Matthias Lisin
 * Helen Sherwood-Taylor
 * HalosGhost
-* Error 800
 // QUTE_AUTHORS_END
 
 The following people have contributed graphics:
