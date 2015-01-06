@@ -924,6 +924,7 @@ KEY_DATA = collections.OrderedDict([
     ])),
 
     ('normal', collections.OrderedDict([
+        ('search ""', ['<Escape>']),
         ('set-cmd-text ":open "', ['o']),
         ('set-cmd-text ":open {url}"', ['go']),
         ('set-cmd-text ":open -t "', ['O']),
