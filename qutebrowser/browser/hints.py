@@ -275,15 +275,15 @@ class HintManager(QObject):
             label: The label QWebElement.
         """
         attrs = [
-            ('display', 'inline'),
-            ('z-index', '100000'),
-            ('pointer-events', 'none'),
-            ('position', 'absolute'),
-            ('color', config.get('colors', 'hints.fg')),
-            ('background', config.get('colors', 'hints.bg')),
-            ('font', config.get('fonts', 'hints')),
-            ('border', config.get('hints', 'border')),
-            ('opacity', str(config.get('hints', 'opacity'))),
+            ('display', 'inline !important'),
+            ('z-index', '100000 !important'),
+            ('pointer-events', 'none !important'),
+            ('position', 'absolute !important'),
+            ('color', config.get('colors', 'hints.fg') + ' !important'),
+            ('background', config.get('colors', 'hints.bg') + ' !important'),
+            ('font', config.get('fonts', 'hints')) + ' !important',
+            ('border', config.get('hints', 'border')) + ' !important',
+            ('opacity', str(config.get('hints', 'opacity')) + ' !important'),
         ]
 
         # Make text uppercase if set in config
