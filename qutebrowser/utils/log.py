@@ -267,7 +267,12 @@ def qt_message_handler(msg_type, context, msg):
         # Harmless, see https://bugreports.qt-project.org/browse/QTBUG-42479
         "content-type missing in HTTP POST, defaulting to "
         "application/x-www-form-urlencoded. Use QNetworkRequest::setHeader() "
-        "to fix this problem."
+        "to fix this problem.",
+        # https://bugreports.qt-project.org/browse/QTBUG-43118
+        "Using blocking call!",
+        # Hopefully harmless
+        '"Method "GetAll" with signature "s" on interface '
+        '"org.freedesktop.DBus.Properties" doesn\'t exist',
     )
     if any(msg.strip().startswith(pattern) for pattern in suppressed_msgs):
         level = logging.DEBUG
