@@ -116,6 +116,8 @@ class SettingValueCompletionModel(base.BaseCompletionModel):
             value = '""'
         self.cur_item, _descitem, _miscitem = self.new_item(cur_cat, value,
                                                             "Current value")
+        self.new_item(cur_cat, configdata.DATA[section][option].default(),
+                      "Default value")
         if hasattr(configdata.DATA[section], 'valtype'):
             # Same type for all values (ValueList)
             vals = configdata.DATA[section].valtype.complete()
