@@ -27,7 +27,7 @@ import operator
 import collections.abc
 import enum as pyenum
 
-from PyQt5.QtCore import pyqtSignal, QObject, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 
 from qutebrowser.utils import log, qtutils, utils
 
@@ -307,6 +307,7 @@ class Question(QObject):
             raise TypeError("Mode {} is no PromptMode member!".format(val))
         self._mode = val
 
+    @pyqtSlot()
     def done(self):
         """Must be called when the queston was answered completely."""
         self.answered.emit(self.answer)
@@ -317,11 +318,13 @@ class Question(QObject):
                 self.answered_no.emit()
         self.completed.emit()
 
+    @pyqtSlot()
     def cancel(self):
         """Cancel the question (resulting from user-input)."""
         self.cancelled.emit()
         self.completed.emit()
 
+    @pyqtSlot()
     def abort(self):
         """Abort the question."""
         self.is_aborted = True
