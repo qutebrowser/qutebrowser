@@ -190,6 +190,25 @@ class TabbedBrowser(tabwidget.TabWidget):
         qtutils.ensure_valid(url)
         return url
 
+    def check_forms_can_be_destroyed(self, tab):
+        # Check for user modified fields in a single tab
+        confirm_quit = config.get('ui', 'confirm-quit')
+        if tab.isModified() and 'forms' in confirm_quit:
+            # Ask the user to confirm
+            text = 'Filled forms\nReally quit?'
+            confirmed = message.ask(self._win_id, text,
+                                    usertypes.PromptMode.yesno,
+                                    default=True)
+            # Return False if user does not confirm
+            if not confirmed:
+                log.destroy.debug("Cancelling closing of tab {}".format(
+                    tab))
+                return False
+            else:
+                return True
+        # Default to true
+        return True
+
     def shutdown(self):
         """Try to shut down all tabs cleanly."""
         try:
@@ -207,12 +226,15 @@ class TabbedBrowser(tabwidget.TabWidget):
         """
         last_close = config.get('tabs', 'last-close')
         if self.count() > 1:
-            self._remove_tab(tab)
+            if self.check_forms_can_be_destroyed(tab):
+                self._remove_tab(tab)
         elif last_close == 'close':
-            self._remove_tab(tab)
-            self.close_window.emit()
+            if self.check_forms_can_be_destroyed(tab):
+                self._remove_tab(tab)
+                self.close_window.emit()
         elif last_close == 'blank':
-            tab.openurl(QUrl('about:blank'))
+            if self.check_forms_can_be_destroyed(tab):
+                tab.openurl(QUrl('about:blank'))
 
     def _remove_tab(self, tab):
         """Remove a tab from the tab list and delete it properly.
