@@ -191,6 +191,14 @@ class TabbedBrowser(tabwidget.TabWidget):
         return url
 
     def check_forms_can_be_destroyed(self, tab):
+        """If needed ask user for confirmation to close a tab
+
+        Args:
+            tab: The QWebView to be closed.
+
+        Return:
+            True if tab can be destroyed and false otherwise.
+        """
         # Check for user modified fields in a single tab
         confirm_quit = config.get('ui', 'confirm-quit')
         if tab.isModified() and 'forms' in confirm_quit:
