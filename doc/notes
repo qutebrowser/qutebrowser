@@ -80,3 +80,117 @@ some cases passing the url to some cli program).
 I've also noticed the lack of completion. For example, on "o" pentadactyl will
 show sites (e.g. from history) that can be completed. I think I've been spoiled
 by pentadactyl having completion for just about everything.
+
+
+suckless surf ML post
+=====================
+
+From: Ben Woolley <tautolog_AT_gmail.com>
+Date: Wed, 7 Jan 2015 18:29:25 -0800
+
+Hi all,
+
+This patch is a bit of a beast for surf. It is intended to be applied after
+the disk cache patch. It breaks some internal interfaces, so it could
+conflict with other patches.
+
+I have been wanting a browser to implement a complete same-origin policy,
+and have been investigating how to do this in various browsers for many
+months. When I saw how surf opened new windows in a separate process, and
+was so simple, I knew I could do it quickly. Over the last two weeks, I
+have been developing this implementation on surf.
+
+The basic idea is to prevent browser-based tracking as you browse from site
+to site, or origin to origin. By "origin" domain, I mean the "first-party"
+domain, the domain normally in the location bar (of the typical browser
+interface). Each origin domain effectively gets its own browser profile,
+and a browser process only ever deals with one origin domain at a time.
+This isolates origins vertically, preventing cookies, disk cache, memory
+cache, and window.name vulnerabilities. Basically, all known
+vulnerabilities that google and Mozilla cite as counter-examples when they
+explain why they haven't disabled third-party cookies yet.
+
+When you are on msnbc.com, the tracking pixels will be stored in a cookie
+file for msnbc.com. When you go to cnn.com, the tracking pixels will be
+stored in a cookie file for cnn.com. You will not be tracked between them.
+However, third-party cookies, and the caching of third party resources will
+still work, but they will be isolated between origin domains. Instead of
+blocking cookies and cache entries, they are "double-keyed", or *also*
+keyed by origin.
+
+There is a unidirectional communication channel, however, from one origin
+to the next, through navigation from one origin to the next. That is, the
+query string is passed from one origin to the next, and may embed
+identifiers. One example is an affiliate link that identifies where the
+lead came from. I have implemented what I call "horizontal isolation", in
+the form of an "Origin Crossing Gate".
+
+Whenever you follow a link to a new domain, or even are just redirected to
+a new domain, a new window/tab is opened, and passed the referring origin
+via -R. The page passed to -O, for example -O originprompt.html, is an HTML
+page that is loaded in the new origin's context. That page tells you the
+origin you were on, the new origin, and the full link, and you can decide
+to go just to the new origin, or go to the full URL, after reviewing it for
+tracking data.
+
+Also, you may click links that store your trust of that relationship with
+various expiration times, the same way you would trust geolocation requests
+for a particular origin for a period of time. The database used is actually
+the new origin's cookie file. Since the origin prompt is loaded in the new
+origin's context, I can set a cookie on behalf of the new origin. The
+expiration time of the trust is the expiration time of the cookie. The
+cookie implementation in webkit automatically expires the trust as part of
+how cookies work. Each time you cross an origin, the origin crossing page
+checks the cookie to see if trust is still established. If so, it will use
+window.location.replace() to continue on automatically. The initial page
+renders blank until the trust is invalidated, in which case the content of
+the gate is made visible.
+
+However, the new origin is technically able to mess with those cookies, so
+a website could set trust for an origin crossing. I have addressed that by
+hashing the key with a salt, and setting the real expiration time as the
+value, along with an HMAC to verify the contents of the value. If the
+cookie is messed with in any way, the trust will be disabled, and the
+prompt will appear again. So it has a fail-safe function.
+
+I know it seems a bit convoluted, but it just started out as a nice little
+rabbit hole, and I just wanted to get something workable. At first I
+thought using the cookie expiration time was convenient, but then when I
+realized that I needed to protect the cookie, things got a bit hairy. But
+it works.
+
+Each profile is, by default, stored in ~/.surf/origins/$origin/
+The interesting side effect is that if there is a problem where a website
+relies on the cross-site cookie vulnerability to make a connection, you can
+simply make a symbolic link from one origin folder to another, and they
+will share the same profile. And if you want to delete cookies and/or cache
+for a particular origin, you just rm -rf the origin's profile folder, and
+don't have to interfere with your other sites that are working just fine.
+
+One thing I don't handle are cross-origins POSTs. They just end up as GET
+requests right now. I intend to do something about that, but I haven't
+figured that out yet.
+
+I have only been using this functionality for a few days myself, so I have
+absolutely no feedback yet. I wanted to provide the first implementation of
+the management of identity as a system resource the same way that things
+like geolocation, camera, and microphone resources are managed in browsers
+and mobile apps.
+
+Currently, Mozilla and Tor have are working on third-party tracking issues
+in Firefox.
+https://blog.mozilla.org/privacy/2014/11/10/introducing-polaris-privacy-initiative-to-accelerate-user-focused-privacy-online/
+
+Up to this point, Tor has provided a patch that double-keys cookies with
+the origin domain, but no other progress is visible. I have seen no
+discussion of how horizontal isolation is supposed to happen, and I wanted
+to show people that it can be done, and this is one way it can be done, and
+to compel the other browser makers to catch up, and hopefully the community
+can work toward a standard *without* the tracking loopholes, by showing
+people what a *complete* solution looks like.
+
+Thank you,
+
+Ben Woolley
+
+Patch: http://lists.suckless.org/dev/att-25070/0005-same-origin-policy.patch
