@@ -110,12 +110,14 @@ class SettingValueCompletionModel(base.BaseCompletionModel):
         self._section = section
         self._option = option
         objreg.get('config').changed.connect(self.update_current_value)
-        cur_cat = self.new_category("Current", sort=0)
+        cur_cat = self.new_category("Current/Default", sort=0)
         value = config.get(section, option, raw=True)
         if not value:
             value = '""'
         self.cur_item, _descitem, _miscitem = self.new_item(cur_cat, value,
                                                             "Current value")
+        self.new_item(cur_cat, configdata.DATA[section][option].default(),
+                      "Default value")
         if hasattr(configdata.DATA[section], 'valtype'):
             # Same type for all values (ValueList)
             vals = configdata.DATA[section].valtype.complete()
