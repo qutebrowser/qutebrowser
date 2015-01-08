@@ -110,7 +110,7 @@ class SettingValueCompletionModel(base.BaseCompletionModel):
         self._section = section
         self._option = option
         objreg.get('config').changed.connect(self.update_current_value)
-        cur_cat = self.new_category("Current", sort=0)
+        cur_cat = self.new_category("Current/Default", sort=0)
         value = config.get(section, option, raw=True)
         if not value:
             value = '""'
