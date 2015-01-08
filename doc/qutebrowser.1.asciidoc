@@ -90,6 +90,7 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 - '~/.config/qutebrowser/quickmarks': Saved quickmarks.
 - '~/.config/qutebrowser/keys.conf': Defined keybindings.
 - '~/.local/share/qutebrowser/': Various state information
+- '~/.cache/qutebrowser': Cached information
 
 == BUGS
 Bugs are tracked in the Github issue tracker at 
