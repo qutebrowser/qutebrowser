@@ -130,12 +130,14 @@ Contributors, sorted by the number of commits in descending order:
 * rikn00
 * Brian Jackson
 * Martin Zimmermann
+* Error 800
 * Mathias Fussenegger
 * Larry Hynes
 * Johannes Altmanninger
 * Joel Torstensson
 * Regina Hug
 * Peter Vilim
+* Matthias Lisin
 * Helen Sherwood-Taylor
 // QUTE_AUTHORS_END
 
