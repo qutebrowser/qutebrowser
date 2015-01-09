@@ -30,6 +30,7 @@ import argparse
 import subprocess
 import distutils.sysconfig  # pylint: disable=import-error
 # see https://bitbucket.org/logilab/pylint/issue/73/
+import venv
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from scripts import utils
@@ -139,21 +140,29 @@ def link_pyqt():
 
 def create_venv():
     """Create a new venv."""
-    utils.print_title("Creating venv using pyvenv")
+    utils.print_title("Creating venv")
 
-    if os.name == 'nt':
-        sys_site = ['--system-site-packages']
-    else:
-        sys_site = []
+    system_site_packages = True
 
-    command = ['pyvenv'] + sys_site
+    clear = False
     if g_args.clear or g_args.force:
-        command += ['--clear']
-    if g_args.upgrade:
-        command += ['--upgrade']
-    command += [g_path]
-    subprocess.check_call(command)
+        clear = True
 
+    upgrade = False
+    if g_args.upgrade:
+        upgrade = True
+
+    symlinks = False if os.name == 'nt' else True
+        
+    builder = venv.EnvBuilder(system_site_packages=system_site_packages,
+                              clear=clear, upgrade=upgrade,
+                              symlinks=symlinks, with_pip=True)
+
+    context = builder.ensure_directories(g_path)
+    builder.create_configuration(context)
+    builder.setup_python(context)
+    builder.setup_scripts(context)
+    
 
 def main():
     """Main entry point."""
