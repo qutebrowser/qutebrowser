@@ -22,7 +22,6 @@
 import binascii
 import base64
 import itertools
-import functools
 
 from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer, Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
@@ -112,8 +111,6 @@ class MainWindow(QWidget):
         modeman.init(self.win_id, self)
 
         self._connect_signals()
-        QTimer.singleShot(0, functools.partial(
-            modeman.enter, win_id, usertypes.KeyMode.normal, 'init'))
 
         # When we're here the statusbar might not even really exist yet, so
         # resizing will fail. Therefore, we use singleShot QTimers to make sure
