@@ -176,6 +176,7 @@ class ConfigManager(QObject):
         RENAMED_SECTIONS: A mapping of renamed sections, {'oldname': 'newname'}
         RENAMED_OPTIONS: A mapping of renamed options,
                          {('section', 'oldname'): 'newname'}
+        DELETED_OPTIONS: A (section, option) list of deleted options.
 
     Attributes:
         sections: The configuration data as an OrderedDict.
@@ -208,8 +209,11 @@ class ConfigManager(QObject):
         ('colors', 'tab.indicator.stop'): 'tabs.indicator.stop',
         ('colors', 'tab.indicator.error'): 'tabs.indicator.error',
         ('colors', 'tab.indicator.system'): 'tabs.indicator.system',
-        ('colors', 'tab.seperator'): 'tabs.seperator',
     }
+    DELETED_OPTIONS = [
+        ('colors', 'tab.seperator'),
+        ('colors', 'tabs.seperator'),
+    ]
 
     changed = pyqtSignal(str, str)
     style_changed = pyqtSignal(str, str)
@@ -356,7 +360,9 @@ class ConfigManager(QObject):
             for k, v in cp[real_sectname].items():
                 if k.startswith(self.ESCAPE_CHAR):
                     k = k[1:]
-                if (sectname, k) in self.RENAMED_OPTIONS:
+                if (sectname, k) in self.DELETED_OPTIONS:
+                    continue
+                elif (sectname, k) in self.RENAMED_OPTIONS:
                     k = self.RENAMED_OPTIONS[sectname, k]
                 self.set('conf', sectname, k, v, validate=False)
 
