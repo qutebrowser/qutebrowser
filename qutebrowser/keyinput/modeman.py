@@ -150,7 +150,7 @@ class ModeManager(QObject):
         self._win_id = win_id
         self._handlers = {}
         self.passthrough = []
-        self.mode = usertypes.KeyMode.none
+        self.mode = usertypes.KeyMode.normal
         self._releaseevents_to_pass = []
         self._forward_unbound_keys = config.get(
             'input', 'forward-unbound-keys')
