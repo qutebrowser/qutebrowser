@@ -19,11 +19,12 @@
 
 """The main browser widgets."""
 
+import sys
 import itertools
 import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
@@ -85,6 +86,10 @@ class WebView(QWebView):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        if sys.platform == 'darwin' and qtutils.version_check('5.4'):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-42948
+            # See https://github.com/The-Compiler/qutebrowser/issues/462
+            self.setStyle(QStyleFactory.create('Fusion'))
         self._win_id = win_id
         self.load_status = LoadStatus.none
         self._check_insertmode = False
