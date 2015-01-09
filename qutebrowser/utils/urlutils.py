@@ -224,7 +224,7 @@ def is_url(urlstr):
         url = _is_url_naive(urlstr)
     else:
         raise ValueError("Invalid autosearch value")
-    return url and QUrl.fromUserInput(urlstr).isValid()
+    return url and qurl_from_user_input(urlstr).isValid()
 
 
 def qurl_from_user_input(urlstr):
