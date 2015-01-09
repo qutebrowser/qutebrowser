@@ -17,11 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Mode manager singleton which handles the current keyboard mode.
-
-Module attributes:
-    manager: The ModeManager instance.
-"""
+"""Mode manager singleton which handles the current keyboard mode."""
 
 import functools
 
