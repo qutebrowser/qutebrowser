@@ -205,25 +205,26 @@ def is_url(urlstr):
     if _has_explicit_scheme(qurl):
         # URLs with explicit schemes are always URLs
         log.url.debug("Contains explicit scheme")
-        return True
+        url = True
     elif ' ' in urlstr:
         # A URL will never contain a space
         log.url.debug("Contains space -> no URL")
-        return False
+        url = False
     elif is_special_url(qurl):
         # Special URLs are always URLs, even with autosearch=False
         log.url.debug("Is an special URL.")
-        return True
+        url = True
     elif autosearch == 'dns':
         log.url.debug("Checking via DNS")
         # We want to use qurl_from_user_input here, as the user might enter
         # "foo.de" and that should be treated as URL here.
-        return _is_url_dns(qurl_from_user_input(urlstr))
+        url = _is_url_dns(qurl_from_user_input(urlstr))
     elif autosearch == 'naive':
         log.url.debug("Checking via naive check")
-        return _is_url_naive(urlstr)
+        url = _is_url_naive(urlstr)
     else:
         raise ValueError("Invalid autosearch value")
+    return url and QUrl.fromUserInput(urlstr).isValid()
 
 
 def qurl_from_user_input(urlstr):
