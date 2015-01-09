@@ -47,6 +47,8 @@ def parse_args():
     parser.add_argument('--upgrade', help="Upgrade venv to use this version of "
                         "Python, assuming Python has been upgraded in-place.",
                         action='store_true')
+    parser.add_argument('--force', help=argparse.SUPPRESS,
+                        action='store_true')
     parser.add_argument('--dev', help="Set up an environment suitable for "
                         "developing qutebrowser.",
                         action='store_true')
@@ -146,7 +148,7 @@ def create_venv():
         sys_site = []
 
     command = ['pyvenv'] + sys_site
-    if g_args.clear:
+    if g_args.clear or g_args.force:
         command += ['--clear']
     if g_args.upgrade:
         command += ['--upgrade']
