@@ -112,7 +112,7 @@ class HostBlocker:
                              "Run :adblock-update to get adblock lists.")
 
     @cmdutils.register(instance='host-blocker')
-    def adblock_update(self):
+    def adblock_update(self, win_id: {'special': 'win_id'}):
         """Update the adblock block lists."""
         self.blocked_hosts = set()
         self._done_count = 0
@@ -125,8 +125,10 @@ class HostBlocker:
             if url.scheme() == 'file':
                 try:
                     fileobj = open(url.path(), 'rb')
-                except OSError:
-                    log.misc.exception("Failed to open block list!")
+                except OSError as e:
+                    message.error(win_id, "adblock: Error while reading {}: "
+                                  "{}".format(url.path(), e.strerror))
+                    continue
                 download = FakeDownload(fileobj)
                 self._in_progress.append(download)
                 self.on_download_finished(download)

@@ -720,10 +720,6 @@ DATA = collections.OrderedDict([
          SettingValue(typ.ColorSystem(), 'rgb'),
          "Color gradient interpolation system for the tab indicator."),
 
-        ('tabs.seperator',
-         SettingValue(typ.QssColor(), '#555555'),
-         "Color for the tab seperator."),
-
         ('hints.fg',
          SettingValue(typ.CssColor(), 'black'),
          "Font color for hints."),

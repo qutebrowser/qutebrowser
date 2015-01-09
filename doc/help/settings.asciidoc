@@ -178,7 +178,6 @@
 |<<colors-tabs.indicator.stop,tabs.indicator.stop>>|Color gradient end for the tab indicator.
 |<<colors-tabs.indicator.error,tabs.indicator.error>>|Color for the tab indicator on errors..
 |<<colors-tabs.indicator.system,tabs.indicator.system>>|Color gradient interpolation system for the tab indicator.
-|<<colors-tabs.seperator,tabs.seperator>>|Color for the tab seperator.
 |<<colors-hints.fg,hints.fg>>|Font color for hints.
 |<<colors-hints.fg.match,hints.fg.match>>|Font color for the matched part of hints.
 |<<colors-hints.bg,hints.bg>>|Background color for hints.
@@ -1327,12 +1326,6 @@ Valid values:
  * +hsl+: Interpolate in the HSL color system.
 
 Default: +pass:[rgb]+
-
-[[colors-tabs.seperator]]
-=== tabs.seperator
-Color for the tab seperator.
-
-Default: +pass:[#555555]+
 
 [[colors-hints.fg]]
 === hints.fg
