@@ -106,7 +106,10 @@ def check_pep257(target):
     if args is not None:
         sys.argv += args
     try:
-        status = pep257.main(*pep257.parse_options())
+        if hasattr(pep257, 'run_pep257'):
+            status = pep257.run_pep257()
+        else:
+            status = pep257.main(*pep257.parse_options())
         print()
         return status
     except Exception:
