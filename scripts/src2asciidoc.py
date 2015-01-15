@@ -248,7 +248,7 @@ def generate_commands(filename):
                 hidden_cmds.append((name, cmd))
             elif cmd.debug:
                 debug_cmds.append((name, cmd))
-            else:
+            elif not cmd.deprecated:
                 normal_cmds.append((name, cmd))
         normal_cmds.sort()
         hidden_cmds.sort()
