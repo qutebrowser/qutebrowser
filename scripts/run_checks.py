@@ -101,6 +101,7 @@ def run(name, target=None):
 
 def check_pep257(target):
     """Run pep257 checker with args passed."""
+    # pylint: disable=assignment-from-no-return,no-member
     args = _get_args('pep257')
     sys.argv = ['pep257', target]
     if args is not None:
@@ -111,7 +112,6 @@ def check_pep257(target):
             status = pep257.run_pep257()
         else:
             # older pep257 versions
-            # pylint: disable=assignment-from-no-return,no-member
             status = pep257.main(*pep257.parse_options())
         print()
         return status
