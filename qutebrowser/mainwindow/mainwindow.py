@@ -224,6 +224,7 @@ class MainWindow(QWidget):
 
         # messages
         message_bridge.s_error.connect(status.disp_error)
+        message_bridge.s_warning.connect(status.disp_warning)
         message_bridge.s_info.connect(status.disp_temp_text)
         message_bridge.s_set_text.connect(status.set_text)
         message_bridge.s_maybe_reset_text.connect(status.txt.maybe_reset_text)

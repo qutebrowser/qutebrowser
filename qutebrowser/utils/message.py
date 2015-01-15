@@ -40,6 +40,17 @@ def error(win_id, message, immediately=False):
         0, lambda: _get_bridge(win_id).error(message, immediately))
 
 
+def warning(win_id, message, immediately=False):
+    """Convienience function to display a warning message in the statusbar.
+
+    Args:
+        win_id: The ID of the window which is calling this function.
+        others: See MessageBridge.warning.
+    """
+    QTimer.singleShot(
+        0, lambda: _get_bridge(win_id).warning(message, immediately))
+
+
 def info(win_id, message, immediately=True):
     """Convienience function to display an info message in the statusbar.
 
@@ -146,6 +157,8 @@ class MessageBridge(QObject):
                         (False).
         s_info: Display an info message.
                 args: See s_error.
+        s_warning: Display a warning message.
+                args: See s_error.
         s_set_text: Set a persistent text in the statusbar.
                     arg: The text to set.
         s_maybe_reset_text: Reset the text if it hasn't been changed yet.
@@ -162,6 +175,7 @@ class MessageBridge(QObject):
     """
 
     s_error = pyqtSignal(str, bool)
+    s_warning = pyqtSignal(str, bool)
     s_info = pyqtSignal(str, bool)
     s_set_text = pyqtSignal(str)
     s_maybe_reset_text = pyqtSignal(str)
@@ -198,6 +212,21 @@ class MessageBridge(QObject):
         msg = str(msg)
         log.misc.error(msg)
         self._emit_later(self.s_error, msg, immediately)
+
+    def warning(self, msg, immediately=False):
+        """Display an warning in the statusbar.
+
+        Args:
+            msg: The message to show.
+            immediately: Whether to display the message immediately (True) or
+                         queue it for displaying when all other messages are
+                         displayed (False). Messages resulting from direct user
+                         input should be displayed immediately, all other
+                         messages should be queued.
+        """
+        msg = str(msg)
+        log.misc.warning(msg)
+        self._emit_later(self.s_warning, msg, immediately)
 
     def info(self, msg, immediately=True):
         """Display an info text in the statusbar.
