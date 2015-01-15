@@ -795,7 +795,7 @@ class CommandDispatcher:
             tabbed_browser.setUpdatesEnabled(True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def spawn(self, *args):
+    def spawn(self, userscript=False, *args):
         """Spawn a command in a shell.
 
         Note the {url} variable which gets replaced by the current URL might be
@@ -807,21 +807,30 @@ class CommandDispatcher:
         don't care about the process anymore as soon as it's spawned.
 
         Args:
+            userscript: Run the command as an userscript.
             *args: The commandline to execute.
         """
-        log.procs.debug("Executing: {}".format(args))
-        try:
-            subprocess.Popen(args)
-        except OSError as e:
-            raise cmdexc.CommandError("Error while spawning command: "
-                                      "{}".format(e))
+        log.procs.debug("Executing: {}, userscript={}".format(
+            args, userscript))
+        if userscript:
+            if len(args) > 1:
+                self.run_userscript(args[0], args[1:])
+            else:
+                self.run_userscript(args[0])
+        else:
+            try:
+                subprocess.Popen(args)
+            except OSError as e:
+                raise cmdexc.CommandError("Error while spawning command: "
+                                          "{}".format(e))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def home(self):
         """Open main startpage in current tab."""
         self.openurl(config.get('general', 'startpage')[0])
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       deprecated='Use :spawn --userscript instead!')
     def run_userscript(self, cmd, *args: {'nargs': '*'}):
         """Run an userscript given as argument.
 

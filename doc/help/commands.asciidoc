@@ -32,7 +32,6 @@
 |<<repeat,repeat>>|Repeat a given command.
 |<<report,report>>|Report a bug in qutebrowser.
 |<<restart,restart>>|Restart qutebrowser while keeping existing tabs open.
-|<<run-userscript,run-userscript>>|Run an userscript given as argument.
 |<<save,save>>|Save the config file.
 |<<search,search>>|Search for a text on the current page.
 |<<set,set>>|Set an option.
@@ -351,16 +350,6 @@ Report a bug in qutebrowser.
 === restart
 Restart qutebrowser while keeping existing tabs open.
 
-[[run-userscript]]
-=== run-userscript
-Syntax: +:run-userscript 'cmd' ['args' ['args' ...]]+
-
-Run an userscript given as argument.
-
-==== positional arguments
-* +'cmd'+: The userscript to run.
-* +'args'+: Arguments to pass to the userscript.
-
 [[save]]
 === save
 Save the config file.
@@ -404,7 +393,7 @@ Preset the statusbar to some text.
 
 [[spawn]]
 === spawn
-Syntax: +:spawn 'args' ['args' ...]+
+Syntax: +:spawn [*--userscript*] 'args' ['args' ...]+
 
 Spawn a command in a shell.
 
@@ -412,6 +401,9 @@ Note the {url} variable which gets replaced by the current URL might be useful h
 
 ==== positional arguments
 * +'args'+: The commandline to execute.
+
+==== optional arguments
+* +*-u*+, +*--userscript*+: Run the command as an userscript.
 
 [[stop]]
 === stop
