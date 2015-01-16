@@ -131,7 +131,7 @@ class Application(QApplication):
         utils.actute_warning()
         try:
             self._init_modules()
-        except OSError as e:
+        except (OSError, UnicodeDecodeError) as e:
             msgbox = QMessageBox(
                 QMessageBox.Critical, "Error while initializing!",
                 "Error while initializing: {}".format(e))
