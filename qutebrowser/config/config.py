@@ -123,7 +123,7 @@ def init(args):
     try:
         app = objreg.get('app')
         config_obj = ConfigManager(confdir, 'qutebrowser.conf', app)
-    except (configexc.Error, configparser.Error) as e:
+    except (configexc.Error, configparser.Error, UnicodeDecodeError) as e:
         log.init.exception(e)
         errstr = "Error while reading config:"
         try:
@@ -141,7 +141,7 @@ def init(args):
         objreg.register('config', config_obj)
     try:
         key_config = keyconf.KeyConfigParser(confdir, 'keys.conf')
-    except keyconf.KeyConfigError as e:
+    except (keyconf.KeyConfigError, UnicodeDecodeError) as e:
         log.init.exception(e)
         errstr = "Error while reading key config:\n"
         if e.lineno is not None:
