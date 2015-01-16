@@ -331,6 +331,7 @@ class ExceptionCrashDialog(_CrashDialog):
         self._crash_info += [
             ("Exception", ''.join(traceback.format_exception(*self._exc))),
         ]
+        super()._gather_crash_info()
         if self._chk_log.isChecked():
             self._crash_info += [
                 ("Commandline args", ' '.join(sys.argv[1:])),
@@ -338,7 +339,6 @@ class ExceptionCrashDialog(_CrashDialog):
                 ("Command history", '\n'.join(self._cmdhist)),
                 ("Objects", self._objects),
             ]
-        super()._gather_crash_info()
         if self._chk_log.isChecked():
             try:
                 self._crash_info.append(
