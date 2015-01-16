@@ -91,7 +91,16 @@ class _CrashDialog(QDialog):
         contact = QLabel("How can I contact you if I need more info?")
         self._vbox.addWidget(contact)
         self._contact = QTextEdit(tabChangesFocus=True, acceptRichText=False)
-        self._contact.setPlaceholderText("Github username, mail or IRC")
+        try:
+            state = objreg.get('state-config')
+            try:
+                self._contact.setPlainText(state['general']['contact-info'])
+            except KeyError:
+                self._contact.setPlaceholderText("Github username, mail or "
+                                                 "IRC")
+        except Exception:
+            log.misc.exception("Failed to get contact information!")
+            self._contact.setPlaceholderText("Github username, mail or IRC")
         self._vbox.addWidget(self._contact, 2)
 
         self._vbox.addSpacing(15)
@@ -229,6 +238,11 @@ class _CrashDialog(QDialog):
     @pyqtSlot()
     def finish(self):
         """Accept/reject the dialog when reporting is done."""
+        try:
+            state = objreg.get('state-config')
+            state['general']['contact-info'] = self._contact.toPlainText()
+        except Exception:
+            log.misc.exception("Failed to save contact information!")
         if self._resolution:
             self.accept()
         else:
