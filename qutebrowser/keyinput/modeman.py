@@ -17,11 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Mode manager singleton which handles the current keyboard mode.
-
-Module attributes:
-    manager: The ModeManager instance.
-"""
+"""Mode manager singleton which handles the current keyboard mode."""
 
 import functools
 
@@ -154,7 +150,7 @@ class ModeManager(QObject):
         self._win_id = win_id
         self._handlers = {}
         self.passthrough = []
-        self.mode = usertypes.KeyMode.none
+        self.mode = usertypes.KeyMode.normal
         self._releaseevents_to_pass = []
         self._forward_unbound_keys = config.get(
             'input', 'forward-unbound-keys')

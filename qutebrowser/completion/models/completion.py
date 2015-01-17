@@ -159,7 +159,8 @@ class CommandCompletionModel(base.BaseCompletionModel):
         assert cmdutils.cmd_dict
         cmdlist = []
         for obj in set(cmdutils.cmd_dict.values()):
-            if obj.hide or (obj.debug and not objreg.get('args').debug):
+            if (obj.hide or (obj.debug and not objreg.get('args').debug) or
+                    obj.deprecated):
                 pass
             else:
                 cmdlist.append((obj.name, obj.desc))
@@ -186,7 +187,8 @@ class HelpCompletionModel(base.BaseCompletionModel):
         assert cmdutils.cmd_dict
         cmdlist = []
         for obj in set(cmdutils.cmd_dict.values()):
-            if obj.hide or (obj.debug and not objreg.get('args').debug):
+            if (obj.hide or (obj.debug and not objreg.get('args').debug) or
+                    obj.deprecated):
                 pass
             else:
                 cmdlist.append((':' + obj.name, obj.desc))

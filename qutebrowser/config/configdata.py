@@ -642,6 +642,10 @@ DATA = collections.OrderedDict([
          SettingValue(typ.QssColor(), 'red'),
          "Background color of the statusbar if there was an error."),
 
+        ('statusbar.bg.warning',
+         SettingValue(typ.QssColor(), 'darkorange'),
+         "Background color of the statusbar if there is a warning."),
+
         ('statusbar.bg.prompt',
          SettingValue(typ.QssColor(), 'darkblue'),
          "Background color of the statusbar if there is a prompt."),

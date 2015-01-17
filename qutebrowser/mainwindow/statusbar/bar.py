@@ -33,6 +33,7 @@ from qutebrowser.mainwindow.statusbar import text as textwidget
 
 PreviousWidget = usertypes.enum('PreviousWidget', ['none', 'prompt',
                                                    'command'])
+Severity = usertypes.enum('Severity', ['normal', 'warning', 'error'])
 
 
 class StatusBar(QWidget):
@@ -59,11 +60,10 @@ class StatusBar(QWidget):
         _win_id: The window ID the statusbar is associated with.
 
     Class attributes:
-        _error: If there currently is an error, accessed through the error
-                property.
+        _severity: The severity of the current message, a Severity member.
 
-                For some reason we need to have this as class attribute so
-                pyqtProperty works correctly.
+                   For some reason we need to have this as class attribute so
+                   pyqtProperty works correctly.
 
         _prompt_active: If we're currently in prompt-mode.
 
@@ -86,7 +86,7 @@ class StatusBar(QWidget):
 
     resized = pyqtSignal('QRect')
     moved = pyqtSignal('QPoint')
-    _error = False
+    _severity = None
     _prompt_active = False
     _insert_active = False
 
@@ -103,8 +103,12 @@ class StatusBar(QWidget):
             {{ color['statusbar.bg.prompt'] }}
         }
 
-        QWidget#StatusBar[error="true"] {
+        QWidget#StatusBar[severity="error"] {
             {{ color['statusbar.bg.error'] }}
+        }
+
+        QWidget#StatusBar[severity="warning"] {
+            {{ color['statusbar.bg.warning'] }}
         }
 
         QLabel, QLineEdit {
@@ -178,27 +182,37 @@ class StatusBar(QWidget):
     def __repr__(self):
         return utils.get_repr(self)
 
-    @pyqtProperty(bool)
-    def error(self):
-        """Getter for self.error, so it can be used as Qt property."""
-        # pylint: disable=method-hidden
-        return self._error
+    @pyqtProperty(str)
+    def severity(self):
+        """Getter for self.severity, so it can be used as Qt property.
 
-    def _set_error(self, val):
-        """Setter for self.error, so it can be used as Qt property.
+        Return:
+            The severity as a string (!)
+        """
+        # pylint: disable=method-hidden
+        if self._severity is None:
+            return ""
+        else:
+            return self._severity.name
+
+    def _set_severity(self, severity):
+        """Set the severity for the current message.
 
         Re-set the stylesheet after setting the value, so everything gets
         updated by Qt properly.
+
+        Args:
+            severity: A Severity member.
         """
-        if self._error == val:
+        if self._severity == severity:
             # This gets called a lot (e.g. if the completion selection was
             # changed), and setStyleSheet is relatively expensive, so we ignore
             # this if there's nothing to change.
             return
-        log.statusbar.debug("Setting error to {}".format(val))
-        self._error = val
+        log.statusbar.debug("Setting severity to {}".format(severity))
+        self._severity = severity
         self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
-        if val:
+        if severity != Severity.normal:
             # If we got an error while command/prompt was shown, raise the text
             # widget.
             self._stack.setCurrentWidget(self.txt)
@@ -243,9 +257,9 @@ class StatusBar(QWidget):
     def _pop_text(self):
         """Display a text in the statusbar and pop it from _text_queue."""
         try:
-            error, text = self._text_queue.popleft()
+            severity, text = self._text_queue.popleft()
         except IndexError:
-            self._set_error(False)
+            self._set_severity(Severity.normal)
             self.txt.set_text(self.txt.Text.temp, '')
             self._text_pop_timer.stop()
             # If a previous widget was interrupted by an error, restore it.
@@ -258,15 +272,15 @@ class StatusBar(QWidget):
             else:
                 raise AssertionError("Unknown _previous_widget!")
             return
-        log.statusbar.debug("Displaying {} message: {}".format(
-            'error' if error else 'text', text))
+        log.statusbar.debug("Displaying message: {} (severity {})".format(
+            text, severity))
         log.statusbar.debug("Remaining: {}".format(self._text_queue))
-        self._set_error(error)
+        self._set_severity(severity)
         self.txt.set_text(self.txt.Text.temp, text)
 
     def _show_cmd_widget(self):
         """Show command widget instead of temporary text."""
-        self._set_error(False)
+        self._set_severity(Severity.normal)
         self._previous_widget = PreviousWidget.prompt
         if self._text_pop_timer.isActive():
             self._timer_was_active = True
@@ -289,7 +303,7 @@ class StatusBar(QWidget):
         """Show prompt widget instead of temporary text."""
         if self._stack.currentWidget() is self.prompt:
             return
-        self._set_error(False)
+        self._set_severity(Severity.normal)
         self._set_prompt_active(True)
         self._previous_widget = PreviousWidget.prompt
         if self._text_pop_timer.isActive():
@@ -310,17 +324,17 @@ class StatusBar(QWidget):
             self._timer_was_active = False
         self._stack.setCurrentWidget(self.txt)
 
-    def _disp_text(self, text, error, immediately=False):
+    def _disp_text(self, text, severity, immediately=False):
         """Inner logic for disp_error and disp_temp_text.
 
         Args:
             text: The message to display.
-            error: Whether it's an error message (True) or normal text (False)
+            severity: The severity of the messages.
             immediately: If set, message gets displayed immediately instead of
                          queued.
         """
-        log.statusbar.debug("Displaying text: {} (error={})".format(
-            text, error))
+        log.statusbar.debug("Displaying text: {} (severity={})".format(
+            text, severity))
         mindelta = config.get('ui', 'message-timeout')
         if self._stopwatch.isNull():
             delta = None
@@ -335,10 +349,10 @@ class StatusBar(QWidget):
             # immediately. We then start the pop_timer only to restore the
             # normal state in 2 seconds.
             log.statusbar.debug("Displaying immediately")
-            self._set_error(error)
+            self._set_severity(severity)
             self.txt.set_text(self.txt.Text.temp, text)
             self._text_pop_timer.start()
-        elif self._text_queue and self._text_queue[-1] == (error, text):
+        elif self._text_queue and self._text_queue[-1] == (severity, text):
             # If we get the same message multiple times in a row and we're
             # still displaying it *anyways* we ignore the new one
             log.statusbar.debug("ignoring")
@@ -348,14 +362,14 @@ class StatusBar(QWidget):
             # We display this immediately and restart the timer.to clear it and
             # display the rest of the queue later.
             log.statusbar.debug("Moving to beginning of queue")
-            self._set_error(error)
+            self._set_severity(severity)
             self.txt.set_text(self.txt.Text.temp, text)
             self._text_pop_timer.start()
         else:
             # There are still some messages to be displayed, so we queue this
             # up.
             log.statusbar.debug("queueing")
-            self._text_queue.append((error, text))
+            self._text_queue.append((severity, text))
             self._text_pop_timer.start()
 
     @pyqtSlot(str, bool)
@@ -367,7 +381,18 @@ class StatusBar(QWidget):
             immediately: If set, message gets displayed immediately instead of
                          queued.
         """
-        self._disp_text(text, True, immediately)
+        self._disp_text(text, Severity.error, immediately)
+
+    @pyqtSlot(str, bool)
+    def disp_warning(self, text, immediately=False):
+        """Display a warning in the statusbar.
+
+        Args:
+            text: The message to display.
+            immediately: If set, message gets displayed immediately instead of
+                         queued.
+        """
+        self._disp_text(text, Severity.warning, immediately)
 
     @pyqtSlot(str, bool)
     def disp_temp_text(self, text, immediately):
@@ -378,7 +403,7 @@ class StatusBar(QWidget):
             immediately: If set, message gets displayed immediately instead of
                          queued.
         """
-        self._disp_text(text, False, immediately)
+        self._disp_text(text, Severity.normal, immediately)
 
     @pyqtSlot(str)
     def set_text(self, val):

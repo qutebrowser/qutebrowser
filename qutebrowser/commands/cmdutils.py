@@ -110,11 +110,13 @@ class register:  # pylint: disable=invalid-name
         _needs_js: If javascript is needed for this command.
         _debug: Whether this is a debugging command (only shown with --debug).
         _ignore_args: Whether to ignore the arguments of the function.
+        _deprecated: False, or a string describing why a command is deprecated.
     """
 
     def __init__(self, instance=None, name=None, maxsplit=None, hide=False,
                  completion=None, modes=None, not_modes=None, needs_js=False,
-                 debug=False, ignore_args=False, scope='global'):
+                 debug=False, ignore_args=False, deprecated=False,
+                 scope='global'):
         """Save decorator arguments.
 
         Gets called on parse-time with the decorator arguments.
@@ -134,6 +136,7 @@ class register:  # pylint: disable=invalid-name
         self._modes = modes
         self._not_modes = not_modes
         self._needs_js = needs_js
+        self._deprecated = deprecated
         self._debug = debug
         self._ignore_args = ignore_args
         if modes is not None:
@@ -192,7 +195,8 @@ class register:  # pylint: disable=invalid-name
             instance=self._instance, scope=self._scope,
             completion=self._completion, modes=self._modes,
             not_modes=self._not_modes, needs_js=self._needs_js,
-            is_debug=self._debug, ignore_args=self._ignore_args, handler=func)
+            is_debug=self._debug, ignore_args=self._ignore_args,
+            deprecated=self._deprecated, handler=func)
         for name in names:
             cmd_dict[name] = cmd
         aliases += names[1:]

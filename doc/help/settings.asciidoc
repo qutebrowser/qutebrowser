@@ -159,6 +159,7 @@
 |<<colors-statusbar.bg,statusbar.bg>>|Foreground color of the statusbar.
 |<<colors-statusbar.fg,statusbar.fg>>|Foreground color of the statusbar.
 |<<colors-statusbar.bg.error,statusbar.bg.error>>|Background color of the statusbar if there was an error.
+|<<colors-statusbar.bg.warning,statusbar.bg.warning>>|Background color of the statusbar if there is a warning.
 |<<colors-statusbar.bg.prompt,statusbar.bg.prompt>>|Background color of the statusbar if there is a prompt.
 |<<colors-statusbar.bg.insert,statusbar.bg.insert>>|Background color of the statusbar in insert mode.
 |<<colors-statusbar.progress.bg,statusbar.progress.bg>>|Background color of the progress bar.
@@ -1206,6 +1207,12 @@ Default: +pass:[white]+
 Background color of the statusbar if there was an error.
 
 Default: +pass:[red]+
+
+[[colors-statusbar.bg.warning]]
+=== statusbar.bg.warning
+Background color of the statusbar if there is a warning.
+
+Default: +pass:[darkorange]+
 
 [[colors-statusbar.bg.prompt]]
 === statusbar.bg.prompt

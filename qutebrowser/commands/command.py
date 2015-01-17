@@ -37,6 +37,7 @@ class Command:
         maxsplit: The maximum amount of splits to do for the commandline, or
                   None.
         hide: Whether to hide the arguments or not.
+        deprecated: False, or a string to describe why a command is deprecated.
         desc: The description of the command.
         handler: The handler function to call.
         completion: Completions to use for arguments, as a list of strings.
@@ -63,13 +64,14 @@ class Command:
                                              'special'])
 
     def __init__(self, name, maxsplit, hide, instance, completion, modes,
-                 not_modes, needs_js, is_debug, ignore_args,
+                 not_modes, needs_js, is_debug, ignore_args, deprecated,
                  handler, scope):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-arguments,too-many-locals
         self.name = name
         self.maxsplit = maxsplit
         self.hide = hide
+        self.deprecated = deprecated
         self._instance = instance
         self.completion = completion
         self._modes = modes
@@ -121,6 +123,9 @@ class Command:
                 QWebSettings.JavascriptEnabled):
             raise cmdexc.PrerequisitesError(
                 "{}: This command needs javascript enabled.".format(self.name))
+        if self.deprecated:
+            message.warning(win_id, '{} is deprecated - {}'.format(
+                self.name, self.deprecated))
 
     def _check_func(self):
         """Make sure the function parameters don't violate any rules."""
