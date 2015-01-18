@@ -103,7 +103,11 @@ def run(name, target=None, print_version=False):
 
 
 def check_pep257(target):
-    """Run pep257 checker with args passed."""
+    """Run pep257 checker with args passed.
+
+    We use this rather than run() because on some systems (e.g. Windows) no
+    pep257 binary is available.
+    """
     # pylint: disable=assignment-from-no-return,no-member
     args = _get_args('pep257')
     sys.argv = ['pep257', target]
