@@ -102,13 +102,15 @@ def run(name, target=None, print_version=False):
     return status
 
 
-def check_pep257(target):
+def check_pep257(target, print_version=False):
     """Run pep257 checker with args passed.
 
     We use this rather than run() because on some systems (e.g. Windows) no
     pep257 binary is available.
     """
     # pylint: disable=assignment-from-no-return,no-member
+    if print_version:
+        print(pep257.__version__)
     args = _get_args('pep257')
     sys.argv = ['pep257', target]
     if args is not None:
@@ -256,7 +258,7 @@ def _get_checkers(args):
     # "Dynamic" checkers which exist once for each target.
     for target in config.get('DEFAULT', 'targets').split(','):
         checkers[target] = collections.OrderedDict([
-            ('pep257', functools.partial(check_pep257, target)),
+            ('pep257', functools.partial(check_pep257, target, args.version)),
             ('flake8', functools.partial(run, 'flake8', target, args.version)),
             ('vcs', functools.partial(check_vcs_conflict, target)),
             ('pylint', functools.partial(run, 'pylint', target, args.version)),
