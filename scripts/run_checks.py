@@ -99,27 +99,6 @@ def run(name, target=None):
     return status
 
 
-def check_pep257(target):
-    """Run pep257 checker with args passed."""
-    # pylint: disable=assignment-from-no-return,no-member
-    args = _get_args('pep257')
-    sys.argv = ['pep257', target]
-    if args is not None:
-        sys.argv += args
-    try:
-        if hasattr(pep257, 'run_pep257'):
-            # newer pep257 versions
-            status = pep257.run_pep257()
-        else:
-            # older pep257 versions
-            status = pep257.main(*pep257.parse_options())
-        print()
-        return status
-    except Exception:
-        traceback.print_exc()
-        return None
-
-
 def check_unittest():
     """Run the unittest checker."""
     suite = unittest.TestLoader().discover('.')
@@ -248,7 +227,7 @@ def _get_checkers():
     # "Dynamic" checkers which exist once for each target.
     for target in config.get('DEFAULT', 'targets').split(','):
         checkers[target] = collections.OrderedDict([
-            ('pep257', functools.partial(check_pep257, target)),
+            ('pep257', functools.partial(run, 'pep257', target)),
             ('flake8', functools.partial(run, 'flake8', target)),
             ('vcs', functools.partial(check_vcs_conflict, target)),
             ('pylint', functools.partial(run, 'pylint', target)),
