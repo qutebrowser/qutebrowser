@@ -78,18 +78,21 @@ def _adjusted_pythonpath(name):
             del os.environ['PYTHONPATH']
 
 
-def run(name, target=None):
+def run(name, target=None, print_version=False):
     """Run a checker via distutils with optional args.
 
     Arguments:
         name: Name of the checker/binary
         target: The package to check
+        print_version: Whether to print the checker version.
     """
     # pylint: disable=too-many-branches
     args = _get_args(name)
     if target is not None:
         args.append(target)
     with _adjusted_pythonpath(name):
+        if print_version:
+            subprocess.call([name, '--version'])
         try:
             status = subprocess.call([name] + args)
         except OSError:
@@ -211,7 +214,7 @@ def _get_args(checker):
     return args
 
 
-def _get_checkers():
+def _get_checkers(args):
     """Get a dict of checkers we need to execute."""
     # "Static" checkers
     checkers = collections.OrderedDict([
@@ -220,17 +223,18 @@ def _get_checkers():
             ('git', check_git),
         ])),
         ('setup', collections.OrderedDict([
-            ('pyroma', functools.partial(run, 'pyroma')),
-            ('check-manifest', functools.partial(run, 'check-manifest')),
+            ('pyroma', functools.partial(run, 'pyroma', args.version)),
+            ('check-manifest', functools.partial(run, 'check-manifest',
+                                                 args.version)),
         ])),
     ])
     # "Dynamic" checkers which exist once for each target.
     for target in config.get('DEFAULT', 'targets').split(','):
         checkers[target] = collections.OrderedDict([
-            ('pep257', functools.partial(run, 'pep257', target)),
-            ('flake8', functools.partial(run, 'flake8', target)),
+            ('pep257', functools.partial(run, 'pep257', target, args.version)),
+            ('flake8', functools.partial(run, 'flake8', target, args.version)),
             ('vcs', functools.partial(check_vcs_conflict, target)),
-            ('pylint', functools.partial(run, 'pylint', target)),
+            ('pylint', functools.partial(run, 'pylint', target, args.version)),
         ])
     return checkers
 
@@ -254,6 +258,8 @@ def _parse_args():
     parser.add_argument('-q', '--quiet',
                         help="Don't print unnecessary headers.",
                         action='store_true')
+    parser.add_argument('-V', '--version',
+                        help="Print checker versions.", action='store_true')
     parser.add_argument('checkers', help="Checkers to run (or 'all')",
                         default='all', nargs='?')
     return parser.parse_args()
@@ -269,7 +275,7 @@ def main():
     exit_status_bool = {}
 
     args = _parse_args()
-    checkers = _get_checkers()
+    checkers = _get_checkers(args)
 
     groups = ['global']
     groups += config.get('DEFAULT', 'targets').split(',')
