@@ -499,6 +499,8 @@ class ConfigManager(QObject):
         If the option name ends with '?', the value of the option is shown
         instead.
 
+        If the option name ends with '!' and it is a boolean value, toggle it.
+
         //
 
         Wrapper for self.set() to output exceptions in the status bar.
@@ -523,6 +525,15 @@ class ConfigManager(QObject):
                 val = self.get(sectname, optname[:-1], transformed=False)
                 message.info(win_id, "{} {} = {}".format(
                     sectname, optname[:-1], val), immediately=True)
+
+            elif optname.endswith( '!' ):
+                val = self.get(sectname, optname[:-1])
+                layer = 'temp' if temp else 'conf'
+                if type( val ) == type( True ):
+                    self.set( layer, sectname, optname[:-1], str ( not val ) )
+                else:
+                    raise cmdexc.CommandError( "set: Attempted inversion of non-boolean value. Aborting." )
+
             else:
                 if value is None:
                     raise cmdexc.CommandError("set: The following arguments "

@@ -360,6 +360,10 @@ DATA = collections.OrderedDict([
          SettingValue(typ.Bool(), 'false'),
          "Hide the tabbar if only one tab is open."),
 
+        ('perm-hide',
+         SettingValue(typ.Bool(), 'false'),
+         "Hide permanently."),
+
         ('wrap',
          SettingValue(typ.Bool(), 'true'),
          "Whether to wrap when changing tabs."),
