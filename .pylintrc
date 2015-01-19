@@ -2,6 +2,7 @@
 
 [MASTER]
 ignore=ez_setup.py
+extension-pkg-whitelist=PyQt5,sip
 
 [MESSAGES CONTROL]
 disable=no-self-use,
@@ -23,7 +24,8 @@ disable=no-self-use,
         too-many-instance-attributes,
         unnecessary-lambda,
         blacklisted-name,
-        too-many-lines
+        too-many-lines,
+        logging-format-interpolation
 
 [BASIC]
 module-rgx=(__)?[a-z][a-z0-9_]*(__)?$
