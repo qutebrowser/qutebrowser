@@ -389,7 +389,7 @@ def regenerate_manpage(filename):
     options = '\n'.join(groups)
     # epilog
     if parser.epilog is not None:
-        options.append(parser.epilog)
+        options += parser.epilog
     _format_block(filename, 'options', options)
 
 

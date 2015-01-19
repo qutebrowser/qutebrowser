@@ -85,11 +85,15 @@ def venv_python(*args, output=False):
     """Call the venv's python with the given arguments."""
     subdir = 'Scripts' if os.name == 'nt' else 'bin'
     executable = os.path.join(g_path, subdir, os.path.basename(sys.executable))
+    env = dict(os.environ)
+    if sys.platform == 'darwin' and '__PYVENV_LAUNCHER__' in env:
+        # WORKAROUND for https://github.com/pypa/pip/issues/2031
+        del env['__PYVENV_LAUNCHER__']
     if output:
         return subprocess.check_output([executable] + list(args),
-                                       universal_newlines=True)
+                                       universal_newlines=True, env=env)
     else:
-        subprocess.check_call([executable] + list(args))
+        subprocess.check_call([executable] + list(args), env=env)
 
 
 def test_toolchain():
