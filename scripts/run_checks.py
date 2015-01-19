@@ -91,10 +91,15 @@ def run(name, target=None, print_version=False):
     if target is not None:
         args.append(target)
     with _adjusted_pythonpath(name):
+        # for virtualenvs
+        executable = os.path.join(os.path.dirname(sys.executable), name)
+        if not os.path.exists(executable):
+            # in $PATH
+            executable = name
         if print_version:
-            subprocess.call([name, '--version'])
+            subprocess.call([executable, '--version'])
         try:
-            status = subprocess.call([name] + args)
+            status = subprocess.call([executable] + args)
         except OSError:
             traceback.print_exc()
             status = None
