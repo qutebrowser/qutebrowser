@@ -91,8 +91,12 @@ def run(name, target=None, print_version=False):
     if target is not None:
         args.append(target)
     with _adjusted_pythonpath(name):
+        if os.name == 'nt':
+            exename = name + '.exe'
+        else:
+            exename = name
         # for virtualenvs
-        executable = os.path.join(os.path.dirname(sys.executable), name)
+        executable = os.path.join(os.path.dirname(sys.executable), exename)
         if not os.path.exists(executable):
             # in $PATH
             executable = name
