@@ -528,10 +528,10 @@ class ConfigManager(QObject):
             elif optname.endswith('!'):
                 val = self.get(sectname, optname[:-1])
                 layer = 'temp' if temp else 'conf'
-                if type(val) == type(True):
+                if isinstance(val, bool):
                     self.set(layer, sectname, optname[:-1], str(not val))
                 else:
-                    raise cmdexc.CommandError("set: Attempted inversion of non-boolean value. Aborting.")
+                    raise cmdexc.CommandError("set: Attempted inversion of non-boolean value.")
             else:
                 if value is None:
                     raise cmdexc.CommandError("set: The following arguments "
