@@ -106,8 +106,8 @@ class TabBar(QTabBar):
     def autohide(self):
         """Auto-hide the tabbar if needed."""
         auto_hide = config.get('tabs', 'auto-hide')
-        perm_hide = config.get('tabs', 'perm-hide')
-        if perm_hide or auto_hide and self.count() == 1:
+        always_hide = config.get('tabs', 'always-hide')
+        if always_hide or auto_hide and self.count() == 1:
             self.hide()
         else:
             self.show()
