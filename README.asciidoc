@@ -145,6 +145,7 @@ Contributors, sorted by the number of commits in descending order:
 * Matthias Lisin
 * Helen Sherwood-Taylor
 * HalosGhost
+* Eivind Uggedal
 * Andreas Fischer
 // QUTE_AUTHORS_END
 
