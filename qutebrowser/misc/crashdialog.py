@@ -81,6 +81,22 @@ class _CrashDialog(QDialog):
         self._paste_client = pastebin.PastebinClient(self)
         self._init_text()
 
+        contact = QLabel("I'd like to be able to follow up with you, to keep "
+                         "you posted on the status of this crash and get more "
+                         "information if I need it - how can I contact you?")
+        self._vbox.addWidget(contact)
+        self._contact = QTextEdit(tabChangesFocus=True, acceptRichText=False)
+        try:
+            state = objreg.get('state-config')
+            try:
+                self._contact.setPlainText(state['general']['contact-info'])
+            except KeyError:
+                self._contact.setPlaceholderText("Mail or IRC nickname")
+        except Exception:
+            log.misc.exception("Failed to get contact information!")
+            self._contact.setPlaceholderText("Mail or IRC nickname")
+        self._vbox.addWidget(self._contact, 2)
+
         info = QLabel("What were you doing when this crash/bug happened?")
         self._vbox.addWidget(info)
         self._info = QTextEdit(tabChangesFocus=True, acceptRichText=False)
@@ -88,11 +104,6 @@ class _CrashDialog(QDialog):
                                       "- Switched tabs\n"
                                       "- etc...")
         self._vbox.addWidget(self._info, 5)
-        contact = QLabel("How can I contact you if I need more info?")
-        self._vbox.addWidget(contact)
-        self._contact = QTextEdit(tabChangesFocus=True, acceptRichText=False)
-        self._contact.setPlaceholderText("Github username, mail or IRC")
-        self._vbox.addWidget(self._contact, 2)
 
         self._vbox.addSpacing(15)
         self._debug_log = QTextEdit(tabChangesFocus=True, acceptRichText=False,
@@ -229,6 +240,11 @@ class _CrashDialog(QDialog):
     @pyqtSlot()
     def finish(self):
         """Accept/reject the dialog when reporting is done."""
+        try:
+            state = objreg.get('state-config')
+            state['general']['contact-info'] = self._contact.toPlainText()
+        except Exception:
+            log.misc.exception("Failed to save contact information!")
         if self._resolution:
             self.accept()
         else:

@@ -813,10 +813,9 @@ class CommandDispatcher:
         log.procs.debug("Executing: {}, userscript={}".format(
             args, userscript))
         if userscript:
-            if len(args) > 1:
-                self.run_userscript(args[0], args[1:])
-            else:
-                self.run_userscript(args[0])
+            cmd = args[0]
+            args = [] if not args else args[1:]
+            self.run_userscript(cmd, *args)
         else:
             try:
                 subprocess.Popen(args)

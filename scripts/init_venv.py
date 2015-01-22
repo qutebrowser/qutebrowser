@@ -70,8 +70,8 @@ def get_dev_packages(short=False):
     Args:
         short: Remove the version specification.
     """
-    packages = ['colorlog', 'flake8', 'astroid==1.2.1', 'pylint==1.3.1',
-                'pep257', 'colorama', 'beautifulsoup4']
+    packages = ['colorlog', 'flake8', 'astroid', 'pylint', 'pep257',
+                'colorama', 'beautifulsoup4']
     if short:
         packages = [re.split(r'[<>=]', p)[0] for p in packages]
     return packages
@@ -91,11 +91,15 @@ def venv_python(*args, output=False):
     """Call the virtualenv's python with the given arguments."""
     subdir = 'Scripts' if os.name == 'nt' else 'bin'
     executable = os.path.join(g_path, subdir, os.path.basename(sys.executable))
+    env = dict(os.environ)
+    if sys.platform == 'darwin' and '__PYVENV_LAUNCHER__' in env:
+        # WORKAROUND for https://github.com/pypa/pip/issues/2031
+        del env['__PYVENV_LAUNCHER__']
     if output:
         return subprocess.check_output([executable] + list(args),
-                                       universal_newlines=True)
+                                       universal_newlines=True, env=env)
     else:
-        subprocess.check_call([executable] + list(args))
+        subprocess.check_call([executable] + list(args), env=env)
 
 
 def test_toolchain():
