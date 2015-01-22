@@ -64,8 +64,8 @@ def get_dev_packages(short=False):
     Args:
         short: Remove the version specification.
     """
-    packages = ['colorlog', 'flake8', 'astroid==1.2.1', 'pylint==1.3.1',
-                'pep257', 'colorama', 'beautifulsoup4']
+    packages = ['colorlog', 'flake8', 'astroid', 'pylint', 'pep257',
+                'colorama', 'beautifulsoup4']
     if short:
         packages = [re.split(r'[<>=]', p)[0] for p in packages]
     return packages
@@ -75,10 +75,7 @@ def install_dev_packages():
     """Install the packages needed for development."""
     for pkg in get_dev_packages():
         utils.print_subtitle("Installing {}".format(pkg))
-        if os.name == 'nt':
-            venv_python('-m', 'pip', 'install', '--no-clean', pkg)
-        else:
-            venv_python('-m', 'pip', 'install', pkg)
+        venv_python('-m', 'pip', 'install', '--upgrade', pkg)
 
 
 def venv_python(*args, output=False):

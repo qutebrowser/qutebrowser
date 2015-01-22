@@ -81,14 +81,9 @@ class _CrashDialog(QDialog):
         self._paste_client = pastebin.PastebinClient(self)
         self._init_text()
 
-        info = QLabel("What were you doing when this crash/bug happened?")
-        self._vbox.addWidget(info)
-        self._info = QTextEdit(tabChangesFocus=True, acceptRichText=False)
-        self._info.setPlaceholderText("- Opened http://www.example.com/\n"
-                                      "- Switched tabs\n"
-                                      "- etc...")
-        self._vbox.addWidget(self._info, 5)
-        contact = QLabel("How can I contact you if I need more info?")
+        contact = QLabel("I'd like to be able to follow up with you, to keep "
+                         "you posted on the status of this crash and get more "
+                         "information if I need it - how can I contact you?")
         self._vbox.addWidget(contact)
         self._contact = QTextEdit(tabChangesFocus=True, acceptRichText=False)
         try:
@@ -96,12 +91,19 @@ class _CrashDialog(QDialog):
             try:
                 self._contact.setPlainText(state['general']['contact-info'])
             except KeyError:
-                self._contact.setPlaceholderText("Github username, mail or "
-                                                 "IRC")
+                self._contact.setPlaceholderText("Mail or IRC nickname")
         except Exception:
             log.misc.exception("Failed to get contact information!")
-            self._contact.setPlaceholderText("Github username, mail or IRC")
+            self._contact.setPlaceholderText("Mail or IRC nickname")
         self._vbox.addWidget(self._contact, 2)
+
+        info = QLabel("What were you doing when this crash/bug happened?")
+        self._vbox.addWidget(info)
+        self._info = QTextEdit(tabChangesFocus=True, acceptRichText=False)
+        self._info.setPlaceholderText("- Opened http://www.example.com/\n"
+                                      "- Switched tabs\n"
+                                      "- etc...")
+        self._vbox.addWidget(self._info, 5)
 
         self._vbox.addSpacing(15)
         self._debug_log = QTextEdit(tabChangesFocus=True, acceptRichText=False,
@@ -331,6 +333,7 @@ class ExceptionCrashDialog(_CrashDialog):
         self._crash_info += [
             ("Exception", ''.join(traceback.format_exception(*self._exc))),
         ]
+        super()._gather_crash_info()
         if self._chk_log.isChecked():
             self._crash_info += [
                 ("Commandline args", ' '.join(sys.argv[1:])),
@@ -338,7 +341,6 @@ class ExceptionCrashDialog(_CrashDialog):
                 ("Command history", '\n'.join(self._cmdhist)),
                 ("Objects", self._objects),
             ]
-        super()._gather_crash_info()
         if self._chk_log.isChecked():
             try:
                 self._crash_info.append(

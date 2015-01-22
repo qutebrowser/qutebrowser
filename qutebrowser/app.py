@@ -106,12 +106,11 @@ class Application(QApplication):
             print(version.GPL_BOILERPLATE.strip())
             sys.exit(0)
 
-        sent = ipc.send_to_running_instance(self._args.command)
-        if sent:
-            sys.exit(0)
-
-        log.init.debug("Starting IPC server...")
         try:
+            sent = ipc.send_to_running_instance(self._args.command)
+            if sent:
+                sys.exit(0)
+            log.init.debug("Starting IPC server...")
             ipc.init()
         except ipc.IPCError as e:
             text = ('{}\n\nMaybe another instance is running but '

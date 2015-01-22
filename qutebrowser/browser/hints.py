@@ -752,8 +752,11 @@ class HintManager(QObject):
                 pass
         visible = {}
         for k, e in self._context.elems.items():
-            if not self._is_hidden(e.label):
-                visible[k] = e
+            try:
+                if not self._is_hidden(e.label):
+                    visible[k] = e
+            except webelem.IsNullError:
+                pass
         if not visible:
             # Whoops, filtered all hints
             modeman.leave(self._win_id, usertypes.KeyMode.hint, 'all filtered')
