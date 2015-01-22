@@ -356,11 +356,11 @@ DATA = collections.OrderedDict([
          SettingValue(typ.LastClose(), 'ignore'),
          "Behaviour when the last tab is closed."),
 
-        ('auto-hide',
+        ('hide-auto',
          SettingValue(typ.Bool(), 'false'),
          "Hide the tabbar if only one tab is open."),
 
-        ('always-hide',
+        ('hide-always',
          SettingValue(typ.Bool(), 'false'),
          "Always hide the tabbar."),
 

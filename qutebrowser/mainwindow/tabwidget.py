@@ -102,12 +102,12 @@ class TabBar(QTabBar):
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
 
-    @config.change_filter('tabs', 'auto-hide')
+    @config.change_filter('tabs', 'hide-auto')
     def autohide(self):
         """Auto-hide the tabbar if needed."""
-        auto_hide = config.get('tabs', 'auto-hide')
-        always_hide = config.get('tabs', 'always-hide')
-        if always_hide or auto_hide and self.count() == 1:
+        hide_auto = config.get('tabs', 'hide-auto')
+        hide_always = config.get('tabs', 'hide-always')
+        if hide_always or hide_auto and self.count() == 1:
             self.hide()
         else:
             self.show()
