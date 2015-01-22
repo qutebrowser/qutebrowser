@@ -96,11 +96,10 @@ class _CrashDialog(QDialog):
             try:
                 self._contact.setPlainText(state['general']['contact-info'])
             except KeyError:
-                self._contact.setPlaceholderText("Github username, mail or "
-                                                 "IRC")
+                self._contact.setPlaceholderText("Mail or IRC nickname")
         except Exception:
             log.misc.exception("Failed to get contact information!")
-            self._contact.setPlaceholderText("Github username, mail or IRC")
+            self._contact.setPlaceholderText("Mail or IRC nickname")
         self._vbox.addWidget(self._contact, 2)
 
         self._vbox.addSpacing(15)
