@@ -88,7 +88,9 @@ class _CrashDialog(QDialog):
                                       "- Switched tabs\n"
                                       "- etc...")
         self._vbox.addWidget(self._info, 5)
-        contact = QLabel("How can I contact you if I need more info?")
+        contact = QLabel("I'd like to be able to follow up with you, to keep "
+                         "you posted on the status of this crash and get more "
+                         "information if I need it - how can I contact you?")
         self._vbox.addWidget(contact)
         self._contact = QTextEdit(tabChangesFocus=True, acceptRichText=False)
         try:
