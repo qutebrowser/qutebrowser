@@ -209,7 +209,6 @@ class ConfigManager(QObject):
         ('colors', 'tab.indicator.stop'): 'tabs.indicator.stop',
         ('colors', 'tab.indicator.error'): 'tabs.indicator.error',
         ('colors', 'tab.indicator.system'): 'tabs.indicator.system',
-        ('tabs', 'always-hide'): 'hide-always',
         ('tabs', 'auto-hide'): 'hide-auto',
     }
     DELETED_OPTIONS = [
