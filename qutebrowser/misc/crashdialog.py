@@ -81,13 +81,6 @@ class _CrashDialog(QDialog):
         self._paste_client = pastebin.PastebinClient(self)
         self._init_text()
 
-        info = QLabel("What were you doing when this crash/bug happened?")
-        self._vbox.addWidget(info)
-        self._info = QTextEdit(tabChangesFocus=True, acceptRichText=False)
-        self._info.setPlaceholderText("- Opened http://www.example.com/\n"
-                                      "- Switched tabs\n"
-                                      "- etc...")
-        self._vbox.addWidget(self._info, 5)
         contact = QLabel("I'd like to be able to follow up with you, to keep "
                          "you posted on the status of this crash and get more "
                          "information if I need it - how can I contact you?")
@@ -103,6 +96,14 @@ class _CrashDialog(QDialog):
             log.misc.exception("Failed to get contact information!")
             self._contact.setPlaceholderText("Mail or IRC nickname")
         self._vbox.addWidget(self._contact, 2)
+
+        info = QLabel("What were you doing when this crash/bug happened?")
+        self._vbox.addWidget(info)
+        self._info = QTextEdit(tabChangesFocus=True, acceptRichText=False)
+        self._info.setPlaceholderText("- Opened http://www.example.com/\n"
+                                      "- Switched tabs\n"
+                                      "- etc...")
+        self._vbox.addWidget(self._info, 5)
 
         self._vbox.addSpacing(15)
         self._debug_log = QTextEdit(tabChangesFocus=True, acceptRichText=False,
