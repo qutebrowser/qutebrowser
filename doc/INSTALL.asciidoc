@@ -80,6 +80,16 @@ in your `PYTHON_TARGETS` (`/etc/portage/make.conf`) and rebuild your system
 # emerge -av qutebrowser
 ----
 
+On Void Linux
+-------------
+
+qutebrowser is available in the official repositories and can be installed
+with:
+
+----
+# xbps-install qutebrowser
+----
+
 On Windows
 ----------
 
