@@ -81,7 +81,7 @@ def install_dev_packages():
     """Install the packages needed for development."""
     for pkg in get_dev_packages():
         utils.print_subtitle("Installing {}".format(pkg))
-        venv_python('-m', 'pip', 'install', pkg)
+        venv_python('-m', 'pip', 'install', '--upgrade', pkg)
 
 
 def venv_python(*args, output=False):
