@@ -234,14 +234,14 @@ def check_libraries():
         'jinja2':
             _missing_str("jinja2",
                          debian="apt-get install python3-jinja2",
-                         arch="Install python-jinja from the AUR",
+                         arch="Install python-jinja from community",
                          windows="Install from http://www.lfd.uci.edu/"
                                  "~gohlke/pythonlibs/#jinja2 or via pip.",
                          pip="jinja2"),
         'pygments':
             _missing_str("pygments",
                          debian="apt-get install python3-pygments",
-                         arch="Install python-jinja from the AUR",
+                         arch="Install python-pygments from community",
                          windows="Install from http://www.lfd.uci.edu/"
                                  "~gohlke/pythonlibs/#pygments or via pip.",
                          pip="pygments"),
