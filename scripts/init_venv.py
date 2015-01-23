@@ -127,7 +127,7 @@ def verbose_copy(src, dst, *, follow_symlinks=True):
     shutil.copy(src, dst, follow_symlinks=follow_symlinks)
 
 
-def get_ignored_files(dir, files):
+def get_ignored_files(_directory, files):
     """Get the files which should be ignored for link_pyqt() on Windows."""
     needed_exts = ('py', 'dll', 'pyd')
     return [f for f in files if os.path.splitext(f)[1] not in needed_exts]
