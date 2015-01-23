@@ -164,7 +164,10 @@ def link_pyqt():
         if not os.path.exists(source):
             raise FileNotFoundError(source)
         if os.path.exists(dest):
-            os.unlink(dest)
+            if os.path.isdir(dest):
+                shutil.rmtree(dest)
+            else:
+                os.unlink(dest)
         if os.name == 'nt':
             if os.path.isdir(source):
                 shutil.copytree(source, dest, ignore=get_ignored_files,
