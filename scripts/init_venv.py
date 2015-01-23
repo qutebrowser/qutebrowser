@@ -43,11 +43,11 @@ g_args = None
 def parse_args():
     """Parse the commandline arguments."""
     parser = argparse.ArgumentParser()
-    parser.add_argument('--clear', help="Clear venv in case it already exists.",
-                        action='store_true')
-    parser.add_argument('--upgrade', help="Upgrade venv to use this version of "
-                        "Python, assuming Python has been upgraded in-place.",
-                        action='store_true')
+    parser.add_argument('--clear', help="Clear venv in case it already "
+                        "exists.", action='store_true')
+    parser.add_argument('--upgrade', help="Upgrade venv to use this version "
+                        "of Python, assuming Python has been upgraded "
+                        "in-place.", action='store_true')
     parser.add_argument('--force', help=argparse.SUPPRESS,
                         action='store_true')
     parser.add_argument('--dev', help="Set up an environment suitable for "
