@@ -31,9 +31,18 @@ import subprocess
 import distutils.sysconfig  # pylint: disable=import-error
 # see https://bitbucket.org/logilab/pylint/issue/73/
 import venv
+import urllib.request
+import tempfile
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from scripts import utils
+
+
+try:
+    import ensurepip  # pylint: disable=import-error
+except ImportError:
+    # Debian-like systems don't have ensurepip...
+    ensurepip = None
 
 
 g_path = None
@@ -143,6 +152,19 @@ def link_pyqt():
             os.symlink(source, dest)
 
 
+def install_pip():
+    """Install pip on Debian-like systems which don't have ensurepip.
+
+    WORKAROUND for https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=772730 and
+    https://bugs.launchpad.net/ubuntu/+source/python3.4/+bug/1290847
+    """
+    utils.print_title("Installing pip/setuptools")
+    f = urllib.request.urlopen('https://bootstrap.pypa.io/get-pip.py')
+    with tempfile.NamedTemporaryFile() as tmp:
+        tmp.write(f.read())
+        venv_python(tmp.name)
+
+
 def create_venv():
     """Create a new venv."""
     utils.print_title("Creating venv")
@@ -153,8 +175,11 @@ def create_venv():
     clear = g_args.clear or g_args.force
     builder = venv.EnvBuilder(system_site_packages=False,
                               clear=clear, upgrade=g_args.upgrade,
-                              symlinks=symlinks, with_pip=True)
+                              symlinks=symlinks, with_pip=ensurepip)
     builder.create(g_path)
+    # If we don't have ensurepip, we have to do it by hand...
+    if not ensurepip:
+        install_pip()
 
 
 def main():
@@ -173,9 +198,6 @@ def main():
         sys.exit(1)
 
     create_venv()
-
-    utils.print_title("Installing setuptools")
-    venv_python('-m', 'pip', 'install', 'setuptools')
 
     utils.print_title("Calling: setup.py develop")
     venv_python('setup.py', 'develop')
