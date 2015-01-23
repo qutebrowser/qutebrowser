@@ -109,10 +109,8 @@ def test_toolchain():
 
 def link_pyqt():
     """Symlink the systemwide PyQt/sip into the venv."""
-    if os.name == 'nt':
-        return
-    utils.print_title("Softlinking PyQt5")
-
+    action = "Copying" if os.name == 'nt' else "Softlinking"
+    utils.print_title("{} PyQt5".format(action))
     sys_path = distutils.sysconfig.get_python_lib()
     venv_path = venv_python(
         '-c', 'from distutils.sysconfig import get_python_lib\n'
@@ -130,13 +128,19 @@ def link_pyqt():
     files += [os.path.basename(e) for e in globbed_sip]
     for fn in files:
         source = os.path.join(sys_path, fn)
-        link_name = os.path.join(venv_path, fn)
+        dest = os.path.join(venv_path, fn)
         if not os.path.exists(source):
             raise FileNotFoundError(source)
-        if os.path.exists(link_name):
-            os.unlink(link_name)
-        print('{} -> {}'.format(source, link_name))
-        os.symlink(source, link_name)
+        if os.path.exists(dest):
+            os.unlink(dest)
+        print('{} -> {}'.format(source, dest))
+        if os.name == 'nt':
+            if os.path.isdir(source):
+                shutil.copytree(source, dest)
+            else:
+                shutil.copy(source, dest)
+        else:
+            os.symlink(source, dest)
 
 
 def create_venv():
@@ -144,12 +148,10 @@ def create_venv():
     utils.print_title("Creating venv")
     if os.name == 'nt':
         symlinks = False
-        system_site_packages = True
     else:
         symlinks = True
-        system_site_packages = False
     clear = g_args.clear or g_args.force
-    builder = venv.EnvBuilder(system_site_packages=system_site_packages,
+    builder = venv.EnvBuilder(system_site_packages=False,
                               clear=clear, upgrade=g_args.upgrade,
                               symlinks=symlinks, with_pip=True)
     builder.create(g_path)
