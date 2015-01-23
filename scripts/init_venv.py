@@ -90,7 +90,7 @@ def install_dev_packages():
 def venv_python(*args, output=False):
     """Call the venv's python with the given arguments."""
     subdir = 'Scripts' if os.name == 'nt' else 'bin'
-    executable = os.path.join(g_path, subdir, os.path.basename(sys.executable))
+    executable = os.path.join(g_path, subdir, 'python')
     env = dict(os.environ)
     if sys.platform == 'darwin' and '__PYVENV_LAUNCHER__' in env:
         # WORKAROUND for https://github.com/pypa/pip/issues/2031
