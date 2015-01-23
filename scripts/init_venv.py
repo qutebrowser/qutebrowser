@@ -66,7 +66,7 @@ def parse_args():
                         action='store_true')
     parser.add_argument('--cache', help="Cache the clean virtualenv and "
                         "copy it when a new one is requested.",
-                        action='store_true')
+                        default=False, nargs='?', const='', metavar='NAME')
     parser.add_argument('path', help="Path to the venv folder",
                         default='.venv', nargs='?')
     return parser.parse_args()
@@ -198,7 +198,7 @@ def create_venv():
     else:
         symlinks = True
     clear = g_args.clear or g_args.force
-    upgrade = g_args.upgrade or g_args.cache
+    upgrade = g_args.upgrade or g_args.cache is not None
     builder = venv.EnvBuilder(system_site_packages=False,
                               clear=clear, upgrade=upgrade,
                               symlinks=symlinks, with_pip=ensurepip)
@@ -210,7 +210,7 @@ def create_venv():
 
 def restore_cache(cache_path):
     """Restore a cache if one is present and --cache is given."""
-    if g_args.cache:
+    if g_args.cache is not None:
         utils.print_title("Restoring cache")
         print("Restoring {} to {}...".format(cache_path, g_args.path))
         try:
@@ -228,7 +228,7 @@ def restore_cache(cache_path):
 
 def save_cache(cache_path):
     """Save the cache if --cache is given."""
-    if g_args.cache:
+    if g_args.cache is not None:
         utils.print_title("Saving cache")
         print("Saving {} to {}...".format(g_args.path, cache_path))
         try:
@@ -255,7 +255,10 @@ def main():
 
     os_cache_dir = QStandardPaths.writableLocation(
         QStandardPaths.CacheLocation)
-    cache_path = os.path.join(os_cache_dir, 'qutebrowser-venv')
+    file_name = 'qutebrowser-venv'
+    if g_args.cache:
+        file_name += '-' + g_args.cache
+    cache_path = os.path.join(os_cache_dir, file_name)
 
     restored = restore_cache(cache_path)
     if not restored:
