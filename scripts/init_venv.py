@@ -34,6 +34,8 @@ import venv
 import urllib.request
 import tempfile
 
+from PyQt5.QtCore import QStandardPaths
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from scripts import utils
 
@@ -62,8 +64,8 @@ def parse_args():
     parser.add_argument('--dev', help="Set up an environment suitable for "
                         "developing qutebrowser.",
                         action='store_true')
-    parser.add_argument('--cache', help="Cache the clean virtualenv in "
-                        "NAME-cache and copy it when a new one is requested.",
+    parser.add_argument('--cache', help="Cache the clean virtualenv and "
+                        "copy it when a new one is requested.",
                         action='store_true')
     parser.add_argument('path', help="Path to the venv folder",
                         default='.venv', nargs='?')
@@ -186,7 +188,7 @@ def create_venv():
         install_pip()
 
 
-def restore_cache():
+def restore_cache(cache_path):
     """Restore a cache if one is present and --cache is given."""
     utils.print_title("Restoring cache")
     if g_args.cache:
@@ -195,7 +197,7 @@ def restore_cache():
         except FileNotFoundError:
             pass
         try:
-            shutil.copytree(g_args.path + '-cache', g_args.path, symlinks=True)
+            shutil.copytree(cache_path, g_args.path, symlinks=True)
         except FileNotFoundError:
             print("No cache present!")
         else:
@@ -203,15 +205,15 @@ def restore_cache():
     return False
 
 
-def save_cache():
+def save_cache(cache_path):
     """Save the cache if --cache is given."""
     utils.print_title("Saving cache")
     if g_args.cache:
         try:
-            shutil.rmtree(g_args.path + '-cache')
+            shutil.rmtree(cache_path)
         except FileNotFoundError:
             pass
-        shutil.copytree(g_args.path, g_args.path + '-cache', symlinks=True)
+        shutil.copytree(g_args.path, cache_path, symlinks=True)
 
 
 def main():
@@ -229,7 +231,11 @@ def main():
               "--upgrade.".format(g_path), file=sys.stderr)
         sys.exit(1)
 
-    restored = restore_cache()
+    os_cache_dir = QStandardPaths.writableLocation(
+        QStandardPaths.CacheLocation)
+    cache_path = os.path.join(os_cache_dir, 'qutebrowser-venv')
+
+    restored = restore_cache(cache_path)
     if not restored:
         create_venv()
 
@@ -241,7 +247,7 @@ def main():
         install_dev_packages()
     link_pyqt()
     test_toolchain()
-    save_cache()
+    save_cache(cache_path)
 
 
 if __name__ == '__main__':
