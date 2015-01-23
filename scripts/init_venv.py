@@ -164,6 +164,12 @@ def main():
         sys.exit(1)
     g_path = os.path.abspath(g_args.path)
 
+    if os.path.exists(g_args.path) and not (g_args.force or g_args.clear or
+                                            g_args.upgrade):
+        print("{} does already exist! Use --clear or "
+              "--upgrade.".format(g_path), file=sys.stderr)
+        sys.exit(1)
+
     create_venv()
 
     utils.print_title("Installing setuptools")
