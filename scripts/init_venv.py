@@ -121,6 +121,12 @@ def test_toolchain():
         venv_python('-c', 'import {}'.format(pkg))
 
 
+def get_ignored_files(dir, files):
+    """Get the files which should be ignored for link_pyqt() on Windows."""
+    needed_exts = ('py', 'dll', 'pyd')
+    return [f for f in files if os.path.splitext(f)[1] not in needed_exts]
+
+
 def link_pyqt():
     """Symlink the systemwide PyQt/sip into the venv."""
     action = "Copying" if os.name == 'nt' else "Softlinking"
@@ -150,7 +156,7 @@ def link_pyqt():
         print('{} -> {}'.format(source, dest))
         if os.name == 'nt':
             if os.path.isdir(source):
-                shutil.copytree(source, dest)
+                shutil.copytree(source, dest, ignore=get_ignored_files)
             else:
                 shutil.copy(source, dest)
         else:
