@@ -154,7 +154,7 @@ def create_venv():
         upgrade = True
 
     symlinks = False if os.name == 'nt' else True
-        
+
     builder = venv.EnvBuilder(system_site_packages=system_site_packages,
                               clear=clear, upgrade=upgrade,
                               symlinks=symlinks, with_pip=True)
@@ -163,7 +163,7 @@ def create_venv():
     builder.create_configuration(context)
     builder.setup_python(context)
     builder.setup_scripts(context)
-    
+
 
 def main():
     """Main entry point."""
