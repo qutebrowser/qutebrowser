@@ -142,11 +142,12 @@ def link_pyqt():
 def create_venv():
     """Create a new venv."""
     utils.print_title("Creating venv")
-    system_site_packages = True
     if os.name == 'nt':
         symlinks = False
+        system_site_packages = True
     else:
         symlinks = True
+        system_site_packages = False
     clear = g_args.clear or g_args.force
     builder = venv.EnvBuilder(system_site_packages=system_site_packages,
                               clear=clear, upgrade=g_args.upgrade,
@@ -164,6 +165,9 @@ def main():
     g_path = os.path.abspath(g_args.path)
 
     create_venv()
+
+    utils.print_title("Installing setuptools")
+    venv_python('-m', 'pip', 'install', 'setuptools')
 
     utils.print_title("Calling: setup.py develop")
     venv_python('setup.py', 'develop')
