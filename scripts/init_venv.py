@@ -158,11 +158,7 @@ def create_venv():
     builder = venv.EnvBuilder(system_site_packages=system_site_packages,
                               clear=clear, upgrade=upgrade,
                               symlinks=symlinks, with_pip=True)
-
-    context = builder.ensure_directories(g_path)
-    builder.create_configuration(context)
-    builder.setup_python(context)
-    builder.setup_scripts(context)
+    builder.create(g_path)
 
 
 def main():
