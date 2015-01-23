@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Initialize a virtualenv suitable to be used for qutebrowser."""
+"""Initialize a venv suitable to be used for qutebrowser."""
 
 import os
 import re
@@ -30,6 +30,7 @@ import argparse
 import subprocess
 import distutils.sysconfig  # pylint: disable=import-error
 # see https://bitbucket.org/logilab/pylint/issue/73/
+import venv
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from scripts import utils
@@ -42,26 +43,19 @@ g_args = None
 def parse_args():
     """Parse the commandline arguments."""
     parser = argparse.ArgumentParser()
-    parser.add_argument('--force', help="Force creating a new virtualenv.",
+    parser.add_argument('--clear', help="Clear venv in case it already exists.",
+                        action='store_true')
+    parser.add_argument('--upgrade', help="Upgrade venv to use this version of "
+                        "Python, assuming Python has been upgraded in-place.",
+                        action='store_true')
+    parser.add_argument('--force', help=argparse.SUPPRESS,
                         action='store_true')
     parser.add_argument('--dev', help="Set up an environment suitable for "
-                                      "developing qutebrowser.",
+                        "developing qutebrowser.",
                         action='store_true')
-    parser.add_argument('path', help="Path to the virtualenv folder",
+    parser.add_argument('path', help="Path to the venv folder",
                         default='.venv', nargs='?')
     return parser.parse_args()
-
-
-def check_exists():
-    """Check if the virtualenv already exists."""
-    if os.path.exists(g_path):
-        if g_args.force:
-            print("Deleting old virtualenv at {}".format(g_path))
-            shutil.rmtree(g_path)
-        else:
-            print("virtualenv at {} does already exist!".format(g_path),
-                  file=sys.stderr)
-            sys.exit(1)
 
 
 def get_dev_packages(short=False):
@@ -85,7 +79,7 @@ def install_dev_packages():
 
 
 def venv_python(*args, output=False):
-    """Call the virtualenv's python with the given arguments."""
+    """Call the venv's python with the given arguments."""
     subdir = 'Scripts' if os.name == 'nt' else 'bin'
     executable = os.path.join(g_path, subdir, os.path.basename(sys.executable))
     env = dict(os.environ)
@@ -102,6 +96,7 @@ def venv_python(*args, output=False):
 def test_toolchain():
     """Test if imports work properly."""
     utils.print_title("Checking toolchain")
+
     packages = ['sip', 'PyQt5.QtCore', 'PyQt5.QtWebKit', 'qutebrowser.app']
     if g_args.dev:
         packages += get_dev_packages(short=True)
@@ -113,41 +108,53 @@ def test_toolchain():
 
 
 def link_pyqt():
-    """Symlink the systemwide PyQt/sip into the virtualenv."""
-    if os.name == 'nt':
-        return
-    utils.print_title("Softlinking PyQt5")
+    """Symlink the systemwide PyQt/sip into the venv."""
+    action = "Copying" if os.name == 'nt' else "Softlinking"
+    utils.print_title("{} PyQt5".format(action))
     sys_path = distutils.sysconfig.get_python_lib()
     venv_path = venv_python(
         '-c', 'from distutils.sysconfig import get_python_lib\n'
               'print(get_python_lib())', output=True).rstrip()
+
     globbed_sip = (glob.glob(os.path.join(sys_path, 'sip*.so')) +
                    glob.glob(os.path.join(sys_path, 'sip*.pyd')))
     if not globbed_sip:
         print("Did not find sip in {}!".format(sys_path), file=sys.stderr)
         sys.exit(1)
+
     files = [
         'PyQt5',
     ]
     files += [os.path.basename(e) for e in globbed_sip]
     for fn in files:
         source = os.path.join(sys_path, fn)
-        link_name = os.path.join(venv_path, fn)
+        dest = os.path.join(venv_path, fn)
         if not os.path.exists(source):
             raise FileNotFoundError(source)
-        print('{} -> {}'.format(source, link_name))
-        os.symlink(source, link_name)
+        if os.path.exists(dest):
+            os.unlink(dest)
+        print('{} -> {}'.format(source, dest))
+        if os.name == 'nt':
+            if os.path.isdir(source):
+                shutil.copytree(source, dest)
+            else:
+                shutil.copy(source, dest)
+        else:
+            os.symlink(source, dest)
 
 
 def create_venv():
-    """Create a new virtualenv."""
-    utils.print_title("Creating virtualenv")
+    """Create a new venv."""
+    utils.print_title("Creating venv")
     if os.name == 'nt':
-        sys_site = ['--system-site-packages']
+        symlinks = False
     else:
-        sys_site = []
-    subprocess.check_call(['virtualenv'] + sys_site +
-                          ['-p', sys.executable, g_path])
+        symlinks = True
+    clear = g_args.clear or g_args.force
+    builder = venv.EnvBuilder(system_site_packages=False,
+                              clear=clear, upgrade=g_args.upgrade,
+                              symlinks=symlinks, with_pip=True)
+    builder.create(g_path)
 
 
 def main():
@@ -158,10 +165,21 @@ def main():
         print("Refusing to run with empty path!", file=sys.stderr)
         sys.exit(1)
     g_path = os.path.abspath(g_args.path)
-    check_exists()
+
+    if os.path.exists(g_args.path) and not (g_args.force or g_args.clear or
+                                            g_args.upgrade):
+        print("{} does already exist! Use --clear or "
+              "--upgrade.".format(g_path), file=sys.stderr)
+        sys.exit(1)
+
     create_venv()
-    utils.print_title("Calling setup.py")
+
+    utils.print_title("Installing setuptools")
+    venv_python('-m', 'pip', 'install', 'setuptools')
+
+    utils.print_title("Calling: setup.py develop")
     venv_python('setup.py', 'develop')
+
     if g_args.dev:
         utils.print_title("Installing developer packages")
         install_dev_packages()
