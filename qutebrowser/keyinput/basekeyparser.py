@@ -164,8 +164,13 @@ class BaseKeyParser(QObject):
             self._keystring = ''
             return
 
-        if ((not txt) or  # pylint: disable=no-member
-                unicodedata.category(txt) == 'Cc'):  # control chars
+        if len(txt) == 1:
+            category = unicodedata.category(txt)  # pylint: disable=no-member
+            is_control_char = (category == 'Cc')
+        else:
+            is_control_char = False
+
+        if ((not txt) or is_control_char):
             self._debug_log("Ignoring, no text char")
             return False
 
