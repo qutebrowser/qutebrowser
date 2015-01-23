@@ -121,6 +121,12 @@ def test_toolchain():
         venv_python('-c', 'import {}'.format(pkg))
 
 
+def verbose_copy(src, dst, *, follow_symlinks=True):
+    """Copy function for shutil.copytree which prints copied files."""
+    print('{} -> {}'.format(src, dst))
+    shutil.copy(src, dst, follow_symlinks=follow_symlinks)
+
+
 def get_ignored_files(dir, files):
     """Get the files which should be ignored for link_pyqt() on Windows."""
     needed_exts = ('py', 'dll', 'pyd')
@@ -156,7 +162,8 @@ def link_pyqt():
         print('{} -> {}'.format(source, dest))
         if os.name == 'nt':
             if os.path.isdir(source):
-                shutil.copytree(source, dest, ignore=get_ignored_files)
+                shutil.copytree(source, dest, ignore=get_ignored_files,
+                                copy_function=verbose_copy)
             else:
                 shutil.copy(source, dest)
         else:
