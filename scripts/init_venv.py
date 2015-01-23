@@ -267,8 +267,6 @@ def main():
     if not restored:
         create_venv()
 
-    # buildbot seems to show output in the wrong order sometimes?!
-    sys.stdout.flush()
     utils.print_title("Calling: setup.py develop")
     venv_python('setup.py', 'develop')
 
