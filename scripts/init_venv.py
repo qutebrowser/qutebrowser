@@ -62,6 +62,9 @@ def parse_args():
     parser.add_argument('--dev', help="Set up an environment suitable for "
                         "developing qutebrowser.",
                         action='store_true')
+    parser.add_argument('--cache', help="Cache the clean virtualenv in "
+                        "NAME-cache and copy it when a new one is requested.",
+                        action='store_true')
     parser.add_argument('path', help="Path to the venv folder",
                         default='.venv', nargs='?')
     return parser.parse_args()
@@ -173,13 +176,42 @@ def create_venv():
     else:
         symlinks = True
     clear = g_args.clear or g_args.force
+    upgrade = g_args.upgrade or g_args.cache
     builder = venv.EnvBuilder(system_site_packages=False,
-                              clear=clear, upgrade=g_args.upgrade,
+                              clear=clear, upgrade=upgrade,
                               symlinks=symlinks, with_pip=ensurepip)
     builder.create(g_path)
     # If we don't have ensurepip, we have to do it by hand...
     if not ensurepip:
         install_pip()
+
+
+def restore_cache():
+    """Restore a cache if one is present and --cache is given."""
+    utils.print_title("Restoring cache")
+    if g_args.cache:
+        try:
+            shutil.rmtree(g_args.path)
+        except FileNotFoundError:
+            pass
+        try:
+            shutil.copytree(g_args.path + '-cache', g_args.path, symlinks=True)
+        except FileNotFoundError:
+            print("No cache present!")
+        else:
+            return True
+    return False
+
+
+def save_cache():
+    """Save the cache if --cache is given."""
+    utils.print_title("Saving cache")
+    if g_args.cache:
+        try:
+            shutil.rmtree(g_args.path + '-cache')
+        except FileNotFoundError:
+            pass
+        shutil.copytree(g_args.path, g_args.path + '-cache', symlinks=True)
 
 
 def main():
@@ -197,7 +229,9 @@ def main():
               "--upgrade.".format(g_path), file=sys.stderr)
         sys.exit(1)
 
-    create_venv()
+    restored = restore_cache()
+    if not restored:
+        create_venv()
 
     utils.print_title("Calling: setup.py develop")
     venv_python('setup.py', 'develop')
@@ -207,6 +241,7 @@ def main():
         install_dev_packages()
     link_pyqt()
     test_toolchain()
+    save_cache()
 
 
 if __name__ == '__main__':
