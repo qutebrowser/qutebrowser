@@ -170,7 +170,7 @@ class BaseKeyParser(QObject):
         else:
             is_control_char = False
 
-        if ((not txt) or is_control_char):
+        if (not txt) or is_control_char:
             self._debug_log("Ignoring, no text char")
             return False
 
