@@ -142,21 +142,14 @@ def link_pyqt():
 def create_venv():
     """Create a new venv."""
     utils.print_title("Creating venv")
-
     system_site_packages = True
-
-    clear = False
-    if g_args.clear or g_args.force:
-        clear = True
-
-    upgrade = False
-    if g_args.upgrade:
-        upgrade = True
-
-    symlinks = False if os.name == 'nt' else True
-
+    if os.name == 'nt':
+        symlinks = False
+    else:
+        symlinks = True
+    clear = g_args.clear or g_args.force
     builder = venv.EnvBuilder(system_site_packages=system_site_packages,
-                              clear=clear, upgrade=upgrade,
+                              clear=clear, upgrade=g_args.upgrade,
                               symlinks=symlinks, with_pip=True)
     builder.create(g_path)
 
