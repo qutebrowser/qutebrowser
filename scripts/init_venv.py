@@ -210,8 +210,9 @@ def create_venv():
 
 def restore_cache(cache_path):
     """Restore a cache if one is present and --cache is given."""
-    utils.print_title("Restoring cache")
     if g_args.cache:
+        utils.print_title("Restoring cache")
+        print("Restoring {} to {}...".format(cache_path, g_args.path))
         try:
             shutil.rmtree(g_args.path)
         except FileNotFoundError:
@@ -227,8 +228,9 @@ def restore_cache(cache_path):
 
 def save_cache(cache_path):
     """Save the cache if --cache is given."""
-    utils.print_title("Saving cache")
     if g_args.cache:
+        utils.print_title("Saving cache")
+        print("Saving {} to {}...".format(g_args.path, cache_path))
         try:
             shutil.rmtree(cache_path)
         except FileNotFoundError:
