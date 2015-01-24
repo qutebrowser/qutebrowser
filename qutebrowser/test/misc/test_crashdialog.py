@@ -56,7 +56,7 @@ class ParseFatalStacktraceTests(unittest.TestCase):
         self.assertEqual(typ, "Segmentation fault")
         self.assertEqual(func, 'testfunc')
 
-    def test_valid_text(self):
+    def test_valid_text_empty(self):
         """Test parse_fatal_stacktrace with a valid text but empty function."""
         text = VALID_CRASH_TEXT_EMPTY.strip().replace('_', ' ')
         typ, func = crashdialog.parse_fatal_stacktrace(text)
