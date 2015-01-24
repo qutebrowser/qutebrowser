@@ -66,7 +66,7 @@ def parse_args():
                         action='store_true')
     parser.add_argument('--cache', help="Cache the clean virtualenv and "
                         "copy it when a new one is requested.",
-                        default=False, nargs='?', const='', metavar='NAME')
+                        default=None, nargs='?', const='', metavar='NAME')
     parser.add_argument('path', help="Path to the venv folder",
                         default='.venv', nargs='?')
     return parser.parse_args()
