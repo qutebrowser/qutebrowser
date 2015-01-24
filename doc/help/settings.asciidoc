@@ -82,7 +82,8 @@
 |<<tabs-new-tab-position,new-tab-position>>|How new tabs are positioned.
 |<<tabs-new-tab-position-explicit,new-tab-position-explicit>>|How new tabs opened explicitely are positioned.
 |<<tabs-last-close,last-close>>|Behaviour when the last tab is closed.
-|<<tabs-auto-hide,auto-hide>>|Hide the tabbar if only one tab is open.
+|<<tabs-hide-auto,hide-auto>>|Hide the tabbar if only one tab is open.
+|<<tabs-hide-always,hide-always>>|Always hide the tabbar.
 |<<tabs-wrap,wrap>>|Whether to wrap when changing tabs.
 |<<tabs-movable,movable>>|Whether tabs should be movable.
 |<<tabs-close-mouse-button,close-mouse-button>>|On which mouse button to close tabs.
@@ -718,9 +719,20 @@ Valid values:
 
 Default: +pass:[ignore]+
 
-[[tabs-auto-hide]]
-=== auto-hide
+[[tabs-hide-auto]]
+=== hide-auto
 Hide the tabbar if only one tab is open.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[false]+
+
+[[tabs-hide-always]]
+=== hide-always
+Always hide the tabbar.
 
 Valid values:
 
