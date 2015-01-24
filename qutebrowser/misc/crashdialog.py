@@ -21,28 +21,51 @@
 
 """The dialog which gets shown when qutebrowser crashes."""
 
+import re
 import sys
 import html
 import getpass
 import traceback
 import functools
 
-from PyQt5.QtCore import pyqtSlot, Qt, QSize
+from PyQt5.QtCore import pyqtSlot, Qt, QSize, QT_VERSION_STR
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QCheckBox)
 
+import qutebrowser
 from qutebrowser.utils import version, log, utils, objreg
 from qutebrowser.misc import miscwidgets
 from qutebrowser.browser.network import pastebin
 from qutebrowser.config import config
 
 
+def parse_fatal_stacktrace(text):
+    """Get useful information from a fatal faulthandler stacktrace.
+
+    Args:
+        text: The text to parse.
+
+    Return:
+        A tuple with the first element being the error type, and the second
+        element being the first stacktrace frame.
+    """
+    lines = [
+        r'Fatal Python error: (.*)',
+        r' *',
+        r'Current thread [^ ]* \(most recent call first\): *',
+        r'  File ".*", line \d+ in (.*)',
+    ]
+    m = re.match('\n'.join(lines), text)
+    if m is None:
+        # We got some invalid text.
+        return ('', '')
+    else:
+        return (m.group(1), m.group(2))
+
+
 class _CrashDialog(QDialog):
 
     """Dialog which gets shown after there was a crash.
-
-    Class attributes:
-        NAME: The kind of condition we report.
 
     Attributes:
         These are just here to have a static reference to avoid GCing.
@@ -56,8 +79,6 @@ class _CrashDialog(QDialog):
         _paste_text: The text to pastebin.
         _resolution: Whether the dialog should be accepted on close.
     """
-
-    NAME = None
 
     def __init__(self, debug, parent=None):
         """Constructor for CrashDialog.
@@ -189,6 +210,23 @@ class _CrashDialog(QDialog):
         text = '\n\n'.join(chunks)
         self._debug_log.setText(text)
 
+    def _get_error_type(self):
+        """Get the type of the error we're reporting."""
+        raise NotImplementedError
+
+    def _get_paste_title_desc(self):
+        """Get a short description of the paste."""
+        return ''
+
+    def _get_paste_title(self):
+        """Get a title for the paste."""
+        desc = self._get_paste_title_desc()
+        title = "qutebrowser {} (Qt {}) {}".format(
+            qutebrowser.__version__, QT_VERSION_STR, self._get_error_type())
+        if desc:
+            title += ' - {}'.format(desc)
+        return title
+
     def report(self):
         """Paste the crash info into the pastebin."""
         lines = []
@@ -206,7 +244,7 @@ class _CrashDialog(QDialog):
             user = 'unknown'
         try:
             # parent: http://p.cmpl.cc/90286958
-            self._paste_client.paste(user, "qutebrowser {}".format(self.NAME),
+            self._paste_client.paste(user, self._get_paste_title(),
                                      self._paste_text, parent='90286958')
         except Exception as e:
             log.misc.exception("Error while paste-binning")
@@ -276,8 +314,6 @@ class ExceptionCrashDialog(_CrashDialog):
         _objects: A list of all QObjects as string.
     """
 
-    NAME = 'exception'
-
     def __init__(self, debug, pages, cmdhist, exc, objects, parent=None):
         self._chk_log = None
         super().__init__(debug, parent)
@@ -329,6 +365,13 @@ class ExceptionCrashDialog(_CrashDialog):
         self._vbox.addWidget(info_label)
         self._chk_report.toggled.connect(self.on_chk_report_toggled)
 
+    def _get_error_type(self):
+        return 'exception'
+
+    def _get_paste_title_desc(self):
+        desc = traceback.format_exception_only(self._exc[0], self._exc[1])
+        return desc[0].rstrip()
+
     def _gather_crash_info(self):
         self._crash_info += [
             ("Exception", ''.join(traceback.format_exception(*self._exc))),
@@ -363,15 +406,25 @@ class FatalCrashDialog(_CrashDialog):
 
     Attributes:
         _log: The log text to display.
+        _type: The type of error which occured.
+        _func: The function (top of the stack) in which the error occured.
     """
-
-    NAME = 'segfault'
 
     def __init__(self, debug, text, parent=None):
         super().__init__(debug, parent)
         self._log = text
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._set_crash_info()
+        self._type, self._func = parse_fatal_stacktrace(self._log)
+
+    def _get_error_type(self):
+        return self._type
+
+    def _get_paste_title_desc(self):
+        if self._func:
+            return 'in {}'.format(self._func)
+        else:
+            return ''
 
     def _init_text(self):
         super()._init_text()
@@ -408,8 +461,6 @@ class ReportDialog(_CrashDialog):
         _objects: A list of all QObjects as string.
     """
 
-    NAME = 'report'
-
     def __init__(self, pages, cmdhist, objects, parent=None):
         super().__init__(False, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -435,6 +486,9 @@ class ReportDialog(_CrashDialog):
     def _init_checkboxes(self, _debug):
         """We don't want any checkboxes as the user wanted to report."""
         pass
+
+    def _get_error_type(self):
+        return 'report'
 
     def _gather_crash_info(self):
         super()._gather_crash_info()
