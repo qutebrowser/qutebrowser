@@ -532,7 +532,8 @@ class ConfigManager(QObject):
                 if isinstance(val, bool):
                     self.set(layer, sectname, optname[:-1], str(not val))
                 else:
-                    raise cmdexc.CommandError("set: Attempted inversion of non-boolean value.")
+                    raise cmdexc.CommandError("set: Attempted inversion of "
+                                              "non-boolean value.")
             else:
                 if value is None:
                     raise cmdexc.CommandError("set: The following arguments "

@@ -105,17 +105,19 @@ class TabBar(QTabBar):
 
     @config.change_filter('tabs', 'hide-auto')
     def autohide(self):
-        self.tabhide()
-        
+        """Hide tabbar if needed when tabs->hide-auto got changed."""
+        self._tabhide()
+
     @config.change_filter('tabs', 'hide-always')
     def alwayshide(self):
-        self.tabhide()
+        """Hide tabbar if needed when tabs->hide-always got changed."""
+        self._tabhide()
 
-    def tabhide(self):
-        """Auto-hide the tabbar if needed."""
+    def _tabhide(self):
+        """Hide the tabbar if needed."""
         hide_auto = config.get('tabs', 'hide-auto')
         hide_always = config.get('tabs', 'hide-always')
-        if hide_always or hide_auto and self.count() == 1:
+        if hide_always or (hide_auto and self.count() == 1):
             self.hide()
         else:
             self.show()
