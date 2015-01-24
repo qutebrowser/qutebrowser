@@ -26,11 +26,11 @@ import sys
 import html
 import getpass
 import traceback
-import functools
 
 from PyQt5.QtCore import pyqtSlot, Qt, QSize, QT_VERSION_STR
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
-                             QVBoxLayout, QHBoxLayout, QCheckBox)
+                             QVBoxLayout, QHBoxLayout, QCheckBox,
+                             QDialogButtonBox)
 
 import qutebrowser
 from qutebrowser.utils import version, log, utils, objreg
@@ -72,12 +72,11 @@ class _CrashDialog(QDialog):
         _vbox: The main QVBoxLayout
         _lbl: The QLabel with the static text
         _debug_log: The QTextEdit with the crash information
-        _hbox: The QHboxLayout containing the buttons
+        _btn_box: The QDialogButtonBox containing the buttons.
         _url: Pastebin URL QLabel.
         _crash_info: A list of tuples with title and crash information.
         _paste_client: A PastebinClient instance to use.
         _paste_text: The text to pastebin.
-        _resolution: Whether the dialog should be accepted on close.
     """
 
     def __init__(self, debug, parent=None):
@@ -89,12 +88,12 @@ class _CrashDialog(QDialog):
         super().__init__(parent)
         # We don't set WA_DeleteOnClose here as on an exception, we'll get
         # closed anyways, and it only could have unintended side-effects.
-        self._buttons = []
         self._crash_info = []
-        self._hbox = None
+        self._btn_box = None
+        self._btn_report = None
+        self._btn_cancel = None
+        self._chk_restore = None
         self._lbl = None
-        self._chk_report = None
-        self._resolution = None
         self._paste_text = None
         self.setWindowTitle("Whoops!")
         self.resize(QSize(640, 600))
@@ -104,7 +103,8 @@ class _CrashDialog(QDialog):
 
         contact = QLabel("I'd like to be able to follow up with you, to keep "
                          "you posted on the status of this crash and get more "
-                         "information if I need it - how can I contact you?")
+                         "information if I need it - how can I contact you?",
+                         wordWrap=True)
         self._vbox.addWidget(contact)
         self._contact = QTextEdit(tabChangesFocus=True, acceptRichText=False)
         try:
@@ -143,7 +143,8 @@ class _CrashDialog(QDialog):
         self._vbox.addWidget(self._debug_log, 10)
         self._vbox.addSpacing(15)
 
-        self._init_checkboxes(debug)
+        self._init_checkboxes()
+        self._init_info_text()
         self._init_buttons()
 
     def __repr__(self):
@@ -157,28 +158,31 @@ class _CrashDialog(QDialog):
                            textInteractionFlags=Qt.LinksAccessibleByMouse)
         self._vbox.addWidget(self._lbl)
 
-    def _init_checkboxes(self, debug):
-        """Initialize the checkboxes.
-
-        Args:
-            debug: Whether a --debug arg was given.
-        """
-        self._chk_report = QCheckBox("Send a report")
-        if not debug:
-            self._chk_report.setChecked(True)
-        self._vbox.addWidget(self._chk_report)
-        info_label = QLabel("<i>Note that without your help, I can't fix the "
-                            "bug you encountered.</i>", wordWrap=True)
-        self._vbox.addWidget(info_label)
+    def _init_checkboxes(self):
+        """Initialize the checkboxes."""
+        self._chk_restore = QCheckBox("Restore open pages")
+        self._chk_restore.setChecked(True)
+        self._vbox.addWidget(self._chk_restore)
 
     def _init_buttons(self):
-        """Initialize the buttons.
+        """Initialize the buttons."""
+        self._btn_box = QDialogButtonBox()
+        self._vbox.addWidget(self._btn_box)
 
-        Should be extended by subclasses to provide the actual buttons.
-        """
-        self._hbox = QHBoxLayout()
-        self._vbox.addLayout(self._hbox)
-        self._hbox.addStretch()
+        self._btn_report = QPushButton("Report", default=True)
+        self._btn_report.clicked.connect(self.on_report_clicked)
+        self._btn_box.addButton(self._btn_report, QDialogButtonBox.AcceptRole)
+
+        self._btn_cancel = QPushButton("Don't report", autoDefault=False)
+        self._btn_cancel.clicked.connect(self.finish)
+        self._btn_box.addButton(self._btn_cancel, QDialogButtonBox.RejectRole)
+
+    def _init_info_text(self):
+        """Add an info text encouraging the user to report crashes."""
+        info_label = QLabel("<br/><b>Note that without your help, I can't fix "
+                            "the bug you encountered.<br/>I read and respond "
+                            "to all crash reports!</b>", wordWrap=True)
+        self._vbox.addWidget(info_label)
 
     def _gather_crash_info(self):
         """Gather crash information to display.
@@ -227,6 +231,14 @@ class _CrashDialog(QDialog):
             title += ' - {}'.format(desc)
         return title
 
+    def _save_contact_info(self):
+        """Save the contact info to disk."""
+        try:
+            state = objreg.get('state-config')
+            state['general']['contact-info'] = self._contact.toPlainText()
+        except Exception:
+            log.misc.exception("Failed to save contact information!")
+
     def report(self):
         """Paste the crash info into the pastebin."""
         lines = []
@@ -252,17 +264,14 @@ class _CrashDialog(QDialog):
             self.show_error(exc_text)
 
     @pyqtSlot()
-    def on_button_clicked(self, button, accept):
-        """Report and close dialog if button was clicked."""
-        button.setText("Reporting...")
-        for btn in self._buttons:
-            btn.setEnabled(False)
-        self._resolution = accept
+    def on_report_clicked(self):
+        """Report and close dialog if report button was clicked."""
+        self._btn_report.setEnabled(False)
+        self._btn_cancel.setEnabled(False)
+        self._btn_report.setText("Reporting...")
         self._paste_client.success.connect(self.finish)
         self._paste_client.error.connect(self.show_error)
-        reported = self.maybe_report()
-        if not reported:
-            self.finish()
+        self.report()
 
     @pyqtSlot(str)
     def show_error(self, text):
@@ -277,29 +286,9 @@ class _CrashDialog(QDialog):
 
     @pyqtSlot()
     def finish(self):
-        """Accept/reject the dialog when reporting is done."""
-        try:
-            state = objreg.get('state-config')
-            state['general']['contact-info'] = self._contact.toPlainText()
-        except Exception:
-            log.misc.exception("Failed to save contact information!")
-        if self._resolution:
-            self.accept()
-        else:
-            self.reject()
-
-    @pyqtSlot()
-    def maybe_report(self):
-        """Report the bug if the user allowed us to.
-
-        Return:
-            True if a report was done, False otherwise.
-        """
-        if self._chk_report.isChecked():
-            self.report()
-            return True
-        else:
-            return False
+        """Save contact info and close the dialog."""
+        self._save_contact_info()
+        self.accept()
 
 
 class ExceptionCrashDialog(_CrashDialog):
@@ -307,7 +296,6 @@ class ExceptionCrashDialog(_CrashDialog):
     """Dialog which gets shown on an exception.
 
     Attributes:
-        _buttons: A list of buttons.
         _pages: A list of lists of the open pages (URLs as strings)
         _cmdhist: A list with the command history (as strings)
         _exc: An exception tuple (type, value, traceback)
@@ -331,26 +319,12 @@ class ExceptionCrashDialog(_CrashDialog):
 
     def _init_buttons(self):
         super()._init_buttons()
-        btn_quit = QPushButton("Quit")
-        btn_quit.clicked.connect(
-            functools.partial(self.on_button_clicked, btn_quit, False))
-        self._hbox.addWidget(btn_quit)
 
-        btn_restart = QPushButton("Restart", default=True)
-        btn_restart.clicked.connect(
-            functools.partial(self.on_button_clicked, btn_restart, True))
-        self._hbox.addWidget(btn_restart)
-
-        self._buttons = [btn_quit, btn_restart]
-
-    def _init_checkboxes(self, debug):
-        """Add checkboxes to send crash report."""
-        super()._init_checkboxes(debug)
-        self._chk_log = QCheckBox("Include a debug log and a list of open "
-                                  "pages", checked=True)
-        if debug:
-            self._chk_log.setChecked(False)
-            self._chk_log.setEnabled(False)
+    def _init_checkboxes(self):
+        """Add checkboxes to the dialog."""
+        super()._init_checkboxes()
+        self._chk_log = QCheckBox("Include a debug log in the report",
+                                  checked=True)
         try:
             if config.get('general', 'private-browsing'):
                 self._chk_log.setChecked(False)
@@ -363,7 +337,6 @@ class ExceptionCrashDialog(_CrashDialog):
                             "information such as which pages you visited "
                             "or keyboard input.</i>", wordWrap=True)
         self._vbox.addWidget(info_label)
-        self._chk_report.toggled.connect(self.on_chk_report_toggled)
 
     def _get_error_type(self):
         return 'exception'
@@ -393,11 +366,12 @@ class ExceptionCrashDialog(_CrashDialog):
                     ("Debug log", traceback.format_exc()))
 
     @pyqtSlot()
-    def on_chk_report_toggled(self):
-        """Disable log checkbox if report is disabled."""
-        is_checked = self._chk_report.isChecked()
-        self._chk_log.setEnabled(is_checked)
-        self._chk_log.setChecked(is_checked)
+    def finish(self):
+        self._save_contact_info()
+        if self._chk_restore.isChecked():
+            self.accept()
+        else:
+            self.reject()
 
 
 class FatalCrashDialog(_CrashDialog):
@@ -436,14 +410,6 @@ class FatalCrashDialog(_CrashDialog):
                 "stacktrace.asciidoc</a> to submit a stacktrace.<br/>")
         self._lbl.setText(text)
 
-    def _init_buttons(self):
-        super()._init_buttons()
-        btn_ok = QPushButton(text="OK", default=True)
-        btn_ok.clicked.connect(
-            functools.partial(self.on_button_clicked, btn_ok, True))
-        self._hbox.addWidget(btn_ok)
-        self._buttons = [btn_ok]
-
     def _gather_crash_info(self):
         self._crash_info += [
             ("Fault log", self._log),
@@ -464,7 +430,6 @@ class ReportDialog(_CrashDialog):
     def __init__(self, pages, cmdhist, objects, parent=None):
         super().__init__(False, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self._btn_report = None
         self._pages = pages
         self._cmdhist = cmdhist
         self._objects = objects
@@ -475,16 +440,12 @@ class ReportDialog(_CrashDialog):
         text = "Please describe the bug you encountered below."
         self._lbl.setText(text)
 
-    def _init_buttons(self):
-        super()._init_buttons()
-        self._btn_report = QPushButton("Report", default=True)
-        self._btn_report.clicked.connect(
-            functools.partial(self.on_button_clicked, self._btn_report, True))
-        self._hbox.addWidget(self._btn_report)
-        self._buttons = [self._btn_report]
-
-    def _init_checkboxes(self, _debug):
+    def _init_checkboxes(self):
         """We don't want any checkboxes as the user wanted to report."""
+        pass
+
+    def _init_info_text(self):
+        """We don't want an info text as the user wanted to report."""
         pass
 
     def _get_error_type(self):
@@ -502,16 +463,6 @@ class ReportDialog(_CrashDialog):
             self._crash_info.append(("Debug log", log.ram_handler.dump_log()))
         except Exception:
             self._crash_info.append(("Debug log", traceback.format_exc()))
-
-    @pyqtSlot()
-    def maybe_report(self):
-        """Report the crash.
-
-        We don't have a "Send a report" checkbox here because it was a manual
-        report, which would be pretty useless without this info.
-        """
-        self.report()
-        return True
 
 
 class ReportErrorDialog(QDialog):
