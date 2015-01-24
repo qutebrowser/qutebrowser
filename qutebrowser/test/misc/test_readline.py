@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.utils.readline."""
+"""Tests for qutebrowser.misc.readline."""
 
 # pylint: disable=protected-access
 
@@ -27,7 +27,7 @@ from unittest import mock
 
 from PyQt5.QtWidgets import QLineEdit
 
-from qutebrowser.utils import readline
+from qutebrowser.misc import readline
 from qutebrowser.test import stubs
 
 

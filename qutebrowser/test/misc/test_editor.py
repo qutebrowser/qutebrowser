@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.utils.editor."""
+"""Tests for qutebrowser.misc.editor."""
 
 # pylint: disable=protected-access
 
@@ -29,7 +29,7 @@ from unittest import mock
 
 from PyQt5.QtCore import QProcess
 
-from qutebrowser.utils import editor
+from qutebrowser.misc import editor
 from qutebrowser.test import stubs
 
 

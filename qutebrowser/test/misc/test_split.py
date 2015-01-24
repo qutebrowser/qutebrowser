@@ -17,11 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.utils.split."""
+"""Tests for qutebrowser.misc.split."""
 
 import unittest
 
-from qutebrowser.utils import split
+from qutebrowser.misc import split
 
 
 # Most tests copied from Python's shlex.
