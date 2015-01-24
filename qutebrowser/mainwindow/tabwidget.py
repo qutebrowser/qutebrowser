@@ -120,7 +120,6 @@ class TabBar(QTabBar):
         else:
             self.show()
 
-
     def refresh(self):
         """Properly repaint the tab bar and relayout tabs."""
         # This is a horrible hack, but we need to do this so the underlaying Qt
