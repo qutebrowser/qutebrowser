@@ -130,6 +130,7 @@ Contributors, sorted by the number of commits in descending order:
 // QUTE_AUTHORS_START
 * Florian Bruhin
 * Claude
+* ZDarian
 * Peter Vilim
 * John ShaggyTwoDope Jenkins
 * rikn00

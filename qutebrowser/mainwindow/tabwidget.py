@@ -97,16 +97,27 @@ class TabBar(QTabBar):
         config_obj.changed.connect(self.set_colors)
         QTimer.singleShot(0, self.autohide)
         config_obj.changed.connect(self.autohide)
+        config_obj.changed.connect(self.alwayshide)
         config_obj.changed.connect(self.on_tab_colors_changed)
 
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
 
-    @config.change_filter('tabs', 'auto-hide')
+    @config.change_filter('tabs', 'hide-auto')
     def autohide(self):
-        """Auto-hide the tabbar if needed."""
-        auto_hide = config.get('tabs', 'auto-hide')
-        if auto_hide and self.count() == 1:
+        """Hide tabbar if needed when tabs->hide-auto got changed."""
+        self._tabhide()
+
+    @config.change_filter('tabs', 'hide-always')
+    def alwayshide(self):
+        """Hide tabbar if needed when tabs->hide-always got changed."""
+        self._tabhide()
+
+    def _tabhide(self):
+        """Hide the tabbar if needed."""
+        hide_auto = config.get('tabs', 'hide-auto')
+        hide_always = config.get('tabs', 'hide-always')
+        if hide_always or (hide_auto and self.count() == 1):
             self.hide()
         else:
             self.show()
