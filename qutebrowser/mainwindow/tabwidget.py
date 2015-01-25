@@ -95,7 +95,7 @@ class TabBar(QTabBar):
         self.setAutoFillBackground(True)
         self.set_colors()
         config_obj.changed.connect(self.set_colors)
-        QTimer.singleShot(0, self.autohide)
+        QTimer.singleShot(0, self._tabhide)
         config_obj.changed.connect(self.autohide)
         config_obj.changed.connect(self.alwayshide)
         config_obj.changed.connect(self.on_tab_colors_changed)
@@ -265,12 +265,12 @@ class TabBar(QTabBar):
 
     def tabInserted(self, idx):
         """Show the tabbar if configured to hide and >1 tab is open."""
-        self.autohide()
+        self._tabhide()
         super().tabInserted(idx)
 
     def tabRemoved(self, idx):
         """Hide the tabbar if configured when only one tab is open."""
-        self.autohide()
+        self._tabhide()
         super().tabRemoved(idx)
 
 
