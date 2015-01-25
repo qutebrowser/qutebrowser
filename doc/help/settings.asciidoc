@@ -34,6 +34,7 @@
 |<<ui-user-stylesheet,user-stylesheet>>|User stylesheet to use (absolute filename or CSS string).
 |<<ui-css-media-type,css-media-type>>|Set the CSS media type.
 |<<ui-remove-finished-downloads,remove-finished-downloads>>|Whether to remove finished downloads automatically.
+|<<ui-hide-statusbar,hide-statusbar>>|Whether to hide the statusbar unless a message is shown.
 |==============
 
 .Quick reference for section ``network''
@@ -446,6 +447,17 @@ Default: empty
 [[ui-remove-finished-downloads]]
 === remove-finished-downloads
 Whether to remove finished downloads automatically.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[false]+
+
+[[ui-hide-statusbar]]
+=== hide-statusbar
+Whether to hide the statusbar unless a message is shown.
 
 Valid values:
 
