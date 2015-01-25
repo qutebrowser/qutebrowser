@@ -30,10 +30,10 @@ import traceback
 from PyQt5.QtCore import pyqtSlot, Qt, QSize, qVersion
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QCheckBox,
-                             QDialogButtonBox)
+                             QDialogButtonBox, QMessageBox)
 
 import qutebrowser
-from qutebrowser.utils import version, log, utils, objreg
+from qutebrowser.utils import version, log, utils, objreg, qtutils
 from qutebrowser.misc import miscwidgets
 from qutebrowser.browser.network import pastebin
 from qutebrowser.config import config
@@ -61,6 +61,35 @@ def parse_fatal_stacktrace(text):
         return ('', '')
     else:
         return (m.group(1), m.group(2))
+
+
+def get_fatal_crash_dialog(debug, data):
+    """Get a fatal crash dialog based on a crash log.
+
+    If the crash is a segfault in qt_mainloop and we're on an old Qt version
+    this is a simple error dialog which lets the user know they should upgrade
+    if possible.
+
+    If it's anything else, it's a normal FatalCrashDialog with the possibility
+    to report the crash.
+
+    Args:
+        debug: Whether the debug flag (--debug) was given.
+        data: The crash log data.
+    """
+    errtype, frame = parse_fatal_stacktrace(data)
+    if (qtutils.version_check('5.4') or errtype != 'Segmentation fault' or
+            frame != 'qt_mainloop'):
+        return FatalCrashDialog(debug, data)
+    else:
+        title = "qutebrowser was restarted after a fatal crash!"
+        text = ("<b>qutebrowser was restarted after a fatal crash!</b><br/>"
+                "Unfortunately, this crash occured in Qt (the library "
+                "qutebrowser uses), and your version ({}) is outdated - "
+                "Qt 5.4 or later is recommended. Unfortuntately Debian and "
+                "Ubuntu don't ship a newer version (yet?)...".format(
+                    qVersion()))
+        return QMessageBox(QMessageBox.Critical, title, text, QMessageBox.Ok)
 
 
 class _CrashDialog(QDialog):
