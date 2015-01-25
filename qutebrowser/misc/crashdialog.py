@@ -251,10 +251,10 @@ class _CrashDialog(QDialog):
     def _get_paste_title(self):
         """Get a title for the paste."""
         desc = self._get_paste_title_desc()
-        title = "qutebrowser {} (Qt {}) {}".format(
-            qutebrowser.__version__, qVersion(), self._get_error_type())
+        title = "qute {} {}".format(
+            qutebrowser.__version__, self._get_error_type())
         if desc:
-            title += ' - {}'.format(desc)
+            title += ' {}'.format(desc)
         return title
 
     def _save_contact_info(self):
@@ -369,7 +369,7 @@ class ExceptionCrashDialog(_CrashDialog):
         self._vbox.addWidget(info_label)
 
     def _get_error_type(self):
-        return 'exception'
+        return 'exc'
 
     def _get_paste_title_desc(self):
         desc = traceback.format_exception_only(self._exc[0], self._exc[1])
@@ -422,13 +422,13 @@ class FatalCrashDialog(_CrashDialog):
         self._type, self._func = parse_fatal_stacktrace(self._log)
 
     def _get_error_type(self):
-        return self._type
+        if self._type == 'Segmentation fault':
+            return 'segv'
+        else:
+            return self._type
 
     def _get_paste_title_desc(self):
-        if self._func:
-            return 'in {}'.format(self._func)
-        else:
-            return ''
+        return self._func
 
     def _init_text(self):
         super()._init_text()
