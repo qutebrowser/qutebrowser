@@ -121,7 +121,6 @@ class _CrashDialog(QDialog):
         self._btn_box = None
         self._btn_report = None
         self._btn_cancel = None
-        self._chk_restore = None
         self._lbl = None
         self._paste_text = None
         self.setWindowTitle("Whoops!")
@@ -189,9 +188,7 @@ class _CrashDialog(QDialog):
 
     def _init_checkboxes(self):
         """Initialize the checkboxes."""
-        self._chk_restore = QCheckBox("Restore open pages")
-        self._chk_restore.setChecked(True)
-        self._vbox.addWidget(self._chk_restore)
+        pass
 
     def _init_buttons(self):
         """Initialize the buttons."""
@@ -333,6 +330,7 @@ class ExceptionCrashDialog(_CrashDialog):
 
     def __init__(self, debug, pages, cmdhist, exc, objects, parent=None):
         self._chk_log = None
+        self._chk_restore = None
         super().__init__(debug, parent)
         self._pages = pages
         self._cmdhist = cmdhist
@@ -352,6 +350,9 @@ class ExceptionCrashDialog(_CrashDialog):
     def _init_checkboxes(self):
         """Add checkboxes to the dialog."""
         super()._init_checkboxes()
+        self._chk_restore = QCheckBox("Restore open pages")
+        self._chk_restore.setChecked(True)
+        self._vbox.addWidget(self._chk_restore)
         self._chk_log = QCheckBox("Include a debug log in the report",
                                   checked=True)
         try:
@@ -468,10 +469,6 @@ class ReportDialog(_CrashDialog):
         super()._init_text()
         text = "Please describe the bug you encountered below."
         self._lbl.setText(text)
-
-    def _init_checkboxes(self):
-        """We don't want any checkboxes as the user wanted to report."""
-        pass
 
     def _init_info_text(self):
         """We don't want an info text as the user wanted to report."""
