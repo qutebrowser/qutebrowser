@@ -128,12 +128,20 @@ class TabbedBrowser(tabwidget.TabWidget):
             w.append(self.widget(i))
         return w
 
-    def _change_app_title(self, text):
-        """Change the window title based on the tab text."""
-        if not text:
-            title = 'qutebrowser'
+    def _update_window_title(self):
+        """Change the window title to match the current tab."""
+        idx = self.currentIndex()
+        tabtitle = self.tabText(idx)
+        widget = self.widget(idx)
+
+        if widget.load_status == webview.LoadStatus.loading:
+            title = '[{}%] '.format(widget.progress)
         else:
-            title = '{} - qutebrowser'.format(text)
+            title = ''
+        if not tabtitle:
+            title += 'qutebrowser'
+        else:
+            title += '{} - qutebrowser'.format(tabtitle)
         self.window().setWindowTitle(title)
 
     def _connect_tab_signals(self, tab):
@@ -404,7 +412,7 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     @pyqtSlot()
     def on_load_started(self, tab):
-        """Clear icon when a tab started loading.
+        """Clear icon and update title when a tab started loading.
 
         Args:
             tab: The tab where the signal belongs to.
@@ -419,6 +427,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             log.webview.debug("Got invalid tab {}!".format(tab))
             return
         self.setTabIcon(idx, QIcon())
+        if idx == self.currentIndex():
+            self._update_window_title()
 
     @pyqtSlot()
     def on_cur_load_started(self):
@@ -454,7 +464,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             return
         self.setTabText(idx, text.replace('&', '&&'))
         if idx == self.currentIndex():
-            self._change_app_title(text)
+            self._update_window_title()
 
     @pyqtSlot(webview.WebView, str)
     def on_url_text_changed(self, tab, url):
@@ -526,7 +536,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                             scope='window', window=self._win_id)
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
-        self._change_app_title(self.tabText(idx))
+        self._update_window_title()
         self._tab_insert_idx_left = self.currentIndex()
         self._tab_insert_idx_right = self.currentIndex() + 1
 
@@ -547,6 +557,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         system = config.get('colors', 'tabs.indicator.system')
         color = utils.interpolate_color(start, stop, perc, system)
         self.tabBar().set_tab_indicator_color(idx, color)
+        if idx == self.currentIndex():
+            self._update_window_title()
 
     def on_load_finished(self, tab):
         """Adjust tab indicator when loading finished.
@@ -568,6 +580,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             system = config.get('colors', 'tabs.indicator.system')
             color = utils.interpolate_color(start, stop, 100, system)
         self.tabBar().set_tab_indicator_color(idx, color)
+        if idx == self.currentIndex():
+            self._update_window_title()
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
