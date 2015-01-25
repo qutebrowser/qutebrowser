@@ -237,6 +237,10 @@ DATA = collections.OrderedDict([
         ('remove-finished-downloads',
          SettingValue(typ.Bool(), 'false'),
          "Whether to remove finished downloads automatically."),
+
+        ('hide-statusbar',
+         SettingValue(typ.Bool(), 'false'),
+         "Whether to hide the statusbar unless a message is shown."),
     )),
 
     ('network', sect.KeyValue(

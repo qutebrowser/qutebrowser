@@ -21,7 +21,8 @@
 
 import collections
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QTime, QSize
+from PyQt5.QtCore import (pyqtSignal, pyqtSlot, pyqtProperty, Qt, QTime, QSize,
+                          QTimer)
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.config import config, style
@@ -179,8 +180,20 @@ class StatusBar(QWidget):
         self.prog = progress.Progress(self)
         self._hbox.addWidget(self.prog)
 
+        objreg.get('config').changed.connect(self.maybe_hide)
+        QTimer.singleShot(0, self.maybe_hide)
+
     def __repr__(self):
         return utils.get_repr(self)
+
+    @config.change_filter('ui', 'hide-statusbar')
+    def maybe_hide(self):
+        """Hide the statusbar if it's configured to do so."""
+        hide = config.get('ui', 'hide-statusbar')
+        if hide:
+            self.hide()
+        else:
+            self.show()
 
     @pyqtProperty(str)
     def severity(self):
@@ -268,10 +281,11 @@ class StatusBar(QWidget):
             elif self._previous_widget == PreviousWidget.command:
                 self._stack.setCurrentWidget(self.command)
             elif self._previous_widget == PreviousWidget.none:
-                pass
+                self.maybe_hide()
             else:
                 raise AssertionError("Unknown _previous_widget!")
             return
+        self.show()
         log.statusbar.debug("Displaying message: {} (severity {})".format(
             text, severity))
         log.statusbar.debug("Remaining: {}".format(self._text_queue))
@@ -286,6 +300,7 @@ class StatusBar(QWidget):
             self._timer_was_active = True
         self._text_pop_timer.stop()
         self._stack.setCurrentWidget(self.cmd)
+        self.show()
 
     def _hide_cmd_widget(self):
         """Show temporary text instead of command widget."""
@@ -298,6 +313,7 @@ class StatusBar(QWidget):
             self._text_pop_timer.start()
             self._timer_was_active = False
         self._stack.setCurrentWidget(self.txt)
+        self.maybe_hide()
 
     def _show_prompt_widget(self):
         """Show prompt widget instead of temporary text."""
@@ -310,6 +326,7 @@ class StatusBar(QWidget):
             self._timer_was_active = True
         self._text_pop_timer.stop()
         self._stack.setCurrentWidget(self.prompt)
+        self.show()
 
     def _hide_prompt_widget(self):
         """Show temporary text instead of prompt widget."""
@@ -323,6 +340,7 @@ class StatusBar(QWidget):
             self._text_pop_timer.start()
             self._timer_was_active = False
         self._stack.setCurrentWidget(self.txt)
+        self.maybe_hide()
 
     def _disp_text(self, text, severity, immediately=False):
         """Inner logic for disp_error and disp_temp_text.
@@ -350,6 +368,7 @@ class StatusBar(QWidget):
             # normal state in 2 seconds.
             log.statusbar.debug("Displaying immediately")
             self._set_severity(severity)
+            self.show()
             self.txt.set_text(self.txt.Text.temp, text)
             self._text_pop_timer.start()
         elif self._text_queue and self._text_queue[-1] == (severity, text):
@@ -363,6 +382,7 @@ class StatusBar(QWidget):
             # display the rest of the queue later.
             log.statusbar.debug("Moving to beginning of queue")
             self._set_severity(severity)
+            self.show()
             self.txt.set_text(self.txt.Text.temp, text)
             self._text_pop_timer.start()
         else:
