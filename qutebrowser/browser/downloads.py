@@ -165,13 +165,13 @@ class DownloadItem(QObject):
                    done.
         fileobj: The file object to download the file to.
         reply: The QNetworkReply associated with this download.
+        retry_info: A RetryInfo instance.
         _filename: The filename of the download.
         _redirects: How many time we were redirected already.
         _buffer: A BytesIO object to buffer incoming data until we know the
                  target file.
         _read_timer: A QTimer which reads the QNetworkReply into self._buffer
                      periodically.
-        _retry_info: A RetryInfo instance.
         _win_id: The window ID the DownloadItem runs in.
 
     Signals:
@@ -202,7 +202,7 @@ class DownloadItem(QObject):
             reply: The QNetworkReply to download.
         """
         super().__init__(parent)
-        self._retry_info = None
+        self.retry_info = None
         self.done = False
         self.stats = DownloadItemStats(self)
         self.stats.updated.connect(self.data_changed)
@@ -311,8 +311,8 @@ class DownloadItem(QObject):
         reply.finished.connect(self.on_reply_finished)
         reply.error.connect(self.on_reply_error)
         reply.readyRead.connect(self.on_ready_read)
-        self._retry_info = RetryInfo(request=reply.request(),
-                                     manager=reply.manager())
+        self.retry_info = RetryInfo(request=reply.request(),
+                                    manager=reply.manager())
         if not self.fileobj:
             self._read_timer.start()
         # We could have got signals before we connected slots to them.
@@ -365,7 +365,7 @@ class DownloadItem(QObject):
     def retry(self):
         """Retry a failed download."""
         self.cancel()
-        new_reply = self._retry_info.manager.get(self._retry_info.request)
+        new_reply = self.retry_info.manager.get(self.retry_info.request)
         self.do_retry.emit(new_reply)
 
     def open_file(self):
@@ -799,6 +799,10 @@ class DownloadManager(QAbstractListModel):
         """
         for download in self.downloads:
             if download.reply is not None and download.reply.manager() is nam:
+                return True
+            if (download.done and (not download.successful) and
+                    download.retry_info.manager is nam):
+                # user could request retry after tab is closed.
                 return True
         return False
 
