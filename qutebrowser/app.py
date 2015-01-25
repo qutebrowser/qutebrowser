@@ -223,7 +223,7 @@ class Application(QApplication):
                 if data:
                     # Crashlog exists and has data in it, so something crashed
                     # previously.
-                    self._crashdlg = crashdialog.FatalCrashDialog(
+                    self._crashdlg = crashdialog.get_fatal_crash_dialog(
                         self._args.debug, data)
                     self._crashdlg.show()
             else:

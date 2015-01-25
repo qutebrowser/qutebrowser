@@ -110,7 +110,11 @@ def main():
     app = app.Application(args)
 
     def qt_mainloop():
-        """Simple wrapper to get a nicer stack trace for segfaults."""
+        """Simple wrapper to get a nicer stack trace for segfaults.
+
+        WARNING: misc/crashdialog.py checks the stacktrace for this function
+        name, so if this is changed, it should be changed there as well!
+        """
         return app.exec_()  # pylint: disable=maybe-no-member
 
     # We set qApp explicitely here to reduce the risk of segfaults while
