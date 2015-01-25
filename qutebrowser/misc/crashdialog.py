@@ -27,7 +27,7 @@ import html
 import getpass
 import traceback
 
-from PyQt5.QtCore import pyqtSlot, Qt, QSize, QT_VERSION_STR
+from PyQt5.QtCore import pyqtSlot, Qt, QSize, qVersion
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QCheckBox,
                              QDialogButtonBox)
@@ -226,7 +226,7 @@ class _CrashDialog(QDialog):
         """Get a title for the paste."""
         desc = self._get_paste_title_desc()
         title = "qutebrowser {} (Qt {}) {}".format(
-            qutebrowser.__version__, QT_VERSION_STR, self._get_error_type())
+            qutebrowser.__version__, qVersion(), self._get_error_type())
         if desc:
             title += ' - {}'.format(desc)
         return title
