@@ -385,6 +385,7 @@ class CommandDispatcher:
         tabbed_browser.setTabText(idx, curtab.title().replace('&', '&&'))
         tabbed_browser.setTabIcon(idx, curtab.icon())
         newtab.keep_icon = True
+        newtab.setZoomFactor(curtab.zoomFactor())
         history = qtutils.serialize(curtab.history())
         qtutils.deserialize(history, newtab.history())
         return newtab
