@@ -381,6 +381,10 @@ class CommandDispatcher:
         curtab = self._current_widget()
         tabbed_browser = self._tabbed_browser(window)
         newtab = tabbed_browser.tabopen(background=bg, explicit=True)
+        idx = tabbed_browser.indexOf(newtab)
+        tabbed_browser.setTabText(idx, curtab.title().replace('&', '&&'))
+        tabbed_browser.setTabIcon(idx, curtab.icon())
+        newtab.keep_icon = True
         history = qtutils.serialize(curtab.history())
         qtutils.deserialize(history, newtab.history())
         return newtab

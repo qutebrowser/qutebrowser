@@ -58,6 +58,8 @@ class WebView(QWebView):
         open_target: Where to open the next tab ("normal", "tab", "tab_bg")
         viewing_source: Whether the webview is currently displaying source
                         code.
+        keep_icon: Whether the (e.g. cloned) icon should not be cleared on page
+                   load.
         registry: The ObjectRegistry associated with this tab.
         tab_id: The tab ID of the view.
         _cur_url: The current URL (accessed via cur_url property).
@@ -101,6 +103,7 @@ class WebView(QWebView):
         self._force_open_target = None
         self._zoom = None
         self._has_ssl_errors = False
+        self.keep_icon = False
         self.init_neighborlist()
         cfg = objreg.get('config')
         cfg.changed.connect(self.init_neighborlist)

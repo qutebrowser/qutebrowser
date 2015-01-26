@@ -426,7 +426,10 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We can get signals for tabs we already deleted...
             log.webview.debug("Got invalid tab {}!".format(tab))
             return
-        self.setTabIcon(idx, QIcon())
+        if tab.keep_icon:
+            tab.keep_icon = False
+        else:
+            self.setTabIcon(idx, QIcon())
         if idx == self.currentIndex():
             self._update_window_title()
 
