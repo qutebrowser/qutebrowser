@@ -29,7 +29,10 @@ import collections
 
 from PyQt5.QtCore import QT_VERSION_STR, PYQT_VERSION_STR, qVersion
 from PyQt5.QtWebKit import qWebKitVersion
-from PyQt5.QtNetwork import QSslSocket
+try:
+    from PyQt5.QtNetwork import QSslSocket
+except ImportError:
+    QSslSocket = None
 
 import qutebrowser
 from qutebrowser.utils import log, utils
@@ -206,11 +209,15 @@ def version():
         'PyQt: {}'.format(PYQT_VERSION_STR),
     ]
     lines += _module_versions()
+
+    if QSslSocket is not None and QSslSocket.supportsSsl():
+        ssl_version = QSslSocket.sslLibraryVersionString()
+    else:
+        ssl_version = 'unavailable'
     lines += [
         'Webkit: {}'.format(qWebKitVersion()),
         'Harfbuzz: {}'.format(os.environ.get('QT_HARFBUZZ', 'system')),
-        'SSL: {}'.format(QSslSocket.sslLibraryVersionString() if
-                         QSslSocket.supportsSsl() else 'unavailable'),
+        'SSL: {}'.format(ssl_version),
         '',
         'Frozen: {}'.format(hasattr(sys, 'frozen')),
         'Platform: {}, {}'.format(platform.platform(),
