@@ -252,7 +252,7 @@ class StatusBar(QWidget):
             if self._previous_widget == PreviousWidget.prompt:
                 self._stack.setCurrentWidget(self.prompt)
             elif self._previous_widget == PreviousWidget.command:
-                self._stack.setCurrentWidget(self.command)
+                self._stack.setCurrentWidget(self.cmd)
             elif self._previous_widget == PreviousWidget.none:
                 pass
             else:
@@ -267,7 +267,7 @@ class StatusBar(QWidget):
     def _show_cmd_widget(self):
         """Show command widget instead of temporary text."""
         self._set_error(False)
-        self._previous_widget = PreviousWidget.prompt
+        self._previous_widget = PreviousWidget.command
         if self._text_pop_timer.isActive():
             self._timer_was_active = True
         self._text_pop_timer.stop()
