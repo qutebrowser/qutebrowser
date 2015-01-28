@@ -289,6 +289,7 @@ class MainWindow(QWidget):
         topleft = QPoint(0, topleft_y)
         bottomright = self.status.geometry().topRight()
         rect = QRect(topleft, bottomright)
+        log.misc.debug('completion rect: {}'.format(rect))
         if rect.isValid():
             self._completion.setGeometry(rect)
 
