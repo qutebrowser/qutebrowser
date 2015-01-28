@@ -152,33 +152,34 @@ class NetworkManager(QNetworkAccessManager):
             request.deleteLater()
         self.shutting_down.emit()
 
-    @pyqtSlot('QNetworkReply*', 'QList<QSslError>')
-    def on_ssl_errors(self, reply, errors):
-        """Decide if SSL errors should be ignored or not.
+    if SSL_AVAILABLE:
+        @pyqtSlot('QNetworkReply*', 'QList<QSslError>')
+        def on_ssl_errors(self, reply, errors):
+            """Decide if SSL errors should be ignored or not.
 
-        This slot is called on SSL/TLS errors by the self.sslErrors signal.
+            This slot is called on SSL/TLS errors by the self.sslErrors signal.
 
-        Args:
-            reply: The QNetworkReply that is encountering the errors.
-            errors: A list of errors.
-        """
-        ssl_strict = config.get('network', 'ssl-strict')
-        if ssl_strict == 'ask':
-            err_string = '\n'.join('- ' + err.errorString() for err in errors)
-            answer = self._ask('SSL errors - continue?\n{}'.format(err_string),
-                               mode=usertypes.PromptMode.yesno,
-                               owner=reply)
-            if answer:
+            Args:
+                reply: The QNetworkReply that is encountering the errors.
+                errors: A list of errors.
+            """
+            ssl_strict = config.get('network', 'ssl-strict')
+            if ssl_strict == 'ask':
+                err_string = '\n'.join('- ' + err.errorString() for err in
+                                       errors)
+                answer = self._ask('SSL errors - continue?\n{}'.format(
+                    err_string), mode=usertypes.PromptMode.yesno, owner=reply)
+                if answer:
+                    reply.ignoreSslErrors()
+            elif ssl_strict:
+                pass
+            else:
+                for err in errors:
+                    # FIXME we might want to use warn here (non-fatal error)
+                    # https://github.com/The-Compiler/qutebrowser/issues/114
+                    message.error(self._win_id,
+                                  'SSL error: {}'.format(err.errorString()))
                 reply.ignoreSslErrors()
-        elif ssl_strict:
-            pass
-        else:
-            for err in errors:
-                # FIXME we might want to use warn here (non-fatal error)
-                # https://github.com/The-Compiler/qutebrowser/issues/114
-                message.error(self._win_id,
-                              'SSL error: {}'.format(err.errorString()))
-            reply.ignoreSslErrors()
 
     @pyqtSlot('QNetworkReply', 'QAuthenticator')
     def on_authentication_required(self, reply, authenticator):
