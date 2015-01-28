@@ -241,3 +241,8 @@ class CompletionView(QTreeView):
         """Extend resizeEvent to adjust column size."""
         super().resizeEvent(e)
         self._resize_columns()
+
+    def showEvent(self, e):
+        """Adjust the completion size when it's freshly shown."""
+        self.resize_completion.emit()
+        super().showEvent(e)

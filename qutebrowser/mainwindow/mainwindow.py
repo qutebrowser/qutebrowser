@@ -266,6 +266,10 @@ class MainWindow(QWidget):
     @pyqtSlot()
     def resize_completion(self):
         """Adjust completion according to config."""
+        if not self._completion.isVisible():
+            # It doesn't make sense to resize the completion as long as it's
+            # not shown anyways.
+            return
         # Get the configured height/percentage.
         confheight = str(config.get('completion', 'height'))
         if confheight.endswith('%'):
