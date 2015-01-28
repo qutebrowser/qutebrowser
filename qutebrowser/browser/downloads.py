@@ -797,14 +797,19 @@ class DownloadManager(QAbstractListModel):
         Return:
             A boolean.
         """
+        assert nam.adopted_downloads == 0
         for download in self.downloads:
-            if download.reply is not None and download.reply.manager() is nam:
-                return True
-            if (download.done and (not download.successful) and
-                    download.retry_info.manager is nam):
-                # user could request retry after tab is closed.
-                return True
-        return False
+            running_download = (download.reply is not None and
+                                download.reply.manager() is nam)
+            # user could request retry after tab is closed.
+            failed_download = (download.done and (not download.successful) and
+                               download.retry_info.manager is nam)
+            if running_download or failed_download:
+                log.downloads.debug("Found running/failed downloads, "
+                                    "adopting the NAM.")
+                nam.adopted_downloads += 1
+                download.destroyed.connect(nam.on_adopted_download_destroyed)
+        return nam.adopted_downloads
 
     def can_clear(self):
         """Check if there are finished downloads to clear."""
