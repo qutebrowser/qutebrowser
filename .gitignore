@@ -13,3 +13,4 @@ __pycache__
 /doc/*.html
 /README.html
 /qutebrowser/html/doc/
+/.venv
