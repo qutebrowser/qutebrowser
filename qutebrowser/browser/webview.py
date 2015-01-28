@@ -23,8 +23,9 @@ import sys
 import itertools
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl, QMimeData
 from PyQt5.QtWidgets import QApplication, QStyleFactory
+from PyQt5.QtGui import QClipboard
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
@@ -301,6 +302,30 @@ class WebView(QWebView):
             self.open_target = usertypes.ClickTarget.normal
             log.mouse.debug("Normal click, setting normal target")
 
+    def _paste_primary_selection(self):
+        """Paste the primary selection into the webview.
+
+        This is triggered by keyPressEvent when the user presses Shift-Insert.
+
+        Since QWebView has no way to paste the primary selection instead of the
+        clipboard we get the clipboard data, save it, copy primary selection to
+        clipboard, then paste and restore clipboard data.
+        """
+        clipboard = QApplication.clipboard()
+        selection_data = clipboard.mimeData(QClipboard.Selection)
+        # As soon as we set the new data, the older QMimeData object will be
+        # invalidated which would lead to segfaults - this means we have to
+        # construct a copy of the data by hand.
+        clipboard_data = clipboard.mimeData()
+        new_clipboard_data = QMimeData()
+        for mimetype in clipboard_data.formats():
+            data = clipboard_data.data(mimetype)
+            new_clipboard_data.setData(mimetype, data)
+
+        clipboard.setMimeData(selection_data)
+        self.triggerPageAction(QWebPage.Paste)
+        clipboard.setMimeData(new_clipboard_data)
+
     def shutdown(self):
         """Shut down the webview."""
         # We disable javascript because that prevents some segfaults when
@@ -534,3 +559,12 @@ class WebView(QWebView):
         # We want to make sure we check the focus element after the WebView is
         # updated completely.
         QTimer.singleShot(0, self.mouserelease_insertmode)
+
+    def keyPressEvent(self, e):
+        """Override keyPressEvent to paste primary selection on Shift + Ins."""
+        if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
+            if QApplication.clipboard().supportsSelection():
+                e.accept()
+                self._paste_primary_selection()
+                return
+        super().keyPressEvent(e)
