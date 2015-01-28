@@ -826,6 +826,32 @@ class Directory(BaseType):
         return os.path.expanduser(value)
 
 
+class FormatString(BaseType):
+
+    """A string with '{foo}'-placeholders."""
+
+    typestr = 'format-string'
+
+    def __init__(self, fields, none_ok=False):
+        super().__init__(none_ok)
+        self.fields = fields
+
+    def validate(self, value):
+        if not value:
+            if self._none_ok:
+                return
+            else:
+                raise configexc.ValidationError(value, "may not be empty!")
+        s = self.transform(value)
+        try:
+            return s.format(**{k: '' for k in self.fields})
+        except KeyError as e:
+            raise configexc.ValidationError(value, "Invalid placeholder "
+                                            "{}".format(e))
+        except ValueError as e:
+            raise configexc.ValidationError(value, str(e))
+
+
 class WebKitBytes(BaseType):
 
     """A size with an optional suffix.

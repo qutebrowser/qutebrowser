@@ -113,6 +113,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         # https://github.com/The-Compiler/qutebrowser/issues/119
         self.setIconSize(QSize(12, 12))
         objreg.get('config').changed.connect(self.update_favicons)
+        objreg.get('config').changed.connect(self.update_window_title)
 
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
@@ -128,21 +129,23 @@ class TabbedBrowser(tabwidget.TabWidget):
             w.append(self.widget(i))
         return w
 
-    def _update_window_title(self):
+    @config.change_filter('ui', 'window-title-format')
+    def update_window_title(self):
         """Change the window title to match the current tab."""
         idx = self.currentIndex()
         tabtitle = self.tabText(idx)
         widget = self.widget(idx)
 
+        fields = {}
         if widget.load_status == webview.LoadStatus.loading:
-            title = '[{}%] '.format(widget.progress)
+            fields['perc'] = '[{}%] '.format(widget.progress)
         else:
-            title = ''
-        if not tabtitle:
-            title += 'qutebrowser'
-        else:
-            title += '{} - qutebrowser'.format(tabtitle)
-        self.window().setWindowTitle(title)
+            fields['perc'] = ''
+        fields['perc_raw'] = widget.progress
+        fields['title'] = tabtitle
+        fields['title_sep'] = ' - ' if tabtitle else ''
+        fmt = config.get('ui', 'window-title-format')
+        self.window().setWindowTitle(fmt.format(**fields))
 
     def _connect_tab_signals(self, tab):
         """Set up the needed signals for tab."""
@@ -431,7 +434,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         else:
             self.setTabIcon(idx, QIcon())
         if idx == self.currentIndex():
-            self._update_window_title()
+            self.update_window_title()
 
     @pyqtSlot()
     def on_cur_load_started(self):
@@ -467,7 +470,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             return
         self.setTabText(idx, text.replace('&', '&&'))
         if idx == self.currentIndex():
-            self._update_window_title()
+            self.update_window_title()
 
     @pyqtSlot(webview.WebView, str)
     def on_url_text_changed(self, tab, url):
@@ -539,7 +542,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                             scope='window', window=self._win_id)
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
-        self._update_window_title()
+        self.update_window_title()
         self._tab_insert_idx_left = self.currentIndex()
         self._tab_insert_idx_right = self.currentIndex() + 1
 
@@ -561,7 +564,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         color = utils.interpolate_color(start, stop, perc, system)
         self.tabBar().set_tab_indicator_color(idx, color)
         if idx == self.currentIndex():
-            self._update_window_title()
+            self.update_window_title()
 
     def on_load_finished(self, tab):
         """Adjust tab indicator when loading finished.
@@ -584,7 +587,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             color = utils.interpolate_color(start, stop, 100, system)
         self.tabBar().set_tab_indicator_color(idx, color)
         if idx == self.currentIndex():
-            self._update_window_title()
+            self.update_window_title()
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

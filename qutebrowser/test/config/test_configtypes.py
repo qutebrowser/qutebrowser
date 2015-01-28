@@ -1976,5 +1976,45 @@ class UrlListTests(unittest.TestCase):
         self.assertEqual(self.t.transform(''), None)
 
 
+class FormatStringTests(unittest.TestCase):
+
+    """Test FormatString."""
+
+    def setUp(self):
+        self.t = configtypes.FormatString(fields=('foo', 'bar'))
+
+    def test_transform(self):
+        """Test if transform doesn't alter the value."""
+        self.assertEqual(self.t.transform('foo {bar} baz'), 'foo {bar} baz')
+
+    def test_validate_simple(self):
+        """Test validate with a simple string."""
+        self.t.validate('foo bar baz')
+
+    def test_validate_placeholders(self):
+        """Test validate with placeholders."""
+        self.t.validate('{foo} {bar} baz')
+
+    def test_validate_invalid_placeholders(self):
+        """Test validate with invalid placeholders."""
+        with self.assertRaises(configexc.ValidationError):
+            self.t.validate('{foo} {bar} {baz}')
+
+    def test_validate_invalid_placeholders_syntax(self):
+        """Test validate with invalid placeholders syntax."""
+        with self.assertRaises(configexc.ValidationError):
+            self.t.validate('{foo} {bar')
+
+    def test_validate_empty(self):
+        """Test validate with empty string and none_ok = False."""
+        with self.assertRaises(configexc.ValidationError):
+            self.t.validate('')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with empty string and none_ok = True."""
+        t = configtypes.FormatString(none_ok=True, fields=())
+        t.validate('')
+
+
 if __name__ == '__main__':
     unittest.main()

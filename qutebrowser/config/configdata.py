@@ -241,6 +241,18 @@ DATA = collections.OrderedDict([
         ('hide-statusbar',
          SettingValue(typ.Bool(), 'false'),
          "Whether to hide the statusbar unless a message is shown."),
+
+        ('window-title-format',
+         SettingValue(typ.FormatString(fields=['perc', 'perc_raw', 'title',
+                                               'title_sep']),
+                      '{perc}{title}{title_sep}qutebrowser'),
+         "The format to use for the window title. The following placeholders "
+         "are defined:\n\n"
+         "* `{perc}`: The percentage as a string like `[10%]`.\n"
+         "* `{perc_raw}`: The raw percentage, e.g. `10`\n"
+         "* `{title}`: The title of the current webpage\n"
+         "* `{title_sep}`: The string ` - ` if a title is set, empty "
+         "otherwise.")
     )),
 
     ('network', sect.KeyValue(
