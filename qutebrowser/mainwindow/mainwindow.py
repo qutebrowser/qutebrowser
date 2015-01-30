@@ -95,7 +95,10 @@ class MainWindow(QWidget):
                         window=win_id)
         self._vbox.addWidget(self._tabbed_browser)
 
-        self.status = bar.StatusBar(win_id)
+        # We need to set an explicit parent for StatusBar because it does some
+        # show/hide magic immediately which would mean it'd show up as a
+        # window.
+        self.status = bar.StatusBar(win_id, parent=self)
         self._vbox.addWidget(self.status)
 
         self._completion = completionwidget.CompletionView(win_id, self)
