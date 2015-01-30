@@ -23,8 +23,7 @@ import sys
 import itertools
 import functools
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QTimer, QUrl, QMimeData,
-                          QByteArray)
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer, QUrl, QMimeData
 from PyQt5.QtWidgets import QApplication, QStyleFactory
 from PyQt5.QtGui import QClipboard
 from PyQt5.QtWebKit import QWebSettings
@@ -320,7 +319,7 @@ class WebView(QWebView):
         clipboard_data = clipboard.mimeData()
         new_clipboard_data = QMimeData()
         for mimetype in clipboard_data.formats():
-            data = QByteArray(clipboard_data.data(mimetype))
+            data = clipboard_data.data(mimetype)
             new_clipboard_data.setData(mimetype, data)
 
         clipboard.setMimeData(selection_data)
