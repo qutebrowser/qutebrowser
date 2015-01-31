@@ -121,8 +121,17 @@ class BrowserPage(QWebPage):
         else:
             error_str = info.errorString
             if error_str == networkmanager.HOSTBLOCK_ERROR_STRING:
+                # We don't set error_occured in this case.
                 error_str = "Request blocked by host blocker."
-                # we don't set error_occured in this case.
+                main_frame = info.frame.page().mainFrame()
+                if info.frame != main_frame:
+                    # Content in an iframe -> Hide the frame so it doesn't use
+                    # any space. We can't hide the frame's documentElement
+                    # directly though.
+                    for elem in main_frame.documentElement().findAll('iframe'):
+                        if QUrl(elem.attribute('src')) == info.url:
+                            elem.setAttribute('style', 'display: none')
+                    return False
             else:
                 self._ignore_load_started = True
                 self.error_occured = True
