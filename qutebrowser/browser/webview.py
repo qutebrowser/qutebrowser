@@ -77,12 +77,14 @@ class WebView(QWebView):
         linkHovered: QWebPages linkHovered signal exposed.
         load_status_changed: The loading status changed
         url_text_changed: Current URL string changed.
+        shutting_down: Emitted when the view is shutting down.
     """
 
     scroll_pos_changed = pyqtSignal(int, int)
     linkHovered = pyqtSignal(str, str, str)
     load_status_changed = pyqtSignal(str)
     url_text_changed = pyqtSignal(str)
+    shutting_down = pyqtSignal()
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
@@ -300,6 +302,7 @@ class WebView(QWebView):
 
     def shutdown(self):
         """Shut down the webview."""
+        self.shutting_down.emit()
         # We disable javascript because that prevents some segfaults when
         # quitting it seems.
         log.destroy.debug("Shutting down {!r}.".format(self))
@@ -531,3 +534,9 @@ class WebView(QWebView):
         # We want to make sure we check the focus element after the WebView is
         # updated completely.
         QTimer.singleShot(0, self.mouserelease_insertmode)
+
+    def contextMenuEvent(self, e):
+        """Save a reference to the context menu so we can close it."""
+        menu = self.page().createStandardContextMenu()
+        self.shutting_down.connect(menu.close)
+        menu.exec_(e.globalPos())
