@@ -43,7 +43,7 @@ from qutebrowser.config import style, config, websettings
 from qutebrowser.browser import quickmarks, cookies, cache, adblock
 from qutebrowser.browser.network import qutescheme, proxy
 from qutebrowser.mainwindow import mainwindow
-from qutebrowser.misc import crashdialog, readline, ipc, earlyinit
+from qutebrowser.misc import crashdialog, readline, ipc, earlyinit, savemanager
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
@@ -162,14 +162,18 @@ class Application(QApplication):
 
     def _init_modules(self):
         """Initialize all 'modules' which need to be initialized."""
+        log.init.debug("Initializing save manager...")
+        save_manager = savemanager.SaveManager(self)
+        objreg.register('save-manager', save_manager)
         log.init.debug("Initializing readline-bridge...")
         readline_bridge = readline.ReadlineBridge()
         objreg.register('readline-bridge', readline_bridge)
-
         log.init.debug("Initializing directories...")
         standarddir.init()
         log.init.debug("Initializing config...")
         config.init(self._args)
+        save_manager.add_saveable('window-geometry', self._save_geometry)
+        save_manager.add_saveable('version', self._save_version)
         log.init.debug("Initializing crashlog...")
         self._handle_segfault()
         log.init.debug("Initializing js-bridge...")
@@ -741,9 +745,6 @@ class Application(QApplication):
 
     def _shutdown(self, status):  # noqa
         """Second stage of shutdown."""
-        # pylint: disable=too-many-branches, too-many-statements
-        # FIXME refactor this
-        # https://github.com/The-Compiler/qutebrowser/issues/113
         log.destroy.debug("Stage 2 of shutting down...")
         # Remove eventfilter
         try:
@@ -760,59 +761,19 @@ class Application(QApplication):
             pass
         # Save everything
         try:
-            config_obj = objreg.get('config')
+            save_manager = objreg.get('save-manager')
         except KeyError:
-            log.destroy.debug("Config not initialized yet, so not saving "
-                              "anything.")
+            log.destroy.debug("Save manager not initialized yet, so not "
+                              "saving anything.")
         else:
-            to_save = []
-            if config.get('general', 'auto-save-config'):
-                to_save.append(("config", config_obj.save))
+            for key in save_manager.saveables:
                 try:
-                    key_config = objreg.get('key-config')
-                except KeyError:
-                    pass
-                else:
-                    to_save.append(("keyconfig", key_config.save))
-            to_save += [("window geometry", self._save_geometry)]
-            to_save += [("version", self._save_version)]
-            try:
-                command_history = objreg.get('command-history')
-            except KeyError:
-                pass
-            else:
-                to_save.append(("command history", command_history.save))
-            try:
-                quickmark_manager = objreg.get('quickmark-manager')
-            except KeyError:
-                pass
-            else:
-                to_save.append(("command history", quickmark_manager.save))
-            try:
-                state_config = objreg.get('state-config')
-            except KeyError:
-                pass
-            else:
-                to_save.append(("window geometry", state_config.save))
-            try:
-                cookie_jar = objreg.get('cookie-jar')
-            except KeyError:
-                pass
-            else:
-                to_save.append(("cookies", cookie_jar.save))
-            for what, handler in to_save:
-                log.destroy.debug("Saving {} (handler: {})".format(
-                    what, utils.qualname(handler)))
-                try:
-                    handler()
+                    save_manager.save(key, is_exit=True)
                 except OSError as e:
                     msgbox = QMessageBox(
                         QMessageBox.Critical, "Error while saving!",
-                        "Error while saving {}: {}".format(what, e))
+                        "Error while saving {}: {}".format(key, e))
                     msgbox.exec_()
-                except AttributeError as e:
-                    log.destroy.warning("Could not save {}.".format(what))
-                    log.destroy.debug(e)
         # Re-enable faulthandler to stdout, then remove crash log
         log.destroy.debug("Deactiving crash log...")
         self._destroy_crashlogfile()

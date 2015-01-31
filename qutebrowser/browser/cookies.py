@@ -20,7 +20,7 @@
 """Handling of HTTP cookies."""
 
 from PyQt5.QtNetwork import QNetworkCookie, QNetworkCookieJar
-from PyQt5.QtCore import QStandardPaths, QDateTime
+from PyQt5.QtCore import pyqtSignal, QStandardPaths, QDateTime
 
 from qutebrowser.config import config
 from qutebrowser.config.parsers import line as lineparser
@@ -29,7 +29,16 @@ from qutebrowser.utils import utils, standarddir, objreg
 
 class RAMCookieJar(QNetworkCookieJar):
 
-    """An in-RAM cookie jar."""
+    """An in-RAM cookie jar.
+
+    Signals:
+        changed: Emitted when the cookie store was changed.
+    """
+
+    changed = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
     def __repr__(self):
         return utils.get_repr(self, count=len(self.allCookies()))
@@ -47,6 +56,7 @@ class RAMCookieJar(QNetworkCookieJar):
         if config.get('content', 'cookies-accept') == 'never':
             return False
         else:
+            self.changed.emit()
             return super().setCookiesFromUrl(cookies, url)
 
 
@@ -62,12 +72,15 @@ class CookieJar(RAMCookieJar):
         super().__init__(parent)
         datadir = standarddir.get(QStandardPaths.DataLocation)
         self._linecp = lineparser.LineConfigParser(datadir, 'cookies',
-                                                   binary=True)
+                                                   binary=True, parent=self)
         cookies = []
         for line in self._linecp:
             cookies += QNetworkCookie.parseCookies(line)
         self.setAllCookies(cookies)
         objreg.get('config').changed.connect(self.cookies_store_changed)
+        objreg.get('save-manager').add_saveable(
+            'cookies', self.save, self.changed,
+            config_opt=('content', 'cookies-store'))
 
     def purge_old_cookies(self):
         """Purge expired cookies from the cookie jar."""
@@ -80,8 +93,6 @@ class CookieJar(RAMCookieJar):
 
     def save(self):
         """Save cookies to disk."""
-        if not config.get('content', 'cookies-store'):
-            return
         self.purge_old_cookies()
         lines = []
         for cookie in self.allCookies():
@@ -96,3 +107,4 @@ class CookieJar(RAMCookieJar):
         if not config.get('content', 'cookies-store'):
             self._linecp.data = []
             self._linecp.save()
+            self.changed.emit()

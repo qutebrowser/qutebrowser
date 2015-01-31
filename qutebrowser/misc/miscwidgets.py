@@ -58,7 +58,7 @@ class CommandLineEdit(QLineEdit):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.history = cmdhistory.History()
+        self.history = cmdhistory.History(parent=self)
         self._validator = _CommandValidator(self)
         self.setValidator(self._validator)
         self.textEdited.connect(self.on_text_edited)

@@ -64,8 +64,10 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         misc.CommandLineEdit.__init__(self, parent)
         misc.MinimalLineEditMixin.__init__(self)
         self._win_id = win_id
+        command_history = objreg.get('command-history')
         self.history.handle_private_mode = True
-        self.history.history = objreg.get('command-history').data
+        self.history.history = command_history.data
+        self.history.changed.connect(command_history.changed)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
         self.cursorPositionChanged.connect(self.update_completion)
         self.textChanged.connect(self.update_completion)

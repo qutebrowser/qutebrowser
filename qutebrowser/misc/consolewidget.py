@@ -69,7 +69,7 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
             QCompleter.CaseSensitivelySortedModel)
         self.setCompleter(qcompleter)
 
-        self._history = cmdhistory.History()
+        self._history = cmdhistory.History(parent=self)
         self.returnPressed.connect(self.on_return_pressed)
 
     @pyqtSlot(str)

@@ -29,7 +29,7 @@ import collections
 
 from PyQt5.QtCore import pyqtSignal, QStandardPaths, QUrl, QObject
 
-from qutebrowser.utils import message, usertypes, urlutils, standarddir
+from qutebrowser.utils import message, usertypes, urlutils, standarddir, objreg
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config.parsers import line as lineparser
 
@@ -52,7 +52,8 @@ class QuickmarkManager(QObject):
         self.marks = collections.OrderedDict()
 
         confdir = standarddir.get(QStandardPaths.ConfigLocation)
-        self._linecp = lineparser.LineConfigParser(confdir, 'quickmarks')
+        self._linecp = lineparser.LineConfigParser(confdir, 'quickmarks',
+                                                   parent=self)
         for line in self._linecp:
             try:
                 key, url = line.rsplit(maxsplit=1)
@@ -60,6 +61,8 @@ class QuickmarkManager(QObject):
                 message.error(0, "Invalid quickmark '{}'".format(line))
             else:
                 self.marks[key] = url
+        objreg.get('save-manager').add_saveable('quickmark-manager', self.save,
+                                                self.changed)
 
     def save(self):
         """Save the quickmarks to disk."""

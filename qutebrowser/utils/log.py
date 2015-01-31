@@ -126,6 +126,7 @@ style = logging.getLogger('style')
 rfc6266 = logging.getLogger('rfc6266')
 ipc = logging.getLogger('ipc')
 shlexer = logging.getLogger('shlexer')
+save = logging.getLogger('save')
 
 
 ram_handler = None

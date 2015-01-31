@@ -21,15 +21,14 @@
 
 import os
 import os.path
-import collections
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
 from qutebrowser.utils import log, utils, objreg, qtutils
 from qutebrowser.config import config
 
 
-class LineConfigParser(collections.UserList):
+class LineConfigParser(QObject):
 
     """Parser for configuration files which are simply line-based.
 
@@ -41,9 +40,15 @@ class LineConfigParser(collections.UserList):
         _binary: Whether to open the file in binary mode.
         _limit: The config section/option used to limit the maximum number of
                 lines.
+
+    Signals:
+        changed: Emitted when the history was changed.
     """
 
-    def __init__(self, configdir, fname, limit=None, binary=False):
+    changed = pyqtSignal()
+
+    def __init__(self, configdir, fname, limit=None, binary=False,
+                 parent=None):
         """Config constructor.
 
         Args:
@@ -52,7 +57,7 @@ class LineConfigParser(collections.UserList):
             limit: Config tuple (section, option) which contains a limit.
             binary: Whether to open the file in binary mode.
         """
-        super().__init__()
+        super().__init__(parent)
         self._configdir = configdir
         self._configfile = os.path.join(self._configdir, fname)
         self._fname = fname
@@ -70,6 +75,12 @@ class LineConfigParser(collections.UserList):
         return utils.get_repr(self, constructor=True,
                               configdir=self._configdir, fname=self._fname,
                               limit=self._limit, binary=self._binary)
+
+    def __iter__(self):
+        return iter(self.data)
+
+    def __getitem__(self, key):
+        return self.data[key]
 
     def read(self, filename):
         """Read the data from a file."""

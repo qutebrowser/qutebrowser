@@ -119,6 +119,7 @@ def init(args):
     Args:
         args: The argparse namespace.
     """
+    save_manager = objreg.get('save-manager')
     confdir = standarddir.get(QStandardPaths.ConfigLocation, args)
     try:
         app = objreg.get('app')
@@ -139,6 +140,9 @@ def init(args):
         sys.exit(1)
     else:
         objreg.register('config', config_obj)
+        save_manager.add_saveable('config', config_obj.save,
+                                  config_obj.changed,
+                                  config_opt=('general', 'auto-save-config'))
     try:
         key_config = keyconf.KeyConfigParser(confdir, 'keys.conf')
     except (keyconf.KeyConfigError, UnicodeDecodeError) as e:
@@ -154,15 +158,23 @@ def init(args):
         sys.exit(1)
     else:
         objreg.register('key-config', key_config)
+        save_manager.add_saveable('key-config', key_config.save,
+                                  key_config.changed,
+                                  config_opt=('general', 'auto-save-config'))
 
     datadir = standarddir.get(QStandardPaths.DataLocation, args)
     state_config = ini.ReadWriteConfigParser(datadir, 'state')
     objreg.register('state-config', state_config)
+    save_manager.add_saveable('state-config', state_config.save)
+
     # We need to import this here because lineparser needs config.
     from qutebrowser.config.parsers import line
     command_history = line.LineConfigParser(datadir, 'cmd-history',
-                                            ('completion', 'history-length'))
+                                            ('completion', 'history-length'),
+                                            parent=config_obj)
     objreg.register('command-history', command_history)
+    save_manager.add_saveable('command-history', command_history.save,
+                              command_history.changed)
 
 
 class ConfigManager(QObject):
@@ -576,14 +588,6 @@ class ConfigManager(QObject):
         else:
             if self._initialized:
                 self._after_set(sectname, optname)
-
-    @cmdutils.register(instance='config', name='save')
-    def save_command(self):
-        """Save the config file."""
-        try:
-            self.save()
-        except OSError as e:
-            raise cmdexc.CommandError("Could not save config: {}".format(e))
 
     def save(self):
         """Save the config file."""
