@@ -387,7 +387,6 @@ class ExceptionCrashDialog(_CrashDialog):
                 ("Command history", '\n'.join(self._cmdhist)),
                 ("Objects", self._objects),
             ]
-        if self._chk_log.isChecked():
             try:
                 self._crash_info.append(
                     ("Debug log", log.ram_handler.dump_log()))
@@ -441,9 +440,7 @@ class FatalCrashDialog(_CrashDialog):
         self._lbl.setText(text)
 
     def _gather_crash_info(self):
-        self._crash_info += [
-            ("Fault log", self._log),
-        ]
+        self._crash_info.append(("Fault log", self._log))
         super()._gather_crash_info()
 
 
