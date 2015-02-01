@@ -25,7 +25,8 @@ disable=no-self-use,
         unnecessary-lambda,
         blacklisted-name,
         too-many-lines,
-        logging-format-interpolation
+        logging-format-interpolation,
+        interface-not-implemented
 
 [BASIC]
 module-rgx=(__)?[a-z][a-z0-9_]*(__)?$

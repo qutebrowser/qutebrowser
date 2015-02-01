@@ -40,7 +40,7 @@ import qutebrowser
 import qutebrowser.resources  # pylint: disable=unused-import
 from qutebrowser.commands import cmdutils, runners
 from qutebrowser.config import style, config, websettings
-from qutebrowser.browser import quickmarks, cookies, cache, adblock
+from qutebrowser.browser import quickmarks, cookies, cache, adblock, history
 from qutebrowser.browser.network import qutescheme, proxy
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import crashdialog, readline, ipc, earlyinit, savemanager
@@ -197,6 +197,8 @@ class Application(QApplication):
         log.init.debug("Initializing cache...")
         diskcache = cache.DiskCache(self)
         objreg.register('cache', diskcache)
+        log.init.debug("Initializing web history...")
+        history.init()
         log.init.debug("Initializing main window...")
         win_id = mainwindow.MainWindow.spawn(
             False if self._args.nowindow else True)
@@ -540,10 +542,10 @@ class Application(QApplication):
             pages = []
 
         try:
-            history = objreg.get('command-history')[-5:]
+            cmd_history = objreg.get('command-history')[-5:]
         except Exception:
             log.destroy.exception("Error while getting history: {}")
-            history = []
+            cmd_history = []
 
         try:
             objects = self.get_all_objects()
@@ -562,7 +564,7 @@ class Application(QApplication):
             log.destroy.exception("Error while preventing shutdown")
         QApplication.closeAllWindows()
         self._crashdlg = crashdialog.ExceptionCrashDialog(
-            self._args.debug, pages, history, exc, objects)
+            self._args.debug, pages, cmd_history, exc, objects)
         ret = self._crashdlg.exec_()
         if ret == QDialog.Accepted:  # restore
             self.restart(shutdown=False, pages=pages)
@@ -668,9 +670,9 @@ class Application(QApplication):
     def report(self):
         """Report a bug in qutebrowser."""
         pages = self._recover_pages()
-        history = objreg.get('command-history')[-5:]
+        cmd_history = objreg.get('command-history')[-5:]
         objects = self.get_all_objects()
-        self._crashdlg = crashdialog.ReportDialog(pages, history, objects)
+        self._crashdlg = crashdialog.ReportDialog(pages, cmd_history, objects)
         self._crashdlg.show()
 
     def interrupt(self, signum, _frame):
