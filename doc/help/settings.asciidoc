@@ -9,6 +9,7 @@
 |<<general-startpage,startpage>>|The default page(s) to open at the start, separated by commas.
 |<<general-auto-search,auto-search>>|Whether to start a search when something else than a URL is entered.
 |<<general-auto-save-config,auto-save-config>>|Whether to save the config automatically on quit.
+|<<general-auto-save-interval,auto-save-interval>>|How often (in milliseconds) to auto-save config/cookies/etc.
 |<<general-editor,editor>>|The editor (and arguments) to use for the `open-editor` command.
 |<<general-editor-encoding,editor-encoding>>|Encoding to use for editor.
 |<<general-private-browsing,private-browsing>>|Do not record visited pages in the history or store web page icons.
@@ -270,6 +271,12 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
+
+[[general-auto-save-interval]]
+=== auto-save-interval
+How often (in milliseconds) to auto-save config/cookies/etc.
+
+Default: +pass:[15000]+
 
 [[general-editor]]
 === editor
