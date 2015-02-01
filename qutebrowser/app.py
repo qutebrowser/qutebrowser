@@ -330,7 +330,7 @@ class Application(QApplication):
                                             window=win_id)
                 log.init.debug("Startup URL {}".format(cmd))
                 try:
-                    url = urlutils.fuzzy_url(cmd, cwd)
+                    url = urlutils.fuzzy_url(cmd, cwd, relative=True)
                 except urlutils.FuzzyUrlError as e:
                     message.error(0, "Error in startup argument '{}': "
                                      "{}".format(cmd, e))

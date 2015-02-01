@@ -123,23 +123,30 @@ def _is_url_dns(url):
     return not info.error()
 
 
-def fuzzy_url(urlstr, cwd=None):
+def fuzzy_url(urlstr, cwd=None, relative=False):
     """Get a QUrl based on an user input which is URL or search term.
 
     Args:
         urlstr: URL to load as a string.
         cwd: The current working directory, or None.
+        relative: Whether to resolve relative files.
 
     Return:
         A target QUrl to a searchpage or the original URL.
     """
-    if cwd:
-        path = os.path.join(cwd, os.path.expanduser(urlstr))
-    else:
+    expanded = os.path.expanduser(urlstr)
+    if relative and cwd:
+        path = os.path.join(cwd, expanded)
+    elif relative:
         try:
-            path = os.path.abspath(os.path.expanduser(urlstr))
+            path = os.path.abspath(expanded)
         except OSError:
             path = None
+    elif os.path.isabs(expanded):
+        path = expanded
+    else:
+        path = None
+
     stripped = urlstr.strip()
     if path is not None and os.path.exists(path):
         log.url.debug("URL is a local file")
