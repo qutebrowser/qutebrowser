@@ -174,6 +174,7 @@ class Application(QApplication):
         standarddir.init()
         log.init.debug("Initializing config...")
         config.init(self._args)
+        save_manager.init_autosave()
         log.init.debug("Initializing crashlog...")
         self._handle_segfault()
         log.init.debug("Initializing js-bridge...")

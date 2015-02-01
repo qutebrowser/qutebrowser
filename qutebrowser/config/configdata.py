@@ -136,6 +136,10 @@ DATA = collections.OrderedDict([
          SettingValue(typ.Bool(), 'true'),
          "Whether to save the config automatically on quit."),
 
+        ('auto-save-interval',
+         SettingValue(typ.Int(minval=0), '15000'),
+         "How often (in milliseconds) to auto-save config/cookies/etc."),
+
         ('editor',
          SettingValue(typ.ShellCommand(placeholder=True), 'gvim -f "{}"'),
          "The editor (and arguments) to use for the `open-editor` command.\n\n"

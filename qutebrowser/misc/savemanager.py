@@ -19,11 +19,13 @@
 
 """Saving things to disk periodically."""
 
-from PyQt5.QtCore import pyqtSlot, QObject
+import collections
+
+from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils
-from qutebrowser.utils import utils, log, message
+from qutebrowser.utils import utils, log, message, objreg
 
 
 class Saveable:
@@ -62,25 +64,28 @@ class Saveable:
         log.save.debug("Marking {} as dirty.".format(self._name))
         self._dirty = True
 
-    def save(self, is_exit=False, explicit=False):
+    def save(self, is_exit=False, explicit=False, silent=False):
         """Save this saveable.
 
         Args:
             is_exit: Whether we're currently exiting qutebrowser.
             explicit: Whether the user explicitely requested this save.
+            silent: Don't write informations to log.
         """
         if (self._config_opt is not None and
                 (not config.get(*self._config_opt)) and
                 (not explicit)):
-            log.save.debug("Not saving {} because autosaving has been "
-                           "disabled by {cfg[0]} -> {cfg[1]}.".format(
-                               self._name, cfg=self._config_opt))
+            if not silent:
+                log.save.debug("Not saving {} because autosaving has been "
+                               "disabled by {cfg[0]} -> {cfg[1]}.".format(
+                                   self._name, cfg=self._config_opt))
             return
         do_save = self._dirty or (self._save_on_exit and is_exit)
-        log.save.debug("Save of {} requested - dirty {}, save_on_exit {}, "
-                       "is_exit {} -> {}".format(
-                           self._name, self._dirty, self._save_on_exit,
-                           is_exit, do_save))
+        if not silent:
+            log.save.debug("Save of {} requested - dirty {}, save_on_exit {}, "
+                           "is_exit {} -> {}".format(
+                               self._name, self._dirty, self._save_on_exit,
+                               is_exit, do_save))
         if do_save:
             self._save_handler()
             self._dirty = False
@@ -92,14 +97,36 @@ class SaveManager(QObject):
 
     Attributes:
         saveables: A dict mapping names to Saveable instances.
+        _save_timer: The QTimer used to periodically auto-save things.
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.saveables = {}
+        self.saveables = collections.OrderedDict()
+        self._save_timer = QTimer(self)
+        self._save_timer.timeout.connect(self.autosave)
 
     def __repr__(self):
         return utils.get_repr(self, saveables=self.saveables)
+
+    def init_autosave(self):
+        """Initialize autosaving.
+
+        We don't do this in __init__ because the config needs to be initialized
+        first, but the config needs the save manager.
+        """
+        self.set_autosave_interval()
+        objreg.get('config').changed.connect(self.set_autosave_interval)
+
+    @config.change_filter('general', 'auto-save-interval')
+    def set_autosave_interval(self):
+        """Set the autosave interval."""
+        interval = config.get('general', 'auto-save-interval')
+        if interval == 0:
+            self._save_timer.stop()
+        else:
+            self._save_timer.setInterval(interval)
+            self._save_timer.start()
 
     def add_saveable(self, name, save, changed=None, config_opt=None):
         """Add a new saveable.
@@ -115,14 +142,27 @@ class SaveManager(QObject):
             raise ValueError("Saveable {} already registered!".format(name))
         self.saveables[name] = Saveable(name, save, changed, config_opt)
 
-    def save(self, name, is_exit=False, explicit=False):
+    def save(self, name, is_exit=False, explicit=False, silent=False):
         """Save a saveable by name.
 
         Args:
             is_exit: Whether we're currently exiting qutebrowser.
             explicit: Whether this save operation was triggered explicitely.
+            silent: Don't write informations to log. Used to reduce log spam
+                    when autosaving.
         """
-        self.saveables[name].save(is_exit=is_exit, explicit=explicit)
+        self.saveables[name].save(is_exit=is_exit, explicit=explicit,
+                                  silent=silent)
+
+    @pyqtSlot()
+    def autosave(self):
+        """Slot used when the configs are auto-saved."""
+        for (key, saveable) in self.saveables.items():
+            try:
+                saveable.save(silent=True)
+            except OSError as e:
+                message.error('current', "Failed to auto-save {}: "
+                              "{}".format(key, e))
 
     @cmdutils.register(instance='save-manager', name='save')
     def save_command(self, win_id: {'special': 'win_id'},
