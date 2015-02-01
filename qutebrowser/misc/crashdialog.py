@@ -411,9 +411,12 @@ class FatalCrashDialog(_CrashDialog):
         _log: The log text to display.
         _type: The type of error which occured.
         _func: The function (top of the stack) in which the error occured.
+        _chk_history: A checkbox for the user to decide if page history should
+                      be sent.
     """
 
     def __init__(self, debug, text, parent=None):
+        self._chk_history = None
         super().__init__(debug, parent)
         self._log = text
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -439,9 +442,30 @@ class FatalCrashDialog(_CrashDialog):
                 "stacktrace.asciidoc</a> to submit a stacktrace.<br/>")
         self._lbl.setText(text)
 
+    def _init_checkboxes(self):
+        """Add checkboxes to the dialog."""
+        super()._init_checkboxes()
+        self._chk_history = QCheckBox("Include a history of the last "
+                                      "accessed pages in the report.",
+                                      checked=True)
+        try:
+            if config.get('general', 'private-browsing'):
+                self._chk_history.setChecked(False)
+        except Exception:
+            log.misc.exception("Error while checking private browsing mode")
+        self._chk_history.toggled.connect(self._set_crash_info)
+        self._vbox.addWidget(self._chk_history)
+
     def _gather_crash_info(self):
         self._crash_info.append(("Fault log", self._log))
         super()._gather_crash_info()
+        if self._chk_history.isChecked():
+            try:
+                history = objreg.get('web-history')[-10:]
+                history_str = '\n'.join(str(e) for e in history)
+                self._crash_info.append(("History", history_str))
+            except Exception:
+                self._crash_info.append(("History", traceback.format_exc()))
 
 
 class ReportDialog(_CrashDialog):
