@@ -175,6 +175,8 @@ class Application(QApplication):
         log.init.debug("Initializing config...")
         config.init(self._args)
         save_manager.init_autosave()
+        log.init.debug("Initializing web history...")
+        history.init()
         log.init.debug("Initializing crashlog...")
         self._handle_segfault()
         log.init.debug("Initializing js-bridge...")
@@ -197,8 +199,6 @@ class Application(QApplication):
         log.init.debug("Initializing cache...")
         diskcache = cache.DiskCache(self)
         objreg.register('cache', diskcache)
-        log.init.debug("Initializing web history...")
-        history.init()
         log.init.debug("Initializing main window...")
         win_id = mainwindow.MainWindow.spawn(
             False if self._args.nowindow else True)
