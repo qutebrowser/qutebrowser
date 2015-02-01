@@ -19,6 +19,7 @@
 
 """Saving things to disk periodically."""
 
+import os.path
 import collections
 
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
@@ -39,9 +40,11 @@ class Saveable:
         _save_on_exit: Whether to always save this saveable on exit.
         _config_opt: A (section, option) tuple of a config option which decides
                      whether to autosave or not. None if no such option exists.
+        _filename: The filename of the underlying file.
     """
 
-    def __init__(self, name, save_handler, changed=None, config_opt=None):
+    def __init__(self, name, save_handler, changed=None, config_opt=None,
+                 filename=None):
         self._name = name
         self._dirty = False
         self._save_handler = save_handler
@@ -51,12 +54,17 @@ class Saveable:
             self._save_on_exit = False
         else:
             self._save_on_exit = True
+        self._filename = filename
+        if filename is not None and not os.path.exists(filename):
+            self._dirty = True
+            self.save()
 
     def __repr__(self):
         return utils.get_repr(self, name=self._name, dirty=self._dirty,
                               save_handler=self._save_handler,
                               config_opt=self._config_opt,
-                              save_on_exit=self._save_on_exit)
+                              save_on_exit=self._save_on_exit,
+                              filename=self._filename)
 
     @pyqtSlot()
     def mark_dirty(self):
@@ -128,7 +136,8 @@ class SaveManager(QObject):
             self._save_timer.setInterval(interval)
             self._save_timer.start()
 
-    def add_saveable(self, name, save, changed=None, config_opt=None):
+    def add_saveable(self, name, save, changed=None, config_opt=None,
+                     filename=None):
         """Add a new saveable.
 
         Args:
@@ -136,11 +145,14 @@ class SaveManager(QObject):
             save: The function to call to save this saveable.
             changed: The signal emitted when this saveable changed.
             config_opt: A (section, option) tuple deciding whether to autosave
-                       or not.
+                        or not.
+            filename: The filename of the underlying file, so we can force
+                      saving if it doesn't exist.
         """
         if name in self.saveables:
             raise ValueError("Saveable {} already registered!".format(name))
-        self.saveables[name] = Saveable(name, save, changed, config_opt)
+        self.saveables[name] = Saveable(name, save, changed, config_opt,
+                                        filename)
 
     def save(self, name, is_exit=False, explicit=False, silent=False):
         """Save a saveable by name.

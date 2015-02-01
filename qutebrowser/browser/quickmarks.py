@@ -24,6 +24,7 @@ OrderedDict. This is because we read them from a file at start and write them
 to a file on shutdown, so it makes sense to keep them as strings here.
 """
 
+import os.path
 import functools
 import collections
 
@@ -61,8 +62,10 @@ class QuickmarkManager(QObject):
                 message.error(0, "Invalid quickmark '{}'".format(line))
             else:
                 self.marks[key] = url
+        filename = os.path.join(confdir, 'quickmarks')
         objreg.get('save-manager').add_saveable('quickmark-manager', self.save,
-                                                self.changed)
+                                                self.changed,
+                                                filename=filename)
 
     def save(self):
         """Save the quickmarks to disk."""
