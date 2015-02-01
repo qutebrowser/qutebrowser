@@ -331,8 +331,9 @@ class IsEnumTests(unittest.TestCase):
 
     def test_class(self):
         """Test is_enum with a non-enum class."""
-        # pylint: disable=multiple-statements,missing-docstring
-        class Test: pass
+        class Test:
+            """Test class for is_enum"""
+            pass
         self.assertFalse(utils.is_enum(Test))
 
     def test_object(self):
