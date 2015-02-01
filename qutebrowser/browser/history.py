@@ -77,6 +77,9 @@ class WebHistory(QWebHistoryInterface):
     def __repr__(self):
         return utils.get_repr(self, length=len(self._history))
 
+    def __getitem__(self, key):
+        return self._history[key]
+
     def save(self):
         """Save the history to disk."""
         self._linecp.data = (str(e) for e in self._history)
