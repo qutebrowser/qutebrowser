@@ -31,7 +31,7 @@ class Saveable:
     """A single thing which can be saved.
 
     Attributes:
-        _name: The naem of the thing to be saved.
+        _name: The name of the thing to be saved.
         _dirty: Whether the saveable was changed since the last save.
         _save_handler: The function to call to save this Saveable.
         _save_on_exit: Whether to always save this saveable on exit.
