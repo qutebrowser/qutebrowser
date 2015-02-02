@@ -37,6 +37,32 @@ from qutebrowser.commands import cmdexc
 # https://github.com/The-Compiler/qutebrowser/issues/108
 
 
+def _parse_search_term(s):
+    """Get a search engine name and search term from a string.
+
+    Args:
+        s: The string to get a search engine for.
+
+    Return:
+        A (engine, term) tuple, where engine is None for the default engine.
+    """
+    m = re.search(r'(^\w+)\s+(.+)($|\s+)', s)
+    if m:
+        engine = m.group(1)
+        try:
+            config.get('searchengines', engine)
+        except configexc.NoOptionError:
+            engine = None
+            term = s
+        else:
+            term = m.group(2).rstrip()
+    else:
+        engine = None
+        term = s
+    log.url.debug("engine {}, term '{}'".format(engine, term))
+    return (engine, term)
+
+
 def _get_search_url(txt):
     """Get a search engine URL for a text.
 
@@ -47,24 +73,13 @@ def _get_search_url(txt):
         The search URL as a QUrl.
     """
     log.url.debug("Finding search engine for '{}'".format(txt))
-    r = re.compile(r'(^\w+)\s+(.+)($|\s+)')
-    m = r.search(txt)
-    if m:
-        engine = m.group(1)
-        try:
-            template = config.get('searchengines', engine)
-        except configexc.NoOptionError:
-            template = config.get('searchengines', 'DEFAULT')
-            term = txt
-        else:
-            term = m.group(2).rstrip()
-            log.url.debug("engine {}, term '{}'".format(engine, term))
-    else:
-        template = config.get('searchengines', 'DEFAULT')
-        term = txt
-        log.url.debug("engine: default, term '{}'".format(txt))
+    engine, term = _parse_search_term(txt)
     if not term:
         raise FuzzyUrlError("No search term given")
+    if engine is None:
+        template = config.get('searchengines', 'DEFAULT')
+    else:
+        template = config.get('searchengines', engine)
     url = qurl_from_user_input(template.format(urllib.parse.quote(term)))
     qtutils.ensure_valid(url)
     return url
@@ -206,8 +221,13 @@ def is_url(urlstr):
     qurl = QUrl(urlstr)
 
     if not autosearch:
-        # no autosearch, so everything is a URL.
-        return True
+        # no autosearch, so everything is a URL unless it has an explicit
+        # search engine.
+        engine, _term = _parse_search_term(urlstr)
+        if engine is None:
+            return True
+        else:
+            return False
 
     if _has_explicit_scheme(qurl):
         # URLs with explicit schemes are always URLs

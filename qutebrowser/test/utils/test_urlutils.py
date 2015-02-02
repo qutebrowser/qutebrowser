@@ -29,13 +29,19 @@ from qutebrowser.utils import urlutils
 from qutebrowser.test import stubs
 
 
-CONFIG = {
-    'general': {'auto-search': True},
-    'searchengines': {
-        'test': 'http://www.qutebrowser.org/?q={}',
-        'DEFAULT': 'http://www.example.com/?q={}',
-    },
-}
+def get_config_stub(auto_search=True):
+    """Get a config stub.
+
+    Args:
+        auto_search: The value auto-search should have.
+    """
+    return {
+        'general': {'auto-search': auto_search},
+        'searchengines': {
+            'test': 'http://www.qutebrowser.org/?q={}',
+            'DEFAULT': 'http://www.example.com/?q={}',
+        },
+    }
 
 
 class SpecialURLTests(unittest.TestCase):
@@ -83,7 +89,7 @@ class SearchUrlTests(unittest.TestCase):
 
     def setUp(self):
         self.config = urlutils.config
-        urlutils.config = stubs.ConfigStub(CONFIG)
+        urlutils.config = stubs.ConfigStub(get_config_stub())
 
     def test_default_engine(self):
         """Test default search engine."""
@@ -125,7 +131,6 @@ class SearchUrlTests(unittest.TestCase):
         urlutils.config = self.config
 
 
-@unittest.mock.patch('qutebrowser.utils.urlutils.config.get', autospec=True)
 class IsUrlTests(unittest.TestCase):
 
     """Tests for is_url.
@@ -133,6 +138,9 @@ class IsUrlTests(unittest.TestCase):
     Class attributes:
         URLS: A list of strings which are URLs.
         NOT_URLS: A list of strings which aren't URLs.
+
+    Attributes:
+        config: The urlutils.config instance.
     """
 
     URLS = (
@@ -160,19 +168,35 @@ class IsUrlTests(unittest.TestCase):
         'http:foo:0',
     )
 
-    def test_urls(self, configmock):
+    def setUp(self):
+        self.config = urlutils.config
+
+    def test_urls(self):
         """Test things which are URLs."""
-        configmock.return_value = 'naive'
+        urlutils.config = stubs.ConfigStub(get_config_stub('naive'))
         for url in self.URLS:
             with self.subTest(url=url):
                 self.assertTrue(urlutils.is_url(url), url)
 
-    def test_not_urls(self, configmock):
+    def test_not_urls(self):
         """Test things which are not URLs."""
-        configmock.return_value = 'naive'
+        urlutils.config = stubs.ConfigStub(get_config_stub('naive'))
         for url in self.NOT_URLS:
             with self.subTest(url=url):
                 self.assertFalse(urlutils.is_url(url), url)
+
+    def test_search_autosearch(self):
+        """Test explicit search with auto-search=True"""
+        urlutils.config = stubs.ConfigStub(get_config_stub(True))
+        self.assertFalse(urlutils.is_url('test foo'))
+
+    def test_search_no_autosearch(self):
+        """Test explicit search with auto-search=False"""
+        urlutils.config = stubs.ConfigStub(get_config_stub(False))
+        self.assertFalse(urlutils.is_url('test foo'))
+
+    def tearDown(self):
+        urlutils.config = self.config
 
 
 class QurlFromUserInputTests(unittest.TestCase):
