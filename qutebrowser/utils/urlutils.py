@@ -178,7 +178,11 @@ def fuzzy_url(urlstr, cwd=None, relative=False):
             url = qurl_from_user_input(stripped)
     log.url.debug("Converting fuzzy term {} to URL -> {}".format(
                   urlstr, url.toDisplayString()))
-    qtutils.ensure_valid(url)
+    if config.get('general', 'auto-search'):
+        qtutils.ensure_valid(url)
+    else:
+        if not url.isValid():
+            raise FuzzyUrlError("Invalid URL '{}'!".format(urlstr))
     return url
 
 
