@@ -276,6 +276,8 @@ class DownloadItem(QObject):
         q.answered_yes.connect(self._create_fileobj)
         q.answered_no.connect(functools.partial(self.cancel, False))
         q.cancelled.connect(functools.partial(self.cancel, False))
+        self.cancelled.connect(q.abort)
+        self.error.connect(q.abort)
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
         message_bridge.ask(q, blocking=False)
