@@ -284,7 +284,7 @@ class HintManager(QObject):
         """
         attrs = [
             ('display', 'inline !important'),
-            ('z-index', '100000 !important'),
+            ('z-index', '{} !important'.format(int(2 ** 32 / 2 - 1))),
             ('pointer-events', 'none !important'),
             ('position', 'absolute !important'),
             ('color', config.get('colors', 'hints.fg') + ' !important'),
