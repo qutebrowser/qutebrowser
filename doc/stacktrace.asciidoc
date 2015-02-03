@@ -30,7 +30,7 @@ is available in the repositories:
 
 For Archlinux, no debug informations are provided. You can either compile Qt
 yourself (which will take a few hours even on a modern machine) or use
-debugging symbols compiled by me (x86_64 only).
+debugging symbols compiled/packaged by me (x86_64 only).
 
 To compile by yourself:
 
@@ -38,27 +38,40 @@ To compile by yourself:
 $ git clone https://github.com/The-Compiler/qt-debug-pkgbuild.git
 $ cd qt-debug-pkgbuild
 $ git checkout symbols
+$ export DEBUG_CFLAGS='-ggdb3 -fvar-tracking-assignments -Og'
+$ export DEBUG_CXXFLAGS='-ggdb3 -fvar-tracking-assignments -Og'
 $ cd qt5
-$ makepkg -si
+$ makepkg -si --pkg qt5-base,qt5-webkit
 $ cd ../pyqt5
-$ makepkg -si
+$ makepkg -si --pkg pyqt5-common,python-pyqt5
 ----
 
 To install my pre-built packages:
 
-----
-$ mkdir qt-debug
-$ cd qt-debug
-$ wget -r -l1 -A '*.tar.xz' -L -np -nd http://www.qutebrowser.org/qt-symbols-pkg/
-# pacman -U *.pkg.tar.xz
-----
-
-After you are done debugging, make sure to install the system packages again so
-you get updates. This can be done with this command:
+First download and sign the key:
 
 ----
-# pacman -S qt5
+# pacman-key -r 0xD6A1C70FE80A0C82
+$ pacman-key -f 0xD6A1C70FE80A0C82
+  Key fingerprint = 14AF EC28 70C6 4863 C5C7  ACCB D6A1 C70F E80A 0C82
+# pacman-key --lsign-key 0xD6A1C70FE80A0C82
 ----
+
+Then edit your `/etc/pacman.conf` to add the repository to the bottom:
+
+----
+[qt-debug]
+Server = http://qutebrowser.org/qt-debug/$arch
+----
+
+Then install the packages:
+
+----
+# pacman -Sy pyqt5-common-debug python-pyqt5-debug qt5-base-debug qt5-webkit-debug
+----
+
+The `-debug` packages conflict with the non-debug variants - it's safe to
+remove them.
 
 Getting a core dump
 -------------------
