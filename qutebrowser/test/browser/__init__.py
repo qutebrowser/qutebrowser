@@ -17,4 +17,4 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for the qutebrowser.browser.http module."""
+"""Tests for the qutebrowser.browser package."""

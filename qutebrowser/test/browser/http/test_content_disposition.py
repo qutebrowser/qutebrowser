@@ -17,13 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.utils.http.parse_content_disposition."""
+"""Tests for qutebrowser.browser.http.parse_content_disposition."""
 
 import os
 import unittest
 import logging
 
-from qutebrowser.utils import http
+from qutebrowser.browser import http
 from qutebrowser.test import stubs
 
 
