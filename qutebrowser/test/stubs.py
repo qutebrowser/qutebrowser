@@ -136,22 +136,23 @@ class FakeNetworkReply:
         """Check if the reply has a certain header.
 
         Args:
-            name: The name of the header.
+            name: The name of the header as ISO-8859-1 encoded bytes object.
 
         Return:
             True if the header is present, False if not.
         """
-        return name in self.headers
+        return name.decode('iso-8859-1') in self.headers
 
     def rawHeader(self, name):
         """Get the raw header data of a header.
 
         Args:
-            name: The name of the header.
+            name: The name of the header as ISO-8859-1 encoded bytes object.
 
         Return:
             The header data, as ISO-8859-1 encoded bytes() object.
         """
+        name = name.decode('iso-8859-1')
         return self.headers[name].encode('iso-8859-1')
 
     def header(self, known_header):
