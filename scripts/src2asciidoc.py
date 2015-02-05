@@ -189,10 +189,19 @@ def _get_command_doc(name, cmd):
     return '\n'.join(output)
 
 
-def _get_action_metavar(action):
-    """Get the metavar to display for an argparse action."""
+def _get_action_metavar(action, nargs=1):
+    """Get the metavar to display for an argparse action.
+
+    Args:
+        action: The argparse action to get the metavar for.
+        nargs: The nargs setting for the related argument.
+    """
     if action.metavar is not None:
-        return "'{}'".format(action.metavar)
+        if isinstance(action.metavar, str):
+            elems = [action.metavar] * nargs
+        else:
+            elems = action.metavar
+        return ' '.join("'{}'".format(e) for e in elems)
     elif action.choices is not None:
         choices = ','.join(map(str, action.choices))
         return "'{{{}}}'".format(choices)
@@ -213,7 +222,7 @@ def _format_action_args(action):
     elif action.nargs == '...':
         return '...'
     else:
-        return ' '.join([_get_action_metavar(action)] * action.nargs)
+        return _get_action_metavar(action, nargs=action.nargs)
 
 
 def _format_action(action):
