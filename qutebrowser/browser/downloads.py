@@ -170,7 +170,7 @@ class DownloadItem(QObject):
         _redirects: How many time we were redirected already.
         _buffer: A BytesIO object to buffer incoming data until we know the
                  target file.
-        _read_timer: A QTimer which reads the QNetworkReply into self._buffer
+        _read_timer: A Timer which reads the QNetworkReply into self._buffer
                      periodically.
         _win_id: The window ID the DownloadItem runs in.
 
@@ -209,7 +209,7 @@ class DownloadItem(QObject):
         self.autoclose = True
         self.reply = None
         self._buffer = io.BytesIO()
-        self._read_timer = QTimer()
+        self._read_timer = usertypes.Timer(self, name='download-read-timer')
         self._read_timer.setInterval(500)
         self._read_timer.timeout.connect(self.on_read_timer_timeout)
         self._redirects = 0

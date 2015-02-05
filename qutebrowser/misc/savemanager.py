@@ -22,11 +22,11 @@
 import os.path
 import collections
 
-from PyQt5.QtCore import pyqtSlot, QObject, QTimer
+from PyQt5.QtCore import pyqtSlot, QObject
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils
-from qutebrowser.utils import utils, log, message, objreg
+from qutebrowser.utils import utils, log, message, objreg, usertypes
 
 
 class Saveable:
@@ -105,13 +105,13 @@ class SaveManager(QObject):
 
     Attributes:
         saveables: A dict mapping names to Saveable instances.
-        _save_timer: The QTimer used to periodically auto-save things.
+        _save_timer: The Timer used to periodically auto-save things.
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.saveables = collections.OrderedDict()
-        self._save_timer = QTimer(self)
+        self._save_timer = usertypes.Timer(self, name='save-timer')
         self._save_timer.timeout.connect(self.autosave)
 
     def __repr__(self):
