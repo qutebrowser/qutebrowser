@@ -35,10 +35,13 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
     show this help message and exit
 
 *-c* 'CONFDIR', *--confdir* 'CONFDIR'::
-    Set config directory (empty for no config storage)
+    Set config directory (empty for no config storage).
 
 *-V*, *--version*::
     Show version and quit.
+
+*-s* 'SECTION' 'OPTION' 'VALUE', *--set* 'SECTION' 'OPTION' 'VALUE'::
+    Set a temporary setting for this session.
 
 === debug arguments
 *-l* 'LOGLEVEL', *--loglevel* 'LOGLEVEL'::

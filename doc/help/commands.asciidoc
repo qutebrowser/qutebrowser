@@ -374,7 +374,7 @@ Search for a text on the current page.
 
 [[set]]
 === set
-Syntax: +:set [*--temp*] ['section'] ['option'] ['value']+
+Syntax: +:set [*--temp*] [*--print*] ['section'] ['option'] ['value']+
 
 Set an option.
 
@@ -387,6 +387,7 @@ If the option name ends with '?', the value of the option is shown instead. If t
 
 ==== optional arguments
 * +*-t*+, +*--temp*+: Set value temporarily.
+* +*-p*+, +*--print*+: Print the value after setting.
 
 [[set-cmd-text]]
 === set-cmd-text
