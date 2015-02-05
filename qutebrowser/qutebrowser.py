@@ -46,11 +46,11 @@ def get_argparser():
     parser = argparse.ArgumentParser("usage: qutebrowser",
                                      description=qutebrowser.__description__)
     parser.add_argument('-c', '--confdir', help="Set config directory (empty "
-                        "for no config storage)")
+                        "for no config storage).")
     parser.add_argument('-V', '--version', help="Show version and quit.",
                         action='store_true')
     parser.add_argument('-s', '--set', help="Set a temporary setting for "
-                        "this session", nargs=3, action='append',
+                        "this session.", nargs=3, action='append',
                         dest='temp_settings', default=[],
                         metavar=('SECTION', 'OPTION', 'VALUE'))
 
