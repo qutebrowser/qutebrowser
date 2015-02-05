@@ -138,6 +138,19 @@ def check_pep257(target, print_version=False):
         return None
 
 
+def check_init(target):
+    """Check if every subdir of target has an __init__.py file."""
+    ok = True
+    for dirpath, _dirnames, filenames in os.walk(target):
+        if any(f.endswith('.py') for f in filenames):
+            if '__init__.py' not in filenames:
+                utils.print_col("Missing __init__.py in {}!".format(dirpath),
+                                'red')
+                ok = False
+    print()
+    return ok
+
+
 def check_unittest():
     """Run the unittest checker."""
     suite = unittest.TestLoader().discover('.')
@@ -267,6 +280,7 @@ def _get_checkers(args):
     # "Dynamic" checkers which exist once for each target.
     for target in config.get('DEFAULT', 'targets').split(','):
         checkers[target] = collections.OrderedDict([
+            ('init', functools.partial(check_init, target)),
             ('pep257', functools.partial(check_pep257, target, args.version)),
             ('flake8', functools.partial(run, 'flake8', target, args.version)),
             ('vcs', functools.partial(check_vcs_conflict, target)),
