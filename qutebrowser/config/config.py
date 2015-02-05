@@ -510,7 +510,8 @@ class ConfigManager(QObject):
                                    Completion.value])
     def set_command(self, win_id: {'special': 'win_id'},
                     sectname: {'name': 'section'}=None,
-                    optname: {'name': 'option'}=None, value=None, temp=False):
+                    optname: {'name': 'option'}=None, value=None, temp=False,
+                    print_val: {'name': 'print'}=False):
         """Set an option.
 
         If the option name ends with '?', the value of the option is shown
@@ -527,6 +528,7 @@ class ConfigManager(QObject):
             optname: The name of the option.
             value: The value to set.
             temp: Set value temporarily.
+            print_val: Print the value after setting.
         """
         if sectname is not None and optname is None:
             raise cmdexc.CommandError(
@@ -537,28 +539,34 @@ class ConfigManager(QObject):
                                         window=win_id)
             tabbed_browser.openurl(QUrl('qute:settings'), newtab=False)
             return
-        try:
-            if optname.endswith('?'):
-                val = self.get(sectname, optname[:-1], transformed=False)
-                message.info(win_id, "{} {} = {}".format(
-                    sectname, optname[:-1], val), immediately=True)
-            elif optname.endswith('!'):
-                val = self.get(sectname, optname[:-1])
-                layer = 'temp' if temp else 'conf'
-                if isinstance(val, bool):
-                    self.set(layer, sectname, optname[:-1], str(not val))
+
+        if optname.endswith('?'):
+            optname = optname[:-1]
+            print_val = True
+        else:
+            try:
+                if optname.endswith('!'):
+                    val = self.get(sectname, optname[:-1])
+                    layer = 'temp' if temp else 'conf'
+                    if isinstance(val, bool):
+                        self.set(layer, sectname, optname[:-1], str(not val))
+                    else:
+                        raise cmdexc.CommandError(
+                            "set: Attempted inversion of non-boolean value.")
                 else:
-                    raise cmdexc.CommandError("set: Attempted inversion of "
-                                              "non-boolean value.")
-            else:
-                if value is None:
-                    raise cmdexc.CommandError("set: The following arguments "
-                                              "are required: value")
-                layer = 'temp' if temp else 'conf'
-                self.set(layer, sectname, optname, value)
-        except (configexc.Error, configparser.Error) as e:
-            raise cmdexc.CommandError("set: {} - {}".format(
-                e.__class__.__name__, e))
+                    if value is None:
+                        raise cmdexc.CommandError(
+                            "set: The following arguments are required: value")
+                    layer = 'temp' if temp else 'conf'
+                    self.set(layer, sectname, optname, value)
+            except (configexc.Error, configparser.Error) as e:
+                raise cmdexc.CommandError("set: {} - {}".format(
+                    e.__class__.__name__, e))
+
+        if print_val:
+            val = self.get(sectname, optname, transformed=False)
+            message.info(win_id, "{} {} = {}".format(
+                sectname, optname, val), immediately=True)
 
     def set(self, layer, sectname, optname, value, validate=True):
         """Set an option.
