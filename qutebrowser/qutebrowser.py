@@ -49,6 +49,11 @@ def get_argparser():
                         "for no config storage)")
     parser.add_argument('-V', '--version', help="Show version and quit.",
                         action='store_true')
+    parser.add_argument('-s', '--set', help="Set a temporary setting for "
+                        "this session", nargs=3, action='append',
+                        dest='temp_settings', default=[],
+                        metavar=('SECTION', 'OPTION', 'VALUE'))
+
     debug = parser.add_argument_group('debug arguments')
     debug.add_argument('-l', '--loglevel', dest='loglevel',
                        help="Set loglevel", default='info')

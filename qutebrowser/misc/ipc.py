@@ -158,7 +158,7 @@ class IPCServer(QObject):
                 return
             cwd = json_data.get('cwd', None)
             app = objreg.get('app')
-            app.process_args(args, via_ipc=True, cwd=cwd)
+            app.process_pos_args(args, via_ipc=True, cwd=cwd)
 
     @pyqtSlot()
     def on_timeout(self):

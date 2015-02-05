@@ -39,7 +39,7 @@ from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
 import qutebrowser
 import qutebrowser.resources  # pylint: disable=unused-import
 from qutebrowser.commands import cmdutils, runners
-from qutebrowser.config import style, config, websettings
+from qutebrowser.config import style, config, websettings, configexc
 from qutebrowser.browser import quickmarks, cookies, cache, adblock, history
 from qutebrowser.browser.network import qutescheme, proxy
 from qutebrowser.mainwindow import mainwindow
@@ -136,7 +136,7 @@ class Application(QApplication):
                 "Error while initializing: {}".format(e))
             msgbox.exec_()
             sys.exit(1)
-        QTimer.singleShot(0, self._open_pages)
+        QTimer.singleShot(0, self._process_args)
 
         log.init.debug("Initializing eventfilter...")
         self._event_filter = modeman.EventFilter(self)
@@ -252,14 +252,21 @@ class Application(QApplication):
         else:
             earlyinit.init_faulthandler(self._crashlogfile)
 
-    def _open_pages(self):
+    def _process_args(self):
         """Open startpage etc. and process commandline args."""
-        self.process_args(self._args.command)
+        config_obj = objreg.get('config')
+        for sect, opt, val in self._args.temp_settings:
+            try:
+                config_obj.set('temp', sect, opt, val)
+            except (configexc.Error, configparser.Error) as e:
+                message.error('current', "set: {} - {}".format(
+                    e.__class__.__name__, e))
+        self.process_pos_args(self._args.command)
         self._open_startpage()
         self._open_quickstart()
 
     def _get_window(self, via_ipc, force_window=False, force_tab=False):
-        """Helper function for process_args to get a window id.
+        """Helper function for process_pos_args to get a window id.
 
         Args:
             via_ipc: Whether the request was made via IPC.
@@ -299,8 +306,8 @@ class Application(QApplication):
             self.alert(window_to_raise)
         return win_id
 
-    def process_args(self, args, via_ipc=False, cwd=None):
-        """Process commandline args.
+    def process_pos_args(self, args, via_ipc=False, cwd=None):
+        """Process positional commandline args.
 
         URLs to open have no prefix, commands to execute begin with a colon.
 
