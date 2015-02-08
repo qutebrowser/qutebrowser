@@ -632,7 +632,7 @@ class DownloadManager(QAbstractListModel):
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
                              QNetworkRequest.AlwaysNetwork)
         if fileobj is not None or filename is not None:
-            return self.fetch_request(request, filename, fileobj, page,
+            return self.fetch_request(request, page, fileobj, filename,
                                       auto_remove)
         q = self._prepare_question()
         filename = urlutils.filename_from_url(request.url())
