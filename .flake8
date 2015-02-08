@@ -7,4 +7,3 @@
 # F401: Unused import
 ignore=E265,E501,F841,F401
 max_complexity = 12
-exclude = ez_setup.py
