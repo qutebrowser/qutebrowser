@@ -1028,7 +1028,7 @@ KEY_DATA = collections.OrderedDict([
         ('navigate increment', ['<Ctrl-A>']),
         ('navigate decrement', ['<Ctrl-X>']),
         ('inspector', ['wi']),
-        ('download-page', ['gd']),
+        ('download', ['gd']),
         ('download-cancel', ['ad']),
         ('view-source', ['gf']),
         ('tab-focus last', ['<Ctrl-Tab>']),

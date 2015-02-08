@@ -911,12 +911,22 @@ class CommandDispatcher:
                 cur.inspector.show()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def download_page(self):
-        """Download the current page."""
-        page = self._current_widget().page()
+    def download(self, url=None, dest=None):
+        """Download a given URL, or current page if none given.
+
+        Args:
+            url: The URL to download, or None to download current page.
+            dest: The file path to write the download to, or None to ask.
+        """
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
-        download_manager.get(self._current_url(), page)
+        if (url):
+            url = urlutils.qurl_from_user_input(url)
+            urlutils.raise_cmdexc_if_invalid(url)
+            download_manager.get(url, filename=dest)
+        else:
+            page = self._current_widget().page()
+            download_manager.get(self._current_url(), page)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def view_source(self):
