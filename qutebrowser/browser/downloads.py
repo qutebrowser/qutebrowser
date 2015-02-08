@@ -745,19 +745,30 @@ class DownloadManager(QAbstractListModel):
         return download
 
     @cmdutils.register(instance='download-manager', scope='window')
-    def cancel_download(self, count: {'special': 'count'}=1):
-        """Cancel the first/[count]th download.
+    def download_cancel(self, count: {'special': 'count'}=0):
+        """Cancel the last/[count]th download.
 
         Args:
             count: The index of the download to cancel.
         """
-        if count == 0:
-            return
         try:
             download = self.downloads[count - 1]
         except IndexError:
             raise cmdexc.CommandError("There's no download {}!".format(count))
         download.cancel()
+
+    @cmdutils.register(instance='download-manager', scope='window')
+    def download_open(self, count: {'special': 'count'}=0):
+        """Open the last/[count]th download.
+
+        Args:
+            count: The index of the download to cancel.
+        """
+        try:
+            download = self.downloads[count - 1]
+        except IndexError:
+            raise cmdexc.CommandError("There's no download {}!".format(count))
+        download.open_file()
 
     @pyqtSlot(QNetworkRequest, QNetworkReply)
     def on_redirect(self, download, request, reply):
@@ -820,6 +831,8 @@ class DownloadManager(QAbstractListModel):
         else:
             return False
 
+    @cmdutils.register(instance='download-manager', name='downloads-clear',
+                        scope='window')
     def clear(self):
         """Remove all finished downloads."""
         self.remove_items(d for d in self.downloads if d.done)

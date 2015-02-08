@@ -1029,7 +1029,7 @@ KEY_DATA = collections.OrderedDict([
         ('navigate decrement', ['<Ctrl-X>']),
         ('inspector', ['wi']),
         ('download-page', ['gd']),
-        ('cancel-download', ['ad']),
+        ('download-cancel', ['ad']),
         ('view-source', ['gf']),
         ('tab-focus last', ['<Ctrl-Tab>']),
         ('enter-mode passthrough', ['<Ctrl-V>']),
