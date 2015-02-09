@@ -19,6 +19,7 @@
 |<<general-site-specific-quirks,site-specific-quirks>>|Enable workarounds for broken sites.
 |<<general-default-encoding,default-encoding>>|Default encoding to use for websites.
 |<<general-new-instance-open-target,new-instance-open-target>>|How to open links in an existing instance if a new one is launched.
+|<<general-log-javascript-console,log-javascript-console>>|Whether to log javascript console messages.
 |==============
 
 .Quick reference for section ``ui''
@@ -370,6 +371,17 @@ Valid values:
  * +window+: Open in a new window.
 
 Default: +pass:[window]+
+
+[[general-log-javascript-console]]
+=== log-javascript-console
+Whether to log javascript console messages.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[false]+
 
 == ui
 General options related to the user interface.
