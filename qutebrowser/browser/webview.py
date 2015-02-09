@@ -306,19 +306,13 @@ class WebView(QWebView):
     def shutdown(self):
         """Shut down the webview."""
         self.shutting_down.emit()
+        self.page().shutdown()
         # We disable javascript because that prevents some segfaults when
         # quitting it seems.
         log.destroy.debug("Shutting down {!r}.".format(self))
         settings = self.settings()
         settings.setAttribute(QWebSettings.JavascriptEnabled, False)
         self.stop()
-        download_manager = objreg.get('download-manager', scope='window',
-                                      window=self._win_id)
-        nam = self.page().networkAccessManager()
-        if download_manager.has_downloads_with_nam(nam):
-            nam.setParent(download_manager)
-        else:
-            nam.shutdown()
 
     def openurl(self, url):
         """Open a URL in the browser.
