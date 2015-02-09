@@ -745,6 +745,16 @@ class DownloadManager(QAbstractListModel):
             raise cmdexc.CommandError("There's no download {}!".format(count))
         download.cancel()
 
+    @cmdutils.register(instance='download-manager', scope='window',
+                       deprecated="Use :download instead.")
+    def cancel_download(self, count: {'special': 'count'}=1):
+        """Cancel the first/[count]th download.
+
+        Args:
+            count: The index of the download to cancel.
+        """
+        self.download_cancel(count)
+
     @cmdutils.register(instance='download-manager', scope='window')
     def download_open(self, count: {'special': 'count'}=0):
         """Open the last/[count]th download.
@@ -820,7 +830,7 @@ class DownloadManager(QAbstractListModel):
             return False
 
     @cmdutils.register(instance='download-manager', name='downloads-clear',
-                        scope='window')
+                       scope='window')
     def clear(self):
         """Remove all finished downloads."""
         self.remove_items(d for d in self.downloads if d.done)

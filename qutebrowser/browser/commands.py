@@ -912,7 +912,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def download(self, url=None, dest=None):
-        """Download a given URL, or current page if none given.
+        """Download a given URL, or current page if no URL given.
 
         Args:
             url: The URL to download, or None to download current page.
@@ -920,13 +920,19 @@ class CommandDispatcher:
         """
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
-        if (url):
+        if url:
             url = urlutils.qurl_from_user_input(url)
             urlutils.raise_cmdexc_if_invalid(url)
             download_manager.get(url, filename=dest)
         else:
             page = self._current_widget().page()
             download_manager.get(self._current_url(), page)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       deprecated="Use :download instead.")
+    def download_page(self):
+        """Download the current page."""
+        self.download()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def view_source(self):
