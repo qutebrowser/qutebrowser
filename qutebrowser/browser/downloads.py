@@ -825,16 +825,22 @@ class DownloadManager(QAbstractListModel):
 
     def can_clear(self):
         """Check if there are finished downloads to clear."""
-        if self.downloads:
-            return any(download.done for download in self.downloads)
-        else:
-            return False
+        return any(download.done for download in self.downloads)
 
-    @cmdutils.register(instance='download-manager', name='downloads-clear',
-                       scope='window')
-    def clear(self):
-        """Remove all finished downloads."""
-        self.remove_items(d for d in self.downloads if d.done)
+    @cmdutils.register(instance='download-manager', scope='window')
+    def download_remove(self, all_: {'name': 'all'}=False,
+                        count: {'special': 'count'}=0):
+        """Remove the last/[count]th finished download.
+
+        Args:
+            all: Whether to remove all finished downloads.
+            count: The index of the download to cancel.
+        """
+        finished_items = [d for d in self.downloads if d.done]
+        if all_:
+            self.remove_items(finished_items)
+        else:
+            self.remove_item(finished_items[count - 1])
 
     def last_index(self):
         """Get the last index in the model.
