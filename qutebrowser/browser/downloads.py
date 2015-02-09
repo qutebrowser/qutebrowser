@@ -833,7 +833,7 @@ class DownloadManager(QAbstractListModel):
         """Remove the last/[count]th finished download.
 
         Args:
-            all: Whether to remove all finished downloads.
+            all_: If given removes all finished downloads.
             count: The index of the download to cancel.
         """
         finished_items = [d for d in self.downloads if d.done]

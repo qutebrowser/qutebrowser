@@ -131,11 +131,11 @@ Contributors, sorted by the number of commits in descending order:
 * Florian Bruhin
 * Claude
 * ZDarian
+* Joel Torstensson
 * Peter Vilim
 * John ShaggyTwoDope Jenkins
 * rikn00
 * Martin Zimmermann
-* Joel Torstensson
 * Error 800
 * Brian Jackson
 * Patric Schmitz

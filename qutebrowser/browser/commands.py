@@ -915,7 +915,7 @@ class CommandDispatcher:
         """Download a given URL, or current page if no URL given.
 
         Args:
-            url: The URL to download, or None to download current page.
+            url: The URL to download. If not given, download the current page.
             dest: The file path to write the download to, or None to ask.
         """
         download_manager = objreg.get('download-manager', scope='window',
