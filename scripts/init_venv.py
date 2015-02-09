@@ -119,9 +119,6 @@ def test_toolchain():
             pkg = 'bs4'
         print("Importing {}".format(pkg))
         venv_python('-c', 'import {}'.format(pkg))
-    print("Checking if we can use QApplication")
-    venv_python('-c',
-                'from PyQt5.QtWidgets import QApplication; QApplication([])')
 
 
 def verbose_copy(src, dst, *, follow_symlinks=True):
