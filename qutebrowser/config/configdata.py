@@ -190,6 +190,10 @@ DATA = collections.OrderedDict([
          SettingValue(typ.NewInstanceOpenTarget(), 'window'),
          "How to open links in an existing instance if a new one is "
          "launched."),
+
+        ('log-javascript-console',
+         SettingValue(typ.Bool(), 'false'),
+         "Whether to log javascript console messages."),
     )),
 
     ('ui', sect.KeyValue(
