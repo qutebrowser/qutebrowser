@@ -21,7 +21,7 @@
 
 import functools
 
-from PyQt5.QtCore import pyqtSlot, PYQT_VERSION, Qt, QUrl
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, PYQT_VERSION, Qt, QUrl
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
 from PyQt5.QtWidgets import QFileDialog
@@ -45,11 +45,18 @@ class BrowserPage(QWebPage):
         _networkmnager: The NetworkManager used.
         _win_id: The window ID this BrowserPage is associated with.
         _ignore_load_started: Whether to ignore the next loadStarted signal.
+        _is_shutting_down: Whether the page is currently shutting down.
+
+    Signals:
+        shutting_down: Emitted when the page is currently shutting down.
     """
+
+    shutting_down = pyqtSignal()
 
     def __init__(self, win_id, tab_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
+        self._is_shutting_down = False
         self._extension_handlers = {
             QWebPage.ErrorPageExtension: self._handle_errorpage,
             QWebPage.ChooseMultipleFilesExtension: self._handle_multiple_files,
@@ -73,6 +80,8 @@ class BrowserPage(QWebPage):
 
         def javaScriptPrompt(self, _frame, msg, default):
             """Override javaScriptPrompt to use the statusbar."""
+            if self._is_shutting_down:
+                return (False, "")
             answer = self._ask("js: {}".format(msg), usertypes.PromptMode.text,
                                default)
             if answer is None:
@@ -183,11 +192,24 @@ class BrowserPage(QWebPage):
         q.mode = mode
         q.default = default
         self.loadStarted.connect(q.abort)
+        self.shutting_down.connect(q.abort)
         bridge = objreg.get('message-bridge', scope='window',
                             window=self._win_id)
         bridge.ask(q, blocking=True)
         q.deleteLater()
         return q.answer
+
+    def shutdown(self):
+        """Prepare the web page for being deleted."""
+        self._is_shutting_down = True
+        self.shutting_down.emit()
+        download_manager = objreg.get('download-manager', scope='window',
+                                      window=self._win_id)
+        nam = self.networkAccessManager()
+        if download_manager.has_downloads_with_nam(nam):
+            nam.setParent(download_manager)
+        else:
+            nam.shutdown()
 
     def display_content(self, reply, mimetype):
         """Display a QNetworkReply with an explicitely set mimetype."""
@@ -300,10 +322,14 @@ class BrowserPage(QWebPage):
 
     def javaScriptAlert(self, _frame, msg):
         """Override javaScriptAlert to use the statusbar."""
+        if self._is_shutting_down:
+            return
         self._ask("[js alert] {}".format(msg), usertypes.PromptMode.alert)
 
     def javaScriptConfirm(self, _frame, msg):
         """Override javaScriptConfirm to use the statusbar."""
+        if self._is_shutting_down:
+            return False
         ans = self._ask("[js confirm] {}".format(msg),
                         usertypes.PromptMode.yesno)
         return bool(ans)
