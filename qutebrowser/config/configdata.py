@@ -498,6 +498,14 @@ DATA = collections.OrderedDict([
          'Qt plugins with a mimetype such as "application/x-qt-plugin" are '
          "not affected by this setting."),
 
+        ('geolocation',
+         SettingValue(typ.NoAsk(), 'ask'),
+         "Allow websites to request geolocations."),
+
+        ('notifications',
+         SettingValue(typ.NoAsk(), 'ask'),
+         "Allow websites to show notifications."),
+
         #('allow-java',
         # SettingValue(typ.Bool(), 'true'),
         # "Enables or disables Java applets. Currently Java applets are "

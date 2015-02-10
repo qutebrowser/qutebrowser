@@ -38,6 +38,10 @@ from qutebrowser.config import configexc
 
 SYSTEM_PROXY = object()  # Return value for Proxy type
 
+# Taken from configparser
+BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
+                  '0': False, 'no': False, 'false': False, 'off': False}
+
 
 class ValidValues:
 
@@ -221,17 +225,9 @@ class List(BaseType):
 
 class Bool(BaseType):
 
-    """Base class for a boolean setting.
-
-    Class attributes:
-        _BOOLEAN_STATES: A dictionary of strings mapped to their bool meanings.
-    """
+    """Base class for a boolean setting."""
 
     typestr = 'bool'
-
-    # Taken from configparser
-    _BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
-                       '0': False, 'no': False, 'false': False, 'off': False}
 
     valid_values = ValidValues('true', 'false')
 
@@ -239,7 +235,7 @@ class Bool(BaseType):
         if not value:
             return None
         else:
-            return Bool._BOOLEAN_STATES[value.lower()]
+            return BOOLEAN_STATES[value.lower()]
 
     def validate(self, value):
         if not value:
@@ -247,7 +243,7 @@ class Bool(BaseType):
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
-        if value.lower() not in Bool._BOOLEAN_STATES:
+        if value.lower() not in BOOLEAN_STATES:
             raise configexc.ValidationError(value, "must be a boolean!")
 
 
@@ -268,6 +264,34 @@ class BoolAsk(Bool):
             return
         else:
             super().validate(value)
+
+
+class NoAsk(BaseType):
+
+    """A no/ask question."""
+
+    valid_values = ValidValues('false', 'ask')
+
+    def transform(self, value):
+        if value.lower() == 'ask':
+            return 'ask'
+        else:
+            return BOOLEAN_STATES[value.lower()]
+
+    def validate(self, value):
+        if not value:
+            if self._none_ok:
+                return
+            else:
+                raise configexc.ValidationError(value, "may not be empty!")
+        if value.lower() == 'ask':
+            return
+        try:
+            v = BOOLEAN_STATES[value.lower()]
+            if v:
+                raise configexc.ValidationError(value, "must be ask/false!")
+        except KeyError:
+            raise configexc.ValidationError(value, "must be ask/false!")
 
 
 class Int(BaseType):

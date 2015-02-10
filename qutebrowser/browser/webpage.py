@@ -285,39 +285,48 @@ class BrowserPage(QWebPage):
     @pyqtSlot('QWebFrame', 'QWebPage::Feature')
     def on_feature_permission_requested(self, frame, feature):
         """Ask the user for approval for geolocation/notifications."""
-        bridge = objreg.get('message-bridge', scope='window',
-                            window=self._win_id)
-        q = usertypes.Question(bridge)
-        q.mode = usertypes.PromptMode.yesno
-
-        msgs = {
-            QWebPage.Notifications: 'show notifications',
-            QWebPage.Geolocation: 'access your location',
+        options = {
+            QWebPage.Notifications: ('content', 'notifications'),
+            QWebPage.Geolocation: ('content', 'geolocation'),
         }
-        host = frame.url().host()
-        if host:
-            q.text = "Allow the website at {} to {}?".format(
-                frame.url().host(), msgs[feature])
+        if config.get(*options[feature]) == 'ask':
+            bridge = objreg.get('message-bridge', scope='window',
+                                window=self._win_id)
+            q = usertypes.Question(bridge)
+            q.mode = usertypes.PromptMode.yesno
+
+            msgs = {
+                QWebPage.Notifications: 'show notifications',
+                QWebPage.Geolocation: 'access your location',
+            }
+
+            host = frame.url().host()
+            if host:
+                q.text = "Allow the website at {} to {}?".format(
+                    frame.url().host(), msgs[feature])
+            else:
+                q.text = "Allow the website to {}?".format(msgs[feature])
+
+            yes_action = functools.partial(
+                self.setFeaturePermission, frame, feature,
+                QWebPage.PermissionGrantedByUser)
+            q.answered_yes.connect(yes_action)
+
+            no_action = functools.partial(
+                self.setFeaturePermission, frame, feature,
+                QWebPage.PermissionDeniedByUser)
+            q.answered_no.connect(no_action)
+
+            q.completed.connect(q.deleteLater)
+
+            self.featurePermissionRequestCanceled.connect(functools.partial(
+                self.on_feature_permission_cancelled, q, frame, feature))
+            self.loadStarted.connect(q.abort)
+
+            bridge.ask(q, blocking=False)
         else:
-            q.text = "Allow the website to {}?".format(msgs[feature])
-
-        yes_action = functools.partial(
-            self.setFeaturePermission, frame, feature,
-            QWebPage.PermissionGrantedByUser)
-        q.answered_yes.connect(yes_action)
-
-        no_action = functools.partial(
-            self.setFeaturePermission, frame, feature,
-            QWebPage.PermissionDeniedByUser)
-        q.answered_no.connect(no_action)
-
-        q.completed.connect(q.deleteLater)
-
-        self.featurePermissionRequestCanceled.connect(functools.partial(
-            self.on_feature_permission_cancelled, q, frame, feature))
-        self.loadStarted.connect(q.abort)
-
-        bridge.ask(q, blocking=False)
+            self.setFeaturePermission(frame, feature,
+                                      QWebPage.PermissionDeniedByUser)
 
     def on_feature_permission_cancelled(self, question, frame, feature,
                                         cancelled_frame, cancelled_feature):

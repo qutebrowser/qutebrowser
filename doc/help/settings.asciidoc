@@ -121,6 +121,8 @@
 |<<content-allow-images,allow-images>>|Whether images are automatically loaded in web pages.
 |<<content-allow-javascript,allow-javascript>>|Enables or disables the running of JavaScript programs.
 |<<content-allow-plugins,allow-plugins>>|Enables or disables plugins in Web pages.
+|<<content-geolocation,geolocation>>|Allow websites to request geolocations.
+|<<content-notifications,notifications>>|Allow websites to show notifications.
 |<<content-javascript-can-open-windows,javascript-can-open-windows>>|Whether JavaScript programs can open new windows.
 |<<content-javascript-can-close-windows,javascript-can-close-windows>>|Whether JavaScript programs can close windows.
 |<<content-javascript-can-access-clipboard,javascript-can-access-clipboard>>|Whether JavaScript programs can read or write to the clipboard.
@@ -994,6 +996,30 @@ Valid values:
  * +false+
 
 Default: +pass:[false]+
+
+[[content-geolocation]]
+=== geolocation
+Allow websites to request geolocations.
+
+Valid values:
+
+ * +true+
+ * +false+
+ * +ask+
+
+Default: +pass:[ask]+
+
+[[content-notifications]]
+=== notifications
+Allow websites to show notifications.
+
+Valid values:
+
+ * +true+
+ * +false+
+ * +ask+
+
+Default: +pass:[ask]+
 
 [[content-javascript-can-open-windows]]
 === javascript-can-open-windows
