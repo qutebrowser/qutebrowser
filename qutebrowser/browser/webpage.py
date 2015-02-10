@@ -316,6 +316,7 @@ class BrowserPage(QWebPage):
                 self.setFeaturePermission, frame, feature,
                 QWebPage.PermissionDeniedByUser)
             q.answered_no.connect(no_action)
+            q.cancelled.connect(no_action)
 
             q.completed.connect(q.deleteLater)
 
