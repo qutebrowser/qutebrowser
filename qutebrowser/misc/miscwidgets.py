@@ -43,7 +43,7 @@ class MinimalLineEditMixin:
         self.setAttribute(Qt.WA_MacShowFocusRect, False)
 
     def __repr__(self):
-        return utils.get_repr(self, text=self.text())
+        return utils.get_repr(self)
 
 
 class CommandLineEdit(QLineEdit):
