@@ -762,7 +762,7 @@ class DownloadManager(QAbstractListModel):
         Args:
             count: The index of the download to cancel.
         """
-        finished_items = [d for d in self.downloads if d.done]
+        finished_items = [d for d in self.downloads if d.done and d.successful]
         try:
             download = finished_items[count - 1]
         except IndexError:
