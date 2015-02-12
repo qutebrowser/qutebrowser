@@ -358,15 +358,18 @@ class DownloadItem(QObject):
             self.reply = None
         if self.fileobj is not None:
             self.fileobj.close()
-        try:
-            if (self._filename is not None and os.path.exists(self._filename)
-                    and remove_data):
-                os.remove(self._filename)
-        except OSError:
-            log.downloads.exception("Failed to remove partial file")
+        if remove_data:
+            self.delete()
         self.done = True
         self.finished.emit()
         self.data_changed.emit()
+
+    def delete(self):
+        try:
+            if (self._filename is not None and os.path.exists(self._filename)):
+                os.remove(self._filename)
+        except OSError:
+            log.downloads.exception("Failed to remove partial file")
 
     def retry(self):
         """Retry a failed download."""
@@ -749,8 +752,25 @@ class DownloadManager(QAbstractListModel):
         except IndexError:
             raise cmdexc.CommandError("There's no download {}!".format(count))
         if download.done:
-            raise cmdexc.CommandError("Download {} is already done!".format(count))
+            raise cmdexc.CommandError("Download {} is already done!"
+                                      .format(count))
         download.cancel()
+
+    @cmdutils.register(instance='download-manager', scope='window')
+    def download_delete(self, count: {'special': 'count'}=0):
+        """Delete the last/[count]th download from disk.
+
+        Args:
+            count: The index of the download to cancel.
+        """
+        try:
+            download = self.downloads[count - 1]
+        except IndexError:
+            raise cmdexc.CommandError("There's no download {}!".format(count))
+        if not download.successful:
+            raise cmdexc.CommandError("Download {} is not done!".format(count))
+        download.delete()
+        self.remove_item(download)
 
     @cmdutils.register(instance='download-manager', scope='window',
                        deprecated="Use :download instead.")
