@@ -784,7 +784,7 @@ class DownloadManager(QAbstractListModel):
 
     @cmdutils.register(instance='download-manager', scope='window')
     def download_open(self, count: {'special': 'count'}=0):
-        """Open the last/[count]th finished download.
+        """Open the last/[count]th download.
 
         Args:
             count: The index of the download to cancel.
@@ -793,7 +793,7 @@ class DownloadManager(QAbstractListModel):
             download = self.downloads[count - 1]
         except IndexError:
             raise cmdexc.CommandError("There's no download {}!".format(count))
-        if not download.done and not download.successful:
+        if not download.successful:
             raise cmdexc.CommandError("Download {} is not done!".format(count))
         download.open_file()
 
@@ -858,7 +858,7 @@ class DownloadManager(QAbstractListModel):
     @cmdutils.register(instance='download-manager', scope='window')
     def download_remove(self, all_: {'name': 'all'}=False,
                         count: {'special': 'count'}=0):
-        """Remove the last/[count]th finished download.
+        """Remove the last/[count]th download from the list.
 
         Args:
             all_: If given removes all finished downloads.
