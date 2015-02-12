@@ -748,6 +748,8 @@ class DownloadManager(QAbstractListModel):
             download = self.downloads[count - 1]
         except IndexError:
             raise cmdexc.CommandError("There's no download {}!".format(count))
+        if download.done:
+            raise cmdexc.CommandError("Download {} is already done!".format(count))
         download.cancel()
 
     @cmdutils.register(instance='download-manager', scope='window',
