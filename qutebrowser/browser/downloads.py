@@ -767,11 +767,12 @@ class DownloadManager(QAbstractListModel):
         Args:
             count: The index of the download to cancel.
         """
-        finished_items = [d for d in self.downloads if d.done and d.successful]
         try:
-            download = finished_items[count - 1]
+            download = self.downloads[count - 1]
         except IndexError:
             raise cmdexc.CommandError("There's no download {}!".format(count))
+        if not download.done and not download.successful:
+            raise cmdexc.CommandError("Download {} is not done!".format(count))
         download.open_file()
 
     @pyqtSlot(QNetworkRequest, QNetworkReply)
@@ -841,11 +842,17 @@ class DownloadManager(QAbstractListModel):
             all_: If given removes all finished downloads.
             count: The index of the download to cancel.
         """
-        finished_items = [d for d in self.downloads if d.done]
         if all_:
+            finished_items = [d for d in self.downloads if d.done]
             self.remove_items(finished_items)
         else:
-            self.remove_item(finished_items[count - 1])
+            try:
+                download = self.downloads[count - 1]
+            except IndexError:
+                raise cmdexc.CommandError("There's no download {}!".format(count))
+            if not download.done:
+                raise cmdexc.CommandError("Download {} is not done!".format(count))
+            self.remove_item(download)
 
     def last_index(self):
         """Get the last index in the model.
