@@ -11,8 +11,9 @@
 |<<close,close>>|Close the current window.
 |<<download,download>>|Download a given URL, or current page if no URL given.
 |<<download-cancel,download-cancel>>|Cancel the last/[count]th download.
-|<<download-open,download-open>>|Open the last/[count]th finished download.
-|<<download-remove,download-remove>>|Remove the last/[count]th finished download.
+|<<download-delete,download-delete>>|Delete the last/[count]th download from disk.
+|<<download-open,download-open>>|Open the last/[count]th download.
+|<<download-remove,download-remove>>|Remove the last/[count]th download from the list.
 |<<forward,forward>>|Go forward in the history of the current tab.
 |<<fullscreen,fullscreen>>|Toggle fullscreen mode.
 |<<help,help>>|Show help about a command or setting.
@@ -107,9 +108,16 @@ Cancel the last/[count]th download.
 ==== count
 The index of the download to cancel.
 
+[[download-delete]]
+=== download-delete
+Delete the last/[count]th download from disk.
+
+==== count
+The index of the download to cancel.
+
 [[download-open]]
 === download-open
-Open the last/[count]th finished download.
+Open the last/[count]th download.
 
 ==== count
 The index of the download to cancel.
@@ -118,7 +126,7 @@ The index of the download to cancel.
 === download-remove
 Syntax: +:download-remove [*--all*]+
 
-Remove the last/[count]th finished download.
+Remove the last/[count]th download from the list.
 
 ==== optional arguments
 * +*-a*+, +*--all*+: If given removes all finished downloads.
