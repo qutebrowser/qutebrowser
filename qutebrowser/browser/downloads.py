@@ -159,6 +159,7 @@ class DownloadItem(QObject):
     Attributes:
         done: Whether the download is finished.
         stats: A DownloadItemStats object.
+        index: The index of the download in the view.
         successful: Whether the download has completed sucessfully.
         error_msg: The current error message, or None
         autoclose: Whether to close the associated file if the download is
@@ -206,6 +207,7 @@ class DownloadItem(QObject):
         self.done = False
         self.stats = DownloadItemStats(self)
         self.stats.updated.connect(self.data_changed)
+        self.index = 0
         self.autoclose = True
         self.reply = None
         self._buffer = io.BytesIO()
@@ -238,8 +240,9 @@ class DownloadItem(QObject):
         else:
             errmsg = " - {}".format(self.error_msg)
         if all(e is None for e in (perc, remaining, self.stats.total)):
-            return ('{name} [{speed:>10}|{down}]{errmsg}'.format(
-                name=self.basename, speed=speed, down=down, errmsg=errmsg))
+            return ('{index}: {name} [{speed:>10}|{down}]{errmsg}'.format(
+                index=self.index, name=self.basename, speed=speed,
+                down=down, errmsg=errmsg))
         if perc is None:
             perc = '??'
         else:
@@ -250,14 +253,15 @@ class DownloadItem(QObject):
             remaining = utils.format_seconds(remaining)
         total = utils.format_size(self.stats.total, suffix='B')
         if self.done:
-            return ('{name} [{perc:>2}%|{total}]{errmsg}'.format(
-                name=self.basename, perc=perc, total=total,
-                errmsg=errmsg))
+            return ('{index}: {name} [{perc:>2}%|{total}]{errmsg}'.format(
+                index=self.index, name=self.basename, perc=perc,
+                total=total, errmsg=errmsg))
         else:
-            return ('{name} [{speed:>10}|{remaining:>5}|{perc:>2}%|'
+            return ('{index}: {name} [{speed:>10}|{remaining:>5}|{perc:>2}%|'
                     '{down}/{total}]{errmsg}'.format(
-                        name=self.basename, speed=speed, remaining=remaining,
-                        perc=perc, down=down, total=total, errmsg=errmsg))
+                        index=self.index, name=self.basename, speed=speed,
+                        remaining=remaining, perc=perc, down=down,
+                        total=total, errmsg=errmsg))
 
     def _create_fileobj(self):
         """Creates a file object using the internal filename."""
@@ -707,6 +711,7 @@ class DownloadManager(QAbstractListModel):
         download.do_retry.connect(self.fetch)
         download.basename = suggested_filename
         idx = len(self.downloads) + 1
+        download.index = idx
         self.beginInsertRows(QModelIndex(), idx, idx)
         self.downloads.append(download)
         self.endInsertRows()
@@ -862,6 +867,7 @@ class DownloadManager(QAbstractListModel):
         del self.downloads[idx]
         self.endRemoveRows()
         download.deleteLater()
+        self.update_indexes()
 
     def remove_items(self, downloads):
         """Remove an iterable of downloads."""
@@ -890,6 +896,12 @@ class DownloadManager(QAbstractListModel):
             else:
                 download.deleteLater()
         self.endRemoveRows()
+
+    def update_indexes(self):
+        """Update indexes of all DownloadItems"""
+        for i, d in enumerate(self.downloads, 1):
+            if not d.index == i:
+                d.index = i
 
     def headerData(self, section, orientation, role):
         """Simple constant header."""
