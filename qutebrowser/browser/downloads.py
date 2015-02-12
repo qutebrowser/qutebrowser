@@ -365,8 +365,9 @@ class DownloadItem(QObject):
         self.data_changed.emit()
 
     def delete(self):
+        """Delete the downloaded file"""
         try:
-            if (self._filename is not None and os.path.exists(self._filename)):
+            if self._filename is not None and os.path.exists(self._filename):
                 os.remove(self._filename)
         except OSError:
             log.downloads.exception("Failed to remove partial file")
@@ -871,9 +872,11 @@ class DownloadManager(QAbstractListModel):
             try:
                 download = self.downloads[count - 1]
             except IndexError:
-                raise cmdexc.CommandError("There's no download {}!".format(count))
+                raise cmdexc.CommandError("There's no download {}!"
+                                          .format(count))
             if not download.done:
-                raise cmdexc.CommandError("Download {} is not done!".format(count))
+                raise cmdexc.CommandError("Download {} is not done!"
+                                          .format(count))
             self.remove_item(download)
 
     def last_index(self):
@@ -928,9 +931,15 @@ class DownloadManager(QAbstractListModel):
 
     def update_indexes(self):
         """Update indexes of all DownloadItems"""
+        first_idx = None
         for i, d in enumerate(self.downloads, 1):
-            if not d.index == i:
-                d.index = i
+            if not first_idx and d.index != i:
+                first_idx = i - 1
+            d.index = i
+        if first_idx:
+            model_idx = self.index(first_idx, 0)
+            qtutils.ensure_valid(model_idx)
+            self.dataChanged.emit(model_idx, self.last_index())
 
     def headerData(self, section, orientation, role):
         """Simple constant header."""
