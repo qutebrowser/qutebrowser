@@ -313,7 +313,7 @@ class Application(QApplication):
                     win_id = self._get_window(via_ipc, force_tab=True)
                 log.init.debug("Startup cmd {}".format(cmd))
                 commandrunner = runners.CommandRunner(win_id)
-                commandrunner.run_safely_init(cmd.lstrip(':'))
+                commandrunner.run_safely_init(cmd[1:])
             elif not cmd:
                 log.init.debug("Empty argument")
                 win_id = self._get_window(via_ipc, force_window=True)

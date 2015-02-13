@@ -164,7 +164,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.history.append(text)
         modeman.leave(self._win_id, usertypes.KeyMode.command, 'cmd accept')
         if text[0] in signals:
-            signals[text[0]].emit(text.lstrip(text[0]))
+            signals[text[0]].emit(text[1:])
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
