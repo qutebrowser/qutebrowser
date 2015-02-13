@@ -263,8 +263,9 @@ class TabBar(QTabBar):
                 fg_color = config.get('colors', 'tabs.fg.even')
             tab.palette.setColor(QPalette.Window, bg_color)
             tab.palette.setColor(QPalette.WindowText, fg_color)
-            indicator_color = self._tab_data(idx, 'indicator-color')
-            if indicator_color is None:
+            try:
+                indicator_color = self._tab_data(idx, 'indicator-color')
+            except KeyError:
                 indicator_color = QColor()
             tab.palette.setColor(QPalette.Base, indicator_color)
             if tab.rect.right() < 0 or tab.rect.left() > self.width():
