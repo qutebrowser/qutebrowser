@@ -72,23 +72,24 @@ class Saveable:
         log.save.debug("Marking {} as dirty.".format(self._name))
         self._dirty = True
 
-    def save(self, is_exit=False, explicit=False, silent=False):
+    def save(self, is_exit=False, explicit=False, silent=False, force=False):
         """Save this saveable.
 
         Args:
             is_exit: Whether we're currently exiting qutebrowser.
             explicit: Whether the user explicitely requested this save.
             silent: Don't write informations to log.
+            force: Force saving, no matter what.
         """
         if (self._config_opt is not None and
                 (not config.get(*self._config_opt)) and
-                (not explicit)):
+                (not explicit) and (not force)):
             if not silent:
                 log.save.debug("Not saving {} because autosaving has been "
                                "disabled by {cfg[0]} -> {cfg[1]}.".format(
                                    self._name, cfg=self._config_opt))
             return
-        do_save = self._dirty or (self._save_on_exit and is_exit)
+        do_save = self._dirty or (self._save_on_exit and is_exit) or force
         if not silent:
             log.save.debug("Save of {} requested - dirty {}, save_on_exit {}, "
                            "is_exit {} -> {}".format(
@@ -154,7 +155,8 @@ class SaveManager(QObject):
         self.saveables[name] = Saveable(name, save, changed, config_opt,
                                         filename)
 
-    def save(self, name, is_exit=False, explicit=False, silent=False):
+    def save(self, name, is_exit=False, explicit=False, silent=False,
+             force=False):
         """Save a saveable by name.
 
         Args:
@@ -162,9 +164,10 @@ class SaveManager(QObject):
             explicit: Whether this save operation was triggered explicitely.
             silent: Don't write informations to log. Used to reduce log spam
                     when autosaving.
+            force: Force saving, no matter what.
         """
         self.saveables[name].save(is_exit=is_exit, explicit=explicit,
-                                  silent=silent)
+                                  silent=silent, force=force)
 
     @pyqtSlot()
     def autosave(self):

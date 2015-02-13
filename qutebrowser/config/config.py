@@ -145,6 +145,12 @@ def init(args):
             save_manager.add_saveable(
                 'config', config_obj.save, config_obj.changed,
                 config_opt=('general', 'auto-save-config'), filename=filename)
+            for sect in config_obj.sections.values():
+                for opt in sect.values.values():
+                    if opt.values['conf'] is None:
+                        # Option added to builtin defaults but not in user's
+                        # config yet
+                        save_manager.save('config', explicit=True, force=True)
     try:
         key_config = keyconf.KeyConfigParser(confdir, 'keys.conf')
     except (keyconf.KeyConfigError, UnicodeDecodeError) as e:
