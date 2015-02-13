@@ -741,6 +741,16 @@ class DownloadManager(QAbstractListModel):
 
         return download
 
+    def raise_no_download(self, index):
+        """Raise an exception that the download doesn't exist
+
+        Args:
+            index: The index of the download
+        """
+        if not index:
+            raise cmdexc.CommandError("There's no download!")
+        raise cmdexc.CommandError("There's no download {}!".format(index))
+
     @cmdutils.register(instance='download-manager', scope='window')
     def download_cancel(self, count: {'special': 'count'}=0):
         """Cancel the last/[count]th download.
@@ -751,8 +761,10 @@ class DownloadManager(QAbstractListModel):
         try:
             download = self.downloads[count - 1]
         except IndexError:
-            raise cmdexc.CommandError("There's no download {}!".format(count))
+            self.raise_no_download(count)
         if download.done:
+            if not count:
+                count = len(self.downloads)
             raise cmdexc.CommandError("Download {} is already done!"
                                       .format(count))
         download.cancel()
@@ -767,8 +779,10 @@ class DownloadManager(QAbstractListModel):
         try:
             download = self.downloads[count - 1]
         except IndexError:
-            raise cmdexc.CommandError("There's no download {}!".format(count))
+            self.raise_no_download(count)
         if not download.successful:
+            if not count:
+                count = len(self.downloads)
             raise cmdexc.CommandError("Download {} is not done!".format(count))
         download.delete()
         self.remove_item(download)
@@ -793,8 +807,10 @@ class DownloadManager(QAbstractListModel):
         try:
             download = self.downloads[count - 1]
         except IndexError:
-            raise cmdexc.CommandError("There's no download {}!".format(count))
+            self.raise_no_download(count)
         if not download.successful:
+            if not count:
+                count = len(self.downloads)
             raise cmdexc.CommandError("Download {} is not done!".format(count))
         download.open_file()
 
@@ -872,9 +888,10 @@ class DownloadManager(QAbstractListModel):
             try:
                 download = self.downloads[count - 1]
             except IndexError:
-                raise cmdexc.CommandError("There's no download {}!"
-                                          .format(count))
+                self.raise_no_download(count)
             if not download.done:
+                if not count:
+                    count = len(self.downloads)
                 raise cmdexc.CommandError("Download {} is not done!"
                                           .format(count))
             self.remove_item(download)
@@ -933,7 +950,7 @@ class DownloadManager(QAbstractListModel):
         """Update indexes of all DownloadItems"""
         first_idx = None
         for i, d in enumerate(self.downloads, 1):
-            if not first_idx and d.index != i:
+            if first_idx is not None and d.index != i:
                 first_idx = i - 1
             d.index = i
         if first_idx:
