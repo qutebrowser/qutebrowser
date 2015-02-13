@@ -122,6 +122,16 @@ class TabBar(QTabBar):
         else:
             self.show()
 
+    def _set_tab_data(self, idx, key, value):
+        """Set tab data as a dictionary."""
+        data = self.tabData(idx)
+        data[key] = value
+        self.setTabData(idx, data)
+
+    def _tab_data(self, idx, key):
+        """Get tab data for a given key."""
+        return self.tabData(idx)[key]
+
     def refresh(self):
         """Properly repaint the tab bar and relayout tabs."""
         # This is a horrible hack, but we need to do this so the underlaying Qt
@@ -135,7 +145,7 @@ class TabBar(QTabBar):
             idx: The tab index.
             color: A QColor.
         """
-        self.setTabData(idx, color)
+        self._set_tab_data(idx, 'indicator-color', color)
         self.update(self.tabRect(idx))
 
     @config.change_filter('fonts', 'tabbar')
@@ -253,7 +263,7 @@ class TabBar(QTabBar):
                 fg_color = config.get('colors', 'tabs.fg.even')
             tab.palette.setColor(QPalette.Window, bg_color)
             tab.palette.setColor(QPalette.WindowText, fg_color)
-            indicator_color = self.tabData(idx)
+            indicator_color = self._tab_data(idx, 'indicator-color')
             if indicator_color is None:
                 indicator_color = QColor()
             tab.palette.setColor(QPalette.Base, indicator_color)
@@ -266,6 +276,7 @@ class TabBar(QTabBar):
     def tabInserted(self, idx):
         """Show the tabbar if configured to hide and >1 tab is open."""
         self._tabhide()
+        self.setTabData(idx, {})
         super().tabInserted(idx)
 
     def tabRemoved(self, idx):
