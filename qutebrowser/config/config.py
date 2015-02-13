@@ -142,10 +142,9 @@ def init(args):
         objreg.register('config', config_obj)
         if confdir is not None:
             filename = os.path.join(confdir, 'qutebrowser.conf')
-            save_manager.add_saveable('config', config_obj.save,
-                                    config_obj.changed,
-                                    config_opt=('general', 'auto-save-config'),
-                                    filename=filename)
+            save_manager.add_saveable(
+                'config', config_obj.save, config_obj.changed,
+                config_opt=('general', 'auto-save-config'), filename=filename)
     try:
         key_config = keyconf.KeyConfigParser(confdir, 'keys.conf')
     except (keyconf.KeyConfigError, UnicodeDecodeError) as e:
@@ -163,10 +162,9 @@ def init(args):
         objreg.register('key-config', key_config)
         if confdir is not None:
             filename = os.path.join(confdir, 'keys.conf')
-            save_manager.add_saveable('key-config', key_config.save,
-                                    key_config.changed,
-                                    config_opt=('general', 'auto-save-config'),
-                                    filename=filename)
+            save_manager.add_saveable(
+                'key-config', key_config.save, key_config.changed,
+                config_opt=('general', 'auto-save-config'), filename=filename)
 
     datadir = standarddir.get(QStandardPaths.DataLocation, args)
     state_config = ini.ReadWriteConfigParser(datadir, 'state')
