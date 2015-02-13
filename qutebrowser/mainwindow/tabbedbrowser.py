@@ -114,6 +114,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         self.setIconSize(QSize(12, 12))
         objreg.get('config').changed.connect(self.update_favicons)
         objreg.get('config').changed.connect(self.update_window_title)
+        objreg.get('config').changed.connect(self.update_tab_titles)
 
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
@@ -133,7 +134,11 @@ class TabbedBrowser(tabwidget.TabWidget):
     def update_window_title(self):
         """Change the window title to match the current tab."""
         idx = self.currentIndex()
-        tabtitle = self.tabText(idx)
+        if idx == -1:
+            # (e.g. last tab removed)
+            log.webview.debug("Not updating window title because index is -1")
+            return
+        tabtitle = self.page_title(idx)
         widget = self.widget(idx)
 
         fields = {}
@@ -144,6 +149,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         fields['perc_raw'] = widget.progress
         fields['title'] = tabtitle
         fields['title_sep'] = ' - ' if tabtitle else ''
+        fields['id'] = self._win_id
         fmt = config.get('ui', 'window-title-format')
         self.window().setWindowTitle(fmt.format(**fields))
 
@@ -429,6 +435,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We can get signals for tabs we already deleted...
             log.webview.debug("Got invalid tab {}!".format(tab))
             return
+        self.update_tab_title(idx)
         if tab.keep_icon:
             tab.keep_icon = False
         else:
@@ -468,7 +475,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We can get signals for tabs we already deleted...
             log.webview.debug("Got invalid tab {}!".format(tab))
             return
-        self.setTabText(idx, text.replace('&', '&&'))
+        self.set_page_title(idx, text)
         if idx == self.currentIndex():
             self.update_window_title()
 
@@ -489,8 +496,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We can get signals for tabs we already deleted...
             log.webview.debug("Got invalid tab {}!".format(tab))
             return
-        if not self.tabText(idx):
-            self.setTabText(idx, url)
+        if not self.page_title(idx):
+            self.set_page_title(idx, url)
 
     @pyqtSlot(webview.WebView)
     def on_icon_changed(self, tab):
@@ -542,7 +549,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                             scope='window', window=self._win_id)
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
-        self.update_window_title()
+        QTimer.singleShot(0, self.update_window_title)
         self._tab_insert_idx_left = self.currentIndex()
         self._tab_insert_idx_right = self.currentIndex() + 1
 
@@ -562,7 +569,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         stop = config.get('colors', 'tabs.indicator.stop')
         system = config.get('colors', 'tabs.indicator.system')
         color = utils.interpolate_color(start, stop, perc, system)
-        self.tabBar().set_tab_indicator_color(idx, color)
+        self.set_tab_indicator_color(idx, color)
+        self.update_tab_title(idx)
         if idx == self.currentIndex():
             self.update_window_title()
 
@@ -585,7 +593,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             stop = config.get('colors', 'tabs.indicator.stop')
             system = config.get('colors', 'tabs.indicator.system')
             color = utils.interpolate_color(start, stop, 100, system)
-        self.tabBar().set_tab_indicator_color(idx, color)
+        self.set_tab_indicator_color(idx, color)
+        self.update_tab_title(idx)
         if idx == self.currentIndex():
             self.update_window_title()
 

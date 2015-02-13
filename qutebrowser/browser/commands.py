@@ -378,11 +378,12 @@ class CommandDispatcher:
         """
         if bg and window:
             raise cmdexc.CommandError("Only one of -b/-w can be given!")
-        curtab = self._current_widget()
         tabbed_browser = self._tabbed_browser(window)
+        curtab = self._current_widget()
+        cur_title = tabbed_browser.page_title(self._current_index())
         newtab = tabbed_browser.tabopen(background=bg, explicit=True)
         idx = tabbed_browser.indexOf(newtab)
-        tabbed_browser.setTabText(idx, curtab.title().replace('&', '&&'))
+        tabbed_browser.set_page_title(idx, cur_title)
         tabbed_browser.setTabIcon(idx, curtab.icon())
         newtab.keep_icon = True
         newtab.setZoomFactor(curtab.zoomFactor())
@@ -594,7 +595,7 @@ class CommandDispatcher:
         """
         clipboard = QApplication.clipboard()
         if title:
-            s = self._tabbed_browser().tabText(self._current_index())
+            s = self._tabbed_browser().page_title(self._current_index())
         else:
             s = self._current_url().toString(
                 QUrl.FullyEncoded | QUrl.RemovePassword)
@@ -788,7 +789,7 @@ class CommandDispatcher:
         tab = self._current_widget()
         cur_idx = self._current_index()
         icon = tabbed_browser.tabIcon(cur_idx)
-        label = tabbed_browser.tabText(cur_idx)
+        label = tabbed_browser.page_title(cur_idx)
         cmdutils.check_overflow(cur_idx, 'int')
         cmdutils.check_overflow(new_idx, 'int')
         tabbed_browser.setUpdatesEnabled(False)
@@ -850,7 +851,7 @@ class CommandDispatcher:
         idx = self._current_index()
         tabbed_browser = self._tabbed_browser()
         if idx != -1:
-            env['QUTE_TITLE'] = tabbed_browser.tabText(idx)
+            env['QUTE_TITLE'] = tabbed_browser.page_title(idx)
 
         webview = tabbed_browser.currentWidget()
         if webview is not None and webview.hasSelection():

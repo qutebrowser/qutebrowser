@@ -33,6 +33,7 @@ from PyQt5.QtGui import QIcon, QPalette, QColor
 
 from qutebrowser.utils import qtutils, objreg, utils
 from qutebrowser.config import config
+from qutebrowser.browser import webview
 
 
 PM_TabBarPadding = QStyle.PM_CustomBase
@@ -47,6 +48,8 @@ class TabWidget(QTabWidget):
         bar = TabBar(win_id)
         self.setTabBar(bar)
         bar.tabCloseRequested.connect(self.tabCloseRequested)
+        bar.tabMoved.connect(functools.partial(
+            QTimer.singleShot, 0, self.update_tab_titles))
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
@@ -67,6 +70,119 @@ class TabWidget(QTabWidget):
         tabbar.vertical = position in (QTabWidget.West, QTabWidget.East)
         tabbar.setSelectionBehaviorOnRemove(selection_behaviour)
         tabbar.refresh()
+
+    def set_tab_indicator_color(self, idx, color):
+        """Set the tab indicator color.
+
+        Args:
+            idx: The tab index.
+            color: A QColor.
+        """
+        bar = self.tabBar()
+        bar.set_tab_data(idx, 'indicator-color', color)
+        bar.update(bar.tabRect(idx))
+
+    def set_page_title(self, idx, title):
+        """Set the tab title user data."""
+        self.tabBar().set_tab_data(idx, 'page-title', title.replace('&', '&&'))
+        self.update_tab_title(idx)
+
+    def page_title(self, idx):
+        """Get the tab title user data."""
+        return self.tabBar().page_title(idx)
+
+    def update_tab_title(self, idx):
+        """Update the tab text for the given tab."""
+        widget = self.widget(idx)
+        page_title = self.page_title(idx)
+
+        fields = {}
+        if widget.load_status == webview.LoadStatus.loading:
+            fields['perc'] = '[{}%] '.format(widget.progress)
+        else:
+            fields['perc'] = ''
+        fields['perc_raw'] = widget.progress
+        fields['title'] = page_title
+        fields['index'] = idx + 1
+        fields['id'] = widget.tab_id
+        fields['title_sep'] = ' - ' if page_title else ''
+
+        fmt = config.get('tabs', 'title-format')
+        self.tabBar().setTabText(idx, fmt.format(**fields))
+
+    @config.change_filter('tabs', 'title-format')
+    def update_tab_titles(self):
+        """Update all texts."""
+        for idx in range(self.count()):
+            self.update_tab_title(idx)
+
+    def tabInserted(self, idx):
+        """Update titles when a tab was inserted."""
+        super().tabInserted(idx)
+        self.update_tab_titles()
+
+    def tabRemoved(self, idx):
+        """Update titles when a tab was removed."""
+        super().tabRemoved(idx)
+        self.update_tab_titles()
+
+    def addTab(self, page, icon_or_text, text_or_empty=None):
+        """Override addTab to use our own text setting logic.
+
+        Unfortunately QTabWidget::addTab has these two overloads:
+            - QWidget * page, const QIcon & icon, const QString & label
+            - QWidget * page, const QString & label
+
+        This means we'll get different arguments based on the chosen overload.
+
+        Args:
+            page: The QWidget to add.
+            icon_or_text: Either the QIcon to add or the label.
+            text_or_empty: Either the label or None.
+
+        Return:
+            The index of the newly added tab.
+        """
+        if text_or_empty is None:
+            icon = None
+            text = icon_or_text
+            new_idx = super().addTab(page, '')
+        else:
+            icon = icon_or_text
+            text = text_or_empty
+            new_idx = super().addTab(page, icon, '')
+        self.set_page_title(new_idx, text)
+        return new_idx
+
+    def insertTab(self, idx, page, icon_or_text, text_or_empty=None):
+        """Override insertTab to use our own text setting logic.
+
+        Unfortunately QTabWidget::insertTab has these two overloads:
+            - int index, QWidget * page, const QIcon & icon,
+              const QString & label
+            - int index, QWidget * page, const QString & label
+
+        This means we'll get different arguments based on the chosen overload.
+
+        Args:
+            idx: Where to insert the widget.
+            page: The QWidget to add.
+            icon_or_text: Either the QIcon to add or the label.
+            text_or_empty: Either the label or None.
+
+        Return:
+            The index of the newly added tab.
+        """
+        if text_or_empty is None:
+            icon = None
+            text = icon_or_text
+            new_idx = super().insertTab(idx, page, '')
+        else:
+            icon = icon_or_text
+            text = text_or_empty
+            new_idx = super().insertTab(idx, page, icon, '')
+        self.set_page_title(new_idx, text)
+        return new_idx
 
 
 class TabBar(QTabBar):
@@ -122,31 +238,44 @@ class TabBar(QTabBar):
         else:
             self.show()
 
-    def _set_tab_data(self, idx, key, value):
+    def set_tab_data(self, idx, key, value):
         """Set tab data as a dictionary."""
+        if not 0 <= idx < self.count():
+            raise IndexError("Tab index ({}) out of range ({})!".format(
+                idx, self.count()))
         data = self.tabData(idx)
+        if data is None:
+            data = {}
         data[key] = value
         self.setTabData(idx, data)
 
-    def _tab_data(self, idx, key):
+    def tab_data(self, idx, key):
         """Get tab data for a given key."""
-        return self.tabData(idx)[key]
+        if not 0 <= idx < self.count():
+            raise IndexError("Tab index ({}) out of range ({})!".format(
+                idx, self.count()))
+        data = self.tabData(idx)
+        if data is None:
+            data = {}
+        return data[key]
+
+    def page_title(self, idx):
+        """Get the tab title user data.
+
+        Args:
+            idx: The tab index to get the title for.
+            handle_unset: Whether to return an emtpy string on KeyError.
+        """
+        try:
+            return self.tab_data(idx, 'page-title')
+        except KeyError:
+            return ''
 
     def refresh(self):
         """Properly repaint the tab bar and relayout tabs."""
         # This is a horrible hack, but we need to do this so the underlaying Qt
         # code sets layoutDirty so it actually relayouts the tabs.
         self.setIconSize(self.iconSize())
-
-    def set_tab_indicator_color(self, idx, color):
-        """Set the tab indicator color.
-
-        Args:
-            idx: The tab index.
-            color: A QColor.
-        """
-        self._set_tab_data(idx, 'indicator-color', color)
-        self.update(self.tabRect(idx))
 
     @config.change_filter('fonts', 'tabbar')
     def set_font(self):
@@ -264,7 +393,7 @@ class TabBar(QTabBar):
             tab.palette.setColor(QPalette.Window, bg_color)
             tab.palette.setColor(QPalette.WindowText, fg_color)
             try:
-                indicator_color = self._tab_data(idx, 'indicator-color')
+                indicator_color = self.tab_data(idx, 'indicator-color')
             except KeyError:
                 indicator_color = QColor()
             tab.palette.setColor(QPalette.Base, indicator_color)
@@ -275,15 +404,67 @@ class TabBar(QTabBar):
             p.drawControl(QStyle.CE_TabBarTab, tab)
 
     def tabInserted(self, idx):
-        """Show the tabbar if configured to hide and >1 tab is open."""
-        self._tabhide()
-        self.setTabData(idx, {})
+        """Update visibility when a tab was inserted."""
         super().tabInserted(idx)
+        self._tabhide()
 
     def tabRemoved(self, idx):
-        """Hide the tabbar if configured when only one tab is open."""
-        self._tabhide()
+        """Update visibility when a tab was removed."""
         super().tabRemoved(idx)
+        self._tabhide()
+
+    def addTab(self, icon_or_text, text_or_empty=None):
+        """Override addTab to use our own text setting logic.
+
+        Unfortunately QTabBar::addTab has these two overloads:
+            - const QIcon & icon, const QString & label
+            - const QString & label
+
+        This means we'll get different arguments based on the chosen overload.
+
+        Args:
+            icon_or_text: Either the QIcon to add or the label.
+            text_or_empty: Either the label or None.
+
+        Return:
+            The index of the newly added tab.
+        """
+        if text_or_empty is None:
+            icon = None
+            text = icon_or_text
+            new_idx = super().addTab('')
+        else:
+            icon = icon_or_text
+            text = text_or_empty
+            new_idx = super().addTab(icon, '')
+        self.set_page_title(new_idx, text)
+
+    def insertTab(self, idx, icon_or_text, text_or_empty=None):
+        """Override insertTab to use our own text setting logic.
+
+        Unfortunately QTabBar::insertTab has these two overloads:
+            - int index, const QIcon & icon, const QString & label
+            - int index, const QString & label
+
+        This means we'll get different arguments based on the chosen overload.
+
+        Args:
+            idx: Where to insert the widget.
+            icon_or_text: Either the QIcon to add or the label.
+            text_or_empty: Either the label or None.
+
+        Return:
+            The index of the newly added tab.
+        """
+        if text_or_empty is None:
+            icon = None
+            text = icon_or_text
+            new_idx = super().InsertTab(idx, '')
+        else:
+            icon = icon_or_text
+            text = text_or_empty
+            new_idx = super().insertTab(idx, icon, '')
+        self.set_page_title(new_idx, text)
 
 
 class TabBarStyle(QCommonStyle):

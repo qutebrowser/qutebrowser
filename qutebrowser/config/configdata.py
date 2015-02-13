@@ -247,7 +247,7 @@ DATA = collections.OrderedDict([
 
         ('window-title-format',
          SettingValue(typ.FormatString(fields=['perc', 'perc_raw', 'title',
-                                               'title_sep']),
+                                               'title_sep', 'id']),
                       '{perc}{title}{title_sep}qutebrowser'),
          "The format to use for the window title. The following placeholders "
          "are defined:\n\n"
@@ -255,7 +255,8 @@ DATA = collections.OrderedDict([
          "* `{perc_raw}`: The raw percentage, e.g. `10`\n"
          "* `{title}`: The title of the current webpage\n"
          "* `{title_sep}`: The string ` - ` if a title is set, empty "
-         "otherwise.")
+         "otherwise.\n"
+         "* `{id}`: The internal window ID of this window."),
     )),
 
     ('network', sect.KeyValue(
@@ -419,6 +420,20 @@ DATA = collections.OrderedDict([
         ('tabs-are-windows',
          SettingValue(typ.Bool(), 'false'),
          "Whether to open windows instead of tabs."),
+
+        ('title-format',
+         SettingValue(typ.FormatString(fields=['perc', 'perc_raw', 'title',
+                                               'title_sep', 'index', 'id']),
+                      '{index}: {title}'),
+         "The format to use for the tab title. The following placeholders "
+         "are defined:\n\n"
+         "* `{perc}`: The percentage as a string like `[10%]`.\n"
+         "* `{perc_raw}`: The raw percentage, e.g. `10`\n"
+         "* `{title}`: The title of the current webpage\n"
+         "* `{title_sep}`: The string ` - ` if a title is set, empty "
+         "otherwise.\n"
+         "* `{index}`: The index of this tab.\n"
+         "* `{id}`: The internal tab ID of this tab."),
     )),
 
     ('storage', sect.KeyValue(
