@@ -113,13 +113,12 @@ def section(sect):
     return objreg.get('config')[sect]
 
 
-def init(args):
-    """Initialize the config.
+def _init_main_config(args):
+    """Initialize the main config.
 
     Args:
         args: The argparse namespace.
     """
-    save_manager = objreg.get('save-manager')
     confdir = standarddir.get(QStandardPaths.ConfigLocation, args)
     try:
         app = objreg.get('app')
@@ -142,6 +141,7 @@ def init(args):
         objreg.register('config', config_obj)
         if confdir is not None:
             filename = os.path.join(confdir, 'qutebrowser.conf')
+            save_manager = objreg.get('save-manager')
             save_manager.add_saveable(
                 'config', config_obj.save, config_obj.changed,
                 config_opt=('general', 'auto-save-config'), filename=filename)
@@ -151,6 +151,15 @@ def init(args):
                         # Option added to builtin defaults but not in user's
                         # config yet
                         save_manager.save('config', explicit=True, force=True)
+
+
+def _init_key_config(args):
+    """Initialize the key config.
+
+    Args:
+        args: The argparse namespace.
+    """
+    confdir = standarddir.get(QStandardPaths.ConfigLocation, args)
     try:
         key_config = keyconf.KeyConfigParser(confdir, 'keys.conf')
     except (keyconf.KeyConfigError, UnicodeDecodeError) as e:
@@ -167,11 +176,20 @@ def init(args):
     else:
         objreg.register('key-config', key_config)
         if confdir is not None:
+            save_manager = objreg.get('save-manager')
             filename = os.path.join(confdir, 'keys.conf')
             save_manager.add_saveable(
                 'key-config', key_config.save, key_config.changed,
                 config_opt=('general', 'auto-save-config'), filename=filename)
 
+
+def _init_misc(args):
+    """Initialize misc. config-related files.
+
+    Args:
+        args: The argparse namespace.
+    """
+    save_manager = objreg.get('save-manager')
     datadir = standarddir.get(QStandardPaths.DataLocation, args)
     state_config = ini.ReadWriteConfigParser(datadir, 'state')
     objreg.register('state-config', state_config)
@@ -181,10 +199,21 @@ def init(args):
     from qutebrowser.config.parsers import line
     command_history = line.LineConfigParser(datadir, 'cmd-history',
                                             ('completion', 'history-length'),
-                                            parent=config_obj)
+                                            parent=objreg.get('config'))
     objreg.register('command-history', command_history)
     save_manager.add_saveable('command-history', command_history.save,
                               command_history.changed)
+
+
+def init(args):
+    """Initialize the config.
+
+    Args:
+        args: The argparse namespace.
+    """
+    _init_main_config(args)
+    _init_key_config(args)
+    _init_misc(args)
 
 
 class ConfigManager(QObject):
