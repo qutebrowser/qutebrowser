@@ -75,6 +75,15 @@ Is there an adblocker?::
     usage], so implementing it properly might take some time and won't be done
     for v0.1 if at all.
 
+How do I play Youtube videos with mpv?::
+    You can easily add a keybinding to play youtube videos inside a real video
+    player - optionally even with hinting for links:
++
+----
+:bind x spawn mpv {url}
+:bind ;x hint links spawn mpv {hint-url}
+----
+
 == Troubleshooting
 
 Configuration not saved after modifying config.::
