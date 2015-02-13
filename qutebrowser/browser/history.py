@@ -53,10 +53,7 @@ class HistoryEntry:
     @classmethod
     def from_str(cls, s):
         """Get a history based on a 'TIME URL' string."""
-        splitted = s.split(' ')
-        if len(splitted) != 2:
-            raise OSError("Invalid history entry '{}'".format(s))
-        return cls(*splitted)
+        return cls(*s.split(' ', maxsplit=1))
 
 
 class WebHistory(QWebHistoryInterface):
