@@ -102,7 +102,10 @@ class DocstringParser:
             if stop:
                 break
         for k, v in self.arg_descs.items():
-            self.arg_descs[k] = ' '.join(v).replace(', or None', '')
+            desc = ' '.join(v)
+            desc = re.sub(r', or None($|\.)', r'\1', desc)
+            desc = re.sub(r', or None', r', or not given', desc)
+            self.arg_descs[k] = desc
         self.long_desc = ' '.join(self.long_desc)
         self.short_desc = ' '.join(self.short_desc)
 

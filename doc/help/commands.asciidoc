@@ -99,7 +99,7 @@ Download a given URL, or current page if no URL given.
 
 ==== positional arguments
 * +'url'+: The URL to download. If not given, download the current page.
-* +'dest'+: The file path to write the download to to ask.
+* +'dest'+: The file path to write the download to, or not given to ask.
 
 [[download-cancel]]
 === download-cancel
