@@ -8,10 +8,12 @@
 |<<adblock-update,adblock-update>>|Update the adblock block lists.
 |<<back,back>>|Go back in the history of the current tab.
 |<<bind,bind>>|Bind a key to a command.
-|<<cancel-download,cancel-download>>|Cancel the first/[count]th download.
 |<<close,close>>|Close the current window.
-|<<download,download>>|Download a given URL, given as string.
-|<<download-page,download-page>>|Download the current page.
+|<<download,download>>|Download a given URL, or current page if no URL given.
+|<<download-cancel,download-cancel>>|Cancel the last/[count]th download.
+|<<download-delete,download-delete>>|Delete the last/[count]th download from disk.
+|<<download-open,download-open>>|Open the last/[count]th download.
+|<<download-remove,download-remove>>|Remove the last/[count]th download from the list.
 |<<forward,forward>>|Go forward in the history of the current tab.
 |<<fullscreen,fullscreen>>|Toggle fullscreen mode.
 |<<help,help>>|Show help about a command or setting.
@@ -85,30 +87,52 @@ Bind a key to a command.
 * +*-m*+, +*--mode*+: A comma-separated list of modes to bind the key in (default: `normal`).
 
 
-[[cancel-download]]
-=== cancel-download
-Cancel the first/[count]th download.
-
-==== count
-The index of the download to cancel.
-
 [[close]]
 === close
 Close the current window.
 
 [[download]]
 === download
-Syntax: +:download 'url' ['dest']+
+Syntax: +:download ['url'] ['dest']+
 
-Download a given URL, given as string.
+Download a given URL, or current page if no URL given.
 
 ==== positional arguments
-* +'url'+: The URL to download
+* +'url'+: The URL to download. If not given, download the current page.
 * +'dest'+: The file path to write the download to to ask.
 
-[[download-page]]
-=== download-page
-Download the current page.
+[[download-cancel]]
+=== download-cancel
+Cancel the last/[count]th download.
+
+==== count
+The index of the download to cancel.
+
+[[download-delete]]
+=== download-delete
+Delete the last/[count]th download from disk.
+
+==== count
+The index of the download to cancel.
+
+[[download-open]]
+=== download-open
+Open the last/[count]th download.
+
+==== count
+The index of the download to cancel.
+
+[[download-remove]]
+=== download-remove
+Syntax: +:download-remove [*--all*]+
+
+Remove the last/[count]th download from the list.
+
+==== optional arguments
+* +*-a*+, +*--all*+: If given removes all finished downloads.
+
+==== count
+The index of the download to cancel.
 
 [[forward]]
 === forward
