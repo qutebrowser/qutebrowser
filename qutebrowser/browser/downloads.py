@@ -741,15 +741,15 @@ class DownloadManager(QAbstractListModel):
 
         return download
 
-    def raise_no_download(self, index):
+    def raise_no_download(self, count):
         """Raise an exception that the download doesn't exist
 
         Args:
-            index: The index of the download
+            count: The index of the download
         """
-        if not index:
+        if not count:
             raise cmdexc.CommandError("There's no download!")
-        raise cmdexc.CommandError("There's no download {}!".format(index))
+        raise cmdexc.CommandError("There's no download {}!".format(count))
 
     @cmdutils.register(instance='download-manager', scope='window')
     def download_cancel(self, count: {'special': 'count'}=0):
@@ -950,10 +950,10 @@ class DownloadManager(QAbstractListModel):
         """Update indexes of all DownloadItems"""
         first_idx = None
         for i, d in enumerate(self.downloads, 1):
-            if first_idx is not None and d.index != i:
+            if first_idx is None and d.index != i:
                 first_idx = i - 1
             d.index = i
-        if first_idx:
+        if first_idx is not None:
             model_idx = self.index(first_idx, 0)
             qtutils.ensure_valid(model_idx)
             self.dataChanged.emit(model_idx, self.last_index())
