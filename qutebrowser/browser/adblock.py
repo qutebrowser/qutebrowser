@@ -25,7 +25,7 @@ import functools
 import posixpath
 import zipfile
 
-from PyQt5.QtCore import QStandardPaths
+from PyQt5.QtCore import QStandardPaths, QTimer
 
 from qutebrowser.config import config
 from qutebrowser.utils import objreg, standarddir, log, message
@@ -108,8 +108,9 @@ class HostBlocker:
                 log.misc.exception("Failed to read host blocklist!")
         else:
             if config.get('content', 'host-block-lists') is not None:
-                message.info('last-focused',
-                             "Run :adblock-update to get adblock lists.")
+                QTimer.singleShot(500, functools.partial(
+                    message.info, 'last-focused',
+                    "Run :adblock-update to get adblock lists."))
 
     @cmdutils.register(instance='host-blocker')
     def adblock_update(self, win_id: {'special': 'win_id'}):
