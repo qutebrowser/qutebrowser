@@ -502,11 +502,11 @@ class BrowserPage(QWebPage):
             tabbed_browser.tabopen(url, True)
             return False
         elif open_target == usertypes.ClickTarget.window:
-            main_window = objreg.get('main-window', scope='window',
-                                     window=self._win_id)
-            win_id = main_window.spawn()
+            from qutebrowser.mainwindow import mainwindow
+            window = mainwindow.MainWindow()
+            window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=win_id)
+                                        window=window.win_id)
             tabbed_browser.tabopen(url, False)
             return False
         else:

@@ -207,9 +207,10 @@ class SessionManager(QObject):
             raise SessionError(e)
         log.misc.debug("Loading session {} from {}...".format(name, path))
         for win in data['windows']:
-            win_id = mainwindow.MainWindow.spawn(geometry=win['geometry'])
+            window = mainwindow.MainWindow(geometry=win['geometry'])
+            window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=win_id)
+                                        window=window.win_id)
             tab_to_focus = None
             for i, tab in enumerate(win['tabs']):
                 new_tab = tabbed_browser.tabopen()

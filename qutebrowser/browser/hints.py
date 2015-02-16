@@ -612,6 +612,7 @@ class HintManager(QObject):
             background: True to open in a background tab.
             window: True to open in a new window, False for the current one.
         """
+        from qutebrowser.mainwindow import mainwindow
         elem = self._find_prevnext(frame, prev)
         if elem is None:
             raise cmdexc.CommandError("No {} links found!".format(
@@ -622,11 +623,10 @@ class HintManager(QObject):
                 "prev" if prev else "forward"))
         qtutils.ensure_valid(url)
         if window:
-            main_window = objreg.get('main-window', scope='window',
-                                     window=self._win_id)
-            win_id = main_window.spawn()
+            new_window = mainwindow.MainWindow()
+            new_window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=win_id)
+                                        window=new_window.win_id)
             tabbed_browser.tabopen(url, background=False)
         elif tab:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',

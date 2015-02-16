@@ -327,9 +327,10 @@ class TabbedBrowser(tabwidget.TabWidget):
         log.webview.debug("Creating new tab with URL {}".format(url))
         if config.get('tabs', 'tabs-are-windows') and self.count() > 0:
             from qutebrowser.mainwindow import mainwindow
-            window = mainwindow.MainWindow.spawn()
+            window = mainwindow.MainWindow()
+            window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=window)
+                                        window=window.win_id)
             return tabbed_browser.tabopen(url, background, explicit)
         tab = webview.WebView(self._win_id, self)
         self._connect_tab_signals(tab)

@@ -70,10 +70,11 @@ class CommandDispatcher:
         Args:
             window: If True, open a new window.
         """
+        from qutebrowser.mainwindow import mainwindow
         if window:
-            main_window = objreg.get('main-window', scope='window',
-                                     window=self._win_id)
-            win_id = main_window.spawn()
+            new_window = mainwindow.MainWindow()
+            new_window.show()
+            win_id = new_window.win_id
         else:
             win_id = self._win_id
         return objreg.get('tabbed-browser', scope='window', window=win_id)

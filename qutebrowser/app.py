@@ -205,11 +205,10 @@ class Application(QApplication):
         objreg.register('cache', diskcache)
         if not session_manager.exists(self._args.session):
             log.init.debug("Initializing main window...")
-            win_id = mainwindow.MainWindow.spawn(
-                False if self._args.nowindow else True)
-            main_window = objreg.get('main-window', scope='window',
-                                     window=win_id)
-            self.setActiveWindow(main_window)
+            window = mainwindow.MainWindow()
+            if not self._args.nowindow:
+                window.show()
+            self.setActiveWindow(window)
 
     def _init_icon(self):
         """Initialize the icon of qutebrowser."""
@@ -305,17 +304,18 @@ class Application(QApplication):
         window_to_raise = None
         open_target = config.get('general', 'new-instance-open-target')
         if (open_target == 'window' or force_window) and not force_tab:
-            win_id = mainwindow.MainWindow.spawn()
-            window = objreg.get('main-window', scope='window', window=win_id)
+            window = mainwindow.MainWindow()
+            window.show()
+            win_id = window.win_id
             window_to_raise = window
         else:
             try:
                 window = objreg.last_window()
             except objreg.NoWindow:
                 # There is no window left, so we open a new one
-                win_id = mainwindow.MainWindow.spawn()
-                window = objreg.get('main-window', scope='window',
-                                    window=win_id)
+                window = mainwindow.MainWindow()
+                window.show()
+                win_id = window.win_id
                 window_to_raise = window
             win_id = window.win_id
             if open_target != 'tab-silent':

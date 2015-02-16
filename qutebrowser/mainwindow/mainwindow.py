@@ -54,33 +54,33 @@ class MainWindow(QWidget):
         _commandrunner: The main CommandRunner instance.
     """
 
-    def __init__(self, win_id, geometry=None, parent=None):
+    def __init__(self, geometry=None, parent=None):
         """Create a new main window.
 
         Args:
-            win_id: The ID the new window whouls get.
             geometry: The geometry to load, as a bytes-object (or None).
             parent: The parent the window should get.
         """
         super().__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._commandrunner = None
-        self.win_id = win_id
+        self.win_id = next(win_id_gen)
         self.registry = objreg.ObjectRegistry()
-        objreg.window_registry[win_id] = self
-        objreg.register('main-window', self, scope='window', window=win_id)
+        objreg.window_registry[self.win_id] = self
+        objreg.register('main-window', self, scope='window',
+                        window=self.win_id)
         tab_registry = objreg.ObjectRegistry()
         objreg.register('tab-registry', tab_registry, scope='window',
-                        window=win_id)
+                        window=self.win_id)
 
         message_bridge = message.MessageBridge(self)
         objreg.register('message-bridge', message_bridge, scope='window',
-                        window=win_id)
+                        window=self.win_id)
 
         self.setWindowTitle('qutebrowser')
         if geometry is not None:
             self._load_geometry(geometry)
-        elif win_id == 0:
+        elif self.win_id == 0:
             self._load_state_geometry()
         else:
             self._set_default_geometry()
@@ -91,33 +91,33 @@ class MainWindow(QWidget):
         self._vbox.setSpacing(0)
 
         log.init.debug("Initializing downloads...")
-        download_manager = downloads.DownloadManager(win_id, self)
+        download_manager = downloads.DownloadManager(self.win_id, self)
         objreg.register('download-manager', download_manager, scope='window',
-                        window=win_id)
+                        window=self.win_id)
 
-        self._downloadview = downloadview.DownloadView(win_id)
+        self._downloadview = downloadview.DownloadView(self.win_id)
         self._vbox.addWidget(self._downloadview)
         self._downloadview.show()
 
-        self._tabbed_browser = tabbedbrowser.TabbedBrowser(win_id)
+        self._tabbed_browser = tabbedbrowser.TabbedBrowser(self.win_id)
         objreg.register('tabbed-browser', self._tabbed_browser, scope='window',
-                        window=win_id)
+                        window=self.win_id)
         self._vbox.addWidget(self._tabbed_browser)
 
         # We need to set an explicit parent for StatusBar because it does some
         # show/hide magic immediately which would mean it'd show up as a
         # window.
-        self.status = bar.StatusBar(win_id, parent=self)
+        self.status = bar.StatusBar(self.win_id, parent=self)
         self._vbox.addWidget(self.status)
 
-        self._completion = completionwidget.CompletionView(win_id, self)
+        self._completion = completionwidget.CompletionView(self.win_id, self)
 
-        self._commandrunner = runners.CommandRunner(win_id)
+        self._commandrunner = runners.CommandRunner(self.win_id)
 
         log.init.debug("Initializing search...")
         search_runner = runners.SearchRunner(self)
         objreg.register('search-runner', search_runner, scope='window',
-                        window=win_id)
+                        window=self.win_id)
 
         log.init.debug("Initializing modes...")
         modeman.init(self.win_id, self)
@@ -141,23 +141,6 @@ class MainWindow(QWidget):
         """Resize the completion if related config options changed."""
         if section == 'completion' and option in ('height', 'shrink'):
             self.resize_completion()
-
-    @classmethod
-    def spawn(cls, show=True, geometry=None):
-        """Create a new main window.
-
-        Args:
-            show: Show the window after creating.
-            geometry: The geometry to load, as a bytes-object.
-
-        Return:
-            The new window id.
-        """
-        win_id = next(win_id_gen)
-        win = MainWindow(win_id, geometry=geometry)
-        if show:
-            win.show()
-        return win_id
 
     def _load_state_geometry(self):
         """Load the geometry from the state file."""
