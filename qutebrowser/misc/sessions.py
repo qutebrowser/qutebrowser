@@ -21,7 +21,6 @@
 
 import os
 import os.path
-import functools
 
 from PyQt5.QtCore import (pyqtSignal, QStandardPaths, QUrl, QObject, QPoint,
                           QTimer)
@@ -64,10 +63,6 @@ class SessionManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        save_manager = objreg.get('save-manager')
-        save_manager.add_saveable(
-            'default-session', functools.partial(self.save, 'default'),
-            config_opt=('general', 'save-session'))
         self._base_path = os.path.join(
             standarddir.get(QStandardPaths.DataLocation), 'sessions')
         if not os.path.exists(self._base_path):

@@ -20,7 +20,6 @@
 |<<general-default-encoding,default-encoding>>|Default encoding to use for websites.
 |<<general-new-instance-open-target,new-instance-open-target>>|How to open links in an existing instance if a new one is launched.
 |<<general-log-javascript-console,log-javascript-console>>|Whether to log javascript console messages.
-|<<general-save-session,save-session>>|Whether to always save the open pages.
 |==============
 
 .Quick reference for section ``ui''
@@ -379,17 +378,6 @@ Default: +pass:[window]+
 [[general-log-javascript-console]]
 === log-javascript-console
 Whether to log javascript console messages.
-
-Valid values:
-
- * +true+
- * +false+
-
-Default: +pass:[false]+
-
-[[general-save-session]]
-=== save-session
-Whether to always save the open pages.
 
 Valid values:
 
