@@ -61,6 +61,7 @@ class Completer(QObject):
         self._init_static_completions()
         self._init_setting_completions()
         self.init_quickmark_completions()
+        self.init_session_completion()
         self._timer = QTimer()
         self._timer.setSingleShot(True)
         self._timer.setInterval(0)
@@ -113,6 +114,16 @@ class Completer(QObject):
             models.QuickmarkCompletionModel('url', self), self)
         self._models[usertypes.Completion.quickmark_by_name] = CFM(
             models.QuickmarkCompletionModel('name', self), self)
+
+    @pyqtSlot()
+    def init_session_completion(self):
+        """Initialize session completion model."""
+        try:
+            self._models[usertypes.Completion.sessions].deleteLater()
+        except KeyError:
+            pass
+        self._models[usertypes.Completion.sessions] = CFM(
+            models.SessionCompletionModel(self), self)
 
     def _get_completion_model(self, completion, parts, cursor_part):
         """Get a completion model based on an enum member.

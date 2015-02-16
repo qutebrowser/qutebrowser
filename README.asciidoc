@@ -93,6 +93,7 @@ The following software and libraries are required to run qutebrowser:
 * http://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
 * http://pygments.org/[pygments]
+* http://pyyaml.org/wiki/PyYAML[PyYAML]
 
 To generate the documentation for the `:help` command, when using the git
 repository (rather than a release), http://asciidoc.org/[asciidoc] is needed.

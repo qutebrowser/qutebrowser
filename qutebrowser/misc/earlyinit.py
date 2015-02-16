@@ -245,6 +245,14 @@ def check_libraries():
                          windows="Install from http://www.lfd.uci.edu/"
                                  "~gohlke/pythonlibs/#pygments or via pip.",
                          pip="pygments"),
+        'yaml':
+            _missing_str("PyYAML",
+                         debian="apt-get install python3-yaml",
+                         arch="pacman -S python-yaml",
+                         windows="Use the installers at "
+                                 "http://pyyaml.org/download/pyyaml/ (py3.4) "
+                                 "or Install via pip.",
+                         pip="PyYAML"),
     }
     for name, text in modules.items():
         try:

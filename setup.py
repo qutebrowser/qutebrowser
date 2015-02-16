@@ -44,7 +44,7 @@ try:
                       ['qutebrowser = qutebrowser.qutebrowser:main']},
         test_suite='qutebrowser.test',
         zip_safe=True,
-        install_requires=['pypeg2', 'jinja2', 'pygments'],
+        install_requires=['pypeg2', 'jinja2', 'pygments', 'PyYAML'],
         **common.setupdata
     )
 finally:

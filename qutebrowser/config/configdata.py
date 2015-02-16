@@ -193,6 +193,10 @@ DATA = collections.OrderedDict([
         ('log-javascript-console',
          SettingValue(typ.Bool(), 'false'),
          "Whether to log javascript console messages."),
+
+        ('save-session',
+         SettingValue(typ.Bool(), 'false'),
+         "Whether to always save the open pages."),
     )),
 
     ('ui', sect.KeyValue(

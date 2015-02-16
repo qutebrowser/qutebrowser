@@ -133,7 +133,7 @@ def ensure_not_null(obj):
         raise QtValueError(obj)
 
 
-def _check_qdatastream(stream):
+def check_qdatastream(stream):
     """Check the status of a QDataStream and raise OSError if it's not ok."""
     status_to_str = {
         QDataStream.Ok: "The data stream is operating normally.",
@@ -151,16 +151,28 @@ def serialize(obj):
     """Serialize an object into a QByteArray."""
     data = QByteArray()
     stream = QDataStream(data, QIODevice.WriteOnly)
-    stream << obj  # pylint: disable=pointless-statement
-    _check_qdatastream(stream)
+    serialize_stream(stream, obj)
     return data
 
 
 def deserialize(data, obj):
     """Deserialize an object from a QByteArray."""
     stream = QDataStream(data, QIODevice.ReadOnly)
+    deserialize_stream(stream, obj)
+
+
+def serialize_stream(stream, obj):
+    """Serialize an object into a QDataStream."""
+    check_qdatastream(stream)
+    stream << obj  # pylint: disable=pointless-statement
+    check_qdatastream(stream)
+
+
+def deserialize_stream(stream, obj):
+    """Deserialize a QDataStream into an object."""
+    check_qdatastream(stream)
     stream >> obj  # pylint: disable=pointless-statement
-    _check_qdatastream(stream)
+    check_qdatastream(stream)
 
 
 @contextlib.contextmanager

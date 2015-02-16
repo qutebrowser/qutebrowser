@@ -236,3 +236,16 @@ class QuickmarkCompletionModel(base.BaseCompletionModel):
         else:
             raise ValueError("Invalid value '{}' for match_field!".format(
                 match_field))
+
+
+class SessionCompletionModel(base.BaseCompletionModel):
+
+    """A CompletionModel filled with session names."""
+
+    # pylint: disable=abstract-method
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        cat = self.new_category("Sessions")
+        for name in objreg.get('session-manager').list_sessions():
+            self.new_item(cat, name)

@@ -36,6 +36,9 @@
 |<<restart,restart>>|Restart qutebrowser while keeping existing tabs open.
 |<<save,save>>|Save configs and state.
 |<<search,search>>|Search for a text on the current page.
+|<<session-delete,session-delete>>|Delete a session.
+|<<session-load,session-load>>|Load a session.
+|<<session-save,session-save>>|Save a session.
 |<<set,set>>|Set an option.
 |<<set-cmd-text,set-cmd-text>>|Preset the statusbar to some text.
 |<<spawn,spawn>>|Spawn a command in a shell.
@@ -50,6 +53,7 @@
 |<<unbind,unbind>>|Unbind a keychain.
 |<<undo,undo>>|Re-open a closed tab (optionally skipping [count] closed tabs).
 |<<view-source,view-source>>|Show the source of the current page.
+|<<wq,wq>>|Save open pages and quit.
 |<<yank,yank>>|Yank the current URL/title to the clipboard or primary selection.
 |<<zoom,zoom>>|Set the zoom level for the current tab.
 |<<zoom-in,zoom-in>>|Increase the zoom level for the current tab.
@@ -396,6 +400,33 @@ Search for a text on the current page.
 ==== optional arguments
 * +*-r*+, +*--reverse*+: Reverse search direction.
 
+[[session-delete]]
+=== session-delete
+Syntax: +:session-delete 'name'+
+
+Delete a session.
+
+==== positional arguments
+* +'name'+: The name of the session.
+
+[[session-load]]
+=== session-load
+Syntax: +:session-load 'name'+
+
+Load a session.
+
+==== positional arguments
+* +'name'+: The name of the session.
+
+[[session-save]]
+=== session-save
+Syntax: +:session-save ['name']+
+
+Save a session.
+
+==== positional arguments
+* +'name'+: The name of the session.
+
 [[set]]
 === set
 Syntax: +:set [*--temp*] [*--print*] ['section'] ['option'] ['value']+
@@ -537,6 +568,15 @@ Re-open a closed tab (optionally skipping [count] closed tabs).
 [[view-source]]
 === view-source
 Show the source of the current page.
+
+[[wq]]
+=== wq
+Syntax: +:wq ['name']+
+
+Save open pages and quit.
+
+==== positional arguments
+* +'name'+: The name of the session.
 
 [[yank]]
 === yank

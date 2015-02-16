@@ -18,3 +18,9 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 """The qutebrowser test suite."""
+
+from PyQt5.QtWidgets import QApplication
+
+# We create a singleton QApplication here.
+
+qApp = QApplication([])

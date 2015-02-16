@@ -43,7 +43,8 @@ from qutebrowser.config import style, config, websettings, configexc
 from qutebrowser.browser import quickmarks, cookies, cache, adblock, history
 from qutebrowser.browser.network import qutescheme, proxy
 from qutebrowser.mainwindow import mainwindow
-from qutebrowser.misc import crashdialog, readline, ipc, earlyinit, savemanager
+from qutebrowser.misc import (crashdialog, readline, ipc, earlyinit,
+                              savemanager, sessions)
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
@@ -179,6 +180,9 @@ class Application(QApplication):
         history.init()
         log.init.debug("Initializing crashlog...")
         self._handle_segfault()
+        log.init.debug("Initializing sessions...")
+        session_manager = sessions.SessionManager(self)
+        objreg.register('session-manager', session_manager)
         log.init.debug("Initializing js-bridge...")
         js_bridge = qutescheme.JSBridge(self)
         objreg.register('js-bridge', js_bridge)
@@ -199,11 +203,13 @@ class Application(QApplication):
         log.init.debug("Initializing cache...")
         diskcache = cache.DiskCache(self)
         objreg.register('cache', diskcache)
-        log.init.debug("Initializing main window...")
-        win_id = mainwindow.MainWindow.spawn(
-            False if self._args.nowindow else True)
-        main_window = objreg.get('main-window', scope='window', window=win_id)
-        self.setActiveWindow(main_window)
+        if not session_manager.exists(self._args.session):
+            log.init.debug("Initializing main window...")
+            win_id = mainwindow.MainWindow.spawn(
+                False if self._args.nowindow else True)
+            main_window = objreg.get('main-window', scope='window',
+                                     window=win_id)
+            self.setActiveWindow(main_window)
 
     def _init_icon(self):
         """Initialize the icon of qutebrowser."""
@@ -261,9 +267,26 @@ class Application(QApplication):
             except (configexc.Error, configparser.Error) as e:
                 message.error('current', "set: {} - {}".format(
                     e.__class__.__name__, e))
+        self._load_session(self._args.session)
         self.process_pos_args(self._args.command)
         self._open_startpage()
         self._open_quickstart()
+
+    def _load_session(self, name):
+        """Load the default session.
+
+        Args:
+            name: The name of the session to load.
+        """
+        session_manager = objreg.get('session-manager')
+        try:
+            session_manager.load(name)
+        except sessions.SessionNotFoundError:
+            pass
+        except sessions.SessionError:
+            log.init.exception("Failed to load default session")
+        else:
+            session_manager.delete('default')
 
     def _get_window(self, via_ipc, force_window=False, force_tab=False):
         """Helper function for process_pos_args to get a window id.

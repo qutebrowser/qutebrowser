@@ -6,5 +6,6 @@
 # F841: unused variable
 # F401: Unused import
 # E402: module level import not at top of file
-ignore=E265,E501,F841,F401,E402
+# E266: too many leading '#' for block comment
+ignore=E265,E501,F841,F401,E402,E266
 max_complexity = 12

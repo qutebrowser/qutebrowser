@@ -21,7 +21,8 @@
 
 import functools
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, PYQT_VERSION, Qt, QUrl
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, Qt, QUrl, QPoint,
+                          QTimer)
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
 from PyQt5.QtWidgets import QFileDialog
@@ -29,7 +30,7 @@ from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
-from qutebrowser.browser import http
+from qutebrowser.browser import http, tabhistory
 from qutebrowser.browser.network import networkmanager
 from qutebrowser.utils import (message, usertypes, log, jinja, qtutils, utils,
                                objreg)
@@ -73,6 +74,10 @@ class BrowserPage(QWebPage):
         self.loadStarted.connect(self.on_load_started)
         self.featurePermissionRequested.connect(
             self.on_feature_permission_requested)
+        self.saveFrameStateRequested.connect(
+            self.on_save_frame_state_requested)
+        self.restoreFrameStateRequested.connect(
+            self.on_restore_frame_state_requested)
 
     if PYQT_VERSION > 0x050300:
         # WORKAROUND (remove this when we bump the requirements to 5.3.1)
@@ -213,6 +218,23 @@ class BrowserPage(QWebPage):
         else:
             nam.shutdown()
 
+    def load_history(self, entries):
+        """Load the history from a list of TabHistoryItem objects."""
+        stream, _data, user_data = tabhistory.serialize(entries)
+        history = self.history()
+        qtutils.deserialize_stream(stream, history)
+        for i, data in enumerate(user_data):
+            history.itemAt(i).setUserData(data)
+        cur_data = history.currentItem().userData()
+        if cur_data is not None:
+            frame = self.mainFrame()
+            if 'zoom' in cur_data:
+                frame.setZoomFactor(cur_data['zoom'])
+            if ('scroll-pos' in cur_data and
+                    frame.scrollPosition() == QPoint(0, 0)):
+                QTimer.singleShot(0, functools.partial(
+                    frame.setScrollPosition, cur_data['scroll-pos']))
+
     def display_content(self, reply, mimetype):
         """Display a QNetworkReply with an explicitely set mimetype."""
         self.mainFrame().setContent(reply.readAll(), mimetype, reply.url())
@@ -337,6 +359,37 @@ class BrowserPage(QWebPage):
         """
         if frame is cancelled_frame and feature == cancelled_feature:
             question.abort()
+
+    def on_save_frame_state_requested(self, frame, item):
+        """Save scroll position and zoom in history.
+
+        Args:
+            frame: The QWebFrame which gets saved.
+            item: The QWebHistoryItem to be saved.
+        """
+        if frame != self.mainFrame():
+            return
+        data = {
+            'zoom': frame.zoomFactor(),
+            'scroll-pos': frame.scrollPosition(),
+        }
+        item.setUserData(data)
+
+    def on_restore_frame_state_requested(self, frame):
+        """Restore scroll position and zoom from history.
+
+        Args:
+            frame: The QWebFrame which gets restored.
+        """
+        if frame != self.mainFrame():
+            return
+        data = self.history().currentItem().userData()
+        if data is None:
+            return
+        if 'zoom' in data:
+            frame.setZoomFactor(data['zoom'])
+        if 'scroll-pos' in data and frame.scrollPosition() == QPoint(0, 0):
+            frame.setScrollPosition(data['scroll-pos'])
 
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""
