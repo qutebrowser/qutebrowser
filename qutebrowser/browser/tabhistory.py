@@ -111,10 +111,7 @@ def _serialize_item(i, item, stream):
     except (KeyError, TypeError):
         stream.writeInt32(0)
     ## node->m_pageScaleFactor
-    try:
-        stream.writeFloat(item.user_data['zoom'])
-    except (KeyError, TypeError):
-        stream.writeFloat(1)
+    stream.writeFloat(1)
     ## hasStateObject
     # Support for HTML5 History
     stream.writeBool(False)
