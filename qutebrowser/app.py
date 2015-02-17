@@ -430,7 +430,7 @@ class Application(QApplication):
     def _connect_signals(self):
         """Connect all signals to their slots."""
         config_obj = objreg.get('config')
-        self.lastWindowClosed.connect(self.shutdown)
+        self.lastWindowClosed.connect(self.on_last_window_closed)
         config_obj.style_changed.connect(style.get_stylesheet.cache_clear)
         self.focusChanged.connect(self.on_focus_changed)
 
@@ -589,7 +589,7 @@ class Application(QApplication):
             log.destroy.exception("Error while ignoring ipc")
 
         try:
-            self.lastWindowClosed.disconnect(self.shutdown)
+            self.lastWindowClosed.disconnect(self.on_last_window_closed)
         except TypeError:
             log.destroy.exception("Error while preventing shutdown")
         QApplication.closeAllWindows()
@@ -604,11 +604,6 @@ class Application(QApplication):
         qInstallMessageHandler(None)
         self._destroy_crashlogfile()
         sys.exit(1)
-
-    @cmdutils.register(instance='app', name=['quit', 'q'])
-    def quit(self):
-        """Quit qutebrowser."""
-        QApplication.closeAllWindows()
 
     def _get_restart_args(self, pages):
         """Get the current working directory and args to relaunch qutebrowser.
@@ -742,20 +737,41 @@ class Application(QApplication):
         log.destroy.info("WHY ARE YOU DOING THIS TO ME? :(")
         sys.exit(128 + signum)
 
-    @pyqtSlot()
-    def shutdown(self, status=0):
-        """Try to shutdown everything cleanly.
+    @cmdutils.register(instance='app', name='wq',
+                       completion=[usertypes.Completion.sessions])
+    def save_and_quit(self, name='default'):
+        """Save open pages and quit.
 
-        For some reason lastWindowClosing sometimes seem to get emitted twice,
-        so we make sure we only run once here.
+        Args:
+            name: The name of the session.
+        """
+        self.shutdown(session=name)
+
+    @pyqtSlot()
+    def on_last_window_closed(self):
+        """Slot which gets invoked when the last window was closed."""
+        self.shutdown(last_window=True)
+
+    @cmdutils.register(instance='app', name=['quit', 'q'], ignore_args=True)
+    def shutdown(self, status=0, session=None, last_window=False):
+        """Quit qutebrowser.
 
         Args:
             status: The status code to exit with.
+            session: A session name if saving should be forced.
+            last_window: If the shutdown was triggered due to the last window
+                         closing.
         """
         if self._shutting_down:
             return
         self._shutting_down = True
-        log.destroy.debug("Shutting down with status {}...".format(status))
+        log.destroy.debug("Shutting down with status {}, session {}..."
+                          .format(status, session))
+        session_manager = objreg.get('session-manager')
+        if session is not None:
+            session_manager.save(session, last_window=last_window)
+        elif config.get('general', 'save-session'):
+            session_manager.save('default', last_window=last_window)
         deferrer = False
         for win_id in objreg.window_registry:
             prompter = objreg.get('prompter', None, scope='window',

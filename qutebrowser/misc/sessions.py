@@ -53,6 +53,8 @@ class SessionManager(QObject):
 
     Attributes:
         _base_path: The path to store sessions under.
+        _last_window_session: The session data of the last window which was
+                              closed.
 
     Signals:
         update_completion: Emitted when the session completion should get
@@ -65,6 +67,7 @@ class SessionManager(QObject):
         super().__init__(parent)
         self._base_path = os.path.join(
             standarddir.get(QStandardPaths.DataLocation), 'sessions')
+        self._last_window_session = None
         if not os.path.exists(self._base_path):
             os.mkdir(self._base_path)
 
@@ -153,12 +156,21 @@ class SessionManager(QObject):
             data['windows'].append(win_data)
         return data
 
-    def save(self, name):
-        """Save a named session."""
+    def save(self, name, last_window=False):
+        """Save a named session.
+
+        Args:
+            last_window: If set, saves the saved self._last_window_session
+                         instead of the currently open state.
+        """
         path = self._get_session_path(name)
 
         log.misc.debug("Saving session {} to {}...".format(name, path))
-        data = self._save_all()
+        if last_window:
+            data = self._last_window_session
+            assert data is not None
+        else:
+            data = self._save_all()
         log.misc.vdebug("Saving data: {}".format(data))
         try:
             with qtutils.savefile_open(path) as f:
@@ -168,6 +180,10 @@ class SessionManager(QObject):
             raise SessionError(e)
         else:
             self.update_completion.emit()
+
+    def save_last_window_session(self):
+        """Temporarily save the session for the last closed window."""
+        self._last_window_session = self._save_all()
 
     def _load_tab(self, new_tab, data):
         """Load yaml data into a newly opened tab."""
@@ -267,17 +283,6 @@ class SessionManager(QObject):
         except SessionError as e:
             raise cmdexc.CommandError("Error while saving session: {}"
                                       .format(e))
-
-    @cmdutils.register(name='wq', completion=[usertypes.Completion.sessions],
-                       instance='session-manager')
-    def save_and_quit(self, name='default'):
-        """Save open pages and quit.
-
-        Args:
-            name: The name of the session.
-        """
-        self.session_save(name)
-        QApplication.closeAllWindows()
 
     @cmdutils.register(completion=[usertypes.Completion.sessions],
                        instance='session-manager')

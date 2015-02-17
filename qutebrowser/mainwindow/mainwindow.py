@@ -364,6 +364,8 @@ class MainWindow(QWidget):
                 e.ignore()
                 return
         e.accept()
+        if len(objreg.window_registry) == 1:
+            objreg.get('session-manager').save_last_window_session()
         objreg.get('app').geometry = bytes(self.saveGeometry())
         log.destroy.debug("Closing window {}".format(self.win_id))
         self._tabbed_browser.shutdown()
