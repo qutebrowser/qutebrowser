@@ -151,6 +151,7 @@ def _init_main_config(args):
                         # Option added to builtin defaults but not in user's
                         # config yet
                         save_manager.save('config', explicit=True, force=True)
+                        return
 
 
 def _init_key_config(args):
