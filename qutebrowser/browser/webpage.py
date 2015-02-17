@@ -87,7 +87,8 @@ class BrowserPage(QWebPage):
 
         def javaScriptPrompt(self, _frame, msg, default):
             """Override javaScriptPrompt to use the statusbar."""
-            if self._is_shutting_down:
+            if (self._is_shutting_down or
+                    config.get('content', 'ignore-javascript-prompt')):
                 return (False, "")
             answer = self._ask("js: {}".format(msg), usertypes.PromptMode.text,
                                default)
@@ -433,7 +434,8 @@ class BrowserPage(QWebPage):
 
     def javaScriptAlert(self, _frame, msg):
         """Override javaScriptAlert to use the statusbar."""
-        if self._is_shutting_down:
+        if (self._is_shutting_down or
+                config.get('content', 'ignore-javascript-alert')):
             return
         self._ask("[js alert] {}".format(msg), usertypes.PromptMode.alert)
 

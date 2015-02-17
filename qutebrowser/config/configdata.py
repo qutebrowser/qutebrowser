@@ -542,6 +542,14 @@ DATA = collections.OrderedDict([
          SettingValue(typ.Bool(), 'false'),
          "Whether JavaScript programs can read or write to the clipboard."),
 
+        ('ignore-javascript-prompt',
+         SettingValue(typ.Bool(), 'false'),
+         "Whether all javascript prompts should be ignored."),
+
+        ('ignore-javascript-alert',
+         SettingValue(typ.Bool(), 'false'),
+         "Whether all javascript alerts should be ignored."),
+
         ('local-content-can-access-remote-urls',
          SettingValue(typ.Bool(), 'false'),
          "Whether locally loaded documents are allowed to access remote "

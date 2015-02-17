@@ -128,6 +128,8 @@
 |<<content-javascript-can-open-windows,javascript-can-open-windows>>|Whether JavaScript programs can open new windows.
 |<<content-javascript-can-close-windows,javascript-can-close-windows>>|Whether JavaScript programs can close windows.
 |<<content-javascript-can-access-clipboard,javascript-can-access-clipboard>>|Whether JavaScript programs can read or write to the clipboard.
+|<<content-ignore-javascript-prompt,ignore-javascript-prompt>>|Whether all javascript prompts should be ignored.
+|<<content-ignore-javascript-alert,ignore-javascript-alert>>|Whether all javascript alerts should be ignored.
 |<<content-local-content-can-access-remote-urls,local-content-can-access-remote-urls>>|Whether locally loaded documents are allowed to access remote urls.
 |<<content-local-content-can-access-file-urls,local-content-can-access-file-urls>>|Whether locally loaded documents are allowed to access other local urls.
 |<<content-cookies-accept,cookies-accept>>|Whether to accept cookies.
@@ -1071,6 +1073,28 @@ Default: +pass:[false]+
 [[content-javascript-can-access-clipboard]]
 === javascript-can-access-clipboard
 Whether JavaScript programs can read or write to the clipboard.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[false]+
+
+[[content-ignore-javascript-prompt]]
+=== ignore-javascript-prompt
+Whether all javascript prompts should be ignored.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[false]+
+
+[[content-ignore-javascript-alert]]
+=== ignore-javascript-alert
+Whether all javascript alerts should be ignored.
 
 Valid values:
 
