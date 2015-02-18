@@ -837,6 +837,7 @@ class Directory(BaseType):
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
+        value = os.path.expandvars(value)
         value = os.path.expanduser(value)
         if not os.path.isdir(value):
             raise configexc.ValidationError(value, "must be a valid "
@@ -847,6 +848,7 @@ class Directory(BaseType):
     def transform(self, value):
         if not value:
             return None
+        value = os.path.expandvars(value)
         return os.path.expanduser(value)
 
 
@@ -1132,6 +1134,7 @@ class UserStyleSheet(File):
                 return
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
+        value = os.path.expandvars(value)
         value = os.path.expanduser(value)
         if not os.path.isabs(value):
             # probably a CSS, so we don't handle it as filename.
@@ -1147,7 +1150,8 @@ class UserStyleSheet(File):
             raise configexc.ValidationError(value, "must be a valid file!")
 
     def transform(self, value):
-        path = os.path.expanduser(value)
+        path = os.path.expandvars(value)
+        path = os.path.expanduser(path)
         if not value:
             return None
         elif os.path.isabs(path):
