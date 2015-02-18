@@ -24,21 +24,13 @@ import os.path
 
 from PyQt5.QtCore import QCoreApplication, QStandardPaths
 
-from qutebrowser.utils import log
+from qutebrowser.utils import log, qtutils
 
 
 def _writable_location(typ):
     """Wrapper around QStandardPaths.writableLocation."""
-    qapp = QCoreApplication.instance()
-    orgname = qapp.organizationName()
-    # We need to temporarily unset the organisationname here since the
-    # webinspector wants it to be set to store its persistent data correctly,
-    # but we don't want that to happen.
-    qapp.setOrganizationName(None)
-    try:
+    with qtutils.unset_organization():
         path = QStandardPaths.writableLocation(typ)
-    finally:
-        qapp.setOrganizationName(orgname)
     if not path:
         raise ValueError("QStandardPaths returned an empty value!")
     # Qt seems to use '/' as path separator even on Windows...

@@ -37,6 +37,7 @@ import contextlib
 
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QSaveFile)
+from PyQt5.QtWidgets import QApplication
 
 
 MAXVALS = {
@@ -198,6 +199,21 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
         ok = f.commit()
         if not ok:
             raise OSError(f.errorString())
+
+
+@contextlib.contextmanager
+def unset_organization():
+    """Temporarily unset QApplication.organizationName().
+
+    This is primarily needed in config.py.
+    """
+    qapp = QApplication.instance()
+    orgname = qapp.organizationName()
+    qapp.setOrganizationName(None)
+    try:
+        yield
+    finally:
+        qapp.setOrganizationName(orgname)
 
 
 class PyQIODevice(io.BufferedIOBase):
