@@ -32,7 +32,8 @@ import configparser
 import collections
 import collections.abc
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QStandardPaths, QUrl
+from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QStandardPaths, QUrl,
+                          QSettings)
 from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import configdata, configexc, textwrapper
@@ -163,6 +164,18 @@ def init(args):
     command_history = line.LineConfigParser(datadir, 'cmd-history',
                                             ('completion', 'history-length'))
     objreg.register('command-history', command_history)
+
+    # Set the QSettings path to something like
+    # ~/.config/qutebrowser/qsettings/qutebrowser/qutebrowser.conf so it
+    # doesn't overwrite our config.
+    #
+    # This fixes one of the corruption issues here:
+    # https://github.com/The-Compiler/qutebrowser/issues/515
+
+    config_path = standarddir.get(QStandardPaths.ConfigLocation, args)
+    path = os.path.join(config_path, 'qsettings')
+    for fmt in (QSettings.NativeFormat, QSettings.IniFormat):
+        QSettings.setPath(fmt, QSettings.UserScope, path)
 
 
 class ConfigManager(QObject):
