@@ -51,6 +51,10 @@ FIRST_COMMENT = r"""
 # Interpolation looks like  ${value}  or  ${section:value} and will be
 # replaced by the respective value.
 #
+# Some settings will expand environment variables. Note that, since
+# interpolation is run first, you will need to escape the  $  char as
+# described below.
+#
 # This is the default config, so if you want to remove anything from
 # here (as opposed to change/add), for example a keybinding, set it to
 # an empty value.
@@ -235,7 +239,8 @@ DATA = collections.OrderedDict([
         ('user-stylesheet',
          SettingValue(typ.UserStyleSheet(),
                       '::-webkit-scrollbar { width: 0px; height: 0px; }'),
-         "User stylesheet to use (absolute filename or CSS string)."),
+         "User stylesheet to use (absolute filename or CSS string). Will "
+         "expand environment variables."),
 
         ('css-media-type',
          SettingValue(typ.String(none_ok=True), ''),
@@ -444,7 +449,7 @@ DATA = collections.OrderedDict([
         ('download-directory',
          SettingValue(typ.Directory(none_ok=True), ''),
          "The directory to save downloads to. An empty value selects a "
-         "sensible os-specific default."),
+         "sensible os-specific default. Will expand environment variables."),
 
         ('maximum-pages-in-cache',
          SettingValue(
