@@ -594,7 +594,7 @@ class ConfigManager(QObject):
             print_val = True
         else:
             try:
-                if optname.endswith('!'):
+                if optname.endswith('!') and value is None:
                     val = self.get(sectname, optname[:-1])
                     layer = 'temp' if temp else 'conf'
                     if isinstance(val, bool):
@@ -602,12 +602,12 @@ class ConfigManager(QObject):
                     else:
                         raise cmdexc.CommandError(
                             "set: Attempted inversion of non-boolean value.")
-                else:
-                    if value is None:
-                        raise cmdexc.CommandError(
-                            "set: The following arguments are required: value")
+                elif value is not None:
                     layer = 'temp' if temp else 'conf'
                     self.set(layer, sectname, optname, value)
+                else:
+                    raise cmdexc.CommandError("set: The following arguments "
+                                              "are required: value")
             except (configexc.Error, configparser.Error) as e:
                 raise cmdexc.CommandError("set: {} - {}".format(
                     e.__class__.__name__, e))
