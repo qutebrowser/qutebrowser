@@ -33,11 +33,20 @@ def environ_set_temp(name, value):
         oldval = os.environ[name]
     except KeyError:
         oldval = None
-    os.environ[name] = value
+
+    if value is not None:
+        os.environ[name] = value
+    else:
+        try:
+            del os.environ[name]
+        except KeyError:
+            pass
+
     yield
+
     if oldval is not None:
         os.environ[name] = oldval
-    else:
+    elif value is not None:
         del os.environ[name]
 
 

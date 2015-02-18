@@ -43,6 +43,19 @@ class TestEnvironSetTemp(unittest.TestCase):
             self.assertEqual(os.environ['QUTEBROWSER_ENVIRON_TEST'], 'newval')
         self.assertNotIn('QUTEBROWSER_ENVIRON_TEST', os.environ)
 
+    def test_environ_none_set(self):
+        """Test environ_set_temp with something which was set already."""
+        os.environ['QUTEBROWSER_ENVIRON_TEST'] = 'oldval'
+        with helpers.environ_set_temp('QUTEBROWSER_ENVIRON_TEST', None):
+            self.assertNotIn('QUTEBROWSER_ENVIRON_TEST', os.environ)
+        self.assertEqual(os.environ['QUTEBROWSER_ENVIRON_TEST'], 'oldval')
+
+    def test_environ_none_unset(self):
+        """Test environ_set_temp with something which wasn't set yet."""
+        with helpers.environ_set_temp('QUTEBROWSER_ENVIRON_TEST', None):
+            self.assertNotIn('QUTEBROWSER_ENVIRON_TEST', os.environ)
+        self.assertNotIn('QUTEBROWSER_ENVIRON_TEST', os.environ)
+
     def tearDown(self):
         if 'QUTEBROWSER_ENVIRON_TEST' in os.environ:
             # if some test failed

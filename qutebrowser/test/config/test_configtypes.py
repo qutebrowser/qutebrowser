@@ -26,7 +26,7 @@ import base64
 from unittest import mock
 
 from qutebrowser.config import configtypes, configexc
-from qutebrowser.test import stubs
+from qutebrowser.test import stubs, helpers
 from qutebrowser.utils import debug, utils
 
 from PyQt5.QtCore import QUrl
@@ -1377,14 +1377,27 @@ class DirectoryTests(unittest.TestCase):
 
     def test_validate_expanduser(self, os_path):
         """Test if validate expands the user correctly."""
+        os_path.expandvars.side_effect = lambda x: x
         os_path.expanduser.side_effect = lambda x: x.replace('~', '/home/foo')
         os_path.isdir.side_effect = lambda path: path == '/home/foo/foobar'
         os_path.isabs.return_value = True
         self.t.validate('~/foobar')
         os_path.expanduser.assert_called_once_with('~/foobar')
 
+    def test_validate_expandvars(self, os_path):
+        """Test if validate expands the user correctly."""
+        os_path.expandvars.side_effect = lambda x: x.replace('$BAR',
+                                                             '/home/foo/bar')
+        os_path.expanduser.side_effect = lambda x: x
+        os_path.isdir.side_effect = lambda path: path == '/home/foo/bar/foobar'
+        os_path.isabs.return_value = True
+        with helpers.environ_set_temp('bar', '/home/foo/bar'):
+            self.t.validate('$BAR/foobar')
+            os_path.expandvars.assert_called_once_with('$BAR/foobar')
+
     def test_transform(self, os_path):
         """Test transform."""
+        os_path.expandvars.side_effect = lambda x: x
         os_path.expanduser.side_effect = lambda x: x.replace('~', '/home/foo')
         self.assertEqual(self.t.transform('~/foobar'), '/home/foo/foobar')
         os_path.expanduser.assert_called_once_with('~/foobar')
@@ -1779,6 +1792,12 @@ class UserStyleSheetTests(unittest.TestCase):
         """Test transform with a filename."""
         path = os.path.join(os.path.sep, 'foo', 'bar')
         self.assertEqual(self.t.transform(path), QUrl("file:///foo/bar"))
+
+    def test_transform_file_expandvars(self):
+        """Test transform with a filename (expandvars)."""
+        with helpers.environ_set_temp('FOO', 'foo'):
+            path = os.path.join(os.path.sep, '$FOO', 'bar')
+            self.assertEqual(self.t.transform(path), QUrl("file:///foo/bar"))
 
     def test_transform_base64(self):
         """Test transform with a data string."""
