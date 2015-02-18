@@ -21,7 +21,7 @@
 
 import unittest
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QPoint
 from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.browser import tabhistory
@@ -38,15 +38,24 @@ class SerializeHistoryTests(unittest.TestCase):
         self.history = self.page.history()
         self.assertEqual(self.history.count(), 0)
 
-        self.items = [Item(QUrl('https://www.heise.de/'),
-                           QUrl('http://www.heise.de/'),
-                           'heise'),
-                      Item(QUrl('http://example.com/%E2%80%A6'),
-                           QUrl('http://example.com/%E2%80%A6'),
-                           'percent', active=True),
-                      Item(QUrl('http://example.com/?foo=bar'),
-                           QUrl('http://original.url.example.com/'),
-                           'arg', user_data={'foo': 23, 'bar': 42})]
+        self.items = [
+            Item(QUrl('https://www.heise.de/'), QUrl('http://www.heise.de/'),
+                 'heise'),
+            Item(QUrl('http://example.com/%E2%80%A6'),
+                 QUrl('http://example.com/%E2%80%A6'), 'percent', active=True),
+            Item(QUrl('http://example.com/?foo=bar'),
+                 QUrl('http://original.url.example.com/'), 'arg',
+                 user_data={'foo': 23, 'bar': 42}),
+            # From https://github.com/OtterBrowser/otter-browser/issues/709#issuecomment-74749471
+            Item(QUrl('http://github.com/OtterBrowser/24/134/2344/otter-browser/issues/709/'),
+                 QUrl('http://github.com/OtterBrowser/24/134/2344/otter-browser/issues/709/'),
+                 'Page not found | github',
+                 user_data={'zoom': 149, 'scroll-pos': QPoint(0, 0)}),
+            Item(QUrl('https://mail.google.com/mail/u/0/#label/some+label/234lkjsd0932lkjf884jqwerdf4'),
+                 QUrl('https://mail.google.com/mail/u/0/#label/some+label/234lkjsd0932lkjf884jqwerdf4'),
+                 '"some label" - email@gmail.com - Gmail"',
+                 user_data={'zoom': 120, 'scroll-pos': QPoint(0, 0)}),
+        ]
         stream, _data, self.user_data = tabhistory.serialize(self.items)
         qtutils.deserialize_stream(stream, self.history)
 
