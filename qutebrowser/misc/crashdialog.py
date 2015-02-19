@@ -52,7 +52,7 @@ def parse_fatal_stacktrace(text):
     lines = [
         r'Fatal Python error: (.*)',
         r' *',
-        r'Current thread [^ ]* \(most recent call first\): *',
+        r'(Current )?[Tt]hread [^ ]* \(most recent call first\): *',
         r'  File ".*", line \d+ in (.*)',
     ]
     m = re.match('\n'.join(lines), text)
