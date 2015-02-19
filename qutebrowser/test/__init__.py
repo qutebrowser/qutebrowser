@@ -19,13 +19,8 @@
 
 """The qutebrowser test suite."""
 
-import atexit
-import functools
-
-import sip
 from PyQt5.QtWidgets import QApplication
 
 # We create a singleton QApplication here.
 
 qApp = QApplication([])
-atexit.register(functools.partial(sip.delete, qApp))
