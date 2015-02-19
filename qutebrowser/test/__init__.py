@@ -19,8 +19,11 @@
 
 """The qutebrowser test suite."""
 
+import atexit
+
 from PyQt5.QtWidgets import QApplication
 
 # We create a singleton QApplication here.
 
 qApp = QApplication([])
+atexit.register(qApp.quit)
