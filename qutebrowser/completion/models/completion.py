@@ -130,7 +130,7 @@ class SettingValueCompletionModel(base.BaseCompletionModel):
             # Different type for each value (KeyValue)
             vals = configdata.DATA[section][option].typ.complete()
         if vals is not None:
-            cat = self.new_category("Allowed", sort=1)
+            cat = self.new_category("Completions", sort=1)
             for (val, desc) in vals:
                 self.new_item(cat, val, desc)
 
