@@ -1390,3 +1390,74 @@ class NewInstanceOpenTarget(BaseType):
                                               "window without activating "
                                               "it."),
                                ('window', "Open in a new window."))
+
+
+class UserAgent(BaseType):
+
+    """The user agent to use."""
+
+    typestr = 'user-agent'
+
+    def __init__(self, none_ok=False):
+        super().__init__(none_ok)
+
+    def validate(self, value):
+        if not value:
+            if self._none_ok:
+                return
+            else:
+                raise configexc.ValidationError(value, "may not be empty!")
+
+    def complete(self):
+        """Complete a list of common user agents."""
+        out = [
+            ('Mozilla/5.0 (Windows NT 6.1; WOW64; rv:35.0) Gecko/20100101 '
+             'Firefox/35.0',
+             "Firefox 35.0 Win7 64-bit"),
+            ('Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 '
+             'Firefox/35.0',
+             "Firefox 35.0 Ubuntu"),
+            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:35.0) '
+             'Gecko/20100101 Firefox/35.0',
+             "Firefox 35.0 MacOSX"),
+
+            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) '
+             'AppleWebKit/600.3.18 (KHTML, like Gecko) Version/8.0.3 '
+             'Safari/600.3.18',
+             "Safari 8.0 MacOSX"),
+
+            ('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, '
+             'like Gecko) Chrome/40.0.2214.111 Safari/537.36',
+             "Chrome 40.0 Win7 64-bit"),
+            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) '
+             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.111 '
+             'Safari/537.36',
+             "Chrome 40.0 MacOSX"),
+            ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
+             '(KHTML, like Gecko) Chrome/40.0.2214.111 Safari/537.36',
+             "Chrome 40.0 Linux"),
+
+            ('Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like '
+             'Gecko',
+             "IE 11.0 Win7 64-bit"),
+
+            ('Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_2 like Mac OS X) '
+             'AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 '
+             'Mobile/12B440 Safari/600.1.4',
+             "Mobile Safari 8.0 iOS"),
+            ('Mozilla/5.0 (Android; Mobile; rv:35.0) Gecko/35.0 Firefox/35.0',
+             "Firefox 35, Android"),
+            ('Mozilla/5.0 (Linux; Android 5.0.2; One Build/KTU84L.H4) '
+             'AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 '
+             'Chrome/37.0.0.0 Mobile Safari/537.36',
+             "Android Browser"),
+
+            ('Mozilla/5.0 (compatible; Googlebot/2.1; '
+             '+http://www.google.com/bot.html',
+             "Google Bot"),
+            ('Wget/1.16.1 (linux-gnu)',
+             "wget 1.16.1"),
+            ('curl/7.40.0',
+             "curl 7.40.0")
+        ]
+        return out

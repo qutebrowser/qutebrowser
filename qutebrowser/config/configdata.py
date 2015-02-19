@@ -278,7 +278,7 @@ DATA = collections.OrderedDict([
          "Value to send in the `accept-language` header."),
 
         ('user-agent',
-         SettingValue(typ.String(none_ok=True), ''),
+         SettingValue(typ.UserAgent(none_ok=True), ''),
          "User agent to send. Empty to send the default."),
 
         ('proxy',

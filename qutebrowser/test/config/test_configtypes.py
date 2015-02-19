@@ -2035,5 +2035,31 @@ class FormatStringTests(unittest.TestCase):
         t.validate('')
 
 
+class UserAgentTests(unittest.TestCase):
+
+    """Test UserAgent."""
+
+    def setUp(self):
+        self.t = configtypes.UserAgent()
+
+    def test_validate_empty(self):
+        """Test validate with empty string and none_ok = False."""
+        with self.assertRaises(configexc.ValidationError):
+            self.t.validate("")
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with empty string and none_ok = True."""
+        t = configtypes.UserAgent(none_ok=True)
+        t.validate("")
+
+    def test_validate(self):
+        """Test validate with some random string."""
+        self.t.validate("Hello World! :-)")
+
+    def test_transform(self):
+        """Test if transform doesn't alter the value."""
+        self.assertEqual(self.t.transform('foobar'), 'foobar')
+
+
 if __name__ == '__main__':
     unittest.main()
