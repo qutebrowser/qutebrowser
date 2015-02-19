@@ -19,15 +19,13 @@
 
 """The qutebrowser test suite."""
 
-from PyQt5.QtCore import qInstallMessageHandler
+import atexit
+import functools
+
+import sip
 from PyQt5.QtWidgets import QApplication
 
-
-def qt_message_handler(msg_type, context, msg):
-    print("Qt message: {}".format(msg))
-
-
 # We create a singleton QApplication here.
-app = QApplication([])
-qInstallMessageHandler(qt_message_handler)
 
+qApp = QApplication([])
+atexit.register(functools.partial(sip.delete, qApp))
