@@ -40,6 +40,13 @@ Current thread 0x00007f09b538d700 (most recent call first):
   File "filename", line 88 in func
 """
 
+VALID_CRASH_TEXT_THREAD = """
+Fatal Python error: Segmentation fault
+_
+Thread 0x00007fa135ac7700 (most recent call first):
+  File "", line 1 in testfunc
+"""
+
 INVALID_CRASH_TEXT = """
 Hello world!
 """
@@ -56,7 +63,14 @@ class ParseFatalStacktraceTests(unittest.TestCase):
         self.assertEqual(typ, "Segmentation fault")
         self.assertEqual(func, 'testfunc')
 
-    def test_valid_text(self):
+    def test_valid_text_thread(self):
+        """Test parse_fatal_stacktrace with a valid text #2."""
+        text = VALID_CRASH_TEXT_THREAD.strip().replace('_', ' ')
+        typ, func = crashdialog.parse_fatal_stacktrace(text)
+        self.assertEqual(typ, "Segmentation fault")
+        self.assertEqual(func, 'testfunc')
+
+    def test_valid_text_empty(self):
         """Test parse_fatal_stacktrace with a valid text but empty function."""
         text = VALID_CRASH_TEXT_EMPTY.strip().replace('_', ' ')
         typ, func = crashdialog.parse_fatal_stacktrace(text)

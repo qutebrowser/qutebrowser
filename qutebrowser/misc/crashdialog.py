@@ -60,7 +60,7 @@ def parse_fatal_stacktrace(text):
         # We got some invalid text.
         return ('', '')
     else:
-        return (m.group(1), m.group(2))
+        return (m.group(1), m.group(3))
 
 
 def get_fatal_crash_dialog(debug, data):
