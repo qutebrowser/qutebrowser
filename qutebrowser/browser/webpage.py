@@ -368,7 +368,15 @@ class BrowserPage(QWebPage):
             frame: The QWebFrame which gets saved.
             item: The QWebHistoryItem to be saved.
         """
-        if frame != self.mainFrame():
+        try:
+            if frame != self.mainFrame():
+                return
+        except RuntimeError:
+            # With Qt 5.2.1 (Ubuntu Trusty) we get this when closing a tab:
+            #     RuntimeError: wrapped C/C++ object of type BrowserPage has
+            #     been deleted
+            # Since the information here isn't that important for closing
+            # webviews anyways, we ignore this error.
             return
         data = {
             'zoom': frame.zoomFactor(),
