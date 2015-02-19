@@ -38,7 +38,6 @@ from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import (message, usertypes, log, utils, urlutils,
                                objreg, standarddir, qtutils)
-from qutebrowser.browser import http
 from qutebrowser.browser.network import networkmanager
 
 
@@ -374,6 +373,13 @@ class DownloadItem(QObject):
             log.downloads.exception("Failed to remove partial file")
 
     @pyqtSlot()
+    def download_dir(self):
+        """Get the download directory to use."""
+        download_dir = config.get('storage', 'download-directory')
+        if download_dir is None:
+            download_dir = standarddir.get(QStandardPaths.DownloadLocation)
+        return download_dir + os.sep
+
     def retry(self):
         """Retry a failed download."""
         self.cancel()
@@ -415,10 +421,7 @@ class DownloadItem(QObject):
         else:
             # We only got a filename (without directory) from the user, so we
             # save it under that filename in the default directory.
-            download_dir = config.get('storage', 'download-directory')
-            if download_dir is None:
-                download_dir = standarddir.download()
-            self._filename = os.path.join(download_dir, filename)
+            self._filename = os.path.join(self.download_dir(), filename)
             self.basename = filename
         log.downloads.debug("Setting filename to {}".format(filename))
         if os.path.isfile(self._filename):
@@ -604,8 +607,7 @@ class DownloadManager(QAbstractListModel):
                          ui -> remove-finished-downloads is set to false.
 
         Return:
-            If the download could start immediately, (fileobj/filename given),
-            the created DownloadItem.
+            If the url is valid, the created DownloadItem.
 
             If not, None.
         """
@@ -630,10 +632,7 @@ class DownloadManager(QAbstractListModel):
                          ui -> remove-finished-downloads is set to false.
 
         Return:
-            If the download could start immediately, (fileobj/filename given),
-            the created DownloadItem.
-
-            If not, None.
+            The created DownloadItem.
         """
         if fileobj is not None and filename is not None:
             raise TypeError("Only one of fileobj/filename may be given!")
@@ -644,21 +643,14 @@ class DownloadManager(QAbstractListModel):
         if fileobj is not None or filename is not None:
             return self.fetch_request(request, page, fileobj, filename,
                                       auto_remove)
-        q = self._prepare_question()
-        filename = urlutils.filename_from_url(request.url())
+        suggested_filename = urlutils.filename_from_url(request.url())
         encoding = sys.getfilesystemencoding()
-        filename = utils.force_encoding(filename, encoding)
-        q.default = filename
-        message_bridge = objreg.get('message-bridge', scope='window',
-                                    window=self._win_id)
-        q.answered.connect(
-            lambda fn: self.fetch_request(request, filename=fn, page=page,
-                                          auto_remove=auto_remove))
-        message_bridge.ask(q, blocking=False)
-        return None
+        suggested_filename = utils.force_encoding(suggested_filename, encoding)
+        return self.fetch_request(request, page, fileobj, filename,
+                                  auto_remove, suggested_filename)
 
     def fetch_request(self, request, page=None, fileobj=None, filename=None,
-                      auto_remove=False):
+                      auto_remove=False, suggested_filename=None):
         """Download a QNetworkRequest to disk.
 
         Args:
@@ -677,10 +669,12 @@ class DownloadManager(QAbstractListModel):
         else:
             nam = page.networkAccessManager()
         reply = nam.get(request)
-        return self.fetch(reply, fileobj, filename, auto_remove)
+        return self.fetch(reply, fileobj, filename, auto_remove,
+                          suggested_filename)
 
     @pyqtSlot('QNetworkReply')
-    def fetch(self, reply, fileobj=None, filename=None, auto_remove=False):
+    def fetch(self, reply, fileobj=None, filename=None, auto_remove=False,
+              suggested_filename=None):
         """Download a QNetworkReply to disk.
 
         Args:
@@ -699,8 +693,6 @@ class DownloadManager(QAbstractListModel):
             suggested_filename = os.path.basename(filename)
         elif fileobj is not None and getattr(fileobj, 'name', None):
             suggested_filename = fileobj.name
-        else:
-            _inline, suggested_filename = http.parse_content_disposition(reply)
         log.downloads.debug("fetch: {} -> {}".format(reply.url(),
                                                      suggested_filename))
         download = DownloadItem(reply, self._win_id, self)
@@ -729,10 +721,7 @@ class DownloadManager(QAbstractListModel):
             download.autoclose = False
         else:
             q = self._prepare_question()
-            encoding = sys.getfilesystemencoding()
-            suggested_filename = utils.force_encoding(suggested_filename,
-                                                      encoding)
-            q.default = suggested_filename
+            q.default = download.download_dir()
             q.answered.connect(download.set_filename)
             q.cancelled.connect(download.cancel)
             download.cancelled.connect(q.abort)
