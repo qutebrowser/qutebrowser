@@ -139,6 +139,3 @@ class GetStandardDirWindowsTests(unittest.TestCase):
         cur_dir = standarddir.get(QStandardPaths.CacheLocation)
         self.assertEqual(cur_dir.split(os.sep)[-2:],
                          ['qutebrowser_test', 'cache'], cur_dir)
-
-    def tearDown(self):
-        self.app.quit()
