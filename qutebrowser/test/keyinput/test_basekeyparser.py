@@ -303,7 +303,7 @@ class CountTests(unittest.TestCase):
         self.assertEqual(self.kp._keystring, '')
 
     def tearDown(self):
-        objreg.delete('key-config')
+        objreg.global_registry.clear()
 
 
 if __name__ == '__main__':
