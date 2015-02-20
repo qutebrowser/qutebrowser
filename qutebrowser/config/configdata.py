@@ -305,6 +305,10 @@ DATA = collections.OrderedDict([
     )),
 
     ('completion', sect.KeyValue(
+        ('download-path-suggestion',
+         SettingValue(typ.DownloadPath(), 'path'),
+         "What to show in the suggestion for the download question."),
+
         ('show',
          SettingValue(typ.Bool(), 'true'),
          "Whether to show the autocompletion window."),

@@ -284,6 +284,13 @@ class DownloadItem(QObject):
                                     window=self._win_id)
         message_bridge.ask(q, blocking=False)
 
+    def _download_dir(self):
+        """Get the download directory to use."""
+        download_dir = config.get('storage', 'download-directory')
+        if download_dir is None:
+            download_dir = standarddir.get(QStandardPaths.DownloadLocation)
+        return download_dir + os.sep
+
     def _die(self, msg):
         """Abort the download and emit an error."""
         assert not self.successful
@@ -364,6 +371,16 @@ class DownloadItem(QObject):
         self.data_changed.emit()
 
     @pyqtSlot()
+    def path_suggestion(self):
+        """Get the suggestion of file path"""
+        suggestion = config.get('completion', 'download-path-suggestion')
+        if suggestion == 'path':
+            return self._download_dir()
+        elif suggestion == 'filename':
+            return self.basename
+        else:
+            return os.path.join(self._download_dir(), self.basename)
+
     def delete(self):
         """Delete the downloaded file"""
         try:
@@ -421,7 +438,7 @@ class DownloadItem(QObject):
         else:
             # We only got a filename (without directory) from the user, so we
             # save it under that filename in the default directory.
-            self._filename = os.path.join(self.download_dir(), filename)
+            self._filename = os.path.join(self._download_dir(), filename)
             self.basename = filename
         log.downloads.debug("Setting filename to {}".format(filename))
         if os.path.isfile(self._filename):
@@ -721,7 +738,7 @@ class DownloadManager(QAbstractListModel):
             download.autoclose = False
         else:
             q = self._prepare_question()
-            q.default = download.download_dir()
+            q.default = download.path_suggestion()
             q.answered.connect(download.set_filename)
             q.cancelled.connect(download.cancel)
             download.cancelled.connect(q.abort)
