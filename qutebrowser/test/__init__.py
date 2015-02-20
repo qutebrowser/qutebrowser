@@ -24,3 +24,4 @@ from PyQt5.QtWidgets import QApplication
 # We create a singleton QApplication here.
 
 qApp = QApplication([])
+qApp.setApplicationName('qutebrowser')

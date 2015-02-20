@@ -26,10 +26,10 @@ import shutil
 import unittest
 import tempfile
 
-from PyQt5.QtCore import QStandardPaths, QCoreApplication
+from PyQt5.QtCore import QStandardPaths
 
 from qutebrowser.utils import standarddir
-from qutebrowser.test import helpers
+from qutebrowser.test import helpers, qApp
 
 
 class GetStandardDirLinuxTests(unittest.TestCase):
@@ -38,13 +38,13 @@ class GetStandardDirLinuxTests(unittest.TestCase):
 
     Attributes:
         temp_dir: A temporary directory.
-        app: The QCoreApplication used.
+        old_name: The old applicationName.
     """
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
-        self.app = QCoreApplication([])
-        self.app.setApplicationName('qutebrowser')
+        self.old_name = qApp.applicationName()
+        qApp.setApplicationName('qutebrowser')
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_data_explicit(self):
@@ -99,7 +99,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
                                                    'qutebrowser'))
 
     def tearDown(self):
-        self.app.quit()
+        qApp.setApplicationName(self.old_name)
         shutil.rmtree(self.temp_dir)
 
 
@@ -108,13 +108,16 @@ class GetStandardDirWindowsTests(unittest.TestCase):
     """Tests for standarddir.get under Windows.
 
     Attributes:
-        app: The QCoreApplication used.
+        old_name: The old applicationName.
     """
 
     def setUp(self):
-        self.app = QCoreApplication([])
+        self.old_name = qApp.applicationName()
         # We can't store the files in a temp dir, so we don't chose qutebrowser
-        self.app.setApplicationName('qutebrowser_test')
+        qApp.setApplicationName('qutebrowser_test')
+
+    def tearDown(self):
+        qApp.setApplicationName(self.old_name)
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
     def test_data(self):
