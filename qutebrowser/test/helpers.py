@@ -27,27 +27,32 @@ from PyQt5.QtGui import QKeyEvent
 
 
 @contextlib.contextmanager
-def environ_set_temp(name, value):
-    """Set a temporary environment variable."""
-    try:
-        oldval = os.environ[name]
-    except KeyError:
-        oldval = None
+def environ_set_temp(env):
+    """Set temporary environment variables.
 
-    if value is not None:
-        os.environ[name] = value
-    else:
+    Args:
+        env: A dictionary with name: value pairs.
+             If value is None, the variable is temporarily deleted.
+    """
+    old_env = {}
+
+    for name, value in env.items():
         try:
-            del os.environ[name]
+            old_env[name] = os.environ[name]
         except KeyError:
             pass
+        if value is None:
+            os.environ.pop(name, None)
+        else:
+            os.environ[name] = value
 
     yield
 
-    if oldval is not None:
-        os.environ[name] = oldval
-    elif value is not None:
-        del os.environ[name]
+    for name, value in env.items():
+        if name in old_env:
+            os.environ[name] = old_env[name]
+        elif value is not None:
+            del os.environ[name]
 
 
 def fake_keyevent(key, modifiers=0, text=''):

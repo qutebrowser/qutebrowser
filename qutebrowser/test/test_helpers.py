@@ -33,26 +33,45 @@ class TestEnvironSetTemp(unittest.TestCase):
     def test_environ_set(self):
         """Test environ_set_temp with something which was set already."""
         os.environ['QUTEBROWSER_ENVIRON_TEST'] = 'oldval'
-        with helpers.environ_set_temp('QUTEBROWSER_ENVIRON_TEST', 'newval'):
+        with helpers.environ_set_temp({'QUTEBROWSER_ENVIRON_TEST': 'newval'}):
             self.assertEqual(os.environ['QUTEBROWSER_ENVIRON_TEST'], 'newval')
         self.assertEqual(os.environ['QUTEBROWSER_ENVIRON_TEST'], 'oldval')
 
     def test_environ_unset(self):
         """Test environ_set_temp with something which wasn't set yet."""
-        with helpers.environ_set_temp('QUTEBROWSER_ENVIRON_TEST', 'newval'):
+        with helpers.environ_set_temp({'QUTEBROWSER_ENVIRON_TEST': 'newval'}):
             self.assertEqual(os.environ['QUTEBROWSER_ENVIRON_TEST'], 'newval')
         self.assertNotIn('QUTEBROWSER_ENVIRON_TEST', os.environ)
+
+    def test_environ_multiple(self):
+        """Test environ_set_temp with multiple values."""
+        os.environ['QUTEBROWSER_ENVIRON_TEST_1'] = 'oldval_1'
+        os.environ['QUTEBROWSER_ENVIRON_TEST_3'] = 'oldval_3'
+        env = {
+            'QUTEBROWSER_ENVIRON_TEST_1': 'newval_1',
+            'QUTEBROWSER_ENVIRON_TEST_2': 'newval_2',
+            'QUTEBROWSER_ENVIRON_TEST_3': None,
+        }
+        with helpers.environ_set_temp(env):
+            self.assertEqual(os.environ['QUTEBROWSER_ENVIRON_TEST_1'],
+                             'newval_1')
+            self.assertEqual(os.environ['QUTEBROWSER_ENVIRON_TEST_2'],
+                             'newval_2')
+            self.assertNotIn('QUTEBROWSER_ENVIRON_TEST_3', os.environ)
+        self.assertEqual(os.environ['QUTEBROWSER_ENVIRON_TEST_1'], 'oldval_1')
+        self.assertNotIn('QUTEBROWSER_ENVIRON_TEST_2', os.environ)
+        self.assertEqual(os.environ['QUTEBROWSER_ENVIRON_TEST_3'], 'oldval_3')
 
     def test_environ_none_set(self):
         """Test environ_set_temp with something which was set already."""
         os.environ['QUTEBROWSER_ENVIRON_TEST'] = 'oldval'
-        with helpers.environ_set_temp('QUTEBROWSER_ENVIRON_TEST', None):
+        with helpers.environ_set_temp({'QUTEBROWSER_ENVIRON_TEST': None}):
             self.assertNotIn('QUTEBROWSER_ENVIRON_TEST', os.environ)
         self.assertEqual(os.environ['QUTEBROWSER_ENVIRON_TEST'], 'oldval')
 
     def test_environ_none_unset(self):
         """Test environ_set_temp with something which wasn't set yet."""
-        with helpers.environ_set_temp('QUTEBROWSER_ENVIRON_TEST', None):
+        with helpers.environ_set_temp({'QUTEBROWSER_ENVIRON_TEST': None}):
             self.assertNotIn('QUTEBROWSER_ENVIRON_TEST', os.environ)
         self.assertNotIn('QUTEBROWSER_ENVIRON_TEST', os.environ)
 

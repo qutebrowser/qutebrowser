@@ -49,7 +49,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_data_explicit(self):
         """Test data dir with XDG_DATA_HOME explicitely set."""
-        with helpers.environ_set_temp('XDG_DATA_HOME', self.temp_dir):
+        with helpers.environ_set_temp({'XDG_DATA_HOME': self.temp_dir}):
             cur_dir = standarddir.get(QStandardPaths.DataLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir,
                                                    'qutebrowser'))
@@ -57,7 +57,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_config_explicit(self):
         """Test config dir with XDG_CONFIG_HOME explicitely set."""
-        with helpers.environ_set_temp('XDG_CONFIG_HOME', self.temp_dir):
+        with helpers.environ_set_temp({'XDG_CONFIG_HOME': self.temp_dir}):
             cur_dir = standarddir.get(QStandardPaths.ConfigLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir,
                                                    'qutebrowser'))
@@ -65,7 +65,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_cache_explicit(self):
         """Test cache dir with XDG_CACHE_HOME explicitely set."""
-        with helpers.environ_set_temp('XDG_CACHE_HOME', self.temp_dir):
+        with helpers.environ_set_temp({'XDG_CACHE_HOME': self.temp_dir}):
             cur_dir = standarddir.get(QStandardPaths.CacheLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir,
                                                    'qutebrowser'))
@@ -73,8 +73,8 @@ class GetStandardDirLinuxTests(unittest.TestCase):
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_data(self):
         """Test data dir with XDG_DATA_HOME not set."""
-        with helpers.environ_set_temp('HOME', self.temp_dir), \
-                helpers.environ_set_temp('XDG_DATA_HOME', None):
+        env = {'HOME': self.temp_dir, 'XDG_DATA_HOME': None}
+        with helpers.environ_set_temp(env):
             cur_dir = standarddir.get(QStandardPaths.DataLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir, '.local',
                                                    'share', 'qutebrowser'))
@@ -82,8 +82,8 @@ class GetStandardDirLinuxTests(unittest.TestCase):
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_config(self):
         """Test config dir with XDG_CONFIG_HOME not set."""
-        with helpers.environ_set_temp('HOME', self.temp_dir), \
-                helpers.environ_set_temp('XDG_CONFIG_HOME', None):
+        env = {'HOME': self.temp_dir, 'XDG_CONFIG_HOME': None}
+        with helpers.environ_set_temp(env):
             cur_dir = standarddir.get(
                 QStandardPaths.ConfigLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir, '.config',
@@ -92,8 +92,8 @@ class GetStandardDirLinuxTests(unittest.TestCase):
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_cache(self):
         """Test cache dir with XDG_CACHE_HOME not set."""
-        with helpers.environ_set_temp('HOME', self.temp_dir), \
-                helpers.environ_set_temp('XDG_CACHE_HOME', None):
+        env = {'HOME': self.temp_dir, 'XDG_CACHE_HOME': None}
+        with helpers.environ_set_temp(env):
             cur_dir = standarddir.get(QStandardPaths.CacheLocation)
             self.assertEqual(cur_dir, os.path.join(self.temp_dir, '.cache',
                                                    'qutebrowser'))
