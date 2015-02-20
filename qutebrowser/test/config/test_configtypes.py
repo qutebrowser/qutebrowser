@@ -1391,7 +1391,7 @@ class DirectoryTests(unittest.TestCase):
         os_path.expanduser.side_effect = lambda x: x
         os_path.isdir.side_effect = lambda path: path == '/home/foo/bar/foobar'
         os_path.isabs.return_value = True
-        with helpers.environ_set_temp('bar', '/home/foo/bar'):
+        with helpers.environ_set_temp({'BAR': '/home/foo/bar'}):
             self.t.validate('$BAR/foobar')
             os_path.expandvars.assert_called_once_with('$BAR/foobar')
 
@@ -1795,7 +1795,7 @@ class UserStyleSheetTests(unittest.TestCase):
 
     def test_transform_file_expandvars(self):
         """Test transform with a filename (expandvars)."""
-        with helpers.environ_set_temp('FOO', 'foo'):
+        with helpers.environ_set_temp({'FOO': 'foo'}):
             path = os.path.join(os.path.sep, '$FOO', 'bar')
             self.assertEqual(self.t.transform(path), QUrl("file:///foo/bar"))
 

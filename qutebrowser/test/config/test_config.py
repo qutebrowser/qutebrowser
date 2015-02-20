@@ -20,12 +20,21 @@
 
 """Tests for qutebrowser.config.config."""
 
+import os
+import os.path
 import unittest
 import configparser
+import tempfile
+import types
+import shutil
+from unittest import mock
 
+from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QColor
 
 from qutebrowser.config import config, configexc
+from qutebrowser.test import helpers
+from qutebrowser.utils import objreg
 
 
 class ConfigParserTests(unittest.TestCase):
@@ -145,6 +154,38 @@ class DefaultConfigTests(unittest.TestCase):
         """Test validating of the default config."""
         conf = config.ConfigManager(None, None)
         conf._validate_all()
+
+
+class ConfigInitTests(unittest.TestCase):
+
+    """Test initializing of the config."""
+
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+        self.conf_path = os.path.join(self.temp_dir, 'config')
+        self.data_path = os.path.join(self.temp_dir, 'data')
+        self.cache_path = os.path.join(self.temp_dir, 'cache')
+        os.mkdir(self.conf_path)
+        os.mkdir(self.data_path)
+        os.mkdir(self.cache_path)
+        self.env = {
+            'XDG_CONFIG_HOME': self.conf_path,
+            'XDG_DATA_HOME': self.data_path,
+            'XDG_CACHE_HOME': self.cache_path,
+        }
+        objreg.register('app', QObject())
+        objreg.register('save-manager', mock.MagicMock())
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir)
+        objreg.global_registry.clear()
+
+    def test_config_none(self):
+        """Test initializing with config path set to None."""
+        args = types.SimpleNamespace(confdir='')
+        with helpers.environ_set_temp(self.env):
+            config.init(args)
+        self.assertFalse(os.listdir(self.conf_path))
 
 
 if __name__ == '__main__':

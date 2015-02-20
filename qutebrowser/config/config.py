@@ -214,7 +214,10 @@ def _init_misc(args):
     # https://github.com/The-Compiler/qutebrowser/issues/515
 
     config_path = standarddir.get(QStandardPaths.ConfigLocation, args)
-    path = os.path.join(config_path, 'qsettings')
+    if config_path is None:
+        path = os.devnull
+    else:
+        path = os.path.join(config_path, 'qsettings')
     for fmt in (QSettings.NativeFormat, QSettings.IniFormat):
         QSettings.setPath(fmt, QSettings.UserScope, path)
 
