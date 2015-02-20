@@ -33,7 +33,7 @@ from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QColor
 
 from qutebrowser.config import config, configexc
-from qutebrowser.test import helpers, stubs
+from qutebrowser.test import helpers
 from qutebrowser.utils import objreg
 
 
