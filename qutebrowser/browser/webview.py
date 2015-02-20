@@ -306,13 +306,13 @@ class WebView(QWebView):
     def shutdown(self):
         """Shut down the webview."""
         self.shutting_down.emit()
-        self.page().shutdown()
         # We disable javascript because that prevents some segfaults when
         # quitting it seems.
         log.destroy.debug("Shutting down {!r}.".format(self))
         settings = self.settings()
         settings.setAttribute(QWebSettings.JavascriptEnabled, False)
         self.stop()
+        self.page().shutdown()
 
     def openurl(self, url):
         """Open a URL in the browser.
