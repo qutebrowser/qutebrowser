@@ -82,6 +82,8 @@ def get_argparser():
     # For the Qt args, we use store_const with const=True rather than
     # store_true because we want the default to be None, to make
     # utils.qt:get_args easier.
+    debug.add_argument('--qt-name', help="Set the window name.",
+                       metavar='NAME')
     debug.add_argument('--qt-style', help="Set the Qt GUI style to use.",
                        metavar='STYLE')
     debug.add_argument('--qt-stylesheet', help="Override the Qt application "

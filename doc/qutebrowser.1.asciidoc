@@ -74,6 +74,9 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 *--no-crash-dialog*::
     Don't show a crash dialog.
 
+*--qt-name* 'NAME'::
+    Set the window name.
+
 *--qt-style* 'STYLE'::
     Set the Qt GUI style to use.
 
