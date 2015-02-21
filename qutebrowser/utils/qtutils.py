@@ -112,7 +112,7 @@ def get_args(namespace):
             argv.append('-' + argname[3:])
         else:
             argv.append('-' + argname[3:])
-            argv.append(val[0])
+            argv.append(val)
     return argv
 
 
