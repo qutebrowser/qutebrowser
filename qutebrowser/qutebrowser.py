@@ -53,6 +53,8 @@ def get_argparser():
                         "this session.", nargs=3, action='append',
                         dest='temp_settings', default=[],
                         metavar=('SECTION', 'OPTION', 'VALUE'))
+    parser.add_argument('-p', '--profile', help="Restore a named profile.",
+                        dest='profile', default='default')
     parser.add_argument('-r', '--restore', help="Restore a named session.",
                         dest='session', default='default')
 

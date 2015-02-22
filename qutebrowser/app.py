@@ -108,11 +108,11 @@ class Application(QApplication):
             sys.exit(0)
 
         try:
-            sent = ipc.send_to_running_instance(self._args.command)
+            sent = ipc.send_to_running_instance(self._args.command, self._args.profile)
             if sent:
                 sys.exit(0)
             log.init.debug("Starting IPC server...")
-            ipc.init()
+            ipc.init(self._args.profile)
         except ipc.IPCError as e:
             text = ('{}\n\nMaybe another instance is running but '
                     'frozen?'.format(e))
