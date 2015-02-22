@@ -30,6 +30,7 @@ from PyQt5.QtNetwork import QLocalSocket, QLocalServer
 from qutebrowser.utils import log, objreg, usertypes
 
 
+#TODO add profile to socket
 SOCKETNAME = 'qutebrowser-{}'.format(getpass.getuser())
 CONNECT_TIMEOUT = 100
 WRITE_TIMEOUT = 1000
@@ -52,16 +53,17 @@ class IPCServer(QObject):
         _socket: The QLocalSocket we're currently connected to.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, profile='default', parent=None):
         """Start the IPC server and listen to commands."""
         super().__init__(parent)
         self.ignored = False
+        self._profile = profile
         self._remove_server()
         self._timer = usertypes.Timer(self, 'ipc-timeout')
         self._timer.setInterval(READ_TIMEOUT)
         self._timer.timeout.connect(self.on_timeout)
         self._server = QLocalServer(self)
-        ok = self._server.listen(SOCKETNAME)
+        ok = self._server.listen(SOCKETNAME+self._profile)
         if not ok:
             raise IPCError("Error while listening to IPC server: {} "
                            "(error {})".format(self._server.errorString(),
@@ -71,7 +73,7 @@ class IPCServer(QObject):
 
     def _remove_server(self):
         """Remove an existing server."""
-        ok = QLocalServer.removeServer(SOCKETNAME)
+        ok = QLocalServer.removeServer(SOCKETNAME+self._profile)
         if not ok:
             raise IPCError("Error while removing server {}!".format(
                 SOCKETNAME))
@@ -177,10 +179,10 @@ class IPCServer(QObject):
         self._remove_server()
 
 
-def init():
+def init(profile):
     """Initialize the global IPC server."""
     app = objreg.get('app')
-    server = IPCServer(app)
+    server = IPCServer(profile, app)
     objreg.register('ipc-server', server)
 
 
@@ -195,7 +197,7 @@ def _socket_error(action, socket):
         action, socket.errorString(), socket.error()))
 
 
-def send_to_running_instance(cmdlist):
+def send_to_running_instance(cmdlist, profile):
     """Try to send a commandline to a running instance.
 
     Blocks for CONNECT_TIMEOUT ms.
@@ -207,7 +209,7 @@ def send_to_running_instance(cmdlist):
         True if connecting was successful, False if no connection was made.
     """
     socket = QLocalSocket()
-    socket.connectToServer(SOCKETNAME)
+    socket.connectToServer(SOCKETNAME+profile)
     connected = socket.waitForConnected(100)
     if connected:
         log.ipc.info("Opening in existing instance")

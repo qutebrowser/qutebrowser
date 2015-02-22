@@ -108,11 +108,11 @@ class Application(QApplication):
             sys.exit(0)
 
         try:
-            sent = ipc.send_to_running_instance(self._args.command)
+            sent = ipc.send_to_running_instance(self._args.command, self._args.profile)
             if sent:
                 sys.exit(0)
             log.init.debug("Starting IPC server...")
-            ipc.init()
+            ipc.init(self._args.profile)
         except ipc.IPCError as e:
             text = ('{}\n\nMaybe another instance is running but '
                     'frozen?'.format(e))
@@ -249,7 +249,7 @@ class Application(QApplication):
     def _init_crashlogfile(self):
         """Start a new logfile and redirect faulthandler to it."""
         path = standarddir.get(QStandardPaths.DataLocation)
-        logname = os.path.join(path, 'crash.log')
+        logname = os.path.join(path, 'crash-%s.log' % self._args.profile)
         try:
             self._crashlogfile = open(logname, 'w', encoding='ascii')
         except OSError:
