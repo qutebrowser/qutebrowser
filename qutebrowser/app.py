@@ -34,7 +34,7 @@ import faulthandler
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
-                          QStandardPaths, QObject, Qt)
+                          QObject, Qt)
 
 import qutebrowser
 import qutebrowser.resources  # pylint: disable=unused-import
@@ -172,9 +172,9 @@ class Application(QApplication):
         readline_bridge = readline.ReadlineBridge()
         objreg.register('readline-bridge', readline_bridge)
         log.init.debug("Initializing directories...")
-        standarddir.init()
+        standarddir.init(self._args)
         log.init.debug("Initializing config...")
-        config.init(self._args)
+        config.init()
         save_manager.init_autosave()
         log.init.debug("Initializing web history...")
         history.init()
@@ -223,8 +223,7 @@ class Application(QApplication):
 
     def _handle_segfault(self):
         """Handle a segfault from a previous run."""
-        path = standarddir.get(QStandardPaths.DataLocation)
-        logname = os.path.join(path, 'crash.log')
+        logname = os.path.join(standarddir.data, 'crash.log')
         try:
             # First check if an old logfile exists.
             if os.path.exists(logname):
@@ -248,8 +247,7 @@ class Application(QApplication):
 
     def _init_crashlogfile(self):
         """Start a new logfile and redirect faulthandler to it."""
-        path = standarddir.get(QStandardPaths.DataLocation)
-        logname = os.path.join(path, 'crash.log')
+        logname = os.path.join(standarddir.data, 'crash.log')
         try:
             self._crashlogfile = open(logname, 'w', encoding='ascii')
         except OSError:

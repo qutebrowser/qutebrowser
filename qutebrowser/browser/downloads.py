@@ -28,8 +28,7 @@ import functools
 import collections
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QTimer,
-                          QStandardPaths, Qt, QVariant, QAbstractListModel,
-                          QModelIndex, QUrl)
+                          Qt, QVariant, QAbstractListModel, QModelIndex, QUrl)
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 # We need this import so PyQt can use it inside pyqtSlot
@@ -414,8 +413,7 @@ class DownloadItem(QObject):
             # save it under that filename in the default directory.
             download_dir = config.get('storage', 'download-directory')
             if download_dir is None:
-                download_dir = standarddir.get(
-                    QStandardPaths.DownloadLocation)
+                download_dir = standarddir.download
             self._filename = os.path.join(download_dir, filename)
             self.basename = filename
         log.downloads.debug("Setting filename to {}".format(filename))

@@ -20,7 +20,7 @@
 """Handling of HTTP cookies."""
 
 from PyQt5.QtNetwork import QNetworkCookie, QNetworkCookieJar
-from PyQt5.QtCore import pyqtSignal, QStandardPaths, QDateTime
+from PyQt5.QtCore import pyqtSignal, QDateTime
 
 from qutebrowser.config import config
 from qutebrowser.config.parsers import line as lineparser
@@ -70,8 +70,7 @@ class CookieJar(RAMCookieJar):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        datadir = standarddir.get(QStandardPaths.DataLocation)
-        self._linecp = lineparser.LineConfigParser(datadir, 'cookies',
+        self._linecp = lineparser.LineConfigParser(standarddir.data, 'cookies',
                                                    binary=True, parent=self)
         cookies = []
         for line in self._linecp:

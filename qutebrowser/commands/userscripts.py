@@ -23,8 +23,8 @@ import os
 import os.path
 import tempfile
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QStandardPaths,
-                          QSocketNotifier, QProcessEnvironment, QProcess)
+from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QSocketNotifier,
+                          QProcessEnvironment, QProcess)
 
 from qutebrowser.utils import message, log, objreg, standarddir
 from qutebrowser.commands import runners, cmdexc
@@ -178,7 +178,6 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         self._reader = None
 
     def run(self, cmd, *args, env=None):
-        rundir = standarddir.get(QStandardPaths.RuntimeLocation)
         try:
             # tempfile.mktemp is deprecated and discouraged, but we use it here
             # to create a FIFO since the only other alternative would be to
@@ -186,7 +185,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
             # os.mkfifo will raise an exception anyways when the path doesn't
             # exist, it shouldn't be a big issue.
             self._filepath = tempfile.mktemp(prefix='qutebrowser-userscript-',
-                                             dir=rundir)
+                                             dir=standarddir.runtime)
             os.mkfifo(self._filepath)  # pylint: disable=no-member
         except OSError as e:
             message.error(self._win_id, "Error while creating FIFO: {}".format(

@@ -22,7 +22,7 @@
 import time
 import functools
 
-from PyQt5.QtCore import pyqtSignal, QStandardPaths
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWebKit import QWebHistoryInterface
 
 from qutebrowser.utils import utils, objreg, standarddir
@@ -64,8 +64,7 @@ class WebHistory(QWebHistoryInterface):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        datadir = standarddir.get(QStandardPaths.DataLocation)
-        self._linecp = lineparser.LineConfigParser(datadir, 'history',
+        self._linecp = lineparser.LineConfigParser(standarddir.data, 'history',
                                                    parent=self)
         self._history = [HistoryEntry.from_str(e) for e in self._linecp.data]
         objreg.get('save-manager').add_saveable('history', self.save,

@@ -34,7 +34,7 @@ from PyQt5.QtGui import QColor
 
 from qutebrowser.config import config, configexc
 from qutebrowser.test import helpers
-from qutebrowser.utils import objreg
+from qutebrowser.utils import objreg, standarddir
 
 
 class ConfigParserTests(unittest.TestCase):
@@ -184,7 +184,8 @@ class ConfigInitTests(unittest.TestCase):
         """Test initializing with config path set to None."""
         args = types.SimpleNamespace(confdir='')
         with helpers.environ_set_temp(self.env):
-            config.init(args)
+            standarddir.init(args)
+            config.init()
         self.assertFalse(os.listdir(self.conf_path))
 
 

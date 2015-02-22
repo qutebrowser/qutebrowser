@@ -29,7 +29,7 @@ Module attributes:
 import os.path
 
 from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtCore import QStandardPaths, QUrl
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, standarddir, objreg
@@ -194,15 +194,13 @@ def _set_setting(typ, arg, default=UNSET, value=UNSET):
 
 def init():
     """Initialize the global QWebSettings."""
-    cachedir = standarddir.get(QStandardPaths.CacheLocation)
-    QWebSettings.setIconDatabasePath(cachedir)
+    QWebSettings.setIconDatabasePath(standarddir.cache)
     QWebSettings.setOfflineWebApplicationCachePath(
-        os.path.join(cachedir, 'application-cache'))
-    datadir = standarddir.get(QStandardPaths.DataLocation)
+        os.path.join(standarddir.cache, 'application-cache'))
     QWebSettings.globalSettings().setLocalStoragePath(
-        os.path.join(datadir, 'local-storage'))
+        os.path.join(standarddir.data, 'local-storage'))
     QWebSettings.setOfflineStoragePath(
-        os.path.join(datadir, 'offline-storage'))
+        os.path.join(standarddir.data, 'offline-storage'))
 
     global settings
     settings = QWebSettings.globalSettings()
