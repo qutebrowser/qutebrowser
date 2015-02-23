@@ -70,21 +70,22 @@ def _missing_str(name, debian=None, arch=None, windows=None, pip=None):
     return '<br /><br />'.join(blocks)
 
 
-def _die(message, exception=True):
+def _die(message, exception=None):
     """Display an error message using Qt and quit.
 
     We import the imports here as we want to do other stuff before the imports.
 
     Args:
         message: The message to display.
-        exception: Whether to print an exception with --debug.
+        exception: The exception object if we're handling an exception.
     """
     from PyQt5.QtWidgets import QApplication, QMessageBox
     from PyQt5.QtCore import Qt
-    if '--debug' in sys.argv and exception:
+    if '--debug' in sys.argv and exception is not None:
         print(file=sys.stderr)
         traceback.print_exc()
     app = QApplication(sys.argv)
+    message += '<br/><br/><br/><b>Error:</b><br/>{}'.format(exception)
     msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
                          message)
     msgbox.setTextFormat(Qt.RichText)
@@ -176,7 +177,7 @@ def check_pyqt_core():
     """Check if PyQt core is installed."""
     try:
         import PyQt5.QtCore  # pylint: disable=unused-variable
-    except ImportError:
+    except ImportError as e:
         text = _missing_str('PyQt5',
                             debian="apt-get install python3-pyqt5 "
                                    "python3-pyqt5.qtwebkit",
@@ -189,6 +190,7 @@ def check_pyqt_core():
         text = text.replace('<b>', '')
         text = text.replace('</b>', '')
         text = text.replace('<br />', '\n')
+        text += '\n\nError: {}'.format(e)
         if tkinter:
             root = tkinter.Tk()
             root.withdraw()
@@ -208,7 +210,7 @@ def check_qt_version():
     if qtutils.version_check('5.2.0', operator.lt):
         text = ("Fatal error: Qt and PyQt >= 5.2.0 are required, but {} is "
                 "installed.".format(qVersion()))
-        _die(text, exception=False)
+        _die(text)
 
 
 def check_libraries():
@@ -257,8 +259,8 @@ def check_libraries():
     for name, text in modules.items():
         try:
             importlib.import_module(name)
-        except ImportError:
-            _die(text)
+        except ImportError as e:
+            _die(text, e)
 
 
 def remove_inputhook():
