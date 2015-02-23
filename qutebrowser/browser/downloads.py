@@ -341,6 +341,7 @@ class DownloadItem(QObject):
             return utils.interpolate_color(
                 start, stop, self.stats.percentage(), system)
 
+    @pyqtSlot()
     def cancel(self, remove_data=True):
         """Cancel the download.
 
@@ -363,6 +364,7 @@ class DownloadItem(QObject):
         self.finished.emit()
         self.data_changed.emit()
 
+    @pyqtSlot()
     def delete(self):
         """Delete the downloaded file"""
         try:
@@ -371,12 +373,14 @@ class DownloadItem(QObject):
         except OSError:
             log.downloads.exception("Failed to remove partial file")
 
+    @pyqtSlot()
     def retry(self):
         """Retry a failed download."""
         self.cancel()
         new_reply = self.retry_info.manager.get(self.retry_info.request)
         self.do_retry.emit(new_reply)
 
+    @pyqtSlot()
     def open_file(self):
         """Open the downloaded file."""
         assert self.successful
