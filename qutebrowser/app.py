@@ -41,7 +41,7 @@ import qutebrowser.resources  # pylint: disable=unused-import
 from qutebrowser.commands import cmdutils, runners
 from qutebrowser.config import style, config, websettings
 from qutebrowser.browser import quickmarks, cookies, cache, adblock
-from qutebrowser.browser.network import qutescheme, proxy
+from qutebrowser.browser.network import qutescheme, proxy, networkmanager
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import crashdialog, readline, ipc, earlyinit
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
@@ -162,6 +162,8 @@ class Application(QApplication):
 
     def _init_modules(self):
         """Initialize all 'modules' which need to be initialized."""
+        log.init.debug("Initializing network...")
+        networkmanager.init()
         log.init.debug("Initializing readline-bridge...")
         readline_bridge = readline.ReadlineBridge()
         objreg.register('readline-bridge', readline_bridge)

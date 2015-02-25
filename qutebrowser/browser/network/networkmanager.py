@@ -30,12 +30,23 @@ else:
     SSL_AVAILABLE = QSslSocket.supportsSsl()
 
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes, utils, objreg
+from qutebrowser.utils import message, log, usertypes, utils, objreg, qtutils
 from qutebrowser.browser import cookies
 from qutebrowser.browser.network import qutescheme, networkreply
 
 
 HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'
+
+
+def init():
+    """Disable insecure SSL ciphers on old Qt versions."""
+    if SSL_AVAILABLE:
+        if not qtutils.version_check('5.3.0'):
+            # Disable weak SSL ciphers.
+            # See https://codereview.qt-project.org/#/c/75943/
+            good_ciphers = [c for c in QSslSocket.supportedCiphers()
+                            if c.usedBits() >= 128]
+            QSslSocket.setDefaultCiphers(good_ciphers)
 
 
 class NetworkManager(QNetworkAccessManager):
