@@ -41,7 +41,7 @@ import qutebrowser.resources  # pylint: disable=unused-import
 from qutebrowser.commands import cmdutils, runners
 from qutebrowser.config import style, config, websettings, configexc
 from qutebrowser.browser import quickmarks, cookies, cache, adblock, history
-from qutebrowser.browser.network import qutescheme, proxy
+from qutebrowser.browser.network import qutescheme, proxy, networkmanager
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import (crashdialog, readline, ipc, earlyinit,
                               savemanager, sessions)
@@ -168,6 +168,8 @@ class Application(QApplication):
         objreg.register('save-manager', save_manager)
         save_manager.add_saveable('window-geometry', self._save_geometry)
         save_manager.add_saveable('version', self._save_version)
+        log.init.debug("Initializing network...")
+        networkmanager.init()
         log.init.debug("Initializing readline-bridge...")
         readline_bridge = readline.ReadlineBridge()
         objreg.register('readline-bridge', readline_bridge)
