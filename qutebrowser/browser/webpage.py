@@ -359,7 +359,12 @@ class BrowserPage(QWebPage):
         To be used with functools.partial.
         """
         if frame is cancelled_frame and feature == cancelled_feature:
-            question.abort()
+            try:
+                question.abort()
+            except RuntimeError:
+                # The question could already be deleted, e.g. because it was
+                # aborted after a loadStarted signal.
+                pass
 
     def on_save_frame_state_requested(self, frame, item):
         """Save scroll position and zoom in history.
