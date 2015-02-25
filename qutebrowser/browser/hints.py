@@ -24,10 +24,12 @@ import functools
 import subprocess
 import collections
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl
+from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
+                          QTimer)
 from PyQt5.QtGui import QMouseEvent, QClipboard
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebElement
+from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman, modeparsers
@@ -392,6 +394,10 @@ class HintManager(QObject):
             ]
         for evt in events:
             self.mouse_event.emit(evt)
+        if elem.is_text_input() and elem.is_editable():
+            QTimer.singleShot(0, functools.partial(
+                elem.webFrame().page().triggerAction,
+                QWebPage.MoveToEndOfDocument))
 
     def _yank(self, url, context):
         """Yank an element to the clipboard or primary selection.
