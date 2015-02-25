@@ -1095,6 +1095,9 @@ class FontTests(unittest.TestCase):
         # (style, weight, pointsize, pixelsize, family
         '"Foobar Neue"':
             FontDesc(QFont.StyleNormal, QFont.Normal, -1, -1, 'Foobar Neue'),
+        'inconsolatazi4':
+            FontDesc(QFont.StyleNormal, QFont.Normal, -1, -1,
+                     'inconsolatazi4'),
         '10pt "Foobar Neue"':
             FontDesc(QFont.StyleNormal, QFont.Normal, 10, None, 'Foobar Neue'),
         '10PT "Foobar Neue"':
