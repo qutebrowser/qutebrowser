@@ -296,7 +296,7 @@ def qt_message_handler(msg_type, context, msg):
                 "    pacman -S libxkbcommon-x11")
         faulthandler.disable()
     try:
-        frame = sys._getframe(1)
+        frame = sys._getframe(1)  # pylint: disable=protected-access
     except (AttributeError, ValueError):
         # sys._getframe might not exist in some Python implementations.
         # It could raise ValueError if the stack is less than one level deep -
