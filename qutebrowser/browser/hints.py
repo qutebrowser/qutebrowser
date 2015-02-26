@@ -24,7 +24,8 @@ import functools
 import subprocess
 import collections
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl
+from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QEvent, Qt, QUrl,
+                          QTimer)
 from PyQt5.QtGui import QMouseEvent, QClipboard
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKit import QWebElement
@@ -108,7 +109,9 @@ class HintManager(QObject):
     Signals:
         mouse_event: Mouse event to be posted in the web view.
                      arg: A QMouseEvent
-        set_open_target: Set a new target to open the links in.
+        start_hinting: Emitted when hinting starts, before a link is clicked.
+                       arg: The hinting target name.
+        stop_hinting: Emitted after a link was clicked.
     """
 
     HINT_TEXTS = {
@@ -129,7 +132,8 @@ class HintManager(QObject):
     }
 
     mouse_event = pyqtSignal('QMouseEvent')
-    set_open_target = pyqtSignal(str)
+    start_hinting = pyqtSignal(str)
+    stop_hinting = pyqtSignal()
 
     def __init__(self, win_id, tab_id, parent=None):
         """Constructor."""
@@ -373,6 +377,7 @@ class HintManager(QObject):
         action = "Hovering" if target == Target.hover else "Clicking"
         log.hints.debug("{} on '{}' at {}/{}".format(
             action, elem, pos.x(), pos.y()))
+        self.start_hinting.emit(target.name)
         if target in (Target.tab, Target.tab_bg, Target.window):
             modifiers = Qt.ControlModifier
         else:
@@ -382,7 +387,6 @@ class HintManager(QObject):
                         Qt.NoModifier),
         ]
         if target != Target.hover:
-            self.set_open_target.emit(target.name)
             events += [
                 QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton,
                             Qt.LeftButton, modifiers),
@@ -391,6 +395,7 @@ class HintManager(QObject):
             ]
         for evt in events:
             self.mouse_event.emit(evt)
+        QTimer.singleShot(0, self.stop_hinting.emit)
 
     def _yank(self, url, context):
         """Yank an element to the clipboard or primary selection.
