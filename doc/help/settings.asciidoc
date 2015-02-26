@@ -145,6 +145,7 @@
 |<<hints-opacity,opacity>>|Opacity for hints.
 |<<hints-mode,mode>>|Mode to use for hints.
 |<<hints-chars,chars>>|Chars used for hint strings.
+|<<hints-min-chars,min-chars>>|Mininum number of chars used for hint strings.
 |<<hints-uppercase,uppercase>>|Make chars in hint strings uppercase.
 |<<hints-auto-follow,auto-follow>>|Whether to auto-follow a hint if there's only one left.
 |<<hints-next-regexes,next-regexes>>|A comma-separated list of regexes to use for 'next' links.
@@ -1190,6 +1191,12 @@ Default: +pass:[letter]+
 Chars used for hint strings.
 
 Default: +pass:[asdfghjkl]+
+
+[[hints-min-chars]]
+=== min-chars
+Mininum number of chars used for hint strings.
+
+Default: +pass:[1]+
 
 [[hints-uppercase]]
 === uppercase

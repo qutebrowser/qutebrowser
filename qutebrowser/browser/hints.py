@@ -187,14 +187,20 @@ class HintManager(QObject):
             chars = '0123456789'
         else:
             chars = config.get('hints', 'chars')
+
+        min_chars = config.get('hints', 'min-chars')
         # Determine how many digits the link hints will require in the worst
         # case. Usually we do not need all of these digits for every link
         # single hint, so we can show shorter hints for a few of the links.
-        needed = math.ceil(math.log(len(elems), len(chars)))
+        needed = max(min_chars, math.ceil(math.log(len(elems), len(chars))))
         # Short hints are the number of hints we can possibly show which are
         # (needed - 1) digits in length.
-        short_count = math.floor((len(chars) ** needed - len(elems)) /
-                                 len(chars))
+        if needed > min_chars:
+            short_count = math.floor((len(chars) ** needed - len(elems)) /
+                                     len(chars))
+        else:
+            short_count = 0
+
         long_count = len(elems) - short_count
 
         strings = []
