@@ -197,7 +197,7 @@ class HintManager(QObject):
         # (needed - 1) digits in length.
         if needed > min_chars:
             short_count = math.floor((len(chars) ** needed - len(elems)) /
-                                    len(chars))
+                                     len(chars))
         else:
             short_count = 0
 
