@@ -388,13 +388,15 @@ def fake_io(write_func):
     fake_stdout = FakeIOStream(write_func)
     sys.stderr = fake_stderr
     sys.stdout = fake_stdout
-    yield
-    # If the code we did run did change sys.stdout/sys.stderr, we leave it
-    # unchanged. Otherwise, we reset it.
-    if sys.stdout is fake_stdout:
-        sys.stdout = old_stdout
-    if sys.stderr is fake_stderr:
-        sys.stderr = old_stderr
+    try:
+        yield
+    finally:
+        # If the code we did run did change sys.stdout/sys.stderr, we leave it
+        # unchanged. Otherwise, we reset it.
+        if sys.stdout is fake_stdout:
+            sys.stdout = old_stdout
+        if sys.stderr is fake_stderr:
+            sys.stderr = old_stderr
 
 
 @contextlib.contextmanager
