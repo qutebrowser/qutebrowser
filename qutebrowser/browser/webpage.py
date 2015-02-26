@@ -42,6 +42,9 @@ class BrowserPage(QWebPage):
 
     Attributes:
         error_occured: Whether an error occured while loading.
+        open_target: Where to open the next navigation request.
+                     ("normal", "tab", "tab_bg")
+        _hint_target: Override for open_target while hinting, or None.
         _extension_handlers: Mapping of QWebPage extensions to their handlers.
         _networkmnager: The NetworkManager used.
         _win_id: The window ID this BrowserPage is associated with.
@@ -64,6 +67,8 @@ class BrowserPage(QWebPage):
         }
         self._ignore_load_started = False
         self.error_occured = False
+        self.open_target = usertypes.ClickTarget.normal
+        self._hint_target = None
         self._networkmanager = networkmanager.NetworkManager(
             win_id, tab_id, self)
         self.setNetworkAccessManager(self._networkmanager)
@@ -405,6 +410,24 @@ class BrowserPage(QWebPage):
         if 'scroll-pos' in data and frame.scrollPosition() == QPoint(0, 0):
             frame.setScrollPosition(data['scroll-pos'])
 
+    @pyqtSlot(str)
+    def on_start_hinting(self, hint_target):
+        """Emitted before a hinting-click takes place.
+
+        Args:
+            hint_target: A string to set self._hint_target to.
+        """
+        t = getattr(usertypes.ClickTarget, hint_target)
+        log.webview.debug("Setting force target to {}/{}".format(
+            hint_target, t))
+        self._hint_target = t
+
+    @pyqtSlot()
+    def on_stop_hinting(self):
+        """Emitted when hinting is finished."""
+        log.webview.debug("Finishing hinting.")
+        self._hint_target = None
+
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""
         ua = config.get('network', 'user-agent')
@@ -513,15 +536,17 @@ class BrowserPage(QWebPage):
             return False
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
-        open_target = self.view().open_target
-        self.view().open_target = usertypes.ClickTarget.normal
-        if open_target == usertypes.ClickTarget.tab:
+        if self._hint_target is not None:
+            target = self._hint_target
+        else:
+            target = self.open_target
+        if target == usertypes.ClickTarget.tab:
             tabbed_browser.tabopen(url, False)
             return False
-        elif open_target == usertypes.ClickTarget.tab_bg:
+        elif target == usertypes.ClickTarget.tab_bg:
             tabbed_browser.tabopen(url, True)
             return False
-        elif open_target == usertypes.ClickTarget.window:
+        elif target == usertypes.ClickTarget.window:
             from qutebrowser.mainwindow import mainwindow
             window = mainwindow.MainWindow()
             window.show()
