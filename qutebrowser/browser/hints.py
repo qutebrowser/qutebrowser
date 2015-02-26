@@ -385,7 +385,7 @@ class HintManager(QObject):
             self.set_open_target.emit(target.name)
             events += [
                 QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton,
-                            Qt.NoButton, modifiers),
+                            Qt.LeftButton, modifiers),
                 QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
                             Qt.NoButton, modifiers),
             ]
