@@ -384,6 +384,7 @@ class BrowserPage(QWebPage):
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
         open_target = self.view().open_target
+        self.view().open_target = usertypes.ClickTarget.normal
         if open_target == usertypes.ClickTarget.tab:
             tabbed_browser.tabopen(url, False)
             return False
