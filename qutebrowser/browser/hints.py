@@ -386,6 +386,10 @@ class HintManager(QObject):
         action = "Hovering" if target == Target.hover else "Clicking"
         log.hints.debug("{} on '{}' at {}/{}".format(
             action, elem, pos.x(), pos.y()))
+        if target in (Target.tab, Target.tab_bg, Target.window):
+            modifiers = Qt.ControlModifier
+        else:
+            modifiers = Qt.NoModifier
         events = [
             QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
                         Qt.NoModifier),
@@ -394,9 +398,9 @@ class HintManager(QObject):
             self.set_open_target.emit(target.name)
             events += [
                 QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton,
-                            Qt.NoButton, Qt.NoModifier),
+                            Qt.NoButton, modifiers),
                 QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
-                            Qt.NoButton, Qt.NoModifier),
+                            Qt.NoButton, modifiers),
             ]
         for evt in events:
             self.mouse_event.emit(evt)
