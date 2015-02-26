@@ -64,8 +64,8 @@ class WebHistory(QWebHistoryInterface):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._linecp = lineparser.LineConfigParser(standarddir.data, 'history',
-                                                   parent=self)
+        self._linecp = lineparser.LineConfigParser(
+            standarddir.data(), 'history', parent=self)
         self._history = [HistoryEntry.from_str(e) for e in self._linecp.data]
         objreg.get('save-manager').add_saveable('history', self.save,
                                                 self.changed)

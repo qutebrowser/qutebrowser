@@ -27,11 +27,33 @@ from PyQt5.QtCore import QCoreApplication, QStandardPaths
 from qutebrowser.utils import log, qtutils
 
 
-config = None
-data = None
-cache = None
-download = None
-runtime = None
+# The argparse namespace passed to init()
+_args = None
+
+
+def config():
+    """Convenience function to get the config location."""
+    return _get(QStandardPaths.ConfigLocation)
+
+
+def data():
+    """Convenience function to get the data location."""
+    return _get(QStandardPaths.DataLocation)
+
+
+def cache():
+    """Convenience function to get the cache location."""
+    return _get(QStandardPaths.CacheLocation)
+
+
+def download():
+    """Convenience function to get the download location."""
+    return _get(QStandardPaths.DownloadLocation)
+
+
+def runtime():
+    """Convenience function to get the runtime location."""
+    return _get(QStandardPaths.RuntimeLocation)
 
 
 def _writable_location(typ):
@@ -75,16 +97,14 @@ def _from_args(typ, args):
         return (True, arg_value)
 
 
-def _get(typ, args=None):
+def _get(typ):
     """Get the directory where files of the given type should be written to.
 
     Args:
         typ: A member of the QStandardPaths::StandardLocation enum,
              see http://qt-project.org/doc/qt-5/qstandardpaths.html#StandardLocation-enum
-        args: An argparse namespace which could be used to override the
-              locations.
     """
-    overridden, path = _from_args(typ, args)
+    overridden, path = _from_args(typ, _args)
     if not overridden:
         path = _writable_location(typ)
         appname = QCoreApplication.instance().applicationName()
@@ -101,6 +121,11 @@ def _get(typ, args=None):
                 QStandardPaths.ConfigLocation)
             if data_path == config_path:
                 path = os.path.join(path, 'data')
+    # From the XDG basedir spec:
+    #     If, when attempting to write a file, the destination directory is
+    #     non-existant an attempt should be made to create it with permission
+    #     0700. If the destination directory exists already the permissions
+    #     should not be changed.
     if path is not None and not os.path.exists(path):
         os.makedirs(path, 0o700)
     return path
@@ -108,26 +133,10 @@ def _get(typ, args=None):
 
 def init(args):
     """Initialize all standard dirs."""
-    global config, data, cache, download, runtime
-    config = _get(QStandardPaths.ConfigLocation, args)
-    data = _get(QStandardPaths.DataLocation, args)
-    cache = _get(QStandardPaths.CacheLocation, args)
-    download = _get(QStandardPaths.DownloadLocation, args)
-    runtime = _get(QStandardPaths.RuntimeLocation, args)
-    # From the XDG basedir spec:
-    #     If, when attempting to write a file, the destination directory is
-    #     non-existant an attempt should be made to create it with permission
-    #     0700. If the destination directory exists already the permissions
-    #     should not be changed.
-    #
-    # This is slightly wrong according to the standard as we ensure these paths
-    # exists while initializing, not when writing the file - but practicality
-    # beats purity.
-    for path in (config, data, cache):
-        if path is not None and not os.path.exists(path):
-            os.makedirs(path, 0o700)
+    global _args
+    _args = args
     # http://www.brynosaurus.com/cachedir/spec.html
-    cachedir_tag = os.path.join(cache, 'CACHEDIR.TAG')
+    cachedir_tag = os.path.join(cache(), 'CACHEDIR.TAG')
     if not os.path.exists(cachedir_tag):
         try:
             with open(cachedir_tag, 'w', encoding='utf-8') as f:

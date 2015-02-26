@@ -32,7 +32,7 @@ from qutebrowser.test import helpers, qApp
 
 class GetStandardDirLinuxTests(unittest.TestCase):
 
-    """Tests for standarddir.get under Linux.
+    """Tests for standarddir under Linux.
 
     Attributes:
         temp_dir: A temporary directory.
@@ -50,7 +50,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
         with helpers.environ_set_temp({'XDG_DATA_HOME': self.temp_dir}):
             standarddir.init(None)
             expected = os.path.join(self.temp_dir, 'qutebrowser')
-            self.assertEqual(standarddir.data, expected)
+            self.assertEqual(standarddir.data(), expected)
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_config_explicit(self):
@@ -58,7 +58,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
         with helpers.environ_set_temp({'XDG_CONFIG_HOME': self.temp_dir}):
             standarddir.init(None)
             expected = os.path.join(self.temp_dir, 'qutebrowser')
-            self.assertEqual(standarddir.config, expected)
+            self.assertEqual(standarddir.config(), expected)
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_cache_explicit(self):
@@ -66,7 +66,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
         with helpers.environ_set_temp({'XDG_CACHE_HOME': self.temp_dir}):
             standarddir.init(None)
             expected = os.path.join(self.temp_dir, 'qutebrowser')
-            self.assertEqual(standarddir.cache, expected)
+            self.assertEqual(standarddir.cache(), expected)
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_data(self):
@@ -76,7 +76,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
             standarddir.init(None)
             expected = os.path.join(self.temp_dir, '.local', 'share',
                                     'qutebrowser')
-            self.assertEqual(standarddir.data, expected)
+            self.assertEqual(standarddir.data(), expected)
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_config(self):
@@ -85,7 +85,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
         with helpers.environ_set_temp(env):
             standarddir.init(None)
             expected = os.path.join(self.temp_dir, '.config', 'qutebrowser')
-            self.assertEqual(standarddir.config, expected)
+            self.assertEqual(standarddir.config(), expected)
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_cache(self):
@@ -94,7 +94,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
         with helpers.environ_set_temp(env):
             standarddir.init(None)
             expected = os.path.join(self.temp_dir, '.cache', 'qutebrowser')
-            self.assertEqual(standarddir.cache, expected)
+            self.assertEqual(standarddir.cache(), expected)
 
     def tearDown(self):
         qApp.setApplicationName(self.old_name)
@@ -103,7 +103,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
 
 class GetStandardDirWindowsTests(unittest.TestCase):
 
-    """Tests for standarddir.get under Windows.
+    """Tests for standarddir under Windows.
 
     Attributes:
         old_name: The old applicationName.
@@ -121,18 +121,18 @@ class GetStandardDirWindowsTests(unittest.TestCase):
     @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
     def test_data(self):
         """Test data dir."""
-        self.assertEqual(standarddir.data.split(os.sep)[-2:],
-                         ['qutebrowser_test', 'data'], standarddir.data)
+        self.assertEqual(standarddir.data().split(os.sep)[-2:],
+                         ['qutebrowser_test', 'data'], standarddir.data())
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
     def test_config(self):
         """Test config dir."""
-        self.assertEqual(standarddir.config.split(os.sep)[-1],
+        self.assertEqual(standarddir.config().split(os.sep)[-1],
                          'qutebrowser_test',
-                         standarddir.config)
+                         standarddir.config())
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
     def test_cache(self):
         """Test cache dir."""
-        self.assertEqual(standarddir.cache.split(os.sep)[-2:],
-                         ['qutebrowser_test', 'cache'], standarddir.cache)
+        self.assertEqual(standarddir.cache().split(os.sep)[-2:],
+                         ['qutebrowser_test', 'cache'], standarddir.cache())

@@ -70,8 +70,8 @@ class CookieJar(RAMCookieJar):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._linecp = lineparser.LineConfigParser(standarddir.data, 'cookies',
-                                                   binary=True, parent=self)
+        self._linecp = lineparser.LineConfigParser(
+            standarddir.data(), 'cookies', binary=True, parent=self)
         cookies = []
         for line in self._linecp:
             cookies += QNetworkCookie.parseCookies(line)

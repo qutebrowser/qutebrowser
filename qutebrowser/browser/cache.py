@@ -33,7 +33,7 @@ class DiskCache(QNetworkDiskCache):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setCacheDirectory(os.path.join(standarddir.cache, 'http'))
+        self.setCacheDirectory(os.path.join(standarddir.cache(), 'http'))
         self.setMaximumCacheSize(config.get('storage', 'cache-size'))
         objreg.get('config').changed.connect(self.cache_size_changed)
 

@@ -92,7 +92,7 @@ class HostBlocker:
         self.blocked_hosts = set()
         self._in_progress = []
         self._done_count = 0
-        self._hosts_file = os.path.join(standarddir.data, 'blocked-hosts')
+        self._hosts_file = os.path.join(standarddir.data(), 'blocked-hosts')
         objreg.get('config').changed.connect(self.on_config_changed)
 
     def read_hosts(self):

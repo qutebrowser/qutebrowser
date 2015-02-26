@@ -53,7 +53,7 @@ class QuickmarkManager(QObject):
         self.marks = collections.OrderedDict()
 
         self._linecp = lineparser.LineConfigParser(
-            standarddir.config, 'quickmarks', parent=self)
+            standarddir.config(), 'quickmarks', parent=self)
         for line in self._linecp:
             try:
                 key, url = line.rsplit(maxsplit=1)
@@ -61,7 +61,7 @@ class QuickmarkManager(QObject):
                 message.error(0, "Invalid quickmark '{}'".format(line))
             else:
                 self.marks[key] = url
-        filename = os.path.join(standarddir.config, 'quickmarks')
+        filename = os.path.join(standarddir.config(), 'quickmarks')
         objreg.get('save-manager').add_saveable('quickmark-manager', self.save,
                                                 self.changed,
                                                 filename=filename)

@@ -64,7 +64,7 @@ class SessionManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._base_path = os.path.join(standarddir.data, 'sessions')
+        self._base_path = os.path.join(standarddir.data(), 'sessions')
         self._last_window_session = None
         if not os.path.exists(self._base_path):
             os.mkdir(self._base_path)

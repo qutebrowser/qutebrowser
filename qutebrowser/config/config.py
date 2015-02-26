@@ -117,7 +117,8 @@ def _init_main_config():
     """Initialize the main config."""
     try:
         app = objreg.get('app')
-        config_obj = ConfigManager(standarddir.config, 'qutebrowser.conf', app)
+        config_obj = ConfigManager(standarddir.config(), 'qutebrowser.conf',
+                                   app)
     except (configexc.Error, configparser.Error, UnicodeDecodeError) as e:
         log.init.exception(e)
         errstr = "Error while reading config:"
@@ -134,8 +135,8 @@ def _init_main_config():
         sys.exit(1)
     else:
         objreg.register('config', config_obj)
-        if standarddir.config is not None:
-            filename = os.path.join(standarddir.config, 'qutebrowser.conf')
+        if standarddir.config() is not None:
+            filename = os.path.join(standarddir.config(), 'qutebrowser.conf')
             save_manager = objreg.get('save-manager')
             save_manager.add_saveable(
                 'config', config_obj.save, config_obj.changed,
@@ -152,7 +153,7 @@ def _init_main_config():
 def _init_key_config():
     """Initialize the key config."""
     try:
-        key_config = keyconf.KeyConfigParser(standarddir.config, 'keys.conf')
+        key_config = keyconf.KeyConfigParser(standarddir.config(), 'keys.conf')
     except (keyconf.KeyConfigError, UnicodeDecodeError) as e:
         log.init.exception(e)
         errstr = "Error while reading key config:\n"
@@ -166,9 +167,9 @@ def _init_key_config():
         sys.exit(1)
     else:
         objreg.register('key-config', key_config)
-        if standarddir.config is not None:
+        if standarddir.config() is not None:
             save_manager = objreg.get('save-manager')
-            filename = os.path.join(standarddir.config, 'keys.conf')
+            filename = os.path.join(standarddir.config(), 'keys.conf')
             save_manager.add_saveable(
                 'key-config', key_config.save, key_config.changed,
                 config_opt=('general', 'auto-save-config'), filename=filename)
@@ -177,13 +178,13 @@ def _init_key_config():
 def _init_misc():
     """Initialize misc. config-related files."""
     save_manager = objreg.get('save-manager')
-    state_config = ini.ReadWriteConfigParser(standarddir.data, 'state')
+    state_config = ini.ReadWriteConfigParser(standarddir.data(), 'state')
     objreg.register('state-config', state_config)
     save_manager.add_saveable('state-config', state_config.save)
 
     # We need to import this here because lineparser needs config.
     from qutebrowser.config.parsers import line
-    command_history = line.LineConfigParser(standarddir.data, 'cmd-history',
+    command_history = line.LineConfigParser(standarddir.data(), 'cmd-history',
                                             ('completion', 'history-length'),
                                             parent=objreg.get('config'))
     objreg.register('command-history', command_history)
@@ -197,10 +198,10 @@ def _init_misc():
     # This fixes one of the corruption issues here:
     # https://github.com/The-Compiler/qutebrowser/issues/515
 
-    if standarddir.config is None:
+    if standarddir.config() is None:
         path = os.devnull
     else:
-        path = os.path.join(standarddir.config, 'qsettings')
+        path = os.path.join(standarddir.config(), 'qsettings')
     for fmt in (QSettings.NativeFormat, QSettings.IniFormat):
         QSettings.setPath(fmt, QSettings.UserScope, path)
 

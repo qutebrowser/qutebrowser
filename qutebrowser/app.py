@@ -225,7 +225,7 @@ class Application(QApplication):
 
     def _handle_segfault(self):
         """Handle a segfault from a previous run."""
-        logname = os.path.join(standarddir.data, 'crash.log')
+        logname = os.path.join(standarddir.data(), 'crash.log')
         try:
             # First check if an old logfile exists.
             if os.path.exists(logname):
@@ -249,7 +249,7 @@ class Application(QApplication):
 
     def _init_crashlogfile(self):
         """Start a new logfile and redirect faulthandler to it."""
-        logname = os.path.join(standarddir.data, 'crash.log')
+        logname = os.path.join(standarddir.data(), 'crash.log')
         try:
             self._crashlogfile = open(logname, 'w', encoding='ascii')
         except OSError:

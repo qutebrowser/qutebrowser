@@ -194,13 +194,13 @@ def _set_setting(typ, arg, default=UNSET, value=UNSET):
 
 def init():
     """Initialize the global QWebSettings."""
-    QWebSettings.setIconDatabasePath(standarddir.cache)
+    QWebSettings.setIconDatabasePath(standarddir.cache())
     QWebSettings.setOfflineWebApplicationCachePath(
-        os.path.join(standarddir.cache, 'application-cache'))
+        os.path.join(standarddir.cache(), 'application-cache'))
     QWebSettings.globalSettings().setLocalStoragePath(
-        os.path.join(standarddir.data, 'local-storage'))
+        os.path.join(standarddir.data(), 'local-storage'))
     QWebSettings.setOfflineStoragePath(
-        os.path.join(standarddir.data, 'offline-storage'))
+        os.path.join(standarddir.data(), 'offline-storage'))
 
     global settings
     settings = QWebSettings.globalSettings()
