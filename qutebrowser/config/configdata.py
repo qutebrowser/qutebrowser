@@ -606,6 +606,10 @@ DATA = collections.OrderedDict([
          SettingValue(typ.String(minlen=2), 'asdfghjkl'),
          "Chars used for hint strings."),
 
+        ('min-chars',
+         SettingValue(typ.Int(minval=1), '1'),
+         "Mininum number of chars used for hint strings."),
+
         ('uppercase',
          SettingValue(typ.Bool(), 'false'),
          "Make chars in hint strings uppercase."),
