@@ -57,17 +57,17 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
         super().__init__(parent)
         self.update_font()
         objreg.get('config').changed.connect(self.update_font)
-        self.textChanged.connect(self.on_text_changed)
+        #self.textChanged.connect(self.on_text_changed)
 
-        self._rlcompleter = rlcompleter.Completer(namespace)
-        qcompleter = QCompleter(self)
-        self._model = QStringListModel(qcompleter)
-        qcompleter.setModel(self._model)
-        qcompleter.setCompletionMode(
-            QCompleter.UnfilteredPopupCompletion)
-        qcompleter.setModelSorting(
-            QCompleter.CaseSensitivelySortedModel)
-        self.setCompleter(qcompleter)
+        #self._rlcompleter = rlcompleter.Completer(namespace)
+        #qcompleter = QCompleter(self)
+        #self._model = QStringListModel(qcompleter)
+        #qcompleter.setModel(self._model)
+        #qcompleter.setCompletionMode(
+        #    QCompleter.UnfilteredPopupCompletion)
+        #qcompleter.setModelSorting(
+        #    QCompleter.CaseSensitivelySortedModel)
+        #self.setCompleter(qcompleter)
 
         self._history = cmdhistory.History(parent=self)
         self.returnPressed.connect(self.on_return_pressed)
