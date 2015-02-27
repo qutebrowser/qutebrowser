@@ -50,7 +50,7 @@ def parse_content_disposition(reply):
                 bytes(reply.rawHeader(content_disposition_header)))
             filename = content_disposition.filename()
         except UnicodeDecodeError:
-            log.misc.exception("Error while decoding filename")
+            log.rfc6266.exception("Error while decoding filename")
         else:
             is_inline = content_disposition.is_inline()
     # Then try to get filename from url
