@@ -37,12 +37,18 @@ LastPress = usertypes.enum('LastPress', ['none', 'filtertext', 'keystring'])
 
 class NormalKeyParser(keyparser.CommandKeyParser):
 
-    """KeyParser for normalmode with added STARTCHARS detection."""
+    """KeyParser for normalmode with added STARTCHARS detection and more.
+
+    Attributes:
+        _partial_timer: Timer to clear partial keypresses.
+    """
 
     def __init__(self, win_id, parent=None):
         super().__init__(win_id, parent, supports_count=True,
                          supports_chains=True)
         self.read_config('normal')
+        self._partial_timer = usertypes.Timer(self, 'partial-match')
+        self._partial_timer.setSingleShot(True)
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -60,7 +66,32 @@ class NormalKeyParser(keyparser.CommandKeyParser):
         if not self._keystring and any(txt == c for c in STARTCHARS):
             message.set_cmd_text(self._win_id, txt)
             return self.Match.definitive
-        return super()._handle_single_key(e)
+        match = super()._handle_single_key(e)
+        if match == self.Match.partial:
+            timeout = config.get('input', 'partial-timeout')
+            if timeout != 0:
+                self._partial_timer.setInterval(timeout)
+                self._partial_timer.timeout.connect(self._clear_partial_match)
+                self._partial_timer.start()
+        return match
+
+    @pyqtSlot()
+    def _clear_partial_match(self):
+        """Clear a partial keystring after a timeout."""
+        self._debug_log("Clearing partial keystring {}".format(
+            self._keystring))
+        self._keystring = ''
+        self.keystring_updated.emit(self._keystring)
+
+    @pyqtSlot()
+    def _stop_timers(self):
+        super()._stop_timers()
+        self._partial_timer.stop()
+        try:
+            self._partial_timer.timeout.disconnect(self._clear_partial_match)
+        except TypeError:
+            # no connections
+            pass
 
 
 class PromptKeyParser(keyparser.CommandKeyParser):

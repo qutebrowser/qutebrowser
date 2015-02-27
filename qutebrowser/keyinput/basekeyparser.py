@@ -175,7 +175,7 @@ class BaseKeyParser(QObject):
             self._debug_log("Ignoring, no text char")
             return self.Match.none
 
-        self._stop_delayed_exec()
+        self._stop_timers()
         self._keystring += txt
 
         count, cmd_input = self._split_count()
@@ -246,7 +246,7 @@ class BaseKeyParser(QObject):
         else:
             return (self.Match.none, None)
 
-    def _stop_delayed_exec(self):
+    def _stop_timers(self):
         """Stop a delayed execution if any is running."""
         if self._ambigious_timer.isActive() and self.do_log:
             log.keyboard.debug("Stopping delayed execution.")

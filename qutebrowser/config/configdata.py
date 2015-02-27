@@ -335,6 +335,10 @@ DATA = collections.OrderedDict([
          SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '500'),
          "Timeout for ambiguous keybindings."),
 
+        ('partial-timeout',
+         SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '1000'),
+         "Timeout for partially typed keybindings."),
+
         ('insert-mode-on-plugins',
          SettingValue(typ.Bool(), 'false'),
          "Whether to switch to insert mode when clicking flash and other "
