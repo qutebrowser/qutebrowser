@@ -57,7 +57,7 @@ class BaseKeyParser(QObject):
         _warn_on_keychains: Whether a warning should be logged when binding
                             keychains in a section which does not support them.
         _keystring: The currently entered key sequence
-        _timer: Timer for delayed execution.
+        _ambigious_timer: Timer for delayed execution with ambigious bindings.
         _modename: The name of the input mode associated with this keyparser.
         _supports_count: Whether count is supported
         _supports_chains: Whether keychains are supported
@@ -78,7 +78,8 @@ class BaseKeyParser(QObject):
                  supports_chains=False):
         super().__init__(parent)
         self._win_id = win_id
-        self._timer = None
+        self._ambigious_timer = usertypes.Timer(self, 'ambigious-match')
+        self._ambigious_timer.setSingleShot(True)
         self._modename = None
         self._keystring = ''
         if supports_count is None:
@@ -248,11 +249,14 @@ class BaseKeyParser(QObject):
 
     def _stop_delayed_exec(self):
         """Stop a delayed execution if any is running."""
-        if self._timer is not None:
-            if self.do_log:
-                log.keyboard.debug("Stopping delayed execution.")
-            self._timer.stop()
-            self._timer = None
+        if self._ambigious_timer.isActive() and self.do_log:
+            log.keyboard.debug("Stopping delayed execution.")
+        self._ambigious_timer.stop()
+        try:
+            self._ambigious_timer.timeout.disconnect()
+        except TypeError:
+            # no connections
+            pass
 
     def _handle_ambiguous_match(self, binding, count):
         """Handle an ambiguous match.
@@ -271,12 +275,10 @@ class BaseKeyParser(QObject):
             # execute in `time' ms
             self._debug_log("Scheduling execution of {} in {}ms".format(
                 binding, time))
-            self._timer = usertypes.Timer(self, 'ambigious_match')
-            self._timer.setSingleShot(True)
-            self._timer.setInterval(time)
-            self._timer.timeout.connect(
+            self._ambigious_timer.setInterval(time)
+            self._ambigious_timer.timeout.connect(
                 functools.partial(self.delayed_exec, binding, count))
-            self._timer.start()
+            self._ambigious_timer.start()
 
     def delayed_exec(self, command, count):
         """Execute a delayed command.
@@ -285,7 +287,6 @@ class BaseKeyParser(QObject):
             command/count: As if passed to self.execute()
         """
         self._debug_log("Executing delayed command now!")
-        self._timer = None
         self._keystring = ''
         self.keystring_updated.emit(self._keystring)
         self.execute(command, self.Type.chain, count)

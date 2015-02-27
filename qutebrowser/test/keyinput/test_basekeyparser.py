@@ -227,7 +227,7 @@ class KeyChainTests(unittest.TestCase):
         self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='a'))
         self.assertFalse(self.kp.execute.called)
         basekeyparser.usertypes.Timer.assert_called_once_with(
-            self.kp, 'ambigious_match')
+            self.kp, 'ambigious-match')
         self.timermock.setSingleShot.assert_called_once_with(True)
         self.timermock.setInterval.assert_called_once_with(100)
         self.assertTrue(self.timermock.timeout.connect.called)
