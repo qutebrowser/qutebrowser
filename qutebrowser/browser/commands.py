@@ -281,7 +281,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', name='open',
                        maxsplit=0, scope='window',
                        completion=[usertypes.Completion.quickmark_by_url])
-    def openurl(self, url, bg=False, tab=False, window=False,
+    def openurl(self, url=None, bg=False, tab=False, window=False,
                 count: {'special': 'count'}=None):
         """Open a URL in the current/[count]th tab.
 
@@ -292,10 +292,17 @@ class CommandDispatcher:
             window: Open in a new window.
             count: The tab index to open the URL in, or None.
         """
-        try:
-            url = urlutils.fuzzy_url(url)
-        except urlutils.FuzzyUrlError as e:
-            raise cmdexc.CommandError(e)
+        if url is None:
+            if tab or bg or window:
+                url = config.get('general', 'default-page')
+            else:
+                raise cmdexc.CommandError("No URL given, but -t/-b/-w is not "
+                                          "set!")
+        else:
+            try:
+                url = urlutils.fuzzy_url(url)
+            except urlutils.FuzzyUrlError as e:
+                raise cmdexc.CommandError(e)
         if tab or bg or window:
             self._open(url, tab, bg, window)
         else:

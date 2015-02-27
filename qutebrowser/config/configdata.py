@@ -131,6 +131,10 @@ DATA = collections.OrderedDict([
          SettingValue(typ.List(), 'https://www.duckduckgo.com'),
          "The default page(s) to open at the start, separated by commas."),
 
+        ('default-page',
+         SettingValue(typ.FuzzyUrl(), '${startpage}'),
+         "The page to open if :open -t/-b/-w is used without URL."),
+
         ('auto-search',
          SettingValue(typ.AutoSearch(), 'naive'),
          "Whether to start a search when something else than a URL is "
@@ -1000,7 +1004,7 @@ KEY_DATA = collections.OrderedDict([
         ('set-cmd-text ":open -b {url}"', ['xO']),
         ('set-cmd-text ":open -w "', ['wo']),
         ('set-cmd-text ":open -w {url}"', ['wO']),
-        ('open -t about:blank', ['ga']),
+        ('open -t', ['ga']),
         ('tab-close', ['d', '<Ctrl-W>']),
         ('tab-close -o', ['D']),
         ('tab-only', ['co']),
@@ -1082,7 +1086,7 @@ KEY_DATA = collections.OrderedDict([
         ('tab-focus last', ['<Ctrl-Tab>']),
         ('enter-mode passthrough', ['<Ctrl-V>']),
         ('quit', ['<Ctrl-Q>']),
-        ('open -t about:blank', ['<Ctrl-T>']),
+        ('open -t', ['<Ctrl-T>']),
         ('scroll-page 0 1', ['<Ctrl-F>']),
         ('scroll-page 0 -1', ['<Ctrl-B>']),
         ('scroll-page 0 0.5', ['<Ctrl-D>']),
