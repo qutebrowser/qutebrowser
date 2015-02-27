@@ -1101,6 +1101,30 @@ class SearchEngineUrl(BaseType):
                 url.errorString()))
 
 
+class FuzzyUrl(BaseType):
+
+    """A single URL."""
+
+    def validate(self, value):
+        from qutebrowser.utils import urlutils
+        if not value:
+            if self._none_ok:
+                return
+            else:
+                raise configexc.ValidationError(value, "may not be empty!")
+        try:
+            self.transform(value)
+        except urlutils.FuzzyUrlError as e:
+            raise configexc.ValidationError(value, str(e))
+
+    def transform(self, value):
+        from qutebrowser.utils import urlutils
+        if not value:
+            return None
+        else:
+            return urlutils.fuzzy_url(value, do_search=False)
+
+
 class Encoding(BaseType):
 
     """Setting for a python encoding."""

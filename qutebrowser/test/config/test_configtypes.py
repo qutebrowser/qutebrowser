@@ -1780,6 +1780,51 @@ class SearchEngineUrlTests(unittest.TestCase):
         self.assertEqual(self.t.transform("foobar"), "foobar")
 
 
+class FuzzyUrlTests(unittest.TestCase):
+
+    """Test FuzzyUrl."""
+
+    def setUp(self):
+        self.t = configtypes.FuzzyUrl()
+
+    def test_validate_empty(self):
+        """Test validate with empty string and none_ok = False."""
+        with self.assertRaises(configexc.ValidationError):
+            self.t.validate('')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with empty string and none_ok = True."""
+        t = configtypes.FuzzyUrl(none_ok=True)
+        t.validate('')
+
+    def test_validate(self):
+        """Test validate with a good value."""
+        self.t.validate('http://example.com/?q={}')
+
+    def test_validate_good_fuzzy(self):
+        """Test validate with a good fuzzy value."""
+        self.t.validate('example.com')
+
+    def test_validate_invalid_url(self):
+        """Test validate with an invalid URL."""
+        with self.assertRaises(configexc.ValidationError):
+            self.t.validate('::foo')
+
+    def test_validate_invalid_search(self):
+        """Test validate with an invalid search term."""
+        with self.assertRaises(configexc.ValidationError):
+            self.t.validate('foo bar')
+
+    def test_transform_empty(self):
+        """Test transform with an empty value."""
+        self.assertIsNone(self.t.transform(''))
+
+    def test_transform(self):
+        """Test transform with a value."""
+        self.assertEqual(self.t.transform("example.com"),
+                         QUrl('http://example.com'))
+
+
 class UserStyleSheetTests(unittest.TestCase):
 
     """Test UserStyleSheet."""
