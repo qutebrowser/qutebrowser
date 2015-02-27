@@ -138,13 +138,14 @@ def _is_url_dns(url):
     return not info.error()
 
 
-def fuzzy_url(urlstr, cwd=None, relative=False):
+def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
     """Get a QUrl based on an user input which is URL or search term.
 
     Args:
         urlstr: URL to load as a string.
         cwd: The current working directory, or None.
         relative: Whether to resolve relative files.
+        do_search: Whether to perform a search on non-URLs.
 
     Return:
         A target QUrl to a searchpage or the original URL.
@@ -166,7 +167,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False):
     if path is not None and os.path.exists(path):
         log.url.debug("URL is a local file")
         url = QUrl.fromLocalFile(path)
-    elif is_url(stripped):
+    elif (not do_search) or is_url(stripped):
         # probably an address
         log.url.debug("URL is a fuzzy address")
         url = qurl_from_user_input(urlstr)
@@ -178,7 +179,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False):
             url = qurl_from_user_input(stripped)
     log.url.debug("Converting fuzzy term {} to URL -> {}".format(
                   urlstr, url.toDisplayString()))
-    if config.get('general', 'auto-search'):
+    if do_search and config.get('general', 'auto-search'):
         qtutils.ensure_valid(url)
     else:
         if not url.isValid():

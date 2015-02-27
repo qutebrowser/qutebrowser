@@ -387,7 +387,7 @@ class Application(QApplication):
                 log.init.debug("Opening startpage")
                 for urlstr in config.get('general', 'startpage'):
                     try:
-                        url = urlutils.fuzzy_url(urlstr)
+                        url = urlutils.fuzzy_url(urlstr, do_search=False)
                     except urlutils.FuzzyUrlError as e:
                         message.error(0, "Error when opening startpage: "
                                          "{}".format(e))

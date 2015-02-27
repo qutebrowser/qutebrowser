@@ -137,7 +137,7 @@ class QuickmarkManager(QObject):
                 "Quickmark '{}' does not exist!".format(name))
         urlstr = self.marks[name]
         try:
-            url = urlutils.fuzzy_url(urlstr)
+            url = urlutils.fuzzy_url(urlstr, do_search=False)
         except urlutils.FuzzyUrlError:
             raise cmdexc.CommandError(
                 "Invalid URL for quickmark {}: {} ({})".format(
