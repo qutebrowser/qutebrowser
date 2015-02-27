@@ -292,7 +292,9 @@ class BrowserPage(QWebPage):
         Args:
             hint_target: A string to set self._hint_target to.
         """
-        t = getattr(usertypes.ClickTarget, hint_target)
+        t = getattr(usertypes.ClickTarget, hint_target, None)
+        if t is None:
+            return
         log.webview.debug("Setting force target to {}/{}".format(
             hint_target, t))
         self._hint_target = t
