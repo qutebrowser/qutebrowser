@@ -71,7 +71,7 @@ class BaseKeyParser(QObject):
     do_log = True
 
     Match = usertypes.enum('Match', ['partial', 'definitive', 'ambiguous',
-                                     'none'])
+                                     'other', 'none'])
     Type = usertypes.enum('Type', ['chain', 'special'])
 
     def __init__(self, win_id, parent=None, supports_count=None,
@@ -153,7 +153,7 @@ class BaseKeyParser(QObject):
             e: the KeyPressEvent from Qt.
 
         Return:
-            True if event has been handled, False otherwise.
+            A self.Match member.
         """
         txt = e.text()
         key = e.key()
@@ -163,7 +163,7 @@ class BaseKeyParser(QObject):
             self._debug_log("Escape pressed, discarding '{}'.".format(
                 self._keystring))
             self._keystring = ''
-            return
+            return self.Match.none
 
         if len(txt) == 1:
             category = unicodedata.category(txt)  # pylint: disable=no-member
@@ -173,7 +173,7 @@ class BaseKeyParser(QObject):
 
         if (not txt) or is_control_char:
             self._debug_log("Ignoring, no text char")
-            return False
+            return self.Match.none
 
         self._stop_delayed_exec()
         self._keystring += txt
@@ -182,7 +182,7 @@ class BaseKeyParser(QObject):
 
         if not cmd_input:
             # Only a count, no command yet, but we handled it
-            return True
+            return self.Match.other
 
         match, binding = self._match_key(cmd_input)
 
@@ -205,8 +205,7 @@ class BaseKeyParser(QObject):
             self._debug_log("Giving up with '{}', no matches".format(
                 self._keystring))
             self._keystring = ''
-            return False
-        return True
+        return match
 
     def _match_key(self, cmd_input):
         """Try to match a given keystring with any bound keychain.
@@ -296,13 +295,16 @@ class BaseKeyParser(QObject):
 
         Args:
             e: the KeyPressEvent from Qt
+
+        Return:
+            True if the event was handled, False otherwise.
         """
         handled = self._handle_special_key(e)
         if handled or not self._supports_chains:
             return handled
-        handled = self._handle_single_key(e)
+        match = self._handle_single_key(e)
         self.keystring_updated.emit(self._keystring)
-        return handled
+        return match != self.Match.none
 
     def read_config(self, modename=None):
         """Read the configuration.

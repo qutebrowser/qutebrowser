@@ -54,12 +54,12 @@ class NormalKeyParser(keyparser.CommandKeyParser):
             e: the KeyPressEvent from Qt.
 
         Return:
-            True if event has been handled, False otherwise.
+            A self.Match member.
         """
         txt = e.text().strip()
         if not self._keystring and any(txt == c for c in STARTCHARS):
             message.set_cmd_text(self._win_id, txt)
-            return True
+            return self.Match.definitive
         return super()._handle_single_key(e)
 
 
@@ -140,21 +140,25 @@ class HintKeyParser(keyparser.CommandKeyParser):
 
         Args:
             e: the KeyPressEvent from Qt
+
+        Returns:
+            True if the match has been handled, False otherwise.
         """
-        handled = self._handle_single_key(e)
-        if handled and self._keystring:
-            # A key has been added to the keystring (Match.partial)
+        match = self._handle_single_key(e)
+        if match == self.Match.partial:
             self.keystring_updated.emit(self._keystring)
             self._last_press = LastPress.keystring
-            return handled
-        elif handled:
-            # We handled the key but the keystring is empty. This happens when
-            # match is Match.definitive, so a keychain has been completed.
+            return True
+        elif match == self.Match.definitive:
             self._last_press = LastPress.none
-            return handled
-        else:
+            return True
+        elif match == self.Match.other:
+            pass
+        elif match == self.Match.none:
             # We couldn't find a keychain so we check if it's a special key.
             return self._handle_special_key(e)
+        else:
+            raise ValueError("Got invalid match type {}!".format(match))
 
     def execute(self, cmdstr, keytype, count=None):
         """Handle a completed keychain."""
