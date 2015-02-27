@@ -20,6 +20,7 @@
 """Helpers needed by tests."""
 
 import os
+import logging
 import contextlib
 from unittest import mock
 
@@ -53,6 +54,16 @@ def environ_set_temp(env):
             os.environ[name] = old_env[name]
         elif value is not None:
             del os.environ[name]
+
+
+@contextlib.contextmanager
+def disable_logger(name):
+    """Temporarily disable a logger."""
+    logging.getLogger(name).propagate = False
+    try:
+        yield
+    finally:
+        logging.getLogger(name).propagate = True
 
 
 def fake_keyevent(key, modifiers=0, text=''):

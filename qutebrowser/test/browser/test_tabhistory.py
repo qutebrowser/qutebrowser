@@ -27,6 +27,7 @@ from PyQt5.QtWebKitWidgets import QWebPage
 from qutebrowser.browser import tabhistory
 from qutebrowser.browser.tabhistory import TabHistoryItem as Item
 from qutebrowser.utils import qtutils
+from qutebrowser.test import helpers
 
 
 class SerializeHistoryTests(unittest.TestCase):
@@ -61,7 +62,8 @@ class SerializeHistoryTests(unittest.TestCase):
 
     def test_count(self):
         """Check if the history's count was loaded correctly."""
-        self.assertEqual(self.history.count(), len(self.items))
+        with helpers.disable_logger('qt'):
+            self.assertEqual(self.history.count(), len(self.items))
 
     def test_valid(self):
         """Check if all items are valid."""
