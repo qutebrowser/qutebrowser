@@ -27,6 +27,7 @@ from PyQt5.QtCore import QPoint, QProcess
 from PyQt5.QtNetwork import QNetworkRequest
 
 from qutebrowser.config import configexc
+from qutebrowser.utils import usertypes
 
 
 class ConfigStub:
@@ -178,11 +179,11 @@ class FakeNetworkReply:
         self.headers[key] = value
 
 
-class FakeQProcess:
+class FakeQProcess(mock.Mock):
 
     """QProcess stub.
 
-    Gets some enum values from the real QProcess and uses mocks for signals.
+    Gets some enum values from the real QProcess.
     """
 
     NormalExit = QProcess.NormalExit
@@ -194,11 +195,6 @@ class FakeQProcess:
     WriteError = QProcess.WriteError
     ReadError = QProcess.ReadError
     UnknownError = QProcess.UnknownError
-
-    def __init__(self, parent=None):  # pylint: disable=unused-argument
-        self.finished = mock.Mock()
-        self.error = mock.Mock()
-        self.start = mock.Mock()
 
 
 class FakeSignal:
@@ -223,3 +219,12 @@ class FakeCommand:
 
     def __init__(self, desc):
         self.desc = desc
+
+
+class FakeTimer(usertypes.Timer):
+
+    """Stub for a usertypes.Timer."""
+
+    def __init__(self, parent=None, name=None):
+        super().__init__(parent, name)
+        self.blockSignals(True)

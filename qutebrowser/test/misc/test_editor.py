@@ -24,7 +24,6 @@
 import os
 import os.path
 import unittest
-import logging
 from unittest import mock
 
 from PyQt5.QtCore import QProcess
@@ -33,18 +32,8 @@ from qutebrowser.misc import editor
 from qutebrowser.test import stubs
 
 
-def setUpModule():
-    """Disable logging and mock out some imports."""
-    logging.disable(logging.INFO)
-    editor.message = mock.Mock()
-    editor.QProcess = stubs.FakeQProcess
-
-
-def tearDownModule():
-    """Restore logging."""
-    logging.disable(logging.NOTSET)
-
-
+@mock.patch('qutebrowser.misc.editor.QProcess',
+            new_callable=stubs.FakeQProcess)
 class ArgTests(unittest.TestCase):
 
     """Test argument handling.
@@ -56,14 +45,14 @@ class ArgTests(unittest.TestCase):
     def setUp(self):
         self.editor = editor.ExternalEditor(0)
 
-    def test_simple_start_args(self):
+    def test_simple_start_args(self, _proc_mock):
         """Test starting editor without arguments."""
         editor.config = stubs.ConfigStub(
             {'general': {'editor': ['bin'], 'editor-encoding': 'utf-8'}})
         self.editor.edit("")
         self.editor._proc.start.assert_called_with("bin", [])
 
-    def test_start_args(self):
+    def test_start_args(self, _proc_mock):
         """Test starting editor with static arguments."""
         editor.config = stubs.ConfigStub(
             {'general': {'editor': ['bin', 'foo', 'bar'],
@@ -71,17 +60,17 @@ class ArgTests(unittest.TestCase):
         self.editor.edit("")
         self.editor._proc.start.assert_called_with("bin", ["foo", "bar"])
 
-    def test_placeholder(self):
+    def test_placeholder(self, _proc_mock):
         """Test starting editor with placeholder argument."""
         editor.config = stubs.ConfigStub(
             {'general': {'editor': ['bin', 'foo', '{}', 'bar'],
                          'editor-encoding': 'utf-8'}})
         self.editor.edit("")
         filename = self.editor._filename
-        self.editor._proc.start.assert_called_with("bin",
-                                                   ["foo", filename, "bar"])
+        self.editor._proc.start.assert_called_with(
+            "bin", ["foo", filename, "bar"])
 
-    def test_in_arg_placeholder(self):
+    def test_in_arg_placeholder(self, _proc_mock):
         """Test starting editor with placeholder argument inside argument."""
         editor.config = stubs.ConfigStub(
             {'general': {'editor': ['bin', 'foo{}bar'],
@@ -93,6 +82,8 @@ class ArgTests(unittest.TestCase):
         self.editor._cleanup()  # pylint: disable=protected-access
 
 
+@mock.patch('qutebrowser.misc.editor.QProcess',
+            new_callable=stubs.FakeQProcess)
 class FileHandlingTests(unittest.TestCase):
 
     """Test creation/deletion of tempfile.
@@ -106,7 +97,7 @@ class FileHandlingTests(unittest.TestCase):
         editor.config = stubs.ConfigStub(
             {'general': {'editor': [''], 'editor-encoding': 'utf-8'}})
 
-    def test_file_handling_closed_ok(self):
+    def test_file_handling_closed_ok(self, _proc_mock):
         """Test file handling when closing with an exitstatus == 0."""
         self.editor.edit("")
         filename = self.editor._filename
@@ -114,7 +105,7 @@ class FileHandlingTests(unittest.TestCase):
         self.editor.on_proc_closed(0, QProcess.NormalExit)
         self.assertFalse(os.path.exists(filename))
 
-    def test_file_handling_closed_error(self):
+    def test_file_handling_closed_error(self, _proc_mock):
         """Test file handling when closing with an exitstatus != 0."""
         self.editor.edit("")
         filename = self.editor._filename
@@ -122,7 +113,7 @@ class FileHandlingTests(unittest.TestCase):
         self.editor.on_proc_closed(1, QProcess.NormalExit)
         self.assertFalse(os.path.exists(filename))
 
-    def test_file_handling_closed_crash(self):
+    def test_file_handling_closed_crash(self, _proc_mock):
         """Test file handling when closing with a crash."""
         self.editor.edit("")
         filename = self.editor._filename
@@ -132,6 +123,8 @@ class FileHandlingTests(unittest.TestCase):
         self.assertFalse(os.path.exists(filename))
 
 
+@mock.patch('qutebrowser.misc.editor.QProcess',
+            new_callable=stubs.FakeQProcess)
 class TextModifyTests(unittest.TestCase):
 
     """Tests to test if the text gets saved/loaded correctly.
@@ -167,7 +160,7 @@ class TextModifyTests(unittest.TestCase):
             data = f.read()
         return data
 
-    def test_empty_input(self):
+    def test_empty_input(self, _proc_mock):
         """Test if an empty input gets modified correctly."""
         self.editor.edit("")
         self.assertEqual(self._read(), "")
@@ -175,7 +168,7 @@ class TextModifyTests(unittest.TestCase):
         self.editor.on_proc_closed(0, QProcess.NormalExit)
         self.editor.editing_finished.emit.assert_called_with("Hello")
 
-    def test_simple_input(self):
+    def test_simple_input(self, _proc_mock):
         """Test if an empty input gets modified correctly."""
         self.editor.edit("Hello")
         self.assertEqual(self._read(), "Hello")
@@ -183,7 +176,7 @@ class TextModifyTests(unittest.TestCase):
         self.editor.on_proc_closed(0, QProcess.NormalExit)
         self.editor.editing_finished.emit.assert_called_with("World")
 
-    def test_umlaut(self):
+    def test_umlaut(self, _proc_mock):
         """Test if umlauts works correctly."""
         self.editor.edit("Hällö Wörld")
         self.assertEqual(self._read(), "Hällö Wörld")
@@ -191,7 +184,7 @@ class TextModifyTests(unittest.TestCase):
         self.editor.on_proc_closed(0, QProcess.NormalExit)
         self.editor.editing_finished.emit.assert_called_with("Überprüfung")
 
-    def test_unicode(self):
+    def test_unicode(self, _proc_mock):
         """Test if other UTF8 chars work correctly."""
         self.editor.edit("\u2603")  # Unicode snowman
         self.assertEqual(self._read(), "\u2603")
@@ -200,6 +193,9 @@ class TextModifyTests(unittest.TestCase):
         self.editor.editing_finished.emit.assert_called_with("\u2601")
 
 
+@mock.patch('qutebrowser.misc.editor.QProcess',
+            new_callable=stubs.FakeQProcess)
+@mock.patch('qutebrowser.misc.editor.message', autospec=True)
 class ErrorMessageTests(unittest.TestCase):
 
     """Test if statusbar error messages get emitted correctly.
@@ -215,17 +211,17 @@ class ErrorMessageTests(unittest.TestCase):
         editor.config = stubs.ConfigStub(
             {'general': {'editor': [''], 'editor-encoding': 'utf-8'}})
 
-    def test_proc_error(self):
+    def test_proc_error(self, msg_mock, _proc_mock):
         """Test on_proc_error."""
         self.editor.edit("")
         self.editor.on_proc_error(QProcess.Crashed)
-        self.assertTrue(editor.message.error.called)
+        self.assertTrue(msg_mock.error.called)
 
-    def test_proc_return(self):
+    def test_proc_return(self, msg_mock, _proc_mock):
         """Test on_proc_finished with a bad exit status."""
         self.editor.edit("")
         self.editor.on_proc_closed(1, QProcess.NormalExit)
-        self.assertTrue(editor.message.error.called)
+        self.assertTrue(msg_mock.error.called)
 
 
 if __name__ == '__main__':

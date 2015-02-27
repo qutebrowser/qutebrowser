@@ -25,6 +25,7 @@ import logging
 
 from qutebrowser.browser import http
 from qutebrowser.test import stubs
+from qutebrowser.utils import log
 
 
 DEFAULT_NAME = 'qutebrowser-download'
@@ -48,7 +49,8 @@ class AttachmentTestCase(unittest.TestCase):
     def _check_ignored(self, header):
         """Check if the passed header is ignored."""
         reply = stubs.FakeNetworkReply(headers={'Content-Disposition': header})
-        cd_inline, cd_filename = http.parse_content_disposition(reply)
+        with self.assertLogs(log.rfc6266, logging.ERROR):
+            cd_inline, cd_filename = http.parse_content_disposition(reply)
         self.assertEqual(cd_filename, DEFAULT_NAME)
         self.assertTrue(cd_inline)
 
@@ -93,7 +95,8 @@ class InlineTests(unittest.TestCase):
 
         This is invalid syntax, thus the header should be ignored.
         """
-        self._check_ignored('"inline"')
+        with self.assertLogs(log.rfc6266, logging.ERROR):
+            self._check_ignored('"inline"')
 
     def test_inlwithasciifilename(self):
         """'inline', specifying a filename of foo.html
@@ -889,16 +892,6 @@ class OurTests(AttachmentTestCase):
         """'attachment' with double space in the filename."""
         self._check_filename('attachment; filename="foo  bar.html"',
                              'foo bar.html')
-
-
-def setUpModule():
-    """Disable logging."""
-    logging.disable(logging.ERROR)
-
-
-def tearDownModule():
-    """Restore logging."""
-    logging.disable(logging.NOTSET)
 
 
 if __name__ == '__main__':
