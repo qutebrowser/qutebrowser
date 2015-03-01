@@ -23,11 +23,10 @@
 
 from unittest import mock
 
-from PyQt5.QtCore import QPoint, QProcess
+from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
 from PyQt5.QtNetwork import QNetworkRequest
 
 from qutebrowser.config import configexc
-from qutebrowser.utils import usertypes
 
 
 class ConfigStub:
@@ -221,10 +220,51 @@ class FakeCommand:
         self.desc = desc
 
 
-class FakeTimer(usertypes.Timer):
+class FakeTimer(QObject):
 
     """Stub for a usertypes.Timer."""
 
+    # pylint: disable=missing-docstring
+
+    timeout_signal = pyqtSignal()
+
     def __init__(self, parent=None, name=None):
-        super().__init__(parent, name)
-        self.blockSignals(True)
+        super().__init__(parent)
+        self.timeout = mock.Mock(spec=['connect', 'disconnect', 'emit'])
+        self.timeout.connect.side_effect = self.timeout_signal.connect
+        self.timeout.disconnect.side_effect = self.timeout_signal.disconnect
+        self.timeout.emit.side_effect = self._emit
+        self._started = False
+        self._singleshot = False
+        self._interval = 0
+        self._name = name
+
+    def __repr__(self):
+        return '<{} name={!r}>'.format(self.__class__.__name__, self._name)
+
+    def _emit(self):
+        """Called when the timeout "signal" gets emitted."""
+        if self._singleshot:
+            self._started = False
+        self.timeout_signal.emit()
+
+    def setInterval(self, interval):
+        self._interval = interval
+
+    def interval(self):
+        return self._interval
+
+    def setSingleShot(self, singleshot):
+        self._singleshot = singleshot
+
+    def singleShot(self):
+        return self._singleshot
+
+    def start(self):
+        self._started = True
+
+    def stop(self):
+        self._started = False
+
+    def isActive(self):
+        return self._started
