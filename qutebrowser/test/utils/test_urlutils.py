@@ -22,6 +22,7 @@
 """Tests for qutebrowser.utils.urlutils."""
 
 import unittest
+from unittest import mock
 
 from PyQt5.QtCore import QUrl
 
@@ -79,17 +80,11 @@ class SpecialURLTests(unittest.TestCase):
                 self.assertFalse(urlutils.is_special_url(u))
 
 
+@mock.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
+    get_config_stub()))
 class SearchUrlTests(unittest.TestCase):
 
-    """Test _get_search_url.
-
-    Attributes:
-        config: The urlutils.config instance.
-    """
-
-    def setUp(self):
-        self.config = urlutils.config
-        urlutils.config = stubs.ConfigStub(get_config_stub())
+    """Test _get_search_url."""
 
     def test_default_engine(self):
         """Test default search engine."""
@@ -127,9 +122,6 @@ class SearchUrlTests(unittest.TestCase):
         self.assertEqual(url.host(), 'www.example.com')
         self.assertEqual(url.query(), 'q=blub testfoo')
 
-    def tearDown(self):
-        urlutils.config = self.config
-
 
 class IsUrlTests(unittest.TestCase):
 
@@ -138,9 +130,6 @@ class IsUrlTests(unittest.TestCase):
     Class attributes:
         URLS: A list of strings which are URLs.
         NOT_URLS: A list of strings which aren't URLs.
-
-    Attributes:
-        config: The urlutils.config instance.
     """
 
     URLS = (
@@ -168,35 +157,33 @@ class IsUrlTests(unittest.TestCase):
         'http:foo:0',
     )
 
-    def setUp(self):
-        self.config = urlutils.config
-
+    @mock.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
+        get_config_stub('naive')))
     def test_urls(self):
         """Test things which are URLs."""
-        urlutils.config = stubs.ConfigStub(get_config_stub('naive'))
         for url in self.URLS:
             with self.subTest(url=url):
                 self.assertTrue(urlutils.is_url(url), url)
 
+    @mock.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
+        get_config_stub('naive')))
     def test_not_urls(self):
         """Test things which are not URLs."""
-        urlutils.config = stubs.ConfigStub(get_config_stub('naive'))
         for url in self.NOT_URLS:
             with self.subTest(url=url):
                 self.assertFalse(urlutils.is_url(url), url)
 
+    @mock.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
+        get_config_stub(True)))
     def test_search_autosearch(self):
         """Test explicit search with auto-search=True"""
-        urlutils.config = stubs.ConfigStub(get_config_stub(True))
         self.assertFalse(urlutils.is_url('test foo'))
 
+    @mock.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
+        get_config_stub(False)))
     def test_search_no_autosearch(self):
         """Test explicit search with auto-search=False"""
-        urlutils.config = stubs.ConfigStub(get_config_stub(False))
         self.assertFalse(urlutils.is_url('test foo'))
-
-    def tearDown(self):
-        urlutils.config = self.config
 
 
 class QurlFromUserInputTests(unittest.TestCase):

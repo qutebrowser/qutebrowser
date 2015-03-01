@@ -872,21 +872,15 @@ class PercOrIntTests(unittest.TestCase):
         self.assertEqual(self.t.transform('1337'), '1337')
 
 
+@mock.patch('qutebrowser.config.configtypes.cmdutils', new=stubs.FakeCmdUtils(
+            {'cmd1': stubs.FakeCommand("desc 1"),
+             'cmd2': stubs.FakeCommand("desc 2")}))
 class CommandTests(unittest.TestCase):
 
     """Test Command."""
 
     def setUp(self):
-        self.old_cmdutils = configtypes.cmdutils
-        commands = {
-            'cmd1': stubs.FakeCommand("desc 1"),
-            'cmd2': stubs.FakeCommand("desc 2"),
-        }
-        configtypes.cmdutils = stubs.FakeCmdUtils(commands)
         self.t = configtypes.Command()
-
-    def tearDown(self):
-        configtypes.cmdutils = self.old_cmdutils
 
     def test_validate_empty(self):
         """Test validate with an empty string."""

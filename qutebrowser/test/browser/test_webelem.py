@@ -22,7 +22,7 @@
 """Tests for the webelement utils."""
 
 import unittest
-import unittest.mock
+from unittest import mock
 import collections.abc
 
 from PyQt5.QtCore import QRect, QPoint
@@ -46,7 +46,7 @@ def get_webelem(geometry=None, frame=None, null=False, visibility='',
         tagname: The tag name.
         classes: HTML classes to be added.
     """
-    elem = unittest.mock.Mock()
+    elem = mock.Mock()
     elem.isNull.return_value = null
     elem.geometry.return_value = geometry
     elem.webFrame.return_value = frame
@@ -458,31 +458,31 @@ class IsEditableTests(unittest.TestCase):
         elem = get_webelem(tagname='textarea', attributes={'readonly': None})
         self.assertFalse(elem.is_editable())
 
+    @mock.patch('qutebrowser.browser.webelem.config', new=stubs.ConfigStub(
+        {'input': {'insert-mode-on-plugins': True}}))
     def test_embed_true(self):
         """Test embed-element with insert-mode-on-plugins true."""
-        webelem.config = stubs.ConfigStub({'input':
-                                          {'insert-mode-on-plugins': True}})
         elem = get_webelem(tagname='embed')
         self.assertTrue(elem.is_editable())
 
+    @mock.patch('qutebrowser.browser.webelem.config', new=stubs.ConfigStub(
+        {'input': {'insert-mode-on-plugins': True}}))
     def test_applet_true(self):
         """Test applet-element with insert-mode-on-plugins true."""
-        webelem.config = stubs.ConfigStub({'input':
-                                          {'insert-mode-on-plugins': True}})
         elem = get_webelem(tagname='applet')
         self.assertTrue(elem.is_editable())
 
+    @mock.patch('qutebrowser.browser.webelem.config', new=stubs.ConfigStub(
+        {'input': {'insert-mode-on-plugins': False}}))
     def test_embed_false(self):
         """Test embed-element with insert-mode-on-plugins false."""
-        webelem.config = stubs.ConfigStub({'input':
-                                          {'insert-mode-on-plugins': False}})
         elem = get_webelem(tagname='embed')
         self.assertFalse(elem.is_editable())
 
+    @mock.patch('qutebrowser.browser.webelem.config', new=stubs.ConfigStub(
+        {'input': {'insert-mode-on-plugins': False}}))
     def test_applet_false(self):
         """Test applet-element with insert-mode-on-plugins false."""
-        webelem.config = stubs.ConfigStub({'input':
-                                          {'insert-mode-on-plugins': False}})
         elem = get_webelem(tagname='applet')
         self.assertFalse(elem.is_editable())
 
@@ -496,34 +496,34 @@ class IsEditableTests(unittest.TestCase):
         elem = get_webelem(tagname='object', attributes={'type': 'image/gif'})
         self.assertFalse(elem.is_editable())
 
+    @mock.patch('qutebrowser.browser.webelem.config', new=stubs.ConfigStub(
+        {'input': {'insert-mode-on-plugins': True}}))
     def test_object_application(self):
         """Test object-element with application type."""
-        webelem.config = stubs.ConfigStub({'input':
-                                          {'insert-mode-on-plugins': True}})
         elem = get_webelem(tagname='object',
                            attributes={'type': 'application/foo'})
         self.assertTrue(elem.is_editable())
 
+    @mock.patch('qutebrowser.browser.webelem.config', new=stubs.ConfigStub(
+        {'input': {'insert-mode-on-plugins': False}}))
     def test_object_application_false(self):
         """Test object-element with application type but not ...-on-plugins."""
-        webelem.config = stubs.ConfigStub({'input':
-                                          {'insert-mode-on-plugins': False}})
         elem = get_webelem(tagname='object',
                            attributes={'type': 'application/foo'})
         self.assertFalse(elem.is_editable())
 
+    @mock.patch('qutebrowser.browser.webelem.config', new=stubs.ConfigStub(
+        {'input': {'insert-mode-on-plugins': True}}))
     def test_object_classid(self):
         """Test object-element with classid."""
-        webelem.config = stubs.ConfigStub({'input':
-                                          {'insert-mode-on-plugins': True}})
         elem = get_webelem(tagname='object',
                            attributes={'type': 'foo', 'classid': 'foo'})
         self.assertTrue(elem.is_editable())
 
+    @mock.patch('qutebrowser.browser.webelem.config', new=stubs.ConfigStub(
+        {'input': {'insert-mode-on-plugins': False}}))
     def test_object_classid_false(self):
         """Test object-element with classid but not insert-mode-on-plugins."""
-        webelem.config = stubs.ConfigStub({'input':
-                                          {'insert-mode-on-plugins': False}})
         elem = get_webelem(tagname='object',
                            attributes={'type': 'foo', 'classid': 'foo'})
         self.assertFalse(elem.is_editable())

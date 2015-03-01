@@ -45,36 +45,36 @@ class ArgTests(unittest.TestCase):
     def setUp(self):
         self.editor = editor.ExternalEditor(0)
 
+    @mock.patch('qutebrowser.misc.editor.config', new=stubs.ConfigStub(
+        {'general': {'editor': ['bin'], 'editor-encoding': 'utf-8'}}))
     def test_simple_start_args(self, _proc_mock):
         """Test starting editor without arguments."""
-        editor.config = stubs.ConfigStub(
-            {'general': {'editor': ['bin'], 'editor-encoding': 'utf-8'}})
         self.editor.edit("")
         self.editor._proc.start.assert_called_with("bin", [])
 
+    @mock.patch('qutebrowser.misc.editor.config', new=stubs.ConfigStub(
+        {'general': {'editor': ['bin', 'foo', 'bar'],
+                     'editor-encoding': 'utf-8'}}))
     def test_start_args(self, _proc_mock):
         """Test starting editor with static arguments."""
-        editor.config = stubs.ConfigStub(
-            {'general': {'editor': ['bin', 'foo', 'bar'],
-                         'editor-encoding': 'utf-8'}})
         self.editor.edit("")
         self.editor._proc.start.assert_called_with("bin", ["foo", "bar"])
 
+    @mock.patch('qutebrowser.misc.editor.config', new=stubs.ConfigStub(
+        {'general': {'editor': ['bin', 'foo', '{}', 'bar'],
+                     'editor-encoding': 'utf-8'}}))
     def test_placeholder(self, _proc_mock):
         """Test starting editor with placeholder argument."""
-        editor.config = stubs.ConfigStub(
-            {'general': {'editor': ['bin', 'foo', '{}', 'bar'],
-                         'editor-encoding': 'utf-8'}})
         self.editor.edit("")
         filename = self.editor._filename
         self.editor._proc.start.assert_called_with(
             "bin", ["foo", filename, "bar"])
 
+    @mock.patch('qutebrowser.misc.editor.config', new=stubs.ConfigStub(
+        {'general': {'editor': ['bin', 'foo{}bar'],
+                     'editor-encoding': 'utf-8'}}))
     def test_in_arg_placeholder(self, _proc_mock):
         """Test starting editor with placeholder argument inside argument."""
-        editor.config = stubs.ConfigStub(
-            {'general': {'editor': ['bin', 'foo{}bar'],
-                         'editor-encoding': 'utf-8'}})
         self.editor.edit("")
         self.editor._proc.start.assert_called_with("bin", ["foo{}bar"])
 
@@ -84,6 +84,8 @@ class ArgTests(unittest.TestCase):
 
 @mock.patch('qutebrowser.misc.editor.QProcess',
             new_callable=stubs.FakeQProcess)
+@mock.patch('qutebrowser.misc.editor.config', new=stubs.ConfigStub(
+            {'general': {'editor': [''], 'editor-encoding': 'utf-8'}}))
 class FileHandlingTests(unittest.TestCase):
 
     """Test creation/deletion of tempfile.
@@ -94,8 +96,6 @@ class FileHandlingTests(unittest.TestCase):
 
     def setUp(self):
         self.editor = editor.ExternalEditor(0)
-        editor.config = stubs.ConfigStub(
-            {'general': {'editor': [''], 'editor-encoding': 'utf-8'}})
 
     def test_file_handling_closed_ok(self, _proc_mock):
         """Test file handling when closing with an exitstatus == 0."""
@@ -125,6 +125,8 @@ class FileHandlingTests(unittest.TestCase):
 
 @mock.patch('qutebrowser.misc.editor.QProcess',
             new_callable=stubs.FakeQProcess)
+@mock.patch('qutebrowser.misc.editor.config', new=stubs.ConfigStub(
+            {'general': {'editor': [''], 'editor-encoding': 'utf-8'}}))
 class TextModifyTests(unittest.TestCase):
 
     """Tests to test if the text gets saved/loaded correctly.
@@ -136,8 +138,6 @@ class TextModifyTests(unittest.TestCase):
     def setUp(self):
         self.editor = editor.ExternalEditor(0)
         self.editor.editing_finished = mock.Mock()
-        editor.config = stubs.ConfigStub(
-            {'general': {'editor': [''], 'editor-encoding': 'utf-8'}})
 
     def _write(self, text):
         """Write a text to the file opened in the fake editor.
@@ -196,6 +196,8 @@ class TextModifyTests(unittest.TestCase):
 @mock.patch('qutebrowser.misc.editor.QProcess',
             new_callable=stubs.FakeQProcess)
 @mock.patch('qutebrowser.misc.editor.message', autospec=True)
+@mock.patch('qutebrowser.misc.editor.config', new=stubs.ConfigStub(
+            {'general': {'editor': [''], 'editor-encoding': 'utf-8'}}))
 class ErrorMessageTests(unittest.TestCase):
 
     """Test if statusbar error messages get emitted correctly.
@@ -208,8 +210,6 @@ class ErrorMessageTests(unittest.TestCase):
 
     def setUp(self):
         self.editor = editor.ExternalEditor(0)
-        editor.config = stubs.ConfigStub(
-            {'general': {'editor': [''], 'editor-encoding': 'utf-8'}})
 
     def test_proc_error(self, msg_mock, _proc_mock):
         """Test on_proc_error."""

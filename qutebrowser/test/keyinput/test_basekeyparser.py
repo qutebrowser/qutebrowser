@@ -208,9 +208,10 @@ class KeyChainTests(unittest.TestCase):
         self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, None)
         self.assertEqual(self.kp._keystring, '')
 
+    @mock.patch('qutebrowser.keyinput.basekeyparser.config',
+                new=stubs.ConfigStub(CONFIG))
     def test_ambigious_keychain(self):
         """Test ambigious keychain."""
-        basekeyparser.config = stubs.ConfigStub(CONFIG)
         timer = self.kp._ambigious_timer
         self.assertFalse(timer.isActive())
         # We start with 'a' where the keychain gives us an ambigious result.

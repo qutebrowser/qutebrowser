@@ -31,23 +31,26 @@ from qutebrowser.misc import readline
 from qutebrowser.test import stubs
 
 
+@mock.patch('qutebrowser.misc.readline.QApplication',
+            new_callable=stubs.FakeQApplication)
 class NoneWidgetTests(unittest.TestCase):
 
     """Tests when the focused widget is None."""
 
     def setUp(self):
-        readline.QApplication = stubs.FakeQApplication()
-        readline.QApplication.focusWidget = mock.Mock(return_value=None)
         self.bridge = readline.ReadlineBridge()
 
-    def test_none(self):
+    def test_none(self, qapp):
         """Test if there are no exceptions when the widget is None."""
+        qapp.focusWidget = mock.Mock(return_value=None)
         for name, method in inspect.getmembers(self.bridge, inspect.ismethod):
             with self.subTest(name=name):
                 if name.startswith('rl_'):
                     method()
 
 
+@mock.patch('qutebrowser.misc.readline.QApplication',
+            new_callable=stubs.FakeQApplication)
 class ReadlineBridgeTest(unittest.TestCase):
 
     """Tests for readline bridge."""
@@ -55,55 +58,63 @@ class ReadlineBridgeTest(unittest.TestCase):
     def setUp(self):
         self.qle = mock.Mock()
         self.qle.__class__ = QLineEdit
-        readline.QApplication.focusWidget = mock.Mock(return_value=self.qle)
         self.bridge = readline.ReadlineBridge()
 
     def _set_selected_text(self, text):
         """Set the value the fake QLineEdit should return for selectedText."""
         self.qle.configure_mock(**{'selectedText.return_value': text})
 
-    def test_rl_backward_char(self):
+    def test_rl_backward_char(self, qapp):
         """Test rl_backward_char."""
+        qapp.focusWidget = mock.Mock(return_value=self.qle)
         self.bridge.rl_backward_char()
         self.qle.cursorBackward.assert_called_with(False)
 
-    def test_rl_forward_char(self):
+    def test_rl_forward_char(self, qapp):
         """Test rl_forward_char."""
+        qapp.focusWidget = mock.Mock(return_value=self.qle)
         self.bridge.rl_forward_char()
         self.qle.cursorForward.assert_called_with(False)
 
-    def test_rl_backward_word(self):
+    def test_rl_backward_word(self, qapp):
         """Test rl_backward_word."""
+        qapp.focusWidget = mock.Mock(return_value=self.qle)
         self.bridge.rl_backward_word()
         self.qle.cursorWordBackward.assert_called_with(False)
 
-    def test_rl_forward_word(self):
+    def test_rl_forward_word(self, qapp):
         """Test rl_forward_word."""
+        qapp.focusWidget = mock.Mock(return_value=self.qle)
         self.bridge.rl_forward_word()
         self.qle.cursorWordForward.assert_called_with(False)
 
-    def test_rl_beginning_of_line(self):
+    def test_rl_beginning_of_line(self, qapp):
         """Test rl_beginning_of_line."""
+        qapp.focusWidget = mock.Mock(return_value=self.qle)
         self.bridge.rl_beginning_of_line()
         self.qle.home.assert_called_with(False)
 
-    def test_rl_end_of_line(self):
+    def test_rl_end_of_line(self, qapp):
         """Test rl_end_of_line."""
+        qapp.focusWidget = mock.Mock(return_value=self.qle)
         self.bridge.rl_end_of_line()
         self.qle.end.assert_called_with(False)
 
-    def test_rl_delete_char(self):
+    def test_rl_delete_char(self, qapp):
         """Test rl_delete_char."""
+        qapp.focusWidget = mock.Mock(return_value=self.qle)
         self.bridge.rl_delete_char()
         self.qle.del_.assert_called_with()
 
-    def test_rl_backward_delete_char(self):
+    def test_rl_backward_delete_char(self, qapp):
         """Test rl_backward_delete_char."""
+        qapp.focusWidget = mock.Mock(return_value=self.qle)
         self.bridge.rl_backward_delete_char()
         self.qle.backspace.assert_called_with()
 
-    def test_rl_unix_line_discard(self):
+    def test_rl_unix_line_discard(self, qapp):
         """Set a selected text, delete it, see if it comes back with yank."""
+        qapp.focusWidget = mock.Mock(return_value=self.qle)
         self._set_selected_text("delete test")
         self.bridge.rl_unix_line_discard()
         self.qle.home.assert_called_with(True)
@@ -112,8 +123,9 @@ class ReadlineBridgeTest(unittest.TestCase):
         self.bridge.rl_yank()
         self.qle.insert.assert_called_with("delete test")
 
-    def test_rl_kill_line(self):
+    def test_rl_kill_line(self, qapp):
         """Set a selected text, delete it, see if it comes back with yank."""
+        qapp.focusWidget = mock.Mock(return_value=self.qle)
         self._set_selected_text("delete test")
         self.bridge.rl_kill_line()
         self.qle.end.assert_called_with(True)
@@ -122,8 +134,9 @@ class ReadlineBridgeTest(unittest.TestCase):
         self.bridge.rl_yank()
         self.qle.insert.assert_called_with("delete test")
 
-    def test_rl_unix_word_rubout(self):
+    def test_rl_unix_word_rubout(self, qapp):
         """Set a selected text, delete it, see if it comes back with yank."""
+        qapp.focusWidget = mock.Mock(return_value=self.qle)
         self._set_selected_text("delete test")
         self.bridge.rl_unix_word_rubout()
         self.qle.cursorWordBackward.assert_called_with(True)
@@ -132,8 +145,9 @@ class ReadlineBridgeTest(unittest.TestCase):
         self.bridge.rl_yank()
         self.qle.insert.assert_called_with("delete test")
 
-    def test_rl_kill_word(self):
+    def test_rl_kill_word(self, qapp):
         """Set a selected text, delete it, see if it comes back with yank."""
+        qapp.focusWidget = mock.Mock(return_value=self.qle)
         self._set_selected_text("delete test")
         self.bridge.rl_kill_word()
         self.qle.cursorWordForward.assert_called_with(True)
@@ -142,8 +156,9 @@ class ReadlineBridgeTest(unittest.TestCase):
         self.bridge.rl_yank()
         self.qle.insert.assert_called_with("delete test")
 
-    def test_rl_yank_no_text(self):
+    def test_rl_yank_no_text(self, qapp):
         """Test yank without having deleted anything."""
+        qapp.focusWidget = mock.Mock(return_value=self.qle)
         self.bridge.rl_yank()
         self.assertFalse(self.qle.insert.called)
 
