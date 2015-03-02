@@ -183,10 +183,10 @@ def _init_misc():
     save_manager.add_saveable('state-config', state_config.save)
 
     # We need to import this here because lineparser needs config.
-    from qutebrowser.config.parsers import line
-    command_history = line.LineConfigParser(standarddir.data(), 'cmd-history',
-                                            ('completion', 'history-length'),
-                                            parent=objreg.get('config'))
+    from qutebrowser.misc import lineparser
+    command_history = lineparser.LineParser(
+        standarddir.data(), 'cmd-history', ('completion', 'history-length'),
+        parent=objreg.get('config'))
     objreg.register('command-history', command_history)
     save_manager.add_saveable('command-history', command_history.save,
                               command_history.changed)

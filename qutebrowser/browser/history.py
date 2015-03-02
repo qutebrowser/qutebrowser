@@ -27,7 +27,7 @@ from PyQt5.QtWebKit import QWebHistoryInterface
 
 from qutebrowser.utils import utils, objreg, standarddir
 from qutebrowser.config import config
-from qutebrowser.config.parsers import line as lineparser
+from qutebrowser.misc import lineparser
 
 
 class HistoryEntry:
@@ -64,9 +64,10 @@ class WebHistory(QWebHistoryInterface):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._linecp = lineparser.LineConfigParser(
+        self._lineparser = lineparser.LineParser(
             standarddir.data(), 'history', parent=self)
-        self._history = [HistoryEntry.from_str(e) for e in self._linecp.data]
+        self._history = [HistoryEntry.from_str(e)
+                         for e in self._lineparser.data]
         objreg.get('save-manager').add_saveable('history', self.save,
                                                 self.changed)
 
@@ -78,8 +79,8 @@ class WebHistory(QWebHistoryInterface):
 
     def save(self):
         """Save the history to disk."""
-        self._linecp.data = (str(e) for e in self._history)
-        self._linecp.save()
+        self._lineparser.data = (str(e) for e in self._history)
+        self._lineparser.save()
 
     def addHistoryEntry(self, url_string):
         """Called by WebKit when an URL should be added to the history.

@@ -32,7 +32,7 @@ from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
 from qutebrowser.utils import message, usertypes, urlutils, standarddir, objreg
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.config.parsers import line as lineparser
+from qutebrowser.misc import lineparser
 
 
 class QuickmarkManager(QObject):
@@ -41,7 +41,7 @@ class QuickmarkManager(QObject):
 
     Attributes:
         marks: An OrderedDict of all quickmarks.
-        _linecp: The LineConfigParser used for the quickmarks.
+        _lineparser: The LineParser used for the quickmarks.
     """
 
     changed = pyqtSignal()
@@ -52,9 +52,9 @@ class QuickmarkManager(QObject):
 
         self.marks = collections.OrderedDict()
 
-        self._linecp = lineparser.LineConfigParser(
+        self._lineparser = lineparser.LineParser(
             standarddir.config(), 'quickmarks', parent=self)
-        for line in self._linecp:
+        for line in self._lineparser:
             try:
                 key, url = line.rsplit(maxsplit=1)
             except ValueError:
@@ -68,8 +68,8 @@ class QuickmarkManager(QObject):
 
     def save(self):
         """Save the quickmarks to disk."""
-        self._linecp.data = [' '.join(tpl) for tpl in self.marks.items()]
-        self._linecp.save()
+        self._lineparser.data = [' '.join(tpl) for tpl in self.marks.items()]
+        self._lineparser.save()
 
     def prompt_save(self, win_id, url):
         """Prompt for a new quickmark name to be added and add it.

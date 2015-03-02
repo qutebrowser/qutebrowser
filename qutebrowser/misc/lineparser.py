@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Parser for line-based configurations like histories."""
+"""Parser for line-based files like histories."""
 
 import os
 import os.path
@@ -28,7 +28,7 @@ from qutebrowser.utils import log, utils, objreg, qtutils
 from qutebrowser.config import config
 
 
-class LineConfigParser(QObject):
+class LineParser(QObject):
 
     """Parser for configuration files which are simply line-based.
 
@@ -66,7 +66,7 @@ class LineConfigParser(QObject):
         if not os.path.isfile(self._configfile):
             self.data = []
         else:
-            log.init.debug("Reading config from {}".format(self._configfile))
+            log.init.debug("Reading {}".format(self._configfile))
             self.read(self._configfile)
         if limit is not None:
             objreg.get('config').changed.connect(self.cleanup_file)
