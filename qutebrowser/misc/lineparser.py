@@ -21,6 +21,8 @@
 
 import os
 import os.path
+import itertools
+import contextlib
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
@@ -85,12 +87,67 @@ class BaseLineParser(QObject):
         """
         if self._binary:
             fp.write(b'\n'.join(data))
+            fp.write(b'\n')
         else:
             fp.write('\n'.join(data))
+            fp.write('\n')
 
     def save(self):
         """Save the history to disk."""
         raise NotImplementedError
+
+
+class AppendLineParser(BaseLineParser):
+
+    """LineParser which reads lazily and appends data to existing one.
+
+    Attributes:
+        _new_data: The data which was added in this session.
+    """
+
+    def __init__(self, configdir, fname, *, parent=None):
+        super().__init__(configdir, fname, binary=False, parent=parent)
+        self.new_data = []
+        self._fileobj = None
+
+    def __iter__(self):
+        if self._fileobj is None:
+            raise ValueError("Iterating without open() being called!")
+        return itertools.chain(iter(self._fileobj), iter(self.new_data))
+
+    @contextlib.contextmanager
+    def open(self):
+        """Open the on-disk history file. Needed for __iter__."""
+        try:
+            with self._open_for_reading() as f:
+                self._fileobj = f
+                yield
+        except FileNotFoundError:
+            self._fileobj = []
+            yield
+        finally:
+            self._fileobj = None
+
+    def get_recent(self, count=4096):
+        """Get the last count bytes from the underlying file."""
+        with self._open_for_reading() as f:
+            f.seek(0, os.SEEK_END)
+            size = f.tell()
+            try:
+                if size - count > 0:
+                    offset = size - count
+                else:
+                    offset = 0
+                f.seek(offset)
+                data = f.readlines()
+            finally:
+                f.seek(0, os.SEEK_END)
+        return data
+
+    def save(self):
+        with open(self._configfile, 'a', encoding='utf-8') as f:
+            self._write(f, self.new_data)
+        self.new_data = []
 
 
 class LineParser(BaseLineParser):
