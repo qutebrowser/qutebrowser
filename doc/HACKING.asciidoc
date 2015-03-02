@@ -523,16 +523,13 @@ New Qt release
 * Check the
 https://bugreports.qt-project.org/issues/?jql=reporter%20%3D%20%22The%20Compiler%22%20ORDER%20BY%20fixVersion%20ASC[Qt bugtracker]
 and make sure all bugs marked as resolved are actually fixed.
-* Update own PKGBUILDs based on upstream Archlinux updates.
-* Build developer packages.
-* Build non-developer symbol packages.
-* Upload symbols patch to http://www.qutebrowser.org/qt-symbols.patch
-* Upload symbols packages to http://www.qutebrowser.org/qt-symbols-pkg/
+* Update own PKGBUILDs based on upstream Archlinux updates and rebuild.
 * Update recommended Qt version in `README`
-* Update OS X instructions in `README`
-* Make sure Gentoo instructions are up to date.
 * Grep for `WORKAROUND` in the code and test if fixed stuff works without the
 workaround.
+* Check relevant
+https://github.com/The-Compiler/qutebrowser/issues?q=is%3Aopen+is%3Aissue+label%3Aqt[qutebrowser
+bugs] and check if they're fixed.
 
 qutebrowser release
 ~~~~~~~~~~~~~~~~~~~
