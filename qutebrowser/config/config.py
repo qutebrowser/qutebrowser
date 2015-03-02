@@ -184,8 +184,9 @@ def _init_misc():
 
     # We need to import this here because lineparser needs config.
     from qutebrowser.misc import lineparser
-    command_history = lineparser.LineParser(
-        standarddir.data(), 'cmd-history', ('completion', 'history-length'),
+    command_history = lineparser.LimitLineParser(
+        standarddir.data(), 'cmd-history',
+        limit=('completion', 'history-length'),
         parent=objreg.get('config'))
     objreg.register('command-history', command_history)
     save_manager.add_saveable('command-history', command_history.save,
