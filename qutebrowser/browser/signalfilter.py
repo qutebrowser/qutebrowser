@@ -42,7 +42,7 @@ class SignalFilter(QObject):
     """
 
     BLACKLIST = ['cur_scroll_perc_changed', 'cur_progress',
-                 'cur_statusbar_message']
+                 'cur_statusbar_message', 'cur_link_hovered']
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
