@@ -32,7 +32,7 @@ from qutebrowser.config import config
 from qutebrowser.browser import http
 from qutebrowser.browser.network import networkmanager
 from qutebrowser.utils import (message, usertypes, log, jinja, qtutils, utils,
-                               objreg)
+                               objreg, debug)
 
 
 class BrowserPage(QWebPage):
@@ -408,6 +408,10 @@ class BrowserPage(QWebPage):
             return False
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
+        log.webview.debug("acceptNavigationRequest, url {}, type {}, hint "
+                          "target {}, open_target {}".format(
+                              urlstr, debug.qenum_key(QWebPage, typ),
+                              self._hint_target, self.open_target))
         if self._hint_target is not None:
             target = self._hint_target
         else:
