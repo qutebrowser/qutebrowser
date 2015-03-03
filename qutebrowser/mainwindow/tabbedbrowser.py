@@ -39,6 +39,11 @@ from qutebrowser.utils import (log, message, usertypes, utils, qtutils, objreg,
 UndoEntry = collections.namedtuple('UndoEntry', ['url', 'history'])
 
 
+class TabDeletedError(Exception):
+
+    """Exception raised when _tab_index is called for a deleted tab."""
+
+
 class TabbedBrowser(tabwidget.TabWidget):
 
     """A TabWidget with QWebViews inside.
@@ -117,6 +122,21 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
+
+    def _tab_index(self, tab):
+        """Get the index of a given tab.
+
+        Raises TabDeletedError if the tab doesn't exist anymore.
+        """
+        try:
+            idx = self.indexOf(tab)
+        except RuntimeError as e:
+            log.webview.debug("Got invalid tab {} ({})!".format(tab, e))
+            raise TabDeletedError(e)
+        if idx == -1:
+            log.webview.debug("Got invalid tab {} (index is -1)!".format(tab))
+            raise TabDeletedError("index is -1!")
+        return idx
 
     def widgets(self):
         """Get a list of open tab widgets.
@@ -417,13 +437,9 @@ class TabbedBrowser(tabwidget.TabWidget):
             tab: The tab where the signal belongs to.
         """
         try:
-            idx = self.indexOf(tab)
-        except RuntimeError:
+            idx = self._tab_index(tab)
+        except TabDeletedError:
             # We can get signals for tabs we already deleted...
-            return
-        if idx == -1:
-            # We can get signals for tabs we already deleted...
-            log.webview.debug("Got invalid tab {}!".format(tab))
             return
         self.setTabIcon(idx, QIcon())
 
@@ -449,16 +465,12 @@ class TabbedBrowser(tabwidget.TabWidget):
             log.webview.debug("Ignoring title change to '{}'.".format(text))
             return
         try:
-            idx = self.indexOf(tab)
-        except RuntimeError:
+            idx = self._tab_index(tab)
+        except TabDeletedError:
             # We can get signals for tabs we already deleted...
             return
         log.webview.debug("Changing title for idx {} to '{}'".format(
             idx, text))
-        if idx == -1:
-            # We can get signals for tabs we already deleted...
-            log.webview.debug("Got invalid tab {}!".format(tab))
-            return
         self.setTabText(idx, text.replace('&', '&&'))
         if idx == self.currentIndex():
             self._change_app_title(text)
@@ -472,13 +484,9 @@ class TabbedBrowser(tabwidget.TabWidget):
             url: The new URL.
         """
         try:
-            idx = self.indexOf(tab)
-        except RuntimeError:
+            idx = self._tab_index(tab)
+        except TabDeletedError:
             # We can get signals for tabs we already deleted...
-            return
-        if idx == -1:
-            # We can get signals for tabs we already deleted...
-            log.webview.debug("Got invalid tab {}!".format(tab))
             return
         if not self.tabText(idx):
             self.setTabText(idx, url)
@@ -495,13 +503,9 @@ class TabbedBrowser(tabwidget.TabWidget):
         if not config.get('tabs', 'show-favicons'):
             return
         try:
-            idx = self.indexOf(tab)
-        except RuntimeError:
+            idx = self._tab_index(tab)
+        except TabDeletedError:
             # We can get signals for tabs we already deleted...
-            return
-        if idx == -1:
-            # We can get *_changed signals for tabs we already deleted...
-            log.webview.debug("Got invalid tab {}!".format(tab))
             return
         self.setTabIcon(idx, tab.icon())
 
@@ -545,8 +549,8 @@ class TabbedBrowser(tabwidget.TabWidget):
     def on_load_progress(self, tab, perc):
         """Adjust tab indicator on load progress."""
         try:
-            idx = self.indexOf(tab)
-        except RuntimeError:
+            idx = self._tab_index(tab)
+        except TabDeletedError:
             # We can get signals for tabs we already deleted...
             return
         start = config.get('colors', 'tabs.indicator.start')
@@ -563,8 +567,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         See https://github.com/The-Compiler/qutebrowser/issues/84
         """
         try:
-            idx = self.indexOf(tab)
-        except RuntimeError:
+            idx = self._tab_index(tab)
+        except TabDeletedError:
             # We can get signals for tabs we already deleted...
             return
         if tab.page().error_occured:
