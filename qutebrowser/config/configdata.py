@@ -306,8 +306,8 @@ DATA = collections.OrderedDict([
 
     ('completion', sect.KeyValue(
         ('download-path-suggestion',
-         SettingValue(typ.DownloadPath(), 'path'),
-         "What to show in the suggestion for the download question."),
+         SettingValue(typ.DownloadPathSuggestion(), 'path'),
+         "What to display in the download filename input."),
 
         ('show',
          SettingValue(typ.Bool(), 'true'),

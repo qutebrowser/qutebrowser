@@ -1416,7 +1416,7 @@ class NewInstanceOpenTarget(BaseType):
                                ('window', "Open in a new window."))
 
 
-class DownloadPath(BaseType):
+class DownloadPathSuggestion(BaseType):
 
     """How to format the question when downloading."""
 

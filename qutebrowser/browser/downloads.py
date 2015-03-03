@@ -289,7 +289,7 @@ class DownloadItem(QObject):
         download_dir = config.get('storage', 'download-directory')
         if download_dir is None:
             download_dir = standarddir.get(QStandardPaths.DownloadLocation)
-        return download_dir + os.sep
+        return download_dir
 
     def _die(self, msg):
         """Abort the download and emit an error."""
@@ -375,11 +375,13 @@ class DownloadItem(QObject):
         """Get the suggestion of file path"""
         suggestion = config.get('completion', 'download-path-suggestion')
         if suggestion == 'path':
-            return self._download_dir()
+            return self._download_dir() + os.sep
         elif suggestion == 'filename':
             return self.basename
-        else:
+        elif suggestion == 'both':
             return os.path.join(self._download_dir(), self.basename)
+        else:
+            raise ValueError("Invalid suggestion value {}!".format(suggestion))
 
     def delete(self):
         """Delete the downloaded file"""
