@@ -405,6 +405,7 @@ class BrowserPage(QWebPage):
             message.error(self._win_id, "Invalid link {} clicked!".format(
                 urlstr))
             log.webview.debug(url.errorString())
+            self.open_target = usertypes.ClickTarget.normal
             return False
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
@@ -416,6 +417,7 @@ class BrowserPage(QWebPage):
             target = self._hint_target
         else:
             target = self.open_target
+        self.open_target = usertypes.ClickTarget.normal
         if target == usertypes.ClickTarget.tab:
             tabbed_browser.tabopen(url, False)
             return False
