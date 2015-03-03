@@ -370,6 +370,11 @@ DATA = collections.OrderedDict([
         ('links-included-in-focus-chain',
          SettingValue(typ.Bool(), 'true'),
          "Whether hyperlinks should be included in the keyboard focus chain."),
+
+        ('rocker-gestures',
+         SettingValue(typ.Bool(), 'false'),
+         "Whether to enable Opera-like mouse rocker gestures. This disables "
+         "the context menu."),
     )),
 
     ('tabs', sect.KeyValue(

@@ -78,6 +78,7 @@
 |<<input-forward-unbound-keys,forward-unbound-keys>>|Whether to forward unbound keys to the webview in normal mode.
 |<<input-spatial-navigation,spatial-navigation>>|Enables or disables the Spatial Navigation feature
 |<<input-links-included-in-focus-chain,links-included-in-focus-chain>>|Whether hyperlinks should be included in the keyboard focus chain.
+|<<input-rocker-gestures,rocker-gestures>>|Whether to enable Opera-like mouse rocker gestures. This disables the context menu.
 |==============
 
 .Quick reference for section ``tabs''
@@ -730,6 +731,17 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
+
+[[input-rocker-gestures]]
+=== rocker-gestures
+Whether to enable Opera-like mouse rocker gestures. This disables the context menu.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[false]+
 
 == tabs
 Configuration of the tab bar.

@@ -143,6 +143,8 @@ class WebView(QWebView):
         self.setZoomFactor(float(config.get('ui', 'default-zoom')) / 100)
         self._default_zoom_changed = False
         objreg.get('config').changed.connect(self.on_config_changed)
+        if config.get('input', 'rocker-gestures'):
+            self.setContextMenuPolicy(Qt.PreventContextMenu)
 
     def __repr__(self):
         url = utils.elide(self.url().toDisplayString(), 50)
@@ -178,6 +180,11 @@ class WebView(QWebView):
                                    100)
             self._default_zoom_changed = False
             self.init_neighborlist()
+        elif section == 'input' and option == 'rocker-gestures':
+            if config.get('input', 'rocker-gestures'):
+                self.setContextMenuPolicy(Qt.PreventContextMenu)
+            else:
+                self.setContextMenuPolicy(Qt.DefaultContextMenu)
 
     def init_neighborlist(self):
         """Initialize the _zoom neighborlist."""
@@ -192,15 +199,15 @@ class WebView(QWebView):
         Args:
             e: The QMouseEvent.
         """
-        if e.button() == Qt.XButton1:
-            # Back button on mice which have it.
+        if e.button() in (Qt.XButton1, Qt.LeftButton):
+            # Back button on mice which have it, or rocker gesture
             if self.page().history().canGoBack():
                 self.back()
             else:
                 message.error(self._win_id, "At beginning of history.",
                               immediately=True)
-        elif e.button() == Qt.XButton2:
-            # Forward button on mice which have it.
+        elif e.button() in (Qt.XButton2, Qt.RightButton):
+            # Forward button on mice which have it, or rocker gesture
             if self.page().history().canGoForward():
                 self.forward()
             else:
@@ -497,7 +504,10 @@ class WebView(QWebView):
         Return:
             The superclass return value.
         """
-        if e.button() in (Qt.XButton1, Qt.XButton2):
+        is_rocker_gesture = (config.get('input', 'rocker-gestures') and
+                             e.buttons() == Qt.LeftButton | Qt.RightButton)
+
+        if e.button() in (Qt.XButton1, Qt.XButton2) or is_rocker_gesture:
             self._mousepress_backforward(e)
             super().mousePressEvent(e)
             return
