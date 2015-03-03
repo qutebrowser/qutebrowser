@@ -48,6 +48,27 @@ ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
 RetryInfo = collections.namedtuple('RetryInfo', ['request', 'manager'])
 
 
+def download_dir():
+    """Get the download directory to use."""
+    directory = config.get('storage', 'download-directory')
+    if directory is None:
+        directory = standarddir.download()
+    return directory
+
+
+def path_suggestion(filename):
+    """Get the suggested file path"""
+    suggestion = config.get('completion', 'download-path-suggestion')
+    if suggestion == 'path':
+        return download_dir() + os.sep
+    elif suggestion == 'filename':
+        return filename
+    elif suggestion == 'both':
+        return os.path.join(download_dir(), filename)
+    else:
+        raise ValueError("Invalid suggestion value {}!".format(suggestion))
+
+
 class DownloadItemStats(QObject):
 
     """Statistics (bytes done, total bytes, time, etc.) about a download.
@@ -284,13 +305,6 @@ class DownloadItem(QObject):
                                     window=self._win_id)
         message_bridge.ask(q, blocking=False)
 
-    def _download_dir(self):
-        """Get the download directory to use."""
-        download_dir = config.get('storage', 'download-directory')
-        if download_dir is None:
-            download_dir = standarddir.get(QStandardPaths.DownloadLocation)
-        return download_dir
-
     def _die(self, msg):
         """Abort the download and emit an error."""
         assert not self.successful
@@ -370,19 +384,6 @@ class DownloadItem(QObject):
         self.finished.emit()
         self.data_changed.emit()
 
-    @pyqtSlot()
-    def path_suggestion(self):
-        """Get the suggestion of file path"""
-        suggestion = config.get('completion', 'download-path-suggestion')
-        if suggestion == 'path':
-            return self._download_dir() + os.sep
-        elif suggestion == 'filename':
-            return self.basename
-        elif suggestion == 'both':
-            return os.path.join(self._download_dir(), self.basename)
-        else:
-            raise ValueError("Invalid suggestion value {}!".format(suggestion))
-
     def delete(self):
         """Delete the downloaded file"""
         try:
@@ -390,14 +391,6 @@ class DownloadItem(QObject):
                 os.remove(self._filename)
         except OSError:
             log.downloads.exception("Failed to remove partial file")
-
-    @pyqtSlot()
-    def download_dir(self):
-        """Get the download directory to use."""
-        download_dir = config.get('storage', 'download-directory')
-        if download_dir is None:
-            download_dir = standarddir.get(QStandardPaths.DownloadLocation)
-        return download_dir + os.sep
 
     def retry(self):
         """Retry a failed download."""
@@ -440,7 +433,7 @@ class DownloadItem(QObject):
         else:
             # We only got a filename (without directory) from the user, so we
             # save it under that filename in the default directory.
-            self._filename = os.path.join(self._download_dir(), filename)
+            self._filename = os.path.join(download_dir(), filename)
             self.basename = filename
         log.downloads.debug("Setting filename to {}".format(filename))
         if os.path.isfile(self._filename):
@@ -651,7 +644,10 @@ class DownloadManager(QAbstractListModel):
                          ui -> remove-finished-downloads is set to false.
 
         Return:
-            The created DownloadItem.
+            If the download could start immediately, (fileobj/filename given),
+            the created DownloadItem.
+
+            If not, None.
         """
         if fileobj is not None and filename is not None:
             raise TypeError("Only one of fileobj/filename may be given!")
@@ -665,8 +661,15 @@ class DownloadManager(QAbstractListModel):
         suggested_filename = urlutils.filename_from_url(request.url())
         encoding = sys.getfilesystemencoding()
         suggested_filename = utils.force_encoding(suggested_filename, encoding)
-        return self.fetch_request(request, page, fileobj, filename,
-                                  auto_remove, suggested_filename)
+        q = self._prepare_question()
+        q.default = path_suggestion(suggested_filename)
+        message_bridge = objreg.get('message-bridge', scope='window',
+                                    window=self._win_id)
+        q.answered.connect(
+            lambda fn: self.fetch_request(request, page, filename=fn,
+                                          auto_remove=auto_remove))
+        message_bridge.ask(q, blocking=False)
+        return None
 
     def fetch_request(self, request, page=None, fileobj=None, filename=None,
                       auto_remove=False, suggested_filename=None):
@@ -740,7 +743,7 @@ class DownloadManager(QAbstractListModel):
             download.autoclose = False
         else:
             q = self._prepare_question()
-            q.default = download.path_suggestion()
+            q.default = path_suggestion(suggested_filename)
             q.answered.connect(download.set_filename)
             q.cancelled.connect(download.cancel)
             download.cancelled.connect(q.abort)
