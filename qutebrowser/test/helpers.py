@@ -80,10 +80,13 @@ class MessageModule:
     """A drop-in replacement for qutebrowser.utils.message."""
 
     def error(self, _win_id, message, _immediately=False):
+        """Log an error to the message logger."""
         logging.getLogger('message').error(message)
 
-    def warning(self, win_id, message, immediately=False):
+    def warning(self, _win_id, message, _immediately=False):
+        """Log a warning to the message logger."""
         logging.getLogger('message').warning(message)
 
-    def info(self, win_id, message, immediately=True):
+    def info(self, _win_id, message, _immediately=True):
+        """Log an info message to the message logger."""
         logging.getLogger('message').info(message)
