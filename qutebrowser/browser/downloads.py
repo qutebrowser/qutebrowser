@@ -48,7 +48,7 @@ ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
 RetryInfo = collections.namedtuple('RetryInfo', ['request', 'manager'])
 
 
-def download_dir():
+def _download_dir():
     """Get the download directory to use."""
     directory = config.get('storage', 'download-directory')
     if directory is None:
@@ -56,15 +56,19 @@ def download_dir():
     return directory
 
 
-def path_suggestion(filename):
-    """Get the suggested file path"""
+def _path_suggestion(filename):
+    """Get the suggested file path
+
+    Args:
+        filename: The filename to use if included in the suggestion.
+    """
     suggestion = config.get('completion', 'download-path-suggestion')
     if suggestion == 'path':
-        return download_dir() + os.sep
+        return _download_dir() + os.sep
     elif suggestion == 'filename':
         return filename
     elif suggestion == 'both':
-        return os.path.join(download_dir(), filename)
+        return os.path.join(_download_dir(), filename)
     else:
         raise ValueError("Invalid suggestion value {}!".format(suggestion))
 
@@ -392,6 +396,7 @@ class DownloadItem(QObject):
         except OSError:
             log.downloads.exception("Failed to remove partial file")
 
+    @pyqtSlot()
     def retry(self):
         """Retry a failed download."""
         self.cancel()
@@ -433,7 +438,7 @@ class DownloadItem(QObject):
         else:
             # We only got a filename (without directory) from the user, so we
             # save it under that filename in the default directory.
-            self._filename = os.path.join(download_dir(), filename)
+            self._filename = os.path.join(_download_dir(), filename)
             self.basename = filename
         log.downloads.debug("Setting filename to {}".format(filename))
         if os.path.isfile(self._filename):
@@ -619,7 +624,8 @@ class DownloadManager(QAbstractListModel):
                          ui -> remove-finished-downloads is set to false.
 
         Return:
-            If the url is valid, the created DownloadItem.
+            If the download could start immediately, (fileobj/filename given),
+            the created DownloadItem.
 
             If not, None.
         """
@@ -662,7 +668,7 @@ class DownloadManager(QAbstractListModel):
         encoding = sys.getfilesystemencoding()
         suggested_fn = utils.force_encoding(suggested_fn, encoding)
         q = self._prepare_question()
-        q.default = path_suggestion(suggested_fn)
+        q.default = _path_suggestion(suggested_fn)
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
         q.answered.connect(
@@ -745,7 +751,7 @@ class DownloadManager(QAbstractListModel):
             download.autoclose = False
         else:
             q = self._prepare_question()
-            q.default = path_suggestion(suggested_filename)
+            q.default = _path_suggestion(suggested_filename)
             q.answered.connect(download.set_filename)
             q.cancelled.connect(download.cancel)
             download.cancelled.connect(q.abort)
