@@ -24,12 +24,13 @@
 import os
 import os.path
 import unittest
+import logging
 from unittest import mock
 
 from PyQt5.QtCore import QProcess
 
 from qutebrowser.misc import editor
-from qutebrowser.test import stubs
+from qutebrowser.test import stubs, helpers
 
 
 @mock.patch('qutebrowser.misc.editor.QProcess',
@@ -82,6 +83,7 @@ class ArgTests(unittest.TestCase):
         self.editor._cleanup()  # pylint: disable=protected-access
 
 
+@mock.patch('qutebrowser.misc.editor.message', new=helpers.MessageModule())
 @mock.patch('qutebrowser.misc.editor.QProcess',
             new_callable=stubs.FakeQProcess)
 @mock.patch('qutebrowser.misc.editor.config', new=stubs.ConfigStub(
@@ -110,7 +112,8 @@ class FileHandlingTests(unittest.TestCase):
         self.editor.edit("")
         filename = self.editor._filename
         self.assertTrue(os.path.exists(filename))
-        self.editor.on_proc_closed(1, QProcess.NormalExit)
+        with self.assertLogs('message', logging.ERROR):
+            self.editor.on_proc_closed(1, QProcess.NormalExit)
         self.assertFalse(os.path.exists(filename))
 
     def test_file_handling_closed_crash(self, _proc_mock):
@@ -118,7 +121,8 @@ class FileHandlingTests(unittest.TestCase):
         self.editor.edit("")
         filename = self.editor._filename
         self.assertTrue(os.path.exists(filename))
-        self.editor.on_proc_error(QProcess.Crashed)
+        with self.assertLogs('message', logging.ERROR):
+            self.editor.on_proc_error(QProcess.Crashed)
         self.editor.on_proc_closed(0, QProcess.CrashExit)
         self.assertFalse(os.path.exists(filename))
 
@@ -195,7 +199,7 @@ class TextModifyTests(unittest.TestCase):
 
 @mock.patch('qutebrowser.misc.editor.QProcess',
             new_callable=stubs.FakeQProcess)
-@mock.patch('qutebrowser.misc.editor.message', autospec=True)
+@mock.patch('qutebrowser.misc.editor.message', new=helpers.MessageModule())
 @mock.patch('qutebrowser.misc.editor.config', new=stubs.ConfigStub(
             {'general': {'editor': [''], 'editor-encoding': 'utf-8'}}))
 class ErrorMessageTests(unittest.TestCase):
@@ -211,17 +215,17 @@ class ErrorMessageTests(unittest.TestCase):
     def setUp(self):
         self.editor = editor.ExternalEditor(0)
 
-    def test_proc_error(self, msg_mock, _proc_mock):
+    def test_proc_error(self, _proc_mock):
         """Test on_proc_error."""
         self.editor.edit("")
-        self.editor.on_proc_error(QProcess.Crashed)
-        self.assertTrue(msg_mock.error.called)
+        with self.assertLogs('message', logging.ERROR):
+            self.editor.on_proc_error(QProcess.Crashed)
 
-    def test_proc_return(self, msg_mock, _proc_mock):
+    def test_proc_return(self, _proc_mock):
         """Test on_proc_finished with a bad exit status."""
         self.editor.edit("")
-        self.editor.on_proc_closed(1, QProcess.NormalExit)
-        self.assertTrue(msg_mock.error.called)
+        with self.assertLogs('message', logging.ERROR):
+            self.editor.on_proc_closed(1, QProcess.NormalExit)
 
 
 if __name__ == '__main__':

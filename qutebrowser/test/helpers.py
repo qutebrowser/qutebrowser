@@ -73,3 +73,17 @@ def fake_keyevent(key, modifiers=0, text=''):
     evtmock.modifiers.return_value = modifiers
     evtmock.text.return_value = text
     return evtmock
+
+
+class MessageModule:
+
+    """A drop-in replacement for qutebrowser.utils.message."""
+
+    def error(self, _win_id, message, _immediately=False):
+        logging.getLogger('message').error(message)
+
+    def warning(self, win_id, message, immediately=False):
+        logging.getLogger('message').warning(message)
+
+    def info(self, win_id, message, immediately=True):
+        logging.getLogger('message').info(message)
