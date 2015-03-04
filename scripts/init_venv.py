@@ -79,7 +79,7 @@ def get_dev_packages(short=False):
         short: Remove the version specification.
     """
     packages = ['colorlog', 'flake8', 'astroid', 'pylint', 'pep257',
-                'colorama', 'beautifulsoup4']
+                'colorama', 'beautifulsoup4', 'coverage']
     if short:
         packages = [re.split(r'[<>=]', p)[0] for p in packages]
     return packages

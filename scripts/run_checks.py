@@ -44,7 +44,7 @@ import contextlib
 import traceback
 
 import pep257
-
+import coverage
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
@@ -151,10 +151,21 @@ def check_init(target):
     return ok
 
 
-def check_unittest():
-    """Run the unittest checker."""
+def check_unittest(run_coverage):
+    """Run the unittest checker.
+
+    Args:
+        run_coverage: Whether to also run coverage.py.
+    """
+    if run_coverage:
+        cov = coverage.coverage(branch=True, source=['qutebrowser'])
+        cov.erase()
+        cov.start()
     suite = unittest.TestLoader().discover('.')
     result = unittest.TextTestRunner().run(suite)
+    if run_coverage:
+        cov.stop()
+        cov.html_report()
     print()
     return result.wasSuccessful()
 
@@ -268,7 +279,7 @@ def _get_checkers(args):
     # "Static" checkers
     checkers = collections.OrderedDict([
         ('global', collections.OrderedDict([
-            ('unittest', check_unittest),
+            ('unittest', functools.partial(check_unittest, args.coverage)),
             ('git', check_git),
         ])),
         ('setup', collections.OrderedDict([
@@ -303,6 +314,8 @@ def _checker_enabled(args, group, name):
 def _parse_args():
     """Parse commandline args via argparse."""
     parser = argparse.ArgumentParser(description='Run various checkers.')
+    parser.add_argument('-c', '--coverage', help="Also run coverage.py and "
+                        "generate a HTML report.", action='store_true')
     parser.add_argument('-s', '--setup', help="Run additional setup checks",
                         action='store_true')
     parser.add_argument('-q', '--quiet',
