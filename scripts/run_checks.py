@@ -32,6 +32,7 @@ Module attributes:
 import sys
 import subprocess
 import os
+import io
 import os.path
 import unittest
 import logging
@@ -165,6 +166,8 @@ def check_unittest(run_coverage):
     result = unittest.TextTestRunner().run(suite)
     if run_coverage:
         cov.stop()
+        perc = cov.report(file=io.StringIO())
+        print("COVERAGE: {}%".format(round(perc)))
         cov.html_report()
     print()
     return result.wasSuccessful()
