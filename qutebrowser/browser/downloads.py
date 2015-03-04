@@ -658,16 +658,17 @@ class DownloadManager(QAbstractListModel):
         if fileobj is not None or filename is not None:
             return self.fetch_request(request, page, fileobj, filename,
                                       auto_remove)
-        suggested_filename = urlutils.filename_from_url(request.url())
+        suggested_fn = urlutils.filename_from_url(request.url())
         encoding = sys.getfilesystemencoding()
-        suggested_filename = utils.force_encoding(suggested_filename, encoding)
+        suggested_fn = utils.force_encoding(suggested_fn, encoding)
         q = self._prepare_question()
-        q.default = path_suggestion(suggested_filename)
+        q.default = path_suggestion(suggested_fn)
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
         q.answered.connect(
             lambda fn: self.fetch_request(request, page, filename=fn,
-                                          auto_remove=auto_remove))
+                                          auto_remove=auto_remove,
+                                          suggested_filename=suggested_fn))
         message_bridge.ask(q, blocking=False)
         return None
 
@@ -711,10 +712,11 @@ class DownloadManager(QAbstractListModel):
         """
         if fileobj is not None and filename is not None:
             raise TypeError("Only one of fileobj/filename may be given!")
-        if filename is not None:
-            suggested_filename = os.path.basename(filename)
-        elif fileobj is not None and getattr(fileobj, 'name', None):
-            suggested_filename = fileobj.name
+        if not suggested_filename:
+            if filename is not None:
+                suggested_filename = os.path.basename(filename)
+            elif fileobj is not None and getattr(fileobj, 'name', None):
+                suggested_filename = fileobj.name
         log.downloads.debug("fetch: {} -> {}".format(reply.url(),
                                                      suggested_filename))
         download = DownloadItem(reply, self._win_id, self)
