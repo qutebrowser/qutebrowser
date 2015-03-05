@@ -25,6 +25,7 @@ import logging
 import unittest
 import argparse
 import sys
+from unittest import mock
 
 from qutebrowser.utils import log
 
@@ -44,6 +45,8 @@ class BaseTest(unittest.TestCase):
             self.saved_handlers = logging._handlers.copy()
             self.saved_handler_list = logging._handlerList[:]
             self.saved_loggers = saved_loggers = logger_dict.copy()
+            self.saved_name_to_level = logging._nameToLevel.copy()
+            self.saved_level_to_name = logging._levelToName.copy()
             self.logger_states = {}
             for name in saved_loggers:
                 self.logger_states[name] = getattr(saved_loggers[name],
@@ -52,6 +55,7 @@ class BaseTest(unittest.TestCase):
             logging._releaseLock()
 
         self.root_logger = logging.getLogger("")
+        self.root_handlers = self.root_logger.handlers[:]
         self.original_logging_level = self.root_logger.getEffectiveLevel()
 
     def tearDown(self):
@@ -61,8 +65,14 @@ class BaseTest(unittest.TestCase):
             self.root_logger.removeHandler(h)
             h.close()
         self.root_logger.setLevel(self.original_logging_level)
+        for h in self.root_handlers:
+            self.root_logger.addHandler(h)
         logging._acquireLock()
         try:
+            logging._levelToName.clear()
+            logging._levelToName.update(self.saved_level_to_name)
+            logging._nameToLevel.clear()
+            logging._nameToLevel.update(self.saved_name_to_level)
             logging._handlers.clear()
             logging._handlers.update(self.saved_handlers)
             logging._handlerList[:] = self.saved_handler_list
@@ -192,6 +202,7 @@ class RAMHandlerTests(BaseTest):
         self.assertEqual(self.handler.dump_log(), "Two\nThree")
 
 
+@mock.patch('qutebrowser.utils.log.qInstallMessageHandler', autospec=True)
 class InitLogTests(BaseTest):
 
     """Tests for init_log."""
@@ -201,7 +212,7 @@ class InitLogTests(BaseTest):
         self.args = argparse.Namespace(debug=True, loglevel=logging.DEBUG,
                                        color=True, loglines=10, logfilter="")
 
-    def test_stderr_none(self):
+    def test_stderr_none(self, _mock):
         """Test init_log with sys.stderr = None."""
         old_stderr = sys.stderr
         sys.stderr = None

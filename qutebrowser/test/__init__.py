@@ -23,6 +23,8 @@ import atexit
 
 from PyQt5.QtWidgets import QApplication
 
+from qutebrowser.test import log
+
 # We create a singleton QApplication here.
 
 qApp = QApplication([])
@@ -30,3 +32,4 @@ qApp.setApplicationName('qutebrowser')
 qApp.processEvents()
 atexit.register(qApp.processEvents)
 atexit.register(qApp.quit)
+log.init()
