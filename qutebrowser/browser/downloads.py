@@ -65,7 +65,8 @@ def _path_suggestion(filename):
     """
     suggestion = config.get('completion', 'download-path-suggestion')
     if suggestion == 'path':
-        return _download_dir() + os.sep
+        # add trailing '/' if not present
+        return os.path.join(_download_dir(), '')
     elif suggestion == 'filename':
         return filename
     elif suggestion == 'both':
