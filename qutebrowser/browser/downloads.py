@@ -428,20 +428,12 @@ class DownloadItem(QObject):
         # See https://github.com/The-Compiler/qutebrowser/issues/427
         encoding = sys.getfilesystemencoding()
         filename = utils.force_encoding(filename, encoding)
-        if os.path.isabs(filename) and os.path.isdir(filename):
-            # We got an absolute directory from the user, so we save it under
-            # the default filename in that directory.
-            self._filename = os.path.join(filename, self.basename)
-        elif os.path.isabs(filename):
-            # We got an absolute filename from the user, so we save it under
-            # that filename.
-            self._filename = filename
-            self.basename = os.path.basename(self._filename)
-        else:
-            # We only got a filename (without directory) from the user, so we
-            # save it under that filename in the default directory.
-            self._filename = os.path.join(_download_dir(), filename)
-            self.basename = filename
+        if not self._create_full_filename(filename):
+            # We only got a filename (without directory) or a relative path
+            # from the user, so we append that to the default directory and
+            # try again.
+            self._create_full_filename(os.path.join(_download_dir(), filename))
+
         log.downloads.debug("Setting filename to {}".format(filename))
         if os.path.isfile(self._filename):
             # The file already exists, so ask the user if it should be
@@ -449,6 +441,25 @@ class DownloadItem(QObject):
             self._ask_overwrite_question()
         else:
             self._create_fileobj()
+
+    def _create_full_filename(self, filename):
+        """Tries to create the full filename.
+
+        Return:
+            True if the full filename was created, False otherwise.
+        """
+        if os.path.isabs(filename) and os.path.isdir(filename):
+            # We got an absolute directory from the user, so we save it under
+            # the default filename in that directory.
+            self._filename = os.path.join(filename, self.basename)
+            return True
+        elif os.path.isabs(filename):
+            # We got an absolute filename from the user, so we save it under
+            # that filename.
+            self._filename = filename
+            self.basename = os.path.basename(self._filename)
+            return True
+        return False
 
     def set_fileobj(self, fileobj):
         """"Set the file object to write the download to.
@@ -663,10 +674,10 @@ class DownloadManager(QAbstractListModel):
         # https://bugreports.qt-project.org/browse/QTBUG-42757
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
                              QNetworkRequest.AlwaysNetwork)
+        suggested_fn = urlutils.filename_from_url(request.url())
         if fileobj is not None or filename is not None:
             return self.fetch_request(request, page, fileobj, filename,
-                                      auto_remove)
-        suggested_fn = urlutils.filename_from_url(request.url())
+                                      auto_remove, suggested_fn)
         encoding = sys.getfilesystemencoding()
         suggested_fn = utils.force_encoding(suggested_fn, encoding)
         q = self._prepare_question()
