@@ -74,11 +74,16 @@ class WebHistory(QWebHistoryInterface):
         super().__init__(parent)
         self._lineparser = lineparser.AppendLineParser(
             standarddir.data(), 'history', parent=self)
-        self._old_urls = set()
+        self._old_urls = {}
         with self._lineparser.open():
             for line in self._lineparser:
-                _time, url = line.rstrip().split(maxsplit=1)
-                self._old_urls.add(url)
+                atime, url = line.rstrip().split(maxsplit=1)
+                # This de-duplicates history entries. We keep later ones in the
+                # file which usually the last ones accessed. If you want
+                # to keep information about multiple hits change the
+                # items in old_urls to be lists or change HistoryEntry
+                # to have a list of atimes.
+                self._old_urls[url] = HistoryEntry(atime, url)
         self._new_history = []
         self._saved_count = 0
         self._old_hit = 0
@@ -91,6 +96,10 @@ class WebHistory(QWebHistoryInterface):
 
     def __getitem__(self, key):
         return self._new_history[key]
+
+    def __iter__(self):
+        import itertools
+        return itertools.chain(self._old_urls.values(), iter(self._new_history))
 
     def get_recent(self):
         """Get the most recent history entries."""

@@ -215,6 +215,30 @@ class HelpCompletionModel(base.BaseCompletionModel):
                 self.new_item(cat, name, desc)
 
 
+class WebHistoryCompletionModel(base.BaseCompletionModel):
+
+    """A CompletionModel filled with global browsing history."""
+
+    # pylint: disable=abstract-method
+
+    def __init__(self, match_field='url', parent=None):
+        super().__init__(parent)
+
+        self.cat = self.new_category("History")
+        self.history = objreg.get('web-history')
+
+        for entry in self.history:
+            if entry.url:
+                self.new_item(self.cat, entry.url, "")
+
+        self.history.changed.connect(self.history_changed)
+
+    def history_changed(self):
+        # Assuming the web-history.changed signal is emitted once for each
+        # new history item and that signal handlers are run immediately.
+        if self.history._history[-1].url:
+            self.new_item(self.cat, self.history._history[-1].url, "")
+
 class QuickmarkCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with all quickmarks."""
