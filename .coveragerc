@@ -1,3 +1,8 @@
+[run]
+omit =
+    qutebrowser/__main__.py
+    */__init__.py
+
 [report]
 exclude_lines =
     pragma: no cover
