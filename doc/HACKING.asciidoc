@@ -436,6 +436,30 @@ displaying it to the user.
 `QUrl` and take appropriate action if not. Note the URL of the current page
 always could be an invalid QUrl (if nothing is loaded yet).
 
+Running valgrind on QtWebKit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to run qutebrowser (and thus QtWebKit) with
+http://valgrind.org/[valgrind], you'll need to pass `--smc-check=all` to it or
+recompile QtWebKit with the Javascript JIT disabled.
+
+This is needed so valgrind handles self-modifying code correctly:
+
+[quote]
+____
+This option controls Valgrind's detection of self-modifying code. If no
+checking is done, if a program executes some code, then overwrites it with new
+code, and executes the new code, Valgrind will continue to execute the
+translations it made for the old code. This will likely lead to incorrect
+behaviour and/or crashes.
+
+...
+
+Note that the default option will catch the vast majority of cases. The main
+case it will not catch is programs such as JIT compilers that dynamically
+generate code and subsequently overwrite part or all of it. Running with all
+will slow Valgrind down noticeably.
+____
 
 Style conventions
 -----------------
