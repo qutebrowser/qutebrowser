@@ -98,7 +98,10 @@ class Command:
         self.flags_with_args = []
         self._type_conv = {}
         self._name_conv = {}
-        self._inspect_func()
+        count = self._inspect_func()
+        if self.completion is not None and len(self.completion) > count:
+            raise ValueError("Got {} completions, but only {} "
+                             "arguments!".format(len(self.completion), count))
 
     def _check_prerequisites(self, win_id):
         """Check if the command is permitted to run currently.
@@ -208,9 +211,13 @@ class Command:
 
         Sets instance attributes (desc, type_conv, name_conv) based on the
         informations.
+
+        Return:
+            How many user-visible arguments the command has.
         """
         signature = inspect.signature(self.handler)
         doc = inspect.getdoc(self.handler)
+        arg_count = 0
         if doc is not None:
             self.desc = doc.splitlines()[0].strip()
         else:
@@ -222,6 +229,7 @@ class Command:
                     continue
                 if self._inspect_special_param(param, annotation_info):
                     continue
+                arg_count += 1
                 typ = self._get_type(param, annotation_info)
                 kwargs = self._param_to_argparse_kwargs(param, annotation_info)
                 args = self._param_to_argparse_args(param, annotation_info)
@@ -234,6 +242,7 @@ class Command:
                 log.commands.vdebug('Adding arg {} of type {} -> {}'.format(
                     param.name, typ, callsig))
                 self.parser.add_argument(*args, **kwargs)
+        return arg_count
 
     def _param_to_argparse_kwargs(self, param, annotation_info):
         """Get argparse keyword arguments for a parameter.
