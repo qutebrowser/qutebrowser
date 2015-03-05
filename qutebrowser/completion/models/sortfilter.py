@@ -129,6 +129,8 @@ class CompletionFilterModel(QSortFilterProxyModel):
         # TODO more sophisticated filtering
         if not self.pattern:
             return True
+        if not data:
+            return False
         return self.pattern.casefold() in data.casefold()
 
     def lessThan(self, lindex, rindex):
