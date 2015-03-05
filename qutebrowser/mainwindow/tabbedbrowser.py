@@ -222,7 +222,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         try:
             self.currentChanged.disconnect()
         except TypeError:
-            log.destroy.exception("Error while shutting down tabs")
+            log.destroy.debug("Error while shutting down tabs")
         for tab in self.widgets():
             self._remove_tab(tab)
 
