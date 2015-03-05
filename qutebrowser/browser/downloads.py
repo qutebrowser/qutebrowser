@@ -38,6 +38,7 @@ from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import (message, usertypes, log, utils, urlutils,
                                objreg, standarddir, qtutils)
+from qutebrowser.browser import http
 from qutebrowser.browser.network import networkmanager
 
 
@@ -723,6 +724,8 @@ class DownloadManager(QAbstractListModel):
                 suggested_filename = os.path.basename(filename)
             elif fileobj is not None and getattr(fileobj, 'name', None):
                 suggested_filename = fileobj.name
+            else:
+                _, suggested_filename = http.parse_content_disposition(reply)
         log.downloads.debug("fetch: {} -> {}".format(reply.url(),
                                                      suggested_filename))
         download = DownloadItem(reply, self._win_id, self)
