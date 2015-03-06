@@ -64,6 +64,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                          tabbar -> new-tab-position set to 'left'.
         _tab_insert_idx_right: Same as above, for 'right'.
         _undo_stack: List of UndoEntry namedtuples of closed tabs.
+        _shutting_down: Whether we're currently shutting down.
 
     Signals:
         cur_progress: Progress of the current tab changed (loadProgress).
@@ -102,6 +103,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._win_id = win_id
         self._tab_insert_idx_left = 0
         self._tab_insert_idx_right = -1
+        self._shutting_down = False
         self.tabCloseRequested.connect(self.on_tab_close_requested)
         self.currentChanged.connect(self.on_current_changed)
         self.cur_load_started.connect(self.on_cur_load_started)
@@ -219,10 +221,7 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     def shutdown(self):
         """Try to shut down all tabs cleanly."""
-        try:
-            self.currentChanged.disconnect()
-        except TypeError:
-            log.destroy.debug("Error while shutting down tabs")
+        self._shutting_down = True
         for tab in self.widgets():
             self._remove_tab(tab)
 
@@ -524,8 +523,8 @@ class TabbedBrowser(tabwidget.TabWidget):
     @pyqtSlot(int)
     def on_current_changed(self, idx):
         """Set last-focused-tab and leave hinting mode when focus changed."""
-        if idx == -1:
-            # closing the last tab (before quitting)
+        if idx == -1 or self._shutting_down:
+            # closing the last tab (before quitting) or shutting down
             return
         tab = self.widget(idx)
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
