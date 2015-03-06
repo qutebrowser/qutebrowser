@@ -29,6 +29,8 @@ from unittest import mock
 
 from qutebrowser.utils import log
 
+from PyQt5.QtCore import qWarning
+
 
 class BaseTest(unittest.TestCase):
 
@@ -218,6 +220,33 @@ class InitLogTests(BaseTest):
         sys.stderr = None
         log.init_log(self.args)
         sys.stderr = old_stderr
+
+
+class HideQtWarningTests(BaseTest):
+
+    """Tests for hide_qt_warning/QtWarningFilter."""
+
+    def test_unfiltered(self):
+        """Test a message which is not filtered."""
+        with log.hide_qt_warning("World", logger='qt-tests'):
+            with self.assertLogs('qt-tests', logging.WARNING):
+                qWarning("Hello World")
+
+    def test_filtered_exact(self):
+        """Test a message which is filtered (exact match)."""
+        with log.hide_qt_warning("Hello", logger='qt-tests'):
+            qWarning("Hello")
+
+    def test_filtered_start(self):
+        """Test a message which is filtered (match at line start)."""
+        with log.hide_qt_warning("Hello", logger='qt-tests'):
+            qWarning("Hello World")
+
+    def test_filtered_whitespace(self):
+        """Test a message which is filtered (match with whitespace)."""
+        with log.hide_qt_warning("Hello", logger='qt-tests'):
+            qWarning("  Hello World  ")
+
 
 if __name__ == '__main__':
     unittest.main()
