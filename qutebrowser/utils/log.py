@@ -298,6 +298,36 @@ def qt_message_handler(msg_type, context, msg):
     qt.handle(record)
 
 
+@contextlib.contextmanager
+def hide_qt_warning(pattern, logger='qt'):
+    """Hide Qt warnings matching the given regex."""
+    log_filter = QtWarningFilter(pattern)
+    logger_obj = logging.getLogger(logger)
+    logger_obj.addFilter(log_filter)
+    yield
+    logger_obj.removeFilter(log_filter)
+
+
+class QtWarningFilter(logging.Filter):
+
+    """Filter to filter Qt warnings.
+
+    Attributes:
+        _pattern: The start of the message.
+    """
+
+    def __init__(self, pattern):
+        super().__init__()
+        self._pattern = pattern
+
+    def filter(self, record):
+        """Determine if the specified record is to be logged."""
+        if record.msg.strip().startswith(self._pattern):
+            return False  # filter
+        else:
+            return True  # log
+
+
 class LogFilter(logging.Filter):
 
     """Filter to filter log records based on the commandline argument.
