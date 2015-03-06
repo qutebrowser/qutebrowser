@@ -71,12 +71,16 @@ class BaseLineParser(QObject):
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
 
-    def _open_for_reading(self):
-        """Open self._configfile for reading."""
+    def _open(self, mode):
+        """Open self._configfile for reading.
+
+        Args:
+            mode: The mode to use ('a'/'r'/'w')
+        """
         if self._binary:
-            return open(self._configfile, 'rb')
+            return open(self._configfile, mode + 'b')
         else:
-            return open(self._configfile, 'r', encoding='utf-8')
+            return open(self._configfile, mode, encoding='utf-8')
 
     def _write(self, fp, data):
         """Write the data to a file.
@@ -119,7 +123,7 @@ class AppendLineParser(BaseLineParser):
     def open(self):
         """Open the on-disk history file. Needed for __iter__."""
         try:
-            with self._open_for_reading() as f:
+            with self._open('r') as f:
                 self._fileobj = f
                 yield
         except FileNotFoundError:
@@ -130,7 +134,7 @@ class AppendLineParser(BaseLineParser):
 
     def get_recent(self, count=4096):
         """Get the last count bytes from the underlying file."""
-        with self._open_for_reading() as f:
+        with self._open('r') as f:
             f.seek(0, os.SEEK_END)
             size = f.tell()
             try:
@@ -145,7 +149,7 @@ class AppendLineParser(BaseLineParser):
         return data
 
     def save(self):
-        with open(self._configfile, 'a', encoding='utf-8') as f:
+        with self._open('a') as f:
             self._write(f, self.new_data)
         self.new_data = []
 
@@ -181,7 +185,7 @@ class LineParser(BaseLineParser):
 
     def _read(self):
         """Read the data from self._configfile."""
-        with self._open_for_reading() as f:
+        with self._open('r') as f:
             if self._binary:
                 self.data = [line.rstrip(b'\n') for line in f.readlines()]
             else:
