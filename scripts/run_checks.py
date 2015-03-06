@@ -280,9 +280,10 @@ def _get_checkers(args):
             ('git', check_git),
         ])),
         ('setup', collections.OrderedDict([
-            ('pyroma', functools.partial(run, 'pyroma', args.version)),
+            ('pyroma', functools.partial(run, 'pyroma',
+                                         print_version=args.version)),
             ('check-manifest', functools.partial(run, 'check-manifest',
-                                                 args.version)),
+                                                 print_version=args.version)),
         ])),
     ])
     # "Dynamic" checkers which exist once for each target.
