@@ -117,7 +117,8 @@ class AppendLineParser(BaseLineParser):
     def __iter__(self):
         if self._fileobj is None:
             raise ValueError("Iterating without open() being called!")
-        return itertools.chain(iter(self._fileobj), iter(self.new_data))
+        file_iter = (line.rstrip('\n') for line in self._fileobj)
+        return itertools.chain(file_iter, iter(self.new_data))
 
     @contextlib.contextmanager
     def open(self):
