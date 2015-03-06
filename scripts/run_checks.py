@@ -35,7 +35,6 @@ import os
 import io
 import os.path
 import unittest
-import logging
 import tokenize
 import configparser
 import argparse
@@ -50,11 +49,6 @@ import coverage
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
 from scripts import utils
-
-
-# We need to do this because pyroma is braindead enough to use logging instead
-# of print...
-logging.basicConfig(level=logging.INFO, format='%(msg)s')
 
 
 config = configparser.ConfigParser()
