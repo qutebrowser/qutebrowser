@@ -59,6 +59,7 @@
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
+|<<completion-download-path-suggestion,download-path-suggestion>>|What to display in the download filename input.
 |<<completion-show,show>>|Whether to show the autocompletion window.
 |<<completion-height,height>>|The height of the completion, in px or as percentage of the window.
 |<<completion-history-length,history-length>>|How many commands to save in the history.
@@ -600,6 +601,18 @@ Default: +pass:[true]+
 
 == completion
 Options related to completion and command history.
+
+[[completion-download-path-suggestion]]
+=== download-path-suggestion
+What to display in the download filename input.
+
+Valid values:
+
+ * +path+: Show only the download path.
+ * +filename+: Show only download filename.
+ * +both+: Show download path and filename.
+
+Default: +pass:[path]+
 
 [[completion-show]]
 === show
