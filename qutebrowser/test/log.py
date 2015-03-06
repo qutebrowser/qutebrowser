@@ -52,6 +52,8 @@ def qt_message_handler(msg_type, context, msg):
         QtFatalMsg: logging.CRITICAL,
     }
     level = qt_to_logging[msg_type]
+    # There's very similiar code in utils.log, but we want it duplicated here
+    # for the tests.
     if context.function is None:
         func = 'none'
     else:
