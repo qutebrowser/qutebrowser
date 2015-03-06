@@ -49,6 +49,32 @@ ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
 RetryInfo = collections.namedtuple('RetryInfo', ['request', 'manager'])
 
 
+def _download_dir():
+    """Get the download directory to use."""
+    directory = config.get('storage', 'download-directory')
+    if directory is None:
+        directory = standarddir.download()
+    return directory
+
+
+def _path_suggestion(filename):
+    """Get the suggested file path
+
+    Args:
+        filename: The filename to use if included in the suggestion.
+    """
+    suggestion = config.get('completion', 'download-path-suggestion')
+    if suggestion == 'path':
+        # add trailing '/' if not present
+        return os.path.join(_download_dir(), '')
+    elif suggestion == 'filename':
+        return filename
+    elif suggestion == 'both':
+        return os.path.join(_download_dir(), filename)
+    else:
+        raise ValueError("Invalid suggestion value {}!".format(suggestion))
+
+
 class DownloadItemStats(QObject):
 
     """Statistics (bytes done, total bytes, time, etc.) about a download.
@@ -364,7 +390,6 @@ class DownloadItem(QObject):
         self.finished.emit()
         self.data_changed.emit()
 
-    @pyqtSlot()
     def delete(self):
         """Delete the downloaded file"""
         try:
@@ -403,23 +428,12 @@ class DownloadItem(QObject):
         # See https://github.com/The-Compiler/qutebrowser/issues/427
         encoding = sys.getfilesystemencoding()
         filename = utils.force_encoding(filename, encoding)
-        if os.path.isabs(filename) and os.path.isdir(filename):
-            # We got an absolute directory from the user, so we save it under
-            # the default filename in that directory.
-            self._filename = os.path.join(filename, self.basename)
-        elif os.path.isabs(filename):
-            # We got an absolute filename from the user, so we save it under
-            # that filename.
-            self._filename = filename
-            self.basename = os.path.basename(self._filename)
-        else:
-            # We only got a filename (without directory) from the user, so we
-            # save it under that filename in the default directory.
-            download_dir = config.get('storage', 'download-directory')
-            if download_dir is None:
-                download_dir = standarddir.download()
-            self._filename = os.path.join(download_dir, filename)
-            self.basename = filename
+        if not self._create_full_filename(filename):
+            # We only got a filename (without directory) or a relative path
+            # from the user, so we append that to the default directory and
+            # try again.
+            self._create_full_filename(os.path.join(_download_dir(), filename))
+
         log.downloads.debug("Setting filename to {}".format(filename))
         if os.path.isfile(self._filename):
             # The file already exists, so ask the user if it should be
@@ -427,6 +441,25 @@ class DownloadItem(QObject):
             self._ask_overwrite_question()
         else:
             self._create_fileobj()
+
+    def _create_full_filename(self, filename):
+        """Tries to create the full filename.
+
+        Return:
+            True if the full filename was created, False otherwise.
+        """
+        if os.path.isabs(filename) and os.path.isdir(filename):
+            # We got an absolute directory from the user, so we save it under
+            # the default filename in that directory.
+            self._filename = os.path.join(filename, self.basename)
+            return True
+        elif os.path.isabs(filename):
+            # We got an absolute filename from the user, so we save it under
+            # that filename.
+            self._filename = filename
+            self.basename = os.path.basename(self._filename)
+            return True
+        return False
 
     def set_fileobj(self, fileobj):
         """"Set the file object to write the download to.
@@ -641,24 +674,25 @@ class DownloadManager(QAbstractListModel):
         # https://bugreports.qt-project.org/browse/QTBUG-42757
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
                              QNetworkRequest.AlwaysNetwork)
+        suggested_fn = urlutils.filename_from_url(request.url())
         if fileobj is not None or filename is not None:
             return self.fetch_request(request, page, fileobj, filename,
-                                      auto_remove)
-        q = self._prepare_question()
-        filename = urlutils.filename_from_url(request.url())
+                                      auto_remove, suggested_fn)
         encoding = sys.getfilesystemencoding()
-        filename = utils.force_encoding(filename, encoding)
-        q.default = filename
+        suggested_fn = utils.force_encoding(suggested_fn, encoding)
+        q = self._prepare_question()
+        q.default = _path_suggestion(suggested_fn)
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
         q.answered.connect(
-            lambda fn: self.fetch_request(request, filename=fn, page=page,
-                                          auto_remove=auto_remove))
+            lambda fn: self.fetch_request(request, page, filename=fn,
+                                          auto_remove=auto_remove,
+                                          suggested_filename=suggested_fn))
         message_bridge.ask(q, blocking=False)
         return None
 
     def fetch_request(self, request, page=None, fileobj=None, filename=None,
-                      auto_remove=False):
+                      auto_remove=False, suggested_filename=None):
         """Download a QNetworkRequest to disk.
 
         Args:
@@ -677,10 +711,12 @@ class DownloadManager(QAbstractListModel):
         else:
             nam = page.networkAccessManager()
         reply = nam.get(request)
-        return self.fetch(reply, fileobj, filename, auto_remove)
+        return self.fetch(reply, fileobj, filename, auto_remove,
+                          suggested_filename)
 
     @pyqtSlot('QNetworkReply')
-    def fetch(self, reply, fileobj=None, filename=None, auto_remove=False):
+    def fetch(self, reply, fileobj=None, filename=None, auto_remove=False,
+              suggested_filename=None):
         """Download a QNetworkReply to disk.
 
         Args:
@@ -695,12 +731,13 @@ class DownloadManager(QAbstractListModel):
         """
         if fileobj is not None and filename is not None:
             raise TypeError("Only one of fileobj/filename may be given!")
-        if filename is not None:
-            suggested_filename = os.path.basename(filename)
-        elif fileobj is not None and getattr(fileobj, 'name', None):
-            suggested_filename = fileobj.name
-        else:
-            _inline, suggested_filename = http.parse_content_disposition(reply)
+        if not suggested_filename:
+            if filename is not None:
+                suggested_filename = os.path.basename(filename)
+            elif fileobj is not None and getattr(fileobj, 'name', None):
+                suggested_filename = fileobj.name
+            else:
+                _, suggested_filename = http.parse_content_disposition(reply)
         log.downloads.debug("fetch: {} -> {}".format(reply.url(),
                                                      suggested_filename))
         download = DownloadItem(reply, self._win_id, self)
@@ -729,10 +766,7 @@ class DownloadManager(QAbstractListModel):
             download.autoclose = False
         else:
             q = self._prepare_question()
-            encoding = sys.getfilesystemencoding()
-            suggested_filename = utils.force_encoding(suggested_filename,
-                                                      encoding)
-            q.default = suggested_filename
+            q.default = _path_suggestion(suggested_filename)
             q.answered.connect(download.set_filename)
             q.cancelled.connect(download.cancel)
             download.cancelled.connect(q.abort)

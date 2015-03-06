@@ -280,12 +280,13 @@ class BrowserPage(QWebPage):
         At some point we might want to implement the MIME Sniffing standard
         here: http://mimesniff.spec.whatwg.org/
         """
-        inline, _suggested_filename = http.parse_content_disposition(reply)
+        inline, suggested_filename = http.parse_content_disposition(reply)
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
         if not inline:
             # Content-Disposition: attachment -> force download
-            download_manager.fetch(reply)
+            download_manager.fetch(reply,
+                                   suggested_filename=suggested_filename)
             return
         mimetype, _rest = http.parse_content_type(reply)
         if mimetype == 'image/jpg':
@@ -300,7 +301,8 @@ class BrowserPage(QWebPage):
                     self.display_content, reply, 'image/jpeg'))
         else:
             # Unknown mimetype, so download anyways.
-            download_manager.fetch(reply)
+            download_manager.fetch(reply,
+                                   suggested_filename=suggested_filename)
 
     @pyqtSlot()
     def on_load_started(self):

@@ -1416,6 +1416,15 @@ class NewInstanceOpenTarget(BaseType):
                                ('window', "Open in a new window."))
 
 
+class DownloadPathSuggestion(BaseType):
+
+    """How to format the question when downloading."""
+
+    valid_values = ValidValues(('path', "Show only the download path."),
+                               ('filename', "Show only download filename."),
+                               ('both', "Show download path and filename."))
+
+
 class UserAgent(BaseType):
 
     """The user agent to use."""
