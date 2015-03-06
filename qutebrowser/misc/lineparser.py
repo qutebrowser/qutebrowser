@@ -150,6 +150,7 @@ class AppendLineParser(BaseLineParser):
         return data
 
     def save(self):
+        self._prepare_save()
         with self._open('a') as f:
             self._write(f, self.new_data)
         self.new_data = []
@@ -194,9 +195,7 @@ class LineParser(BaseLineParser):
 
     def save(self):
         """Save the config file."""
-        if not os.path.exists(self._configdir):
-            os.makedirs(self._configdir, 0o755)
-        log.destroy.debug("Saving to {}".format(self._configfile))
+        self._prepare_save()
         with qtutils.savefile_open(self._configfile, self._binary) as f:
             self._write(f, self.data)
 
