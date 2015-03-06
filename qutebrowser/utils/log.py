@@ -295,14 +295,7 @@ def qt_message_handler(msg_type, context, msg):
         msg += ("\n\nOn Archlinux, this should fix the problem:\n"
                 "    pacman -S libxkbcommon-x11")
         faulthandler.disable()
-    try:
-        frame = sys._getframe(1)  # pylint: disable=protected-access
-    except (AttributeError, ValueError):
-        # sys._getframe might not exist in some Python implementations.
-        # It could raise ValueError if the stack is less than one level deep -
-        # this SHOULD never happen, but we're better safe than sorry here.
-        frame = None
-    stack = ''.join(traceback.format_stack(f=frame))
+    stack = ''.join(traceback.format_stack())
     record = qt.makeRecord(name, level, context.file, context.line, msg, None,
                            None, func, sinfo=stack)
     qt.handle(record)
