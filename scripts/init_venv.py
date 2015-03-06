@@ -79,7 +79,8 @@ def get_dev_packages(short=False):
         short: Remove the version specification.
     """
     packages = ['colorlog', 'flake8', 'astroid', 'pylint', 'pep257',
-                'colorama', 'beautifulsoup4', 'coverage']
+                'colorama', 'beautifulsoup4', 'coverage', 'pyroma',
+                'check-manifest']
     if short:
         packages = [re.split(r'[<>=]', p)[0] for p in packages]
     return packages
@@ -112,11 +113,14 @@ def test_toolchain():
     utils.print_title("Checking toolchain")
 
     packages = ['sip', 'PyQt5.QtCore', 'PyQt5.QtWebKit', 'qutebrowser.app']
+    renames = {'beautifulsoup4': 'bs4', 'check-manifest': 'check_manifest'}
     if g_args.dev:
         packages += get_dev_packages(short=True)
     for pkg in packages:
-        if pkg == 'beautifulsoup4':
-            pkg = 'bs4'
+        try:
+            pkg = renames[pkg]
+        except KeyError:
+            pass
         print("Importing {}".format(pkg))
         venv_python('-c', 'import {}'.format(pkg))
 
