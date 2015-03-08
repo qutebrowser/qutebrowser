@@ -62,10 +62,16 @@ class OpenEncodingChecker(checkers.BaseChecker):
             except utils.NoSuchArgumentError:
                 pass
         if _encoding is None:
-            if mode_arg is not None:
+            if mode_arg is None:
+                mode = None
+            else:
                 mode = utils.safe_infer(mode_arg)
-            if (mode_arg is not None and isinstance(mode, astroid.Const) and
-                    'b' in getattr(mode, 'value', '')):
+            if mode is not None and not isinstance(mode, astroid.Const):
+                # We can't say what mode is exactly.
+                return
+            if mode is None:
+                self.add_message('open-without-encoding', node=node)
+            elif 'b' in getattr(mode, 'value', ''):
                 # Files opened as binary don't need an encoding.
                 return
             else:
