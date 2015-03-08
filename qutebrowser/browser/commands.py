@@ -386,12 +386,13 @@ class CommandDispatcher:
         """
         if bg and window:
             raise cmdexc.CommandError("Only one of -b/-w can be given!")
-        tabbed_browser = self._tabbed_browser(window)
+        cur_tabbed_browser = self._tabbed_browser()
         curtab = self._current_widget()
-        cur_title = tabbed_browser.page_title(self._current_index())
-        newtab = tabbed_browser.tabopen(background=bg, explicit=True)
+        cur_title = cur_tabbed_browser.page_title(self._current_index())
         # The new tab could be in a new tabbed_browser (e.g. because of
         # tabs-are-windows being set)
+        new_tabbed_browser = self._tabbed_browser(window)
+        newtab = new_tabbed_browser.tabopen(background=bg, explicit=True)
         new_tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=newtab.win_id)
         idx = new_tabbed_browser.indexOf(newtab)
