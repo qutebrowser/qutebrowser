@@ -61,6 +61,7 @@ class WebView(QWebView):
                    load.
         registry: The ObjectRegistry associated with this tab.
         tab_id: The tab ID of the view.
+        win_id: The window ID of the view.
         _cur_url: The current URL (accessed via cur_url property).
         _has_ssl_errors: Whether SSL errors occured during loading.
         _zoom: A NeighborList with the zoom levels.
@@ -68,7 +69,6 @@ class WebView(QWebView):
         _check_insertmode: If True, in mouseReleaseEvent we should check if we
                            need to enter/leave insert mode.
         _default_zoom_changed: Whether the zoom was changed from the default.
-        _win_id: The window ID of the view.
 
     Signals:
         scroll_pos_changed: Scroll percentage of current tab changed.
@@ -92,7 +92,7 @@ class WebView(QWebView):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-42948
             # See https://github.com/The-Compiler/qutebrowser/issues/462
             self.setStyle(QStyleFactory.create('Fusion'))
-        self._win_id = win_id
+        self.win_id = win_id
         self.load_status = LoadStatus.none
         self._check_insertmode = False
         self.inspector = None
@@ -204,14 +204,14 @@ class WebView(QWebView):
             if self.page().history().canGoBack():
                 self.back()
             else:
-                message.error(self._win_id, "At beginning of history.",
+                message.error(self.win_id, "At beginning of history.",
                               immediately=True)
         elif e.button() in (Qt.XButton2, Qt.RightButton):
             # Forward button on mice which have it, or rocker gesture
             if self.page().history().canGoForward():
                 self.forward()
             else:
-                message.error(self._win_id, "At end of history.",
+                message.error(self.win_id, "At end of history.",
                               immediately=True)
 
     def _mousepress_insertmode(self, e):
@@ -253,12 +253,12 @@ class WebView(QWebView):
         if ((hitresult.isContentEditable() and elem.is_writable()) or
                 elem.is_editable()):
             log.mouse.debug("Clicked editable element!")
-            modeman.enter(self._win_id, usertypes.KeyMode.insert, 'click',
+            modeman.enter(self.win_id, usertypes.KeyMode.insert, 'click',
                           only_if_normal=True)
         else:
             log.mouse.debug("Clicked non-editable element!")
             if config.get('input', 'auto-leave-insert-mode'):
-                modeman.maybe_leave(self._win_id, usertypes.KeyMode.insert,
+                modeman.maybe_leave(self.win_id, usertypes.KeyMode.insert,
                                     'click')
 
     def mouserelease_insertmode(self):
@@ -273,12 +273,12 @@ class WebView(QWebView):
             return
         if elem.is_editable():
             log.mouse.debug("Clicked editable element (delayed)!")
-            modeman.enter(self._win_id, usertypes.KeyMode.insert,
+            modeman.enter(self.win_id, usertypes.KeyMode.insert,
                           'click-delayed', only_if_normal=True)
         else:
             log.mouse.debug("Clicked non-editable element (delayed)!")
             if config.get('input', 'auto-leave-insert-mode'):
-                modeman.maybe_leave(self._win_id, usertypes.KeyMode.insert,
+                modeman.maybe_leave(self.win_id, usertypes.KeyMode.insert,
                                     'click-delayed')
 
     def _mousepress_opentarget(self, e):
@@ -348,7 +348,7 @@ class WebView(QWebView):
         if perc < 0:
             raise cmdexc.CommandError("Can't zoom {}%!".format(perc))
         self.setZoomFactor(float(perc) / 100)
-        message.info(self._win_id, "Zoom level: {}%".format(perc))
+        message.info(self.win_id, "Zoom level: {}%".format(perc))
         self._default_zoom_changed = True
 
     def zoom(self, offset):
@@ -403,7 +403,7 @@ class WebView(QWebView):
         if not config.get('input', 'auto-insert-mode'):
             return
         mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=self._win_id)
+                                  window=self.win_id)
         cur_mode = mode_manager.mode
         if cur_mode == usertypes.KeyMode.insert or not ok:
             return
@@ -415,7 +415,7 @@ class WebView(QWebView):
             return
         log.modes.debug("focus element: {}".format(repr(elem)))
         if elem.is_editable():
-            modeman.enter(self._win_id, usertypes.KeyMode.insert,
+            modeman.enter(self.win_id, usertypes.KeyMode.insert,
                           'load finished', only_if_normal=True)
 
     @pyqtSlot(usertypes.KeyMode)
@@ -459,7 +459,7 @@ class WebView(QWebView):
             log.webview.warning("WebModalDialog requested, but we don't "
                                 "support that!")
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=self._win_id)
+                                    window=self.win_id)
         return tabbed_browser.tabopen(background=False)
 
     def paintEvent(self, e):

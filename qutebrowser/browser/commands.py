@@ -390,9 +390,13 @@ class CommandDispatcher:
         curtab = self._current_widget()
         cur_title = tabbed_browser.page_title(self._current_index())
         newtab = tabbed_browser.tabopen(background=bg, explicit=True)
-        idx = tabbed_browser.indexOf(newtab)
-        tabbed_browser.set_page_title(idx, cur_title)
-        tabbed_browser.setTabIcon(idx, curtab.icon())
+        # The new tab could be in a new tabbed_browser (e.g. because of
+        # tabs-are-windows being set)
+        new_tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=newtab.win_id)
+        idx = new_tabbed_browser.indexOf(newtab)
+        new_tabbed_browser.set_page_title(idx, cur_title)
+        new_tabbed_browser.setTabIcon(idx, curtab.icon())
         newtab.keep_icon = True
         newtab.setZoomFactor(curtab.zoomFactor())
         history = qtutils.serialize(curtab.history())
