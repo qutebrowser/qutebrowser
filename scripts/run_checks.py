@@ -146,18 +146,20 @@ def check_init(target):
     return ok
 
 
-def check_unittest(run_coverage):
+def check_unittest(run_coverage, verbose):
     """Run the unittest checker.
 
     Args:
         run_coverage: Whether to also run coverage.py.
+        verbose: For verbose output.
     """
     if run_coverage:
         cov = coverage.coverage(branch=True, source=['qutebrowser'])
         cov.erase()
         cov.start()
     suite = unittest.TestLoader().discover('.')
-    result = unittest.TextTestRunner().run(suite)
+    verbosity = 2 if verbose else 1
+    result = unittest.TextTestRunner(verbosity=verbosity).run(suite)
     if run_coverage:
         cov.stop()
         perc = cov.report(file=io.StringIO())
@@ -276,7 +278,8 @@ def _get_checkers(args):
     # "Static" checkers
     checkers = collections.OrderedDict([
         ('global', collections.OrderedDict([
-            ('unittest', functools.partial(check_unittest, args.coverage)),
+            ('unittest', functools.partial(check_unittest, args.coverage,
+                                           args.verbose)),
             ('git', check_git),
         ])),
         ('setup', collections.OrderedDict([
@@ -321,6 +324,8 @@ def _parse_args():
                         action='store_true')
     parser.add_argument('-V', '--version',
                         help="Print checker versions.", action='store_true')
+    parser.add_argument('-v', '--verbose', help="Run some checkers verbose.",
+                        action='store_true')
     parser.add_argument('checkers', help="Checkers to run (or 'all')",
                         default='all', nargs='?')
     return parser.parse_args()
