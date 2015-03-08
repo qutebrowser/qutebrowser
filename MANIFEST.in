@@ -1,6 +1,7 @@
 recursive-include qutebrowser/html *.html
 recursive-include qutebrowser/test *.py
 recursive-include icons *
+recursive-include scripts/pylint_checkers *
 include qutebrowser/test/testfile
 include qutebrowser/git-commit-id
 include COPYING doc/* README.asciidoc
@@ -10,8 +11,8 @@ exclude scripts/run_checks.py
 exclude scripts/cleanup.py
 exclude scripts/minimal_webkit_testbrowser.py
 exclude scripts/run_profile.py
-exclude scripts/generate_authors.sh
-exclude .flake8
-exclude .pylintrc
+exclude scripts/src2asciidoc.sh
+exclude scripts/gen_resources.sh
+exclude scripts/quit_segfault_test.sh
+exclude scripts/segfault_test.sh
 exclude doc/notes
-prune pkg
