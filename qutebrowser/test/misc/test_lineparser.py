@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=protected-access
+
 """Tests for qutebrowser.misc.lineparser."""
 
 import io
@@ -37,6 +39,7 @@ class LineParserWrapper:
         self._test_save_prepared = False
 
     def _open(self, mode):
+        """Override _open to use StringIO/BytesIO instead of a real file."""
         if mode not in 'rwa':
             raise ValueError("Unknown mode {!r}!".format(mode))
         if self._test_save_prepared:
@@ -49,7 +52,7 @@ class LineParserWrapper:
         else:
             prev_val = None
 
-        if self._binary:
+        if self._binary:  # pylint: disable=no-member
             fobj = io.BytesIO(prev_val)
         else:
             fobj = io.StringIO(prev_val)
@@ -59,22 +62,33 @@ class LineParserWrapper:
         return fobj
 
     def _write(self, fp, data):
+        """Extend _write to get the data after writing it."""
         super()._write(fp, data)
         self._data = fp.getvalue()
 
     def _prepare_save(self):
+        """Keep track if _prepare_save has been called."""
         self._test_save_prepared = True
 
 
 class TestableAppendLineParser(LineParserWrapper, lineparser.AppendLineParser):
+
+    """Wrapper over AppendLineParser to make it testable."""
+
     pass
 
 
 class TestableLineParser(LineParserWrapper, lineparser.LineParser):
+
+    """Wrapper over LineParser to make it testable."""
+
     pass
 
 
 class TestableLimitLineParser(LineParserWrapper, lineparser.LimitLineParser):
+
+    """Wrapper over LimitLineParser to make it testable."""
+
     pass
 
 
@@ -115,6 +129,7 @@ class AppendLineParserTests(unittest.TestCase):
         self._lineparser.save()
 
     def _get_expected(self):
+        """Get the expected data with newlines."""
         return '\n'.join(self._expected_data) + '\n'
 
     def test_save(self):
