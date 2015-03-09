@@ -237,6 +237,15 @@ class NetworkManager(QNetworkAccessManager):
         if self.adopted_downloads == 0:
             self.deleteLater()
 
+    @pyqtSlot(object)  # DownloadItem
+    def adopt_download(self, download):
+        """Adopt a new DownloadItem."""
+        self.adopted_downloads += 1
+        log.downloads.debug("Adopted download, {} adopted.".format(
+            self.adopted_downloads))
+        download.destroyed.connect(self.on_adopted_download_destroyed)
+        download.do_retry.connect(self.adopt_download)
+
     # WORKAROUND for:
     # http://www.riverbankcomputing.com/pipermail/pyqt/2014-September/034806.html
     #

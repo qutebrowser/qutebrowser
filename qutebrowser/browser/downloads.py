@@ -209,8 +209,8 @@ class DownloadItem(QObject):
         redirected: Signal emitted when a download was redirected.
             arg 0: The new QNetworkRequest.
             arg 1: The old QNetworkReply.
-        do_retry: Emitted when a request should be re-tried.
-            arg: The QNetworkRequest to download.
+        do_retry: Emitted when a download is retried.
+            arg 0: The new DownloadItem
     """
 
     MAX_REDIRECTS = 10
@@ -219,7 +219,7 @@ class DownloadItem(QObject):
     error = pyqtSignal(str)
     cancelled = pyqtSignal()
     redirected = pyqtSignal(QNetworkRequest, QNetworkReply)
-    do_retry = pyqtSignal('QNetworkReply')
+    do_retry = pyqtSignal(object)  # DownloadItem
 
     def __init__(self, reply, win_id, parent=None):
         """Constructor.
@@ -401,9 +401,13 @@ class DownloadItem(QObject):
     @pyqtSlot()
     def retry(self):
         """Retry a failed download."""
-        self.cancel()
+        download_manager = objreg.get('download-manager', scope='window',
+                                      window=self._win_id)
         new_reply = self.retry_info.manager.get(self.retry_info.request)
-        self.do_retry.emit(new_reply)
+        new_download = download_manager.fetch(
+            new_reply, suggested_filename=self.basename)
+        self.do_retry.emit(new_download)
+        self.cancel()
 
     @pyqtSlot()
     def open_file(self):
@@ -751,7 +755,6 @@ class DownloadManager(QAbstractListModel):
         download.error.connect(self.on_error)
         download.redirected.connect(
             functools.partial(self.on_redirect, download))
-        download.do_retry.connect(self.fetch)
         download.basename = suggested_filename
         idx = len(self.downloads) + 1
         download.index = idx
@@ -898,10 +901,7 @@ class DownloadManager(QAbstractListModel):
             failed_download = (download.done and (not download.successful) and
                                download.retry_info.manager is nam)
             if running_download or failed_download:
-                log.downloads.debug("Found running/failed downloads, "
-                                    "adopting the NAM.")
-                nam.adopted_downloads += 1
-                download.destroyed.connect(nam.on_adopted_download_destroyed)
+                nam.adopt_download(download)
         return nam.adopted_downloads
 
     def can_clear(self):
