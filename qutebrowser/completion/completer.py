@@ -85,8 +85,8 @@ class Completer(QObject):
             models.CommandCompletionModel(self), self)
         self._models[usertypes.Completion.helptopic] = CFM(
             models.HelpCompletionModel(self), self)
-        self._models[usertypes.Completion.web_history_by_url] = CFM(
-            models.WebHistoryCompletionModel('url', self), self)
+        self._models[usertypes.Completion.url_history_and_quickmarks] = CFM(
+            models.UrlCompletionModel('url', self), self)
 
     def _init_setting_completions(self):
         """Initialize setting completion models."""
