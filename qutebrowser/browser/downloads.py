@@ -322,7 +322,11 @@ class DownloadItem(QObject):
         self.error_msg = msg
         self.stats.finish()
         self.error.emit(msg)
-        self.reply.abort()
+        with log.hide_qt_warning('QNetworkReplyImplPrivate::error: Internal '
+                                 'problem, this method must only be called '
+                                 'once.'):
+            # See https://codereview.qt-project.org/#/c/107863/
+            self.reply.abort()
         self.reply.deleteLater()
         self.reply = None
         self.done = True
