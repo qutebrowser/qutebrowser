@@ -215,6 +215,32 @@ class HelpCompletionModel(base.BaseCompletionModel):
                 self.new_item(cat, name, desc)
 
 
+class UrlCompletionModel(base.BaseCompletionModel):
+
+    """A CompletionModel which combines both quickmarks and web history
+    URLs. Used for the `open` command."""
+
+    def __init__(self, match_field='url', parent=None):
+        super().__init__(parent)
+
+        self._quickcat = self.new_category("Quickmarks")
+        self._histcat = self.new_category("History")
+        self._histstore = objreg.get('web-history')
+
+        WebHistoryCompletionModel.fill_model(self, cat=self._histcat)
+        QuickmarkCompletionModel.fill_model(self, cat=self._quickcat)
+
+        self._histstore.changed.connect(lambda :
+                                        WebHistoryCompletionModel.history_changed(
+                                            self, self._histcat, self._histstore))
+
+    def sort(self, column, order=Qt.AscendingOrder):
+        # sort on atime, descending
+        # Ignoring the arguments because they are hardcoded in the CFM
+        # anyway.
+        self._histcat.sortChildren(2, Qt.DescendingOrder)
+
+
 class WebHistoryCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with global browsing history."""
@@ -224,20 +250,33 @@ class WebHistoryCompletionModel(base.BaseCompletionModel):
     def __init__(self, match_field='url', parent=None):
         super().__init__(parent)
 
-        self.cat = self.new_category("History")
-        self.history = objreg.get('web-history')
+        self._histcat = self.new_category("History")
+        self._histstore = objreg.get('web-history')
 
-        for entry in self.history:
-            if entry.url:
-                self.new_item(self.cat, entry.url, "")
+        self.fill_model(self, self._histcat, self._histstore)
 
-        self.history.changed.connect(self.history_changed)
+        self._histstore.changed.connect(lambda :
+                                        self.history_changed(self._histcat,
+                                                             self._histstore))
 
-    def history_changed(self):
+    @staticmethod
+    def fill_model(model, cat=None, histstore=None):
+        if not histstore:
+            histstore = objreg.get('web-history')
+        if not cat:
+            cat = model.new_category("History")
+
+        for entry in histstore:
+            model.new_item(cat, entry.url, "", entry.atime)
+
+    def history_changed(self, cat, histstore=None):
+        if not histstore:
+            histstore = objreg.get('web-history')
         # Assuming the web-history.changed signal is emitted once for each
         # new history item and that signal handlers are run immediately.
-        if self.history._history[-1].url:
-            self.new_item(self.cat, self.history._history[-1].url, "")
+        if histstore._history[-1].url:
+            self.new_item(cat, histstore._history[-1].url, "",
+                         str(histstore._history[-1].atime))
 
 class QuickmarkCompletionModel(base.BaseCompletionModel):
 
@@ -247,16 +286,20 @@ class QuickmarkCompletionModel(base.BaseCompletionModel):
 
     def __init__(self, match_field='url', parent=None):
         super().__init__(parent)
+        self.fill_model(self, match_field, parent)
 
-        cat = self.new_category("Quickmarks")
+    @staticmethod
+    def fill_model(model, match_field='url', parent=None, cat=None):
+        if not cat:
+            cat = model.new_category("Quickmarks")
         quickmarks = objreg.get('quickmark-manager').marks.items()
 
         if match_field == 'url':
             for qm_name, qm_url in quickmarks:
-                self.new_item(cat, qm_url, qm_name)
+                model.new_item(cat, qm_url, qm_name)
         elif match_field == 'name':
             for qm_name, qm_url in quickmarks:
-                self.new_item(cat, qm_name, qm_url)
+                model.new_item(cat, qm_name, qm_url)
         else:
             raise ValueError("Invalid value '{}' for match_field!".format(
                 match_field))
