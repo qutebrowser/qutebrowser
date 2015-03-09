@@ -68,7 +68,7 @@ class WebHistory(QWebHistoryInterface):
         _old_miss: How many times an URL was not found in _old_urls.
     """
 
-    changed = pyqtSignal()
+    item_added = pyqtSignal(HistoryEntry)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -89,7 +89,7 @@ class WebHistory(QWebHistoryInterface):
         self._old_hit = 0
         self._old_miss = 0
         objreg.get('save-manager').add_saveable(
-            'history', self.save, self.changed)
+            'history', self.save, self.item_added)
 
     def __repr__(self):
         return utils.get_repr(self, new_length=len(self._new_history))
@@ -122,7 +122,7 @@ class WebHistory(QWebHistoryInterface):
         if not config.get('general', 'private-browsing'):
             entry = HistoryEntry(time.time(), url_string)
             self._new_history.append(entry)
-            self.changed.emit()
+            self.item_added.emit(entry)
 
     def historyContains(self, url_string):
         """Called by WebKit to determine if an URL is contained in the history.

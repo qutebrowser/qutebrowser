@@ -230,9 +230,9 @@ class UrlCompletionModel(base.BaseCompletionModel):
         WebHistoryCompletionModel.fill_model(self, cat=self._histcat)
         QuickmarkCompletionModel.fill_model(self, cat=self._quickcat)
 
-        self._histstore.changed.connect(lambda :
+        self._histstore.item_added.connect(lambda e:
                                         WebHistoryCompletionModel.history_changed(
-                                            self, self._histcat, self._histstore))
+                                            self, e, self._histcat))
 
     def sort(self, column, order=Qt.AscendingOrder):
         # sort on atime, descending
@@ -255,9 +255,8 @@ class WebHistoryCompletionModel(base.BaseCompletionModel):
 
         self.fill_model(self, self._histcat, self._histstore)
 
-        self._histstore.changed.connect(lambda :
-                                        self.history_changed(self._histcat,
-                                                             self._histstore))
+        self._histstore.item_added.connect(lambda e:
+                                        self.history_changed(e, self._histcat))
 
     @staticmethod
     def fill_model(model, cat=None, histstore=None):
@@ -269,14 +268,9 @@ class WebHistoryCompletionModel(base.BaseCompletionModel):
         for entry in histstore:
             model.new_item(cat, entry.url, "", entry.atime)
 
-    def history_changed(self, cat, histstore=None):
-        if not histstore:
-            histstore = objreg.get('web-history')
-        # Assuming the web-history.changed signal is emitted once for each
-        # new history item and that signal handlers are run immediately.
-        if histstore._history[-1].url:
-            self.new_item(cat, histstore._history[-1].url, "",
-                         str(histstore._history[-1].atime))
+    def history_changed(self, entry, cat):
+        if entry.url:
+            self.new_item(cat, entry.url, "", str(entry.atime))
 
 class QuickmarkCompletionModel(base.BaseCompletionModel):
 
