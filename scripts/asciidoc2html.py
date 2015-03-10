@@ -71,6 +71,7 @@ def main(colors=False):
     asciidoc_files = [
         ('doc/FAQ.asciidoc', 'qutebrowser/html/doc/FAQ.html'),
         ('doc/quickstart.asciidoc', 'qutebrowser/html/doc/quickstart.html'),
+        ('doc/userscripts.asciidoc', 'qutebrowser/html/doc/userscripts.html'),
     ]
     try:
         os.mkdir('qutebrowser/html/doc')

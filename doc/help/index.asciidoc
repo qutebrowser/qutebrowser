@@ -10,6 +10,7 @@ The following help pages are currently available:
 * link:FAQ.html[Frequently asked questions]
 * link:commands.html[Documentation of commands]
 * link:settings.html[Documentation of settings]
+* link:userscripts.html[How to write userscripts]
 
 Getting help
 ------------
