@@ -19,6 +19,8 @@
 
 """Our own QNetworkAccessManager."""
 
+import collections
+
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply
 
@@ -30,7 +32,8 @@ else:
     SSL_AVAILABLE = QSslSocket.supportsSsl()
 
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes, utils, objreg, qtutils
+from qutebrowser.utils import (message, log, usertypes, utils, objreg, qtutils,
+                               urlutils)
 from qutebrowser.browser import cookies
 from qutebrowser.browser.network import qutescheme, networkreply
 
@@ -64,6 +67,8 @@ class NetworkManager(QNetworkAccessManager):
                           schemes.
         _win_id: The window ID this NetworkManager is associated with.
         _tab_id: The tab ID this NetworkManager is associated with.
+        _rejected_ssl_errors: A {QUrl: [QSslError]} dict of rejected errors.
+        _accepted_ssl_errors: A {QUrl: [QSslError]} dict of accepted errors.
 
     Signals:
         shutting_down: Emitted when the QNAM is shutting down.
@@ -89,6 +94,8 @@ class NetworkManager(QNetworkAccessManager):
         self._set_cache()
         if SSL_AVAILABLE:
             self.sslErrors.connect(self.on_ssl_errors)
+            self._rejected_ssl_errors = collections.defaultdict(list)
+            self._accepted_ssl_errors = collections.defaultdict(list)
         self.authenticationRequired.connect(self.on_authentication_required)
         self.proxyAuthenticationRequired.connect(
             self.on_proxy_authentication_required)
@@ -182,12 +189,22 @@ class NetworkManager(QNetworkAccessManager):
             """
             ssl_strict = config.get('network', 'ssl-strict')
             if ssl_strict == 'ask':
-                err_string = '\n'.join('- ' + err.errorString() for err in
-                                       errors)
-                answer = self._ask('SSL errors - continue?\n{}'.format(
-                    err_string), mode=usertypes.PromptMode.yesno, owner=reply)
-                if answer:
+                host_tpl = urlutils.host_tuple(reply.url())
+                if set(errors).issubset(self._accepted_ssl_errors[host_tpl]):
                     reply.ignoreSslErrors()
+                elif set(errors).issubset(self._rejected_ssl_errors[host_tpl]):
+                    pass
+                else:
+                    err_string = '\n'.join('- ' + err.errorString() for err in
+                                           errors)
+                    answer = self._ask('SSL errors - continue?\n{}'.format(
+                        err_string), mode=usertypes.PromptMode.yesno,
+                        owner=reply)
+                    if answer:
+                        reply.ignoreSslErrors()
+                        self._accepted_ssl_errors[host_tpl] += errors
+                    else:
+                        self._rejected_ssl_errors[host_tpl] += errors
             elif ssl_strict:
                 pass
             else:

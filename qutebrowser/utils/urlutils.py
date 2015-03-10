@@ -341,6 +341,14 @@ def filename_from_url(url):
         return None
 
 
+def host_tuple(url):
+    """Get a (scheme, host, port) tuple.
+
+    This is suitable to identify a connection, e.g. for SSL errors.
+    """
+    return (url.scheme(), url.host(), url.port())
+
+
 class FuzzyUrlError(Exception):
 
     """Exception raised by fuzzy_url on problems."""
