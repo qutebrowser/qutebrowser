@@ -92,9 +92,9 @@ class Saveable:
         do_save = self._dirty or (self._save_on_exit and is_exit) or force
         if not silent:
             log.save.debug("Save of {} requested - dirty {}, save_on_exit {}, "
-                           "is_exit {} -> {}".format(
+                           "is_exit {}, force {} -> {}".format(
                                self._name, self._dirty, self._save_on_exit,
-                               is_exit, do_save))
+                               is_exit, force, do_save))
         if do_save:
             self._save_handler()
             self._dirty = False
@@ -200,7 +200,7 @@ class SaveManager(QObject):
                               "saved".format(key))
             else:
                 try:
-                    self.save(key, explicit=explicit)
+                    self.save(key, explicit=explicit, force=True)
                 except OSError as e:
                     message.error(win_id, "Could not save {}: "
                                   "{}".format(key, e))
