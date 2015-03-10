@@ -133,10 +133,10 @@ class TabbedBrowser(tabwidget.TabWidget):
         try:
             idx = self.indexOf(tab)
         except RuntimeError as e:
-            log.webview.debug("Got invalid tab {} ({})!".format(tab, e))
+            log.webview.debug("Got invalid tab ({})!".format(e))
             raise TabDeletedError(e)
         if idx == -1:
-            log.webview.debug("Got invalid tab {} (index is -1)!".format(tab))
+            log.webview.debug("Got invalid tab (index is -1)!")
             raise TabDeletedError("index is -1!")
         return idx
 
