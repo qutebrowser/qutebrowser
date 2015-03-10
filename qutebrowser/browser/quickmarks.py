@@ -55,6 +55,9 @@ class QuickmarkManager(QObject):
         self._lineparser = lineparser.LineParser(
             standarddir.config(), 'quickmarks', parent=self)
         for line in self._lineparser:
+            if not line.strip():
+                # Ignore empty or whitespace-only lines.
+                continue
             try:
                 key, url = line.rsplit(maxsplit=1)
             except ValueError:
