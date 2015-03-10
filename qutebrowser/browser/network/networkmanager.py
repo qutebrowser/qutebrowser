@@ -22,7 +22,7 @@
 import collections
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication
-from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply
+from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QSslError
 
 try:
     from PyQt5.QtNetwork import QSslSocket
@@ -52,6 +52,18 @@ def init():
             QSslSocket.setDefaultCiphers(good_ciphers)
 
 
+class SslError(QSslError):
+
+    """A QSslError subclass which provides __hash__ on Qt < 5.4."""
+
+    def __hash__(self):
+        try:
+            # Qt >= 5.4
+            return super().__hash__()
+        except TypeError:
+            return hash((self.certificate().toDer(), self.error()))
+
+
 class NetworkManager(QNetworkAccessManager):
 
     """Our own QNetworkAccessManager.
@@ -67,8 +79,8 @@ class NetworkManager(QNetworkAccessManager):
                           schemes.
         _win_id: The window ID this NetworkManager is associated with.
         _tab_id: The tab ID this NetworkManager is associated with.
-        _rejected_ssl_errors: A {QUrl: [QSslError]} dict of rejected errors.
-        _accepted_ssl_errors: A {QUrl: [QSslError]} dict of accepted errors.
+        _rejected_ssl_errors: A {QUrl: [SslError]} dict of rejected errors.
+        _accepted_ssl_errors: A {QUrl: [SslError]} dict of accepted errors.
 
     Signals:
         shutting_down: Emitted when the QNAM is shutting down.
@@ -187,6 +199,7 @@ class NetworkManager(QNetworkAccessManager):
                 reply: The QNetworkReply that is encountering the errors.
                 errors: A list of errors.
             """
+            errors = [SslError(e) for e in errors]
             ssl_strict = config.get('network', 'ssl-strict')
             if ssl_strict == 'ask':
                 host_tpl = urlutils.host_tuple(reply.url())
