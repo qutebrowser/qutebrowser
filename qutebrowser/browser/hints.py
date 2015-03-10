@@ -202,8 +202,20 @@ class HintManager(QObject):
             chars = '0123456789'
         else:
             chars = config.get('hints', 'chars')
-
         min_chars = config.get('hints', 'min-chars')
+        if config.get('hints', 'scatter'):
+            return self._hint_scattered(min_chars, chars, elems)
+        else:
+            return self._hint_linear(min_chars, chars, elems)
+
+    def _hint_scattered(self, min_chars, chars, elems):
+        """Produce scattered hint labels with variable length (like Vimium).
+
+        Args:
+            min_chars: The minimum length of labels.
+            chars: The alphabet to use for labels.
+            elems: The elements to generate labels for.
+        """
         # Determine how many digits the link hints will require in the worst
         # case. Usually we do not need all of these digits for every link
         # single hint, so we can show shorter hints for a few of the links.
@@ -229,6 +241,20 @@ class HintManager(QObject):
             strings.append(self._number_to_hint_str(i, chars, needed))
 
         return self._shuffle_hints(strings, len(chars))
+
+    def _hint_linear(self, min_chars, chars, elems):
+        """Produce linear hint labels with constant length (like dwb).
+
+        Args:
+            min_chars: The minimum length of labels.
+            chars: The alphabet to use for labels.
+            elems: The elements to generate labels for.
+        """
+        strings = []
+        needed = max(min_chars, math.ceil(math.log(len(elems), len(chars))))
+        for i in range(len(elems)):
+            strings.append(self._number_to_hint_str(i, chars, needed))
+        return strings
 
     def _shuffle_hints(self, hints, length):
         """Shuffle the given set of hints so that they're scattered.

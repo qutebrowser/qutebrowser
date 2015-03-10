@@ -627,6 +627,11 @@ DATA = collections.OrderedDict([
          SettingValue(typ.Int(minval=1), '1'),
          "Mininum number of chars used for hint strings."),
 
+        ('scatter',
+         SettingValue(typ.Bool(), 'true'),
+         "Whether to scatter hint key chains (like Vimium) or not (like "
+         "dwb)."),
+
         ('uppercase',
          SettingValue(typ.Bool(), 'false'),
          "Make chars in hint strings uppercase."),
