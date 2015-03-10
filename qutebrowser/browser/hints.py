@@ -75,6 +75,9 @@ class HintContext:
                 spawn: Spawn a simple command.
         to_follow: The link to follow when enter is pressed.
         args: Custom arguments for userscript/spawn
+        rapid: Whether to do rapid hinting.
+        mainframe: The main QWebFrame where we started hinting in.
+        group: The group of webelements to hint.
     """
 
     def __init__(self):
@@ -82,9 +85,12 @@ class HintContext:
         self.target = None
         self.baseurl = None
         self.to_follow = None
+        self.rapid = False
         self.frames = []
         self.destroyed_frames = []
         self.args = []
+        self.mainframe = None
+        self.group = None
 
     def get_args(self, urlstr):
         """Get the arguments, with {hint-url} replaced by the given URL."""
@@ -116,20 +122,18 @@ class HintManager(QObject):
     """
 
     HINT_TEXTS = {
-        Target.normal: "Follow hint...",
-        Target.tab: "Follow hint in new tab...",
-        Target.tab_bg: "Follow hint in background tab...",
-        Target.window: "Follow hint in new window...",
-        Target.yank: "Yank hint to clipboard...",
-        Target.yank_primary: "Yank hint to primary selection...",
-        Target.run: "Run a command on a hint...",
-        Target.fill: "Set hint in commandline...",
-        Target.hover: "Hover over a hint...",
-        Target.rapid: "Follow hint (rapid mode)...",
-        Target.rapid_win: "Follow hint in new window (rapid mode)...",
-        Target.download: "Download hint...",
-        Target.userscript: "Call userscript via hint...",
-        Target.spawn: "Spawn command via hint...",
+        Target.normal: "Follow hint",
+        Target.tab: "Follow hint in new tab",
+        Target.tab_bg: "Follow hint in background tab",
+        Target.window: "Follow hint in new window",
+        Target.yank: "Yank hint to clipboard",
+        Target.yank_primary: "Yank hint to primary selection",
+        Target.run: "Run a command on a hint",
+        Target.fill: "Set hint in commandline",
+        Target.hover: "Hover over a hint",
+        Target.download: "Download hint",
+        Target.userscript: "Call userscript via hint",
+        Target.spawn: "Spawn command via hint",
     }
 
     mouse_event = pyqtSignal('QMouseEvent')
@@ -145,6 +149,14 @@ class HintManager(QObject):
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)
         mode_manager.left.connect(self.on_mode_left)
+
+    def _get_text(self):
+        """Get a hint text based on the current context."""
+        text = self.HINT_TEXTS[self._context.target]
+        if self._context.rapid:
+            text += ' (rapid mode)'
+        text += '...'
+        return text
 
     def _cleanup(self):
         """Clean up after hinting."""
@@ -169,7 +181,7 @@ class HintManager(QObject):
                 # See # https://github.com/The-Compiler/qutebrowser/issues/263
                 pass
             log.hints.debug("Disconnected.")
-        text = self.HINT_TEXTS[self._context.target]
+        text = self._get_text()
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
         message_bridge.maybe_reset_text(text)
@@ -593,21 +605,17 @@ class HintManager(QObject):
                 raise cmdexc.CommandError(
                     "'args' is only allowed with target userscript/spawn.")
 
-    def _init_elements(self, mainframe, group):
-        """Initialize the elements and labels based on the context set.
-
-        Args:
-            mainframe: The main QWebFrame.
-            group: A Group enum member (which elements to find).
-        """
+    def _init_elements(self):
+        """Initialize the elements and labels based on the context set."""
         elems = []
         for f in self._context.frames:
-            elems += f.findAllElements(webelem.SELECTORS[group])
-        elems = [e for e in elems if webelem.is_visible(e, mainframe)]
+            elems += f.findAllElements(webelem.SELECTORS[self._context.group])
+        elems = [e for e in elems
+                 if webelem.is_visible(e, self._context.mainframe)]
         # We wrap the elements late for performance reasons, as wrapping 1000s
         # of elements (with ~50 methods each) just takes too much time...
         elems = [webelem.WebElementWrapper(e) for e in elems]
-        filterfunc = webelem.FILTERS.get(group, lambda e: True)
+        filterfunc = webelem.FILTERS.get(self._context.group, lambda e: True)
         elems = [e for e in elems if filterfunc(e)]
         if not elems:
             raise cmdexc.CommandError("No elements found.")
@@ -658,11 +666,14 @@ class HintManager(QObject):
             webview.openurl(url)
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint')
-    def start(self, group=webelem.Group.all, target=Target.normal,
-              *args: {'nargs': '*'}):
+    def start(self, rapid=False, group=webelem.Group.all, target=Target.normal,
+              *args: {'nargs': '*'}, win_id: {'special': 'win_id'}):
         """Start hinting.
 
         Args:
+            rapid: Whether to do rapid hinting. This is only possible with
+                   targets `tab-bg`, `window`, `run`, `hover`, `userscript` and
+                   `spawn`.
             group: The hinting mode to use.
 
                 - `all`: All clickable elements.
@@ -681,9 +692,6 @@ class HintManager(QObject):
                 - `run`: Run the argument as command.
                 - `fill`: Fill the commandline with the command given as
                           argument.
-                - `rapid`: Open the link in a new tab and stay in hinting mode.
-                - `rapid-win`: Open the link in a new window and stay in
-                               hinting mode.
                 - `download`: Download the link.
                 - `userscript`: Call an userscript with `$QUTE_URL` set to the
                                 link.
@@ -712,9 +720,18 @@ class HintManager(QObject):
                                   window=self._win_id)
         if mode_manager.mode == usertypes.KeyMode.hint:
             raise cmdexc.CommandError("Already hinting!")
+
+        if rapid and target not in (Target.tab_bg, Target.window, Target.run,
+                                    Target.hover, Target.userscript,
+                                    Target.spawn):
+            name = target.name.replace('_', '-')
+            raise cmdexc.CommandError("Rapid hinting makes no sense with "
+                                      "target {}!".format(name))
+
         self._check_args(target, *args)
         self._context = HintContext()
         self._context.target = target
+        self._context.rapid = rapid
         self._context.baseurl = tabbed_browser.current_url()
         self._context.frames = webelem.get_child_frames(mainframe)
         for frame in self._context.frames:
@@ -723,13 +740,39 @@ class HintManager(QObject):
             frame.destroyed.connect(functools.partial(
                 self._context.destroyed_frames.append, id(frame)))
         self._context.args = args
-        self._init_elements(mainframe, group)
+        self._context.mainframe = mainframe
+        self._context.group = group
+        self._handle_old_rapid_targets(win_id)
+        self._init_elements()
         message_bridge = objreg.get('message-bridge', scope='window',
                                     window=self._win_id)
-        message_bridge.set_text(self.HINT_TEXTS[target])
+        message_bridge.set_text(self._get_text())
         self._connect_frame_signals()
         modeman.enter(self._win_id, usertypes.KeyMode.hint,
                       'HintManager.start')
+
+    def _handle_old_rapid_targets(self, win_id):
+        """Switch to the new way for rapid hinting with a rapid target.
+
+        Args:
+            win_id: The window ID to display the warning in.
+
+        DEPRECATED.
+        """
+        old_rapid_targets = {
+            Target.rapid: Target.tab_bg,
+            Target.rapid_win: Target.window,
+        }
+        target = self._context.target
+        if target in old_rapid_targets:
+            self._context.target = old_rapid_targets[target]
+            self._context.rapid = True
+            name = target.name.replace('_', '-')
+            group_name = self._context.group.name.replace('_', '-')
+            new_name = self._context.target.name.replace('_', '-')
+            message.warning(
+                win_id, ':hint with target {} is deprecated, use :hint '
+                '--rapid {} {} instead!'.format(name, group_name, new_name))
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
@@ -801,8 +844,6 @@ class HintManager(QObject):
             Target.tab: self._click,
             Target.tab_bg: self._click,
             Target.window: self._click,
-            Target.rapid: self._click,
-            Target.rapid_win: self._click,
             Target.hover: self._click,
             # _download needs a QWebElement to get the frame.
             Target.download: self._download,
@@ -829,7 +870,7 @@ class HintManager(QObject):
                 url_handlers[self._context.target], url, self._context)
         else:
             raise ValueError("No suitable handler found!")
-        if self._context.target not in (Target.rapid, Target.rapid_win):
+        if not self._context.rapid:
             modeman.maybe_leave(self._win_id, usertypes.KeyMode.hint,
                                 'followed')
         else:

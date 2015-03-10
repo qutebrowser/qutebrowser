@@ -176,7 +176,7 @@ Show help about a command or setting.
 
 [[hint]]
 === hint
-Syntax: +:hint ['group'] ['target'] ['args' ['args' ...]]+
+Syntax: +:hint [*--rapid*] ['group'] ['target'] ['args' ['args' ...]]+
 
 Start hinting.
 
@@ -201,9 +201,6 @@ Start hinting.
  - `run`: Run the argument as command.
  - `fill`: Fill the commandline with the command given as
  argument.
- - `rapid`: Open the link in a new tab and stay in hinting mode.
- - `rapid-win`: Open the link in a new window and stay in
- hinting mode.
  - `download`: Download the link.
  - `userscript`: Call an userscript with `$QUTE_URL` set to the
  link.
@@ -221,6 +218,11 @@ Start hinting.
  `{hint-url}` will get replaced by the selected
  URL.
  - With `run`: Same as `fill`.
+
+
+==== optional arguments
+* +*-r*+, +*--rapid*+: Whether to do rapid hinting. This is only possible with targets `tab-bg`, `window`, `run`, `hover`, `userscript` and
+ `spawn`.
 
 
 [[home]]
