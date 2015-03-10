@@ -42,6 +42,11 @@ class KeyConfigError(Exception):
         self.lineno = None
 
 
+class DuplicateKeychainError(KeyConfigError):
+
+    """Error raised when there's a duplicate key binding."""
+
+
 class KeyConfigParser(QObject):
 
     """Parser for the keybind config.
@@ -131,7 +136,7 @@ class KeyConfigParser(QObject):
             f.write(data)
 
     @cmdutils.register(instance='key-config', maxsplit=1)
-    def bind(self, key, command, *, mode=None):
+    def bind(self, key, command, *, mode=None, force=False):
         """Bind a key to a command.
 
         Args:
@@ -139,6 +144,7 @@ class KeyConfigParser(QObject):
             command: The command to execute, with optional args.
             mode: A comma-separated list of modes to bind the key in
                   (default: `normal`).
+            force: Rebind the key if it is already bound.
         """
         if mode is None:
             mode = 'normal'
@@ -151,7 +157,10 @@ class KeyConfigParser(QObject):
             raise cmdexc.CommandError("Invalid command {}!".format(
                 split_cmd[0]))
         try:
-            self._add_binding(mode, key, command)
+            self._add_binding(mode, key, command, force=force)
+        except DuplicateKeychainError as e:
+            raise cmdexc.CommandError("Duplicate keychain {} - use --force to "
+                                      "override!".format(str(e)))
         except KeyConfigError as e:
             raise cmdexc.CommandError(e)
         for m in mode.split(','):
@@ -257,14 +266,17 @@ class KeyConfigParser(QObject):
             assert self._cur_section is not None
             self._add_binding(self._cur_section, line, self._cur_command)
 
-    def _add_binding(self, sectname, keychain, command):
+    def _add_binding(self, sectname, keychain, command, *, force=False):
         """Add a new binding from keychain to command in section sectname."""
         log.keyboard.debug("Adding binding {} -> {} in mode {}.".format(
             keychain, command, sectname))
         if sectname not in self.keybindings:
             self.keybindings[sectname] = collections.OrderedDict()
         if keychain in self.get_bindings_for(sectname):
-            raise KeyConfigError("Duplicate keychain '{}'!".format(keychain))
+            if force:
+                self.unbind(keychain, mode=sectname)
+            else:
+                raise DuplicateKeychainError(keychain)
         self.keybindings[sectname][keychain] = command
 
     def get_bindings_for(self, section):
