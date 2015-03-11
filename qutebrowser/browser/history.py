@@ -68,29 +68,38 @@ class WebHistory(QWebHistoryInterface):
         _old_miss: How many times an URL was not found in _old_urls.
     """
 
-    changed = pyqtSignal()
+    item_added = pyqtSignal(HistoryEntry)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._lineparser = lineparser.AppendLineParser(
             standarddir.data(), 'history', parent=self)
-        self._old_urls = set()
+        self._old_urls = {}
         with self._lineparser.open():
             for line in self._lineparser:
-                _time, url = line.rstrip().split(maxsplit=1)
-                self._old_urls.add(url)
+                atime, url = line.rstrip().split(maxsplit=1)
+                # This de-duplicates history entries. We keep later ones in the
+                # file which usually the last ones accessed. If you want
+                # to keep information about multiple hits change the
+                # items in old_urls to be lists or change HistoryEntry
+                # to have a list of atimes.
+                self._old_urls[url] = HistoryEntry(atime, url)
         self._new_history = []
         self._saved_count = 0
         self._old_hit = 0
         self._old_miss = 0
         objreg.get('save-manager').add_saveable(
-            'history', self.save, self.changed)
+            'history', self.save, self.item_added)
 
     def __repr__(self):
         return utils.get_repr(self, new_length=len(self._new_history))
 
     def __getitem__(self, key):
         return self._new_history[key]
+
+    def __iter__(self):
+        import itertools
+        return itertools.chain(self._old_urls.values(), iter(self._new_history))
 
     def get_recent(self):
         """Get the most recent history entries."""
@@ -113,7 +122,7 @@ class WebHistory(QWebHistoryInterface):
         if not config.get('general', 'private-browsing'):
             entry = HistoryEntry(time.time(), url_string)
             self._new_history.append(entry)
-            self.changed.emit()
+            self.item_added.emit(entry)
 
     def historyContains(self, url_string):
         """Called by WebKit to determine if an URL is contained in the history.

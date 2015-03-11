@@ -215,6 +215,63 @@ class HelpCompletionModel(base.BaseCompletionModel):
                 self.new_item(cat, name, desc)
 
 
+class UrlCompletionModel(base.BaseCompletionModel):
+
+    """A CompletionModel which combines both quickmarks and web history
+    URLs. Used for the `open` command."""
+
+    def __init__(self, match_field='url', parent=None):
+        super().__init__(parent)
+
+        self._quickcat = self.new_category("Quickmarks")
+        self._histcat = self.new_category("History")
+        self._histstore = objreg.get('web-history')
+
+        WebHistoryCompletionModel.fill_model(self, cat=self._histcat)
+        QuickmarkCompletionModel.fill_model(self, cat=self._quickcat)
+
+        self._histstore.item_added.connect(lambda e:
+                                        WebHistoryCompletionModel.history_changed(
+                                            self, e, self._histcat))
+
+    def sort(self, column, order=Qt.AscendingOrder):
+        # sort on atime, descending
+        # Ignoring the arguments because they are hardcoded in the CFM
+        # anyway.
+        self._histcat.sortChildren(2, Qt.DescendingOrder)
+
+
+class WebHistoryCompletionModel(base.BaseCompletionModel):
+
+    """A CompletionModel filled with global browsing history."""
+
+    # pylint: disable=abstract-method
+
+    def __init__(self, match_field='url', parent=None):
+        super().__init__(parent)
+
+        self._histcat = self.new_category("History")
+        self._histstore = objreg.get('web-history')
+
+        self.fill_model(self, self._histcat, self._histstore)
+
+        self._histstore.item_added.connect(lambda e:
+                                        self.history_changed(e, self._histcat))
+
+    @staticmethod
+    def fill_model(model, cat=None, histstore=None):
+        if not histstore:
+            histstore = objreg.get('web-history')
+        if not cat:
+            cat = model.new_category("History")
+
+        for entry in histstore:
+            model.new_item(cat, entry.url, "", entry.atime)
+
+    def history_changed(self, entry, cat):
+        if entry.url:
+            self.new_item(cat, entry.url, "", str(entry.atime))
+
 class QuickmarkCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with all quickmarks."""
@@ -223,16 +280,20 @@ class QuickmarkCompletionModel(base.BaseCompletionModel):
 
     def __init__(self, match_field='url', parent=None):
         super().__init__(parent)
+        self.fill_model(self, match_field, parent)
 
-        cat = self.new_category("Quickmarks")
+    @staticmethod
+    def fill_model(model, match_field='url', parent=None, cat=None):
+        if not cat:
+            cat = model.new_category("Quickmarks")
         quickmarks = objreg.get('quickmark-manager').marks.items()
 
         if match_field == 'url':
             for qm_name, qm_url in quickmarks:
-                self.new_item(cat, qm_url, qm_name)
+                model.new_item(cat, qm_url, qm_name)
         elif match_field == 'name':
             for qm_name, qm_url in quickmarks:
-                self.new_item(cat, qm_name, qm_url)
+                model.new_item(cat, qm_name, qm_url)
         else:
             raise ValueError("Invalid value '{}' for match_field!".format(
                 match_field))

@@ -237,7 +237,8 @@ KeyMode = enum('KeyMode', ['normal', 'hint', 'command', 'yesno', 'prompt',
 # Available command completions
 Completion = enum('Completion', ['command', 'section', 'option', 'value',
                                  'helptopic', 'quickmark_by_url',
-                                 'quickmark_by_name', 'sessions'])
+                                 'quickmark_by_name',
+                                 'url_history_and_quickmarks', 'sessions'])
 
 
 class Question(QObject):
