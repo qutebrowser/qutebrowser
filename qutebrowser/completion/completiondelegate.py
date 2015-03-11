@@ -22,7 +22,9 @@
 We use this to be able to highlight parts of the text.
 """
 
+import re
 import html
+
 from PyQt5.QtWidgets import QStyle, QStyleOptionViewItem, QStyledItemDelegate
 from PyQt5.QtCore import QRectF, QSize, Qt
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
@@ -195,9 +197,9 @@ class CompletionItemDelegate(QStyledItemDelegate):
         if index.parent().isValid():
             pattern = index.model().pattern
             if index.column() == 0 and pattern:
-                text = self._opt.text.replace(
-                    pattern,
-                    '<span class="highlight">{}</span>'.format(pattern))
+                repl = r'<span class="highlight">\g<0></span>'
+                text = re.sub(re.escape(pattern), repl, self._opt.text,
+                              flags=re.IGNORECASE)
                 self._doc.setHtml(text)
             else:
                 self._doc.setPlainText(self._opt.text)
