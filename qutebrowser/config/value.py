@@ -79,6 +79,7 @@ class SettingValue:
             if val is not None:
                 return val
         else:  # pylint: disable=useless-else-on-loop
+            # https://bitbucket.org/logilab/pylint/issue/489/
             raise ValueError("No valid config value found!")
 
     def transformed(self):

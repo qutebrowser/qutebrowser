@@ -202,7 +202,6 @@ class StatusBar(QWidget):
         Return:
             The severity as a string (!)
         """
-        # pylint: disable=method-hidden
         if self._severity is None:
             return ""
         else:
@@ -233,7 +232,6 @@ class StatusBar(QWidget):
     @pyqtProperty(bool)
     def prompt_active(self):
         """Getter for self.prompt_active, so it can be used as Qt property."""
-        # pylint: disable=method-hidden
         return self._prompt_active
 
     def _set_prompt_active(self, val):
@@ -249,7 +247,6 @@ class StatusBar(QWidget):
     @pyqtProperty(bool)
     def insert_active(self):
         """Getter for self.insert_active, so it can be used as Qt property."""
-        # pylint: disable=method-hidden
         return self._insert_active
 
     def _set_insert_active(self, val):

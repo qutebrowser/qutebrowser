@@ -183,7 +183,7 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
     new_f = None
     try:
         ok = f.open(QIODevice.WriteOnly)
-        if not ok:  # pylint: disable=used-before-assignment
+        if not ok:
             raise OSError(f.errorString())
         if binary:
             new_f = PyQIODevice(f)
@@ -196,8 +196,8 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
     finally:
         if new_f is not None:
             new_f.flush()
-        ok = f.commit()
-        if not ok:
+        commit_ok = f.commit()
+        if not commit_ok:
             raise OSError(f.errorString())
 
 

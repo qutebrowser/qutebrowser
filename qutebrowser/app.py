@@ -487,7 +487,7 @@ class Application(QApplication):
                         QUrl.RemovePassword | QUrl.FullyEncoded)
                     if urlstr:
                         win_pages.append(urlstr)
-                except Exception:  # pylint: disable=broad-except
+                except Exception:
                     if forgiving:
                         log.destroy.exception("Error while recovering tab")
                     else:
@@ -538,8 +538,6 @@ class Application(QApplication):
         It'll try very hard to write all open tabs to a file, and then exit
         gracefully.
         """
-        # pylint: disable=broad-except
-
         exc = (exctype, excvalue, tb)
 
         if not self._quit_status['crash']:
@@ -682,9 +680,9 @@ class Application(QApplication):
             s: The string to evaluate.
         """
         try:
-            r = eval(s)  # pylint: disable=eval-used
+            r = eval(s)
             out = repr(r)
-        except Exception:  # pylint: disable=broad-except
+        except Exception:
             out = traceback.format_exc()
         qutescheme.pyeval_output = out
         tabbed_browser = objreg.get('tabbed-browser', scope='window',

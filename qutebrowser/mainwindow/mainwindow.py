@@ -183,7 +183,7 @@ class MainWindow(QWidget):
 
     def _connect_signals(self):
         """Connect all mainwindow signals."""
-        # pylint: disable=too-many-locals,too-many-statements
+        # pylint: disable=too-many-statements
         key_config = objreg.get('key-config')
 
         status = self._get_object('statusbar')

@@ -951,8 +951,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def view_source(self):
         """Show the source of the current page."""
-        # pylint doesn't seem to like pygments...
         # pylint: disable=no-member
+        # https://bitbucket.org/logilab/pylint/issue/491/
         widget = self._current_widget()
         if widget.viewing_source:
             raise cmdexc.CommandError("Already viewing source!")

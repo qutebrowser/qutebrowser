@@ -367,7 +367,7 @@ def _format_block(filename, what, data):
         elif not found_end:
             raise Exception("Marker '// QUTE_{}_END' not found in "
                             "'{}'!".format(what, filename))
-    except:  # pylint: disable=bare-except
+    except:
         os.remove(tmpname)
         raise
     else:

@@ -43,7 +43,8 @@ class JinjaTests(unittest.TestCase):
         """Test with a simple template."""
         readfile_mock.side_effect = _read_file
         template = jinja.env.get_template('test.html')
-        data = template.render(var='World')  # pylint: disable=maybe-no-member
+        # https://bitbucket.org/logilab/pylint/issue/490/
+        data = template.render(var='World')  # pylint: disable=no-member
         self.assertEqual(data, "Hello World")
 
     def test_utf8(self, readfile_mock):
@@ -56,7 +57,8 @@ class JinjaTests(unittest.TestCase):
         """
         readfile_mock.side_effect = _read_file
         template = jinja.env.get_template('test.html')
-        data = template.render(var='\u2603')  # pylint: disable=maybe-no-member
+        # https://bitbucket.org/logilab/pylint/issue/490/
+        data = template.render(var='\u2603')  # pylint: disable=no-member
         self.assertEqual(data, "Hello \u2603")
 
 

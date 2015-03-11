@@ -18,8 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=broad-except
-
 """ Run different codecheckers over a codebase.
 
 Runs flake8, pylint, pep257, a CRLF/whitespace/conflict-checker and
@@ -81,7 +79,6 @@ def run(name, target=None, print_version=False):
         target: The package to check
         print_version: Whether to print the checker version.
     """
-    # pylint: disable=too-many-branches
     args = _get_args(name)
     if target is not None:
         args.append(target)
@@ -112,7 +109,6 @@ def check_pep257(target, print_version=False):
     We use this rather than run() because on some systems (e.g. Windows) no
     pep257 binary is available.
     """
-    # pylint: disable=assignment-from-no-return,no-member
     if print_version:
         print(pep257.__version__)
     args = _get_args('pep257')
@@ -120,6 +116,7 @@ def check_pep257(target, print_version=False):
     if args is not None:
         sys.argv += args
     try:
+        # pylint: disable=assignment-from-no-return,no-member
         if hasattr(pep257, 'run_pep257'):
             # newer pep257 versions
             status = pep257.run_pep257()
@@ -219,6 +216,8 @@ def check_vcs_conflict(target):
 
 def _get_optional_args(checker):
     """Get a list of arguments based on a comma-separated args config."""
+    # pylint: disable=no-member
+    # https://bitbucket.org/logilab/pylint/issue/487/
     try:
         return config.get(checker, 'args').split(',')
     except configparser.NoOptionError:
@@ -239,6 +238,8 @@ def _get_args(checker):
     Return:
         A list of commandline arguments.
     """
+    # pylint: disable=no-member
+    # https://bitbucket.org/logilab/pylint/issue/487/
     args = []
     if checker == 'pylint':
         args += _get_flag('disable', 'pylint', 'disable')
@@ -275,6 +276,8 @@ def _get_args(checker):
 
 def _get_checkers(args):
     """Get a dict of checkers we need to execute."""
+    # pylint: disable=no-member
+    # https://bitbucket.org/logilab/pylint/issue/487/
     # "Static" checkers
     checkers = collections.OrderedDict([
         ('global', collections.OrderedDict([
@@ -303,6 +306,8 @@ def _get_checkers(args):
 
 def _checker_enabled(args, group, name):
     """Check if a named checker is enabled."""
+    # pylint: disable=no-member
+    # https://bitbucket.org/logilab/pylint/issue/487/
     if args.checkers == 'all':
         if not args.setup and group == 'setup':
             return False
@@ -333,6 +338,8 @@ def _parse_args():
 
 def main():
     """Main entry point."""
+    # pylint: disable=no-member
+    # https://bitbucket.org/logilab/pylint/issue/487/
     utils.change_cwd()
     read_files = config.read('.run_checks')
     if not read_files:

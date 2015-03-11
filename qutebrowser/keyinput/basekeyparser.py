@@ -166,7 +166,7 @@ class BaseKeyParser(QObject):
             return self.Match.none
 
         if len(txt) == 1:
-            category = unicodedata.category(txt)  # pylint: disable=no-member
+            category = unicodedata.category(txt)
             is_control_char = (category == 'Cc')
         else:
             is_control_char = False

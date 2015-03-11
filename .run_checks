@@ -14,7 +14,7 @@ exclude=test_.*
 args=--output-format=colorized,--reports=no,--rcfile=.pylintrc
 plugins=config,crlf,modeline,settrace,openencoding
 # excluding command.py is a WORKAROUND for https://bitbucket.org/logilab/pylint/issue/395/horrible-performance-related-to-inspect
-exclude=resources.py,command.py
+exclude=resources.py
 
 [flake8]
 args=--config=.flake8

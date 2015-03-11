@@ -19,7 +19,9 @@
 #
 # pylint complains when using .render() on jinja templates, so we make it shut
 # up for this whole module.
-# pylint: disable=maybe-no-member
+
+# pylint: disable=no-member
+# https://bitbucket.org/logilab/pylint/issue/490/
 
 """Handler functions for different qute:... pages.
 

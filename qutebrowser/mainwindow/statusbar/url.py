@@ -90,7 +90,6 @@ class UrlText(textbase.TextBase):
         Return:
             The urltype as a string (!)
         """
-        # pylint: disable=method-hidden
         if self._urltype is None:
             return ""
         else:

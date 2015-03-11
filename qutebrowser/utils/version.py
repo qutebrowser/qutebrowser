@@ -171,8 +171,6 @@ def _os_info():
     Return:
         A list of lines with version info.
     """
-    # pylint has issues with platform.mac_ver()
-    # pylint: disable=unpacking-non-sequence
     lines = []
     releaseinfo = None
     if sys.platform == 'linux':
@@ -181,6 +179,8 @@ def _os_info():
     elif sys.platform == 'win32':
         osver = ', '.join(platform.win32_ver())
     elif sys.platform == 'darwin':
+        # pylint: disable=unpacking-non-sequence
+        # See https://bitbucket.org/logilab/pylint/issue/165/
         release, versioninfo, machine = platform.mac_ver()
         if all(not e for e in versioninfo):
             versioninfo = ''

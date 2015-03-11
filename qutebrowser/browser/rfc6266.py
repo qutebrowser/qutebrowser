@@ -24,8 +24,7 @@ import urllib.parse
 import string
 import re
 
-import pypeg2 as peg  # pylint: disable=import-error
-# (fails on win7 in venv...)
+import pypeg2 as peg
 
 from qutebrowser.utils import log, utils
 
@@ -293,7 +292,9 @@ def normalize_ws(text):
 
 def parse_headers(content_disposition):
     """Build a ContentDisposition from header values."""
-    # pylint: disable=maybe-no-member
+    # https://bitbucket.org/logilab/pylint/issue/492/
+    # pylint: disable=no-member
+
     # We allow non-ascii here (it will only be parsed inside of qdtext, and
     # rejected by the grammar if it appears in other places), although parsing
     # it can be ambiguous.  Parsing it ensures that a non-ambiguous filename*

@@ -210,8 +210,6 @@ class ErrorMessageTests(unittest.TestCase):
         editor: The ExternalEditor instance to test.
     """
 
-    # pylint: disable=maybe-no-member
-
     def setUp(self):
         self.editor = editor.ExternalEditor(0)
 

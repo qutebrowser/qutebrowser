@@ -32,12 +32,10 @@ from PyQt5.QtCore import (QtDebugMsg, QtWarningMsg, QtCriticalMsg, QtFatalMsg,
                           qInstallMessageHandler)
 # Optional imports
 try:
-    # pylint: disable=import-error
     import colorama
 except ImportError:
     colorama = None
 try:
-    # pylint: disable=import-error
     import colorlog
 except ImportError:
     colorlog = None

@@ -124,7 +124,7 @@ def main():
         WARNING: misc/crashdialog.py checks the stacktrace for this function
         name, so if this is changed, it should be changed there as well!
         """
-        return app.exec_()  # pylint: disable=maybe-no-member
+        return app.exec_()
 
     # We set qApp explicitely here to reduce the risk of segfaults while
     # quitting.
