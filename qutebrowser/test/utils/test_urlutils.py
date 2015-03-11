@@ -155,6 +155,7 @@ class IsUrlTests(unittest.TestCase):
         'deadbeef',
         '31c3',
         'http:foo:0',
+        'foo::bar',
     )
 
     @mock.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
