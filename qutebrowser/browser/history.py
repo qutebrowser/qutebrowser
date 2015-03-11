@@ -20,6 +20,7 @@
 """Simple history which gets written to disk."""
 
 import time
+import itertools
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWebKit import QWebHistoryInterface
@@ -98,8 +99,8 @@ class WebHistory(QWebHistoryInterface):
         return self._new_history[key]
 
     def __iter__(self):
-        import itertools
-        return itertools.chain(self._old_urls.values(), iter(self._new_history))
+        return itertools.chain(self._old_urls.values(),
+                               iter(self._new_history))
 
     def get_recent(self):
         """Get the most recent history entries."""

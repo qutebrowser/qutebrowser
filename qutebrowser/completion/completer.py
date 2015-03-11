@@ -85,8 +85,8 @@ class Completer(QObject):
             models.CommandCompletionModel(self), self)
         self._models[usertypes.Completion.helptopic] = CFM(
             models.HelpCompletionModel(self), self)
-        self._models[usertypes.Completion.url_history_and_quickmarks] = CFM(
-            models.UrlCompletionModel('url', self), self,
+        self._models[usertypes.Completion.url] = CFM(
+            models.UrlCompletionModel(self), self,
             dumb_sort=Qt.DescendingOrder)
 
     def _init_setting_completions(self):

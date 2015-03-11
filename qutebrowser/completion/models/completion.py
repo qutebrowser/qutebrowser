@@ -217,10 +217,13 @@ class HelpCompletionModel(base.BaseCompletionModel):
 
 class UrlCompletionModel(base.BaseCompletionModel):
 
-    """A CompletionModel which combines both quickmarks and web history
-    URLs. Used for the `open` command."""
+    """A model which combines quickmarks and web history URLs.
 
-    def __init__(self, match_field='url', parent=None):
+    Used for the `open` command."""
+
+    # pylint: disable=abstract-method
+
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         self._quickcat = self.new_category("Quickmarks")
@@ -230,9 +233,9 @@ class UrlCompletionModel(base.BaseCompletionModel):
         WebHistoryCompletionModel.fill_model(self, cat=self._histcat)
         QuickmarkCompletionModel.fill_model(self, cat=self._quickcat)
 
-        self._histstore.item_added.connect(lambda e:
-                                        WebHistoryCompletionModel.history_changed(
-                                            self, e, self._histcat))
+        self._histstore.item_added.connect(
+            lambda e: WebHistoryCompletionModel.history_changed(
+                self, e, self._histcat))
 
 
 class WebHistoryCompletionModel(base.BaseCompletionModel):
@@ -241,7 +244,7 @@ class WebHistoryCompletionModel(base.BaseCompletionModel):
 
     # pylint: disable=abstract-method
 
-    def __init__(self, match_field='url', parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         self._histcat = self.new_category("History")
@@ -249,11 +252,12 @@ class WebHistoryCompletionModel(base.BaseCompletionModel):
 
         self.fill_model(self, self._histcat, self._histstore)
 
-        self._histstore.item_added.connect(lambda e:
-                                        self.history_changed(e, self._histcat))
+        self._histstore.item_added.connect(
+            lambda e: self.history_changed(e, self._histcat))
 
     @staticmethod
     def fill_model(model, cat=None, histstore=None):
+        """Fill the given model/category with the given history."""
         if not histstore:
             histstore = objreg.get('web-history')
         if not cat:
@@ -264,6 +268,7 @@ class WebHistoryCompletionModel(base.BaseCompletionModel):
             model.new_item(cat, entry.url, "", str(atime), sort=atime)
 
     def history_changed(self, entry, cat):
+        """Slot called when a new history item was added."""
         if entry.url:
             atime = int(entry.atime)
             self.new_item(cat, entry.url, "", str(atime), sort=atime)
@@ -277,10 +282,11 @@ class QuickmarkCompletionModel(base.BaseCompletionModel):
 
     def __init__(self, match_field='url', parent=None):
         super().__init__(parent)
-        self.fill_model(self, match_field, parent)
+        self.fill_model(self, match_field)
 
     @staticmethod
-    def fill_model(model, match_field='url', parent=None, cat=None):
+    def fill_model(model, match_field='url', cat=None):
+        """Fill the given model/category with quickmarks."""
         if not cat:
             cat = model.new_category("Quickmarks")
         quickmarks = objreg.get('quickmark-manager').marks.items()
