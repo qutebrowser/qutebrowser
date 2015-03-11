@@ -24,7 +24,7 @@ from PyQt5.QtCore import pyqtSlot, QObject, QTimer, Qt
 from qutebrowser.config import config, configdata
 from qutebrowser.commands import cmdutils, runners
 from qutebrowser.utils import usertypes, log, objreg, utils
-from qutebrowser.completion.models import completion as models
+from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.completion.models.sortfilter import (
     CompletionFilterModel as CFM)
 
@@ -82,26 +82,27 @@ class Completer(QObject):
     def _init_static_completions(self):
         """Initialize the static completion models."""
         self._models[usertypes.Completion.command] = CFM(
-            models.CommandCompletionModel(self), self)
+            miscmodels.CommandCompletionModel(self), self)
         self._models[usertypes.Completion.helptopic] = CFM(
-            models.HelpCompletionModel(self), self)
+            miscmodels.HelpCompletionModel(self), self)
         self._models[usertypes.Completion.url] = CFM(
-            models.UrlCompletionModel(self), self,
+            urlmodel.UrlCompletionModel(self), self,
             dumb_sort=Qt.DescendingOrder)
 
     def _init_setting_completions(self):
         """Initialize setting completion models."""
         self._models[usertypes.Completion.section] = CFM(
-            models.SettingSectionCompletionModel(self), self)
+            configmodel.SettingSectionCompletionModel(self), self)
         self._models[usertypes.Completion.option] = {}
         self._models[usertypes.Completion.value] = {}
         for sectname in configdata.DATA:
-            model = models.SettingOptionCompletionModel(sectname, self)
+            model = configmodel.SettingOptionCompletionModel(sectname, self)
             self._models[usertypes.Completion.option][sectname] = CFM(
                 model, self)
             self._models[usertypes.Completion.value][sectname] = {}
             for opt in configdata.DATA[sectname].keys():
-                model = models.SettingValueCompletionModel(sectname, opt, self)
+                model = configmodel.SettingValueCompletionModel(sectname, opt,
+                                                                self)
                 self._models[usertypes.Completion.value][sectname][opt] = CFM(
                     model, self)
 
@@ -114,9 +115,9 @@ class Completer(QObject):
         except KeyError:
             pass
         self._models[usertypes.Completion.quickmark_by_url] = CFM(
-            models.QuickmarkCompletionModel('url', self), self)
+            miscmodels.QuickmarkCompletionModel('url', self), self)
         self._models[usertypes.Completion.quickmark_by_name] = CFM(
-            models.QuickmarkCompletionModel('name', self), self)
+            miscmodels.QuickmarkCompletionModel('name', self), self)
 
     @pyqtSlot()
     def init_session_completion(self):
@@ -126,7 +127,7 @@ class Completer(QObject):
         except KeyError:
             pass
         self._models[usertypes.Completion.sessions] = CFM(
-            models.SessionCompletionModel(self), self)
+            miscmodels.SessionCompletionModel(self), self)
 
     def _get_completion_model(self, completion, parts, cursor_part):
         """Get a completion model based on an enum member.
