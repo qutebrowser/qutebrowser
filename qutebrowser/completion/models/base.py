@@ -60,7 +60,7 @@ class BaseCompletionModel(QStandardItemModel):
         self.appendRow(cat)
         return cat
 
-    def new_item(self, cat, name, desc='', misc=None):
+    def new_item(self, cat, name, desc='', misc=None, sort=None):
         """Add a new item to a category.
 
         Args:
@@ -68,6 +68,7 @@ class BaseCompletionModel(QStandardItemModel):
             name: The name of the item.
             desc: The description of the item.
             misc: Misc text to display.
+            sort: Data for the sort role (int).
 
         Return:
             A (nameitem, descitem, miscitem) tuple.
@@ -82,6 +83,8 @@ class BaseCompletionModel(QStandardItemModel):
         cat.setChild(idx, 0, nameitem)
         cat.setChild(idx, 1, descitem)
         cat.setChild(idx, 2, miscitem)
+        if sort is not None:
+            nameitem.setData(sort, Role.sort)
         return nameitem, descitem, miscitem
 
     def flags(self, index):
