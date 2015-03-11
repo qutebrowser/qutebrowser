@@ -234,12 +234,6 @@ class UrlCompletionModel(base.BaseCompletionModel):
                                         WebHistoryCompletionModel.history_changed(
                                             self, e, self._histcat))
 
-    def sort(self, column, order=Qt.AscendingOrder):
-        # sort on atime, descending
-        # Ignoring the arguments because they are hardcoded in the CFM
-        # anyway.
-        self._histcat.sortChildren(2, Qt.DescendingOrder)
-
 
 class WebHistoryCompletionModel(base.BaseCompletionModel):
 
@@ -266,11 +260,14 @@ class WebHistoryCompletionModel(base.BaseCompletionModel):
             cat = model.new_category("History")
 
         for entry in histstore:
-            model.new_item(cat, entry.url, "", entry.atime)
+            atime = int(entry.atime)
+            model.new_item(cat, entry.url, "", str(atime), sort=atime)
 
     def history_changed(self, entry, cat):
         if entry.url:
-            self.new_item(cat, entry.url, "", str(entry.atime))
+            atime = int(entry.atime)
+            self.new_item(cat, entry.url, "", str(atime), sort=atime)
+
 
 class QuickmarkCompletionModel(base.BaseCompletionModel):
 

@@ -19,7 +19,7 @@
 
 """Completer attached to a CompletionView."""
 
-from PyQt5.QtCore import pyqtSlot, QObject, QTimer
+from PyQt5.QtCore import pyqtSlot, QObject, QTimer, Qt
 
 from qutebrowser.config import config, configdata
 from qutebrowser.commands import cmdutils, runners
@@ -86,7 +86,8 @@ class Completer(QObject):
         self._models[usertypes.Completion.helptopic] = CFM(
             models.HelpCompletionModel(self), self)
         self._models[usertypes.Completion.url_history_and_quickmarks] = CFM(
-            models.UrlCompletionModel('url', self), self)
+            models.UrlCompletionModel('url', self), self,
+            dumb_sort=Qt.DescendingOrder)
 
     def _init_setting_completions(self):
         """Initialize setting completion models."""
