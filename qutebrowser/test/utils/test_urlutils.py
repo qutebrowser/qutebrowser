@@ -166,6 +166,7 @@ class IsUrlTests(unittest.TestCase):
         'deadbeef',
         '31c3',
         'http:foo:0',
+        'foo::bar',
     )
 
     def setUp(self):
