@@ -654,14 +654,7 @@ DATA = collections.OrderedDict([
 
     ('searchengines', sect.ValueList(
         typ.SearchEngineName(), typ.SearchEngineUrl(),
-        ('DEFAULT', '${duckduckgo}'),
-        ('duckduckgo', 'https://duckduckgo.com/?q={}'),
-        ('ddg', '${duckduckgo}'),
-        ('google', 'https://encrypted.google.com/search?q={}'),
-        ('g', '${google}'),
-        ('wikipedia', 'http://en.wikipedia.org/w/index.php?'
-                      'title=Special:Search&search={}'),
-        ('wiki', '${wikipedia}'),
+        ('DEFAULT', 'https://duckduckgo.com/?q={}'),
     )),
 
     ('aliases', sect.ValueList(
