@@ -243,6 +243,9 @@ class CompletionView(QTreeView):
         self._resize_columns()
 
     def showEvent(self, e):
-        """Adjust the completion size when it's freshly shown."""
+        """Adjust the completion size and scroll when it's freshly shown."""
         self.resize_completion.emit()
+        scrollbar = self.verticalScrollBar()
+        if scrollbar is not None:
+            scrollbar.setValue(scrollbar.minimum())
         super().showEvent(e)
