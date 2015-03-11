@@ -137,10 +137,10 @@ Contributors, sorted by the number of commits in descending order:
 * Peter Vilim
 * John ShaggyTwoDope Jenkins
 * rikn00
+* Patric Schmitz
 * Martin Zimmermann
 * Error 800
 * Brian Jackson
-* Patric Schmitz
 * Johannes Altmanninger
 * Samir Benmendil
 * Regina Hug
