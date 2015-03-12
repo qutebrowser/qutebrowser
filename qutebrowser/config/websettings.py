@@ -32,7 +32,7 @@ from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, standarddir, objreg
+from qutebrowser.utils import usertypes, standarddir, objreg, log
 
 MapType = usertypes.enum('MapType', ['attribute', 'setter', 'static_setter'])
 
@@ -207,6 +207,8 @@ def init():
     for sectname, section in MAPPINGS.items():
         for optname, mapping in section.items():
             value = config.get(sectname, optname)
+            log.misc.debug("Setting {} -> {} to {!r}".format(sectname, optname,
+                                                             value))
             _set_setting(*mapping, value=value)
     objreg.get('config').changed.connect(update_settings)
 
