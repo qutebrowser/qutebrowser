@@ -19,7 +19,7 @@
 
 """CompletionModels for URLs."""
 
-from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QStandardItem
 
 from qutebrowser.utils import objreg
@@ -64,7 +64,8 @@ class UrlCompletionModel(base.BaseCompletionModel):
                     if not name:
                         continue
                     if name.text() == item.url:
-                        self._history_cat.setChild(i, 2, QStandardItem(str(atime)))
+                        self._history_cat.setChild(i, 2,
+                                                   QStandardItem(str(atime)))
                         name.setData(str(atime), base.Role.sort)
                         break
             else:

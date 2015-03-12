@@ -20,7 +20,6 @@
 """Simple history which gets written to disk."""
 
 import time
-import itertools
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWebKit import QWebHistoryInterface
@@ -131,6 +130,7 @@ class WebHistory(QWebHistoryInterface):
             True if the url is in the history, False otherwise.
         """
         return url_string in self._history_dict
+
 
 def init():
     """Initialize the web history."""
