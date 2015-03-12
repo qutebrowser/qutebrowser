@@ -73,6 +73,9 @@ class BaseCompletionModel(QStandardItemModel):
         Return:
             A (nameitem, descitem, miscitem) tuple.
         """
+        assert not isinstance(name, int)
+        assert not isinstance(desc, int)
+        assert not isinstance(misc, int)
         nameitem = QStandardItem(name)
         descitem = QStandardItem(desc)
         if misc is None:
