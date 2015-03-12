@@ -60,6 +60,7 @@
 |==============
 |Setting|Description
 |<<completion-download-path-suggestion,download-path-suggestion>>|What to display in the download filename input.
+|<<completion-timestamp-format,timestamp-format>>|How to format timestamps (e.g. for history)
 |<<completion-show,show>>|Whether to show the autocompletion window.
 |<<completion-height,height>>|The height of the completion, in px or as percentage of the window.
 |<<completion-history-length,history-length>>|How many commands to save in the history.
@@ -614,6 +615,12 @@ Valid values:
  * +both+: Show download path and filename.
 
 Default: +pass:[path]+
+
+[[completion-timestamp-format]]
+=== timestamp-format
+How to format timestamps (e.g. for history)
+
+Default: +pass:[%Y-%m-%d]+
 
 [[completion-show]]
 === show

@@ -19,11 +19,14 @@
 
 """CompletionModels for URLs."""
 
+import datetime
+
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QStandardItem
 
 from qutebrowser.utils import objreg
 from qutebrowser.completion.models import base
+from qutebrowser.config import config
 
 
 class UrlCompletionModel(base.BaseCompletionModel):
@@ -48,10 +51,27 @@ class UrlCompletionModel(base.BaseCompletionModel):
 
         for entry in self._history:
             atime = int(entry.atime)
-            self.new_item(self._history_cat, entry.url, "", str(atime),
-                          sort=atime)
+            self.new_item(self._history_cat, entry.url, "",
+                          self._fmt_atime(atime), sort=atime)
 
         self._history.item_added.connect(self.on_history_item_added)
+        objreg.get('config').changed.connect(self.reformat_timestamps)
+
+    def _fmt_atime(self, atime):
+        """Format an atime to a human-readable string."""
+        fmt = config.get('completion', 'timestamp-format')
+        if fmt is None:
+            return ''
+        return datetime.datetime.fromtimestamp(atime).strftime(fmt)
+
+    @config.change_filter('completion', 'timestamp-format')
+    def reformat_timestamps(self):
+        """Reformat the timestamps if the config option was changed."""
+        for i in range(self._history_cat.rowCount()):
+            name_item = self._history_cat.child(i, 0)
+            atime_item = self._history_cat.child(i, 2)
+            atime = int(name_item.data(base.Role.sort))
+            atime_item.setText(self._fmt_atime(atime))
 
     @pyqtSlot(object)
     def on_history_item_added(self, item):
@@ -64,10 +84,10 @@ class UrlCompletionModel(base.BaseCompletionModel):
                     if not name:
                         continue
                     if name.text() == item.url:
-                        self._history_cat.setChild(i, 2,
-                                                   QStandardItem(str(atime)))
+                        self._history_cat.setChild(
+                            i, 2, QStandardItem(self._fmt_atime(atime)))
                         name.setData(str(atime), base.Role.sort)
                         break
             else:
-                self.new_item(self._history_cat, item.url, "", str(atime),
-                              sort=atime)
+                self.new_item(self._history_cat, item.url, "",
+                              self._fmt_atime(atime), sort=atime)

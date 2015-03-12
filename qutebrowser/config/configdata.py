@@ -309,6 +309,10 @@ DATA = collections.OrderedDict([
          SettingValue(typ.DownloadPathSuggestion(), 'path'),
          "What to display in the download filename input."),
 
+        ('timestamp-format',
+         SettingValue(typ.String(none_ok=True), '%Y-%m-%d'),
+         "How to format timestamps (e.g. for history)"),
+
         ('show',
          SettingValue(typ.Bool(), 'true'),
          "Whether to show the autocompletion window."),
