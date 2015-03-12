@@ -19,7 +19,8 @@
 
 """CompletionModels for URLs."""
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtGui import QStandardItem
 
 from qutebrowser.utils import objreg
 from qutebrowser.completion.models import base
@@ -40,22 +41,32 @@ class UrlCompletionModel(base.BaseCompletionModel):
         self._history_cat = self.new_category("History")
 
         quickmarks = objreg.get('quickmark-manager').marks.items()
-        history = objreg.get('web-history')
+        self._history = objreg.get('web-history')
 
         for qm_name, qm_url in quickmarks:
             self.new_item(self._quickmark_cat, qm_url, qm_name)
 
-        for entry in history:
+        for entry in self._history:
             atime = int(entry.atime)
             self.new_item(self._history_cat, entry.url, "", str(atime),
                           sort=atime)
 
-        history.item_added.connect(self.on_history_item_added)
+        self._history.item_added.connect(self.on_history_item_added)
 
     @pyqtSlot(object)
     def on_history_item_added(self, item):
         """Slot called when a new history item was added."""
         if item.url:
             atime = int(item.atime)
-            self.new_item(self._quickmark_cat, item.url, "", str(atime),
-                          sort=atime)
+            if self._history.historyContains(item.url):
+                for i in range(self._history_cat.rowCount()):
+                    name = self._history_cat.child(i, 0)
+                    if not name:
+                        continue
+                    if name.text() == item.url:
+                        self._history_cat.setChild(i, 2, QStandardItem(str(atime)))
+                        name.setData(str(atime), base.Role.sort)
+                        break
+            else:
+                self.new_item(self._history_cat, item.url, "", str(atime),
+                              sort=atime)

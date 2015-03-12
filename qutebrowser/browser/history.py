@@ -99,8 +99,7 @@ class WebHistory(QWebHistoryInterface):
         return self._new_history[key]
 
     def __iter__(self):
-        return itertools.chain(self._old_urls.values(),
-                               iter(self._new_history))
+        return self._old_urls.values().__iter__()
 
     def get_recent(self):
         """Get the most recent history entries."""
@@ -123,6 +122,7 @@ class WebHistory(QWebHistoryInterface):
         if not config.get('general', 'private-browsing'):
             entry = HistoryEntry(time.time(), url_string)
             self._new_history.append(entry)
+            self._old_urls[url_string] = entry
             self.item_added.emit(entry)
 
     def historyContains(self, url_string):
