@@ -50,9 +50,8 @@ class UrlCompletionModel(base.BaseCompletionModel):
             self.new_item(self._quickmark_cat, qm_url, qm_name)
 
         for entry in self._history:
-            atime = int(entry.atime)
             self.new_item(self._history_cat, entry.url, "",
-                          self._fmt_atime(atime), sort=atime)
+                          self._fmt_atime(entry.atime), sort=int(entry.atime))
 
         self._history.item_added.connect(self.on_history_item_added)
         objreg.get('config').changed.connect(self.reformat_timestamps)
@@ -70,14 +69,13 @@ class UrlCompletionModel(base.BaseCompletionModel):
         for i in range(self._history_cat.rowCount()):
             name_item = self._history_cat.child(i, 0)
             atime_item = self._history_cat.child(i, 2)
-            atime = int(name_item.data(base.Role.sort))
+            atime = name_item.data(base.Role.sort)
             atime_item.setText(self._fmt_atime(atime))
 
     @pyqtSlot(object)
     def on_history_item_added(self, item):
         """Slot called when a new history item was added."""
         if item.url:
-            atime = int(item.atime)
             if self._history.historyContains(item.url):
                 for i in range(self._history_cat.rowCount()):
                     name = self._history_cat.child(i, 0)
@@ -85,9 +83,10 @@ class UrlCompletionModel(base.BaseCompletionModel):
                         continue
                     if name.text() == item.url:
                         self._history_cat.setChild(
-                            i, 2, QStandardItem(self._fmt_atime(atime)))
-                        name.setData(str(atime), base.Role.sort)
+                            i, 2, QStandardItem(self._fmt_atime(item.atime)))
+                        name.setData(int(item.atime), base.Role.sort)
                         break
             else:
                 self.new_item(self._history_cat, item.url, "",
-                              self._fmt_atime(atime), sort=atime)
+                              self._fmt_atime(item.atime),
+                              sort=int(item.atime))
