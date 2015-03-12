@@ -78,13 +78,13 @@ class UrlCompletionModel(base.BaseCompletionModel):
         if item.url:
             if self._history.historyContains(item.url):
                 for i in range(self._history_cat.rowCount()):
-                    name = self._history_cat.child(i, 0)
-                    if not name:
+                    name_item = self._history_cat.child(i, 0)
+                    atime_item = self._history_cat.child(i, 2)
+                    if not name_item:
                         continue
-                    if name.text() == item.url:
-                        self._history_cat.setChild(
-                            i, 2, QStandardItem(self._fmt_atime(item.atime)))
-                        name.setData(int(item.atime), base.Role.sort)
+                    if name_item.text() == item.url:
+                        atime_item.setText(self._fmt_atime(item.atime))
+                        name_item.setData(int(item.atime), base.Role.sort)
                         break
             else:
                 self.new_item(self._history_cat, item.url, "",
