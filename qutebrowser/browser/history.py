@@ -40,7 +40,7 @@ class HistoryEntry:
     """
 
     def __init__(self, atime, url):
-        self.atime = atime
+        self.atime = float(atime)
         self.url = url
 
     def __repr__(self):
