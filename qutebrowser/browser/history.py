@@ -65,8 +65,6 @@ class WebHistory(QWebHistoryInterface):
         _history_dict: A set of URLs read from the on-disk history.
         _new_history: A list of HistoryEntry items of the current session.
         _saved_count: How many HistoryEntries have been written to disk.
-        _old_hit: How many times an URL was found in _history_dict.
-        _old_miss: How many times an URL was not found in _history_dict.
     """
 
     item_added = pyqtSignal(HistoryEntry)
@@ -87,8 +85,6 @@ class WebHistory(QWebHistoryInterface):
                 self._history_dict[url] = HistoryEntry(atime, url)
         self._new_history = []
         self._saved_count = 0
-        self._old_hit = 0
-        self._old_miss = 0
         objreg.get('save-manager').add_saveable(
             'history', self.save, self.item_added)
 
