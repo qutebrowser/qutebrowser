@@ -62,11 +62,11 @@ class WebHistory(QWebHistoryInterface):
 
     Attributes:
         _lineparser: The AppendLineParser used to save the history.
-        _old_urls: A set of URLs read from the on-disk history.
+        _history_dict: A set of URLs read from the on-disk history.
         _new_history: A list of HistoryEntry items of the current session.
         _saved_count: How many HistoryEntries have been written to disk.
-        _old_hit: How many times an URL was found in _old_urls.
-        _old_miss: How many times an URL was not found in _old_urls.
+        _old_hit: How many times an URL was found in _history_dict.
+        _old_miss: How many times an URL was not found in _history_dict.
     """
 
     item_added = pyqtSignal(HistoryEntry)
@@ -75,7 +75,7 @@ class WebHistory(QWebHistoryInterface):
         super().__init__(parent)
         self._lineparser = lineparser.AppendLineParser(
             standarddir.data(), 'history', parent=self)
-        self._old_urls = {}
+        self._history_dict = {}
         with self._lineparser.open():
             for line in self._lineparser:
                 atime, url = line.rstrip().split(maxsplit=1)
@@ -84,7 +84,7 @@ class WebHistory(QWebHistoryInterface):
                 # information about previous hits change the items in
                 # old_urls to be lists or change HistoryEntry to have a
                 # list of atimes.
-                self._old_urls[url] = HistoryEntry(atime, url)
+                self._history_dict[url] = HistoryEntry(atime, url)
         self._new_history = []
         self._saved_count = 0
         self._old_hit = 0
@@ -99,7 +99,7 @@ class WebHistory(QWebHistoryInterface):
         return self._new_history[key]
 
     def __iter__(self):
-        return self._old_urls.values().__iter__()
+        return iter(self._history_dict.values())
 
     def get_recent(self):
         """Get the most recent history entries."""
@@ -122,7 +122,7 @@ class WebHistory(QWebHistoryInterface):
         if not config.get('general', 'private-browsing'):
             entry = HistoryEntry(time.time(), url_string)
             self._new_history.append(entry)
-            self._old_urls[url_string] = entry
+            self._history_dict[url_string] = entry
             self.item_added.emit(entry)
 
     def historyContains(self, url_string):
@@ -134,13 +134,7 @@ class WebHistory(QWebHistoryInterface):
         Return:
             True if the url is in the history, False otherwise.
         """
-        if url_string in self._old_urls:
-            self._old_hit += 1
-            return True
-        else:
-            self._old_miss += 1
-            return url_string in (entry.url for entry in self._new_history)
-
+        return url_string in self._history_dict
 
 def init():
     """Initialize the web history."""
