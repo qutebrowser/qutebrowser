@@ -79,11 +79,11 @@ class WebHistory(QWebHistoryInterface):
         with self._lineparser.open():
             for line in self._lineparser:
                 atime, url = line.rstrip().split(maxsplit=1)
-                # This de-duplicates history entries. We keep later ones in the
-                # file which usually the last ones accessed. If you want
-                # to keep information about multiple hits change the
-                # items in old_urls to be lists or change HistoryEntry
-                # to have a list of atimes.
+                # This de-duplicates history entries; only the latest
+                # entry for each URL is kept. If you want to keep
+                # information about previous hits change the items in
+                # old_urls to be lists or change HistoryEntry to have a
+                # list of atimes.
                 self._old_urls[url] = HistoryEntry(atime, url)
         self._new_history = []
         self._saved_count = 0
