@@ -19,14 +19,12 @@
 
 """Completer attached to a CompletionView."""
 
-from PyQt5.QtCore import pyqtSlot, QObject, QTimer, Qt
+from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
-from qutebrowser.config import config, configdata
+from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, runners
 from qutebrowser.utils import usertypes, log, objreg, utils
-from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
-from qutebrowser.completion.models.sortfilter import (
-    CompletionFilterModel as CFM)
+from qutebrowser.completion.models import instances
 
 
 class Completer(QObject):
@@ -34,7 +32,6 @@ class Completer(QObject):
     """Completer which manages completions in a CompletionView.
 
     Attributes:
-        models: dict of available completion models.
         _cmd: The statusbar Command object this completer belongs to.
         _ignore_change: Whether to ignore the next completion update.
         _win_id: The window ID this completer is in.
@@ -53,15 +50,6 @@ class Completer(QObject):
         self._cmd.textEdited.connect(self.on_text_edited)
         self._ignore_change = False
         self._empty_item_idx = None
-
-        self._models = {
-            usertypes.Completion.option: {},
-            usertypes.Completion.value: {},
-        }
-        self._init_static_completions()
-        self._init_setting_completions()
-        self.init_quickmark_completions()
-        self.init_session_completion()
         self._timer = QTimer()
         self._timer.setSingleShot(True)
         self._timer.setInterval(0)
@@ -79,56 +67,6 @@ class Completer(QObject):
                                 window=self._win_id)
         return completion.model()
 
-    def _init_static_completions(self):
-        """Initialize the static completion models."""
-        self._models[usertypes.Completion.command] = CFM(
-            miscmodels.CommandCompletionModel(self), self)
-        self._models[usertypes.Completion.helptopic] = CFM(
-            miscmodels.HelpCompletionModel(self), self)
-        self._models[usertypes.Completion.url] = CFM(
-            urlmodel.UrlCompletionModel(self), self,
-            dumb_sort=Qt.DescendingOrder)
-
-    def _init_setting_completions(self):
-        """Initialize setting completion models."""
-        self._models[usertypes.Completion.section] = CFM(
-            configmodel.SettingSectionCompletionModel(self), self)
-        self._models[usertypes.Completion.option] = {}
-        self._models[usertypes.Completion.value] = {}
-        for sectname in configdata.DATA:
-            model = configmodel.SettingOptionCompletionModel(sectname, self)
-            self._models[usertypes.Completion.option][sectname] = CFM(
-                model, self)
-            self._models[usertypes.Completion.value][sectname] = {}
-            for opt in configdata.DATA[sectname].keys():
-                model = configmodel.SettingValueCompletionModel(sectname, opt,
-                                                                self)
-                self._models[usertypes.Completion.value][sectname][opt] = CFM(
-                    model, self)
-
-    @pyqtSlot()
-    def init_quickmark_completions(self):
-        """Initialize quickmark completion models."""
-        try:
-            self._models[usertypes.Completion.quickmark_by_url].deleteLater()
-            self._models[usertypes.Completion.quickmark_by_name].deleteLater()
-        except KeyError:
-            pass
-        self._models[usertypes.Completion.quickmark_by_url] = CFM(
-            miscmodels.QuickmarkCompletionModel('url', self), self)
-        self._models[usertypes.Completion.quickmark_by_name] = CFM(
-            miscmodels.QuickmarkCompletionModel('name', self), self)
-
-    @pyqtSlot()
-    def init_session_completion(self):
-        """Initialize session completion model."""
-        try:
-            self._models[usertypes.Completion.sessions].deleteLater()
-        except KeyError:
-            pass
-        self._models[usertypes.Completion.sessions] = CFM(
-            miscmodels.SessionCompletionModel(self), self)
-
     def _get_completion_model(self, completion, parts, cursor_part):
         """Get a completion model based on an enum member.
 
@@ -142,17 +80,17 @@ class Completer(QObject):
         """
         if completion == usertypes.Completion.option:
             section = parts[cursor_part - 1]
-            model = self._models[completion].get(section)
+            model = instances.get(completion).get(section)
         elif completion == usertypes.Completion.value:
             section = parts[cursor_part - 2]
             option = parts[cursor_part - 1]
             try:
-                model = self._models[completion][section][option]
+                model = instances.get(completion)[section][option]
             except KeyError:
                 # No completion model for this section/option.
                 model = None
         else:
-            model = self._models.get(completion)
+            model = instances.get(completion)
         return model
 
     def _filter_cmdline_parts(self, parts, cursor_part):
@@ -202,7 +140,7 @@ class Completer(QObject):
                              "{}".format(parts, cursor_part))
         if cursor_part == 0:
             # '|' or 'set|'
-            return self._models[usertypes.Completion.command]
+            return instances.get(usertypes.Completion.command)
         # delegate completion to command
         try:
             completions = cmdutils.cmd_dict[parts[0]].completion

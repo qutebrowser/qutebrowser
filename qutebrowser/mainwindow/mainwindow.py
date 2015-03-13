@@ -191,7 +191,6 @@ class MainWindow(QWidget):
         completion_obj = self._get_object('completion')
         tabs = self._get_object('tabbed-browser')
         cmd = self._get_object('status-command')
-        completer = self._get_object('completer')
         search_runner = self._get_object('search-runner')
         message_bridge = self._get_object('message-bridge')
         mode_manager = self._get_object('mode-manager')
@@ -257,15 +256,6 @@ class MainWindow(QWidget):
         cmd.clear_completion_selection.connect(
             completion_obj.on_clear_completion_selection)
         cmd.hide_completion.connect(completion_obj.hide)
-
-        # quickmark completion
-        quickmark_manager = objreg.get('quickmark-manager')
-        quickmark_manager.changed.connect(completer.init_quickmark_completions)
-
-        # sessions completion
-        session_manager = objreg.get('session-manager')
-        session_manager.update_completion.connect(
-            completer.init_session_completion)
 
     @pyqtSlot()
     def resize_completion(self):
