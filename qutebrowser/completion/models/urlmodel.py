@@ -22,7 +22,6 @@
 import datetime
 
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtGui import QStandardItem
 
 from qutebrowser.utils import objreg
 from qutebrowser.completion.models import base
