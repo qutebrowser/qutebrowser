@@ -27,6 +27,7 @@ import os.path
 import collections
 import functools
 import contextlib
+import itertools
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence, QColor
@@ -552,3 +553,22 @@ def force_encoding(text, encoding):
     This replaces all chars not encodable with question marks.
     """
     return text.encode(encoding, errors='replace').decode(encoding)
+
+
+def newest_slice(iterable, count):
+    """Get an iterable for the n newest items of the given iterable.
+
+    Args:
+        count: How many elements to get.
+               0: get no items:
+               n: get the n newest items
+              -1: get all items
+    """
+    if count < -1:
+        raise ValueError("count can't be smaller than -1!")
+    elif count == 0:
+        return []
+    elif count == -1 or len(iterable) < count:
+        return iterable
+    else:
+        return itertools.islice(iterable, len(iterable) - count, len(iterable))
