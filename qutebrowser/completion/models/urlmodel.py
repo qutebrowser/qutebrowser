@@ -23,7 +23,7 @@ import datetime
 
 from PyQt5.QtCore import pyqtSlot
 
-from qutebrowser.utils import objreg
+from qutebrowser.utils import objreg, utils
 from qutebrowser.completion.models import base
 from qutebrowser.config import config
 
@@ -48,7 +48,10 @@ class UrlCompletionModel(base.BaseCompletionModel):
         for qm_name, qm_url in quickmarks:
             self.new_item(self._quickmark_cat, qm_url, qm_name)
 
-        for entry in self._history:
+        max_history = config.get('completion', 'web-history-max-items')
+        history = utils.newest_slice(self._history, max_history)
+
+        for entry in history:
             self.new_item(self._history_cat, entry.url, "",
                           self._fmt_atime(entry.atime), sort=int(entry.atime))
 

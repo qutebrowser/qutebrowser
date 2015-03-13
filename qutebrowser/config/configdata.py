@@ -324,7 +324,12 @@ DATA = collections.OrderedDict([
 
         ('cmd-history-max-items',
          SettingValue(typ.Int(minval=-1), '100'),
-         "How many commands to save in the history.\n\n"
+         "How many commands to save in the command history.\n\n"
+         "0: no history / -1: unlimited"),
+
+        ('web-history-max-items',
+         SettingValue(typ.Int(minval=-1), '1000'),
+         "How many URLs to show in the web history.\n\n"
          "0: no history / -1: unlimited"),
 
         ('quick-complete',
