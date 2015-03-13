@@ -20,6 +20,7 @@
 """Simple history which gets written to disk."""
 
 import time
+import collections
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWebKit import QWebHistoryInterface
@@ -61,7 +62,7 @@ class WebHistory(QWebHistoryInterface):
 
     Attributes:
         _lineparser: The AppendLineParser used to save the history.
-        _history_dict: A set of URLs read from the on-disk history.
+        _history_dict: An OrderedDict of URLs read from the on-disk history.
         _new_history: A list of HistoryEntry items of the current session.
         _saved_count: How many HistoryEntries have been written to disk.
     """
@@ -72,7 +73,7 @@ class WebHistory(QWebHistoryInterface):
         super().__init__(parent)
         self._lineparser = lineparser.AppendLineParser(
             standarddir.data(), 'history', parent=self)
-        self._history_dict = {}
+        self._history_dict = collections.OrderedDict()
         with self._lineparser.open():
             for line in self._lineparser:
                 atime, url = line.rstrip().split(maxsplit=1)
@@ -118,6 +119,7 @@ class WebHistory(QWebHistoryInterface):
             entry = HistoryEntry(time.time(), url_string)
             self._new_history.append(entry)
             self._history_dict[url_string] = entry
+            self._history_dict.move_to_end(url_string)
             self.item_added.emit(entry)
 
     def historyContains(self, url_string):
