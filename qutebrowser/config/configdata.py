@@ -322,7 +322,7 @@ DATA = collections.OrderedDict([
          "The height of the completion, in px or as percentage of the "
          "window."),
 
-        ('history-length',
+        ('cmd-history-max-items',
          SettingValue(typ.Int(minval=-1), '100'),
          "How many commands to save in the history.\n\n"
          "0: no history / -1: unlimited"),

@@ -186,7 +186,7 @@ def _init_misc():
     from qutebrowser.misc import lineparser
     command_history = lineparser.LimitLineParser(
         standarddir.data(), 'cmd-history',
-        limit=('completion', 'history-length'),
+        limit=('completion', 'cmd-history-max-items'),
         parent=objreg.get('config'))
     objreg.register('command-history', command_history)
     save_manager.add_saveable('command-history', command_history.save,
@@ -259,6 +259,7 @@ class ConfigManager(QObject):
         ('colors', 'tab.indicator.error'): 'tabs.indicator.error',
         ('colors', 'tab.indicator.system'): 'tabs.indicator.system',
         ('tabs', 'auto-hide'): 'hide-auto',
+        ('completion', 'history-length'): 'cmd-history-max-items',
     }
     DELETED_OPTIONS = [
         ('colors', 'tab.seperator'),
