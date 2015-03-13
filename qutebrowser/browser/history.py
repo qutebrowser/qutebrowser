@@ -89,13 +89,16 @@ class WebHistory(QWebHistoryInterface):
             'history', self.save, self.item_added)
 
     def __repr__(self):
-        return utils.get_repr(self, new_length=len(self._new_history))
+        return utils.get_repr(self, length=len(self))
 
     def __getitem__(self, key):
         return self._new_history[key]
 
     def __iter__(self):
         return iter(self._history_dict.values())
+
+    def __len__(self):
+        return len(self._history_dict)
 
     def get_recent(self):
         """Get the most recent history entries."""
