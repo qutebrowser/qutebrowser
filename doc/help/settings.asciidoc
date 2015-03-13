@@ -63,7 +63,8 @@
 |<<completion-timestamp-format,timestamp-format>>|How to format timestamps (e.g. for history)
 |<<completion-show,show>>|Whether to show the autocompletion window.
 |<<completion-height,height>>|The height of the completion, in px or as percentage of the window.
-|<<completion-history-length,history-length>>|How many commands to save in the history.
+|<<completion-cmd-history-max-items,cmd-history-max-items>>|How many commands to save in the command history.
+|<<completion-web-history-max-items,web-history-max-items>>|How many URLs to show in the web history.
 |<<completion-quick-complete,quick-complete>>|Whether to move on to the next part when there's only one possible completion left.
 |<<completion-shrink,shrink>>|Whether to shrink the completion to be smaller than the configured size if there are no scrollbars.
 |==============
@@ -639,13 +640,21 @@ The height of the completion, in px or as percentage of the window.
 
 Default: +pass:[50%]+
 
-[[completion-history-length]]
-=== history-length
-How many commands to save in the history.
+[[completion-cmd-history-max-items]]
+=== cmd-history-max-items
+How many commands to save in the command history.
 
 0: no history / -1: unlimited
 
 Default: +pass:[100]+
+
+[[completion-web-history-max-items]]
+=== web-history-max-items
+How many URLs to show in the web history.
+
+0: no history / -1: unlimited
+
+Default: +pass:[1000]+
 
 [[completion-quick-complete]]
 === quick-complete
