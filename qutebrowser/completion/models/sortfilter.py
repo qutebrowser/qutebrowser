@@ -25,7 +25,7 @@ Contains:
 
 from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex, Qt
 
-from qutebrowser.utils import log, qtutils
+from qutebrowser.utils import log, qtutils, debug
 from qutebrowser.completion.models import base as completion
 
 

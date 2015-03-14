@@ -32,7 +32,7 @@ from PyQt5.QtCore import pyqtSlot, Qt
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.completion.models.sortfilter import (
     CompletionFilterModel as CFM)
-from qutebrowser.utils import objreg, usertypes, log
+from qutebrowser.utils import objreg, usertypes, log, debug
 from qutebrowser.config import configdata
 
 
@@ -56,8 +56,9 @@ def _init_helptopic_completion():
 def _init_url_completion():
     """Initialize the URL completion model."""
     log.completion.debug("Initializing URL completion.")
-    _instances[usertypes.Completion.url] = CFM(
-        urlmodel.UrlCompletionModel(), dumb_sort=Qt.DescendingOrder)
+    with debug.log_time(log.completion, 'URL completion init'):
+        _instances[usertypes.Completion.url] = CFM(
+            urlmodel.UrlCompletionModel(), dumb_sort=Qt.DescendingOrder)
 
 
 def _init_setting_completions():
