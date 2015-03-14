@@ -65,14 +65,15 @@ class CompletionFilterModel(QSortFilterProxyModel):
         Args:
             val: The value to set.
         """
-        self.pattern = val
-        self.invalidateFilter()
-        sortcol = 0
-        try:
-            self.srcmodel.sort(sortcol)
-        except NotImplementedError:
-            self.sort(sortcol)
-        self.invalidate()
+        with debug.log_time(log.completion, 'Setting filter pattern'):
+            self.pattern = val
+            self.invalidateFilter()
+            sortcol = 0
+            try:
+                self.srcmodel.sort(sortcol)
+            except NotImplementedError:
+                self.sort(sortcol)
+            self.invalidate()
 
     def count(self):
         """Get the count of non-toplevel items currently visible.
