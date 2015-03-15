@@ -163,6 +163,7 @@
 |Setting|Description
 |<<colors-completion.fg,completion.fg>>|Text color of the completion widget.
 |<<colors-completion.bg,completion.bg>>|Background color of the completion widget.
+|<<colors-completion.alternate-bg,completion.alternate-bg>>|Alternating background color of the completion widget.
 |<<colors-completion.item.bg,completion.item.bg>>|Background color of completion widget items.
 |<<colors-completion.category.fg,completion.category.fg>>|Foreground color of completion widget category headers.
 |<<colors-completion.category.bg,completion.category.bg>>|Background color of the completion widget category headers.
@@ -1317,6 +1318,12 @@ Default: +pass:[white]+
 Background color of the completion widget.
 
 Default: +pass:[#333333]+
+
+[[colors-completion.alternate-bg]]
+=== completion.alternate-bg
+Alternating background color of the completion widget.
+
+Default: +pass:[#444444]+
 
 [[colors-completion.item.bg]]
 === completion.item.bg
