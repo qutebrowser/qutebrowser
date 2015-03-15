@@ -670,6 +670,10 @@ DATA = collections.OrderedDict([
          SettingValue(typ.QssColor(), '#333333'),
          "Background color of the completion widget."),
 
+        ('completion.alternate-bg',
+         SettingValue(typ.QssColor(), '#444444'),
+         "Alternating background color of the completion widget."),
+
         ('completion.item.bg',
          SettingValue(typ.QssColor(), '${completion.bg}'),
          "Background color of completion widget items."),

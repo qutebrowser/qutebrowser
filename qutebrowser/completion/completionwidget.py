@@ -59,6 +59,7 @@ class CompletionView(QTreeView):
         QTreeView {
             {{ font['completion'] }}
             {{ color['completion.bg'] }}
+            alternate-background-color: {{ color['completion.alternate-bg'] }};
             outline: 0;
         }
 
@@ -107,6 +108,7 @@ class CompletionView(QTreeView):
         style.set_register_stylesheet(self)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.setHeaderHidden(True)
+        self.setAlternatingRowColors(True)
         self.setIndentation(0)
         self.setItemsExpandable(False)
         self.setExpandsOnDoubleClick(False)
