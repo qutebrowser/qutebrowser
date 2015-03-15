@@ -55,7 +55,8 @@ class UrlCompletionModel(base.BaseCompletionModel):
             self.new_item(self._history_cat, entry.url, "",
                           self._fmt_atime(entry.atime), sort=int(entry.atime))
 
-        self._history.item_added.connect(self.on_history_item_added)
+        self._history.item_about_to_be_added.connect(
+            self.on_history_item_added)
         objreg.get('config').changed.connect(self.reformat_timestamps)
 
     def _fmt_atime(self, atime):

@@ -65,8 +65,15 @@ class WebHistory(QWebHistoryInterface):
         _history_dict: An OrderedDict of URLs read from the on-disk history.
         _new_history: A list of HistoryEntry items of the current session.
         _saved_count: How many HistoryEntries have been written to disk.
+
+    Signals:
+        item_about_to_be_added: Emitted before a new HistoryEntry is added.
+                                arg: The new HistoryEntry.
+        item_added: Emitted after a new HistoryEntry is added.
+                    arg: The new HistoryEntry.
     """
 
+    item_about_to_be_added = pyqtSignal(HistoryEntry)
     item_added = pyqtSignal(HistoryEntry)
 
     def __init__(self, parent=None):
@@ -120,6 +127,7 @@ class WebHistory(QWebHistoryInterface):
         """
         if not config.get('general', 'private-browsing'):
             entry = HistoryEntry(time.time(), url_string)
+            self.item_about_to_be_added.emit(entry)
             self._new_history.append(entry)
             self._history_dict[url_string] = entry
             self._history_dict.move_to_end(url_string)
