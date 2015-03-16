@@ -133,7 +133,9 @@ class CompletionFilterModel(QSortFilterProxyModel):
         if parent == QModelIndex():
             return True
         idx = self.srcmodel.index(row, 0, parent)
-        qtutils.ensure_valid(idx)
+        if not idx.isValid():
+            # No entries in parent model
+            return False
         data = self.srcmodel.data(idx)
         # TODO more sophisticated filtering
         if not self.pattern:
