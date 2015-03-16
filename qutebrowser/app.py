@@ -427,7 +427,7 @@ class Application(QApplication):
         signal.signal(signal.SIGINT, self.interrupt)
         signal.signal(signal.SIGTERM, self.interrupt)
 
-        if os.name == 'posxix' and hasattr(signal, 'set_wakeup_fd'):
+        if os.name == 'posix' and hasattr(signal, 'set_wakeup_fd'):
             import fcntl
             read_fd, write_fd = os.pipe()
             for fd in (read_fd, write_fd):
