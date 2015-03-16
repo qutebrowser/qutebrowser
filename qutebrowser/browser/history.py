@@ -92,6 +92,7 @@ class WebHistory(QWebHistoryInterface):
                 # old_urls to be lists or change HistoryEntry to have a
                 # list of atimes.
                 self._history_dict[url] = HistoryEntry(atime, url)
+                self._history_dict.move_to_end(url)
         self._new_history = []
         self._saved_count = 0
         objreg.get('save-manager').add_saveable(
