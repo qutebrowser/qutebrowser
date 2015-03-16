@@ -22,7 +22,7 @@
 import time
 import collections
 
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QUrl
 from PyQt5.QtWebKit import QWebHistoryInterface
 
 from qutebrowser.utils import utils, objreg, standarddir
@@ -36,19 +36,21 @@ class HistoryEntry:
 
     Attributes:
         atime: The time the page was accessed.
-        url: The URL which was accessed as string
+        url: The URL which was accessed as QUrl.
+        url_string: The URL which was accessed as string.
     """
 
     def __init__(self, atime, url):
         self.atime = float(atime)
-        self.url = url
+        self.url = QUrl(url)
+        self.url_string = url
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True, atime=self.atime,
-                              url=self.url)
+                              url=self.url.toDisplayString())
 
     def __str__(self):
-        return '{} {}'.format(int(self.atime), self.url)
+        return '{} {}'.format(int(self.atime), self.url_string)
 
     @classmethod
     def from_str(cls, s):

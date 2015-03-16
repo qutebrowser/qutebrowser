@@ -52,7 +52,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
         history = utils.newest_slice(self._history, max_history)
 
         for entry in history:
-            self.new_item(self._history_cat, entry.url, "",
+            self.new_item(self._history_cat, entry.url.toDisplayString(), "",
                           self._fmt_atime(entry.atime), sort=int(entry.atime))
 
         self._history.item_about_to_be_added.connect(
@@ -79,7 +79,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
     def on_history_item_added(self, item):
         """Slot called when a new history item was added."""
         if item.url:
-            if self._history.historyContains(item.url):
+            if self._history.historyContains(item.url_string):
                 for i in range(self._history_cat.rowCount()):
                     name_item = self._history_cat.child(i, 0)
                     atime_item = self._history_cat.child(i, 2)
@@ -90,6 +90,6 @@ class UrlCompletionModel(base.BaseCompletionModel):
                         name_item.setData(int(item.atime), base.Role.sort)
                         break
             else:
-                self.new_item(self._history_cat, item.url, "",
-                              self._fmt_atime(item.atime),
+                self.new_item(self._history_cat, item.url.toDisplayString(),
+                              "", self._fmt_atime(item.atime),
                               sort=int(item.atime))
