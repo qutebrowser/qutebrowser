@@ -793,27 +793,27 @@ DATA = collections.OrderedDict([
          "Font used for the debugging console."),
 
         ('web-family-standard',
-         SettingValue(typ.String(none_ok=True), ''),
+         SettingValue(typ.FontFamily(none_ok=True), ''),
          "Font family for standard fonts."),
 
         ('web-family-fixed',
-         SettingValue(typ.String(none_ok=True), ''),
+         SettingValue(typ.FontFamily(none_ok=True), ''),
          "Font family for fixed fonts."),
 
         ('web-family-serif',
-         SettingValue(typ.String(none_ok=True), ''),
+         SettingValue(typ.FontFamily(none_ok=True), ''),
          "Font family for serif fonts."),
 
         ('web-family-sans-serif',
-         SettingValue(typ.String(none_ok=True), ''),
+         SettingValue(typ.FontFamily(none_ok=True), ''),
          "Font family for sans-serif fonts."),
 
         ('web-family-cursive',
-         SettingValue(typ.String(none_ok=True), ''),
+         SettingValue(typ.FontFamily(none_ok=True), ''),
          "Font family for cursive fonts."),
 
         ('web-family-fantasy',
-         SettingValue(typ.String(none_ok=True), ''),
+         SettingValue(typ.FontFamily(none_ok=True), ''),
          "Font family for fantasy fonts."),
 
         ('web-size-minimum',
