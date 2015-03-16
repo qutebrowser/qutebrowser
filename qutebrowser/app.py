@@ -34,7 +34,7 @@ import faulthandler
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
-                          QObject, Qt)
+                          QObject, Qt, QSocketNotifier)
 
 import qutebrowser
 import qutebrowser.resources  # pylint: disable=unused-import
@@ -63,6 +63,8 @@ class Application(QApplication):
         _crashdlg: The crash dialog currently open.
         _crashlogfile: A file handler to the fatal crash logfile.
         _event_filter: The EventFilter for the application.
+        _signal_notifier: A QSocketNotifier used for signals on Unix.
+        _signal_timer: A QTimer used to poll for signals on Windows.
         geometry: The geometry of the last closed main window.
     """
 
@@ -146,8 +148,8 @@ class Application(QApplication):
         log.init.debug("Connecting signals...")
         self._connect_signals()
 
-        log.init.debug("Applying python hacks...")
-        self._python_hacks()
+        log.init.debug("Setting up signal handlers...")
+        self._setup_signals()
 
         QDesktopServices.setUrlHandler('http', self.open_desktopservices_url)
         QDesktopServices.setUrlHandler('https', self.open_desktopservices_url)
@@ -413,19 +415,47 @@ class Application(QApplication):
                 pass
             state_config['general']['quickstart-done'] = '1'
 
-    def _python_hacks(self):
-        """Get around some PyQt-oddities by evil hacks.
+    def _setup_signals(self):
+        """Set up signal handlers.
 
-        This sets up the uncaught exception hook, quits with an appropriate
-        exit status, and handles Ctrl+C properly by passing control to the
-        Python interpreter once all 500ms.
+        On Windows this uses a QTimer to periodically hand control over to
+        Python so it can handle signals.
+
+        On Unix, it uses a QSocketNotifier with os.set_wakeup_fd to get
+        notified.
         """
         signal.signal(signal.SIGINT, self.interrupt)
         signal.signal(signal.SIGTERM, self.interrupt)
-        timer = usertypes.Timer(self, 'python_hacks')
-        timer.start(500)
-        timer.timeout.connect(lambda: None)
-        objreg.register('python-hack-timer', timer)
+
+        if os.name == 'posxix' and hasattr(signal, 'set_wakeup_fd'):
+            import fcntl
+            read_fd, write_fd = os.pipe()
+            for fd in (read_fd, write_fd):
+                flags = fcntl.fcntl(fd, fcntl.F_GETFL)
+                fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+            self._signal_notifier = QSocketNotifier(
+                read_fd, QSocketNotifier.Read, self)
+            self._signal_notifier.activated.connect(self._handle_signal_wakeup)
+            signal.set_wakeup_fd(write_fd)
+        else:
+            self._signal_timer = usertypes.Timer(self, 'python_hacks')
+            self._signal_timer.start(1000)
+            self._signal_timer.timeout.connect(lambda: None)
+
+    @pyqtSlot()
+    def _handle_signal_wakeup(self):
+        """This gets called via self._signal_notifier when there's a signal.
+
+        Python will get control here, so the signal will get handled.
+        """
+        log.destroy.debug("Handling signal wakeup!")
+        self._signal_notifier.setEnabled(False)
+        read_fd = self._signal_notifier.socket()
+        try:
+            os.read(read_fd, 1)
+        except OSError:
+            log.destroy.exception("Failed to read wakeup fd.")
+        self._signal_notifier.setEnabled(True)
 
     def _connect_signals(self):
         """Connect all signals to their slots."""
