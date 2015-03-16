@@ -700,6 +700,25 @@ class Font(BaseType):
             raise configexc.ValidationError(value, "must be a valid font")
 
 
+class FontFamily(Font):
+
+    """A Qt font family."""
+
+    def validate(self, value):
+        if not value:
+            if self._none_ok:
+                return
+            else:
+                raise configexc.ValidationError(value, "may not be empty!")
+        match = self.font_regex.match(value)
+        if not match:
+            raise configexc.ValidationError(value, "must be a valid font")
+        for group in 'style', 'weight', 'namedweight', 'size':
+            if match.group(group):
+                raise configexc.ValidationError(value, "may not include a "
+                                                "{}!".format(group))
+
+
 class QtFont(Font):
 
     """A Font which gets converted to q QFont."""

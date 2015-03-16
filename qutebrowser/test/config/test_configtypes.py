@@ -1196,6 +1196,59 @@ class FontTests(unittest.TestCase):
         self.assertIsNone(self.t2.transform(''))
 
 
+class FontFamilyTests(unittest.TestCase):
+
+    """Test FontFamily."""
+
+    TESTS = ['"Foobar Neue"', 'inconsolatazi4', 'Foobar']
+    INVALID = [
+        '10pt "Foobar Neue"',
+        '10PT "Foobar Neue"',
+        '10px "Foobar Neue"',
+        '10PX "Foobar Neue"',
+        'bold "Foobar Neue"',
+        'italic "Foobar Neue"',
+        'oblique "Foobar Neue"',
+        'normal bold "Foobar Neue"',
+        'bold italic "Foobar Neue"',
+        'bold 10pt "Foobar Neue"',
+        'italic 10pt "Foobar Neue"',
+        'oblique 10pt "Foobar Neue"',
+        'normal bold 10pt "Foobar Neue"',
+        'bold italic 10pt "Foobar Neue"',
+    ]
+
+    def setUp(self):
+        self.t = configtypes.FontFamily()
+
+    def test_validate_empty(self):
+        """Test validate with an empty string."""
+        with self.assertRaises(configexc.ValidationError):
+            self.t.validate('')
+
+    def test_validate_empty_none_ok(self):
+        """Test validate with an empty string and none_ok=True."""
+        t = configtypes.FontFamily(none_ok=True)
+        t.validate('')
+
+    def test_validate_valid(self):
+        """Test validate with valid values."""
+        for val in self.TESTS:
+            with self.subTest(val=val):
+                self.t.validate(val)
+
+    def test_validate_invalid(self):
+        """Test validate with invalid values."""
+        for val in self.INVALID:
+            with self.subTest(val=val):
+                with self.assertRaises(configexc.ValidationError, msg=val):
+                    self.t.validate(val)
+
+    def test_transform_empty(self):
+        """Test transform with an empty value."""
+        self.assertIsNone(self.t.transform(''))
+
+
 class RegexTests(unittest.TestCase):
 
     """Test Regex."""
