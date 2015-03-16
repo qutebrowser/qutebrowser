@@ -65,11 +65,15 @@ class Base:
         Args:
             qws: The QWebSettings instance to use, or None to use the global
                  instance.
+
+        Return:
+            The saved default value.
         """
         try:
             self._default = self.get(qws)
+            return self._default
         except AttributeError:
-            pass
+            return None
 
     def restore_default(self, qws=None):
         """Restore the default value from the saved one.
@@ -80,6 +84,7 @@ class Base:
             qws: The QWebSettings instance to use, or None to use the global
                  instance.
         """
+        log.misc.vdebug("Restoring default {!r}.".format(self._default))
         if self._default is not UNSET:
             self._set(self._default, qws=qws)
 
@@ -200,11 +205,12 @@ class NullStringSetter(Setter):
         try:
             val = self.get(qws)
         except AttributeError:
-            pass
+            return None
         if val == '':
             self._set(None, qws=qws)
         else:
             self._set(val, qws=qws)
+        return val
 
 
 class GlobalSetter(Setter):
@@ -373,10 +379,12 @@ def init():
 
     for sectname, section in MAPPINGS.items():
         for optname, mapping in section.items():
-            mapping.save_default()
+            default = mapping.save_default()
+            log.misc.vdebug("Saved default for {} -> {}: {!r}".format(
+                sectname, optname, default))
             value = config.get(sectname, optname)
-            log.misc.debug("Setting {} -> {} to {!r}".format(sectname, optname,
-                                                             value))
+            log.misc.vdebug("Setting {} -> {} to {!r}".format(
+                sectname, optname, value))
             mapping.set(value)
     objreg.get('config').changed.connect(update_settings)
 
