@@ -83,17 +83,13 @@ class UrlCompletionModel(base.BaseCompletionModel):
     @pyqtSlot(object)
     def on_history_item_added(self, entry):
         """Slot called when a new history item was added."""
-        if entry.url_string:
-            if self._history.historyContains(entry.url_string):
-                for i in range(self._history_cat.rowCount()):
-                    name_item = self._history_cat.child(i, 0)
-                    atime_item = self._history_cat.child(i, 2)
-                    if not name_item:
-                        continue
-                    url = name_item.data(base.Role.userdata)
-                    if url == entry.url:
-                        atime_item.setText(self._fmt_atime(entry.atime))
-                        name_item.setData(int(entry.atime), base.Role.sort)
-                        break
-            else:
-                self._add_history_entry(entry)
+        for i in range(self._history_cat.rowCount()):
+            name_item = self._history_cat.child(i, 0)
+            atime_item = self._history_cat.child(i, 2)
+            url = name_item.data(base.Role.userdata)
+            if url == entry.url:
+                atime_item.setText(self._fmt_atime(entry.atime))
+                name_item.setData(int(entry.atime), base.Role.sort)
+                break
+        else:
+            self._add_history_entry(entry)
