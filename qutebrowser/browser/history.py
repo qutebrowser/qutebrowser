@@ -77,7 +77,11 @@ class WebHistory(QWebHistoryInterface):
         self._old_urls = set()
         with self._lineparser.open():
             for line in self._lineparser:
-                _time, url = line.rstrip().split(maxsplit=1)
+                data = line.strip().split(maxsplit=1)
+                if not data:
+                    # empty line
+                    continue
+                _time, url = data
                 self._old_urls.add(url)
         self._new_history = []
         self._saved_count = 0
