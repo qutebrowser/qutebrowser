@@ -50,9 +50,9 @@ $ git checkout symbols
 $ export DEBUG_CFLAGS='-ggdb3 -fvar-tracking-assignments -Og'
 $ export DEBUG_CXXFLAGS='-ggdb3 -fvar-tracking-assignments -Og'
 $ cd qt5
-$ makepkg -si --pkg qt5-base,qt5-webkit
+$ makepkg -si --pkg qt5-base-debug,qt5-webkit-debug
 $ cd ../pyqt5
-$ makepkg -si --pkg pyqt5-common,python-pyqt5
+$ makepkg -si --pkg pyqt5-common-debug,python-pyqt5-debug
 ----
 
 .To install my pre-built packages
