@@ -22,7 +22,6 @@
 import unittest
 
 from PyQt5.QtCore import QUrl, QPoint
-from PyQt5.QtWebKitWidgets import QWebPage
 
 from qutebrowser.browser import tabhistory
 from qutebrowser.browser.tabhistory import TabHistoryItem as Item
@@ -35,7 +34,7 @@ class SerializeHistoryTests(unittest.TestCase):
     """Tests for serialize()."""
 
     def setUp(self):
-        self.page = QWebPage()
+        self.page = helpers.get_webpage()
         self.history = self.page.history()
         self.assertEqual(self.history.count(), 0)
 
@@ -109,7 +108,7 @@ class SerializeHistorySpecialTests(unittest.TestCase):
     """Tests for serialize() without items set up in setUp."""
 
     def setUp(self):
-        self.page = QWebPage()
+        self.page = helpers.get_webpage()
         self.history = self.page.history()
         self.assertEqual(self.history.count(), 0)
 

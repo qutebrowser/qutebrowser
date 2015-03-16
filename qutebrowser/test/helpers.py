@@ -25,6 +25,8 @@ import contextlib
 from unittest import mock
 
 from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtWebKitWidgets import QWebPage
+from PyQt5.QtNetwork import QNetworkAccessManager
 
 
 @contextlib.contextmanager
@@ -73,6 +75,14 @@ def fake_keyevent(key, modifiers=0, text=''):
     evtmock.modifiers.return_value = modifiers
     evtmock.text.return_value = text
     return evtmock
+
+
+def get_webpage():
+    """Get a new QWebPage object."""
+    page = QWebPage()
+    nam = page.networkAccessManager()
+    nam.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
+    return page
 
 
 class MessageModule:
