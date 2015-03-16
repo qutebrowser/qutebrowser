@@ -52,8 +52,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
         history = utils.newest_slice(self._history, max_history)
 
         for entry in history:
-            self.new_item(self._history_cat, entry.url.toDisplayString(), "",
-                          self._fmt_atime(entry.atime), sort=int(entry.atime))
+            self._add_history_entry(entry)
 
         self._history.item_about_to_be_added.connect(
             self.on_history_item_added)
@@ -66,6 +65,11 @@ class UrlCompletionModel(base.BaseCompletionModel):
             return ''
         return datetime.datetime.fromtimestamp(atime).strftime(fmt)
 
+    def _add_history_entry(self, entry):
+        """Add a new history entry to the completion."""
+        self.new_item(self._history_cat, entry.url.toDisplayString(), "",
+                      self._fmt_atime(entry.atime), sort=int(entry.atime))
+
     @config.change_filter('completion', 'timestamp-format')
     def reformat_timestamps(self):
         """Reformat the timestamps if the config option was changed."""
@@ -76,20 +80,18 @@ class UrlCompletionModel(base.BaseCompletionModel):
             atime_item.setText(self._fmt_atime(atime))
 
     @pyqtSlot(object)
-    def on_history_item_added(self, item):
+    def on_history_item_added(self, entry):
         """Slot called when a new history item was added."""
-        if item.url:
-            if self._history.historyContains(item.url_string):
+        if entry.url:
+            if self._history.historyContains(entry.url_string):
                 for i in range(self._history_cat.rowCount()):
                     name_item = self._history_cat.child(i, 0)
                     atime_item = self._history_cat.child(i, 2)
                     if not name_item:
                         continue
-                    if name_item.text() == item.url:
-                        atime_item.setText(self._fmt_atime(item.atime))
-                        name_item.setData(int(item.atime), base.Role.sort)
+                    if name_item.text() == entry.url:
+                        atime_item.setText(self._fmt_atime(entry.atime))
+                        name_item.setData(int(entry.atime), base.Role.sort)
                         break
             else:
-                self.new_item(self._history_cat, item.url.toDisplayString(),
-                              "", self._fmt_atime(item.atime),
-                              sort=int(item.atime))
+                self._add_history_entry(entry)
