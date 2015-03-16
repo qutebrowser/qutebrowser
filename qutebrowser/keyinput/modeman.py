@@ -103,15 +103,29 @@ class EventFilter(QObject):
 
     def eventFilter(self, obj, event):
         """Forward events to the correct modeman."""
-        if not self._activated:
-            return False
         try:
-            modeman = objreg.get('mode-manager', scope='window',
-                                 window='current')
-            return modeman.eventFilter(obj, event)
-        except objreg.RegistryUnavailableError:
-            # No window available yet, or not a MainWindow
-            return False
+            if not self._activated:
+                return False
+            if event.type() not in [QEvent.KeyPress, QEvent.KeyRelease]:
+                # We're not interested in non-key-events so we pass them
+                # through.
+                return False
+            if not isinstance(obj, QWindow):
+                # We already handled this same event at some point earlier, so
+                # we're not interested in it anymore.
+                return False
+            if (QApplication.instance().activeWindow() not in
+                    objreg.window_registry.values()):
+                # Some other window (print dialog, etc.) is focused so we pass
+                # the event through.
+                return False
+            try:
+                modeman = objreg.get('mode-manager', scope='window',
+                                     window='current')
+                return modeman.eventFilter(event)
+            except objreg.RegistryUnavailableError:
+                # No window available yet, or not a MainWindow
+                return False
         except:
             # If there is an exception in here and we leave the eventfilter
             # activated, we'll get an infinite loop and a stack overflow.
@@ -313,7 +327,7 @@ class ModeManager(QObject):
         self._forward_unbound_keys = config.get(
             'input', 'forward-unbound-keys')
 
-    def eventFilter(self, obj, event):
+    def eventFilter(self, event):
         """Filter all events based on the currently set mode.
 
         Also calls the real keypress handler.
@@ -327,21 +341,7 @@ class ModeManager(QObject):
         if self.mode is None:
             # We got events before mode is set, so just pass them through.
             return False
-        typ = event.type()
-        if typ not in [QEvent.KeyPress, QEvent.KeyRelease]:
-            # We're not interested in non-key-events so we pass them through.
-            return False
-        if not isinstance(obj, QWindow):
-            # We already handled this same event at some point earlier, so
-            # we're not interested in it anymore.
-            return False
-        if (QApplication.instance().activeWindow() not in
-                objreg.window_registry.values()):
-            # Some other window (print dialog, etc.) is focused so we pass
-            # the event through.
-            return False
-
-        if typ == QEvent.KeyPress:
+        if event.type() == QEvent.KeyPress:
             return self._eventFilter_keypress(event)
         else:
             return self._eventFilter_keyrelease(event)
