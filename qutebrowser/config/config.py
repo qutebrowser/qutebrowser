@@ -264,6 +264,7 @@ class ConfigManager(QObject):
     DELETED_OPTIONS = [
         ('colors', 'tab.seperator'),
         ('colors', 'tabs.seperator'),
+        ('colors', 'completion.item.bg'),
     ]
 
     changed = pyqtSignal(str, str)
