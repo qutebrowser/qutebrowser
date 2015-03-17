@@ -345,7 +345,7 @@ class Application(QApplication):
             via_ipc: Whether the arguments were transmitted over IPC.
             cwd: The cwd to use for fuzzy_url.
         """
-        if ipc and not args:
+        if via_ipc and not args:
             win_id = self._get_window(via_ipc, force_window=True)
             self._open_startpage(win_id)
             return
