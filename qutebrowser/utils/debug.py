@@ -254,6 +254,12 @@ def format_call(func, args=None, kwargs=None, full=True):
 
 @contextlib.contextmanager
 def log_time(logger, action='operation'):
+    """Log the time the operation in the with-block takes.
+
+    Args:
+        logger: The logging.Logger to use for logging.
+        action: A description of what's being done.
+    """
     started = datetime.datetime.now()
     yield
     finished = datetime.datetime.now()

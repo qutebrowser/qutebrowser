@@ -156,6 +156,7 @@ class TestLogTime(unittest.TestCase):
     """Test log_time."""
 
     def test_log_time(self):
+        """Test if log_time logs properly."""
         logger = logging.getLogger('qt-tests')
         with self.assertLogs(logger, logging.DEBUG) as logged:
             with debug.log_time(logger, action='foobar'):
