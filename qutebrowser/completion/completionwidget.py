@@ -195,7 +195,8 @@ class CompletionView(QTreeView):
         self.setModel(model)
         if sel_model is not None:
             sel_model.deleteLater()
-        self.expandAll()
+        for i in range(model.rowCount()):
+            self.expand(model.index(i, 0))
         self._resize_columns()
         model.rowsRemoved.connect(self.maybe_resize_completion)
         model.rowsInserted.connect(self.maybe_resize_completion)

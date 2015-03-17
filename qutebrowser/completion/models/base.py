@@ -29,7 +29,8 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from qutebrowser.utils import usertypes, qtutils
 
 
-Role = usertypes.enum('Role', ['sort'], start=Qt.UserRole, is_int=True)
+Role = usertypes.enum('Role', ['sort', 'userdata'], start=Qt.UserRole,
+                      is_int=True)
 
 
 class BaseCompletionModel(QStandardItemModel):
@@ -60,7 +61,8 @@ class BaseCompletionModel(QStandardItemModel):
         self.appendRow(cat)
         return cat
 
-    def new_item(self, cat, name, desc='', misc=None, sort=None):
+    def new_item(self, cat, name, desc='', misc=None, sort=None,
+                 userdata=None):
         """Add a new item to a category.
 
         Args:
@@ -69,10 +71,14 @@ class BaseCompletionModel(QStandardItemModel):
             desc: The description of the item.
             misc: Misc text to display.
             sort: Data for the sort role (int).
+            userdata: User data to be added for the first column.
 
         Return:
             A (nameitem, descitem, miscitem) tuple.
         """
+        assert not isinstance(name, int)
+        assert not isinstance(desc, int)
+        assert not isinstance(misc, int)
         nameitem = QStandardItem(name)
         descitem = QStandardItem(desc)
         if misc is None:
@@ -85,6 +91,8 @@ class BaseCompletionModel(QStandardItemModel):
         cat.setChild(idx, 2, miscitem)
         if sort is not None:
             nameitem.setData(sort, Role.sort)
+        if userdata is not None:
+            nameitem.setData(userdata, Role.userdata)
         return nameitem, descitem, miscitem
 
     def flags(self, index):

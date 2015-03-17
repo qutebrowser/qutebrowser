@@ -309,6 +309,10 @@ DATA = collections.OrderedDict([
          SettingValue(typ.DownloadPathSuggestion(), 'path'),
          "What to display in the download filename input."),
 
+        ('timestamp-format',
+         SettingValue(typ.String(none_ok=True), '%Y-%m-%d'),
+         "How to format timestamps (e.g. for history)"),
+
         ('show',
          SettingValue(typ.Bool(), 'true'),
          "Whether to show the autocompletion window."),
@@ -318,9 +322,14 @@ DATA = collections.OrderedDict([
          "The height of the completion, in px or as percentage of the "
          "window."),
 
-        ('history-length',
+        ('cmd-history-max-items',
          SettingValue(typ.Int(minval=-1), '100'),
-         "How many commands to save in the history.\n\n"
+         "How many commands to save in the command history.\n\n"
+         "0: no history / -1: unlimited"),
+
+        ('web-history-max-items',
+         SettingValue(typ.Int(minval=-1), '1000'),
+         "How many URLs to show in the web history.\n\n"
          "0: no history / -1: unlimited"),
 
         ('quick-complete',

@@ -23,6 +23,8 @@ import re
 import sys
 import inspect
 import functools
+import datetime
+import contextlib
 
 from PyQt5.QtCore import QEvent, QMetaMethod
 
@@ -248,3 +250,12 @@ def format_call(func, args=None, kwargs=None, full=True):
     else:
         name = func.__name__
     return '{}({})'.format(name, _format_args(args, kwargs))
+
+
+@contextlib.contextmanager
+def log_time(logger, action='operation'):
+    started = datetime.datetime.now()
+    yield
+    finished = datetime.datetime.now()
+    delta = (finished - started).total_seconds()
+    logger.debug("{} took {} seconds.".format(action.capitalize(), delta))

@@ -404,5 +404,57 @@ class ForceEncodingTests(unittest.TestCase):
         self.assertEqual(utils.force_encoding(text, 'ascii'), 'hell? w?rld')
 
 
+class NewestSliceTests(unittest.TestCase):
+
+    """Test newest_slice."""
+
+    def test_count_minus_two(self):
+        """Test with a count of -2."""
+        with self.assertRaises(ValueError):
+            utils.newest_slice([], -2)
+
+    def test_count_minus_one(self):
+        """Test with a count of -1 (all elements)."""
+        items = range(20)
+        sliced = utils.newest_slice(items, -1)
+        self.assertEqual(list(sliced), list(items))
+
+    def test_count_zero(self):
+        """Test with a count of 0 (no elements)."""
+        items = range(20)
+        sliced = utils.newest_slice(items, 0)
+        self.assertEqual(list(sliced), [])
+
+    def test_count_much_smaller(self):
+        """Test with a count which is much smaller than the iterable."""
+        items = range(20)
+        sliced = utils.newest_slice(items, 5)
+        self.assertEqual(list(sliced), [15, 16, 17, 18, 19])
+
+    def test_count_smaller(self):
+        """Test with a count which is exactly one smaller."""
+        items = range(5)
+        sliced = utils.newest_slice(items, 4)
+        self.assertEqual(list(sliced), [1, 2, 3, 4])
+
+    def test_count_equal(self):
+        """Test with a count which is just as large as the iterable."""
+        items = range(5)
+        sliced = utils.newest_slice(items, 5)
+        self.assertEqual(list(sliced), list(items))
+
+    def test_count_bigger(self):
+        """Test with a count which is one bigger than the iterable."""
+        items = range(5)
+        sliced = utils.newest_slice(items, 6)
+        self.assertEqual(list(sliced), list(items))
+
+    def test_count_much_bigger(self):
+        """Test with a count which is much bigger than the iterable."""
+        items = range(5)
+        sliced = utils.newest_slice(items, 50)
+        self.assertEqual(list(sliced), list(items))
+
+
 if __name__ == '__main__':
     unittest.main()

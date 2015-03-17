@@ -38,6 +38,7 @@ from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
 
 import qutebrowser
 import qutebrowser.resources  # pylint: disable=unused-import
+from qutebrowser.completion.models import instances as completionmodels
 from qutebrowser.commands import cmdutils, runners
 from qutebrowser.config import style, config, websettings, configexc
 from qutebrowser.browser import quickmarks, cookies, cache, adblock, history
@@ -165,6 +166,7 @@ class Application(QApplication):
 
     def _init_modules(self):
         """Initialize all 'modules' which need to be initialized."""
+        # pylint: disable=too-many-statements
         log.init.debug("Initializing save manager...")
         save_manager = savemanager.SaveManager(self)
         objreg.register('save-manager', save_manager)
@@ -207,6 +209,8 @@ class Application(QApplication):
         log.init.debug("Initializing cache...")
         diskcache = cache.DiskCache(self)
         objreg.register('cache', diskcache)
+        log.init.debug("Initializing completions...")
+        completionmodels.init()
         if not session_manager.exists(self._args.session):
             log.init.debug("Initializing main window...")
             window = mainwindow.MainWindow()

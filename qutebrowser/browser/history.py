@@ -20,8 +20,9 @@
 """Simple history which gets written to disk."""
 
 import time
+import collections
 
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QUrl
 from PyQt5.QtWebKit import QWebHistoryInterface
 
 from qutebrowser.utils import utils, objreg, standarddir
@@ -35,19 +36,21 @@ class HistoryEntry:
 
     Attributes:
         atime: The time the page was accessed.
-        url: The URL which was accessed as string
+        url: The URL which was accessed as QUrl.
+        url_string: The URL which was accessed as string.
     """
 
     def __init__(self, atime, url):
-        self.atime = atime
-        self.url = url
+        self.atime = float(atime)
+        self.url = QUrl(url)
+        self.url_string = url
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True, atime=self.atime,
-                              url=self.url)
+                              url=self.url.toDisplayString())
 
     def __str__(self):
-        return '{} {}'.format(int(self.atime), self.url)
+        return '{} {}'.format(int(self.atime), self.url_string)
 
     @classmethod
     def from_str(cls, s):
@@ -61,40 +64,55 @@ class WebHistory(QWebHistoryInterface):
 
     Attributes:
         _lineparser: The AppendLineParser used to save the history.
-        _old_urls: A set of URLs read from the on-disk history.
+        _history_dict: An OrderedDict of URLs read from the on-disk history.
         _new_history: A list of HistoryEntry items of the current session.
         _saved_count: How many HistoryEntries have been written to disk.
-        _old_hit: How many times an URL was found in _old_urls.
-        _old_miss: How many times an URL was not found in _old_urls.
+
+    Signals:
+        item_about_to_be_added: Emitted before a new HistoryEntry is added.
+                                arg: The new HistoryEntry.
+        item_added: Emitted after a new HistoryEntry is added.
+                    arg: The new HistoryEntry.
     """
 
-    changed = pyqtSignal()
+    item_about_to_be_added = pyqtSignal(HistoryEntry)
+    item_added = pyqtSignal(HistoryEntry)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._lineparser = lineparser.AppendLineParser(
             standarddir.data(), 'history', parent=self)
-        self._old_urls = set()
+        self._history_dict = collections.OrderedDict()
         with self._lineparser.open():
             for line in self._lineparser:
-                data = line.strip().split(maxsplit=1)
+                data = line.rstrip().split(maxsplit=1)
                 if not data:
                     # empty line
                     continue
-                _time, url = data
-                self._old_urls.add(url)
+                atime, url = data
+                # This de-duplicates history entries; only the latest
+                # entry for each URL is kept. If you want to keep
+                # information about previous hits change the items in
+                # old_urls to be lists or change HistoryEntry to have a
+                # list of atimes.
+                self._history_dict[url] = HistoryEntry(atime, url)
+                self._history_dict.move_to_end(url)
         self._new_history = []
         self._saved_count = 0
-        self._old_hit = 0
-        self._old_miss = 0
         objreg.get('save-manager').add_saveable(
-            'history', self.save, self.changed)
+            'history', self.save, self.item_added)
 
     def __repr__(self):
-        return utils.get_repr(self, new_length=len(self._new_history))
+        return utils.get_repr(self, length=len(self))
 
     def __getitem__(self, key):
         return self._new_history[key]
+
+    def __iter__(self):
+        return iter(self._history_dict.values())
+
+    def __len__(self):
+        return len(self._history_dict)
 
     def get_recent(self):
         """Get the most recent history entries."""
@@ -116,8 +134,11 @@ class WebHistory(QWebHistoryInterface):
         """
         if not config.get('general', 'private-browsing'):
             entry = HistoryEntry(time.time(), url_string)
+            self.item_about_to_be_added.emit(entry)
             self._new_history.append(entry)
-            self.changed.emit()
+            self._history_dict[url_string] = entry
+            self._history_dict.move_to_end(url_string)
+            self.item_added.emit(entry)
 
     def historyContains(self, url_string):
         """Called by WebKit to determine if an URL is contained in the history.
@@ -128,12 +149,7 @@ class WebHistory(QWebHistoryInterface):
         Return:
             True if the url is in the history, False otherwise.
         """
-        if url_string in self._old_urls:
-            self._old_hit += 1
-            return True
-        else:
-            self._old_miss += 1
-            return url_string in (entry.url for entry in self._new_history)
+        return url_string in self._history_dict
 
 
 def init():

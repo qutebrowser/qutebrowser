@@ -25,7 +25,7 @@ Contains:
 
 from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex, Qt
 
-from qutebrowser.utils import log, qtutils
+from qutebrowser.utils import log, qtutils, debug
 from qutebrowser.completion.models import base as completion
 
 
@@ -65,14 +65,15 @@ class CompletionFilterModel(QSortFilterProxyModel):
         Args:
             val: The value to set.
         """
-        self.pattern = val
-        self.invalidateFilter()
-        sortcol = 0
-        try:
-            self.srcmodel.sort(sortcol)
-        except NotImplementedError:
-            self.sort(sortcol)
-        self.invalidate()
+        with debug.log_time(log.completion, 'Setting filter pattern'):
+            self.pattern = val
+            self.invalidateFilter()
+            sortcol = 0
+            try:
+                self.srcmodel.sort(sortcol)
+            except NotImplementedError:
+                self.sort(sortcol)
+            self.invalidate()
 
     def count(self):
         """Get the count of non-toplevel items currently visible.
@@ -132,11 +133,15 @@ class CompletionFilterModel(QSortFilterProxyModel):
         if parent == QModelIndex():
             return True
         idx = self.srcmodel.index(row, 0, parent)
-        qtutils.ensure_valid(idx)
+        if not idx.isValid():
+            # No entries in parent model
+            return False
         data = self.srcmodel.data(idx)
         # TODO more sophisticated filtering
         if not self.pattern:
             return True
+        if not data:
+            return False
         return self.pattern.casefold() in data.casefold()
 
     def intelligentLessThan(self, lindex, rindex):
