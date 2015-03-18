@@ -369,7 +369,10 @@ MAPPINGS = {
 
 def init():
     """Initialize the global QWebSettings."""
-    QWebSettings.setIconDatabasePath(standarddir.cache())
+    if config.get('general', 'private-browsing'):
+        QWebSettings.setIconDatabasePath('')
+    else:
+        QWebSettings.setIconDatabasePath(standarddir.cache())
     QWebSettings.setOfflineWebApplicationCachePath(
         os.path.join(standarddir.cache(), 'application-cache'))
     QWebSettings.globalSettings().setLocalStoragePath(
