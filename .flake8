@@ -1,19 +1,12 @@
 # vim: ft=dosini fileencoding=utf-8:
 
 [flake8]
-# E241: Multiple spaces after ,
 # E265: Block comment should start with '#'
-# checked by pylint:
-# F401: Unused import
 # E501: Line too long
-# F821: undefined name
 # F841: unused variable
-# E222: Multiple spaces after operator
-# F811: Redifiniton
-# W292: No newline at end of file
-# E701: multiple statements on one line
-# E702: multiple statements on one line
-# E225: missing whitespace around operator
-ignore=E241,E265,F401,E501,F821,F841,E222,F811,W292,E701,E702,E225
+# F401: Unused import
+# E402: module level import not at top of file
+# E266: too many leading '#' for block comment
+# W503: line break before binary operator
+ignore=E265,E501,F841,F401,E402,E266,W503
 max_complexity = 12
-exclude = ez_setup.py
