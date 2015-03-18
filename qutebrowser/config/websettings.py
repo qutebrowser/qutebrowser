@@ -389,9 +389,16 @@ def init():
 
 def update_settings(section, option):
     """Update global settings when qwebsettings changed."""
-    try:
-        mapping = MAPPINGS[section][option]
-    except KeyError:
-        return
-    value = config.get(section, option)
-    mapping.set(value)
+    if (section, option) == ('general', 'private-browsing'):
+        cachedir = standarddir.get(QStandardPaths.CacheLocation)
+        if config.get('general', 'private-browsing'):
+            QWebSettings.setIconDatabasePath('')
+        else:
+            QWebSettings.setIconDatabasePath(cachedir)
+    else:
+        try:
+            mapping = MAPPINGS[section][option]
+        except KeyError:
+            return
+        value = config.get(section, option)
+        mapping.set(value)
