@@ -369,7 +369,10 @@ MAPPINGS = {
 
 def init():
     """Initialize the global QWebSettings."""
-    QWebSettings.setIconDatabasePath(standarddir.cache())
+    if config.get('general', 'private-browsing'):
+        QWebSettings.setIconDatabasePath('')
+    else:
+        QWebSettings.setIconDatabasePath(standarddir.cache())
     QWebSettings.setOfflineWebApplicationCachePath(
         os.path.join(standarddir.cache(), 'application-cache'))
     QWebSettings.globalSettings().setLocalStoragePath(
@@ -391,9 +394,15 @@ def init():
 
 def update_settings(section, option):
     """Update global settings when qwebsettings changed."""
-    try:
-        mapping = MAPPINGS[section][option]
-    except KeyError:
-        return
-    value = config.get(section, option)
-    mapping.set(value)
+    if (section, option) == ('general', 'private-browsing'):
+        if config.get('general', 'private-browsing'):
+            QWebSettings.setIconDatabasePath('')
+        else:
+            QWebSettings.setIconDatabasePath(standarddir.cache())
+    else:
+        try:
+            mapping = MAPPINGS[section][option]
+        except KeyError:
+            return
+        value = config.get(section, option)
+        mapping.set(value)

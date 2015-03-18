@@ -324,8 +324,11 @@ def generate_settings(filename):
 
 def _get_authors():
     """Get a list of authors based on git commit logs."""
+    corrections = {'binix': 'sbinix'}
     commits = subprocess.check_output(['git', 'log', '--format=%aN'])
-    cnt = collections.Counter(commits.decode('utf-8').splitlines())
+    authors = [corrections.get(author, author)
+               for author in commits.decode('utf-8').splitlines()]
+    cnt = collections.Counter(authors)
     return sorted(cnt, key=lambda k: (cnt[k], k), reverse=True)
 
 
