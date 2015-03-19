@@ -362,10 +362,17 @@ class Command:
             args: The positional argument list. Gets modified directly.
         """
         assert param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
-        if self._scope is not 'window':
+        if self._scope == 'global':
+            tab_id = None
             win_id = None
-        obj = objreg.get(self._instance, scope=self._scope,
-                         window=win_id)
+        elif self._scope == 'tab':
+            tab_id = 'current'
+        elif self._scope == 'window':
+            tab_id = None
+        else:
+            raise ValueError("Invalid scope {}!".format(self._scope))
+        obj = objreg.get(self._instance, scope=self._scope, window=win_id,
+                         tab=tab_id)
         args.append(obj)
 
     def _get_count_arg(self, param, args, kwargs):
