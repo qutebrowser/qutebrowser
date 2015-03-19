@@ -529,7 +529,7 @@ class CommandDispatcher:
         url = self._current_url()
         if frame is None:
             raise cmdexc.CommandError("No frame focused!")
-        hintmanager = objreg.get('hintmanager', scope='tab')
+        hintmanager = objreg.get('hintmanager', scope='tab', tab='current')
         if where == 'prev':
             hintmanager.follow_prevnext(frame, url, prev=True, tab=tab,
                                         background=bg, window=window)

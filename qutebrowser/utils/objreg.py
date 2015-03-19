@@ -144,7 +144,7 @@ window_registry = ObjectRegistry()
 def _get_tab_registry(win_id, tab_id):
     """Get the registry of a tab."""
     if tab_id is None:
-        tab_id = 'current'
+        raise ValueError("Got tab_id None (win_id {})".format(win_id))
     if tab_id == 'current' and win_id is None:
         app = get('app')
         window = app.activeWindow()
