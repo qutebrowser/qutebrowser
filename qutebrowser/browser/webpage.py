@@ -53,9 +53,12 @@ class BrowserPage(QWebPage):
 
     Signals:
         shutting_down: Emitted when the page is currently shutting down.
+        reloading: Emitted before a web page reloads.
+                   arg: The URL which gets reloaded.
     """
 
     shutting_down = pyqtSignal()
+    reloading = pyqtSignal(QUrl)
 
     def __init__(self, win_id, tab_id, parent=None):
         super().__init__(parent)
@@ -73,6 +76,7 @@ class BrowserPage(QWebPage):
             win_id, tab_id, self)
         self.setNetworkAccessManager(self._networkmanager)
         self.setForwardUnsupportedContent(True)
+        self.reloading.connect(self._networkmanager.clear_rejected_ssl_errors)
         self.printRequested.connect(self.on_print_requested)
         self.downloadRequested.connect(self.on_download_requested)
         self.unsupportedContent.connect(self.on_unsupported_content)
@@ -527,10 +531,12 @@ class BrowserPage(QWebPage):
             request: QNetworkRequest
             typ: QWebPage::NavigationType
         """
-        if typ != QWebPage.NavigationTypeLinkClicked:
-            return True
         url = request.url()
         urlstr = url.toDisplayString()
+        if typ == QWebPage.NavigationTypeReload:
+            self.reloading.emit(url)
+        if typ != QWebPage.NavigationTypeLinkClicked:
+            return True
         if not url.isValid():
             message.error(self._win_id, "Invalid link {} clicked!".format(
                 urlstr))

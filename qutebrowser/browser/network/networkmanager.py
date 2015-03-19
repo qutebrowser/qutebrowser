@@ -21,7 +21,8 @@
 
 import collections
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication,
+                          QUrl)
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QSslError
 
 try:
@@ -188,7 +189,7 @@ class NetworkManager(QNetworkAccessManager):
             request.deleteLater()
         self.shutting_down.emit()
 
-    if SSL_AVAILABLE:
+    if SSL_AVAILABLE:  # noqa
         @pyqtSlot('QNetworkReply*', 'QList<QSslError>')
         def on_ssl_errors(self, reply, errors):
             """Decide if SSL errors should be ignored or not.
@@ -227,6 +228,26 @@ class NetworkManager(QNetworkAccessManager):
                     message.error(self._win_id,
                                   'SSL error: {}'.format(err.errorString()))
                 reply.ignoreSslErrors()
+
+        @pyqtSlot(QUrl)
+        def clear_rejected_ssl_errors(self, url):
+            """Clear the rejected SSL errors on a reload.
+
+            Args:
+                url: The URL to remove.
+            """
+            try:
+                del self._rejected_ssl_errors[url]
+            except KeyError:
+                pass
+    else:
+        @pyqtSlot(QUrl)
+        def clear_rejected_ssl_errors(self, _url):
+            """Clear the rejected SSL errors on a reload.
+
+            Does nothing because SSL is unavailable.
+            """
+            pass
 
     @pyqtSlot('QNetworkReply', 'QAuthenticator')
     def on_authentication_required(self, reply, authenticator):
