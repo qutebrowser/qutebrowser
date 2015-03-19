@@ -135,9 +135,12 @@ Contributors, sorted by the number of commits in descending order:
 * Larry Hynes
 * Johannes Altmanninger
 * Joel Torstensson
+* sbinix
+* error800
 * Thorsten Wißmann
 * Regina Hug
 * Peter Vilim
+* Patric Schmitz
 * Matthias Lisin
 * Helen Sherwood-Taylor
 // QUTE_AUTHORS_END
