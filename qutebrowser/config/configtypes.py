@@ -833,10 +833,14 @@ class File(BaseType):
             else:
                 raise configexc.ValidationError(value, "may not be empty!")
         value = os.path.expanduser(value)
-        if not os.path.isfile(value):
-            raise configexc.ValidationError(value, "must be a valid file!")
-        if not os.path.isabs(value):
-            raise configexc.ValidationError(value, "must be an absolute path!")
+        try:
+            if not os.path.isfile(value):
+                raise configexc.ValidationError(value, "must be a valid file!")
+            if not os.path.isabs(value):
+                raise configexc.ValidationError(
+                    value, "must be an absolute path!")
+        except UnicodeEncodeError as e:
+            raise configexc.ValidationError(value, e)
 
     def transform(self, value):
         if not value:
@@ -858,11 +862,15 @@ class Directory(BaseType):
                 raise configexc.ValidationError(value, "may not be empty!")
         value = os.path.expandvars(value)
         value = os.path.expanduser(value)
-        if not os.path.isdir(value):
-            raise configexc.ValidationError(value, "must be a valid "
-                                            "directory!")
-        if not os.path.isabs(value):
-            raise configexc.ValidationError(value, "must be an absolute path!")
+        try:
+            if not os.path.isdir(value):
+                raise configexc.ValidationError(
+                    value, "must be a valid directory!")
+            if not os.path.isabs(value):
+                raise configexc.ValidationError(
+                    value, "must be an absolute path!")
+        except UnicodeEncodeError as e:
+            raise configexc.ValidationError(value, e)
 
     def transform(self, value):
         if not value:
@@ -1179,18 +1187,21 @@ class UserStyleSheet(File):
                 raise configexc.ValidationError(value, "may not be empty!")
         value = os.path.expandvars(value)
         value = os.path.expanduser(value)
-        if not os.path.isabs(value):
-            # probably a CSS, so we don't handle it as filename.
-            # FIXME We just try if it is encodable, maybe we should validate
-            # CSS?
-            # https://github.com/The-Compiler/qutebrowser/issues/115
-            try:
-                value.encode('utf-8')
-            except UnicodeEncodeError as e:
-                raise configexc.ValidationError(value, str(e))
-            return
-        elif not os.path.isfile(value):
-            raise configexc.ValidationError(value, "must be a valid file!")
+        try:
+            if not os.path.isabs(value):
+                # probably a CSS, so we don't handle it as filename.
+                # FIXME We just try if it is encodable, maybe we should
+                # validate CSS?
+                # https://github.com/The-Compiler/qutebrowser/issues/115
+                try:
+                    value.encode('utf-8')
+                except UnicodeEncodeError as e:
+                    raise configexc.ValidationError(value, str(e))
+                return
+            elif not os.path.isfile(value):
+                raise configexc.ValidationError(value, "must be a valid file!")
+        except UnicodeEncodeError as e:
+            raise configexc.ValidationError(value, e)
 
     def transform(self, value):
         path = os.path.expandvars(value)

@@ -29,6 +29,13 @@ from PyQt5.QtWebKitWidgets import QWebPage
 from PyQt5.QtNetwork import QNetworkAccessManager
 
 
+unicode_encode_err = UnicodeEncodeError('ascii',           # codec
+                                        '',                # object
+                                        0,                 # start
+                                        2,                 # end
+                                        'fake exception')  # reason
+
+
 @contextlib.contextmanager
 def environ_set_temp(env):
     """Set temporary environment variables.

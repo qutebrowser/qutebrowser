@@ -1374,6 +1374,13 @@ class FileTests(unittest.TestCase):
         self.t.validate('~/foobar')
         os_path.expanduser.assert_called_once_with('~/foobar')
 
+    def test_validate_invalid_encoding(self, os_path):
+        """Test validate with an invalid encoding, e.g. LC_ALL=C."""
+        os_path.isfile.side_effect = helpers.unicode_encode_err
+        os_path.isabs.side_effect = helpers.unicode_encode_err
+        with self.assertRaises(configexc.ValidationError):
+            self.t.validate('foobar')
+
     def test_transform(self, os_path):
         """Test transform."""
         os_path.expanduser.side_effect = lambda x: x.replace('~', '/home/foo')
@@ -1444,6 +1451,13 @@ class DirectoryTests(unittest.TestCase):
         with helpers.environ_set_temp({'BAR': '/home/foo/bar'}):
             self.t.validate('$BAR/foobar')
             os_path.expandvars.assert_called_once_with('$BAR/foobar')
+
+    def test_validate_invalid_encoding(self, os_path):
+        """Test validate with an invalid encoding, e.g. LC_ALL=C."""
+        os_path.isdir.side_effect = helpers.unicode_encode_err
+        os_path.isabs.side_effect = helpers.unicode_encode_err
+        with self.assertRaises(configexc.ValidationError):
+            self.t.validate('foobar')
 
     def test_transform(self, os_path):
         """Test transform."""
@@ -1878,6 +1892,14 @@ class UserStyleSheetTests(unittest.TestCase):
 
     def setUp(self):
         self.t = configtypes.UserStyleSheet()
+
+    @mock.patch('qutebrowser.config.configtypes.os.path', autospec=True)
+    def test_validate_invalid_encoding(self, os_path):
+        """Test validate with an invalid encoding, e.g. LC_ALL=C."""
+        os_path.isfile.side_effect = helpers.unicode_encode_err
+        os_path.isabs.side_effect = helpers.unicode_encode_err
+        with self.assertRaises(configexc.ValidationError):
+            self.t.validate('foobar')
 
     def test_transform_empty(self):
         """Test transform with an empty value."""
