@@ -527,11 +527,7 @@ class BrowserPage(QWebPage):
             request: QNetworkRequest
             typ: QWebPage::NavigationType
         """
-        if typ not in (QWebPage.NavigationTypeLinkClicked,
-                       QWebPage.NavigationTypeOther):
-            # If the navigation request isn't a result of clicking or hinting
-            # (form submit, back/forward, reload), we're not interested in
-            # handling it ourselves.
+        if typ != QWebPage.NavigationTypeLinkClicked:
             return True
         url = request.url()
         urlstr = url.toDisplayString()
