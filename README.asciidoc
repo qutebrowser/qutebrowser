@@ -46,7 +46,7 @@ available:
 image:http://qutebrowser.org/img/cheatsheet-small.png["qutebrowser keybinding cheatsheet",link="http://qutebrowser.org/img/cheatsheet-big.png"]
 * link:doc/quickstart.asciidoc[Quick start guide]
 * link:doc/FAQ.asciidoc[Frequently asked questions]
-* link:doc/HACKING.asciidoc[HACKING]
+* link:CONTRIBUTING.asciidoc[Contributing to qutebrowser]
 * link:doc/INSTALL.asciidoc[INSTALL]
 * link:doc/stacktrace.asciidoc[Reporting segfaults]
 * link:doc/userscripts.asciidoc[How to write userscripts]
@@ -66,7 +66,8 @@ Contributions / Bugs
 --------------------
 
 You want to contribute to qutebrowser? Awesome! Please read
-link:doc/HACKING.asciidoc[HACKING] for details and useful hints.
+link:doc/CONTRIBUTING.asciidoc[the contribution guidelines] for details and
+useful hints.
 
 If you found a bug or have a feature request, you can report it in several
 ways:

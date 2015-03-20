@@ -63,7 +63,7 @@ class DocstringParser:
 
     """Generate documentation based on a docstring of a command handler.
 
-    The docstring needs to follow the format described in HACKING.
+    The docstring needs to follow the format described in CONTRIBUTING.
 
     Attributes:
         _state: The current state of the parser state machine.
