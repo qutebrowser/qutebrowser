@@ -35,34 +35,26 @@ except ImportError:
 # initialisation needs to take place before that!
 
 
-def _missing_str(name, debian=None, arch=None, windows=None, pip=None):
+def _missing_str(name, *, windows=None, pip=None):
     """Get an error string for missing packages.
 
     Args:
         name: The name of the package.
-        debian: String to be displayed for Debian.
-        arch: String to be displayed for Archlinux.
         windows: String to be displayed for Windows.
         pip: pypi package name.
     """
     blocks = ["Fatal error: <b>{}</b> is required to run qutebrowser but "
               "could not be imported! Maybe it's not installed?".format(name)]
-    if debian is not None:
-        lines = ["<b>On Debian/Ubuntu:</b>"]
-        lines += debian.splitlines()
-        blocks.append('<br />'.join(lines))
-    if arch is not None:
-        lines = ["<b>On Archlinux:</b>"]
-        lines += arch.splitlines()
-        blocks.append('<br />'.join(lines))
+    lines = ['Please search for the python3 version of {} in your '
+             'distributions packages, or install it via pip.'.format(name)]
+    blocks.append('<br />'.join(lines))
+    lines = ['<b>If you installed a qutebrowser package for your '
+             'distribution, please report this as a bug.</b>']
+    blocks.append('<br />'.join(lines))
     if windows is not None:
         lines = ["<b>On Windows:</b>"]
         lines += windows.splitlines()
         blocks.append('<br />'.join(lines))
-    lines = ["<b>For other distributions:</b>",
-             "Check your package manager for similarly named packages or "
-             "install via pip."]
-    blocks.append('<br />'.join(lines))
     if pip is not None:
         lines = ["<b>Using pip:</b>"]
         lines.append("pip3 install {}".format(pip))
@@ -179,10 +171,6 @@ def check_pyqt_core():
         import PyQt5.QtCore  # pylint: disable=unused-variable
     except ImportError as e:
         text = _missing_str('PyQt5',
-                            debian="apt-get install python3-pyqt5 "
-                                   "python3-pyqt5.qtwebkit",
-                            arch="pacman -S python-pyqt5 qt5-webkit<br />"
-                                 "or install the qutebrowser package from AUR",
                             windows="Use the installer by Riverbank computing "
                                     "or the standalone qutebrowser exe.<br />"
                                     "http://www.riverbankcomputing.co.uk/"
@@ -216,41 +204,25 @@ def check_qt_version():
 def check_libraries():
     """Check if all needed Python libraries are installed."""
     modules = {
-        'PyQt5.QtWebKit':
-            _missing_str("QtWebKit",
-                         debian="apt-get install python3-pyqt5.qtwebkit",
-                         arch="pacman -S qt5-webkit"),
+        'PyQt5.QtWebKit': _missing_str("PyQt5.QtWebKit"),
         'pkg_resources':
-            _missing_str("pkg_resources",
-                         debian="apt-get install python3-pkg-resources",
-                         arch="pacman -S python-setuptools",
-                         windows="Run   python -m ensurepip  "
-                                 "(python >= 3.4) or scripts/ez_setup.py."),
+            _missing_str("pkg_resources/setuptools",
+                         windows="Run   python -m ensurepip."),
         'pypeg2':
             _missing_str("pypeg2",
-                         debian="No package available, do 'apt-get install "
-                                "python3-pip' and then install via pip3.",
-                         arch="Install python-pypeg2 from the AUR",
-                         windows="Install via pip.",
                          pip="pypeg2"),
         'jinja2':
             _missing_str("jinja2",
-                         debian="apt-get install python3-jinja2",
-                         arch="Install python-jinja from community",
                          windows="Install from http://www.lfd.uci.edu/"
                                  "~gohlke/pythonlibs/#jinja2 or via pip.",
                          pip="jinja2"),
         'pygments':
             _missing_str("pygments",
-                         debian="apt-get install python3-pygments",
-                         arch="Install python-pygments from community",
                          windows="Install from http://www.lfd.uci.edu/"
                                  "~gohlke/pythonlibs/#pygments or via pip.",
                          pip="pygments"),
         'yaml':
             _missing_str("PyYAML",
-                         debian="apt-get install python3-yaml",
-                         arch="pacman -S python-yaml",
                          windows="Use the installers at "
                                  "http://pyyaml.org/download/pyyaml/ (py3.4) "
                                  "or Install via pip.",
