@@ -1,5 +1,5 @@
-qutebrowser HACKING
-===================
+Contributing to qutebrowser
+===========================
 The Compiler <mail@qutebrowser.org>
 :icons:
 :data-uri:
@@ -37,8 +37,6 @@ If you want to find something useful to do, check the
 https://github.com/The-Compiler/qutebrowser/issues[issue tracker]. Some
 pointers:
 
-* https://github.com/The-Compiler/qutebrowser/milestones/v0.1[Open issues for
-the v0.1 release]
 * https://github.com/The-Compiler/qutebrowser/labels/easy[Issues which should
 be easy to solve]
 * https://github.com/The-Compiler/qutebrowser/labels/not%20code[Issues which
@@ -57,7 +55,7 @@ qutebrowser uses http://git-scm.com/[git] for its development. You can clone
 the repo like this:
 
 ----
-git clone git://the-compiler.org/qutebrowser
+git clone https://github.com/The-Compiler/qutebrowser.git
 ----
 
 If you don't know git, a http://git-scm.com/[git cheatsheet] might come in
@@ -68,8 +66,13 @@ contributing, feel free to send normal patches instead, e.g. generated via
 Getting patches
 ~~~~~~~~~~~~~~~
 
-After you finished your work and did `git commit`, you can get patches of your
-changes like this:
+The preferred way of submitting changes is to
+https://help.github.com/articles/fork-a-repo/[fork the repository] and to
+https://help.github.com/articles/creating-a-pull-request/[submit a pull
+request].
+
+If you prefer to send a patch to the mailinglist, you can generate a patch
+based on your changes like this:
 
 ----
 git format-patch origin/master <1>
@@ -97,12 +100,14 @@ https://docs.python.org/3.4/library/unittest.html[unittest] framework
     - untracked git files
     - VCS conflict markers
 
+////
 If you changed `setup.py` or `MANIFEST.in`, add the `--setup` argument to run
 the following additional checkers:
 
 * https://pypi.python.org/pypi/pyroma/0.9.3[pyroma]
 * https://github.com/mgedmin/check-manifest[check-manifest]
 
+////
 It needs all the checkers to be installed and also needs
 https://pypi.python.org/pypi/colorama/[colorama].
 
@@ -567,17 +572,15 @@ qutebrowser release
 * Test an upgrade from the previous version (no manual intervention).
 * Test an upgrade from the first version (no manual intervention).
 
-* Create annotated git tag (`git tag -s "v0.1" -m "Release v0.1"`)
-* Create git branch `v0.1.x`
-* Push including `--tags`
+* Create annotated git tag (`git tag -s "v0.X.Y" -m "Release v0.X.Y"`)
+* If it's a new minor, create git branch `v0.X.x`
+* `git push`; `git push "v0.X.Y"`
 * Create release on github
 * Mark the milestone at https://github.com/The-Compiler/qutebrowser/milestones
 as closed.
 
 * Create standalone Windows package (32/64bit) in Windows VM
 * Upload to PyPI: `python setup.py register sdist upload --sign`
-* Maybe upload to http://qt-apps.org/
-* Upload to webpage with checksum/GPG (when/if it exists)
+* Upload to qutebrowser.org with checksum/GPG
 
 * Announce to qutebrowser mailinglist
-* Maybe annouce at other places?
