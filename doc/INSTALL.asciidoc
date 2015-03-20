@@ -121,17 +121,49 @@ http://brew.sh/[Homebrew] or https://www.macports.org/[MacPorts]. Also make
 sure, you have https://itunes.apple.com/en/app/xcode/id497799835[XCode]
 installed to compile PyQt5 in a later step.
 
-----
-$ brew install python3 pyqt5
-$ pip3.4 install qutebrowser
-----
-
-if you are using Homebrew. For MacPorts, run:
+If you are using Homebrew:
 
 ----
-$ sudo port install python34 py34-jinja2 asciidoc py34-pygments py34-pyqt5
-$ sudo pip3.4 install qutebrowser
+$ brew install python3 pyqt5 git
 ----
+
+For MacPorts, run:
+
+----
+$ sudo port install python34 py34-jinja2 asciidoc py34-pygments py34-pyqt5 git
+----
+
+then the common part:
+
+----
+$ pip3.4 install PyYAML
+$ mkdir -p /tmp/QuteBrowser.app/Contents/MacOS
+$ mkdir -p /tmp/QuteBrowser.app/Contents/Resources
+$ cp /Applications/Automator.app/Contents/Resources/Application\ Stub.app/Contents/MacOS/Application\ Stub /tmp/QuteBrowser.app/Contents/MacOS/
+$ cp /Applications/Automator.app/Contents/Resources/Application\ Stub.app/Contents/Resources/English.lproj/ApplicationStub.nib /tmp/QuteBrowser.app/Contents/Resources/
+$ cp /Applications/Safari.app/Contents/Resources/compass.icns /tmp/QuteBrowser.app/Contents/Resources/icon.icns
+$ cat > /tmp/QuteBrowser.app/Contents/Info.plist <<- EOM
+{   CFBundleExecutable = "Application Stub";
+    CFBundleIconFile = icon;
+    CFBundleIdentifier = "com.QuteBrowser";
+    CFBundleInfoDictionaryVersion = "6.0";
+    CFBundleName = QuteBrowser;
+    CFBundlePackageType = APPL;
+    LSMinimumSystemVersionByArchitecture = { "x86_64" = "10.6"; };
+    NSMainNibFile = ApplicationStub;
+    NSPrincipalClass = NSApplication; }
+EOM
+$ cat > /tmp/QuteBrowser.app/Contents/document.wflow <<- EOM
+{ actions = ({
+  action = {
+    ActionParameters = {
+      "COMMAND_STRING" = "QB=\"\$HOME/Library/Application Support/qutebrowser/package\"; /usr/local/bin/git clone https://github.com/The-Compiler/qutebrowser.git \\"\$QB\\"; cd \\"\$QB\\"; git pull; /usr/local/bin/python3 qutebrowser.py &> /dev/null &";
+      shell = "/bin/bash"; };
+    BundleIdentifier = "com.apple.RunShellScript"; }; }); }
+EOM
+$ mv /tmp/QuteBrowser.app /Applications/
+----
+Now you can find QuteBrowser app in your Applications folder. On every run the fresh code is updated (pulled) from GitHub to the `~/Library/Preferences/qutebrowser/package` directory.
 
 The preferences for qutebrowser are stored in
 `~/Library/Preferences/qutebrowser`, the application data is stored in
