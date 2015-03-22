@@ -23,6 +23,7 @@ import datetime
 import collections
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
+from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.utils import usertypes, log, objreg, utils
 
@@ -44,20 +45,32 @@ def _wrapper(win_id, method_name, text, *args, **kwargs):
         text: The text do display.
         *args/**kwargs: Arguments to pass to the method.
     """
+    msg = QueuedMsg(time=datetime.datetime.now(), win_id=win_id,
+                    method_name=method_name, text=text, args=args,
+                    kwargs=kwargs)
     try:
         bridge = _get_bridge(win_id)
     except objreg.RegistryUnavailableError:
         if win_id == 'current':
-            log.misc.debug("Queueing {} for window {}".format(method_name,
-                                                              win_id))
-            msg = QueuedMsg(time=datetime.datetime.now(), win_id=win_id,
-                            method_name=method_name, text=text, args=args,
-                            kwargs=kwargs)
+            log.misc.debug("Queueing {} for current window".format(
+                method_name))
             _QUEUED.append(msg)
         else:
             raise
     else:
-        getattr(bridge, method_name)(text, *args, **kwargs)
+        from qutebrowser.config import config
+        win = QApplication.instance().activeWindow()
+        window_focused = (win is not None and
+                          win in objreg.window_registry.values() and
+                          win.win_id == win_id)
+        if (config.get('ui', 'message-unfocused') or
+                method_name not in ('error', 'warning', 'info') or
+                window_focused):
+            getattr(bridge, method_name)(text, *args, **kwargs)
+        else:
+            log.misc.debug("Queueing {} for window {}".format(method_name,
+                                                              win_id))
+            _QUEUED.append(msg)
 
 
 def _get_bridge(win_id):

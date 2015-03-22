@@ -222,6 +222,10 @@ DATA = collections.OrderedDict([
          SettingValue(typ.Int(), '2000'),
          "Time (in ms) to show messages in the statusbar for."),
 
+        ('message-unfocused',
+         SettingValue(typ.Bool(), 'false'),
+         "Whether to show messages in unfocused windows."),
+
         ('confirm-quit',
          SettingValue(typ.ConfirmQuit(), 'never'),
          "Whether to confirm quitting the application."),
