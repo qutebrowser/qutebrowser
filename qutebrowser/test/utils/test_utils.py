@@ -22,6 +22,7 @@
 import sys
 import enum
 import unittest
+import datetime
 import os.path
 
 from PyQt5.QtCore import Qt
@@ -190,6 +191,37 @@ class FormatSecondsTests(unittest.TestCase):
         for seconds, out in self.TESTS:
             with self.subTest(seconds=seconds):
                 self.assertEqual(utils.format_seconds(seconds), out)
+
+
+class FormatTimedeltaTests(unittest.TestCase):
+
+    """Tests for format_timedelta.
+
+    Class attributes:
+        TESTS: A list of (input, output) tuples.
+    """
+
+    TESTS = [
+        (datetime.timedelta(seconds=-1), '-1s'),
+        (datetime.timedelta(seconds=0), '0s'),
+        (datetime.timedelta(seconds=59), '59s'),
+        (datetime.timedelta(seconds=120), '2m'),
+        (datetime.timedelta(seconds=60.4), '1m'),
+        (datetime.timedelta(seconds=63), '1m 3s'),
+        (datetime.timedelta(seconds=-64), '-1m 4s'),
+        (datetime.timedelta(seconds=3599), '59m 59s'),
+        (datetime.timedelta(seconds=3600), '1h'),
+        (datetime.timedelta(seconds=3605), '1h 5s'),
+        (datetime.timedelta(seconds=3723), '1h 2m 3s'),
+        (datetime.timedelta(seconds=3780), '1h 3m'),
+        (datetime.timedelta(seconds=36000), '10h'),
+    ]
+
+    def test_format_seconds(self):
+        """Test format_seconds with several tests."""
+        for td, out in self.TESTS:
+            with self.subTest(td=td):
+                self.assertEqual(utils.format_timedelta(td), out)
 
 
 class FormatSizeTests(unittest.TestCase):

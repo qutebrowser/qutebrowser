@@ -19,14 +19,71 @@
 
 """Message singleton so we don't have to define unneeded signals."""
 
-from PyQt5.QtCore import pyqtSignal, QObject, QTimer
+import datetime
+import collections
+
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 
 from qutebrowser.utils import usertypes, log, objreg, utils
 
 
+_QUEUED = []
+QueuedMsg = collections.namedtuple(
+    'QueuedMsg', ['time', 'win_id', 'method_name', 'text', 'args', 'kwargs'])
+
+
+def _wrapper(win_id, method_name, text, *args, **kwargs):
+    """A wrapper which executes the action if possible, and queues it if not.
+
+    It tries to get the message bridge for the given window, and if it's
+    unavailable, it queues it.
+
+    Args:
+        win_id: The window ID to execute the action in,.
+        method_name: The name of the MessageBridge method to call.
+        text: The text do display.
+        *args/**kwargs: Arguments to pass to the method.
+    """
+    try:
+        bridge = _get_bridge(win_id)
+    except objreg.RegistryUnavailableError:
+        if win_id == 'current':
+            log.misc.debug("Queueing {} for window {}".format(method_name,
+                                                              win_id))
+            msg = QueuedMsg(time=datetime.datetime.now(), win_id=win_id,
+                            method_name=method_name, text=text, args=args,
+                            kwargs=kwargs)
+            _QUEUED.append(msg)
+        else:
+            raise
+    else:
+        getattr(bridge, method_name)(text, *args, **kwargs)
+
+
 def _get_bridge(win_id):
     """Get the correct MessageBridge instance for a window."""
+    try:
+        int(win_id)
+    except ValueError:
+        if win_id == 'current':
+            pass
+        else:
+            raise ValueError("Invalid window id {} - needs to be 'current' or "
+                             "a valid integer!".format(win_id))
     return objreg.get('message-bridge', scope='window', window=win_id)
+
+
+@pyqtSlot()
+def on_focus_changed():
+    """Gets called when a new window has been focused."""
+    while _QUEUED:
+        msg = _QUEUED.pop()
+        delta = datetime.datetime.now() - msg.time
+        log.misc.debug("Handling queued {} for window {}, delta {}".format(
+            msg.method_name, msg.win_id, delta))
+        bridge = _get_bridge(msg.win_id)
+        text = '[{} ago] {}'.format(utils.format_timedelta(delta), msg.text)
+        getattr(bridge, msg.method_name)(text, *msg.args, **msg.kwargs)
 
 
 def error(win_id, message, immediately=False):
@@ -36,8 +93,7 @@ def error(win_id, message, immediately=False):
         win_id: The ID of the window which is calling this function.
         others: See MessageBridge.error.
     """
-    QTimer.singleShot(
-        0, lambda: _get_bridge(win_id).error(message, immediately))
+    _wrapper(win_id, 'error', message, immediately)
 
 
 def warning(win_id, message, immediately=False):
@@ -47,8 +103,7 @@ def warning(win_id, message, immediately=False):
         win_id: The ID of the window which is calling this function.
         others: See MessageBridge.warning.
     """
-    QTimer.singleShot(
-        0, lambda: _get_bridge(win_id).warning(message, immediately))
+    _wrapper(win_id, 'warning', message, immediately)
 
 
 def info(win_id, message, immediately=True):
@@ -58,13 +113,12 @@ def info(win_id, message, immediately=True):
         win_id: The ID of the window which is calling this function.
         others: See MessageBridge.info.
     """
-    QTimer.singleShot(
-        0, lambda: _get_bridge(win_id).info(message, immediately))
+    _wrapper(win_id, 'info', message, immediately)
 
 
 def set_cmd_text(win_id, txt):
     """Convienience function to Set the statusbar command line to a text."""
-    _get_bridge(win_id).set_cmd_text(txt)
+    _wrapper(win_id, 'set_cmd_text', txt)
 
 
 def ask(win_id, message, mode, default=None):
@@ -98,7 +152,7 @@ def alert(win_id, message):
     q = usertypes.Question()
     q.text = message
     q.mode = usertypes.PromptMode.alert
-    _get_bridge(win_id).ask(q, blocking=True)
+    _wrapper(win_id, 'ask', q, blocking=True)
     q.deleteLater()
 
 
@@ -114,14 +168,13 @@ def ask_async(win_id, message, mode, handler, default=None):
     """
     if not isinstance(mode, usertypes.PromptMode):
         raise TypeError("Mode {} is no PromptMode member!".format(mode))
-    bridge = _get_bridge(win_id)
-    q = usertypes.Question(bridge)
+    q = usertypes.Question()
     q.text = message
     q.mode = mode
     q.default = default
     q.answered.connect(handler)
     q.completed.connect(q.deleteLater)
-    bridge.ask(q, blocking=False)
+    _wrapper(win_id, 'ask', q, blocking=False)
 
 
 def confirm_async(win_id, message, yes_action, no_action=None, default=None):
@@ -134,8 +187,7 @@ def confirm_async(win_id, message, yes_action, no_action=None, default=None):
         no_action: Callable to be called when the user answered no.
         default: True/False to set a default value, or None.
     """
-    bridge = _get_bridge(win_id)
-    q = usertypes.Question(bridge)
+    q = usertypes.Question()
     q.text = message
     q.mode = usertypes.PromptMode.yesno
     q.default = default
@@ -143,7 +195,7 @@ def confirm_async(win_id, message, yes_action, no_action=None, default=None):
     if no_action is not None:
         q.answered_no.connect(no_action)
     q.completed.connect(q.deleteLater)
-    bridge.ask(q, blocking=False)
+    _wrapper(win_id, 'ask', q, blocking=False)
 
 
 class MessageBridge(QObject):
@@ -185,19 +237,6 @@ class MessageBridge(QObject):
     def __repr__(self):
         return utils.get_repr(self)
 
-    def _emit_later(self, signal, *args):
-        """Emit a message later when the mainloop is not busy anymore.
-
-        This is especially useful when messages are sent during init, before
-        the messagebridge signals are connected - messages would get lost if we
-        did normally emit them.
-
-        Args:
-            signal: The signal to be emitted.
-            *args: Args to be passed to the signal.
-        """
-        QTimer.singleShot(0, lambda: signal.emit(*args))
-
     def error(self, msg, immediately=False):
         """Display an error in the statusbar.
 
@@ -211,7 +250,7 @@ class MessageBridge(QObject):
         """
         msg = str(msg)
         log.misc.error(msg)
-        self._emit_later(self.s_error, msg, immediately)
+        self.s_error.emit(msg, immediately)
 
     def warning(self, msg, immediately=False):
         """Display an warning in the statusbar.
@@ -226,7 +265,7 @@ class MessageBridge(QObject):
         """
         msg = str(msg)
         log.misc.warning(msg)
-        self._emit_later(self.s_warning, msg, immediately)
+        self.s_warning.emit(msg, immediately)
 
     def info(self, msg, immediately=True):
         """Display an info text in the statusbar.
@@ -237,7 +276,7 @@ class MessageBridge(QObject):
         """
         msg = str(msg)
         log.misc.info(msg)
-        self._emit_later(self.s_info, msg, immediately)
+        self.s_info.emit(msg, immediately)
 
     def set_cmd_text(self, text):
         """Set the command text of the statusbar.
@@ -247,7 +286,7 @@ class MessageBridge(QObject):
         """
         text = str(text)
         log.misc.debug(text)
-        self._emit_later(self.s_set_cmd_text, text)
+        self.s_set_cmd_text.emit(text)
 
     def set_text(self, text):
         """Set the normal text of the statusbar.
@@ -257,7 +296,7 @@ class MessageBridge(QObject):
         """
         text = str(text)
         log.misc.debug(text)
-        self._emit_later(self.s_set_text, text)
+        self.s_set_text.emit(text)
 
     def maybe_reset_text(self, text):
         """Reset the text in the statusbar if it matches an expected text.
@@ -265,16 +304,13 @@ class MessageBridge(QObject):
         Args:
             text: The expected text.
         """
-        self._emit_later(self.s_maybe_reset_text, str(text))
+        self.s_maybe_reset_text.emit(str(text))
 
     def ask(self, question, blocking):
         """Ask a question to the user.
 
         Note this method doesn't return the answer, it only blocks. The caller
         needs to construct a Question object and get the answer.
-
-        We don't use _emit_later here as this makes no sense with a blocking
-        question.
 
         Args:
             question: A Question object.

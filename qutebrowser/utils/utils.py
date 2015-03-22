@@ -201,6 +201,21 @@ def format_seconds(total_seconds):
     return prefix + ':'.join(chunks)
 
 
+def format_timedelta(td):
+    """Format a timedelta to get a "1h 5m 1s" string."""
+    prefix = '-' if td.total_seconds() < 0 else ''
+    hours, rem = divmod(abs(round(td.total_seconds())), 3600)
+    minutes, seconds = divmod(rem, 60)
+    chunks = []
+    if hours:
+        chunks.append('{}h'.format(hours))
+    if minutes:
+        chunks.append('{}m'.format(minutes))
+    if seconds or not chunks:
+        chunks.append('{}s'.format(seconds))
+    return prefix + ' '.join(chunks)
+
+
 def format_size(size, base=1024, suffix=''):
     """Format a byte size so it's human readable.
 

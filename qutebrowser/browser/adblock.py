@@ -25,8 +25,6 @@ import functools
 import posixpath
 import zipfile
 
-from PyQt5.QtCore import QTimer
-
 from qutebrowser.config import config
 from qutebrowser.utils import objreg, standarddir, log, message
 from qutebrowser.commands import cmdutils
@@ -107,9 +105,8 @@ class HostBlocker:
                 log.misc.exception("Failed to read host blocklist!")
         else:
             if config.get('content', 'host-block-lists') is not None:
-                QTimer.singleShot(500, functools.partial(
-                    message.info, 'last-focused',
-                    "Run :adblock-update to get adblock lists."))
+                message.info('current',
+                             "Run :adblock-update to get adblock lists.")
 
     @cmdutils.register(instance='host-blocker')
     def adblock_update(self, win_id: {'special': 'win_id'}):
@@ -156,9 +153,8 @@ class HostBlocker:
             f = get_fileobj(byte_io)
         except (OSError, UnicodeDecodeError, zipfile.BadZipFile,
                 zipfile.LargeZipFile) as e:
-            message.error('last-focused', "adblock: Error while reading {}: "
-                          "{} - {}".format(
-                              byte_io.name, e.__class__.__name__, e))
+            message.error('current', "adblock: Error while reading {}: {} - "
+                          "{}".format(byte_io.name, e.__class__.__name__, e))
             return
         for line in f:
             line_count += 1
@@ -186,17 +182,16 @@ class HostBlocker:
                 self.blocked_hosts.add(host)
         log.misc.debug("{}: read {} lines".format(byte_io.name, line_count))
         if error_count > 0:
-            message.error('last-focused', "adblock: {} read errors for "
-                          "{}".format(error_count, byte_io.name))
+            message.error('current', "adblock: {} read errors for {}".format(
+                error_count, byte_io.name))
 
     def on_lists_downloaded(self):
         """Install block lists after files have been downloaded."""
         with open(self._hosts_file, 'w', encoding='utf-8') as f:
             for host in sorted(self.blocked_hosts):
                 f.write(host + '\n')
-            message.info('last-focused', "adblock: Read {} hosts from {} "
-                         "sources.".format(len(self.blocked_hosts),
-                                           self._done_count))
+            message.info('current', "adblock: Read {} hosts from {} sources."
+                         .format(len(self.blocked_hosts), self._done_count))
 
     @config.change_filter('content', 'host-block-lists')
     def on_config_changed(self):

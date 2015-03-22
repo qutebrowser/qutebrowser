@@ -467,6 +467,7 @@ class Application(QApplication):
         self.lastWindowClosed.connect(self.on_last_window_closed)
         config_obj.style_changed.connect(style.get_stylesheet.cache_clear)
         self.focusChanged.connect(self.on_focus_changed)
+        self.focusChanged.connect(message.on_focus_changed)
 
     def _get_widgets(self):
         """Get a string list of all widgets."""
