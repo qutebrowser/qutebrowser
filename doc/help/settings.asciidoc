@@ -31,6 +31,7 @@
 |<<ui-zoom-levels,zoom-levels>>|The available zoom levels, separated by commas.
 |<<ui-default-zoom,default-zoom>>|The default zoom level.
 |<<ui-message-timeout,message-timeout>>|Time (in ms) to show messages in the statusbar for.
+|<<ui-message-unfocused,message-unfocused>>|Whether to show messages in unfocused windows.
 |<<ui-confirm-quit,confirm-quit>>|Whether to confirm quitting the application.
 |<<ui-display-statusbar-messages,display-statusbar-messages>>|Whether to display javascript statusbar messages.
 |<<ui-zoom-text-only,zoom-text-only>>|Whether the zoom factor on a frame applies only to the text or to all content.
@@ -434,6 +435,17 @@ Default: +pass:[100%]+
 Time (in ms) to show messages in the statusbar for.
 
 Default: +pass:[2000]+
+
+[[ui-message-unfocused]]
+=== message-unfocused
+Whether to show messages in unfocused windows.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[false]+
 
 [[ui-confirm-quit]]
 === confirm-quit
