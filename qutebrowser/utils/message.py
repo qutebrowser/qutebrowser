@@ -95,7 +95,11 @@ def on_focus_changed():
         log.misc.debug("Handling queued {} for window {}, delta {}".format(
             msg.method_name, msg.win_id, delta))
         bridge = _get_bridge(msg.win_id)
-        text = '[{} ago] {}'.format(utils.format_timedelta(delta), msg.text)
+        if delta.total_seconds() < 1:
+            text = msg.text
+        else:
+            text = '[{} ago] {}'.format(utils.format_timedelta(delta),
+                                        msg.text)
         getattr(bridge, msg.method_name)(text, *msg.args, **msg.kwargs)
 
 
