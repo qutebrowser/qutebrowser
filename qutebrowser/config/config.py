@@ -400,7 +400,7 @@ class ConfigManager(QObject):
 
         Args:
             cp: The configparser instance to read the values from.
-            relaxed: Whether to ignore inexistent sections/optons
+            relaxed: Whether to ignore inexistent sections/options.
         """
         for sectname in cp:
             if sectname in self.RENAMED_SECTIONS:
@@ -409,23 +409,33 @@ class ConfigManager(QObject):
                 if not relaxed:
                     raise configexc.NoSectionError(sectname)
         for sectname in self.sections:
-            real_sectname = self._get_real_sectname(cp, sectname)
-            if real_sectname is None:
-                continue
-            for k, v in cp[real_sectname].items():
-                if k.startswith(self.ESCAPE_CHAR):
-                    k = k[1:]
-                if (sectname, k) in self.DELETED_OPTIONS:
-                    continue
-                elif (sectname, k) in self.RENAMED_OPTIONS:
-                    k = self.RENAMED_OPTIONS[sectname, k]
-                try:
-                    self.set('conf', sectname, k, v, validate=False)
-                except configexc.NoOptionError:
-                    if relaxed:
-                        pass
-                    else:
-                        raise
+            self._from_cp_section(sectname, cp, relaxed)
+
+    def _from_cp_section(self, sectname, cp, relaxed):
+        """Read a single section from a configparser instance.
+
+        Args:
+            sectname: The name of the section to read.
+            cp: The configparser instance to read the values from.
+            relaxed: Whether to ignore inexistent options.
+        """
+        real_sectname = self._get_real_sectname(cp, sectname)
+        if real_sectname is None:
+            return
+        for k, v in cp[real_sectname].items():
+            if k.startswith(self.ESCAPE_CHAR):
+                k = k[1:]
+            if (sectname, k) in self.DELETED_OPTIONS:
+                return
+            elif (sectname, k) in self.RENAMED_OPTIONS:
+                k = self.RENAMED_OPTIONS[sectname, k]
+            try:
+                self.set('conf', sectname, k, v, validate=False)
+            except configexc.NoOptionError:
+                if relaxed:
+                    pass
+                else:
+                    raise
 
     def _validate_all(self):
         """Validate all values set in self._from_cp."""

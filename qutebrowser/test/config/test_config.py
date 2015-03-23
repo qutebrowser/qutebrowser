@@ -149,14 +149,14 @@ class ConfigParserTests(unittest.TestCase):
         self.cp.read_dict({'foo': {'bar': 'baz'}})
         self.cfg._from_cp(self.cp, relaxed=True)
         with self.assertRaises(configexc.NoSectionError):
-            self.cfg.get('foo', 'bar')
+            self.cfg.get('foo', 'bar')  # pylint: disable=bad-config-call
 
     def test_invalid_option_relaxed(self):
         """Test an invalid option with relaxed=True."""
         self.cp.read_dict({'general': {'bar': 'baz'}})
         self.cfg._from_cp(self.cp, relaxed=True)
         with self.assertRaises(configexc.NoOptionError):
-            self.cfg.get('general', 'bar')
+            self.cfg.get('general', 'bar')  # pylint: disable=bad-config-call
 
 
 class DefaultConfigTests(unittest.TestCase):
