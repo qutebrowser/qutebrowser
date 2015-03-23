@@ -27,6 +27,7 @@ import configparser
 import tempfile
 import types
 import shutil
+import argparse
 from unittest import mock
 
 from PyQt5.QtCore import QObject
@@ -143,6 +144,20 @@ class ConfigParserTests(unittest.TestCase):
         with self.assertRaises(configexc.NoOptionError):
             self.cfg._from_cp(self.cp)
 
+    def test_invalid_section_relaxed(self):
+        """Test an invalid section with relaxed=True."""
+        self.cp.read_dict({'foo': {'bar': 'baz'}})
+        self.cfg._from_cp(self.cp, relaxed=True)
+        with self.assertRaises(configexc.NoSectionError):
+            self.cfg.get('foo', 'bar')
+
+    def test_invalid_option_relaxed(self):
+        """Test an invalid option with relaxed=True."""
+        self.cp.read_dict({'general': {'bar': 'baz'}})
+        self.cfg._from_cp(self.cp, relaxed=True)
+        with self.assertRaises(configexc.NoOptionError):
+            self.cfg.get('general', 'bar')
+
 
 class DefaultConfigTests(unittest.TestCase):
 
@@ -173,6 +188,8 @@ class ConfigInitTests(unittest.TestCase):
         }
         objreg.register('app', QObject())
         objreg.register('save-manager', mock.MagicMock())
+        args = argparse.Namespace(relaxed_config=False)
+        objreg.register('args', args)
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)

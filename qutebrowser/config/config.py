@@ -117,8 +117,9 @@ def _init_main_config():
     """Initialize the main config."""
     try:
         app = objreg.get('app')
+        args = objreg.get('args')
         config_obj = ConfigManager(standarddir.config(), 'qutebrowser.conf',
-                                   app)
+                                   args.relaxed_config, app)
     except (configexc.Error, configparser.Error, UnicodeDecodeError) as e:
         log.init.exception(e)
         errstr = "Error while reading config:"
@@ -270,7 +271,7 @@ class ConfigManager(QObject):
     changed = pyqtSignal(str, str)
     style_changed = pyqtSignal(str, str)
 
-    def __init__(self, configdir, fname, parent=None):
+    def __init__(self, configdir, fname, relaxed=False, parent=None):
         super().__init__(parent)
         self._initialized = False
         self.sections = configdata.DATA
@@ -285,7 +286,7 @@ class ConfigManager(QObject):
         else:
             self._configdir = configdir
             parser = ini.ReadConfigParser(configdir, fname)
-            self._from_cp(parser)
+            self._from_cp(parser, relaxed)
             self._initialized = True
             self._validate_all()
 
@@ -394,17 +395,19 @@ class ConfigManager(QObject):
         else:
             return None
 
-    def _from_cp(self, cp):
+    def _from_cp(self, cp, relaxed=False):
         """Read the config from a configparser instance.
 
         Args:
             cp: The configparser instance to read the values from.
+            relaxed: Whether to ignore inexistent sections/optons
         """
         for sectname in cp:
             if sectname in self.RENAMED_SECTIONS:
                 sectname = self.RENAMED_SECTIONS[sectname]
             if sectname is not 'DEFAULT' and sectname not in self.sections:
-                raise configexc.NoSectionError(sectname)
+                if not relaxed:
+                    raise configexc.NoSectionError(sectname)
         for sectname in self.sections:
             real_sectname = self._get_real_sectname(cp, sectname)
             if real_sectname is None:
@@ -416,7 +419,13 @@ class ConfigManager(QObject):
                     continue
                 elif (sectname, k) in self.RENAMED_OPTIONS:
                     k = self.RENAMED_OPTIONS[sectname, k]
-                self.set('conf', sectname, k, v, validate=False)
+                try:
+                    self.set('conf', sectname, k, v, validate=False)
+                except configexc.NoOptionError:
+                    if relaxed:
+                        pass
+                    else:
+                        raise
 
     def _validate_all(self):
         """Validate all values set in self._from_cp."""

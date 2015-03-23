@@ -73,6 +73,8 @@ def get_argparser():
     debug.add_argument('--harfbuzz', choices=['old', 'new', 'system', 'auto'],
                        default='auto', help="HarfBuzz engine version to use. "
                        "Default: auto.")
+    debug.add_argument('--relaxed-config', action='store_true',
+                       help="Silently remove unknown config options.")
     debug.add_argument('--nowindow', action='store_true', help="Don't show "
                        "the main window.")
     debug.add_argument('--debug-exit', help="Turn on debugging of late exit.",
