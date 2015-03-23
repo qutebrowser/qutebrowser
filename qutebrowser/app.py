@@ -24,7 +24,6 @@ import sys
 import subprocess
 import configparser
 import signal
-import warnings
 import bdb
 import base64
 import functools
@@ -85,11 +84,6 @@ class Application(QApplication):
         self._shutting_down = False
         self._crashdlg = None
         self._crashlogfile = None
-
-        if args.debug:
-            # We don't enable this earlier because some imports trigger
-            # warnings (which are not our fault).
-            warnings.simplefilter('default')
 
         qt_args = qtutils.get_args(args)
         log.init.debug("Qt arguments: {}, based on {}".format(qt_args, args))

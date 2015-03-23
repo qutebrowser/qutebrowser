@@ -27,6 +27,7 @@ import contextlib
 import collections
 import faulthandler
 import traceback
+import warnings
 
 from PyQt5.QtCore import (QtDebugMsg, QtWarningMsg, QtCriticalMsg, QtFatalMsg,
                           qInstallMessageHandler)
@@ -149,6 +150,7 @@ def init_log(args):
         root.addHandler(ram)
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
+    warnings.simplefilter('default')
     qInstallMessageHandler(qt_message_handler)
 
 
