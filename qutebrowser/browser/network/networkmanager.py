@@ -356,5 +356,5 @@ class NetworkManager(QNetworkAccessManager):
         else:
             reply = super().createRequest(op, req, outgoing_data)
         self._requests.append(reply)
-        reply.destroyed.connect(lambda obj: self._requests.remove(obj))
+        reply.destroyed.connect(self._requests.remove)
         return reply

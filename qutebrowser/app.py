@@ -472,7 +472,7 @@ class Application(QApplication):
     def _get_widgets(self):
         """Get a string list of all widgets."""
         widgets = self.allWidgets()
-        widgets.sort(key=lambda e: repr(e))
+        widgets.sort(key=repr)
         return [repr(w) for w in widgets]
 
     def _get_pyqt_objects(self, lines, obj, depth=0):
