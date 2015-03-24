@@ -480,6 +480,7 @@ class BrowserPage(QWebPage):
 
     def javaScriptAlert(self, _frame, msg):
         """Override javaScriptAlert to use the statusbar."""
+        log.js.debug("alert: {}".format(msg))
         if (self._is_shutting_down or
                 config.get('content', 'ignore-javascript-alert')):
             return
@@ -487,6 +488,7 @@ class BrowserPage(QWebPage):
 
     def javaScriptConfirm(self, _frame, msg):
         """Override javaScriptConfirm to use the statusbar."""
+        log.js.debug("confirm: {}".format(msg))
         if self._is_shutting_down:
             return False
         ans = self._ask("[js confirm] {}".format(msg),
