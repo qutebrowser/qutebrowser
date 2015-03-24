@@ -90,19 +90,12 @@ class MainWindow(QWidget):
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
 
-        log.init.debug("Initializing downloads...")
-        download_manager = downloads.DownloadManager(self.win_id, self)
-        objreg.register('download-manager', download_manager, scope='window',
-                        window=self.win_id)
-
-        self._downloadview = downloadview.DownloadView(self.win_id)
-        self._vbox.addWidget(self._downloadview)
-        self._downloadview.show()
-
-        self._tabbed_browser = tabbedbrowser.TabbedBrowser(self.win_id)
-        objreg.register('tabbed-browser', self._tabbed_browser, scope='window',
-                        window=self.win_id)
-        self._vbox.addWidget(self._tabbed_browser)
+        if config.get('ui', 'downloads-at-top'):
+            self._init_downloadview()
+            self._init_tabbed_browser()
+        else:
+            self._init_tabbed_browser()
+            self._init_downloadview()
 
         # We need to set an explicit parent for StatusBar because it does some
         # show/hide magic immediately which would mean it'd show up as a
@@ -141,6 +134,22 @@ class MainWindow(QWidget):
         """Resize the completion if related config options changed."""
         if section == 'completion' and option in ('height', 'shrink'):
             self.resize_completion()
+
+    def _init_downloadview(self):
+        log.init.debug("Initializing downloads...")
+        download_manager = downloads.DownloadManager(self.win_id, self)
+        objreg.register('download-manager', download_manager, scope='window',
+                        window=self.win_id)
+
+        self._downloadview = downloadview.DownloadView(self.win_id)
+        self._vbox.addWidget(self._downloadview)
+        self._downloadview.show()
+
+    def _init_tabbed_browser(self):
+        self._tabbed_browser = tabbedbrowser.TabbedBrowser(self.win_id)
+        objreg.register('tabbed-browser', self._tabbed_browser, scope='window',
+                        window=self.win_id)
+        self._vbox.addWidget(self._tabbed_browser)
 
     def _load_state_geometry(self):
         """Load the geometry from the state file."""
