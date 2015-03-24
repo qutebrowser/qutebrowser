@@ -21,6 +21,7 @@
 
 import os
 import os.path
+import configparser
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject, QPoint, QTimer
 from PyQt5.QtWidgets import QApplication
@@ -54,6 +55,7 @@ class SessionManager(QObject):
         _base_path: The path to store sessions under.
         _last_window_session: The session data of the last window which was
                               closed.
+        did_load: Set when a session was loaded.
 
     Signals:
         update_completion: Emitted when the session completion should get
@@ -66,6 +68,7 @@ class SessionManager(QObject):
         super().__init__(parent)
         self._base_path = os.path.join(standarddir.data(), 'sessions')
         self._last_window_session = None
+        self.did_load = False
         if not os.path.exists(self._base_path):
             os.mkdir(self._base_path)
 
@@ -154,12 +157,13 @@ class SessionManager(QObject):
             data['windows'].append(win_data)
         return data
 
-    def save(self, name, last_window=False):
+    def save(self, name, last_window=False, load_next_time=False):
         """Save a named session.
 
         Args:
             last_window: If set, saves the saved self._last_window_session
                          instead of the currently open state.
+            load_next_time: If set, prepares this session to be load next time.
         """
         path = self._get_session_path(name)
 
@@ -178,6 +182,13 @@ class SessionManager(QObject):
             raise SessionError(e)
         else:
             self.update_completion.emit()
+        if load_next_time:
+            state_config = objreg.get('state-config')
+            try:
+                state_config.add_section('general')
+            except configparser.DuplicateSectionError:
+                pass
+            state_config['general']['session'] = name
 
     def save_last_window_session(self):
         """Temporarily save the session for the last closed window."""
@@ -235,6 +246,7 @@ class SessionManager(QObject):
                 tabbed_browser.setCurrentIndex(tab_to_focus)
             if win.get('active', False):
                 QTimer.singleShot(0, tabbed_browser.activateWindow)
+        self.did_load = True
 
     def delete(self, name):
         """Delete a session."""

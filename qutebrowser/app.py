@@ -205,12 +205,6 @@ class Application(QApplication):
         objreg.register('cache', diskcache)
         log.init.debug("Initializing completions...")
         completionmodels.init()
-        if not session_manager.exists(self._args.session):
-            log.init.debug("Initializing main window...")
-            window = mainwindow.MainWindow()
-            if not self._args.nowindow:
-                window.show()
-            self.setActiveWindow(window)
 
     def _init_icon(self):
         """Initialize the icon of qutebrowser."""
@@ -266,7 +260,16 @@ class Application(QApplication):
             except (configexc.Error, configparser.Error) as e:
                 message.error('current', "set: {} - {}".format(
                     e.__class__.__name__, e))
+
         self._load_session(self._args.session)
+        session_manager = objreg.get('session-manager')
+        if not session_manager.did_load:
+            log.init.debug("Initializing main window...")
+            window = mainwindow.MainWindow()
+            if not self._args.nowindow:
+                window.show()
+            self.setActiveWindow(window)
+
         self.process_pos_args(self._args.command)
         self._open_startpage()
         self._open_quickstart()
@@ -275,17 +278,28 @@ class Application(QApplication):
         """Load the default session.
 
         Args:
-            name: The name of the session to load.
+            name: The name of the session to load, or None to read state file.
         """
+        state_config = objreg.get('state-config')
+        if name is None:
+            try:
+                name = state_config['general']['session']
+            except KeyError:
+                # No session given as argument and none in the session file ->
+                # start without loading a session
+                return
         session_manager = objreg.get('session-manager')
         try:
             session_manager.load(name)
         except sessions.SessionNotFoundError:
+            message.error('current', "Session {} not found!".format(name))
+        except sessions.SessionError as e:
+            message.error('current', "Failed to load session {}: {}".format(
+                name, e))
+        try:
+            del state_config['general']['session']
+        except KeyError:
             pass
-        except sessions.SessionError:
-            log.init.exception("Failed to load default session")
-        else:
-            session_manager.delete('default')
 
     def _get_window(self, via_ipc, force_window=False, force_tab=False):
         """Helper function for process_pos_args to get a window id.
@@ -794,11 +808,15 @@ class Application(QApplication):
         self._shutting_down = True
         log.destroy.debug("Shutting down with status {}, session {}..."
                           .format(status, session))
+
         session_manager = objreg.get('session-manager')
         if session is not None:
-            session_manager.save(session, last_window=last_window)
+            session_manager.save(session, last_window=last_window,
+                                 load_next_time=True)
         elif config.get('general', 'save-session'):
-            session_manager.save('default', last_window=last_window)
+            session_manager.save('default', last_window=last_window,
+                                 load_next_time=True)
+
         deferrer = False
         for win_id in objreg.window_registry:
             prompter = objreg.get('prompter', None, scope='window',

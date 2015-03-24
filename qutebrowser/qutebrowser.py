@@ -54,7 +54,7 @@ def get_argparser():
                         dest='temp_settings', default=[],
                         metavar=('SECTION', 'OPTION', 'VALUE'))
     parser.add_argument('-r', '--restore', help="Restore a named session.",
-                        dest='session', default='default')
+                        dest='session')
 
     debug = parser.add_argument_group('debug arguments')
     debug.add_argument('-l', '--loglevel', dest='loglevel',
