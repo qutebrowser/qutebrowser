@@ -46,6 +46,9 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 *-r* 'SESSION', *--restore* 'SESSION'::
     Restore a named session.
 
+*-R*, *--override-restore*::
+    Don't restore a session even if one would be restored.
+
 === debug arguments
 *-l* 'LOGLEVEL', *--loglevel* 'LOGLEVEL'::
     Set loglevel

@@ -261,7 +261,8 @@ class Application(QApplication):
                 message.error('current', "set: {} - {}".format(
                     e.__class__.__name__, e))
 
-        self._load_session(self._args.session)
+        if not self._args.override_restore:
+            self._load_session(self._args.session)
         session_manager = objreg.get('session-manager')
         if not session_manager.did_load:
             log.init.debug("Initializing main window...")

@@ -55,6 +55,9 @@ def get_argparser():
                         metavar=('SECTION', 'OPTION', 'VALUE'))
     parser.add_argument('-r', '--restore', help="Restore a named session.",
                         dest='session')
+    parser.add_argument('-R', '--override-restore', help="Don't restore a "
+                        "session even if one would be restored.",
+                        action='store_true')
 
     debug = parser.add_argument_group('debug arguments')
     debug.add_argument('-l', '--loglevel', dest='loglevel',
