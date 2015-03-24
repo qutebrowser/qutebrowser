@@ -379,7 +379,7 @@ class Application(QApplication):
                     message.error(0, "Error in startup argument '{}': "
                                      "{}".format(cmd, e))
                 else:
-                    tabbed_browser.tabopen(url)
+                    tabbed_browser.tabopen(url, background=False)
 
     def _open_startpage(self, win_id=None):
         """Open startpage.
