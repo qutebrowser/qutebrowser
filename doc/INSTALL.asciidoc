@@ -13,7 +13,7 @@ qutebrowser should run on these systems:
 Install the dependencies via apt-get:
 
 ----
-# apt-get install python3-pyqt5 python3-pyqt5.qtwebkit
+# apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python-tox
 ----
 
 To generate the documentation for the `:help` command, when using the git
@@ -24,11 +24,11 @@ repository (rather than a release):
 # python3 scripts/asciidoc2html.py
 ----
 
-Then run the supplied script to run qutebrowser inside a
+Then run tox like this to set up a
 https://docs.python.org/3/library/venv.html[virtual environment]:
 
 ----
-# python3 scripts/init_venv.py
+# tox -e mkvenv
 ----
 
 This installs all needed Python dependencies in a `.venv` subfolder. The
@@ -102,12 +102,18 @@ Python 3 (be sure to install pip).
 * Use the installer from
 http://www.riverbankcomputing.com/software/pyqt/download5[Riverbank computing]
 to get Qt and PyQt5.
+* Install https://testrun.org/tox/latest/index.html[tox] via
+https://pip.pypa.io/en/latest/[pip]:
 
-Then run the supplied script to run qutebrowser inside a
+----
+$ pip install tox
+----
+
+Then run tox like this to set up a
 https://docs.python.org/3/library/venv.html[virtual environment]:
 
 ----
-# python3 scripts/init_venv.py
+# tox -e mkvenv
 ----
 
 This installs all needed Python dependencies in a `.venv` subfolder. The
