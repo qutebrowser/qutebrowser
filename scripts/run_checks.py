@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Run different codecheckers over a codebase.
+"""Run different codecheckers over a codebase.
 
 Runs flake8, pylint, pep257, a CRLF/whitespace/conflict-checker and
 pyroma/check-manifest by default.

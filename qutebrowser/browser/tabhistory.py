@@ -141,7 +141,6 @@ def serialize(items):
         If 'data' goes out of scope, reading from 'stream' will result in a
         segfault!
     """
-
     data = QByteArray()
     stream = QDataStream(data, QIODevice.ReadWrite)
     user_data = []

@@ -433,7 +433,6 @@ class Command:
         Return:
             An (args, kwargs) tuple.
         """
-
         args = []
         kwargs = {}
         signature = inspect.signature(self.handler)

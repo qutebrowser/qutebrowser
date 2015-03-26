@@ -58,7 +58,7 @@ def _download_dir():
 
 
 def _path_suggestion(filename):
-    """Get the suggested file path
+    """Get the suggested file path.
 
     Args:
         filename: The filename to use if included in the suggestion.
@@ -289,7 +289,7 @@ class DownloadItem(QObject):
                         total=total, errmsg=errmsg))
 
     def _create_fileobj(self):
-        """Creates a file object using the internal filename."""
+        """Create a file object using the internal filename."""
         try:
             fileobj = open(self._filename, 'wb')
         except OSError as e:
@@ -395,7 +395,7 @@ class DownloadItem(QObject):
         self.data_changed.emit()
 
     def delete(self):
-        """Delete the downloaded file"""
+        """Delete the downloaded file."""
         try:
             if self._filename is not None and os.path.exists(self._filename):
                 os.remove(self._filename)
@@ -451,7 +451,7 @@ class DownloadItem(QObject):
             self._create_fileobj()
 
     def _create_full_filename(self, filename):
-        """Tries to create the full filename.
+        """Try to create the full filename.
 
         Return:
             True if the full filename was created, False otherwise.
@@ -785,7 +785,7 @@ class DownloadManager(QAbstractListModel):
         return download
 
     def raise_no_download(self, count):
-        """Raise an exception that the download doesn't exist
+        """Raise an exception that the download doesn't exist.
 
         Args:
             count: The index of the download
@@ -987,7 +987,7 @@ class DownloadManager(QAbstractListModel):
         self.endRemoveRows()
 
     def update_indexes(self):
-        """Update indexes of all DownloadItems"""
+        """Update indexes of all DownloadItems."""
         first_idx = None
         for i, d in enumerate(self.downloads, 1):
             if first_idx is None and d.index != i:

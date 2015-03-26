@@ -205,25 +205,26 @@ class IsVisibleIframeTests(unittest.TestCase):
     """
 
     def setUp(self):
-        """Set up this base situation
-              0, 0                         300, 0
-               ##############################
-               #                            #
-          0,10 # iframe  100,10             #
-               #**********                  #
-               #*e       * elem1: 0, 0 in iframe (visible)
-               #*        *                  #
-               #* e      * elem2: 20,90 in iframe (visible)
-               #**********                  #
-         0,110 #.        .100,110           #
-               #.        .                  #
-               #. e      . elem3: 20,150 in iframe (not visible)
-               #..........                  #
-               #     e     elem4: 30, 180 in main frame (visible)
-               #                            #
-               #          frame             #
-               ##############################
-             300, 0                         300, 300
+        """Set up the following base situation.
+
+             0, 0                         300, 0
+              ##############################
+              #                            #
+         0,10 # iframe  100,10             #
+              #**********                  #
+              #*e       * elem1: 0, 0 in iframe (visible)
+              #*        *                  #
+              #* e      * elem2: 20,90 in iframe (visible)
+              #**********                  #
+        0,110 #.        .100,110           #
+              #.        .                  #
+              #. e      . elem3: 20,150 in iframe (not visible)
+              #..........                  #
+              #     e     elem4: 30, 180 in main frame (visible)
+              #                            #
+              #          frame             #
+              ##############################
+            300, 0                         300, 300
         """
         self.frame = stubs.FakeWebFrame(QRect(0, 0, 300, 300))
         self.iframe = stubs.FakeWebFrame(QRect(0, 10, 100, 100),
@@ -327,7 +328,7 @@ class GetChildFramesTests(unittest.TestCase):
         frame.childFrames.assert_called_once_with()
 
     def test_one_level(self):
-        r"""Test get_child_frames with this tree:
+        r"""Test get_child_frames with one level of children.
 
                   o   parent
                  / \
@@ -346,7 +347,7 @@ class GetChildFramesTests(unittest.TestCase):
         child2.childFrames.assert_called_once_with()
 
     def test_multiple_levels(self):
-        r"""Test get_child_frames with this tree:
+        r"""Test get_child_frames with multiple levels of children.
 
             o      root
            / \

@@ -457,7 +457,9 @@ class Application(QApplication):
 
     @pyqtSlot()
     def _handle_signal_wakeup(self):
-        """This gets called via self._signal_notifier when there's a signal.
+        """Handle a newly arrived signal.
+
+        This gets called via self._signal_notifier when there's a signal.
 
         Python will get control here, so the signal will get handled.
         """

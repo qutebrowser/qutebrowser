@@ -88,7 +88,10 @@ def _get_bridge(win_id):
 
 @pyqtSlot()
 def on_focus_changed():
-    """Gets called when a new window has been focused."""
+    """Show queued messages when a new window has been focused.
+
+    Gets called when a new window has been focused.
+    """
     while _QUEUED:
         msg = _QUEUED.pop()
         delta = datetime.datetime.now() - msg.time

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""pyPEG parsing for the RFC 6266 (Content-Disposition) header. """
+"""pyPEG parsing for the RFC 6266 (Content-Disposition) header."""
 
 import collections
 import urllib.parse
@@ -121,6 +121,7 @@ class Language(str):
     FIXME: This grammar is not 100% correct yet.
     https://github.com/The-Compiler/qutebrowser/issues/105
     """
+
     grammar = re.compile('[A-Za-z0-9-]+')
 
 
@@ -234,7 +235,7 @@ class ContentDisposition:
     """
 
     def __init__(self, disposition='inline', assocs=None):
-        """This constructor is used internally after parsing the header.
+        """Used internally after parsing the header.
 
         Instances should generally be created from a factory
         function, such as parse_headers and its variants.
@@ -264,7 +265,6 @@ class ContentDisposition:
         well, due to a certain browser using the part after the dot for
         mime-sniffing.  Saving it to a database is fine by itself though.
         """
-
         if 'filename*' in self.assocs:
             return self.assocs['filename*']
         elif 'filename' in self.assocs:

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Other utilities which don't fit anywhere else. """
+"""Other utilities which don't fit anywhere else."""
 
 import io
 import sys
@@ -383,11 +383,11 @@ class FakeIOStream(io.TextIOBase):
         self.write = write_func
 
     def flush(self):
-        """This is only here to satisfy pylint."""
+        """Override flush() to satisfy pylint."""
         return super().flush()
 
     def isatty(self):
-        """This is only here to satisfy pylint."""
+        """Override isatty() to satisfy pylint."""
         return super().isatty()
 
 
@@ -459,7 +459,7 @@ class prevent_exceptions:  # pylint: disable=invalid-name
         self._predicate = predicate
 
     def __call__(self, func):
-        """Gets called when a function should be decorated.
+        """Called when a function should be decorated.
 
         Args:
             func: The function to be decorated.

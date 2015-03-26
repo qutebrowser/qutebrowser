@@ -59,7 +59,7 @@ class DiskCache(QNetworkDiskCache):
             return super().cacheSize()
 
     def fileMetaData(self, filename):
-        """Returns the QNetworkCacheMetaData for the cache file filename.
+        """Return the QNetworkCacheMetaData for the cache file filename.
 
         Args:
             filename: The file name as a string.
@@ -137,7 +137,7 @@ class DiskCache(QNetworkDiskCache):
             return super().remove(url)
 
     def updateMetaData(self, meta_data):
-        """Updates the cache meta date for the meta_data's url to meta_data.
+        """Update the cache meta date for the meta_data's url to meta_data.
 
         Args:
             meta_data: A QNetworkCacheMetaData object.
@@ -148,7 +148,7 @@ class DiskCache(QNetworkDiskCache):
             super().updateMetaData(meta_data)
 
     def clear(self):
-        """Removes all items from the cache."""
+        """Remove all items from the cache."""
         if objreg.get('general', 'private-browsing'):
             return
         else:

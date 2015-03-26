@@ -51,7 +51,6 @@ def log_signals(obj):
 
     Can be used as class decorator.
     """
-
     def log_slot(obj, signal, *args):
         """Slot connected to a signal to log it."""
         dbg = dbg_signal(signal, args)

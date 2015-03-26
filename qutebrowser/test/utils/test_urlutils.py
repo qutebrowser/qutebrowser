@@ -93,25 +93,25 @@ class SearchUrlTests(unittest.TestCase):
         self.assertEqual(url.query(), 'q=testfoo')
 
     def test_engine_pre(self):
-        """Test first word is search engine name"""
+        """Test search engine name with one word."""
         url = urlutils._get_search_url('test testfoo')
         self.assertEqual(url.host(), 'www.qutebrowser.org')
         self.assertEqual(url.query(), 'q=testfoo')
 
     def test_engine_pre_multiple_words(self):
-        """Test first word is search engine name"""
+        """Test search engine name with multiple words."""
         url = urlutils._get_search_url('test testfoo bar foo')
         self.assertEqual(url.host(), 'www.qutebrowser.org')
         self.assertEqual(url.query(), 'q=testfoo bar foo')
 
     def test_engine_pre_whitespace_at_end(self):
-        """Test first word is search engine name"""
+        """Test search engine name with one word and whitespace."""
         url = urlutils._get_search_url('test testfoo ')
         self.assertEqual(url.host(), 'www.qutebrowser.org')
         self.assertEqual(url.query(), 'q=testfoo')
 
     def test_engine_with_bang_pre(self):
-        """Test search engine with a prepended !hasbang."""
+        """Test search engine with a prepended !bang."""
         url = urlutils._get_search_url('!python testfoo')
         self.assertEqual(url.host(), 'www.example.com')
         self.assertEqual(url.query(), 'q=%21python testfoo')
@@ -177,13 +177,13 @@ class IsUrlTests(unittest.TestCase):
     @mock.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
         get_config_stub(True)))
     def test_search_autosearch(self):
-        """Test explicit search with auto-search=True"""
+        """Test explicit search with auto-search=True."""
         self.assertFalse(urlutils.is_url('test foo'))
 
     @mock.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
         get_config_stub(False)))
     def test_search_no_autosearch(self):
-        """Test explicit search with auto-search=False"""
+        """Test explicit search with auto-search=False."""
         self.assertFalse(urlutils.is_url('test foo'))
 
 

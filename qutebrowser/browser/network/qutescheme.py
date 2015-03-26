@@ -170,7 +170,7 @@ def qute_help(win_id, request):
 
 
 def qute_settings(win_id, _request):
-    """Handler for qute:settings. View/change qute configuration"""
+    """Handler for qute:settings. View/change qute configuration."""
     html = jinja.env.get_template('settings.html').render(
         win_id=win_id, title='settings', config=configdata)
     return html.encode('UTF-8', errors='xmlcharrefreplace')

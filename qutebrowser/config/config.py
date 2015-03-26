@@ -85,7 +85,6 @@ class change_filter:  # pylint: disable=invalid-name
         Return:
             The decorated function.
         """
-
         @pyqtSlot(str, str)
         @functools.wraps(func)
         def wrapper(wrapper_self, sectname=None, optname=None):

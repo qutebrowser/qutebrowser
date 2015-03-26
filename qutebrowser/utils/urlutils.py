@@ -193,7 +193,6 @@ def _has_explicit_scheme(url):
     Args:
         url: The URL as QUrl.
     """
-
     # Note that generic URI syntax actually would allow a second colon
     # after the scheme delimiter. Since we don't know of any URIs
     # using this and want to support e.g. searching for scoped C++
