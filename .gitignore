@@ -15,4 +15,5 @@ __pycache__
 /qutebrowser/html/doc/
 /.venv
 /.coverage
-/covhtml
+/htmlcov
+/.tox
