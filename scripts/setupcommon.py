@@ -29,13 +29,20 @@ import subprocess
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
 
+if sys.hexversion >= 0x03000000:
+    _open = open
+else:
+    import codecs
+    _open = codecs.open
+
+
 BASEDIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                        os.path.pardir)
 
 
 def read_file(name):
     """Get the string contained in the file named name."""
-    with open(name, 'r', encoding='utf-8') as f:
+    with _open(name, 'r', encoding='utf-8') as f:
         return f.read()
 
 
@@ -88,7 +95,7 @@ def write_git_file():
     if gitstr is None:
         gitstr = ''
     path = os.path.join(BASEDIR, 'qutebrowser', 'git-commit-id')
-    with open(path, 'w', encoding='utf-8') as f:
+    with _open(path, 'w', encoding='ascii') as f:
         f.write(gitstr)
 
 
