@@ -86,34 +86,25 @@ Useful utilities
 Checkers
 ~~~~~~~~
 
-In the _scripts/_ subfolder, there is a `run_checks.py` script.
+qutbebrowser uses http://tox.readthedocs.org/en/latest/[tox] to run its
+unittests and several linters/checkers.
 
-It runs a bunch of static checks on all source files, using the following
-checkers:
+Currently, the following tools will be invoked when you run `tox`:
 
 * Unit tests using the Python
 https://docs.python.org/3.4/library/unittest.html[unittest] framework
-* https://pypi.python.org/pypi/flake8/1.3.1[flake8]
+* https://pypi.python.org/pypi/flake8/[flake8]
 * https://github.com/GreenSteam/pep257/[pep257]
 * http://pylint.org/[pylint]
-* A custom checker for the following things:
+* https://pypi.python.org/pypi/pyroma/[pyroma]
+* https://github.com/mgedmin/check-manifest[check-manifest]
+* `scripts/misc_checks.py` which checks for the following things:
     - untracked git files
     - VCS conflict markers
 
-////
-If you changed `setup.py` or `MANIFEST.in`, add the `--setup` argument to run
-the following additional checkers:
-
-* https://pypi.python.org/pypi/pyroma/0.9.3[pyroma]
-* https://github.com/mgedmin/check-manifest[check-manifest]
-
-////
-It needs all the checkers to be installed and also needs
-https://pypi.python.org/pypi/colorama/[colorama].
-
-Please make sure this script runs without any warnings on your new
-contributions. There's of course the possibility of false-positives, and the
-following techniques are useful to handle these:
+Please make sure the checks run without any warnings on your new contributions.
+There's of course the possibility of false-positives, and the following
+techniques are useful to handle these:
 
 * Use `_foo` for unused parameters, with `foo` being a descriptive name. Using
 `_` is discouraged.
