@@ -10,3 +10,4 @@
 # W503: line break before binary operator
 ignore=E265,E501,F841,F401,E402,E266,W503
 max_complexity = 12
+exclude=resources.py
