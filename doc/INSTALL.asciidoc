@@ -21,14 +21,14 @@ repository (rather than a release):
 
 ----
 # apt-get install asciidoc
-# python3 scripts/asciidoc2html.py
+$ python3 scripts/asciidoc2html.py
 ----
 
 Then run tox like this to set up a
 https://docs.python.org/3/library/venv.html[virtual environment]:
 
 ----
-# tox -e mkvenv
+$ tox -e mkvenv
 ----
 
 This installs all needed Python dependencies in a `.venv` subfolder. The
@@ -41,6 +41,8 @@ your `$PATH` (e.g. `/usr/local/bin/qutebrowser` or `~/bin/qutebrowser`):
 #!/bin/bash
 ~/path/to/qutebrowser/.venv/bin/python3 -m qutebrowser "$@"
 ----
+
+Please also read about <<updating,updating qutebrowser with tox>>.
 
 On Archlinux
 ------------
@@ -113,11 +115,13 @@ Then run tox like this to set up a
 https://docs.python.org/3/library/venv.html[virtual environment]:
 
 ----
-# tox -e mkvenv
+$ tox -e mkvenv
 ----
 
 This installs all needed Python dependencies in a `.venv` subfolder. The
 system-wide Qt5/PyQt5 installations are used in the virtual environment.
+
+Please also read about <<updating,updating qutebrowser with tox>>.
 
 On OS X
 -------
@@ -152,3 +156,17 @@ standard location for your distro (`/usr/share/applications` and
 
 The normal `setup.py install` doesn't install these files, so you'll have to do
 it as part of the packaging process.
+
+[[updating]]
+Updating qutebrowser with tox
+-----------------------------
+
+When you updated your local copy of the code (e.g. by pulling the git repo, or
+extracting a new version), the virtualenv should automatically use the updated
+code. However, if dependencies got added, this won't be reflected in the
+virtualenv. Thus it's recommended to run the following command to recreate the
+virtualenv:
+
+----
+$ tox -r -e mkvenv
+----
