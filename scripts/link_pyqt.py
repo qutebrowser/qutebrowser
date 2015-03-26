@@ -94,15 +94,20 @@ def link_pyqt(sys_path, venv_path):
             os.symlink(source, dest)
 
 
-def get_python_lib(executable):
-    """Get the python site-packages directory for the given executable."""
+def get_python_lib(executable, venv=False):
+    """Get the python site-packages directory for the given executable.
+
+    Args:
+        venv: True if the path is inside a virtualenv, so our special
+              treatments for Windows/Ubuntu shouldn't take place.
+    """
     distribution = platform.linux_distribution(full_distribution_name=False)
-    if os.name == 'nt':
+    if os.name == 'nt' and not venv:
         # For some reason, we get an empty string from get_python_lib() on
         # Windows when running via tox, and sys.prefix is empty too...
         return os.path.join(os.path.dirname(executable), '..', 'Lib',
                             'site-packages')
-    elif distribution[0].lower() in ('debian', 'ubuntu'):
+    elif distribution[0].lower() in ('debian', 'ubuntu') and not venv:
         # For some reason, we get '/usr/lib/python3.4/site-packages' instead of
         # '/usr/lib/python3/dist-packages' on debian with tox...
         cmd = [executable, '-c', 'import sys\nprint(sys.prefix)']
@@ -128,8 +133,6 @@ def main():
     """Main entry point."""
     parser = argparse.ArgumentParser()
     parser.add_argument('path', help="Base path to the venv.")
-    parser.add_argument('site_path', help="Path to the venv site-packages "
-                        "folder (for tox).", nargs='?')
     parser.add_argument('--tox', help="Add when called via tox.",
                         action='store_true')
     args = parser.parse_args()
@@ -139,12 +142,9 @@ def main():
     else:
         sys_path = get_python_lib(sys.executable)
 
-    if args.site_path is None:
-        subdir = 'Scripts' if os.name == 'nt' else 'bin'
-        executable = os.path.join(args.path, subdir, 'python')
-        venv_path = get_python_lib(executable)
-    else:
-        venv_path = args.site_path
+    subdir = 'Scripts' if os.name == 'nt' else 'bin'
+    executable = os.path.join(args.path, subdir, 'python')
+    venv_path = get_python_lib(executable, venv=True)
 
     link_pyqt(sys_path, venv_path)
 
