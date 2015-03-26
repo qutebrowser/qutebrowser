@@ -27,6 +27,7 @@ import os.path
 import sys
 import glob
 import subprocess
+import platform
 
 
 class Error(Exception):
@@ -95,9 +96,23 @@ def link_pyqt(sys_path, venv_path):
 
 def get_python_lib(executable):
     """Get the python site-packages directory for the given executable."""
-    return subprocess.check_output(
-        [executable, '-c', 'from distutils.sysconfig import get_python_lib\n'
-         'print(get_python_lib())'], universal_newlines=True).rstrip()
+    distribution = platform.linux_distribution(full_distribution_name=False)
+    if os.name == 'nt':
+        # For some reason, we get an empty string from get_python_lib() on
+        # Windows when running via tox, and sys.prefix is empty too...
+        return os.path.join(os.path.dirname(executable), '..', 'Lib',
+                            'site-packages')
+    elif distribution[0].lower() in ('debian', 'ubuntu'):
+        # For some reason, we get '/usr/lib/python3.4/site-packages' instead of
+        # '/usr/lib/python3/dist-packages' on debian with tox...
+        cmd = [executable, '-c', 'import sys\nprint(sys.prefix)']
+        prefix = subprocess.check_output(cmd, universal_newlines=True).rstrip()
+        return os.path.join(prefix, 'lib', 'python3', 'dist-packages')
+    else:
+        cmd = [executable, '-c',
+               'from distutils.sysconfig import get_python_lib\n'
+               'print(get_python_lib())']
+        return subprocess.check_output(cmd, universal_newlines=True).rstrip()
 
 
 def get_tox_syspython(venv_path):
