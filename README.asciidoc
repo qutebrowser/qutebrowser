@@ -11,6 +11,7 @@ image:icons/qutebrowser-64x64.png[qutebrowser logo] *A keyboard-driven, vim-like
 image:https://img.shields.io/pypi/l/qutebrowser.svg?style=flat["license badge",link="https://github.com/The-Compiler/qutebrowser/blob/master/COPYING"]
 image:https://img.shields.io/pypi/v/qutebrowser.svg?style=flat["version badge",link="https://pypi.python.org/pypi/qutebrowser/"]
 image:https://img.shields.io/github/issues/The-Compiler/qutebrowser.svg?style=flat["issues badge",link="https://github.com/The-Compiler/qutebrowser/issues"]
+image:https://requires.io/github/The-Compiler/qutebrowser/requirements.svg?branch=master["requirements badge",link="https://requires.io/github/The-Compiler/qutebrowser/requirements/?branch=master"]
 image:http://qutebrowser.org:8010/png?builder=archlinux["build badge",link="http://qutebrowser.org:8010/waterfall"]
 
 qutebrowser is a keyboard-focused browser with with a minimal GUI. It's based
