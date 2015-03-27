@@ -41,7 +41,8 @@ class QuickmarkManager(QObject):
 
     Attributes:
         marks: An OrderedDict of all quickmarks.
-        _lineparser: The LineParser used for the quickmarks.
+        _lineparser: The LineParser used for the quickmarks, or None
+                     (when qutebrowser is started with -c '').
     """
 
     changed = pyqtSignal()
@@ -52,27 +53,32 @@ class QuickmarkManager(QObject):
 
         self.marks = collections.OrderedDict()
 
-        self._lineparser = lineparser.LineParser(
-            standarddir.config(), 'quickmarks', parent=self)
-        for line in self._lineparser:
-            if not line.strip():
-                # Ignore empty or whitespace-only lines.
-                continue
-            try:
-                key, url = line.rsplit(maxsplit=1)
-            except ValueError:
-                message.error(0, "Invalid quickmark '{}'".format(line))
-            else:
-                self.marks[key] = url
-        filename = os.path.join(standarddir.config(), 'quickmarks')
-        objreg.get('save-manager').add_saveable('quickmark-manager', self.save,
-                                                self.changed,
-                                                filename=filename)
+        if standarddir.config() is None:
+            self._lineparser = None
+        else:
+            self._lineparser = lineparser.LineParser(
+                standarddir.config(), 'quickmarks', parent=self)
+            for line in self._lineparser:
+                if not line.strip():
+                    # Ignore empty or whitespace-only lines.
+                    continue
+                try:
+                    key, url = line.rsplit(maxsplit=1)
+                except ValueError:
+                    message.error(0, "Invalid quickmark '{}'".format(line))
+                else:
+                    self.marks[key] = url
+            filename = os.path.join(standarddir.config(), 'quickmarks')
+            objreg.get('save-manager').add_saveable(
+                'quickmark-manager', self.save, self.changed,
+                filename=filename)
 
     def save(self):
         """Save the quickmarks to disk."""
-        self._lineparser.data = [' '.join(tpl) for tpl in self.marks.items()]
-        self._lineparser.save()
+        if self._lineparser is not None:
+            self._lineparser.data = [' '.join(tpl)
+                                     for tpl in self.marks.items()]
+            self._lineparser.save()
 
     def prompt_save(self, win_id, url):
         """Prompt for a new quickmark name to be added and add it.
