@@ -77,12 +77,15 @@ def _die(message, exception=None):
         print(file=sys.stderr)
         traceback.print_exc()
     app = QApplication(sys.argv)
-    message += '<br/><br/><br/><b>Error:</b><br/>{}'.format(exception)
-    msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
-                         message)
-    msgbox.setTextFormat(Qt.RichText)
-    msgbox.resize(msgbox.sizeHint())
-    msgbox.exec_()
+    if '--no-err-windows' in sys.argv:
+        print("Exiting because of --no-err-windows.", file=sys.stderr)
+    else:
+        message += '<br/><br/><br/><b>Error:</b><br/>{}'.format(exception)
+        msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
+                             message)
+        msgbox.setTextFormat(Qt.RichText)
+        msgbox.resize(msgbox.sizeHint())
+        msgbox.exec_()
     app.quit()
     sys.exit(1)
 
@@ -179,13 +182,13 @@ def check_pyqt_core():
         text = text.replace('</b>', '')
         text = text.replace('<br />', '\n')
         text += '\n\nError: {}'.format(e)
-        if tkinter:
+        if tkinter and '--no-err-windows' not in sys.argv:
             root = tkinter.Tk()
             root.withdraw()
             tkinter.messagebox.showerror("qutebrowser: Fatal error!", text)
         else:
             print(text, file=sys.stderr)
-        if '--debug' in sys.argv:
+        if '--debug' in sys.argv or '--no-err-windows' in sys.argv:
             print(file=sys.stderr)
             traceback.print_exc()
         sys.exit(1)

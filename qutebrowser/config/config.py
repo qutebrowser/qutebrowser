@@ -33,12 +33,12 @@ import collections
 import collections.abc
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl, QSettings
-from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import configdata, configexc, textwrapper
 from qutebrowser.config.parsers import ini, keyconf
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, objreg, utils, standarddir, log, qtutils
+from qutebrowser.utils import (message, objreg, utils, standarddir, log,
+                               qtutils, error, usertypes)
 from qutebrowser.utils.usertypes import Completion
 
 
@@ -114,9 +114,9 @@ def section(sect):
 
 def _init_main_config():
     """Initialize the main config."""
+    app = objreg.get('app')
+    args = objreg.get('args')
     try:
-        app = objreg.get('app')
-        args = objreg.get('args')
         config_obj = ConfigManager(standarddir.config(), 'qutebrowser.conf',
                                    args.relaxed_config, app)
     except (configexc.Error, configparser.Error, UnicodeDecodeError) as e:
@@ -127,12 +127,11 @@ def _init_main_config():
                 e.section, e.option)  # pylint: disable=no-member
         except AttributeError:
             pass
-        errstr += "\n{}".format(e)
-        msgbox = QMessageBox(QMessageBox.Critical,
-                             "Error while reading config!", errstr)
-        msgbox.exec_()
+        errstr += "\n"
+        error.handle_fatal_exc(e, args, "Error while reading config!",
+                               pre_text=errstr)
         # We didn't really initialize much so far, so we just quit hard.
-        sys.exit(1)
+        sys.exit(usertypes.Exit.err_config)
     else:
         objreg.register('config', config_obj)
         if standarddir.config() is not None:
@@ -152,6 +151,7 @@ def _init_main_config():
 
 def _init_key_config():
     """Initialize the key config."""
+    args = objreg.get('args')
     try:
         key_config = keyconf.KeyConfigParser(standarddir.config(), 'keys.conf')
     except (keyconf.KeyConfigError, UnicodeDecodeError) as e:
@@ -159,12 +159,10 @@ def _init_key_config():
         errstr = "Error while reading key config:\n"
         if e.lineno is not None:
             errstr += "In line {}: ".format(e.lineno)
-        errstr += str(e)
-        msgbox = QMessageBox(QMessageBox.Critical,
-                             "Error while reading key config!", errstr)
-        msgbox.exec_()
+        error.handle_fatal_exc(e, args, "Error while reading key config!",
+                               pre_text=errstr)
         # We didn't really initialize much so far, so we just quit hard.
-        sys.exit(1)
+        sys.exit(usertypes.Exit.err_key_config)
     else:
         objreg.register('key-config', key_config)
         if standarddir.config() is not None:

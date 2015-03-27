@@ -80,6 +80,9 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 *--no-crash-dialog*::
     Don't show a crash dialog.
 
+*--no-err-windows*::
+    Don't show any error windows.
+
 *--qt-name* 'NAME'::
     Set the window name.
 

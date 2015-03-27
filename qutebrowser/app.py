@@ -30,7 +30,7 @@ import functools
 import traceback
 import faulthandler
 
-from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
+from PyQt5.QtWidgets import QApplication, QDialog
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
                           QObject, Qt, QSocketNotifier)
@@ -48,7 +48,7 @@ from qutebrowser.misc import (crashdialog, readline, ipc, earlyinit,
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
-                               debug, objreg, usertypes, standarddir)
+                               debug, objreg, usertypes, standarddir, error)
 # We import utilcmds to run the cmdutils.register decorators.
 
 
@@ -102,22 +102,20 @@ class Application(QApplication):
             print(qutebrowser.__copyright__)
             print()
             print(version.GPL_BOILERPLATE.strip())
-            sys.exit(0)
+            sys.exit(usertypes.Exit.ok)
 
         try:
             sent = ipc.send_to_running_instance(self._args.command)
             if sent:
-                sys.exit(0)
+                sys.exit(usertypes.Exit.ok)
             log.init.debug("Starting IPC server...")
             ipc.init()
         except ipc.IPCError as e:
-            text = ('{}\n\nMaybe another instance is running but '
-                    'frozen?'.format(e))
-            msgbox = QMessageBox(QMessageBox.Critical, "Error while "
-                                 "connecting to running instance!", text)
-            msgbox.exec_()
+            error.handle_fatal_exc(
+                e, self._args, "Error while connecting to running instance!",
+                post_text="Maybe another instance is running but frozen?")
             # We didn't really initialize much so far, so we just quit hard.
-            sys.exit(1)
+            sys.exit(usertypes.Exit.err_ipc)
 
         log.init.debug("Starting init...")
         self.setQuitOnLastWindowClosed(False)
@@ -129,11 +127,9 @@ class Application(QApplication):
         try:
             self._init_modules()
         except (OSError, UnicodeDecodeError) as e:
-            msgbox = QMessageBox(
-                QMessageBox.Critical, "Error while initializing!",
-                "Error while initializing: {}".format(e))
-            msgbox.exec_()
-            sys.exit(1)
+            error.handle_fatal_exc(e, self._args, "Error while initializing!",
+                                   pre_text="Error while initializing")
+            sys.exit(usertypes.Exit.err_init)
         QTimer.singleShot(0, self._process_args)
 
         log.init.debug("Initializing eventfilter...")
@@ -179,7 +175,8 @@ class Application(QApplication):
         log.init.debug("Initializing web history...")
         history.init()
         log.init.debug("Initializing crashlog...")
-        self._handle_segfault()
+        if not self._args.no_err_windows:
+            self._handle_segfault()
         log.init.debug("Initializing sessions...")
         session_manager = sessions.SessionManager(self)
         objreg.register('session-manager', session_manager)
@@ -243,6 +240,7 @@ class Application(QApplication):
 
     def _init_crashlogfile(self):
         """Start a new logfile and redirect faulthandler to it."""
+        assert not self._args.no_err_windows
         logname = os.path.join(standarddir.data(), 'crash.log')
         try:
             self._crashlogfile = open(logname, 'w', encoding='ascii')
@@ -637,17 +635,20 @@ class Application(QApplication):
         except TypeError:
             log.destroy.exception("Error while preventing shutdown")
         QApplication.closeAllWindows()
-        self._crashdlg = crashdialog.ExceptionCrashDialog(
-            self._args.debug, pages, cmd_history, exc, objects)
-        ret = self._crashdlg.exec_()
-        if ret == QDialog.Accepted:  # restore
-            self.restart(shutdown=False, pages=pages)
+        if self._args.no_err_windows:
+            crashdialog.dump_exception_info(exc, pages, cmd_history, objects)
+        else:
+            self._crashdlg = crashdialog.ExceptionCrashDialog(
+                self._args.debug, pages, cmd_history, exc, objects)
+            ret = self._crashdlg.exec_()
+            if ret == QDialog.Accepted:  # restore
+                self.restart(shutdown=False, pages=pages)
         # We might risk a segfault here, but that's better than continuing to
         # run in some undefined state, so we only do the most needed shutdown
         # here.
         qInstallMessageHandler(None)
         self._destroy_crashlogfile()
-        sys.exit(1)
+        sys.exit(usertypes.Exit.exception)
 
     def _get_restart_args(self, pages):
         """Get the current working directory and args to relaunch qutebrowser.
@@ -867,10 +868,9 @@ class Application(QApplication):
                 try:
                     save_manager.save(key, is_exit=True)
                 except OSError as e:
-                    msgbox = QMessageBox(
-                        QMessageBox.Critical, "Error while saving!",
-                        "Error while saving {}: {}".format(key, e))
-                    msgbox.exec_()
+                    error.handle_fatal_exc(
+                        e, self._args, "Error while saving!",
+                        pre_text="Error while saving {}".format(key))
         # Re-enable faulthandler to stdout, then remove crash log
         log.destroy.debug("Deactiving crash log...")
         self._destroy_crashlogfile()

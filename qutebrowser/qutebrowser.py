@@ -84,6 +84,8 @@ def get_argparser():
                        action='store_true')
     debug.add_argument('--no-crash-dialog', action='store_true', help="Don't "
                        "show a crash dialog.")
+    debug.add_argument('--no-err-windows', action='store_true', help="Don't "
+                       "show any error windows (used for tests/smoke.py).")
     # For the Qt args, we use store_const with const=True rather than
     # store_true because we want the default to be None, to make
     # utils.qt:get_args easier.
