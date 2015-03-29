@@ -24,6 +24,7 @@ import sys
 import subprocess
 import configparser
 import signal
+import pdb
 import bdb
 import base64
 import functools
@@ -596,7 +597,11 @@ class Application(QApplication):
         is_ignored_exception = (exctype is bdb.BdbQuit or
                                 not issubclass(exctype, Exception))
 
-        if is_ignored_exception or self._args.no_crash_dialog:
+        if self._args.pdb_postmortem:
+            pdb.post_mortem(tb)
+
+        if (is_ignored_exception or self._args.no_crash_dialog or
+                self._args.pdb_postmortem):
             # pdb exit, KeyboardInterrupt, ...
             status = 0 if is_ignored_exception else 2
             try:

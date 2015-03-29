@@ -84,6 +84,8 @@ def get_argparser():
                        action='store_true')
     debug.add_argument('--no-crash-dialog', action='store_true', help="Don't "
                        "show a crash dialog.")
+    debug.add_argument('--pdb-postmortem', action='store_true',
+                       help="Drop into pdb on exceptions.")
     # For the Qt args, we use store_const with const=True rather than
     # store_true because we want the default to be None, to make
     # utils.qt:get_args easier.
