@@ -833,7 +833,7 @@ class HintManager(QObject):
         for elems in self._context.elems.values():
             try:
                 if (filterstr is None or
-                        str(elems.elem).lower().startswith(filterstr)):
+                        filterstr.lower() in str(elems.elem).lower()):
                     if self._is_hidden(elems.label):
                         # hidden element which matches again -> unhide it
                         self._show_elem(elems.label)
