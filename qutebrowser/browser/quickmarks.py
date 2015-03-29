@@ -147,8 +147,11 @@ class QuickmarkManager(QObject):
         urlstr = self.marks[name]
         try:
             url = urlutils.fuzzy_url(urlstr, do_search=False)
-        except urlutils.FuzzyUrlError:
-            raise cmdexc.CommandError(
-                "Invalid URL for quickmark {}: {} ({})".format(
-                    name, urlstr, url.errorString()))
+        except urlutils.FuzzyUrlError as e:
+            if e.url is None or not e.url.errorString():
+                errstr = ''
+            else:
+                errstr = ' ({})'.format(e.url.errorString())
+            raise cmdexc.CommandError("Invalid URL for quickmark {}: "
+                                      "{}{}".format(name, urlstr, errstr))
         return url
