@@ -887,6 +887,10 @@ class HintManager(QObject):
             Target.spawn: self._spawn,
         }
         elem = self._context.elems[keystr].elem
+        if elem.webFrame() is None:
+            message.error(self._win_id, "This element has no webframe.",
+                          immediately=True)
+            return
         if self._context.target in elem_handlers:
             handler = functools.partial(
                 elem_handlers[self._context.target], elem, self._context)
