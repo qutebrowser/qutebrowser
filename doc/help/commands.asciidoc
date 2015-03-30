@@ -423,12 +423,15 @@ Load a session.
 
 [[session-save]]
 === session-save
-Syntax: +:session-save ['name']+
+Syntax: +:session-save [*--quiet*] ['name']+
 
 Save a session.
 
 ==== positional arguments
 * +'name'+: The name of the session.
+
+==== optional arguments
+* +*-q*+, +*--quiet*+: Don't show confirmation message.
 
 [[set]]
 === set

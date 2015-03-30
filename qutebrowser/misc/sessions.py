@@ -32,7 +32,8 @@ except ImportError:
     from yaml import SafeLoader as YamlLoader, SafeDumper as YamlDumper
 
 from qutebrowser.browser import tabhistory
-from qutebrowser.utils import standarddir, objreg, qtutils, log, usertypes
+from qutebrowser.utils import (standarddir, objreg, qtutils, log, usertypes,
+                               message)
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.mainwindow import mainwindow
 
@@ -282,17 +283,24 @@ class SessionManager(QObject):
     @cmdutils.register(name=['session-save', 'w'],
                        completion=[usertypes.Completion.sessions],
                        instance='session-manager')
-    def session_save(self, name='default'):
+    def session_save(self, win_id: {'special': 'win_id'}, name='default',
+                     quiet=False):
         """Save a session.
 
         Args:
+            win_id: The current window ID.
             name: The name of the session.
+            quiet: Don't show confirmation message.
         """
         try:
             self.save(name)
         except SessionError as e:
             raise cmdexc.CommandError("Error while saving session: {}"
                                       .format(e))
+        else:
+            if not quiet:
+                message.info(win_id, "Saved session {!r}.".format(name),
+                             immediately=True)
 
     @cmdutils.register(completion=[usertypes.Completion.sessions],
                        instance='session-manager')
