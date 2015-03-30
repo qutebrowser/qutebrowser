@@ -1,4 +1,5 @@
 [run]
+branch = true
 omit =
     qutebrowser/__main__.py
     */__init__.py
