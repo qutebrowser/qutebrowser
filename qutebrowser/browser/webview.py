@@ -527,3 +527,23 @@ class WebView(QWebView):
         menu = self.page().createStandardContextMenu()
         self.shutting_down.connect(menu.close)
         menu.exec_(e.globalPos())
+
+    def wheelEvent(self, e):
+        """Zoom on Ctrl-Mousewheel.
+
+        Args:
+            e: The QWheelEvent.
+        """
+        if e.modifiers() & Qt.ControlModifier:
+            e.accept()
+            divider = config.get('input', 'mouse-zoom-divider')
+            factor = self.zoomFactor() + e.angleDelta().y() / divider
+            if factor < 0:
+                return
+            perc = int(100 * factor)
+            message.info(self.win_id, "Zoom level: {}%".format(perc))
+            self._zoom.fuzzyval = perc
+            self.setZoomFactor(factor)
+            self._default_zoom_changed = True
+        else:
+            super().wheelEvent(e)

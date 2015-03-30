@@ -83,6 +83,7 @@
 |<<input-spatial-navigation,spatial-navigation>>|Enables or disables the Spatial Navigation feature
 |<<input-links-included-in-focus-chain,links-included-in-focus-chain>>|Whether hyperlinks should be included in the keyboard focus chain.
 |<<input-rocker-gestures,rocker-gestures>>|Whether to enable Opera-like mouse rocker gestures. This disables the context menu.
+|<<input-mouse-zoom-divider,mouse-zoom-divider>>|How much to divide the mouse wheel movements to translate them into zoom increments.
 |==============
 
 .Quick reference for section ``tabs''
@@ -784,6 +785,12 @@ Valid values:
  * +false+
 
 Default: +pass:[false]+
+
+[[input-mouse-zoom-divider]]
+=== mouse-zoom-divider
+How much to divide the mouse wheel movements to translate them into zoom increments.
+
+Default: +pass:[512]+
 
 == tabs
 Configuration of the tab bar.

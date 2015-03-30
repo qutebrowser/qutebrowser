@@ -392,6 +392,11 @@ DATA = collections.OrderedDict([
          SettingValue(typ.Bool(), 'false'),
          "Whether to enable Opera-like mouse rocker gestures. This disables "
          "the context menu."),
+
+        ('mouse-zoom-divider',
+         SettingValue(typ.Int(minval=1), '512'),
+         "How much to divide the mouse wheel movements to translate them "
+         "into zoom increments."),
     )),
 
     ('tabs', sect.KeyValue(
