@@ -45,6 +45,7 @@
 |<<stop,stop>>|Stop loading in the current/[count]th tab.
 |<<tab-clone,tab-clone>>|Duplicate the current tab.
 |<<tab-close,tab-close>>|Close the current/[count]th tab.
+|<<tab-detach,tab-detach>>|Detach the current tab to its own window.
 |<<tab-focus,tab-focus>>|Select the tab given as argument/[count].
 |<<tab-move,tab-move>>|Move the current tab.
 |<<tab-next,tab-next>>|Switch to the next tab, or switch [count] tabs forward.
@@ -507,6 +508,10 @@ Close the current/[count]th tab.
 
 ==== count
 The tab index to close
+
+[[tab-detach]]
+=== tab-detach
+Detach the current tab to its own window.
 
 [[tab-focus]]
 === tab-focus

@@ -109,7 +109,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError("No WebView available yet!")
         return widget
 
-    def _open(self, url, tab, background, window):
+    def _open(self, url, tab=False, background=False, window=False):
         """Helper function to open a page.
 
         Args:
@@ -403,6 +403,15 @@ class CommandDispatcher:
         history = qtutils.serialize(curtab.history())
         qtutils.deserialize(history, newtab.history())
         return newtab
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def tab_detach(self):
+        """Detach the current tab to its own window."""
+        url = self._current_url()
+        self._open(url, window=True)
+        tabbed_browser = self._tabbed_browser()
+        cur_widget = self._current_widget()
+        tabbed_browser.close_tab(cur_widget)
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
