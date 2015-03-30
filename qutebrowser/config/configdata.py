@@ -622,6 +622,10 @@ DATA = collections.OrderedDict([
          "- One host per line\n"
          "- A zip-file of any of the above, with either only one file, or a "
          "file named 'hosts' (with any extension)."),
+
+        ('host-blocking-enabled',
+         SettingValue(typ.Bool(), 'true'),
+         "Whether host blocking is enabled."),
     )),
 
     ('hints', sect.KeyValue(

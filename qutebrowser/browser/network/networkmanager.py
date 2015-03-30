@@ -326,13 +326,17 @@ class NetworkManager(QNetworkAccessManager):
         elif scheme in self._scheme_handlers:
             return self._scheme_handlers[scheme].createRequest(
                 op, req, outgoing_data)
+
+        host_blocker = objreg.get('host-blocker')
         if (op == QNetworkAccessManager.GetOperation and
-                req.url().host() in objreg.get('host-blocker').blocked_hosts):
+                req.url().host() in host_blocker.blocked_hosts and
+                config.get('content', 'host-blocking-enabled')):
             log.webview.info("Request to {} blocked by host blocker.".format(
                 req.url().host()))
             return networkreply.ErrorNetworkReply(
                 req, HOSTBLOCK_ERROR_STRING, QNetworkReply.ContentAccessDenied,
                 self)
+
         if config.get('network', 'do-not-track'):
             dnt = '1'.encode('ascii')
         else:

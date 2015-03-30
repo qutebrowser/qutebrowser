@@ -143,6 +143,7 @@
 |<<content-cookies-accept,cookies-accept>>|Whether to accept cookies.
 |<<content-cookies-store,cookies-store>>|Whether to store cookies.
 |<<content-host-block-lists,host-block-lists>>|List of URLs of lists which contain hosts to block.
+|<<content-host-blocking-enabled,host-blocking-enabled>>|Whether host blocking is enabled.
 |==============
 
 .Quick reference for section ``hints''
@@ -1234,6 +1235,17 @@ The file can be in one of the following formats:
 - A zip-file of any of the above, with either only one file, or a file named 'hosts' (with any extension).
 
 Default: +pass:[http://www.malwaredomainlist.com/hostslist/hosts.txt,http://someonewhocares.org/hosts/hosts,http://winhelp2002.mvps.org/hosts.zip,http://malwaredomains.lehigh.edu/files/justdomains.zip,http://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&amp;mimetype=plaintext]+
+
+[[content-host-blocking-enabled]]
+=== host-blocking-enabled
+Whether host blocking is enabled.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
 
 == hints
 Hinting settings.
