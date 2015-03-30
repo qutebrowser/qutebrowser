@@ -90,7 +90,7 @@ First install `gdb` on your system if it's not installed already.
 Then run qutebrowser directly inside gdb like this:
 
 ----
-$ gdb $(which python3) -ex 'run -m qutebrowser --debug'
+$ gdb $(readlink -f $(which python3)) -ex 'run -m qutebrowser --debug'
 ----
 
 After you reproduce the crash, you should now see something like:
@@ -133,14 +133,14 @@ not start with a `|` character (pipe), check if there is a file named `core` or
 If so, execute gdb like this:
 
 ----
-$ gdb $(which python3) /path/to/core
+$ gdb $(readlink -f $(which python3)) /path/to/core
 ----
 
 If your `/proc/sys/kernel/core_pattern` contains something like
 `|/usr/lib/systemd/systemd-coredump`, use `coredumpctl` to run gdb:
 
 ----
-$ coredumpctl gdb $(which python3)
+$ coredumpctl gdb $(readlink -f $(which python3))
 ----
 
 Getting the stack trace
