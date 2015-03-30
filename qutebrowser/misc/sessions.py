@@ -266,12 +266,14 @@ class SessionManager(QObject):
 
     @cmdutils.register(completion=[usertypes.Completion.sessions],
                        instance='session-manager')
-    def session_load(self, name):
+    def session_load(self, name, clear=False):
         """Load a session.
 
         Args:
             name: The name of the session.
+            clear: Close all existing windows.
         """
+        old_windows = list(objreg.window_registry.values())
         try:
             self.load(name)
         except SessionNotFoundError:
@@ -279,6 +281,10 @@ class SessionManager(QObject):
         except SessionError as e:
             raise cmdexc.CommandError("Error while loading session: {}"
                                       .format(e))
+        else:
+            if clear:
+                for win in old_windows:
+                    win.close()
 
     @cmdutils.register(name=['session-save', 'w'],
                        completion=[usertypes.Completion.sessions],

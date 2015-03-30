@@ -414,12 +414,15 @@ Delete a session.
 
 [[session-load]]
 === session-load
-Syntax: +:session-load 'name'+
+Syntax: +:session-load [*--clear*] 'name'+
 
 Load a session.
 
 ==== positional arguments
 * +'name'+: The name of the session.
+
+==== optional arguments
+* +*-c*+, +*--clear*+: Close all existing windows.
 
 [[session-save]]
 === session-save
