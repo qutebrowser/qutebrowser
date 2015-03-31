@@ -503,7 +503,7 @@ Close the current/[count]th tab.
 ==== optional arguments
 * +*-l*+, +*--left*+: Force selecting the tab to the left of the current tab.
 * +*-r*+, +*--right*+: Force selecting the tab to the right of the current tab.
-* +*-o*+, +*--opposite*+: Force selecting the tab in the oppsite direction of what's configured in 'tabs->select-on-remove'.
+* +*-o*+, +*--opposite*+: Force selecting the tab in the opposite direction of what's configured in 'tabs->select-on-remove'.
 
 
 ==== count

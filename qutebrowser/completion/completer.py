@@ -245,7 +245,7 @@ class Completer(QObject):
         if self._cmd.prefix() != ':':
             # This is a search or gibberish, so we don't need to complete
             # anything (yet)
-            # FIXME complete searchs
+            # FIXME complete searches
             # https://github.com/The-Compiler/qutebrowser/issues/32
             completion.hide()
             return

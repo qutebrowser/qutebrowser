@@ -1828,7 +1828,7 @@ class SearchEngineUrlTests(unittest.TestCase):
         self.t.validate('http://example.com/?q={}')
 
     def test_validate_invalid_url(self):
-        """Test validate with an invalud URL."""
+        """Test validate with an invalid URL."""
         with self.assertRaises(configexc.ValidationError):
             self.t.validate(':{}')
 

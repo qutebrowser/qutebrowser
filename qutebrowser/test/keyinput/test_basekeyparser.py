@@ -210,11 +210,11 @@ class KeyChainTests(unittest.TestCase):
 
     @mock.patch('qutebrowser.keyinput.basekeyparser.config',
                 new=stubs.ConfigStub(CONFIG))
-    def test_ambigious_keychain(self):
-        """Test ambigious keychain."""
-        timer = self.kp._ambigious_timer
+    def test_ambiguous_keychain(self):
+        """Test ambiguous keychain."""
+        timer = self.kp._ambiguous_timer
         self.assertFalse(timer.isActive())
-        # We start with 'a' where the keychain gives us an ambigious result.
+        # We start with 'a' where the keychain gives us an ambiguous result.
         # Then we check if the timer has been set up correctly
         self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='a'))
         self.assertFalse(self.kp.execute.called)

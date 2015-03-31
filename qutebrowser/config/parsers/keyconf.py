@@ -34,7 +34,7 @@ class KeyConfigError(Exception):
     """Raised on errors with the key config.
 
     Attributes:
-        lineno: The config line in which the exception occured.
+        lineno: The config line in which the exception occurred.
     """
 
     def __init__(self, msg=None):
@@ -73,7 +73,7 @@ class KeyConfigParser(QObject):
         super().__init__(parent)
         self._cur_section = None
         self._cur_command = None
-        # Mapping of section name(s) to keybinding -> command dicts.
+        # Mapping of section name(s) to key binding -> command dicts.
         self.keybindings = collections.OrderedDict()
         if configdir is None:
             self._configfile = None
@@ -208,7 +208,7 @@ class KeyConfigParser(QObject):
         return sections
 
     def _load_default(self):
-        """Load the built-in default keybindings."""
+        """Load the built-in default key bindings."""
         for sectname, sect in configdata.KEY_DATA.items():
             sectname = self._normalize_sectname(sectname)
             if not sect:
@@ -242,7 +242,7 @@ class KeyConfigParser(QObject):
                         e.lineno = i
                         raise
         except OSError:
-            log.keyboard.exception("Failed to read keybindings!")
+            log.keyboard.exception("Failed to read key bindings!")
         for sectname in self.keybindings:
             self.changed.emit(sectname)
 
@@ -258,9 +258,9 @@ class KeyConfigParser(QObject):
             self._cur_command = line
 
     def _read_keybinding(self, line):
-        """Read a keybinding from a line."""
+        """Read a key binding from a line."""
         if self._cur_command is None:
-            raise KeyConfigError("Got keybinding '{}' without getting a "
+            raise KeyConfigError("Got key binding '{}' without getting a "
                                  "command!".format(line))
         else:
             assert self._cur_section is not None
@@ -280,7 +280,7 @@ class KeyConfigParser(QObject):
         self.keybindings[sectname][keychain] = command
 
     def get_bindings_for(self, section):
-        """Get a dict with all merged keybindings for a section."""
+        """Get a dict with all merged key bindings for a section."""
         bindings = {}
         for sectstring, d in self.keybindings.items():
             if sectstring.startswith('!'):

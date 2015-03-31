@@ -74,7 +74,7 @@ def main():
             ('http://www.binpress.com/', False),
             ('http://david.li/flow/', False),
             ('https://imzdl.com/', False),
-            # not reproducable
+            # not reproducible
             # https://bugreports.qt-project.org/browse/QTBUG-39847
             ('http://www.20min.ch/', True),
             # HarfBuzz, https://bugreports.qt-project.org/browse/QTBUG-39278

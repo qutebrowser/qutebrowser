@@ -36,7 +36,7 @@ class QEnumKeyTests(unittest.TestCase):
     """Tests for qenum_key."""
 
     def test_no_metaobj(self):
-        """Test with an enum with no metaobject."""
+        """Test with an enum with no meta-object."""
         with self.assertRaises(AttributeError):
             # Make sure it doesn't have a meta object
             # pylint: disable=pointless-statement,no-member
@@ -45,9 +45,9 @@ class QEnumKeyTests(unittest.TestCase):
         self.assertEqual(key, 'PE_PanelButtonCommand')
 
     def test_metaobj(self):
-        """Test with an enum with metaobject."""
+        """Test with an enum with meta-object."""
         # pylint: disable=pointless-statement
-        QFrame.staticMetaObject  # make sure it has a metaobject
+        QFrame.staticMetaObject  # make sure it has a meta-object
         key = debug.qenum_key(QFrame, QFrame.Sunken)
         self.assertEqual(key, 'Sunken')
 

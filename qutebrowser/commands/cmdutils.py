@@ -101,7 +101,7 @@ class register:  # pylint: disable=invalid-name
         _instance: The object from the object registry to be used as "self".
         _scope: The scope to get _instance for.
         _name: The name (as string) or names (as list) of the command.
-        _maxsplit: The maxium amounts of splits to do for the commandline, or
+        _maxsplit: The maximum amounts of splits to do for the commandline, or
                    None.
         _hide: Whether to hide the command or not.
         _completion: Which completion to use for arguments, as a list of
@@ -151,7 +151,7 @@ class register:  # pylint: disable=invalid-name
     def _get_names(self, func):
         """Get the name(s) which should be used for the current command.
 
-        If the name hasn't been overridden explicitely, the function name is
+        If the name hasn't been overridden explicitly, the function name is
         transformed.
 
         If it has been set, it can either be a string which is

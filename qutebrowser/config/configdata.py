@@ -56,7 +56,7 @@ FIRST_COMMENT = r"""
 # described below.
 #
 # This is the default config, so if you want to remove anything from
-# here (as opposed to change/add), for example a keybinding, set it to
+# here (as opposed to change/add), for example a key binding, set it to
 # an empty value.
 #
 # You will need to escape the following values:
@@ -270,7 +270,7 @@ DATA = collections.OrderedDict([
          "are defined:\n\n"
          "* `{perc}`: The percentage as a string like `[10%]`.\n"
          "* `{perc_raw}`: The raw percentage, e.g. `10`\n"
-         "* `{title}`: The title of the current webpage\n"
+         "* `{title}`: The title of the current web page\n"
          "* `{title_sep}`: The string ` - ` if a title is set, empty "
          "otherwise.\n"
          "* `{id}`: The internal window ID of this window."),
@@ -350,11 +350,11 @@ DATA = collections.OrderedDict([
     ('input', sect.KeyValue(
         ('timeout',
          SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '500'),
-         "Timeout for ambiguous keybindings."),
+         "Timeout for ambiguous key bindings."),
 
         ('partial-timeout',
          SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '1000'),
-         "Timeout for partially typed keybindings."),
+         "Timeout for partially typed key bindings."),
 
         ('insert-mode-on-plugins',
          SettingValue(typ.Bool(), 'false'),
@@ -414,7 +414,7 @@ DATA = collections.OrderedDict([
 
         ('new-tab-position-explicit',
          SettingValue(typ.NewTabPosition(), 'last'),
-         "How new tabs opened explicitely are positioned."),
+         "How new tabs opened explicitly are positioned."),
 
         ('last-close',
          SettingValue(typ.LastClose(), 'ignore'),
@@ -422,11 +422,11 @@ DATA = collections.OrderedDict([
 
         ('hide-auto',
          SettingValue(typ.Bool(), 'false'),
-         "Hide the tabbar if only one tab is open."),
+         "Hide the tab bar if only one tab is open."),
 
         ('hide-always',
          SettingValue(typ.Bool(), 'false'),
-         "Always hide the tabbar."),
+         "Always hide the tab bar."),
 
         ('wrap',
          SettingValue(typ.Bool(), 'true'),
@@ -473,7 +473,7 @@ DATA = collections.OrderedDict([
          "are defined:\n\n"
          "* `{perc}`: The percentage as a string like `[10%]`.\n"
          "* `{perc_raw}`: The raw percentage, e.g. `10`\n"
-         "* `{title}`: The title of the current webpage\n"
+         "* `{title}`: The title of the current web page\n"
          "* `{title_sep}`: The string ` - ` if a title is set, empty "
          "otherwise.\n"
          "* `{index}`: The index of this tab.\n"
@@ -810,7 +810,7 @@ DATA = collections.OrderedDict([
 
         ('tabs.bg.bar',
          SettingValue(typ.QtColor(), '#555555'),
-         "Background color of the tabbar."),
+         "Background color of the tab bar."),
 
         ('tabs.indicator.start',
          SettingValue(typ.QtColor(), '#0000aa'),
@@ -881,7 +881,7 @@ DATA = collections.OrderedDict([
 
         ('tabbar',
          SettingValue(typ.QtFont(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
-         "Font used in the tabbar."),
+         "Font used in the tab bar."),
 
         ('statusbar',
          SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
@@ -949,7 +949,7 @@ DATA = collections.OrderedDict([
 KEY_FIRST_COMMENT = """
 # vim: ft=conf
 #
-# In this config file, qutebrowser's keybindings are configured.
+# In this config file, qutebrowser's key bindings are configured.
 # The format looks like this:
 #
 # [keymode]
@@ -962,8 +962,8 @@ KEY_FIRST_COMMENT = """
 # All blank lines and lines starting with '#' are ignored.
 # Inline-comments are not permitted.
 #
-# keymode is a comma separated list of modes in which the keybinding should be
-# active. If keymode starts with !, the keybinding is active in all modes
+# keymode is a comma separated list of modes in which the key binding should be
+# active. If keymode starts with !, the key binding is active in all modes
 # except the listed modes.
 #
 # For special keys (can't be part of a keychain), enclose them in `<`...`>`.
@@ -975,7 +975,7 @@ KEY_FIRST_COMMENT = """
 #  * Shift:   `Shift`
 #
 # For simple keys (no `<>`-signs), a capital letter means the key is pressed
-# with Shift. For special keys (with `<>`-signs), you need to explicitely add
+# with Shift. For special keys (with `<>`-signs), you need to explicitly add
 # `Shift-` to match a key pressed with shift.  You can bind multiple commands
 # by separating them with `;;`.
 """

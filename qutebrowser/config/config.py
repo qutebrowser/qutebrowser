@@ -20,8 +20,8 @@
 """Configuration storage and config-related utilities.
 
 This borrows a lot of ideas from configparser, but also has some things that
-are fundamentally different. This is why nothing inherts from configparser, but
-we borrow some methods and classes from there where it makes sense.
+are fundamentally different. This is why nothing inherits from configparser,
+but we borrow some methods and classes from there where it makes sense.
 """
 
 import os
@@ -144,7 +144,7 @@ def _init_main_config():
             for sect in config_obj.sections.values():
                 for opt in sect.values.values():
                     if opt.values['conf'] is None:
-                        # Option added to builtin defaults but not in user's
+                        # Option added to built-in defaults but not in user's
                         # config yet
                         save_manager.save('config', explicit=True, force=True)
                         return
@@ -262,8 +262,8 @@ class ConfigManager(QObject):
         ('completion', 'history-length'): 'cmd-history-max-items',
     }
     DELETED_OPTIONS = [
-        ('colors', 'tab.seperator'),
-        ('colors', 'tabs.seperator'),
+        ('colors', 'tab.separator'),
+        ('colors', 'tabs.separator'),
         ('colors', 'completion.item.bg'),
     ]
 
@@ -476,7 +476,7 @@ class ConfigManager(QObject):
     def items(self, sectname, raw=True):
         """Get a list of (optname, value) tuples for a section.
 
-        Implemented for configparser interpolation compatbility.
+        Implemented for configparser interpolation compatibility
 
         Args:
             sectname: The name of the section to get.
@@ -539,7 +539,7 @@ class ConfigManager(QObject):
             The value of the option.
         """
         if not self._initialized:
-            raise Exception("get got called before initialisation was "
+            raise Exception("get got called before initialization was "
                             "complete!")
         try:
             sect = self.sections[sectname]

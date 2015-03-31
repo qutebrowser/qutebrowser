@@ -278,7 +278,7 @@ There are currently these object registries, also called 'scopes':
 `cookie-jar`, etc.)
 * The `tab` scope with objects which are per-tab (`hintmanager`, `webview`,
 etc.). Passing this scope to `objreg.get()` selects the object in the currently
-focused tab by default. A tab can be explicitely selected by passing
+focused tab by default. A tab can be explicitly selected by passing
 +tab=_tab-id_, window=_win-id_+ to it.
 
 A new object can be registered by using
@@ -373,7 +373,7 @@ The types of the function arguments are inferred based on their default values,
 e.g. an argument `foo=True` will be converted to a flag `-f`/`--foo` in
 qutebrowser's commandline.
 
-This behaviour can be overridden using Python's
+This behavior can be overridden using Python's
 http://legacy.python.org/dev/peps/pep-3107/[function annotations]. The
 annotation should always be a `dict`, like this:
 
@@ -447,7 +447,7 @@ This option controls Valgrind's detection of self-modifying code. If no
 checking is done, if a program executes some code, then overwrites it with new
 code, and executes the new code, Valgrind will continue to execute the
 translations it made for the old code. This will likely lead to incorrect
-behaviour and/or crashes.
+behavior and/or crashes.
 
 ...
 

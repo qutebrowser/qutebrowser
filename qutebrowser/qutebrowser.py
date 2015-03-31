@@ -133,7 +133,7 @@ def main():
         """
         return app.exec_()
 
-    # We set qApp explicitely here to reduce the risk of segfaults while
+    # We set qApp explicitly here to reduce the risk of segfaults while
     # quitting.
     # See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/561303/comments/7
     # While this is a workaround for PyQt4 which should be fixed in PyQt, it

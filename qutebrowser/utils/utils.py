@@ -95,7 +95,7 @@ def read_file(filename, binary=False):
 def actute_warning():
     """Display a warning about the dead_actute issue if needed."""
     # WORKAROUND (remove this when we bump the requirements to 5.3.0)
-    # Non linux OS' aren't affected
+    # Non Linux OS' aren't affected
     if not sys.platform.startswith('linux'):
         return
     # If no compose file exists for some reason, we're not affected
@@ -151,7 +151,7 @@ def interpolate_color(start, end, percent, colorspace=QColor.Rgb):
         start: The start color.
         end: The end color.
         percent: Which value to get (0 - 100)
-        colorspace: The desired interpolation colorsystem,
+        colorspace: The desired interpolation color system,
                     QColor::{Rgb,Hsv,Hsl} (from QColor::Spec enum)
 
     Return:
@@ -435,7 +435,7 @@ class prevent_exceptions:  # pylint: disable=invalid-name
     silently ignores them.
 
     We used to re-raise the exception with a single-shot QTimer in a similar
-    case, but that lead to a strange proble with a KeyError with some random
+    case, but that lead to a strange problem with a KeyError with some random
     jinja template stuff as content. For now, we only log it, so it doesn't
     pass 100% silently.
 

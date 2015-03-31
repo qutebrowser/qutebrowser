@@ -36,7 +36,7 @@ DEFAULT_NAME = 'qutebrowser-download'
 
 class AttachmentTestCase(unittest.TestCase):
 
-    """Helper class with some convienence methods to check filenames."""
+    """Helper class with some convenience methods to check filenames."""
 
     def _check_filename(self, header, filename):
         """Check if the passed header has the given filename."""
@@ -120,7 +120,7 @@ class InlineTests(unittest.TestCase):
         variation of the test checks whether whatever handles PDF display
         receives the filename information, and acts upon it (this was tested
         with the latest Acrobat Reader plugin, or, in the case of Chrome, using
-        the builtin PDF handler).
+        the built-in PDF handler).
         """
         self._check_filename('inline; filename="foo.pdf"', "foo.pdf")
 
@@ -824,7 +824,7 @@ class EncodingFallbackTests(AttachmentTestCase):
                              "filename=\"foo-ae.html\"", 'foo-ä.html')
 
     def test_attfnboth3(self):
-        """'attachment', specifying an ambigious filename.
+        """'attachment', specifying an ambiguous filename.
 
         currency-sign=¤ in the simple RFC2231/5987 format, and euro-sign=€ in
         RFC2231-with-continuations format.

@@ -114,7 +114,7 @@ class LogFilterTests(unittest.TestCase):
         self.assertTrue(logfilter.filter(record))
 
     def test_matching(self):
-        """Test if a filter lets an exactly matching logrecord through."""
+        """Test if a filter lets an exactly matching log record through."""
         logfilter = log.LogFilter(["eggs", "bacon"])
         record = self._make_record("eggs")
         self.assertTrue(logfilter.filter(record))

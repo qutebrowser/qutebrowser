@@ -32,7 +32,7 @@ class CommandError(Exception):
 
 class CommandMetaError(Exception):
 
-    """Common base class for exceptions occuring before a command is run."""
+    """Common base class for exceptions occurring before a command is run."""
 
 
 class NoSuchCommandError(CommandMetaError):

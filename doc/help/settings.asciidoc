@@ -74,8 +74,8 @@
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
-|<<input-timeout,timeout>>|Timeout for ambiguous keybindings.
-|<<input-partial-timeout,partial-timeout>>|Timeout for partially typed keybindings.
+|<<input-timeout,timeout>>|Timeout for ambiguous key bindings.
+|<<input-partial-timeout,partial-timeout>>|Timeout for partially typed key bindings.
 |<<input-insert-mode-on-plugins,insert-mode-on-plugins>>|Whether to switch to insert mode when clicking flash and other plugins.
 |<<input-auto-leave-insert-mode,auto-leave-insert-mode>>|Whether to leave insert mode if a non-editable element is clicked.
 |<<input-auto-insert-mode,auto-insert-mode>>|Whether to automatically enter insert mode if an editable element is focused after page load.
@@ -93,7 +93,7 @@
 |<<tabs-background-tabs,background-tabs>>|Whether to open new tabs (middleclick/ctrl+click) in background.
 |<<tabs-select-on-remove,select-on-remove>>|Which tab to select when the focused tab is removed.
 |<<tabs-new-tab-position,new-tab-position>>|How new tabs are positioned.
-|<<tabs-new-tab-position-explicit,new-tab-position-explicit>>|How new tabs opened explicitely are positioned.
+|<<tabs-new-tab-position-explicit,new-tab-position-explicit>>|How new tabs opened explicitly are positioned.
 |<<tabs-last-close,last-close>>|Behaviour when the last tab is closed.
 |<<tabs-hide-auto,hide-auto>>|Hide the tabbar if only one tab is open.
 |<<tabs-hide-always,hide-always>>|Always hide the tabbar.
@@ -697,13 +697,13 @@ Options related to input modes.
 
 [[input-timeout]]
 === timeout
-Timeout for ambiguous keybindings.
+Timeout for ambiguous key bindings.
 
 Default: +pass:[500]+
 
 [[input-partial-timeout]]
 === partial-timeout
-Timeout for partially typed keybindings.
+Timeout for partially typed key bindings.
 
 Default: +pass:[1000]+
 
@@ -834,7 +834,7 @@ Default: +pass:[right]+
 
 [[tabs-new-tab-position-explicit]]
 === new-tab-position-explicit
-How new tabs opened explicitely are positioned.
+How new tabs opened explicitly are positioned.
 
 Valid values:
 
@@ -1208,7 +1208,7 @@ Whether to accept cookies.
 
 Valid values:
 
- * +default+: Default QtWebKit behaviour.
+ * +default+: Default QtWebKit behavior.
  * +never+: Don't accept cookies at all.
 
 Default: +pass:[default]+

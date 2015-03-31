@@ -1328,7 +1328,7 @@ class AcceptCookies(BaseType):
 
     """Whether to accept a cookie."""
 
-    valid_values = ValidValues(('default', "Default QtWebKit behaviour."),
+    valid_values = ValidValues(('default', "Default QtWebKit behavior."),
                                ('never', "Don't accept cookies at all."))
 
 

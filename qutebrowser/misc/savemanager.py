@@ -39,7 +39,8 @@ class Saveable:
         _save_handler: The function to call to save this Saveable.
         _save_on_exit: Whether to always save this saveable on exit.
         _config_opt: A (section, option) tuple of a config option which decides
-                     whether to autosave or not. None if no such option exists.
+                     whether to auto-save or not. None if no such option
+                     exists.
         _filename: The filename of the underlying file.
     """
 
@@ -77,7 +78,7 @@ class Saveable:
 
         Args:
             is_exit: Whether we're currently exiting qutebrowser.
-            explicit: Whether the user explicitely requested this save.
+            explicit: Whether the user explicitly requested this save.
             silent: Don't write informations to log.
             force: Force saving, no matter what.
         """
@@ -119,7 +120,7 @@ class SaveManager(QObject):
         return utils.get_repr(self, saveables=self.saveables)
 
     def init_autosave(self):
-        """Initialize autosaving.
+        """Initialize auto-saving.
 
         We don't do this in __init__ because the config needs to be initialized
         first, but the config needs the save manager.
@@ -129,7 +130,7 @@ class SaveManager(QObject):
 
     @config.change_filter('general', 'auto-save-interval')
     def set_autosave_interval(self):
-        """Set the autosave interval."""
+        """Set the auto-save interval."""
         interval = config.get('general', 'auto-save-interval')
         if interval == 0:
             self._save_timer.stop()
@@ -145,7 +146,7 @@ class SaveManager(QObject):
             name: The name to use.
             save: The function to call to save this saveable.
             changed: The signal emitted when this saveable changed.
-            config_opt: A (section, option) tuple deciding whether to autosave
+            config_opt: A (section, option) tuple deciding whether to auto-save
                         or not.
             filename: The filename of the underlying file, so we can force
                       saving if it doesn't exist.
@@ -161,7 +162,7 @@ class SaveManager(QObject):
 
         Args:
             is_exit: Whether we're currently exiting qutebrowser.
-            explicit: Whether this save operation was triggered explicitely.
+            explicit: Whether this save operation was triggered explicitly.
             silent: Don't write informations to log. Used to reduce log spam
                     when autosaving.
             force: Force saving, no matter what.

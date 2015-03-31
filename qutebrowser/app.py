@@ -734,7 +734,7 @@ class Application(QApplication):
 
     @cmdutils.register(instance='app', maxsplit=0, debug=True)
     def debug_pyeval(self, s):
-        """Evaluate a python string and display the results as a webpage.
+        """Evaluate a python string and display the results as a web page.
 
         //
 
@@ -847,8 +847,8 @@ class Application(QApplication):
                 deferrer = True
         if deferrer:
             # If shutdown was called while we were asking a question, we're in
-            # a still sub-eventloop (which gets quitted now) and not in the
-            # main one.
+            # a still sub-eventloop (which gets quit now) and not in the main
+            # one.
             # This means we need to defer the real shutdown to when we're back
             # in the real main event loop, or we'll get a segfault.
             log.destroy.debug("Deferring real shutdown because question was "
@@ -898,7 +898,7 @@ class Application(QApplication):
         qInstallMessageHandler(None)
         # Now we can hopefully quit without segfaults
         log.destroy.debug("Deferring QApplication::exit...")
-        # We use a singleshot timer to exit here to minimize the likelyhood of
+        # We use a singleshot timer to exit here to minimize the likelihood of
         # segfaults.
         QTimer.singleShot(0, functools.partial(self.exit, status))
 

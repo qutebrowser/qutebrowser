@@ -71,7 +71,7 @@ class ReadFileTests(unittest.TestCase):
     """Test read_file."""
 
     def test_readfile(self):
-        """Read a testfile."""
+        """Read a test file."""
         content = utils.read_file(os.path.join('test', 'testfile'))
         self.assertEqual(content.splitlines()[0], "Hello World!")
 
@@ -299,13 +299,13 @@ class KeyEventToStringTests(unittest.TestCase):
     """Test keyevent_to_string."""
 
     def test_only_control(self):
-        """Test keyeevent when only control is pressed."""
+        """Test keyevent when only control is pressed."""
         evt = helpers.fake_keyevent(key=Qt.Key_Control,
                                     modifiers=Qt.ControlModifier)
         self.assertIsNone(utils.keyevent_to_string(evt))
 
     def test_only_hyper_l(self):
-        """Test keyeevent when only Hyper_L is pressed."""
+        """Test keyevent when only Hyper_L is pressed."""
         evt = helpers.fake_keyevent(key=Qt.Key_Hyper_L,
                                     modifiers=Qt.MetaModifier)
         self.assertIsNone(utils.keyevent_to_string(evt))
@@ -423,7 +423,7 @@ class ForceEncodingTests(unittest.TestCase):
     """Test force_encoding."""
 
     def test_fitting_ascii(self):
-        """Test with a text fitting into ascii."""
+        """Test with a text fitting into ASCII."""
         text = 'hello world'
         self.assertEqual(utils.force_encoding(text, 'ascii'), text)
 
@@ -433,7 +433,7 @@ class ForceEncodingTests(unittest.TestCase):
         self.assertEqual(utils.force_encoding(text, 'utf-8'), text)
 
     def test_not_fitting_ascii(self):
-        """Test with a text not fitting into ascii."""
+        """Test with a text not fitting into ASCII."""
         text = 'hellö wörld'
         self.assertEqual(utils.force_encoding(text, 'ascii'), 'hell? w?rld')
 

@@ -40,8 +40,8 @@ def get_webelem(geometry=None, frame=None, null=False, visibility='',
         geometry: The geometry of the QWebElement as QRect.
         frame: The QWebFrame the element is in.
         null: Whether the element is null or not.
-        visibility: The CSS visibility style property calue.
-        display: The CSS display style property calue.
+        visibility: The CSS visibility style property value.
+        display: The CSS display style property value.
         attributes: Boolean HTML attributes to be added.
         tagname: The tag name.
         classes: HTML classes to be added.
@@ -535,7 +535,7 @@ class IsEditableTests(unittest.TestCase):
         self.assertFalse(elem.is_editable())
 
     def test_div_noneditable(self):
-        """Test div-element with non-editableclass."""
+        """Test div-element with non-editable class."""
         elem = get_webelem(tagname='div', classes='foo-kix-bar')
         self.assertFalse(elem.is_editable())
 

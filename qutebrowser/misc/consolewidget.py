@@ -149,7 +149,7 @@ class ConsoleWidget(QWidget):
         _output: The output widget in the console.
         _vbox: The layout which contains everything.
         _more: A flag which is set when more input is expected.
-        _buffer: The buffer for multiline commands.
+        _buffer: The buffer for multi-line commands.
         _interpreter: The InteractiveInterpreter to execute code with.
     """
 
@@ -195,13 +195,13 @@ class ConsoleWidget(QWidget):
         self._buffer.append(line)
         source = '\n'.join(self._buffer)
         self.write(line + '\n')
-        # We do two special things with the contextmanagers here:
+        # We do two special things with the context managers here:
         #   - We replace stdout/stderr to capture output. Even if we could
         #     override InteractiveInterpreter's write method, most things are
         #     printed elsewhere (e.g. by exec). Other Python GUI shells do the
         #     same.
         #   - We disable our exception hook, so exceptions from the console get
-        #     printed and don't ooen a crashdialog.
+        #     printed and don't open a crashdialog.
         with utils.fake_io(self.write), utils.disabled_excepthook():
             self._more = self._interpreter.runsource(source, '<console>')
         self.write(self._curprompt())

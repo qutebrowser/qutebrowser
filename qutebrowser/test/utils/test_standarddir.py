@@ -46,7 +46,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_data_explicit(self):
-        """Test data dir with XDG_DATA_HOME explicitely set."""
+        """Test data dir with XDG_DATA_HOME explicitly set."""
         with helpers.environ_set_temp({'XDG_DATA_HOME': self.temp_dir}):
             standarddir.init(None)
             expected = os.path.join(self.temp_dir, 'qutebrowser')
@@ -54,7 +54,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_config_explicit(self):
-        """Test config dir with XDG_CONFIG_HOME explicitely set."""
+        """Test config dir with XDG_CONFIG_HOME explicitly set."""
         with helpers.environ_set_temp({'XDG_CONFIG_HOME': self.temp_dir}):
             standarddir.init(None)
             expected = os.path.join(self.temp_dir, 'qutebrowser')
@@ -62,7 +62,7 @@ class GetStandardDirLinuxTests(unittest.TestCase):
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
     def test_cache_explicit(self):
-        """Test cache dir with XDG_CACHE_HOME explicitely set."""
+        """Test cache dir with XDG_CACHE_HOME explicitly set."""
         with helpers.environ_set_temp({'XDG_CACHE_HOME': self.temp_dir}):
             standarddir.init(None)
             expected = os.path.join(self.temp_dir, 'qutebrowser')

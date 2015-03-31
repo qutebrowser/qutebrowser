@@ -34,7 +34,7 @@ from scripts import utils
 
 
 def check_git():
-    """Check for uncommited git files.."""
+    """Check for uncommitted git files.."""
     if not os.path.isdir(".git"):
         print("No .git dir, ignoring")
         print()

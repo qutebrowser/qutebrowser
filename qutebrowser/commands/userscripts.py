@@ -52,7 +52,7 @@ class _QtFIFOReader(QObject):
 
     @pyqtSlot()
     def read_line(self):
-        """(Try to) read a line from the fifo."""
+        """(Try to) read a line from the FIFO."""
         log.procs.debug("QSocketNotifier triggered!")
         self._notifier.setEnabled(False)
         for line in self.fifo:
@@ -60,7 +60,7 @@ class _QtFIFOReader(QObject):
         self._notifier.setEnabled(True)
 
     def cleanup(self):
-        """Clean up so the fifo can be closed."""
+        """Clean up so the FIFO can be closed."""
         self._notifier.setEnabled(False)
 
 

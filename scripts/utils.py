@@ -61,7 +61,7 @@ term_attributes = {
 
 
 def _esc(code):
-    """Get an ANSII color code based on a color number."""
+    """Get an ANSI color code based on a color number."""
     return '\033[{}m'.format(code)
 
 

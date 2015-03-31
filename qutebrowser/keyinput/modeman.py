@@ -95,7 +95,7 @@ def maybe_leave(win_id, mode, reason=None):
 
 class EventFilter(QObject):
 
-    """Event filter which passes the event to the corrent ModeManager."""
+    """Event filter which passes the event to the current ModeManager."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -229,7 +229,7 @@ class ModeManager(QObject):
         """
         # handle like matching KeyPress
         if event in self._releaseevents_to_pass:
-            # remove all occurences
+            # remove all occurrences
             self._releaseevents_to_pass = [
                 e for e in self._releaseevents_to_pass if e != event]
             filter_this = False
@@ -245,7 +245,7 @@ class ModeManager(QObject):
         Args:
             mode: The name of the mode.
             handler: Handler for keyPressEvents.
-            passthrough: Whether to pass keybindings in this mode through to
+            passthrough: Whether to pass key bindings in this mode through to
                          the widgets.
         """
         if not isinstance(mode, usertypes.KeyMode):

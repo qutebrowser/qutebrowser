@@ -133,7 +133,7 @@ class ValueList(Section):
     """This class represents a section with a list key-value settings.
 
     These are settings inside sections which don't have fixed keys, but instead
-    have a dynamic list of "key = value" pairs, like keybindings or
+    have a dynamic list of "key = value" pairs, like key bindings or
     searchengines.
 
     They basically consist of two different SettingValues.

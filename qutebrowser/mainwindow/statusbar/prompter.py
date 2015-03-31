@@ -187,7 +187,7 @@ class Prompter(QObject):
     def shutdown(self):
         """Cancel all blocking questions.
 
-        Quits and removes all running eventloops.
+        Quits and removes all running event loops.
 
         Return:
             True if loops needed to be aborted,

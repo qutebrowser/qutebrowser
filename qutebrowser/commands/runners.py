@@ -55,7 +55,7 @@ def replace_variables(win_id, arglist):
 
 class SearchRunner(QObject):
 
-    """Run searches on webpages.
+    """Run searches on web pages.
 
     Attributes:
         _text: The text from the last search.

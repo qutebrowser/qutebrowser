@@ -179,7 +179,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     def on_mode_left(self, mode):
         """Clear up when command mode was left.
 
-        - Clear the statusbar text if it's explicitely unfocused.
+        - Clear the statusbar text if it's explicitly unfocused.
         - Clear completion selection
         - Hide completion
 

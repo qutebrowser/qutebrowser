@@ -49,7 +49,7 @@ class Loader(jinja2.BaseLoader):
 
 
 def _guess_autoescape(template_name):
-    """Turn autoescape on/off based on the filetype.
+    """Turn auto-escape on/off based on the file type.
 
     Based on http://jinja.pocoo.org/docs/dev/api/#autoescaping
     """

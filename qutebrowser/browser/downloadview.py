@@ -123,7 +123,7 @@ class DownloadView(QListView):
         Return:
             A list of either:
                 - (QAction, callable) tuples.
-                - (None, None) for a seperator
+                - (None, None) for a separator
         """
         actions = []
         if item is None:

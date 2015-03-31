@@ -148,7 +148,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True):
         do_search: Whether to perform a search on non-URLs.
 
     Return:
-        A target QUrl to a searchpage or the original URL.
+        A target QUrl to a search page or the original URL.
     """
     expanded = os.path.expanduser(urlstr)
     if relative and cwd:

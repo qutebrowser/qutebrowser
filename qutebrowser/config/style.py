@@ -94,7 +94,7 @@ class ColorDict(dict):
             log.style.exception("No color defined for {}!")
             return ''
         if isinstance(val, QColor):
-            # This could happen when accidentaly declarding something as
+            # This could happen when accidentally declaring something as
             # QtColor instead of Color in the config, and it'd go unnoticed as
             # the CSS is invalid then.
             raise TypeError("QColor passed to ColorDict!")
