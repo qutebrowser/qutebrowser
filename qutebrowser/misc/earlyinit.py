@@ -20,6 +20,13 @@
 At this point we can be sure we have all python 3.4 features available.
 """
 
+try:
+    # Importing hunter to register its atexit handler early so it gets called
+    # late.
+    import hunter  # pylint: disable=import-error,unused-import
+except ImportError:
+    hunter = None
+
 import os
 import sys
 import faulthandler

@@ -36,6 +36,10 @@ from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
                           QObject, Qt, QSocketNotifier)
+try:
+    import hunter
+except ImportError:
+    hunter = None
 
 import qutebrowser
 import qutebrowser.resources  # pylint: disable=unused-import
@@ -50,7 +54,7 @@ from qutebrowser.misc import (crashdialog, readline, ipc, earlyinit,
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
-                               debug, objreg, usertypes, standarddir)
+                               objreg, usertypes, standarddir)
 # We import utilcmds to run the cmdutils.register decorators.
 
 
@@ -924,6 +928,10 @@ class Application(QApplication):
         """Extend QApplication::exit to log the event."""
         log.destroy.debug("Now calling QApplication::exit.")
         if self._args.debug_exit:
-            print("Now logging late shutdown.", file=sys.stderr)
-            debug.trace_lines(True)
+            if hunter is None:
+                print("Not logging late shutdown because hunter could not be "
+                      "imported!", file=sys.stderr)
+            else:
+                print("Now logging late shutdown.", file=sys.stderr)
+                hunter.trace()
         super().exit(status)

@@ -24,6 +24,10 @@ import functools
 import types
 
 from PyQt5.QtCore import QCoreApplication
+try:
+    import hunter
+except ImportError:
+    hunter = None
 
 from qutebrowser.utils import log, objreg, usertypes
 from qutebrowser.commands import cmdutils, runners, cmdexc
@@ -117,6 +121,22 @@ def debug_console():
         con_widget = consolewidget.ConsoleWidget()
         objreg.register('debug-console', con_widget)
     con_widget.show()
+
+
+@cmdutils.register(debug=True, maxsplit=0)
+def debug_trace(expr=""):
+    """Trace executed code via hunter.
+
+    Args:
+        expr: What to trace, passed to hunter.
+    """
+    if hunter is None:
+        raise cmdexc.CommandError("You need to install 'hunter' to use this "
+                                  "command!")
+    try:
+        eval('hunter.trace({})'.format(expr))
+    except Exception as e:
+        raise cmdexc.CommandError("{}: {}".format(e.__class__.__name__, e))
 
 
 @cmdutils.register(hide=True)
