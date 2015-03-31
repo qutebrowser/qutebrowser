@@ -19,6 +19,7 @@
 
 """Misc. utility commands exposed to the user."""
 
+import configparser
 import functools
 import types
 
@@ -116,3 +117,16 @@ def debug_console():
         con_widget = consolewidget.ConsoleWidget()
         objreg.register('debug-console', con_widget)
     con_widget.show()
+
+
+@cmdutils.register(hide=True)
+def fooled():
+    """Turn off april's fools."""
+    from qutebrowser.config import websettings
+    state_config = objreg.get('state-config')
+    try:
+        state_config.add_section('general')
+    except configparser.DuplicateSectionError:
+        pass
+    state_config['general']['fooled'] = '1'
+    websettings.update_settings('ui', 'user-stylesheet')

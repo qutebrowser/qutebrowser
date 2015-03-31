@@ -24,9 +24,12 @@ Module attributes:
                 constants.
 """
 
+import base64
+import datetime
 import os.path
 
 from PyQt5.QtWebKit import QWebSettings
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import config
 from qutebrowser.utils import standarddir, objreg, log, utils, debug
@@ -191,6 +194,22 @@ class Setter(Base):
         self._setter(*args)
 
 
+class AprilSetter(Setter):
+
+    """Set something... unless it's the 1st of April."""
+
+    def _set(self, value, qws=None):
+        state_config = objreg.get('state-config')
+        try:
+            fooled = state_config['general']['fooled']
+        except KeyError:
+            fooled = False
+        if datetime.date.today() == datetime.date(2015, 4, 1) and not fooled:
+            pass
+        else:
+            super()._set(value, qws)
+
+
 class NullStringSetter(Setter):
 
     """A setter for settings requiring a null QString as default.
@@ -317,8 +336,8 @@ MAPPINGS = {
         'frame-flattening':
             Attribute(QWebSettings.FrameFlatteningEnabled),
         'user-stylesheet':
-            Setter(getter=QWebSettings.userStyleSheetUrl,
-                   setter=QWebSettings.setUserStyleSheetUrl),
+            AprilSetter(getter=QWebSettings.userStyleSheetUrl,
+                        setter=QWebSettings.setUserStyleSheetUrl),
         'css-media-type':
             NullStringSetter(getter=QWebSettings.cssMediaType,
                              setter=QWebSettings.setCSSMediaType),
@@ -379,6 +398,21 @@ def init():
         os.path.join(standarddir.data(), 'local-storage'))
     QWebSettings.setOfflineStoragePath(
         os.path.join(standarddir.data(), 'offline-storage'))
+
+    state_config = objreg.get('state-config')
+    try:
+        fooled = state_config['general']['fooled']
+    except KeyError:
+        fooled = False
+    if datetime.date.today() == datetime.date(2015, 4, 1) and not fooled:
+        value = """
+            html {
+                -webkit-transform:rotate(3deg) scale(0.99);
+            }
+        """
+        data = base64.b64encode(value.encode('utf-8')).decode('ascii')
+        url = QUrl("data:text/css;charset=utf-8;base64,{}".format(data))
+        QWebSettings.globalSettings().setUserStyleSheetUrl(url)
 
     for sectname, section in MAPPINGS.items():
         for optname, mapping in section.items():
