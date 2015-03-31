@@ -97,7 +97,12 @@ def on_focus_changed():
         delta = datetime.datetime.now() - msg.time
         log.misc.debug("Handling queued {} for window {}, delta {}".format(
             msg.method_name, msg.win_id, delta))
-        bridge = _get_bridge(msg.win_id)
+        try:
+            bridge = _get_bridge(msg.win_id)
+        except objreg.RegistryUnavailableError:
+            # Non-mainwindow window focused.
+            _QUEUED.append(msg)
+            return
         if delta.total_seconds() < 1:
             text = msg.text
         else:
