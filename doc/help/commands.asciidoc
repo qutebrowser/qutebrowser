@@ -874,7 +874,8 @@ These commands are mainly intended for debugging. They are hidden if qutebrowser
 |<<debug-cache-stats,debug-cache-stats>>|Print LRU cache stats.
 |<<debug-console,debug-console>>|Show the debugging console.
 |<<debug-crash,debug-crash>>|Crash for debugging purposes.
-|<<debug-pyeval,debug-pyeval>>|Evaluate a python string and display the results as a webpage.
+|<<debug-pyeval,debug-pyeval>>|Evaluate a python string and display the results as a web page.
+|<<debug-trace,debug-trace>>|Trace executed code via hunter.
 |==============
 [[debug-all-objects]]
 === debug-all-objects
@@ -901,8 +902,17 @@ Crash for debugging purposes.
 === debug-pyeval
 Syntax: +:debug-pyeval 's'+
 
-Evaluate a python string and display the results as a webpage.
+Evaluate a python string and display the results as a web page.
 
 ==== positional arguments
 * +'s'+: The string to evaluate.
+
+[[debug-trace]]
+=== debug-trace
+Syntax: +:debug-trace ['expr']+
+
+Trace executed code via hunter.
+
+==== positional arguments
+* +'expr'+: What to trace, passed to hunter.
 
