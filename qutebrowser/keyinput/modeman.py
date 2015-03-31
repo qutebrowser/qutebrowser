@@ -32,6 +32,33 @@ from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import usertypes, log, objreg, utils
 
 
+class KeyEvent:
+
+    """A small wrapper over a QKeyEvent storing its data.
+
+    This is needed because Qt apparently mutates existing events with new data.
+    It doesn't store the modifiers because they can be different for a key
+    press/release.
+
+    Attributes:
+        key: A Qt.Key member (QKeyEvent::key).
+        text: A string (QKeyEvent::text).
+    """
+
+    def __init__(self, keyevent):
+        self.key = keyevent.key()
+        self.text = keyevent.text()
+
+    def __repr__(self):
+        return utils.get_repr(self, key=self.key, text=self.text)
+
+    def __eq__(self, other):
+        return self.key == other.key and self.text == other.text
+
+    def __hash__(self):
+        return hash((self.key, self.text))
+
+
 class NotInModeError(Exception):
 
     """Exception raised when we want to leave a mode we're not in."""
@@ -143,7 +170,7 @@ class ModeManager(QObject):
         _win_id: The window ID of this ModeManager
         _handlers: A dictionary of modes and their handlers.
         _forward_unbound_keys: If we should forward unbound keys.
-        _releaseevents_to_pass: A list of keys where the keyPressEvent was
+        _releaseevents_to_pass: A set of KeyEvents where the keyPressEvent was
                                 passed through, so the release event should as
                                 well.
 
@@ -166,7 +193,7 @@ class ModeManager(QObject):
         self._handlers = {}
         self.passthrough = []
         self.mode = usertypes.KeyMode.normal
-        self._releaseevents_to_pass = []
+        self._releaseevents_to_pass = set()
         self._forward_unbound_keys = config.get(
             'input', 'forward-unbound-keys')
         objreg.get('config').changed.connect(self.set_forward_unbound_keys)
@@ -207,7 +234,7 @@ class ModeManager(QObject):
             filter_this = True
 
         if not filter_this:
-            self._releaseevents_to_pass.append(event)
+            self._releaseevents_to_pass.add(KeyEvent(event))
 
         if curmode != usertypes.KeyMode.insert:
             log.modes.debug("handled: {}, forward-unbound-keys: {}, "
@@ -228,10 +255,9 @@ class ModeManager(QObject):
             True if event should be filtered, False otherwise.
         """
         # handle like matching KeyPress
-        if event in self._releaseevents_to_pass:
-            # remove all occurrences
-            self._releaseevents_to_pass = [
-                e for e in self._releaseevents_to_pass if e != event]
+        keyevent = KeyEvent(event)
+        if keyevent in self._releaseevents_to_pass:
+            self._releaseevents_to_pass.remove(keyevent)
             filter_this = False
         else:
             filter_this = True
