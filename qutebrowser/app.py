@@ -701,6 +701,10 @@ class Application(QApplication):
         argdict['url'] = []
         argdict['command'] = page_args[:-1]
         argdict['json_args'] = None
+        # Ensure a session does never get opened.
+        argdict['session'] = None
+        argdict['override_restore'] = True
+        # Dump the data
         data = json.dumps(argdict)
         args += ['--json-args', data]
 
