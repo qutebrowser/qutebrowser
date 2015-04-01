@@ -649,7 +649,8 @@ class Application(QApplication):
             self._args.debug, pages, cmd_history, exc, objects)
         ret = self._crashdlg.exec_()
         if ret == QDialog.Accepted:  # restore
-            self.restart(shutdown=False, pages=pages)
+            self._do_restart(pages)
+
         # We might risk a segfault here, but that's better than continuing to
         # run in some undefined state, so we only do the most needed shutdown
         # here.
@@ -708,11 +709,23 @@ class Application(QApplication):
 
         return args, cwd
 
-    @cmdutils.register(instance='app', ignore_args=True)
-    def restart(self, shutdown=True, pages=None):
+    @cmdutils.register(instance='app')
+    def restart(self):
         """Restart qutebrowser while keeping existing tabs open."""
-        if pages is None:
-            pages = self._recover_pages()
+        pages = self._recover_pages()
+        ok = self._do_restart(pages)
+        if ok:
+            self.shutdown()
+
+    def _do_restart(self, pages):
+        """Inner logic to restart qutebrowser.
+
+        Args:
+            pages: A list of URLs to open.
+
+        Return:
+            True if the restart succeeded, False otherwise.
+        """
         log.destroy.debug("sys.executable: {}".format(sys.executable))
         log.destroy.debug("sys.path: {}".format(sys.path))
         log.destroy.debug("sys.argv: {}".format(sys.argv))
@@ -726,9 +739,10 @@ class Application(QApplication):
                 subprocess.Popen(args, cwd=cwd)
         except OSError:
             log.destroy.exception("Failed to restart")
+            return False
         else:
-            if shutdown:
-                self.shutdown()
+            return True
+
 
     @cmdutils.register(instance='app', maxsplit=0, debug=True)
     def debug_pyeval(self, s):
