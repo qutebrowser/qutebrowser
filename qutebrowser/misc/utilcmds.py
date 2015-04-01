@@ -19,7 +19,6 @@
 
 """Misc. utility commands exposed to the user."""
 
-import configparser
 import functools
 import types
 
@@ -144,9 +143,5 @@ def fooled():
     """Turn off april's fools."""
     from qutebrowser.config import websettings
     state_config = objreg.get('state-config')
-    try:
-        state_config.add_section('general')
-    except configparser.DuplicateSectionError:
-        pass
     state_config['general']['fooled'] = '1'
     websettings.update_settings('ui', 'user-stylesheet')

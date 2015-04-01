@@ -21,7 +21,6 @@
 
 import os
 import os.path
-import configparser
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject, QPoint, QTimer
 from PyQt5.QtWidgets import QApplication
@@ -185,10 +184,6 @@ class SessionManager(QObject):
             self.update_completion.emit()
         if load_next_time:
             state_config = objreg.get('state-config')
-            try:
-                state_config.add_section('general')
-            except configparser.DuplicateSectionError:
-                pass
             state_config['general']['session'] = name
 
     def save_last_window_session(self):

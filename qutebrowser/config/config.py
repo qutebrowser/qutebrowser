@@ -179,6 +179,11 @@ def _init_misc():
     """Initialize misc. config-related files."""
     save_manager = objreg.get('save-manager')
     state_config = ini.ReadWriteConfigParser(standarddir.data(), 'state')
+    for sect in ('general', 'geometry'):
+        try:
+            state_config.add_section(sect)
+        except configparser.DuplicateSectionError:
+            pass
     objreg.register('state-config', state_config)
     save_manager.add_saveable('state-config', state_config.save)
 

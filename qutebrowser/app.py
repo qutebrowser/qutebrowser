@@ -437,10 +437,6 @@ class Application(QApplication):
                                         window='last-focused')
             tabbed_browser.tabopen(
                 QUrl('http://www.qutebrowser.org/quickstart.html'))
-            try:
-                state_config.add_section('general')
-            except configparser.DuplicateSectionError:
-                pass
             state_config['general']['quickstart-done'] = '1'
 
     def _setup_signals(self):
@@ -561,19 +557,11 @@ class Application(QApplication):
         if self.geometry is not None:
             state_config = objreg.get('state-config')
             geom = base64.b64encode(self.geometry).decode('ASCII')
-            try:
-                state_config.add_section('geometry')
-            except configparser.DuplicateSectionError:
-                pass
             state_config['geometry']['mainwindow'] = geom
 
     def _save_version(self):
         """Save the current version to the state config."""
         state_config = objreg.get('state-config')
-        try:
-            state_config.add_section('general')
-        except configparser.DuplicateSectionError:
-            pass
         state_config['general']['version'] = qutebrowser.__version__
 
     def _destroy_crashlogfile(self):
