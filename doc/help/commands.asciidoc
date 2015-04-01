@@ -406,16 +406,20 @@ Search for a text on the current page.
 
 [[session-delete]]
 === session-delete
-Syntax: +:session-delete 'name'+
+Syntax: +:session-delete [*--force*] 'name'+
 
 Delete a session.
 
 ==== positional arguments
 * +'name'+: The name of the session.
 
+==== optional arguments
+* +*-f*+, +*--force*+: Force deleting internal sessions (starting with an underline).
+
+
 [[session-load]]
 === session-load
-Syntax: +:session-load [*--clear*] 'name'+
+Syntax: +:session-load [*--clear*] [*--force*] 'name'+
 
 Load a session.
 
@@ -424,10 +428,12 @@ Load a session.
 
 ==== optional arguments
 * +*-c*+, +*--clear*+: Close all existing windows.
+* +*-f*+, +*--force*+: Force loading internal sessions (starting with an underline).
+
 
 [[session-save]]
 === session-save
-Syntax: +:session-save [*--quiet*] ['name']+
+Syntax: +:session-save [*--quiet*] [*--force*] ['name']+
 
 Save a session.
 
@@ -436,6 +442,7 @@ Save a session.
 
 ==== optional arguments
 * +*-q*+, +*--quiet*+: Don't show confirmation message.
+* +*-f*+, +*--force*+: Force saving internal sessions (starting with an underline).
 
 [[set]]
 === set
