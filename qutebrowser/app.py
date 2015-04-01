@@ -31,6 +31,7 @@ import functools
 import traceback
 import faulthandler
 import datetime
+import json
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
@@ -683,19 +684,28 @@ class Application(QApplication):
                 # cwd=None and see if that works out.
                 # See https://github.com/The-Compiler/qutebrowser/issues/323
                 cwd = None
-        for arg in sys.argv[1:]:
-            if arg.startswith('-'):
-                # We only want to preserve options on a restart.
-                args.append(arg)
+
         # Add all open pages so they get reopened.
         page_args = []
         for win in pages:
             page_args.extend(win)
             page_args.append('')
-        if page_args:
-            args.extend(page_args[:-1])
+
+        # Serialize the argparse namespace into json and pass that to the new
+        # process via --json-args.
+        # We do this as there's no way to "unparse" the namespace while
+        # ignoring some arguments.
+        argdict = vars(self._args)
+        argdict['session'] = None
+        argdict['url'] = []
+        argdict['command'] = page_args[:-1]
+        argdict['json_args'] = None
+        data = json.dumps(argdict)
+        args += ['--json-args', data]
+
         log.destroy.debug("args: {}".format(args))
         log.destroy.debug("cwd: {}".format(cwd))
+
         return args, cwd
 
     @cmdutils.register(instance='app', ignore_args=True)
