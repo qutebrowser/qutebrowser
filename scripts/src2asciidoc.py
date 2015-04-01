@@ -227,6 +227,8 @@ def _format_action_args(action):
 
 def _format_action(action):
     """Get an invocation string/help from an argparse action."""
+    if action.help == argparse.SUPPRESS:
+        return None
     if not action.option_strings:
         invocation = '*{}*::'.format(_get_action_metavar(action))
     else:
@@ -396,7 +398,9 @@ def regenerate_manpage(filename):
         if group.description is not None:
             groupdata.append(group.description)
         for action in group._group_actions:
-            groupdata.append(_format_action(action))
+            action_data = _format_action(action)
+            if action_data is not None:
+                groupdata.append(action_data)
         groups.append('\n'.join(groupdata))
     options = '\n'.join(groups)
     # epilog
