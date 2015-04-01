@@ -317,6 +317,9 @@ class Application(QApplication):
             del state_config['general']['session']
         except KeyError:
             pass
+        # If this was a _restart session, delete it.
+        if name == '_restart':
+            session_manager.delete('_restart')
 
     def _get_window(self, via_ipc, force_window=False, force_tab=False):
         """Helper function for process_pos_args to get a window id.
@@ -658,11 +661,12 @@ class Application(QApplication):
         self._destroy_crashlogfile()
         sys.exit(1)
 
-    def _get_restart_args(self, pages):
+    def _get_restart_args(self, pages=(), session=None):
         """Get the current working directory and args to relaunch qutebrowser.
 
         Args:
             pages: The pages to re-open.
+            session: The session to load, or None.
 
         Return:
             An (args, cwd) tuple.
@@ -701,9 +705,13 @@ class Application(QApplication):
         argdict['url'] = []
         argdict['command'] = page_args[:-1]
         argdict['json_args'] = None
-        # Ensure a session does never get opened.
-        argdict['session'] = None
-        argdict['override_restore'] = True
+        # Ensure the given session (or none at all) gets opened.
+        if session is None:
+            argdict['session'] = None
+            argdict['override_restore'] = True
+        else:
+            argdict['session'] = session
+            argdict['override_restore'] = False
         # Dump the data
         data = json.dumps(argdict)
         args += ['--json-args', data]
@@ -716,16 +724,23 @@ class Application(QApplication):
     @cmdutils.register(instance='app')
     def restart(self):
         """Restart qutebrowser while keeping existing tabs open."""
-        pages = self._recover_pages()
-        ok = self._do_restart(pages)
+        ok = self._do_restart(session='_restart')
         if ok:
             self.shutdown()
 
-    def _do_restart(self, pages):
+    def _do_restart(self, pages=(), session=None):
         """Inner logic to restart qutebrowser.
+
+        The "better" way to restart is to pass a session (_restart usually) as
+        that'll save the complete state.
+
+        However we don't do that (and pass a list of pages instead) when we
+        restart because of an exception, as that's a lot simpler and we don't
+        want to risk anything going wrong.
 
         Args:
             pages: A list of URLs to open.
+            session: The session to load, or None.
 
         Return:
             True if the restart succeeded, False otherwise.
@@ -734,9 +749,13 @@ class Application(QApplication):
         log.destroy.debug("sys.path: {}".format(sys.path))
         log.destroy.debug("sys.argv: {}".format(sys.argv))
         log.destroy.debug("frozen: {}".format(hasattr(sys, 'frozen')))
+        # Save the session if one is given.
+        if session is not None:
+            session_manager = objreg.get('session-manager')
+            session_manager.save(session)
         # Open a new process and immediately shutdown the existing one
         try:
-            args, cwd = self._get_restart_args(pages)
+            args, cwd = self._get_restart_args(pages, session)
             if cwd is None:
                 subprocess.Popen(args)
             else:
@@ -746,7 +765,6 @@ class Application(QApplication):
             return False
         else:
             return True
-
 
     @cmdutils.register(instance='app', maxsplit=0, debug=True)
     def debug_pyeval(self, s):
