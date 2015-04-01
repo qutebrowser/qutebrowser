@@ -121,4 +121,5 @@ class SessionCompletionModel(base.BaseCompletionModel):
         super().__init__(parent)
         cat = self.new_category("Sessions")
         for name in objreg.get('session-manager').list_sessions():
-            self.new_item(cat, name)
+            if not name.startswith('_'):
+                self.new_item(cat, name)
