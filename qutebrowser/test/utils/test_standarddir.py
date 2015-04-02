@@ -22,117 +22,94 @@
 import os
 import os.path
 import sys
-import shutil
-import unittest
-import tempfile
 
 from PyQt5.QtWidgets import QApplication
+import pytest
 
 from qutebrowser.utils import standarddir
-from qutebrowser.test import helpers
 
 
-class GetStandardDirLinuxTests(unittest.TestCase):
+@pytest.yield_fixture(autouse=True)
+def change_qapp_name():
+    """
+    Change the name of the QApplication instance for all tests in this module
+    to "qutebrowser_test".
+    """
+    old_name = QApplication.instance().applicationName()
+    QApplication.instance().setApplicationName('qutebrowser_test')
+    yield
+    QApplication.instance().setApplicationName(old_name)
+
+
+@pytest.mark.skipif(not sys.platform.startswith("linux"),
+                    reason="requires Linux")
+class TestGetStandardDirLinux(object):
     """Tests for standarddir under Linux.
-
-    Attributes:
-        temp_dir: A temporary directory.
-        old_name: The old applicationName.
     """
 
-    def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
-        self.old_name = QApplication.instance().applicationName()
-        QApplication.instance().setApplicationName('qutebrowser')
-
-    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
-    def test_data_explicit(self):
+    def test_data_explicit(self, monkeypatch, tmpdir):
         """Test data dir with XDG_DATA_HOME explicitely set."""
-        with helpers.environ_set_temp({'XDG_DATA_HOME': self.temp_dir}):
-            standarddir.init(None)
-            expected = os.path.join(self.temp_dir, 'qutebrowser')
-            self.assertEqual(standarddir.data(), expected)
+        monkeypatch.setenv('XDG_DATA_HOME', str(tmpdir))
+        standarddir.init(None)
+        assert standarddir.data() == str(tmpdir / 'qutebrowser')
 
-    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
-    def test_config_explicit(self):
+    def test_config_explicit(self, monkeypatch, tmpdir):
         """Test config dir with XDG_CONFIG_HOME explicitely set."""
-        with helpers.environ_set_temp({'XDG_CONFIG_HOME': self.temp_dir}):
-            standarddir.init(None)
-            expected = os.path.join(self.temp_dir, 'qutebrowser')
-            self.assertEqual(standarddir.config(), expected)
+        monkeypatch.setenv('XDG_CONFIG_HOME', str(tmpdir))
+        standarddir.init(None)
+        assert standarddir.config() == str(tmpdir / 'qutebrowser')
 
-    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
-    def test_cache_explicit(self):
+    def test_cache_explicit(self, monkeypatch, tmpdir):
         """Test cache dir with XDG_CACHE_HOME explicitely set."""
-        with helpers.environ_set_temp({'XDG_CACHE_HOME': self.temp_dir}):
-            standarddir.init(None)
-            expected = os.path.join(self.temp_dir, 'qutebrowser')
-            self.assertEqual(standarddir.cache(), expected)
+        monkeypatch.setenv('XDG_CACHE_HOME', str(tmpdir))
+        standarddir.init(None)
+        assert standarddir.cache() == str(tmpdir / 'qutebrowser')
 
-    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
-    def test_data(self):
+    def test_data(self, monkeypatch, tmpdir):
         """Test data dir with XDG_DATA_HOME not set."""
-        env = {'HOME': self.temp_dir, 'XDG_DATA_HOME': None}
-        with helpers.environ_set_temp(env):
-            standarddir.init(None)
-            expected = os.path.join(self.temp_dir, '.local', 'share',
-                                    'qutebrowser')
-            self.assertEqual(standarddir.data(), expected)
+        monkeypatch.setenv('HOME', str(tmpdir))
+        monkeypatch.setenv('XDG_DATA_HOME', None)
+        standarddir.init(None)
+        expected = tmpdir / '.local' / 'share' / 'qutebrowser'
+        assert standarddir.data() == str(expected)
 
-    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
-    def test_config(self):
+    def test_config(self, monkeypatch, tmpdir):
         """Test config dir with XDG_CONFIG_HOME not set."""
-        env = {'HOME': self.temp_dir, 'XDG_CONFIG_HOME': None}
-        with helpers.environ_set_temp(env):
-            standarddir.init(None)
-            expected = os.path.join(self.temp_dir, '.config', 'qutebrowser')
-            self.assertEqual(standarddir.config(), expected)
+        monkeypatch.setenv('HOME', str(tmpdir))
+        monkeypatch.setenv('XDG_CONFIG_HOME', None)
+        standarddir.init(None)
+        expected = tmpdir / '.config' / 'qutebrowser'
+        assert standarddir.config() == str(expected)
 
-    @unittest.skipUnless(sys.platform.startswith("linux"), "requires Linux")
-    def test_cache(self):
+    def test_cache(self, monkeypatch, tmpdir):
         """Test cache dir with XDG_CACHE_HOME not set."""
-        env = {'HOME': self.temp_dir, 'XDG_CACHE_HOME': None}
-        with helpers.environ_set_temp(env):
-            standarddir.init(None)
-            expected = os.path.join(self.temp_dir, '.cache', 'qutebrowser')
-            self.assertEqual(standarddir.cache(), expected)
-
-    def tearDown(self):
-        QApplication.instance().setApplicationName(self.old_name)
-        shutil.rmtree(self.temp_dir)
+        monkeypatch.setenv('HOME', str(tmpdir))
+        monkeypatch.setenv('XDG_CACHE_HOME', None)
+        standarddir.init(None)
+        expected = tmpdir / '.cache' / 'qutebrowser'
+        assert standarddir.cache() == expected
 
 
-class GetStandardDirWindowsTests(unittest.TestCase):
+@pytest.mark.skipif(not sys.platform.startswith("win"),
+                    reason="requires Windows")
+class TestGetStandardDirWindows(object):
     """Tests for standarddir under Windows.
-
-    Attributes:
-        old_name: The old applicationName.
     """
 
-    def setUp(self):
-        self.old_name = QApplication.instance().applicationName()
-        # We can't store the files in a temp dir, so we don't chose qutebrowser
-        QApplication.instance().setApplicationName('qutebrowser_test')
+    @pytest.fixture(autouse=True)
+    def reset_standarddir(self):
         standarddir.init(None)
 
-    def tearDown(self):
-        QApplication.instance().setApplicationName(self.old_name)
-
-    @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
     def test_data(self):
         """Test data dir."""
-        self.assertEqual(standarddir.data().split(os.sep)[-2:],
-                         ['qutebrowser_test', 'data'], standarddir.data())
+        expected = ['qutebrowser_test', 'data']
+        assert standarddir.data().split(os.sep)[-2:] == expected
 
-    @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
     def test_config(self):
         """Test config dir."""
-        self.assertEqual(standarddir.config().split(os.sep)[-1],
-                         'qutebrowser_test',
-                         standarddir.config())
+        assert standarddir.config().split(os.sep)[-1] == 'qutebrowser_test'
 
-    @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
     def test_cache(self):
         """Test cache dir."""
-        self.assertEqual(standarddir.cache().split(os.sep)[-2:],
-                         ['qutebrowser_test', 'cache'], standarddir.cache())
+        expected = ['qutebrowser_test', 'cache']
+        assert standarddir.cache().split(os.sep)[-2:] == expected
