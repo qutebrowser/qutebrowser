@@ -18,7 +18,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
-"""Test Percentage widget."""
+"""Test Progress widget."""
 
 from collections import namedtuple
 
