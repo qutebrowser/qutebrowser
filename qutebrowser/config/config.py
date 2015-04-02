@@ -184,6 +184,8 @@ def _init_misc():
             state_config.add_section(sect)
         except configparser.DuplicateSectionError:
             pass
+    # See commit a98060e020a4ba83b663813a4b9404edb47f28ad.
+    state_config['general'].pop('fooled', None)
     objreg.register('state-config', state_config)
     save_manager.add_saveable('state-config', state_config.save)
 
