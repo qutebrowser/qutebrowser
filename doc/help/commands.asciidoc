@@ -650,7 +650,6 @@ How many steps to zoom out.
 |<<completion-item-prev,completion-item-prev>>|Select the previous completion item.
 |<<enter-mode,enter-mode>>|Enter a key mode.
 |<<follow-hint,follow-hint>>|Follow the currently selected hint.
-|<<fooled,fooled>>|Turn off april's fools.
 |<<leave-mode,leave-mode>>|Leave the mode we're currently in.
 |<<open-editor,open-editor>>|Open an external editor with the currently selected form field.
 |<<prompt-accept,prompt-accept>>|Accept the current prompt.
@@ -707,10 +706,6 @@ Enter a key mode.
 [[follow-hint]]
 === follow-hint
 Follow the currently selected hint.
-
-[[fooled]]
-=== fooled
-Turn off april's fools.
 
 [[leave-mode]]
 === leave-mode

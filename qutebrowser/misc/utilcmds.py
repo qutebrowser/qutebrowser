@@ -136,12 +136,3 @@ def debug_trace(expr=""):
         eval('hunter.trace({})'.format(expr))
     except Exception as e:
         raise cmdexc.CommandError("{}: {}".format(e.__class__.__name__, e))
-
-
-@cmdutils.register(hide=True)
-def fooled():
-    """Turn off april's fools."""
-    from qutebrowser.config import websettings
-    state_config = objreg.get('state-config')
-    state_config['general']['fooled'] = '1'
-    websettings.update_settings('ui', 'user-stylesheet')

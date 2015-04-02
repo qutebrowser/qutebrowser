@@ -30,7 +30,6 @@ import base64
 import functools
 import traceback
 import faulthandler
-import datetime
 import json
 
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
@@ -161,15 +160,6 @@ class Application(QApplication):
 
         if self._crashdlg is not None:
             self._crashdlg.raise_()
-
-        state_config = objreg.get('state-config')
-        try:
-            fooled = state_config['general']['fooled']
-        except KeyError:
-            fooled = False
-        if datetime.date.today() == datetime.date(2015, 4, 1) and not fooled:
-            message.info('current', "Happy April's fools! Use :fooled to turn "
-                         "this off.")
 
     def __repr__(self):
         return utils.get_repr(self)
