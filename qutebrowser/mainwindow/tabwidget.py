@@ -26,7 +26,7 @@ Module attributes:
 
 import functools
 
-from PyQt5.QtCore import pyqtSlot, Qt, QSize, QRect, QPoint, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint, QTimer
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab)
 from PyQt5.QtGui import QIcon, QPalette, QColor
@@ -41,7 +41,15 @@ PM_TabBarPadding = QStyle.PM_CustomBase
 
 class TabWidget(QTabWidget):
 
-    """The tab widget used for TabbedBrowser."""
+    """The tab widget used for TabbedBrowser.
+
+    Signals:
+        tab_index_changed: Emitted when the current tab was changed.
+                           arg 0: The index of the tab which is now focused.
+                           arg 1: The total count of tabs.
+    """
+
+    tab_index_changed = pyqtSignal(int, int)
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
@@ -50,6 +58,7 @@ class TabWidget(QTabWidget):
         bar.tabCloseRequested.connect(self.tabCloseRequested)
         bar.tabMoved.connect(functools.partial(
             QTimer.singleShot, 0, self.update_tab_titles))
+        bar.currentChanged.connect(self.emit_tab_index_changed)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
@@ -183,6 +192,11 @@ class TabWidget(QTabWidget):
             new_idx = super().insertTab(idx, page, icon, '')
         self.set_page_title(new_idx, text)
         return new_idx
+
+    @pyqtSlot(int)
+    def emit_tab_index_changed(self, index):
+        """Emit the tab_index_changed signal if the current tab changed."""
+        self.tab_index_changed.emit(index, self.count())
 
 
 class TabBar(QTabBar):
