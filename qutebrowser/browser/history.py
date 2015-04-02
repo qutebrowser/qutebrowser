@@ -132,6 +132,8 @@ class WebHistory(QWebHistoryInterface):
         Args:
             url_string: An url as string to add to the history.
         """
+        if not url_string:
+            return
         if not config.get('general', 'private-browsing'):
             entry = HistoryEntry(time.time(), url_string)
             self.item_about_to_be_added.emit(entry)
