@@ -28,7 +28,8 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 from qutebrowser.config import config, style
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.mainwindow.statusbar import (command, progress, keystring,
-                                              percentage, url, prompt, tabindex)
+                                              percentage, url, prompt,
+                                              tabindex)
 from qutebrowser.mainwindow.statusbar import text as textwidget
 
 
