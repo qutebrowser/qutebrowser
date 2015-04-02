@@ -242,6 +242,8 @@ class MainWindow(QWidget):
         tabs.current_tab_changed.connect(status.percentage.on_tab_changed)
         tabs.cur_scroll_perc_changed.connect(status.percentage.set_perc)
 
+        tabs.tab_index_changed.connect(status.tabindex.on_tab_index_changed)
+
         tabs.current_tab_changed.connect(status.txt.on_tab_changed)
         tabs.cur_statusbar_message.connect(status.txt.on_statusbar_message)
         tabs.cur_load_started.connect(status.txt.on_load_started)
