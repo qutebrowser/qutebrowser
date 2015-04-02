@@ -93,7 +93,7 @@ class TabWidget(QTabWidget):
 
     def set_page_title(self, idx, title):
         """Set the tab title user data."""
-        self.tabBar().set_tab_data(idx, 'page-title', title.replace('&', '&&'))
+        self.tabBar().set_tab_data(idx, 'page-title', title)
         self.update_tab_title(idx)
 
     def page_title(self, idx):
@@ -103,7 +103,7 @@ class TabWidget(QTabWidget):
     def update_tab_title(self, idx):
         """Update the tab text for the given tab."""
         widget = self.widget(idx)
-        page_title = self.page_title(idx)
+        page_title = self.page_title(idx).replace('&', '&&')
 
         fields = {}
         if widget.load_status == webview.LoadStatus.loading:
