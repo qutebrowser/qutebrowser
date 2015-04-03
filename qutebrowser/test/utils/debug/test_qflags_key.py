@@ -28,7 +28,7 @@ from PyQt5.QtCore import Qt
 from qutebrowser.utils import debug
 
 
-fixme = pytest.mark.xfail(reason="Broken but shouldn't generate a failure")
+fixme = pytest.mark.xfail(reason="See issue #42", raises=AssertionError)
 
 
 @fixme
