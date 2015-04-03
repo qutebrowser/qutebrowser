@@ -127,7 +127,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             # I'm not sure what's the best thing to do here
             # https://github.com/The-Compiler/qutebrowser/issues/123
             text = text.replace('{url}', url)
-        if not text[0] in modeparsers.STARTCHARS:
+        if not text or text[0] not in modeparsers.STARTCHARS:
             raise cmdexc.CommandError(
                 "Invalid command text '{}'.".format(text))
         self.set_cmd_text(text)
