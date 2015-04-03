@@ -171,8 +171,9 @@ def _init_key_config():
             save_manager = objreg.get('save-manager')
             filename = os.path.join(standarddir.config(), 'keys.conf')
             save_manager.add_saveable(
-                'key-config', key_config.save, key_config.changed,
-                config_opt=('general', 'auto-save-config'), filename=filename)
+                'key-config', key_config.save, key_config.config_dirty,
+                config_opt=('general', 'auto-save-config'), filename=filename,
+                dirty=key_config.is_dirty)
 
 
 def _init_misc():

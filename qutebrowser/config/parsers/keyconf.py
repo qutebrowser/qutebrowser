@@ -55,13 +55,16 @@ class KeyConfigParser(QObject):
         _configfile: The filename of the config or None.
         _cur_section: The section currently being processed by _read().
         _cur_command: The command currently being processed by _read().
+        is_dirty: Whether the config is currently dirty.
 
     Signals:
-        changed: Emitted when the config has changed.
+        changed: Emitted when the internal data has changed.
                  arg: Name of the mode which was changed.
+        config_dirty: Emitted when the config should be re-saved.
     """
 
     changed = pyqtSignal(str)
+    config_dirty = pyqtSignal()
 
     def __init__(self, configdir, fname, parent=None):
         """Constructor.
@@ -71,6 +74,7 @@ class KeyConfigParser(QObject):
             fname: The filename of the config.
         """
         super().__init__(parent)
+        self.is_dirty = False
         self._cur_section = None
         self._cur_command = None
         # Mapping of section name(s) to key binding -> command dicts.
@@ -165,6 +169,7 @@ class KeyConfigParser(QObject):
             raise cmdexc.CommandError(e)
         for m in mode.split(','):
             self.changed.emit(m)
+            self._mark_config_dirty()
 
     @cmdutils.register(instance='key-config')
     def unbind(self, key, mode=None):
@@ -194,6 +199,7 @@ class KeyConfigParser(QObject):
         else:
             for m in mode.split(','):
                 self.changed.emit(m)
+                self._mark_config_dirty()
 
     def _normalize_sectname(self, s):
         """Normalize a section string like 'foo, bar,baz' to 'bar,baz,foo'."""
@@ -246,6 +252,11 @@ class KeyConfigParser(QObject):
         for sectname in self.keybindings:
             self.changed.emit(sectname)
 
+    def _mark_config_dirty(self):
+        """Mark the config as dirty."""
+        self.is_dirty = True
+        self.config_dirty.emit()
+
     def _read_command(self, line):
         """Read a command from a line."""
         if self._cur_section is None:
@@ -258,6 +269,7 @@ class KeyConfigParser(QObject):
             for rgx, repl in configdata.CHANGED_KEY_COMMANDS:
                 if rgx.match(line):
                     line = rgx.sub(repl, line)
+                    self._mark_config_dirty()
                     break
             self._cur_command = line
 
