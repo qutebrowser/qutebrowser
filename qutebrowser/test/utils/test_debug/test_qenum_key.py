@@ -19,12 +19,20 @@
 
 """Tests for qutebrowser.utils.debug."""
 
+import pytest
 
-def test_no_metaobj(self):
+from PyQt5.QtWidgets import QStyle
+
+from qutebrowser.utils import debug
+
+
+def test_no_metaobj():
     """Test with an enum with no meta-object."""
-    with self.assertRaises(AttributeError):
+
+    with pytest.raises(AttributeError):
         # Make sure it doesn't have a meta object
         # pylint: disable=pointless-statement,no-member
         QStyle.PrimitiveElement.staticMetaObject
+
     key = debug.qenum_key(QStyle, QStyle.PE_PanelButtonCommand)
-    self.assertEqual(key, 'PE_PanelButtonCommand')
+    assert key == 'PE_PanelButtonCommand'
