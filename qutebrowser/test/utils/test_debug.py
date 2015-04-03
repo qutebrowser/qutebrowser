@@ -38,12 +38,6 @@ class QFlagsKeyTests(unittest.TestCase):
     # https://github.com/The-Compiler/qutebrowser/issues/42
 
     @unittest.skip('FIXME')
-    def test_single(self):
-        """Test with single value."""
-        flags = debug.qflags_key(Qt, Qt.AlignTop)
-        self.assertEqual(flags, 'AlignTop')
-
-    @unittest.skip('FIXME')
     def test_multiple(self):
         """Test with multiple values."""
         flags = debug.qflags_key(Qt, Qt.AlignLeft | Qt.AlignTop)
