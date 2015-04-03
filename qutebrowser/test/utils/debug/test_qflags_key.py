@@ -42,3 +42,10 @@ def test_multiple():
 
     flags = debug.qflags_key(Qt, Qt.AlignLeft | Qt.AlignTop)
     assert flags == 'AlignLeft|AlignTop'
+
+
+def test_combined():
+    """Test with a combined value."""
+
+    flags = debug.qflags_key(Qt, Qt.AlignCenter)
+    assert flags == 'AlignHCenter|AlignVCenter'
