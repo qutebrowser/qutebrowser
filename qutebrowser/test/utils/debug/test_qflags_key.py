@@ -64,3 +64,10 @@ def test_int_noklass():
 
     with pytest.raises(TypeError):
         debug.qflags_key(Qt, 42)
+
+@fixme
+def test_int():
+    """Test passing an int with explicit klass given."""
+
+    flags = debug.qflags_key(Qt, 0x0021, klass=Qt.Alignment)
+    assert flags == 'AlignLeft|AlignTop'
