@@ -60,3 +60,10 @@ def test_int_noklass():
 
     with pytest.raises(TypeError):
         debug.qenum_key(QFrame, 42)
+
+
+def test_int():
+    """Test passing an int with explicit klass given."""
+
+    key = debug.qenum_key(QFrame, 0x0030, klass=QFrame.Shadow)
+    assert key == 'Sunken'

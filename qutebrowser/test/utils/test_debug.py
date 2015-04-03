@@ -35,11 +35,6 @@ class QEnumKeyTests(unittest.TestCase):
 
     """Tests for qenum_key."""
 
-    def test_int(self):
-        """Test passing an int with explicit klass given."""
-        key = debug.qenum_key(QFrame, 0x0030, klass=QFrame.Shadow)
-        self.assertEqual(key, 'Sunken')
-
     def test_unknown(self):
         """Test passing an unknown value."""
         key = debug.qenum_key(QFrame, 0x1337, klass=QFrame.Shadow)
