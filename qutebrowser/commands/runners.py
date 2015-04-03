@@ -79,8 +79,8 @@ class SearchRunner(QObject):
 
     @pyqtSlot(str)
     @cmdutils.register(instance='search-runner', scope='window', maxsplit=0)
-    def search(self, text, reverse=False):
-        """Search for a text on the current page.
+    def search(self, text="", reverse=False):
+        """Search for a text on the current page. With no text, clear results.
 
         Args:
             text: The text to search for.

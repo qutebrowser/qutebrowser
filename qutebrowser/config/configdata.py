@@ -1189,4 +1189,5 @@ CHANGED_KEY_COMMNADS = {
     'open -w about:blank': 'open -w',
     'download-page': 'download',
     'cancel-download': 'download-cancel',
+    'search ""': 'search',
 }
