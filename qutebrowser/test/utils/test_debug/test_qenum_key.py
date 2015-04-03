@@ -43,6 +43,13 @@ def test_metaobj():
 
     # pylint: disable=pointless-statement
     QFrame.staticMetaObject  # make sure it has a meta-object
-    key = debug.qenum_key(QFrame, QFrame.Sunken)
 
+    key = debug.qenum_key(QFrame, QFrame.Sunken)
     assert key == 'Sunken'
+
+
+def test_add_base():
+    """Test with add_base=True."""
+
+    key = debug.qenum_key(QFrame, QFrame.Sunken, add_base=True)
+    assert key == 'QFrame.Sunken'
