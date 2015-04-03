@@ -23,46 +23,40 @@ Note that tests for parse_content_disposition are in their own
 test_content_disposition.py file.
 """
 
-import unittest
-
 from qutebrowser.browser import http
-from qutebrowser.test import stubs
 
 
-class ParseContentTypeTests(unittest.TestCase):
+class TestParseContentType(object):
 
     """Test for parse_content_type."""
 
-    def test_not_existing(self):
+    def test_not_existing(self, stubs):
         """Test without any Content-Type header."""
         reply = stubs.FakeNetworkReply()
         mimetype, rest = http.parse_content_type(reply)
-        self.assertIsNone(mimetype)
-        self.assertIsNone(rest)
+        assert mimetype is None
+        assert rest is None
 
-    def test_mimetype(self):
+    def test_mimetype(self, stubs):
         """Test with simple Content-Type header."""
         reply = stubs.FakeNetworkReply(
             headers={'Content-Type': 'image/example'})
         mimetype, rest = http.parse_content_type(reply)
-        self.assertEqual(mimetype, 'image/example')
-        self.assertIsNone(rest)
+        assert mimetype == 'image/example'
+        assert rest is None
 
-    def test_empty(self):
+    def test_empty(self, stubs):
         """Test with empty Content-Type header."""
         reply = stubs.FakeNetworkReply(headers={'Content-Type': ''})
         mimetype, rest = http.parse_content_type(reply)
-        self.assertEqual(mimetype, '')
-        self.assertIsNone(rest)
+        assert mimetype == ''
+        assert rest is None
 
-    def test_additional(self):
+    def test_additional(self, stubs):
         """Test with Content-Type header with additional informations."""
         reply = stubs.FakeNetworkReply(
             headers={'Content-Type': 'image/example; encoding=UTF-8'})
         mimetype, rest = http.parse_content_type(reply)
-        self.assertEqual(mimetype, 'image/example')
-        self.assertEqual(rest, ' encoding=UTF-8')
+        assert mimetype == 'image/example'
+        assert rest == ' encoding=UTF-8'
 
-
-if __name__ == '__main__':
-    unittest.main()
