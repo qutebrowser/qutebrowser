@@ -28,10 +28,11 @@ from qutebrowser.utils import debug
 
 def test_log_time(caplog):
     """Test if log_time logs properly."""
-    logger = logging.getLogger('qt-tests')
 
-    with caplog.atLevel(logging.DEBUG, logger='qt-tests'):
-        with debug.log_time(logger, action='foobar'):
+    logger_name = 'qt-tests'
+
+    with caplog.atLevel(logging.DEBUG, logger=logger_name):
+        with debug.log_time(logging.getLogger(), action='foobar'):
             time.sleep(0.1)
 
         records = caplog.records()
