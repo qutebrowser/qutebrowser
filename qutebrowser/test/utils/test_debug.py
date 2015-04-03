@@ -31,18 +31,6 @@ from qutebrowser.utils import debug
 from qutebrowser.test import stubs
 
 
-class QFlagsKeyTests(unittest.TestCase):
-
-    """Tests for qflags_key()."""
-
-    # https://github.com/The-Compiler/qutebrowser/issues/42
-
-    def test_unknown(self):
-        """Test passing an unknown value."""
-        flags = debug.qflags_key(Qt, 0x1100, klass=Qt.Alignment)
-        self.assertEqual(flags, '0x0100|0x1000')
-
-
 class TestDebug(unittest.TestCase):
 
     """Test signal debug output functions."""

@@ -17,7 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.utils.debug.qflags_key."""
+"""Tests for qutebrowser.utils.debug.qflags_key.
+
+https://github.com/The-Compiler/qutebrowser/issues/42
+"""
 
 import pytest
 
@@ -65,9 +68,16 @@ def test_int_noklass():
     with pytest.raises(TypeError):
         debug.qflags_key(Qt, 42)
 
+
 @fixme
 def test_int():
     """Test passing an int with explicit klass given."""
 
     flags = debug.qflags_key(Qt, 0x0021, klass=Qt.Alignment)
     assert flags == 'AlignLeft|AlignTop'
+
+
+def test_unknown():
+    """Test passing an unknown value."""
+    flags = debug.qflags_key(Qt, 0x1100, klass=Qt.Alignment)
+    assert flags == '0x0100|0x1000'
