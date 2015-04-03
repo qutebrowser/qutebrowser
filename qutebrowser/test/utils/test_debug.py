@@ -24,7 +24,6 @@ import time
 import unittest
 import logging
 
-from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QStyle, QFrame
 
 from qutebrowser.utils import debug
