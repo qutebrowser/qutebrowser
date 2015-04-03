@@ -75,12 +75,3 @@ def test_unknown():
 
     key = debug.qenum_key(QFrame, 0x1337, klass=QFrame.Shadow)
     assert key == '0x1337'
-
-
-def test_reconverted():
-    """Test passing a flag value which was re-converted to an enum."""
-
-    pytest.skip(msg="It is not clear what this test is supposed to do")
-
-    # FIXME maybe this should return the right thing anyways?
-    debug.qenum_key(Qt, Qt.Alignment(int(Qt.AlignLeft)))
