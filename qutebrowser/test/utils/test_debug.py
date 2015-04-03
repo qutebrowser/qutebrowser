@@ -38,11 +38,6 @@ class TestDebug(unittest.TestCase):
     def setUp(self):
         self.signal = stubs.FakeSignal()
 
-    def test_dbg_signal(self):
-        """Test dbg_signal()."""
-        self.assertEqual(debug.dbg_signal(self.signal, [23, 42]),
-                         'fake(23, 42)')
-
     def test_dbg_signal_eliding(self):
         """Test eliding in dbg_signal()."""
         self.assertEqual(debug.dbg_signal(self.signal,

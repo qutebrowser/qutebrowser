@@ -33,3 +33,8 @@ def signal():
 def test_signal_name(signal):
     """Test signal_name()."""
     assert debug.signal_name(signal) == 'fake'
+
+
+def test_dbg_signal(signal):
+    """Test dbg_signal()."""
+    assert debug.dbg_signal(signal, [23, 42]) == 'fake(23, 42)'
