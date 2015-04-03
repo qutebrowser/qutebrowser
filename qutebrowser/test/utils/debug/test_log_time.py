@@ -32,7 +32,7 @@ def test_log_time(caplog):
     logger_name = 'qt-tests'
 
     with caplog.atLevel(logging.DEBUG, logger=logger_name):
-        with debug.log_time(logging.getLogger(), action='foobar'):
+        with debug.log_time(logging.getLogger(logger_name), action='foobar'):
             time.sleep(0.1)
 
         records = caplog.records()
