@@ -30,3 +30,12 @@ def app_and_logging(qapp):
     """
     from log import init
     init()
+
+
+@pytest.fixture(scope='session')
+def stubs():
+    """
+    Provides access to stub objects useful for testing.
+    """
+    import stubs
+    return stubs

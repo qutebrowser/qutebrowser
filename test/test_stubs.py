@@ -20,88 +20,90 @@
 
 """Test test stubs."""
 
-import unittest
 from unittest import mock
 
-from qutebrowser.test import stubs
+import pytest
 
 
-class TestFakeTimer(unittest.TestCase):
-
-    """Test FakeTimer."""
-
-    def setUp(self):
-        self.timer = stubs.FakeTimer()
-
-    def test_timeout(self):
-        """Test whether timeout calls the functions."""
-        func = mock.Mock()
-        func2 = mock.Mock()
-        self.timer.timeout.connect(func)
-        self.timer.timeout.connect(func2)
-        self.assertFalse(func.called)
-        self.assertFalse(func2.called)
-        self.timer.timeout.emit()
-        func.assert_called_once_with()
-        func2.assert_called_once_with()
-
-    def test_disconnect_all(self):
-        """Test disconnect without arguments."""
-        func = mock.Mock()
-        self.timer.timeout.connect(func)
-        self.timer.timeout.disconnect()
-        self.timer.timeout.emit()
-        self.assertFalse(func.called)
-
-    def test_disconnect_one(self):
-        """Test disconnect with a single argument."""
-        func = mock.Mock()
-        self.timer.timeout.connect(func)
-        self.timer.timeout.disconnect(func)
-        self.timer.timeout.emit()
-        self.assertFalse(func.called)
-
-    def test_disconnect_all_invalid(self):
-        """Test disconnecting with no connections."""
-        with self.assertRaises(TypeError):
-            self.timer.timeout.disconnect()
-
-    def test_disconnect_one_invalid(self):
-        """Test disconnecting with an invalid connection."""
-        func1 = mock.Mock()
-        func2 = mock.Mock()
-        self.timer.timeout.connect(func1)
-        with self.assertRaises(TypeError):
-            self.timer.timeout.disconnect(func2)
-        self.assertFalse(func1.called)
-        self.assertFalse(func2.called)
-        self.timer.timeout.emit()
-        func1.assert_called_once_with()
-
-    def test_singleshot(self):
-        """Test setting singleShot."""
-        self.assertFalse(self.timer.singleShot())
-        self.timer.setSingleShot(True)
-        self.assertTrue(self.timer.singleShot())
-        self.timer.start()
-        self.assertTrue(self.timer.isActive())
-        self.timer.timeout.emit()
-        self.assertFalse(self.timer.isActive())
-
-    def test_active(self):
-        """Test isActive."""
-        self.assertFalse(self.timer.isActive())
-        self.timer.start()
-        self.assertTrue(self.timer.isActive())
-        self.timer.stop()
-        self.assertFalse(self.timer.isActive())
-
-    def test_interval(self):
-        """Test setting an interval."""
-        self.assertEqual(self.timer.interval(), 0)
-        self.timer.setInterval(1000)
-        self.assertEqual(self.timer.interval(), 1000)
+@pytest.fixture
+def timer(stubs):
+    return stubs.FakeTimer()
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_timeout(timer):
+    """Test whether timeout calls the functions."""
+    func = mock.Mock()
+    func2 = mock.Mock()
+    timer.timeout.connect(func)
+    timer.timeout.connect(func2)
+    assert not func.called
+    assert not func2.called
+    timer.timeout.emit()
+    func.assert_called_once_with()
+    func2.assert_called_once_with()
+
+
+def test_disconnect_all(timer):
+    """Test disconnect without arguments."""
+    func = mock.Mock()
+    timer.timeout.connect(func)
+    timer.timeout.disconnect()
+    timer.timeout.emit()
+    assert not func.called
+
+
+def test_disconnect_one(timer):
+    """Test disconnect with a single argument."""
+    func = mock.Mock()
+    timer.timeout.connect(func)
+    timer.timeout.disconnect(func)
+    timer.timeout.emit()
+    assert not func.called
+
+
+def test_disconnect_all_invalid(timer):
+    """Test disconnecting with no connections."""
+    with pytest.raises(TypeError):
+        timer.timeout.disconnect()
+
+
+def test_disconnect_one_invalid(timer):
+    """Test disconnecting with an invalid connection."""
+    func1 = mock.Mock()
+    func2 = mock.Mock()
+    timer.timeout.connect(func1)
+    with pytest.raises(TypeError):
+        timer.timeout.disconnect(func2)
+    assert not func1.called
+    assert not func2.called
+    timer.timeout.emit()
+    func1.assert_called_once_with()
+
+
+def test_singleshot(timer):
+    """Test setting singleShot."""
+    assert not timer.singleShot()
+    timer.setSingleShot(True)
+    assert timer.singleShot()
+    timer.start()
+    assert timer.isActive()
+    timer.timeout.emit()
+    assert not timer.isActive()
+
+
+def test_active(timer):
+    """Test isActive."""
+    assert not timer.isActive()
+    timer.start()
+    assert timer.isActive()
+    timer.stop()
+    assert not timer.isActive()
+
+
+def test_interval(timer):
+    """Test setting an interval."""
+    assert timer.interval() == 0
+    timer.setInterval(1000)
+    assert timer.interval() == 1000
+
+
