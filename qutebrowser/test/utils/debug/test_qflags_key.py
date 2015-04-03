@@ -25,9 +25,20 @@ from PyQt5.QtCore import Qt
 from qutebrowser.utils import debug
 
 
-@pytest.mark.xfail(reason="Broken but shouldn't generate a failure")
+fixme = pytest.mark.xfail(reason="Broken but shouldn't generate a failure")
+
+
+@fixme
 def test_single():
     """Test with single value."""
 
     flags = debug.qflags_key(Qt, Qt.AlignTop)
     assert flags == 'AlignTop'
+
+
+@fixme
+def test_multiple():
+    """Test with multiple values."""
+
+    flags = debug.qflags_key(Qt, Qt.AlignLeft | Qt.AlignTop)
+    assert flags == 'AlignLeft|AlignTop'
