@@ -28,7 +28,6 @@ from qutebrowser.utils import debug
 
 def test_log_time(caplog):
     """Test if log_time logs properly."""
-
     logger_name = 'qt-tests'
 
     with caplog.atLevel(logging.DEBUG, logger=logger_name):
