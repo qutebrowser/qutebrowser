@@ -21,7 +21,7 @@
 
 import pytest
 
-from PyQt5.QtWidgets import QStyle
+from PyQt5.QtWidgets import QStyle, QFrame
 
 from qutebrowser.utils import debug
 
@@ -36,3 +36,13 @@ def test_no_metaobj():
 
     key = debug.qenum_key(QStyle, QStyle.PE_PanelButtonCommand)
     assert key == 'PE_PanelButtonCommand'
+
+
+def test_metaobj():
+    """Test with an enum with meta-object."""
+
+    # pylint: disable=pointless-statement
+    QFrame.staticMetaObject  # make sure it has a meta-object
+    key = debug.qenum_key(QFrame, QFrame.Sunken)
+
+    assert key == 'Sunken'

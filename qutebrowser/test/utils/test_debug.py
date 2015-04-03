@@ -35,13 +35,6 @@ class QEnumKeyTests(unittest.TestCase):
 
     """Tests for qenum_key."""
 
-    def test_metaobj(self):
-        """Test with an enum with meta-object."""
-        # pylint: disable=pointless-statement
-        QFrame.staticMetaObject  # make sure it has a meta-object
-        key = debug.qenum_key(QFrame, QFrame.Sunken)
-        self.assertEqual(key, 'Sunken')
-
     def test_add_base(self):
         """Test with add_base=True."""
         key = debug.qenum_key(QFrame, QFrame.Sunken, add_base=True)
