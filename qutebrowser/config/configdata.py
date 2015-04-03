@@ -1181,13 +1181,12 @@ KEY_DATA = collections.OrderedDict([
 ])
 
 
-# A dict of {old_cmd: new_cmd} strings.
+# A list of (regex, replacement) tuples of changed key commands.
 
-CHANGED_KEY_COMMNADS = {
-    'open -t about:blank': 'open -t',
-    'open -b about:blank': 'open -b',
-    'open -w about:blank': 'open -w',
-    'download-page': 'download',
-    'cancel-download': 'download-cancel',
-    'search ""': 'search',
-}
+CHANGED_KEY_COMMANDS = [
+    (re.compile(r'^open -([twb]) about:blank$'), r'open -\1'),
+    (re.compile(r'^download-page$'), r'download'),
+    (re.compile(r'^cancel-download$'), r'download-cancel'),
+    (re.compile(r'^search ""$'), r'search'),
+    (re.compile(r"^search ''$"), r'search'),
+]
