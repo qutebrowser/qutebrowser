@@ -80,10 +80,10 @@ SECTION_DESC = {
         "bar.\n"
         "The searchengine named `DEFAULT` is used when "
         "`general -> auto-search` is true and something else than a URL was "
-        "entered to be opened. Other search engines can be used via the "
-        "bang-syntax, e.g. `:open qutebrowser !google`. The string `{}` will "
-        "be replaced by the search term, use `{{` and `}}` for literal "
-        "`{`/`}` signs."),
+        "entered to be opened. Other search engines can be used by prepending "
+        "the search engine name to the search term, e.g. "
+        "`:open google qutebrowser`. The string `{}` will be replaced by the "
+        "search term, use `{{` and `}}` for literal `{`/`}` signs."),
     'aliases': (
         "Aliases for commands.\n"
         "By default, no aliases are defined. Example which adds a new command "
