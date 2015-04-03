@@ -49,3 +49,11 @@ def test_combined():
 
     flags = debug.qflags_key(Qt, Qt.AlignCenter)
     assert flags == 'AlignHCenter|AlignVCenter'
+
+
+@fixme
+def test_add_base():
+    """Test with add_base=True."""
+
+    flags = debug.qflags_key(Qt, Qt.AlignTop, add_base=True)
+    assert flags == 'Qt.AlignTop'
