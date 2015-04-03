@@ -56,22 +56,5 @@ class TestDebug(unittest.TestCase):
                          r"fake('foo\nbar')")
 
 
-class TestLogTime(unittest.TestCase):
-
-    """Test log_time."""
-
-    def test_log_time(self):
-        """Test if log_time logs properly."""
-        logger = logging.getLogger('qt-tests')
-        with self.assertLogs(logger, logging.DEBUG) as logged:
-            with debug.log_time(logger, action='foobar'):
-                time.sleep(0.1)
-            self.assertEqual(len(logged.records), 1)
-            pattern = re.compile(r'^Foobar took ([\d.]*) seconds\.$')
-            match = pattern.match(logged.records[0].msg)
-            self.assertTrue(match)
-            duration = float(match.group(1))
-            self.assertAlmostEqual(duration, 0.1, delta=0.01)
-
 if __name__ == '__main__':
     unittest.main()
