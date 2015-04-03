@@ -29,45 +29,37 @@ from qutebrowser.utils import debug
 
 def test_no_metaobj():
     """Test with an enum with no meta-object."""
-
     assert not hasattr(QStyle.PrimitiveElement, 'staticMetaObject')
-
     key = debug.qenum_key(QStyle, QStyle.PE_PanelButtonCommand)
     assert key == 'PE_PanelButtonCommand'
 
 
 def test_metaobj():
     """Test with an enum with meta-object."""
-
     assert hasattr(QFrame, 'staticMetaObject')
-
     key = debug.qenum_key(QFrame, QFrame.Sunken)
     assert key == 'Sunken'
 
 
 def test_add_base():
     """Test with add_base=True."""
-
     key = debug.qenum_key(QFrame, QFrame.Sunken, add_base=True)
     assert key == 'QFrame.Sunken'
 
 
 def test_int_noklass():
     """Test passing an int without explicit klass given."""
-
     with pytest.raises(TypeError):
         debug.qenum_key(QFrame, 42)
 
 
 def test_int():
     """Test passing an int with explicit klass given."""
-
     key = debug.qenum_key(QFrame, 0x0030, klass=QFrame.Shadow)
     assert key == 'Sunken'
 
 
 def test_unknown():
     """Test passing an unknown value."""
-
     key = debug.qenum_key(QFrame, 0x1337, klass=QFrame.Shadow)
     assert key == '0x1337'
