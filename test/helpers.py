@@ -37,35 +37,6 @@ unicode_encode_err = UnicodeEncodeError('ascii',           # codec
 
 
 @contextlib.contextmanager
-def environ_set_temp(env):
-    """Set temporary environment variables.
-
-    Args:
-        env: A dictionary with name: value pairs.
-             If value is None, the variable is temporarily deleted.
-    """
-    old_env = {}
-
-    for name, value in env.items():
-        try:
-            old_env[name] = os.environ[name]
-        except KeyError:
-            pass
-        if value is None:
-            os.environ.pop(name, None)
-        else:
-            os.environ[name] = value
-
-    yield
-
-    for name, value in env.items():
-        if name in old_env:
-            os.environ[name] = old_env[name]
-        elif value is not None:
-            del os.environ[name]
-
-
-@contextlib.contextmanager
 def disable_logger(name):
     """Temporarily disable a logger."""
     logging.getLogger(name).propagate = False
