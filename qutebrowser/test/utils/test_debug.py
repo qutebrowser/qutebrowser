@@ -37,11 +37,6 @@ class QFlagsKeyTests(unittest.TestCase):
 
     # https://github.com/The-Compiler/qutebrowser/issues/42
 
-    def test_int_noklass(self):
-        """Test passing an int without explicit klass given."""
-        with self.assertRaises(TypeError):
-            debug.qflags_key(Qt, 42)
-
     @unittest.skip('FIXME')
     def test_int(self):
         """Test passing an int with explicit klass given."""

@@ -57,3 +57,10 @@ def test_add_base():
 
     flags = debug.qflags_key(Qt, Qt.AlignTop, add_base=True)
     assert flags == 'Qt.AlignTop'
+
+
+def test_int_noklass():
+    """Test passing an int without explicit klass given."""
+
+    with pytest.raises(TypeError):
+        debug.qflags_key(Qt, 42)
