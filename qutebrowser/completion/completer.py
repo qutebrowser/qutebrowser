@@ -196,7 +196,13 @@ class Completer(QObject):
         data = model.data(indexes[0])
         if data is None:
             return
-        data = self._quote(data)
+        parts = self.split()
+        try:
+            needs_quoting = cmdutils.cmd_dict[parts[0]].maxsplit is None
+        except KeyError:
+            needs_quoting = True
+        if needs_quoting:
+            data = self._quote(data)
         if model.count() == 1 and config.get('completion', 'quick-complete'):
             # If we only have one item, we want to apply it immediately
             # and go on to the next part.
