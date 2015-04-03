@@ -17,10 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.utils.debug."""
+"""Tests for qutebrowser.utils.debug.qenum_key."""
 
 import pytest
 
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QStyle, QFrame
 
 from qutebrowser.utils import debug
@@ -74,3 +75,12 @@ def test_unknown():
 
     key = debug.qenum_key(QFrame, 0x1337, klass=QFrame.Shadow)
     assert key == '0x1337'
+
+
+def test_reconverted():
+    """Test passing a flag value which was re-converted to an enum."""
+
+    pytest.skip(msg="It is not clear what this test is supposed to do")
+
+    # FIXME maybe this should return the right thing anyways?
+    debug.qenum_key(Qt, Qt.Alignment(int(Qt.AlignLeft)))

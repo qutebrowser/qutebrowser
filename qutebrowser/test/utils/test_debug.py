@@ -31,16 +31,6 @@ from qutebrowser.utils import debug
 from qutebrowser.test import stubs
 
 
-class QEnumKeyTests(unittest.TestCase):
-
-    """Tests for qenum_key."""
-
-    def test_reconverted(self):
-        """Test passing a flag value which was re-converted to an enum."""
-        # FIXME maybe this should return the right thing anyways?
-        debug.qenum_key(Qt, Qt.Alignment(int(Qt.AlignLeft)))
-
-
 class QFlagsKeyTests(unittest.TestCase):
 
     """Tests for qflags_key()."""
