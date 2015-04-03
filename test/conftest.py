@@ -17,4 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for the qutebrowser.utils package."""
+"""The qutebrowser test suite contest file."""
+
+import pytest
+
+
+@pytest.fixture(scope='session', autouse=True)
+def app_and_logging(qapp):
+    """
+    Initializes our logging system and ensures that a QApplication is created
+    and used by all tests.
+    """
+    from log import init
+    init()
