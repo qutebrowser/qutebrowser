@@ -31,18 +31,5 @@ from qutebrowser.utils import debug
 from qutebrowser.test import stubs
 
 
-class TestDebug(unittest.TestCase):
-
-    """Test signal debug output functions."""
-
-    def setUp(self):
-        self.signal = stubs.FakeSignal()
-
-    def test_dbg_signal_newline(self):
-        """Test dbg_signal() with a newline."""
-        self.assertEqual(debug.dbg_signal(self.signal, ['foo\nbar']),
-                         r"fake('foo\nbar')")
-
-
 if __name__ == '__main__':
     unittest.main()

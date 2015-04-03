@@ -44,3 +44,9 @@ def test_dbg_signal_eliding(signal):
     """Test eliding in dbg_signal()."""
     dbg_signal = debug.dbg_signal(signal, ['x' * 201])
     assert dbg_signal == "fake('{}\u2026)".format('x' * 198)
+
+
+def test_dbg_signal_newline(signal):
+    """Test dbg_signal() with a newline."""
+    dbg_signal = debug.dbg_signal(signal, ['foo\nbar'])
+    assert dbg_signal == r"fake('foo\nbar')"
