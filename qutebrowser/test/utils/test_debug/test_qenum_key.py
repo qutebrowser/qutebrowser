@@ -67,3 +67,10 @@ def test_int():
 
     key = debug.qenum_key(QFrame, 0x0030, klass=QFrame.Shadow)
     assert key == 'Sunken'
+
+
+def test_unknown():
+    """Test passing an unknown value."""
+
+    key = debug.qenum_key(QFrame, 0x1337, klass=QFrame.Shadow)
+    assert key == '0x1337'

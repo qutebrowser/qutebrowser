@@ -35,11 +35,6 @@ class QEnumKeyTests(unittest.TestCase):
 
     """Tests for qenum_key."""
 
-    def test_unknown(self):
-        """Test passing an unknown value."""
-        key = debug.qenum_key(QFrame, 0x1337, klass=QFrame.Shadow)
-        self.assertEqual(key, '0x1337')
-
     def test_reconverted(self):
         """Test passing a flag value which was re-converted to an enum."""
         # FIXME maybe this should return the right thing anyways?
