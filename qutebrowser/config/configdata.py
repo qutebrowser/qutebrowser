@@ -1179,3 +1179,14 @@ KEY_DATA = collections.OrderedDict([
         ('rl-backward-delete-char', ['<Ctrl-H>']),
     ])),
 ])
+
+
+# A dict of {old_cmd: new_cmd} strings.
+
+CHANGED_KEY_COMMNADS = {
+    'open -t about:blank': 'open -t',
+    'open -b about:blank': 'open -b',
+    'open -w about:blank': 'open -w',
+    'download-page': 'download',
+    'cancel-download': 'download-cancel',
+}

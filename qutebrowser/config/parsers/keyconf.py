@@ -255,7 +255,7 @@ class KeyConfigParser(QObject):
             command = line.split(maxsplit=1)[0]
             if command not in cmdutils.cmd_dict:
                 raise KeyConfigError("Invalid command '{}'!".format(command))
-            self._cur_command = line
+            self._cur_command = configdata.CHANGED_KEY_COMMNADS.get(line, line)
 
     def _read_keybinding(self, line):
         """Read a key binding from a line."""
