@@ -38,10 +38,6 @@ class TestDebug(unittest.TestCase):
     def setUp(self):
         self.signal = stubs.FakeSignal()
 
-    def test_signal_name(self):
-        """Test signal_name()."""
-        self.assertEqual(debug.signal_name(self.signal), 'fake')
-
     def test_dbg_signal(self):
         """Test dbg_signal()."""
         self.assertEqual(debug.dbg_signal(self.signal, [23, 42]),
