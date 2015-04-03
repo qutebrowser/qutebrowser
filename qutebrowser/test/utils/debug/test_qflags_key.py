@@ -34,7 +34,6 @@ fixme = pytest.mark.xfail(reason="Broken but shouldn't generate a failure")
 @fixme
 def test_single():
     """Test with single value."""
-
     flags = debug.qflags_key(Qt, Qt.AlignTop)
     assert flags == 'AlignTop'
 
@@ -42,14 +41,12 @@ def test_single():
 @fixme
 def test_multiple():
     """Test with multiple values."""
-
     flags = debug.qflags_key(Qt, Qt.AlignLeft | Qt.AlignTop)
     assert flags == 'AlignLeft|AlignTop'
 
 
 def test_combined():
     """Test with a combined value."""
-
     flags = debug.qflags_key(Qt, Qt.AlignCenter)
     assert flags == 'AlignHCenter|AlignVCenter'
 
@@ -57,14 +54,12 @@ def test_combined():
 @fixme
 def test_add_base():
     """Test with add_base=True."""
-
     flags = debug.qflags_key(Qt, Qt.AlignTop, add_base=True)
     assert flags == 'Qt.AlignTop'
 
 
 def test_int_noklass():
     """Test passing an int without explicit klass given."""
-
     with pytest.raises(TypeError):
         debug.qflags_key(Qt, 42)
 
@@ -72,7 +67,6 @@ def test_int_noklass():
 @fixme
 def test_int():
     """Test passing an int with explicit klass given."""
-
     flags = debug.qflags_key(Qt, 0x0021, klass=Qt.Alignment)
     assert flags == 'AlignLeft|AlignTop'
 
