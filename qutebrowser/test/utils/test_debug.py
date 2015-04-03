@@ -35,11 +35,6 @@ class QEnumKeyTests(unittest.TestCase):
 
     """Tests for qenum_key."""
 
-    def test_int_noklass(self):
-        """Test passing an int without explicit klass given."""
-        with self.assertRaises(TypeError):
-            debug.qenum_key(QFrame, 42)
-
     def test_int(self):
         """Test passing an int with explicit klass given."""
         key = debug.qenum_key(QFrame, 0x0030, klass=QFrame.Shadow)

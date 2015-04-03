@@ -53,3 +53,10 @@ def test_add_base():
 
     key = debug.qenum_key(QFrame, QFrame.Sunken, add_base=True)
     assert key == 'QFrame.Sunken'
+
+
+def test_int_noklass():
+    """Test passing an int without explicit klass given."""
+
+    with pytest.raises(TypeError):
+        debug.qenum_key(QFrame, 42)
