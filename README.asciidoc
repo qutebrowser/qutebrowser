@@ -134,6 +134,7 @@ Contributors, sorted by the number of commits in descending order:
 // QUTE_AUTHORS_START
 * Florian Bruhin
 * Joel Torstensson
+* Raphael Pierzina
 * Claude
 * ZDarian
 * Peter Vilim
