@@ -71,8 +71,7 @@ class TestReadFile:
 
     def test_readfile(self):
         """Read a test file."""
-        directory = os.path.dirname(__file__)
-        content = utils.read_file(os.path.join(directory, 'testfile'))
+        content = utils.read_file(os.path.join('utils', 'testfile'))
         assert content.splitlines()[0] == "Hello World!"
 
 
