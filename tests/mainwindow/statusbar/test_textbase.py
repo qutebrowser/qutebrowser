@@ -19,25 +19,35 @@
 
 
 """Test TextBase widget."""
+from PyQt5.QtCore import Qt
+import pytest
 
 from qutebrowser.mainwindow.statusbar.textbase import TextBase
 
 
-def test_elided_text(qtbot):
+@pytest.mark.parametrize('elidemode, check', [
+    (Qt.ElideRight, lambda s: s.endswith('…')),
+    (Qt.ElideLeft, lambda s: s.startswith('…')),
+    (Qt.ElideMiddle, lambda s: '…' in s),
+    (Qt.ElideNone, lambda s: '…' not in s),
+])
+def test_elided_text(qtbot, elidemode, check):
     """Ensure that a widget too small to hold the entire label text will elide.
 
-    Note:
-        It is difficult to check what is actually being drawn in a portable
-        way, so at least we ensure our customized methods are being called and
-        the elided string contains the horizontal ellipsis character.
+    It is difficult to check what is actually being drawn in a portable way, so
+    at least we ensure our customized methods are being called and the elided
+    string contains the horizontal ellipsis character.
 
     Args:
         qtbot: pytestqt.plugin.QtBot fixture
+        elidemode: parametrized elide mode
+        check: function that receives the elided text and must return True
+        if the elipsis is placed correctly according to elidemode.
     """
-    label = TextBase()
+    label = TextBase(elidemode=elidemode)
     qtbot.add_widget(label)
     long_string = 'Hello world! ' * 20
     label.setText(long_string)
     label.resize(100, 50)
     label.show()
-    assert '…' in label._elided_text  # pylint: disable=protected-access
+    assert check(label._elided_text)  # pylint: disable=protected-access
