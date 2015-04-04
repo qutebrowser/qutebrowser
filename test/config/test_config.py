@@ -22,27 +22,25 @@
 
 import os
 import os.path
-import unittest
 import configparser
-import tempfile
 import types
-import shutil
 import argparse
 from unittest import mock
 
 from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QColor
+import pytest
 
 from qutebrowser.config import config, configexc
-from qutebrowser.test import helpers
 from qutebrowser.utils import objreg, standarddir
 
 
-class ConfigParserTests(unittest.TestCase):
+class TestConfigParser(object):
 
     """Test reading of ConfigParser."""
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup(self):
         self.cp = configparser.ConfigParser(interpolation=None,
                                             comment_prefixes='#')
         self.cp.optionxform = lambda opt: opt  # be case-insensitive
@@ -52,19 +50,19 @@ class ConfigParserTests(unittest.TestCase):
         """Test a simple option which is not transformed."""
         self.cp.read_dict({'general': {'ignore-case': 'false'}})
         self.cfg._from_cp(self.cp)
-        self.assertFalse(self.cfg.get('general', 'ignore-case'))
+        assert not self.cfg.get('general', 'ignore-case')
 
     def test_transformed_section_old(self):
         """Test a transformed section with the old name."""
         self.cp.read_dict({'permissions': {'allow-plugins': 'true'}})
         self.cfg._from_cp(self.cp)
-        self.assertTrue(self.cfg.get('content', 'allow-plugins'))
+        assert self.cfg.get('content', 'allow-plugins')
 
     def test_transformed_section_new(self):
         """Test a transformed section with the new name."""
         self.cp.read_dict({'content': {'allow-plugins': 'true'}})
         self.cfg._from_cp(self.cp)
-        self.assertTrue(self.cfg.get('content', 'allow-plugins'))
+        assert self.cfg.get('content', 'allow-plugins')
 
     def test_transformed_option_old(self):
         """Test a transformed option with the old name."""
@@ -72,8 +70,8 @@ class ConfigParserTests(unittest.TestCase):
         # Instance of 'str' has no 'name' member
         self.cp.read_dict({'colors': {'tab.fg.odd': 'pink'}})
         self.cfg._from_cp(self.cp)
-        self.assertEqual(self.cfg.get('colors', 'tabs.fg.odd').name(),
-                         QColor('pink').name())
+        assert self.cfg.get('colors', 'tabs.fg.odd').name() == \
+               QColor('pink').name()
 
     def test_transformed_option_new(self):
         """Test a transformed section with the new name."""
@@ -81,14 +79,14 @@ class ConfigParserTests(unittest.TestCase):
         # Instance of 'str' has no 'name' member
         self.cp.read_dict({'colors': {'tabs.fg.odd': 'pink'}})
         self.cfg._from_cp(self.cp)
-        self.assertEqual(self.cfg.get('colors', 'tabs.fg.odd').name(),
-                         QColor('pink').name())
+        assert self.cfg.get('colors', 'tabs.fg.odd').name() == \
+               QColor('pink').name()
 
     def test_invalid_value(self):
         """Test setting an invalid value."""
         self.cp.read_dict({'general': {'ignore-case': 'invalid'}})
         self.cfg._from_cp(self.cp)
-        with self.assertRaises(configexc.ValidationError):
+        with pytest.raises(configexc.ValidationError):
             self.cfg._validate_all()
 
     def test_invalid_value_interpolated(self):
@@ -96,7 +94,7 @@ class ConfigParserTests(unittest.TestCase):
         self.cp.read_dict({'general': {'ignore-case': 'smart',
                                        'wrap-search': '${ignore-case}'}})
         self.cfg._from_cp(self.cp)
-        with self.assertRaises(configexc.ValidationError):
+        with pytest.raises(configexc.ValidationError):
             self.cfg._validate_all()
 
     def test_interpolation(self):
@@ -104,8 +102,8 @@ class ConfigParserTests(unittest.TestCase):
         self.cp.read_dict({'general': {'ignore-case': 'false',
                                        'wrap-search': '${ignore-case}'}})
         self.cfg._from_cp(self.cp)
-        self.assertFalse(self.cfg.get('general', 'ignore-case'))
-        self.assertFalse(self.cfg.get('general', 'wrap-search'))
+        assert not self.cfg.get('general', 'ignore-case')
+        assert not self.cfg.get('general', 'wrap-search')
 
     def test_interpolation_cross_section(self):
         """Test setting an interpolated value from another section."""
@@ -116,93 +114,88 @@ class ConfigParserTests(unittest.TestCase):
             }
         )
         self.cfg._from_cp(self.cp)
-        self.assertFalse(self.cfg.get('general', 'ignore-case'))
-        self.assertFalse(self.cfg.get('network', 'do-not-track'))
+        assert not self.cfg.get('general', 'ignore-case')
+        assert not self.cfg.get('network', 'do-not-track')
 
     def test_invalid_interpolation(self):
         """Test an invalid interpolation."""
         self.cp.read_dict({'general': {'ignore-case': '${foo}'}})
         self.cfg._from_cp(self.cp)
-        with self.assertRaises(configparser.InterpolationError):
+        with pytest.raises(configparser.InterpolationError):
             self.cfg._validate_all()
 
     def test_invalid_interpolation_syntax(self):
         """Test an invalid interpolation syntax."""
         self.cp.read_dict({'general': {'ignore-case': '${'}})
-        with self.assertRaises(configexc.InterpolationSyntaxError):
+        with pytest.raises(configexc.InterpolationSyntaxError):
             self.cfg._from_cp(self.cp)
 
     def test_invalid_section(self):
         """Test an invalid section."""
         self.cp.read_dict({'foo': {'bar': 'baz'}})
-        with self.assertRaises(configexc.NoSectionError):
+        with pytest.raises(configexc.NoSectionError):
             self.cfg._from_cp(self.cp)
 
     def test_invalid_option(self):
         """Test an invalid option."""
         self.cp.read_dict({'general': {'bar': 'baz'}})
-        with self.assertRaises(configexc.NoOptionError):
+        with pytest.raises(configexc.NoOptionError):
             self.cfg._from_cp(self.cp)
 
     def test_invalid_section_relaxed(self):
         """Test an invalid section with relaxed=True."""
         self.cp.read_dict({'foo': {'bar': 'baz'}})
         self.cfg._from_cp(self.cp, relaxed=True)
-        with self.assertRaises(configexc.NoSectionError):
+        with pytest.raises(configexc.NoSectionError):
             self.cfg.get('foo', 'bar')  # pylint: disable=bad-config-call
 
     def test_invalid_option_relaxed(self):
         """Test an invalid option with relaxed=True."""
         self.cp.read_dict({'general': {'bar': 'baz'}})
         self.cfg._from_cp(self.cp, relaxed=True)
-        with self.assertRaises(configexc.NoOptionError):
+        with pytest.raises(configexc.NoOptionError):
             self.cfg.get('general', 'bar')  # pylint: disable=bad-config-call
 
 
-class DefaultConfigTests(unittest.TestCase):
+class TestDefaultConfig(object):
 
     """Test validating of the default config."""
 
+    @pytest.mark.xfail(reason='fails if run with other tests in this module, '
+                              'succeeds if executed alone (The-Compiler, help)'
+    )
     def test_default_config(self):
         """Test validating of the default config."""
         conf = config.ConfigManager(None, None)
         conf._validate_all()
 
 
-class ConfigInitTests(unittest.TestCase):
+class TestConfigInit(object):
 
     """Test initializing of the config."""
 
-    def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
-        self.conf_path = os.path.join(self.temp_dir, 'config')
-        self.data_path = os.path.join(self.temp_dir, 'data')
-        self.cache_path = os.path.join(self.temp_dir, 'cache')
-        os.mkdir(self.conf_path)
-        os.mkdir(self.data_path)
-        os.mkdir(self.cache_path)
+    @pytest.yield_fixture(autouse=True)
+    def setup(self, tmpdir):
+        self.conf_path = (tmpdir / 'config').ensure(dir=1)
+        self.data_path = (tmpdir / 'data').ensure(dir=1)
+        self.cache_path = (tmpdir / 'cache').ensure(dir=1)
         self.env = {
-            'XDG_CONFIG_HOME': self.conf_path,
-            'XDG_DATA_HOME': self.data_path,
-            'XDG_CACHE_HOME': self.cache_path,
+            'XDG_CONFIG_HOME': str(self.conf_path),
+            'XDG_DATA_HOME': str(self.data_path),
+            'XDG_CACHE_HOME': str(self.cache_path),
         }
         objreg.register('app', QObject())
         objreg.register('save-manager', mock.MagicMock())
         args = argparse.Namespace(relaxed_config=False)
         objreg.register('args', args)
-
-    def tearDown(self):
-        shutil.rmtree(self.temp_dir)
+        yield
         objreg.global_registry.clear()
 
-    def test_config_none(self):
+    def test_config_none(self, monkeypatch):
         """Test initializing with config path set to None."""
         args = types.SimpleNamespace(confdir='')
-        with helpers.environ_set_temp(self.env):
-            standarddir.init(args)
-            config.init()
-        self.assertFalse(os.listdir(self.conf_path))
-
-
-if __name__ == '__main__':
-    unittest.main()
+        for k, v in self.env.items():
+            monkeypatch.setenv(k, v)
+        standarddir.init(args)
+        config.init()
+        assert not os.listdir(str(self.conf_path))
