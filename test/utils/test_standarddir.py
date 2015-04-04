@@ -68,7 +68,7 @@ class TestGetStandardDirLinux:
     def test_data(self, monkeypatch, tmpdir):
         """Test data dir with XDG_DATA_HOME not set."""
         monkeypatch.setenv('HOME', str(tmpdir))
-        monkeypatch.setenv('XDG_DATA_HOME', None)
+        monkeypatch.delenv('XDG_DATA_HOME', raising=False)
         standarddir.init(None)
         expected = tmpdir / '.local' / 'share' / 'qutebrowser_test'
         assert standarddir.data() == str(expected)
@@ -76,7 +76,7 @@ class TestGetStandardDirLinux:
     def test_config(self, monkeypatch, tmpdir):
         """Test config dir with XDG_CONFIG_HOME not set."""
         monkeypatch.setenv('HOME', str(tmpdir))
-        monkeypatch.setenv('XDG_CONFIG_HOME', None)
+        monkeypatch.delenv('XDG_CONFIG_HOME', raising=False)
         standarddir.init(None)
         expected = tmpdir / '.config' / 'qutebrowser_test'
         assert standarddir.config() == str(expected)
@@ -84,7 +84,7 @@ class TestGetStandardDirLinux:
     def test_cache(self, monkeypatch, tmpdir):
         """Test cache dir with XDG_CACHE_HOME not set."""
         monkeypatch.setenv('HOME', str(tmpdir))
-        monkeypatch.setenv('XDG_CACHE_HOME', None)
+        monkeypatch.delenv('XDG_CACHE_HOME', raising=False)
         standarddir.init(None)
         expected = tmpdir / '.cache' / 'qutebrowser_test'
         assert standarddir.cache() == expected
