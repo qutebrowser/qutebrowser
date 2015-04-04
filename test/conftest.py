@@ -50,3 +50,15 @@ def unicode_encode_err():
                               0,  # start
                               2,  # end
                               'fake exception')  # reason
+
+
+@pytest.fixture
+def webpage():
+    """Get a new QWebPage object."""
+    from PyQt5.QtWebKitWidgets import QWebPage
+    from PyQt5.QtNetwork import QNetworkAccessManager
+
+    page = QWebPage()
+    nam = page.networkAccessManager()
+    nam.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
+    return page
