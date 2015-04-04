@@ -42,6 +42,5 @@ def test_log_time(caplog):
         assert match
 
         duration = float(match.group(1))
-
-        # Imitate unittests assertAlmostEqual(duration, 0.1, delta=0.01)
-        assert round(duration - 0.1, 2) == 0
+        assert duration >= 0.09
+        assert duration <= 0.11
