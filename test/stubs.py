@@ -257,7 +257,7 @@ class FakeTimer(QObject):
     def setSingleShot(self, singleshot):
         self._singleshot = singleshot
 
-    def singleShot(self):
+    def isSingleShot(self):
         return self._singleshot
 
     def start(self):

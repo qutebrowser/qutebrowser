@@ -22,13 +22,12 @@
 """Tests for BaseKeyParser."""
 
 import logging
-import unittest
 from unittest import mock
 
 from PyQt5.QtCore import Qt
+import pytest
 
 from qutebrowser.keyinput import basekeyparser
-from qutebrowser.test import stubs, helpers
 from qutebrowser.utils import objreg, log
 
 
@@ -43,11 +42,28 @@ BINDINGS = {'test': {'<Ctrl-a>': 'ctrla',
             'test2': {'foo': 'bar', '<Ctrl+X>': 'ctrlx'}}
 
 
-fake_keyconfig = mock.Mock(spec=['get_bindings_for'])
-fake_keyconfig.get_bindings_for.side_effect = lambda s: BINDINGS[s]
+@pytest.yield_fixture
+def fake_keyconfig():
+    """
+    Creates a mock of a KeyConfiguration and registers it into objreg.
+    """
+    fake_keyconfig = mock.Mock(spec=['get_bindings_for'])
+    fake_keyconfig.get_bindings_for.side_effect = lambda s: BINDINGS[s]
+    objreg.register('key-config', fake_keyconfig)
+    yield
+    objreg.delete('key-config')
 
 
-class SplitCountTests(unittest.TestCase):
+@pytest.fixture
+def mock_timer(mocker, stubs):
+    """Mocks the QTimer class used by the
+    "qutebrowser.keyinput.basekeyparser.usertypes" module with a stub version.
+    """
+    mocker.patch('qutebrowser.keyinput.basekeyparser.usertypes.Timer',
+                 new=stubs.FakeTimer)
+
+
+class TestSplitCount:
 
     """Test the _split_count method.
 
@@ -55,57 +71,51 @@ class SplitCountTests(unittest.TestCase):
         kp: The BaseKeyParser we're testing.
     """
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup(self):
         self.kp = basekeyparser.BaseKeyParser(0, supports_count=True)
 
     def test_onlycount(self):
         """Test split_count with only a count."""
         self.kp._keystring = '10'
-        self.assertEqual(self.kp._split_count(), (10, ''))
+        assert self.kp._split_count() == (10, '')
 
     def test_normalcount(self):
         """Test split_count with count and text."""
         self.kp._keystring = '10foo'
-        self.assertEqual(self.kp._split_count(), (10, 'foo'))
+        assert self.kp._split_count() == (10, 'foo')
 
     def test_minuscount(self):
         """Test split_count with a negative count."""
         self.kp._keystring = '-1foo'
-        self.assertEqual(self.kp._split_count(), (None, '-1foo'))
+        assert self.kp._split_count() == (None, '-1foo')
 
     def test_expcount(self):
         """Test split_count with an exponential count."""
         self.kp._keystring = '10e4foo'
-        self.assertEqual(self.kp._split_count(), (10, 'e4foo'))
+        assert self.kp._split_count() == (10, 'e4foo')
 
     def test_nocount(self):
         """Test split_count with only a command."""
         self.kp._keystring = 'foo'
-        self.assertEqual(self.kp._split_count(), (None, 'foo'))
+        assert self.kp._split_count() == (None, 'foo')
 
     def test_nosupport(self):
         """Test split_count with a count when counts aren't supported."""
         self.kp._supports_count = False
         self.kp._keystring = '10foo'
-        self.assertEqual(self.kp._split_count(), (None, '10foo'))
+        assert self.kp._split_count() == (None, '10foo')
 
 
-@mock.patch('qutebrowser.keyinput.basekeyparser.usertypes.Timer',
-            new=stubs.FakeTimer)
-class ReadConfigTests(unittest.TestCase):
+@pytest.mark.usefixtures('fake_keyconfig', 'mock_timer')
+class TestReadConfig:
 
     """Test reading the config."""
-
-    def setUp(self):
-        objreg.register('key-config', fake_keyconfig)
-
-    def tearDown(self):
-        objreg.delete('key-config')
 
     def test_read_config_invalid(self):
         """Test reading config without setting it before."""
         kp = basekeyparser.BaseKeyParser(0)
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             kp.read_config()
 
     def test_read_config_valid(self):
@@ -113,18 +123,17 @@ class ReadConfigTests(unittest.TestCase):
         kp = basekeyparser.BaseKeyParser(0, supports_count=True,
                                          supports_chains=True)
         kp.read_config('test')
-        self.assertIn('ccc', kp.bindings)
-        self.assertIn('ctrl+a', kp.special_bindings)
+        assert 'ccc' in kp.bindings
+        assert 'ctrl+a' in kp.special_bindings
         kp.read_config('test2')
-        self.assertNotIn('ccc', kp.bindings)
-        self.assertNotIn('ctrl+a', kp.special_bindings)
-        self.assertIn('foo', kp.bindings)
-        self.assertIn('ctrl+x', kp.special_bindings)
+        assert 'ccc' not in kp.bindings
+        assert 'ctrl+a' not in kp.special_bindings
+        assert 'foo' in kp.bindings
+        assert 'ctrl+x' in kp.special_bindings
 
 
-@mock.patch('qutebrowser.keyinput.basekeyparser.usertypes.Timer',
-            new=stubs.FakeTimer)
-class SpecialKeysTests(unittest.TestCase):
+@pytest.mark.usefixtures('mock_timer')
+class TestSpecialKeys:
 
     """Check execute() with special keys.
 
@@ -132,40 +141,36 @@ class SpecialKeysTests(unittest.TestCase):
         kp: The BaseKeyParser to be tested.
     """
 
-    def setUp(self):
-        objreg.register('key-config', fake_keyconfig)
+    @pytest.fixture(autouse=True)
+    def setup(self, caplog, fake_keyconfig):
         self.kp = basekeyparser.BaseKeyParser(0)
         self.kp.execute = mock.Mock()
-        with self.assertLogs(log.keyboard, logging.WARNING):
+        with caplog.atLevel(logging.WARNING, log.keyboard.name):
             # Ignoring keychain 'ccc' in mode 'test' because keychains are not
             # supported there.
             self.kp.read_config('test')
 
-    def tearDown(self):
-        objreg.delete('key-config')
-
-    def test_valid_key(self):
+    def test_valid_key(self, fake_keyevent_factory):
         """Test a valid special keyevent."""
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, Qt.ControlModifier))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_X, Qt.ControlModifier))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, Qt.ControlModifier))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_X, Qt.ControlModifier))
         self.kp.execute.assert_called_once_with('ctrla', self.kp.Type.special)
 
-    def test_invalid_key(self):
+    def test_invalid_key(self, fake_keyevent_factory):
         """Test an invalid special keyevent."""
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, (Qt.ControlModifier |
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, (Qt.ControlModifier |
                                                         Qt.AltModifier)))
-        self.assertFalse(self.kp.execute.called)
+        assert not self.kp.execute.called
 
-    def test_keychain(self):
+    def test_keychain(self, fake_keyevent_factory):
         """Test a keychain."""
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_B))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_A))
-        self.assertFalse(self.kp.execute.called)
+        self.kp.handle(fake_keyevent_factory(Qt.Key_B))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A))
+        assert not self.kp.execute.called
 
 
-@mock.patch('qutebrowser.keyinput.basekeyparser.usertypes.Timer',
-            new=stubs.FakeTimer)
-class KeyChainTests(unittest.TestCase):
+@pytest.mark.usefixtures('mock_timer')
+class TestKeyChain:
 
     """Test execute() with keychain support.
 
@@ -173,127 +178,116 @@ class KeyChainTests(unittest.TestCase):
         kp: The BaseKeyParser to be tested.
     """
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup(self, fake_keyconfig):
         """Set up mocks and read the test config."""
-        objreg.register('key-config', fake_keyconfig)
         self.kp = basekeyparser.BaseKeyParser(0, supports_chains=True,
                                               supports_count=False)
         self.kp.execute = mock.Mock()
         self.kp.read_config('test')
 
-    def tearDown(self):
-        objreg.delete('key-config')
-
-    def test_valid_special_key(self):
+    def test_valid_special_key(self, fake_keyevent_factory):
         """Test valid special key."""
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, Qt.ControlModifier))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_X, Qt.ControlModifier))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, Qt.ControlModifier))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_X, Qt.ControlModifier))
         self.kp.execute.assert_called_once_with('ctrla', self.kp.Type.special)
-        self.assertEqual(self.kp._keystring, '')
+        assert self.kp._keystring == ''
 
-    def test_invalid_special_key(self):
+    def test_invalid_special_key(self, fake_keyevent_factory):
         """Test invalid special key."""
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, (Qt.ControlModifier |
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, (Qt.ControlModifier |
                                                         Qt.AltModifier)))
-        self.assertFalse(self.kp.execute.called)
-        self.assertEqual(self.kp._keystring, '')
+        assert not self.kp.execute.called
+        assert self.kp._keystring == ''
 
-    def test_keychain(self):
+    def test_keychain(self, fake_keyevent_factory):
         """Test valid keychain."""
         # Press 'x' which is ignored because of no match
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_X, text='x'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_X, text='x'))
         # Then start the real chain
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_B, text='b'))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='a'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
         self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, None)
-        self.assertEqual(self.kp._keystring, '')
+        assert self.kp._keystring == ''
 
-    @mock.patch('qutebrowser.keyinput.basekeyparser.config',
-                new=stubs.ConfigStub(CONFIG))
-    def test_ambigious_keychain(self):
+    def test_ambigious_keychain(self, fake_keyevent_factory, mocker, stubs):
         """Test ambigious keychain."""
+        mocker.patch('qutebrowser.keyinput.basekeyparser.config',
+                     new=stubs.ConfigStub(CONFIG))
         timer = self.kp._ambigious_timer
-        self.assertFalse(timer.isActive())
+        assert not timer.isActive()
         # We start with 'a' where the keychain gives us an ambigious result.
         # Then we check if the timer has been set up correctly
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='a'))
-        self.assertFalse(self.kp.execute.called)
-        self.assertTrue(timer.isSingleShot())
-        self.assertEqual(timer.interval(), 100)
-        self.assertTrue(timer.isActive())
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
+        assert not self.kp.execute.called
+        assert timer.isSingleShot()
+        assert timer.interval() == 100
+        assert timer.isActive()
         # Now we type an 'x' and check 'ax' has been executed and the timer
         # stopped.
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_X, text='x'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_X, text='x'))
         self.kp.execute.assert_called_once_with('ax', self.kp.Type.chain, None)
-        self.assertFalse(timer.isActive())
-        self.assertEqual(self.kp._keystring, '')
+        assert not timer.isActive()
+        assert self.kp._keystring == ''
 
-    def test_invalid_keychain(self):
+    def test_invalid_keychain(self, fake_keyevent_factory):
         """Test invalid keychain."""
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_B, text='b'))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_C, text='c'))
-        self.assertEqual(self.kp._keystring, '')
+        self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_C, text='c'))
+        assert self.kp._keystring == ''
 
 
-@mock.patch('qutebrowser.keyinput.basekeyparser.usertypes.Timer',
-            new=stubs.FakeTimer)
-class CountTests(unittest.TestCase):
+@pytest.mark.usefixtures('mock_timer')
+class TestCount:
 
     """Test execute() with counts."""
 
-    def setUp(self):
-        objreg.register('key-config', fake_keyconfig)
+    @pytest.fixture(autouse=True)
+    def setup(self, fake_keyconfig):
         self.kp = basekeyparser.BaseKeyParser(0, supports_chains=True,
                                               supports_count=True)
         self.kp.execute = mock.Mock()
         self.kp.read_config('test')
 
-    def test_no_count(self):
+    def test_no_count(self, fake_keyevent_factory):
         """Test with no count added."""
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_B, text='b'))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='a'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
         self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, None)
-        self.assertEqual(self.kp._keystring, '')
+        assert self.kp._keystring == ''
 
-    def test_count_0(self):
+    def test_count_0(self, fake_keyevent_factory):
         """Test with count=0."""
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_0, text='0'))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_B, text='b'))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='a'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_0, text='0'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
         self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, 0)
-        self.assertEqual(self.kp._keystring, '')
+        assert self.kp._keystring == ''
 
-    def test_count_42(self):
+    def test_count_42(self, fake_keyevent_factory):
         """Test with count=42."""
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_4, text='4'))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_2, text='2'))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_B, text='b'))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='a'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_4, text='4'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_2, text='2'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
         self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, 42)
-        self.assertEqual(self.kp._keystring, '')
+        assert self.kp._keystring == ''
 
-    def test_count_42_invalid(self):
+    def test_count_42_invalid(self, fake_keyevent_factory):
         """Test with count=42 and invalid command."""
         # Invalid call with ccx gets ignored
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_4, text='4'))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_2, text='2'))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_B, text='c'))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='c'))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='x'))
-        self.assertFalse(self.kp.execute.called)
-        self.assertEqual(self.kp._keystring, '')
+        self.kp.handle(fake_keyevent_factory(Qt.Key_4, text='4'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_2, text='2'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='c'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='c'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='x'))
+        assert not self.kp.execute.called
+        assert self.kp._keystring == ''
         # Valid call with ccc gets the correct count
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_4, text='2'))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_2, text='3'))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_B, text='c'))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='c'))
-        self.kp.handle(helpers.fake_keyevent(Qt.Key_A, text='c'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_4, text='2'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_2, text='3'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_B, text='c'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='c'))
+        self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='c'))
         self.kp.execute.assert_called_once_with('ccc', self.kp.Type.chain, 23)
-        self.assertEqual(self.kp._keystring, '')
-
-    def tearDown(self):
-        objreg.global_registry.clear()
-
-
-if __name__ == '__main__':
-    unittest.main()
+        assert self.kp._keystring == ''

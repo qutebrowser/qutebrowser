@@ -21,9 +21,6 @@
 
 import logging
 import contextlib
-from unittest import mock
-
-from PyQt5.QtGui import QKeyEvent
 
 
 @contextlib.contextmanager
@@ -34,15 +31,6 @@ def disable_logger(name):
         yield
     finally:
         logging.getLogger(name).propagate = True
-
-
-def fake_keyevent(key, modifiers=0, text=''):
-    """Generate a new fake QKeyPressEvent."""
-    evtmock = mock.create_autospec(QKeyEvent, instance=True)
-    evtmock.key.return_value = key
-    evtmock.modifiers.return_value = modifiers
-    evtmock.text.return_value = text
-    return evtmock
 
 
 class MessageModule:
