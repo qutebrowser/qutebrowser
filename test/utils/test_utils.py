@@ -21,15 +21,14 @@
 
 import sys
 import enum
-import unittest
 import datetime
 import os.path
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
+import pytest
 
 from qutebrowser.utils import utils, qtutils
-from qutebrowser.test import helpers
 
 
 class Color(QColor):
@@ -42,7 +41,7 @@ class Color(QColor):
                               alpha=self.alpha())
 
 
-class ElidingTests(unittest.TestCase):
+class TestEliding:
 
     """Test elide."""
 
@@ -50,33 +49,34 @@ class ElidingTests(unittest.TestCase):
 
     def test_too_small(self):
         """Test eliding to 0 chars which should fail."""
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             utils.elide('foo', 0)
 
     def test_length_one(self):
         """Test eliding to 1 char which should yield ..."""
-        self.assertEqual(utils.elide('foo', 1), self.ELLIPSIS)
+        assert utils.elide('foo', 1) == self.ELLIPSIS
 
     def test_fits(self):
         """Test eliding with a string which fits exactly."""
-        self.assertEqual(utils.elide('foo', 3), 'foo')
+        assert utils.elide('foo', 3) == 'foo'
 
     def test_elided(self):
         """Test eliding with a string which should get elided."""
-        self.assertEqual(utils.elide('foobar', 3), 'fo' + self.ELLIPSIS)
+        assert utils.elide('foobar', 3) == 'fo' + self.ELLIPSIS
 
 
-class ReadFileTests(unittest.TestCase):
+class TestReadFile:
 
     """Test read_file."""
 
     def test_readfile(self):
         """Read a testfile."""
-        content = utils.read_file(os.path.join('test', 'testfile'))
-        self.assertEqual(content.splitlines()[0], "Hello World!")
+        directory = os.path.dirname(__file__)
+        content = utils.read_file(os.path.join(directory, 'testfile'))
+        assert content.splitlines()[0] == "Hello World!"
 
 
-class InterpolateColorTests(unittest.TestCase):
+class TestInterpolateColor:
 
     """Tests for interpolate_color.
 
@@ -85,30 +85,31 @@ class InterpolateColorTests(unittest.TestCase):
         white: The Color black as a valid Color for tests.
     """
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup(self):
         self.white = Color('white')
         self.black = Color('black')
 
     def test_invalid_start(self):
         """Test an invalid start color."""
-        with self.assertRaises(qtutils.QtValueError):
+        with pytest.raises(qtutils.QtValueError):
             utils.interpolate_color(Color(), self.white, 0)
 
     def test_invalid_end(self):
         """Test an invalid end color."""
-        with self.assertRaises(qtutils.QtValueError):
+        with pytest.raises(qtutils.QtValueError):
             utils.interpolate_color(self.white, Color(), 0)
 
     def test_invalid_percentage(self):
         """Test an invalid percentage."""
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             utils.interpolate_color(self.white, self.white, -1)
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             utils.interpolate_color(self.white, self.white, 101)
 
     def test_invalid_colorspace(self):
         """Test an invalid colorspace."""
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             utils.interpolate_color(self.white, self.black, 10, QColor.Cmyk)
 
     def test_valid_percentages_rgb(self):
@@ -116,30 +117,30 @@ class InterpolateColorTests(unittest.TestCase):
         white = utils.interpolate_color(self.white, self.black, 0, QColor.Rgb)
         black = utils.interpolate_color(self.white, self.black, 100,
                                         QColor.Rgb)
-        self.assertEqual(Color(white), self.white)
-        self.assertEqual(Color(black), self.black)
+        assert Color(white) == self.white
+        assert Color(black) == self.black
 
     def test_valid_percentages_hsv(self):
         """Test 0% and 100% in the HSV colorspace."""
         white = utils.interpolate_color(self.white, self.black, 0, QColor.Hsv)
         black = utils.interpolate_color(self.white, self.black, 100,
                                         QColor.Hsv)
-        self.assertEqual(Color(white), self.white)
-        self.assertEqual(Color(black), self.black)
+        assert Color(white) == self.white
+        assert Color(black) == self.black
 
     def test_valid_percentages_hsl(self):
         """Test 0% and 100% in the HSL colorspace."""
         white = utils.interpolate_color(self.white, self.black, 0, QColor.Hsl)
         black = utils.interpolate_color(self.white, self.black, 100,
                                         QColor.Hsl)
-        self.assertEqual(Color(white), self.white)
-        self.assertEqual(Color(black), self.black)
+        assert Color(white) == self.white
+        assert Color(black) == self.black
 
     def test_interpolation_rgb(self):
         """Test an interpolation in the RGB colorspace."""
         color = utils.interpolate_color(Color(0, 40, 100), Color(0, 20, 200),
                                         50, QColor.Rgb)
-        self.assertEqual(Color(color), Color(0, 30, 150))
+        assert Color(color) == Color(0, 30, 150)
 
     def test_interpolation_hsv(self):
         """Test an interpolation in the HSV colorspace."""
@@ -150,7 +151,7 @@ class InterpolateColorTests(unittest.TestCase):
         color = utils.interpolate_color(start, stop, 50, QColor.Hsv)
         expected = Color()
         expected.setHsv(0, 30, 150)
-        self.assertEqual(Color(color), expected)
+        assert Color(color) == expected
 
     def test_interpolation_hsl(self):
         """Test an interpolation in the HSL colorspace."""
@@ -161,10 +162,10 @@ class InterpolateColorTests(unittest.TestCase):
         color = utils.interpolate_color(start, stop, 50, QColor.Hsl)
         expected = Color()
         expected.setHsl(0, 30, 150)
-        self.assertEqual(Color(color), expected)
+        assert Color(color) == expected
 
 
-class FormatSecondsTests(unittest.TestCase):
+class TestFormatSeconds:
 
     """Tests for format_seconds.
 
@@ -186,14 +187,13 @@ class FormatSecondsTests(unittest.TestCase):
         (36000, '10:00:00'),
     ]
 
-    def test_format_seconds(self):
+    @pytest.mark.parametrize('seconds, out', TESTS)
+    def test_format_seconds(self, seconds, out):
         """Test format_seconds with several tests."""
-        for seconds, out in self.TESTS:
-            with self.subTest(seconds=seconds):
-                self.assertEqual(utils.format_seconds(seconds), out)
+        assert utils.format_seconds(seconds) == out
 
 
-class FormatTimedeltaTests(unittest.TestCase):
+class TestFormatTimedelta:
 
     """Tests for format_timedelta.
 
@@ -217,14 +217,13 @@ class FormatTimedeltaTests(unittest.TestCase):
         (datetime.timedelta(seconds=36000), '10h'),
     ]
 
-    def test_format_seconds(self):
+    @pytest.mark.parametrize('td, out', TESTS)
+    def test_format_seconds(self, td, out):
         """Test format_seconds with several tests."""
-        for td, out in self.TESTS:
-            with self.subTest(td=td):
-                self.assertEqual(utils.format_timedelta(td), out)
+        assert utils.format_timedelta(td) == out
 
 
-class FormatSizeTests(unittest.TestCase):
+class TestFormatSize:
 
     """Tests for format_size.
 
@@ -244,122 +243,117 @@ class FormatSizeTests(unittest.TestCase):
         (None, '?.??'),
     ]
 
-    def test_format_size(self):
+    KILO_TESTS = [(999, '999.00'), (1000, '1.00k'), (1010, '1.01k')]
+
+    @pytest.mark.parametrize('size, out', TESTS)
+    def test_format_size(self, size, out):
         """Test format_size with several tests."""
-        for size, out in self.TESTS:
-            with self.subTest(size=size):
-                self.assertEqual(utils.format_size(size), out)
+        assert utils.format_size(size) == out
 
-    def test_suffix(self):
+    @pytest.mark.parametrize('size, out', TESTS)
+    def test_suffix(self, size, out):
         """Test the suffix option."""
-        for size, out in self.TESTS:
-            with self.subTest(size=size):
-                self.assertEqual(utils.format_size(size, suffix='B'),
-                                 out + 'B')
+        assert utils.format_size(size, suffix='B') == out + 'B'
 
-    def test_base(self):
+    @pytest.mark.parametrize('size, out', KILO_TESTS)
+    def test_base(self, size, out):
         """Test with an alternative base."""
-        kilo_tests = [(999, '999.00'), (1000, '1.00k'), (1010, '1.01k')]
-        for size, out in kilo_tests:
-            with self.subTest(size=size):
-                self.assertEqual(utils.format_size(size, base=1000), out)
+        assert utils.format_size(size, base=1000) == out
 
 
-class KeyToStringTests(unittest.TestCase):
+class TestKeyToString:
 
     """Test key_to_string."""
 
     def test_unicode_garbage_keys(self):
         """Test a special key where QKeyEvent::toString works incorrectly."""
-        self.assertEqual(utils.key_to_string(Qt.Key_Blue), 'Blue')
+        assert utils.key_to_string(Qt.Key_Blue) == 'Blue'
 
     def test_backtab(self):
         """Test if backtab is normalized to tab correctly."""
-        self.assertEqual(utils.key_to_string(Qt.Key_Backtab), 'Tab')
+        assert utils.key_to_string(Qt.Key_Backtab) == 'Tab'
 
     def test_escape(self):
         """Test if escape is normalized to escape correctly."""
-        self.assertEqual(utils.key_to_string(Qt.Key_Escape), 'Escape')
+        assert utils.key_to_string(Qt.Key_Escape) == 'Escape'
 
     def test_letter(self):
         """Test a simple letter key."""
-        self.assertEqual(utils.key_to_string(Qt.Key_A), 'A')
+        assert utils.key_to_string(Qt.Key_A) == 'A'
 
     def test_unicode(self):
         """Test a printable unicode key."""
-        self.assertEqual(utils.key_to_string(Qt.Key_degree), '°')
+        assert utils.key_to_string(Qt.Key_degree) == '°'
 
     def test_special(self):
         """Test a non-printable key handled by QKeyEvent::toString."""
-        self.assertEqual(utils.key_to_string(Qt.Key_F1), 'F1')
+        assert utils.key_to_string(Qt.Key_F1) == 'F1'
 
 
-class KeyEventToStringTests(unittest.TestCase):
+class TestKeyEventToString:
 
     """Test keyevent_to_string."""
 
-    def test_only_control(self):
+    def test_only_control(self, fake_keyevent_factory):
         """Test keyeevent when only control is pressed."""
-        evt = helpers.fake_keyevent(key=Qt.Key_Control,
+        evt = fake_keyevent_factory(key=Qt.Key_Control,
                                     modifiers=Qt.ControlModifier)
-        self.assertIsNone(utils.keyevent_to_string(evt))
+        assert utils.keyevent_to_string(evt) is None
 
-    def test_only_hyper_l(self):
+    def test_only_hyper_l(self, fake_keyevent_factory):
         """Test keyeevent when only Hyper_L is pressed."""
-        evt = helpers.fake_keyevent(key=Qt.Key_Hyper_L,
+        evt = fake_keyevent_factory(key=Qt.Key_Hyper_L,
                                     modifiers=Qt.MetaModifier)
-        self.assertIsNone(utils.keyevent_to_string(evt))
+        assert utils.keyevent_to_string(evt) is None
 
-    def test_only_key(self):
+    def test_only_key(self, fake_keyevent_factory):
         """Test with a simple key pressed."""
-        evt = helpers.fake_keyevent(key=Qt.Key_A)
-        self.assertEqual(utils.keyevent_to_string(evt), 'A')
+        evt = fake_keyevent_factory(key=Qt.Key_A)
+        assert utils.keyevent_to_string(evt) == 'A'
 
-    def test_key_and_modifier(self):
+    def test_key_and_modifier(self, fake_keyevent_factory):
         """Test with key and modifier pressed."""
-        evt = helpers.fake_keyevent(key=Qt.Key_A, modifiers=Qt.ControlModifier)
-        self.assertEqual(utils.keyevent_to_string(evt), 'Ctrl+A')
+        evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
+        assert utils.keyevent_to_string(evt) == 'Ctrl+A'
 
-    def test_key_and_modifiers(self):
+    def test_key_and_modifiers(self, fake_keyevent_factory):
         """Test with key and multiple modifier pressed."""
-        evt = helpers.fake_keyevent(
+        evt = fake_keyevent_factory(
             key=Qt.Key_A, modifiers=(Qt.ControlModifier | Qt.AltModifier |
                                      Qt.MetaModifier | Qt.ShiftModifier))
         if sys.platform == 'darwin':
-            self.assertEqual(utils.keyevent_to_string(evt),
-                             'Ctrl+Alt+Shift+A')
+            assert utils.keyevent_to_string(evt) == 'Ctrl+Alt+Shift+A'
         else:
-            self.assertEqual(utils.keyevent_to_string(evt),
-                             'Ctrl+Alt+Meta+Shift+A')
+            assert utils.keyevent_to_string(evt) == 'Ctrl+Alt+Meta+Shift+A'
 
 
-class NormalizeTests(unittest.TestCase):
+class TestNormalize:
 
     """Test normalize_keystr."""
 
-    def test_normalize(self):
+    STRINGS = (
+        ('Control+x', 'ctrl+x'),
+        ('Windows+x', 'meta+x'),
+        ('Mod1+x', 'alt+x'),
+        ('Mod4+x', 'meta+x'),
+        ('Control--', 'ctrl+-'),
+        ('Windows++', 'meta++'),
+    )
+
+    @pytest.mark.parametrize('orig, repl', STRINGS)
+    def test_normalize(self, orig, repl):
         """Test normalize with some strings."""
-        strings = (
-            ('Control+x', 'ctrl+x'),
-            ('Windows+x', 'meta+x'),
-            ('Mod1+x', 'alt+x'),
-            ('Mod4+x', 'meta+x'),
-            ('Control--', 'ctrl+-'),
-            ('Windows++', 'meta++'),
-        )
-        for orig, repl in strings:
-            with self.subTest(orig=orig):
-                self.assertEqual(utils.normalize_keystr(orig), repl)
+        assert utils.normalize_keystr(orig) == repl
 
 
-class IsEnumTests(unittest.TestCase):
+class TestIsEnum:
 
     """Test is_enum."""
 
     def test_enum(self):
         """Test is_enum with an enum."""
         e = enum.Enum('Foo', 'bar, baz')
-        self.assertTrue(utils.is_enum(e))
+        assert utils.is_enum(e)
 
     def test_class(self):
         """Test is_enum with a non-enum class."""
@@ -368,14 +362,15 @@ class IsEnumTests(unittest.TestCase):
             """Test class for is_enum."""
 
             pass
-        self.assertFalse(utils.is_enum(Test))
+
+        assert not utils.is_enum(Test)
 
     def test_object(self):
         """Test is_enum with a non-enum object."""
-        self.assertFalse(utils.is_enum(23))
+        assert not utils.is_enum(23)
 
 
-class RaisesTests(unittest.TestCase):
+class TestRaises:
 
     """Test raises."""
 
@@ -389,106 +384,99 @@ class RaisesTests(unittest.TestCase):
 
     def test_raises_single_exc_true(self):
         """Test raises with a single exception which gets raised."""
-        self.assertTrue(utils.raises(ValueError, int, 'a'))
+        assert utils.raises(ValueError, int, 'a')
 
     def test_raises_single_exc_false(self):
         """Test raises with a single exception which does not get raised."""
-        self.assertFalse(utils.raises(ValueError, int, '1'))
+        assert not utils.raises(ValueError, int, '1')
 
     def test_raises_multiple_exc_true(self):
         """Test raises with multiple exceptions which get raised."""
-        self.assertTrue(utils.raises((ValueError, TypeError), int, 'a'))
-        self.assertTrue(utils.raises((ValueError, TypeError), int, None))
+        assert utils.raises((ValueError, TypeError), int, 'a')
+        assert utils.raises((ValueError, TypeError), int, None)
 
     def test_raises_multiple_exc_false(self):
         """Test raises with multiple exceptions which do not get raised."""
-        self.assertFalse(utils.raises((ValueError, TypeError), int, '1'))
+        assert not utils.raises((ValueError, TypeError), int, '1')
 
     def test_no_args_true(self):
         """Test with no args and an exception which gets raised."""
-        self.assertTrue(utils.raises(Exception, self.do_raise))
+        assert utils.raises(Exception, self.do_raise)
 
     def test_no_args_false(self):
         """Test with no args and an exception which does not get raised."""
-        self.assertFalse(utils.raises(Exception, self.do_nothing))
+        assert not utils.raises(Exception, self.do_nothing)
 
     def test_unrelated_exception(self):
         """Test with an unrelated exception."""
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             utils.raises(ValueError, self.do_raise)
 
 
-class ForceEncodingTests(unittest.TestCase):
+class TestForceEncoding:
 
     """Test force_encoding."""
 
-    def test_fitting_ascii(self):
-        """Test with a text fitting into ascii."""
-        text = 'hello world'
-        self.assertEqual(utils.force_encoding(text, 'ascii'), text)
+    TESTS = [
+        ('hello world', 'ascii', 'hello world'),
+        ('hellö wörld', 'utf-8', 'hellö wörld'),
+        ('hellö wörld', 'ascii', 'hell? w?rld'),
+    ]
 
-    def test_fitting_utf8(self):
-        """Test with a text fitting into utf-8."""
-        text = 'hellö wörld'
-        self.assertEqual(utils.force_encoding(text, 'utf-8'), text)
-
-    def test_not_fitting_ascii(self):
-        """Test with a text not fitting into ascii."""
-        text = 'hellö wörld'
-        self.assertEqual(utils.force_encoding(text, 'ascii'), 'hell? w?rld')
+    @pytest.mark.parametrize('inp, enc, expected', TESTS)
+    def test_fitting_ascii(self, inp, enc, expected):
+        """Test force_encoding will yield expected text."""
+        assert utils.force_encoding(inp, enc) == expected
 
 
-class NewestSliceTests(unittest.TestCase):
+class TestNewestSlice:
 
     """Test newest_slice."""
 
     def test_count_minus_two(self):
         """Test with a count of -2."""
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             utils.newest_slice([], -2)
 
     def test_count_minus_one(self):
         """Test with a count of -1 (all elements)."""
         items = range(20)
         sliced = utils.newest_slice(items, -1)
-        self.assertEqual(list(sliced), list(items))
+        assert list(sliced) == list(items)
 
     def test_count_zero(self):
         """Test with a count of 0 (no elements)."""
         items = range(20)
         sliced = utils.newest_slice(items, 0)
-        self.assertEqual(list(sliced), [])
+        assert list(sliced) == []
 
     def test_count_much_smaller(self):
         """Test with a count which is much smaller than the iterable."""
         items = range(20)
         sliced = utils.newest_slice(items, 5)
-        self.assertEqual(list(sliced), [15, 16, 17, 18, 19])
+        assert list(sliced) == [15, 16, 17, 18, 19]
 
     def test_count_smaller(self):
         """Test with a count which is exactly one smaller."""
         items = range(5)
         sliced = utils.newest_slice(items, 4)
-        self.assertEqual(list(sliced), [1, 2, 3, 4])
+        assert list(sliced) == [1, 2, 3, 4]
 
     def test_count_equal(self):
         """Test with a count which is just as large as the iterable."""
         items = range(5)
         sliced = utils.newest_slice(items, 5)
-        self.assertEqual(list(sliced), list(items))
+        assert list(sliced) == list(items)
 
     def test_count_bigger(self):
         """Test with a count which is one bigger than the iterable."""
         items = range(5)
         sliced = utils.newest_slice(items, 6)
-        self.assertEqual(list(sliced), list(items))
+        assert list(sliced) == list(items)
 
     def test_count_much_bigger(self):
         """Test with a count which is much bigger than the iterable."""
         items = range(5)
         sliced = utils.newest_slice(items, 50)
-        self.assertEqual(list(sliced), list(items))
+        assert list(sliced) == list(items)
 
-
-if __name__ == '__main__':
-    unittest.main()
