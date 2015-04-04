@@ -343,6 +343,12 @@ class MainWindow(QWidget):
             quit_texts.append("{} {} running.".format(
                 tab_count,
                 "download is" if tab_count == 1 else "downloads are"))
+        # Check if any tabs have filled forms and skip
+        if 'forms' in confirm_quit:
+            for tab in self._tabbed_browser.widgets():
+                if not self._tabbed_browser.check_forms_can_be_destroyed(tab):
+                    e.ignore()
+                return
         # Process all quit messages that user must confirm
         if quit_texts or 'always' in confirm_quit:
             text = '\n'.join(['Really quit?'] + quit_texts)

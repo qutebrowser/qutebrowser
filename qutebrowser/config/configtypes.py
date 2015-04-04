@@ -1342,10 +1342,12 @@ class ConfirmQuit(List):
                                ('multiple-tabs', "Show a confirmation if "
                                                  "multiple tabs are opened."),
                                ('downloads', "Show a confirmation if "
-                                             "downloads are running"),
+                                             "downloads are running."),
+                               ('forms', "Show a confirmation if a tab has a "
+                                         "filled form."),
                                ('never', "Never show a confirmation."))
     # Values that can be combined with commas
-    combinable_values = ('multiple-tabs', 'downloads')
+    combinable_values = ('multiple-tabs', 'downloads', 'forms')
 
     def validate(self, value):
         values = self.transform(value)
