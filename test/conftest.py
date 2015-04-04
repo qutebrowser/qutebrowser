@@ -29,6 +29,7 @@ def app_and_logging(qapp):
     and used by all tests.
     """
     from log import init
+
     init()
 
 
@@ -38,4 +39,14 @@ def stubs():
     Provides access to stub objects useful for testing.
     """
     import stubs
+
     return stubs
+
+
+@pytest.fixture(scope='session')
+def unicode_encode_err():
+    return UnicodeEncodeError('ascii',  # codec
+                              '',  # object
+                              0,  # start
+                              2,  # end
+                              'fake exception')  # reason
