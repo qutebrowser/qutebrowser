@@ -44,7 +44,7 @@ from qutebrowser.utils.usertypes import Completion
 
 class change_filter:  # pylint: disable=invalid-name
 
-    """Decorator to register a new command handler.
+    """Decorator to filter calls based on a config section/option matching.
 
     This could also be a function, but as a class (with a "wrong" name) it's
     much cleaner to implement.
@@ -60,7 +60,8 @@ class change_filter:  # pylint: disable=invalid-name
         Gets called on parse-time with the decorator arguments.
 
         Args:
-            See class attributes.
+            sectname: The section to be filtered.
+            optname: The option to be filtered.
         """
         if sectname not in configdata.DATA:
             raise configexc.NoSectionError(sectname)
@@ -70,7 +71,7 @@ class change_filter:  # pylint: disable=invalid-name
         self._optname = optname
 
     def __call__(self, func):
-        """Register the command before running the function.
+        """Filter calls to the decorated function.
 
         Gets called when a function should be decorated.
 
