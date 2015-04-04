@@ -25,9 +25,9 @@ import unittest
 from unittest import mock
 
 from PyQt5.QtCore import QUrl
+import pytest
 
 from qutebrowser.utils import urlutils
-from qutebrowser.test import stubs
 
 
 def get_config_stub(auto_search=True):
@@ -45,8 +45,7 @@ def get_config_stub(auto_search=True):
     }
 
 
-class SpecialURLTests(unittest.TestCase):
-
+class TestSpecialURL:
     """Test is_special_url.
 
     Attributes:
@@ -65,66 +64,65 @@ class SpecialURLTests(unittest.TestCase):
         'www.qutebrowser.org'
     )
 
-    def test_special_urls(self):
+    @pytest.mark.parametrize('url', SPECIAL_URLS)
+    def test_special_urls(self, url):
         """Test special URLs."""
-        for url in self.SPECIAL_URLS:
-            with self.subTest(url=url):
-                u = QUrl(url)
-                self.assertTrue(urlutils.is_special_url(u))
+        u = QUrl(url)
+        assert urlutils.is_special_url(u)
 
-    def test_normal_urls(self):
+    @pytest.mark.parametrize('url', NORMAL_URLS)
+    def test_normal_urls(self, url):
         """Test non-special URLs."""
-        for url in self.NORMAL_URLS:
-            with self.subTest(url=url):
-                u = QUrl(url)
-                self.assertFalse(urlutils.is_special_url(u))
+        u = QUrl(url)
+        assert not urlutils.is_special_url(u)
 
 
-@mock.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
-    get_config_stub()))
-class SearchUrlTests(unittest.TestCase):
-
+class TestSearchUrl:
     """Test _get_search_url."""
+
+    @pytest.fixture(autouse=True)
+    def mock_config(self, stubs, mocker):
+        mocker.patch('qutebrowser.utils.urlutils.config',
+                     new=stubs.ConfigStub(get_config_stub()))
 
     def test_default_engine(self):
         """Test default search engine."""
         url = urlutils._get_search_url('testfoo')
-        self.assertEqual(url.host(), 'www.example.com')
-        self.assertEqual(url.query(), 'q=testfoo')
+        assert url.host() == 'www.example.com'
+        assert url.query() == 'q=testfoo'
 
     def test_engine_pre(self):
         """Test search engine name with one word."""
         url = urlutils._get_search_url('test testfoo')
-        self.assertEqual(url.host(), 'www.qutebrowser.org')
-        self.assertEqual(url.query(), 'q=testfoo')
+        assert url.host() == 'www.qutebrowser.org'
+        assert url.query() == 'q=testfoo'
 
     def test_engine_pre_multiple_words(self):
         """Test search engine name with multiple words."""
         url = urlutils._get_search_url('test testfoo bar foo')
-        self.assertEqual(url.host(), 'www.qutebrowser.org')
-        self.assertEqual(url.query(), 'q=testfoo bar foo')
+        assert url.host() == 'www.qutebrowser.org'
+        assert url.query() == 'q=testfoo bar foo'
 
     def test_engine_pre_whitespace_at_end(self):
         """Test search engine name with one word and whitespace."""
         url = urlutils._get_search_url('test testfoo ')
-        self.assertEqual(url.host(), 'www.qutebrowser.org')
-        self.assertEqual(url.query(), 'q=testfoo')
+        assert url.host() == 'www.qutebrowser.org'
+        assert url.query() == 'q=testfoo'
 
     def test_engine_with_bang_pre(self):
         """Test search engine with a prepended !bang."""
         url = urlutils._get_search_url('!python testfoo')
-        self.assertEqual(url.host(), 'www.example.com')
-        self.assertEqual(url.query(), 'q=%21python testfoo')
+        assert url.host() == 'www.example.com'
+        assert url.query() == 'q=%21python testfoo'
 
     def test_engine_wrong(self):
         """Test with wrong search engine."""
         url = urlutils._get_search_url('blub testfoo')
-        self.assertEqual(url.host(), 'www.example.com')
-        self.assertEqual(url.query(), 'q=blub testfoo')
+        assert url.host() == 'www.example.com'
+        assert url.query() == 'q=blub testfoo'
 
 
-class IsUrlTests(unittest.TestCase):
-
+class TestIsUrl:
     """Tests for is_url.
 
     Class attributes:
@@ -158,87 +156,73 @@ class IsUrlTests(unittest.TestCase):
         'foo::bar',
     )
 
-    @mock.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
-        get_config_stub('naive')))
-    def test_urls(self):
+    @pytest.mark.parametrize('url', URLS)
+    def test_urls(self, mocker, stubs, url):
         """Test things which are URLs."""
-        for url in self.URLS:
-            with self.subTest(url=url):
-                self.assertTrue(urlutils.is_url(url), url)
+        mocker.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
+            get_config_stub('naive')))
+        assert urlutils.is_url(url), url
 
-    @mock.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
-        get_config_stub('naive')))
-    def test_not_urls(self):
+    @pytest.mark.parametrize('url', NOT_URLS)
+    def test_not_urls(self, mocker, stubs, url):
         """Test things which are not URLs."""
-        for url in self.NOT_URLS:
-            with self.subTest(url=url):
-                self.assertFalse(urlutils.is_url(url), url)
+        mocker.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
+            get_config_stub('naive')))
+        assert not urlutils.is_url(url), url
 
-    @mock.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
-        get_config_stub(True)))
-    def test_search_autosearch(self):
+    @pytest.mark.parametrize('autosearch', [True, False])
+    def test_search_autosearch(self, mocker, stubs, autosearch):
         """Test explicit search with auto-search=True."""
-        self.assertFalse(urlutils.is_url('test foo'))
-
-    @mock.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
-        get_config_stub(False)))
-    def test_search_no_autosearch(self):
-        """Test explicit search with auto-search=False."""
-        self.assertFalse(urlutils.is_url('test foo'))
+        mocker.patch('qutebrowser.utils.urlutils.config', new=stubs.ConfigStub(
+            get_config_stub(autosearch)))
+        assert not urlutils.is_url('test foo')
 
 
-class QurlFromUserInputTests(unittest.TestCase):
-
+class TestQurlFromUserInput:
     """Tests for qurl_from_user_input."""
 
     def test_url(self):
         """Test a normal URL."""
-        self.assertEqual(
-            urlutils.qurl_from_user_input('qutebrowser.org').toString(),
-            'http://qutebrowser.org')
+        assert (
+            urlutils.qurl_from_user_input('qutebrowser.org').toString()
+            == 'http://qutebrowser.org')
 
     def test_url_http(self):
         """Test a normal URL with http://."""
-        self.assertEqual(
-            urlutils.qurl_from_user_input('http://qutebrowser.org').toString(),
-            'http://qutebrowser.org')
+        assert (
+            urlutils.qurl_from_user_input('http://qutebrowser.org').toString()
+            == 'http://qutebrowser.org')
 
     def test_ipv6_bare(self):
         """Test an IPv6 without brackets."""
-        self.assertEqual(urlutils.qurl_from_user_input('::1/foo').toString(),
-                         'http://[::1]/foo')
+        assert (urlutils.qurl_from_user_input('::1/foo').toString()
+                == 'http://[::1]/foo')
 
     def test_ipv6(self):
         """Test an IPv6 with brackets."""
-        self.assertEqual(urlutils.qurl_from_user_input('[::1]/foo').toString(),
-                         'http://[::1]/foo')
+        assert (urlutils.qurl_from_user_input('[::1]/foo').toString() ==
+                'http://[::1]/foo')
 
     def test_ipv6_http(self):
         """Test an IPv6 with http:// and brackets."""
-        self.assertEqual(
-            urlutils.qurl_from_user_input('http://[::1]').toString(),
+        assert (
+            urlutils.qurl_from_user_input('http://[::1]').toString() ==
             'http://[::1]')
 
 
-class FilenameFromUrlTests(unittest.TestCase):
-
+class TestFilenameFromUrl:
     """Tests for filename_from_url."""
 
     def test_invalid_url(self):
         """Test with an invalid QUrl."""
-        self.assertEqual(urlutils.filename_from_url(QUrl()), None)
+        assert urlutils.filename_from_url(QUrl()) == None
 
     def test_url_path(self):
         """Test with an URL with path."""
         url = QUrl('http://qutebrowser.org/test.html')
-        self.assertEqual(urlutils.filename_from_url(url), 'test.html')
+        assert urlutils.filename_from_url(url) == 'test.html'
 
     def test_url_host(self):
         """Test with an URL with no path."""
         url = QUrl('http://qutebrowser.org/')
-        self.assertEqual(urlutils.filename_from_url(url),
-                         'qutebrowser.org.html')
-
-
-if __name__ == '__main__':
-    unittest.main()
+        assert urlutils.filename_from_url(url) == 'qutebrowser.org.html'
