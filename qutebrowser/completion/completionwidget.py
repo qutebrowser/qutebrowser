@@ -151,7 +151,10 @@ class CompletionView(QTreeView):
         idx = self.selectionModel().currentIndex()
         if not idx.isValid():
             # No item selected yet
-            return self.model().first_item()
+            if upwards:
+                return self.model().last_item()
+            else:
+                return self.model().first_item()
         while True:
             idx = self.indexAbove(idx) if upwards else self.indexBelow(idx)
             # wrap around if we arrived at beginning/end

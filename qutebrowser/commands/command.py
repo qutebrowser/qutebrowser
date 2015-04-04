@@ -160,7 +160,7 @@ class Command:
         return type_conv
 
     def _get_nameconv(self, param, annotation_info):
-        """Get a dict with a name conversion for the paraeter.
+        """Get a dict with a name conversion for the parameter.
 
         Args:
             param: The inspect.Parameter to handle.

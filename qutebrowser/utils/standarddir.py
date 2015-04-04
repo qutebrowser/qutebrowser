@@ -77,7 +77,7 @@ def _from_args(typ, args):
     Return:
         A (override, path) tuple.
             override: boolean, if the user did override the path
-            path: The overriden path, or None to turn off storage.
+            path: The overridden path, or None to turn off storage.
     """
     typ_to_argparse_arg = {
         QStandardPaths.ConfigLocation: 'confdir'

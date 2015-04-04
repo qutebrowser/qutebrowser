@@ -19,11 +19,14 @@
 
 """Misc. utility commands exposed to the user."""
 
-import configparser
 import functools
 import types
 
 from PyQt5.QtCore import QCoreApplication
+try:
+    import hunter
+except ImportError:
+    hunter = None
 
 from qutebrowser.utils import log, objreg, usertypes
 from qutebrowser.commands import cmdutils, runners, cmdexc
@@ -119,14 +122,17 @@ def debug_console():
     con_widget.show()
 
 
-@cmdutils.register(hide=True)
-def fooled():
-    """Turn off april's fools."""
-    from qutebrowser.config import websettings
-    state_config = objreg.get('state-config')
+@cmdutils.register(debug=True, maxsplit=0)
+def debug_trace(expr=""):
+    """Trace executed code via hunter.
+
+    Args:
+        expr: What to trace, passed to hunter.
+    """
+    if hunter is None:
+        raise cmdexc.CommandError("You need to install 'hunter' to use this "
+                                  "command!")
     try:
-        state_config.add_section('general')
-    except configparser.DuplicateSectionError:
-        pass
-    state_config['general']['fooled'] = '1'
-    websettings.update_settings('ui', 'user-stylesheet')
+        eval('hunter.trace({})'.format(expr))
+    except Exception as e:
+        raise cmdexc.CommandError("{}: {}".format(e.__class__.__name__, e))

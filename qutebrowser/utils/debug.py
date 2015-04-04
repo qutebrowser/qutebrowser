@@ -20,7 +20,6 @@
 """Utilities used for debugging."""
 
 import re
-import sys
 import inspect
 import functools
 import datetime
@@ -85,36 +84,6 @@ def log_signals(obj):
         return obj
     else:
         connect_log_slot(obj)
-
-
-def trace_lines(do_trace):
-    """Turn on/off printing each executed line.
-
-    Args:
-        do_trace: Whether to start tracing (True) or stop it (False).
-    """
-    def trace(frame, event, arg):
-        """Trace function passed to sys.settrace.
-
-        Return:
-            Itself, so tracing continues.
-        """
-        if sys is not None:
-            loc = '{}:{}'.format(frame.f_code.co_filename, frame.f_lineno)
-            if arg is not None:
-                arg = utils.compact_text(str(arg), 200)
-            else:
-                arg = ''
-            print("{:11} {:80} {}".format(event, loc, arg), file=sys.stderr)
-            return trace
-        else:
-            # When tracing while shutting down, it seems sys can be None
-            # sometimes... if that's the case, we stop tracing.
-            return None
-    if do_trace:
-        sys.settrace(trace)
-    else:
-        sys.settrace(None)
 
 
 def qenum_key(base, value, add_base=False, klass=None):

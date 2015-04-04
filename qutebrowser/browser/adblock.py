@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Functions related to adblocking."""
+"""Functions related to ad blocking."""
 
 import io
 import os.path

@@ -124,7 +124,7 @@ class TestInline:
         variation of the test checks whether whatever handles PDF display
         receives the filename information, and acts upon it (this was tested
         with the latest Acrobat Reader plugin, or, in the case of Chrome, using
-        the builtin PDF handler).
+        the built-in PDF handler).
         """
         header_checker.check_filename('inline; filename="foo.pdf"', "foo.pdf",
                                       expected_inline=True)

@@ -332,7 +332,7 @@ def get_child_frames(startframe):
 
 
 def focus_elem(frame):
-    """Get the focused element in a webframe.
+    """Get the focused element in a web frame.
 
     FIXME: Add tests.
 

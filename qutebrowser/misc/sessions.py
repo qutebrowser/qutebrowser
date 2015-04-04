@@ -21,7 +21,6 @@
 
 import os
 import os.path
-import configparser
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject, QPoint, QTimer
 from PyQt5.QtWidgets import QApplication
@@ -185,10 +184,6 @@ class SessionManager(QObject):
             self.update_completion.emit()
         if load_next_time:
             state_config = objreg.get('state-config')
-            try:
-                state_config.add_section('general')
-            except configparser.DuplicateSectionError:
-                pass
             state_config['general']['session'] = name
 
     def save_last_window_session(self):
@@ -266,13 +261,18 @@ class SessionManager(QObject):
 
     @cmdutils.register(completion=[usertypes.Completion.sessions],
                        instance='session-manager')
-    def session_load(self, name, clear=False):
+    def session_load(self, name, clear=False, force=False):
         """Load a session.
 
         Args:
             name: The name of the session.
             clear: Close all existing windows.
+            force: Force loading internal sessions (starting with an
+                   underline).
         """
+        if name.startswith('_') and not force:
+            raise cmdexc.CommandError("{!r} is an internal session, use "
+                                      "--force to load anyways.".format(name))
         old_windows = list(objreg.window_registry.values())
         try:
             self.load(name)
@@ -290,14 +290,18 @@ class SessionManager(QObject):
                        completion=[usertypes.Completion.sessions],
                        instance='session-manager')
     def session_save(self, win_id: {'special': 'win_id'}, name='default',
-                     quiet=False):
+                     quiet=False, force=False):
         """Save a session.
 
         Args:
             win_id: The current window ID.
             name: The name of the session.
             quiet: Don't show confirmation message.
+            force: Force saving internal sessions (starting with an underline).
         """
+        if name.startswith('_') and not force:
+            raise cmdexc.CommandError("{!r} is an internal session, use "
+                                      "--force to save anyways.".format(name))
         try:
             self.save(name)
         except SessionError as e:
@@ -310,12 +314,18 @@ class SessionManager(QObject):
 
     @cmdutils.register(completion=[usertypes.Completion.sessions],
                        instance='session-manager')
-    def session_delete(self, name):
+    def session_delete(self, name, force=False):
         """Delete a session.
 
         Args:
             name: The name of the session.
+            force: Force deleting internal sessions (starting with an
+                   underline).
         """
+        if name.startswith('_') and not force:
+            raise cmdexc.CommandError("{!r} is an internal session, use "
+                                      "--force to delete anyways.".format(
+                                          name))
         try:
             self.delete(name)
         except OSError as e:

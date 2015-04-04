@@ -20,6 +20,13 @@
 At this point we can be sure we have all python 3.4 features available.
 """
 
+try:
+    # Importing hunter to register its atexit handler early so it gets called
+    # late.
+    import hunter  # pylint: disable=import-error,unused-import
+except ImportError:
+    hunter = None
+
 import os
 import sys
 import faulthandler
@@ -32,7 +39,7 @@ try:
 except ImportError:
     tkinter = None
 # NOTE: No qutebrowser or PyQt import should be done here, as some early
-# initialisation needs to take place before that!
+# initialization needs to take place before that!
 
 
 def _missing_str(name, *, windows=None, pip=None):
@@ -90,7 +97,7 @@ def _die(message, exception=None):
 def init_faulthandler(fileobj=sys.__stderr__):
     """Enable faulthandler module if available.
 
-    This print a nice traceback on segfauls.
+    This print a nice traceback on segfaults.
 
     We use sys.__stderr__ instead of sys.stderr here so this will still work
     when sys.stderr got replaced, e.g. by "Python Tools for Visual Studio".
@@ -156,7 +163,7 @@ def fix_harfbuzz(args):
     elif args.harfbuzz in ('old', 'new'):
         # forced harfbuzz variant
         # FIXME looking at the Qt code, 'new' isn't a valid value, but leaving
-        # it empty and using new yields different behaviour...
+        # it empty and using new yields different behavior...
         # (probably irrelevant when workaround gets removed)
         log.init.debug("Using {} harfbuzz engine (forced)".format(
             args.harfbuzz))
@@ -256,7 +263,7 @@ def init_log(args):
 
 
 def earlyinit(args):
-    """Do all needed early initialisation.
+    """Do all needed early initialization.
 
     Note that it's vital the other earlyinit functions get called in the right
     order!
@@ -265,7 +272,7 @@ def earlyinit(args):
         args: The argparse namespace.
     """
     # First we initialize the faulthandler as early as possible, so we
-    # theoretically could catch segfaults occuring later during earlyinit.
+    # theoretically could catch segfaults occurring later during earlyinit.
     init_faulthandler()
     # Here we check if QtCore is available, and if not, print a message to the
     # console or via Tk.

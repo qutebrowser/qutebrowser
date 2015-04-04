@@ -41,7 +41,7 @@ class BrowserPage(QWebPage):
     """Our own QWebPage with advanced features.
 
     Attributes:
-        error_occured: Whether an error occured while loading.
+        error_occurred: Whether an error occurred while loading.
         open_target: Where to open the next navigation request.
                      ("normal", "tab", "tab_bg")
         _hint_target: Override for open_target while hinting, or None.
@@ -69,7 +69,7 @@ class BrowserPage(QWebPage):
             QWebPage.ChooseMultipleFilesExtension: self._handle_multiple_files,
         }
         self._ignore_load_started = False
-        self.error_occured = False
+        self.error_occurred = False
         self.open_target = usertypes.ClickTarget.normal
         self._hint_target = None
         self._networkmanager = networkmanager.NetworkManager(
@@ -147,7 +147,7 @@ class BrowserPage(QWebPage):
         else:
             error_str = info.errorString
             if error_str == networkmanager.HOSTBLOCK_ERROR_STRING:
-                # We don't set error_occured in this case.
+                # We don't set error_occurred in this case.
                 error_str = "Request blocked by host blocker."
                 main_frame = info.frame.page().mainFrame()
                 if info.frame != main_frame:
@@ -160,7 +160,7 @@ class BrowserPage(QWebPage):
                     return False
             else:
                 self._ignore_load_started = True
-                self.error_occured = True
+                self.error_occurred = True
             log.webview.error("Error while loading {}: {}".format(
                 urlstr, error_str))
             log.webview.debug("Error domain: {}, error code: {}".format(
@@ -248,7 +248,7 @@ class BrowserPage(QWebPage):
                     frame.setScrollPosition, cur_data['scroll-pos']))
 
     def display_content(self, reply, mimetype):
-        """Display a QNetworkReply with an explicitely set mimetype."""
+        """Display a QNetworkReply with an explicitly set mimetype."""
         self.mainFrame().setContent(reply.readAll(), mimetype, reply.url())
         reply.deleteLater()
 
@@ -312,11 +312,11 @@ class BrowserPage(QWebPage):
 
     @pyqtSlot()
     def on_load_started(self):
-        """Reset error_occured when loading of a new page started."""
+        """Reset error_occurred when loading of a new page started."""
         if self._ignore_load_started:
             self._ignore_load_started = False
         else:
-            self.error_occured = False
+            self.error_occurred = False
 
     @pyqtSlot('QWebFrame', 'QWebPage::Feature')
     def on_feature_permission_requested(self, frame, feature):
@@ -393,8 +393,8 @@ class BrowserPage(QWebPage):
             # With Qt 5.2.1 (Ubuntu Trusty) we get this when closing a tab:
             #     RuntimeError: wrapped C/C++ object of type BrowserPage has
             #     been deleted
-            # Since the information here isn't that important for closing
-            # webviews anyways, we ignore this error.
+            # Since the information here isn't that important for closing web
+            # views anyways, we ignore this error.
             return
         data = {
             'zoom': frame.zoomFactor(),

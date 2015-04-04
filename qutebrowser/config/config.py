@@ -20,8 +20,8 @@
 """Configuration storage and config-related utilities.
 
 This borrows a lot of ideas from configparser, but also has some things that
-are fundamentally different. This is why nothing inherts from configparser, but
-we borrow some methods and classes from there where it makes sense.
+are fundamentally different. This is why nothing inherits from configparser,
+but we borrow some methods and classes from there where it makes sense.
 """
 
 import os
@@ -144,7 +144,7 @@ def _init_main_config():
             for sect in config_obj.sections.values():
                 for opt in sect.values.values():
                     if opt.values['conf'] is None:
-                        # Option added to builtin defaults but not in user's
+                        # Option added to built-in defaults but not in user's
                         # config yet
                         save_manager.save('config', explicit=True, force=True)
                         return
@@ -171,14 +171,22 @@ def _init_key_config():
             save_manager = objreg.get('save-manager')
             filename = os.path.join(standarddir.config(), 'keys.conf')
             save_manager.add_saveable(
-                'key-config', key_config.save, key_config.changed,
-                config_opt=('general', 'auto-save-config'), filename=filename)
+                'key-config', key_config.save, key_config.config_dirty,
+                config_opt=('general', 'auto-save-config'), filename=filename,
+                dirty=key_config.is_dirty)
 
 
 def _init_misc():
     """Initialize misc. config-related files."""
     save_manager = objreg.get('save-manager')
     state_config = ini.ReadWriteConfigParser(standarddir.data(), 'state')
+    for sect in ('general', 'geometry'):
+        try:
+            state_config.add_section(sect)
+        except configparser.DuplicateSectionError:
+            pass
+    # See commit a98060e020a4ba83b663813a4b9404edb47f28ad.
+    state_config['general'].pop('fooled', None)
     objreg.register('state-config', state_config)
     save_manager.add_saveable('state-config', state_config.save)
 
@@ -262,8 +270,8 @@ class ConfigManager(QObject):
         ('completion', 'history-length'): 'cmd-history-max-items',
     }
     DELETED_OPTIONS = [
-        ('colors', 'tab.seperator'),
-        ('colors', 'tabs.seperator'),
+        ('colors', 'tab.separator'),
+        ('colors', 'tabs.separator'),
         ('colors', 'completion.item.bg'),
     ]
 
@@ -476,7 +484,7 @@ class ConfigManager(QObject):
     def items(self, sectname, raw=True):
         """Get a list of (optname, value) tuples for a section.
 
-        Implemented for configparser interpolation compatbility.
+        Implemented for configparser interpolation compatibility
 
         Args:
             sectname: The name of the section to get.
@@ -539,7 +547,7 @@ class ConfigManager(QObject):
             The value of the option.
         """
         if not self._initialized:
-            raise Exception("get got called before initialisation was "
+            raise Exception("get got called before initialization was "
                             "complete!")
         try:
             sect = self.sections[sectname]

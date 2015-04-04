@@ -35,7 +35,7 @@
 |<<report,report>>|Report a bug in qutebrowser.
 |<<restart,restart>>|Restart qutebrowser while keeping existing tabs open.
 |<<save,save>>|Save configs and state.
-|<<search,search>>|Search for a text on the current page.
+|<<search,search>>|Search for a text on the current page. With no text, clear results.
 |<<session-delete,session-delete>>|Delete a session.
 |<<session-load,session-load>>|Load a session.
 |<<session-save,session-save>>|Save a session.
@@ -394,9 +394,9 @@ Save configs and state.
 
 [[search]]
 === search
-Syntax: +:search [*--reverse*] 'text'+
+Syntax: +:search [*--reverse*] ['text']+
 
-Search for a text on the current page.
+Search for a text on the current page. With no text, clear results.
 
 ==== positional arguments
 * +'text'+: The text to search for.
@@ -406,16 +406,20 @@ Search for a text on the current page.
 
 [[session-delete]]
 === session-delete
-Syntax: +:session-delete 'name'+
+Syntax: +:session-delete [*--force*] 'name'+
 
 Delete a session.
 
 ==== positional arguments
 * +'name'+: The name of the session.
 
+==== optional arguments
+* +*-f*+, +*--force*+: Force deleting internal sessions (starting with an underline).
+
+
 [[session-load]]
 === session-load
-Syntax: +:session-load [*--clear*] 'name'+
+Syntax: +:session-load [*--clear*] [*--force*] 'name'+
 
 Load a session.
 
@@ -424,10 +428,12 @@ Load a session.
 
 ==== optional arguments
 * +*-c*+, +*--clear*+: Close all existing windows.
+* +*-f*+, +*--force*+: Force loading internal sessions (starting with an underline).
+
 
 [[session-save]]
 === session-save
-Syntax: +:session-save [*--quiet*] ['name']+
+Syntax: +:session-save [*--quiet*] [*--force*] ['name']+
 
 Save a session.
 
@@ -436,6 +442,7 @@ Save a session.
 
 ==== optional arguments
 * +*-q*+, +*--quiet*+: Don't show confirmation message.
+* +*-f*+, +*--force*+: Force saving internal sessions (starting with an underline).
 
 [[set]]
 === set
@@ -456,12 +463,15 @@ If the option name ends with '?', the value of the option is shown instead. If t
 
 [[set-cmd-text]]
 === set-cmd-text
-Syntax: +:set-cmd-text 'text'+
+Syntax: +:set-cmd-text [*--space*] 'text'+
 
 Preset the statusbar to some text.
 
 ==== positional arguments
 * +'text'+: The commandline to set.
+
+==== optional arguments
+* +*-s*+, +*--space*+: If given, a space is added to the end.
 
 [[spawn]]
 === spawn
@@ -503,7 +513,7 @@ Close the current/[count]th tab.
 ==== optional arguments
 * +*-l*+, +*--left*+: Force selecting the tab to the left of the current tab.
 * +*-r*+, +*--right*+: Force selecting the tab to the right of the current tab.
-* +*-o*+, +*--opposite*+: Force selecting the tab in the oppsite direction of what's configured in 'tabs->select-on-remove'.
+* +*-o*+, +*--opposite*+: Force selecting the tab in the opposite direction of what's configured in 'tabs->select-on-remove'.
 
 
 ==== count
@@ -643,7 +653,6 @@ How many steps to zoom out.
 |<<completion-item-prev,completion-item-prev>>|Select the previous completion item.
 |<<enter-mode,enter-mode>>|Enter a key mode.
 |<<follow-hint,follow-hint>>|Follow the currently selected hint.
-|<<fooled,fooled>>|Turn off april's fools.
 |<<leave-mode,leave-mode>>|Leave the mode we're currently in.
 |<<open-editor,open-editor>>|Open an external editor with the currently selected form field.
 |<<prompt-accept,prompt-accept>>|Accept the current prompt.
@@ -700,10 +709,6 @@ Enter a key mode.
 [[follow-hint]]
 === follow-hint
 Follow the currently selected hint.
-
-[[fooled]]
-=== fooled
-Turn off april's fools.
 
 [[leave-mode]]
 === leave-mode
@@ -874,7 +879,8 @@ These commands are mainly intended for debugging. They are hidden if qutebrowser
 |<<debug-cache-stats,debug-cache-stats>>|Print LRU cache stats.
 |<<debug-console,debug-console>>|Show the debugging console.
 |<<debug-crash,debug-crash>>|Crash for debugging purposes.
-|<<debug-pyeval,debug-pyeval>>|Evaluate a python string and display the results as a webpage.
+|<<debug-pyeval,debug-pyeval>>|Evaluate a python string and display the results as a web page.
+|<<debug-trace,debug-trace>>|Trace executed code via hunter.
 |==============
 [[debug-all-objects]]
 === debug-all-objects
@@ -901,8 +907,17 @@ Crash for debugging purposes.
 === debug-pyeval
 Syntax: +:debug-pyeval 's'+
 
-Evaluate a python string and display the results as a webpage.
+Evaluate a python string and display the results as a web page.
 
 ==== positional arguments
 * +'s'+: The string to evaluate.
+
+[[debug-trace]]
+=== debug-trace
+Syntax: +:debug-trace ['expr']+
+
+Trace executed code via hunter.
+
+==== positional arguments
+* +'expr'+: What to trace, passed to hunter.
 

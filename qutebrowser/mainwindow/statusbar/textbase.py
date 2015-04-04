@@ -32,7 +32,7 @@ class TextBase(QLabel):
 
     Unlike QLabel, the text will get elided.
 
-    Eliding is loosly based on
+    Eliding is loosely based on
     http://gedgedev.blogspot.ch/2010/12/elided-labels-in-qt.html
 
     Attributes:
@@ -64,7 +64,7 @@ class TextBase(QLabel):
 
         This update the elided text after setting the text, and also works
         around a weird QLabel redrawing bug where it doesn't redraw correctly
-        when the text is empty -- we explicitely need to call repaint() to
+        when the text is empty -- we explicitly need to call repaint() to
         resolve this.
 
         More info:

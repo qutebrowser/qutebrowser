@@ -127,7 +127,7 @@ class _CommandValidator(QValidator):
 
         Args:
             string: The string to validate.
-            pos: The current curser position.
+            pos: The current cursor position.
 
         Return:
             A tuple (status, string, pos) as a QValidator should.

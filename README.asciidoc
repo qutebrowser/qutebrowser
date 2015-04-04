@@ -43,8 +43,8 @@ Documentation
 In addition to the topics mentioned in this README, the following documents are
 available:
 
-* A http://qutebrowser.org/img/cheatsheet-big.png[keybinding cheatsheet]: +
-image:http://qutebrowser.org/img/cheatsheet-small.png["qutebrowser keybinding cheatsheet",link="http://qutebrowser.org/img/cheatsheet-big.png"]
+* A http://qutebrowser.org/img/cheatsheet-big.png[key binding cheatsheet]: +
+image:http://qutebrowser.org/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="http://qutebrowser.org/img/cheatsheet-big.png"]
 * link:doc/quickstart.asciidoc[Quick start guide]
 * link:doc/FAQ.asciidoc[Frequently asked questions]
 * link:CONTRIBUTING.asciidoc[Contributing to qutebrowser]
@@ -157,6 +157,7 @@ Contributors, sorted by the number of commits in descending order:
 * Helen Sherwood-Taylor
 * HalosGhost
 * Gregor Pohl
+* Franz Fellner
 * Eivind Uggedal
 * Andreas Fischer
 // QUTE_AUTHORS_END
@@ -164,7 +165,7 @@ Contributors, sorted by the number of commits in descending order:
 The following people have contributed graphics:
 
 * WOFall (icon)
-* regines (keybinding cheatsheet)
+* regines (key binding cheatsheet)
 
 Thanks / Similiar projects
 --------------------------

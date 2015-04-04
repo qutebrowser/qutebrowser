@@ -20,6 +20,7 @@
 """Early initialization and main entry point."""
 
 import sys
+import json
 
 import qutebrowser
 try:
@@ -58,6 +59,7 @@ def get_argparser():
     parser.add_argument('-R', '--override-restore', help="Don't restore a "
                         "session even if one would be restored.",
                         action='store_true')
+    parser.add_argument('--json-args', help=argparse.SUPPRESS)
 
     debug = parser.add_argument_group('debug arguments')
     debug.add_argument('-l', '--loglevel', dest='loglevel',
@@ -118,6 +120,13 @@ def main():
     """Main entry point for qutebrowser."""
     parser = get_argparser()
     args = parser.parse_args()
+    if args.json_args is not None:
+        # Restoring after a restart.
+        # When restarting, we serialize the argparse namespace into json, and
+        # construct a "fake" argparse.Namespace here based on the data loaded
+        # from json.
+        data = json.loads(args.json_args)
+        args = argparse.Namespace(**data)
     earlyinit.earlyinit(args)
     # We do this imports late as earlyinit needs to be run first (because of
     # the harfbuzz fix and version checking).
@@ -133,7 +142,7 @@ def main():
         """
         return app.exec_()
 
-    # We set qApp explicitely here to reduce the risk of segfaults while
+    # We set qApp explicitly here to reduce the risk of segfaults while
     # quitting.
     # See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/561303/comments/7
     # While this is a workaround for PyQt4 which should be fixed in PyQt, it

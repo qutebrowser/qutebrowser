@@ -62,7 +62,7 @@ class HintContext:
         frames: The QWebFrames to use.
         destroyed_frames: id()'s of QWebFrames which have been destroyed.
                           (Workaround for https://github.com/The-Compiler/qutebrowser/issues/152)
-        elems: A mapping from keystrings to (elem, label) namedtuples.
+        elems: A mapping from key strings to (elem, label) namedtuples.
         baseurl: The URL of the current page.
         target: What to do with the opened links.
                 normal/tab/tab_bg/window: Get passed to BrowserTab.
@@ -77,7 +77,7 @@ class HintContext:
         args: Custom arguments for userscript/spawn
         rapid: Whether to do rapid hinting.
         mainframe: The main QWebFrame where we started hinting in.
-        group: The group of webelements to hint.
+        group: The group of web elements to hint.
     """
 
     def __init__(self):
@@ -455,7 +455,7 @@ class HintManager(QObject):
         """Yank an element to the clipboard or primary selection.
 
         Args:
-            url: The URL to open as a QURL.
+            url: The URL to open as a QUrl.
             context: The HintContext to use.
         """
         sel = context.target == Target.yank_primary
@@ -816,7 +816,7 @@ class HintManager(QObject):
                         '<font color="{}">{}</font>{}'.format(
                             match_color, matched, rest))
                     if self._is_hidden(elems.label):
-                        # hidden element which matches again -> unhide it
+                        # hidden element which matches again -> show it
                         self._show_elem(elems.label)
                 else:
                     # element doesn't match anymore -> hide it
@@ -835,7 +835,7 @@ class HintManager(QObject):
                 if (filterstr is None or
                         str(elems.elem).lower().startswith(filterstr)):
                     if self._is_hidden(elems.label):
-                        # hidden element which matches again -> unhide it
+                        # hidden element which matches again -> show it
                         self._show_elem(elems.label)
                 else:
                     # element doesn't match anymore -> hide it

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Base class for vim-like keysequence parser."""
+"""Base class for vim-like key sequence parser."""
 
 import re
 import functools
@@ -44,20 +44,20 @@ class BaseKeyParser(QObject):
             ambiguous: There are both a partial and a definitive match.
             none: No more matches possible.
 
-        Types: type of a keybinding.
-            chain: execute() was called via a chain-like keybinding
-            special: execute() was called via a special keybinding
+        Types: type of a key binding.
+            chain: execute() was called via a chain-like key binding
+            special: execute() was called via a special key binding
 
         do_log: Whether to log keypresses or not.
 
     Attributes:
-        bindings: Bound keybindings
+        bindings: Bound key bindings
         special_bindings: Bound special bindings (<Foo>).
         _win_id: The window ID this keyparser is associated with.
         _warn_on_keychains: Whether a warning should be logged when binding
                             keychains in a section which does not support them.
         _keystring: The currently entered key sequence
-        _ambigious_timer: Timer for delayed execution with ambigious bindings.
+        _ambiguous_timer: Timer for delayed execution with ambiguous bindings.
         _modename: The name of the input mode associated with this keyparser.
         _supports_count: Whether count is supported
         _supports_chains: Whether keychains are supported
@@ -78,8 +78,8 @@ class BaseKeyParser(QObject):
                  supports_chains=False):
         super().__init__(parent)
         self._win_id = win_id
-        self._ambigious_timer = usertypes.Timer(self, 'ambigious-match')
-        self._ambigious_timer.setSingleShot(True)
+        self._ambiguous_timer = usertypes.Timer(self, 'ambiguous-match')
+        self._ambiguous_timer.setSingleShot(True)
         self._modename = None
         self._keystring = ''
         if supports_count is None:
@@ -248,11 +248,11 @@ class BaseKeyParser(QObject):
 
     def _stop_timers(self):
         """Stop a delayed execution if any is running."""
-        if self._ambigious_timer.isActive() and self.do_log:
+        if self._ambiguous_timer.isActive() and self.do_log:
             log.keyboard.debug("Stopping delayed execution.")
-        self._ambigious_timer.stop()
+        self._ambiguous_timer.stop()
         try:
-            self._ambigious_timer.timeout.disconnect()
+            self._ambiguous_timer.timeout.disconnect()
         except TypeError:
             # no connections
             pass
@@ -274,10 +274,10 @@ class BaseKeyParser(QObject):
             # execute in `time' ms
             self._debug_log("Scheduling execution of {} in {}ms".format(
                 binding, time))
-            self._ambigious_timer.setInterval(time)
-            self._ambigious_timer.timeout.connect(
+            self._ambiguous_timer.setInterval(time)
+            self._ambiguous_timer.timeout.connect(
                 functools.partial(self.delayed_exec, binding, count))
-            self._ambigious_timer.start()
+            self._ambiguous_timer.start()
 
     def delayed_exec(self, command, count):
         """Execute a delayed command.
@@ -350,7 +350,7 @@ class BaseKeyParser(QObject):
 
     @pyqtSlot(str)
     def on_keyconfig_changed(self, mode):
-        """Re-read the config if a keybinding was changed."""
+        """Re-read the config if a key binding was changed."""
         if self._modename is None:
             raise AttributeError("on_keyconfig_changed called but no section "
                                  "defined!")

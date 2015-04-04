@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Custom useful datatypes.
+"""Custom useful data types.
 
 Module attributes:
     _UNSET: Used as default argument in the constructor so default can be None.
@@ -40,7 +40,7 @@ def enum(name, items, start=1, is_int=False):
 
     Args:
         name: Name of the enum
-        items: Iterable of ttems to be sequentally enumerated.
+        items: Iterable of items to be sequentially enumerated.
         start: The number to use for the first value.
                We use 1 as default so enum members are always True.
         is_init: True if the enum should be a Python IntEnum
@@ -309,7 +309,7 @@ class Question(QObject):
 
     @pyqtSlot()
     def done(self):
-        """Must be called when the queston was answered completely."""
+        """Must be called when the question was answered completely."""
         self.answered.emit(self.answer)
         if self.mode == PromptMode.yesno:
             if self.answer:

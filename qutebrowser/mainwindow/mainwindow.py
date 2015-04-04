@@ -43,7 +43,7 @@ class MainWindow(QWidget):
 
     """The main window of qutebrowser.
 
-    Adds all needed components to a vbox, initializes subwidgets and connects
+    Adds all needed components to a vbox, initializes sub-widgets and connects
     signals.
 
     Attributes:
@@ -84,7 +84,7 @@ class MainWindow(QWidget):
             self._load_state_geometry()
         else:
             self._set_default_geometry()
-        log.init.debug("Initial mainwindow geometry: {}".format(
+        log.init.debug("Initial main window geometry: {}".format(
             self.geometry()))
         self._vbox = QVBoxLayout(self)
         self._vbox.setContentsMargins(0, 0, 0, 0)
@@ -241,6 +241,8 @@ class MainWindow(QWidget):
 
         tabs.current_tab_changed.connect(status.percentage.on_tab_changed)
         tabs.cur_scroll_perc_changed.connect(status.percentage.set_perc)
+
+        tabs.tab_index_changed.connect(status.tabindex.on_tab_index_changed)
 
         tabs.current_tab_changed.connect(status.txt.on_tab_changed)
         tabs.cur_statusbar_message.connect(status.txt.on_statusbar_message)

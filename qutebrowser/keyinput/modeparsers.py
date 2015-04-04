@@ -37,7 +37,7 @@ LastPress = usertypes.enum('LastPress', ['none', 'filtertext', 'keystring'])
 
 class NormalKeyParser(keyparser.CommandKeyParser):
 
-    """KeyParser for normalmode with added STARTCHARS detection and more.
+    """KeyParser for normal mode with added STARTCHARS detection and more.
 
     Attributes:
         _partial_timer: Timer to clear partial keypresses.

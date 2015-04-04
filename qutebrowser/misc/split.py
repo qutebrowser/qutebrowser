@@ -49,7 +49,7 @@ class ShellLexer:
         self.reset()
 
     def reset(self):
-        """Reset the statemachine state to the defaults."""
+        """Reset the state machine state to the defaults."""
         self.quoted = False
         self.escapedstate = ' '
         self.token = ''
@@ -190,7 +190,7 @@ def simple_split(s, keep=False, maxsplit=None):
     whitespace = '\n\t '
     if maxsplit == 0:
         # re.split with maxsplit=0 splits everything, while str.split splits
-        # nothing (which is the behaviour we want).
+        # nothing (which is the behavior we want).
         if keep:
             return [s]
         else:

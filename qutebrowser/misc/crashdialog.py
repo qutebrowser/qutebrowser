@@ -82,7 +82,7 @@ def get_fatal_crash_dialog(debug, data):
     else:
         title = "qutebrowser was restarted after a fatal crash!"
         text = ("<b>qutebrowser was restarted after a fatal crash!</b><br/>"
-                "Unfortunately, this crash occured in Qt (the library "
+                "Unfortunately, this crash occurred in Qt (the library "
                 "qutebrowser uses), and your version ({}) is outdated - "
                 "Qt 5.4 or later is recommended. Unfortuntately Debian and "
                 "Ubuntu don't ship a newer version (yet?)...".format(
@@ -403,12 +403,12 @@ class ExceptionCrashDialog(_CrashDialog):
 
 class FatalCrashDialog(_CrashDialog):
 
-    """Dialog which gets shown when a fatal error occured.
+    """Dialog which gets shown when a fatal error occurred.
 
     Attributes:
         _log: The log text to display.
-        _type: The type of error which occured.
-        _func: The function (top of the stack) in which the error occured.
+        _type: The type of error which occurred.
+        _func: The function (top of the stack) in which the error occurred.
         _chk_history: A checkbox for the user to decide if page history should
                       be sent.
     """

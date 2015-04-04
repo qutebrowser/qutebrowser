@@ -34,7 +34,7 @@ class KeyConfigError(Exception):
     """Raised on errors with the key config.
 
     Attributes:
-        lineno: The config line in which the exception occured.
+        lineno: The config line in which the exception occurred.
     """
 
     def __init__(self, msg=None):
@@ -55,13 +55,16 @@ class KeyConfigParser(QObject):
         _configfile: The filename of the config or None.
         _cur_section: The section currently being processed by _read().
         _cur_command: The command currently being processed by _read().
+        is_dirty: Whether the config is currently dirty.
 
     Signals:
-        changed: Emitted when the config has changed.
+        changed: Emitted when the internal data has changed.
                  arg: Name of the mode which was changed.
+        config_dirty: Emitted when the config should be re-saved.
     """
 
     changed = pyqtSignal(str)
+    config_dirty = pyqtSignal()
 
     def __init__(self, configdir, fname, parent=None):
         """Constructor.
@@ -71,9 +74,10 @@ class KeyConfigParser(QObject):
             fname: The filename of the config.
         """
         super().__init__(parent)
+        self.is_dirty = False
         self._cur_section = None
         self._cur_command = None
-        # Mapping of section name(s) to keybinding -> command dicts.
+        # Mapping of section name(s) to key binding -> command dicts.
         self.keybindings = collections.OrderedDict()
         if configdir is None:
             self._configfile = None
@@ -165,6 +169,7 @@ class KeyConfigParser(QObject):
             raise cmdexc.CommandError(e)
         for m in mode.split(','):
             self.changed.emit(m)
+            self._mark_config_dirty()
 
     @cmdutils.register(instance='key-config')
     def unbind(self, key, mode=None):
@@ -194,6 +199,7 @@ class KeyConfigParser(QObject):
         else:
             for m in mode.split(','):
                 self.changed.emit(m)
+                self._mark_config_dirty()
 
     def _normalize_sectname(self, s):
         """Normalize a section string like 'foo, bar,baz' to 'bar,baz,foo'."""
@@ -208,7 +214,7 @@ class KeyConfigParser(QObject):
         return sections
 
     def _load_default(self):
-        """Load the built-in default keybindings."""
+        """Load the built-in default key bindings."""
         for sectname, sect in configdata.KEY_DATA.items():
             sectname = self._normalize_sectname(sectname)
             if not sect:
@@ -242,9 +248,14 @@ class KeyConfigParser(QObject):
                         e.lineno = i
                         raise
         except OSError:
-            log.keyboard.exception("Failed to read keybindings!")
+            log.keyboard.exception("Failed to read key bindings!")
         for sectname in self.keybindings:
             self.changed.emit(sectname)
+
+    def _mark_config_dirty(self):
+        """Mark the config as dirty."""
+        self.is_dirty = True
+        self.config_dirty.emit()
 
     def _read_command(self, line):
         """Read a command from a line."""
@@ -255,12 +266,17 @@ class KeyConfigParser(QObject):
             command = line.split(maxsplit=1)[0]
             if command not in cmdutils.cmd_dict:
                 raise KeyConfigError("Invalid command '{}'!".format(command))
+            for rgx, repl in configdata.CHANGED_KEY_COMMANDS:
+                if rgx.match(line):
+                    line = rgx.sub(repl, line)
+                    self._mark_config_dirty()
+                    break
             self._cur_command = line
 
     def _read_keybinding(self, line):
-        """Read a keybinding from a line."""
+        """Read a key binding from a line."""
         if self._cur_command is None:
-            raise KeyConfigError("Got keybinding '{}' without getting a "
+            raise KeyConfigError("Got key binding '{}' without getting a "
                                  "command!".format(line))
         else:
             assert self._cur_section is not None
@@ -280,7 +296,7 @@ class KeyConfigParser(QObject):
         self.keybindings[sectname][keychain] = command
 
     def get_bindings_for(self, section):
-        """Get a dict with all merged keybindings for a section."""
+        """Get a dict with all merged key bindings for a section."""
         bindings = {}
         for sectstring, d in self.keybindings.items():
             if sectstring.startswith('!'):

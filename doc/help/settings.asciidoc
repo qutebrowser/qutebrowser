@@ -74,8 +74,8 @@
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
-|<<input-timeout,timeout>>|Timeout for ambiguous keybindings.
-|<<input-partial-timeout,partial-timeout>>|Timeout for partially typed keybindings.
+|<<input-timeout,timeout>>|Timeout for ambiguous key bindings.
+|<<input-partial-timeout,partial-timeout>>|Timeout for partially typed key bindings.
 |<<input-insert-mode-on-plugins,insert-mode-on-plugins>>|Whether to switch to insert mode when clicking flash and other plugins.
 |<<input-auto-leave-insert-mode,auto-leave-insert-mode>>|Whether to leave insert mode if a non-editable element is clicked.
 |<<input-auto-insert-mode,auto-insert-mode>>|Whether to automatically enter insert mode if an editable element is focused after page load.
@@ -93,10 +93,10 @@
 |<<tabs-background-tabs,background-tabs>>|Whether to open new tabs (middleclick/ctrl+click) in background.
 |<<tabs-select-on-remove,select-on-remove>>|Which tab to select when the focused tab is removed.
 |<<tabs-new-tab-position,new-tab-position>>|How new tabs are positioned.
-|<<tabs-new-tab-position-explicit,new-tab-position-explicit>>|How new tabs opened explicitely are positioned.
+|<<tabs-new-tab-position-explicit,new-tab-position-explicit>>|How new tabs opened explicitly are positioned.
 |<<tabs-last-close,last-close>>|Behaviour when the last tab is closed.
-|<<tabs-hide-auto,hide-auto>>|Hide the tabbar if only one tab is open.
-|<<tabs-hide-always,hide-always>>|Always hide the tabbar.
+|<<tabs-hide-auto,hide-auto>>|Hide the tab bar if only one tab is open.
+|<<tabs-hide-always,hide-always>>|Always hide the tab bar.
 |<<tabs-wrap,wrap>>|Whether to wrap when changing tabs.
 |<<tabs-movable,movable>>|Whether tabs should be movable.
 |<<tabs-close-mouse-button,close-mouse-button>>|On which mouse button to close tabs.
@@ -196,7 +196,7 @@
 |<<colors-tabs.bg.odd,tabs.bg.odd>>|Background color of unselected odd tabs.
 |<<colors-tabs.bg.even,tabs.bg.even>>|Background color of unselected even tabs.
 |<<colors-tabs.bg.selected,tabs.bg.selected>>|Background color of selected tabs.
-|<<colors-tabs.bg.bar,tabs.bg.bar>>|Background color of the tabbar.
+|<<colors-tabs.bg.bar,tabs.bg.bar>>|Background color of the tab bar.
 |<<colors-tabs.indicator.start,tabs.indicator.start>>|Color gradient start for the tab indicator.
 |<<colors-tabs.indicator.stop,tabs.indicator.stop>>|Color gradient end for the tab indicator.
 |<<colors-tabs.indicator.error,tabs.indicator.error>>|Color for the tab indicator on errors..
@@ -218,7 +218,7 @@
 |Setting|Description
 |<<fonts-_monospace,_monospace>>|Default monospace fonts.
 |<<fonts-completion,completion>>|Font used in the completion widget.
-|<<fonts-tabbar,tabbar>>|Font used in the tabbar.
+|<<fonts-tabbar,tabbar>>|Font used in the tab bar.
 |<<fonts-statusbar,statusbar>>|Font used in the statusbar.
 |<<fonts-downloads,downloads>>|Font used for the downloadbar.
 |<<fonts-hints,hints>>|Font used for the hints.
@@ -537,7 +537,7 @@ The format to use for the window title. The following placeholders are defined:
 
 * `{perc}`: The percentage as a string like `[10%]`.
 * `{perc_raw}`: The raw percentage, e.g. `10`
-* `{title}`: The title of the current webpage
+* `{title}`: The title of the current web page
 * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
 * `{id}`: The internal window ID of this window.
 
@@ -697,13 +697,13 @@ Options related to input modes.
 
 [[input-timeout]]
 === timeout
-Timeout for ambiguous keybindings.
+Timeout for ambiguous key bindings.
 
 Default: +pass:[500]+
 
 [[input-partial-timeout]]
 === partial-timeout
-Timeout for partially typed keybindings.
+Timeout for partially typed key bindings.
 
 Default: +pass:[1000]+
 
@@ -834,7 +834,7 @@ Default: +pass:[right]+
 
 [[tabs-new-tab-position-explicit]]
 === new-tab-position-explicit
-How new tabs opened explicitely are positioned.
+How new tabs opened explicitly are positioned.
 
 Valid values:
 
@@ -859,7 +859,7 @@ Default: +pass:[ignore]+
 
 [[tabs-hide-auto]]
 === hide-auto
-Hide the tabbar if only one tab is open.
+Hide the tab bar if only one tab is open.
 
 Valid values:
 
@@ -870,7 +870,7 @@ Default: +pass:[false]+
 
 [[tabs-hide-always]]
 === hide-always
-Always hide the tabbar.
+Always hide the tab bar.
 
 Valid values:
 
@@ -972,7 +972,7 @@ The format to use for the tab title. The following placeholders are defined:
 
 * `{perc}`: The percentage as a string like `[10%]`.
 * `{perc_raw}`: The raw percentage, e.g. `10`
-* `{title}`: The title of the current webpage
+* `{title}`: The title of the current web page
 * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
 * `{index}`: The index of this tab.
 * `{id}`: The internal tab ID of this tab.
@@ -1208,7 +1208,7 @@ Whether to accept cookies.
 
 Valid values:
 
- * +default+: Default QtWebKit behaviour.
+ * +default+: Default QtWebKit behavior.
  * +never+: Don't accept cookies at all.
 
 Default: +pass:[default]+
@@ -1332,7 +1332,7 @@ Default: +pass:[\bprev(ious)?\b,\bback\b,\bolder\b,\b[&lt;←≪]\b,\b(&lt;&lt;|
 
 == searchengines
 Definitions of search engines which can be used via the address bar.
-The searchengine named `DEFAULT` is used when `general -> auto-search` is true and something else than a URL was entered to be opened. Other search engines can be used via the bang-syntax, e.g. `:open qutebrowser !google`. The string `{}` will be replaced by the search term, use `{{` and `}}` for literal `{`/`}` signs.
+The searchengine named `DEFAULT` is used when `general -> auto-search` is true and something else than a URL was entered to be opened. Other search engines can be used by prepending the search engine name to the search term, e.g. `:open google qutebrowser`. The string `{}` will be replaced by the search term, use `{{` and `}}` for literal `{`/`}` signs.
 
 == aliases
 Aliases for commands.
@@ -1535,7 +1535,7 @@ Default: +pass:[black]+
 
 [[colors-tabs.bg.bar]]
 === tabs.bg.bar
-Background color of the tabbar.
+Background color of the tab bar.
 
 Default: +pass:[#555555]+
 
@@ -1650,7 +1650,7 @@ Default: +pass:[8pt ${_monospace}]+
 
 [[fonts-tabbar]]
 === tabbar
-Font used in the tabbar.
+Font used in the tab bar.
 
 Default: +pass:[8pt ${_monospace}]+
 

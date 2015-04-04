@@ -185,7 +185,7 @@ class DownloadItem(QObject):
         done: Whether the download is finished.
         stats: A DownloadItemStats object.
         index: The index of the download in the view.
-        successful: Whether the download has completed sucessfully.
+        successful: Whether the download has completed successfully.
         error_msg: The current error message, or None
         autoclose: Whether to close the associated file if the download is
                    done.
@@ -204,7 +204,7 @@ class DownloadItem(QObject):
         data_changed: The downloads metadata changed.
         finished: The download was finished.
         cancelled: The download was cancelled.
-        error: An error with the download occured.
+        error: An error with the download occurred.
                arg: The error message as string.
         redirected: Signal emitted when a download was redirected.
             arg 0: The new QNetworkRequest.

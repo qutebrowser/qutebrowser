@@ -52,7 +52,7 @@ class WebView(QWebView):
         hintmanager: The HintManager instance for this view.
         progress: loading progress of this page.
         scroll_pos: The current scroll position as (x%, y%) tuple.
-        statusbar_message: The current javscript statusbar message.
+        statusbar_message: The current javascript statusbar message.
         inspector: The QWebInspector used for this webview.
         load_status: loading status of this page (index into LoadStatus)
         viewing_source: Whether the webview is currently displaying source
@@ -63,7 +63,7 @@ class WebView(QWebView):
         tab_id: The tab ID of the view.
         win_id: The window ID of the view.
         _cur_url: The current URL (accessed via cur_url property).
-        _has_ssl_errors: Whether SSL errors occured during loading.
+        _has_ssl_errors: Whether SSL errors occurred during loading.
         _zoom: A NeighborList with the zoom levels.
         _old_scroll_pos: The old scroll position.
         _check_insertmode: If True, in mouseReleaseEvent we should check if we
@@ -234,7 +234,7 @@ class WebView(QWebView):
         # me, but it works this way.
         hitresult = frame.hitTestContent(pos)
         if hitresult.isNull():
-            # For some reason, the whole hitresult can be null sometimes (e.g.
+            # For some reason, the whole hit result can be null sometimes (e.g.
             # on doodle menu links). If this is the case, we schedule a check
             # later (in mouseReleaseEvent) which uses webelem.focus_elem.
             log.mouse.debug("Hitresult is null!")
@@ -243,7 +243,7 @@ class WebView(QWebView):
         try:
             elem = webelem.WebElementWrapper(hitresult.element())
         except webelem.IsNullError:
-            # For some reason, the hitresult element can be a null element
+            # For some reason, the hit result element can be a null element
             # sometimes (e.g. when clicking the timetable fields on
             # http://www.sbb.ch/ ). If this is the case, we schedule a check
             # later (in mouseReleaseEvent) which uses webelem.focus_elem.
@@ -372,7 +372,7 @@ class WebView(QWebView):
 
     @pyqtSlot('QMouseEvent')
     def on_mouse_event(self, evt):
-        """Post a new mouseevent from a hintmanager."""
+        """Post a new mouse event from a hintmanager."""
         log.modes.debug("Hint triggered, focusing {!r}".format(self))
         self.setFocus()
         QApplication.postEvent(self, evt)
@@ -393,7 +393,7 @@ class WebView(QWebView):
         true when the QWebPage has an ErrorPageExtension implemented.
         See https://github.com/The-Compiler/qutebrowser/issues/84
         """
-        ok = not self.page().error_occured
+        ok = not self.page().error_occurred
         if ok and not self._has_ssl_errors:
             self._set_load_status(LoadStatus.success)
         elif ok:

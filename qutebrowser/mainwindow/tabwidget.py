@@ -26,7 +26,7 @@ Module attributes:
 
 import functools
 
-from PyQt5.QtCore import pyqtSlot, Qt, QSize, QRect, QPoint, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint, QTimer
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab)
 from PyQt5.QtGui import QIcon, QPalette, QColor
@@ -41,7 +41,15 @@ PM_TabBarPadding = QStyle.PM_CustomBase
 
 class TabWidget(QTabWidget):
 
-    """The tabwidget used for TabbedBrowser."""
+    """The tab widget used for TabbedBrowser.
+
+    Signals:
+        tab_index_changed: Emitted when the current tab was changed.
+                           arg 0: The index of the tab which is now focused.
+                           arg 1: The total count of tabs.
+    """
+
+    tab_index_changed = pyqtSignal(int, int)
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
@@ -50,6 +58,7 @@ class TabWidget(QTabWidget):
         bar.tabCloseRequested.connect(self.tabCloseRequested)
         bar.tabMoved.connect(functools.partial(
             QTimer.singleShot, 0, self.update_tab_titles))
+        bar.currentChanged.connect(self.emit_tab_index_changed)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
@@ -65,10 +74,10 @@ class TabWidget(QTabWidget):
         self.setMovable(config.get('tabs', 'movable'))
         self.setTabsClosable(False)
         position = config.get('tabs', 'position')
-        selection_behaviour = config.get('tabs', 'select-on-remove')
+        selection_behavior = config.get('tabs', 'select-on-remove')
         self.setTabPosition(position)
         tabbar.vertical = position in (QTabWidget.West, QTabWidget.East)
-        tabbar.setSelectionBehaviorOnRemove(selection_behaviour)
+        tabbar.setSelectionBehaviorOnRemove(selection_behavior)
         tabbar.refresh()
 
     def set_tab_indicator_color(self, idx, color):
@@ -84,7 +93,7 @@ class TabWidget(QTabWidget):
 
     def set_page_title(self, idx, title):
         """Set the tab title user data."""
-        self.tabBar().set_tab_data(idx, 'page-title', title.replace('&', '&&'))
+        self.tabBar().set_tab_data(idx, 'page-title', title)
         self.update_tab_title(idx)
 
     def page_title(self, idx):
@@ -94,7 +103,7 @@ class TabWidget(QTabWidget):
     def update_tab_title(self, idx):
         """Update the tab text for the given tab."""
         widget = self.widget(idx)
-        page_title = self.page_title(idx)
+        page_title = self.page_title(idx).replace('&', '&&')
 
         fields = {}
         if widget.load_status == webview.LoadStatus.loading:
@@ -184,10 +193,15 @@ class TabWidget(QTabWidget):
         self.set_page_title(new_idx, text)
         return new_idx
 
+    @pyqtSlot(int)
+    def emit_tab_index_changed(self, index):
+        """Emit the tab_index_changed signal if the current tab changed."""
+        self.tab_index_changed.emit(index, self.count())
+
 
 class TabBar(QTabBar):
 
-    """Custom tabbar with our own style.
+    """Custom tab bar with our own style.
 
     FIXME: Dragging tabs doesn't look as nice as it does in QTabBar.  However,
     fixing this would be a lot of effort, so we'll postpone it until we're
@@ -221,16 +235,16 @@ class TabBar(QTabBar):
 
     @config.change_filter('tabs', 'hide-auto')
     def autohide(self):
-        """Hide tabbar if needed when tabs->hide-auto got changed."""
+        """Hide tab bar if needed when tabs->hide-auto got changed."""
         self._tabhide()
 
     @config.change_filter('tabs', 'hide-always')
     def alwayshide(self):
-        """Hide tabbar if needed when tabs->hide-always got changed."""
+        """Hide tab bar if needed when tabs->hide-always got changed."""
         self._tabhide()
 
     def _tabhide(self):
-        """Hide the tabbar if needed."""
+        """Hide the tab bar if needed."""
         hide_auto = config.get('tabs', 'hide-auto')
         hide_always = config.get('tabs', 'hide-always')
         if hide_always or (hide_auto and self.count() == 1):
@@ -264,7 +278,7 @@ class TabBar(QTabBar):
 
         Args:
             idx: The tab index to get the title for.
-            handle_unset: Whether to return an emtpy string on KeyError.
+            handle_unset: Whether to return an empty string on KeyError.
         """
         try:
             return self.tab_data(idx, 'page-title')
@@ -279,12 +293,12 @@ class TabBar(QTabBar):
 
     @config.change_filter('fonts', 'tabbar')
     def set_font(self):
-        """Set the tabbar font."""
+        """Set the tab bar font."""
         self.setFont(config.get('fonts', 'tabbar'))
 
     @config.change_filter('colors', 'tabs.bg.bar')
     def set_colors(self):
-        """Set the tabbar colors."""
+        """Set the tab bar colors."""
         p = self.palette()
         p.setColor(QPalette.Window, config.get('colors', 'tabs.bg.bar'))
         self.setPalette(p)
@@ -311,7 +325,7 @@ class TabBar(QTabBar):
         """Set the minimum tab size to indicator/icon/... text.
 
         Args:
-            index: The index of the tab to get a sizehint for.
+            index: The index of the tab to get a size hint for.
 
         Return:
             A QSize.

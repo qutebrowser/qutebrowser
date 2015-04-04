@@ -106,7 +106,7 @@ It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
 - '~/.config/qutebrowser/qutebrowser.conf': Main config file.
 - '~/.config/qutebrowser/quickmarks': Saved quickmarks.
-- '~/.config/qutebrowser/keys.conf': Defined keybindings.
+- '~/.config/qutebrowser/keys.conf': Defined key bindings.
 - '~/.local/share/qutebrowser/': Various state information.
 - '~/.cache/qutebrowser/': Temporary data.
 

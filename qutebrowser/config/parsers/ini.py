@@ -60,7 +60,7 @@ class ReadConfigParser(configparser.ConfigParser):
 
 class ReadWriteConfigParser(ReadConfigParser):
 
-    """ConfigParser subclass used for auxillary config files."""
+    """ConfigParser subclass used for auxiliary config files."""
 
     def save(self):
         """Save the config file."""

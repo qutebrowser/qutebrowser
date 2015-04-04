@@ -210,11 +210,11 @@ class TestKeyChain:
         self.kp.execute.assert_called_once_with('ba', self.kp.Type.chain, None)
         assert self.kp._keystring == ''
 
-    def test_ambigious_keychain(self, fake_keyevent_factory, mocker, stubs):
+    def test_ambiguous_keychain(self, fake_keyevent_factory, mocker, stubs):
         """Test ambigious keychain."""
         mocker.patch('qutebrowser.keyinput.basekeyparser.config',
                      new=stubs.ConfigStub(CONFIG))
-        timer = self.kp._ambigious_timer
+        timer = self.kp._ambiguous_timer
         assert not timer.isActive()
         # We start with 'a' where the keychain gives us an ambigious result.
         # Then we check if the timer has been set up correctly

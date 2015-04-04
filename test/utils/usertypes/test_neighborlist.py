@@ -245,14 +245,14 @@ class BlockTests(unittest.TestCase):
             mode=usertypes.NeighborList.Modes.block)
 
     def test_first(self):
-        """Test ouf of bounds previtem()."""
+        """Test out of bounds previtem()."""
         self.nl.firstitem()
         self.assertEqual(self.nl._idx, 0)
         self.assertEqual(self.nl.previtem(), 1)
         self.assertEqual(self.nl._idx, 0)
 
     def test_last(self):
-        """Test ouf of bounds nextitem()."""
+        """Test out of bounds nextitem()."""
         self.nl.lastitem()
         self.assertEqual(self.nl._idx, 4)
         self.assertEqual(self.nl.nextitem(), 5)
@@ -272,14 +272,14 @@ class WrapTests(unittest.TestCase):
             [1, 2, 3, 4, 5], default=3, mode=usertypes.NeighborList.Modes.wrap)
 
     def test_first(self):
-        """Test ouf of bounds previtem()."""
+        """Test out of bounds previtem()."""
         self.nl.firstitem()
         self.assertEqual(self.nl._idx, 0)
         self.assertEqual(self.nl.previtem(), 5)
         self.assertEqual(self.nl._idx, 4)
 
     def test_last(self):
-        """Test ouf of bounds nextitem()."""
+        """Test out of bounds nextitem()."""
         self.nl.lastitem()
         self.assertEqual(self.nl._idx, 4)
         self.assertEqual(self.nl.nextitem(), 1)
@@ -300,7 +300,7 @@ class RaiseTests(unittest.TestCase):
             mode=usertypes.NeighborList.Modes.exception)
 
     def test_first(self):
-        """Test ouf of bounds previtem()."""
+        """Test out of bounds previtem()."""
         self.nl.firstitem()
         self.assertEqual(self.nl._idx, 0)
         with self.assertRaises(IndexError):
@@ -308,7 +308,7 @@ class RaiseTests(unittest.TestCase):
         self.assertEqual(self.nl._idx, 0)
 
     def test_last(self):
-        """Test ouf of bounds nextitem()."""
+        """Test out of bounds nextitem()."""
         self.nl.lastitem()
         self.assertEqual(self.nl._idx, 4)
         with self.assertRaises(IndexError):

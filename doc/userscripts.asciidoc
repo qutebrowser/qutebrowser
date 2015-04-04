@@ -3,14 +3,14 @@ Writing qutebrowser userscripts
 The Compiler <mail@qutebrowser.org>
 
 qutebrowser is extensible by writing userscripts which can be called via the
-`:spawn --userscript` command, or via a keybinding.
+`:spawn --userscript` command, or via a key binding.
 
 These userscripts are similiar to the (non-javascript) dwb userscripts. They
 can be written in any language which can read environment variables and write
 to a FIFO.
 
 Note for simple things such as opening the current page with another browser or
-mpv, a simple keybinding to something like `:spawn mpv {url}` should suffice.
+mpv, a simple key binding to something like `:spawn mpv {url}` should suffice.
 
 Also note userscripts need to have the executable bit set (`chmod +x`) for
 qutebrowser to run them.
@@ -21,7 +21,7 @@ Getting information
 The following environment variables will be set when an userscript is launched:
 
 - `QUTE_MODE`: Either `hints` (started via hints) or `command` (started via
-  command or keybinding).
+  command or key binding).
 - `QUTE_USER_AGENT`: The currently set user agent.
 - `QUTE_FIFO`: The FIFO or file to write commands to.
 

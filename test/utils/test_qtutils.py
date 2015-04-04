@@ -83,7 +83,7 @@ class CheckOverflowTests(unittest.TestCase):
 
 
 def argparser_exit(status=0, message=None):  # pylint: disable=unused-argument
-    """Function to monkeypatch .exit() of the argparser so it doesn't exit."""
+    """Function to monkey-patch .exit() of the argparser so it doesn't exit."""
     raise Exception
 
 

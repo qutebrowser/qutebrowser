@@ -102,7 +102,7 @@ class TestFileHandling(object):
         self.editor = editor.ExternalEditor(0)
 
     def test_file_handling_closed_ok(self):
-        """Test file handling when closing with an exitstatus == 0."""
+        """Test file handling when closing with an exit status == 0."""
         self.editor.edit("")
         filename = self.editor._filename
         assert os.path.exists(filename)
@@ -110,7 +110,7 @@ class TestFileHandling(object):
         assert not os.path.exists(filename)
 
     def test_file_handling_closed_error(self, caplog):
-        """Test file handling when closing with an exitstatus != 0."""
+        """Test file handling when closing with an exit status != 0."""
         self.editor.edit("")
         filename = self.editor._filename
         assert os.path.exists(filename)

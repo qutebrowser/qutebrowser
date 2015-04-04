@@ -227,7 +227,7 @@ class CommandDispatcher:
         Args:
             left: Force selecting the tab to the left of the current tab.
             right: Force selecting the tab to the right of the current tab.
-            opposite: Force selecting the tab in the oppsite direction of
+            opposite: Force selecting the tab in the opposite direction of
                       what's configured in 'tabs->select-on-remove'.
 
         Return:
@@ -259,7 +259,7 @@ class CommandDispatcher:
         Args:
             left: Force selecting the tab to the left of the current tab.
             right: Force selecting the tab to the right of the current tab.
-            opposite: Force selecting the tab in the oppsite direction of
+            opposite: Force selecting the tab in the opposite direction of
                       what's configured in 'tabs->select-on-remove'.
             count: The tab index to close, or None
         """

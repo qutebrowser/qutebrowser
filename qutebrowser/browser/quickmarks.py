@@ -43,9 +43,19 @@ class QuickmarkManager(QObject):
         marks: An OrderedDict of all quickmarks.
         _lineparser: The LineParser used for the quickmarks, or None
                      (when qutebrowser is started with -c '').
+
+    Signals:
+        changed: Emitted when anything changed.
+        added: Emitted when a new quickmark was added.
+               arg 0: The name of the quickmark.
+               arg 1: The URL of the quickmark, as string.
+        removed: Emitted when an existing quickmark was removed.
+                 arg 0: The name of the quickmark.
     """
 
     changed = pyqtSignal()
+    added = pyqtSignal(str, str)
+    removed = pyqtSignal(str)
 
     def __init__(self, parent=None):
         """Initialize and read quickmarks."""
@@ -117,6 +127,7 @@ class QuickmarkManager(QObject):
             """Really set the quickmark."""
             self.marks[name] = url
             self.changed.emit()
+            self.added.emit(name, url)
 
         if name in self.marks:
             message.confirm_async(
@@ -138,6 +149,7 @@ class QuickmarkManager(QObject):
             raise cmdexc.CommandError("Quickmark '{}' not found!".format(name))
         else:
             self.changed.emit()
+            self.removed.emit(name)
 
     def get(self, name):
         """Get the URL of the quickmark named name as a QUrl."""

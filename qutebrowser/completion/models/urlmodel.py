@@ -21,7 +21,7 @@
 
 import datetime
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, Qt
 
 from qutebrowser.utils import objreg, utils
 from qutebrowser.completion.models import base
@@ -42,20 +42,21 @@ class UrlCompletionModel(base.BaseCompletionModel):
         self._quickmark_cat = self.new_category("Quickmarks")
         self._history_cat = self.new_category("History")
 
-        quickmarks = objreg.get('quickmark-manager').marks.items()
-        self._history = objreg.get('web-history')
-
+        quickmark_manager = objreg.get('quickmark-manager')
+        quickmarks = quickmark_manager.marks.items()
         for qm_name, qm_url in quickmarks:
-            self.new_item(self._quickmark_cat, qm_url, qm_name)
+            self._add_quickmark_entry(qm_name, qm_url)
+        quickmark_manager.added.connect(self.on_quickmark_added)
+        quickmark_manager.removed.connect(self.on_quickmark_removed)
 
+        self._history = objreg.get('web-history')
         max_history = config.get('completion', 'web-history-max-items')
         history = utils.newest_slice(self._history, max_history)
-
         for entry in history:
             self._add_history_entry(entry)
-
         self._history.item_about_to_be_added.connect(
             self.on_history_item_added)
+
         objreg.get('config').changed.connect(self.reformat_timestamps)
 
     def _fmt_atime(self, atime):
@@ -70,6 +71,15 @@ class UrlCompletionModel(base.BaseCompletionModel):
         self.new_item(self._history_cat, entry.url.toDisplayString(), "",
                       self._fmt_atime(entry.atime), sort=int(entry.atime),
                       userdata=entry.url)
+
+    def _add_quickmark_entry(self, name, url):
+        """Add a new quickmark entry to the completion.
+
+        Args:
+            name: The name of the new quickmark.
+            url: The URL of the new quickmark.
+        """
+        self.new_item(self._quickmark_cat, url, name)
 
     @config.change_filter('completion', 'timestamp-format')
     def reformat_timestamps(self):
@@ -93,3 +103,26 @@ class UrlCompletionModel(base.BaseCompletionModel):
                 break
         else:
             self._add_history_entry(entry)
+
+    @pyqtSlot(str, str)
+    def on_quickmark_added(self, name, url):
+        """Called when a quickmark has been added by the user.
+
+        Args:
+            name: The name of the new quickmark.
+            url: The url of the new quickmark, as string.
+        """
+        self._add_quickmark_entry(name, url)
+
+    @pyqtSlot(str)
+    def on_quickmark_removed(self, name):
+        """Called when a quickmark has been removed by the user.
+
+        Args:
+            name: The name of the quickmark which has been removed.
+        """
+        for i in range(self._quickmark_cat.rowCount()):
+            name_item = self._quickmark_cat.child(i, 1)
+            if name_item.data(Qt.DisplayRole) == name:
+                self._quickmark_cat.removeRow(i)
+                break

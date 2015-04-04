@@ -26,7 +26,7 @@ class SettingValue:
 
     """Base class for setting values.
 
-    Intended to be subclassed by config value "types".
+    Intended to be sub-classed by config value "types".
 
     Attributes:
         typ: A BaseType subclass instance.
