@@ -22,7 +22,7 @@
 import os.path
 import collections
 
-from PyQt5.QtCore import pyqtSlot, QObject
+from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils
@@ -139,7 +139,7 @@ class SaveManager(QObject):
             self._save_timer.start()
 
     def add_saveable(self, name, save, changed=None, config_opt=None,
-                     filename=None):
+                     filename=None, dirty=False):
         """Add a new saveable.
 
         Args:
@@ -150,11 +150,15 @@ class SaveManager(QObject):
                         or not.
             filename: The filename of the underlying file, so we can force
                       saving if it doesn't exist.
+            dirty: Whether the saveable is already dirty.
         """
         if name in self.saveables:
             raise ValueError("Saveable {} already registered!".format(name))
-        self.saveables[name] = Saveable(name, save, changed, config_opt,
-                                        filename)
+        saveable = Saveable(name, save, changed, config_opt, filename)
+        self.saveables[name] = saveable
+        if dirty:
+            saveable.mark_dirty()
+            QTimer.singleShot(0, saveable.save)
 
     def save(self, name, is_exit=False, explicit=False, silent=False,
              force=False):

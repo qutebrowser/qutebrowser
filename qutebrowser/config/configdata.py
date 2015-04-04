@@ -80,10 +80,10 @@ SECTION_DESC = {
         "bar.\n"
         "The searchengine named `DEFAULT` is used when "
         "`general -> auto-search` is true and something else than a URL was "
-        "entered to be opened. Other search engines can be used via the "
-        "bang-syntax, e.g. `:open qutebrowser !google`. The string `{}` will "
-        "be replaced by the search term, use `{{` and `}}` for literal "
-        "`{`/`}` signs."),
+        "entered to be opened. Other search engines can be used by prepending "
+        "the search engine name to the search term, e.g. "
+        "`:open google qutebrowser`. The string `{}` will be replaced by the "
+        "search term, use `{{` and `}}` for literal `{`/`}` signs."),
     'aliases': (
         "Aliases for commands.\n"
         "By default, no aliases are defined. Example which adds a new command "
@@ -1029,14 +1029,14 @@ KEY_DATA = collections.OrderedDict([
 
     ('normal', collections.OrderedDict([
         ('search ""', ['<Escape>']),
-        ('set-cmd-text ":open "', ['o']),
-        ('set-cmd-text ":open {url}"', ['go']),
-        ('set-cmd-text ":open -t "', ['O']),
-        ('set-cmd-text ":open -t {url}"', ['gO']),
-        ('set-cmd-text ":open -b "', ['xo']),
-        ('set-cmd-text ":open -b {url}"', ['xO']),
-        ('set-cmd-text ":open -w "', ['wo']),
-        ('set-cmd-text ":open -w {url}"', ['wO']),
+        ('set-cmd-text -s :open', ['o']),
+        ('set-cmd-text :open {url}', ['go']),
+        ('set-cmd-text -s :open -t', ['O']),
+        ('set-cmd-text :open -t {url}', ['gO']),
+        ('set-cmd-text -s :open -b', ['xo']),
+        ('set-cmd-text :open -b {url}', ['xO']),
+        ('set-cmd-text -s :open -w', ['wo']),
+        ('set-cmd-text :open -w {url}', ['wO']),
         ('open -t', ['ga']),
         ('tab-close', ['d', '<Ctrl-W>']),
         ('tab-close -o', ['D']),
@@ -1181,13 +1181,14 @@ KEY_DATA = collections.OrderedDict([
 ])
 
 
-# A dict of {old_cmd: new_cmd} strings.
+# A list of (regex, replacement) tuples of changed key commands.
 
-CHANGED_KEY_COMMNADS = {
-    'open -t about:blank': 'open -t',
-    'open -b about:blank': 'open -b',
-    'open -w about:blank': 'open -w',
-    'download-page': 'download',
-    'cancel-download': 'download-cancel',
-    'search ""': 'search',
-}
+CHANGED_KEY_COMMANDS = [
+    (re.compile(r'^open -([twb]) about:blank$'), r'open -\1'),
+    (re.compile(r'^download-page$'), r'download'),
+    (re.compile(r'^cancel-download$'), r'download-cancel'),
+    (re.compile(r'^search ""$'), r'search'),
+    (re.compile(r"^search ''$"), r'search'),
+    (re.compile(r"""^set-cmd-text ['"](.*) ['"]$"""), r'set-cmd-text -s \1'),
+    (re.compile(r"""^set-cmd-text ['"](.*)['"]$"""), r'set-cmd-text \1'),
+]

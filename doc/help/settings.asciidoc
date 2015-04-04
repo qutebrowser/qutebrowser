@@ -1332,7 +1332,7 @@ Default: +pass:[\bprev(ious)?\b,\bback\b,\bolder\b,\b[&lt;←≪]\b,\b(&lt;&lt;|
 
 == searchengines
 Definitions of search engines which can be used via the address bar.
-The searchengine named `DEFAULT` is used when `general -> auto-search` is true and something else than a URL was entered to be opened. Other search engines can be used via the bang-syntax, e.g. `:open qutebrowser !google`. The string `{}` will be replaced by the search term, use `{{` and `}}` for literal `{`/`}` signs.
+The searchengine named `DEFAULT` is used when `general -> auto-search` is true and something else than a URL was entered to be opened. Other search engines can be used by prepending the search engine name to the search term, e.g. `:open google qutebrowser`. The string `{}` will be replaced by the search term, use `{{` and `}}` for literal `{`/`}` signs.
 
 == aliases
 Aliases for commands.

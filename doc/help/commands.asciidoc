@@ -463,12 +463,15 @@ If the option name ends with '?', the value of the option is shown instead. If t
 
 [[set-cmd-text]]
 === set-cmd-text
-Syntax: +:set-cmd-text 'text'+
+Syntax: +:set-cmd-text [*--space*] 'text'+
 
 Preset the statusbar to some text.
 
 ==== positional arguments
 * +'text'+: The commandline to set.
+
+==== optional arguments
+* +*-s*+, +*--space*+: If given, a space is added to the end.
 
 [[spawn]]
 === spawn
