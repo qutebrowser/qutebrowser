@@ -82,9 +82,9 @@ def test_disconnect_one_invalid(timer):
 
 def test_singleshot(timer):
     """Test setting singleShot."""
-    assert not timer.singleShot()
+    assert not timer.isSingleShot()
     timer.setSingleShot(True)
-    assert timer.singleShot()
+    assert timer.isSingleShot()
     timer.start()
     assert timer.isActive()
     timer.timeout.emit()
