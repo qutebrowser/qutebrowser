@@ -21,55 +21,54 @@
 
 import re
 import time
-import unittest
 import logging
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QStyle, QFrame
+import pytest
 
 from qutebrowser.utils import debug
-from qutebrowser.test import stubs
 
 
-class QEnumKeyTests(unittest.TestCase):
+class TestQEnumKey:
 
     """Tests for qenum_key."""
 
     def test_no_metaobj(self):
         """Test with an enum with no metaobject."""
-        with self.assertRaises(AttributeError):
+        with pytest.raises(AttributeError):
             # Make sure it doesn't have a meta object
             # pylint: disable=pointless-statement,no-member
             QStyle.PrimitiveElement.staticMetaObject
         key = debug.qenum_key(QStyle, QStyle.PE_PanelButtonCommand)
-        self.assertEqual(key, 'PE_PanelButtonCommand')
+        assert key == 'PE_PanelButtonCommand'
 
     def test_metaobj(self):
         """Test with an enum with metaobject."""
         # pylint: disable=pointless-statement
         QFrame.staticMetaObject  # make sure it has a metaobject
         key = debug.qenum_key(QFrame, QFrame.Sunken)
-        self.assertEqual(key, 'Sunken')
+        assert key == 'Sunken'
 
     def test_add_base(self):
         """Test with add_base=True."""
         key = debug.qenum_key(QFrame, QFrame.Sunken, add_base=True)
-        self.assertEqual(key, 'QFrame.Sunken')
+        assert key == 'QFrame.Sunken'
 
     def test_int_noklass(self):
         """Test passing an int without explicit klass given."""
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             debug.qenum_key(QFrame, 42)
 
     def test_int(self):
         """Test passing an int with explicit klass given."""
         key = debug.qenum_key(QFrame, 0x0030, klass=QFrame.Shadow)
-        self.assertEqual(key, 'Sunken')
+        assert key == 'Sunken'
 
     def test_unknown(self):
         """Test passing an unknown value."""
         key = debug.qenum_key(QFrame, 0x1337, klass=QFrame.Shadow)
-        self.assertEqual(key, '0x1337')
+        assert key == '0x1337'
 
     def test_reconverted(self):
         """Test passing a flag value which was re-converted to an enum."""
@@ -77,96 +76,93 @@ class QEnumKeyTests(unittest.TestCase):
         debug.qenum_key(Qt, Qt.Alignment(int(Qt.AlignLeft)))
 
 
-class QFlagsKeyTests(unittest.TestCase):
+class TestQFlagsKey:
 
     """Tests for qflags_key()."""
 
-    # https://github.com/The-Compiler/qutebrowser/issues/42
+    fail_issue42 = pytest.mark.xfail(
+        reason='https://github.com/The-Compiler/qutebrowser/issues/42')
 
-    @unittest.skip('FIXME')
+    @fail_issue42
     def test_single(self):
         """Test with single value."""
         flags = debug.qflags_key(Qt, Qt.AlignTop)
-        self.assertEqual(flags, 'AlignTop')
+        assert flags == 'AlignTop'
 
-    @unittest.skip('FIXME')
+    @fail_issue42
     def test_multiple(self):
         """Test with multiple values."""
         flags = debug.qflags_key(Qt, Qt.AlignLeft | Qt.AlignTop)
-        self.assertEqual(flags, 'AlignLeft|AlignTop')
+        assert flags == 'AlignLeft|AlignTop'
 
     def test_combined(self):
         """Test with a combined value."""
         flags = debug.qflags_key(Qt, Qt.AlignCenter)
-        self.assertEqual(flags, 'AlignHCenter|AlignVCenter')
+        assert flags == 'AlignHCenter|AlignVCenter'
 
-    @unittest.skip('FIXME')
+    @fail_issue42
     def test_add_base(self):
         """Test with add_base=True."""
         flags = debug.qflags_key(Qt, Qt.AlignTop, add_base=True)
-        self.assertEqual(flags, 'Qt.AlignTop')
+        assert flags == 'Qt.AlignTop'
 
     def test_int_noklass(self):
         """Test passing an int without explicit klass given."""
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             debug.qflags_key(Qt, 42)
 
-    @unittest.skip('FIXME')
+    @fail_issue42
     def test_int(self):
         """Test passing an int with explicit klass given."""
         flags = debug.qflags_key(Qt, 0x0021, klass=Qt.Alignment)
-        self.assertEqual(flags, 'AlignLeft|AlignTop')
+        assert flags == 'AlignLeft|AlignTop'
 
     def test_unknown(self):
         """Test passing an unknown value."""
         flags = debug.qflags_key(Qt, 0x1100, klass=Qt.Alignment)
-        self.assertEqual(flags, '0x0100|0x1000')
+        assert flags == '0x0100|0x1000'
 
 
-class TestDebug(unittest.TestCase):
+class TestDebug:
 
     """Test signal debug output functions."""
 
-    def setUp(self):
-        self.signal = stubs.FakeSignal()
+    @pytest.fixture
+    def signal(self, stubs):
+        return stubs.FakeSignal()
 
-    def test_signal_name(self):
+    def test_signal_name(self, signal):
         """Test signal_name()."""
-        self.assertEqual(debug.signal_name(self.signal), 'fake')
+        assert debug.signal_name(signal) == 'fake'
 
-    def test_dbg_signal(self):
+    def test_dbg_signal(self, signal):
         """Test dbg_signal()."""
-        self.assertEqual(debug.dbg_signal(self.signal, [23, 42]),
-                         'fake(23, 42)')
+        assert debug.dbg_signal(signal, [23, 42]) == 'fake(23, 42)'
 
-    def test_dbg_signal_eliding(self):
+
+    def test_dbg_signal_eliding(self, signal):
         """Test eliding in dbg_signal()."""
-        self.assertEqual(debug.dbg_signal(self.signal,
-                                          ['x' * 201]),
-                         "fake('{}\u2026)".format('x' * 198))
+        assert debug.dbg_signal(signal, ['x' * 201]) == \
+               "fake('{}\u2026)".format('x' * 198)
 
-    def test_dbg_signal_newline(self):
+    def test_dbg_signal_newline(self, signal):
         """Test dbg_signal() with a newline."""
-        self.assertEqual(debug.dbg_signal(self.signal, ['foo\nbar']),
-                         r"fake('foo\nbar')")
+        assert debug.dbg_signal(signal, ['foo\nbar']) == r"fake('foo\nbar')"
 
 
-class TestLogTime(unittest.TestCase):
+class TestLogTime:
 
     """Test log_time."""
 
-    def test_log_time(self):
+    def test_log_time(self, caplog):
         """Test if log_time logs properly."""
         logger = logging.getLogger('qt-tests')
-        with self.assertLogs(logger, logging.DEBUG) as logged:
+        with caplog.atLevel(logging.DEBUG, logger.name):
             with debug.log_time(logger, action='foobar'):
                 time.sleep(0.1)
-            self.assertEqual(len(logged.records), 1)
+            assert len(caplog.records()) == 1
             pattern = re.compile(r'^Foobar took ([\d.]*) seconds\.$')
-            match = pattern.match(logged.records[0].msg)
-            self.assertTrue(match)
+            match = pattern.match(caplog.records()[0].msg)
+            assert match
             duration = float(match.group(1))
-            self.assertAlmostEqual(duration, 0.1, delta=0.01)
-
-if __name__ == '__main__':
-    unittest.main()
+            assert 0.09 <= duration <= 0.11
