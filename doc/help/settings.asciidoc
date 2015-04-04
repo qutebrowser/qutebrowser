@@ -114,8 +114,8 @@
 |==============
 |Setting|Description
 |<<storage-download-directory,download-directory>>|The directory to save downloads to. An empty value selects a sensible os-specific default. Will expand environment variables.
-|<<storage-maximum-pages-in-cache,maximum-pages-in-cache>>|The maximum number of pages to hold in the memory page cache.
-|<<storage-object-cache-capacities,object-cache-capacities>>|The capacities for the memory cache for dead objects such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, cacheMaxDead, totalCapacity.
+|<<storage-maximum-pages-in-cache,maximum-pages-in-cache>>|The maximum number of pages to hold in the global memory page cache.
+|<<storage-object-cache-capacities,object-cache-capacities>>|The capacities for the global memory cache for dead objects such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, cacheMaxDead, totalCapacity.
 |<<storage-offline-storage-default-quota,offline-storage-default-quota>>|Default quota for new offline storage databases.
 |<<storage-offline-web-application-cache-quota,offline-web-application-cache-quota>>|Quota for the offline web application cache.
 |<<storage-offline-storage-database,offline-storage-database>>|Whether support for the HTML 5 offline storage feature is enabled.
@@ -990,7 +990,7 @@ Default: empty
 
 [[storage-maximum-pages-in-cache]]
 === maximum-pages-in-cache
-The maximum number of pages to hold in the memory page cache.
+The maximum number of pages to hold in the global memory page cache.
 
 The Page Cache allows for a nicer user experience when navigating forth or back to pages in the forward/back history, by pausing and resuming up to _n_ pages.
 
@@ -1000,7 +1000,7 @@ Default: empty
 
 [[storage-object-cache-capacities]]
 === object-cache-capacities
-The capacities for the memory cache for dead objects such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, cacheMaxDead, totalCapacity.
+The capacities for the global memory cache for dead objects such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, cacheMaxDead, totalCapacity.
 
 The _cacheMinDeadCapacity_ specifies the minimum number of bytes that dead objects should consume when the cache is under pressure.
 

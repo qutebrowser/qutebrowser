@@ -490,7 +490,8 @@ DATA = collections.OrderedDict([
         ('maximum-pages-in-cache',
          SettingValue(
              typ.Int(none_ok=True, minval=0, maxval=MAXVALS['int']), ''),
-         "The maximum number of pages to hold in the memory page cache.\n\n"
+         "The maximum number of pages to hold in the global memory page "
+         "cache.\n\n"
          "The Page Cache allows for a nicer user experience when navigating "
          "forth or back to pages in the forward/back history, by pausing and "
          "resuming up to _n_ pages.\n\n"
@@ -500,7 +501,7 @@ DATA = collections.OrderedDict([
         ('object-cache-capacities',
          SettingValue(
              typ.WebKitBytesList(length=3, maxsize=MAXVALS['int']), ''),
-         "The capacities for the memory cache for dead objects such as "
+         "The capacities for the global memory cache for dead objects such as "
          "stylesheets or scripts. Syntax: cacheMinDeadCapacity, cacheMaxDead, "
          "totalCapacity.\n\n"
          "The _cacheMinDeadCapacity_ specifies the minimum number of bytes "
