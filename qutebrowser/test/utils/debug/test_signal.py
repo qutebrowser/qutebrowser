@@ -27,6 +27,7 @@ from qutebrowser.utils import debug
 
 @pytest.fixture
 def signal():
+    """Fixture to provide a faked pyqtSignal."""
     return stubs.FakeSignal()
 
 
