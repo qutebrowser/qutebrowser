@@ -133,7 +133,8 @@ DATA = collections.OrderedDict([
 
         ('default-page',
          SettingValue(typ.FuzzyUrl(), '${startpage}'),
-         "The page to open if :open -t/-b/-w is used without URL."),
+         "The page to open if :open -t/-b/-w is used without URL. Use "
+         "`about:blank` for a blank page."),
 
         ('auto-search',
          SettingValue(typ.AutoSearch(), 'naive'),

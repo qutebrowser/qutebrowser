@@ -7,7 +7,7 @@
 |<<general-ignore-case,ignore-case>>|Whether to find text on a page case-insensitively.
 |<<general-wrap-search,wrap-search>>|Whether to wrap finding text to the top when arriving at the end.
 |<<general-startpage,startpage>>|The default page(s) to open at the start, separated by commas.
-|<<general-default-page,default-page>>|The page to open if :open -t/-b/-w is used without URL.
+|<<general-default-page,default-page>>|The page to open if :open -t/-b/-w is used without URL. Use `about:blank` for a blank page.
 |<<general-auto-search,auto-search>>|Whether to start a search when something else than a URL is entered.
 |<<general-auto-save-config,auto-save-config>>|Whether to save the config automatically on quit.
 |<<general-auto-save-interval,auto-save-interval>>|How often (in milliseconds) to auto-save config/cookies/etc.
@@ -269,7 +269,7 @@ Default: +pass:[https://www.duckduckgo.com]+
 
 [[general-default-page]]
 === default-page
-The page to open if :open -t/-b/-w is used without URL.
+The page to open if :open -t/-b/-w is used without URL. Use `about:blank` for a blank page.
 
 Default: +pass:[${startpage}]+
 
