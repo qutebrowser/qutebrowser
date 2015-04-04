@@ -51,26 +51,26 @@ class TestGetStandardDirLinux:
         """Test data dir with XDG_DATA_HOME explicitely set."""
         monkeypatch.setenv('XDG_DATA_HOME', str(tmpdir))
         standarddir.init(None)
-        assert standarddir.data() == str(tmpdir / 'qutebrowser')
+        assert standarddir.data() == str(tmpdir / 'qutebrowser_test')
 
     def test_config_explicit(self, monkeypatch, tmpdir):
         """Test config dir with XDG_CONFIG_HOME explicitely set."""
         monkeypatch.setenv('XDG_CONFIG_HOME', str(tmpdir))
         standarddir.init(None)
-        assert standarddir.config() == str(tmpdir / 'qutebrowser')
+        assert standarddir.config() == str(tmpdir / 'qutebrowser_test')
 
     def test_cache_explicit(self, monkeypatch, tmpdir):
         """Test cache dir with XDG_CACHE_HOME explicitely set."""
         monkeypatch.setenv('XDG_CACHE_HOME', str(tmpdir))
         standarddir.init(None)
-        assert standarddir.cache() == str(tmpdir / 'qutebrowser')
+        assert standarddir.cache() == str(tmpdir / 'qutebrowser_test')
 
     def test_data(self, monkeypatch, tmpdir):
         """Test data dir with XDG_DATA_HOME not set."""
         monkeypatch.setenv('HOME', str(tmpdir))
         monkeypatch.setenv('XDG_DATA_HOME', None)
         standarddir.init(None)
-        expected = tmpdir / '.local' / 'share' / 'qutebrowser'
+        expected = tmpdir / '.local' / 'share' / 'qutebrowser_test'
         assert standarddir.data() == str(expected)
 
     def test_config(self, monkeypatch, tmpdir):
@@ -78,7 +78,7 @@ class TestGetStandardDirLinux:
         monkeypatch.setenv('HOME', str(tmpdir))
         monkeypatch.setenv('XDG_CONFIG_HOME', None)
         standarddir.init(None)
-        expected = tmpdir / '.config' / 'qutebrowser'
+        expected = tmpdir / '.config' / 'qutebrowser_test'
         assert standarddir.config() == str(expected)
 
     def test_cache(self, monkeypatch, tmpdir):
@@ -86,7 +86,7 @@ class TestGetStandardDirLinux:
         monkeypatch.setenv('HOME', str(tmpdir))
         monkeypatch.setenv('XDG_CACHE_HOME', None)
         standarddir.init(None)
-        expected = tmpdir / '.cache' / 'qutebrowser'
+        expected = tmpdir / '.cache' / 'qutebrowser_test'
         assert standarddir.cache() == expected
 
 
