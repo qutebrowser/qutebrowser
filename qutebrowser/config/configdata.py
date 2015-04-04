@@ -1115,6 +1115,7 @@ KEY_DATA = collections.OrderedDict([
         ('inspector', ['wi']),
         ('download', ['gd']),
         ('download-cancel', ['ad']),
+        ('download-remove --all', ['cd']),
         ('view-source', ['gf']),
         ('tab-focus last', ['<Ctrl-Tab>']),
         ('enter-mode passthrough', ['<Ctrl-V>']),
