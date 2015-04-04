@@ -26,7 +26,7 @@ test_content_disposition.py file.
 from qutebrowser.browser import http
 
 
-class TestParseContentType(object):
+class TestParseContentType:
 
     """Test for parse_content_type."""
 

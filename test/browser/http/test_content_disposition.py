@@ -80,7 +80,7 @@ def header_checker(caplog, stubs):
     return _HeaderChecker(caplog, stubs)
 
 
-class TestInline(object):
+class TestInline:
     """Various tests relating to the "inline" disposition type.
 
     See Section 4.2 of RFC 6266.
@@ -130,7 +130,7 @@ class TestInline(object):
                                       expected_inline=True)
 
 
-class TestAttachment(object):
+class TestAttachment:
     """Various tests relating to the "attachment" disposition type.
 
     See Section 4.2 of RFC 6266.
@@ -620,7 +620,7 @@ class TestAttachment(object):
 # Note we do not check the "Additional parameters" section.
 
 
-class TestDispositionTypeExtension(object):
+class TestDispositionTypeExtension:
     """Tests checking behavior for disposition type extensions.
 
     They should be treated as "attachment", see Section 4.2 of RFC 6266.
@@ -639,7 +639,7 @@ class TestDispositionTypeExtension(object):
             'attachment; example="filename=example.txt"')
 
 
-class TestCharacterSet(object):
+class TestCharacterSet:
     """Various tests using the parameter value encoding defined in RFC 5987."""
 
     def test_attwithisofn2231iso(self, header_checker):
@@ -815,7 +815,7 @@ class TestCharacterSet(object):
 # Note we do not test the "RFC2231 Encoding: Continuations (optional)" section
 
 
-class TestEncodingFallback(object):
+class TestEncodingFallback:
     """Test the same parameter both in traditional and extended format.
 
     This tests how the UA behaves when the same parameter name appears
@@ -876,7 +876,7 @@ class TestEncodingFallback(object):
             'foo.html')
 
 
-class TestRFC2047Encoding(object):
+class TestRFC2047Encoding:
     """These tests RFC 2047 style encoding.
 
     Note that according to Section 5 of RFC 2047, this encoding does not apply
@@ -911,7 +911,7 @@ class TestRFC2047Encoding(object):
             '=?ISO-8859-1?Q?foo-=E4.html?=')
 
 
-class TestOur(object):
+class TestOur:
     """Our own tests, not based on http://greenbytes.de/tech/tc2231/"""
 
     def test_att_double_space(self, header_checker):

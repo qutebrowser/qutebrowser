@@ -86,7 +86,7 @@ def get_webelem(geometry=None, frame=None, null=False, visibility='',
     return wrapped
 
 
-class TestWebElementWrapper(object):
+class TestWebElementWrapper:
 
     """Test WebElementWrapper."""
 
@@ -96,7 +96,7 @@ class TestWebElementWrapper(object):
             get_webelem(null=True)
 
 
-class TestIsVisibleInvalid(object):
+class TestIsVisibleInvalid:
 
     """Tests for is_visible with invalid elements.
 
@@ -137,7 +137,7 @@ class TestIsVisibleInvalid(object):
         assert elem.is_visible(self.frame)
 
 
-class TestIsVisibleScroll(object):
+class TestIsVisibleScroll:
 
     """Tests for is_visible when the frame is scrolled.
 
@@ -161,7 +161,7 @@ class TestIsVisibleScroll(object):
         assert elem.is_visible(self.frame)
 
 
-class TestIsVisibleCss(object):
+class TestIsVisibleCss:
 
     """Tests for is_visible with CSS attributes.
 
@@ -196,7 +196,7 @@ class TestIsVisibleCss(object):
         assert not elem.is_visible(self.frame)
 
 
-class TestIsVisibleIframe(object):
+class TestIsVisibleIframe:
 
     """Tests for is_visible with a child frame.
 
@@ -276,7 +276,7 @@ class TestIsVisibleIframe(object):
         assert self.elem4.is_visible(self.frame)
 
 
-class TestIsWritable(object):
+class TestIsWritable:
 
     """Check is_writable."""
 
@@ -296,7 +296,7 @@ class TestIsWritable(object):
         assert not elem.is_writable()
 
 
-class TestJavascriptEscape(object):
+class TestJavascriptEscape:
 
     """Check javascript_escape.
 
@@ -315,7 +315,7 @@ class TestJavascriptEscape(object):
         assert webelem.javascript_escape(before) == after
 
 
-class TestGetChildFrames(object):
+class TestGetChildFrames:
 
     """Check get_child_frames."""
 
@@ -366,7 +366,7 @@ class TestGetChildFrames(object):
             frame.childFrames.assert_called_once_with()
 
 
-class TestIsEditable(object):
+class TestIsEditable:
 
     """Tests for is_editable."""
 

@@ -27,7 +27,7 @@ from qutebrowser.browser.tabhistory import TabHistoryItem as Item
 from qutebrowser.utils import qtutils
 
 
-class TestSerializeHistory(object):
+class TestSerializeHistory:
 
     """Tests for serialize()."""
 
@@ -102,7 +102,7 @@ class TestSerializeHistory(object):
         assert self.history.itemAt(i).title() == item.title
 
 
-class TestSerializeHistorySpecial(object):
+class TestSerializeHistorySpecial:
 
     """Tests for serialize() without items set up in setUp."""
 

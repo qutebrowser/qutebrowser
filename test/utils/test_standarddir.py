@@ -43,7 +43,7 @@ def change_qapp_name():
 
 @pytest.mark.skipif(not sys.platform.startswith("linux"),
                     reason="requires Linux")
-class TestGetStandardDirLinux(object):
+class TestGetStandardDirLinux:
     """Tests for standarddir under Linux.
     """
 
@@ -92,7 +92,7 @@ class TestGetStandardDirLinux(object):
 
 @pytest.mark.skipif(not sys.platform.startswith("win"),
                     reason="requires Windows")
-class TestGetStandardDirWindows(object):
+class TestGetStandardDirWindows:
     """Tests for standarddir under Windows.
     """
 

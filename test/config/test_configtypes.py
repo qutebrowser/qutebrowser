@@ -73,7 +73,7 @@ def os_path(mocker):
     return mocker.patch('qutebrowser.config.configtypes.os.path', autospec=True)
 
 
-class TestValidValues(object):
+class TestValidValues:
     """Test ValidValues."""
 
     def test_contains_without_desc(self):
@@ -120,7 +120,7 @@ class TestValidValues(object):
         assert 'baz' not in vv.descriptions
 
 
-class TestBaseType(object):
+class TestBaseType:
     """Test BaseType."""
 
     @pytest.fixture(autouse=True)
@@ -174,7 +174,7 @@ class TestBaseType(object):
         assert self.t.complete() == [('foo', "foo desc"), ('bar', "")]
 
 
-class TestString(object):
+class TestString:
     """Test String."""
 
     def test_minlen_toosmall(self):
@@ -268,7 +268,7 @@ class TestString(object):
         assert t.transform('foobar') == 'foobar'
 
 
-class TestList(object):
+class TestList:
     """Test List."""
 
     @pytest.fixture(autouse=True)
@@ -317,7 +317,7 @@ class TestList(object):
         assert self.t.transform('') is None
 
 
-class TestBool(object):
+class TestBool:
     """Test Bool."""
 
     TESTS = {True: ['1', 'yes', 'YES', 'true', 'TrUe', 'on'],
@@ -366,7 +366,7 @@ class TestBool(object):
         t.validate('')
 
 
-class TestInt(object):
+class TestInt:
     """Test Int."""
 
     def test_minval_gt_maxval(self):
@@ -443,7 +443,7 @@ class TestInt(object):
         assert t.transform('1337') == 1337
 
 
-class TestIntList(object):
+class TestIntList:
     """Test IntList."""
 
     @pytest.fixture(autouse=True)
@@ -482,7 +482,7 @@ class TestIntList(object):
         assert self.t.transform('23,,42'), [23, None == 42]
 
 
-class TestFloat(object):
+class TestFloat:
     """Test Float."""
 
     def test_minval_gt_maxval(self):
@@ -569,7 +569,7 @@ class TestFloat(object):
         assert t.transform('1337') == 1337.00
 
 
-class TestPerc(object):
+class TestPerc:
     """Test Perc."""
 
     @pytest.fixture(autouse=True)
@@ -650,7 +650,7 @@ class TestPerc(object):
         assert self.t.transform('1337%') == 1337
 
 
-class TestPercList(object):
+class TestPercList:
     """Test PercList."""
 
     @pytest.fixture(autouse=True)
@@ -730,7 +730,7 @@ class TestPercList(object):
         assert self.t.transform('23%,,42%'), [23, None == 42]
 
 
-class TestPercOrInt(object):
+class TestPercOrInt:
     """Test PercOrInt."""
 
     @pytest.fixture(autouse=True)
@@ -867,7 +867,7 @@ class TestPercOrInt(object):
         assert self.t.transform('1337') == '1337'
 
 
-class TestCommand(object):
+class TestCommand:
     """Test Command."""
 
     @pytest.fixture(autouse=True)
@@ -923,7 +923,7 @@ class TestCommand(object):
         assert ('cmd2', "desc 2") in items
 
 
-class TestColorSystem(object):
+class TestColorSystem:
     """Test ColorSystem."""
 
     TESTS = {
@@ -971,7 +971,7 @@ class TestColorSystem(object):
         assert self.t.transform('') is None
 
 
-class TestQtColor(object):
+class TestQtColor:
     """Test QtColor."""
 
     VALID = ['#123', '#112233', '#111222333', '#111122223333', 'red']
@@ -1083,7 +1083,7 @@ FontDesc = collections.namedtuple('FontDesc',
                                   ['style', 'weight', 'pt', 'px', 'family'])
 
 
-class TestFont(object):
+class TestFont:
     """Test Font/QtFont."""
 
     TESTS = {
@@ -1182,7 +1182,7 @@ class TestFont(object):
         assert self.t2.transform('') is None
 
 
-class TestFontFamily(object):
+class TestFontFamily:
     """Test FontFamily."""
 
     TESTS = ['"Foobar Neue"', 'inconsolatazi4', 'Foobar']
@@ -1233,7 +1233,7 @@ class TestFontFamily(object):
         assert self.t.transform('') is None
 
 
-class TestRegex(object):
+class TestRegex:
     """Test Regex."""
 
     @pytest.fixture(autouse=True)
@@ -1268,7 +1268,7 @@ class TestRegex(object):
         assert self.t.transform(r'foobar') == re.compile(r'foobar')
 
 
-class TestRegexList(object):
+class TestRegexList:
     """Test RegexList."""
 
     @pytest.fixture(autouse=True)
@@ -1309,7 +1309,7 @@ class TestRegexList(object):
         assert self.t.transform('foo,,bar') == expected
 
 
-class TestFile(object):
+class TestFile:
     """Test File."""
 
     @pytest.fixture(autouse=True)
@@ -1375,7 +1375,7 @@ class TestFile(object):
         assert self.t.transform('') is None
 
 
-class TestDirectory(object):
+class TestDirectory:
     """Test Directory."""
 
     @pytest.fixture(autouse=True)
@@ -1453,7 +1453,7 @@ class TestDirectory(object):
         assert self.t.transform('') is None
 
 
-class TestWebKitByte(object):
+class TestWebKitByte:
     """Test WebKitBytes."""
 
     @pytest.fixture(autouse=True)
@@ -1527,7 +1527,7 @@ class TestWebKitByte(object):
         assert self.t.transform('1k') == 1024
 
 
-class TestWebKitBytesList(object):
+class TestWebKitBytesList:
     """Test WebKitBytesList."""
 
     @pytest.fixture(autouse=True)
@@ -1598,7 +1598,7 @@ class TestWebKitBytesList(object):
         assert self.t.transform('23,,42'), [23, None == 42]
 
 
-class TestShellCommand(object):
+class TestShellCommand:
     """Test ShellCommand."""
 
     @pytest.fixture(autouse=True)
@@ -1648,7 +1648,7 @@ class TestShellCommand(object):
         assert self.t.transform('') is None
 
 
-class TestProxy(object):
+class TestProxy:
     """Test Proxy."""
 
     @pytest.fixture(autouse=True)
@@ -1757,7 +1757,7 @@ class TestProxy(object):
         assert proxy == val
 
 
-class TestSearchEngineName(object):
+class TestSearchEngineName:
     """Test SearchEngineName."""
 
     @pytest.fixture(autouse=True)
@@ -1783,7 +1783,7 @@ class TestSearchEngineName(object):
         assert self.t.transform("foobar") == "foobar"
 
 
-class TestSearchEngineUrl(object):
+class TestSearchEngineUrl:
     """Test SearchEngineUrl."""
 
     @pytest.fixture(autouse=True)
@@ -1823,7 +1823,7 @@ class TestSearchEngineUrl(object):
         assert self.t.transform("foobar") == "foobar"
 
 
-class TestFuzzyUrl(object):
+class TestFuzzyUrl:
     """Test FuzzyUrl."""
 
     @pytest.fixture(autouse=True)
@@ -1867,7 +1867,7 @@ class TestFuzzyUrl(object):
         assert self.t.transform("example.com") == QUrl('http://example.com')
 
 
-class TestUserStyleSheet(object):
+class TestUserStyleSheet:
     """Test UserStyleSheet."""
 
     @pytest.fixture(autouse=True)
@@ -1905,7 +1905,7 @@ class TestUserStyleSheet(object):
         assert self.t.transform("test") == url
 
 
-class TestAutoSearch(object):
+class TestAutoSearch:
     """Test AutoSearch."""
 
     TESTS = {
@@ -1955,7 +1955,7 @@ class TestAutoSearch(object):
         assert self.t.transform('') is None
 
 
-class TestIgnoreCase(object):
+class TestIgnoreCase:
     """Test IgnoreCase."""
 
     TESTS = {
@@ -2005,7 +2005,7 @@ class TestIgnoreCase(object):
         assert self.t.transform('') is None
 
 
-class TestEncoding(object):
+class TestEncoding:
     """Test Encoding."""
 
     @pytest.fixture(autouse=True)
@@ -2041,7 +2041,7 @@ class TestEncoding(object):
         assert self.t.transform('') is None
 
 
-class TestUrlList(object):
+class TestUrlList:
     """Test UrlList."""
 
     @pytest.fixture(autouse=True)
@@ -2093,7 +2093,7 @@ class TestUrlList(object):
         assert self.t.transform('') is None
 
 
-class TestFormatString(object):
+class TestFormatString:
     """Test FormatString."""
 
     @pytest.fixture(autouse=True)
@@ -2133,7 +2133,7 @@ class TestFormatString(object):
         t.validate('')
 
 
-class TestUserAgent(object):
+class TestUserAgent:
     """Test UserAgent."""
 
     @pytest.fixture(autouse=True)

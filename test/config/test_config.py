@@ -35,7 +35,7 @@ from qutebrowser.config import config, configexc
 from qutebrowser.utils import objreg, standarddir
 
 
-class TestConfigParser(object):
+class TestConfigParser:
 
     """Test reading of ConfigParser."""
 
@@ -157,7 +157,7 @@ class TestConfigParser(object):
             self.cfg.get('general', 'bar')  # pylint: disable=bad-config-call
 
 
-class TestDefaultConfig(object):
+class TestDefaultConfig:
 
     """Test validating of the default config."""
 
@@ -170,7 +170,7 @@ class TestDefaultConfig(object):
         conf._validate_all()
 
 
-class TestConfigInit(object):
+class TestConfigInit:
 
     """Test initializing of the config."""
 
