@@ -281,7 +281,7 @@ class ConfigManager(QObject):
     def __init__(self, configdir, fname, relaxed=False, parent=None):
         super().__init__(parent)
         self._initialized = False
-        self.sections = configdata.DATA
+        self.sections = configdata.data()
         self._interpolation = configparser.ExtendedInterpolation()
         self._proxies = {}
         for sectname in self.sections.keys():

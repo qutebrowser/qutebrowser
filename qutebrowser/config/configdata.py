@@ -23,7 +23,8 @@ Module attributes:
 
 FIRST_COMMENT: The initial comment header to place in the config.
 SECTION_DESC: A dictionary with descriptions for sections.
-DATA: The config defaults, an OrderedDict of sections.
+DATA: A global read-only copy of the default config, an OrderedDict of
+      sections.
 """
 
 import sys
@@ -117,835 +118,888 @@ SECTION_DESC = {
 DEFAULT_FONT_SIZE = '10pt' if sys.platform == 'darwin' else '8pt'
 
 
-DATA = collections.OrderedDict([
-    ('general', sect.KeyValue(
-        ('ignore-case',
-         SettingValue(typ.IgnoreCase(), 'smart'),
-         "Whether to find text on a page case-insensitively."),
-
-        ('wrap-search',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether to wrap finding text to the top when arriving at the end."),
-
-        ('startpage',
-         SettingValue(typ.List(), 'https://www.duckduckgo.com'),
-         "The default page(s) to open at the start, separated by commas."),
-
-        ('default-page',
-         SettingValue(typ.FuzzyUrl(), '${startpage}'),
-         "The page to open if :open -t/-b/-w is used without URL. Use "
-         "`about:blank` for a blank page."),
-
-        ('auto-search',
-         SettingValue(typ.AutoSearch(), 'naive'),
-         "Whether to start a search when something else than a URL is "
-         "entered."),
-
-        ('auto-save-config',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether to save the config automatically on quit."),
-
-        ('auto-save-interval',
-         SettingValue(typ.Int(minval=0), '15000'),
-         "How often (in milliseconds) to auto-save config/cookies/etc."),
-
-        ('editor',
-         SettingValue(typ.ShellCommand(placeholder=True), 'gvim -f "{}"'),
-         "The editor (and arguments) to use for the `open-editor` command.\n\n"
-         "Use `{}` for the filename. The value gets split like in a shell, so "
-         "you can use `\"` or `'` to quote arguments."),
-
-        ('editor-encoding',
-         SettingValue(typ.Encoding(), 'utf-8'),
-         "Encoding to use for editor."),
-
-        ('private-browsing',
-         SettingValue(typ.Bool(), 'false'),
-         "Do not record visited pages in the history or store web page "
-         "icons."),
-
-        ('developer-extras',
-         SettingValue(typ.Bool(), 'false'),
-         "Enable extra tools for Web developers.\n\n"
-         "This needs to be enabled for `:inspector` to work and also adds an "
-         "_Inspect_ entry to the context menu."),
-
-        ('print-element-backgrounds',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether the background color and images are also drawn when the "
-         "page is printed."),
-
-        ('xss-auditing',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether load requests should be monitored for cross-site scripting "
-         "attempts.\n\n"
-         "Suspicious scripts will be blocked and reported in the inspector's "
-         "JavaScript console. Enabling this feature might have an impact on "
-         "performance."),
-
-        ('site-specific-quirks',
-         SettingValue(typ.Bool(), 'true'),
-         "Enable workarounds for broken sites."),
-
-        ('default-encoding',
-         SettingValue(typ.String(none_ok=True), ''),
-         "Default encoding to use for websites.\n\n"
-         "The encoding must be a string describing an encoding such as "
-         '_utf-8_, _iso-8859-1_, etc. If left empty a default value will be '
-         "used."),
-
-        ('new-instance-open-target',
-         SettingValue(typ.NewInstanceOpenTarget(), 'window'),
-         "How to open links in an existing instance if a new one is "
-         "launched."),
-
-        ('log-javascript-console',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether to log javascript console messages."),
-
-        ('save-session',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether to always save the open pages."),
-    )),
-
-    ('ui', sect.KeyValue(
-        ('zoom-levels',
-         SettingValue(typ.PercList(minval=0),
-                      '25%,33%,50%,67%,75%,90%,100%,110%,125%,150%,175%,200%,'
-                      '250%,300%,400%,500%'),
-         "The available zoom levels, separated by commas."),
-
-        ('default-zoom',
-         SettingValue(typ.Perc(), '100%'),
-         "The default zoom level."),
-
-        ('message-timeout',
-         SettingValue(typ.Int(), '2000'),
-         "Time (in ms) to show messages in the statusbar for."),
-
-        ('message-unfocused',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether to show messages in unfocused windows."),
-
-        ('confirm-quit',
-         SettingValue(typ.ConfirmQuit(), 'never'),
-         "Whether to confirm quitting the application."),
-
-        ('display-statusbar-messages',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether to display javascript statusbar messages."),
-
-        ('zoom-text-only',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether the zoom factor on a frame applies only to the text or to "
-         "all content."),
-
-        ('frame-flattening',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether to  expand each subframe to its contents.\n\n"
-         "This will flatten all the frames to become one scrollable page."),
-
-        ('user-stylesheet',
-         SettingValue(typ.UserStyleSheet(),
-                      '::-webkit-scrollbar { width: 0px; height: 0px; }'),
-         "User stylesheet to use (absolute filename or CSS string). Will "
-         "expand environment variables."),
-
-        ('css-media-type',
-         SettingValue(typ.String(none_ok=True), ''),
-         "Set the CSS media type."),
-
-        ('remove-finished-downloads',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether to remove finished downloads automatically."),
-
-        ('hide-statusbar',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether to hide the statusbar unless a message is shown."),
-
-        ('window-title-format',
-         SettingValue(typ.FormatString(fields=['perc', 'perc_raw', 'title',
-                                               'title_sep', 'id']),
-                      '{perc}{title}{title_sep}qutebrowser'),
-         "The format to use for the window title. The following placeholders "
-         "are defined:\n\n"
-         "* `{perc}`: The percentage as a string like `[10%]`.\n"
-         "* `{perc_raw}`: The raw percentage, e.g. `10`\n"
-         "* `{title}`: The title of the current web page\n"
-         "* `{title_sep}`: The string ` - ` if a title is set, empty "
-         "otherwise.\n"
-         "* `{id}`: The internal window ID of this window."),
-    )),
-
-    ('network', sect.KeyValue(
-        ('do-not-track',
-         SettingValue(typ.Bool(), 'true'),
-         "Value to send in the `DNT` header."),
-
-        ('accept-language',
-         SettingValue(typ.String(none_ok=True), 'en-US,en'),
-         "Value to send in the `accept-language` header."),
-
-        ('user-agent',
-         SettingValue(typ.UserAgent(none_ok=True), ''),
-         "User agent to send. Empty to send the default."),
-
-        ('proxy',
-         SettingValue(typ.Proxy(), 'system'),
-         "The proxy to use.\n\n"
-         "In addition to the listed values, you can use a `socks://...` or "
-         "`http://...` URL."),
-
-        ('proxy-dns-requests',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether to send DNS requests over the configured proxy."),
-
-        ('ssl-strict',
-         SettingValue(typ.BoolAsk(), 'ask'),
-         "Whether to validate SSL handshakes."),
-
-        ('dns-prefetch',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether to try to pre-fetch DNS entries to speed up browsing."),
-    )),
-
-    ('completion', sect.KeyValue(
-        ('download-path-suggestion',
-         SettingValue(typ.DownloadPathSuggestion(), 'path'),
-         "What to display in the download filename input."),
-
-        ('timestamp-format',
-         SettingValue(typ.String(none_ok=True), '%Y-%m-%d'),
-         "How to format timestamps (e.g. for history)"),
-
-        ('show',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether to show the autocompletion window."),
-
-        ('height',
-         SettingValue(typ.PercOrInt(minperc=0, maxperc=100, minint=1), '50%'),
-         "The height of the completion, in px or as percentage of the "
-         "window."),
-
-        ('cmd-history-max-items',
-         SettingValue(typ.Int(minval=-1), '100'),
-         "How many commands to save in the command history.\n\n"
-         "0: no history / -1: unlimited"),
-
-        ('web-history-max-items',
-         SettingValue(typ.Int(minval=-1), '1000'),
-         "How many URLs to show in the web history.\n\n"
-         "0: no history / -1: unlimited"),
-
-        ('quick-complete',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether to move on to the next part when there's only one possible "
-         "completion left."),
-
-        ('shrink',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether to shrink the completion to be smaller than the configured "
-         "size if there are no scrollbars."),
-    )),
-
-    ('input', sect.KeyValue(
-        ('timeout',
-         SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '500'),
-         "Timeout for ambiguous key bindings."),
-
-        ('partial-timeout',
-         SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '1000'),
-         "Timeout for partially typed key bindings."),
-
-        ('insert-mode-on-plugins',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether to switch to insert mode when clicking flash and other "
-         "plugins."),
-
-        ('auto-leave-insert-mode',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether to leave insert mode if a non-editable element is clicked."),
-
-        ('auto-insert-mode',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether to automatically enter insert mode if an editable element "
-         "is focused after page load."),
-
-        ('forward-unbound-keys',
-         SettingValue(typ.ForwardUnboundKeys(), 'auto'),
-         "Whether to forward unbound keys to the webview in normal mode."),
-
-        ('spatial-navigation',
-         SettingValue(typ.Bool(), 'false'),
-         "Enables or disables the Spatial Navigation feature\n\n"
-         "Spatial navigation consists in the ability to navigate between "
-         "focusable elements in a Web page, such as hyperlinks and form "
-         "controls, by using Left, Right, Up and Down arrow keys. For "
-         "example, if a user presses the Right key, heuristics determine "
-         "whether there is an element he might be trying to reach towards the "
-         "right and which element he probably wants."),
-
-        ('links-included-in-focus-chain',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether hyperlinks should be included in the keyboard focus chain."),
-
-        ('rocker-gestures',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether to enable Opera-like mouse rocker gestures. This disables "
-         "the context menu."),
-
-        ('mouse-zoom-divider',
-         SettingValue(typ.Int(minval=1), '512'),
-         "How much to divide the mouse wheel movements to translate them "
-         "into zoom increments."),
-    )),
-
-    ('tabs', sect.KeyValue(
-        ('background-tabs',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether to open new tabs (middleclick/ctrl+click) in background."),
-
-        ('select-on-remove',
-         SettingValue(typ.SelectOnRemove(), 'right'),
-         "Which tab to select when the focused tab is removed."),
-
-        ('new-tab-position',
-         SettingValue(typ.NewTabPosition(), 'right'),
-         "How new tabs are positioned."),
-
-        ('new-tab-position-explicit',
-         SettingValue(typ.NewTabPosition(), 'last'),
-         "How new tabs opened explicitly are positioned."),
-
-        ('last-close',
-         SettingValue(typ.LastClose(), 'ignore'),
-         "Behaviour when the last tab is closed."),
-
-        ('hide-auto',
-         SettingValue(typ.Bool(), 'false'),
-         "Hide the tab bar if only one tab is open."),
-
-        ('hide-always',
-         SettingValue(typ.Bool(), 'false'),
-         "Always hide the tab bar."),
-
-        ('wrap',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether to wrap when changing tabs."),
-
-        ('movable',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether tabs should be movable."),
-
-        ('close-mouse-button',
-         SettingValue(typ.CloseButton(), 'middle'),
-         "On which mouse button to close tabs."),
-
-        ('position',
-         SettingValue(typ.Position(), 'north'),
-         "The position of the tab bar."),
-
-        ('show-favicons',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether to show favicons in the tab bar."),
-
-        ('width',
-         SettingValue(typ.PercOrInt(minperc=0, maxperc=100, minint=1), '20%'),
-         "The width of the tab bar if it's vertical, in px or as percentage "
-         "of the window."),
-
-        ('indicator-width',
-         SettingValue(typ.Int(minval=0), '3'),
-         "Width of the progress indicator (0 to disable)."),
-
-        ('indicator-space',
-         SettingValue(typ.Int(minval=0), '3'),
-         "Spacing between tab edge and indicator."),
-
-        ('tabs-are-windows',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether to open windows instead of tabs."),
-
-        ('title-format',
-         SettingValue(typ.FormatString(fields=['perc', 'perc_raw', 'title',
-                                               'title_sep', 'index', 'id']),
-                      '{index}: {title}'),
-         "The format to use for the tab title. The following placeholders "
-         "are defined:\n\n"
-         "* `{perc}`: The percentage as a string like `[10%]`.\n"
-         "* `{perc_raw}`: The raw percentage, e.g. `10`\n"
-         "* `{title}`: The title of the current web page\n"
-         "* `{title_sep}`: The string ` - ` if a title is set, empty "
-         "otherwise.\n"
-         "* `{index}`: The index of this tab.\n"
-         "* `{id}`: The internal tab ID of this tab."),
-    )),
-
-    ('storage', sect.KeyValue(
-        ('download-directory',
-         SettingValue(typ.Directory(none_ok=True), ''),
-         "The directory to save downloads to. An empty value selects a "
-         "sensible os-specific default. Will expand environment variables."),
-
-        ('maximum-pages-in-cache',
-         SettingValue(
-             typ.Int(none_ok=True, minval=0, maxval=MAXVALS['int']), ''),
-         "The maximum number of pages to hold in the global memory page "
-         "cache.\n\n"
-         "The Page Cache allows for a nicer user experience when navigating "
-         "forth or back to pages in the forward/back history, by pausing and "
-         "resuming up to _n_ pages.\n\n"
-         "For more information about the feature, please refer to: "
-         "http://webkit.org/blog/427/webkit-page-cache-i-the-basics/"),
-
-        ('object-cache-capacities',
-         SettingValue(
-             typ.WebKitBytesList(length=3, maxsize=MAXVALS['int']), ''),
-         "The capacities for the global memory cache for dead objects such as "
-         "stylesheets or scripts. Syntax: cacheMinDeadCapacity, cacheMaxDead, "
-         "totalCapacity.\n\n"
-         "The _cacheMinDeadCapacity_ specifies the minimum number of bytes "
-         "that dead objects should consume when the cache is under "
-         "pressure.\n\n"
-         "_cacheMaxDead_ is the maximum number of bytes that dead objects "
-         "should consume when the cache is *not* under pressure.\n\n"
-         "_totalCapacity_ specifies the maximum number of bytes "
-         "that the cache should consume *overall*."),
-
-        ('offline-storage-default-quota',
-         SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64']), ''),
-         "Default quota for new offline storage databases."),
-
-        ('offline-web-application-cache-quota',
-         SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64']), ''),
-         "Quota for the offline web application cache."),
-
-        ('offline-storage-database',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether support for the HTML 5 offline storage feature is enabled."),
-
-        ('offline-web-application-storage',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether support for the HTML 5 web application cache feature is "
-         "enabled.\n\n"
-         "An application cache acts like an HTTP cache in some sense. For "
-         "documents that use the application cache via JavaScript, the loader "
-         "engine will first ask the application cache for the contents, "
-         "before hitting the network.\n\n"
-         "The feature is described in details at: "
-         "http://dev.w3.org/html5/spec/Overview.html#appcache"),
-
-        ('local-storage',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether support for the HTML 5 local storage feature is enabled."),
-
-        ('cache-size',
-         SettingValue(typ.Int(minval=0, maxval=MAXVALS['int64']), '52428800'),
-         "Size of the HTTP network cache."),
-    )),
-
-    ('content', sect.KeyValue(
-        ('allow-images',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether images are automatically loaded in web pages."),
-
-        ('allow-javascript',
-         SettingValue(typ.Bool(), 'true'),
-         "Enables or disables the running of JavaScript programs."),
-
-        ('allow-plugins',
-         SettingValue(typ.Bool(), 'false'),
-         "Enables or disables plugins in Web pages.\n\n"
-         'Qt plugins with a mimetype such as "application/x-qt-plugin" are '
-         "not affected by this setting."),
-
-        ('geolocation',
-         SettingValue(typ.NoAsk(), 'ask'),
-         "Allow websites to request geolocations."),
-
-        ('notifications',
-         SettingValue(typ.NoAsk(), 'ask'),
-         "Allow websites to show notifications."),
-
-        #('allow-java',
-        # SettingValue(typ.Bool(), 'true'),
-        # "Enables or disables Java applets. Currently Java applets are "
-        # "not supported"),
-
-        ('javascript-can-open-windows',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether JavaScript programs can open new windows."),
-
-        ('javascript-can-close-windows',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether JavaScript programs can close windows."),
-
-        ('javascript-can-access-clipboard',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether JavaScript programs can read or write to the clipboard."),
-
-        ('ignore-javascript-prompt',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether all javascript prompts should be ignored."),
-
-        ('ignore-javascript-alert',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether all javascript alerts should be ignored."),
-
-        ('local-content-can-access-remote-urls',
-         SettingValue(typ.Bool(), 'false'),
-         "Whether locally loaded documents are allowed to access remote "
-         "urls."),
-
-        ('local-content-can-access-file-urls',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether locally loaded documents are allowed to access other local "
-         "urls."),
-
-        ('cookies-accept',
-         SettingValue(typ.AcceptCookies(), 'default'),
-         "Whether to accept cookies."),
-
-        ('cookies-store',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether to store cookies."),
-
-        ('host-block-lists',
-         SettingValue(typ.UrlList(none_ok=True),
-                      'http://www.malwaredomainlist.com/hostslist/hosts.txt,'
-                      'http://someonewhocares.org/hosts/hosts,'
-                      'http://winhelp2002.mvps.org/hosts.zip,'
-                      'http://malwaredomains.lehigh.edu/files/justdomains.zip,'
-                      'http://pgl.yoyo.org/adservers/serverlist.php?'
-                      'hostformat=hosts&mimetype=plaintext'),
-         "List of URLs of lists which contain hosts to block.\n\n"
-         "The file can be in one of the following formats:\n\n"
-         "- An '/etc/hosts'-like file\n"
-         "- One host per line\n"
-         "- A zip-file of any of the above, with either only one file, or a "
-         "file named 'hosts' (with any extension)."),
-
-        ('host-blocking-enabled',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether host blocking is enabled."),
-    )),
-
-    ('hints', sect.KeyValue(
-        ('border',
-         SettingValue(typ.String(), '1px solid #E3BE23'),
-         "CSS border value for hints."),
-
-        ('opacity',
-         SettingValue(typ.Float(minval=0.0, maxval=1.0), '0.7'),
-         "Opacity for hints."),
-
-        ('mode',
-         SettingValue(typ.HintMode(), 'letter'),
-         "Mode to use for hints."),
-
-        ('chars',
-         SettingValue(typ.String(minlen=2), 'asdfghjkl'),
-         "Chars used for hint strings."),
-
-        ('min-chars',
-         SettingValue(typ.Int(minval=1), '1'),
-         "Mininum number of chars used for hint strings."),
-
-        ('scatter',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether to scatter hint key chains (like Vimium) or not (like "
-         "dwb)."),
-
-        ('uppercase',
-         SettingValue(typ.Bool(), 'false'),
-         "Make chars in hint strings uppercase."),
-
-        ('auto-follow',
-         SettingValue(typ.Bool(), 'true'),
-         "Whether to auto-follow a hint if there's only one left."),
-
-        ('next-regexes',
-         SettingValue(typ.RegexList(flags=re.IGNORECASE),
-                      r'\bnext\b,\bmore\b,\bnewer\b,\b[>→≫]\b,\b(>>|»)\b'),
-         "A comma-separated list of regexes to use for 'next' links."),
-
-        ('prev-regexes',
-         SettingValue(typ.RegexList(flags=re.IGNORECASE),
-                      r'\bprev(ious)?\b,\bback\b,\bolder\b,\b[<←≪]\b,'
-                      r'\b(<<|«)\b'),
-         "A comma-separated list of regexes to use for 'prev' links."),
-    )),
-
-    ('searchengines', sect.ValueList(
-        typ.SearchEngineName(), typ.SearchEngineUrl(),
-        ('DEFAULT', 'https://duckduckgo.com/?q={}'),
-    )),
-
-    ('aliases', sect.ValueList(
-        typ.String(forbidden=' '), typ.Command(),
-    )),
-
-    ('colors', sect.KeyValue(
-        ('completion.fg',
-         SettingValue(typ.QtColor(), 'white'),
-         "Text color of the completion widget."),
-
-        ('completion.bg',
-         SettingValue(typ.QssColor(), '#333333'),
-         "Background color of the completion widget."),
-
-        ('completion.alternate-bg',
-         SettingValue(typ.QssColor(), '#444444'),
-         "Alternating background color of the completion widget."),
-
-        ('completion.category.fg',
-         SettingValue(typ.QtColor(), 'white'),
-         "Foreground color of completion widget category headers."),
-
-        ('completion.category.bg',
-         SettingValue(typ.QssColor(), 'qlineargradient(x1:0, y1:0, x2:0, '
-                      'y2:1, stop:0 #888888, stop:1 #505050)'),
-         "Background color of the completion widget category headers."),
-
-        ('completion.category.border.top',
-         SettingValue(typ.QssColor(), 'black'),
-         "Top border color of the completion widget category headers."),
-
-        ('completion.category.border.bottom',
-         SettingValue(typ.QssColor(), '${completion.category.border.top}'),
-         "Bottom border color of the completion widget category headers."),
-
-        ('completion.item.selected.fg',
-         SettingValue(typ.QtColor(), 'black'),
-         "Foreground color of the selected completion item."),
-
-        ('completion.item.selected.bg',
-         SettingValue(typ.QssColor(), '#e8c000'),
-         "Background color of the selected completion item."),
-
-        ('completion.item.selected.border.top',
-         SettingValue(typ.QssColor(), '#bbbb00'),
-         "Top border color of the completion widget category headers."),
-
-        ('completion.item.selected.border.bottom',
-         SettingValue(typ.QssColor(), '${completion.item.selected.border.'
-                      'top}'),
-         "Bottom border color of the selected completion item."),
-
-        ('completion.match.fg',
-         SettingValue(typ.QssColor(), '#ff4444'),
-         "Foreground color of the matched text in the completion."),
-
-        ('statusbar.bg',
-         SettingValue(typ.QssColor(), 'black'),
-         "Foreground color of the statusbar."),
-
-        ('statusbar.fg',
-         SettingValue(typ.QssColor(), 'white'),
-         "Foreground color of the statusbar."),
-
-        ('statusbar.bg.error',
-         SettingValue(typ.QssColor(), 'red'),
-         "Background color of the statusbar if there was an error."),
-
-        ('statusbar.bg.warning',
-         SettingValue(typ.QssColor(), 'darkorange'),
-         "Background color of the statusbar if there is a warning."),
-
-        ('statusbar.bg.prompt',
-         SettingValue(typ.QssColor(), 'darkblue'),
-         "Background color of the statusbar if there is a prompt."),
-
-        ('statusbar.bg.insert',
-         SettingValue(typ.QssColor(), 'darkgreen'),
-         "Background color of the statusbar in insert mode."),
-
-        ('statusbar.progress.bg',
-         SettingValue(typ.QssColor(), 'white'),
-         "Background color of the progress bar."),
-
-        ('statusbar.url.fg',
-         SettingValue(typ.QssColor(), '${statusbar.fg}'),
-         "Default foreground color of the URL in the statusbar."),
-
-        ('statusbar.url.fg.success',
-         SettingValue(typ.QssColor(), 'lime'),
-         "Foreground color of the URL in the statusbar on successful "
-         "load."),
-
-        ('statusbar.url.fg.error',
-         SettingValue(typ.QssColor(), 'orange'),
-         "Foreground color of the URL in the statusbar on error."),
-
-        ('statusbar.url.fg.warn',
-         SettingValue(typ.QssColor(), 'yellow'),
-         "Foreground color of the URL in the statusbar when there's a "
-         "warning."),
-
-        ('statusbar.url.fg.hover',
-         SettingValue(typ.QssColor(), 'aqua'),
-         "Foreground color of the URL in the statusbar for hovered links."),
-
-        ('tabs.fg.odd',
-         SettingValue(typ.QtColor(), 'white'),
-         "Foreground color of unselected odd tabs."),
-
-        ('tabs.fg.even',
-         SettingValue(typ.QtColor(), 'white'),
-         "Foreground color of unselected even tabs."),
-
-        ('tabs.fg.selected',
-         SettingValue(typ.QtColor(), 'white'),
-         "Foreground color of selected tabs."),
-
-        ('tabs.bg.odd',
-         SettingValue(typ.QtColor(), 'grey'),
-         "Background color of unselected odd tabs."),
-
-        ('tabs.bg.even',
-         SettingValue(typ.QtColor(), 'darkgrey'),
-         "Background color of unselected even tabs."),
-
-        ('tabs.bg.selected',
-         SettingValue(typ.QtColor(), 'black'),
-         "Background color of selected tabs."),
-
-        ('tabs.bg.bar',
-         SettingValue(typ.QtColor(), '#555555'),
-         "Background color of the tab bar."),
-
-        ('tabs.indicator.start',
-         SettingValue(typ.QtColor(), '#0000aa'),
-         "Color gradient start for the tab indicator."),
-
-        ('tabs.indicator.stop',
-         SettingValue(typ.QtColor(), '#00aa00'),
-         "Color gradient end for the tab indicator."),
-
-        ('tabs.indicator.error',
-         SettingValue(typ.QtColor(), '#ff0000'),
-         "Color for the tab indicator on errors.."),
-
-        ('tabs.indicator.system',
-         SettingValue(typ.ColorSystem(), 'rgb'),
-         "Color gradient interpolation system for the tab indicator."),
-
-        ('hints.fg',
-         SettingValue(typ.CssColor(), 'black'),
-         "Font color for hints."),
-
-        ('hints.fg.match',
-         SettingValue(typ.CssColor(), 'green'),
-         "Font color for the matched part of hints."),
-
-        ('hints.bg',
-         SettingValue(typ.CssColor(), '-webkit-gradient(linear, left top, '
-                                      'left bottom, color-stop(0%,#FFF785), '
-                                      'color-stop(100%,#FFC542))'),
-         "Background color for hints."),
-
-        ('downloads.fg',
-         SettingValue(typ.QtColor(), '#ffffff'),
-         "Foreground color for downloads."),
-
-        ('downloads.bg.bar',
-         SettingValue(typ.QssColor(), 'black'),
-         "Background color for the download bar."),
-
-        ('downloads.bg.start',
-         SettingValue(typ.QtColor(), '#0000aa'),
-         "Color gradient start for downloads."),
-
-        ('downloads.bg.stop',
-         SettingValue(typ.QtColor(), '#00aa00'),
-         "Color gradient end for downloads."),
-
-        ('downloads.bg.system',
-         SettingValue(typ.ColorSystem(), 'rgb'),
-         "Color gradient interpolation system for downloads."),
-
-        ('downloads.bg.error',
-         SettingValue(typ.QtColor(), 'red'),
-         "Background color for downloads with errors."),
-    )),
-
-    ('fonts', sect.KeyValue(
-        ('_monospace',
-         SettingValue(typ.Font(), 'Terminus, Monospace, "DejaVu Sans Mono", '
-                      'Monaco, "Bitstream Vera Sans Mono", "Andale Mono", '
-                      '"Liberation Mono", "Courier New", Courier, monospace, '
-                      'Fixed, Consolas, Terminal'),
-         "Default monospace fonts."),
-
-        ('completion',
-         SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
-         "Font used in the completion widget."),
-
-        ('tabbar',
-         SettingValue(typ.QtFont(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
-         "Font used in the tab bar."),
-
-        ('statusbar',
-         SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
-         "Font used in the statusbar."),
-
-        ('downloads',
-         SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
-         "Font used for the downloadbar."),
-
-        ('hints',
-         SettingValue(typ.Font(), 'bold 12px Monospace'),
-         "Font used for the hints."),
-
-        ('debug-console',
-         SettingValue(typ.QtFont(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
-         "Font used for the debugging console."),
-
-        ('web-family-standard',
-         SettingValue(typ.FontFamily(none_ok=True), ''),
-         "Font family for standard fonts."),
-
-        ('web-family-fixed',
-         SettingValue(typ.FontFamily(none_ok=True), ''),
-         "Font family for fixed fonts."),
-
-        ('web-family-serif',
-         SettingValue(typ.FontFamily(none_ok=True), ''),
-         "Font family for serif fonts."),
-
-        ('web-family-sans-serif',
-         SettingValue(typ.FontFamily(none_ok=True), ''),
-         "Font family for sans-serif fonts."),
-
-        ('web-family-cursive',
-         SettingValue(typ.FontFamily(none_ok=True), ''),
-         "Font family for cursive fonts."),
-
-        ('web-family-fantasy',
-         SettingValue(typ.FontFamily(none_ok=True), ''),
-         "Font family for fantasy fonts."),
-
-        ('web-size-minimum',
-         SettingValue(
-             typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
-         "The hard minimum font size."),
-
-        ('web-size-minimum-logical',
-         SettingValue(
-             typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
-         "The minimum logical font size that is applied when zooming out."),
-
-        ('web-size-default',
-         SettingValue(
-             typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
-         "The default font size for regular text."),
-
-        ('web-size-default-fixed',
-         SettingValue(
-             typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
-         "The default font size for fixed-pitch text."),
-    )),
-])
+def data(readonly=False):
+    """Get the default config data.
+
+    Return:
+        A {name: section} OrderedDict.
+    """
+    return collections.OrderedDict([
+        ('general', sect.KeyValue(
+            ('ignore-case',
+             SettingValue(typ.IgnoreCase(), 'smart'),
+             "Whether to find text on a page case-insensitively."),
+
+            ('wrap-search',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to wrap finding text to the top when arriving at the "
+             "end."),
+
+            ('startpage',
+             SettingValue(typ.List(), 'https://www.duckduckgo.com'),
+             "The default page(s) to open at the start, separated by commas."),
+
+            ('default-page',
+             SettingValue(typ.FuzzyUrl(), '${startpage}'),
+             "The page to open if :open -t/-b/-w is used without URL. Use "
+             "`about:blank` for a blank page."),
+
+            ('auto-search',
+             SettingValue(typ.AutoSearch(), 'naive'),
+             "Whether to start a search when something else than a URL is "
+             "entered."),
+
+            ('auto-save-config',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to save the config automatically on quit."),
+
+            ('auto-save-interval',
+             SettingValue(typ.Int(minval=0), '15000'),
+             "How often (in milliseconds) to auto-save config/cookies/etc."),
+
+            ('editor',
+             SettingValue(typ.ShellCommand(placeholder=True), 'gvim -f "{}"'),
+             "The editor (and arguments) to use for the `open-editor` "
+             "command.\n\n"
+             "Use `{}` for the filename. The value gets split like in a "
+             "shell, so you can use `\"` or `'` to quote arguments."),
+
+            ('editor-encoding',
+             SettingValue(typ.Encoding(), 'utf-8'),
+             "Encoding to use for editor."),
+
+            ('private-browsing',
+             SettingValue(typ.Bool(), 'false'),
+             "Do not record visited pages in the history or store web page "
+             "icons."),
+
+            ('developer-extras',
+             SettingValue(typ.Bool(), 'false'),
+             "Enable extra tools for Web developers.\n\n"
+             "This needs to be enabled for `:inspector` to work and also adds "
+             "an _Inspect_ entry to the context menu."),
+
+            ('print-element-backgrounds',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether the background color and images are also drawn when the "
+             "page is printed."),
+
+            ('xss-auditing',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether load requests should be monitored for cross-site "
+             "scripting attempts.\n\n"
+             "Suspicious scripts will be blocked and reported in the "
+             "inspector's JavaScript console. Enabling this feature might "
+             "have an impact on performance."),
+
+            ('site-specific-quirks',
+             SettingValue(typ.Bool(), 'true'),
+             "Enable workarounds for broken sites."),
+
+            ('default-encoding',
+             SettingValue(typ.String(none_ok=True), ''),
+             "Default encoding to use for websites.\n\n"
+             "The encoding must be a string describing an encoding such as "
+             "_utf-8_, _iso-8859-1_, etc. If left empty a default value will "
+             "be used."),
+
+            ('new-instance-open-target',
+             SettingValue(typ.NewInstanceOpenTarget(), 'window'),
+             "How to open links in an existing instance if a new one is "
+             "launched."),
+
+            ('log-javascript-console',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether to log javascript console messages."),
+
+            ('save-session',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether to always save the open pages."),
+
+            readonly=readonly
+        )),
+
+        ('ui', sect.KeyValue(
+            ('zoom-levels',
+             SettingValue(typ.PercList(minval=0),
+                          '25%,33%,50%,67%,75%,90%,100%,110%,125%,150%,175%,'
+                          '200%,250%,300%,400%,500%'),
+             "The available zoom levels, separated by commas."),
+
+            ('default-zoom',
+             SettingValue(typ.Perc(), '100%'),
+             "The default zoom level."),
+
+            ('message-timeout',
+             SettingValue(typ.Int(), '2000'),
+             "Time (in ms) to show messages in the statusbar for."),
+
+            ('message-unfocused',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether to show messages in unfocused windows."),
+
+            ('confirm-quit',
+             SettingValue(typ.ConfirmQuit(), 'never'),
+             "Whether to confirm quitting the application."),
+
+            ('display-statusbar-messages',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether to display javascript statusbar messages."),
+
+            ('zoom-text-only',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether the zoom factor on a frame applies only to the text or "
+             "to all content."),
+
+            ('frame-flattening',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether to  expand each subframe to its contents.\n\n"
+             "This will flatten all the frames to become one scrollable "
+             "page."),
+
+            ('user-stylesheet',
+             SettingValue(typ.UserStyleSheet(),
+                          '::-webkit-scrollbar { width: 0px; height: 0px; }'),
+             "User stylesheet to use (absolute filename or CSS string). Will "
+             "expand environment variables."),
+
+            ('css-media-type',
+             SettingValue(typ.String(none_ok=True), ''),
+             "Set the CSS media type."),
+
+            ('remove-finished-downloads',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether to remove finished downloads automatically."),
+
+            ('hide-statusbar',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether to hide the statusbar unless a message is shown."),
+
+            ('window-title-format',
+             SettingValue(typ.FormatString(fields=['perc', 'perc_raw', 'title',
+                                                   'title_sep', 'id']),
+                          '{perc}{title}{title_sep}qutebrowser'),
+             "The format to use for the window title. The following "
+             "placeholders are defined:\n\n"
+             "* `{perc}`: The percentage as a string like `[10%]`.\n"
+             "* `{perc_raw}`: The raw percentage, e.g. `10`\n"
+             "* `{title}`: The title of the current web page\n"
+             "* `{title_sep}`: The string ` - ` if a title is set, empty "
+             "otherwise.\n"
+             "* `{id}`: The internal window ID of this window."),
+
+            readonly=readonly
+        )),
+
+        ('network', sect.KeyValue(
+            ('do-not-track',
+             SettingValue(typ.Bool(), 'true'),
+             "Value to send in the `DNT` header."),
+
+            ('accept-language',
+             SettingValue(typ.String(none_ok=True), 'en-US,en'),
+             "Value to send in the `accept-language` header."),
+
+            ('user-agent',
+             SettingValue(typ.UserAgent(none_ok=True), ''),
+             "User agent to send. Empty to send the default."),
+
+            ('proxy',
+             SettingValue(typ.Proxy(), 'system'),
+             "The proxy to use.\n\n"
+             "In addition to the listed values, you can use a `socks://...` "
+             "or `http://...` URL."),
+
+            ('proxy-dns-requests',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to send DNS requests over the configured proxy."),
+
+            ('ssl-strict',
+             SettingValue(typ.BoolAsk(), 'ask'),
+             "Whether to validate SSL handshakes."),
+
+            ('dns-prefetch',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to try to pre-fetch DNS entries to speed up browsing."),
+
+            readonly=readonly
+        )),
+
+        ('completion', sect.KeyValue(
+            ('download-path-suggestion',
+             SettingValue(typ.DownloadPathSuggestion(), 'path'),
+             "What to display in the download filename input."),
+
+            ('timestamp-format',
+             SettingValue(typ.String(none_ok=True), '%Y-%m-%d'),
+             "How to format timestamps (e.g. for history)"),
+
+            ('show',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to show the autocompletion window."),
+
+            ('height',
+             SettingValue(typ.PercOrInt(minperc=0, maxperc=100, minint=1),
+                          '50%'),
+             "The height of the completion, in px or as percentage of the "
+             "window."),
+
+            ('cmd-history-max-items',
+             SettingValue(typ.Int(minval=-1), '100'),
+             "How many commands to save in the command history.\n\n"
+             "0: no history / -1: unlimited"),
+
+            ('web-history-max-items',
+             SettingValue(typ.Int(minval=-1), '1000'),
+             "How many URLs to show in the web history.\n\n"
+             "0: no history / -1: unlimited"),
+
+            ('quick-complete',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to move on to the next part when there's only one "
+             "possible completion left."),
+
+            ('shrink',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether to shrink the completion to be smaller than the "
+             "configured size if there are no scrollbars."),
+
+            readonly=readonly
+        )),
+
+        ('input', sect.KeyValue(
+            ('timeout',
+             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '500'),
+             "Timeout for ambiguous key bindings."),
+
+            ('partial-timeout',
+             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '1000'),
+             "Timeout for partially typed key bindings."),
+
+            ('insert-mode-on-plugins',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether to switch to insert mode when clicking flash and other "
+             "plugins."),
+
+            ('auto-leave-insert-mode',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to leave insert mode if a non-editable element is "
+             "clicked."),
+
+            ('auto-insert-mode',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether to automatically enter insert mode if an editable "
+             "element is focused after page load."),
+
+            ('forward-unbound-keys',
+             SettingValue(typ.ForwardUnboundKeys(), 'auto'),
+             "Whether to forward unbound keys to the webview in normal mode."),
+
+            ('spatial-navigation',
+             SettingValue(typ.Bool(), 'false'),
+             "Enables or disables the Spatial Navigation feature\n\n"
+             "Spatial navigation consists in the ability to navigate between "
+             "focusable elements in a Web page, such as hyperlinks and form "
+             "controls, by using Left, Right, Up and Down arrow keys. For "
+             "example, if a user presses the Right key, heuristics determine "
+             "whether there is an element he might be trying to reach towards "
+             "the right and which element he probably wants."),
+
+            ('links-included-in-focus-chain',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether hyperlinks should be included in the keyboard focus "
+             "chain."),
+
+            ('rocker-gestures',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether to enable Opera-like mouse rocker gestures. This "
+             "disables the context menu."),
+
+            ('mouse-zoom-divider',
+             SettingValue(typ.Int(minval=1), '512'),
+             "How much to divide the mouse wheel movements to translate them "
+             "into zoom increments."),
+
+            readonly=readonly
+        )),
+
+        ('tabs', sect.KeyValue(
+            ('background-tabs',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether to open new tabs (middleclick/ctrl+click) in "
+             "background."),
+
+            ('select-on-remove',
+             SettingValue(typ.SelectOnRemove(), 'right'),
+             "Which tab to select when the focused tab is removed."),
+
+            ('new-tab-position',
+             SettingValue(typ.NewTabPosition(), 'right'),
+             "How new tabs are positioned."),
+
+            ('new-tab-position-explicit',
+             SettingValue(typ.NewTabPosition(), 'last'),
+             "How new tabs opened explicitly are positioned."),
+
+            ('last-close',
+             SettingValue(typ.LastClose(), 'ignore'),
+             "Behaviour when the last tab is closed."),
+
+            ('hide-auto',
+             SettingValue(typ.Bool(), 'false'),
+             "Hide the tab bar if only one tab is open."),
+
+            ('hide-always',
+             SettingValue(typ.Bool(), 'false'),
+             "Always hide the tab bar."),
+
+            ('wrap',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to wrap when changing tabs."),
+
+            ('movable',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether tabs should be movable."),
+
+            ('close-mouse-button',
+             SettingValue(typ.CloseButton(), 'middle'),
+             "On which mouse button to close tabs."),
+
+            ('position',
+             SettingValue(typ.Position(), 'north'),
+             "The position of the tab bar."),
+
+            ('show-favicons',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to show favicons in the tab bar."),
+
+            ('width',
+             SettingValue(typ.PercOrInt(minperc=0, maxperc=100, minint=1),
+                          '20%'),
+             "The width of the tab bar if it's vertical, in px or as "
+             "percentage of the window."),
+
+            ('indicator-width',
+             SettingValue(typ.Int(minval=0), '3'),
+             "Width of the progress indicator (0 to disable)."),
+
+            ('indicator-space',
+             SettingValue(typ.Int(minval=0), '3'),
+             "Spacing between tab edge and indicator."),
+
+            ('tabs-are-windows',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether to open windows instead of tabs."),
+
+            ('title-format',
+             SettingValue(typ.FormatString(
+                 fields=['perc', 'perc_raw', 'title', 'title_sep', 'index',
+                         'id']), '{index}: {title}'),
+             "The format to use for the tab title. The following placeholders "
+             "are defined:\n\n"
+             "* `{perc}`: The percentage as a string like `[10%]`.\n"
+             "* `{perc_raw}`: The raw percentage, e.g. `10`\n"
+             "* `{title}`: The title of the current web page\n"
+             "* `{title_sep}`: The string ` - ` if a title is set, empty "
+             "otherwise.\n"
+             "* `{index}`: The index of this tab.\n"
+             "* `{id}`: The internal tab ID of this tab."),
+
+            readonly=readonly
+        )),
+
+        ('storage', sect.KeyValue(
+            ('download-directory',
+             SettingValue(typ.Directory(none_ok=True), ''),
+             "The directory to save downloads to. An empty value selects a "
+             "sensible os-specific default. Will expand environment "
+             "variables."),
+
+            ('maximum-pages-in-cache',
+             SettingValue(
+                 typ.Int(none_ok=True, minval=0, maxval=MAXVALS['int']), ''),
+             "The maximum number of pages to hold in the global memory page "
+             "cache.\n\n"
+             "The Page Cache allows for a nicer user experience when "
+             "navigating forth or back to pages in the forward/back history, "
+             "by pausing and resuming up to _n_ pages.\n\n"
+             "For more information about the feature, please refer to: "
+             "http://webkit.org/blog/427/webkit-page-cache-i-the-basics/"),
+
+            ('object-cache-capacities',
+             SettingValue(
+                 typ.WebKitBytesList(length=3, maxsize=MAXVALS['int']), ''),
+             "The capacities for the global memory cache for dead objects "
+             "such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, "
+             "cacheMaxDead, totalCapacity.\n\n"
+             "The _cacheMinDeadCapacity_ specifies the minimum number of "
+             "bytes that dead objects should consume when the cache is under "
+             "pressure.\n\n"
+             "_cacheMaxDead_ is the maximum number of bytes that dead objects "
+             "should consume when the cache is *not* under pressure.\n\n"
+             "_totalCapacity_ specifies the maximum number of bytes "
+             "that the cache should consume *overall*."),
+
+            ('offline-storage-default-quota',
+             SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64']), ''),
+             "Default quota for new offline storage databases."),
+
+            ('offline-web-application-cache-quota',
+             SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64']), ''),
+             "Quota for the offline web application cache."),
+
+            ('offline-storage-database',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether support for the HTML 5 offline storage feature is "
+             "enabled."),
+
+            ('offline-web-application-storage',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether support for the HTML 5 web application cache feature is "
+             "enabled.\n\n"
+             "An application cache acts like an HTTP cache in some sense. For "
+             "documents that use the application cache via JavaScript, the "
+             "loader engine will first ask the application cache for the "
+             "contents, before hitting the network.\n\n"
+             "The feature is described in details at: "
+             "http://dev.w3.org/html5/spec/Overview.html#appcache"),
+
+            ('local-storage',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether support for the HTML 5 local storage feature is "
+             "enabled."),
+
+            ('cache-size',
+             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int64']),
+                          '52428800'),
+             "Size of the HTTP network cache."),
+
+            readonly=readonly
+        )),
+
+        ('content', sect.KeyValue(
+            ('allow-images',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether images are automatically loaded in web pages."),
+
+            ('allow-javascript',
+             SettingValue(typ.Bool(), 'true'),
+             "Enables or disables the running of JavaScript programs."),
+
+            ('allow-plugins',
+             SettingValue(typ.Bool(), 'false'),
+             "Enables or disables plugins in Web pages.\n\n"
+             'Qt plugins with a mimetype such as "application/x-qt-plugin" '
+             "are not affected by this setting."),
+
+            ('geolocation',
+             SettingValue(typ.NoAsk(), 'ask'),
+             "Allow websites to request geolocations."),
+
+            ('notifications',
+             SettingValue(typ.NoAsk(), 'ask'),
+             "Allow websites to show notifications."),
+
+            #('allow-java',
+            # SettingValue(typ.Bool(), 'true'),
+            # "Enables or disables Java applets. Currently Java applets are "
+            # "not supported"),
+
+            ('javascript-can-open-windows',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether JavaScript programs can open new windows."),
+
+            ('javascript-can-close-windows',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether JavaScript programs can close windows."),
+
+            ('javascript-can-access-clipboard',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether JavaScript programs can read or write to the "
+             "clipboard."),
+
+            ('ignore-javascript-prompt',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether all javascript prompts should be ignored."),
+
+            ('ignore-javascript-alert',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether all javascript alerts should be ignored."),
+
+            ('local-content-can-access-remote-urls',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether locally loaded documents are allowed to access remote "
+             "urls."),
+
+            ('local-content-can-access-file-urls',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether locally loaded documents are allowed to access other "
+             "local urls."),
+
+            ('cookies-accept',
+             SettingValue(typ.AcceptCookies(), 'default'),
+             "Whether to accept cookies."),
+
+            ('cookies-store',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to store cookies."),
+
+            ('host-block-lists',
+             SettingValue(
+                 typ.UrlList(none_ok=True),
+                 'http://www.malwaredomainlist.com/hostslist/hosts.txt,'
+                 'http://someonewhocares.org/hosts/hosts,'
+                 'http://winhelp2002.mvps.org/hosts.zip,'
+                 'http://malwaredomains.lehigh.edu/files/justdomains.zip,'
+                 'http://pgl.yoyo.org/adservers/serverlist.php?'
+                 'hostformat=hosts&mimetype=plaintext'),
+             "List of URLs of lists which contain hosts to block.\n\n"
+             "The file can be in one of the following formats:\n\n"
+             "- An '/etc/hosts'-like file\n"
+             "- One host per line\n"
+             "- A zip-file of any of the above, with either only one file, or "
+             "a file named 'hosts' (with any extension)."),
+
+            ('host-blocking-enabled',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether host blocking is enabled."),
+
+            readonly=readonly
+        )),
+
+        ('hints', sect.KeyValue(
+            ('border',
+             SettingValue(typ.String(), '1px solid #E3BE23'),
+             "CSS border value for hints."),
+
+            ('opacity',
+             SettingValue(typ.Float(minval=0.0, maxval=1.0), '0.7'),
+             "Opacity for hints."),
+
+            ('mode',
+             SettingValue(typ.HintMode(), 'letter'),
+             "Mode to use for hints."),
+
+            ('chars',
+             SettingValue(typ.String(minlen=2), 'asdfghjkl'),
+             "Chars used for hint strings."),
+
+            ('min-chars',
+             SettingValue(typ.Int(minval=1), '1'),
+             "Mininum number of chars used for hint strings."),
+
+            ('scatter',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to scatter hint key chains (like Vimium) or not (like "
+             "dwb)."),
+
+            ('uppercase',
+             SettingValue(typ.Bool(), 'false'),
+             "Make chars in hint strings uppercase."),
+
+            ('auto-follow',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to auto-follow a hint if there's only one left."),
+
+            ('next-regexes',
+             SettingValue(typ.RegexList(flags=re.IGNORECASE),
+                          r'\bnext\b,\bmore\b,\bnewer\b,\b[>→≫]\b,\b(>>|»)\b'),
+             "A comma-separated list of regexes to use for 'next' links."),
+
+            ('prev-regexes',
+             SettingValue(typ.RegexList(flags=re.IGNORECASE),
+                          r'\bprev(ious)?\b,\bback\b,\bolder\b,\b[<←≪]\b,'
+                          r'\b(<<|«)\b'),
+             "A comma-separated list of regexes to use for 'prev' links."),
+
+            readonly=readonly
+        )),
+
+        ('searchengines', sect.ValueList(
+            typ.SearchEngineName(), typ.SearchEngineUrl(),
+            ('DEFAULT', 'https://duckduckgo.com/?q={}'),
+
+            readonly=readonly
+        )),
+
+        ('aliases', sect.ValueList(
+            typ.String(forbidden=' '), typ.Command(),
+
+            readonly=readonly
+        )),
+
+        ('colors', sect.KeyValue(
+            ('completion.fg',
+             SettingValue(typ.QtColor(), 'white'),
+             "Text color of the completion widget."),
+
+            ('completion.bg',
+             SettingValue(typ.QssColor(), '#333333'),
+             "Background color of the completion widget."),
+
+            ('completion.alternate-bg',
+             SettingValue(typ.QssColor(), '#444444'),
+             "Alternating background color of the completion widget."),
+
+            ('completion.category.fg',
+             SettingValue(typ.QtColor(), 'white'),
+             "Foreground color of completion widget category headers."),
+
+            ('completion.category.bg',
+             SettingValue(typ.QssColor(), 'qlineargradient(x1:0, y1:0, x2:0, '
+                          'y2:1, stop:0 #888888, stop:1 #505050)'),
+             "Background color of the completion widget category headers."),
+
+            ('completion.category.border.top',
+             SettingValue(typ.QssColor(), 'black'),
+             "Top border color of the completion widget category headers."),
+
+            ('completion.category.border.bottom',
+             SettingValue(typ.QssColor(), '${completion.category.border.top}'),
+             "Bottom border color of the completion widget category headers."),
+
+            ('completion.item.selected.fg',
+             SettingValue(typ.QtColor(), 'black'),
+             "Foreground color of the selected completion item."),
+
+            ('completion.item.selected.bg',
+             SettingValue(typ.QssColor(), '#e8c000'),
+             "Background color of the selected completion item."),
+
+            ('completion.item.selected.border.top',
+             SettingValue(typ.QssColor(), '#bbbb00'),
+             "Top border color of the completion widget category headers."),
+
+            ('completion.item.selected.border.bottom',
+             SettingValue(
+                 typ.QssColor(), '${completion.item.selected.border.top}'),
+             "Bottom border color of the selected completion item."),
+
+            ('completion.match.fg',
+             SettingValue(typ.QssColor(), '#ff4444'),
+             "Foreground color of the matched text in the completion."),
+
+            ('statusbar.bg',
+             SettingValue(typ.QssColor(), 'black'),
+             "Foreground color of the statusbar."),
+
+            ('statusbar.fg',
+             SettingValue(typ.QssColor(), 'white'),
+             "Foreground color of the statusbar."),
+
+            ('statusbar.bg.error',
+             SettingValue(typ.QssColor(), 'red'),
+             "Background color of the statusbar if there was an error."),
+
+            ('statusbar.bg.warning',
+             SettingValue(typ.QssColor(), 'darkorange'),
+             "Background color of the statusbar if there is a warning."),
+
+            ('statusbar.bg.prompt',
+             SettingValue(typ.QssColor(), 'darkblue'),
+             "Background color of the statusbar if there is a prompt."),
+
+            ('statusbar.bg.insert',
+             SettingValue(typ.QssColor(), 'darkgreen'),
+             "Background color of the statusbar in insert mode."),
+
+            ('statusbar.progress.bg',
+             SettingValue(typ.QssColor(), 'white'),
+             "Background color of the progress bar."),
+
+            ('statusbar.url.fg',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Default foreground color of the URL in the statusbar."),
+
+            ('statusbar.url.fg.success',
+             SettingValue(typ.QssColor(), 'lime'),
+             "Foreground color of the URL in the statusbar on successful "
+             "load."),
+
+            ('statusbar.url.fg.error',
+             SettingValue(typ.QssColor(), 'orange'),
+             "Foreground color of the URL in the statusbar on error."),
+
+            ('statusbar.url.fg.warn',
+             SettingValue(typ.QssColor(), 'yellow'),
+             "Foreground color of the URL in the statusbar when there's a "
+             "warning."),
+
+            ('statusbar.url.fg.hover',
+             SettingValue(typ.QssColor(), 'aqua'),
+             "Foreground color of the URL in the statusbar for hovered "
+             "links."),
+
+            ('tabs.fg.odd',
+             SettingValue(typ.QtColor(), 'white'),
+             "Foreground color of unselected odd tabs."),
+
+            ('tabs.fg.even',
+             SettingValue(typ.QtColor(), 'white'),
+             "Foreground color of unselected even tabs."),
+
+            ('tabs.fg.selected',
+             SettingValue(typ.QtColor(), 'white'),
+             "Foreground color of selected tabs."),
+
+            ('tabs.bg.odd',
+             SettingValue(typ.QtColor(), 'grey'),
+             "Background color of unselected odd tabs."),
+
+            ('tabs.bg.even',
+             SettingValue(typ.QtColor(), 'darkgrey'),
+             "Background color of unselected even tabs."),
+
+            ('tabs.bg.selected',
+             SettingValue(typ.QtColor(), 'black'),
+             "Background color of selected tabs."),
+
+            ('tabs.bg.bar',
+             SettingValue(typ.QtColor(), '#555555'),
+             "Background color of the tab bar."),
+
+            ('tabs.indicator.start',
+             SettingValue(typ.QtColor(), '#0000aa'),
+             "Color gradient start for the tab indicator."),
+
+            ('tabs.indicator.stop',
+             SettingValue(typ.QtColor(), '#00aa00'),
+             "Color gradient end for the tab indicator."),
+
+            ('tabs.indicator.error',
+             SettingValue(typ.QtColor(), '#ff0000'),
+             "Color for the tab indicator on errors.."),
+
+            ('tabs.indicator.system',
+             SettingValue(typ.ColorSystem(), 'rgb'),
+             "Color gradient interpolation system for the tab indicator."),
+
+            ('hints.fg',
+             SettingValue(typ.CssColor(), 'black'),
+             "Font color for hints."),
+
+            ('hints.fg.match',
+             SettingValue(typ.CssColor(), 'green'),
+             "Font color for the matched part of hints."),
+
+            ('hints.bg',
+             SettingValue(
+                 typ.CssColor(), '-webkit-gradient(linear, left top, '
+                 'left bottom, color-stop(0%,#FFF785), '
+                 'color-stop(100%,#FFC542))'),
+             "Background color for hints."),
+
+            ('downloads.fg',
+             SettingValue(typ.QtColor(), '#ffffff'),
+             "Foreground color for downloads."),
+
+            ('downloads.bg.bar',
+             SettingValue(typ.QssColor(), 'black'),
+             "Background color for the download bar."),
+
+            ('downloads.bg.start',
+             SettingValue(typ.QtColor(), '#0000aa'),
+             "Color gradient start for downloads."),
+
+            ('downloads.bg.stop',
+             SettingValue(typ.QtColor(), '#00aa00'),
+             "Color gradient end for downloads."),
+
+            ('downloads.bg.system',
+             SettingValue(typ.ColorSystem(), 'rgb'),
+             "Color gradient interpolation system for downloads."),
+
+            ('downloads.bg.error',
+             SettingValue(typ.QtColor(), 'red'),
+             "Background color for downloads with errors."),
+
+            readonly=readonly
+        )),
+
+        ('fonts', sect.KeyValue(
+            ('_monospace',
+             SettingValue(typ.Font(), 'Terminus, Monospace, '
+                          '"DejaVu Sans Mono", Monaco, '
+                          '"Bitstream Vera Sans Mono", "Andale Mono", '
+                          '"Liberation Mono", "Courier New", Courier, '
+                          'monospace, Fixed, Consolas, Terminal'),
+             "Default monospace fonts."),
+
+            ('completion',
+             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             "Font used in the completion widget."),
+
+            ('tabbar',
+             SettingValue(typ.QtFont(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             "Font used in the tab bar."),
+
+            ('statusbar',
+             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             "Font used in the statusbar."),
+
+            ('downloads',
+             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             "Font used for the downloadbar."),
+
+            ('hints',
+             SettingValue(typ.Font(), 'bold 12px Monospace'),
+             "Font used for the hints."),
+
+            ('debug-console',
+             SettingValue(typ.QtFont(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             "Font used for the debugging console."),
+
+            ('web-family-standard',
+             SettingValue(typ.FontFamily(none_ok=True), ''),
+             "Font family for standard fonts."),
+
+            ('web-family-fixed',
+             SettingValue(typ.FontFamily(none_ok=True), ''),
+             "Font family for fixed fonts."),
+
+            ('web-family-serif',
+             SettingValue(typ.FontFamily(none_ok=True), ''),
+             "Font family for serif fonts."),
+
+            ('web-family-sans-serif',
+             SettingValue(typ.FontFamily(none_ok=True), ''),
+             "Font family for sans-serif fonts."),
+
+            ('web-family-cursive',
+             SettingValue(typ.FontFamily(none_ok=True), ''),
+             "Font family for cursive fonts."),
+
+            ('web-family-fantasy',
+             SettingValue(typ.FontFamily(none_ok=True), ''),
+             "Font family for fantasy fonts."),
+
+            ('web-size-minimum',
+             SettingValue(
+                 typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
+             "The hard minimum font size."),
+
+            ('web-size-minimum-logical',
+             SettingValue(
+                 typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
+             "The minimum logical font size that is applied when zooming "
+             "out."),
+
+            ('web-size-default',
+             SettingValue(
+                 typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
+             "The default font size for regular text."),
+
+            ('web-size-default-fixed',
+             SettingValue(
+                 typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
+             "The default font size for fixed-pitch text."),
+
+            readonly=readonly
+        )),
+    ])
+
+
+DATA = data(readonly=True)
 
 
 KEY_FIRST_COMMENT = """
