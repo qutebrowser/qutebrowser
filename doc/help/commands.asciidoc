@@ -433,7 +433,7 @@ Load a session.
 
 [[session-save]]
 === session-save
-Syntax: +:session-save [*--quiet*] [*--force*] ['name']+
+Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] ['name']+
 
 Save a session.
 
@@ -441,6 +441,7 @@ Save a session.
 * +'name'+: The name of the session.
 
 ==== optional arguments
+* +*-c*+, +*--current*+: Save the current session instead of the default.
 * +*-q*+, +*--quiet*+: Don't show confirmation message.
 * +*-f*+, +*--force*+: Force saving internal sessions (starting with an underline).
 

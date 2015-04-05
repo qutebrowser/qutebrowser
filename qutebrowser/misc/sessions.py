@@ -55,6 +55,7 @@ class SessionManager(QObject):
         _base_path: The path to store sessions under.
         _last_window_session: The session data of the last window which was
                               closed.
+        _current: The name of the currently loaded session, or None.
         did_load: Set when a session was loaded.
 
     Signals:
@@ -66,6 +67,7 @@ class SessionManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._current = None
         self._base_path = os.path.join(standarddir.data(), 'sessions')
         self._last_window_session = None
         self.did_load = False
@@ -243,6 +245,8 @@ class SessionManager(QObject):
             if win.get('active', False):
                 QTimer.singleShot(0, tabbed_browser.activateWindow)
         self.did_load = True
+        if not name.startswith('_'):
+            self._current = name
 
     def delete(self, name):
         """Delete a session."""
@@ -290,18 +294,24 @@ class SessionManager(QObject):
                        completion=[usertypes.Completion.sessions],
                        instance='session-manager')
     def session_save(self, win_id: {'special': 'win_id'}, name='default',
-                     quiet=False, force=False):
+                     current=False, quiet=False, force=False):
         """Save a session.
 
         Args:
             win_id: The current window ID.
             name: The name of the session.
+            current: Save the current session instead of the default.
             quiet: Don't show confirmation message.
             force: Force saving internal sessions (starting with an underline).
         """
         if name.startswith('_') and not force:
             raise cmdexc.CommandError("{!r} is an internal session, use "
                                       "--force to save anyways.".format(name))
+        if current:
+            if self._current is None:
+                raise cmdexc.CommandError("No session loaded currently!")
+            name = self._current
+            assert not name.startswith('_')
         try:
             self.save(name)
         except SessionError as e:
