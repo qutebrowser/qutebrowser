@@ -424,7 +424,7 @@ Default: +pass:[false]+
 === session-default-name
 The name of the session to save by default, or empty for the last loaded session.
 
-Default: +pass:[default]+
+Default: empty
 
 == ui
 General options related to the user interface.
