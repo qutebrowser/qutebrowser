@@ -41,6 +41,16 @@ from qutebrowser.config import config
 default = object()  # Sentinel value
 
 
+def init(parent=None):
+    """Initialize sessions.
+
+    Args:
+        parent: The parent to use for the SessionManager.
+    """
+    session_manager = SessionManager(parent)
+    objreg.register('session-manager', session_manager)
+
+
 class SessionError(Exception):
 
     """Exception raised when a session failed to load/save."""
