@@ -30,9 +30,7 @@ from qutebrowser.mainwindow.statusbar.progress import Progress
 
 @pytest.fixture
 def progress_widget(qtbot, default_config):
-    """
-    Creates a Progress widget and checks it initial state.
-    """
+    """Create a Progress widget and checks its initial state."""
     widget = Progress()
     qtbot.add_widget(widget)
     assert not widget.isVisible()
@@ -41,7 +39,8 @@ def progress_widget(qtbot, default_config):
 
 
 def test_load_started(progress_widget):
-    """
+    """Ensure the Progress widget reacts properly when the page starts loading.
+
     Args:
         progress_widget: Progress widget that will be tested.
     """
@@ -62,13 +61,14 @@ Tab = namedtuple('Tab', 'progress load_status')
     (Tab(100, webview.LoadStatus.none), False),
 ])
 def test_tab_changed(progress_widget, tab, expected_visible):
-    """
-    Test that progress widget value and visibility state match expectations,
-    using a dummy Tab object.
+    """Test that progress widget value and visibility state match expectations.
+
+    This uses a dummy Tab object.
 
     Args:
         progress_widget: Progress widget that will be tested.
     """
     progress_widget.on_tab_changed(tab)
-    assert (progress_widget.value(), progress_widget.isVisible()) == \
-           (tab.progress, expected_visible)
+    actual = progress_widget.value(), progress_widget.isVisible()
+    expected = tab.progress, expected_visible
+    assert actual == expected

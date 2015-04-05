@@ -76,7 +76,7 @@ def check_spelling(target):
     # Words which look better when splitted, but might need some fine tuning.
     words |= {'keystrings', 'webelements', 'mouseevent', 'keysequence',
               'normalmode', 'eventloops', 'sizehint', 'statemachine',
-              'metaobject', 'logrecord', 'monkeypatch', 'filetype'}
+              'metaobject', 'logrecord', 'filetype'}
 
     seen = collections.defaultdict(list)
     try:

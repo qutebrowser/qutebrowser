@@ -92,4 +92,3 @@ class TestsNormalKeyParser:
         assert not self.kp.execute.called
         assert self.kp._keystring == ''
         keystring_updated_mock.assert_called_once_with('')
-

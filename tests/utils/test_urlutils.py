@@ -21,9 +21,6 @@
 
 """Tests for qutebrowser.utils.urlutils."""
 
-import unittest
-from unittest import mock
-
 from PyQt5.QtCore import QUrl
 import pytest
 
@@ -46,6 +43,7 @@ def get_config_stub(auto_search=True):
 
 
 class TestSpecialURL:
+
     """Test is_special_url.
 
     Attributes:
@@ -78,10 +76,12 @@ class TestSpecialURL:
 
 
 class TestSearchUrl:
+
     """Test _get_search_url."""
 
     @pytest.fixture(autouse=True)
     def mock_config(self, stubs, mocker):
+        """Fixture to patch urlutils.config with a stub."""
         mocker.patch('qutebrowser.utils.urlutils.config',
                      new=stubs.ConfigStub(get_config_stub()))
 
@@ -123,6 +123,7 @@ class TestSearchUrl:
 
 
 class TestIsUrl:
+
     """Tests for is_url.
 
     Class attributes:
@@ -179,43 +180,42 @@ class TestIsUrl:
 
 
 class TestQurlFromUserInput:
+
     """Tests for qurl_from_user_input."""
 
     def test_url(self):
         """Test a normal URL."""
-        assert (
-            urlutils.qurl_from_user_input('qutebrowser.org').toString()
-            == 'http://qutebrowser.org')
+        url = urlutils.qurl_from_user_input('qutebrowser.org')
+        assert url.toString() == 'http://qutebrowser.org'
 
     def test_url_http(self):
         """Test a normal URL with http://."""
-        assert (
-            urlutils.qurl_from_user_input('http://qutebrowser.org').toString()
-            == 'http://qutebrowser.org')
+        url = urlutils.qurl_from_user_input('http://qutebrowser.org')
+        assert url.toString() == 'http://qutebrowser.org'
 
     def test_ipv6_bare(self):
         """Test an IPv6 without brackets."""
-        assert (urlutils.qurl_from_user_input('::1/foo').toString()
-                == 'http://[::1]/foo')
+        url = urlutils.qurl_from_user_input('::1/foo')
+        assert url.toString() == 'http://[::1]/foo'
 
     def test_ipv6(self):
         """Test an IPv6 with brackets."""
-        assert (urlutils.qurl_from_user_input('[::1]/foo').toString() ==
-                'http://[::1]/foo')
+        url = urlutils.qurl_from_user_input('[::1]/foo')
+        assert url.toString() == 'http://[::1]/foo'
 
     def test_ipv6_http(self):
         """Test an IPv6 with http:// and brackets."""
-        assert (
-            urlutils.qurl_from_user_input('http://[::1]').toString() ==
-            'http://[::1]')
+        url = urlutils.qurl_from_user_input('http://[::1]')
+        assert url.toString() == 'http://[::1]'
 
 
 class TestFilenameFromUrl:
+
     """Tests for filename_from_url."""
 
     def test_invalid_url(self):
         """Test with an invalid QUrl."""
-        assert urlutils.filename_from_url(QUrl()) == None
+        assert urlutils.filename_from_url(QUrl()) is None
 
     def test_url_path(self):
         """Test with an URL with path."""

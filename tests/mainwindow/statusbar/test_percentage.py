@@ -19,6 +19,7 @@
 
 
 """Test Percentage widget."""
+
 import pytest
 
 from qutebrowser.mainwindow.statusbar.percentage import Percentage
@@ -37,7 +38,8 @@ def test_percentage_text(qtbot, y, expected):
 
     Args:
         qtbot: pytestqt.plugin.QtBot fixture
-        y: y position of the page as an int in the range [0, 100]. parametrized.
+        y: y position of the page as an int in the range [0, 100].
+           parametrized.
         expected: expected text given y position. parametrized.
     """
     percentage = Percentage()

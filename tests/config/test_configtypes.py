@@ -34,6 +34,7 @@ from qutebrowser.utils import debug, utils
 
 
 class Font(QFont):
+
     """A QFont with a nicer repr()."""
 
     def __repr__(self):
@@ -59,6 +60,7 @@ class Font(QFont):
 
 
 class NetworkProxy(QNetworkProxy):
+
     """A QNetworkProxy with a nicer repr()."""
 
     def __repr__(self):
@@ -69,11 +71,13 @@ class NetworkProxy(QNetworkProxy):
 
 @pytest.fixture
 def os_path(mocker):
-    """Fixture that mocks and returns os.path from the configtypes module"""
-    return mocker.patch('qutebrowser.config.configtypes.os.path', autospec=True)
+    """Fixture that mocks and returns os.path from the configtypes module."""
+    return mocker.patch('qutebrowser.config.configtypes.os.path',
+                        autospec=True)
 
 
 class TestValidValues:
+
     """Test ValidValues."""
 
     def test_contains_without_desc(self):
@@ -121,6 +125,7 @@ class TestValidValues:
 
 
 class TestBaseType:
+
     """Test BaseType."""
 
     @pytest.fixture(autouse=True)
@@ -175,6 +180,7 @@ class TestBaseType:
 
 
 class TestString:
+
     """Test String."""
 
     def test_minlen_toosmall(self):
@@ -269,6 +275,7 @@ class TestString:
 
 
 class TestList:
+
     """Test List."""
 
     @pytest.fixture(autouse=True)
@@ -318,6 +325,7 @@ class TestList:
 
 
 class TestBool:
+
     """Test Bool."""
 
     TESTS = {True: ['1', 'yes', 'YES', 'true', 'TrUe', 'on'],
@@ -367,6 +375,7 @@ class TestBool:
 
 
 class TestInt:
+
     """Test Int."""
 
     def test_minval_gt_maxval(self):
@@ -444,6 +453,7 @@ class TestInt:
 
 
 class TestIntList:
+
     """Test IntList."""
 
     @pytest.fixture(autouse=True)
@@ -483,6 +493,7 @@ class TestIntList:
 
 
 class TestFloat:
+
     """Test Float."""
 
     def test_minval_gt_maxval(self):
@@ -570,6 +581,7 @@ class TestFloat:
 
 
 class TestPerc:
+
     """Test Perc."""
 
     @pytest.fixture(autouse=True)
@@ -651,6 +663,7 @@ class TestPerc:
 
 
 class TestPercList:
+
     """Test PercList."""
 
     @pytest.fixture(autouse=True)
@@ -731,6 +744,7 @@ class TestPercList:
 
 
 class TestPercOrInt:
+
     """Test PercOrInt."""
 
     @pytest.fixture(autouse=True)
@@ -868,6 +882,7 @@ class TestPercOrInt:
 
 
 class TestCommand:
+
     """Test Command."""
 
     @pytest.fixture(autouse=True)
@@ -924,7 +939,11 @@ class TestCommand:
 
 
 class TestColorSystem:
+
     """Test ColorSystem."""
+
+    # https://bitbucket.org/logilab/pylint/issue/511/
+    # pylint: disable=undefined-variable
 
     TESTS = {
         'RGB': QColor.Rgb,
@@ -972,6 +991,7 @@ class TestColorSystem:
 
 
 class TestQtColor:
+
     """Test QtColor."""
 
     VALID = ['#123', '#112233', '#111222333', '#111122223333', 'red']
@@ -1014,6 +1034,7 @@ class TestQtColor:
 
 
 class TestCssColor(TestQtColor):
+
     """Test CssColor."""
 
     VALID = TestQtColor.VALID + ['-foobar(42)']
@@ -1039,6 +1060,7 @@ class TestCssColor(TestQtColor):
 
 
 class TestQssColor(TestQtColor):
+
     """Test QssColor."""
 
     VALID = TestQtColor.VALID + [
@@ -1084,7 +1106,11 @@ FontDesc = collections.namedtuple('FontDesc',
 
 
 class TestFont:
+
     """Test Font/QtFont."""
+
+    # https://bitbucket.org/logilab/pylint/issue/511/
+    # pylint: disable=undefined-variable
 
     TESTS = {
         # (style, weight, pointsize, pixelsize, family
@@ -1144,7 +1170,8 @@ class TestFont:
         t.validate('')
         t2.validate('')
 
-    @pytest.mark.parametrize('val, attr', itertools.product(TESTS, ['t', 't2']))
+    @pytest.mark.parametrize('val, attr',
+                             itertools.product(TESTS, ['t', 't2']))
     def test_validate_valid(self, val, attr):
         """Test validate with valid values."""
         getattr(self, attr).validate(val)
@@ -1183,6 +1210,7 @@ class TestFont:
 
 
 class TestFontFamily:
+
     """Test FontFamily."""
 
     TESTS = ['"Foobar Neue"', 'inconsolatazi4', 'Foobar']
@@ -1234,6 +1262,7 @@ class TestFontFamily:
 
 
 class TestRegex:
+
     """Test Regex."""
 
     @pytest.fixture(autouse=True)
@@ -1269,6 +1298,7 @@ class TestRegex:
 
 
 class TestRegexList:
+
     """Test RegexList."""
 
     @pytest.fixture(autouse=True)
@@ -1310,12 +1340,12 @@ class TestRegexList:
 
 
 class TestFile:
+
     """Test File."""
 
     @pytest.fixture(autouse=True)
     def setup(self):
         self.t = configtypes.File()
-
 
     def test_validate_empty(self):
         """Test validate with empty string and none_ok = False."""
@@ -1376,6 +1406,7 @@ class TestFile:
 
 
 class TestDirectory:
+
     """Test Directory."""
 
     @pytest.fixture(autouse=True)
@@ -1454,6 +1485,7 @@ class TestDirectory:
 
 
 class TestWebKitByte:
+
     """Test WebKitBytes."""
 
     @pytest.fixture(autouse=True)
@@ -1528,6 +1560,7 @@ class TestWebKitByte:
 
 
 class TestWebKitBytesList:
+
     """Test WebKitBytesList."""
 
     @pytest.fixture(autouse=True)
@@ -1599,6 +1632,7 @@ class TestWebKitBytesList:
 
 
 class TestShellCommand:
+
     """Test ShellCommand."""
 
     @pytest.fixture(autouse=True)
@@ -1649,6 +1683,7 @@ class TestShellCommand:
 
 
 class TestProxy:
+
     """Test Proxy."""
 
     @pytest.fixture(autouse=True)
@@ -1697,11 +1732,12 @@ class TestProxy:
 
     def test_complete(self):
         """Test complete."""
-        assert self.t.complete() == \
-               [('system', "Use the system wide proxy."),
-                ('none', "Don't use any proxy"),
-                ('http://', 'HTTP proxy URL'),
-                ('socks://', 'SOCKS proxy URL')]
+        actual = self.t.complete()
+        expected = [('system', "Use the system wide proxy."),
+                    ('none', "Don't use any proxy"),
+                    ('http://', 'HTTP proxy URL'),
+                    ('socks://', 'SOCKS proxy URL')]
+        assert actual == expected
 
     def test_transform_empty(self):
         """Test transform with an empty value."""
@@ -1713,51 +1749,53 @@ class TestProxy:
 
     def test_transform_none(self):
         """Test transform with no proxy."""
-        assert NetworkProxy(self.t.transform('none')) == \
-               NetworkProxy(QNetworkProxy.NoProxy)
+        actual = NetworkProxy(self.t.transform('none'))
+        expected = NetworkProxy(QNetworkProxy.NoProxy)
+        assert actual == expected
 
     def test_transform_socks(self):
         """Test transform with a socks proxy."""
-        proxy = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')
-        val = NetworkProxy(self.t.transform('socks://example.com/'))
-        assert proxy == val
+        actual = NetworkProxy(self.t.transform('socks://example.com/'))
+        expected = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')
+        assert actual == expected
 
     def test_transform_socks5(self):
         """Test transform with a socks5 proxy."""
-        proxy = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')
-        val = NetworkProxy(self.t.transform('socks5://example.com'))
-        assert proxy == val
+        actual = NetworkProxy(self.t.transform('socks5://example.com'))
+        expected = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')
+        assert actual == expected
 
     def test_transform_http_port(self):
         """Test transform with a http proxy with set port."""
-        proxy = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2342)
-        val = NetworkProxy(self.t.transform('socks5://example.com:2342'))
-        assert proxy == val
+        actual = NetworkProxy(self.t.transform('socks5://example.com:2342'))
+        expected = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2342)
+        assert actual == expected
 
     def test_transform_socks_user(self):
         """Test transform with a socks proxy with set user."""
-        proxy = NetworkProxy(
+        actual = NetworkProxy(self.t.transform('socks5://foo@example.com'))
+        expected = NetworkProxy(
             QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo')
-        val = NetworkProxy(self.t.transform('socks5://foo@example.com'))
-        assert proxy == val
+        assert actual == expected
 
     def test_transform_socks_user_password(self):
         """Test transform with a socks proxy with set user/password."""
-        proxy = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0,
-                             'foo', 'bar')
-        val = NetworkProxy(self.t.transform('socks5://foo:bar@example.com'))
-        assert proxy == val
+        actual = NetworkProxy(self.t.transform('socks5://foo:bar@example.com'))
+        expected = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0,
+                                'foo', 'bar')
+        assert actual == expected
 
     def test_transform_socks_user_password_port(self):
         """Test transform with a socks proxy with set port/user/password."""
-        proxy = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2323,
-                             'foo', 'bar')
-        val = NetworkProxy(
+        actual = NetworkProxy(
             self.t.transform('socks5://foo:bar@example.com:2323'))
-        assert proxy == val
+        expected = NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2323,
+                                'foo', 'bar')
+        assert actual == expected
 
 
 class TestSearchEngineName:
+
     """Test SearchEngineName."""
 
     @pytest.fixture(autouse=True)
@@ -1784,6 +1822,7 @@ class TestSearchEngineName:
 
 
 class TestSearchEngineUrl:
+
     """Test SearchEngineUrl."""
 
     @pytest.fixture(autouse=True)
@@ -1824,6 +1863,7 @@ class TestSearchEngineUrl:
 
 
 class TestFuzzyUrl:
+
     """Test FuzzyUrl."""
 
     @pytest.fixture(autouse=True)
@@ -1868,6 +1908,7 @@ class TestFuzzyUrl:
 
 
 class TestUserStyleSheet:
+
     """Test UserStyleSheet."""
 
     @pytest.fixture(autouse=True)
@@ -1906,7 +1947,11 @@ class TestUserStyleSheet:
 
 
 class TestAutoSearch:
+
     """Test AutoSearch."""
+
+    # https://bitbucket.org/logilab/pylint/issue/511/
+    # pylint: disable=undefined-variable
 
     TESTS = {
         'naive': ['naive', 'NAIVE'] + TestBool.TESTS[True],
@@ -1929,9 +1974,8 @@ class TestAutoSearch:
         t = configtypes.AutoSearch(none_ok=True)
         t.validate('')
 
-    @pytest.mark.parametrize('val',
-                             [val for vallist in TESTS.values() for val in
-                              vallist])
+    @pytest.mark.parametrize('val', [val for vallist in TESTS.values()
+                                     for val in vallist])
     def test_validate_valid(self, val):
         """Test validate with valid values."""
         self.t.validate(val)
@@ -1943,9 +1987,8 @@ class TestAutoSearch:
             self.t.validate(val)
 
     @pytest.mark.parametrize('out, inp',
-                             [(out, inp) for (out, inputs) in TESTS.items() for
-                              inp in inputs]
-                             )
+                             [(out, inp) for (out, inputs) in TESTS.items()
+                              for inp in inputs])
     def test_transform(self, out, inp):
         """Test transform with all values."""
         assert self.t.transform(inp) == out
@@ -1956,7 +1999,11 @@ class TestAutoSearch:
 
 
 class TestIgnoreCase:
+
     """Test IgnoreCase."""
+
+    # https://bitbucket.org/logilab/pylint/issue/511/
+    # pylint: disable=undefined-variable
 
     TESTS = {
         'smart': ['smart', 'SMART'],
@@ -1993,9 +2040,8 @@ class TestIgnoreCase:
             self.t.validate(val)
 
     @pytest.mark.parametrize('out, inp',
-                             [(out, inp) for (out, inputs) in TESTS.items() for
-                              inp in inputs]
-                             )
+                             [(out, inp) for (out, inputs) in TESTS.items()
+                              for inp in inputs])
     def test_transform(self, out, inp):
         """Test transform with all values."""
         assert self.t.transform(inp) == out
@@ -2006,6 +2052,7 @@ class TestIgnoreCase:
 
 
 class TestEncoding:
+
     """Test Encoding."""
 
     @pytest.fixture(autouse=True)
@@ -2042,6 +2089,7 @@ class TestEncoding:
 
 
 class TestUrlList:
+
     """Test UrlList."""
 
     @pytest.fixture(autouse=True)
@@ -2079,14 +2127,15 @@ class TestUrlList:
 
     def test_transform_single(self):
         """Test transform with a single value."""
+        actual = self.t.transform('http://qutebrowser.org/')
         expected = [QUrl('http://qutebrowser.org/')]
-        assert self.t.transform('http://qutebrowser.org/') == expected
+        assert actual == expected
 
     def test_transform_more(self):
         """Test transform with multiple values."""
-        assert (
-            self.t.transform('http://qutebrowser.org/,http://heise.de/') ==
-            [QUrl('http://qutebrowser.org/'), QUrl('http://heise.de/')])
+        actual = self.t.transform('http://qutebrowser.org/,http://heise.de/')
+        expected = [QUrl('http://qutebrowser.org/'), QUrl('http://heise.de/')]
+        assert actual == expected
 
     def test_transform_empty(self):
         """Test transform with an empty value."""
@@ -2094,6 +2143,7 @@ class TestUrlList:
 
 
 class TestFormatString:
+
     """Test FormatString."""
 
     @pytest.fixture(autouse=True)
@@ -2134,6 +2184,7 @@ class TestFormatString:
 
 
 class TestUserAgent:
+
     """Test UserAgent."""
 
     @pytest.fixture(autouse=True)

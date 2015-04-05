@@ -478,4 +478,3 @@ class TestNewestSlice:
         items = range(5)
         sliced = utils.newest_slice(items, 50)
         assert list(sliced) == list(items)
-

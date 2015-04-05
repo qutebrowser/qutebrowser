@@ -44,9 +44,7 @@ BINDINGS = {'test': {'<Ctrl-a>': 'ctrla',
 
 @pytest.yield_fixture
 def fake_keyconfig():
-    """
-    Creates a mock of a KeyConfiguration and registers it into objreg.
-    """
+    """Create a mock of a KeyConfiguration and register it into objreg."""
     fake_keyconfig = mock.Mock(spec=['get_bindings_for'])
     fake_keyconfig.get_bindings_for.side_effect = lambda s: BINDINGS[s]
     objreg.register('key-config', fake_keyconfig)
@@ -56,9 +54,7 @@ def fake_keyconfig():
 
 @pytest.fixture
 def mock_timer(mocker, stubs):
-    """Mocks the QTimer class used by the
-    "qutebrowser.keyinput.basekeyparser.usertypes" module with a stub version.
-    """
+    """Mock the Timer class used by the usertypes module with a stub."""
     mocker.patch('qutebrowser.keyinput.basekeyparser.usertypes.Timer',
                  new=stubs.FakeTimer)
 
@@ -211,12 +207,12 @@ class TestKeyChain:
         assert self.kp._keystring == ''
 
     def test_ambiguous_keychain(self, fake_keyevent_factory, mocker, stubs):
-        """Test ambigious keychain."""
+        """Test ambiguous keychain."""
         mocker.patch('qutebrowser.keyinput.basekeyparser.config',
                      new=stubs.ConfigStub(CONFIG))
         timer = self.kp._ambiguous_timer
         assert not timer.isActive()
-        # We start with 'a' where the keychain gives us an ambigious result.
+        # We start with 'a' where the keychain gives us an ambiguous result.
         # Then we check if the timer has been set up correctly
         self.kp.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
         assert not self.kp.execute.called

@@ -66,21 +66,19 @@ class TestConfigParser:
 
     def test_transformed_option_old(self):
         """Test a transformed option with the old name."""
-        # WORKAROUND for unknown PyQt bug
-        # Instance of 'str' has no 'name' member
         self.cp.read_dict({'colors': {'tab.fg.odd': 'pink'}})
         self.cfg._from_cp(self.cp)
-        assert self.cfg.get('colors', 'tabs.fg.odd').name() == \
-               QColor('pink').name()
+        actual = self.cfg.get('colors', 'tabs.fg.odd').name()
+        expected = QColor('pink').name()
+        assert actual == expected
 
     def test_transformed_option_new(self):
         """Test a transformed section with the new name."""
-        # WORKAROUND for unknown PyQt bug
-        # Instance of 'str' has no 'name' member
         self.cp.read_dict({'colors': {'tabs.fg.odd': 'pink'}})
         self.cfg._from_cp(self.cp)
-        assert self.cfg.get('colors', 'tabs.fg.odd').name() == \
-               QColor('pink').name()
+        actual = self.cfg.get('colors', 'tabs.fg.odd').name()
+        expected = QColor('pink').name()
+        assert actual == expected
 
     def test_invalid_value(self):
         """Test setting an invalid value."""

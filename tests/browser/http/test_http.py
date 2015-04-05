@@ -59,4 +59,3 @@ class TestParseContentType:
         mimetype, rest = http.parse_content_type(reply)
         assert mimetype == 'image/example'
         assert rest == ' encoding=UTF-8'
-

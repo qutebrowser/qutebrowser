@@ -31,9 +31,10 @@ from qutebrowser.utils import standarddir
 
 @pytest.yield_fixture(autouse=True)
 def change_qapp_name():
-    """
-    Change the name of the QApplication instance for all tests in this module
-    to "qutebrowser_test".
+    """Change the name of the QApplication instance.
+
+    This changes the applicationName for all tests in this module to
+    "qutebrowser_test".
     """
     old_name = QApplication.instance().applicationName()
     QApplication.instance().setApplicationName('qutebrowser_test')
@@ -44,23 +45,23 @@ def change_qapp_name():
 @pytest.mark.skipif(not sys.platform.startswith("linux"),
                     reason="requires Linux")
 class TestGetStandardDirLinux:
-    """Tests for standarddir under Linux.
-    """
+
+    """Tests for standarddir under Linux."""
 
     def test_data_explicit(self, monkeypatch, tmpdir):
-        """Test data dir with XDG_DATA_HOME explicitely set."""
+        """Test data dir with XDG_DATA_HOME explicitly set."""
         monkeypatch.setenv('XDG_DATA_HOME', str(tmpdir))
         standarddir.init(None)
         assert standarddir.data() == str(tmpdir / 'qutebrowser_test')
 
     def test_config_explicit(self, monkeypatch, tmpdir):
-        """Test config dir with XDG_CONFIG_HOME explicitely set."""
+        """Test config dir with XDG_CONFIG_HOME explicitly set."""
         monkeypatch.setenv('XDG_CONFIG_HOME', str(tmpdir))
         standarddir.init(None)
         assert standarddir.config() == str(tmpdir / 'qutebrowser_test')
 
     def test_cache_explicit(self, monkeypatch, tmpdir):
-        """Test cache dir with XDG_CACHE_HOME explicitely set."""
+        """Test cache dir with XDG_CACHE_HOME explicitly set."""
         monkeypatch.setenv('XDG_CACHE_HOME', str(tmpdir))
         standarddir.init(None)
         assert standarddir.cache() == str(tmpdir / 'qutebrowser_test')
@@ -93,8 +94,8 @@ class TestGetStandardDirLinux:
 @pytest.mark.skipif(not sys.platform.startswith("win"),
                     reason="requires Windows")
 class TestGetStandardDirWindows:
-    """Tests for standarddir under Windows.
-    """
+
+    """Tests for standarddir under Windows."""
 
     @pytest.fixture(autouse=True)
     def reset_standarddir(self):

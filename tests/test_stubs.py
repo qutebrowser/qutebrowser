@@ -105,5 +105,3 @@ def test_interval(timer):
     assert timer.interval() == 0
     timer.setInterval(1000)
     assert timer.interval() == 1000
-
-

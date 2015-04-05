@@ -379,6 +379,7 @@ class TestIsEditable:
 
     @pytest.yield_fixture
     def stub_config(self, stubs):
+        """Fixture to create a config stub with an input section."""
         config = stubs.ConfigStub({'input': {}})
         with mock.patch('qutebrowser.browser.webelem.config', new=config):
             yield config
@@ -557,5 +558,3 @@ class TestIsEditable:
         """Test div-element with codemirror class."""
         elem = get_webelem(tagname='div', classes='foo CodeMirror-foo')
         assert elem.is_editable()
-
-

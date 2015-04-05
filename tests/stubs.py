@@ -20,6 +20,7 @@
 # pylint: disable=invalid-name
 
 """Fake objects/stubs."""
+
 import logging
 
 from unittest import mock
@@ -272,6 +273,7 @@ class FakeTimer(QObject):
 
 
 class MessageModule:
+
     """A drop-in replacement for qutebrowser.utils.message."""
 
     def error(self, _win_id, message, _immediately=False):

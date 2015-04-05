@@ -24,27 +24,24 @@ import pytest
 
 @pytest.fixture(scope='session', autouse=True)
 def app_and_logging(qapp):
-    """
-    Initializes our logging system and ensures that a QApplication is created
-    and used by all tests.
+    """Initialize a QApplication and logging.
+
+    This ensures that a QApplication is created and used by all tests.
     """
     from log import init
-
     init()
 
 
 @pytest.fixture(scope='session')
 def stubs():
-    """
-    Provides access to stub objects useful for testing.
-    """
+    """Provide access to stub objects useful for testing."""
     import stubs
-
     return stubs
 
 
 @pytest.fixture(scope='session')
 def unicode_encode_err():
+    """Provide a fake UnicodeEncodeError exception."""
     return UnicodeEncodeError('ascii',  # codec
                               '',  # object
                               0,  # start
@@ -66,9 +63,7 @@ def webpage():
 
 @pytest.fixture
 def fake_keyevent_factory():
-    """
-    Fixture that when called will return a mock instance of a QKeyEvent.
-    """
+    """Fixture that when called will return a mock instance of a QKeyEvent."""
     from unittest import mock
     from PyQt5.QtGui import QKeyEvent
 

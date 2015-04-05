@@ -105,8 +105,8 @@ class TestInline:
 
         Some UAs use this filename in a subsequent "save" operation.
         """
-        header_checker.check_filename('inline; filename="foo.html"', 'foo.html',
-                                      expected_inline=True)
+        header_checker.check_filename('inline; filename="foo.html"',
+                                      'foo.html', expected_inline=True)
 
     def test_inlwithfnattach(self, header_checker):
         """'inline', specifying a filename of "Not an attachment!".
@@ -851,7 +851,7 @@ class TestEncodingFallback:
             "filename=\"foo-ae.html\"", 'foo-ä.html')
 
     def test_attfnboth3(self, header_checker):
-        """'attachment', specifying an ambigious filename.
+        """'attachment', specifying an ambiguous filename.
 
         currency-sign=¤ in the simple RFC2231/5987 format, and euro-sign=€ in
         RFC2231-with-continuations format.
@@ -859,9 +859,9 @@ class TestEncodingFallback:
         A UA that supports could pick either, or ignore both because of the
         ambiguity.
         """
-        header_checker.check_ignored("attachment; "
-                                     "filename*0*=ISO-8859-15''euro-sign%3d%a4; "
-                                     "filename*=ISO-8859-1''currency-sign%3d%a4")
+        header_checker.check_ignored(
+            "attachment; filename*0*=ISO-8859-15''euro-sign%3d%a4; "
+            "filename*=ISO-8859-1''currency-sign%3d%a4")
 
     def test_attnewandfn(self, header_checker):
         """'attachment', specifying a new parameter "foobar".
@@ -918,5 +918,3 @@ class TestOur:
         """'attachment' with double space in the filename."""
         header_checker.check_filename('attachment; filename="foo  bar.html"',
                                       'foo bar.html')
-
-

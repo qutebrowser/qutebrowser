@@ -32,20 +32,18 @@ from qutebrowser.misc import readline
 
 @pytest.fixture
 def mocked_qapp(mocker, stubs):
-    """
-    Fixture that mocks QApplication in the readline module and returns it.
-    """
+    """Fixture that mocks readline.QApplication and returns it."""
     return mocker.patch('qutebrowser.misc.readline.QApplication',
                         new_callable=stubs.FakeQApplication)
 
 
 class TestNoneWidget:
 
-    """Tests when the focused widget is None."""
+    """Test if there are no exceptions when the widget is None."""
 
     def test_none(self, mocked_qapp):
+        """Call each rl_* method with a None focusWidget."""
         self.bridge = readline.ReadlineBridge()
-        """Test if there are no exceptions when the widget is None."""
         mocked_qapp.focusWidget = mock.Mock(return_value=None)
         for name, method in inspect.getmembers(self.bridge, inspect.ismethod):
             if name.startswith('rl_'):

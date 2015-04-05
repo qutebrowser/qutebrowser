@@ -24,18 +24,15 @@ from qutebrowser.mainwindow.statusbar.textbase import TextBase
 
 
 def test_elided_text(qtbot):
-    """
-    Ensure that a widget that can't hold the entire label text will display
-    and elided version of the string instead.
+    """Ensure that a widget too small to hold the entire label text will elide.
+
+    Note:
+        It is difficult to check what is actually being drawn in a portable
+        way, so at least we ensure our customized methods are being called and
+        the elided string contains the horizontal ellipsis character.
 
     Args:
         qtbot: pytestqt.plugin.QtBot fixture
-
-    Note:
-
-    It is difficult to check what is actually being drawn in a
-    portable way, so at least we ensure our customized methods are being
-    called and the elided string contains the horizontal ellipsis character.
     """
     label = TextBase()
     qtbot.add_widget(label)
@@ -43,4 +40,4 @@ def test_elided_text(qtbot):
     label.setText(long_string)
     label.resize(100, 50)
     label.show()
-    assert '…' in label._elided_text
+    assert '…' in label._elided_text  # pylint: disable=protected-access

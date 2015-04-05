@@ -23,7 +23,6 @@
 
 import os
 import os.path
-import unittest
 import logging
 from unittest import mock
 
@@ -75,14 +74,15 @@ class TestArg:
             "bin", ["foo", filename, "bar"])
 
     def test_in_arg_placeholder(self):
+        """Test starting editor with placeholder argument inside argument."""
         self.config.data = {'general': {'editor': ['bin', 'foo{}bar'],
                                         'editor-encoding': 'utf-8'}}
-        """Test starting editor with placeholder argument inside argument."""
         self.editor.edit("")
         self.editor._proc.start.assert_called_with("bin", ["foo{}bar"])
 
 
 class TestFileHandling(object):
+
     """Test creation/deletion of tempfile.
 
     Attributes:
@@ -132,6 +132,7 @@ class TestFileHandling(object):
 
 
 class TestModifyTests(object):
+
     """Tests to test if the text gets saved/loaded correctly.
 
     Attributes:
@@ -202,6 +203,7 @@ class TestModifyTests(object):
 
 
 class TestErrorMessage:
+
     """Test if statusbar error messages get emitted correctly.
 
     Attributes:
@@ -233,4 +235,3 @@ class TestErrorMessage:
         with caplog.atLevel(logging.ERROR, 'message'):
             self.editor.on_proc_closed(1, QProcess.NormalExit)
             assert len(caplog.records()) == 3
-
