@@ -154,8 +154,12 @@ class WebHistory(QWebHistoryInterface):
         return url_string in self._history_dict
 
 
-def init():
-    """Initialize the web history."""
-    history = WebHistory()
+def init(parent=None):
+    """Initialize the web history.
+
+    Args:
+        parent: The parent to use for WebHistory.
+    """
+    history = WebHistory(parent)
     objreg.register('web-history', history)
     QWebHistoryInterface.setDefaultInterface(history)

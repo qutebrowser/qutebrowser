@@ -113,13 +113,16 @@ def section(sect):
     return objreg.get('config')[sect]
 
 
-def _init_main_config():
-    """Initialize the main config."""
+def _init_main_config(parent=None):
+    """Initialize the main config.
+
+    Args:
+        parent: The parent to pass to ConfigManager.
+    """
     try:
-        app = objreg.get('app')
         args = objreg.get('args')
         config_obj = ConfigManager(standarddir.config(), 'qutebrowser.conf',
-                                   args.relaxed_config, app)
+                                   args.relaxed_config, parent=parent)
     except (configexc.Error, configparser.Error, UnicodeDecodeError) as e:
         log.init.exception(e)
         errstr = "Error while reading config:"
@@ -151,10 +154,15 @@ def _init_main_config():
                         return
 
 
-def _init_key_config():
-    """Initialize the key config."""
+def _init_key_config(parent):
+    """Initialize the key config.
+
+    Args:
+        parent: The parent to use for the KeyConfigParser.
+    """
     try:
-        key_config = keyconf.KeyConfigParser(standarddir.config(), 'keys.conf')
+        key_config = keyconf.KeyConfigParser(standarddir.config(), 'keys.conf',
+                                             parent=parent)
     except (keyconf.KeyConfigError, UnicodeDecodeError) as e:
         log.init.exception(e)
         errstr = "Error while reading key config:\n"
@@ -216,10 +224,14 @@ def _init_misc():
         QSettings.setPath(fmt, QSettings.UserScope, path)
 
 
-def init():
-    """Initialize the config."""
-    _init_main_config()
-    _init_key_config()
+def init(parent=None):
+    """Initialize the config.
+
+    Args:
+        parent: The parent to pass to QObjects which get initialized.
+    """
+    _init_main_config(parent)
+    _init_key_config(parent)
     _init_misc()
 
 

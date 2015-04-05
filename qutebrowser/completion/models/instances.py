@@ -30,8 +30,7 @@ import functools
 from PyQt5.QtCore import pyqtSlot, Qt
 
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
-from qutebrowser.completion.models.sortfilter import (
-    CompletionFilterModel as CFM)
+from qutebrowser.completion.models.sortfilter import CompletionFilterModel
 from qutebrowser.utils import objreg, usertypes, log, debug
 from qutebrowser.config import configdata
 
@@ -39,42 +38,58 @@ from qutebrowser.config import configdata
 _instances = {}
 
 
+def _init_model(klass, *args, dumb_sort=None, **kwargs):
+    """Helper to initialize a model.
+
+    Args:
+        klass: The class of the model to initialize.
+        *args: Arguments to pass to the model.
+        **kwargs: Keyword arguments to pass to the model.
+        dumb_sort: Passed to CompletionFilterModel.
+    """
+    app = objreg.get('app')
+    return CompletionFilterModel(klass(*args, parent=app, **kwargs),
+                                 dumb_sort=dumb_sort, parent=app)
+
+
 def _init_command_completion():
     """Initialize the command completion model."""
     log.completion.debug("Initializing command completion.")
-    _instances[usertypes.Completion.command] = CFM(
-        miscmodels.CommandCompletionModel())
+    model = _init_model(miscmodels.CommandCompletionModel)
+    _instances[usertypes.Completion.command] = model
 
 
 def _init_helptopic_completion():
     """Initialize the helptopic completion model."""
     log.completion.debug("Initializing helptopic completion.")
-    _instances[usertypes.Completion.helptopic] = CFM(
-        miscmodels.HelpCompletionModel())
+    model = _init_model(miscmodels.HelpCompletionModel)
+    _instances[usertypes.Completion.helptopic] = model
 
 
 def _init_url_completion():
     """Initialize the URL completion model."""
     log.completion.debug("Initializing URL completion.")
     with debug.log_time(log.completion, 'URL completion init'):
-        _instances[usertypes.Completion.url] = CFM(
-            urlmodel.UrlCompletionModel(), dumb_sort=Qt.DescendingOrder)
+        model = _init_model(urlmodel.UrlCompletionModel,
+                            dumb_sort=Qt.DescendingOrder)
+        _instances[usertypes.Completion.url] = model
 
 
 def _init_setting_completions():
     """Initialize setting completion models."""
     log.completion.debug("Initializing setting completion.")
-    _instances[usertypes.Completion.section] = CFM(
-        configmodel.SettingSectionCompletionModel())
+    _instances[usertypes.Completion.section] = _init_model(
+        configmodel.SettingSectionCompletionModel)
     _instances[usertypes.Completion.option] = {}
     _instances[usertypes.Completion.value] = {}
     for sectname in configdata.DATA:
-        model = configmodel.SettingOptionCompletionModel(sectname)
-        _instances[usertypes.Completion.option][sectname] = CFM(model)
+        model = _init_model(configmodel.SettingOptionCompletionModel, sectname)
+        _instances[usertypes.Completion.option][sectname] = model
         _instances[usertypes.Completion.value][sectname] = {}
         for opt in configdata.DATA[sectname].keys():
-            model = configmodel.SettingValueCompletionModel(sectname, opt)
-            _instances[usertypes.Completion.value][sectname][opt] = CFM(model)
+            model = _init_model(configmodel.SettingValueCompletionModel,
+                                sectname, opt)
+            _instances[usertypes.Completion.value][sectname][opt] = model
 
 
 @pyqtSlot()
@@ -86,10 +101,10 @@ def init_quickmark_completions():
         _instances[usertypes.Completion.quickmark_by_name].deleteLater()
     except KeyError:
         pass
-    _instances[usertypes.Completion.quickmark_by_url] = CFM(
-        miscmodels.QuickmarkCompletionModel('url'))
-    _instances[usertypes.Completion.quickmark_by_name] = CFM(
-        miscmodels.QuickmarkCompletionModel('name'))
+    model = _init_model(miscmodels.QuickmarkCompletionModel, 'url')
+    _instances[usertypes.Completion.quickmark_by_url] = model
+    model = _init_model(miscmodels.QuickmarkCompletionModel, 'name')
+    _instances[usertypes.Completion.quickmark_by_name] = model
 
 
 @pyqtSlot()
@@ -100,8 +115,8 @@ def init_session_completion():
         _instances[usertypes.Completion.sessions].deleteLater()
     except KeyError:
         pass
-    _instances[usertypes.Completion.sessions] = CFM(
-        miscmodels.SessionCompletionModel())
+    model = _init_model(miscmodels.SessionCompletionModel)
+    _instances[usertypes.Completion.sessions] = model
 
 
 INITIALIZERS = {
