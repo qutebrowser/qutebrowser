@@ -90,6 +90,7 @@ def check_spelling(target):
                         if re.search(w, line) and fn not in seen[w]:
                             print("Found '{}' in {}!".format(w, fn))
                             seen[w].append(fn)
+                            ok = False
         print()
         return ok
     except Exception:
