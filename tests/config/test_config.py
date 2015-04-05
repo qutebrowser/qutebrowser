@@ -161,9 +161,6 @@ class TestDefaultConfig:
 
     """Test validating of the default config."""
 
-    @pytest.mark.xfail(reason='fails if run with other tests in this module, '
-                              'succeeds if executed alone (The-Compiler, help)'
-    )
     def test_default_config(self):
         """Test validating of the default config."""
         conf = config.ConfigManager(None, None)
