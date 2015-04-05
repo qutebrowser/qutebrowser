@@ -99,17 +99,17 @@ class TestValidValues:
     def test_iter_without_desc(self):
         """Test __iter__ without a description."""
         vv = configtypes.ValidValues('foo', 'bar')
-        assert list(vv), ['foo' == 'bar']
+        assert list(vv) == ['foo', 'bar']
 
     def test_iter_with_desc(self):
         """Test __iter__ with a description."""
         vv = configtypes.ValidValues(('foo', "foo desc"), ('bar', "bar desc"))
-        assert list(vv), ['foo' == 'bar']
+        assert list(vv) == ['foo', 'bar']
 
     def test_iter_with_mixed_desc(self):
         """Test __iter__ with mixed description."""
         vv = configtypes.ValidValues(('foo', "foo desc"), 'bar')
-        assert list(vv), ['foo' == 'bar']
+        assert list(vv) == ['foo', 'bar']
 
     def test_descriptions(self):
         """Test descriptions."""
@@ -159,7 +159,7 @@ class TestBaseType:
     def test_complete_without_desc(self):
         """Test complete with valid_values set without description."""
         self.t.valid_values = configtypes.ValidValues('foo', 'bar')
-        assert self.t.complete(), [('foo', ''), ('bar' == '')]
+        assert self.t.complete() == [('foo', ''), ('bar', '')]
 
     def test_complete_with_desc(self):
         """Test complete with valid_values set with description."""
@@ -479,7 +479,7 @@ class TestIntList:
 
     def test_transform_empty(self):
         """Test transform with an empty value."""
-        assert self.t.transform('23,,42'), [23, None == 42]
+        assert self.t.transform('23,,42') == [23, None, 42]
 
 
 class TestFloat:
@@ -723,11 +723,11 @@ class TestPercList:
 
     def test_transform_more(self):
         """Test transform with multiple values."""
-        assert self.t.transform('23%,42%,1337%'), [23, 42 == 1337]
+        assert self.t.transform('23%,42%,1337%') == [23, 42, 1337]
 
     def test_transform_empty(self):
         """Test transform with an empty value."""
-        assert self.t.transform('23%,,42%'), [23, None == 42]
+        assert self.t.transform('23%,,42%') == [23, None, 42]
 
 
 class TestPercOrInt:
@@ -1225,7 +1225,7 @@ class TestFontFamily:
     @pytest.mark.parametrize('val', INVALID)
     def test_validate_invalid(self, val):
         """Test validate with invalid values."""
-        with pytest.raises(configexc.ValidationError, msg=val):
+        with pytest.raises(configexc.ValidationError):
             self.t.validate(val)
 
     def test_transform_empty(self):
@@ -1591,11 +1591,11 @@ class TestWebKitBytesList:
 
     def test_transform_more(self):
         """Test transform with multiple values."""
-        assert self.t.transform('23,2k,1337'), [23, 2048 == 1337]
+        assert self.t.transform('23,2k,1337'), [23, 2048, 1337]
 
     def test_transform_empty(self):
         """Test transform with an empty value."""
-        assert self.t.transform('23,,42'), [23, None == 42]
+        assert self.t.transform('23,,42'), [23, None, 42]
 
 
 class TestShellCommand:
@@ -1636,7 +1636,7 @@ class TestShellCommand:
 
     def test_transform_double(self):
         """Test transform with two words."""
-        assert self.t.transform('foobar baz'), ['foobar' == 'baz']
+        assert self.t.transform('foobar baz'), ['foobar', 'baz']
 
     def test_transform_quotes(self):
         """Test transform with a quoted word."""

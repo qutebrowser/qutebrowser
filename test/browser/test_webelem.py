@@ -379,7 +379,7 @@ class TestIsEditable:
 
     @pytest.yield_fixture
     def stub_config(self, stubs):
-        config = stubs.ConfigStub({'input': {'insert-mode-on-plugins': True}})
+        config = stubs.ConfigStub({'input': {}})
         with mock.patch('qutebrowser.browser.webelem.config', new=config):
             yield config
 
