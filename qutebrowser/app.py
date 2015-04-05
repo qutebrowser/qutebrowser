@@ -342,7 +342,7 @@ class Application(QApplication):
                 win_id = window.win_id
                 window_to_raise = window
             win_id = window.win_id
-            if open_target != 'tab-silent':
+            if open_target not in ('tab-silent', 'tab-bg-silent'):
                 window_to_raise = window
         if window_to_raise is not None:
             window_to_raise.setWindowState(window.windowState() &
@@ -389,7 +389,10 @@ class Application(QApplication):
                     message.error(0, "Error in startup argument '{}': "
                                      "{}".format(cmd, e))
                 else:
-                    tabbed_browser.tabopen(url, background=False)
+                    open_target = config.get('general',
+                                             'new-instance-open-target')
+                    background = open_target in ('tab-bg', 'tab-bg-silent')
+                    tabbed_browser.tabopen(url, background=background)
 
     def _open_startpage(self, win_id=None):
         """Open startpage.

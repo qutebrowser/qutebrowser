@@ -1440,9 +1440,14 @@ class NewInstanceOpenTarget(BaseType):
 
     valid_values = ValidValues(('tab', "Open a new tab in the existing "
                                        "window and activate it."),
+                               ('tab-bg', "Open a new background tab in the "
+                                          "existing window and activate it."),
                                ('tab-silent', "Open a new tab in the existing "
                                               "window without activating "
                                               "it."),
+                               ('tab-bg-silent', "Open a new background tab "
+                                                 "in the existing window "
+                                                 "without activating it."),
                                ('window', "Open in a new window."))
 
 
