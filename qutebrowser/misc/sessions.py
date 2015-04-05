@@ -220,8 +220,13 @@ class SessionManager(QObject):
         except ValueError as e:
             raise SessionError(e)
 
-    def load(self, name):
-        """Load a named session."""
+    def load(self, name, temp=False):
+        """Load a named session.
+
+        Args:
+            name: The name of the session to load.
+            temp: If given, don't set the current session.
+        """
         path = self._get_session_path(name, check_exists=True)
         try:
             with open(path, encoding='utf-8') as f:
@@ -245,7 +250,7 @@ class SessionManager(QObject):
             if win.get('active', False):
                 QTimer.singleShot(0, tabbed_browser.activateWindow)
         self.did_load = True
-        if not name.startswith('_'):
+        if not name.startswith('_') and not temp:
             self._current = name
 
     def delete(self, name):
@@ -265,12 +270,13 @@ class SessionManager(QObject):
 
     @cmdutils.register(completion=[usertypes.Completion.sessions],
                        instance='session-manager')
-    def session_load(self, name, clear=False, force=False):
+    def session_load(self, name, clear=False, temp=False, force=False):
         """Load a session.
 
         Args:
             name: The name of the session.
             clear: Close all existing windows.
+            temp: Don't set the current session for :session-save.
             force: Force loading internal sessions (starting with an
                    underline).
         """
@@ -279,7 +285,7 @@ class SessionManager(QObject):
                                       "--force to load anyways.".format(name))
         old_windows = list(objreg.window_registry.values())
         try:
-            self.load(name)
+            self.load(name, temp=temp)
         except SessionNotFoundError:
             raise cmdexc.CommandError("Session {} not found!".format(name))
         except SessionError as e:
