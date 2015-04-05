@@ -216,6 +216,11 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'false'),
              "Whether to always save the open pages."),
 
+            ('session-default-name',
+             SettingValue(typ.SessionName(none_ok=True), ''),
+             "The name of the session to save by default, or empty for the "
+             "last loaded session."),
+
             readonly=readonly
         )),
 

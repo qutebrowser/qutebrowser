@@ -829,7 +829,7 @@ class Application(QApplication):
 
     @cmdutils.register(instance='app', name='wq',
                        completion=[usertypes.Completion.sessions])
-    def save_and_quit(self, name='default'):
+    def save_and_quit(self, name=sessions.default):
         """Save open pages and quit.
 
         Args:
@@ -863,7 +863,7 @@ class Application(QApplication):
             session_manager.save(session, last_window=last_window,
                                  load_next_time=True)
         elif config.get('general', 'save-session'):
-            session_manager.save('default', last_window=last_window,
+            session_manager.save(sessions.default, last_window=last_window,
                                  load_next_time=True)
 
         deferrer = False

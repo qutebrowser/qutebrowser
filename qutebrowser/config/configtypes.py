@@ -1294,6 +1294,22 @@ class UrlList(List):
                                                 "{}".format(val.errorString()))
 
 
+class SessionName(BaseType):
+
+    """The name of a session."""
+
+    typestr = 'session'
+
+    def validate(self, value):
+        if not value:
+            if self._none_ok:
+                return
+            else:
+                raise configexc.ValidationError(value, "may not be empty!")
+        if value.startswith('_'):
+            raise configexc.ValidationError(value, "may not start with '_'!")
+
+
 class SelectOnRemove(BaseType):
 
     """Which tab to select when the focused tab is removed."""

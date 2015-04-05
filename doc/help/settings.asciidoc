@@ -22,6 +22,7 @@
 |<<general-new-instance-open-target,new-instance-open-target>>|How to open links in an existing instance if a new one is launched.
 |<<general-log-javascript-console,log-javascript-console>>|Whether to log javascript console messages.
 |<<general-save-session,save-session>>|Whether to always save the open pages.
+|<<general-session-default-name,session-default-name>>|The name of the session to save by default, or empty for the last loaded session.
 |==============
 
 .Quick reference for section ``ui''
@@ -418,6 +419,12 @@ Valid values:
  * +false+
 
 Default: +pass:[false]+
+
+[[general-session-default-name]]
+=== session-default-name
+The name of the session to save by default, or empty for the last loaded session.
+
+Default: +pass:[default]+
 
 == ui
 General options related to the user interface.

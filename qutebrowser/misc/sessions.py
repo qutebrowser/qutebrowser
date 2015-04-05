@@ -35,6 +35,10 @@ from qutebrowser.utils import (standarddir, objreg, qtutils, log, usertypes,
                                message)
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.mainwindow import mainwindow
+from qutebrowser.config import config
+
+
+default = object()  # Sentinel value
 
 
 class SessionError(Exception):
@@ -163,10 +167,22 @@ class SessionManager(QObject):
         """Save a named session.
 
         Args:
+            name: The name of the session to save, or the 'default' sentinel
+                  object.
             last_window: If set, saves the saved self._last_window_session
                          instead of the currently open state.
             load_next_time: If set, prepares this session to be load next time.
+
+        Return:
+            The name of the saved session.
         """
+        if name is default:
+            name = config.get('general', 'session-default-name')
+            if name is None:
+                if self._current is not None:
+                    name = self._current
+                else:
+                    name = 'default'
         path = self._get_session_path(name)
 
         log.misc.debug("Saving session {} to {}...".format(name, path))
@@ -187,6 +203,7 @@ class SessionManager(QObject):
         if load_next_time:
             state_config = objreg.get('state-config')
             state_config['general']['session'] = name
+        return name
 
     def save_last_window_session(self):
         """Temporarily save the session for the last closed window."""
@@ -299,18 +316,22 @@ class SessionManager(QObject):
     @cmdutils.register(name=['session-save', 'w'],
                        completion=[usertypes.Completion.sessions],
                        instance='session-manager')
-    def session_save(self, win_id: {'special': 'win_id'}, name='default',
-                     current=False, quiet=False, force=False):
+    def session_save(self, win_id: {'special': 'win_id'},
+                     name: {'type': str}=default, current=False, quiet=False,
+                     force=False):
         """Save a session.
 
         Args:
             win_id: The current window ID.
-            name: The name of the session.
+            name: The name of the session. If not given, the session configured
+                  in general -> session-default-name is saved.
             current: Save the current session instead of the default.
             quiet: Don't show confirmation message.
             force: Force saving internal sessions (starting with an underline).
         """
-        if name.startswith('_') and not force:
+        if (name is not default and
+                name.startswith('_') and  # pylint: disable=no-member
+                not force):
             raise cmdexc.CommandError("{!r} is an internal session, use "
                                       "--force to save anyways.".format(name))
         if current:
@@ -319,7 +340,7 @@ class SessionManager(QObject):
             name = self._current
             assert not name.startswith('_')
         try:
-            self.save(name)
+            name = self.save(name)
         except SessionError as e:
             raise cmdexc.CommandError("Error while saving session: {}"
                                       .format(e))
