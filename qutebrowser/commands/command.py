@@ -25,7 +25,8 @@ import collections
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.commands import cmdexc, argparser
-from qutebrowser.utils import log, utils, message, debug, docutils, objreg
+from qutebrowser.utils import log, utils, message, docutils, objreg, usertypes
+from qutebrowser.utils import debug as debug_utils
 
 
 class Command:
@@ -64,11 +65,22 @@ class Command:
                                             ['kwargs', 'type', 'name', 'flag',
                                              'special'])
 
-    def __init__(self, name, maxsplit, hide, instance, completion, modes,
-                 not_modes, needs_js, is_debug, ignore_args, deprecated,
-                 no_cmd_split, handler, scope):
+    def __init__(self, *, handler, name, instance=None, maxsplit=None,
+                 hide=False, completion=None, modes=None, not_modes=None,
+                 needs_js=False, debug=False, ignore_args=False,
+                 deprecated=False, no_cmd_split=False, scope='global'):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-arguments,too-many-locals
+        if modes is not None and not_modes is not None:
+            raise ValueError("Only modes or not_modes can be given!")
+        if modes is not None:
+            for m in modes:
+                if not isinstance(m, usertypes.KeyMode):
+                    raise TypeError("Mode {} is no KeyMode member!".format(m))
+        if not_modes is not None:
+            for m in not_modes:
+                if not isinstance(m, usertypes.KeyMode):
+                    raise TypeError("Mode {} is no KeyMode member!".format(m))
         self.name = name
         self.maxsplit = maxsplit
         self.hide = hide
@@ -79,7 +91,7 @@ class Command:
         self._not_modes = not_modes
         self._scope = scope
         self._needs_js = needs_js
-        self.debug = is_debug
+        self.debug = debug
         self.ignore_args = ignore_args
         self.handler = handler
         self.no_cmd_split = no_cmd_split
@@ -238,7 +250,7 @@ class Command:
                 self._type_conv.update(self._get_typeconv(param, typ))
                 self._name_conv.update(
                     self._get_nameconv(param, annotation_info))
-                callsig = debug.format_call(
+                callsig = debug_utils.format_call(
                     self.parser.add_argument, args, kwargs,
                     full=False)
                 log.commands.vdebug('Adding arg {} of type {} -> {}'.format(
@@ -501,5 +513,5 @@ class Command:
         posargs, kwargs = self._get_call_args(win_id)
         self._check_prerequisites(win_id)
         log.commands.debug('Calling {}'.format(
-            debug.format_call(self.handler, posargs, kwargs)))
+            debug_utils.format_call(self.handler, posargs, kwargs)))
         self.handler(*posargs, **kwargs)
