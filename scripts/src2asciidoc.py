@@ -157,47 +157,82 @@ def _get_command_doc(name, cmd):
         output.append("")
         output.append(parser.long_desc)
 
+    output += list(_get_command_doc_args(cmd, parser))
+    output += list(_get_command_doc_count(cmd, parser))
+    output += list(_get_command_doc_notes(cmd))
+
+    output.append("")
+    output.append("")
+    return '\n'.join(output)
+
+
+def _get_command_doc_args(cmd, parser):
+    """Get docs for the arguments of a command.
+
+    Args:
+        cmd: The Command to get the docs for.
+        parser: The DocstringParser to use.
+
+    Yield:
+        Strings which should be added to the docs.
+    """
     if cmd.pos_args:
-        output.append("")
-        output.append("==== positional arguments")
+        yield ""
+        yield "==== positional arguments"
         for arg, name in cmd.pos_args:
             try:
-                output.append("* +'{}'+: {}".format(name,
-                                                    parser.arg_descs[arg]))
+                yield "* +'{}'+: {}".format(name, parser.arg_descs[arg])
             except KeyError as e:
                 raise KeyError("No description for arg {} of command "
                                "'{}'!".format(e, cmd.name))
 
     if cmd.opt_args:
-        output.append("")
-        output.append("==== optional arguments")
+        yield ""
+        yield "==== optional arguments"
         for arg, (long_flag, short_flag) in cmd.opt_args.items():
             try:
-                output.append('* +*{}*+, +*{}*+: {}'.format(
-                    short_flag, long_flag, parser.arg_descs[arg]))
+                yield '* +*{}*+, +*{}*+: {}'.format(short_flag, long_flag,
+                                                    parser.arg_descs[arg])
             except KeyError:
                 raise KeyError("No description for arg {} of command "
                                "'{}'!".format(e, cmd.name))
 
+
+def _get_command_doc_count(cmd, parser):
+    """Get docs for the count of a command.
+
+    Args:
+        cmd: The Command to get the docs for.
+        parser: The DocstringParser to use.
+
+    Yield:
+        Strings which should be added to the docs.
+    """
     if cmd.special_params['count'] is not None:
-        output.append("")
-        output.append("==== count")
-        output.append(parser.arg_descs[cmd.special_params['count']])
+        yield ""
+        yield "==== count"
+        yield parser.arg_descs[cmd.special_params['count']]
 
+
+def _get_command_doc_notes(cmd):
+    """Get docs for the notes of a command.
+
+    Args:
+        cmd: The Command to get the docs for.
+        parser: The DocstringParser to use.
+
+    Yield:
+        Strings which should be added to the docs.
+    """
     if cmd.maxsplit is not None or cmd.no_cmd_split:
-        output.append("")
-        output.append("==== note")
+        yield ""
+        yield "==== note"
         if cmd.maxsplit is not None:
-            output.append("* This command does not split arguments after the "
-                          "last argument and handles quotes literally.")
+            yield ("* This command does not split arguments after the last "
+                   "argument and handles quotes literally.")
         if cmd.no_cmd_split is not None:
-            output.append("* With this command, +;;+ is interpreted "
-                          "literally instead of splitting off a second "
-                          "command.")
-
-    output.append("")
-    output.append("")
-    return '\n'.join(output)
+            yield ("* With this command, +;;+ is interpreted literally "
+                   "instead of splitting off a second command.")
 
 
 def _get_action_metavar(action, nargs=1):
