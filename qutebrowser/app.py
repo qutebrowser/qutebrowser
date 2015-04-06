@@ -758,7 +758,8 @@ class Application(QApplication):
         else:
             return True
 
-    @cmdutils.register(instance='app', maxsplit=0, debug=True)
+    @cmdutils.register(instance='app', maxsplit=0, debug=True,
+                       no_cmd_split=True)
     def debug_pyeval(self, s):
         """Evaluate a python string and display the results as a web page.
 

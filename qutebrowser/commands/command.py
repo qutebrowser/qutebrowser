@@ -46,6 +46,7 @@ class Command:
         special_params: A dict with the names of the special parameters as
                         values.
         flags_with_args: A list of flags which take an argument.
+        no_cmd_split: If true, ';;' to split sub-commands is ignored.
         _type_conv: A mapping of conversion functions for arguments.
         _name_conv: A mapping of argument names to parameter names.
         _needs_js: Whether the command needs javascript enabled
@@ -65,7 +66,7 @@ class Command:
 
     def __init__(self, name, maxsplit, hide, instance, completion, modes,
                  not_modes, needs_js, is_debug, ignore_args, deprecated,
-                 handler, scope):
+                 no_cmd_split, handler, scope):
         # I really don't know how to solve this in a better way, I tried.
         # pylint: disable=too-many-arguments,too-many-locals
         self.name = name
@@ -81,6 +82,7 @@ class Command:
         self.debug = is_debug
         self.ignore_args = ignore_args
         self.handler = handler
+        self.no_cmd_split = no_cmd_split
         self.docparser = docutils.DocstringParser(handler)
         self.parser = argparser.ArgumentParser(
             name, description=self.docparser.short_desc,

@@ -34,7 +34,7 @@ from qutebrowser.config import style
 from qutebrowser.misc import consolewidget
 
 
-@cmdutils.register(scope='window', maxsplit=1)
+@cmdutils.register(scope='window', maxsplit=1, no_cmd_split=True)
 def later(ms: {'type': int}, command, win_id: {'special': 'win_id'}):
     """Execute a command after some time.
 
@@ -63,7 +63,7 @@ def later(ms: {'type': int}, command, win_id: {'special': 'win_id'}):
         raise
 
 
-@cmdutils.register(scope='window', maxsplit=1)
+@cmdutils.register(scope='window', maxsplit=1, no_cmd_split=True)
 def repeat(times: {'type': int}, command, win_id: {'special': 'win_id'}):
     """Repeat a given command.
 
@@ -122,7 +122,7 @@ def debug_console():
     con_widget.show()
 
 
-@cmdutils.register(debug=True, maxsplit=0)
+@cmdutils.register(debug=True, maxsplit=0, no_cmd_split=True)
 def debug_trace(expr=""):
     """Trace executed code via hunter.
 

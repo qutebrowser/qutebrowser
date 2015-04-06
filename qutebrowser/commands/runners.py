@@ -279,11 +279,14 @@ class CommandRunner(QObject):
             text: The text to parse.
             count: The count to pass to the command.
         """
-        if ';;' in text:
-            for sub in text.split(';;'):
-                self.run(sub, count)
-            return
         self.parse(text)
+        if ';;' in text:
+            # Get the first command and check if it doesn't want to have ;;
+            # split.
+            if not self._cmd.no_cmd_split:
+                for sub in text.split(';;'):
+                    self.run(sub, count)
+                return
         args = replace_variables(self._win_id, self._args)
         if count is not None:
             self._cmd.run(self._win_id, args, count=count)

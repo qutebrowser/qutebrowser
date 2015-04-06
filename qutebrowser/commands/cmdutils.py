@@ -116,7 +116,7 @@ class register:  # pylint: disable=invalid-name
     def __init__(self, instance=None, name=None, maxsplit=None, hide=False,
                  completion=None, modes=None, not_modes=None, needs_js=False,
                  debug=False, ignore_args=False, deprecated=False,
-                 scope='global'):
+                 no_cmd_split=False, scope='global'):
         """Save decorator arguments.
 
         Gets called on parse-time with the decorator arguments.
@@ -139,6 +139,7 @@ class register:  # pylint: disable=invalid-name
         self._deprecated = deprecated
         self._debug = debug
         self._ignore_args = ignore_args
+        self._no_cmd_split = no_cmd_split
         if modes is not None:
             for m in modes:
                 if not isinstance(m, usertypes.KeyMode):
@@ -196,7 +197,8 @@ class register:  # pylint: disable=invalid-name
             completion=self._completion, modes=self._modes,
             not_modes=self._not_modes, needs_js=self._needs_js,
             is_debug=self._debug, ignore_args=self._ignore_args,
-            deprecated=self._deprecated, handler=func)
+            deprecated=self._deprecated, no_cmd_split=self._no_cmd_split,
+            handler=func)
         for name in names:
             cmd_dict[name] = cmd
         aliases += names[1:]
