@@ -184,6 +184,17 @@ def _get_command_doc(name, cmd):
         output.append("==== count")
         output.append(parser.arg_descs[cmd.special_params['count']])
 
+    if cmd.maxsplit is not None or cmd.no_cmd_split:
+        output.append("")
+        output.append("==== note")
+        if cmd.maxsplit is not None:
+            output.append("* This command does not split arguments after the "
+                          "last argument and handles quotes literally.")
+        if cmd.no_cmd_split is not None:
+            output.append("* With this command, +;;+ is interpreted "
+                          "literally instead of splitting off a second "
+                          "command.")
+
     output.append("")
     output.append("")
     return '\n'.join(output)

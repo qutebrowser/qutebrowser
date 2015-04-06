@@ -93,6 +93,10 @@ Bind a key to a command.
 
 * +*-f*+, +*--force*+: Rebind the key if it is already bound.
 
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
 [[close]]
 === close
 Close the current window.
@@ -245,6 +249,10 @@ Execute a command after some time.
 * +'ms'+: How many milliseconds to wait.
 * +'command'+: The command to run, with optional args.
 
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
 [[navigate]]
 === navigate
 Syntax: +:navigate [*--tab*] [*--bg*] [*--window*] 'where'+
@@ -286,6 +294,10 @@ Open a URL in the current/[count]th tab.
 
 ==== count
 The tab index to open the URL in.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[paste]]
 === paste
@@ -330,6 +342,10 @@ Delete a quickmark.
 ==== positional arguments
 * +'name'+: The name of the quickmark to delete.
 
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
 [[quickmark-load]]
 === quickmark-load
 Syntax: +:quickmark-load [*--tab*] [*--bg*] [*--window*] 'name'+
@@ -343,6 +359,10 @@ Load a quickmark.
 * +*-t*+, +*--tab*+: Load the quickmark in a new tab.
 * +*-b*+, +*--bg*+: Load the quickmark in a new background tab.
 * +*-w*+, +*--window*+: Load the quickmark in a new window.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[quickmark-save]]
 === quickmark-save
@@ -374,6 +394,10 @@ Repeat a given command.
 * +'times'+: How many times to repeat.
 * +'command'+: The command to run, with optional args.
 
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
 [[report]]
 === report
 Report a bug in qutebrowser.
@@ -403,6 +427,10 @@ Search for a text on the current page. With no text, clear results.
 
 ==== optional arguments
 * +*-r*+, +*--reverse*+: Reverse search direction.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[session-delete]]
 === session-delete
@@ -475,6 +503,10 @@ Preset the statusbar to some text.
 
 ==== optional arguments
 * +*-s*+, +*--space*+: If given, a space is added to the end.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
 [[spawn]]
 === spawn
@@ -915,6 +947,10 @@ Evaluate a python string and display the results as a web page.
 ==== positional arguments
 * +'s'+: The string to evaluate.
 
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
 [[debug-trace]]
 === debug-trace
 Syntax: +:debug-trace ['expr']+
@@ -923,4 +959,8 @@ Trace executed code via hunter.
 
 ==== positional arguments
 * +'expr'+: What to trace, passed to hunter.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
