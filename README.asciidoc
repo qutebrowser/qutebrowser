@@ -34,7 +34,7 @@ See the https://github.com/The-Compiler/qutebrowser/releases[github releases
 page] for available downloads (currently a source archive, and standalone
 packages as well as MSI installers for Windows).
 
-See link:doc/INSTALL.asciidoc[INSTALL] for detailed instructions on how to get
+See link:INSTALL.asciidoc[INSTALL] for detailed instructions on how to get
 qutebrowser running for various platforms.
 
 Documentation
@@ -46,9 +46,9 @@ available:
 * A http://qutebrowser.org/img/cheatsheet-big.png[key binding cheatsheet]: +
 image:http://qutebrowser.org/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="http://qutebrowser.org/img/cheatsheet-big.png"]
 * link:doc/quickstart.asciidoc[Quick start guide]
-* link:doc/FAQ.asciidoc[Frequently asked questions]
+* link:FAQ.asciidoc[Frequently asked questions]
 * link:CONTRIBUTING.asciidoc[Contributing to qutebrowser]
-* link:doc/INSTALL.asciidoc[INSTALL]
+* link:INSTALL.asciidoc[INSTALL]
 * link:CHANGELOG.asciidoc[Change Log]
 * link:doc/stacktrace.asciidoc[Reporting segfaults]
 * link:doc/userscripts.asciidoc[How to write userscripts]
@@ -108,8 +108,8 @@ console:
 * https://pypi.python.org/pypi/colorlog/[colorlog]
 * On Windows: https://pypi.python.org/pypi/colorama/[colorama]
 
-See link:doc/INSTALL.asciidoc[INSTALL] for directions on how to install
-qutebrowser and its dependencies.
+See link:INSTALL.asciidoc[INSTALL] for directions on how to install qutebrowser
+and its dependencies.
 
 Donating
 --------
