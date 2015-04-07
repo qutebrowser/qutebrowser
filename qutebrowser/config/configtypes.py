@@ -1337,6 +1337,8 @@ class LastClose(BaseType):
 
     valid_values = ValidValues(('ignore', "Don't do anything."),
                                ('blank', "Load a blank page."),
+                               ('startpage', "Load the start page."),
+                               ('default-page', "Load the default page."),
                                ('close', "Close the window."))
 
 
