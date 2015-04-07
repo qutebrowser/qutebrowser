@@ -49,6 +49,7 @@ image:http://qutebrowser.org/img/cheatsheet-small.png["qutebrowser key binding c
 * link:doc/FAQ.asciidoc[Frequently asked questions]
 * link:CONTRIBUTING.asciidoc[Contributing to qutebrowser]
 * link:doc/INSTALL.asciidoc[INSTALL]
+* link:CHANGELOG.asciidoc[Change Log]
 * link:doc/stacktrace.asciidoc[Reporting segfaults]
 * link:doc/userscripts.asciidoc[How to write userscripts]
 

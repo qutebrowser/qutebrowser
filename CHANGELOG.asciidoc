@@ -1,0 +1,193 @@
+Change Log
+===========
+
+// http://keepachangelog.com/
+
+All notable changes to this project will be documented in this file.
+This project adheres to http://semver.org/[Semantic Versioning].
+
+// tags:
+// `Added` for new features.
+// `Changed` for changes in existing functionality.
+// `Deprecated` for once-stable features removed in upcoming releases.
+// `Removed` for deprecated features removed in this release.
+// `Fixed` for any bug fixes.
+// `Security` to invite users to upgrade in case of vulnerabilities.
+
+v0.2.0 (unreleased)
+-------------------
+
+...
+
+https://github.com/The-Compiler/qutebrowser/releases/tag/v0.1.4[v0.1.4]
+-----------------------------------------------------------------------
+
+Changed
+~~~~~~~
+
+* The Windows builds come with Qt 5.4.1 which has some https://lists.schokokeks.org/pipermail/qutebrowser/2015-March/000054.html[related bugfixes].
+* Improvements to CPU usage when idle.
+* Ensure there's no size for `font-family` settings.
+* Handle URLs with double-colon as search strings.
+* Adjust prompt size hint based on content.
+* Refactor websettings and save/restore defaults.
+* Various small improvements to logging.
+* Various improvements for hinting.
+* Improve parsing of `faulthandler` logs.
+
+Removed
+~~~~~~~
+
+* Remove default search engines.
+* Remove debug console completing completely.
+
+Fixed
+~~~~~
+
+* Ignore RuntimeError in `mouserelease_insertmode`.
+* Hide Qt warning when aborting download reply.
+* Hide "Error while shutting down tabs" message.
+* Clear open target in `acceptNavigationRequest`.
+* Fix handling of signals with deleted tabs.
+* Restore `sys.std*` in `utils.fake_io` on exceptions.
+* Allow font names with integers in them.
+* Fix `QIODevice` warnings when closing tabs.
+* Set the `QSettings` path to a config-subdirectory.
+* Add workaround for adblock-message without window.
+* Fix searching for terms starting with a slash.
+* Ignore tab key presses if they'd switch focus.
+
+Security
+~~~~~~~~
+
+* Stop the icon database from being created when private-browsing is set to true.
+* Disable insecure SSL ciphers.
+
+https://github.com/The-Compiler/qutebrowser/releases/tag/v0.1.3[v0.1.3]
+-----------------------------------------------------------------------
+
+Changed
+~~~~~~~
+
+* Various small logging improvements.
+* Don't open relative files in `fuzzy_url` with `:open`
+* Various crashdialog improvements.
+* Hide adblocked iframes.
+
+Fixed
+~~~~~
+
+* Handle shutdown of page with prompt correctly.
+* fuzzy_url: handle invalid URLs with autosearch off
+* Handle explicit searches with `auto-search=false`.
+* Abort download override question on error/cancel.
+* Set a higher z-index for hint labels.
+* Close contextmenu when closing tab to avoid crash.
+* Fix statusbar quickly popping up as window.
+* Clean up `NetworkManager` after downloads finished.
+* Fix restoring of cmd widget after an error.
+* Fix retrying of downloads after the tab is closed.
+* Fix `check_libraries()` output for Arch Linux.
+* Handle all `IPCErrors` properly.
+* Handle another `webelem.IsNullError` with hints.
+* Handle `UnicodeDecodeError` when reading configs.
+
+Security
+~~~~~~~~
+
+* Fix for HTTP passwords accidentally being written to debug log.
+
+https://github.com/The-Compiler/qutebrowser/releases/tag/v0.1.2[v0.1.2]
+-----------------------------------------------------------------------
+
+Changed
+~~~~~~~
+
+* Uncheck sending of debug log by default when private browsing is on.
+* Add SSL info to version info.
+
+Removed
+~~~~~~~
+
+* Remove hosts-file.net from blocker default lists.
+
+Fixed
+~~~~~
+
+* Fix rare exception when a key is pressed shorly after opening a window
+* Fix exception with certain invalid URLs like `http:foo:0`
+* Work around Qt bug which renders checkboxes on OS X unusable
+* Fix exception when a local files can't be read in `:adblock-update`
+* Hide 2 more Qt warnings.
+* Add `!important` to hint CSS so websites don't override the hint look
+* Make `init_venv.py` work with multiple sip `.so` files.
+* Fix splitting with certain commands with an empty argument
+* Fix uppercase hints.
+* Fix segfaults if another page is loaded while a prompt is open
+* Fix exception with invalid `ShellCommand` config values.
+* Replace unencodable chars
+* Fix user-stylesheet setting with an empty value.
+
+
+https://github.com/The-Compiler/qutebrowser/releases/tag/v0.1.1[v0.1.1]
+-----------------------------------------------------------------------
+
+Added
+~~~~~
+
+* Set window icon and add a qutebrowser.ico file for Windows.
+* Ask the user when downloading to an already existing file.
+* Add a `network -> proxy-dns-requests` option.
+* Add "Remove finished" to the download context menu
+* Open and remove clicked downloads.
+
+Changes
+~~~~~~~
+
+* Windows releases are now built with Qt 5.4 which brings many improvements and bugfixes.
+* Add a troubleshooting section to the FAQ.
+* Display IPC errors to the user.
+* Rewrite keymode handling to use only one mode which also fixes various bugs.
+* Save version to state config.
+* Set zoom to default instead of 100% with `:zoom`/`=`.
+* Adjust page zoom if default zoom changed.
+* Force tabs to be focused on `:undo`.
+* Replace manual installation instructions on OS X with homebrew/macports.
+* Allow min-/maximizing of print preview on Windows.
+* Various documentation improvements.
+* Various other small improvements and cleanups.
+
+Removed
+~~~~~~~
+
+* Clean up and temporarily disable alias completion.
+
+Fixed
+~~~~~
+
+* Fix setting of `QWebSettings` (e.g. web fonts) with empty strings.
+* Re-focus web view when leaving prompt/yesno mode.
+* Handle `:restart` correctly with Python eggs.
+* Handle an invalid cwd properly.
+* Fix popping of a dead question in prompter.
+* Fix `AttributeError` on config changes on Ubuntu.
+* Don't treat things like "31c3" as IP address.
+* Handle category being `None` in Qt message handler.
+* Force-include pygments in `freeze.py`.
+* Fix scroll percentage not updating on some pages like twitter.
+* Encode `Content-Disposition` header name properly.
+* Fix item sorting in `NeighborList`.
+* Handle data being `None` in download read timer.
+* Stop download read timer when reply has finished.
+* Fix handling of small/big `fuzzyval`'s in `NeighborList`.
+* Fix crashes when entering invalid values in `qute:settings`.
+* Abort questions in `NetworkManager` when destroyed.
+* Fix height calculation of download view.
+* Always auto-remove adblock downloads when done.
+* Ensure the docs get included in `freeze.py`.
+* Fix crash with `:zoom`.
+
+https://github.com/The-Compiler/qutebrowser/releases/tag/v0.1[v0.1]
+-------------------------------------------------------------------
+
+Initial release.
