@@ -275,6 +275,7 @@ def qt_message_handler(msg_type, context, msg):
         # Hopefully harmless
         '"Method "GetAll" with signature "s" on interface '
         '"org.freedesktop.DBus.Properties" doesn\'t exist',
+        'WOFF support requires QtWebKit to be built with zlib support.'
     )
     if any(msg.strip().startswith(pattern) for pattern in suppressed_msgs):
         level = logging.DEBUG
