@@ -81,7 +81,7 @@ class TestArg:
         self.editor._proc.start.assert_called_with("bin", ["foo{}bar"])
 
 
-class TestFileHandling(object):
+class TestFileHandling:
 
     """Test creation/deletion of tempfile.
 
@@ -131,7 +131,7 @@ class TestFileHandling(object):
         assert not os.path.exists(filename)
 
 
-class TestModifyTests(object):
+class TestModifyTests:
 
     """Tests to test if the text gets saved/loaded correctly.
 
