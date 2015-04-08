@@ -1146,9 +1146,14 @@ class TestFont:
         'bold italic 10pt "Foobar Neue"':
             FontDesc(QFont.StyleItalic, QFont.Bold, 10, None, 'Foobar Neue'),
     }
-    INVALID = ['green "Foobar Neue"', 'italic green "Foobar Neue"',
-               'bold bold "Foobar Neue"', 'bold italic "Foobar Neue"'
-                                          'bold', '10pt 20px "Foobar Neue"']
+
+    INVALID = [
+        'green "Foobar Neue"',
+        'italic green "Foobar Neue"',
+        'bold bold "Foobar Neue"',
+        'bold italic "Foobar Neue"',
+        '10pt 20px "Foobar Neue"'
+    ]
 
     @pytest.fixture(autouse=True)
     def setup(self):
